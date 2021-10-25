@@ -1,3 +1,4 @@
+#include "mathf.hpp"
 #include "client.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
@@ -13,18 +14,18 @@ extern PNGTexOffDB *g_selectCharDB;
 ProcessCreateChar::ProcessCreateChar()
     : Process()
     , m_warrior(DIR_UPLEFT, 339, 539, {0X0D000030, 0X0D000031, 0X0D000032}, nullptr, nullptr, [this](){ m_job = JOB_WARRIOR; })
-    , m_wizard (DIR_UPLEFT, 381, 539, {0X0D000040, 0X0D000041, 0X0D000042}, nullptr, nullptr, [this](){ m_job = JOB_TAOIST ; })
-    , m_taoist (DIR_UPLEFT, 424, 539, {0X0D000050, 0X0D000051, 0X0D000052}, nullptr, nullptr, [this](){ m_job = JOB_WIZARD ; })
+    , m_wizard (DIR_UPLEFT, 381, 539, {0X0D000040, 0X0D000041, 0X0D000042}, nullptr, nullptr, [this](){ m_job = JOB_WIZARD ; })
+    , m_taoist (DIR_UPLEFT, 424, 539, {0X0D000050, 0X0D000051, 0X0D000052}, nullptr, nullptr, [this](){ m_job = JOB_TAOIST ; })
     , m_submit (DIR_UPLEFT, 512, 549, {0X0D000010, 0X0D000011, 0X0D000012}, nullptr, nullptr, [this](){ onSubmit(); }, 0, 0, 0, 0, true, false)
     , m_exit   (DIR_UPLEFT, 554, 549, {0X0D000020, 0X0D000021, 0X0D000022}, nullptr, nullptr, [this](){ onExit();   }, 0, 0, 0, 0, true, false)
 
     , m_nameLine
       {
           DIR_UPLEFT,
-          7,
-          105,
-          343,
-          17,
+          355,
+          520,
+          85,
+          15,
 
           1,
           12,
@@ -32,7 +33,7 @@ ProcessCreateChar::ProcessCreateChar()
           0,
           colorf::WHITE + colorf::A_SHF(255),
 
-          2,
+          1,
           colorf::WHITE + colorf::A_SHF(255),
 
           nullptr,
@@ -77,6 +78,10 @@ void ProcessCreateChar::draw() const
         g_sdlDevice->drawTexture(texPtr, 268, 555);
     }
 
+    g_sdlDevice->fillRectangle(colorf::RGBA(  0,   0,   0, 255), 355, 520, 90, 15);
+    m_nameLine.draw();
+    g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 100), 355, 520, 90, 15);
+
     if(auto texPtr = g_progUseDB->retrieve(0X0D000001)){
         g_sdlDevice->drawTexture(texPtr, 320, 500);
     }
@@ -100,6 +105,23 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
     tookEvent |= m_nameLine.processEvent(event, !tookEvent);
 
     if(!tookEvent){
+        switch(event.type){
+            case SDL_MOUSEBUTTONDOWN:
+                {
+                    const auto [px, py] = SDLDeviceHelper::getMousePLoc();
+                    if(mathf::pointInRectangle(px, py, 200, 290, 90, 260)){
+                        m_activeGender = true;
+                    }
+                    else if(mathf::pointInRectangle(px, py, 510, 310, 90, 260)){
+                        m_activeGender = false;
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
     }
 }
 
