@@ -107,7 +107,7 @@ class NotifyBoard: public Widget
         }
 
     public:
-        int pw();
+        int pw() const;
 
     public:
         bool empty() const

@@ -55,7 +55,7 @@ void ProcessLogo::update(double fDTime)
     }
 }
 
-void ProcessLogo::draw()
+void ProcessLogo::draw() const
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
     if(auto pTexture = g_progUseDB->retrieve(0X00000000)){
@@ -68,7 +68,7 @@ void ProcessLogo::draw()
     }
 }
 
-double ProcessLogo::colorRatio()
+double ProcessLogo::colorRatio() const
 {
     const double fRatio = m_totalTime / m_fullTime;
     if(fRatio < m_timeR1){

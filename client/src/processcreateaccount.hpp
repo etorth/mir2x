@@ -49,8 +49,8 @@ class ProcessCreateAccount: public Process
         }
 
     public:
+        void draw() const override;
         void update(double) override;
-        void draw() override;
         void processEvent(const SDL_Event &) override;
 
     private:

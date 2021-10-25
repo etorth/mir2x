@@ -168,8 +168,8 @@ class ProcessRun: public Process
         void Notify(const char *, const std::map<std::string, std::function<void()>> &);
 
     public:
+        virtual void draw() const override;
         virtual void update(double) override;
-        virtual void draw() override;
         virtual void processEvent(const SDL_Event &) override;
 
     public:
@@ -256,7 +256,14 @@ class ProcessRun: public Process
         double MoveCost(bool, int, int, int, int);
 
     public:
-        uint64_t focusUID(int);
+        uint64_t getFocusUID(int) const;
+        void setFocusUID(int, uint64_t);
+
+    public:
+        void updateMouseFocus()
+        {
+            m_focusUIDTable[FOCUS_MOUSE] = getFocusUID(FOCUS_MOUSE);
+        }
 
     public:
         bool  luaCommand(const char *);
@@ -354,16 +361,16 @@ class ProcessRun: public Process
         void sendNPCEvent(uint64_t, std::string, std::optional<std::string> = {});
 
     private:
-        void drawFPS();
-        void drawMouseLocation();
+        void drawFPS() const;
+        void drawMouseLocation() const;
 
     private:
-        void drawTile(int, int, int, int);
-        void drawGroundItem(int, int, int, int);
-        void drawRotateStar(int, int, int, int);
+        void drawTile(int, int, int, int) const;
+        void drawGroundItem(int, int, int, int) const;
+        void drawRotateStar(int, int, int, int) const;
 
     private:
-        void drawObject(int, int, int, bool);
+        void drawObject(int, int, int, bool) const;
 
     private:
         void checkMagicSpell(const SDL_Event &);

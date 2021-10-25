@@ -58,7 +58,7 @@ void ProcessSync::update(double fUpdateTime)
     m_ratio += (fUpdateTime > 0.0 ? 1 : 0);
 }
 
-void ProcessSync::draw()
+void ProcessSync::draw() const
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
     auto texPtr = g_progUseDB->retrieve(0X00000002);

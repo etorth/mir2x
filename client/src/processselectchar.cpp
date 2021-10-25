@@ -56,7 +56,7 @@ void ProcessSelectChar::update(double fUpdateTime)
     }
 }
 
-void ProcessSelectChar::draw()
+void ProcessSelectChar::draw() const
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
     if(auto texPtr = g_progUseDB->retrieve(0X0C000000)){

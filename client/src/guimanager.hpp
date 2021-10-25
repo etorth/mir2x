@@ -64,6 +64,12 @@ class GUIManager: public WidgetGroup
     public:
         Widget *getWidget(const std::string &);
 
+    public:
+        const Widget *getWidget(const std::string &name) const
+        {
+            return const_cast<GUIManager *>(this)->getWidget(name);
+        }
+
     private:
         void onWindowResize();
 };

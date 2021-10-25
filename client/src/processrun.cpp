@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: processrun.cpp
- *        Created: 08/31/2015 03:43:46
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <memory>
 #include <numeric>
 #include <cstring>
@@ -107,6 +89,7 @@ void ProcessRun::scrollMap()
 
 void ProcessRun::update(double fUpdateTime)
 {
+    updateMouseFocus();
     m_aniTimer.update(std::lround(fUpdateTime));
 
     scrollMap();
@@ -174,14 +157,15 @@ void ProcessRun::update(double fUpdateTime)
         }
     }
 
-    if(auto p = findUID(m_focusUIDTable[FOCUS_ATTACK])){
+    if(auto p = findUID(getFocusUID(FOCUS_ATTACK))){
         if(p->alive()){
-            trackAttack(false, m_focusUIDTable[FOCUS_ATTACK]);
-        }else{
-            m_focusUIDTable[FOCUS_ATTACK] = 0;
+            trackAttack(false, getFocusUID(FOCUS_ATTACK));
+        }
+        else{
+            setFocusUID(FOCUS_ATTACK, 0);
         }
     }else{
-        m_focusUIDTable[FOCUS_ATTACK] = 0;
+        setFocusUID(FOCUS_ATTACK, 0);
     }
 
     if(true){
@@ -200,73 +184,66 @@ void ProcessRun::update(double fUpdateTime)
     }
 }
 
-uint64_t ProcessRun::focusUID(int nFocusType)
+uint64_t ProcessRun::getFocusUID(int focusType) const
 {
-    if(nFocusType < to_d(m_focusUIDTable.size())){
-        switch(nFocusType){
-            case FOCUS_NONE:
-                {
-                    return 0;
-                }
-            case FOCUS_MOUSE:
-                {
-                    // use the cached mouse focus first
-                    // if can't get it then scan the whole creature list
+    switch(focusType){
+        case FOCUS_MOUSE:
+            {
+                const auto [mouseWinPX, mouseWinPY] = SDLDeviceHelper::getMousePLoc();
+                const auto mousePX = mouseWinPX + m_viewX;
+                const auto mousePY = mouseWinPY + m_viewY;
 
-                    const auto fnCheckFocus = [this](uint64_t uid, int px, int py) -> bool
-                    {
-                        if(auto creaturePtr = findUID(uid)){
-                            if(uid != getMyHeroUID()){
-                                if(creaturePtr->canFocus(px, py)){
-                                    return true;
-                                }
-                            }
-                        }
-                        return false;
-                    };
-
-                    const auto [mouseWinPX, mouseWinPY] = SDLDeviceHelper::getMousePLoc();
-
-                    const auto mousePX = mouseWinPX + m_viewX;
-                    const auto mousePY = mouseWinPY + m_viewY;
-
-                    if(fnCheckFocus(m_focusUIDTable[FOCUS_MOUSE], mousePX, mousePY)){
-                        return m_focusUIDTable[FOCUS_MOUSE];
-                    }
-
-                    ClientCreature *focusCreaturePtr = nullptr;
-                    for(auto p = m_coList.begin();;){
-                        auto pnext = std::next(p);
-                        if(fnCheckFocus(p->second->UID(), mousePX, mousePY)){
-                            if(false
-                                    || !focusCreaturePtr
-                                    ||  focusCreaturePtr->y() < p->second->y()){
-                                // 1. currently we have no candidate yet
-                                // 2. we have candidate but it's not at more front location
-                                focusCreaturePtr = p->second.get();
-                            }
-                        }
-
-                        if(pnext == m_coList.end()){
-                            break;
-                        }
-                        p = pnext;
-                    }
-
-                    m_focusUIDTable[FOCUS_MOUSE] = focusCreaturePtr ? focusCreaturePtr->UID() : 0;
+                if(auto coPtr = findUID(m_focusUIDTable[FOCUS_MOUSE]); coPtr && coPtr->canFocus(mousePX, mousePY)){
                     return m_focusUIDTable[FOCUS_MOUSE];
                 }
-            default:
-                {
-                    return m_focusUIDTable[nFocusType];
-                }
-        }
-    }
 
-    return 0;
+                ClientCreature *focusCOPtr = nullptr;
+                for(const auto &[uid, coPtr]: m_coList){
+                    if(uid == getMyHeroUID()){
+                        continue;
+                    }
+
+                    if(!coPtr->canFocus(mousePX, mousePY)){
+                        continue;
+                    }
+
+                    if(!focusCOPtr || focusCOPtr->y() < coPtr->y()){
+                        focusCOPtr = coPtr.get();
+                    }
+                }
+                return focusCOPtr ? focusCOPtr->UID() : 0;
+            }
+        case FOCUS_MAGIC:
+        case FOCUS_FOLLOW:
+        case FOCUS_ATTACK:
+            {
+                return m_focusUIDTable[focusType];
+            }
+        default:
+            {
+                throw bad_reach();
+            }
+    }
 }
 
-void ProcessRun::draw()
+void ProcessRun::setFocusUID(int focusType, uint64_t uid)
+{
+    switch(focusType){
+        case FOCUS_MAGIC:
+        case FOCUS_FOLLOW:
+        case FOCUS_ATTACK:
+            {
+                m_focusUIDTable[focusType] = uid;
+                return;
+            }
+        default:
+            {
+                throw fflerror("invalid focus type: %d", focusType);
+            }
+    }
+}
+
+void ProcessRun::draw() const
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
     const int x0 = mathf::bound<int>(-SYS_OBJMAXW + (m_viewX - 2 * SYS_MAPGRIDXP) / SYS_MAPGRIDXP,                                    0, m_mir2xMapData.w());
@@ -393,7 +370,7 @@ void ProcessRun::draw()
 
                     int focusMask = 0;
                     for(int f = FOCUS_BEGIN; f < FOCUS_END; ++f){
-                        if(focusUID(f) == creaturePtr->UID()){
+                        if(getFocusUID(f) == creaturePtr->UID()){
                             focusMask |= (1 << f);
                         }
                     }
@@ -432,7 +409,7 @@ void ProcessRun::draw()
 
     if(m_drawMagicKey){
         int magicKeyOffX = 0;
-        for(const auto &[magicID, magicKey]: dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getConfig().getMagicKeyList()){
+        for(const auto &[magicID, magicKey]: dynamic_cast<const SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getConfig().getMagicKeyList()){
             if(const auto &iconGfx = SkillBoard::getMagicIconGfx(magicID); iconGfx && iconGfx.magicIcon != SYS_TEXNIL){
                 if(auto texPtr = g_progUseDB->retrieve(iconGfx.magicIcon + to_u32(0X00001000))){
                     g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
@@ -510,11 +487,11 @@ void ProcessRun::processEvent(const SDL_Event &event)
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            if(const auto uid = focusUID(FOCUS_MOUSE)){
+                            if(const auto uid = getFocusUID(FOCUS_MOUSE)){
                                 switch(uidf::getUIDType(uid)){
                                     case UID_MON:
                                         {
-                                            m_focusUIDTable[FOCUS_ATTACK] = uid;
+                                            setFocusUID(FOCUS_ATTACK, uid);
                                             trackAttack(true, uid);
                                             break;
                                         }
@@ -556,11 +533,11 @@ void ProcessRun::processEvent(const SDL_Event &event)
                             // 4. if "+GOOD" client will release the motion lock
                             // 5. if "+FAIL" client will use the backup position and direction
 
-                            m_focusUIDTable[FOCUS_ATTACK] = 0;
-                            m_focusUIDTable[FOCUS_FOLLOW] = 0;
+                            setFocusUID(FOCUS_ATTACK, 0);
+                            setFocusUID(FOCUS_FOLLOW, 0);
 
-                            if(auto nUID = focusUID(FOCUS_MOUSE)){
-                                m_focusUIDTable[FOCUS_FOLLOW] = nUID;
+                            if(auto nUID = getFocusUID(FOCUS_MOUSE)){
+                                setFocusUID(FOCUS_FOLLOW, nUID);
                             }
 
                             else if(mathf::LDistance2(getMyHero()->currMotion()->endX, getMyHero()->currMotion()->endY, mouseGridX, mouseGridY)){
@@ -1099,7 +1076,7 @@ void ProcessRun::RegisterUserCommand()
 
     m_userCommandList.emplace_back("getAttackUID", [this](const std::vector<std::string> &) -> int
     {
-        addCBLog(CBLOG_ERR, to_u8cstr(std::to_string(focusUID(FOCUS_ATTACK))));
+        addCBLog(CBLOG_ERR, to_u8cstr(std::to_string(getFocusUID(FOCUS_ATTACK))));
         return 1;
     });
 
@@ -1372,7 +1349,7 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
 uint32_t ProcessRun::GetFocusFaceKey()
 {
     uint32_t nFaceKey = 0X02000000;
-    if(auto nUID = focusUID(FOCUS_MOUSE)){
+    if(auto nUID = getFocusUID(FOCUS_MOUSE)){
         if(auto coPtr = findUID(nUID)){
             switch(coPtr->type()){
                 case UID_PLY:
@@ -1687,7 +1664,7 @@ void ProcessRun::sendNPCEvent(uint64_t uid, std::string event, std::optional<std
     g_client->send(CM_NPCEVENT, cmNPCE);
 }
 
-void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
+void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
 {
     for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
@@ -1750,7 +1727,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1)
     }
 }
 
-void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
+void ProcessRun::drawTile(int x0, int y0, int x1, int y1) const
 {
     for(int y = y0; y < y1; ++y){
         for(int x = x0; x <= x1; ++x){
@@ -1765,7 +1742,7 @@ void ProcessRun::drawTile(int x0, int y0, int x1, int y1)
     }
 }
 
-void ProcessRun::drawObject(int x, int y, int objd, bool alpha)
+void ProcessRun::drawObject(int x, int y, int objd, bool alpha) const
 {
     if(!m_mir2xMapData.validC(x, y)){
         return;
@@ -1814,7 +1791,7 @@ void ProcessRun::drawObject(int x, int y, int objd, bool alpha)
     }
 }
 
-void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1)
+void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1) const
 {
     if(m_starRatio > 1.0){
         return;
@@ -1872,7 +1849,7 @@ std::tuple<int, int> ProcessRun::getACNum(const std::string &name) const
     }
 }
 
-void ProcessRun::drawMouseLocation()
+void ProcessRun::drawMouseLocation() const
 {
     g_sdlDevice->fillRectangle(colorf::RGBA(0, 0, 0, 230), 0, 0, 200, 60);
 
@@ -1887,7 +1864,7 @@ void ProcessRun::drawMouseLocation()
     locGridBoard .draw();
 }
 
-void ProcessRun::drawFPS()
+void ProcessRun::drawFPS() const
 {
     const auto fpsStr = std::to_string(g_sdlDevice->getFPS());
     LabelBoard fpsBoard(DIR_UPLEFT, 0, 0, to_u8cstr(fpsStr), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
@@ -1915,12 +1892,12 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
     // always setup the target UID
     // even the magic itself is cooling down
 
-    if(auto uid = focusUID(FOCUS_MOUSE)){
-        m_focusUIDTable[FOCUS_MAGIC] = uid;
+    if(auto uid = getFocusUID(FOCUS_MOUSE)){
+        setFocusUID(FOCUS_MAGIC, uid);
     }
     else{
-        if(!findUID(m_focusUIDTable[FOCUS_MAGIC])){
-            m_focusUIDTable[FOCUS_MAGIC] = 0;
+        if(!findUID(getFocusUID(FOCUS_MAGIC))){
+            setFocusUID(FOCUS_MAGIC, 0);
         }
     }
 
@@ -1933,7 +1910,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"空拳刀法"):
             {
                 getMyHero()->brakeMove();
-                if(const auto uid = focusUID(FOCUS_MAGIC)){
+                if(const auto uid = getFocusUID(FOCUS_MAGIC)){
                     getMyHero()->emplaceAction(ActionSpinKick
                     {
                         .x = getMyHero()->currMotion()->endX,
@@ -1999,7 +1976,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         case DBCOM_MAGICID(u8"诱惑之光"):
             {
                 getMyHero()->brakeMove();
-                if(const auto uid = focusUID(FOCUS_MAGIC)){
+                if(const auto uid = getFocusUID(FOCUS_MAGIC)){
                     getMyHero()->emplaceAction(ActionSpell
                     {
                         .x = getMyHero()->currMotion()->endX,

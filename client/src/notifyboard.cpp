@@ -86,7 +86,7 @@ void NotifyBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int s
     }
 }
 
-int NotifyBoard::pw()
+int NotifyBoard::pw() const
 {
     int maxW = 0;
     for(const auto &tp: m_boardList){

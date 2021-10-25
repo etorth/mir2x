@@ -57,7 +57,7 @@ ProcessCreateChar::ProcessCreateChar()
 void ProcessCreateChar::update(double)
 {}
 
-void ProcessCreateChar::draw()
+void ProcessCreateChar::draw() const
 {
     if(auto texPtr = g_progUseDB->retrieve(0X0C000000)){
         g_sdlDevice->drawTexture(texPtr, 0, 0);

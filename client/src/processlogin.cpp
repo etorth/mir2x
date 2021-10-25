@@ -130,7 +130,7 @@ void ProcessLogin::update(double fUpdateTime)
     m_notifyBoard.update(fUpdateTime);
 }
 
-void ProcessLogin::draw()
+void ProcessLogin::draw() const
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
     g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000003),   0,  75);

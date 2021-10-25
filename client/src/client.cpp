@@ -49,6 +49,7 @@ void Client::processEvent()
         SDL_Event stEvent;
         while(SDL_PollEvent(&stEvent)){
             m_currentProcess->processEvent(stEvent);
+            switchProcess();
         }
     }
 }
@@ -58,9 +59,9 @@ void Client::mainLoop()
     switchProcess(PROCESSID_LOGO);
     initASIO();
 
-    auto fDelayDraw   = (1000.0 / (1.0 * SYS_DEFFPS)) / 6.0;
-    auto fDelayUpdate = (1000.0 / (1.0 * SYS_DEFFPS)) / 7.0;
-    auto fDelayLoop   = (1000.0 / (1.0 * SYS_DEFFPS)) / 8.0;
+    const auto fDelayDraw   = (1000.0 / (1.0 * SYS_DEFFPS)) / 6.0;
+    const auto fDelayUpdate = (1000.0 / (1.0 * SYS_DEFFPS)) / 7.0;
+    const auto fDelayLoop   = (1000.0 / (1.0 * SYS_DEFFPS)) / 8.0;
 
     auto fLastDraw   = SDL_GetTicks() * 1.0;
     auto fLastUpdate = SDL_GetTicks() * 1.0;
@@ -97,7 +98,6 @@ void Client::mainLoop()
 
         fLastLoop = fCurrLoop;
         eventDelay(fDelayLoop - fPastLoop);
-        switchProcess();
     }
 }
 
@@ -105,11 +105,7 @@ void Client::eventDelay(double fDelayMS)
 {
     const double fStartDelayMS = SDL_GetTicks() * 1.0;
     while(true){
-
-        // always try to poll it
         m_netIO.poll();
-
-        // everytime firstly try to process all pending events
         processEvent();
 
         double fCurrentMS = SDL_GetTicks() * 1.0;
@@ -173,7 +169,6 @@ void Client::initASIO()
 
 void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSize)
 {
-    // 1. update the time when last message received
     m_netPackTick = SDL_GetTicks() * 1.0;
     if(headCode != SM_PING){
         sendSMsgLog(headCode);
@@ -182,7 +177,6 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
     m_clientMonitor.SMProcMonitorList[headCode].recvCount++;
     raii_timer stTimer(&(m_clientMonitor.SMProcMonitorList[headCode].procTick));
 
-    // 2. handle messages
     switch(headCode){
         case SM_LOGINOK:
             {

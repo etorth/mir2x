@@ -180,7 +180,7 @@ void ProcessCreateAccount::update(double fUpdateTime)
     m_boxPwdConfirm.update(fUpdateTime);
 }
 
-void ProcessCreateAccount::draw()
+void ProcessCreateAccount::draw() const
 {
     const SDLDeviceHelper::RenderNewFrame newFrame;
     g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000003), 0, 75);

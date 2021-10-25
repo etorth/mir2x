@@ -119,6 +119,7 @@ class Client final
         {
             if(m_currentProcess){
                 m_currentProcess->update(fUpdateTime);
+                switchProcess();
             }
         }
 
