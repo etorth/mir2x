@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: client.cpp
- *        Created: 08/12/2015 09:59:15
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <set>
 #include <future>
 #include <thread>
@@ -35,6 +17,7 @@
 #include "processlogo.hpp"
 #include "processsync.hpp"
 #include "processselectchar.hpp"
+#include "processcreatechar.hpp"
 #include "processcreateaccount.hpp"
 #include "pngtexoffdb.hpp"
 #include "notifyboard.hpp"
@@ -715,6 +698,11 @@ void Client::switchProcess(int oldID, int newID)
                     case PROCESSID_RUN:
                         {
                             m_currentProcess = std::make_unique<ProcessRun>();
+                            break;
+                        }
+                    case PROCESSID_CREATECHAR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessCreateChar>();
                             break;
                         }
                     default:
