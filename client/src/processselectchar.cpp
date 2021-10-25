@@ -60,8 +60,7 @@ void ProcessSelectChar::draw()
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
     if(auto texPtr = g_progUseDB->retrieve(0X0C000000)){
-        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-        g_sdlDevice->drawTexture(texPtr, 0, 0, 800, 600, 0, 0, texW, texH);
+        g_sdlDevice->drawTexture(texPtr, 0, 0);
     }
 
     m_start .draw();
