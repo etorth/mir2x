@@ -362,3 +362,10 @@ void ProcessSelectChar::switchCharGfx()
             }
     }
 }
+
+void ProcessSelectChar::updateGUIActive()
+{
+    m_start .active( hasChar());
+    m_create.active(!hasChar());
+    m_delete.active( hasChar());
+}

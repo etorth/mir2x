@@ -11,12 +11,8 @@ void ProcessSelectChar::net_QUERYCHAROK(const uint8_t *buf, size_t)
 
     if(m_smChar.value().name.empty()){
         m_notifyBoard.addLog(u8"请先创建游戏角色");
-        m_create.active(true);
     }
-    else{
-        m_start .active(true);
-        m_delete.active(true);
-    }
+    updateGUIActive();
 }
 
 void ProcessSelectChar::net_QUERYCHARERROR(const uint8_t *buf, size_t)
@@ -28,7 +24,7 @@ void ProcessSelectChar::net_QUERYCHARERROR(const uint8_t *buf, size_t)
                 m_smChar.emplace();
                 m_smChar.value().name.clear();
 
-                m_create.active(true);
+                updateGUIActive();
                 m_notifyBoard.addLog(u8"请先创建游戏角色");
                 break;
             }
@@ -44,6 +40,8 @@ void ProcessSelectChar::net_DELETECHAROK(const uint8_t *, size_t)
 {
     m_smChar.emplace();
     m_smChar.value().name.clear();
+
+    updateGUIActive();
     m_notifyBoard.addLog(u8"删除角色成功");
 }
 

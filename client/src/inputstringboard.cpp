@@ -148,7 +148,7 @@ void InputStringBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         DIR_UPLEFT,
         0,
         0,
-        200,
+        250,
 
         false,
         {0, 0, 0, 0},

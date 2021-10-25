@@ -73,6 +73,9 @@ class ProcessSelectChar: public Process
         void onDelete();
         void onExit();
 
+    private:
+        void updateGUIActive();
+
     public:
         void net_QUERYCHAROK    (const uint8_t *, size_t);
         void net_QUERYCHARERROR (const uint8_t *, size_t);
