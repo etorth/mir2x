@@ -92,6 +92,16 @@ void ProcessCreateChar::draw() const
 
     m_submit.draw();
     m_exit  .draw();
+
+    const int notifX = (800 - m_notifyBoard.pw()) / 2;
+    const int notifY = (600 - m_notifyBoard. h()) / 2;
+    const int margin = 15;
+
+    if(!m_notifyBoard.empty()){
+        g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+        g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+    }
+    m_notifyBoard.drawAt(DIR_UPLEFT, notifX, notifY);
 }
 
 void ProcessCreateChar::processEvent(const SDL_Event &event)
