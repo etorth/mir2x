@@ -9,11 +9,11 @@ extern SDLDevice *g_sdlDevice;
 
 ProcessCreateChar::ProcessCreateChar()
     : Process()
-    , m_warrior(DIR_UPLEFT, 270,  60, {0X0D000030, 0X0D000031, 0X0D000032}, nullptr, nullptr, [this](){ m_job = JOB_WARRIOR; })
-    , m_wizard (DIR_UPLEFT, 455, 103, {0X0D000040, 0X0D000041, 0X0D000042}, nullptr, nullptr, [this](){ m_job = JOB_TAOIST ; })
-    , m_taoist (DIR_UPLEFT,  85, 256, {0X0D000050, 0X0D000051, 0X0D000052}, nullptr, nullptr, [this](){ m_job = JOB_WIZARD ; })
-    , m_submit (DIR_UPLEFT, 472, 436, {0X0D000010, 0X0D000011, 0X0D000012}, nullptr, nullptr, [this](){ onSubmit();          })
-    , m_exit   (DIR_UPLEFT, 514, 436, {0X0D000020, 0X0D000021, 0X0D000022}, nullptr, nullptr, [this](){ onExit();            })
+    , m_warrior(DIR_UPLEFT, 339, 539, {0X0D000030, 0X0D000031, 0X0D000032}, nullptr, nullptr, [this](){ m_job = JOB_WARRIOR; })
+    , m_wizard (DIR_UPLEFT, 381, 539, {0X0D000040, 0X0D000041, 0X0D000042}, nullptr, nullptr, [this](){ m_job = JOB_TAOIST ; })
+    , m_taoist (DIR_UPLEFT, 424, 539, {0X0D000050, 0X0D000051, 0X0D000052}, nullptr, nullptr, [this](){ m_job = JOB_WIZARD ; })
+    , m_submit (DIR_UPLEFT, 512, 549, {0X0D000010, 0X0D000011, 0X0D000012}, nullptr, nullptr, [this](){ onSubmit(); }, 0, 0, 0, 0, true, false)
+    , m_exit   (DIR_UPLEFT, 554, 549, {0X0D000020, 0X0D000021, 0X0D000022}, nullptr, nullptr, [this](){ onExit();   }, 0, 0, 0, 0, true, false)
 
     , m_nameLine
       {
@@ -55,13 +55,24 @@ ProcessCreateChar::ProcessCreateChar()
 {}
 
 void ProcessCreateChar::update(double)
-{}
+{
+
+}
 
 void ProcessCreateChar::draw() const
 {
     SDLDeviceHelper::RenderNewFrame newFrame;
-    if(auto texPtr = g_progUseDB->retrieve(0X0C000000)){
+    if(auto texPtr = g_progUseDB->retrieve(0X0D000000)){
         g_sdlDevice->drawTexture(texPtr, 0, 0);
+    }
+
+    if(auto texPtr = g_progUseDB->retrieve(0X0D000002)){
+        SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(255, 255, 255, 150));
+        g_sdlDevice->drawTexture(texPtr, 268, 555);
+    }
+
+    if(auto texPtr = g_progUseDB->retrieve(0X0D000001)){
+        g_sdlDevice->drawTexture(texPtr, 320, 500);
     }
 
     m_warrior.draw();
@@ -72,8 +83,18 @@ void ProcessCreateChar::draw() const
     m_exit  .draw();
 }
 
-void ProcessCreateChar::processEvent(const SDL_Event &)
+void ProcessCreateChar::processEvent(const SDL_Event &event)
 {
+    bool tookEvent = false;
+    tookEvent |= m_warrior .processEvent(event, !tookEvent);
+    tookEvent |= m_wizard  .processEvent(event, !tookEvent);
+    tookEvent |= m_taoist  .processEvent(event, !tookEvent);
+    tookEvent |= m_submit  .processEvent(event, !tookEvent);
+    tookEvent |= m_exit    .processEvent(event, !tookEvent);
+    tookEvent |= m_nameLine.processEvent(event, !tookEvent);
+
+    if(!tookEvent){
+    }
 }
 
 void ProcessCreateChar::onSubmit()
