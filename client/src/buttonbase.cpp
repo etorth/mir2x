@@ -30,6 +30,13 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
         return focusConsume(this, false);
     }
 
+    if(!m_active){
+        if(getState() != BEVENT_OFF){
+            setState(BEVENT_OFF);
+        }
+        return focusConsume(this, false);
+    }
+
     switch(event.type){
         case SDL_MOUSEBUTTONUP:
             {

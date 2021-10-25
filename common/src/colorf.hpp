@@ -1,24 +1,7 @@
-/*
- * =====================================================================================
- *
- *       Filename: colorf.hpp
- *        Created: 03/31/2016 19:46:27
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <array>
 #include <cstdint>
+#include <algorithm>
 #include <SDL2/SDL.h>
 
 namespace colorf
@@ -101,6 +84,12 @@ namespace colorf
         const auto newA = round255(r_A * A(origColor));
 
         return RGBA(newR, newG, newB, newA);
+    }
+
+    constexpr uint32_t decolor(uint32_t color)
+    {
+        const auto c = std::max<uint8_t>({R(color), G(color), B(color)});
+        return RGBA(c, c, c, A(color));
     }
 
     constexpr uint32_t renderRGBA(uint32_t dstColor, uint32_t srcColor)
