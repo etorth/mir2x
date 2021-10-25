@@ -6,7 +6,7 @@ extern Client *g_client;
 void ProcessSelectChar::net_QUERYCHAROK(const uint8_t *buf, size_t)
 {
     m_smChar = ServerMsg::conv<SMQueryCharOK>(buf);
-    fflassert(m_smChar.value().name.size);
+    fflassert(m_smChar.value().name.size > 0);
     m_notifyBoard.clear();
 
     if(m_smChar.value().name.empty()){
@@ -14,6 +14,7 @@ void ProcessSelectChar::net_QUERYCHAROK(const uint8_t *buf, size_t)
         m_create.active(true);
     }
     else{
+        m_start .active(true);
         m_delete.active(true);
     }
 }
