@@ -61,6 +61,7 @@ ProcessCreateChar::ProcessCreateChar()
 void ProcessCreateChar::update(double fUpdateTime)
 {
     m_aniTime += fUpdateTime;
+    m_notifyBoard.update(fUpdateTime);
 }
 
 void ProcessCreateChar::draw() const
