@@ -285,7 +285,9 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
             120,
             to_d(cmCC.gender)
         );
+
         g_netDriver->post(channID, SM_CREATECHAROK, nullptr, 0);
+        return;
     }
     catch(const std::exception &e){
         dbError = e.what();

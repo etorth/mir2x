@@ -67,7 +67,7 @@ class ProcessCreateChar: public Process
     private:
         void setGUIActive(bool);
 
-    private:
+    public:
         void net_CREATECHAROK   (const uint8_t *, size_t);
         void net_CREATECHARERROR(const uint8_t *, size_t);
 };

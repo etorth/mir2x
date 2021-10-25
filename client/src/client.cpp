@@ -206,6 +206,21 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
+
+        case SM_CREATECHAROK:
+            {
+                if(auto proc = (ProcessCreateChar *)(ProcessValid(PROCESSID_CREATECHAR))){
+                    proc->net_CREATECHAROK(buf, bufSize);
+                }
+                break;
+            }
+        case SM_CREATECHARERROR:
+            {
+                if(auto proc = (ProcessCreateChar *)(ProcessValid(PROCESSID_CREATECHAR))){
+                    proc->net_CREATECHARERROR(buf, bufSize);
+                }
+                break;
+            }
         case SM_ONLINEOK:
             {
                 if(auto proc = (ProcessSelectChar *)(ProcessValid(PROCESSID_SELECTCHAR))){
