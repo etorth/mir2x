@@ -28,6 +28,7 @@ class ProcessSelectChar: public Process
     private:
         int m_charAni = 0;
         double m_charAniTime = 0.0;
+        uint32_t m_charAniSwitchFrame = 0;
 
     public:
         ProcessSelectChar();
@@ -48,13 +49,22 @@ class ProcessSelectChar: public Process
         void drawCharName() const;
 
     private:
+        void switchCharGfx();
+
+    private:
         uint32_t charFrameCount() const;
         std::optional<uint32_t> charGfxBaseID() const;
 
     private:
         uint32_t absFrame() const
         {
-            return to_u32(std::lround(m_charAniTime / 300.0));
+            return to_u32(std::lround(m_charAniTime / 200.0));
+        }
+
+    private:
+        bool hasChar() const
+        {
+            return m_smChar.has_value() && !m_smChar.value().name.empty();
         }
 
     private:

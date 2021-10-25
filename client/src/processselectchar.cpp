@@ -50,6 +50,10 @@ void ProcessSelectChar::update(double fUpdateTime)
 {
     m_charAniTime += fUpdateTime;
     m_notifyBoard.update(fUpdateTime);
+
+    if(hasChar()){
+        switchCharGfx();
+    }
 }
 
 void ProcessSelectChar::draw()
@@ -264,22 +268,82 @@ void ProcessSelectChar::drawChar() const
         const uint32_t  magicMask = to_u32(13) << 20;
         const uint32_t frameIndex = gfxIDOpt.value() + absFrame() % frameCount;
 
-        const auto fnDrawTexture = [](uint32_t texIndex) -> bool
+        const auto fnDrawTexture = [](uint32_t texIndex, bool alpha = false) -> bool
         {
             constexpr int drawX = 430;
             constexpr int drawY = 300;
 
             if(const auto [texPtr, dx, dy] = g_selectCharDB->retrieve(texIndex); texPtr){
+                SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + colorf::A_SHF(alpha ? 150 : 255));
                 g_sdlDevice->drawTexture(texPtr, drawX + dx, drawY + dy);
                 return true;
             }
             return false;
         };
 
-        if( fnDrawTexture(frameIndex)){
-            fnDrawTexture(frameIndex | shadowMask);
-            fnDrawTexture(frameIndex             );
+        if(fnDrawTexture(frameIndex)){
+            fnDrawTexture(frameIndex | shadowMask, true);
+            fnDrawTexture(frameIndex);
             fnDrawTexture(frameIndex |  magicMask);
         }
+    }
+}
+
+void ProcessSelectChar::switchCharGfx()
+{
+    // switch the char animation to show all gfx
+    // since for mir2x I only allow 1 char per account, so there is no select/deselect
+
+    if(!hasChar()){
+        return;
+    }
+
+    const auto frameCount = charFrameCount();
+    if(frameCount <= 0){
+        return;
+    }
+
+    const auto absFrameIndex = absFrame();
+    if(absFrameIndex % frameCount){
+        return;
+    }
+
+    // can switch now
+    // but if current frame already did, we skip
+
+    if(m_charAniSwitchFrame == absFrameIndex){
+        return;
+    }
+
+    m_charAniSwitchFrame = absFrameIndex;
+    switch(m_charAni){
+        case 0:
+            {
+                if(mathf::rand<int>(0, 1) == 0){
+                    m_charAni = 1;
+                }
+                break;
+            }
+        case 1:
+            {
+                m_charAni = 2;
+                break;
+            }
+        case 2:
+            {
+                if(mathf::rand<int>(0, 1) == 0){
+                    m_charAni = 3;
+                }
+                break;
+            }
+        case 3:
+            {
+                m_charAni = 0;
+                break;
+            }
+        default:
+            {
+                throw bad_reach();
+            }
     }
 }
