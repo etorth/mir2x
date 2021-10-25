@@ -13,7 +13,7 @@ class ProcessCreateChar: public Process
 {
     private:
         int m_job = JOB_WARRIOR;
-        bool m_gender = true;
+        bool m_activeGender = true;
 
     private:
         TritexButton m_warrior;
