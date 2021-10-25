@@ -36,9 +36,7 @@ void NotifyBoard::addLog(const char8_t * format, ...)
 
     const auto xmlString = str_printf("<par>%s</par>", to_cstr(text));
     m_boardList.back().typeset->loadXML(xmlString.c_str());
-
-    m_w = m_lineW;
-    updateHeight();
+    updateSize();
 }
 
 void NotifyBoard::update(double)
@@ -52,7 +50,7 @@ void NotifyBoard::update(double)
                 break;
             }
         }
-        updateHeight();
+        updateSize();
     }
 }
 
@@ -97,10 +95,18 @@ int NotifyBoard::pw()
     return maxW;
 }
 
-void NotifyBoard::updateHeight()
+void NotifyBoard::updateSize()
 {
+    m_w = 0;
     m_h = 0;
+
     for(const auto &tp: m_boardList){
         m_h += tp.typeset->ph();
+        if(m_lineW > 0){
+            m_w = m_lineW;
+        }
+        else{
+            m_w = std::max<int>(m_w, tp.typeset->pw());
+        }
     }
 }

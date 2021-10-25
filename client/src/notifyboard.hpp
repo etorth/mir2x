@@ -122,5 +122,5 @@ class NotifyBoard: public Widget
         void drawEx(int, int, int, int, int, int) const override;
 
     private:
-        void updateHeight();
+        void updateSize();
 };

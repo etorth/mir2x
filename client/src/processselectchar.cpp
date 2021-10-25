@@ -24,7 +24,7 @@ ProcessSelectChar::ProcessSelectChar()
           DIR_UPLEFT,
           0,
           0,
-          10240,
+          0, // automatically resize
           1,
           15,
           0,

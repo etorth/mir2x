@@ -111,7 +111,7 @@ ProcessLogin::ProcessLogin()
           DIR_UPLEFT,
           0,
           0,
-          10240,
+          0,
           1,
           15,
           0,
