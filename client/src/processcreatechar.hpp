@@ -30,6 +30,9 @@ class ProcessCreateChar: public Process
     private:
         NotifyBoard m_notifyBoard;
 
+    private:
+        double m_aniTime = 0.0;
+
     public:
         ProcessCreateChar();
 
@@ -39,10 +42,23 @@ class ProcessCreateChar: public Process
             return PROCESSID_CREATECHAR;
         }
 
+    private:
+        uint32_t absFrame() const
+        {
+            return to_u32(std::lround(m_aniTime / 200.0));
+        }
+
+    private:
+        static uint32_t charGfxBaseID(int, bool);
+        static uint32_t charFrameCount(int, bool);
+
     public:
         void draw() const override;
         void update(double) override;
         void processEvent(const SDL_Event &) override;
+
+    private:
+        void drawChar(bool, int, int) const;
 
     private:
         void onSubmit();

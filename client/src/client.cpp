@@ -706,6 +706,21 @@ void Client::switchProcess(int oldID, int newID)
                 }
                 break;
             }
+        case PROCESSID_CREATECHAR:
+            {
+                switch(newID){
+                    case PROCESSID_SELECTCHAR:
+                        {
+                            m_currentProcess = std::make_unique<ProcessSelectChar>();
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
         default:
             {
                 break;

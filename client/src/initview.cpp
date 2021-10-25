@@ -34,7 +34,6 @@
 #include "threadpool.hpp"
 #include "emojidb.hpp"
 #include "pngtexoffdb.hpp"
-#include "selectchardb.hpp"
 
 extern Log *g_log;
 extern XMLConf *g_xmlConf;
@@ -55,7 +54,7 @@ extern PNGTexOffDB *g_weaponDB;
 extern PNGTexOffDB *g_helmetDB;
 extern PNGTexOffDB *g_monsterDB;
 extern PNGTexOffDB *g_standNPCDB;
-extern SelectCharDB *g_selectCharDB;
+extern PNGTexOffDB *g_selectCharDB;
 
 InitView::InitView(uint8_t fontSize)
     : m_fontSize(fontSize)

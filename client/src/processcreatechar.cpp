@@ -1,11 +1,14 @@
 #include "client.hpp"
-#include "pngtexdb.hpp"
+#include "fflerror.hpp"
 #include "sdldevice.hpp"
+#include "pngtexdb.hpp"
+#include "pngtexoffdb.hpp"
 #include "processcreatechar.hpp"
 
 extern Client *g_client;
-extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
+extern PNGTexDB *g_progUseDB;
+extern PNGTexOffDB *g_selectCharDB;
 
 ProcessCreateChar::ProcessCreateChar()
     : Process()
@@ -54,9 +57,9 @@ ProcessCreateChar::ProcessCreateChar()
       }
 {}
 
-void ProcessCreateChar::update(double)
+void ProcessCreateChar::update(double fUpdateTime)
 {
-
+    m_aniTime += fUpdateTime;
 }
 
 void ProcessCreateChar::draw() const
@@ -65,6 +68,9 @@ void ProcessCreateChar::draw() const
     if(auto texPtr = g_progUseDB->retrieve(0X0D000000)){
         g_sdlDevice->drawTexture(texPtr, 0, 0);
     }
+
+    drawChar( true, 163, 192);
+    drawChar(false, 470, 192);
 
     if(auto texPtr = g_progUseDB->retrieve(0X0D000002)){
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(255, 255, 255, 150));
@@ -97,6 +103,40 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
     }
 }
 
+uint32_t ProcessCreateChar::charFrameCount(int job, bool gender)
+{
+    fflassert(job >= JOB_BEGIN);
+    fflassert(job <  JOB_END  );
+
+    const static std::map<std::tuple<int, bool, int>, uint32_t> s_frameCount
+    {
+        #include "selectcharframecount.inc"
+    };
+
+    if(auto p = s_frameCount.find({job, gender, 4}); p != s_frameCount.end()){
+        return p->second;
+    }
+    return 0;
+}
+
+uint32_t ProcessCreateChar::charGfxBaseID(int job, bool gender)
+{
+    fflassert(job >= JOB_BEGIN);
+    fflassert(job <  JOB_END  );
+
+    // 14     : max =  2   shadow
+    // 13     : max =  2   magic
+    // 10 - 12: max =  8   job
+    // 09     : max =  2   gender: male as true
+    // 05 - 08: max = 16   motion
+    // 00 - 04: max = 32   frame
+
+    return 0
+        + (to_u32(job - JOB_BEGIN) << 10)
+        + (to_u32(gender         ) <<  9)
+        + (to_u32(4              ) <<  5);
+}
+
 void ProcessCreateChar::onSubmit()
 {
     CMCreateChar cmCC;
@@ -127,4 +167,32 @@ void ProcessCreateChar::setGUIActive(bool active)
     m_submit  .active(active);
     m_exit    .active(active);
     m_nameLine.active(active);
+}
+
+void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const
+{
+    const uint32_t frameCount = charFrameCount(m_job, gender);
+    if(frameCount <= 0){
+        return;
+    }
+
+    const uint32_t shadowMask = to_u32(1) << 14;
+    const uint32_t  magicMask = to_u32(1) << 13;
+    const uint32_t frameIndex = charGfxBaseID(m_job, gender) + absFrame() % frameCount;
+
+    const auto fnDrawTexture = [drawX, drawY](uint32_t texIndex, bool alpha = false) -> bool
+    {
+        if(const auto [texPtr, dx, dy] = g_selectCharDB->retrieve(texIndex); texPtr){
+            SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::WHITE + colorf::A_SHF(alpha ? 150 : 255));
+            g_sdlDevice->drawTexture(texPtr, drawX + dx, drawY + dy);
+            return true;
+        }
+        return false;
+    };
+
+    if(fnDrawTexture(frameIndex)){
+        fnDrawTexture(frameIndex | shadowMask, true);
+        fnDrawTexture(frameIndex);
+        fnDrawTexture(frameIndex | magicMask);
+    }
 }

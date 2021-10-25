@@ -1,16 +1,16 @@
 #include "log.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
+#include "pngtexoffdb.hpp"
 #include "sdldevice.hpp"
 #include "layoutboard.hpp"
-#include "selectchardb.hpp"
 #include "processselectchar.hpp"
 
 extern Log *g_log;
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
-extern SelectCharDB *g_selectCharDB;
+extern PNGTexOffDB *g_selectCharDB;
 
 ProcessSelectChar::ProcessSelectChar()
     : Process()
@@ -30,7 +30,7 @@ ProcessSelectChar::ProcessSelectChar()
           0,
           colorf::YELLOW + colorf::A_SHF(255),
           5000,
-          10,
+          1,
       }
 
     , m_deleteInput
@@ -73,7 +73,15 @@ void ProcessSelectChar::draw() const
         drawCharName();
     }
     else{
-        m_notifyBoard.drawAt(DIR_NONE, 400, 300);
+        const int notifX = (800 - m_notifyBoard.pw()) / 2;
+        const int notifY = (600 - m_notifyBoard. h()) / 2;
+        const int margin = 15;
+
+        if(!m_notifyBoard.empty()){
+            g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+            g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+        }
+        m_notifyBoard.drawAt(DIR_UPLEFT, notifX, notifY);
     }
 }
 
@@ -141,7 +149,7 @@ void ProcessSelectChar::onDelete()
 
 void ProcessSelectChar::onExit()
 {
-    g_client->requestProcess(PROCESSID_LOGIN);
+    g_client->requestProcess(PROCESSID_SELECTCHAR);
 }
 
 void ProcessSelectChar::drawCharName() const
@@ -199,9 +207,6 @@ uint32_t ProcessSelectChar::charFrameCount() const
 
         fflassert(m_charAni >= 0);
         fflassert(m_charAni <  4);
-
-        constexpr bool   male =  true;
-        constexpr bool female = false;
 
         // motion:
         // 0 : stand, inactive
@@ -263,8 +268,8 @@ void ProcessSelectChar::drawChar() const
             return;
         }
 
-        const uint32_t shadowMask = to_u32(14) << 20;
-        const uint32_t  magicMask = to_u32(13) << 20;
+        const uint32_t shadowMask = to_u32(1) << 14;
+        const uint32_t  magicMask = to_u32(1) << 13;
         const uint32_t frameIndex = gfxIDOpt.value() + absFrame() % frameCount;
 
         const auto fnDrawTexture = [](uint32_t texIndex, bool alpha = false) -> bool
@@ -283,7 +288,7 @@ void ProcessSelectChar::drawChar() const
         if(fnDrawTexture(frameIndex)){
             fnDrawTexture(frameIndex | shadowMask, true);
             fnDrawTexture(frameIndex);
-            fnDrawTexture(frameIndex |  magicMask);
+            fnDrawTexture(frameIndex | magicMask);
         }
     }
 }
