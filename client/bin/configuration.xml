@@ -22,6 +22,7 @@
         <hairDB>res/texture/hair.zsdb</hairDB>
         <equipDB>res/texture/equip.zsdb</equipDB>
         <standNPCDB>res/texture/npc.zsdb</standNPCDB>
+        <selectCharDB>res/texture/selectchar.zsdb</selectCharDB>
     </texture>
 
     <map>

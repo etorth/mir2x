@@ -69,7 +69,7 @@ void ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, s
         return;
     }
 
-    auto queryChar = g_dbPod->createQuery("select fld_name, fld_exp, fld_job from tbl_dbid where fld_dbid = %llu", to_llu(dbidOpt.value()));
+    auto queryChar = g_dbPod->createQuery("select * from tbl_dbid where fld_dbid = %llu", to_llu(dbidOpt.value()));
     if(!queryChar.executeStep()){
         fnQueryCharError(QUERYCHARERR_NOCHAR);
         return;
@@ -80,6 +80,7 @@ void ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, s
 
     smQCOK.name.assign((std::string)(queryChar.getColumn("fld_name")));
     smQCOK.job.serialize(jobf::getJobList(queryChar.getColumn("fld_job")));
+    smQCOK.gender = queryChar.getColumn("fld_gender");
     smQCOK.exp = queryChar.getColumn("fld_exp");
     g_netDriver->post(channID, SM_QUERYCHAROK, &smQCOK, sizeof(smQCOK));
 }

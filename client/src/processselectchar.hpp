@@ -25,6 +25,10 @@ class ProcessSelectChar: public Process
     private:
         std::optional<SMQueryCharOK> m_smChar;
 
+    private:
+        int m_charAni = 0;
+        double m_charAniTime = 0.0;
+
     public:
         ProcessSelectChar();
 
@@ -38,6 +42,20 @@ class ProcessSelectChar: public Process
         void update(double) override;
         void draw() override;
         void processEvent(const SDL_Event &) override;
+
+    private:
+        void drawChar() const;
+        void drawCharName() const;
+
+    private:
+        uint32_t charFrameCount() const;
+        std::optional<uint32_t> charGfxBaseID() const;
+
+    private:
+        uint32_t absFrame() const
+        {
+            return to_u32(std::lround(m_charAniTime / 300.0));
+        }
 
     private:
         void onStart();

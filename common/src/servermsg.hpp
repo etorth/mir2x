@@ -110,6 +110,7 @@ struct SMQueryCharOK
     FixedBuf<SYS_NAMESIZE> name;
     FixedBuf<128> job;
     uint32_t exp;
+    uint8_t gender;
 };
 
 struct SMQueryCharError

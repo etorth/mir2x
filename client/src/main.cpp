@@ -26,6 +26,7 @@
 #include "emojidb.hpp"
 #include "notifyboard.hpp"
 #include "pngtexoffdb.hpp"
+#include "selectchardb.hpp"
 #include "clientargparser.hpp"
 
 // global variables, decide to follow pattern in MapEditor
@@ -44,6 +45,7 @@ PNGTexOffDB     *g_helmetDB        = nullptr; // database for helmet
 PNGTexOffDB     *g_equipDB         = nullptr; // database for equipment in player status board
 PNGTexOffDB     *g_magicDB         = nullptr; // database for magic
 PNGTexOffDB     *g_standNPCDB      = nullptr; // database for NPC
+SelectCharDB    *g_selectCharDB    = nullptr; // database for chars in ProcessSelectChar and ProcessCreateChar
 EmojiDB         *g_emojiDB         = nullptr; // database for emoticons
 MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
@@ -88,6 +90,7 @@ int main(int argc, char *argv[])
         g_equipDB         = new PNGTexOffDB(1024);
         g_magicDB         = new PNGTexOffDB(1024);
         g_standNPCDB      = new PNGTexOffDB(1024);
+        g_selectCharDB    = new SelectCharDB(512);
         g_fontexDB        = new FontexDB(1024);
         g_mapBinDB        = new MapBinDB();
         g_emojiDB         = new EmojiDB();
