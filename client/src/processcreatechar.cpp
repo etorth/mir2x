@@ -69,8 +69,8 @@ void ProcessCreateChar::draw() const
         g_sdlDevice->drawTexture(texPtr, 0, 0);
     }
 
-    drawChar( true, 163, 192);
-    drawChar(false, 470, 192);
+    drawChar( true, 193, 215);
+    drawChar(false, 495, 220);
 
     if(auto texPtr = g_progUseDB->retrieve(0X0D000002)){
         SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::RGBA(255, 255, 255, 150));
@@ -179,6 +179,12 @@ void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const
     const uint32_t shadowMask = to_u32(1) << 14;
     const uint32_t  magicMask = to_u32(1) << 13;
     const uint32_t frameIndex = charGfxBaseID(m_job, gender) + absFrame() % frameCount;
+
+    // TODO hack code
+    // seems for female warrior offset-y is mis-aligned
+    if(gender == false && m_job == JOB_WARRIOR){
+        drawY += 20;
+    }
 
     const auto fnDrawTexture = [drawX, drawY](uint32_t texIndex, bool alpha = false) -> bool
     {
