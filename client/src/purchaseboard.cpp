@@ -248,7 +248,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
                   throw fflerror("unexpected seqID = %llu", to_llu(seqID));
               }
 
-              const auto headerString = str_printf(u8"<par>请输入你要购买<t color=\"red\">%s</t>的数量</par>", to_cstr(DBCOM_ITEMRECORD(itemID).name));
+              const auto headerString = str_printf(u8"<layout><par>请输入你要购买<t color=\"red\">%s</t>的数量</par></layout>", to_cstr(DBCOM_ITEMRECORD(itemID).name));
               dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"))->waitInput(headerString, [itemID, npcUID = m_npcUID, this](std::u8string inputString)
               {
                   const auto &ir = DBCOM_ITEMRECORD(itemID);

@@ -206,7 +206,20 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
-
+        case SM_DELETECHAROK:
+            {
+                if(auto proc = (ProcessSelectChar *)(ProcessValid(PROCESSID_SELECTCHAR))){
+                    proc->net_DELETECHAROK(buf, bufSize);
+                }
+                break;
+            }
+        case SM_DELETECHARERROR:
+            {
+                if(auto proc = (ProcessSelectChar *)(ProcessValid(PROCESSID_SELECTCHAR))){
+                    proc->net_DELETECHARERROR(buf, bufSize);
+                }
+                break;
+            }
         case SM_CREATECHAROK:
             {
                 if(auto proc = (ProcessCreateChar *)(ProcessValid(PROCESSID_CREATECHAR))){

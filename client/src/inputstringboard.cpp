@@ -16,6 +16,8 @@
  * =====================================================================================
  */
 
+#include "widget.hpp"
+#include "colorf.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "controlboard.hpp"
@@ -24,10 +26,10 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-InputStringBoard::InputStringBoard(int x, int y, Widget *widgetPtr, bool autoDelete)
+InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
-          DIR_UPLEFT,
+          dir,
           x,
           y,
           0,
@@ -141,22 +143,29 @@ void InputStringBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_yesButton.draw();
     m_nopButton.draw();
 
-    LabelBoard label
+    LayoutBoard textInfoBoard
     {
         DIR_UPLEFT,
-        0, // reset when drawing item
         0,
-        u8"",
+        0,
+        200,
+
+        false,
+        {0, 0, 0, 0},
+
+        false,
 
         1,
         12,
         0,
-
         colorf::WHITE + colorf::A_SHF(255),
+        0,
+
+        LALIGN_JUSTIFY,
     };
 
-    label.loadXML(to_cstr(m_parXMLString));
-    label.drawAt(DIR_NONE, x() + w() / 2, y() + 120);
+    textInfoBoard.loadXML(to_cstr(m_parXMLString));
+    textInfoBoard.drawAt(DIR_NONE, x() + w() / 2, y() + 120);
 
     if(m_input.focus()){
         g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(32), m_input.x(), m_input.y(), m_input.w(), m_input.h());
@@ -201,9 +210,9 @@ void InputStringBoard::inputLineDone()
     }
 }
 
-void InputStringBoard::waitInput(std::u8string parXMLString, std::function<void(std::u8string)> onDone)
+void InputStringBoard::waitInput(std::u8string layoutString, std::function<void(std::u8string)> onDone)
 {
-    m_parXMLString = std::move(parXMLString);
+    m_parXMLString = std::move(layoutString);
     m_onDone = std::move(onDone);
 
     clear();

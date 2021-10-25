@@ -84,7 +84,7 @@ processNPCEvent =
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_NPCINIT)
-        invop.postStartInput(uid, '<par>请输入密码</par>', 'npc_goto_get_set_password_1', true)
+        invop.postStartInput(uid, '<layout><par>请输入密码</par></layout>', 'npc_goto_get_set_password_1', true)
     end,
 
     ["npc_goto_get_set_password_1"] = function(uid, value)
@@ -100,7 +100,7 @@ processNPCEvent =
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]], value, SYS_NPCDONE)
-        invop.postStartInput(uid, '<par>请确认密码</par>', 'npc_goto_get_set_password_2', true)
+        invop.postStartInput(uid, '<layout><par>请确认密码</par></layout>', 'npc_goto_get_set_password_2', true)
     end,
 
     ["npc_goto_get_set_password_2"] = function(uid, value)

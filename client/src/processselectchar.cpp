@@ -35,8 +35,9 @@ ProcessSelectChar::ProcessSelectChar()
 
     , m_deleteInput
       {
-          0,
-          0,
+          DIR_NONE,
+          400,
+          300,
       }
 {
     m_start .active(false);
@@ -68,30 +69,32 @@ void ProcessSelectChar::draw() const
     m_delete.draw();
     m_exit  .draw();
 
-    if(m_smChar.has_value() && !m_smChar.value().name.empty()){
+    if(hasChar()){
         drawChar();
         drawCharName();
     }
-    else{
-        const int notifX = (800 - m_notifyBoard.pw()) / 2;
-        const int notifY = (600 - m_notifyBoard. h()) / 2;
-        const int margin = 15;
 
-        if(!m_notifyBoard.empty()){
-            g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
-            g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
-        }
-        m_notifyBoard.drawAt(DIR_UPLEFT, notifX, notifY);
+    m_deleteInput.draw();
+
+    const int notifX = (800 - m_notifyBoard.pw()) / 2;
+    const int notifY = (600 - m_notifyBoard. h()) / 2;
+    const int margin = 15;
+
+    if(!m_notifyBoard.empty()){
+        g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+        g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
     }
+    m_notifyBoard.drawAt(DIR_UPLEFT, notifX, notifY);
 }
 
 void ProcessSelectChar::processEvent(const SDL_Event &event)
 {
     bool tookEvent = false;
-    tookEvent |= m_start .processEvent(event, !tookEvent);
-    tookEvent |= m_create.processEvent(event, !tookEvent);
-    tookEvent |= m_delete.processEvent(event, !tookEvent);
-    tookEvent |= m_exit  .processEvent(event, !tookEvent);
+    tookEvent |= m_start      .processEvent(event, !tookEvent);
+    tookEvent |= m_create     .processEvent(event, !tookEvent);
+    tookEvent |= m_delete     .processEvent(event, !tookEvent);
+    tookEvent |= m_exit       .processEvent(event, !tookEvent);
+    tookEvent |= m_deleteInput.processEvent(event, !tookEvent);
 
     if(!tookEvent){
     }
@@ -129,9 +132,9 @@ void ProcessSelectChar::onCreate()
 
 void ProcessSelectChar::onDelete()
 {
-    if(m_smChar.has_value() && !m_smChar.value().name.empty()){
+    if(hasChar()){
         m_deleteInput.show(true);
-        m_deleteInput.waitInput(u8"删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。", [this](std::u8string inputString)
+        m_deleteInput.waitInput(u8"<layout><par>删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。</par></layout>", [this](std::u8string inputString)
         {
             CMDeleteChar cmDC;
             std::memset(&cmDC, 0, sizeof(cmDC));
@@ -144,6 +147,9 @@ void ProcessSelectChar::onDelete()
             }
             m_deleteInput.show(false);
         });
+    }
+    else{
+        m_notifyBoard.addLog(u8"此账号没有角色");
     }
 }
 

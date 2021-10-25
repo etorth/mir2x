@@ -37,7 +37,7 @@ class InputStringBoard: public Widget
         std::function<void(std::u8string)> m_onDone;
 
     public:
-        InputStringBoard(int, int, Widget * = nullptr, bool = false);
+        InputStringBoard(dir8_t, int, int, Widget * = nullptr, bool = false);
 
     public:
         void update(double) override;
