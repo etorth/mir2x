@@ -26,7 +26,7 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, Widget *widgetPtr, bool autoDelete)
+InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
           dir,
@@ -46,6 +46,7 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, Widget *widgetPtr, 
           225,
           315,
           23,
+          security,
 
           1,
           14,
@@ -198,7 +199,7 @@ bool InputStringBoard::processEvent(const SDL_Event &event, bool valid)
 
 void InputStringBoard::inputLineDone()
 {
-    const std::string fullInput = m_input.getRawString();
+    const std::string fullInput = m_input.getPasswordString();
     const auto inputPos = fullInput.find_first_not_of(" \n\r\t");
     const std::string realInput = (inputPos == std::string::npos) ? "" : fullInput.substr(inputPos);
 

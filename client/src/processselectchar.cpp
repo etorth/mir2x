@@ -38,6 +38,7 @@ ProcessSelectChar::ProcessSelectChar()
           DIR_NONE,
           400,
           300,
+          true,
       }
 {
     m_start .active(false);

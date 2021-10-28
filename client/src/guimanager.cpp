@@ -94,6 +94,7 @@ GUIManager::GUIManager(ProcessRun *proc)
           DIR_UPLEFT,
           g_sdlDevice->getRendererWidth()  / 2 - 179,
           g_sdlDevice->getRendererHeight() / 2 - 134,
+          false,
           this,
       }
 

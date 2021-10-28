@@ -108,4 +108,10 @@ class PasswordBox: public InputLine
             InputLine::clear();
             m_passwordString.clear();
         }
+
+    public:
+        void setSecurity(bool security)
+        {
+            m_security = security;
+        }
 };

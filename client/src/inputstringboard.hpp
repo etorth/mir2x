@@ -20,13 +20,13 @@
 #include <vector>
 #include <cstdint>
 #include "widget.hpp"
-#include "inputline.hpp"
+#include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 
 class InputStringBoard: public Widget
 {
     private:
-        InputLine m_input;
+        PasswordBox m_input;
 
     private:
         TritexButton m_yesButton;
@@ -37,7 +37,7 @@ class InputStringBoard: public Widget
         std::function<void(std::u8string)> m_onDone;
 
     public:
-        InputStringBoard(dir8_t, int, int, Widget * = nullptr, bool = false);
+        InputStringBoard(dir8_t, int, int, bool, Widget * = nullptr, bool = false);
 
     public:
         void update(double) override;
@@ -59,4 +59,10 @@ class InputStringBoard: public Widget
 
     public:
         void waitInput(std::u8string, std::function<void(std::u8string)>);
+
+    public:
+        void setSecurity(bool security)
+        {
+            m_input.setSecurity(security);
+        }
 };
