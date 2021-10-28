@@ -206,7 +206,9 @@ void ProcessLogin::doLogin()
         m_notifyBoard.addLog(u8"无效的账号或密码");
     }
     else{
-        g_log->addLog(LOGTYPE_INFO, "Login account: (%s:%s)", idStr.c_str(), pwdStr.c_str());
+        // don't check id/password by idstf functions
+        // this allows some test account like: (test, 123456)
+        // but when creating account, changing password we need to be extremely careful
 
         CMLogin cmL;
         std::memset(&cmL, 0, sizeof(cmL));

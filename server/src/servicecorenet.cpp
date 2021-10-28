@@ -1,6 +1,7 @@
 #include "jobf.hpp"
 #include "mathf.hpp"
 #include "dbpod.hpp"
+#include "idstrf.hpp"
 #include "dbcomid.hpp"
 #include "netdriver.hpp"
 #include "dbcomrecord.hpp"
@@ -28,6 +29,9 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
         g_netDriver->post(channID, SM_LOGINERROR, &smLE, sizeof(smLE));
         g_monoServer->addLog(LOGTYPE_WARNING, "Login account failed: id = %s, ec = %d", to_cstr(cmL.id), error);
     };
+
+    // don't check id/password by idstrf here
+    // this allows some test account to be simple, like (test, 123456)
 
     auto queryAccount = g_dbPod->createQuery("select fld_dbid from tbl_account where fld_account = '%s' and fld_password = '%s'", to_cstr(cmL.id), to_cstr(cmL.password));
     if(!queryAccount.executeStep()){
@@ -180,12 +184,12 @@ void ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t 
     const auto id = cmCA.id.to_str();
     const auto password = cmCA.password.to_str();
 
-    if(id.size() < 8){
+    if(!idstrf::isEmail(id.c_str())){
         fnCreateAccountError(CRTACCERR_BADACCOUNT);
         return;
     }
 
-    if(password.size() < 8){
+    if(!idstrf::isPassword(password.c_str())){
         fnCreateAccountError(CRTACCERR_BADPASSWORD);
         return;
     }
@@ -214,17 +218,17 @@ void ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t
     const auto password = cmCP.password.to_str();
     const auto passwordNew = cmCP.passwordNew.to_str();
 
-    if(id.size() < 8){
+    if(!idstrf::isEmail(id.c_str())){
         fnChangePasswordError(CHGPWDERR_BADACCOUNT);
         return;
     }
 
-    if(password.size() < 8){
+    if(!idstrf::isPassword(password.c_str())){
         fnChangePasswordError(CHGPWDERR_BADPASSWORD);
         return;
     }
 
-    if(passwordNew.size() < 8){
+    if(!idstrf::isPassword(passwordNew.c_str())){
         fnChangePasswordError(CHGPWDERR_BADNEWPASSWORD);
         return;
     }
@@ -296,7 +300,7 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
     }
 
     const auto name = cmCC.name.to_str();
-    if(name.size() < 8){
+    if(!idstrf::isCharName(name.c_str())){
         fnCreateCharError(CRTCHARERR_BADNAME);
         return;
     }
