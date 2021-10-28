@@ -97,6 +97,11 @@ void ServiceCore::operateNet(uint32_t channID, uint8_t cmType, const uint8_t *bu
                 net_CM_CREATEACCOUNT(channID, cmType, buf, bufSize);
                 break;
             }
+        case CM_CHANGEPASSWORD:
+            {
+                net_CM_CHANGEPASSWORD(channID, cmType, buf, bufSize);
+                break;
+            }
         default:
             {
                 throw fflerror("unknown client message unhandled: %s", to_cstr(ClientMsg(cmType).name()));

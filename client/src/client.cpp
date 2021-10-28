@@ -19,6 +19,7 @@
 #include "processselectchar.hpp"
 #include "processcreatechar.hpp"
 #include "processcreateaccount.hpp"
+#include "processchangepassword.hpp"
 #include "pngtexoffdb.hpp"
 #include "notifyboard.hpp"
 #include "buildconfig.hpp"
@@ -687,6 +688,11 @@ void Client::switchProcess(int oldID, int newID)
                             m_currentProcess = std::make_unique<ProcessCreateAccount>();
                             break;
                         }
+                    case PROCESSID_CHANGEPASSWORD:
+                        {
+                            m_currentProcess = std::make_unique<ProcessChangePassword>();
+                            break;
+                        }
                     case PROCESSID_RUN:
                         {
                             m_currentProcess = std::make_unique<ProcessRun>();
@@ -700,6 +706,21 @@ void Client::switchProcess(int oldID, int newID)
                 break;
             }
         case PROCESSID_CREATEACCOUNT:
+            {
+                switch(newID){
+                    case PROCESSID_LOGIN:
+                        {
+                            m_currentProcess = std::make_unique<ProcessLogin>();
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
+        case PROCESSID_CHANGEPASSWORD:
             {
                 switch(newID){
                     case PROCESSID_LOGIN:

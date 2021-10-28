@@ -18,6 +18,7 @@ enum CMType: uint8_t
     CM_QUERYCHAR,
     CM_CREATECHAR,
     CM_DELETECHAR,
+    CM_CHANGEPASSWORD,
     CM_ONLINE,
     CM_ACTION,
     CM_SETMAGICKEY,
@@ -127,6 +128,13 @@ struct CMCreateAccount
     FixedBuf<SYS_PWDSIZE> password;
 };
 
+struct CMChangePassword
+{
+    FixedBuf<SYS_NAMESIZE> id;
+    FixedBuf<SYS_NAMESIZE> password;
+    FixedBuf<SYS_NAMESIZE> passwordNew;
+};
+
 struct CMNPCEvent
 {
     uint64_t uid;
@@ -229,6 +237,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_QUERYGOLD,                  0, 0                                   )
                 _add_client_msg_type_case(CM_QUERYPLAYERWLDESP,          1, sizeof(CMQueryPlayerWLDesp)         )
                 _add_client_msg_type_case(CM_CREATEACCOUNT,              1, sizeof(CMCreateAccount)             )
+                _add_client_msg_type_case(CM_CHANGEPASSWORD,             1, sizeof(CMChangePassword)            )
                 _add_client_msg_type_case(CM_NPCEVENT,                   1, sizeof(CMNPCEvent)                  )
                 _add_client_msg_type_case(CM_QUERYSELLITEMLIST,          1, sizeof(CMQuerySellItemList)         )
                 _add_client_msg_type_case(CM_DROPITEM,                   1, sizeof(CMDropItem)                  )
@@ -264,6 +273,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMPickUp>
                     || std::is_same_v<T, CMSetMagicKey>
                     || std::is_same_v<T, CMQueryPlayerWLDesp>
+                    || std::is_same_v<T, CMChangePassword>
                     || std::is_same_v<T, CMCreateAccount>
                     || std::is_same_v<T, CMNPCEvent>
                     || std::is_same_v<T, CMQuerySellItemList>

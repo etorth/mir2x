@@ -199,6 +199,49 @@ void ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t 
     g_netDriver->post(channID, SM_CREATEACCOUNTOK, nullptr, 0);
 }
 
+void ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
+{
+    const auto fnChangePasswordError= [channID](int error)
+    {
+        SMChangePasswordError smCPE;
+        std::memset(&smCPE, 0, sizeof(smCPE));
+        smCPE.error = error;
+        g_netDriver->post(channID, SM_CHANGEPASSWORDERROR, &smCPE, sizeof(smCPE));
+    };
+
+    const auto cmCP = ClientMsg::conv<CMChangePassword>(buf);
+    const auto id = cmCP.id.to_str();
+    const auto password = cmCP.password.to_str();
+    const auto passwordNew = cmCP.passwordNew.to_str();
+
+    if(id.size() < 8){
+        fnChangePasswordError(CHGPWDERR_BADACCOUNT);
+        return;
+    }
+
+    if(password.size() < 8){
+        fnChangePasswordError(CHGPWDERR_BADPASSWORD);
+        return;
+    }
+
+    if(passwordNew.size() < 8){
+        fnChangePasswordError(CHGPWDERR_BADNEWPASSWORD);
+        return;
+    }
+
+    auto query = g_dbPod->createQuery(
+            u8R"###( update tbl_account set fld_password = '%s' where fld_account = '%s' and fld_password = '%s' returning * )###",
+
+            passwordNew.c_str(),
+            id.c_str(),
+            password.c_str());
+
+    if(!query.executeStep()){
+        fnChangePasswordError(CHGPWDERR_BADACCOUNTPASSWORD);
+    }
+    g_netDriver->post(channID, SM_CHANGEPASSWORDOK, nullptr, 0);
+}
+
 void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t)
 {
     const auto fnDeleteCharError = [channID](int error)

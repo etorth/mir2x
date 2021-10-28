@@ -297,6 +297,17 @@ enum CreateAccountErrorType: int
     CRTACCERR_END,
 };
 
+enum ChangePasswordErrorType: int
+{
+    CHGPWDERR_NONE       = 0,
+    CHGPWDERR_BEGIN      = 1,
+    CHGPWDERR_BADACCOUNT = 1,       // bad      account for general check
+    CHGPWDERR_BADPASSWORD,          // bad     password for general check
+    CHGPWDERR_BADNEWPASSWORD,       // bad new password for general check
+    CHGPWDERR_BADACCOUNTPASSWORD,   // can not find (account, password) in database
+    CHGPWDERR_END,
+};
+
 enum LoginErrorType: int
 {
     LOGINERR_NONE      = 0,

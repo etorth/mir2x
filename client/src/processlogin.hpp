@@ -64,8 +64,10 @@ class ProcessLogin: public Process
         void processEvent(const SDL_Event &) override;
 
     private:
+        void doExit();
         void doLogin();
         void doCreateAccount();
+        void doChangePassword();
 
     public:
         void net_LOGINOK   (const uint8_t *, size_t);
