@@ -130,9 +130,9 @@ struct CMCreateAccount
 
 struct CMChangePassword
 {
-    FixedBuf<SYS_NAMESIZE> id;
-    FixedBuf<SYS_NAMESIZE> password;
-    FixedBuf<SYS_NAMESIZE> passwordNew;
+    FixedBuf<SYS_IDSIZE> id;
+    FixedBuf<SYS_PWDSIZE> password;
+    FixedBuf<SYS_PWDSIZE> passwordNew;
 };
 
 struct CMNPCEvent
