@@ -202,7 +202,10 @@ void ProcessLogin::doLogin()
     const auto idStr  = m_idBox.getRawString();
     const auto pwdStr = m_passwordBox.getPasswordString();
 
-    if(!(idStr.empty()) && !(pwdStr.empty())){
+    if(idStr.empty() || pwdStr.empty()){
+        m_notifyBoard.addLog(u8"无效的账号或密码");
+    }
+    else{
         g_log->addLog(LOGTYPE_INFO, "Login account: (%s:%s)", idStr.c_str(), pwdStr.c_str());
 
         CMLogin cmL;
