@@ -270,6 +270,20 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
+        case SM_CHANGEPASSWORDOK:
+            {
+                if(auto proc = (ProcessChangePassword *)(ProcessValid(PROCESSID_CHANGEPASSWORD))){
+                    proc->net_CHANGEPASSWORDOK(buf, bufSize);
+                }
+                break;
+            }
+        case SM_CHANGEPASSWORDERROR:
+            {
+                if(auto proc = (ProcessChangePassword *)(ProcessValid(PROCESSID_CHANGEPASSWORD))){
+                    proc->net_CHANGEPASSWORDERROR(buf, bufSize);
+                }
+                break;
+            }
         case SM_HEALTH:
             {
                 if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

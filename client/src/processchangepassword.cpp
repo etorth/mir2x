@@ -370,8 +370,15 @@ void ProcessChangePassword::doPostPasswordChange()
         return;
     }
 
-    else if(pwdNewStr != pwdNewConfirmStr){
+    if(pwdNewStr != pwdNewConfirmStr){
         setInfoStr(u8"新密码两次输入不一致", 2);
+        m_boxNewPwd.clear();
+        m_boxNewPwdConfirm.clear();
+        return;
+    }
+
+    if(pwdStr == pwdNewStr){
+        setInfoStr(u8"新旧密码相同", 2);
         m_boxNewPwd.clear();
         m_boxNewPwdConfirm.clear();
         return;

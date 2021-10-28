@@ -238,6 +238,7 @@ void ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t
 
     if(!query.executeStep()){
         fnChangePasswordError(CHGPWDERR_BADACCOUNTPASSWORD);
+        return;
     }
     g_netDriver->post(channID, SM_CHANGEPASSWORDOK, nullptr, 0);
 }
