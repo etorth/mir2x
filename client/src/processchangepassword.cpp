@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "log.hpp"
+#include "idstrf.hpp"
 #include "client.hpp"
 #include "widget.hpp"
 #include "pngtexdb.hpp"
@@ -322,19 +323,12 @@ void ProcessChangePassword::processEvent(const SDL_Event &event)
 
 bool ProcessChangePassword::localCheckID(const char *id) const
 {
-    if(str_haschar(id)){
-        const static std::regex ptn
-        {
-            "(\\w+)(\\.|_)?(\\w*)@(\\w+)(\\.(\\w+))+"
-        };
-        return std::regex_match(id, ptn);
-    }
-    return false;
+    return idstrf::isEmail(id);
 }
 
 bool ProcessChangePassword::localCheckPwd(const char *pwd) const
 {
-    return str_haschar(pwd);
+    return idstrf::isPassword(pwd);
 }
 
 void ProcessChangePassword::doExit()

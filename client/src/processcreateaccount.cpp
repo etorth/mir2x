@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "log.hpp"
+#include "idstrf.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
@@ -283,19 +284,12 @@ void ProcessCreateAccount::processEvent(const SDL_Event &event)
 
 bool ProcessCreateAccount::localCheckID(const char *id) const
 {
-    if(str_haschar(id)){
-        std::regex ptn
-        {
-            "(\\w+)(\\.|_)?(\\w*)@(\\w+)(\\.(\\w+))+"
-        };
-        return std::regex_match(id, ptn);
-    }
-    return false;
+    return idstrf::isEmail(id);
 }
 
 bool ProcessCreateAccount::localCheckPwd(const char *pwd) const
 {
-    return str_haschar(pwd);
+    return idstrf::isPassword(pwd);
 }
 
 void ProcessCreateAccount::doExit()
