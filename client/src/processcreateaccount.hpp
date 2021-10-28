@@ -58,10 +58,6 @@ class ProcessCreateAccount: public Process
         void doExit();
 
     private:
-        bool localCheckID (const char *) const;
-        bool localCheckPwd(const char *) const;
-
-    private:
         void localCheck();
 
     private:

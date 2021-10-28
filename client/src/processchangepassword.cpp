@@ -321,16 +321,6 @@ void ProcessChangePassword::processEvent(const SDL_Event &event)
     localCheck();
 }
 
-bool ProcessChangePassword::localCheckID(const char *id) const
-{
-    return idstrf::isEmail(id);
-}
-
-bool ProcessChangePassword::localCheckPwd(const char *pwd) const
-{
-    return idstrf::isPassword(pwd);
-}
-
 void ProcessChangePassword::doExit()
 {
     g_client->requestProcess(PROCESSID_LOGIN);
@@ -343,13 +333,13 @@ void ProcessChangePassword::doPostPasswordChange()
     const auto pwdNewStr = m_boxNewPwd.getPasswordString();
     const auto pwdNewConfirmStr = m_boxNewPwdConfirm.getPasswordString();
 
-    if(!localCheckID(idStr.c_str())){
+    if(!idstrf::isEmail(idStr.c_str())){
         setInfoStr(u8"无效账号", 2);
         clearInput();
         return;
     }
 
-    if(!localCheckPwd(pwdStr.c_str())){
+    if(!idstrf::isPassword(pwdStr.c_str())){
         setInfoStr(u8"无效密码", 2);
         m_boxPwd.clear();
         m_boxNewPwd.clear();
@@ -357,7 +347,7 @@ void ProcessChangePassword::doPostPasswordChange()
         return;
     }
 
-    if(!localCheckPwd(pwdNewStr.c_str())){
+    if(!idstrf::isPassword(pwdNewStr.c_str())){
         setInfoStr(u8"无效新密码", 2);
         m_boxNewPwd.clear();
         m_boxNewPwdConfirm.clear();
@@ -409,10 +399,10 @@ void ProcessChangePassword::localCheck()
         }
     };
 
-    fnCheckInput(idStr, m_LBCheckID, localCheckID(idStr.c_str()));
-    fnCheckInput(pwdStr, m_LBCheckPwd, localCheckPwd(pwdStr.c_str()));
-    fnCheckInput(pwdNewStr, m_LBCheckNewPwd, localCheckPwd(pwdNewStr.c_str()));
-    fnCheckInput(pwdNewConfirmStr, m_LBCheckNewPwdConfirm, localCheckPwd(pwdNewConfirmStr.c_str()) && pwdNewStr == pwdNewConfirmStr);
+    fnCheckInput(idStr, m_LBCheckID, idstrf::isEmail(idStr.c_str()));
+    fnCheckInput(pwdStr, m_LBCheckPwd, idstrf::isPassword(pwdStr.c_str()));
+    fnCheckInput(pwdNewStr, m_LBCheckNewPwd, idstrf::isPassword(pwdNewStr.c_str()));
+    fnCheckInput(pwdNewConfirmStr, m_LBCheckNewPwdConfirm, idstrf::isPassword(pwdNewConfirmStr.c_str()) && pwdNewStr == pwdNewConfirmStr);
 }
 
 void ProcessChangePassword::clearInput()

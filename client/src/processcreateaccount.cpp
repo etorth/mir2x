@@ -241,22 +241,20 @@ void ProcessCreateAccount::processEvent(const SDL_Event &event)
                 switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
-                            if(m_boxID.focus()){
-                                m_boxID.focus(false);
-                                m_boxPwd.focus(true);
-                            }
-                            else if(m_boxPwd.focus()){
-                                m_boxPwd.focus(false);
-                                m_boxPwdConfirm.focus(true);
-                            }
-                            else if(m_boxPwdConfirm.focus()){
-                                m_boxPwdConfirm.focus(false);
-                                m_boxID.focus(true);
-                            }
-                            else{
-                                m_boxID.focus(true);
-                                m_boxPwd.focus(false);
-                                m_boxPwdConfirm.focus(false);
+                            Widget * boxPtrList[]
+                            {
+                                &m_boxID,
+                                &m_boxPwd,
+                                &m_boxPwdConfirm,
+                            };
+
+                            for(size_t i = 0; i < std::extent_v<decltype(boxPtrList)>; ++i){
+                                if(boxPtrList[i]->focus()){
+                                    for(size_t j = 0; j < std::extent_v<decltype(boxPtrList)>; ++j){
+                                        boxPtrList[j]->focus(j == ((i + 1) % std::extent_v<decltype(boxPtrList)>));
+                                    }
+                                    break;
+                                }
                             }
                             return;
                         }
@@ -282,16 +280,6 @@ void ProcessCreateAccount::processEvent(const SDL_Event &event)
     localCheck();
 }
 
-bool ProcessCreateAccount::localCheckID(const char *id) const
-{
-    return idstrf::isEmail(id);
-}
-
-bool ProcessCreateAccount::localCheckPwd(const char *pwd) const
-{
-    return idstrf::isPassword(pwd);
-}
-
 void ProcessCreateAccount::doExit()
 {
     g_client->requestProcess(PROCESSID_LOGIN);
@@ -303,18 +291,20 @@ void ProcessCreateAccount::doPostAccount()
     const auto pwdStr = m_boxPwd.getPasswordString();
     const auto pwdConfirmStr = m_boxPwdConfirm.getPasswordString();
 
-    if(!localCheckID(idStr.c_str())){
+    if(!idstrf::isEmail(idStr.c_str())){
         setInfoStr(u8"无效账号", 2);
         clearInput();
         return;
     }
-    else if(!localCheckPwd(pwdStr.c_str())){
+
+    if(!idstrf::isPassword(pwdStr.c_str())){
         setInfoStr(u8"无效密码", 2);
         m_boxPwd.clear();
         m_boxPwdConfirm.clear();
         return;
     }
-    else if(pwdStr != pwdConfirmStr){
+
+    if(pwdStr != pwdConfirmStr){
         setInfoStr(u8"两次密码输入不一致", 2);
         m_boxPwd.clear();
         m_boxPwdConfirm.clear();
@@ -350,9 +340,9 @@ void ProcessCreateAccount::localCheck()
         }
     };
 
-    fnCheckInput(idStr, m_LBCheckID, localCheckID(idStr.c_str()));
-    fnCheckInput(pwdStr, m_LBCheckPwd, localCheckPwd(pwdStr.c_str()));
-    fnCheckInput(pwdConfirmStr, m_LBCheckPwdConfirm, localCheckPwd(pwdConfirmStr.c_str()) && pwdStr == pwdConfirmStr);
+    fnCheckInput(idStr, m_LBCheckID, idstrf::isEmail(idStr.c_str()));
+    fnCheckInput(pwdStr, m_LBCheckPwd, idstrf::isPassword(pwdStr.c_str()));
+    fnCheckInput(pwdConfirmStr, m_LBCheckPwdConfirm, idstrf::isPassword(pwdConfirmStr.c_str()) && pwdStr == pwdConfirmStr);
 }
 
 void ProcessCreateAccount::clearInput()
