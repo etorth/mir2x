@@ -57,9 +57,9 @@ bool idstrf::isPassword(const char *s)
     if(str_haschar(s)){
         const auto fnIsSpecials = [](char ch) -> bool
         {
-            const char spchs[] = "~!@#$%^&*()";
-            const auto beginp = spchs;
-            const auto   endp = spchs + sizeof(spchs) - 1;
+            const char specialchars[] = "~!@#$%^&*()";
+            const auto beginp = specialchars;
+            const auto   endp = specialchars + sizeof(specialchars) - 1;
             return std::find(beginp, endp, ch) != endp;
         };
 
