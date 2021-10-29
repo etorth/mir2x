@@ -140,7 +140,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
 
             foreachInViewCO([amA, gridList, this](const COLocation &coLoc)
             {
-                if(std::find(gridList.begin(), gridList.end(), std::make_tuple(coLoc.x, coLoc.x)) == gridList.end()){
+                if(std::find(gridList.begin(), gridList.end(), std::make_tuple(coLoc.x, coLoc.y)) == gridList.end()){
                     return;
                 }
 

@@ -90,6 +90,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_standMode = true;
                 break;
             }
+        case ACTION_MOVE:
         case ACTION_SPACEMOVE1:
         case ACTION_SPACEMOVE2:
             {
@@ -102,7 +103,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 });
 
                 // TODO use crowling state
-                //      server is supposed to send an ACTION_STAND immediately to fix the standMode
+                //      next ACTION_STAND/ACTION_MOVE will fix it immdiately
                 m_standMode = false;
                 break;
             }
