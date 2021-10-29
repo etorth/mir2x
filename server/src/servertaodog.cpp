@@ -138,22 +138,22 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
             amA.Y = Y();
             amA.damage = getAttackDamage(dcType);
 
-            foreachInViewCO([amA, gridList, this](const COLocation &coLoc)
+            foreachInViewCO([amA, gridList, this](const COLocation &inViewCOLoc)
             {
-                if(std::find(gridList.begin(), gridList.end(), std::make_tuple(coLoc.x, coLoc.y)) == gridList.end()){
+                if(std::find(gridList.begin(), gridList.end(), std::make_tuple(inViewCOLoc.x, inViewCOLoc.y)) == gridList.end()){
                     return;
                 }
 
-                queryFinalMaster(UID(), [coLoc, amA, this](uint64_t selfFinalMaster)
+                queryFinalMaster(UID(), [inViewCOLoc, amA, this](uint64_t selfFinalMaster)
                 {
-                    queryFinalMaster(coLoc.uid, [coLoc, selfFinalMaster, amA, this](uint64_t enemyFinalMaster)
+                    queryFinalMaster(inViewCOLoc.uid, [inViewCOLoc, selfFinalMaster, amA, this](uint64_t enemyFinalMaster)
                     {
                         if(selfFinalMaster == enemyFinalMaster){
                             return;
                         }
 
                         if(uidf::getUIDType(enemyFinalMaster) == UID_MON){
-                            m_actorPod->forward(coLoc.uid, {AM_ATTACK, amA});
+                            m_actorPod->forward(inViewCOLoc.uid, {AM_ATTACK, amA});
                             return;
                         }
 

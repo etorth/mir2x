@@ -284,64 +284,10 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         //   2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
         //   3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
 
-        switch(nDC){
-            case DBCOM_MAGICID(u8"神兽_喷火"):
-                {
-                    addDelay(550, [nDC, this]()
-                    {
-                        AMStrikeFixedLocDamage amSFLD;
-                        std::memset(&amSFLD, 0, sizeof(amSFLD));
-
-                        for(const auto r: {1, 2}){
-                            std::tie(amSFLD.x, amSFLD.y) = pathf::getFrontGLoc(X(), Y(), Direction(), r);
-                            if(m_map->groundValid(amSFLD.x, amSFLD.y)){
-                                amSFLD.damage = getAttackDamage(nDC);
-                                m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
-                            }
-                        }
-                    });
-                    break;
-                }
-            case DBCOM_MAGICID(u8"火墙"):
-            case DBCOM_MAGICID(u8"祖玛教主_火墙"):
-                {
-                    addDelay(550, [this, coLoc, nDC]()
-                    {
-                        AMCastFireWall amCFW;
-                        std::memset(&amCFW, 0, sizeof(amCFW));
-
-                        amCFW.minDC = 5;
-                        amCFW.maxDC = 9;
-
-                        amCFW.duration = 5 * 1000;
-                        amCFW.dps      = 3;
-
-                        for(const int dir: {DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT}){
-                            if(dir == DIR_NONE){
-                                amCFW.x = coLoc.x;
-                                amCFW.y = coLoc.y;
-                            }
-                            else{
-                                std::tie(amCFW.x, amCFW.y) = pathf::getFrontGLoc(coLoc.x, coLoc.y, dir, 1);
-                            }
-
-                            if(m_map->groundValid(amCFW.x, amCFW.y)){
-                                m_actorPod->forward(m_map->UID(), {AM_CASTFIREWALL, amCFW});
-                            }
-                        }
-                    });
-                    break;
-                }
-            case DBCOM_MAGICID(u8"物理攻击"):
-            default:
-                {
-                    addDelay(550, [this, nUID, nDC]()
-                    {
-                        dispatchAttackDamage(nUID, nDC);
-                    });
-                    break;
-                }
-        }
+        addDelay(550, [this, nUID, nDC]()
+        {
+            dispatchAttackDamage(nUID, nDC);
+        });
 
         if(onOK){
             onOK();

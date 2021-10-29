@@ -3253,6 +3253,7 @@
     .walkWait = 500,
     .walkStep = 1,
     .attackWait = 1500,
+    .dcName = u8"祖玛教主_火墙",
 },
 
 {   .name = u8"祖玛教主62",
