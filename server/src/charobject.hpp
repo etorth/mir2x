@@ -249,7 +249,7 @@ class CharObject: public ServerObject
         void setLastAction(int);
 
     protected:
-        virtual bool DCValid(int, bool) = 0;
+        virtual bool dcValid(int, bool) = 0;
 
     protected:
         virtual DamageNode getAttackDamage(int) const = 0;

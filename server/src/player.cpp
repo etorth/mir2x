@@ -311,7 +311,7 @@ bool Player::goGhost()
     return true;
 }
 
-bool Player::DCValid(int, bool)
+bool Player::dcValid(int, bool)
 {
     return true;
 }

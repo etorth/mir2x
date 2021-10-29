@@ -178,7 +178,7 @@ class Player final: public CharObject
         DamageNode getAttackDamage(int) const;
 
     protected:
-        bool DCValid(int, bool);
+        bool dcValid(int, bool);
 
     protected:
         bool ActionValid(const ActionNode &);

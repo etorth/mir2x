@@ -124,7 +124,7 @@ class Monster: public CharObject
         virtual void trackAttackUID(uint64_t,              std::function<void()>, std::function<void()>);
 
     protected:
-        bool DCValid(int, bool);
+        bool dcValid(int, bool);
 
     protected:
         bool struckDamage(const DamageNode &) override;

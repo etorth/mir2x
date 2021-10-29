@@ -234,7 +234,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         return;
     }
 
-    if(!DCValid(nDC, true)){
+    if(!dcValid(nDC, true)){
         onError();
         return;
     }
@@ -848,7 +848,7 @@ bool Monster::canAttack() const
     });
 }
 
-bool Monster::DCValid(int, bool)
+bool Monster::dcValid(int, bool)
 {
     return true;
 }

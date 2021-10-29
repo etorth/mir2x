@@ -856,7 +856,7 @@ void CharObject::dispatchHealth()
 
 void CharObject::dispatchAttackDamage(uint64_t nUID, int nDC)
 {
-    if(nUID && DCValid(nDC, true)){
+    if(nUID && dcValid(nDC, true)){
         AMAttack amA;
         std::memset(&amA, 0, sizeof(amA));
 

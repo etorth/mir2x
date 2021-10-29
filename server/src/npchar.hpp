@@ -164,7 +164,7 @@ class NPChar final: public CharObject
         void reportCO(uint64_t) override;
 
     public:
-        bool DCValid(int, bool) override
+        bool dcValid(int, bool) override
         {
             return false;
         }
