@@ -184,7 +184,7 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
 
         m_motionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
         {
-            addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"祖玛教主_施法", u8"启动", motionPtr->direction - DIR_BEGIN)));
+            addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"祖玛教主_火墙", u8"启动", motionPtr->direction - DIR_BEGIN)));
             return true;
         });
     }
