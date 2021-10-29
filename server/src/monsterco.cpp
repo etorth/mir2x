@@ -80,8 +80,7 @@ corof::eval_awaiter<bool> Monster::coro_moveForward()
 
         corof::async_variable<bool> done;
         p->requestMove(nextX, nextY, p->MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
-        const auto result = co_await done;
-        co_return result;
+        co_return (co_await done);
     };
     return fnwait(this).to_awaiter<bool>();
 }
@@ -92,8 +91,7 @@ corof::eval_awaiter<uint64_t> Monster::coro_pickTarget()
     {
         corof::async_variable<uint64_t> targetUID;
         p->pickTarget([&targetUID](uint64_t uid){ targetUID.assign(uid); });
-        const auto result = co_await targetUID;
-        co_return result;
+        co_return (co_await targetUID);
     };
     return fnwait(this).to_awaiter<uint64_t>();
 }
@@ -144,8 +142,7 @@ corof::eval_awaiter<int> Monster::coro_checkFriend(uint64_t uid)
     {
         corof::async_variable<int> friendType;
         p->checkFriend(uid, [&friendType](uint64_t type){ friendType.assign(type); });
-        const auto result = co_await friendType;
-        co_return result;
+        co_return (co_await friendType);
     };
     return fnwait(this, uid).to_awaiter<int>();
 }
@@ -175,13 +172,7 @@ corof::eval_awaiter<bool> Monster::coro_trackUID(uint64_t targetUID, DCCastRange
     {
         corof::async_variable<bool> done;
         p->trackUID(targetUID, r, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
-
-        if(co_await done){
-            co_return true;
-        }
-        else{
-            co_return false;
-        }
+        co_return (co_await done);
     };
     return fnwait(this, targetUID, r).to_awaiter<bool>();
 }
@@ -192,9 +183,7 @@ corof::eval_awaiter<bool> Monster::coro_attackUID(uint64_t targetUID, int dcType
     {
         corof::async_variable<bool> done;
         p->attackUID(targetUID, dcType, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
-
-        const auto result = co_await done;
-        co_return result;
+        co_return (co_await done);
     };
     return fnwait(this, targetUID, dcType).to_awaiter<bool>();
 }
@@ -205,9 +194,7 @@ corof::eval_awaiter<bool> Monster::coro_jumpGLoc(int dstX, int dstY, int newDir)
     {
         corof::async_variable<bool> done;
         p->requestJump(dstX, dstY, newDir, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
-
-        const auto result = co_await done;
-        co_return result;
+        co_return (co_await done);
     };
     return fnwait(this, dstX, dstY, newDir).to_awaiter<bool>();
 }
@@ -218,9 +205,7 @@ corof::eval_awaiter<bool> Monster::coro_jumpUID(uint64_t targetUID)
     {
         corof::async_variable<bool> done;
         p->jumpUID(targetUID, [&done]{ done.assign(true); }, [&done]{ done.assign(false); });
-
-        const auto result = co_await done;
-        co_return result;
+        co_return (co_await done);
     };
     return fnwait(this, targetUID).to_awaiter<bool>();
 }
@@ -267,12 +252,7 @@ corof::eval_awaiter<bool> Monster::coro_inDCCastRange(uint64_t targetUID, DCCast
             done.assign(false);
         });
 
-        if(co_await done){
-            co_return true;
-        }
-        else{
-            co_return false;
-        }
+        co_return (co_await done);
     };
     return fnwait(this, targetUID, r).to_awaiter<bool>();
 }
@@ -292,9 +272,7 @@ corof::eval_awaiter<std::optional<SDHealth>> Monster::coro_queryHealth(uint64_t 
                 health.assign({});
             }
         });
-
-        auto result = co_await health;
-        co_return result;
+        co_return (co_await health);
     };
     return fnwait(this, uid).to_awaiter<std::optional<SDHealth>>();
 }
