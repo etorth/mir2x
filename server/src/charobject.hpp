@@ -351,9 +351,6 @@ class CharObject: public ServerObject
         virtual ActionNode makeActionStand() const;
 
     protected:
-        corof::eval_awaiter<std::tuple<uint32_t, int, int>> coro_getCOPLoc(uint64_t);
-
-    protected:
         template<typename... Args> void dispatchInViewCONetPackage(uint8_t type, Args && ... args)
         {
             for(const auto &[uid, coLoc]: m_inViewCOList){

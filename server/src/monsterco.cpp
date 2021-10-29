@@ -276,3 +276,35 @@ corof::eval_awaiter<std::optional<SDHealth>> Monster::coro_queryHealth(uint64_t 
     };
     return fnwait(this, uid).to_awaiter<std::optional<SDHealth>>();
 }
+
+corof::eval_awaiter<std::tuple<uint32_t, int, int>> Monster::coro_getCOGLoc(uint64_t targetUID)
+{
+    const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::eval_poller
+    {
+        int x = -1;
+        int y = -1;
+        uint32_t mapID = 0;
+        corof::async_variable<bool> done;
+
+        p->getCOLocation(targetUID, [&x, &y, &mapID, &done](const COLocation &coLoc)
+        {
+            x = coLoc.x;
+            y = coLoc.y;
+            mapID = coLoc.mapID;
+            done.assign(true);
+        },
+
+        [&done]
+        {
+            done.assign(false);
+        });
+
+        if(co_await done){
+            co_return std::tuple<uint32_t, int, int>(mapID, x, y);
+        }
+        else{
+            co_return std::tuple<uint32_t, int, int>(0, -1, -1);
+        }
+    };
+    return fnwait(this, targetUID).to_awaiter<std::tuple<uint32_t, int, int>>();
+}

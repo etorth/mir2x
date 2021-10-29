@@ -20,7 +20,7 @@ corof::eval_poller ServerEvilCentipede::updateCoroFunc()
         }
 
         if(targetUID){
-            const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
+            const auto [targetMapID, targetX, targetY] = co_await coro_getCOGLoc(targetUID);
             if(inView(targetMapID, targetX, targetY)){
                 idleTime.reset();
                 setStandMode(true);

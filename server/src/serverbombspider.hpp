@@ -24,7 +24,7 @@ class ServerBombSpider final: public Monster
                 }
 
                 if(targetUID){
-                    const auto [targetMapID, targetGX, targetGY] = co_await coro_getCOPLoc(targetUID);
+                    const auto [targetMapID, targetGX, targetGY] = co_await coro_getCOGLoc(targetUID);
                     if((mapID() != targetMapID) || (mathf::LDistance2<int>(X(), Y(), targetGX, targetGY) <= 1)){
                         break; // goDie
                     }

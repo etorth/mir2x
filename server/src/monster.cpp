@@ -587,7 +587,7 @@ corof::eval_poller Monster::updateCoroFunc()
         }
 
         if(targetUID){
-            const auto [argMapID, argX, argY] = co_await coro_getCOPLoc(targetUID);
+            const auto [argMapID, argX, argY] = co_await coro_getCOGLoc(targetUID);
             if(!inView(argMapID, argX, argY)){
                 targetUID = 0;
                 m_inViewCOList.erase(targetUID);

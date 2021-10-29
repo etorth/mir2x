@@ -40,7 +40,7 @@ corof::eval_poller ServerShipwreckLord::updateCoroFunc()
                 lastPushTime.reset();
             }
             else{
-                const auto [targetMapID, targetGX, targetGY] = co_await coro_getCOPLoc(targetUID);
+                const auto [targetMapID, targetGX, targetGY] = co_await coro_getCOGLoc(targetUID);
                 if(mapID() == targetMapID){
                     if(mathf::LDistance2<int>(targetGX, targetGY, X(), Y()) < followDistance * followDistance){
                         co_await coro_trackUID(targetUID, {});

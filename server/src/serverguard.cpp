@@ -43,7 +43,7 @@ corof::eval_poller ServerGuard::updateCoroFunc()
         }
 
         if(targetUID){
-            const auto [targetMapID, targetX, targetY] = co_await coro_getCOPLoc(targetUID);
+            const auto [targetMapID, targetX, targetY] = co_await coro_getCOGLoc(targetUID);
             if(inView(targetMapID, targetX, targetY)){
                 if(mathf::CDistance<int>(targetX, targetY, X(), Y()) == 1){
                     co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
