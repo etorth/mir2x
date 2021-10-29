@@ -26,7 +26,7 @@ void ServerAntHealer::sendHeal(uint64_t uid)
             m_actorPod->forward(p->first, {AM_HEAL, amH});
             dispatchAction(ActionAttack
             {
-                .speed = AttackSpeed(),
+                .speed = attackSpeed(),
                 .x = X(),
                 .y = Y(),
                 .aimUID = uid,
@@ -42,7 +42,7 @@ corof::eval_poller ServerAntHealer::updateCoroFunc()
         if(m_sdHealth.HP < m_sdHealth.maxHP){
             dispatchAction(ActionAttack
             {
-                .speed = AttackSpeed(),
+                .speed = attackSpeed(),
                 .x = X(),
                 .y = Y(),
                 .aimUID = UID(),

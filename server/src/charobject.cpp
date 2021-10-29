@@ -1217,12 +1217,12 @@ void CharObject::queryHealth(uint64_t uid, std::function<void(uint64_t, SDHealth
 
 void CharObject::queryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
 {
-    if(!nUID){
-        throw fflerror("invalid zero UID");
-    }
-
+    fflassert(nUID);
     if(uidf::getUIDType(nUID) != UID_MON){
-        throw fflerror("%s can't have master", uidf::getUIDTypeCStr(nUID));
+        if(fnOp){
+            fnOp(nUID);
+        }
+        return;
     }
 
     auto fnQuery = [this, fnOp](uint64_t nQueryUID)

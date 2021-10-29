@@ -269,7 +269,7 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
 
         dispatchAction(ActionAttack
         {
-            .speed = AttackSpeed(),
+            .speed = attackSpeed(),
             .x = X(),
             .y = Y(),
             .aimUID = nUID,

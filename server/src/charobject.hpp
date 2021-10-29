@@ -287,7 +287,7 @@ class CharObject: public ServerObject
         int estimateHop(int, int);
 
     protected:
-        int AttackSpeed() const
+        int attackSpeed() const
         {
             return SYS_DEFSPEED;
         }

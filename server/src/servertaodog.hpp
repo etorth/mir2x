@@ -73,6 +73,9 @@ class ServerTaoDog final: public ServerTaoSummon
         }
 
     protected:
+        void attackUID(uint64_t, int, std::function<void()>, std::function<void()>) override;
+
+    protected:
         void onAMMasterHitted(const ActorMsgPack &) override
         {
             setStandMode(true);
