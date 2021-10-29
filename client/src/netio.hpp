@@ -56,18 +56,6 @@ class NetIO final
     public:
         void send(uint8_t, const uint8_t *, size_t);
 
-    public:
-        void send(uint8_t headCode)
-        {
-            send(headCode, nullptr, 0);
-        }
-
-        template<typename T> void send(uint8_t headCode, const T &msg)
-        {
-            static_assert(std::is_trivially_copyable_v<T>);
-            send(headCode, (const uint8_t *)(&msg), sizeof(msg));
-        }
-
     private:
         void doReadHeadCode();
         void doReadBody(size_t, size_t);

@@ -18,6 +18,8 @@
 
 #pragma once
 #include <atomic>
+#include <string>
+#include <type_traits>
 #include <SDL2/SDL.h>
 
 #include "netio.hpp"
@@ -148,10 +150,32 @@ class Client final
         void sendSMsgLog(uint8_t);
 
     public:
-        template<typename... U> void send(uint8_t headCode, U&&... u)
+        void send(uint8_t headCode, const void *buf, size_t bufSize)
         {
-            m_netIO.send(headCode, std::forward<U>(u)...);
+            m_netIO.send(headCode, static_cast<const uint8_t *>(buf), bufSize);
             sendCMsgLog(headCode);
+        }
+
+    public:
+        void send(uint8_t headCode)
+        {
+            send(headCode, nullptr, 0);
+        }
+
+        void send(uint8_t headCode, const std::string &buf)
+        {
+            send(headCode, buf.data(), buf.size());
+        }
+
+        void send(uint8_t headCode, const std::u8string &buf)
+        {
+            send(headCode, buf.data(), buf.size());
+        }
+
+        template<typename T> void send(uint8_t headCode, const T &t)
+        {
+            static_assert(std::is_trivially_copyable_v<T>);
+            send(headCode, &t, sizeof(t));
         }
 
     public:

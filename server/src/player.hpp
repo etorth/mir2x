@@ -195,25 +195,25 @@ class Player final: public CharObject
         void postNetMessage(uint8_t, const void *, size_t);
 
     private:
-        void postNetMessage(uint8_t hc)
+        void postNetMessage(uint8_t headCode)
         {
-            postNetMessage(hc, 0, 0);
+            postNetMessage(headCode, nullptr, 0);
         }
 
-        void postNetMessage(uint8_t hc, const std::string &buf)
+        void postNetMessage(uint8_t headCode, const std::string &buf)
         {
-            postNetMessage(hc, buf.data(), buf.length());
+            postNetMessage(headCode, buf.data(), buf.length());
         }
 
-        void postNetMessage(uint8_t hc, const std::u8string &buf)
+        void postNetMessage(uint8_t headCode, const std::u8string &buf)
         {
-            postNetMessage(hc, buf.data(), buf.length());
+            postNetMessage(headCode, buf.data(), buf.length());
         }
 
-        template<typename T> void postNetMessage(uint8_t nHC, T& stMessage)
+        template<typename T> void postNetMessage(uint8_t headCode, T& t)
         {
             static_assert(std::is_trivially_copyable_v<T>);
-            postNetMessage(nHC, (const uint8_t *)(&stMessage), sizeof(stMessage));
+            postNetMessage(headCode, &t, sizeof(t));
         }
 
     protected:
