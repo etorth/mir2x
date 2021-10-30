@@ -1221,6 +1221,10 @@ void CharObject::queryFinalMaster(uint64_t targetUID, std::function<void(uint64_
     switch(uidf::getUIDType(targetUID)){
         case UID_MON:
             {
+                // here don't use mr.tameable
+                // monsters not tameable means wizard can't tame it
+                // but can be created by GM command, or buy from monster merchant
+
                 const auto fnQuery = [this, fnOp](uint64_t targetUID)
                 {
                     m_actorPod->forward(targetUID, AM_QUERYFINALMASTER, [this, targetUID, fnOp](const ActorMsgPack &rmpk)

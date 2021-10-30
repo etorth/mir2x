@@ -1026,46 +1026,51 @@ void Player::reportSecuredItemList()
     }));
 }
 
-void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
+void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
 {
-    if(!nUID){
-        throw fflerror("invalid zero UID");
-    }
+    // this function means:
+    // this player says: how I fell about targetUID
 
-    switch(uidf::getUIDType(nUID)){
+    fflassert(targetUID);
+    fflassert(targetUID != UID());
+
+    switch(uidf::getUIDType(targetUID)){
         case UID_NPC:
             {
-                fnOp(FT_NEUTRAL);
+                if(fnOp){
+                    fnOp(FT_NEUTRAL);
+                }
                 return;
             }
         case UID_PLY:
             {
-                fnOp(isOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
+                if(fnOp){
+                    fnOp(isOffender(targetUID) ? FT_ENEMY : FT_NEUTRAL);
+                }
                 return;
             }
         case UID_MON:
             {
-                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tameable){
-                    fnOp(FT_ENEMY);
-                    return;
-                }
-
-                queryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
+                queryFinalMaster(targetUID, [this, targetUID, fnOp](uint64_t finalMasterUID)
                 {
-                    switch(uidf::getUIDType(nFMasterUID)){
+                    switch(uidf::getUIDType(finalMasterUID)){
                         case UID_PLY:
                             {
-                                fnOp(isOffender(nUID) ? FT_ENEMY : FT_NEUTRAL);
+                                if(fnOp){
+                                    fnOp(isOffender(targetUID) ? FT_ENEMY : FT_NEUTRAL);
+                                }
                                 return;
                             }
                         case UID_MON:
                             {
-                                fnOp(FT_ENEMY);
+                                if(fnOp){
+                                    fnOp(FT_ENEMY);
+                                }
                                 return;
                             }
                         default:
                             {
-                                throw fflerror("final master is not PLY nor MON");
+                                throw bad_value(finalMasterUID);
                             }
                     }
                 });
@@ -1073,7 +1078,7 @@ void Player::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
             }
         default:
             {
-                throw fflerror("checking friend type for: %s", uidf::getUIDTypeCStr(nUID));
+                throw bad_value(targetUID);
             }
     }
 }

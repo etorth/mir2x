@@ -1290,217 +1290,240 @@ void Monster::queryMaster(uint64_t targetUID, std::function<void(uint64_t)> fnOp
     }
 }
 
-void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> fnOp)
+void Monster::checkFriend_ctrlByMonster(uint64_t targetUID, std::function<void(int)> fnOp)
 {
-    if(masterUID() && uidf::getUIDType(masterUID()) != UID_MON){
-        throw fflerror("invalid call to checkFriend_CtrlByMonster");
+    fflassert(targetUID);
+    if(masterUID()){
+        fflassert(uidf::isMonster(masterUID()));
     }
 
-    switch(uidf::getUIDType(nUID)){
+    switch(uidf::getUIDType(targetUID)){
         case UID_PLY:
             {
-                fnOp(FT_ENEMY);
+                if(fnOp){
+                    fnOp(FT_ENEMY);
+                }
                 return;
             }
         case UID_MON:
             {
-                if(!DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tameable){
-                    fnOp(FT_NEUTRAL);
-                    return;
-                }
-
-                queryFinalMaster(nUID, [nUID, fnOp](uint64_t nFMasterUID)
+                queryFinalMaster(targetUID, [targetUID, fnOp](uint64_t finalMasterUID)
                 {
-                    if(!nFMasterUID){
-                        fnOp(FT_ERROR);
-                        return;
+                    if(finalMasterUID){
+                        switch(uidf::getUIDType(finalMasterUID)){
+                            case UID_MON:
+                                {
+                                    if(fnOp){
+                                        fnOp(FT_NEUTRAL);
+                                    }
+                                    return;
+                                }
+                            case UID_PLY:
+                                {
+                                    if(fnOp){
+                                        fnOp(FT_ENEMY);
+                                    }
+                                    return;
+                                }
+                            default:
+                                {
+                                    throw bad_value(finalMasterUID);
+                                }
+                        }
                     }
-
-                    switch(uidf::getUIDType(nFMasterUID)){
-                        case UID_MON:
-                            {
-                                fnOp(FT_NEUTRAL);
-                                return;
-                            }
-                        case UID_PLY:
-                            {
-                                fnOp(FT_ENEMY);
-                                return;
-                            }
-                        default:
-                            {
-                                throw fflerror("invalid final master type: %s", uidf::getUIDTypeCStr(nFMasterUID));
-                            }
+                    else{
+                        if(fnOp){
+                            fnOp(FT_ERROR);
+                        }
                     }
                 });
                 return;
             }
         case UID_NPC:
             {
+                if(fnOp){
+                    fnOp(FT_NEUTRAL);
+                }
                 return;
             }
         default:
             {
-                throw fflerror("invalid UID type: %s", uidf::getUIDTypeCStr(nUID));
+                throw bad_value(targetUID);
             }
     }
 }
 
-void Monster::checkFriend_CtrlByPlayer(uint64_t nUID, std::function<void(int)> fnOp)
+void Monster::checkFriend_ctrlByPlayer(uint64_t targetUID, std::function<void(int)> fnOp)
 {
-    if(uidf::getUIDType(masterUID()) != UID_PLY){
-        throw fflerror("invalid call to checkFriend_CtrlByPlayer");
-    }
+    fflassert(targetUID);
+    fflassert(masterUID());
+    fflassert(uidf::isPlayer(masterUID()));
 
-    switch(uidf::getUIDType(nUID)){
+    switch(uidf::getUIDType(targetUID)){
         case UID_MON:
             {
-                if(!(isPet(nUID) || DBCOM_MONSTERRECORD(uidf::getMonsterID(nUID)).tameable)){
-                    fnOp(FT_ENEMY);
-                    return;
-                }
-
-                queryFinalMaster(nUID, [this, nUID, fnOp](uint64_t nFMasterUID)
+                queryFinalMaster(targetUID, [targetUID, fnOp, this](uint64_t finalMasterUID)
                 {
-                    if(!nFMasterUID){
-                        fnOp(FT_ERROR);
-                        return;
-                    }
-
-                    switch(uidf::getUIDType(nFMasterUID)){
-                        case UID_MON:
-                            {
-                                fnOp(FT_ENEMY);
-                                return;
-                            }
-                        case UID_PLY:
-                            {
-                                if(nFMasterUID == masterUID()){
-                                    fnOp(FT_NEUTRAL);
+                    if(finalMasterUID){
+                        switch(uidf::getUIDType(finalMasterUID)){
+                            case UID_MON:
+                                {
+                                    if(fnOp){
+                                        fnOp(FT_ENEMY);
+                                    }
                                     return;
                                 }
-
-                                QueryFriendType(masterUID(), nUID, [fnOp](int nFriendType)
+                            case UID_PLY:
                                 {
-                                    fnOp(nFriendType);
-                                });
-                                return;
-                            }
-                        default:
-                            {
-                                throw fflerror("invalid final master type: %s", uidf::getUIDTypeCStr(nFMasterUID));
-                            }
+                                    if(finalMasterUID == masterUID()){
+                                        if(fnOp){
+                                            fnOp(FT_NEUTRAL);
+                                        }
+                                    }
+                                    else{
+                                        queryPlayerFriend(masterUID(), targetUID, [fnOp](int friendType)
+                                        {
+                                            if(fnOp){
+                                                fnOp(friendType);
+                                            }
+                                        });
+                                    }
+                                    return;
+                                }
+                            default:
+                                {
+                                    throw bad_value(finalMasterUID);
+                                }
+                        }
+                    }
+                    else{
+                        if(fnOp){
+                            fnOp(FT_ERROR);
+                        }
                     }
                 });
                 return;
             }
         case UID_PLY:
             {
-                QueryFriendType(masterUID(), nUID, [fnOp](int nFriendType)
+                queryPlayerFriend(masterUID(), targetUID, [fnOp](int friendType)
                 {
-                    fnOp(nFriendType);
+                    if(fnOp){
+                        fnOp(friendType);
+                    }
                 });
                 return;
             }
         default:
             {
-                throw fflerror("invalid call to checkFriend_CtrlByPlayer");
+                throw bad_value(targetUID);
             }
     }
 }
 
-void Monster::checkFriend(uint64_t nUID, std::function<void(int)> fnOp)
+void Monster::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
 {
-    fflassert(nUID != 0);
-    fflassert(nUID != UID());
+    fflassert(targetUID);
+    fflassert(targetUID != UID());
 
-    if(uidf::getUIDType(nUID) == UID_NPC){
-        fnOp(FT_NEUTRAL);
+    if(uidf::getUIDType(targetUID) == UID_NPC){
+        if(fnOp){
+            fnOp(FT_NEUTRAL);
+        }
         return;
     }
 
     if(!masterUID()){
-        checkFriend_CtrlByMonster(nUID, fnOp);
+        checkFriend_ctrlByMonster(targetUID, fnOp);
         return;
     }
 
     // has a master
     // can be its master
 
-    if(nUID == masterUID()){
-        fnOp(FT_FRIEND);
+    if(targetUID == masterUID()){
+        if(fnOp){
+            fnOp(FT_FRIEND);
+        }
         return;
     }
 
     // has a master
     // check the final master
 
-    queryFinalMaster(UID(), [this, nUID, fnOp](uint64_t nFMasterUID)
+    queryFinalMaster(UID(), [this, targetUID, fnOp](uint64_t finalMasterUID)
     {
-        if(!nFMasterUID){
-            // TODO monster can swith master
-            // then here we may incorrectly kill the monster
-            fnOp(FT_ERROR);
+        // TODO monster can swith master
+        // then here we may incorrectly kill the monster
+
+        if(!finalMasterUID){
+            if(fnOp){
+                fnOp(FT_ERROR);
+            }
+
             goDie();
             return;
         }
 
-        switch(uidf::getUIDType(nFMasterUID)){
+        switch(uidf::getUIDType(finalMasterUID)){
             case UID_PLY:
                 {
-                    checkFriend_CtrlByPlayer(nUID, fnOp);
+                    checkFriend_ctrlByPlayer(targetUID, fnOp);
                     return;
                 }
             case UID_MON:
                 {
-                    checkFriend_CtrlByMonster(nUID, fnOp);
+                    checkFriend_ctrlByMonster(targetUID, fnOp);
                     return;
                 }
             default:
                 {
-                    throw fflerror("Monster can't be controlled by type: %s", uidf::getUIDTypeCStr(nFMasterUID));
+                    throw fflerror("invalid master uid: %s", to_cstr(uidf::getUIDString(finalMasterUID)));
                 }
         }
     });
 }
 
-void Monster::QueryFriendType(uint64_t nUID, uint64_t nTargetUID, std::function<void(int)> fnOp)
+void Monster::queryPlayerFriend(uint64_t fromUID, uint64_t targetUID, std::function<void(int)> fnOp)
 {
-    if(!(nUID && nTargetUID)){
-        throw fflerror("invalid UID: %" PRIu64 ", %" PRIu64, nUID, nTargetUID);
-    }
+    // this function means:
+    // ask fromUID: how do you feel about targetUID
+
+    fflassert(uidf::isPlayer(fromUID));
+    fflassert(uidf::isPlayer(targetUID));
 
     AMQueryFriendType amQFT;
     std::memset(&amQFT, 0, sizeof(amQFT));
 
-    amQFT.UID = nTargetUID;
-
-    m_actorPod->forward(nUID, {AM_QUERYFRIENDTYPE, amQFT}, [fnOp](const ActorMsgPack &rstMPK)
+    amQFT.UID = targetUID;
+    m_actorPod->forward(fromUID, {AM_QUERYFRIENDTYPE, amQFT}, [fnOp](const ActorMsgPack &rmpk)
     {
-        switch(rstMPK.type()){
+        switch(rmpk.type()){
             case AM_FRIENDTYPE:
                 {
-                    AMFriendType amFT;
-                    std::memcpy(&amFT, rstMPK.data(), sizeof(amFT));
-
+                    const auto amFT = rmpk.conv<AMFriendType>();
                     switch(amFT.Type){
                         case FT_ERROR:
                         case FT_ENEMY:
                         case FT_FRIEND:
                         case FT_NEUTRAL:
                             {
-                                fnOp(amFT.Type);
+                                if(fnOp){
+                                    fnOp(amFT.Type);
+                                }
                                 return;
                             }
                         default:
                             {
-                                throw fflerror("invalid friend type: %d", amFT.Type);
+                                throw bad_reach();
                             }
                     }
                 }
             default:
                 {
-                    fnOp(FT_NEUTRAL);
+                    if(fnOp){
+                        fnOp(FT_ERROR);
+                    }
                     return;
                 }
         }

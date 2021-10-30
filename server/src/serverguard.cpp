@@ -76,28 +76,50 @@ corof::eval_poller ServerGuard::updateCoroFunc()
     co_return true;
 }
 
-void ServerGuard::checkFriend(uint64_t uid, std::function<void(int)> fnOp)
+void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
 {
-    fflassert(uid != 0);
-    fflassert(uid != UID());
+    fflassert(targetUID);
+    fflassert(targetUID != UID());
 
-    switch(uidf::getUIDType(uid)){
+    switch(uidf::getUIDType(targetUID)){
         case UID_MON:
             {
-                switch(DBCOM_MONSTERRECORD(uidf::getMonsterID(uid)).behaveMode){
-                    case BM_GUARD  : fnOp(FT_FRIEND ); return;
-                    case BM_NEUTRAL: fnOp(FT_NEUTRAL); return;
-                    default        : fnOp(FT_ENEMY  ); return;
+                switch(DBCOM_MONSTERRECORD(uidf::getMonsterID(targetUID)).behaveMode){
+                    case BM_GUARD:
+                        {
+                            if(fnOp){
+                                fnOp(FT_FRIEND);
+                            }
+                            return;
+                        }
+                    case BM_NEUTRAL:
+                        {
+                            if(fnOp){
+                                fnOp(FT_NEUTRAL);
+                            }
+                            return;
+                        }
+                    default:
+                        {
+                            if(fnOp){
+                                fnOp(FT_ENEMY);
+                            }
+                            return;
+                        }
                 }
             }
         case UID_PLY:
             {
-                fnOp(FT_NEUTRAL);
+                if(fnOp){
+                    fnOp(FT_NEUTRAL);
+                }
                 return;
             }
         default:
             {
-                fnOp(FT_FRIEND);
+                if(fnOp){
+                    fnOp(FT_FRIEND);
+                }
                 return;
             }
     }

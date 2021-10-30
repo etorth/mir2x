@@ -227,29 +227,29 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
                         const auto castY = motionPtr->endY;
 
                         for(const auto distance: {1, 2, 3, 4, 5, 6, 7, 8}){
-                            m_processRun->addDelay(distance * 100, [standDir, castX, castY, distance, castMapID = m_processRun->mapID(), this]()
+                            m_processRun->addDelay(distance * 100, [standDir, castX, castY, distance, castMapID = m_processRun->mapID(), proc = m_processRun]()
                             {
-                                if(m_processRun->mapID() != castMapID){
+                                if(proc->mapID() != castMapID){
                                     return;
                                 }
 
                                 const auto [aimX, aimY] = pathf::getFrontGLoc(castX, castY, standDir, distance);
-                                if(!m_processRun->groundValid(aimX, aimY)){
+                                if(!proc->groundValid(aimX, aimY)){
                                     return;
                                 }
 
-                                m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new HellFire_RUN
+                                proc->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new HellFire_RUN
                                 {
                                     aimX,
                                     aimY,
                                     standDir,
-                                }))->addTrigger([aimX, aimY, this](MagicBase *magicPtr)
+                                }))->addTrigger([aimX, aimY, proc](MagicBase *magicPtr)
                                 {
                                     if(magicPtr->frame() < 10){
                                         return false;
                                     }
 
-                                    m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
+                                    proc->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
                                     {
                                         aimX,
                                         aimY,

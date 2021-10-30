@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: uidf.cpp
- *        Created: 08/11/2018 05:25:34
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <map>
 #include <mutex>
 #include <array>

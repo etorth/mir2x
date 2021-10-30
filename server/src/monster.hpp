@@ -174,12 +174,12 @@ class Monster: public CharObject
         int FindPathMethod();
 
     protected:
-        void QueryFriendType(uint64_t, uint64_t, std::function<void(int)>);
         void checkFriend(uint64_t, std::function<void(int)>) override;
+        void queryPlayerFriend(uint64_t, uint64_t, std::function<void(int)>);
 
     private:
-        void checkFriend_CtrlByPlayer (uint64_t, std::function<void(int)>);
-        void checkFriend_CtrlByMonster(uint64_t, std::function<void(int)>);
+        void checkFriend_ctrlByPlayer (uint64_t, std::function<void(int)>);
+        void checkFriend_ctrlByMonster(uint64_t, std::function<void(int)>);
 
     protected:
         void queryMaster(uint64_t, std::function<void(uint64_t)>);

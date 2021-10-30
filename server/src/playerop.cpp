@@ -448,12 +448,12 @@ void Player::on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &mpk)
 void Player::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &mpk)
 {
     const auto amQFT = mpk.conv<AMQueryFriendType>();
-    checkFriend(amQFT.UID, [this, mpk](int nFriendType)
+    checkFriend(amQFT.UID, [this, mpk](int friendType)
     {
         AMFriendType amFT;
         std::memset(&amFT, 0, sizeof(amFT));
 
-        amFT.Type = nFriendType;
+        amFT.Type = friendType;
         m_actorPod->forward(mpk.from(), {AM_FRIENDTYPE, amFT}, mpk.seqID());
     });
 }

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: uidf.hpp
- *        Created: 08/10/2018 21:47:18
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <string>
 #include <vector>
@@ -135,7 +117,7 @@ namespace uidf
         if(const uint64_t uid = toUID(uidString)){
             return uid;
         }
-        throw fflerror("failed to convert %s to a valid UID", uidString.c_str());
+        throw fflerror("invalid uid string: %s", to_cstr(uidString));
     }
 }
 
