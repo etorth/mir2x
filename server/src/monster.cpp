@@ -1254,30 +1254,40 @@ int Monster::getAttackMagic(uint64_t) const
     return DBCOM_MAGICID(str_haschar(mr.dcName) ? mr.dcName : u8"物理攻击");
 }
 
-void Monster::queryMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
+void Monster::queryMaster(uint64_t targetUID, std::function<void(uint64_t)> fnOp)
 {
-    fflassert(nUID);
-    fflassert(nUID != UID());
-
-    m_actorPod->forward(nUID, AM_QUERYMASTER, [this, nUID, fnOp](const ActorMsgPack &rstRMPK)
-    {
-        switch(rstRMPK.type()){
-            case AM_UID:
-                {
-                    const auto amUID = rstRMPK.conv<AMUID>();
-                    fnOp(amUID.UID);
-                    return;
-                }
-            default:
-                {
-                    fnOp(0);
-                    if(nUID == masterUID()){
-                        goDie();
-                    }
-                    return;
-                }
+    fflassert(targetUID);
+    if(targetUID == UID()){
+        if(fnOp){
+            fnOp(masterUID() ? masterUID() : UID());
         }
-    });
+    }
+    else{
+        m_actorPod->forward(targetUID, AM_QUERYMASTER, [this, targetUID, fnOp](const ActorMsgPack &rmpk)
+        {
+            switch(rmpk.type()){
+                case AM_UID:
+                    {
+                        const auto amUID = rmpk.conv<AMUID>();
+                        if(fnOp){
+                            fnOp(amUID.UID);
+                        }
+                        return;
+                    }
+                default:
+                    {
+                        if(fnOp){
+                            fnOp(0);
+                        }
+
+                        if(targetUID == masterUID()){
+                            goDie();
+                        }
+                        return;
+                    }
+            }
+        });
+    }
 }
 
 void Monster::checkFriend_CtrlByMonster(uint64_t nUID, std::function<void(int)> fnOp)

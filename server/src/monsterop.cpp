@@ -186,24 +186,24 @@ void Monster::on_AM_QUERYHEALTH(const ActorMsgPack &rmpk)
     m_actorPod->forward(rmpk.from(), {AM_HEALTH, cerealf::serialize(m_sdHealth)}, rmpk.seqID());
 }
 
-void Monster::on_AM_QUERYMASTER(const ActorMsgPack &rstMPK)
+void Monster::on_AM_QUERYMASTER(const ActorMsgPack &mpk)
 {
     AMUID amUID;
     std::memset(&amUID, 0, sizeof(amUID));
 
     amUID.UID = masterUID() ? masterUID() : UID();
-    m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
+    m_actorPod->forward(mpk.from(), {AM_UID, amUID}, mpk.seqID());
 }
 
-void Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &rstMPK)
+void Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &mpk)
 {
-    queryFinalMaster(UID(), [this, rstMPK](uint64_t nFMasterUID)
+    queryFinalMaster(UID(), [this, mpk](uint64_t finalMasterUID)
     {
         AMUID amUID;
         std::memset(&amUID, 0, sizeof(amUID));
 
-        amUID.UID = nFMasterUID;
-        m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
+        amUID.UID = finalMasterUID;
+        m_actorPod->forward(mpk.from(), {AM_UID, amUID}, mpk.seqID());
     });
 }
 
