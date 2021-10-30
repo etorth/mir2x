@@ -1571,16 +1571,39 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
         return;
     }
 
-    if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
-        switch(uidf::getUIDType(amA.UID)){
-            case UID_MON:
-            case UID_PLY:
+    checkFriend(amA.UID, [amA, this](int friendType)
+    {
+        switch(friendType){
+            case FT_ENEMY:
                 {
-                    AMMiss amM;
-                    std::memset(&amM, 0, sizeof(amM));
+                    if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
+                        switch(uidf::getUIDType(amA.UID)){
+                            case UID_MON:
+                            case UID_PLY:
+                                {
+                                    AMMiss amM;
+                                    std::memset(&amM, 0, sizeof(amM));
 
-                    amM.UID = amA.UID;
-                    m_actorPod->forward(amA.UID, {AM_MISS, amM});
+                                    amM.UID = amA.UID;
+                                    m_actorPod->forward(amA.UID, {AM_MISS, amM});
+                                    return;
+                                }
+                            default:
+                                {
+                                    return;
+                                }
+                        }
+                    }
+
+                    addOffenderDamage(amA.UID, amA.damage);
+                    dispatchAction(ActionHitted
+                    {
+                        .x = X(),
+                        .y = Y(),
+                        .direction = Direction(),
+                    });
+
+                    struckDamage(amA.damage);
                     return;
                 }
             default:
@@ -1588,16 +1611,7 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
                     return;
                 }
         }
-    }
-
-    addOffenderDamage(amA.UID, amA.damage);
-    dispatchAction(ActionHitted
-    {
-        .x = X(),
-        .y = Y(),
-        .direction = Direction(),
     });
-    struckDamage(amA.damage);
 }
 
 void Monster::onAMMasterHitted(const ActorMsgPack &)
