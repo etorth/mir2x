@@ -245,6 +245,20 @@
     },
 },
 
+{   .name = u8"祖玛教主_魔法特效_施法",
+    .gfxList
+    {
+        {
+            .stage = u8"启动",
+            .type  = u8"附着",
+            .gfxID = 0X030002D0,
+            .frameCount = 8,
+            .gfxIDCount = 10,
+            .gfxDirType = 8,
+        },
+    },
+},
+
 // end of shared magic effect
 // rest are real magic effects and player/monster can cast
 
@@ -2814,15 +2828,43 @@
 },
 
 {   .name = u8"祖玛教主_火墙",
+    .elem = u8"火",
+
+    .castRange
+    {
+        .type = CRT_LIMITED,
+        .distance = 6,
+    },
+
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
-            .gfxID = 0X030002D0,
-            .frameCount = 8,
-            .gfxIDCount = 10,
-            .gfxDirType = 8,
+            .ref
+            {
+                .name = u8"祖玛教主_魔法特效_施法",
+                .stage = u8"启动",
+            },
+        },
+    },
+},
+
+{   .name = u8"祖玛教主_地狱火",
+    .elem = u8"火",
+
+    .castRange
+    {
+        .type = CRT_DIR,
+        .distance = 6,
+    },
+
+    .gfxList
+    {
+        {
+            .ref
+            {
+                .name = u8"祖玛教主_魔法特效_施法",
+                .stage = u8"启动",
+            },
         },
     },
 },

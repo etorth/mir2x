@@ -1,3 +1,4 @@
+#include "pathf.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientzumataurus.hpp"
@@ -182,11 +183,73 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
             .y = action.y,
         }));
 
-        m_motionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
+        const auto magicID = action.extParam.attack.damageID;
+        m_motionQueue.back()->addTrigger(false, [magicID, this](MotionNode *motionPtr) -> bool
         {
-            addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"祖玛教主_火墙", u8"启动", motionPtr->direction - DIR_BEGIN)));
+            // TODO: support motion spell effect
+            // all magic 启动 and 运行 are both get installed in motion trigger
+            addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"启动", motionPtr->direction - DIR_BEGIN)));
             return true;
         });
+
+        if(magicID == DBCOM_MAGICID(u8"祖玛教主_地狱火")){
+            m_motionQueue.back()->addTrigger(false, [magicID, action, this](MotionNode *motionPtr) -> bool
+            {
+                if(motionPtr->frame < 4){
+                    return false;
+                }
+
+                const auto standDir = [motionPtr, &action, this]() -> int
+                {
+                    if(action.aimUID){
+                        if(auto coPtr = m_processRun->findUID(action.aimUID); coPtr && coPtr->getTargetBox()){
+                            if(const auto dir = m_processRun->getAimDirection(action, DIR_NONE); dir != DIR_NONE){
+                                return dir;
+                            }
+                        }
+                    }
+                    return motionPtr->direction;
+                }();
+
+                const auto castX = motionPtr->endX;
+                const auto castY = motionPtr->endY;
+
+                for(const auto distance: {1, 2, 3, 4, 5, 6, 7, 8}){
+                    m_processRun->addDelay(distance * 100, [standDir, magicID, castX, castY, distance, castMapID = m_processRun->mapID(), this]()
+                    {
+                        if(m_processRun->mapID() != castMapID){
+                            return;
+                        }
+
+                        const auto [aimX, aimY] = pathf::getFrontGLoc(castX, castY, standDir, distance);
+                        if(!m_processRun->groundValid(aimX, aimY)){
+                            return;
+                        }
+
+                        m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new HellFire_RUN
+                        {
+                            aimX,
+                            aimY,
+                            standDir,
+                        }))->addTrigger([aimX, aimY, this](MagicBase *magicPtr)
+                        {
+                            if(magicPtr->frame() < 10){
+                                return false;
+                            }
+
+                            m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FireAshEffect_RUN
+                            {
+                                aimX,
+                                aimY,
+                                1000,
+                            }));
+                            return true;
+                        });
+                    });
+                }
+                return true;
+            });
+        }
     }
     return true;
 }

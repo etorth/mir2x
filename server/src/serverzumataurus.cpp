@@ -1,8 +1,23 @@
 #include "pathf.hpp"
+#include "servermsg.hpp"
+#include "serverargparser.hpp"
 #include "serverzumataurus.hpp"
 
+extern ServerArgParser *g_serverArgParser;
 corof::eval_poller ServerZumaTaurus::updateCoroFunc()
 {
+    const auto hellFireDC = DBCOM_MAGICID(u8"祖玛教主_地狱火");
+    const auto fireWallDC = DBCOM_MAGICID(u8"祖玛教主_火墙");
+
+    fflassert(hellFireDC);
+    fflassert(fireWallDC);
+
+    const auto &hellFireMR = DBCOM_MAGICRECORD(hellFireDC);
+    const auto &fireWallMR = DBCOM_MAGICRECORD(fireWallDC);
+
+    fflassert( hellFireMR);
+    fflassert(fireWallMR);
+
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){
         if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
@@ -16,7 +31,15 @@ corof::eval_poller ServerZumaTaurus::updateCoroFunc()
 
         if(targetUID){
             setStandMode(true);
-            co_await coro_trackAttackUID(targetUID);
+            if(co_await coro_inDCCastRange(targetUID, hellFireMR.castRange)){
+                co_await coro_attackUID(targetUID, hellFireDC);
+            }
+            else if(co_await coro_inDCCastRange(targetUID, fireWallMR.castRange)){
+                co_await coro_attackUID(targetUID, fireWallDC);
+            }
+            else{
+                co_await coro_trackUID(targetUID, {});
+            }
         }
 
         else if(masterUID()){
@@ -39,7 +62,10 @@ void ServerZumaTaurus::onAMAttack(const ActorMsgPack &mpk)
 
 void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<void()> onOK, std::function<void()> onError)
 {
-    fflassert(to_u32(dcType) == DBCOM_MAGICID(u8"祖玛教主_火墙"));
+    fflassert(false
+            || to_u32(dcType) == DBCOM_MAGICID(u8"祖玛教主_火墙")
+            || to_u32(dcType) == DBCOM_MAGICID(u8"祖玛教主_地狱火"));
+
     if(!canAttack()){
         if(onError){
             onError();
@@ -90,27 +116,109 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
 
         addDelay(550, [dcType, coLoc, this]()
         {
-            AMCastFireWall amCFW;
-            std::memset(&amCFW, 0, sizeof(amCFW));
+            switch(dcType){
+                case DBCOM_MAGICID(u8"祖玛教主_火墙"):
+                    {
+                        AMCastFireWall amCFW;
+                        std::memset(&amCFW, 0, sizeof(amCFW));
 
-            amCFW.minDC = 5;
-            amCFW.maxDC = 9;
+                        amCFW.minDC = 5;
+                        amCFW.maxDC = 9;
 
-            amCFW.duration = 5 * 1000;
-            amCFW.dps      = 3;
+                        amCFW.duration = 5 * 1000;
+                        amCFW.dps      = 3;
 
-            for(const int dir: {DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT}){
-                if(dir == DIR_NONE){
-                    amCFW.x = coLoc.x;
-                    amCFW.y = coLoc.y;
-                }
-                else{
-                    std::tie(amCFW.x, amCFW.y) = pathf::getFrontGLoc(coLoc.x, coLoc.y, dir, 1);
-                }
+                        for(const int dir: {DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT}){
+                            if(dir == DIR_NONE){
+                                amCFW.x = coLoc.x;
+                                amCFW.y = coLoc.y;
+                            }
+                            else{
+                                std::tie(amCFW.x, amCFW.y) = pathf::getFrontGLoc(coLoc.x, coLoc.y, dir, 1);
+                            }
 
-                if(m_map->groundValid(amCFW.x, amCFW.y)){
-                    m_actorPod->forward(m_map->UID(), {AM_CASTFIREWALL, amCFW});
-                }
+                            if(m_map->groundValid(amCFW.x, amCFW.y)){
+                                m_actorPod->forward(m_map->UID(), {AM_CASTFIREWALL, amCFW});
+                            }
+                        }
+                        break;
+                    }
+                case DBCOM_MAGICID(u8"祖玛教主_地狱火"):
+                    {
+                        if(const auto dirIndex = pathf::getDir8(coLoc.x - X(), coLoc.y - Y()); (dirIndex >= 0) && directionValid(dirIndex + DIR_BEGIN)){
+                            m_direction = dirIndex + DIR_BEGIN;
+                        }
+
+                        std::set<std::tuple<int, int>> pathGridList;
+                        switch(Direction()){
+                            case DIR_UP:
+                            case DIR_DOWN:
+                            case DIR_LEFT:
+                            case DIR_RIGHT:
+                                {
+                                    for(const auto distance: {1, 2, 3, 4, 5, 6, 7, 8}){
+                                        const auto [pathGX, pathGY] = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
+                                        pathGridList.insert({pathGX, pathGY});
+
+                                        if(distance > 3){
+                                            const auto [sgnDX, sgnDY] = pathf::getFrontGLoc(0, 0, Direction(), 1);
+                                            pathGridList.insert({pathGX + sgnDY, pathGY + sgnDX}); // switch sgnDX and sgnDY and plus/minus
+                                            pathGridList.insert({pathGX - sgnDY, pathGY - sgnDX});
+                                        }
+                                    }
+                                    break;
+                                }
+                            case DIR_UPLEFT:
+                            case DIR_UPRIGHT:
+                            case DIR_DOWNLEFT:
+                            case DIR_DOWNRIGHT:
+                                {
+                                    for(const auto distance: {1, 2, 3, 4, 5, 6, 7, 8}){
+                                        const auto [pathGX, pathGY] = pathf::getFrontGLoc(X(), Y(), Direction(), distance);
+                                        pathGridList.insert({pathGX, pathGY});
+
+                                        const auto [sgnDX, sgnDY] = pathf::getFrontGLoc(0, 0, Direction(), 1);
+                                        pathGridList.insert({pathGX + sgnDX, pathGY        });
+                                        pathGridList.insert({pathGX        , pathGY + sgnDY});
+                                    }
+                                    break;
+                                }
+                            default:
+                                {
+                                    throw bad_reach();
+                                }
+                        }
+
+                        AMStrikeFixedLocDamage amSFLD;
+                        std::memset(&amSFLD, 0, sizeof(amSFLD));
+
+                        for(const auto [pathGX, pathGY]: pathGridList){
+                            if(m_map->groundValid(pathGX, pathGY)){
+                                amSFLD.x = pathGX;
+                                amSFLD.y = pathGY;
+                                amSFLD.damage = getAttackDamage(dcType);
+                                addDelay(10 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this]()
+                                {
+                                    if(castMapID == mapID()){
+                                        m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                                        if(g_serverArgParser->showStrikeGrid){
+                                            SMStrikeGrid smSG;
+                                            std::memset(&smSG, 0, sizeof(smSG));
+
+                                            smSG.x = amSFLD.x;
+                                            smSG.y = amSFLD.y;
+                                            dispatchInViewCONetPackage(SM_STRIKEGRID, smSG);
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        throw bad_reach();
+                    }
             }
         });
 

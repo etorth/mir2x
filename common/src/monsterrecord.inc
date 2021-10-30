@@ -3253,7 +3253,9 @@
     .walkWait = 500,
     .walkStep = 1,
     .attackWait = 1500,
-    .dcName = u8"祖玛教主_火墙",
+
+    // magic handled individually
+    // 祖玛教主 has hellFire and fireWall
 },
 
 {   .name = u8"祖玛教主62",

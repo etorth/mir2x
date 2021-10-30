@@ -925,7 +925,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                                     smSG.x = amSFLD.x;
                                     smSG.y = amSFLD.y;
-                                    postNetMessage(SM_STRIKEGRID, smSG);
+                                    dispatchNetPackage(true, SM_STRIKEGRID, smSG);
                                 }
                             }
                         });
