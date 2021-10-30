@@ -1292,3 +1292,10 @@ std::vector<std::string> Player::parseNPCQuery(const char *query)
     }
     return result;
 }
+
+void Player::notifySlaveGLoc()
+{
+    for(const auto uid: m_slaveList){
+        dispatchAction(uid, makeActionStand());
+    }
+}

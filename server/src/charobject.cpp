@@ -280,6 +280,10 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                         .direction = Direction(),
                     });
 
+                    if(uidf::isPlayer(UID())){
+                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
+                    }
+
                     if(onOK){
                         onOK();
                     }
@@ -412,6 +416,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
                     m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
 
+
                     dispatchAction(ActionMove
                     {
                         .speed = nSpeed,
@@ -421,6 +426,10 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                         .aimY = Y(),
                         .onHorse = (bool)(Horse()),
                     });
+
+                    if(uidf::isPlayer(UID())){
+                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
+                    }
 
                     if(onOK){
                         onOK();
@@ -515,8 +524,9 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                     };
 
                     dispatchAction(m_map->UID(), spaceMove2);
-                    if(uidf::getUIDType(UID()) == UID_PLY){
+                    if(uidf::isPlayer(UID())){
                         dynamic_cast<Player *>(this)->reportAction(UID(), spaceMove2);
+                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                     }
 
@@ -651,8 +661,9 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                                     // 3. inform the client for map swith
                                                     // 4. get neighbors
 
-                                                    if(uidf::getUIDType(UID()) == UID_PLY){
+                                                    if(uidf::isPlayer(UID())){
                                                         dynamic_cast<Player *>(this)->reportStand();
+                                                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
                                                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                                                     }
 

@@ -338,4 +338,7 @@ class Player final: public CharObject
             }
             dispatchInViewCONetPackage(type, std::forward<Args>(args)...);
         }
+
+    public:
+        void notifySlaveGLoc();
 };
