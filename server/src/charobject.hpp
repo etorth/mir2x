@@ -317,6 +317,7 @@ class CharObject: public ServerObject
         bool inView(uint32_t, int, int) const;
 
     protected:
+        void trimInViewCO();
         bool updateInViewCO(const COLocation &, bool = false);
         void foreachInViewCO(std::function<void(const COLocation &)>);
 

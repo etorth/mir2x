@@ -23,6 +23,7 @@
 #include <vector>
 #include <cstdint>
 #include <concepts>
+#include <unordered_set>
 
 #include "mathf.hpp"
 #include "totype.hpp"
@@ -152,6 +153,9 @@ class ServerMap final: public ServerObject
 
     private:
         std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
+
+    private:
+        std::unordered_set<uint64_t> m_seenUIDList;
 
     private:
         void operateAM(const ActorMsgPack &);

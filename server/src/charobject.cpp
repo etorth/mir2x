@@ -403,7 +403,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     fflassert(m_map->validC(amMOK.EndX, amMOK.EndY));
 
                     if(!canMove()){
-                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
+                        m_actorPod->forward(rmpk.from(), AM_MOVEOKREJECT, rmpk.seqID());
                         if(onError){
                             onError();
                         }
@@ -417,17 +417,22 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     m_Y = amMOK.EndY;
 
                     m_direction = PathFind::GetDirection(oldX, oldY, X(), Y());
-                    m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
 
-                    dispatchAction(ActionMove
+                    AMMoveOKConfirm amMOKC;
+                    std::memset(&amMOKC, 0, sizeof(amMOKC));
+                    amMOKC.uid = UID();
+                    amMOKC.mapID = mapID();
+                    amMOKC.action = ActionMove
                     {
                         .speed = nSpeed,
                         .x = oldX,
                         .y = oldY,
                         .aimX = X(),
                         .aimY = Y(),
-                        .onHorse = (bool)(Horse()),
-                    });
+                    };
+
+                    m_actorPod->forward(rmpk.from(), {AM_MOVEOKCONFIRM, amMOKC}, rmpk.seqID());
+                    trimInViewCO();
 
                     if(uidf::isPlayer(UID())){
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
@@ -1169,6 +1174,18 @@ void CharObject::setLastAction(int type)
 bool CharObject::inView(uint32_t argMapID, int argX, int argY) const
 {
     return m_map->In(argMapID, argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;
+}
+
+void CharObject::trimInViewCO()
+{
+    for(auto p = m_inViewCOList.begin(); p != m_inViewCOList.end();){
+        if(inView(p->second.mapID, p->second.x, p->second.y)){
+            p++;
+        }
+        else{
+            p = m_inViewCOList.erase(p);
+        }
+    }
 }
 
 void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc)

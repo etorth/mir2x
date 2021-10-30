@@ -348,7 +348,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     if(!In(amTM.mapID, amTM.X, amTM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
         return;
     }
 
@@ -358,14 +358,14 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     if(!In(amTM.mapID, amTM.EndX, amTM.EndY)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
         return;
     }
 
     if(!hasGridUID(amTM.UID, amTM.X, amTM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
         return;
     }
 
@@ -393,7 +393,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
             {
                 g_monoServer->addLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
                 fnPrintMoveError();
-                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+                m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
                 return;
             }
     }
@@ -446,12 +446,12 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     }
 
     if(!bCheckMove){
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
         return;
     }
 
     if(getGrid(nMostX, nMostY).locked){
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
         return;
     }
 
@@ -472,23 +472,82 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
         getGrid(nMostX, nMostY).locked = false;
 
         switch(rstRMPK.type()){
-            case AM_OK:
+            case AM_MOVEOKCONFIRM:
                 {
+                    const auto amMOKC = rstRMPK.conv<AMMoveOKConfirm>();
+
+                    AMAction amA;
+                    std::memset(&amA, 0, sizeof(amA));
+                    amA.UID = amMOKC.uid;
+                    amA.mapID = amMOKC.mapID;
+                    amA.action = amMOKC.action;
+
                     // the object comfirm to move
                     // and it's internal state has changed
 
-                    // 1. leave last cell
+                    // leave last cell
                     if(!removeGridUID(amTM.UID, amTM.X, amTM.Y)){
                         throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(amTM.UID), amTM.X, amTM.Y);
                     }
 
-                    // 2. push to the new cell
-                    //    check if it should switch the map
+                    m_seenUIDList.clear();
+                    doCircle(amTM.X, amTM.Y, SYS_VIEWR, [amTM, amA, this](int gridX, int gridY)
+                    {
+                        doUIDList(gridX, gridY, [amTM, amA, this](uint64_t gridUID)
+                        {
+                            switch(uidf::getUIDType(gridUID)){
+                                case UID_PLY:
+                                case UID_MON:
+                                case UID_NPC:
+                                    {
+                                        if((gridUID != amTM.UID) && (m_seenUIDList.count(gridUID) == 0)){
+                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_seenUIDList.insert(gridUID);
+                                        }
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
+                            return false;
+                        });
+                        return false;
+                    });
+
+                    // push to the new cell
+                    // check if it should switch the map
                     addGridUID(amTM.UID, nMostX, nMostY, true);
                     if(uidf::getUIDType(amTM.UID) == UID_PLY){
                         postGroundItemIDList(amTM.UID, nMostX, nMostY);
                         postGroundFireWallList(amTM.UID, nMostX, nMostY); // doesn't help if switched map
                     }
+
+                    doCircle(nMostX, nMostY, SYS_VIEWR, [amTM, amA, this](int gridX, int gridY)
+                    {
+                        doUIDList(gridX, gridY, [amTM, amA, this](uint64_t gridUID)
+                        {
+                            switch(uidf::getUIDType(gridUID)){
+                                case UID_PLY:
+                                case UID_MON:
+                                case UID_NPC:
+                                    {
+                                        if((gridUID != amTM.UID) && (m_seenUIDList.count(gridUID) == 0)){
+                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_seenUIDList.insert(gridUID);
+                                        }
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
+                            return false;
+                        });
+                        return false;
+                    });
 
                     if(uidf::getUIDType(amTM.UID) == UID_PLY && getGrid(nMostX, nMostY).mapID){
                         AMMapSwitch amMS;
