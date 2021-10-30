@@ -18,6 +18,9 @@ corof::eval_poller ServerZumaTaurus::updateCoroFunc()
     fflassert( hellFireMR);
     fflassert(fireWallMR);
 
+    hres_timer lastFireWallTime;
+    constexpr uint64_t fireWallCoolDownTime = 5;
+
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){
         if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
@@ -34,8 +37,9 @@ corof::eval_poller ServerZumaTaurus::updateCoroFunc()
             if(co_await coro_inDCCastRange(targetUID, hellFireMR.castRange)){
                 co_await coro_attackUID(targetUID, hellFireDC);
             }
-            else if(co_await coro_inDCCastRange(targetUID, fireWallMR.castRange)){
+            else if((lastFireWallTime.diff_sec() >= fireWallCoolDownTime) && (co_await coro_inDCCastRange(targetUID, fireWallMR.castRange))){
                 co_await coro_attackUID(targetUID, fireWallDC);
+                lastFireWallTime.reset();
             }
             else{
                 co_await coro_trackUID(targetUID, {});
