@@ -1215,87 +1215,84 @@ void CharObject::queryHealth(uint64_t uid, std::function<void(uint64_t, SDHealth
     });
 }
 
-void CharObject::queryFinalMaster(uint64_t nUID, std::function<void(uint64_t)> fnOp)
+void CharObject::queryFinalMaster(uint64_t targetUID, std::function<void(uint64_t)> fnOp)
 {
-    fflassert(nUID);
-    if(uidf::getUIDType(nUID) != UID_MON){
-        if(fnOp){
-            fnOp(nUID);
-        }
-        return;
-    }
-
-    auto fnQuery = [this, fnOp](uint64_t nQueryUID)
-    {
-        m_actorPod->forward(nQueryUID, AM_QUERYFINALMASTER, [this, nQueryUID, fnOp](const ActorMsgPack &rstRMPK)
-        {
-            switch(rstRMPK.type()){
-                case AM_UID:
+    fflassert(targetUID);
+    switch(uidf::getUIDType(targetUID)){
+        case UID_MON:
+            {
+                const auto fnQuery = [this, fnOp](uint64_t targetUID)
+                {
+                    m_actorPod->forward(targetUID, AM_QUERYFINALMASTER, [this, targetUID, fnOp](const ActorMsgPack &rmpk)
                     {
-                        AMUID amUID;
-                        std::memcpy(&amUID, rstRMPK.data(), sizeof(amUID));
+                        switch(rmpk.type()){
+                            case AM_UID:
+                                {
+                                    const auto amUID = rmpk.conv<AMUID>();
+                                    if(fnOp){
+                                        fnOp(amUID.UID);
+                                    }
+                                    return;
+                                }
+                            default:
+                                {
+                                    if(fnOp){
+                                        fnOp(0);
+                                    }
 
-                        fnOp(amUID.UID);
-                        return;
+                                    if(targetUID == dynamic_cast<Monster *>(this)->masterUID()){
+                                        goDie();
+                                    }
+                                    return;
+                                }
+                        }
+                    });
+                };
+
+                if(targetUID == UID()){
+                    if(const auto masterUID = dynamic_cast<Monster *>(this)->masterUID()){
+                        switch(uidf::getUIDType(masterUID)){
+                            case UID_PLY:
+                                {
+                                    if(fnOp){
+                                        fnOp(masterUID);
+                                    }
+                                    return;
+                                }
+                            case UID_MON:
+                                {
+                                    fnQuery(masterUID);
+                                    return;
+                                }
+                            default:
+                                {
+                                    throw bad_reach();
+                                }
+                        }
                     }
-                default:
-                    {
-                        fnOp(0);
-                        if(isMonster() && (nQueryUID == dynamic_cast<Monster *>(this)->masterUID())){
-                            goDie();
+                    else{
+                        if(fnOp){
+                            fnOp(UID());
                         }
                         return;
                     }
-            }
-        });
-    };
-
-    // check self type
-    // we allow self-query for monster
-
-    switch(uidf::getUIDType(UID())){
-        case UID_MON:
-            {
-                if(nUID != UID()){
-                    fnQuery(nUID);
+                }
+                else{
+                    fnQuery(targetUID);
                     return;
                 }
-
-                // querying self
-                // this is ok for monster
-
-                if(auto nMasterUID = dynamic_cast<Monster *>(this)->masterUID()){
-                    switch(uidf::getUIDType(nMasterUID)){
-                        case UID_PLY:
-                            {
-                                fnOp(nMasterUID);
-                                return;
-                            }
-                        case UID_MON:
-                            {
-                                fnQuery(nMasterUID);
-                                return;
-                            }
-                        default:
-                            {
-                                throw fflerror("invalid master type: %s", uidf::getUIDTypeCStr(nMasterUID));
-                            }
-                    }
-                }
-
-                // querying self
-                // and doesn't have master
-                fnOp(UID());
-                return;
             }
         case UID_PLY:
+        case UID_NPC:
+            {
+                if(fnOp){
+                    fnOp(targetUID);
+                }
+                return;
+            }
         default:
             {
-                if(nUID != UID()){
-                    fnQuery(nUID);
-                    return;
-                }
-                throw fflerror("%s can't query self for final master", uidf::getUIDTypeCStr(UID()));
+                throw fflerror("invalid uid: %s", to_cstr(uidf::getUIDString(targetUID)));
             }
     }
 }
