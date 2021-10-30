@@ -263,8 +263,8 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                         return;
                     }
 
-                    const auto nOldX = m_X;
-                    const auto nOldY = m_Y;
+                    const auto oldX = m_X;
+                    const auto oldY = m_Y;
                     const auto amJOK = rmpk.conv<AMJumpOK>();
 
                     m_X = amJOK.EndX;
@@ -274,7 +274,7 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                         m_direction = nDirection;
                     }
                     else{
-                        m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
+                        m_direction = PathFind::GetDirection(oldX, oldY, X(), Y());
                     }
 
                     m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
@@ -396,13 +396,11 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
         switch(rmpk.type()){
             case AM_MOVEOK:
                 {
-                    const auto amMOK = rmpk.conv<AMMoveOK>();
                     // since we may allow half move
                     // servermap permitted dst may not be (nX, nY)
 
-                    if(!m_map->validC(amMOK.EndX, amMOK.EndY)){
-                        throw fflerror("map returns invalid destination: (%" PRIu64 ", %d, %d)", m_map->UID(), amMOK.EndX, amMOK.EndY);
-                    }
+                    const auto amMOK = rmpk.conv<AMMoveOK>();
+                    fflassert(m_map->validC(amMOK.EndX, amMOK.EndY));
 
                     if(!canMove()){
                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
@@ -412,21 +410,20 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                         return;
                     }
 
-                    auto nOldX = m_X;
-                    auto nOldY = m_Y;
+                    const auto oldX = m_X;
+                    const auto oldY = m_Y;
 
                     m_X = amMOK.EndX;
                     m_Y = amMOK.EndY;
 
-                    m_direction = PathFind::GetDirection(nOldX, nOldY, X(), Y());
+                    m_direction = PathFind::GetDirection(oldX, oldY, X(), Y());
                     m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
-
 
                     dispatchAction(ActionMove
                     {
                         .speed = nSpeed,
-                        .x = nOldX,
-                        .y = nOldY,
+                        .x = oldX,
+                        .y = oldY,
                         .aimX = X(),
                         .aimY = Y(),
                         .onHorse = (bool)(Horse()),
