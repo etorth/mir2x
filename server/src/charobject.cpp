@@ -394,16 +394,16 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
         // need to check if current CO can move
 
         switch(rmpk.type()){
-            case AM_MOVEOK:
+            case AM_ALLOWMOVE:
                 {
                     // since we may allow half move
                     // servermap permitted dst may not be (nX, nY)
 
-                    const auto amMOK = rmpk.conv<AMMoveOK>();
-                    fflassert(m_map->validC(amMOK.EndX, amMOK.EndY));
+                    const auto amAM = rmpk.conv<AMAllowMove>();
+                    fflassert(m_map->validC(amAM.EndX, amAM.EndY));
 
                     if(!canMove()){
-                        m_actorPod->forward(rmpk.from(), AM_MOVEOKREJECT, rmpk.seqID());
+                        m_actorPod->forward(rmpk.from(), AM_MOVEERROR, rmpk.seqID());
                         if(onError){
                             onError();
                         }
@@ -413,16 +413,16 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                     const auto oldX = m_X;
                     const auto oldY = m_Y;
 
-                    m_X = amMOK.EndX;
-                    m_Y = amMOK.EndY;
+                    m_X = amAM.EndX;
+                    m_Y = amAM.EndY;
 
                     m_direction = PathFind::GetDirection(oldX, oldY, X(), Y());
 
-                    AMMoveOKConfirm amMOKC;
-                    std::memset(&amMOKC, 0, sizeof(amMOKC));
-                    amMOKC.uid = UID();
-                    amMOKC.mapID = mapID();
-                    amMOKC.action = ActionMove
+                    AMMoveOK amMOK;
+                    std::memset(&amMOK, 0, sizeof(amMOK));
+                    amMOK.uid = UID();
+                    amMOK.mapID = mapID();
+                    amMOK.action = ActionMove
                     {
                         .speed = nSpeed,
                         .x = oldX,
@@ -431,7 +431,7 @@ bool CharObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, boo
                         .aimY = Y(),
                     };
 
-                    m_actorPod->forward(rmpk.from(), {AM_MOVEOKCONFIRM, amMOKC}, rmpk.seqID());
+                    m_actorPod->forward(rmpk.from(), {AM_MOVEOK, amMOK}, rmpk.seqID());
                     trimInViewCO();
 
                     if(uidf::isPlayer(UID())){

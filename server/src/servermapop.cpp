@@ -348,7 +348,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     if(!In(amTM.mapID, amTM.X, amTM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
         return;
     }
 
@@ -358,14 +358,14 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     if(!In(amTM.mapID, amTM.EndX, amTM.EndY)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
         return;
     }
 
     if(!hasGridUID(amTM.UID, amTM.X, amTM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
         return;
     }
 
@@ -393,7 +393,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
             {
                 g_monoServer->addLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
                 fnPrintMoveError();
-                m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
+                m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
                 return;
             }
     }
@@ -446,41 +446,41 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     }
 
     if(!bCheckMove){
-        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
         return;
     }
 
     if(getGrid(nMostX, nMostY).locked){
-        m_actorPod->forward(rstMPK.from(), AM_MOVEERROR, rstMPK.seqID());
+        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
         return;
     }
 
-    AMMoveOK amMOK;
-    std::memset(&amMOK, 0, sizeof(amMOK));
+    AMAllowMove amAM;
+    std::memset(&amAM, 0, sizeof(amAM));
 
-    amMOK.UID   = UID();
-    amMOK.mapID = ID();
-    amMOK.X     = amTM.X;
-    amMOK.Y     = amTM.Y;
-    amMOK.EndX  = nMostX;
-    amMOK.EndY  = nMostY;
+    amAM.UID   = UID();
+    amAM.mapID = ID();
+    amAM.X     = amTM.X;
+    amAM.Y     = amTM.Y;
+    amAM.EndX  = nMostX;
+    amAM.EndY  = nMostY;
 
     getGrid(nMostX, nMostY).locked = true;
-    m_actorPod->forward(rstMPK.from(), {AM_MOVEOK, amMOK}, rstMPK.seqID(), [this, amTM, nMostX, nMostY](const ActorMsgPack &rstRMPK)
+    m_actorPod->forward(rstMPK.from(), {AM_ALLOWMOVE, amAM}, rstMPK.seqID(), [this, amTM, nMostX, nMostY](const ActorMsgPack &rstRMPK)
     {
         fflassert(getGrid(nMostX, nMostY).locked);
         getGrid(nMostX, nMostY).locked = false;
 
         switch(rstRMPK.type()){
-            case AM_MOVEOKCONFIRM:
+            case AM_MOVEOK:
                 {
-                    const auto amMOKC = rstRMPK.conv<AMMoveOKConfirm>();
+                    const auto amMOK = rstRMPK.conv<AMMoveOK>();
 
                     AMAction amA;
                     std::memset(&amA, 0, sizeof(amA));
-                    amA.UID = amMOKC.uid;
-                    amA.mapID = amMOKC.mapID;
-                    amA.action = amMOKC.action;
+                    amA.UID = amMOK.uid;
+                    amA.mapID = amMOK.mapID;
+                    amA.action = amMOK.action;
 
                     // the object comfirm to move
                     // and it's internal state has changed
