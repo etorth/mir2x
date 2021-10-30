@@ -468,9 +468,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     getGrid(nMostX, nMostY).locked = true;
     m_actorPod->forward(rstMPK.from(), {AM_MOVEOK, amMOK}, rstMPK.seqID(), [this, amTM, nMostX, nMostY](const ActorMsgPack &rstRMPK)
     {
-        if(!getGrid(nMostX, nMostY).locked){
-            throw fflerror("cell lock released before MOVEOK get responsed: mapUID = %llu", to_llu(UID()));
-        }
+        fflassert(getGrid(nMostX, nMostY).locked);
         getGrid(nMostX, nMostY).locked = false;
 
         switch(rstRMPK.type()){
