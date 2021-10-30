@@ -62,7 +62,9 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
             {
                 m_currMotion.reset(new MotionNode
                 {
-                    .type = MOTION_MON_WALK,
+                    // use STAND
+                    // otherwise need to figure out proper (endX, endY)
+                    .type = MOTION_MON_STAND,
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
