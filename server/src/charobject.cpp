@@ -158,7 +158,7 @@ bool CharObject::NextLocation(int *pX, int *pY, int nDirection, int nDistance)
     return true;
 }
 
-void CharObject::dispatchAction(const ActionNode &action)
+void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
 {
     checkActorPodEx();
 
@@ -168,8 +168,13 @@ void CharObject::dispatchAction(const ActionNode &action)
     amA.UID = UID();
     amA.mapID = mapID();
     amA.action = action;
-
     setLastAction(amA.action.type);
+
+    if(forceMap){
+        m_actorPod->forward(m_map->UID(), {AM_ACTION, amA});
+        return;
+    }
+
     switch(amA.action.type){
         case ACTION_JUMP:
         case ACTION_MOVE:
