@@ -155,9 +155,6 @@ class ServerMap final: public ServerObject
         std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
 
     private:
-        std::unordered_set<uint64_t> m_seenUIDList;
-
-    private:
         void operateAM(const ActorMsgPack &);
 
     public:
