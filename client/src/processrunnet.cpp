@@ -90,6 +90,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 
     if(smA.mapID != mapID()){
         if(smA.UID != getMyHero()->UID()){
+            m_coList.erase(smA.UID);
             return;
         }
 
