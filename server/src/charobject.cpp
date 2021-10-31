@@ -537,7 +537,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                     trimInViewCO();
 
                     if(uidf::isPlayer(UID())){
-                        dynamic_cast<Player *>(this)->reportAction(UID(), amSMOK.action);
+                        dynamic_cast<Player *>(this)->reportAction(UID(), mapID(), amSMOK.action);
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 

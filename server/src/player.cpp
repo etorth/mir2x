@@ -239,18 +239,21 @@ void Player::reportCO(uint64_t toUID)
 
 void Player::reportStand()
 {
-    reportAction(UID(), makeActionStand());
+    reportAction(UID(), mapID(), makeActionStand());
 }
 
-void Player::reportAction(uint64_t uid, const ActionNode &action)
+void Player::reportAction(uint64_t uid, uint32_t actionMapID, const ActionNode &action)
 {
     fflassert(uid);
 
     SMAction smA;
     std::memset(&smA, 0, sizeof(smA));
 
+    // player can forward CO's action that not on same map
+    // this is used for CO map switch, client use it to remove left neighbors
+
     smA.UID = uid;
-    smA.mapID = mapID();
+    smA.mapID = actionMapID;
     smA.action = action;
 
     postNetMessage(SM_ACTION, smA);

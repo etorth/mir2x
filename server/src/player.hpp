@@ -163,7 +163,7 @@ class Player final: public CharObject
         void reportSecuredItemList();
 
     protected:
-        virtual void reportAction(uint64_t, const ActionNode &);
+        virtual void reportAction(uint64_t, uint32_t, const ActionNode &);
 
     protected:
         void dispatchOffline();

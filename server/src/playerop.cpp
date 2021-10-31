@@ -113,7 +113,7 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
     }
 
     // always need to notify client for CO gets added/moved/removed
-    reportAction(amA.UID, amA.action);
+    reportAction(amA.UID, amA.mapID, amA.action);
 }
 
 void Player::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
@@ -358,7 +358,7 @@ void Player::on_AM_ATTACK(const ActorMsgPack &mpk)
         .direction = Direction(),
     });
     struckDamage(amA.damage);
-    reportAction(UID(), ActionHitted
+    reportAction(UID(), mapID(), ActionHitted
     {
         .x = X(),
         .y = Y(),
