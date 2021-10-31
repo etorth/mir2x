@@ -175,14 +175,14 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
     if(!In(ID(), amTSM.X, amTSM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
         return;
     }
 
     if(!hasGridUID(mpk.from(), amTSM.X, amTSM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
         return;
     }
 
@@ -191,7 +191,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 
     if(!validC(amTSM.X, amTSM.Y)){
         if(amTSM.StrictMove){
-            m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+            m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
             return;
         }
 
@@ -201,24 +201,24 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 
     const auto loc = GetValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
     if(!loc.has_value()){
-        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
         return;
     }
 
     std::tie(nDstX, nDstY) = loc.value();
 
-    AMSpaceMoveOK amSMOK;
-    std::memset(&amSMOK, 0, sizeof(amSMOK));
+    AMAllowSpaceMove amASM;
+    std::memset(&amASM, 0, sizeof(amASM));
 
-    amSMOK.X = amTSM.X;
-    amSMOK.Y = amTSM.Y;
-    amSMOK.EndX = nDstX;
-    amSMOK.EndY = nDstY;
+    amASM.X = amTSM.X;
+    amASM.Y = amTSM.Y;
+    amASM.EndX = nDstX;
+    amASM.EndY = nDstY;
 
-    m_actorPod->forward(mpk.from(), {AM_SPACEMOVEOK, amSMOK}, mpk.seqID(), [this, fromUID = mpk.from(), amTSM, nDstX, nDstY](const ActorMsgPack &rmpk)
+    m_actorPod->forward(mpk.from(), {AM_ALLOWSPACEMOVE, amASM}, mpk.seqID(), [this, fromUID = mpk.from(), amTSM, nDstX, nDstY](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
-            case AM_OK:
+            case AM_SPACEMOVEOK:
                 {
                     // the object comfirm to move
                     // and it's internal state has changed
@@ -227,15 +227,82 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                     // 1. we won't take care of map switch
                     // 2. we don't take reservation of the dstination cell
 
+                    const auto amSMOK = rmpk.conv<AMSpaceMoveOK>();
+
+                    AMAction amA1;
+                    std::memset(&amA1, 0, sizeof(amA1));
+
+                    amA1.UID = fromUID;
+                    amA1.mapID = amSMOK.mapID;
+                    amA1.action = amSMOK.spaceMove1;
+
                     if(!removeGridUID(fromUID, amTSM.X, amTSM.Y)){
                         throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), amTSM.X, amTSM.Y);
                     }
+
+                    m_seenUIDList.clear();
+                    doCircle(amTSM.X, amTSM.Y, SYS_VIEWR, [amA1, fromUID, this](int gridX, int gridY)
+                    {
+                        doUIDList(gridX, gridY, [amA1, fromUID, this](uint64_t gridUID)
+                        {
+                            switch(uidf::getUIDType(gridUID)){
+                                case UID_PLY:
+                                case UID_MON:
+                                case UID_NPC:
+                                    {
+                                        if((gridUID != fromUID) && (m_seenUIDList.count(gridUID) == 0)){
+                                            m_actorPod->forward(gridUID, {AM_ACTION, amA1});
+                                            m_seenUIDList.insert(gridUID);
+                                        }
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
+                            return false;
+                        });
+                        return false;
+                    });
 
                     addGridUID(fromUID, nDstX, nDstY, true);
                     if(uidf::getUIDType(fromUID) == UID_PLY){
                         postGroundItemIDList(fromUID, nDstX, nDstY); // doesn't help if switched map
                         postGroundFireWallList(fromUID, nDstX, nDstY);
                     }
+
+                    AMAction amA2;
+                    std::memset(&amA2, 0, sizeof(amA2));
+
+                    amA2.UID = fromUID;
+                    amA2.mapID = amSMOK.mapID;
+                    amA2.action = amSMOK.spaceMove2;
+
+                    doCircle(nDstX, nDstY, SYS_VIEWR, [amA2, fromUID, this](int gridX, int gridY)
+                    {
+                        doUIDList(gridX, gridY, [amA2, fromUID, this](uint64_t gridUID)
+                        {
+                            switch(uidf::getUIDType(gridUID)){
+                                case UID_PLY:
+                                case UID_MON:
+                                case UID_NPC:
+                                    {
+                                        if((gridUID != fromUID) && (m_seenUIDList.count(gridUID) == 0)){
+                                            m_actorPod->forward(gridUID, {AM_ACTION, amA2});
+                                            m_seenUIDList.insert(gridUID);
+                                        }
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
+                            return false;
+                        });
+                        return false;
+                    });
                     break;
                 }
             default:

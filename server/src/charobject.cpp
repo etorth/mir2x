@@ -290,6 +290,8 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                     };
 
                     m_actorPod->forward(rmpk.from(), {AM_JUMPOK, amJOK}, rmpk.seqID());
+                    trimInViewCO();
+
                     if(uidf::isPlayer(UID())){
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
@@ -498,46 +500,46 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
         // check if current CO can move even we checked before
 
         switch(rmpk.type()){
-            case AM_SPACEMOVEOK:
+            case AM_ALLOWSPACEMOVE:
                 {
                     if(!canMove()){
-                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
+                        m_actorPod->forward(rmpk.from(), AM_SPACEMOVEERROR, rmpk.seqID());
                         if(onError){
                             onError();
                         }
                         return;
                     }
 
-                    // dispatch space move part 1 on old place
-                    dispatchAction(ActionSpaceMove1
-                    {
-                        .x = X(),
-                        .y = Y(),
-                        .direction = Direction(),
-                    });
-
                     // setup new map
                     // don't use the requested location
-                    const auto amSMOK = rmpk.conv<AMSpaceMoveOK>();
-                    m_X = amSMOK.EndX;
-                    m_Y = amSMOK.EndY;
+                    const auto amASM = rmpk.conv<AMAllowSpaceMove>();
+                    m_X = amASM.EndX;
+                    m_Y = amASM.EndY;
 
-                    m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
+                    AMSpaceMoveOK amSMOK;
+                    std::memset(&amSMOK, 0, sizeof(amSMOK));
 
-                    // clean the InViewCO list
-                    // report new location explicitly to map
-                    // don't use ActionStand since it forces client to parse for a path to dst location
-                    m_inViewCOList.clear();
-                    const ActionSpaceMove2 spaceMove2
+                    amSMOK.uid = UID();
+                    amSMOK.mapID = mapID();
+                    amSMOK.spaceMove1 = ActionSpaceMove1 // create leaving magic
                     {
                         .x = X(),
                         .y = Y(),
                         .direction = Direction(),
                     };
 
-                    dispatchAction(m_map->UID(), spaceMove2);
+                    amSMOK.spaceMove2 = ActionSpaceMove2 // create entering magic and move CO
+                    {
+                        .x = X(),
+                        .y = Y(),
+                        .direction = Direction(),
+                    };
+
+                    m_actorPod->forward(rmpk.from(), {AM_SPACEMOVEOK, amSMOK}, rmpk.seqID());
+                    trimInViewCO();
+
                     if(uidf::isPlayer(UID())){
-                        dynamic_cast<Player *>(this)->reportAction(UID(), spaceMove2);
+                        dynamic_cast<Player *>(this)->reportAction(UID(), amSMOK.spaceMove2);
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                     }

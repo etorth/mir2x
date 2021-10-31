@@ -29,7 +29,10 @@ enum ActorMsgPackType: int
     AM_MOVEOK,          // CO -> ServerMap  : co confirm to take the move permission
     AM_MOVEERROR,       // CO -> ServerMap  : co reject  to take the move permission
     AM_TRYSPACEMOVE,
+    AM_ALLOWSPACEMOVE,
+    AM_REJECTSPACEMOVE,
     AM_SPACEMOVEOK,
+    AM_SPACEMOVEERROR,
     AM_TRYLEAVE,
     AM_LOGINOK,
     AM_ADDRESS,
@@ -176,12 +179,21 @@ struct AMTrySpaceMove
     bool StrictMove;
 };
 
-struct AMSpaceMoveOK
+struct AMAllowSpaceMove
 {
     int X;
     int Y;
     int EndX;
     int EndY;
+};
+
+struct AMSpaceMoveOK
+{
+    uint64_t uid;
+    uint32_t mapID;
+
+    ActionNode spaceMove1;
+    ActionNode spaceMove2;
 };
 
 struct AMTryMove
