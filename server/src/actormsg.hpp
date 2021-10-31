@@ -34,6 +34,8 @@ enum ActorMsgPackType: int
     AM_SPACEMOVEOK,
     AM_SPACEMOVEERROR,
     AM_TRYLEAVE,
+    AM_ALLOWLEAVE,
+    AM_REJECTLEAVE,
     AM_LEAVEOK,
     AM_LEAVEERROR,
     AM_LOGINOK,
@@ -120,6 +122,19 @@ struct AMTryLeave
 {
     int X;
     int Y;
+};
+
+struct AMAllowLeave
+{
+    int X;
+    int Y;
+};
+
+struct AMLeaveOK
+{
+    uint64_t uid;
+    uint32_t mapID;
+    ActionNode action;
 };
 
 struct AMAddCharObject
@@ -327,6 +342,21 @@ struct AMTryMapSwitch
     bool strictMove;
 };
 
+struct AMAllowMapSwitch
+{
+    void *Ptr;
+
+    int X;
+    int Y;
+};
+
+struct AMMapSwitchOK
+{
+    uint64_t uid;
+    uint32_t mapID;
+    ActionNode action;
+};
+
 struct AMLoadMap
 {
     uint32_t mapID;
@@ -335,14 +365,6 @@ struct AMLoadMap
 struct AMUID
 {
     uint64_t UID;
-};
-
-struct AMAllowMapSwitch
-{
-    void *Ptr;
-
-    int X;
-    int Y;
 };
 
 struct AMQueryLocation

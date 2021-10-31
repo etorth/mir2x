@@ -640,7 +640,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                     // push to the new cell
                     // check if it should switch the map
                     addGridUID(amTM.UID, nMostX, nMostY, true);
-                    if(uidf::getUIDType(amTM.UID) == UID_PLY){
+                    if(uidf::isPlayer(amTM.UID)){
                         postGroundItemIDList(amTM.UID, nMostX, nMostY);
                         postGroundFireWallList(amTM.UID, nMostX, nMostY); // doesn't help if switched map
                     }
@@ -692,18 +692,67 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 
 void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
 {
+    const auto fromUID = mpk.from();
     const auto amTL = mpk.conv<AMTryLeave>();
-    if(In(ID(), amTL.X, amTL.Y) && hasGridUID(mpk.from(), amTL.X, amTL.Y)){
-        removeGridUID(mpk.from(), amTL.X, amTL.Y);
-        m_actorPod->forward(mpk.from(), AM_LEAVEOK, mpk.seqID());
+
+    const auto fromGridX = amTL.X;
+    const auto fromGridY = amTL.Y;
+
+    if(!(In(ID(), fromGridX, fromGridY) && hasGridUID(mpk.from(), fromGridX, fromGridY))){
+        m_actorPod->forward(mpk.from(), AM_REJECTLEAVE, mpk.seqID());
+        g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(fromUID), fromGridX, fromGridY);
         return;
     }
 
-    // otherwise try leave failed
-    // we reply AM_ERROR but this is already something wrong, map never prevert leave on purpose
+    m_actorPod->forward(fromUID, AM_ALLOWLEAVE, mpk.seqID(), [fromUID, fromGridX, fromGridY, this](const ActorMsgPack &rmpk)
+    {
+        switch(rmpk.type()){
+            case AM_LEAVEOK:
+                {
+                    const auto amLOK = rmpk.conv<AMLeaveOK>();
+                    AMAction amA;
+                    std::memset(&amA, 0, sizeof(amA));
 
-    m_actorPod->forward(mpk.from(), AM_LEAVEERROR, mpk.seqID());
-    g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(mpk.from()), amTL.X, amTL.Y);
+                    amA.UID = fromUID;
+                    amA.mapID = amLOK.mapID;
+                    amA.action = amLOK.action;
+
+                    if(!removeGridUID(fromUID, fromGridX, fromGridY)){
+                        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), fromGridX, fromGridY);
+                    }
+
+                    m_seenUIDList.clear();
+                    doCircle(fromGridX, fromGridY, SYS_VIEWR, [fromUID, amA, this](int gridX, int gridY)
+                    {
+                        doUIDList(gridX, gridY, [fromUID, amA, this](uint64_t gridUID)
+                        {
+                            switch(uidf::getUIDType(gridUID)){
+                                case UID_PLY:
+                                case UID_MON:
+                                case UID_NPC:
+                                    {
+                                        if((gridUID != fromUID) && (m_seenUIDList.count(gridUID) == 0)){
+                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_seenUIDList.insert(gridUID);
+                                        }
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
+                            return false;
+                        });
+                        return false;
+                    });
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    });
 }
 
 void ServerMap::on_AM_PULLCOINFO(const ActorMsgPack &rstMPK)
@@ -734,8 +783,8 @@ void ServerMap::on_AM_PULLCOINFO(const ActorMsgPack &rstMPK)
 
 void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
 {
-    const auto reqUID = mpk.from();
-    const auto amTMS  = mpk.conv<AMTryMapSwitch>();
+    const auto fromUID = mpk.from();
+    const auto amTMS = mpk.conv<AMTryMapSwitch>();
 
     if(!canMove(false, true, amTMS.X, amTMS.Y)){
         m_actorPod->forward(mpk.from(), AM_REJECTMAPSWITCH, mpk.seqID());
@@ -749,8 +798,8 @@ void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
     amAMS.X   = amTMS.X;
     amAMS.Y   = amTMS.Y;
 
-    getGrid(amTMS.X, amTMS.Y).locked = true;
-    m_actorPod->forward(mpk.from(), {AM_ALLOWMAPSWITCH, amAMS}, mpk.seqID(), [this, reqUID, amAMS](const ActorMsgPack &rmpk)
+    getGrid(amAMS.X, amAMS.Y).locked = true;
+    m_actorPod->forward(mpk.from(), {AM_ALLOWMAPSWITCH, amAMS}, mpk.seqID(), [this, fromUID, amAMS](const ActorMsgPack &rmpk)
     {
         fflassert(getGrid(amAMS.X, amAMS.Y).locked);
         getGrid(amAMS.X, amAMS.Y).locked = false;
@@ -758,10 +807,49 @@ void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
         switch(rmpk.type()){
             case AM_MAPSWITCHOK:
                 {
+                    const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
+
+                    AMAction amA;
+                    std::memset(&amA, 0, sizeof(amA));
+
+                    amA.UID = amMSOK.uid;
+                    amA.mapID = amMSOK.mapID;
+                    amA.action = amMSOK.action;
+
                     // didn't check map switch here
                     // map switch should be triggered by move request
 
-                    addGridUID(reqUID, amAMS.X, amAMS.Y, true);
+                    addGridUID(fromUID, amAMS.X, amAMS.Y, true);
+                    if(uidf::isPlayer(fromUID)){
+                        postGroundItemIDList(fromUID, amAMS.X, amAMS.Y);
+                        postGroundFireWallList(fromUID, amAMS.X, amAMS.Y); // doesn't help if switched map
+                    }
+
+                    m_seenUIDList.clear();
+                    doCircle(amAMS.X, amAMS.Y, SYS_VIEWR, [fromUID, amA, this](int gridX, int gridY)
+                    {
+                        doUIDList(gridX, gridY, [fromUID, amA, this](uint64_t gridUID)
+                        {
+                            switch(uidf::getUIDType(gridUID)){
+                                case UID_PLY:
+                                case UID_MON:
+                                case UID_NPC:
+                                    {
+                                        if((gridUID != fromUID) && (m_seenUIDList.count(gridUID) == 0)){
+                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_seenUIDList.insert(gridUID);
+                                        }
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        break;
+                                    }
+                            }
+                            return false;
+                        });
+                        return false;
+                    });
                     break;
                 }
             default:

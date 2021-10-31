@@ -651,30 +651,38 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                         const auto newMapPtr = static_cast<const ServerMap *>(amAMS.Ptr);
 
                                         switch(leavermpk.type()){
-                                            case AM_LEAVEOK:
+                                            case AM_ALLOWLEAVE:
                                                 {
                                                     if(!canMove()){
                                                         m_actorPod->forward(rmpk.from(), AM_MAPSWITCHERROR, rmpk.seqID());
+                                                        m_actorPod->forward(leavermpk.from(), AM_LEAVEERROR, leavermpk.seqID());
                                                         if(onError){
                                                             onError();
                                                         }
                                                         return;
                                                     }
 
-                                                    // response to new map ``I am here"
                                                     m_map = newMapPtr;
                                                     m_X = amAMS.X;
                                                     m_Y = amAMS.Y;
-                                                    m_actorPod->forward(m_map->UID(), AM_MAPSWITCHOK, rmpk.seqID());
 
-                                                    // notify all players on the new map
-                                                    // need to explicitly send to the map, not InViewCO since it's not valid anymore
-                                                    m_inViewCOList.clear();
-                                                    dispatchAction(m_map->UID(), makeActionStand());
+                                                    AMLeaveOK amLOK;
+                                                    std::memset(&amLOK, 0, sizeof(amLOK));
 
-                                                    // inform the client for map swith
-                                                    // get neighbors
+                                                    amLOK.uid = UID();
+                                                    amLOK.mapID = mapID();
+                                                    amLOK.action = makeActionStand();
+                                                    m_actorPod->forward(leavermpk.from(), {AM_LEAVEOK, amLOK}, leavermpk.seqID());
 
+                                                    AMMapSwitchOK amMSOK;
+                                                    std::memset(&amMSOK, 0, sizeof(amMSOK));
+
+                                                    amMSOK.uid = UID();
+                                                    amMSOK.mapID = mapID();
+                                                    amMSOK.action = makeActionStand();
+                                                    m_actorPod->forward(m_map->UID(), {AM_MAPSWITCHOK, amMSOK}, rmpk.seqID());
+
+                                                    trimInViewCO();
                                                     if(uidf::isPlayer(UID())){
                                                         dynamic_cast<Player *>(this)->reportStand();
                                                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
@@ -688,11 +696,6 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                                 }
                                             default:
                                                 {
-                                                    // can't leave, illegal response
-                                                    // any sane implementation should allow an UID to leave
-
-                                                    // if an UID can't move
-                                                    // then we shouldn't call this function
                                                     m_actorPod->forward(newMapPtr->UID(), AM_MAPSWITCHERROR, rmpk.seqID());
                                                     if(onError){
                                                         onError();
