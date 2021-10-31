@@ -82,7 +82,7 @@ template<size_t FixedBufSize> struct FixedBuf
     template<typename T> T as() const
     {
         static_assert(std::is_trivially_copyable_v<T>);
-        static_assert(sizeof(T) < FixedBufSize);
+        static_assert(sizeof(T) == size);
 
         T t;
         std::memcpy(&t, buf, sizeof(T));

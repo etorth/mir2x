@@ -160,19 +160,13 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
         }
 
     public:
-       template<typename T> void assign(T &t) const
-       {
-           static_assert(std::is_trivially_copyable_v<T>);
-           if(sizeof(T) != size()){
-               throw fflerror("POD type size mismatches");
-           }
-           std::memcpy(&t, data(), sizeof(t));
-       }
-
        template<typename T> T conv() const
        {
+           static_assert(std::is_trivially_copyable_v<T>);
+           fflassert(sizeof(T) == size());
+
            T t;
-           assign<T>(t);
+           std::memcpy(&t, data(), sizeof(t));
            return t;
        }
 

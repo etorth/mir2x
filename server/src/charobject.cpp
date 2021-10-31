@@ -579,7 +579,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
     std::memset(&amLM, 0, sizeof(amLM));
 
     amLM.mapID = argMapID;
-    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
+    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [argMapID, locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
     {
         switch(mpk.type()){
             case AM_LOADMAPOK:
@@ -595,7 +595,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                     // if request rejected then it stays in current map
 
                     m_moveLock = true;
-                    m_actorPod->forward(mpk.conv<AMUID>().UID, {AM_TRYMAPSWITCH, amTMS}, [mpk, onOK, onError, this](const ActorMsgPack &rmpk)
+                    m_actorPod->forward(uidf::getMapUID(argMapID), {AM_TRYMAPSWITCH, amTMS}, [mpk, onOK, onError, this](const ActorMsgPack &rmpk)
                     {
                         fflassert(m_moveLock);
                         m_moveLock = false;

@@ -183,50 +183,18 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
 
 void ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
 {
-    const auto amAK = mpk.conv<AMAttack>();
+    const auto amA = mpk.conv<AMAttack>();
+    if(amA.UID == UID()){
+        return;
+    }
+
     if(m_dead.get()){
-        notifyDead(amAK.UID);
+        notifyDead(amA.UID);
+        return;
     }
-    else{
-        if(const auto &mr = DBCOM_MAGICRECORD(amAK.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amAK.X, amAK.Y)){
-            switch(uidf::getUIDType(amAK.UID)){
-                case UID_MON:
-                case UID_PLY:
-                    {
-                        AMMiss amM;
-                        std::memset(&amM, 0, sizeof(amM));
 
-                        amM.UID = amAK.UID;
-                        m_actorPod->forward(amAK.UID, {AM_MISS, amM});
-                        return;
-                    }
-                default:
-                    {
-                        return;
-                    }
-            }
-        }
-
-        if(amAK.UID != masterUID()){
-            setStandMode(true);
-            addOffenderDamage(amAK.UID, amAK.damage);
-        }
-
-        dispatchAction(ActionHitted
-        {
-            .x = X(),
-            .y = Y(),
-            .direction = Direction(),
-            .extParam
-            {
-                .dog
-                {
-                    .standMode = m_standMode,
-                }
-            }
-        });
-        struckDamage(amAK.damage);
-    }
+    setStandMode(true);
+    Monster::onAMAttack(mpk);
 }
 
 DamageNode ServerTaoDog::getAttackDamage(int dc) const
