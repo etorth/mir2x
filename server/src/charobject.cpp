@@ -615,7 +615,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                     }
 
                                     const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
-                                    const auto newMapPtr = (ServerMap *)(amMSOK.Ptr);
+                                    const auto newMapPtr = static_cast<const ServerMap *>(amMSOK.Ptr);
 
                                     if(!(true && newMapPtr
                                               && newMapPtr->ID()
@@ -642,15 +642,17 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                     // dangerous here, we should keep m_map always valid
 
                                     m_moveLock = true;
-                                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, amMSOK, rmpk, onOK, onError](const ActorMsgPack &leavermpk)
+                                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, rmpk, onOK, onError](const ActorMsgPack &leavermpk)
                                     {
                                         fflassert(m_moveLock);
                                         m_moveLock = false;
 
+                                        const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
+                                        const auto newMapPtr = static_cast<const ServerMap *>(amMSOK.Ptr);
+
                                         switch(leavermpk.type()){
-                                            case AM_OK:
+                                            case AM_LEAVEOK:
                                                 {
-                                                    const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
                                                     if(!canMove()){
                                                         m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
                                                         if(onError){
@@ -660,7 +662,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                                     }
 
                                                     // 1. response to new map ``I am here"
-                                                    m_map = (ServerMap *)(amMSOK.Ptr);
+                                                    m_map = newMapPtr;
                                                     m_X = amMSOK.X;
                                                     m_Y = amMSOK.Y;
                                                     m_actorPod->forward(m_map->UID(), AM_OK, rmpk.seqID());
@@ -691,7 +693,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
 
                                                     // if an UID can't move
                                                     // then we shouldn't call this function
-                                                    m_actorPod->forward(((ServerMap *)(amMSOK.Ptr))->UID(), AM_ERROR, rmpk.seqID());
+                                                    m_actorPod->forward(newMapPtr->UID(), AM_ERROR, rmpk.seqID());
                                                     if(onError){
                                                         onError();
                                                     }

@@ -695,14 +695,14 @@ void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
     const auto amTL = mpk.conv<AMTryLeave>();
     if(In(ID(), amTL.X, amTL.Y) && hasGridUID(mpk.from(), amTL.X, amTL.Y)){
         removeGridUID(mpk.from(), amTL.X, amTL.Y);
-        m_actorPod->forward(mpk.from(), AM_OK, mpk.seqID());
+        m_actorPod->forward(mpk.from(), AM_LEAVEOK, mpk.seqID());
         return;
     }
 
     // otherwise try leave failed
     // we reply AM_ERROR but this is already something wrong, map never prevert leave on purpose
 
-    m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+    m_actorPod->forward(mpk.from(), AM_LEAVEERROR, mpk.seqID());
     g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(mpk.from()), amTL.X, amTL.Y);
 }
 
