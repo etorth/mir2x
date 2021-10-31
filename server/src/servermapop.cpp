@@ -429,15 +429,15 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                         return false;
                     });
 
-                    if(uidf::getUIDType(fromUID) == UID_PLY && getGrid(amTJ.EndX, amTJ.EndY).mapID){
-                        AMMapSwitch amMS;
-                        std::memset(&amMS, 0, sizeof(amMS));
+                    if(uidf::isPlayer(fromUID) && getGrid(amTJ.EndX, amTJ.EndY).mapID){
+                        AMMapSwitchTrigger amMST;
+                        std::memset(&amMST, 0, sizeof(amMST));
 
-                        amMS.UID   = uidf::getMapUID(getGrid(amTJ.EndX, amTJ.EndY).mapID); // TODO
-                        amMS.mapID = getGrid(amTJ.EndX, amTJ.EndY).mapID;
-                        amMS.X     = getGrid(amTJ.EndX, amTJ.EndY).switchX;
-                        amMS.Y     = getGrid(amTJ.EndX, amTJ.EndY).switchY;
-                        m_actorPod->forward(fromUID, {AM_MAPSWITCH, amMS});
+                        amMST.UID   = uidf::getMapUID(getGrid(amTJ.EndX, amTJ.EndY).mapID); // TODO
+                        amMST.mapID = getGrid(amTJ.EndX, amTJ.EndY).mapID;
+                        amMST.X     = getGrid(amTJ.EndX, amTJ.EndY).switchX;
+                        amMST.Y     = getGrid(amTJ.EndX, amTJ.EndY).switchY;
+                        m_actorPod->forward(fromUID, {AM_MAPSWITCHTRIGGER, amMST});
                     }
                     break;
                 }
@@ -670,15 +670,15 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                         return false;
                     });
 
-                    if(uidf::getUIDType(amTM.UID) == UID_PLY && getGrid(nMostX, nMostY).mapID){
-                        AMMapSwitch amMS;
-                        std::memset(&amMS, 0, sizeof(amMS));
+                    if(uidf::isPlayer(amTM.UID) && getGrid(nMostX, nMostY).mapID){
+                        AMMapSwitchTrigger amMST;
+                        std::memset(&amMST, 0, sizeof(amMST));
 
-                        amMS.UID   = uidf::getMapUID(getGrid(nMostX, nMostY).mapID); // TODO
-                        amMS.mapID = getGrid(nMostX, nMostY).mapID;
-                        amMS.X     = getGrid(nMostX, nMostY).switchX;
-                        amMS.Y     = getGrid(nMostX, nMostY).switchY;
-                        m_actorPod->forward(amTM.UID, {AM_MAPSWITCH, amMS});
+                        amMST.UID   = uidf::getMapUID(getGrid(nMostX, nMostY).mapID); // TODO
+                        amMST.mapID = getGrid(nMostX, nMostY).mapID;
+                        amMST.X     = getGrid(nMostX, nMostY).switchX;
+                        amMST.Y     = getGrid(nMostX, nMostY).switchY;
+                        m_actorPod->forward(amTM.UID, {AM_MAPSWITCHTRIGGER, amMST});
                     }
                     break;
                 }

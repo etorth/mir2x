@@ -128,18 +128,18 @@ void Player::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
     reportCO(amQCOR.UID);
 }
 
-void Player::on_AM_MAPSWITCH(const ActorMsgPack &mpk)
+void Player::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
 {
-    const auto amMS = mpk.conv<AMMapSwitch>();
-    if(!(amMS.UID && amMS.mapID)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, mapID = %llu)", to_llu(amMS.UID), to_llu(amMS.mapID));
+    const auto amMST = mpk.conv<AMMapSwitchTrigger>();
+    if(!(amMST.UID && amMST.mapID)){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, mapID = %llu)", to_llu(amMST.UID), to_llu(amMST.mapID));
     }
 
-    if(amMS.mapID == mapID()){
-        requestSpaceMove(amMS.X, amMS.Y, false);
+    if(amMST.mapID == mapID()){
+        requestSpaceMove(amMST.X, amMST.Y, false);
     }
     else{
-        requestMapSwitch(amMS.mapID, amMS.X, amMS.Y, false);
+        requestMapSwitch(amMST.mapID, amMST.X, amMST.Y, false);
     }
 }
 

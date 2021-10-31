@@ -46,7 +46,7 @@ enum ActorMsgPackType: int
     AM_PULLCOINFO,
     AM_QUERYMAPLIST,
     AM_MAPLIST,
-    AM_MAPSWITCH,
+    AM_MAPSWITCHTRIGGER,
     AM_MAPSWITCHOK,
     AM_TRYMAPSWITCH,
     AM_LOADMAP,
@@ -308,7 +308,7 @@ struct AMMapList
     uint32_t MapList[256];
 };
 
-struct AMMapSwitch
+struct AMMapSwitchTrigger
 {
     uint32_t mapID;
     uint64_t UID;

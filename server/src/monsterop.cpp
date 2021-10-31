@@ -114,7 +114,7 @@ void Monster::on_AM_ATTACK(const ActorMsgPack &mpk)
     onAMAttack(mpk);
 }
 
-void Monster::on_AM_MAPSWITCH(const ActorMsgPack &)
+void Monster::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &)
 {
 }
 

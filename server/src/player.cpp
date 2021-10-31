@@ -79,9 +79,9 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_CHECKMASTER(rstMPK);
                 break;
             }
-        case AM_MAPSWITCH:
+        case AM_MAPSWITCHTRIGGER:
             {
-                on_AM_MAPSWITCH(rstMPK);
+                on_AM_MAPSWITCHTRIGGER(rstMPK);
                 break;
             }
         case AM_NPCQUERY:

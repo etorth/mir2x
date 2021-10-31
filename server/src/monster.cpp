@@ -670,9 +670,9 @@ void Monster::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_ATTACK(rstMPK);
                 break;
             }
-        case AM_MAPSWITCH:
+        case AM_MAPSWITCHTRIGGER:
             {
-                on_AM_MAPSWITCH(rstMPK);
+                on_AM_MAPSWITCHTRIGGER(rstMPK);
                 break;
             }
         case AM_QUERYLOCATION:

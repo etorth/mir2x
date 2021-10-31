@@ -141,7 +141,7 @@ class Monster: public CharObject
         void on_AM_OFFLINE         (const ActorMsgPack &);
         void on_AM_UPDATEHP        (const ActorMsgPack &);
         void on_AM_METRONOME       (const ActorMsgPack &);
-        void on_AM_MAPSWITCH       (const ActorMsgPack &);
+        void on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
         void on_AM_MASTERKILL      (const ActorMsgPack &);
         void on_AM_MASTERHITTED    (const ActorMsgPack &);
         void on_AM_NOTIFYDEAD      (const ActorMsgPack &);

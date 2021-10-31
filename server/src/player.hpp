@@ -111,7 +111,7 @@ class Player final: public CharObject
         void on_AM_CORECORD(const ActorMsgPack &);
         void on_AM_NPCQUERY(const ActorMsgPack &);
         void on_AM_METRONOME(const ActorMsgPack &);
-        void on_AM_MAPSWITCH(const ActorMsgPack &);
+        void on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
         void on_AM_SENDPACKAGE(const ActorMsgPack &);
         void on_AM_RECVPACKAGE(const ActorMsgPack &);
         void on_AM_BADCHANNEL(const ActorMsgPack &);
