@@ -29,7 +29,7 @@ ClientGuard::ClientGuard(uint64_t uid, ProcessRun *proc, const ActionNode &actio
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_ATTACK0,
-                    .direction = m_processRun->getAimDirection(action, m_currMotion->direction),
+                    .direction = m_processRun->getAimDirection(action, DIR_BEGIN),
                     .x = action.x,
                     .y = action.y,
                 });
