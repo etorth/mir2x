@@ -875,6 +875,12 @@ void CharObject::dispatchHealth()
     dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
 }
 
+void CharObject::dispatchHealth(uint64_t uid)
+{
+    fflassert(uidf::isPlayer(uid));
+    forwardNetPackage(uid, SM_HEALTH, cerealf::serialize(m_sdHealth));
+}
+
 void CharObject::dispatchAttackDamage(uint64_t nUID, int nDC)
 {
     if(nUID && dcValid(nDC, true)){

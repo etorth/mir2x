@@ -190,6 +190,7 @@ class CharObject: public ServerObject
 
     protected:
         void dispatchHealth();
+        void dispatchHealth(uint64_t);
         void dispatchAttackDamage(uint64_t, int);
 
     protected:

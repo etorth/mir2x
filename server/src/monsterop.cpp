@@ -90,7 +90,7 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
     if(addedInView > 0){
         dispatchAction(amA.UID, makeActionStand());
         if(uidf::isPlayer(amA.UID)){
-            dispatchHealth(); // TODO only dispatch to the added CO
+            dispatchHealth(amA.UID);
             m_actorPod->setMetronomeFreq(10);
         }
     }
