@@ -141,7 +141,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
 
         coPtr->parseAction(smA.action);
         switch(smA.action.type){
-            case ACTION_SPACEMOVE2:
+            case ACTION_SPACEMOVE:
                 {
                     if(smA.UID == m_myHeroUID){
                         centerMyHero();

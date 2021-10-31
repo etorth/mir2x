@@ -216,8 +216,8 @@
     .gfxList
     {
         {
-            .stage = u8"启动",
-            .type  = u8"附着",
+            .stage = u8"开始",
+            .type  = u8"固定",  // don't use 附着
             .gfxID = 0X0000006E,
             .frameCount = 10,
         },
@@ -889,7 +889,7 @@
             .ref
             {
                 .name = u8"魔法特效_瞬息移动",
-                .stage = u8"启动",
+                .stage = u8"开始",
             },
         },
 
@@ -1955,7 +1955,7 @@
             .ref
             {
                 .name = u8"魔法特效_瞬息移动",
-                .stage = u8"启动",
+                .stage = u8"开始",
             },
         },
 

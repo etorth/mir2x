@@ -763,11 +763,11 @@ bool Monster::canMove() const
 
     return g_monoServer->getCurrTick() >= std::max<uint32_t>(
     {
-        m_lastActionTime.at(m_lastAction     ) + 100,
-        m_lastActionTime.at(ACTION_JUMP      ) + 100,
-        m_lastActionTime.at(ACTION_SPACEMOVE2) + 100,
-        m_lastActionTime.at(ACTION_MOVE      ) + getMR().walkWait,
-        m_lastActionTime.at(ACTION_ATTACK    ) + getMR().attackWait,
+        m_lastActionTime.at(m_lastAction    ) + 100,
+        m_lastActionTime.at(ACTION_JUMP     ) + 100,
+        m_lastActionTime.at(ACTION_SPACEMOVE) + 100,
+        m_lastActionTime.at(ACTION_MOVE     ) + getMR().walkWait,
+        m_lastActionTime.at(ACTION_ATTACK   ) + getMR().attackWait,
     });
 }
 

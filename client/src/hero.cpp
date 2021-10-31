@@ -432,7 +432,7 @@ bool Hero::parseAction(const ActionNode &action)
                 m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
                 break;
             }
-        case ACTION_SPACEMOVE2:
+        case ACTION_SPACEMOVE:
             {
                 break;
             }
@@ -509,10 +509,11 @@ bool Hero::parseAction(const ActionNode &action)
                 }
                 break;
             }
-        case ACTION_SPACEMOVE2:
+        case ACTION_SPACEMOVE:
             {
                 flushForcedMotion();
-                jumpLoc(action.x, action.y, m_currMotion->direction);
+                jumpLoc(action.aimX, action.aimY, m_currMotion->direction);
+                m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(u8"瞬息移动", u8"开始", action.x, action.y)));
                 addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
                 break;
             }

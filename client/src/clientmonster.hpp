@@ -137,15 +137,15 @@ class ClientMonster: public CreatureMovable
         int currStep() const override;
 
     protected:
-        virtual bool onActionDie       (const ActionNode &);
-        virtual bool onActionStand     (const ActionNode &);
-        virtual bool onActionHitted    (const ActionNode &);
-        virtual bool onActionJump      (const ActionNode &);
-        virtual bool onActionMove      (const ActionNode &);
-        virtual bool onActionAttack    (const ActionNode &);
-        virtual bool onActionSpawn     (const ActionNode &);
-        virtual bool onActionTransf    (const ActionNode &);
-        virtual bool onActionSpaceMove2(const ActionNode &);
+        virtual bool onActionDie      (const ActionNode &);
+        virtual bool onActionStand    (const ActionNode &);
+        virtual bool onActionHitted   (const ActionNode &);
+        virtual bool onActionJump     (const ActionNode &);
+        virtual bool onActionMove     (const ActionNode &);
+        virtual bool onActionAttack   (const ActionNode &);
+        virtual bool onActionSpawn    (const ActionNode &);
+        virtual bool onActionTransf   (const ActionNode &);
+        virtual bool onActionSpaceMove(const ActionNode &);
 
     public:
         ClientCreature::TargetBox getTargetBox() const override;

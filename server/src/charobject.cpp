@@ -179,8 +179,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
         case ACTION_JUMP:
         case ACTION_MOVE:
         case ACTION_PUSHMOVE:
-        case ACTION_SPACEMOVE1:
-        case ACTION_SPACEMOVE2:
+        case ACTION_SPACEMOVE:
         case ACTION_SPAWN:
             {
                 m_actorPod->forward(m_map->UID(), {AM_ACTION, amA});
@@ -513,6 +512,10 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                     // setup new map
                     // don't use the requested location
                     const auto amASM = rmpk.conv<AMAllowSpaceMove>();
+
+                    const auto oldX = m_X;
+                    const auto oldY = m_Y;
+
                     m_X = amASM.EndX;
                     m_Y = amASM.EndY;
 
@@ -521,17 +524,12 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
 
                     amSMOK.uid = UID();
                     amSMOK.mapID = mapID();
-                    amSMOK.spaceMove1 = ActionSpaceMove1 // create leaving magic
+                    amSMOK.action = ActionSpaceMove
                     {
-                        .x = X(),
-                        .y = Y(),
-                        .direction = Direction(),
-                    };
-
-                    amSMOK.spaceMove2 = ActionSpaceMove2 // create entering magic and move CO
-                    {
-                        .x = X(),
-                        .y = Y(),
+                        .x = oldX,
+                        .y = oldY,
+                        .aimX = X(),
+                        .aimY = Y(),
                         .direction = Direction(),
                     };
 
@@ -539,7 +537,7 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                     trimInViewCO();
 
                     if(uidf::isPlayer(UID())){
-                        dynamic_cast<Player *>(this)->reportAction(UID(), amSMOK.spaceMove2);
+                        dynamic_cast<Player *>(this)->reportAction(UID(), amSMOK.action);
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                         dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                     }

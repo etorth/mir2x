@@ -191,9 +191,7 @@ struct AMSpaceMoveOK
 {
     uint64_t uid;
     uint32_t mapID;
-
-    ActionNode spaceMove1;
-    ActionNode spaceMove2;
+    ActionNode action;
 };
 
 struct AMTryMove

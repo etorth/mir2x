@@ -229,21 +229,21 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 
                     const auto amSMOK = rmpk.conv<AMSpaceMoveOK>();
 
-                    AMAction amA1;
-                    std::memset(&amA1, 0, sizeof(amA1));
+                    AMAction amA;
+                    std::memset(&amA, 0, sizeof(amA));
 
-                    amA1.UID = fromUID;
-                    amA1.mapID = amSMOK.mapID;
-                    amA1.action = amSMOK.spaceMove1;
+                    amA.UID = fromUID;
+                    amA.mapID = amSMOK.mapID;
+                    amA.action = amSMOK.action;
 
                     if(!removeGridUID(fromUID, amTSM.X, amTSM.Y)){
                         throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), amTSM.X, amTSM.Y);
                     }
 
                     m_seenUIDList.clear();
-                    doCircle(amTSM.X, amTSM.Y, SYS_VIEWR, [amA1, fromUID, this](int gridX, int gridY)
+                    doCircle(amTSM.X, amTSM.Y, SYS_VIEWR, [amA, fromUID, this](int gridX, int gridY)
                     {
-                        doUIDList(gridX, gridY, [amA1, fromUID, this](uint64_t gridUID)
+                        doUIDList(gridX, gridY, [amA, fromUID, this](uint64_t gridUID)
                         {
                             switch(uidf::getUIDType(gridUID)){
                                 case UID_PLY:
@@ -251,7 +251,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                                 case UID_NPC:
                                     {
                                         if((gridUID != fromUID) && (m_seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA1});
+                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
                                             m_seenUIDList.insert(gridUID);
                                         }
                                         break;
@@ -272,16 +272,9 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                         postGroundFireWallList(fromUID, nDstX, nDstY);
                     }
 
-                    AMAction amA2;
-                    std::memset(&amA2, 0, sizeof(amA2));
-
-                    amA2.UID = fromUID;
-                    amA2.mapID = amSMOK.mapID;
-                    amA2.action = amSMOK.spaceMove2;
-
-                    doCircle(nDstX, nDstY, SYS_VIEWR, [amA2, fromUID, this](int gridX, int gridY)
+                    doCircle(nDstX, nDstY, SYS_VIEWR, [amA, fromUID, this](int gridX, int gridY)
                     {
-                        doUIDList(gridX, gridY, [amA2, fromUID, this](uint64_t gridUID)
+                        doUIDList(gridX, gridY, [amA, fromUID, this](uint64_t gridUID)
                         {
                             switch(uidf::getUIDType(gridUID)){
                                 case UID_PLY:
@@ -289,7 +282,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                                 case UID_NPC:
                                     {
                                         if((gridUID != fromUID) && (m_seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA2});
+                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
                                             m_seenUIDList.insert(gridUID);
                                         }
                                         break;

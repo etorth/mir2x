@@ -91,15 +91,14 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 break;
             }
         case ACTION_MOVE:
-        case ACTION_SPACEMOVE1:
-        case ACTION_SPACEMOVE2:
+        case ACTION_SPACEMOVE:
             {
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
-                    .x = action.x,
-                    .y = action.y,
+                    .x = action.aimX,
+                    .y = action.aimY,
                 });
 
                 // TODO use crowling state

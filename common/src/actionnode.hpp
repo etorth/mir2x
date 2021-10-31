@@ -32,8 +32,7 @@ enum ActionType: int
     ACTION_MOVE,
     ACTION_JUMP,
     ACTION_PUSHMOVE,
-    ACTION_SPACEMOVE1,
-    ACTION_SPACEMOVE2,
+    ACTION_SPACEMOVE,
     ACTION_ATTACK,
     ACTION_SPELL,
     ACTION_TRANSF,
@@ -419,10 +418,12 @@ struct ActionMove
     }
 };
 
-struct ActionSpaceMove1
+struct ActionSpaceMove
 {
     const int x = -1;
     const int y = -1;
+    const int aimX = -1;
+    const int aimY = -1;
     const int direction = DIR_NONE;
 
     operator ActionNode () const
@@ -430,32 +431,13 @@ struct ActionSpaceMove1
         ActionNode node;
         std::memset(&node, 0, sizeof(node));
 
-        node.type = ACTION_SPACEMOVE1;
+        node.type = ACTION_SPACEMOVE;
         node.direction = direction;
 
         node.x = x;
         node.y = y;
-
-        return node;
-    }
-};
-
-struct ActionSpaceMove2
-{
-    const int x = -1;
-    const int y = -1;
-    const int direction = DIR_NONE;
-
-    operator ActionNode () const
-    {
-        ActionNode node;
-        std::memset(&node, 0, sizeof(node));
-
-        node.type = ACTION_SPACEMOVE2;
-        node.direction = direction;
-
-        node.x = x;
-        node.y = y;
+        node.aimX = aimX;
+        node.aimY = aimY;
 
         return node;
     }
@@ -525,20 +507,19 @@ inline const char *actionName(int type)
 {
 #define _add_action_type_case(t) case t: return #t;
     switch(type){
-        _add_action_type_case(ACTION_NONE      )
-        _add_action_type_case(ACTION_SPAWN     )
-        _add_action_type_case(ACTION_STAND     )
-        _add_action_type_case(ACTION_MOVE      )
-        _add_action_type_case(ACTION_JUMP      )
-        _add_action_type_case(ACTION_PUSHMOVE  )
-        _add_action_type_case(ACTION_SPACEMOVE1)
-        _add_action_type_case(ACTION_SPACEMOVE2)
-        _add_action_type_case(ACTION_ATTACK    )
-        _add_action_type_case(ACTION_SPELL     )
-        _add_action_type_case(ACTION_TRANSF    )
-        _add_action_type_case(ACTION_HITTED    )
-        _add_action_type_case(ACTION_SPINKICK  )
-        _add_action_type_case(ACTION_DIE       )
+        _add_action_type_case(ACTION_NONE     )
+        _add_action_type_case(ACTION_SPAWN    )
+        _add_action_type_case(ACTION_STAND    )
+        _add_action_type_case(ACTION_MOVE     )
+        _add_action_type_case(ACTION_JUMP     )
+        _add_action_type_case(ACTION_PUSHMOVE )
+        _add_action_type_case(ACTION_SPACEMOVE)
+        _add_action_type_case(ACTION_ATTACK   )
+        _add_action_type_case(ACTION_SPELL    )
+        _add_action_type_case(ACTION_TRANSF   )
+        _add_action_type_case(ACTION_HITTED   )
+        _add_action_type_case(ACTION_SPINKICK )
+        _add_action_type_case(ACTION_DIE      )
         default: return "ACTION_UNKNOWN";
     }
 #undef _add_action_type_case

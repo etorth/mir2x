@@ -333,16 +333,16 @@ bool ClientMonster::parseAction(const ActionNode &action)
 
     m_motionQueue.clear();
     switch(action.type){
-        case ACTION_DIE       : return onActionDie       (action) && motionQueueValid();
-        case ACTION_STAND     : return onActionStand     (action) && motionQueueValid();
-        case ACTION_HITTED    : return onActionHitted    (action) && motionQueueValid();
-        case ACTION_JUMP      : return onActionJump      (action) && motionQueueValid();
-        case ACTION_MOVE      : return onActionMove      (action) && motionQueueValid();
-        case ACTION_ATTACK    : return onActionAttack    (action) && motionQueueValid();
-        case ACTION_SPAWN     : return onActionSpawn     (action) && motionQueueValid();
-        case ACTION_TRANSF    : return onActionTransf    (action) && motionQueueValid();
-        case ACTION_SPACEMOVE2: return onActionSpaceMove2(action) && motionQueueValid();
-        default               : return false;
+        case ACTION_DIE      : return onActionDie      (action) && motionQueueValid();
+        case ACTION_STAND    : return onActionStand    (action) && motionQueueValid();
+        case ACTION_HITTED   : return onActionHitted   (action) && motionQueueValid();
+        case ACTION_JUMP     : return onActionJump     (action) && motionQueueValid();
+        case ACTION_MOVE     : return onActionMove     (action) && motionQueueValid();
+        case ACTION_ATTACK   : return onActionAttack   (action) && motionQueueValid();
+        case ACTION_SPAWN    : return onActionSpawn    (action) && motionQueueValid();
+        case ACTION_TRANSF   : return onActionTransf   (action) && motionQueueValid();
+        case ACTION_SPACEMOVE: return onActionSpaceMove(action) && motionQueueValid();
+        default              : return false;
     }
 }
 
@@ -411,16 +411,19 @@ bool ClientMonster::onActionTransf(const ActionNode &)
     throw fflerror("unexpected ACTION_TRANSF to uid: %s", uidf::getUIDString(UID()).c_str());
 }
 
-bool ClientMonster::onActionSpaceMove2(const ActionNode &action)
+bool ClientMonster::onActionSpaceMove(const ActionNode &action)
 {
     flushForcedMotion();
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
         .direction = m_currMotion->direction,
-        .x = action.x,
-        .y = action.y,
+        .x = action.aimX,
+        .y = action.aimY,
     });
+
+    m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(u8"瞬息移动", u8"开始", action.x, action.y)));
+    addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
     return true;
 }
 
