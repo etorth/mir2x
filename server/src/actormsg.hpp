@@ -47,8 +47,11 @@ enum ActorMsgPackType: int
     AM_QUERYMAPLIST,
     AM_MAPLIST,
     AM_MAPSWITCHTRIGGER,
-    AM_MAPSWITCHOK,
     AM_TRYMAPSWITCH,
+    AM_ALLOWMAPSWITCH,
+    AM_REJECTMAPSWITCH,
+    AM_MAPSWITCHOK,
+    AM_MAPSWITCHERROR,
     AM_LOADMAP,
     AM_LOADMAPOK,
     AM_LOADMAPERROR,
@@ -334,7 +337,7 @@ struct AMUID
     uint64_t UID;
 };
 
-struct AMMapSwitchOK
+struct AMAllowMapSwitch
 {
     void *Ptr;
 

@@ -601,31 +601,31 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                         m_moveLock = false;
 
                         switch(rmpk.type()){
-                            case AM_MAPSWITCHOK:
+                            case AM_ALLOWMAPSWITCH:
                                 {
                                     // new map accepts this switch request
                                     // new map will guarantee to outlive current object
 
                                     if(!canMove()){
-                                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
+                                        m_actorPod->forward(rmpk.from(), AM_MAPSWITCHERROR, rmpk.seqID());
                                         if(onError){
                                             onError();
                                         }
                                         return;
                                     }
 
-                                    const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
-                                    const auto newMapPtr = static_cast<const ServerMap *>(amMSOK.Ptr);
+                                    const auto amAMS = rmpk.conv<AMAllowMapSwitch>();
+                                    const auto newMapPtr = static_cast<const ServerMap *>(amAMS.Ptr);
 
                                     if(!(true && newMapPtr
                                               && newMapPtr->ID()
                                               && newMapPtr->UID()
-                                              && newMapPtr->validC(amMSOK.X, amMSOK.Y))){
+                                              && newMapPtr->validC(amAMS.X, amAMS.Y))){
 
                                         // fake map
                                         // invalid argument, this is not good place to call onError()
 
-                                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
+                                        m_actorPod->forward(rmpk.from(), AM_MAPSWITCHERROR, rmpk.seqID());
                                         if(onError){
                                             onError();
                                         }
@@ -647,33 +647,33 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                         fflassert(m_moveLock);
                                         m_moveLock = false;
 
-                                        const auto amMSOK = rmpk.conv<AMMapSwitchOK>();
-                                        const auto newMapPtr = static_cast<const ServerMap *>(amMSOK.Ptr);
+                                        const auto amAMS = rmpk.conv<AMAllowMapSwitch>();
+                                        const auto newMapPtr = static_cast<const ServerMap *>(amAMS.Ptr);
 
                                         switch(leavermpk.type()){
                                             case AM_LEAVEOK:
                                                 {
                                                     if(!canMove()){
-                                                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
+                                                        m_actorPod->forward(rmpk.from(), AM_MAPSWITCHERROR, rmpk.seqID());
                                                         if(onError){
                                                             onError();
                                                         }
                                                         return;
                                                     }
 
-                                                    // 1. response to new map ``I am here"
+                                                    // response to new map ``I am here"
                                                     m_map = newMapPtr;
-                                                    m_X = amMSOK.X;
-                                                    m_Y = amMSOK.Y;
-                                                    m_actorPod->forward(m_map->UID(), AM_OK, rmpk.seqID());
+                                                    m_X = amAMS.X;
+                                                    m_Y = amAMS.Y;
+                                                    m_actorPod->forward(m_map->UID(), AM_MAPSWITCHOK, rmpk.seqID());
 
-                                                    // 2. notify all players on the new map
-                                                    //    need to explicitly send to the map, not InViewCO since it's not valid anymore
+                                                    // notify all players on the new map
+                                                    // need to explicitly send to the map, not InViewCO since it's not valid anymore
                                                     m_inViewCOList.clear();
                                                     dispatchAction(m_map->UID(), makeActionStand());
 
-                                                    // 3. inform the client for map swith
-                                                    // 4. get neighbors
+                                                    // inform the client for map swith
+                                                    // get neighbors
 
                                                     if(uidf::isPlayer(UID())){
                                                         dynamic_cast<Player *>(this)->reportStand();
@@ -693,7 +693,7 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
 
                                                     // if an UID can't move
                                                     // then we shouldn't call this function
-                                                    m_actorPod->forward(newMapPtr->UID(), AM_ERROR, rmpk.seqID());
+                                                    m_actorPod->forward(newMapPtr->UID(), AM_MAPSWITCHERROR, rmpk.seqID());
                                                     if(onError){
                                                         onError();
                                                     }

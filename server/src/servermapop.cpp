@@ -738,32 +738,30 @@ void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
     const auto amTMS  = mpk.conv<AMTryMapSwitch>();
 
     if(!canMove(false, true, amTMS.X, amTMS.Y)){
-        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+        m_actorPod->forward(mpk.from(), AM_REJECTMAPSWITCH, mpk.seqID());
         return;
     }
 
-    AMMapSwitchOK amMSOK;
-    std::memset(&amMSOK, 0, sizeof(amMSOK));
+    AMAllowMapSwitch amAMS;
+    std::memset(&amAMS, 0, sizeof(amAMS));
 
-    amMSOK.Ptr = this;
-    amMSOK.X   = amTMS.X;
-    amMSOK.Y   = amTMS.Y;
+    amAMS.Ptr = this;
+    amAMS.X   = amTMS.X;
+    amAMS.Y   = amTMS.Y;
 
     getGrid(amTMS.X, amTMS.Y).locked = true;
-    m_actorPod->forward(mpk.from(), {AM_MAPSWITCHOK, amMSOK}, mpk.seqID(), [this, reqUID, amMSOK](const ActorMsgPack &rmpk)
+    m_actorPod->forward(mpk.from(), {AM_ALLOWMAPSWITCH, amAMS}, mpk.seqID(), [this, reqUID, amAMS](const ActorMsgPack &rmpk)
     {
-        if(!getGrid(amMSOK.X, amMSOK.Y).locked){
-            throw fflerror("cell lock released before MAPSWITCHOK get responsed: MapUID = %lld", to_llu(UID()));
-        }
+        fflassert(getGrid(amAMS.X, amAMS.Y).locked);
+        getGrid(amAMS.X, amAMS.Y).locked = false;
 
-        getGrid(amMSOK.X, amMSOK.Y).locked = false;
         switch(rmpk.type()){
-            case AM_OK:
+            case AM_MAPSWITCHOK:
                 {
                     // didn't check map switch here
                     // map switch should be triggered by move request
 
-                    addGridUID(reqUID, amMSOK.X, amMSOK.Y, true);
+                    addGridUID(reqUID, amAMS.X, amAMS.Y, true);
                     break;
                 }
             default:
