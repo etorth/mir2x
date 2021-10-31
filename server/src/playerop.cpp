@@ -95,6 +95,9 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
 
     if(addedInView > 0){
         dispatchAction(amA.UID, makeActionStand());
+    }
+
+    if(addedInView >= 0){
         reportAction(amA.UID, amA.action);
     }
 }
