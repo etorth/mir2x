@@ -89,21 +89,17 @@ void ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {AM_MAPLIST, amML}, rstMPK.seqID());
 }
 
-void ServiceCore::on_AM_QUERYMAPUID(const ActorMsgPack &mpk)
+void ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
 {
-    const auto amQMUID = mpk.conv<AMQueryMapUID>();
-    const auto mapPtr = retrieveMap(amQMUID.mapID);
+    const auto amLM = mpk.conv<AMLoadMap>();
+    const auto mapPtr = retrieveMap(amLM.mapID);
 
-    if(!mapPtr){
-        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
-        return;
+    if(mapPtr){
+        m_actorPod->forward(mpk.from(), AM_LOADMAPOK, mpk.seqID());
     }
-
-    AMUID amUID;
-    std::memset(&amUID, 0, sizeof(amUID));
-
-    amUID.UID = mapPtr->UID();
-    m_actorPod->forward(mpk.from(), {AM_UID, amUID}, mpk.seqID());
+    else{
+        m_actorPod->forward(mpk.from(), AM_LOADMAPERROR, mpk.seqID());
+    }
 }
 
 void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)

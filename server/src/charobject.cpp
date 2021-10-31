@@ -575,14 +575,14 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
         return false;
     }
 
-    AMQueryMapUID amQMUID;
-    std::memset(&amQMUID, 0, sizeof(amQMUID));
+    AMLoadMap amLM;
+    std::memset(&amLM, 0, sizeof(amLM));
 
-    amQMUID.mapID = argMapID;
-    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYMAPUID, amQMUID}, [locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
+    amLM.mapID = argMapID;
+    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
     {
         switch(mpk.type()){
-            case AM_UID:
+            case AM_LOADMAPOK:
                 {
                     AMTryMapSwitch amTMS;
                     std::memset(&amTMS, 0, sizeof(amTMS));

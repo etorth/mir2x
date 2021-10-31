@@ -561,19 +561,19 @@ bool MonoServer::addNPChar(const char *scriptPath)
 
 bool MonoServer::loadMap(const std::string &mapName)
 {
-    AMQueryMapUID amQMUID;
-    std::memset(&amQMUID, 0, sizeof(amQMUID));
+    AMLoadMap amLM;
+    std::memset(&amLM, 0, sizeof(amLM));
 
-    amQMUID.mapID = DBCOM_MAPID(to_u8cstr(mapName));
-    if(amQMUID.mapID == 0){
+    amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
+    if(amLM.mapID == 0){
         addLog(LOGTYPE_WARNING, "Invalid map name: %s", to_cstr(mapName));
         return false;
     }
 
-    switch(const auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYMAPUID, amQMUID}); rmpk.type()){
-        case AM_UID:
+    switch(const auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
+        case AM_LOADMAPOK:
             {
-                addLog(LOGTYPE_INFO, "Load map %s: uid = 0x%016x", to_cstr(mapName), to_llu(rmpk.conv<AMUID>().UID));
+                addLog(LOGTYPE_INFO, "Load map %s: uid = %s", to_cstr(mapName), uidf::getUIDString(uidf::getMapUID(amLM.mapID)).c_str());
                 return true;
             }
         default:

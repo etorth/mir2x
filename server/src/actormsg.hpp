@@ -48,7 +48,9 @@ enum ActorMsgPackType: int
     AM_MAPSWITCH,
     AM_MAPSWITCHOK,
     AM_TRYMAPSWITCH,
-    AM_QUERYMAPUID,
+    AM_LOADMAP,
+    AM_LOADMAPOK,
+    AM_LOADMAPERROR,
     AM_QUERYLOCATION,
     AM_QUERYSELLITEMLIST,
     AM_LOCATION,
@@ -321,7 +323,7 @@ struct AMTryMapSwitch
     bool strictMove;
 };
 
-struct AMQueryMapUID
+struct AMLoadMap
 {
     uint32_t mapID;
 };

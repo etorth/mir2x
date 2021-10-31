@@ -51,9 +51,9 @@ void ServiceCore::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_QUERYCOCOUNT(rstMPK);
                 break;
             }
-        case AM_QUERYMAPUID:
+        case AM_LOADMAP:
             {
-                on_AM_QUERYMAPUID(rstMPK);
+                on_AM_LOADMAP(rstMPK);
                 break;
             }
         default:

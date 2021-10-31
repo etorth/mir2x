@@ -35,7 +35,7 @@ class ServiceCore final: public ServerObject
         void on_AM_METRONOME(const ActorMsgPack &);
         void on_AM_BADCHANNEL(const ActorMsgPack &);
         void on_AM_RECVPACKAGE(const ActorMsgPack &);
-        void on_AM_QUERYMAPUID(const ActorMsgPack &);
+        void on_AM_LOADMAP(const ActorMsgPack &);
         void on_AM_QUERYMAPLIST(const ActorMsgPack &);
         void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
         void on_AM_ADDCO(const ActorMsgPack &);
