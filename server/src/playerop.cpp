@@ -83,12 +83,28 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
         return;
     }
 
+    const auto [dstX, dstY] = [&amA]() -> std::tuple<int, int>
+    {
+        switch(amA.action.type){
+            case ACTION_MOVE:
+            case ACTION_SPACEMOVE:
+                {
+                    return {amA.action.aimX, amA.action.aimY};
+                }
+            default:
+                {
+                    return {amA.action.x, amA.action.y};
+                }
+        }
+    }();
+
     const auto addedInView = updateInViewCO(COLocation
     {
         .uid = amA.UID,
         .mapID = amA.mapID,
-        .x = amA.action.x,
-        .y = amA.action.y,
+
+        .x = dstX,
+        .y = dstY,
         .direction = amA.action.direction,
     });
 

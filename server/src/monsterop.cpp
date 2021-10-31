@@ -102,6 +102,9 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         .direction = amA.action.direction,
     });
 
+    // if sent is a player and is removed from this inview CO list
+    // then this CO doesn't need to send its location to player, player should call trimInViewCO()
+
     if(addedInView > 0){
         dispatchAction(amA.UID, makeActionStand());
         if(uidf::isPlayer(amA.UID)){

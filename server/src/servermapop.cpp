@@ -714,12 +714,15 @@ void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
                     std::memset(&amA, 0, sizeof(amA));
 
                     amA.UID = fromUID;
-                    amA.mapID = amLOK.mapID;
+                    amA.mapID = amLOK.mapID; // new map CO that switched into
                     amA.action = amLOK.action;
 
                     if(!removeGridUID(fromUID, fromGridX, fromGridY)){
                         throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), fromGridX, fromGridY);
                     }
+
+                    // broadcast new CO location to leaving map
+                    // then all old neighbors can remove it from their inview list
 
                     std::unordered_set<uint64_t> seenUIDList;
                     doCircle(fromGridX, fromGridY, SYS_VIEWR, [fromUID, amA, &seenUIDList, this](int gridX, int gridY)
