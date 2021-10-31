@@ -539,7 +539,6 @@ bool CharObject::requestSpaceMove(int locX, int locY, bool strictMove, std::func
                     if(uidf::isPlayer(UID())){
                         dynamic_cast<Player *>(this)->reportAction(UID(), amSMOK.action);
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
-                        dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                     }
 
                     if(onOK){
@@ -686,7 +685,6 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                                     if(uidf::isPlayer(UID())){
                                                         dynamic_cast<Player *>(this)->reportStand();
                                                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
-                                                        dynamic_cast<Player *>(this)->PullRectCO(10, 10);
                                                     }
 
                                                     if(onOK){

@@ -973,27 +973,6 @@ void Player::gainExp(int addedExp)
     postExp();
 }
 
-void Player::PullRectCO(int nW, int nH)
-{
-    if(true
-            && nW > 0
-            && nH > 0
-            && checkActorPod()
-            && m_map->checkActorPod()){
-
-        AMPullCOInfo amPCOI;
-        std::memset(&amPCOI, 0, sizeof(amPCOI));
-
-        amPCOI.X     = X();
-        amPCOI.Y     = Y();
-        amPCOI.W     = nW;
-        amPCOI.H     = nH;
-        amPCOI.UID   = UID();
-        amPCOI.mapID = m_map->ID();
-        m_actorPod->forward(m_map->UID(), {AM_PULLCOINFO, amPCOI});
-    }
-}
-
 bool Player::CanPickUp(uint32_t, uint32_t)
 {
     return true;

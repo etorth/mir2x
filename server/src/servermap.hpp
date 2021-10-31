@@ -416,7 +416,6 @@ class ServerMap final: public ServerObject
         void on_AM_PATHFIND(const ActorMsgPack &);
         void on_AM_UPDATEHP(const ActorMsgPack &);
         void on_AM_METRONOME(const ActorMsgPack &);
-        void on_AM_PULLCOINFO(const ActorMsgPack &);
         void on_AM_BADACTORPOD(const ActorMsgPack &);
         void on_AM_DEADFADEOUT(const ActorMsgPack &);
         void on_AM_DROPITEM(const ActorMsgPack &);

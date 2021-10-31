@@ -45,7 +45,6 @@ enum ActorMsgPackType: int
     AM_ADDCO,
     AM_BINDCHANNEL,
     AM_ACTION,
-    AM_PULLCOINFO,
     AM_QUERYMAPLIST,
     AM_MAPLIST,
     AM_MAPSWITCHTRIGGER,
@@ -308,17 +307,6 @@ struct AMAction
     uint64_t UID;
     uint32_t mapID;
     ActionNode action;
-};
-
-struct AMPullCOInfo
-{
-    int X;
-    int Y;
-    int W;
-    int H;
-
-    uint64_t UID;
-    uint32_t mapID;
 };
 
 struct AMMapList

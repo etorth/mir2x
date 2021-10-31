@@ -755,32 +755,6 @@ void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
     });
 }
 
-void ServerMap::on_AM_PULLCOINFO(const ActorMsgPack &rstMPK)
-{
-    AMPullCOInfo amPCOI;
-    std::memcpy(&amPCOI, rstMPK.data(), sizeof(amPCOI));
-
-    DoCenterSquare(amPCOI.X, amPCOI.Y, amPCOI.W, amPCOI.H, false, [this, amPCOI](int nX, int nY) -> bool
-    {
-        if(true || validC(nX, nY)){
-            doUIDList(nX, nY, [this, amPCOI](uint64_t nUID) -> bool
-            {
-                if(nUID != amPCOI.UID){
-                    if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
-                        AMQueryCORecord amQCOR;
-                        std::memset(&amQCOR, 0, sizeof(amQCOR));
-
-                        amQCOR.UID = amPCOI.UID;
-                        m_actorPod->forward(nUID, {AM_QUERYCORECORD, amQCOR});
-                    }
-                }
-                return false;
-            });
-        }
-        return false;
-    });
-}
-
 void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.from();

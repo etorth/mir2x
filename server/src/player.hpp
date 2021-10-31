@@ -233,9 +233,6 @@ class Player final: public CharObject
         void gainExp(int);
 
     protected:
-        void PullRectCO(int, int);
-
-    protected:
         bool CanPickUp(uint32_t, uint32_t);
 
     private:

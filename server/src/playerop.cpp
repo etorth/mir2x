@@ -60,7 +60,6 @@ void Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
     g_netDriver->bindPlayer(m_channID.value(), UID());
 
     postOnlineOK();
-    PullRectCO(10, 10);
 }
 
 void Player::on_AM_SENDPACKAGE(const ActorMsgPack &mpk)

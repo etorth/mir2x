@@ -553,11 +553,6 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_ADDCO(rstMPK);
                 break;
             }
-        case AM_PULLCOINFO:
-            {
-                on_AM_PULLCOINFO(rstMPK);
-                break;
-            }
         case AM_QUERYCOCOUNT:
             {
                 on_AM_QUERYCOCOUNT(rstMPK);
