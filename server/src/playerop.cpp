@@ -84,7 +84,7 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
         return;
     }
 
-    const bool addedInView = updateInViewCO(COLocation
+    const auto addedInView = updateInViewCO(COLocation
     {
         .uid = amA.UID,
         .mapID = amA.mapID,
@@ -93,19 +93,8 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
         .direction = amA.action.direction,
     });
 
-    if(addedInView){
-        switch(amA.action.type){
-            case ACTION_SPAWN:
-            case ACTION_SPACEMOVE2:
-                {
-                    dispatchAction(amA.UID, makeActionStand());
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
+    if(addedInView > 0){
+        dispatchAction(amA.UID, makeActionStand());
         reportAction(amA.UID, amA.action);
     }
 }

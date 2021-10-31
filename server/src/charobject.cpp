@@ -818,7 +818,10 @@ void CharObject::getCOLocation(uint64_t nUID, std::function<void(const COLocatio
                         .direction = amL.Direction
                     };
 
-                    updateInViewCO(coLoc);
+                    if(updateInViewCO(coLoc) > 0){
+                        dispatchAction(coLoc.uid, makeActionStand());
+                    }
+
                     onOK(coLoc);
                     return;
                 }
@@ -1203,16 +1206,16 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     }
 }
 
-bool CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)
+int CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)
 {
+    const auto oldSize = to_d(m_inViewCOList.size());
     if(!forceDelete && inView(coLoc.mapID, coLoc.x, coLoc.y)){
         m_inViewCOList[coLoc.uid] = coLoc;
-        return true;
     }
     else{
         m_inViewCOList.erase(coLoc.uid);
-        return false;
     }
+    return to_d(m_inViewCOList.size()) - oldSize;
 }
 
 bool CharObject::isOffender(uint64_t nUID)

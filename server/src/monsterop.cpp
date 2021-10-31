@@ -87,20 +87,8 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         .direction = amA.action.direction,
     });
 
-    if(addedInView){
-        switch(amA.action.type){
-            case ACTION_SPAWN:
-            case ACTION_SPACEMOVE2:
-                {
-                    dispatchAction(amA.UID, makeActionStand());
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
+    if(addedInView > 0){
+        dispatchAction(amA.UID, makeActionStand());
         if(uidf::isPlayer(amA.UID)){
             dispatchHealth(); // TODO only dispatch to the added CO
             m_actorPod->setMetronomeFreq(10);
