@@ -19,13 +19,16 @@ enum ActorMsgPackType: int
     AM_LOGIN,
     AM_METRONOME,
     AM_TRYJUMP,
+    AM_ALLOWJUMP,
+    AM_REJECTJUMP,
+    AM_JUMPOK,
+    AM_JUMPERROR,
     AM_TRYMOVE,         // CO -> ServerMap  : co request move
     AM_ALLOWMOVE,       // Server -> CO     : server allow to move
     AM_REJECTMOVE,      // Server -> CO     : server refuse to move
     AM_MOVEOK,          // CO -> ServerMap  : co confirm to take the move permission
     AM_MOVEERROR,       // CO -> ServerMap  : co reject  to take the move permission
     AM_TRYSPACEMOVE,
-    AM_JUMPOK,
     AM_SPACEMOVEOK,
     AM_TRYLEAVE,
     AM_LOGINOK,
@@ -181,15 +184,6 @@ struct AMSpaceMoveOK
     int EndY;
 };
 
-struct AMTryJump
-{
-    int X;
-    int Y;
-
-    int EndX;
-    int EndY;
-};
-
 struct AMTryMove
 {
     uint64_t UID;
@@ -224,13 +218,29 @@ struct AMMoveOK
     ActionNode action;
 };
 
-struct AMJumpOK
+struct AMTryJump
 {
     int X;
     int Y;
 
     int EndX;
     int EndY;
+};
+
+struct AMAllowJump
+{
+    int X;
+    int Y;
+
+    int EndX;
+    int EndY;
+};
+
+struct AMJumpOK
+{
+    uint64_t uid;
+    uint32_t mapID;
+    ActionNode action;
 };
 
 struct AMLoginQueryDB

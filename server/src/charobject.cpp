@@ -253,10 +253,10 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
         // need to check if current CO can jump
 
         switch(rmpk.type()){
-            case AM_JUMPOK:
+            case AM_ALLOWJUMP:
                 {
                     if(!canMove()){
-                        m_actorPod->forward(rmpk.from(), AM_ERROR, rmpk.seqID());
+                        m_actorPod->forward(rmpk.from(), AM_JUMPERROR, rmpk.seqID());
                         if(onError){
                             onError();
                         }
@@ -265,10 +265,10 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
 
                     const auto oldX = m_X;
                     const auto oldY = m_Y;
-                    const auto amJOK = rmpk.conv<AMJumpOK>();
+                    const auto amAJ = rmpk.conv<AMAllowJump>();
 
-                    m_X = amJOK.EndX;
-                    m_Y = amJOK.EndY;
+                    m_X = amAJ.EndX;
+                    m_Y = amAJ.EndY;
 
                     if(directionValid(nDirection)){
                         m_direction = nDirection;
@@ -277,14 +277,19 @@ bool CharObject::requestJump(int nX, int nY, int nDirection, std::function<void(
                         m_direction = PathFind::GetDirection(oldX, oldY, X(), Y());
                     }
 
-                    m_actorPod->forward(rmpk.from(), AM_OK, rmpk.seqID());
-                    dispatchAction(ActionJump
+                    AMJumpOK amJOK;
+                    std::memset(&amJOK, 0, sizeof(amJOK));
+
+                    amJOK.uid = UID();
+                    amJOK.mapID = mapID();
+                    amJOK.action = ActionJump
                     {
                         .x = X(),
                         .y = Y(),
                         .direction = Direction(),
-                    });
+                    };
 
+                    m_actorPod->forward(rmpk.from(), {AM_JUMPOK, amJOK}, rmpk.seqID());
                     if(uidf::isPlayer(UID())){
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
