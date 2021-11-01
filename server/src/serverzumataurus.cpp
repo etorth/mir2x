@@ -15,7 +15,7 @@ corof::eval_poller ServerZumaTaurus::updateCoroFunc()
     const auto &hellFireMR = DBCOM_MAGICRECORD(hellFireDC);
     const auto &fireWallMR = DBCOM_MAGICRECORD(fireWallDC);
 
-    fflassert( hellFireMR);
+    fflassert(hellFireMR);
     fflassert(fireWallMR);
 
     hres_timer lastFireWallTime;
