@@ -277,10 +277,118 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         return;
     }
 
-    g_dbPod->exec(u8R"###( delete from tbl_learnedmagiclist where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value()));
-
     const auto deletedDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
     fflassert(deletedDBID == dbidOpt.value());
+
+    g_dbPod->exec(u8R"###( delete from tbl_learnedmagiclist where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value()));
+    auto maxSeqID = [dbidOpt]() -> uint32_t
+    {
+        auto querySeqID = g_dbPod->createQuery(
+                u8R"###( select                                                                           )###"
+                u8R"###(     fld_seqid                                                                    )###"
+                u8R"###( from                                                                             )###"
+                u8R"###(     tbl_inventory                                                                )###"
+                u8R"###( where                                                                            )###"
+                u8R"###(     fld_dbid = %llu                                                              )###"
+                u8R"###( and                                                                              )###"
+                u8R"###(     fld_seqid = (select max(fld_seqid) from tbl_inventory where fld_dbid = %llu) )###",
+
+                to_llu(dbidOpt.value()),
+                to_llu(dbidOpt.value()));
+
+        if(querySeqID.executeStep()){
+            return (uint32_t)(querySeqID.getColumn("fld_seqid")) + 1;
+        }
+        else{
+            return 1;
+        }
+    }();
+
+    // delete tbl_belt and move them to tbl_inventory, create a long query string and execute query at one time
+    // don't need to insert many times since tbl_belt items always has empty attributes
+
+    size_t insertedBeltItemCount = 0;
+    std::u8string insertQueryBeltString
+    {
+        u8R"###( insert into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
+        u8R"###( values                                                                                                                )###"
+    };
+
+    auto queryBelt = g_dbPod->createQuery(u8R"###( delete from tbl_belt where fld_dbid = %llu returning * )###", to_llu(dbidOpt.value()));
+    while(queryBelt.executeStep()){
+        if(insertedBeltItemCount > 0){
+            insertQueryBeltString += u8",";
+        }
+
+        const SDItem item
+        {
+            .itemID = check_cast<uint32_t, unsigned>(queryBelt.getColumn("fld_itemid")),
+            .seqID  = maxSeqID++,
+            .count  = check_cast<size_t, unsigned>(queryBelt.getColumn("fld_count")),
+
+            // for rest of attributes take default values
+            // don't assign default values for these attributes here manually
+        };
+
+        fflassert(item);
+        insertedBeltItemCount++;
+        insertQueryBeltString += str_printf(u8R"###( (%llu, %llu, %llu, %llu, %llu, %llu, ?) )###",
+                to_llu(dbidOpt.value()),
+                to_llu(item.itemID),
+                to_llu(item.seqID),
+                to_llu(item.count),
+                to_llu(item.duration[0]),
+                to_llu(item.duration[1]));
+    }
+
+    const auto emptyAttrBuf = cerealf::serialize<SDItemExtAttrList>({});
+    if(insertedBeltItemCount > 0){
+        insertQueryBeltString += u8";";
+        auto insertQuery = g_dbPod->createQuery(insertQueryBeltString.c_str());
+        for(size_t i = 1; i <= insertedBeltItemCount; ++i){
+            insertQuery.bind(i, emptyAttrBuf.data(), emptyAttrBuf.length());
+        }
+        insertQuery.exec();
+    }
+
+    // delete tbl_wear and move them to tbl_inventory
+    // need to insert one by one since items in tbl_wear usually has non-empty extAttrList
+
+    auto queryWear = g_dbPod->createQuery(u8R"###( delete from tbl_wear where fld_dbid = %llu returning * )###", to_llu(dbidOpt.value()));
+    while(queryWear.executeStep()){
+        const SDItem item
+        {
+            .itemID = check_cast<uint32_t, unsigned>(queryWear.getColumn("fld_itemid")),
+            .seqID  = maxSeqID++,
+            .count  = check_cast<size_t, unsigned>(queryWear.getColumn("fld_count")),
+            .duration
+            {
+                check_cast<size_t, unsigned>(queryWear.getColumn("fld_duration")),
+                check_cast<size_t, unsigned>(queryWear.getColumn("fld_maxduration")),
+            },
+
+            // don't deserialize extAttrList
+            // since it gets serialized quickly when inserted into tbl_inventory
+        };
+
+        fflassert(item);
+        const std::string extAttrBuf = queryWear.getColumn("fld_extattrlist");
+
+        auto insertQuery = g_dbPod->createQuery(
+                u8R"###( insert into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
+                u8R"###( values                                                                                                                )###"
+                u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                           )###",
+
+                to_llu(dbidOpt.value()),
+                to_llu(item.itemID),
+                to_llu(item.seqID),
+                to_llu(item.count),
+                to_llu(item.duration[0]),
+                to_llu(item.duration[1]));
+
+        insertQuery.bind(1, extAttrBuf.data(), extAttrBuf.length());
+        insertQuery.exec();
+    }
     g_netDriver->post(channID, SM_DELETECHAROK, nullptr, 0);
 }
 
