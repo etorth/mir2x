@@ -23,21 +23,22 @@ enum ActorMsgPackType: int
     AM_REJECTJUMP,
     AM_JUMPOK,
     AM_JUMPERROR,
-    AM_TRYMOVE,         // CO -> ServerMap  : co request move
-    AM_ALLOWMOVE,       // Server -> CO     : server allow to move
-    AM_REJECTMOVE,      // Server -> CO     : server refuse to move
-    AM_MOVEOK,          // CO -> ServerMap  : co confirm to take the move permission
-    AM_MOVEERROR,       // CO -> ServerMap  : co reject  to take the move permission
+    AM_TRYMOVE,         // step-1. CO -> ServerMap  : co requests move
+    AM_ALLOWMOVE,       // step-2. Server -> CO     : server map allows  to move
+    AM_REJECTMOVE,      // step-2. Server -> CO     : server map refuses to move
+    AM_MOVEOK,          // step-3. CO -> ServerMap  : co confirms to take the move permission
+    AM_MOVEERROR,       // step-3. CO -> ServerMap  : co rejects  to take the move permission
     AM_TRYSPACEMOVE,
     AM_ALLOWSPACEMOVE,
     AM_REJECTSPACEMOVE,
     AM_SPACEMOVEOK,
     AM_SPACEMOVEERROR,
-    AM_TRYLEAVE,
-    AM_ALLOWLEAVE,
-    AM_REJECTLEAVE,
-    AM_LEAVEOK,
-    AM_LEAVEERROR,
+    AM_TRYLEAVE,        // step-1. CO -> ServerMap  : co requests to leave
+    AM_ALLOWLEAVE,      // step-2. ServerMap -> CO  : server map permits to leave
+    AM_REJECTLEAVE,     // step-2. ServerMap -> CO  : server map refuses to leave
+    AM_LEAVEOK,         // step-3. CO -> ServerMap  : CO confirms to take the leave permission, leave has been done in CO
+    AM_LEAVEERROR,      // step-3. CO -> ServerMap  : Co rejects  to take the leave permission
+    AM_FINISHLEAVE,     // step-4. ServerMap -> CO  : server map has finished the leave, leave-event broadcasted, CO can broadcast for new location
     AM_LOGINOK,
     AM_LOGINQUERYDB,
     AM_SENDPACKAGE,

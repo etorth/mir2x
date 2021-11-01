@@ -671,25 +671,41 @@ bool CharObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool st
                                                     amLOK.uid = UID();
                                                     amLOK.mapID = mapID();
                                                     amLOK.action = makeActionStand();
-                                                    m_actorPod->forward(leavermpk.from(), {AM_LEAVEOK, amLOK}, leavermpk.seqID());
 
-                                                    AMMapSwitchOK amMSOK;
-                                                    std::memset(&amMSOK, 0, sizeof(amMSOK));
+                                                    m_moveLock = true;
+                                                    m_actorPod->forward(leavermpk.from(), {AM_LEAVEOK, amLOK}, leavermpk.seqID(), [rmpk, onOK, this](const ActorMsgPack &finishrmpk)
+                                                    {
+                                                        fflassert(m_moveLock);
+                                                        m_moveLock = false;
 
-                                                    amMSOK.uid = UID();
-                                                    amMSOK.mapID = mapID();
-                                                    amMSOK.action = makeActionStand();
-                                                    m_actorPod->forward(m_map->UID(), {AM_MAPSWITCHOK, amMSOK}, rmpk.seqID());
+                                                        switch(finishrmpk.type()){
+                                                            case AM_FINISHLEAVE:
+                                                            default:
+                                                                {
+                                                                    // no matter what returned form server map, we always call onOK
+                                                                    // because the map switch has already been done
 
-                                                    trimInViewCO();
-                                                    if(uidf::isPlayer(UID())){
-                                                        dynamic_cast<Player *>(this)->reportStand();
-                                                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
-                                                    }
+                                                                    AMMapSwitchOK amMSOK;
+                                                                    std::memset(&amMSOK, 0, sizeof(amMSOK));
 
-                                                    if(onOK){
-                                                        onOK();
-                                                    }
+                                                                    amMSOK.uid = UID();
+                                                                    amMSOK.mapID = mapID();
+                                                                    amMSOK.action = makeActionStand();
+                                                                    m_actorPod->forward(m_map->UID(), {AM_MAPSWITCHOK, amMSOK}, rmpk.seqID());
+
+                                                                    trimInViewCO();
+                                                                    if(uidf::isPlayer(UID())){
+                                                                        dynamic_cast<Player *>(this)->reportStand();
+                                                                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
+                                                                    }
+
+                                                                    if(onOK){
+                                                                        onOK();
+                                                                    }
+                                                                    return;
+                                                                }
+                                                        }
+                                                    });
                                                     return;
                                                 }
                                             default:

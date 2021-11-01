@@ -749,10 +749,13 @@ void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
                         });
                         return false;
                     });
+
+                    m_actorPod->forward(fromUID, AM_FINISHLEAVE, rmpk.seqID());
+                    return;
                 }
             default:
                 {
-                    break;
+                    return;
                 }
         }
     });
