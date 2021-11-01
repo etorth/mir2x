@@ -229,6 +229,7 @@ class Monster: public CharObject
         virtual corof::eval_awaiter<bool>     coro_jumpAttackUID(uint64_t);
         virtual corof::eval_awaiter<bool>     coro_trackAttackUID(uint64_t);
         virtual corof::eval_awaiter<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
+        virtual corof::eval_awaiter<bool>     coro_validTarget(uint64_t);
         virtual corof::eval_awaiter<std::optional<SDHealth>> coro_queryHealth(uint64_t);
         virtual corof::eval_awaiter<std::tuple<uint32_t, int, int>> coro_getCOGLoc(uint64_t);
 

@@ -308,3 +308,29 @@ corof::eval_awaiter<std::tuple<uint32_t, int, int>> Monster::coro_getCOGLoc(uint
     };
     return fnwait(this, targetUID).to_awaiter<std::tuple<uint32_t, int, int>>();
 }
+
+corof::eval_awaiter<bool> Monster::coro_validTarget(uint64_t targetUID)
+{
+    const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::eval_poller
+    {
+        if(!p->m_actorPod->checkUIDValid(targetUID)){
+            co_return false;
+        }
+
+        const auto [locMapID, locX, locY] = co_await p->coro_getCOGLoc(targetUID);
+        if(!p->inView(locMapID, locX, locY)){
+            co_return false;
+        }
+
+        const auto viewDistance = DBCOM_MONSTERRECORD(p->monsterID()).view;
+        if(viewDistance <= 0){
+            co_return false;
+        }
+
+        if(mathf::LDistance2<int>(p->X(), p->Y(), locX, locY) > viewDistance * viewDistance){
+            co_return false;
+        }
+        co_return true;
+    };
+    return fnwait(this, targetUID).to_awaiter<bool>();
+}
