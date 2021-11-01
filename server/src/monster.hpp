@@ -234,9 +234,6 @@ class Monster: public CharObject
         virtual corof::eval_awaiter<std::tuple<uint32_t, int, int>> coro_getCOGLoc(uint64_t);
 
     public:
-        static bool isPet(uint64_t);
-
-    public:
         const auto &getMR() const
         {
             return DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()));

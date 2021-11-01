@@ -478,10 +478,7 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
 
 void Monster::jumpAttackUID(uint64_t targetUID, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!targetUID){
-        throw fflerror("invalid zero UID");
-    }
-
+    fflassert(targetUID);
     const auto magicID = getAttackMagic(targetUID);
     const auto &mr = DBCOM_MAGICRECORD(magicID);
     if(!mr){
@@ -1305,7 +1302,12 @@ void Monster::checkFriend_ctrlByMonster(uint64_t targetUID, std::function<void(i
                             case UID_MON:
                                 {
                                     if(fnOp){
-                                        fnOp(FT_NEUTRAL);
+                                        if(uidf::isGuardMode(finalMasterUID)){
+                                            fnOp(FT_ENEMY);
+                                        }
+                                        else{
+                                            fnOp(FT_NEUTRAL);
+                                        }
                                     }
                                     return;
                                 }
@@ -1318,7 +1320,7 @@ void Monster::checkFriend_ctrlByMonster(uint64_t targetUID, std::function<void(i
                                 }
                             default:
                                 {
-                                    throw bad_value(finalMasterUID);
+                                    throw bad_value(uidf::getUIDString(finalMasterUID));
                                 }
                         }
                     }
@@ -1339,7 +1341,7 @@ void Monster::checkFriend_ctrlByMonster(uint64_t targetUID, std::function<void(i
             }
         default:
             {
-                throw bad_value(targetUID);
+                throw bad_value(uidf::getUIDString(targetUID));
             }
     }
 }
@@ -1519,25 +1521,6 @@ void Monster::queryPlayerFriend(uint64_t fromUID, uint64_t targetUID, std::funct
                 }
         }
     });
-}
-
-bool Monster::isPet(uint64_t nUID)
-{
-    if(uidf::getUIDType(nUID) != UID_MON){
-        return false;
-    }
-
-    switch(uidf::getMonsterID(nUID)){
-        case DBCOM_MONSTERID(u8"变异骷髅"):
-        case DBCOM_MONSTERID(u8"神兽"):
-            {
-                return true;
-            }
-        default:
-            {
-                return false;
-            }
-    }
 }
 
 bool Monster::hasPlayerNeighbor() const

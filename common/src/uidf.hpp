@@ -140,4 +140,7 @@ namespace uidf
 
     bool isMonster(uint64_t, uint32_t);
     bool isMonster(uint64_t, const char8_t *);
+
+    bool isGuardMode(uint64_t);
+    bool isNeutralMode(uint64_t);
 }

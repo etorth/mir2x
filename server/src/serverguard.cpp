@@ -16,10 +16,12 @@
  * =====================================================================================
  */
 
-#include "serverguard.hpp"
+#include "uidf.hpp"
+#include "fflerror.hpp"
 #include "dbcomid.hpp"
 #include "friendtype.hpp"
 #include "monoserver.hpp"
+#include "serverguard.hpp"
 
 extern MonoServer *g_monoServer;
 ServerGuard::ServerGuard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
@@ -27,7 +29,9 @@ ServerGuard::ServerGuard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, 
     , m_standX(argX)
     , m_standY(argY)
     , m_standDirection(argDir)
-{}
+{
+    fflassert(uidf::isGuardMode(UID()));
+}
 
 corof::eval_poller ServerGuard::updateCoroFunc()
 {

@@ -26,7 +26,6 @@
 constexpr int BM_DEFAULT = 0;
 constexpr int BM_NEUTRAL = 1;
 constexpr int BM_GUARD   = 2;
-constexpr int BM_BOSS    = 3;
 
 struct MonsterRecord
 {

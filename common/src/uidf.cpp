@@ -224,3 +224,13 @@ bool uidf::isMonster(uint64_t uid, const char8_t *name)
 {
     return uidf::isMonster(uid) && (uidf::getMonsterID(uid) == DBCOM_MONSTERID(name));
 }
+
+bool uidf::isGuardMode(uint64_t uid)
+{
+    return uidf::isMonster(uid) && (DBCOM_MONSTERRECORD(uidf::getMonsterID(uid)).behaveMode == BM_GUARD);
+}
+
+bool uidf::isNeutralMode(uint64_t uid)
+{
+    return uidf::isMonster(uid) && (DBCOM_MONSTERRECORD(uidf::getMonsterID(uid)).behaveMode == BM_NEUTRAL);
+}

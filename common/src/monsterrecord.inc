@@ -916,7 +916,7 @@
     .deadFadeOut = 1,
     .hp = 9999,
     .exp = 16,
-    .dc = {220, 220},
+    .dc = {INT_MAX, INT_MAX},
     .ac = {110, 110},
     .mac = {110, 110},
     .dcHit = 200,

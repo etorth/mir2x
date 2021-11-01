@@ -18,6 +18,7 @@
 
 #pragma once
 #include <cstdint>
+#include <climits>
 #include "maprecord.hpp"
 #include "itemrecord.hpp"
 #include "magicrecord.hpp"
