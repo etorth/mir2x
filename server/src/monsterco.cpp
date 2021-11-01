@@ -334,7 +334,7 @@ corof::eval_awaiter<bool> Monster::coro_validTarget(uint64_t targetUID)
             co_return false;
         }
 
-        const auto viewDistance = DBCOM_MONSTERRECORD(p->monsterID()).view;
+        const auto viewDistance = p->getMR().view;
         if(viewDistance <= 0){
             co_return false;
         }

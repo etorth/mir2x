@@ -87,29 +87,24 @@ void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
     switch(uidf::getUIDType(targetUID)){
         case UID_MON:
             {
-                switch(DBCOM_MONSTERRECORD(uidf::getMonsterID(targetUID)).behaveMode){
-                    case BM_GUARD:
-                        {
-                            if(fnOp){
-                                fnOp(FT_FRIEND);
-                            }
-                            return;
-                        }
-                    case BM_NEUTRAL:
-                        {
-                            if(fnOp){
-                                fnOp(FT_NEUTRAL);
-                            }
-                            return;
-                        }
-                    default:
-                        {
-                            if(fnOp){
-                                fnOp(FT_ENEMY);
-                            }
-                            return;
-                        }
+                if(uidf::isGuardMode(targetUID)){
+                    if(fnOp){
+                        fnOp(FT_FRIEND);
+                    }
+                    return;
                 }
+
+                if(uidf::isNeutralMode(targetUID)){
+                    if(fnOp){
+                        fnOp(FT_NEUTRAL);
+                    }
+                    return;
+                }
+
+                if(fnOp){
+                    fnOp(FT_ENEMY);
+                }
+                return;
             }
         case UID_PLY:
             {

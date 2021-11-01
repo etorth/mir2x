@@ -1165,7 +1165,7 @@ int Monster::FindPathMethod()
 
 void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::function<void(uint64_t)> fnTarget)
 {
-    const auto viewDistance = DBCOM_MONSTERRECORD(monsterID()).view;
+    const auto viewDistance = getMR().view;
     if(viewDistance <= 0){
         fnTarget(0);
         return;
@@ -1178,11 +1178,22 @@ void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::
         seen.reserve(m_inViewCOList.size() + 8);
     }
 
+    // for monster like ServerCannibalPlant with view distance 1
+    // need to use Chebyshev's distance, otherwise dirs for DIR_UPLEFT, DIR_UPRIGHT, DIR_DOWNLEFT, DIR_DOWNRIGHT are not reachable
+
     for(const auto &[uid, coLoc]: m_inViewCOList){
         if(!seen.count(uid)){
-            if(const auto currDistance = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y); (currDistance <= viewDistance * viewDistance) && (currDistance < minDistance)){
-                minDistance    = currDistance;
-                minDistanceUID = uid;
+            const auto distCb = mathf::CDistance <int>(X(), Y(), coLoc.x, coLoc.y);
+            const auto distL2 = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y);
+
+            if(false
+                    || ((viewDistance <= 1) && (distCb <= viewDistance))
+                    || ((viewDistance >  1) && (distL2 <= viewDistance * viewDistance))){
+
+                if(distL2 < minDistance){
+                    minDistance    = distL2;
+                    minDistanceUID = uid;
+                }
             }
         }
     }
@@ -1220,7 +1231,7 @@ void Monster::searchNearestTarget(std::function<void(uint64_t)> fnTarget)
         }
     }
 
-    if(DBCOM_MONSTERRECORD(monsterID()).behaveMode == BM_NEUTRAL){
+    if(uidf::isNeutralMode(UID())){
         fnTarget(0);
         return;
     }
@@ -1237,9 +1248,7 @@ void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
 
 int Monster::getAttackMagic(uint64_t) const
 {
-    const auto &mr = DBCOM_MONSTERRECORD(monsterID());
-    fflassert(mr);
-    return DBCOM_MAGICID(str_haschar(mr.dcName) ? mr.dcName : u8"物理攻击");
+    return DBCOM_MAGICID(str_haschar(getMR().dcName) ? getMR().dcName : u8"物理攻击");
 }
 
 void Monster::queryMaster(uint64_t targetUID, std::function<void(uint64_t)> fnOp)
