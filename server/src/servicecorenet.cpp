@@ -277,8 +277,8 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         return;
     }
 
-    const auto deletedDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
-    fflassert(deletedDBID == dbidOpt.value());
+    const auto dbidDeleted = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
+    fflassert(dbidDeleted == dbidOpt.value());
 
     g_dbPod->exec(u8R"###( delete from tbl_learnedmagiclist where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value()));
     auto maxSeqID = [dbidOpt]() -> uint32_t
@@ -389,6 +389,9 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         insertQuery.bind(1, extAttrBuf.data(), extAttrBuf.length());
         insertQuery.exec();
     }
+
+    // we don't move items in tbl_secureditemlist to tbl_inventory because tbl_secureditemlist has password
+    // otherwise people can get secured items by just deleting char
     g_netDriver->post(channID, SM_DELETECHAROK, nullptr, 0);
 }
 
