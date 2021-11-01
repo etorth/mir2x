@@ -1050,7 +1050,7 @@
 
 {   .name = u8"食人花",
     .lookID = 0X1F,
-    .view = 10,
+    .view = 1,
     .deadFadeOut = 1,
     .hp = 21,
     .exp = 336,

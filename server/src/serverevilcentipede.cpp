@@ -10,8 +10,7 @@ corof::eval_poller ServerEvilCentipede::updateCoroFunc()
     std::optional<uint64_t> idleTime;
 
     while(m_sdHealth.HP > 0){
-        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
-            m_inViewCOList.erase(targetUID);
+        if(targetUID && !(co_await coro_validTarget(targetUID))){
             targetUID = 0;
         }
 

@@ -313,6 +313,18 @@ corof::eval_awaiter<bool> Monster::coro_validTarget(uint64_t targetUID)
 {
     const auto fnwait = +[](Monster *p, uint64_t targetUID) -> corof::eval_poller
     {
+        switch(uidf::getUIDType(targetUID)){
+            case UID_MON:
+            case UID_PLY:
+                {
+                    break;
+                }
+            default:
+                {
+                    co_return false;
+                }
+        }
+
         if(!p->m_actorPod->checkUIDValid(targetUID)){
             co_return false;
         }

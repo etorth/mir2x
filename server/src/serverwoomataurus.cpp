@@ -21,8 +21,7 @@ corof::eval_poller ServerWoomaTaurus::updateCoroFunc()
 
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){
-        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
-            m_inViewCOList.erase(targetUID);
+        if(targetUID && !(co_await coro_validTarget(targetUID))){
             targetUID = 0;
         }
 

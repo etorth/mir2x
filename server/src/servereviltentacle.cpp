@@ -24,7 +24,7 @@ corof::eval_poller ServerEvilTentacle::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.HP > 0){
-        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+        if(targetUID && !(co_await coro_validTarget(targetUID))){
             targetUID = 0;
         }
 

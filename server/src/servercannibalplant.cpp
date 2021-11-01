@@ -28,20 +28,8 @@ corof::eval_poller ServerCannibalPlant::updateCoroFunc()
     std::optional<uint64_t> idleTime;
 
     while(m_sdHealth.HP > 0){
-        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+        if(targetUID && !(co_await coro_validTarget(targetUID))){
             targetUID = 0;
-            m_inViewCOList.erase(targetUID);
-        }
-
-        if(targetUID){
-            const auto [targetMapID, targetX, targetY] = co_await coro_getCOGLoc(targetUID);
-            if(!inView(targetMapID, targetX, targetY)){
-                targetUID = 0;
-                m_inViewCOList.erase(targetUID);
-            }
-            else if(mathf::CDistance<int>(targetX, targetY, X(), Y()) > 1){
-                targetUID = 0;
-            }
         }
 
         if(!targetUID){

@@ -527,17 +527,8 @@ corof::eval_poller Monster::updateCoroFunc()
             targetUID = 0;
         }
 
-        if(targetUID && !m_actorPod->checkUIDValid(targetUID)){
+        if(targetUID && !(co_await coro_validTarget(targetUID))){
             targetUID = 0;
-            m_inViewCOList.erase(targetUID);
-        }
-
-        if(targetUID){
-            const auto [argMapID, argX, argY] = co_await coro_getCOGLoc(targetUID);
-            if(!inView(argMapID, argX, argY)){
-                targetUID = 0;
-                m_inViewCOList.erase(targetUID);
-            }
         }
 
         if(!targetUID){
