@@ -277,6 +277,8 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         return;
     }
 
+    g_dbPod->exec(u8R"###( delete from tbl_learnedmagiclist where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value()));
+
     const auto deletedDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
     fflassert(deletedDBID == dbidOpt.value());
     g_netDriver->post(channID, SM_DELETECHAROK, nullptr, 0);
