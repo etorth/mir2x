@@ -1381,7 +1381,7 @@ void Monster::checkFriend_ctrlByPlayer(uint64_t targetUID, std::function<void(in
                                         }
                                     }
                                     else{
-                                        queryPlayerFriend(masterUID(), targetUID, [fnOp](int friendType)
+                                        queryPlayerFriend(masterUID(), finalMasterUID, [fnOp](int friendType)
                                         {
                                             if(fnOp){
                                                 fnOp(friendType);
