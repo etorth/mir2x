@@ -114,7 +114,7 @@ bool MonoServer::hasCharacter(const char *charName) const
     if(!str_haschar(charName)){
         throw fflerror("invalid char name: %s", to_cstr(charName));
     }
-    return g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_dbid where fld_name = '%s')###", charName).executeStep();
+    return g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_char where fld_name = '%s')###", charName).executeStep();
 }
 
 int MonoServer::createAccount(const char *id, const char *password)
@@ -179,7 +179,7 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
 
     g_dbPod->exec
     (
-        u8R"###( insert into tbl_dbid(fld_dbid, fld_name, fld_job, fld_map, fld_mapx, fld_mapy, fld_gender) )###"
+        u8R"###( insert into tbl_char(fld_dbid, fld_name, fld_job, fld_map, fld_mapx, fld_mapy, fld_gender) )###"
         u8R"###( values                                                                                     )###"
         u8R"###(     (%llu, '%s', '%s', '%d', %d, %d, %d);                                                  )###",
 
@@ -252,7 +252,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###( values                                                              )###"
         u8R"###(     (1, 'admin', 'admin');                                          )###",
 
-        u8R"###( create table tbl_dbid(                                              )###"
+        u8R"###( create table tbl_char(                                              )###"
         u8R"###(     fld_dbid           integer      not null primary key,           )###"
         u8R"###(     fld_name           varchar(32)  not null,                       )###"
         u8R"###(     fld_namecolor      int unsigned default 0,                      )###"
@@ -276,7 +276,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_itemid         int unsigned not null,                       )###"
         u8R"###(     fld_count          int unsigned not null,                       )###"
         u8R"###(                                                                     )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid),           )###"
         u8R"###(     primary key (fld_dbid, fld_belt)                                )###"
         u8R"###( );                                                                  )###",
 
@@ -290,7 +290,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_maxduration    int unsigned not null,                       )###"
         u8R"###(     fld_extattrlist    blob         not null,                       )###"
         u8R"###(                                                                     )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid),           )###"
         u8R"###(     primary key (fld_dbid, fld_wear)                                )###"
         u8R"###( );                                                                  )###",
 
@@ -303,7 +303,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_maxduration    int unsigned not null,                       )###"
         u8R"###(     fld_extattrlist    blob         not null,                       )###"
         u8R"###(                                                                     )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid),           )###"
         u8R"###(     primary key (fld_dbid, fld_itemid, fld_seqid)                   )###"
         u8R"###( );                                                                  )###",
 
@@ -316,7 +316,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_maxduration    int unsigned not null,                       )###"
         u8R"###(     fld_extattrlist    blob         not null,                       )###"
         u8R"###(                                                                     )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid),           )###"
         u8R"###(     primary key (fld_dbid, fld_itemid, fld_seqid)                   )###"
         u8R"###( );                                                                  )###",
 
@@ -325,7 +325,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_magicid        int unsigned not null,                       )###"
         u8R"###(     fld_exp            int unsigned default 0,                      )###"
         u8R"###(                                                                     )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid),           )###"
         u8R"###(     primary key (fld_dbid, fld_magicid)                             )###"
         u8R"###( );                                                                  )###",
 
@@ -334,7 +334,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     fld_mute           int unsigned default 0,                      )###"
         u8R"###(     fld_magickeylist   blob null default (x''),                     )###"
         u8R"###(                                                                     )###"
-        u8R"###(     foreign key (fld_dbid) references tbl_dbid(fld_dbid),           )###"
+        u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid),           )###"
         u8R"###(     primary key (fld_dbid)                                          )###"
         u8R"###( );                                                                  )###",
     };

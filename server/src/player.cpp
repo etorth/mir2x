@@ -1187,7 +1187,7 @@ void Player::removeSecuredItem(uint32_t itemID, uint32_t seqID)
 void Player::setGold(size_t gold)
 {
     m_sdItemStorage.gold = gold;
-    g_dbPod->exec("update tbl_dbid set fld_gold = %llu where fld_dbid = %llu", to_llu(m_sdItemStorage.gold), to_llu(dbid()));
+    g_dbPod->exec("update tbl_char set fld_gold = %llu where fld_dbid = %llu", to_llu(m_sdItemStorage.gold), to_llu(dbid()));
     reportGold();
 }
 

@@ -73,7 +73,7 @@ void ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, s
         return;
     }
 
-    auto queryChar = g_dbPod->createQuery("select * from tbl_dbid where fld_dbid = %llu", to_llu(dbidOpt.value()));
+    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value()));
     if(!queryChar.executeStep()){
         fnQueryCharError(QUERYCHARERR_NOCHAR);
         return;
@@ -105,7 +105,7 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
         return;
     }
 
-    auto queryChar = g_dbPod->createQuery("select * from tbl_dbid where fld_dbid = %llu", to_llu(dbidOpt.value()));
+    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value()));
     if(!queryChar.executeStep()){
         fnOnlineError(ONLINEERR_NOCHAR);
         return;
@@ -271,7 +271,7 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         return;
     }
 
-    auto query = g_dbPod->createQuery(u8R"###( delete from tbl_dbid where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value()));
+    auto query = g_dbPod->createQuery(u8R"###( delete from tbl_char where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value()));
     if(!query.executeStep()){
         fnDeleteCharError(DELCHARERR_NOCHAR);
         return;
@@ -307,7 +307,7 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         return;
     }
 
-    auto query = g_dbPod->createQuery(u8R"###(select fld_dbid, fld_name from tbl_dbid where fld_dbid = %llu or fld_name = '%s')###", to_llu(dbidOpt.value()), name.c_str());
+    auto query = g_dbPod->createQuery(u8R"###(select fld_dbid, fld_name from tbl_char where fld_dbid = %llu or fld_name = '%s')###", to_llu(dbidOpt.value()), name.c_str());
     if(query.executeStep()){
         if(const auto existDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")); existDBID == dbidOpt.value()){
             fnCreateCharError(CRTCHARERR_CHAREXIST);
@@ -323,7 +323,7 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
     try{
         g_dbPod->exec
         (
-            u8R"###( insert into tbl_dbid(fld_dbid, fld_name, fld_job, fld_map, fld_mapx, fld_mapy, fld_gender) )###"
+            u8R"###( insert into tbl_char(fld_dbid, fld_name, fld_job, fld_map, fld_mapx, fld_mapy, fld_gender) )###"
             u8R"###( values                                                                                     )###"
             u8R"###(     (%llu, '%s', '%s', '%d', %d, %d, %d);                                                  )###",
 

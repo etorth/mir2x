@@ -26,12 +26,12 @@ extern MonoServer *g_monoServer;
 
 void Player::dbUpdateExp()
 {
-    g_dbPod->exec(u8R"###( update tbl_dbid set fld_exp = %llu where fld_dbid = %llu )###", to_llu(exp()), to_llu(dbid()));
+    g_dbPod->exec(u8R"###( update tbl_char set fld_exp = %llu where fld_dbid = %llu )###", to_llu(exp()), to_llu(dbid()));
 }
 
 void Player::dbUpdateMapGLoc()
 {
-    g_dbPod->exec(u8R"###( update tbl_dbid set fld_map = %d, fld_mapx = %d, fld_mapy = %d where fld_dbid = %llu )###", to_d(mapID()), X(), Y(), to_llu(dbid()));
+    g_dbPod->exec(u8R"###( update tbl_char set fld_map = %d, fld_mapx = %d, fld_mapy = %d where fld_dbid = %llu )###", to_d(mapID()), X(), Y(), to_llu(dbid()));
 }
 
 void Player::dbLoadInventory()
