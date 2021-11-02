@@ -596,88 +596,90 @@ void Player::onCMActionAttack(CMAction stCMA)
         int nDCType = stCMA.action.extParam.attack.damageID;
         uint64_t nAimUID = stCMA.action.aimUID;
 
-        if(rstLocation.mapID == mapID()){
-            switch(nDCType){
-                case DBCOM_MAGICID(u8"烈火剑法"):
-                case DBCOM_MAGICID(u8"翔空剑法"):
-                case DBCOM_MAGICID(u8"莲月剑法"):
-                case DBCOM_MAGICID(u8"半月弯刀"):
-                case DBCOM_MAGICID(u8"十方斩"  ):
-                case DBCOM_MAGICID(u8"攻杀剑术"):
-                case DBCOM_MAGICID(u8"刺杀剑术"):
-                case DBCOM_MAGICID(u8"物理攻击"):
-                    {
-                        switch(estimateHop(nX0, nY0)){
-                            case 0:
-                                {
-                                    switch(mathf::LDistance2(nX0, nY0, rstLocation.x, rstLocation.y)){
-                                        case 1:
-                                        case 2:
+        if(rstLocation.mapID != mapID()){
+            return;
+        }
+
+        switch(nDCType){
+            case DBCOM_MAGICID(u8"烈火剑法"):
+            case DBCOM_MAGICID(u8"翔空剑法"):
+            case DBCOM_MAGICID(u8"莲月剑法"):
+            case DBCOM_MAGICID(u8"半月弯刀"):
+            case DBCOM_MAGICID(u8"十方斩"  ):
+            case DBCOM_MAGICID(u8"攻杀剑术"):
+            case DBCOM_MAGICID(u8"刺杀剑术"):
+            case DBCOM_MAGICID(u8"物理攻击"):
+                {
+                    switch(estimateHop(nX0, nY0)){
+                        case 0:
+                            {
+                                switch(mathf::LDistance2(nX0, nY0, rstLocation.x, rstLocation.y)){
+                                    case 1:
+                                    case 2:
+                                        {
+                                            // client reports 攻杀技术 but server need to validate if it's scheduled
+                                            // if not scheduled then dispatch 物理攻击 instead, this is for client anti-cheat
+                                            dispatchAction(ActionAttack
                                             {
-                                                // client reports 攻杀技术 but server need to validate if it's scheduled
-                                                // if not scheduled then dispatch 物理攻击 instead, this is for client anti-cheat
-                                                dispatchAction(ActionAttack
+                                                .speed = stCMA.action.speed,
+                                                .x = stCMA.action.x,
+                                                .y = stCMA.action.y,
+                                                .aimUID = stCMA.action.aimUID,
+                                                .damageID = [nDCType, this]() -> uint32_t
                                                 {
-                                                    .speed = stCMA.action.speed,
-                                                    .x = stCMA.action.x,
-                                                    .y = stCMA.action.y,
-                                                    .aimUID = stCMA.action.aimUID,
-                                                    .damageID = [nDCType, this]() -> uint32_t
-                                                    {
-                                                        if(to_u32(nDCType) == DBCOM_MAGICID(u8"攻杀剑术") && !m_nextStrike){
-                                                            return DBCOM_MAGICID(u8"物理攻击");
-                                                        }
-                                                        else{
-                                                            return nDCType;
-                                                        }
-                                                    }(),
-                                                });
+                                                    if(to_u32(nDCType) == DBCOM_MAGICID(u8"攻杀剑术") && !m_nextStrike){
+                                                        return DBCOM_MAGICID(u8"物理攻击");
+                                                    }
+                                                    else{
+                                                        return nDCType;
+                                                    }
+                                                }(),
+                                            });
 
-                                                dispatchAttackDamage(nAimUID, nDCType);
-                                                if(m_nextStrike){
-                                                    m_nextStrike = false;
-                                                }
-                                                else{
-                                                    m_nextStrike = (mathf::rand<int>(0, 2) == 0);
-                                                }
+                                            dispatchAttackDamage(nAimUID, nDCType);
+                                            if(m_nextStrike){
+                                                m_nextStrike = false;
+                                            }
+                                            else{
+                                                m_nextStrike = (mathf::rand<int>(0, 2) == 0);
+                                            }
 
-                                                if(m_nextStrike){
-                                                    reportNextStrike();
-                                                }
-                                                return;
+                                            if(m_nextStrike){
+                                                reportNextStrike();
                                             }
-                                        default:
-                                            {
-                                                return;
-                                            }
-                                    }
-                                    return;
+                                            return;
+                                        }
+                                    default:
+                                        {
+                                            return;
+                                        }
                                 }
-                            case 1:
+                                return;
+                            }
+                        case 1:
+                            {
+                                requestMove(nX0, nY0, SYS_MAXSPEED, false, false,
+                                [this, stCMA]()
                                 {
-                                    requestMove(nX0, nY0, SYS_MAXSPEED, false, false,
-                                    [this, stCMA]()
-                                    {
-                                        onCMActionAttack(stCMA);
-                                    },
-                                    [this]()
-                                    {
-                                        reportStand();
-                                    });
-                                    return;
-                                }
-                            default:
+                                    onCMActionAttack(stCMA);
+                                },
+                                [this]()
                                 {
-                                    return;
-                                }
-                        }
-                        return;
+                                    reportStand();
+                                });
+                                return;
+                            }
+                        default:
+                            {
+                                return;
+                            }
                     }
-                default:
-                    {
-                        return;
-                    }
-            }
+                    return;
+                }
+            default:
+                {
+                    return;
+                }
         }
     });
 }
