@@ -967,7 +967,7 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 
 int CharObject::estimateHop(int nX, int nY)
 {
-    condcheck(m_map);
+    fflassert(m_map);
     if(!m_map->validC(nX, nY)){
         return -1;
     }

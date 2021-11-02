@@ -70,7 +70,8 @@ struct MonsterRecord
     const AddElem dcElem {};
     const AddElem acElem {};
 
-    const int behaveMode = 0; // 0 means BM_DEFAULT
+    const int ai = 0;           // 0 -> 100 means stupid -> smart
+    const int behaveMode = 0;   // 0 means BM_DEFAULT, which is against to player, override by its master's behavior
 
     const int walkWait = 0;
     const int walkStep = 0;
