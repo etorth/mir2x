@@ -340,7 +340,14 @@ DamageNode Player::getAttackDamage(int nDC) const
     }();
 
     switch(nDC){
-        case DBCOM_MAGICID(u8"物理攻击"):
+            case DBCOM_MAGICID(u8"烈火剑法"):
+            case DBCOM_MAGICID(u8"翔空剑法"):
+            case DBCOM_MAGICID(u8"莲月剑法"):
+            case DBCOM_MAGICID(u8"半月弯刀"):
+            case DBCOM_MAGICID(u8"十方斩"  ):
+            case DBCOM_MAGICID(u8"攻杀剑术"):
+            case DBCOM_MAGICID(u8"刺杀剑术"):
+            case DBCOM_MAGICID(u8"物理攻击"):
             {
                 return PlainPhyDamage
                 {
@@ -613,6 +620,14 @@ void Player::onCMActionAttack(CMAction stCMA)
                     switch(estimateHop(nX0, nY0)){
                         case 0:
                             {
+                                if(const auto aimDir = PathFind::GetDirection(X(), Y(), rstLocation.x, rstLocation.y); directionValid(aimDir)){
+                                    m_direction = aimDir;
+                                    dispatchAction(makeActionStand());
+
+                                    // don't need to send direction change back to client
+                                    // it has already turned
+                                }
+
                                 switch(mathf::LDistance2(nX0, nY0, rstLocation.x, rstLocation.y)){
                                     case 1:
                                     case 2:
@@ -636,7 +651,67 @@ void Player::onCMActionAttack(CMAction stCMA)
                                                 }(),
                                             });
 
-                                            dispatchAttackDamage(nAimUID, nDCType);
+                                            std::vector<uint64_t> aimUIDList;
+                                            switch(nDCType){
+                                                case DBCOM_MAGICID(u8"莲月剑法"):
+                                                    {
+                                                        aimUIDList.push_back(nAimUID);
+                                                        aimUIDList.push_back(nAimUID); // attack twice
+                                                        break;
+                                                    }
+                                                case DBCOM_MAGICID(u8"半月弯刀"):
+                                                    {
+                                                        scoped_alloc::svobuf_wrapper<std::tuple<int, int>, 3> aimGridList;
+                                                        for(int d: {-1, 0, 1}){
+                                                            aimGridList.c.push_back(pathf::getFrontGLoc(X(), Y(), pathf::nextDirection(Direction(), d)));
+                                                        }
+
+                                                        for(const auto &[uid, coLoc]: m_inViewCOList){
+                                                            if(std::find(aimGridList.c.begin(), aimGridList.c.end(), std::make_tuple(coLoc.x, coLoc.y)) != aimGridList.c.end()){
+                                                                aimUIDList.push_back(uid);
+                                                            }
+                                                        }
+                                                        break;
+                                                    }
+                                                case DBCOM_MAGICID(u8"十方斩"):
+                                                    {
+                                                        for(const auto &[uid, coLoc]: m_inViewCOList){
+                                                            if(mathf::CDistance<int>(X(), Y(), coLoc.x, coLoc.y) <= 1){
+                                                                aimUIDList.push_back(uid);
+                                                            }
+                                                        }
+                                                        break;
+                                                    }
+                                                case DBCOM_MAGICID(u8"刺杀剑术"):
+                                                    {
+                                                        std::array<std::tuple<int, int>, 2> aimGridList
+                                                        {
+                                                            pathf::getFrontGLoc(X(), Y(), Direction(), 1),
+                                                            pathf::getFrontGLoc(X(), Y(), Direction(), 2),
+                                                        };
+
+                                                        for(const auto &[uid, coLoc]: m_inViewCOList){
+                                                            if(std::find(aimGridList.begin(), aimGridList.end(), std::make_tuple(coLoc.x, coLoc.y)) != aimGridList.end()){
+                                                                aimUIDList.push_back(uid);
+                                                            }
+                                                        }
+                                                        break;
+                                                    }
+                                                case DBCOM_MAGICID(u8"翔空剑法"):
+                                                case DBCOM_MAGICID(u8"攻杀剑术"):
+                                                case DBCOM_MAGICID(u8"烈火剑法"):
+                                                case DBCOM_MAGICID(u8"物理攻击"):
+                                                default:
+                                                    {
+                                                        aimUIDList.push_back(nAimUID);
+                                                        break;
+                                                    }
+                                            }
+
+                                            for(const auto uid: aimUIDList){
+                                                dispatchAttackDamage(uid, nDCType);
+                                            }
+
                                             if(m_nextStrike){
                                                 m_nextStrike = false;
                                             }

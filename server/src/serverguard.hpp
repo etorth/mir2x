@@ -31,9 +31,6 @@ class ServerGuard: public Monster
         ServerGuard(uint32_t, ServerMap *, int, int, int);
 
     protected:
-        void jumpBack(std::function<void()>, std::function<void()>);
-
-    protected:
         corof::eval_poller updateCoroFunc() override;
 
     private:
