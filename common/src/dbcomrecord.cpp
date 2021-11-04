@@ -34,11 +34,13 @@ template<typename T, size_t N> const T &DBCOM_REFHELPER(const T (&itemList)[N], 
 }
 
 const ItemRecord    &DBCOM_ITEMRECORD   (uint32_t id) { return DBCOM_REFHELPER(_inn_ItemRecordList,    id); }
+const BuffRecord    &DBCOM_BUFFRECORD   (uint32_t id) { return DBCOM_REFHELPER(_inn_BuffRecordList,    id); }
 const MagicRecord   &DBCOM_MAGICRECORD  (uint32_t id) { return DBCOM_REFHELPER(_inn_MagicRecordList,   id); }
 const MonsterRecord &DBCOM_MONSTERRECORD(uint32_t id) { return DBCOM_REFHELPER(_inn_MonsterRecordList, id); }
 const MapRecord     &DBCOM_MAPRECORD    (uint32_t id) { return DBCOM_REFHELPER(_inn_MapRecordList,     id); }
 
 const ItemRecord    &DBCOM_ITEMRECORD   (const char8_t *name) { return DBCOM_ITEMRECORD   (DBCOM_ITEMID   (name)); }
+const BuffRecord    &DBCOM_BUFFRECORD   (const char8_t *name) { return DBCOM_BUFFRECORD   (DBCOM_BUFFID   (name)); }
 const MagicRecord   &DBCOM_MAGICRECORD  (const char8_t *name) { return DBCOM_MAGICRECORD  (DBCOM_MAGICID  (name)); }
 const MonsterRecord &DBCOM_MONSTERRECORD(const char8_t *name) { return DBCOM_MONSTERRECORD(DBCOM_MONSTERID(name)); }
 const MapRecord     &DBCOM_MAPRECORD    (const char8_t *name) { return DBCOM_MAPRECORD    (DBCOM_MAPID    (name)); }

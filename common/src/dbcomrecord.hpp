@@ -20,12 +20,16 @@
 #pragma once
 #include <cstdint>
 #include "maprecord.hpp"
+#include "buffrecord.hpp"
 #include "itemrecord.hpp"
 #include "magicrecord.hpp"
 #include "monsterrecord.hpp"
 
 const ItemRecord &DBCOM_ITEMRECORD(uint32_t);
 const ItemRecord &DBCOM_ITEMRECORD(const char8_t *);
+
+const BuffRecord &DBCOM_BUFFRECORD(uint32_t);
+const BuffRecord &DBCOM_BUFFRECORD(const char8_t *);
 
 const MagicRecord &DBCOM_MAGICRECORD(uint32_t);
 const MagicRecord &DBCOM_MAGICRECORD(const char8_t *);

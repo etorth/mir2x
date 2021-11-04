@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdint>
 #include <string_view>
+#include "sysconst.hpp"
 #include "protocoldef.hpp"
 
 struct BuffRecord
