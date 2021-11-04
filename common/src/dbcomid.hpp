@@ -22,6 +22,7 @@
 #include "maprecord.hpp"
 #include "itemrecord.hpp"
 #include "magicrecord.hpp"
+#include "buffrecord.hpp"
 #include "monsterrecord.hpp"
 
 namespace
@@ -42,6 +43,11 @@ namespace
     constexpr ItemRecord _inn_ItemRecordList []
     {
         #include "itemrecord.inc"
+    };
+
+    constexpr BuffRecord _inn_BuffRecordList []
+    {
+        #include "buffrecord.inc"
     };
 
     constexpr MonsterRecord _inn_MonsterRecordList []
@@ -73,6 +79,7 @@ template<typename T, size_t N> constexpr uint32_t DBCOM_IDHELPER(const T (&itemL
 }
 
 constexpr uint32_t DBCOM_ITEMID   (const char8_t *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,    name); }
+constexpr uint32_t DBCOM_BUFFID   (const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffRecordList,    name); }
 constexpr uint32_t DBCOM_MONSTERID(const char8_t *name) { return DBCOM_IDHELPER(_inn_MonsterRecordList, name); }
 constexpr uint32_t DBCOM_MAGICID  (const char8_t *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,   name); }
 constexpr uint32_t DBCOM_MAPID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_MapRecordList,     name); }
