@@ -152,7 +152,7 @@ namespace zcompf
         fflassert(buf);
         fflassert(bufLen);
 
-        const auto maskLen = ((bufLen + 7) / 8);
+        const auto maskLen = (bufLen + 7) / 8;
         const auto maskPtr = dst;
         const auto compPtr = dst + maskLen;
         std::memset(maskPtr, 0, maskLen);

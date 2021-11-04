@@ -19,6 +19,7 @@
 #pragma once
 #include <string>
 #include <sstream>
+#include <climits>
 #include <cereal/types/map.hpp>
 #include <cereal/types/set.hpp>
 #include <cereal/types/array.hpp>
@@ -37,8 +38,9 @@ namespace cerealf
 {
     enum CerealfFlagType: char
     {
-        CF_NONE     = 0,
-        CF_COMPRESS = 1,
+        CF_NONE = 0,
+        CF_ZSTD = 1,
+        CF_XOR  = 2,
     };
 
     // tryComp : -1 : auto
@@ -53,40 +55,74 @@ namespace cerealf
         }
 
         std::string rawBuf = ss.str();
-        if((tryComp < 0 && rawBuf.size() < 32) || tryComp == 0){
+        if((tryComp < 0 && rawBuf.size() < 8) || tryComp == 0){
             rawBuf.push_back(CF_NONE);
             return rawBuf;
         }
 
         std::string compBuf;
-        zcompf::zstdEncode(compBuf, (const uint8_t *)(rawBuf.data()), rawBuf.size());
+        if(rawBuf.size() < std::min<size_t>(64, CHAR_MAX)){
+            const size_t maskSize = (rawBuf.size() + 7) / 8;
+            compBuf.resize(maskSize + rawBuf.size() + 2);
+            const size_t dataCount = zcompf::xorEncode((uint8_t *)(compBuf.data()), (const uint8_t *)(rawBuf.data()), rawBuf.size());
+            const size_t totalSize = maskSize + dataCount;
 
-        if(compBuf.size() >= rawBuf.size()){
-            rawBuf.push_back(CF_NONE);
-            return rawBuf;
+            if(totalSize + 2 < rawBuf.size()){
+                compBuf.resize(totalSize);
+                compBuf.push_back(static_cast<char>(rawBuf.size())); // make sure rawBuf.size() < CHAR_MAX
+                compBuf.push_back(CF_XOR);
+                return compBuf;
+            }
         }
 
-        compBuf.push_back(CF_COMPRESS);
-        return compBuf;
+        compBuf.clear(); // optional
+        zcompf::zstdEncode(compBuf, (const uint8_t *)(rawBuf.data()), rawBuf.size());
+
+        if(compBuf.size() + 1 < rawBuf.size()){
+            compBuf.push_back(CF_ZSTD);
+            return compBuf;
+        }
+
+        rawBuf.push_back(CF_NONE);
+        return rawBuf;
     }
 
     template<typename T> T deserialize(const void *buf, size_t size)
     {
-        if(!(buf && (size >= 1))){
-            throw fflerror("invalid arguments: buf = %p, size = %zu", buf, size);
-        }
+        fflassert(buf);
+        fflassert(size >= 1);
 
-        const auto flag = ((char *)(buf))[--size];
-        const bool decompress = flag & CF_COMPRESS;
-        std::istringstream ss([buf, size, decompress]() -> std::string
+        const auto flag = ((const char *)(buf))[--size];
+        std::istringstream ss([buf, &size, flag]() -> std::string
         {
-            if(!decompress){
-                return std::string((const char *)(buf), size);
-            }
+            switch(flag){
+                case CF_NONE:
+                    {
+                        return std::string((const char *)(buf), size);
+                    }
+                case CF_XOR:
+                    {
+                        fflassert(size >= 1);
+                        const auto bufLen = ((const uint8_t *)(buf))[--size];
+                        const size_t maskLen = (bufLen + 7) / 8;
 
-            std::string decompBuf;
-            zcompf::zstdDecode(decompBuf, (const uint8_t *)(buf), size);
-            return decompBuf;
+                        std::string decompBuf;
+                        decompBuf.resize(bufLen);
+
+                        zcompf::xorDecode((uint8_t *)(decompBuf.data()), bufLen, (const uint8_t *)(buf), (const uint8_t *)(buf) + maskLen);
+                        return decompBuf;
+                    }
+                case CF_ZSTD:
+                    {
+                        std::string decompBuf;
+                        zcompf::zstdDecode(decompBuf, (const uint8_t *)(buf), size);
+                        return decompBuf;
+                    }
+                default:
+                    {
+                        throw bad_value(flag);
+                    }
+            }
         }(), std::ios::binary);
 
         T t;
@@ -97,32 +133,8 @@ namespace cerealf
         return t;
     }
 
-    template<typename T> T deserialize(std::string buf)
+    template<typename T> T deserialize(const std::string &buf)
     {
-        if(buf.size() < 1){
-            throw fflerror("invalid buf size: %zu", buf.size());
-        }
-
-        const auto flag = buf.back();
-        const bool decompress = flag & CF_COMPRESS;
-
-        buf.pop_back();
-        std::istringstream ss([&buf, decompress]() -> std::string
-        {
-            if(!decompress){
-                return std::string(std::move(buf));
-            }
-
-            std::string decompBuf;
-            zcompf::zstdDecode(decompBuf, (const uint8_t *)(buf.data()), buf.size());
-            return decompBuf;
-        }(), std::ios::binary);
-
-        T t;
-        {
-            cereal::PortableBinaryInputArchive ar(ss);
-            ar(t);
-        }
-        return t;
+        return deserialize<T>(buf.data(), buf.size());
     }
 }
