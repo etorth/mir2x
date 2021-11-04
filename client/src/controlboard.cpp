@@ -29,6 +29,7 @@
 #include "processrun.hpp"
 #include "dbcomrecord.hpp"
 #include "controlboard.hpp"
+#include "clientmonster.hpp"
 
 // for texture 0X00000012 and 0X00000013
 // I split it into many parts to fix different screen size
@@ -850,24 +851,7 @@ void ControlBoard::drawMiddleDefault() const
     m_cmdLine.draw();
     drawLogBoardDefault();
     drawInputGreyBackground();
-
-    // draw current creature face
-    // draw '?' when the face texture is not available
-    if(auto faceTexPtr = [this]() -> SDL_Texture *
-    {
-        if(auto texPtr = g_progUseDB->retrieve(m_processRun->GetFocusFaceKey())){
-            return texPtr;
-        }
-        else if(auto texPtr = g_progUseDB->retrieve(0X010007CF)){
-            return texPtr;
-        }
-        else{
-            return nullptr;
-        }
-    }()){
-        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(faceTexPtr);
-        g_sdlDevice->drawTexture(faceTexPtr, nW0 - 267, nY0 + 19, 86, 96, 0, 0, texW, texH);
-    }
+    drawFocusFace();
 
     // draw middle part
     if(auto texPtr = g_progUseDB->retrieve(0X00000013)){
@@ -1308,4 +1292,86 @@ void ControlBoard::drawRatioBar(int x, int y, double r) const
 
     barImage.setSizeRatio({}, r);
     barImage.draw();
+}
+
+void ControlBoard::drawFocusFace() const
+{
+    // draw current creature face
+    // draw '?' when the face texture is not available
+
+    const auto [faceTexID, hpRatio] = [this]() -> std::tuple<uint32_t, double>
+    {
+        const auto fnGetHeroFaceKey = [](uint64_t uid) -> uint32_t
+        {
+            return to_u32(0X02000000) + [uid]() -> uint32_t
+            {
+                if(uidf::hasPlayerJob(uid, JOB_WARRIOR)){
+                    return 0;
+                }
+                else if(uidf::hasPlayerJob(uid, JOB_TAOIST)){
+                    return 2;
+                }
+                else{
+                    return 4;
+                }
+            }() + (uidf::getPlayerGender(uid) ? 0 : 1);
+        };
+
+        if(const auto coPtr = m_processRun->findUID(m_processRun->getFocusUID(FOCUS_MOUSE))){
+            switch(coPtr->type()){
+                case UID_PLY:
+                    {
+                        return
+                        {
+                            fnGetHeroFaceKey(coPtr->UID()),
+                            coPtr->getHealthRatio().at(0),
+                        };
+                    }
+                case UID_MON:
+                    {
+                        const auto monFaceTexID = [coPtr]() -> uint32_t
+                        {
+                            if(const auto lookID = dynamic_cast<ClientMonster*>(coPtr)->lookID(); lookID >= 0){
+                                if(const auto texID = to_u32(0X01000000) + (lookID - LID_BEGIN); g_progUseDB->retrieve(texID)){
+                                    return texID;
+                                }
+                            }
+                            return 0X010007CF;
+                        }();
+
+                        return
+                        {
+                            monFaceTexID,
+                            coPtr->getHealthRatio().at(0),
+                        };
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+
+        return
+        {
+            fnGetHeroFaceKey(m_processRun->getMyHeroUID()),
+            m_processRun->getMyHero()->getHealthRatio().at(0),
+        };
+    }();
+
+    const int nY0 = y();
+    const int nW0 = w();
+
+    if(auto faceTexPtr = g_progUseDB->retrieve(faceTexID)){
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(faceTexPtr);
+        g_sdlDevice->drawTexture(faceTexPtr, nW0 - 267, nY0 + 19, 86, 96, 0, 0, texW, texH);
+
+        constexpr int barWidth  = 86;
+        constexpr int barHeight = 5;
+
+        if(auto hpBarPtr = g_progUseDB->retrieve(0X00000015)){
+            const auto [barTexW, barTexH] = SDLDeviceHelper::getTextureSize(hpBarPtr);
+            g_sdlDevice->drawTexture(hpBarPtr, nW0 - 267, nY0 + 110, std::lround(hpRatio * barWidth), barHeight, 0, 0, barTexW, barTexH);
+        }
+    }
 }

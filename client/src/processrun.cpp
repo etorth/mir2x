@@ -1346,35 +1346,6 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
     return false;
 }
 
-uint32_t ProcessRun::GetFocusFaceKey()
-{
-    uint32_t nFaceKey = 0X02000000;
-    if(auto nUID = getFocusUID(FOCUS_MOUSE)){
-        if(auto coPtr = findUID(nUID)){
-            switch(coPtr->type()){
-                case UID_PLY:
-                    {
-                        nFaceKey = 0X02000000;
-                        break;
-                    }
-                case UID_MON:
-                    {
-                        if(const auto nLookID = dynamic_cast<ClientMonster*>(coPtr)->lookID(); nLookID >= 0){
-                            nFaceKey = 0X01000000 + (nLookID - LID_BEGIN);
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        break;
-                    }
-            }
-        }
-    }
-
-    return nFaceKey;
-}
-
 void ProcessRun::addAscendStr(int nType, int nValue, int nX, int nY)
 {
     m_ascendStrList.push_back(std::make_unique<AscendStr>(nType, nValue, nX, nY));

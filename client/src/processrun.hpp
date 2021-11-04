@@ -270,9 +270,6 @@ class ProcessRun: public Process
         bool userCommand(const char *);
 
     public:
-        uint32_t GetFocusFaceKey();
-
-    public:
         std::vector<int> GetPlayerList();
 
     public:

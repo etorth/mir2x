@@ -153,6 +153,7 @@ class ControlBoard: public Widget
     private:
         void drawLeft() const;
         void drawRight() const;
+        void drawFocusFace() const;
         void drawMiddleExpand() const;
         void drawMiddleDefault() const;
         void drawLogBoardExpand() const;
