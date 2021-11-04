@@ -7,4 +7,4 @@
 #define fflassert(...) do{if(__VA_ARGS__){}else{throw fflerror("assertion failed: %s", #__VA_ARGS__);}}while(0)
 
 #define bad_reach() fflerror("bad reach")
-#define bad_value(n) fflerror("bad value: %s", dynamic_cast<std::ostringstream &>((std::ostringstream() << (n))).str().c_str())
+#define bad_value(val) fflerror("bad value: %s", dynamic_cast<std::ostringstream &>((std::ostringstream() << (val))).str().c_str())
