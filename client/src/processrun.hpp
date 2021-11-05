@@ -203,6 +203,7 @@ class ProcessRun: public Process
     public:
         void net_EXP(const uint8_t *, size_t);
         void net_BUFF(const uint8_t *, size_t);
+        void net_BUFFLIST(const uint8_t *, size_t);
         void net_MISS(const uint8_t *, size_t);
         void net_TEXT(const uint8_t *, size_t);
         void net_PING(const uint8_t *, size_t);
@@ -352,6 +353,11 @@ class ProcessRun: public Process
         Widget *getWidget(const std::string &widgetName)
         {
             return getGUIManager()->getWidget(widgetName);
+        }
+
+        const Widget *getWidget(const std::string &widgetName) const
+        {
+            return const_cast<ProcessRun *>(this)->getWidget(widgetName);
         }
 
     public:

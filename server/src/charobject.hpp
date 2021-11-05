@@ -117,6 +117,7 @@ class CharObject: public ServerObject
 
     protected:
         SDHealth m_sdHealth;
+        SDBuffList m_sdBuffList;
 
     protected:
         bool m_moveLock;

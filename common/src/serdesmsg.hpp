@@ -698,3 +698,36 @@ struct SDHealth
         ar(uid, HP, MP, maxHP, maxMP);
     }
 };
+
+struct SDBuff
+{
+    uint32_t id = 0;
+    uint64_t from = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(id, from);
+    }
+};
+
+struct SDBuffList
+{
+    uint64_t uid = 0;
+    std::vector<SDBuff> buffList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, buffList);
+    }
+
+    void add(SDBuff buff)
+    {
+        buffList.push_back(buff);
+    }
+
+    void clear()
+    {
+        uid = 0;
+        buffList.clear();
+    }
+};

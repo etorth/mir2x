@@ -284,6 +284,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
+        case SM_BUFFLIST:
+            {
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_BUFFLIST(buf, bufSize);
+                }
+                break;
+            }
         case SM_HEALTH:
             {
                 if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

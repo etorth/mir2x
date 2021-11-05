@@ -35,6 +35,11 @@ void ClientCreature::updateAttachMagic(double fUpdateTime)
     }
 }
 
+void ClientCreature::updateBuffList(SDBuffList buffList)
+{
+    m_sdBuffList = std::move(buffList);
+}
+
 void ClientCreature::updateHealth(SDHealth health)
 {
     const int pixelX = x() * SYS_MAPGRIDXP + SYS_MAPGRIDXP / 2;

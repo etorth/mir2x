@@ -69,6 +69,7 @@ enum ActorMsgPackType: int
     AM_QUERYCOCOUNT,
     AM_QUERYPLAYERWLDESP,
     AM_COCOUNT,
+    AM_ADDBUFF,
     AM_EXP,
     AM_MISS,
     AM_HEAL,
@@ -462,6 +463,12 @@ struct AMQueryCOCount
 struct AMCOCount
 {
     uint32_t Count;
+};
+
+struct AMAddBuff
+{
+    int id;
+    uint64_t from;
 };
 
 struct AMExp

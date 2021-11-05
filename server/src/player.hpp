@@ -102,6 +102,7 @@ class Player final: public CharObject
 
     private:
         void on_AM_EXP(const ActorMsgPack &);
+        void on_AM_ADDBUFF(const ActorMsgPack &);
         void on_AM_MISS(const ActorMsgPack &);
         void on_AM_HEAL(const ActorMsgPack &);
         void on_AM_GIFT(const ActorMsgPack &);

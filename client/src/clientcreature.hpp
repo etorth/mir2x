@@ -54,6 +54,7 @@ class ClientCreature
 
     protected:
         std::optional<SDHealth> m_sdHealth;
+        std::optional<SDBuffList> m_sdBuffList;
 
     protected:
         std::unique_ptr<MotionNode> m_currMotion;
@@ -204,6 +205,19 @@ class ClientCreature
 
     public:
         void updateHealth(SDHealth);
+        void updateBuffList(SDBuffList);
+
+    public:
+        const auto &getSDHealth()
+        {
+            return m_sdHealth;
+        }
+
+    public:
+        const auto &getSDBuffList() const
+        {
+            return m_sdBuffList;
+        }
 
     public:
         std::array<int, 4> getHealth() const

@@ -33,6 +33,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     m_sdHealth.maxHP = initParam.hp;
     m_sdHealth.maxMP = initParam.mp;
 
+    m_sdBuffList.uid = UID();
     m_sdItemStorage.gold = initParam.gold;
 
     dbLoadWear();
@@ -102,6 +103,11 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
         case AM_EXP:
             {
                 on_AM_EXP(rstMPK);
+                break;
+            }
+        case AM_ADDBUFF:
+            {
+                on_AM_ADDBUFF(rstMPK);
                 break;
             }
         case AM_MISS:
@@ -768,11 +774,57 @@ void Player::onCMActionSpinKick(CMAction cmA)
 void Player::onCMActionSpell(CMAction cmA)
 {
     fflassert(cmA.action.type == ACTION_SPELL);
-    const int magicID = cmA.action.extParam.spell.magicID;
-    dispatchAction(cmA.action);
+    const auto magicID = cmA.action.extParam.spell.magicID;
 
+    dispatchAction(cmA.action);
     const auto node = getCombatNode(m_sdItemStorage.wear, m_sdLearnedMagicList, UID(), level());
+
     switch(magicID){
+        case DBCOM_MAGICID(u8"治愈术"):
+            {
+                if(cmA.action.aimUID){
+                    switch(cmA.action.aimUID){
+                        case UID_MON:
+                        case UID_PLY:
+                            {
+                                checkFriend(cmA.action.aimUID, [cmA, this](int friendType)
+                                {
+                                    switch(friendType){
+                                        case FT_FRIEND:
+                                        case FT_NEUTRAL:
+                                            {
+                                                AMAddBuff amAB;
+                                                std::memset(&amAB, 0, sizeof(amAB));
+
+                                                amAB.id = DBCOM_BUFFID(u8"治愈术");
+                                                amAB.from = UID();
+                                                m_actorPod->forward(cmA.action.aimUID, {AM_ADDBUFF, amAB});
+                                                return;
+                                            }
+                                        default:
+                                            {
+                                                return;
+                                            }
+                                    }
+                                });
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
+                    }
+                }
+                else{
+                    m_sdBuffList.add(SDBuff
+                    {
+                        .id = DBCOM_BUFFID(u8"治愈术"),
+                        .from = UID(),
+                    });
+                    dispatchNetPackage(true, SM_BUFFLIST, cerealf::serialize(m_sdBuffList));
+                }
+                break;
+            }
         case DBCOM_MAGICID(u8"火球术"):
         case DBCOM_MAGICID(u8"大火球"):
         case DBCOM_MAGICID(u8"灵魂火符"):

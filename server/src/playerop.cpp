@@ -22,6 +22,7 @@
 #include "pathf.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
+#include "friendtype.hpp"
 #include "dbcomrecord.hpp"
 #include "actorpod.hpp"
 #include "netdriver.hpp"
@@ -381,6 +382,39 @@ void Player::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
         smDFO.Y     = amDFO.Y;
 
         postNetMessage(SM_DEADFADEOUT, smDFO);
+    }
+}
+
+void Player::on_AM_ADDBUFF(const ActorMsgPack &mpk)
+{
+    const auto amAB = mpk.conv<AMAddBuff>();
+    switch(amAB.id){
+        case DBCOM_BUFFID(u8"治愈术"):
+            {
+                checkFriend(amAB.from, [amAB, this](int friendType)
+                {
+                    switch(friendType){
+                        case FT_FRIEND:
+                        case FT_NEUTRAL:
+                            {
+                                m_sdBuffList.add(SDBuff
+                                {
+                                    .id = DBCOM_BUFFID(u8"治愈术"),
+                                    .from = amAB.from,
+                                });
+                                return;
+                            }
+                        default:
+                            {
+                                return;
+                            }
+                    }
+                });
+            }
+        default:
+            {
+                break;
+            }
     }
 }
 

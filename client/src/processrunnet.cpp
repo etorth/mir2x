@@ -262,6 +262,14 @@ void ProcessRun::net_HEALTH(const uint8_t *buf, size_t bufSize)
     }
 }
 
+void ProcessRun::net_BUFFLIST(const uint8_t *buf, size_t bufSize)
+{
+    auto sdBL = cerealf::deserialize<SDBuffList>(buf, bufSize);
+    if(auto p = findUID(sdBL.uid)){
+        p->updateBuffList(std::move(sdBL));
+    }
+}
+
 void ProcessRun::net_NEXTSTRIKE(const uint8_t *, size_t)
 {
     getMyHero()->setNextStrike(true);
