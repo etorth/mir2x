@@ -18,7 +18,7 @@ BaseBuff::BaseBuff(uint32_t id, BattleObject *bo)
           switch(uidf::getUIDType(bo->UID())){
               case UID_MON:
               case UID_PLY: return bo;
-              default     : throw bad_value(uidf::getUIDString(bo->UID()));
+              default: throw bad_value(uidf::getUIDString(bo->UID()));
           }
       }())
 {}
