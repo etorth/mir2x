@@ -1158,6 +1158,13 @@ void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
             {
                 queryFinalMaster(targetUID, [this, targetUID, fnOp](uint64_t finalMasterUID)
                 {
+                    if(!finalMasterUID){
+                        if(fnOp){
+                            fnOp(FT_ERROR);
+                        }
+                        return;
+                    }
+
                     switch(uidf::getUIDType(finalMasterUID)){
                         case UID_PLY:
                             {
@@ -1175,7 +1182,7 @@ void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
                             }
                         default:
                             {
-                                throw bad_value(finalMasterUID);
+                                throw bad_value(uidf::getUIDString(finalMasterUID));
                             }
                     }
                 });
@@ -1183,7 +1190,7 @@ void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
             }
         default:
             {
-                throw bad_value(targetUID);
+                throw bad_value(uidf::getUIDString(targetUID));
             }
     }
 }
