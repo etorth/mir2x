@@ -39,3 +39,14 @@ class TaoYellowBlueRing: public AttachMagic
     public:
         void drawShift(int, int, uint32_t) const;
 };
+
+class AntHealing: public AttachMagic
+{
+    public:
+        AntHealing()
+            : AttachMagic(u8"蚂蚁道士_治疗", u8"运行")
+        {}
+
+    public:
+        void drawShift(int, int, uint32_t) const;
+};

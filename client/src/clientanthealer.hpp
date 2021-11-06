@@ -31,7 +31,7 @@ class ClientAntHealer: public ClientMonster
                 }
 
                 if(auto coPtr = proc->findUID(targetUID)){
-                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"蚂蚁道士_治疗", u8"运行")));
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AntHealing()));
                 }
                 return true;
             });

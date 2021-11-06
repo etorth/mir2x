@@ -69,3 +69,8 @@ void TaoYellowBlueRing::drawShift(int shiftX, int shiftY, uint32_t modColor) con
     const auto timedModColor = colorf::RGBA(0XFF, 0XFF, 0XFF, std::max<uint8_t>(colorf::round255(r * 255), 32));
     AttachMagic::drawShift(shiftX, shiftY, colorf::modRGBA(timedModColor, modColor));
 }
+
+void AntHealing::drawShift(int shiftX, int shiftY, uint32_t modColor) const
+{
+    AttachMagic::drawShift(shiftX, shiftY - frame() * 3, modColor);
+}
