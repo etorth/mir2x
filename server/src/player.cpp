@@ -782,7 +782,7 @@ void Player::onCMActionSpell(CMAction cmA)
         case DBCOM_MAGICID(u8"治愈术"):
             {
                 if(cmA.action.aimUID){
-                    switch(cmA.action.aimUID){
+                    switch(uidf::getUIDType(cmA.action.aimUID)){
                         case UID_MON:
                         case UID_PLY:
                             {

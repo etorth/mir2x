@@ -22,6 +22,9 @@ class BaseBuff
         BaseBuff(uint32_t, BattleObject *);
 
     public:
+        virtual ~BaseBuff() = default;
+
+    public:
         uint32_t id() const
         {
             return m_id;
