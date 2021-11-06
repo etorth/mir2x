@@ -7,7 +7,7 @@
 class PeriodicBuff: public BaseBuff
 {
     private:
-        size_t m_triggeredCount = 0;
+        size_t m_triggerCount = 0;
 
     private:
         std::function<void(PeriodicBuff *)> m_trigger;
