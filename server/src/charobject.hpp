@@ -121,6 +121,17 @@ class CharObject: public ServerObject
             return nullptr;
         }
 
+        std::vector<uint64_t> getInViewUIDList() const
+        {
+            std::vector<uint64_t> uidList;
+            uidList.reserve(m_inViewCOList.size());
+
+            for(const auto &[uid, coLoc]: m_inViewCOList){
+                uidList.push_back(uid);
+            }
+            return uidList;
+        }
+
     protected:
         bool isNPChar() const
         {

@@ -129,7 +129,19 @@ corof::eval_awaiter<uint64_t> Monster::coro_pickHealTarget()
             co_return p->masterUID();
         }
 
-        for(const auto &[uid, coLoc]: p->m_inViewCOList){
+        // coroutine bug, a reference before and after a coroutine switch can become dangling
+        // following code is bad:
+        //
+        //     for(const auto &[uid, coLoc]: p->m_inViewCOList){
+        //         if((uid != p->masterUID()) && (co_await fnNeedHeal(p, uid).to_awaiter<bool>())){
+        //             co_return uid;
+        //         }
+        //     }
+        //
+        // in this code either the reference to [uid, coLoc] can be released because of co_await
+        // or the p->m_inViewCOList itself can be change which makes the range-based-loop to be invalid
+
+        for(const auto uid: p->getInViewUIDList()){
             if((uid != p->masterUID()) && (co_await fnNeedHeal(p, uid).to_awaiter<bool>())){
                 co_return uid;
             }
