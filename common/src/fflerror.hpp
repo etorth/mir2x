@@ -31,7 +31,12 @@ inline std::string _ffl_bad_value_helper(size_t index, const std::u8string &s)
 
 inline std::string _ffl_bad_value_helper(size_t index, char ch)
 {
-    return str_printf("[%zu]: \'%c\'", index, ch);
+    if(ch == '\0'){
+        return str_printf("[%zu]: \'\\0\'", index);
+    }
+    else{
+        return str_printf("[%zu]: \'%c\'", index, ch);
+    }
 }
 
 template<typename T> std::string _ffl_bad_value_helper(size_t index, const T & t)
