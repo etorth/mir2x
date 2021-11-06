@@ -91,6 +91,21 @@ class hres_timer
         uint64_t diff_sec () const { return diff_nsec() / 1000000000ULL; }
 
     public:
+        float diff_nsecf() const
+        {
+            return static_cast<float>(diff_nsec());
+        }
+
+        float diff_usecf() const
+        {
+            return static_cast<float>(diff_nsec()) / 1000.0f;
+        }
+
+        float diff_msecf() const
+        {
+            return static_cast<float>(diff_nsec()) / 1000000.0f;
+        }
+
         float diff_secf() const
         {
             return static_cast<float>(diff_nsec()) / 1000000000.0f;

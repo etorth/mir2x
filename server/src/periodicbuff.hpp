@@ -7,7 +7,7 @@
 class PeriodicBuff: public BaseBuff
 {
     private:
-        uint64_t m_triggeredCount = 0;
+        size_t m_triggeredCount = 0;
 
     private:
         std::function<void(PeriodicBuff *)> m_trigger;
@@ -16,5 +16,5 @@ class PeriodicBuff: public BaseBuff
         PeriodicBuff(uint32_t, BattleObject *, std::function<void(PeriodicBuff *)>);
 
     public:
-        void update();
+        void runOnUpdate() override;
 };

@@ -2,10 +2,13 @@
 #include <memory>
 #include <vector>
 #include "basebuff.hpp"
-#include "serdesmsg.hpp"
+#include "raiitimer.hpp"
 
 class BuffList final
 {
+    private:
+        hres_timer m_timer;
+
     private:
         std::vector<std::unique_ptr<BaseBuff>> m_list;
 
@@ -21,11 +24,13 @@ class BuffList final
         }
 
     public:
+        // for update()/done()/runOnUpdate()
+        // follow the same design way as BaseMagic in client/src/basemagic.hpp
         bool update()
         {
             bool changed = false;
             for(size_t i = 0; i < m_list.size();){
-                if(m_list[i]->expired()){
+                if(m_list[i]->update(m_timer.diff_msecf())){
                     std::swap(m_list[i], m_list.back());
                     m_list.pop_back();
                     changed = true;
@@ -34,6 +39,8 @@ class BuffList final
                     i++;
                 }
             }
+
+            m_timer.reset();
             return changed;
         }
 

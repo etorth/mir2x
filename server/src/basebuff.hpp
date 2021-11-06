@@ -1,22 +1,22 @@
 #pragma once
+#include <cmath>
 #include "uidf.hpp"
-#include "raiitimer.hpp"
 #include "buffrecord.hpp"
 
 class BattleObject;
 class BaseBuff
 {
     protected:
-        uint32_t m_id;
+        const uint32_t m_id;
 
     protected:
         const BuffRecord &m_br;
 
     protected:
-        BattleObject *m_bo;
+        BattleObject * const m_bo;
 
     protected:
-        hres_timer m_timer;
+        double m_accuTime = 0.0;
 
     public:
         BaseBuff(uint32_t, BattleObject *);
@@ -31,11 +31,28 @@ class BaseBuff
         }
 
     public:
-        bool expired() const
+        virtual bool done() const
         {
             if(m_br.time <= 0){
                 return false;
             }
-            return m_timer.diff_msec() >= m_br.time;
+            return std::lround(m_accuTime) >= m_br.time;
         }
+
+    public:
+        virtual bool update(double ms)
+        {
+            m_accuTime += ms;
+            runOnUpdate();
+
+            if(done()){
+                runOnDone();
+                return true;
+            }
+            return false;
+        }
+
+    public:
+        virtual void runOnDone  (){}
+        virtual void runOnUpdate(){}
 };
