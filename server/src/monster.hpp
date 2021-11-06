@@ -21,13 +21,18 @@
 #include <unordered_set>
 #include "corof.hpp"
 #include "fflerror.hpp"
-#include "charobject.hpp"
+#include "battleobject.hpp"
 #include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 #include "monsterrecord.hpp"
 
-class Monster: public CharObject
+class Monster: public BattleObject
 {
+    public:
+        friend class ServerObject;
+        friend class   CharObject;
+        friend class BattleObject;
+
     protected:
         // a-star algorithm is so expensive
         // current logic is every step we do MoveOneStep()
@@ -137,6 +142,7 @@ class Monster: public CharObject
         void on_AM_MISS            (const ActorMsgPack &);
         void on_AM_HEAL            (const ActorMsgPack &);
         void on_AM_ATTACK          (const ActorMsgPack &);
+        void on_AM_ADDBUFF         (const ActorMsgPack &);
         void on_AM_ACTION          (const ActorMsgPack &);
         void on_AM_OFFLINE         (const ActorMsgPack &);
         void on_AM_UPDATEHP        (const ActorMsgPack &);
@@ -161,7 +167,7 @@ class Monster: public CharObject
         void operateAM(const ActorMsgPack &);
 
     protected:
-        void reportCO(uint64_t);
+        void reportCO(uint64_t) override;
 
     protected:
         bool MoveOneStep(int, int, std::function<void()>, std::function<void()>);

@@ -21,7 +21,7 @@ corof::eval_poller ServerShipwreckLord::updateCoroFunc()
     hres_timer lastPushTime;
     constexpr uint64_t pushCoolTime = 5;
 
-    while(m_sdHealth.HP > 0){
+    while(m_sdHealth.hp > 0){
         if(targetUID && !(co_await coro_validTarget(targetUID))){
             targetUID = 0;
         }

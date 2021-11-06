@@ -36,7 +36,7 @@ ServerGuard::ServerGuard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, 
 corof::eval_poller ServerGuard::updateCoroFunc()
 {
     uint64_t targetUID = 0;
-    while(m_sdHealth.HP > 0){
+    while(m_sdHealth.hp > 0){
         if(targetUID && !(co_await coro_validTarget(targetUID))){
             targetUID = 0;
         }
@@ -125,12 +125,12 @@ void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
 
 bool ServerGuard::canMove() const
 {
-    return CharObject::canMove();
+    return BattleObject::canMove();
 }
 
 bool ServerGuard::canAttack() const
 {
-    if(!CharObject::canAttack()){
+    if(!BattleObject::canAttack()){
         return false;
     }
 

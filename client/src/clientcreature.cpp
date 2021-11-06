@@ -35,9 +35,9 @@ void ClientCreature::updateAttachMagic(double fUpdateTime)
     }
 }
 
-void ClientCreature::updateBuffList(SDBuffList buffList)
+void ClientCreature::setBuffIDList(SDBuffIDList list)
 {
-    m_sdBuffList = std::move(buffList);
+    m_sdBuffIDList = std::move(list);
 }
 
 void ClientCreature::updateHealth(SDHealth health)
@@ -50,8 +50,8 @@ void ClientCreature::updateHealth(SDHealth health)
         return;
     }
 
-    const int diffHP = health.HP - m_sdHealth.value().HP;
-    const int diffMP = health.MP - m_sdHealth.value().MP;
+    const int diffHP = health.hp - m_sdHealth.value().hp;
+    const int diffMP = health.mp - m_sdHealth.value().mp;
 
     m_sdHealth = health;
     if(diffHP > 0){

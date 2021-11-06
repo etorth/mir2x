@@ -38,8 +38,8 @@ void ServerAntHealer::sendHeal(uint64_t uid)
 
 corof::eval_poller ServerAntHealer::updateCoroFunc()
 {
-    while(m_sdHealth.HP > 0){
-        if(m_sdHealth.HP < m_sdHealth.maxHP){
+    while(m_sdHealth.hp > 0){
+        if(m_sdHealth.hp < m_sdHealth.maxHP){
             dispatchAction(ActionAttack
             {
                 .speed = attackSpeed(),
@@ -49,8 +49,7 @@ corof::eval_poller ServerAntHealer::updateCoroFunc()
                 .damageID = to_u32(DBCOM_MAGICID(u8"蚂蚁道士_治疗")),
             });
 
-            m_sdHealth.HP = std::min<int>(m_sdHealth.HP + 20, m_sdHealth.maxHP);
-            dispatchHealth();
+            updateHealth(20);
         }
         else{
             const auto targetUID = co_await coro_pickHealTarget();

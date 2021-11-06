@@ -164,25 +164,8 @@ class NPChar final: public CharObject
         void reportCO(uint64_t) override;
 
     public:
-        bool dcValid(int, bool) override
-        {
-            return false;
-        }
-
-        DamageNode getAttackDamage(int) const override
-        {
-            throw bad_reach();
-        }
-
-    public:
-        bool struckDamage(const DamageNode &) override;
-
-    public:
         bool goDie() override;
         bool goGhost() override;
-
-    public:
-        void checkFriend(uint64_t, std::function<void(int)>) override;
 
     private:
         void on_AM_BUY(const ActorMsgPack &);

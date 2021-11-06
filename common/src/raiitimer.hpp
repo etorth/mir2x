@@ -55,6 +55,12 @@ class hres_tstamp
         {
             return to_nsec() / 1000000000ULL;
         }
+
+    public:
+        float to_secf() const
+        {
+            return static_cast<float>(to_nsec()) / 1000000000.0f;
+        }
 };
 
 class hres_timer
@@ -83,6 +89,12 @@ class hres_timer
         uint64_t diff_usec() const { return diff_nsec() / 1000ULL; }
         uint64_t diff_msec() const { return diff_nsec() / 1000000ULL; }
         uint64_t diff_sec () const { return diff_nsec() / 1000000000ULL; }
+
+    public:
+        float diff_secf() const
+        {
+            return static_cast<float>(diff_nsec()) / 1000000000.0f;
+        }
 
     public:
         const auto &origin() const

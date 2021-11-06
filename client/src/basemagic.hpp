@@ -9,7 +9,7 @@
 #include "dbcomrecord.hpp"
 #include "magicrecord.hpp"
 
-class MagicBase
+class BaseMagic
 {
     protected:
         const uint32_t m_magicID;
@@ -29,11 +29,11 @@ class MagicBase
         double m_accuTime = 0.0;
 
     protected:
-        std::list<std::function<void(MagicBase *)>> m_onDoneCBList;
-        std::list<std::function<bool(MagicBase *)>> m_onUpdateCBList;
+        std::list<std::function<void(BaseMagic *)>> m_onDoneCBList;
+        std::list<std::function<bool(BaseMagic *)>> m_onUpdateCBList;
 
     public:
-        MagicBase(const char8_t *magicName, const char8_t *magicStage, int dirIndex)
+        BaseMagic(const char8_t *magicName, const char8_t *magicStage, int dirIndex)
             : m_magicID([magicName]() -> uint32_t
               {
                   if(const auto magicID = DBCOM_MAGICID(magicName)){
@@ -63,7 +63,7 @@ class MagicBase
         }
 
     public:
-        virtual ~MagicBase() = default;
+        virtual ~BaseMagic() = default;
 
     public:
         uint32_t magicID() const
@@ -157,12 +157,12 @@ class MagicBase
         }
 
     public:
-        void addOnDone(std::function<void(MagicBase *)> onDone)
+        void addOnDone(std::function<void(BaseMagic *)> onDone)
         {
             m_onDoneCBList.push_back(std::move(onDone));
         }
 
-        void addTrigger(std::function<bool(MagicBase *)> onUpdate)
+        void addTrigger(std::function<bool(BaseMagic *)> onUpdate)
         {
             m_onUpdateCBList.push_back(std::move(onUpdate));
         }

@@ -62,7 +62,7 @@ FollowUIDMagic::FollowUIDMagic(
 
         uint64_t uid,
         ProcessRun *runPtr)
-    : MagicBase(magicName, magicStage, gfxDirIndex)
+    : BaseMagic(magicName, magicStage, gfxDirIndex)
     , m_x(x)
     , m_y(y)
     , m_flyDirIndex(flyDirIndex)
@@ -120,7 +120,7 @@ bool FollowUIDMagic::update(double ms)
     m_y += dy;
 
     m_lastFlyOff = {dx, dy};
-    return MagicBase::update(ms);
+    return BaseMagic::update(ms);
 }
 
 void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const

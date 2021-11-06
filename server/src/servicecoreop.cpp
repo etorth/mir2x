@@ -60,7 +60,7 @@ void ServiceCore::on_AM_ADDCO(const ActorMsgPack &rstMPK)
         return;
     }
 
-    if(!pMap->In(amACO.mapID, amACO.x, amACO.y) && amACO.strictLoc){
+    if(!pMap->in(amACO.mapID, amACO.x, amACO.y) && amACO.strictLoc){
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }

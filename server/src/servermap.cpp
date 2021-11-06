@@ -753,7 +753,7 @@ std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool chec
         const int currX = rc.x();
         const int currY = rc.y();
 
-        if(In(ID(), currX, currY) && canMove(checkCO, checkLock, currX, currY)){
+        if(in(ID(), currX, currY) && canMove(checkCO, checkLock, currX, currY)){
             return std::make_tuple(currX, currY);
         }
 

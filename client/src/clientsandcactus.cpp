@@ -80,7 +80,7 @@ bool ClientSandCactus::onActionAttack(const ActionNode &action)
 
             targetUID,
             m_processRun,
-        }))->addOnDone([targetUID, proc = m_processRun](MagicBase *)
+        }))->addOnDone([targetUID, proc = m_processRun](BaseMagic *)
         {
             if(auto coPtr = proc->findUID(targetUID)){
                 coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"沙漠树魔_喷刺", u8"结束")));

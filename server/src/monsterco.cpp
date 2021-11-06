@@ -71,10 +71,13 @@ corof::eval_awaiter<bool> Monster::coro_moveForward()
 {
     const auto fnwait = +[](Monster *p) -> corof::eval_poller
     {
-        int nextX = -1;
-        int nextY = -1;
+        const auto reachRes = p->oneStepReach(p->Direction(), 1);
+        if(!reachRes.has_value()){
+            co_return false;
+        }
 
-        if(p->OneStepReach(p->Direction(), 1, &nextX, &nextY) != 1){
+        const auto [nextX, nextY, reachDist] = reachRes.value();
+        if(reachDist != 1){
             co_return false;
         }
 
@@ -108,7 +111,7 @@ corof::eval_awaiter<uint64_t> Monster::coro_pickHealTarget()
                     case UID_PLY:
                         {
                             const auto health = co_await p->coro_queryHealth(uid);
-                            if(health.has_value() && health.value().HP < health.value().maxHP){
+                            if(health.has_value() && health.value().hp < health.value().maxHP){
                                 co_return true;
                             }
                             break;
@@ -239,7 +242,7 @@ corof::eval_awaiter<bool> Monster::coro_inDCCastRange(uint64_t targetUID, DCCast
         corof::async_variable<bool> done;
         p->getCOLocation(targetUID, [p, r, &done](const COLocation &coLoc)
         {
-            if(p->m_map->In(coLoc.mapID, coLoc.x, coLoc.y)){
+            if(p->m_map->in(coLoc.mapID, coLoc.x, coLoc.y)){
                 done.assign(pathf::inDCCastRange(r, p->X(), p->Y(), coLoc.x, coLoc.y));
             }
             else{

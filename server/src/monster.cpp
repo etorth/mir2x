@@ -106,7 +106,7 @@ Monster::Monster(uint32_t monID,
         int               mapY,
         int               direction,
         uint64_t          masterUID)
-    : CharObject(mapCPtr, uidf::buildMonsterUID(monID), mapX, mapY, direction)
+    : BattleObject(mapCPtr, uidf::buildMonsterUID(monID), mapX, mapY, direction)
     , m_masterUID(masterUID)
 {
     if(!getMR()){
@@ -114,8 +114,8 @@ Monster::Monster(uint32_t monID,
     }
 
     m_sdHealth.uid   = UID();
-    m_sdHealth.HP    = getMR().hp;
-    m_sdHealth.MP    = getMR().mp;
+    m_sdHealth.hp    = getMR().hp;
+    m_sdHealth.mp    = getMR().mp;
     m_sdHealth.maxHP = getMR().hp;
     m_sdHealth.maxMP = getMR().mp;
 }
@@ -125,12 +125,16 @@ bool Monster::randomMove()
     if(canMove()){
         auto fnMoveOneStep = [this]() -> bool
         {
-            int nX = -1;
-            int nY = -1;
-            if(OneStepReach(Direction(), 1, &nX, &nY) == 1){
-                return requestMove(nX, nY, MoveSpeed(), false, false);
+            const auto reachRes = oneStepReach(Direction(), 1);
+            if(!reachRes.has_value()){
+                return false;
             }
-            return false;
+
+            const auto [dstX, dstY, dstDist] = reachRes.value();
+            if(dstDist != 1){
+                return false;
+            }
+            return requestMove(dstX, dstY, MoveSpeed(), false, false);
         };
 
         auto fnMakeOneTurn = [this]() -> bool
@@ -153,9 +157,7 @@ bool Monster::randomMove()
             for(int nIndex = 0; nIndex < nDirCount; ++nIndex){
                 auto nDirection = nDirV[(nDirStart + nIndex) % nDirCount];
                 if(Direction() != nDirection){
-                    int nX = -1;
-                    int nY = -1;
-                    if(OneStepReach(nDirection, 1, &nX, &nY) == 1){
+                    if(oneStepReach(nDirection, 1).has_value()){
                         // current direction is possible for next move
                         // report the turn and do motion (by chance) in next update
                         m_direction = nDirection;
@@ -213,9 +215,7 @@ bool Monster::randomTurn()
     for(int i = 0; i < dirCount; ++i){
         const auto dir = dirs[(dirStart + i) % dirCount];
         if(Direction() != dir){
-            int newX = -1;
-            int newY = -1;
-            if(OneStepReach(dir, 1, &newX, &newY) == 1){
+            if(oneStepReach(dir, 1).has_value()){
                 // current direction is possible for next move
                 // report the turn and do motion (by chance) in next update
                 m_direction = dir;
@@ -314,7 +314,7 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
         const auto nDir   = directionValid(coLoc.direction) ? coLoc.direction : DIR_UP;
         const auto nMapID = coLoc.mapID;
 
-        if(!m_map->In(nMapID, nX, nY)){
+        if(!m_map->in(nMapID, nX, nY)){
             onError();
             return;
         }
@@ -353,7 +353,7 @@ void Monster::trackUID(uint64_t nUID, DCCastRange r, std::function<void()> onOK,
 {
     getCOLocation(nUID, [this, r, onOK, onError](const COLocation &coLoc)
     {
-        if(!m_map->In(coLoc.mapID, coLoc.x, coLoc.y)){
+        if(!m_map->in(coLoc.mapID, coLoc.x, coLoc.y)){
             if(onError){
                 onError();
             }
@@ -519,7 +519,7 @@ corof::eval_poller Monster::updateCoroFunc()
     uint64_t targetUID = 0;
     hres_timer targetActiveTimer;
 
-    while(m_sdHealth.HP > 0){
+    while(m_sdHealth.hp > 0){
         if(targetUID && targetActiveTimer.diff_sec() > SYS_TARGETSEC){
             targetUID = 0;
         }
@@ -566,12 +566,16 @@ corof::eval_poller Monster::updateCoroFunc()
 
 bool Monster::update()
 {
-    if(m_sdHealth.HP < 0){
+    if(m_sdHealth.hp < 0){
         return goDie();
     }
 
     if(masterUID() && !m_actorPod->checkUIDValid(masterUID())){
         return goDie();
+    }
+
+    if(m_buffList.update()){
+        dispatchBuffIDList();
     }
 
     if(!m_updateCoro.valid() || m_updateCoro.poll()){
@@ -591,6 +595,11 @@ void Monster::operateAM(const ActorMsgPack &rstMPK)
         case AM_CHECKMASTER:
             {
                 on_AM_CHECKMASTER(rstMPK);
+                break;
+            }
+        case AM_ADDBUFF:
+            {
+                on_AM_ADDBUFF(rstMPK);
                 break;
             }
         case AM_QUERYFINALMASTER:
@@ -745,7 +754,7 @@ DamageNode Monster::getAttackDamage(int dc) const
 
 bool Monster::canMove() const
 {
-    if(!CharObject::canMove()){
+    if(!BattleObject::canMove()){
         return false;
     }
 
@@ -770,7 +779,7 @@ bool Monster::canMove() const
 
 bool Monster::canAttack() const
 {
-    if(!CharObject::canAttack()){
+    if(!BattleObject::canAttack()){
         return false;
     }
 
@@ -898,10 +907,10 @@ bool Monster::struckDamage(const DamageNode &node)
         }();
 
         if(damage > 0){
-            m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - damage);
+            m_sdHealth.hp = std::max<int>(0, m_sdHealth.hp - damage);
             dispatchHealth();
 
-            if(m_sdHealth.HP <= 0){
+            if(m_sdHealth.hp <= 0){
                 goDie();
             }
         }
@@ -986,7 +995,7 @@ bool Monster::MoveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, st
         return false;
     }
 
-    CharObject::COPathFinder stFinder(this, 1);
+    BattleObject::BOPathFinder stFinder(this, 1);
     if(!stFinder.Search(X(), Y(), nX, nY)){
         onError();
         return false;

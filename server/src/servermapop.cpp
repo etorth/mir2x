@@ -172,7 +172,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
         g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::StrictMove = %s", &amTSM, to_boolcstr(amTSM.StrictMove));
     };
 
-    if(!In(ID(), amTSM.X, amTSM.Y)){
+    if(!in(ID(), amTSM.X, amTSM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
@@ -317,7 +317,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
         g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::EndY = %d", &amTJ, amTJ.EndY);
     };
 
-    if(!In(ID(), amTJ.X, amTJ.Y)){
+    if(!in(ID(), amTJ.X, amTJ.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintJumpError();
         m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
@@ -327,7 +327,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     // we never allow server to handle motion to invalid grid
     // for client every motion request need to be prepared to avoid this
 
-    if(!In(ID(), amTJ.EndX, amTJ.EndY)){
+    if(!in(ID(), amTJ.EndX, amTJ.EndY)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintJumpError();
         m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
@@ -465,7 +465,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
         g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &amTM, amTM.AllowHalfMove ? "true" : "false");
     };
 
-    if(!In(amTM.mapID, amTM.X, amTM.Y)){
+    if(!in(amTM.mapID, amTM.X, amTM.Y)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
@@ -475,7 +475,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     // we never allow server to handle motion to invalid grid
     // for client every motion request need to be prepared to avoid this
 
-    if(!In(amTM.mapID, amTM.EndX, amTM.EndY)){
+    if(!in(amTM.mapID, amTM.EndX, amTM.EndY)){
         g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
@@ -698,7 +698,7 @@ void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
     const auto fromGridX = amTL.X;
     const auto fromGridY = amTL.Y;
 
-    if(!(In(ID(), fromGridX, fromGridY) && hasGridUID(mpk.from(), fromGridX, fromGridY))){
+    if(!(in(ID(), fromGridX, fromGridY) && hasGridUID(mpk.from(), fromGridX, fromGridY))){
         m_actorPod->forward(mpk.from(), AM_REJECTLEAVE, mpk.seqID());
         g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(fromUID), fromGridX, fromGridY);
         return;

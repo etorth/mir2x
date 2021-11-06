@@ -262,11 +262,11 @@ void ProcessRun::net_HEALTH(const uint8_t *buf, size_t bufSize)
     }
 }
 
-void ProcessRun::net_BUFFLIST(const uint8_t *buf, size_t bufSize)
+void ProcessRun::net_BUFFIDLIST(const uint8_t *buf, size_t bufSize)
 {
-    auto sdBL = cerealf::deserialize<SDBuffList>(buf, bufSize);
-    if(auto p = findUID(sdBL.uid)){
-        p->updateBuffList(std::move(sdBL));
+    auto sdBIDL = cerealf::deserialize<SDBuffIDList>(buf, bufSize);
+    if(auto p = findUID(sdBIDL.uid)){
+        p->setBuffIDList(std::move(sdBIDL));
     }
 }
 
@@ -460,7 +460,7 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
         case DBCOM_MAGICID(u8"魔法盾"):
             {
                 if(auto coPtr = findUID(smCM.UID)){
-                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"开始")))->addOnDone([smCM, this](MagicBase *)
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"开始")))->addOnDone([smCM, this](BaseMagic *)
                     {
                         if(auto coPtr = findUID(smCM.UID)){
                             coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")));
@@ -472,7 +472,7 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
         case DBCOM_MAGICID(u8"阴阳法环"):
             {
                 if(auto coPtr = findUID(smCM.UID)){
-                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"阴阳法环", u8"开始")))->addOnDone([smCM, this](MagicBase *)
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"阴阳法环", u8"开始")))->addOnDone([smCM, this](BaseMagic *)
                     {
                         if(auto coPtr = findUID(smCM.UID)){
                             coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new TaoYellowBlueRing()));

@@ -123,7 +123,7 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
 
     const auto mapPtr = retrieveMap(mapID);
     fflassert(mapPtr);
-    fflassert(mapPtr->In(mapID, mapX, mapY));
+    fflassert(mapPtr->in(mapID, mapX, mapY));
 
     AMAddCharObject amACO;
     std::memset(&amACO, 0, sizeof(amACO));

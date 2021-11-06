@@ -20,7 +20,7 @@ extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
 Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
-    : CharObject(mapPtr, uidf::getPlayerUID(initParam.dbid, initParam.gender, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
+    : BattleObject(mapPtr, uidf::getPlayerUID(initParam.dbid, initParam.gender, initParam.jobList), initParam.x, initParam.y, DIR_DOWN)
     , m_exp(initParam.exp)
     , m_name(initParam.name)
     , m_nameColor(initParam.nameColor)
@@ -28,12 +28,11 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     , m_hairColor(initParam.hairColor)
 {
     m_sdHealth.uid   = UID();
-    m_sdHealth.HP    = initParam.hp;
-    m_sdHealth.MP    = initParam.mp;
+    m_sdHealth.hp    = initParam.hp;
+    m_sdHealth.mp    = initParam.mp;
     m_sdHealth.maxHP = initParam.hp;
     m_sdHealth.maxMP = initParam.mp;
 
-    m_sdBuffList.uid = UID();
     m_sdItemStorage.gold = initParam.gold;
 
     dbLoadWear();
@@ -224,6 +223,9 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
 
 bool Player::update()
 {
+    if(m_buffList.update()){
+        dispatchBuffIDList();
+    }
     return true;
 }
 
@@ -427,11 +429,8 @@ bool Player::struckDamage(const DamageNode &node)
         }();
 
         if(damage > 0){
-            m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - damage);
-            reportHealth();
-            dispatchHealth();
-
-            if(m_sdHealth.HP <= 0){
+            updateHealth(-damage);
+            if(m_sdHealth.hp <= 0){
                 goDie();
             }
         }
@@ -816,12 +815,7 @@ void Player::onCMActionSpell(CMAction cmA)
                     }
                 }
                 else{
-                    m_sdBuffList.add(SDBuff
-                    {
-                        .id = DBCOM_BUFFID(u8"治愈术"),
-                        .from = UID(),
-                    });
-                    dispatchNetPackage(true, SM_BUFFLIST, cerealf::serialize(m_sdBuffList));
+                    addBuff(DBCOM_BUFFID(u8"治愈术"));
                 }
                 break;
             }
@@ -1083,13 +1077,13 @@ int Player::MaxStep() const
 
 void Player::recoverHealth()
 {
-    const auto lastHP = m_sdHealth.HP;
-    const auto lastMP = m_sdHealth.MP;
+    const auto lastHP = m_sdHealth.hp;
+    const auto lastMP = m_sdHealth.mp;
 
-    m_sdHealth.HP = std::min<int>(m_sdHealth.maxHP, m_sdHealth.HP + std::max<int>(m_sdHealth.maxHP / 60, 1));
-    m_sdHealth.MP = std::min<int>(m_sdHealth.maxMP, m_sdHealth.MP + std::max<int>(m_sdHealth.maxMP / 60, 1));
+    m_sdHealth.hp = std::min<int>(m_sdHealth.maxHP, m_sdHealth.hp + std::max<int>(m_sdHealth.maxHP / 60, 1));
+    m_sdHealth.mp = std::min<int>(m_sdHealth.maxMP, m_sdHealth.mp + std::max<int>(m_sdHealth.maxMP / 60, 1));
 
-    if((lastHP != m_sdHealth.HP) || (lastMP != m_sdHealth.MP)){
+    if((lastHP != m_sdHealth.hp) || (lastMP != m_sdHealth.mp)){
         reportHealth();
     }
 }

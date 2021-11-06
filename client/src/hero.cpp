@@ -622,7 +622,7 @@ bool Hero::parseAction(const ActionNode &action)
                                                         aimX,
                                                         aimY,
                                                         standDir,
-                                                    }))->addTrigger([aimX, aimY, this](MagicBase *magicPtr)
+                                                    }))->addTrigger([aimX, aimY, this](BaseMagic *magicPtr)
                                                     {
                                                         if(magicPtr->frame() < 10){
                                                             return false;
@@ -664,9 +664,9 @@ bool Hero::parseAction(const ActionNode &action)
 
                                             aimX,
                                             aimY,
-                                        }))->addOnDone([standDir, this](MagicBase *magicPtr)
+                                        }))->addOnDone([standDir, this](BaseMagic *magicPtr)
                                         {
-                                            auto fnAddNextStep = +[](MagicBase *magicPtr, int standDir, ProcessRun *proc, std::shared_ptr<int> magicRanPtr, void *selfFuncPtr)
+                                            auto fnAddNextStep = +[](BaseMagic *magicPtr, int standDir, ProcessRun *proc, std::shared_ptr<int> magicRanPtr, void *selfFuncPtr)
                                             {
                                                 const auto fixedLocMagicPtr = dynamic_cast<FixedLocMagic *>(magicPtr);
                                                 const auto [nextX, nextY] = pathf::getFrontGLoc(fixedLocMagicPtr->x(), fixedLocMagicPtr->y(), standDir, 1);
@@ -690,9 +690,9 @@ bool Hero::parseAction(const ActionNode &action)
 
                                                         nextX,
                                                         nextY,
-                                                    }))->addOnDone([proc, magicRanPtr, standDir, selfFuncPtr](MagicBase *magicPtr)
+                                                    }))->addOnDone([proc, magicRanPtr, standDir, selfFuncPtr](BaseMagic *magicPtr)
                                                     {
-                                                        ((void (*)(MagicBase *, int, ProcessRun *, std::shared_ptr<int>, void *))(selfFuncPtr))(magicPtr, standDir, proc, magicRanPtr, selfFuncPtr);
+                                                        ((void (*)(BaseMagic *, int, ProcessRun *, std::shared_ptr<int>, void *))(selfFuncPtr))(magicPtr, standDir, proc, magicRanPtr, selfFuncPtr);
                                                     });
                                                 }
                                             };
@@ -807,7 +807,7 @@ bool Hero::parseAction(const ActionNode &action)
 
                                         auto addedMagic = m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(DBCOM_MAGICRECORD(magicID).name, u8"运行", aimX, aimY)));
                                         if(magicID == DBCOM_MAGICID(u8"击风")){
-                                            addedMagic->addOnDone([aimX, aimY, magicID, this](MagicBase *)
+                                            addedMagic->addOnDone([aimX, aimY, magicID, this](BaseMagic *)
                                             {
                                                 m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束", aimX, aimY)));
                                             });
@@ -878,7 +878,7 @@ bool Hero::parseAction(const ActionNode &action)
                                             targetUID,
                                             m_processRun,
 
-                                        }))->addOnDone([targetUID, magicID, proc = m_processRun](MagicBase *)
+                                        }))->addOnDone([targetUID, magicID, proc = m_processRun](BaseMagic *)
                                         {
                                             if(auto coPtr = proc->findUID(targetUID)){
                                                 coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束")));
@@ -993,7 +993,7 @@ bool Hero::parseAction(const ActionNode &action)
                             // here we replace the old 魔法盾 with a new one
                             // it's possible the old one haven't trigger its onDone callback yet, but doesn't matter
                             p.reset(new AttachMagic(u8"魔法盾", u8"挨打"));
-                            p->addOnDone([this](MagicBase *)
+                            p->addOnDone([this](BaseMagic *)
                             {
                                 // don't use p, the m_attachMagicList may re-allocate
                                 // don't replace the ptr holding by p, just add a new magic, since the callback is by ptr holding by p

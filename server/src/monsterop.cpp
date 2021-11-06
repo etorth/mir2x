@@ -23,6 +23,7 @@
 #include "actorpod.hpp"
 #include "mathf.hpp"
 #include "monoserver.hpp"
+#include "friendtype.hpp"
 #include "dbcomid.hpp"
 
 extern MonoServer *g_monoServer;
@@ -49,9 +50,7 @@ void Monster::on_AM_HEAL(const ActorMsgPack &mpk)
 {
     const auto amH = mpk.conv<AMHeal>();
     if(amH.mapID == mapID()){
-        m_sdHealth.HP += amH.addHP;
-        m_sdHealth.MP += amH.addMP;
-        dispatchHealth();
+        updateHealth(amH.addHP, amH.addMP);
     }
 }
 
@@ -61,6 +60,35 @@ void Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
     std::memcpy(&amQCOR, rstMPK.data(), sizeof(amQCOR));
 
     reportCO(amQCOR.UID);
+}
+
+void Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
+{
+    const auto amAB = mpk.conv<AMAddBuff>();
+    switch(amAB.id){
+        case DBCOM_BUFFID(u8"治愈术"):
+            {
+                checkFriend(amAB.from, [amAB, this](int friendType)
+                {
+                    switch(friendType){
+                        case FT_FRIEND:
+                        case FT_NEUTRAL:
+                            {
+                                addBuff(DBCOM_BUFFID(u8"治愈术"));
+                                return;
+                            }
+                        default:
+                            {
+                                return;
+                            }
+                    }
+                });
+            }
+        default:
+            {
+                break;
+            }
+    }
 }
 
 void Monster::on_AM_EXP(const ActorMsgPack &rstMPK)

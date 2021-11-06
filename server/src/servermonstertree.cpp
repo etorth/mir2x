@@ -21,7 +21,7 @@
 
 corof::eval_poller ServerMonsterTree::updateCoroFunc()
 {
-    while(m_sdHealth.HP > 0){
+    while(m_sdHealth.hp > 0){
         co_await corof::async_wait(2000);
     }
 

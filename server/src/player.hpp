@@ -23,13 +23,15 @@
 #include <type_traits>
 #include "totype.hpp"
 #include "monoserver.hpp"
-#include "charobject.hpp"
+#include "battleobject.hpp"
 #include "combatnode.hpp"
 
-class Player final: public CharObject
+class Player final: public BattleObject
 {
-    private:
-        friend class CharObject;
+    public:
+        friend class ServerObject;
+        friend class   CharObject;
+        friend class BattleObject;
 
     protected:
         // empty: hasn't bind to a channel yet
@@ -158,7 +160,7 @@ class Player final: public CharObject
         void reportHealth();
         void reportNextStrike();
         void reportDeadUID(uint64_t);
-        void reportCO(uint64_t);
+        void reportCO(uint64_t) override;
         void reportOffline(uint64_t, uint32_t);
         void reportRemoveItem(uint32_t, uint32_t, size_t);
         void reportSecuredItemList();

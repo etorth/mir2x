@@ -79,7 +79,7 @@ bool ClientDualAxeSkeleton::onActionAttack(const ActionNode &action)
 
             targetUID,
             m_processRun,
-        }))->addOnDone([targetUID, proc = m_processRun](MagicBase *)
+        }))->addOnDone([targetUID, proc = m_processRun](BaseMagic *)
         {
             // TODO interesting bug, don't directly refer to this->m_processRun
             // an dual-axe-skeleton can throw dual-axe-magic and die immediately, which makes *this* dangling

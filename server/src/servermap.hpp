@@ -165,7 +165,7 @@ class ServerMap final: public ServerObject
         uint32_t ID() const { return m_ID; }
 
     public:
-        bool In(uint32_t nMapID, int nX, int nY) const
+        bool in(uint32_t nMapID, int nX, int nY) const
         {
             return (nMapID == m_ID) && validC(nX, nY);
         }

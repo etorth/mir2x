@@ -22,10 +22,10 @@
 #include "colorf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
-#include "magicbase.hpp"
+#include "basemagic.hpp"
 #include "magicrecord.hpp"
 
-class FixedLocMagic: public MagicBase
+class FixedLocMagic: public BaseMagic
 {
     private:
         int m_x;
@@ -39,7 +39,7 @@ class FixedLocMagic: public MagicBase
                 int x,
                 int y,
                 int gfxDirIndex = 0)
-            : MagicBase(magicName, magicStage, gfxDirIndex)
+            : BaseMagic(magicName, magicStage, gfxDirIndex)
             , m_x(x)
             , m_y(y)
         {

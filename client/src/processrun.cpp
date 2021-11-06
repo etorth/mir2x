@@ -433,7 +433,7 @@ void ProcessRun::draw() const
         }
     }
 
-    if(getMyHero()->getSDBuffList().has_value()){
+    if(getMyHero()->getSDBuffIDList().has_value()){
         constexpr int buffIconDrawW = 20;
         constexpr int buffIconDrawH = 20;
         int buffIconOffX = g_sdlDevice->getRendererWidth() - buffIconDrawW;
@@ -442,8 +442,8 @@ void ProcessRun::draw() const
             buffIconOffX -= boardPtr->w();
         }
 
-        for(const auto &buff: getMyHero()->getSDBuffList().value().buffList){
-            const auto &br = DBCOM_BUFFRECORD(buff.id);
+        for(const auto id: getMyHero()->getSDBuffIDList().value().idList){
+            const auto &br = DBCOM_BUFFRECORD(id);
             fflassert(br);
 
             if(br.gfxID != SYS_TEXNIL){
@@ -1569,7 +1569,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                     action.x,
                     action.y,
 
-                }))->addTrigger([action, uid, this](MagicBase *magicPtr) -> bool
+                }))->addTrigger([action, uid, this](BaseMagic *magicPtr) -> bool
                 {
                     if(magicPtr->frame() < 10){
                         return false;
@@ -1599,7 +1599,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                     action.x,
                     action.y,
 
-                }))->addTrigger([action, uid, this](MagicBase *magicPtr) -> bool
+                }))->addTrigger([action, uid, this](BaseMagic *magicPtr) -> bool
                 {
                     if(magicPtr->frame() < 10){
                         return false;

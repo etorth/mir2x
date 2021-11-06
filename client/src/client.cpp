@@ -284,10 +284,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
-        case SM_BUFFLIST:
+        case SM_BUFFIDLIST:
             {
                 if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    proc->net_BUFFLIST(buf, bufSize);
+                    proc->net_BUFFIDLIST(buf, bufSize);
                 }
                 break;
             }

@@ -569,17 +569,6 @@ bool NPChar::update()
 void NPChar::reportCO(uint64_t)
 {
 }
-
-bool NPChar::struckDamage(const DamageNode &)
-{
-    return true;
-}
-
-void NPChar::checkFriend(uint64_t, std::function<void(int)> fnOP)
-{
-    fnOP(FT_NEUTRAL);
-}
-
 bool NPChar::goDie()
 {
     return true;

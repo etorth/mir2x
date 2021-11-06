@@ -20,10 +20,10 @@
 #include <cstdint>
 #include "sysconst.hpp"
 #include "fflerror.hpp"
-#include "magicbase.hpp"
+#include "basemagic.hpp"
 
 class ProcessRun;
-class FollowUIDMagic: public MagicBase
+class FollowUIDMagic: public BaseMagic
 {
     protected:
         int m_x;

@@ -397,11 +397,7 @@ void Player::on_AM_ADDBUFF(const ActorMsgPack &mpk)
                         case FT_FRIEND:
                         case FT_NEUTRAL:
                             {
-                                m_sdBuffList.add(SDBuff
-                                {
-                                    .id = DBCOM_BUFFID(u8"治愈术"),
-                                    .from = amAB.from,
-                                });
+                                addBuff(DBCOM_BUFFID(u8"治愈术"));
                                 return;
                             }
                         default:
@@ -442,9 +438,7 @@ void Player::on_AM_HEAL(const ActorMsgPack &mpk)
 {
     const auto amH = mpk.conv<AMHeal>();
     if(amH.mapID == mapID()){
-        m_sdHealth.HP += amH.addHP;
-        m_sdHealth.MP += amH.addMP;
-        dispatchHealth();
+        updateHealth(amH.addHP, amH.addMP);
     }
 }
 

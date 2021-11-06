@@ -97,7 +97,7 @@ bool ClientMinotaurGuardian::onActionAttack(const ActionNode &action)
 
                         targetUID,
                         m_processRun,
-                    }))->addOnDone([targetUID, proc = m_processRun](MagicBase *)
+                    }))->addOnDone([targetUID, proc = m_processRun](BaseMagic *)
                     {
                         if(auto coPtr = proc->findUID(targetUID)){
                             coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"潘夜左护卫_火球术", u8"结束")));

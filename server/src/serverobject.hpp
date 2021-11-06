@@ -59,11 +59,6 @@ class ServerObject
             return m_actorPod && m_actorPod->UID();
         }
 
-        void checkActorPodEx() const
-        {
-            fflassert(checkActorPod());
-        }
-
     public:
         virtual void operateAM(const ActorMsgPack &) = 0;
 

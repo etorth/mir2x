@@ -54,7 +54,7 @@ enum SMType: uint8_t
     SM_DEADFADEOUT,
     SM_EXP,
     SM_BUFF,
-    SM_BUFFLIST,
+    SM_BUFFIDLIST,
     SM_MISS,
     SM_CASTMAGIC,
     SM_OFFLINE,
@@ -373,7 +373,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_DEADFADEOUT,         1, sizeof(SMDeadFadeOut)        )
                 _add_server_msg_type_case(SM_EXP,                 1, sizeof(SMExp)                )
                 _add_server_msg_type_case(SM_BUFF,                1, sizeof(SMBuff)               )
-                _add_server_msg_type_case(SM_BUFFLIST,            3, 0                            )
+                _add_server_msg_type_case(SM_BUFFIDLIST,          3, 0                            )
                 _add_server_msg_type_case(SM_MISS,                1, sizeof(SMMiss)               )
                 _add_server_msg_type_case(SM_CASTMAGIC,           1, sizeof(SMCastMagic)          )
                 _add_server_msg_type_case(SM_OFFLINE,             1, sizeof(SMOffline)            )

@@ -27,7 +27,7 @@ corof::eval_poller ServerTaoDog::updateCoroFunc()
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
 
-    while(m_sdHealth.HP > 0){
+    while(m_sdHealth.hp > 0){
         if(targetUID && !(co_await coro_validTarget(targetUID))){
             targetUID = 0;
         }

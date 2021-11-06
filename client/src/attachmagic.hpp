@@ -2,14 +2,14 @@
 #include <cmath>
 #include <string_view>
 #include "fflerror.hpp"
-#include "magicbase.hpp"
+#include "basemagic.hpp"
 #include "magicrecord.hpp"
 
-class AttachMagic: public MagicBase
+class AttachMagic: public BaseMagic
 {
     public:
         AttachMagic(const char8_t *magicName, const char8_t *magicStage, int gfxDirIndex = 0)
-            : MagicBase(magicName, magicStage, gfxDirIndex)
+            : BaseMagic(magicName, magicStage, gfxDirIndex)
         {
             fflassert(m_gfxEntry.checkType(u8"附着"));
         }

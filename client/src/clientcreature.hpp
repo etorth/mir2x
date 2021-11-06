@@ -54,7 +54,7 @@ class ClientCreature
 
     protected:
         std::optional<SDHealth> m_sdHealth;
-        std::optional<SDBuffList> m_sdBuffList;
+        std::optional<SDBuffIDList> m_sdBuffIDList;
 
     protected:
         std::unique_ptr<MotionNode> m_currMotion;
@@ -205,7 +205,9 @@ class ClientCreature
 
     public:
         void updateHealth(SDHealth);
-        void updateBuffList(SDBuffList);
+
+    public:
+        void setBuffIDList(SDBuffIDList);
 
     public:
         const auto &getSDHealth()
@@ -214,9 +216,9 @@ class ClientCreature
         }
 
     public:
-        const auto &getSDBuffList() const
+        const auto &getSDBuffIDList() const
         {
-            return m_sdBuffList;
+            return m_sdBuffIDList;
         }
 
     public:
@@ -225,10 +227,10 @@ class ClientCreature
             if(m_sdHealth.has_value()){
                 return
                 {
-                    mathf::bound<int>(m_sdHealth.value().HP, 0, mathf::bound<int>(m_sdHealth.value().maxHP, 0, INT_MAX)),
+                    mathf::bound<int>(m_sdHealth.value().hp, 0, mathf::bound<int>(m_sdHealth.value().maxHP, 0, INT_MAX)),
                     mathf::bound<int>(m_sdHealth.value().maxHP, 0, INT_MAX),
 
-                    mathf::bound<int>(m_sdHealth.value().MP, 0, mathf::bound<int>(m_sdHealth.value().maxMP, 0, INT_MAX)),
+                    mathf::bound<int>(m_sdHealth.value().mp, 0, mathf::bound<int>(m_sdHealth.value().maxMP, 0, INT_MAX)),
                     mathf::bound<int>(m_sdHealth.value().maxMP, 0, INT_MAX),
                 };
             }

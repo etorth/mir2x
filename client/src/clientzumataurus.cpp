@@ -245,7 +245,7 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
                                     aimX,
                                     aimY,
                                     standDir,
-                                }))->addTrigger([aimX, aimY, proc](MagicBase *magicPtr)
+                                }))->addTrigger([aimX, aimY, proc](BaseMagic *magicPtr)
                                 {
                                     if(magicPtr->frame() < 10){
                                         return false;

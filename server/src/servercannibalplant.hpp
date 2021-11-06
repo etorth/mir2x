@@ -93,10 +93,8 @@ class ServerCannibalPlant final: public Monster
             }
 
             if(damage){
-                m_sdHealth.HP = std::max<int>(0, m_sdHealth.HP - damage.damage);
-                dispatchHealth();
-
-                if(m_sdHealth.HP <= 0){
+                updateHealth(-damage.damage, {}, {}, {});
+                if(m_sdHealth.hp <= 0){
                     goDie();
                 }
                 return true;
