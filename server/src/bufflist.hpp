@@ -24,10 +24,11 @@ class BuffList final
         }
 
     public:
-        // for update()/done()/runOnUpdate()
-        // follow the same design way as BaseMagic in client/src/basemagic.hpp
         bool update()
         {
+            // for update()/done()/runOnUpdate()
+            // follow the same design way as BaseMagic in client/src/basemagic.hpp
+
             bool changed = false;
             for(size_t i = 0; i < m_list.size();){
                 if(m_list[i]->update(m_timer.diff_msecf())){
