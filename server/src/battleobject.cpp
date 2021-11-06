@@ -196,7 +196,7 @@ bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<voi
                     m_actorPod->forward(rmpk.from(), {AM_JUMPOK, amJOK}, rmpk.seqID());
                     trimInViewCO();
 
-                    if(uidf::isPlayer(UID())){
+                    if(isPlayer()){
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 
@@ -345,7 +345,7 @@ bool BattleObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, b
                     m_actorPod->forward(rmpk.from(), {AM_MOVEOK, amMOK}, rmpk.seqID());
                     trimInViewCO();
 
-                    if(uidf::isPlayer(UID())){
+                    if(isPlayer()){
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 
@@ -441,7 +441,7 @@ bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::fu
                     m_actorPod->forward(rmpk.from(), {AM_SPACEMOVEOK, amSMOK}, rmpk.seqID());
                     trimInViewCO();
 
-                    if(uidf::isPlayer(UID())){
+                    if(isPlayer()){
                         dynamic_cast<Player *>(this)->reportAction(UID(), mapID(), amSMOK.action);
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
@@ -599,7 +599,7 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                                                                     m_actorPod->forward(m_map->UID(), {AM_MAPSWITCHOK, amMSOK}, rmpk.seqID());
 
                                                                     trimInViewCO();
-                                                                    if(uidf::isPlayer(UID())){
+                                                                    if(isPlayer()){
                                                                         dynamic_cast<Player *>(this)->reportStand();
                                                                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                                                                     }
@@ -1092,8 +1092,10 @@ void BattleObject::queryFinalMaster(uint64_t targetUID, std::function<void(uint6
                                         fnOp(0);
                                     }
 
-                                    if(targetUID == dynamic_cast<Monster *>(this)->masterUID()){
-                                        goDie();
+                                    if(isMonster()){
+                                        if(targetUID == dynamic_cast<Monster *>(this)->masterUID()){
+                                            goDie();
+                                        }
                                     }
                                     return;
                                 }
@@ -1217,8 +1219,8 @@ bool BattleObject::updateHealth(std::optional<int> hp, std::optional<int> mp, st
     if(changed){
         const auto sdBuf = cerealf::serialize(m_sdHealth);
         dispatchInViewCONetPackage(SM_HEALTH, sdBuf);
-        if(auto playerPtr = dynamic_cast<Player *>(this)){
-            playerPtr->postNetMessage(SM_HEALTH, sdBuf);
+        if(isPlayer()){
+            dynamic_cast<Player *>(this)->postNetMessage(SM_HEALTH, sdBuf);
         }
     }
     return changed;
