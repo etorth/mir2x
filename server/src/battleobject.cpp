@@ -1183,7 +1183,7 @@ void BattleObject::addBuff(uint32_t buffID)
                     this,
                     [this](PeriodicBuff *)
                     {
-                        updateHealth(5, {}, {}, {});
+                        updateHealth(5);
                     },
                 }));
                 break;
@@ -1196,7 +1196,7 @@ void BattleObject::addBuff(uint32_t buffID)
                     this,
                     [this](PeriodicBuff *)
                     {
-                        updateHealth(-5, {}, {}, {});
+                        updateHealth(-5);
                     },
                 }));
                 break;

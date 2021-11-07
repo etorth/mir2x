@@ -93,7 +93,7 @@ class ServerCannibalPlant final: public Monster
             }
 
             if(damage){
-                updateHealth(-damage.damage, {}, {}, {});
+                updateHealth(-damage.damage);
                 if(m_sdHealth.hp <= 0){
                     goDie();
                 }
