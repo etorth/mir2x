@@ -29,8 +29,6 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
 
 YouTube links: [1](https://youtu.be/3Xne8UHlOl0) [2](https://youtu.be/jl1LPxe2EAA) [3](https://youtu.be/TtGONA83Mb8)
 
-Numerical system: [1](https://zhuanlan.zhihu.com/p/27719445) [2](https://github.com/etorth/mir2x/raw/master/readme/numerical.pdf)
-
 
 <img src="https://github.com/etorth/mir2x/raw/master/readme/screencapture6.gif" width="800" height="600"/>
 <img src="https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png" width="800" height="520"/>
