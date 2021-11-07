@@ -1188,6 +1188,19 @@ void BattleObject::addBuff(uint32_t buffID)
                 }));
                 break;
             }
+        case DBCOM_BUFFID(u8"施毒术"):
+            {
+                m_buffList.addBuff(std::unique_ptr<BaseBuff>(new PeriodicBuff
+                {
+                    buffID,
+                    this,
+                    [this](PeriodicBuff *)
+                    {
+                        updateHealth(-5, {}, {}, {});
+                    },
+                }));
+                break;
+            }
         default:
             {
                 break;

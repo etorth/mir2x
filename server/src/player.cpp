@@ -819,6 +819,43 @@ void Player::onCMActionSpell(CMAction cmA)
                 }
                 break;
             }
+        case DBCOM_MAGICID(u8"施毒术"):
+            {
+                if(cmA.action.aimUID){
+                    switch(uidf::getUIDType(cmA.action.aimUID)){
+                        case UID_MON:
+                        case UID_PLY:
+                            {
+                                checkFriend(cmA.action.aimUID, [cmA, this](int friendType)
+                                {
+                                    switch(friendType){
+                                        case FT_ENEMY:
+                                        case FT_NEUTRAL:
+                                            {
+                                                AMAddBuff amAB;
+                                                std::memset(&amAB, 0, sizeof(amAB));
+
+                                                amAB.id = DBCOM_BUFFID(u8"施毒术");
+                                                amAB.from = UID();
+                                                m_actorPod->forward(cmA.action.aimUID, {AM_ADDBUFF, amAB});
+                                                return;
+                                            }
+                                        default:
+                                            {
+                                                return;
+                                            }
+                                    }
+                                });
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
+                    }
+                }
+                break;
+            }
         case DBCOM_MAGICID(u8"火球术"):
         case DBCOM_MAGICID(u8"大火球"):
         case DBCOM_MAGICID(u8"灵魂火符"):

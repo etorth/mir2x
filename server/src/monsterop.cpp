@@ -83,6 +83,26 @@ void Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
                             }
                     }
                 });
+                break;
+            }
+        case DBCOM_BUFFID(u8"施毒术"):
+            {
+                checkFriend(amAB.from, [amAB, this](int friendType)
+                {
+                    switch(friendType){
+                        case FT_ENEMY:
+                        case FT_NEUTRAL:
+                            {
+                                addBuff(DBCOM_BUFFID(u8"施毒术"));
+                                return;
+                            }
+                        default:
+                            {
+                                return;
+                            }
+                    }
+                });
+                break;
             }
         default:
             {
