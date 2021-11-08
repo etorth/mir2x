@@ -684,6 +684,36 @@ struct SDNPCEvent
     }
 };
 
+struct SDTaggedValMap
+{
+    std::map<int, int> valMap;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(valMap);
+    }
+
+    int add(int val)
+    {
+        if(valMap.empty()){
+            valMap[1] = val;
+        }
+        else{
+            valMap[valMap.rbegin()->first + 1] = val;
+        }
+        return valMap.rbegin()->first;
+    }
+
+    void remove(int tag)
+    {
+        valMap.erase(tag);
+    }
+
+    int sum() const
+    {
+        return std::accumulate(valMap.begin(), valMap.end(), 0, [](const auto x, const auto y){ return x + y.second; });
+    }
+};
+
 struct SDHealth
 {
     uint64_t uid = 0;
@@ -694,38 +724,8 @@ struct SDHealth
     int maxHP = 0;
     int maxMP = 0;
 
-    struct taggedValMapHelper
-    {
-        std::map<int, int> taggedValMap;
-        template<typename Archive> void serialize(Archive & ar)
-        {
-            ar(taggedValMap);
-        }
-
-        int add(int val)
-        {
-            if(taggedValMap.empty()){
-                taggedValMap[1] = val;
-            }
-            else{
-                taggedValMap[taggedValMap.rbegin()->first + 1] = val;
-            }
-            return taggedValMap.rbegin()->first;
-        }
-
-        void remove(int tag)
-        {
-            taggedValMap.erase(tag);
-        }
-
-        int sum() const
-        {
-            return std::accumulate(taggedValMap.begin(), taggedValMap.end(), 0, [](const auto x, const auto y){ return x + y.second; });
-        }
-    };
-
-    taggedValMapHelper buffMaxHP;
-    taggedValMapHelper buffMaxMP;
+    SDTaggedValMap buffMaxHP;
+    SDTaggedValMap buffMaxMP;
 
     template<typename Archive> void serialize(Archive & ar)
     {
