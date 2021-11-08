@@ -222,31 +222,18 @@ class ClientCreature
         }
 
     public:
-        std::array<int, 4> getHealth() const
+        std::array<double, 2> getHealthRatio() const
         {
             if(m_sdHealth.has_value()){
                 return
                 {
-                    mathf::bound<int>(m_sdHealth.value().hp, 0, mathf::bound<int>(m_sdHealth.value().maxHP, 0, INT_MAX)),
-                    mathf::bound<int>(m_sdHealth.value().maxHP, 0, INT_MAX),
-
-                    mathf::bound<int>(m_sdHealth.value().mp, 0, mathf::bound<int>(m_sdHealth.value().maxMP, 0, INT_MAX)),
-                    mathf::bound<int>(m_sdHealth.value().maxMP, 0, INT_MAX),
+                    (m_sdHealth.value().getMaxHP() > 0) ? to_df(m_sdHealth.value().hp) / m_sdHealth.value().getMaxHP() : 1.0,
+                    (m_sdHealth.value().getMaxMP() > 0) ? to_df(m_sdHealth.value().mp) / m_sdHealth.value().getMaxMP() : 1.0,
                 };
             }
             else{
-                return {0, 0, 0, 0};
+                return { 1.0, 1.0};
             }
-        }
-
-        std::array<double, 2> getHealthRatio() const
-        {
-            const auto health = getHealth();
-            return
-            {
-                (health[1] > 0) ? (to_df(health[0]) / health[1]) : 1.0,
-                (health[3] > 0) ? (to_df(health[2]) / health[3]) : 1.0,
-            };
         }
 
     public:

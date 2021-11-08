@@ -151,9 +151,9 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     fnDrawLabel(279, 97 + 24 * 0, str_printf(u8"%d", to_d(myHeroPtr->getLevel())));
     fnDrawLabel(279, 97 + 24 * 1, str_printf(u8"%.2f%%", myHeroPtr->getLevelRatio() * 100.0));
 
-    const auto health = myHeroPtr->getHealth();
-    fnDrawLabel(279, 97 + 24 * 2, str_printf(u8"%d/%d", health[0], health[1]));
-    fnDrawLabel(279, 97 + 24 * 3, str_printf(u8"%d/%d", health[2], health[3]));
+    const bool hasHealth = myHeroPtr->getSDHealth().has_value();
+    fnDrawLabel(279, 97 + 24 * 2, str_printf(u8"%d/%d", hasHealth ? myHeroPtr->getSDHealth().value().hp : 0, hasHealth ? myHeroPtr->getSDHealth().value().getMaxHP() : 0));
+    fnDrawLabel(279, 97 + 24 * 3, str_printf(u8"%d/%d", hasHealth ? myHeroPtr->getSDHealth().value().mp : 0, hasHealth ? myHeroPtr->getSDHealth().value().getMaxHP() : 0));
 
     const auto combatNode = myHeroPtr->getCombatNode();
     const auto invPackWeight = myHeroPtr->getInvPack().getWeight();
