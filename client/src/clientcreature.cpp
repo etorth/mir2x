@@ -57,7 +57,7 @@ void ClientCreature::updateHealth(SDHealth health)
     if(diffHP > 0){
         m_processRun->addAscendStr(ASCENDSTR_GREEN, diffHP, pixelX, pixelY);
     }
-    else{
+    else if(diffHP < 0){
         m_processRun->addAscendStr(ASCENDSTR_RED, diffHP, pixelX, pixelY);
     }
 

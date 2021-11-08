@@ -732,24 +732,34 @@ struct SDHealth
         ar(uid, hp, mp, maxHP, maxMP, buffMaxHP, buffMaxMP);
     }
 
-    int getHP() const
+    bool updateHealth(int addHP = 0, int addMP = 0, int addMaxHP = 0, int addMaxMP = 0)
     {
-        return std::min<int>(hp, getMaxHP());
-    }
+        const auto oldHP    = hp;
+        const auto oldMP    = mp;
+        const auto oldMaxHP = maxHP;
+        const auto oldMaxMP = maxMP;
 
-    int getMP() const
-    {
-        return std::min<int>(mp, getMaxMP());
+        maxHP = std::max<int>(0, maxHP + addMaxHP);
+        maxMP = std::max<int>(0, maxMP + addMaxMP);
+
+        hp = std::max<int>(0, std::min<int>(hp + addHP, getMaxHP()));
+        mp = std::max<int>(0, std::min<int>(mp + addMP, getMaxMP()));
+
+        return false
+            || (oldHP    != hp)
+            || (oldMP    != mp)
+            || (oldMaxHP != maxHP)
+            || (oldMaxMP != maxMP);
     }
 
     int getMaxHP() const
     {
-        return maxHP + buffMaxHP.sum();
+        return std::max<int>(0, maxHP + buffMaxHP.sum());
     }
 
     int getMaxMP() const
     {
-        return maxMP + buffMaxMP.sum();
+        return std::max<int>(0, maxMP + buffMaxMP.sum());
     }
 };
 

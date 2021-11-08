@@ -256,8 +256,8 @@ class BattleObject: public CharObject
 
     protected:
         virtual bool updateHealth(
-                std::optional<int> = {},    // hp
-                std::optional<int> = {},    // mp
-                std::optional<int> = {},    // maxHP
-                std::optional<int> = {});   // maxMP
+                int = 0,    // hp
+                int = 0,    // mp
+                int = 0,    // maxHP
+                int = 0);   // maxMP
 };

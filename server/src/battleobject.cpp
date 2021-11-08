@@ -1188,31 +1188,15 @@ void BattleObject::addBuff(uint32_t buffID)
     dispatchBuffIDList();
 }
 
-bool BattleObject::updateHealth(std::optional<int> hp, std::optional<int> mp, std::optional<int> maxHP, std::optional<int> maxMP)
+bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)
 {
-    const auto oldHP    = m_sdHealth.hp;
-    const auto oldMP    = m_sdHealth.mp;
-    const auto oldMaxHP = m_sdHealth.maxHP;
-    const auto oldMaxMP = m_sdHealth.maxMP;
-
-    m_sdHealth.maxHP = std::max<int>(0, m_sdHealth.maxHP + maxHP.value_or(0));
-    m_sdHealth.maxMP = std::max<int>(0, m_sdHealth.maxMP + maxMP.value_or(0));
-
-    m_sdHealth.hp = mathf::bound<int>(m_sdHealth.hp + hp.value_or(0), 0, m_sdHealth.maxHP);
-    m_sdHealth.mp = mathf::bound<int>(m_sdHealth.mp + mp.value_or(0), 0, m_sdHealth.maxMP);
-
-    const bool changed = false
-        || oldHP    != m_sdHealth.hp
-        || oldMP    != m_sdHealth.mp
-        || oldMaxHP != m_sdHealth.maxHP
-        || oldMaxMP != m_sdHealth.maxMP;
-
-    if(changed){
+    if(m_sdHealth.updateHealth(addHP, addMP, addMaxHP, addMaxMP)){
         const auto sdBuf = cerealf::serialize(m_sdHealth);
         dispatchInViewCONetPackage(SM_HEALTH, sdBuf);
         if(isPlayer()){
             dynamic_cast<Player *>(this)->postNetMessage(SM_HEALTH, sdBuf);
         }
+        return true;
     }
-    return changed;
+    return false;
 }
