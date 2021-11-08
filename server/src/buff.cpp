@@ -3,6 +3,7 @@
 #include "buff.hpp"
 #include "dbcomrecord.hpp"
 #include "bufftrigger.hpp"
+#include "buffmodifier.hpp"
 #include "battleobject.hpp"
 
 BaseBuff::BaseBuff(uint32_t id, BattleObject *bo)
@@ -23,6 +24,12 @@ BaseBuff::BaseBuff(uint32_t id, BattleObject *bo)
           }
       }())
 {
+    m_modList.reserve(m_br.modList.size());
+    for(const auto &[type, arg]: m_br.modList){
+        fflassert(validBuffModifier(type));
+        m_modList.push_back(std::make_unique<BaseBuffModifier>(m_bo, type, arg));
+    }
+
     m_tgrList.reserve(m_br.tgrList.size());
     for(const auto &[name, arg]: m_br.tgrList){
         const auto tgrId = DBCOM_BUFFTRIGGERID(name);
@@ -30,6 +37,10 @@ BaseBuff::BaseBuff(uint32_t id, BattleObject *bo)
         fflassert(tgrId < DBCOM_BUFFTRIGGERENDID());
         m_tgrList.push_back(std::make_tuple(0, BaseBuffTrigger::createTrigger(tgrId, arg)));
     }
+}
+
+BaseBuff::~BaseBuff()
+{
 }
 
 void BaseBuff::runOnUpdate()

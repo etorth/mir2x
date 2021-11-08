@@ -7,6 +7,7 @@
 
 class BattleObject;
 class BaseBuffTrigger;
+class BaseBuffModifier;
 
 class BaseBuff
 {
@@ -23,13 +24,14 @@ class BaseBuff
         double m_accuTime = 0.0;
 
     protected:
+        std::vector<std::unique_ptr<BaseBuffModifier>> m_modList;
         std::vector<std::tuple<long, std::unique_ptr<BaseBuffTrigger>>> m_tgrList;
 
     public:
         BaseBuff(uint32_t, BattleObject *);
 
     public:
-        virtual ~BaseBuff() = default;
+        virtual ~BaseBuff();
 
     public:
         uint32_t id() const

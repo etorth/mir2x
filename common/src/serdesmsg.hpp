@@ -703,7 +703,7 @@ struct SDTaggedValMap
         return valMap.rbegin()->first;
     }
 
-    void remove(int tag)
+    void erase(int tag)
     {
         valMap.erase(tag);
     }

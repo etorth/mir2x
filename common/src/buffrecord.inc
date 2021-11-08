@@ -7,7 +7,7 @@
     .modList
     {
         {   .type = BMOD_HP,
-            .arg = 5,
+            .arg = 20,
         },
     },
 
@@ -26,7 +26,7 @@
     .modList
     {
         {   .type = BMOD_HP,
-            .arg = -5,
+            .arg = -20,
         },
     },
 

@@ -18,6 +18,7 @@ class BattleObject: public CharObject
     public:
         friend class CharObject;
         friend class BaseBuffTrigger;
+        friend class BaseBuffModifier;
         template<uint32_t> friend class BuffTrigger;
 
     protected:
