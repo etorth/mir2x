@@ -19,6 +19,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include <numeric>
 #include <variant>
 #include <optional>
 #include <algorithm>
@@ -693,9 +694,62 @@ struct SDHealth
     int maxHP = 0;
     int maxMP = 0;
 
+    struct taggedValMapHelper
+    {
+        std::map<int, int> taggedValMap;
+        template<typename Archive> void serialize(Archive & ar)
+        {
+            ar(taggedValMap);
+        }
+
+        int add(int val)
+        {
+            if(taggedValMap.empty()){
+                taggedValMap[1] = val;
+            }
+            else{
+                taggedValMap[taggedValMap.rbegin()->first + 1] = val;
+            }
+            return taggedValMap.rbegin()->first;
+        }
+
+        void remove(int tag)
+        {
+            taggedValMap.erase(tag);
+        }
+
+        int sum() const
+        {
+            return std::accumulate(taggedValMap.begin(), taggedValMap.end(), 0, [](const auto x, const auto y){ return x + y.second; });
+        }
+    };
+
+    taggedValMapHelper buffMaxHP;
+    taggedValMapHelper buffMaxMP;
+
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, hp, mp, maxHP, maxMP);
+        ar(uid, hp, mp, maxHP, maxMP, buffMaxHP, buffMaxMP);
+    }
+
+    int getHP() const
+    {
+        return std::min<int>(hp, getMaxHP());
+    }
+
+    int getMP() const
+    {
+        return std::min<int>(mp, getMaxMP());
+    }
+
+    int getMaxHP() const
+    {
+        return maxHP + buffMaxHP.sum();
+    }
+
+    int getMaxMP() const
+    {
+        return maxMP + buffMaxMP.sum();
     }
 };
 
