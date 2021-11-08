@@ -6,10 +6,10 @@
 class BattleObject;
 class BaseBuffTrigger
 {
-    private:
+    protected:
         const uint32_t m_id;
 
-    private:
+    protected:
         const int m_arg;
 
     public:
