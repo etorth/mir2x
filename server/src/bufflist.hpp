@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
-#include "basebuff.hpp"
+#include "buff.hpp"
 #include "raiitimer.hpp"
 
 class BuffList final

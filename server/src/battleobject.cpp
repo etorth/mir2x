@@ -14,9 +14,8 @@
 #include "charobject.hpp"
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
-#include "basebuff.hpp"
+#include "buff.hpp"
 #include "bufflist.hpp"
-#include "periodicbuff.hpp"
 
 extern MonoServer *g_monoServer;
 BattleObject::BOPathFinder::BOPathFinder(const BattleObject *boPtr, int nCheckCO)
@@ -1176,29 +1175,9 @@ void BattleObject::addBuff(uint32_t buffID)
 {
     switch(buffID){
         case DBCOM_BUFFID(u8"治愈术"):
-            {
-                m_buffList.addBuff(std::unique_ptr<BaseBuff>(new PeriodicBuff
-                {
-                    buffID,
-                    this,
-                    [this](PeriodicBuff *)
-                    {
-                        updateHealth(5);
-                    },
-                }));
-                break;
-            }
         case DBCOM_BUFFID(u8"施毒术"):
             {
-                m_buffList.addBuff(std::unique_ptr<BaseBuff>(new PeriodicBuff
-                {
-                    buffID,
-                    this,
-                    [this](PeriodicBuff *)
-                    {
-                        updateHealth(-5);
-                    },
-                }));
+                m_buffList.addBuff(std::make_unique<BaseBuff>(buffID, this));
                 break;
             }
         default:
@@ -1206,7 +1185,6 @@ void BattleObject::addBuff(uint32_t buffID)
                 break;
             }
     }
-
     dispatchBuffIDList();
 }
 

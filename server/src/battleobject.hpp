@@ -5,16 +5,20 @@
 #include <optional>
 #include <unordered_map>
 #include "scopedalloc.hpp"
-#include "bufflist.hpp"
 #include "charobject.hpp"
 #include "damagenode.hpp"
 #include "actionnode.hpp"
 #include "protocoldef.hpp"
+#include "bufftrigger.hpp"
+#include "buff.hpp"
+#include "bufflist.hpp"
 
 class BattleObject: public CharObject
 {
     public:
         friend class CharObject;
+        friend class BaseBuffTrigger;
+        template<uint32_t> friend class BuffTrigger;
 
     protected:
         class BOPathFinder final: public AStarPathFinder

@@ -45,6 +45,11 @@ namespace
         #include "itemrecord.inc"
     };
 
+    constexpr BuffTriggerRecord _inn_BuffTriggerRecordList []
+    {
+        #include "bufftriggerrecord.inc"
+    };
+
     constexpr BuffRecord _inn_BuffRecordList []
     {
         #include "buffrecord.inc"
@@ -78,8 +83,16 @@ template<typename T, size_t N> constexpr uint32_t DBCOM_IDHELPER(const T (&itemL
     return 0;
 }
 
-constexpr uint32_t DBCOM_ITEMID   (const char8_t *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,    name); }
-constexpr uint32_t DBCOM_BUFFID   (const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffRecordList,    name); }
-constexpr uint32_t DBCOM_MONSTERID(const char8_t *name) { return DBCOM_IDHELPER(_inn_MonsterRecordList, name); }
-constexpr uint32_t DBCOM_MAGICID  (const char8_t *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,   name); }
-constexpr uint32_t DBCOM_MAPID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_MapRecordList,     name); }
+constexpr uint32_t DBCOM_ITEMID       (const char8_t *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,        name); }
+constexpr uint32_t DBCOM_MONSTERID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_MonsterRecordList,     name); }
+constexpr uint32_t DBCOM_MAGICID      (const char8_t *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,       name); }
+constexpr uint32_t DBCOM_MAPID        (const char8_t *name) { return DBCOM_IDHELPER(_inn_MapRecordList,         name); }
+constexpr uint32_t DBCOM_BUFFID       (const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffRecordList,        name); }
+constexpr uint32_t DBCOM_BUFFTRIGGERID(const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffTriggerRecordList, name); }
+
+constexpr uint32_t DBCOM_ITEMENDID       () { return std::extent_v<decltype(_inn_ItemRecordList       )>; }
+constexpr uint32_t DBCOM_MONSTERENDID    () { return std::extent_v<decltype(_inn_MonsterRecordList    )>; }
+constexpr uint32_t DBCOM_MAGICENDID      () { return std::extent_v<decltype(_inn_MagicRecordList      )>; }
+constexpr uint32_t DBCOM_MAPENDID        () { return std::extent_v<decltype(_inn_MapRecordList        )>; }
+constexpr uint32_t DBCOM_BUFFENDID       () { return std::extent_v<decltype(_inn_BuffRecordList       )>; }
+constexpr uint32_t DBCOM_BUFFTRIGGERENDID() { return std::extent_v<decltype(_inn_BuffTriggerRecordList)>; }

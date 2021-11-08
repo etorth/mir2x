@@ -1,9 +1,13 @@
 #pragma once
 #include <cmath>
+#include <tuple>
+#include <vector>
 #include "uidf.hpp"
 #include "buffrecord.hpp"
 
 class BattleObject;
+class BaseBuffTrigger;
+
 class BaseBuff
 {
     protected:
@@ -17,6 +21,9 @@ class BaseBuff
 
     protected:
         double m_accuTime = 0.0;
+
+    protected:
+        std::vector<std::tuple<long, std::unique_ptr<BaseBuffTrigger>>> m_tgrList;
 
     public:
         BaseBuff(uint32_t, BattleObject *);
@@ -53,6 +60,13 @@ class BaseBuff
         }
 
     public:
-        virtual void runOnDone  (){}
-        virtual void runOnUpdate(){}
+        virtual void runOnDone()
+        {
+        }
+
+    public:
+        virtual void runOnUpdate();
+
+    public:
+        void runOnTrigger(int);
 };

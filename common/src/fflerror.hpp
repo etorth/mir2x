@@ -29,6 +29,11 @@ inline std::string _ffl_bad_value_helper(size_t index, const std::u8string &s)
     return _ffl_bad_value_helper(index, (const char *)(s.c_str()));
 }
 
+inline std::string _ffl_bad_value_helper(size_t index, const char8_t *s)
+{
+    return _ffl_bad_value_helper(index, (const char *)(s));
+}
+
 inline std::string _ffl_bad_value_helper(size_t index, char ch)
 {
     if(ch == '\0'){
