@@ -50,8 +50,17 @@ void BaseBuff::runOnUpdate()
 
 void BaseBuff::runOnTrigger(int btgr)
 {
+    fflassert(validBuffTrigger(btgr));
     for(auto &[tpsCount, trigger]: m_tgrList){
         fflassert(trigger);
-        trigger->runOnTrigger(m_bo, btgr);
+        const auto &tr = DBCOM_BUFFTRIGGERRECORD(trigger->id());
+
+        fflassert(tr);
+        fflassert(validBuffTrigger(tr.on));
+        for(int m = 1; m < BTGR_END; m <<= 1){
+            if(tr.on | m){
+                trigger->runOnTrigger(m_bo, m);
+            }
+        }
     }
 }

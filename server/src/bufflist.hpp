@@ -46,6 +46,15 @@ class BuffList final
         }
 
     public:
+        void runOnTrigger(int btgr)
+        {
+            fflassert(validBuffTrigger(btgr));
+            for(auto &p: m_list){
+                p->runOnTrigger(btgr);
+            }
+        }
+
+    public:
         std::vector<uint32_t> getIDList() const
         {
             std::vector<uint32_t> idList;
