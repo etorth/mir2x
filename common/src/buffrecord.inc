@@ -18,6 +18,8 @@
     .tgrList
     {
         {   .name = u8"HP_MODIFIER",
+            .on = BTGR_TIME,
+            .tps = 2,
             .arg = 5,
         },
     },
@@ -37,6 +39,8 @@
     .tgrList
     {
         {   .name = u8"HP_MODIFIER",
+            .on = BTGR_TIME | BTGR_MOVE,
+            .tps = 2,
             .arg = -5,
         },
     },

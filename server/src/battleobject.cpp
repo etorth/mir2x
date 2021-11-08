@@ -350,6 +350,7 @@ bool BattleObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, b
 
                     if(onOK){
                         onOK();
+                        m_buffList.runOnTrigger(BTGR_MOVE);
                     }
                     return;
                 }

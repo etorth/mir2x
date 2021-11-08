@@ -50,9 +50,6 @@ struct BuffTriggerRecord
 {
     const char8_t * const name = nullptr;
 
-    const int on  = 0;
-    const int tps = 0;
-
     operator bool() const
     {
         return name && !std::u8string_view(name).empty();
@@ -62,7 +59,15 @@ struct BuffTriggerRecord
 struct BuffTriggerRecordRef
 {
     const char8_t * const name = nullptr;
+
+    const int on  = 0;
+    const int tps = 0;
     const int arg = 0;
+
+    operator bool () const
+    {
+        return name && !std::u8string_view(name).empty();
+    }
 };
 
 struct BuffRecord

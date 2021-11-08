@@ -31,11 +31,11 @@ BaseBuff::BaseBuff(uint32_t id, BattleObject *bo)
     }
 
     m_tgrList.reserve(m_br.tgrList.size());
-    for(const auto &[name, arg]: m_br.tgrList){
-        const auto tgrId = DBCOM_BUFFTRIGGERID(name);
+    for(const auto &tr: m_br.tgrList){
+        const auto tgrId = DBCOM_BUFFTRIGGERID(tr.name);
         fflassert(tgrId > 0);
         fflassert(tgrId < DBCOM_BUFFTRIGGERENDID());
-        m_tgrList.push_back(std::make_tuple(0, BaseBuffTrigger::createTrigger(tgrId, arg)));
+        m_tgrList.push_back(std::make_tuple(0, BaseBuffTrigger::createTrigger(tgrId, tr.arg)));
     }
 }
 
@@ -45,12 +45,14 @@ BaseBuff::~BaseBuff()
 
 void BaseBuff::runOnUpdate()
 {
-    for(auto &[tpsCount, trigger]: m_tgrList){
+    for(size_t i = 0; auto &[tpsCount, trigger]: m_tgrList){
         fflassert(trigger);
         fflassert(tpsCount >= 0);
-        const auto &tr = DBCOM_BUFFTRIGGERRECORD(trigger->id());
 
+        const auto &tr = m_br.tgrList.begin()[i++];
         fflassert(tr);
+        fflassert(validBuffTrigger(tr.on));
+
         if(tr.on | BTGR_TIME){
             for(const auto needed = std::lround(m_accuTime * tr.tps / 1000.0); tpsCount < needed; ++tpsCount){
                 trigger->runOnTrigger(m_bo, BTGR_TIME);
@@ -62,12 +64,14 @@ void BaseBuff::runOnUpdate()
 void BaseBuff::runOnTrigger(int btgr)
 {
     fflassert(validBuffTrigger(btgr));
-    for(auto &[tpsCount, trigger]: m_tgrList){
+    for(size_t i = 0; auto &[tpsCount, trigger]: m_tgrList){
         fflassert(trigger);
-        const auto &tr = DBCOM_BUFFTRIGGERRECORD(trigger->id());
+        fflassert(tpsCount >= 0);
 
+        const auto &tr = m_br.tgrList.begin()[i++];
         fflassert(tr);
         fflassert(validBuffTrigger(tr.on));
+
         for(int m = 1; m < BTGR_END; m <<= 1){
             if(tr.on | m){
                 trigger->runOnTrigger(m_bo, m);
