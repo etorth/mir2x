@@ -2,36 +2,68 @@
 #include "battleobject.hpp"
 
 BaseBuffModifier::BaseBuffModifier(BattleObject *bo, int type, int arg)
-    : m_type([type]()
+    : m_bo([bo]()
+      {
+          fflassert(bo);
+          return bo;
+      }())
+
+    , m_type([type]()
       {
           fflassert(validBuffModifier(type));
           return type;
       }())
-    , m_sdTaggedVal([bo, type, arg]() -> decltype(m_sdTaggedVal)
+
+    , m_tag([type, arg, this]() -> int
       {
           switch(type){
               case BMOD_HP:
                   {
-                      bo->m_sdHealth.hp += arg;
-                      return std::make_pair(nullptr, 0);
+                      m_bo->updateHealth(arg);
+                      return 0;
                   }
               case BMOD_MP:
                   {
-                      bo->m_sdHealth.mp += arg;
-                      return std::make_pair(nullptr, 0);
+                      m_bo->updateHealth(0, arg);
+                      return 0;
                   }
               case BMOD_HPMAX:
                   {
-                      return std::make_pair(&(bo->m_sdHealth.buffMaxHP), bo->m_sdHealth.buffMaxHP.add(arg));
+                      const auto tag = m_bo->m_sdHealth.buffMaxHP.add(arg);
+                      m_bo->updateHealth();
+                      return tag;
                   }
               case BMOD_MPMAX:
                   {
-                      return std::make_pair(&(bo->m_sdHealth.buffMaxMP), bo->m_sdHealth.buffMaxMP.add(arg));
+                      const auto tag = m_bo->m_sdHealth.buffMaxMP.add(arg);
+                      m_bo->updateHealth();
+                      return tag;
                   }
               default:
                   {
-                      throw bad_value(bo, type, arg);
+                      throw bad_value(this, type, arg);
                   }
           }
       }())
 {}
+
+BaseBuffModifier::~BaseBuffModifier()
+{
+    switch(m_type){
+        case BMOD_HPMAX:
+            {
+                m_bo->m_sdHealth.buffMaxHP.erase(m_tag);
+                break;
+            }
+        case BMOD_MPMAX:
+            {
+                m_bo->m_sdHealth.buffMaxMP.erase(m_tag);
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    m_bo->updateHealth();
+}

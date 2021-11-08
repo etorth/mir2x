@@ -9,21 +9,19 @@ class BattleObject;
 class BaseBuffModifier
 {
     protected:
+        BattleObject * const m_bo;
+
+    protected:
         const int m_type;
 
     protected:
-        std::pair<SDTaggedValMap *, int> m_sdTaggedVal;
+        const int m_tag;
 
     public:
         BaseBuffModifier(BattleObject *, int, int);
 
     public:
-        virtual ~BaseBuffModifier()
-        {
-            if(m_sdTaggedVal.first){
-                m_sdTaggedVal.first->erase(m_sdTaggedVal.second);
-            }
-        }
+        virtual ~BaseBuffModifier();
 
     public:
         int type() const

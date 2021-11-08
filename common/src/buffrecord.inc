@@ -9,6 +9,10 @@
         {   .type = BMOD_HP,
             .arg = 20,
         },
+
+        {   .type = BMOD_HPMAX,
+            .arg = 200,
+        },
     },
 
     .tgrList
