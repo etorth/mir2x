@@ -227,6 +227,8 @@ struct SDItem
         EA_EXTGOLD,
         EA_EXTDROP,
 
+        EA_BUFFID,
+
         EA_COLOR, // u32
         EA_END,
     };
