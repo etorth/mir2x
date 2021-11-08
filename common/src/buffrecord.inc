@@ -13,7 +13,7 @@
 
     .tgrList
     {
-        {   .name = u8"HP恢复",
+        {   .name = u8"HP_MODIFIER",
             .arg = 5,
         },
     },
@@ -32,8 +32,8 @@
 
     .tgrList
     {
-        {   .name = u8"HP伤害",
-            .arg = 5,
+        {   .name = u8"HP_MODIFIER",
+            .arg = -5,
         },
     },
 },

@@ -40,24 +40,13 @@ class BaseBuffTrigger
 };
 
 template<uint32_t> class BuffTrigger;
-template<> class BuffTrigger<DBCOM_BUFFTRIGGERID(u8"HP恢复")>: public BaseBuffTrigger
+template<> class BuffTrigger<DBCOM_BUFFTRIGGERID(u8"HP_MODIFIER")>: public BaseBuffTrigger
 {
     public:
         BuffTrigger(int arg)
-            : BaseBuffTrigger(DBCOM_BUFFTRIGGERID(u8"HP恢复"), arg)
+            : BaseBuffTrigger(DBCOM_BUFFTRIGGERID(u8"HP_MODIFIER"), arg)
         {}
 
     public:
         void runOnTrigger(BattleObject *, int);
-};
-
-template<> class BuffTrigger<DBCOM_BUFFTRIGGERID(u8"HP伤害")>: public BaseBuffTrigger
-{
-public:
-    BuffTrigger(int arg)
-        : BaseBuffTrigger(DBCOM_BUFFTRIGGERID(u8"HP伤害"), arg)
-    {}
-
-public:
-    void runOnTrigger(BattleObject *, int);
 };

@@ -32,12 +32,7 @@ std::unique_ptr<BaseBuffTrigger> BaseBuffTrigger::createTrigger(uint32_t id, int
     return std::unique_ptr<BaseBuffTrigger>(_create_buff_trigger_helper<1>(id, arg));
 }
 
-void BuffTrigger<DBCOM_BUFFTRIGGERID(u8"HP恢复")>::runOnTrigger(BattleObject *bo, int)
-{
-    bo->updateHealth(m_arg);
-}
-
-void BuffTrigger<DBCOM_BUFFTRIGGERID(u8"HP伤害")>::runOnTrigger(BattleObject *bo, int)
+void BuffTrigger<DBCOM_BUFFTRIGGERID(u8"HP_MODIFIER")>::runOnTrigger(BattleObject *bo, int)
 {
     bo->updateHealth(m_arg);
 }
