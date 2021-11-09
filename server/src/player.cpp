@@ -30,8 +30,8 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     m_sdHealth.uid   = UID();
     m_sdHealth.hp    = initParam.hp;
     m_sdHealth.mp    = initParam.mp;
-    m_sdHealth.maxHP = initParam.hp;
-    m_sdHealth.maxMP = initParam.mp;
+    m_sdHealth.maxHP = Player::maxHP(UID(), level());
+    m_sdHealth.maxMP = Player::maxMP(UID(), level());
 
     m_sdItemStorage.gold = initParam.gold;
 
@@ -1264,6 +1264,7 @@ void Player::postOnlineOK()
     }));
 
     postExp();
+    postNetMessage(SM_HEALTH,           cerealf::serialize(m_sdHealth));
     postNetMessage(SM_INVENTORY,        cerealf::serialize(m_sdItemStorage.inventory));
     postNetMessage(SM_BELT,             cerealf::serialize(m_sdItemStorage.belt));
     postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
@@ -1447,4 +1448,30 @@ void Player::notifySlaveGLoc()
     for(const auto uid: m_slaveList){
         dispatchAction(uid, makeActionStand());
     }
+}
+
+int Player::maxHP(uint64_t uid, uint32_t level)
+{
+    const int maxHPTaoist  = 100 + level *  50;
+    const int maxHPWarrior = 300 + level * 100;
+    const int maxHPWizard  =  50 + level *  20;
+
+    int result = 0;
+    if(uidf::hasPlayerJob(uid, JOB_WARRIOR)) result = std::max<int>(result, maxHPWarrior);
+    if(uidf::hasPlayerJob(uid, JOB_TAOIST )) result = std::max<int>(result, maxHPTaoist );
+    if(uidf::hasPlayerJob(uid, JOB_WIZARD )) result = std::max<int>(result, maxHPWizard );
+    return result;
+}
+
+int Player::maxMP(uint64_t uid, uint32_t level)
+{
+    const int maxMPTaoist  = 200 + level *  50;
+    const int maxMPWarrior = 100 + level *  10;
+    const int maxMPWizard  = 500 + level * 200;
+
+    int result = 0;
+    if(uidf::hasPlayerJob(uid, JOB_WARRIOR)) result = std::max<int>(result, maxMPWarrior);
+    if(uidf::hasPlayerJob(uid, JOB_TAOIST )) result = std::max<int>(result, maxMPTaoist );
+    if(uidf::hasPlayerJob(uid, JOB_WIZARD )) result = std::max<int>(result, maxMPWizard );
+    return result;
 }

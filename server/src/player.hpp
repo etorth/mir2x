@@ -341,4 +341,8 @@ class Player final: public BattleObject
 
     public:
         void notifySlaveGLoc();
+
+    public:
+        static int maxHP(uint64_t, uint32_t);
+        static int maxMP(uint64_t, uint32_t);
 };

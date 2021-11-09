@@ -153,7 +153,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
 
     const bool hasHealth = myHeroPtr->getSDHealth().has_value();
     fnDrawLabel(279, 97 + 24 * 2, str_printf(u8"%d/%d", hasHealth ? myHeroPtr->getSDHealth().value().hp : 0, hasHealth ? myHeroPtr->getSDHealth().value().getMaxHP() : 0));
-    fnDrawLabel(279, 97 + 24 * 3, str_printf(u8"%d/%d", hasHealth ? myHeroPtr->getSDHealth().value().mp : 0, hasHealth ? myHeroPtr->getSDHealth().value().getMaxHP() : 0));
+    fnDrawLabel(279, 97 + 24 * 3, str_printf(u8"%d/%d", hasHealth ? myHeroPtr->getSDHealth().value().mp : 0, hasHealth ? myHeroPtr->getSDHealth().value().getMaxMP() : 0));
 
     const auto combatNode = myHeroPtr->getCombatNode();
     const auto invPackWeight = myHeroPtr->getInvPack().getWeight();
