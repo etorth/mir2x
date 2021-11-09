@@ -434,8 +434,8 @@ void ProcessRun::draw() const
     }
 
     if(getMyHero()->getSDBuffIDList().has_value()){
-        constexpr int buffIconDrawW = 40;
-        constexpr int buffIconDrawH = 40;
+        constexpr int buffIconDrawW = 30;
+        constexpr int buffIconDrawH = 30;
         int buffIconOffX = g_sdlDevice->getRendererWidth() - buffIconDrawW;
 
         if(auto boardPtr = getWidget("MiniMapBoard"); boardPtr->show()){
