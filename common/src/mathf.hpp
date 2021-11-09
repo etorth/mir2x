@@ -522,4 +522,217 @@ namespace mathf
 
         return true;
     }
+
+    class ARDValue final
+    {
+        // adjusted random distributed variable
+        // idea from https://dota2.fandom.com/zh/wiki/%E9%9A%8F%E6%9C%BA%E5%88%86%E5%B8%83
+        // code from https://www.jianshu.com/p/4151cc2c642d
+
+        // following code generates the C given P
+        // P -> C will be kept in a table with P = 0 ~ 100
+        //
+        //      double PfromC(double C)
+        //      {
+        //          double probOnN = 0;     // happens on N trials
+        //          double probByN = 0;     // happens on 1, 2, 3, ..., N trials
+        //          double expTrails = 0;   // expectation of trails
+        //
+        //          const auto maxTrials = std::lround(std::ceil(1.0 / C));
+        //          for(int N = 1; N <= maxTrials; ++N){
+        //              probOnN = std::min<double>(1.0, N * C) * (1.0 - probByN);
+        //              probByN += probOnN;
+        //              expTrails += N * probOnN;
+        //          }
+        //          return 1.0 / expTrails;
+        //      }
+        //
+        //      double CfromP(double p)
+        //      {
+        //          double Cupper = p;
+        //          double Clower = 0;
+        //
+        //          while(true){
+        //              const double Cmid = (Cupper + Clower) / 2.0;
+        //              const double Pmid = PfromC(Cmid);
+        //
+        //              if(std::abs(Pmid - p) < 1e-8){
+        //                  return Cmid;
+        //              }
+        //
+        //              if(Pmid > p){
+        //                  Cupper = Cmid;
+        //              }
+        //              else{
+        //                  Clower = Cmid;
+        //              }
+        //          }
+        //          return 0.0;
+        //      }
+        //
+        //      int main()
+        //      {
+        //          for(int i = 1; i <= 100; ++i){
+        //              std::printf("/* prob = %3d%%: C = */ %.12f\n", i, CfromP(i * 0.01));
+        //          }
+        //          return 0;
+        //      }
+        //
+
+        private:
+            const double m_prob;
+
+        private:
+            int m_count = 0;
+
+        public:
+            ARDValue(double p)
+                : m_prob([p]()
+                  {
+                      fflassert(p >= 0.0);
+                      fflassert(p <= 1.0);
+                      return p;
+                  }())
+            {}
+
+        public:
+            int count() const
+            {
+                return m_count;
+            }
+
+            double prob() const
+            {
+                return m_prob;
+            }
+
+            double aprob() const
+            {
+                constinit static double s_tbl_C[]
+                {
+                    /* prob =   0%: C = */ 0.000000000000,
+                    /* prob =   1%: C = */ 0.000156041384,
+                    /* prob =   2%: C = */ 0.000620087385,
+                    /* prob =   3%: C = */ 0.001386178136,
+                    /* prob =   4%: C = */ 0.002448556423,
+                    /* prob =   5%: C = */ 0.003801658750,
+                    /* prob =   6%: C = */ 0.005440109968,
+                    /* prob =   7%: C = */ 0.007358704805,
+                    /* prob =   8%: C = */ 0.009552416801,
+                    /* prob =   9%: C = */ 0.012016366124,
+                    /* prob =  10%: C = */ 0.014745843410,
+                    /* prob =  11%: C = */ 0.017736273408,
+                    /* prob =  12%: C = */ 0.020983228683,
+                    /* prob =  13%: C = */ 0.024482411146,
+                    /* prob =  14%: C = */ 0.028229651451,
+                    /* prob =  15%: C = */ 0.032220911980,
+                    /* prob =  16%: C = */ 0.036452274323,
+                    /* prob =  17%: C = */ 0.040919913054,
+                    /* prob =  18%: C = */ 0.045620137453,
+                    /* prob =  19%: C = */ 0.050549349189,
+                    /* prob =  20%: C = */ 0.055704045296,
+                    /* prob =  21%: C = */ 0.061080830991,
+                    /* prob =  22%: C = */ 0.066676398516,
+                    /* prob =  23%: C = */ 0.072487548590,
+                    /* prob =  24%: C = */ 0.078511118889,
+                    /* prob =  25%: C = */ 0.084744095802,
+                    /* prob =  26%: C = */ 0.091183462143,
+                    /* prob =  27%: C = */ 0.097826385498,
+                    /* prob =  28%: C = */ 0.104670227766,
+                    /* prob =  29%: C = */ 0.111711757779,
+                    /* prob =  30%: C = */ 0.118949192762,
+                    /* prob =  31%: C = */ 0.126379314065,
+                    /* prob =  32%: C = */ 0.134000864029,
+                    /* prob =  33%: C = */ 0.141805195212,
+                    /* prob =  34%: C = */ 0.149810092449,
+                    /* prob =  35%: C = */ 0.157983098924,
+                    /* prob =  36%: C = */ 0.166328780651,
+                    /* prob =  37%: C = */ 0.174909243882,
+                    /* prob =  38%: C = */ 0.183624657393,
+                    /* prob =  39%: C = */ 0.192485965490,
+                    /* prob =  40%: C = */ 0.201547408104,
+                    /* prob =  41%: C = */ 0.210920033455,
+                    /* prob =  42%: C = */ 0.220364581347,
+                    /* prob =  43%: C = */ 0.229898678958,
+                    /* prob =  44%: C = */ 0.239540159702,
+                    /* prob =  45%: C = */ 0.249306996167,
+                    /* prob =  46%: C = */ 0.259872347713,
+                    /* prob =  47%: C = */ 0.270452929139,
+                    /* prob =  48%: C = */ 0.281007642746,
+                    /* prob =  49%: C = */ 0.291552262902,
+                    /* prob =  50%: C = */ 0.302103027701,
+                    /* prob =  51%: C = */ 0.312676649094,
+                    /* prob =  52%: C = */ 0.323290549517,
+                    /* prob =  53%: C = */ 0.334119961858,
+                    /* prob =  54%: C = */ 0.347369992733,
+                    /* prob =  55%: C = */ 0.360397849977,
+                    /* prob =  56%: C = */ 0.373216819763,
+                    /* prob =  57%: C = */ 0.385839607716,
+                    /* prob =  58%: C = */ 0.398278334737,
+                    /* prob =  59%: C = */ 0.410544633567,
+                    /* prob =  60%: C = */ 0.422649729252,
+                    /* prob =  61%: C = */ 0.434604442716,
+                    /* prob =  62%: C = */ 0.446419271231,
+                    /* prob =  63%: C = */ 0.458104439378,
+                    /* prob =  64%: C = */ 0.469669914246,
+                    /* prob =  65%: C = */ 0.481125475466,
+                    /* prob =  66%: C = */ 0.492480785251,
+                    /* prob =  67%: C = */ 0.507462696433,
+                    /* prob =  68%: C = */ 0.529411749840,
+                    /* prob =  69%: C = */ 0.550724653602,
+                    /* prob =  70%: C = */ 0.571428591013,
+                    /* prob =  71%: C = */ 0.591549301147,
+                    /* prob =  72%: C = */ 0.611111111641,
+                    /* prob =  73%: C = */ 0.630136985481,
+                    /* prob =  74%: C = */ 0.648648645878,
+                    /* prob =  75%: C = */ 0.666666671634,
+                    /* prob =  76%: C = */ 0.684210534096,
+                    /* prob =  77%: C = */ 0.701298705041,
+                    /* prob =  78%: C = */ 0.717948723435,
+                    /* prob =  79%: C = */ 0.734177214801,
+                    /* prob =  80%: C = */ 0.750000000000,
+                    /* prob =  81%: C = */ 0.765432106555,
+                    /* prob =  82%: C = */ 0.780487818718,
+                    /* prob =  83%: C = */ 0.795180718899,
+                    /* prob =  84%: C = */ 0.809523818493,
+                    /* prob =  85%: C = */ 0.823529404402,
+                    /* prob =  86%: C = */ 0.837209293842,
+                    /* prob =  87%: C = */ 0.850574701130,
+                    /* prob =  88%: C = */ 0.863636364937,
+                    /* prob =  89%: C = */ 0.876404505968,
+                    /* prob =  90%: C = */ 0.888888895512,
+                    /* prob =  91%: C = */ 0.901098907590,
+                    /* prob =  92%: C = */ 0.913043470383,
+                    /* prob =  93%: C = */ 0.924731185734,
+                    /* prob =  94%: C = */ 0.936170209050,
+                    /* prob =  95%: C = */ 0.947368422896,
+                    /* prob =  96%: C = */ 0.958333339691,
+                    /* prob =  97%: C = */ 0.969072160721,
+                    /* prob =  98%: C = */ 0.979591842294,
+                    /* prob =  99%: C = */ 0.989898992032,
+                    /* prob = 100%: C = */ 1.000000000000,
+                };
+                return std::min<double>(1.0, (m_count + 1) * s_tbl_C[std::lround(m_prob * 100)]);
+            }
+
+        public:
+            bool holdroll() const
+            {
+                constinit static long percision = 1000000;
+                return mathf::rand<long>(1, percision) <= std::lround(percision * aprob());
+            }
+
+        public:
+            bool roll()
+            {
+                if(holdroll()){
+                    m_count = 0;
+                    return true;
+                }
+                else{
+                    m_count++;
+                    return false;
+                }
+            }
+    };
 }
