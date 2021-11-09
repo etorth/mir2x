@@ -1299,7 +1299,7 @@ void ControlBoard::drawFocusFace() const
     // draw current creature face
     // draw '?' when the face texture is not available
 
-    const auto [faceTexID, hpRatio] = [this]() -> std::tuple<uint32_t, double>
+    const auto [faceTexID, hpRatio, buffIDList] = [this]() -> std::tuple<uint32_t, double, const std::optional<SDBuffIDList> &>
     {
         const auto fnGetHeroFaceKey = [](uint64_t uid) -> uint32_t
         {
@@ -1325,6 +1325,7 @@ void ControlBoard::drawFocusFace() const
                         {
                             fnGetHeroFaceKey(coPtr->UID()),
                             coPtr->getHealthRatio().at(0),
+                            coPtr->getSDBuffIDList(),
                         };
                     }
                 case UID_MON:
@@ -1343,6 +1344,7 @@ void ControlBoard::drawFocusFace() const
                         {
                             monFaceTexID,
                             coPtr->getHealthRatio().at(0),
+                            coPtr->getSDBuffIDList(),
                         };
                     }
                 default:
@@ -1356,6 +1358,7 @@ void ControlBoard::drawFocusFace() const
         {
             fnGetHeroFaceKey(m_processRun->getMyHeroUID()),
             m_processRun->getMyHero()->getHealthRatio().at(0),
+            m_processRun->getMyHero()->getSDBuffIDList(),
         };
     }();
 
@@ -1364,14 +1367,48 @@ void ControlBoard::drawFocusFace() const
 
     if(auto faceTexPtr = g_progUseDB->retrieve(faceTexID)){
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(faceTexPtr);
-        g_sdlDevice->drawTexture(faceTexPtr, nW0 - 267, nY0 + 19, 86, 96, 0, 0, texW, texH);
+        g_sdlDevice->drawTexture(faceTexPtr, nW0 - 266, nY0 + 18, 86, 96, 0, 0, texW, texH);
 
-        constexpr int barWidth  = 86;
-        constexpr int barHeight = 5;
+        constexpr int barWidth  = 87;
+        constexpr int barHeight =  5;
 
         if(auto hpBarPtr = g_progUseDB->retrieve(0X00000015)){
             const auto [barTexW, barTexH] = SDLDeviceHelper::getTextureSize(hpBarPtr);
-            g_sdlDevice->drawTexture(hpBarPtr, nW0 - 267, nY0 + 110, std::lround(hpRatio * barWidth), barHeight, 0, 0, barTexW, barTexH);
+            g_sdlDevice->drawTexture(hpBarPtr, nW0 - 268, nY0 + 15, std::lround(hpRatio * barWidth), barHeight, 0, 0, barTexW, barTexH);
+        }
+    }
+
+    if(buffIDList.has_value()){
+        constexpr int buffIconDrawW = 16;
+        constexpr int buffIconDrawH = 16;
+
+        // +---------------+
+        // |               |
+        // |               |
+        // |               |
+        // |               |
+        // |               |
+        // *---------------+
+        // ^
+        // +--- (buffIconOffStartX, buffIconOffStartY)
+
+        const int buffIconOffStartX = nW0 - 266;
+        const int buffIconOffStartY = nY0 +  99;
+
+        for(int drawIconCount = 0; const auto id: buffIDList.value().idList){
+            const auto &br = DBCOM_BUFFRECORD(id);
+            fflassert(br);
+
+            if(br.gfxID != SYS_TEXNIL){
+                if(auto iconTexPtr = g_progUseDB->retrieve(br.gfxID)){
+                    const int buffIconOffX = buffIconOffStartX + (drawIconCount % 5) * buffIconDrawW;
+                    const int buffIconOffY = buffIconOffStartY - (drawIconCount / 5) * buffIconDrawH;
+
+                    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
+                    g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
+                    drawIconCount++;
+                }
+            }
         }
     }
 }
