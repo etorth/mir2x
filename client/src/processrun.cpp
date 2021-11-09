@@ -433,6 +433,29 @@ void ProcessRun::draw() const
         }
     }
 
+    if(getMyHero()->getSDBuffIDList().has_value()){
+        constexpr int buffIconDrawW = 40;
+        constexpr int buffIconDrawH = 40;
+        int buffIconOffX = g_sdlDevice->getRendererWidth() - buffIconDrawW;
+
+        if(auto boardPtr = getWidget("MiniMapBoard"); boardPtr->show()){
+            buffIconOffX -= boardPtr->w();
+        }
+
+        for(const auto id: getMyHero()->getSDBuffIDList().value().idList){
+            const auto &br = DBCOM_BUFFRECORD(id);
+            fflassert(br);
+
+            if(br.gfxID != SYS_TEXNIL){
+                if(auto iconTexPtr = g_progUseDB->retrieve(br.gfxID)){
+                    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
+                    g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, 0, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
+                    buffIconOffX -= buffIconDrawW;
+                }
+            }
+        }
+    }
+
     // draw underlay at the bottom
     // there is one pixel transparent rectangle
     const auto [winW, winH] = g_sdlDevice->getRendererSize();
