@@ -163,11 +163,11 @@ const ServerMap *ServiceCore::retrieveMap(uint32_t mapID)
     return nullptr;
 }
 
-std::optional<uint32_t> ServiceCore::findDBID(uint32_t channID) const
+std::optional<std::pair<uint32_t, bool>> ServiceCore::findDBID(uint32_t channID) const
 {
     fflassert(channID);
     if(auto p = m_dbidList.find(channID); p != m_dbidList.end()){
-        fflassert(p->second);
+        fflassert(p->second.first);
         return p->second;
     }
     return {};

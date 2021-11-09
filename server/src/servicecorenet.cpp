@@ -47,13 +47,13 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
             throw fflerror("internal error: channID reused before recycle: %d", to_d(channID));
         }
 
-        if(existDBID == dbid){
+        if(existDBID.first == dbid){
             fnLoginError(LOGINERR_MULTILOGIN);
             return;
         }
     }
 
-    m_dbidList[channID] = dbid;
+    m_dbidList[channID] = std::make_pair(dbid, false);
     g_netDriver->post(channID, SM_LOGINOK, nullptr, 0);
 }
 
@@ -73,7 +73,7 @@ void ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, s
         return;
     }
 
-    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value()));
+    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value().first));
     if(!queryChar.executeStep()){
         fnQueryCharError(QUERYCHARERR_NOCHAR);
         return;
@@ -105,7 +105,12 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
         return;
     }
 
-    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value()));
+    if(dbidOpt.value().second){
+        fnOnlineError(ONLINEERR_MULTIONLINE);
+        return;
+    }
+
+    auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value().first));
     if(!queryChar.executeStep()){
         fnOnlineError(ONLINEERR_NOCHAR);
         return;
@@ -113,7 +118,7 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
 
     const int gender = queryChar.getColumn("fld_gender");
     const auto jobList = jobf::getJobList(queryChar.getColumn("fld_job"));
-    const auto expectedUID = uidf::getPlayerUID(dbidOpt.value(), gender, jobList);
+    const auto expectedUID = uidf::getPlayerUID(dbidOpt.value().first, gender, jobList);
 
     fflassert(!g_actorPool->checkUIDValid(expectedUID));
 
@@ -131,7 +136,7 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
     amACO.type = UID_PLY;
     amACO.buf.assign(cerealf::serialize(SDInitPlayer
     {
-        .dbid      = dbidOpt.value(),
+        .dbid      = dbidOpt.value().first,
         .channID   = channID,
         .name      = queryChar.getColumn("fld_name"),
         .nameColor = queryChar.getColumn("fld_namecolor"),
@@ -148,9 +153,12 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
         .hairColor = queryChar.getColumn("fld_haircolor"),
     }));
 
-    m_dbidList[channID] = dbidOpt.value();
-    m_actorPod->forward(mapPtr->UID(), {AM_ADDCO, amACO}, [this, expectedUID, fnOnlineError](const ActorMsgPack &rmpk)
+    m_dbidList[channID].second = true;
+    m_actorPod->forward(mapPtr->UID(), {AM_ADDCO, amACO}, [channID, expectedUID, fnOnlineError, this](const ActorMsgPack &rmpk)
     {
+        fflassert(findDBID(channID).has_value());
+        fflassert(findDBID(channID).value().second);
+
         switch(rmpk.type()){
             case AM_UID:
                 {
@@ -164,6 +172,7 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
             default:
                 {
                     fnOnlineError(ONLINEERR_AMERROR);
+                    m_dbidList[channID].second = false;
                     return;
                 }
         }
@@ -265,22 +274,22 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         return;
     }
 
-    auto queryPassword = g_dbPod->createQuery(u8R"###( select * from tbl_account where fld_dbid = %llu and fld_password = '%s' )###", to_llu(dbidOpt.value()), to_cstr(cmDC.password));
+    auto queryPassword = g_dbPod->createQuery(u8R"###( select * from tbl_account where fld_dbid = %llu and fld_password = '%s' )###", to_llu(dbidOpt.value().first), to_cstr(cmDC.password));
     if(!queryPassword.executeStep()){
         fnDeleteCharError(DELCHARERR_BADPASSWORD);
         return;
     }
 
-    auto query = g_dbPod->createQuery(u8R"###( delete from tbl_char where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value()));
+    auto query = g_dbPod->createQuery(u8R"###( delete from tbl_char where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value().first));
     if(!query.executeStep()){
         fnDeleteCharError(DELCHARERR_NOCHAR);
         return;
     }
 
     const auto dbidDeleted = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
-    fflassert(dbidDeleted == dbidOpt.value());
+    fflassert(dbidDeleted == dbidOpt.value().first);
 
-    g_dbPod->exec(u8R"###( delete from tbl_learnedmagiclist where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value()));
+    g_dbPod->exec(u8R"###( delete from tbl_learnedmagiclist where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value().first));
     auto maxSeqID = [dbidOpt]() -> uint32_t
     {
         auto querySeqID = g_dbPod->createQuery(
@@ -293,8 +302,8 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
                 u8R"###( and                                                                              )###"
                 u8R"###(     fld_seqid = (select max(fld_seqid) from tbl_inventory where fld_dbid = %llu) )###",
 
-                to_llu(dbidOpt.value()),
-                to_llu(dbidOpt.value()));
+                to_llu(dbidOpt.value().first),
+                to_llu(dbidOpt.value().first));
 
         if(querySeqID.executeStep()){
             return (uint32_t)(querySeqID.getColumn("fld_seqid")) + 1;
@@ -314,7 +323,7 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         u8R"###( values                                                                                                                )###"
     };
 
-    auto queryBelt = g_dbPod->createQuery(u8R"###( delete from tbl_belt where fld_dbid = %llu returning * )###", to_llu(dbidOpt.value()));
+    auto queryBelt = g_dbPod->createQuery(u8R"###( delete from tbl_belt where fld_dbid = %llu returning * )###", to_llu(dbidOpt.value().first));
     while(queryBelt.executeStep()){
         if(insertedBeltItemCount > 0){
             insertQueryBeltString += u8",";
@@ -333,7 +342,7 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         fflassert(item);
         insertedBeltItemCount++;
         insertQueryBeltString += str_printf(u8R"###( (%llu, %llu, %llu, %llu, %llu, %llu, ?) )###",
-                to_llu(dbidOpt.value()),
+                to_llu(dbidOpt.value().first),
                 to_llu(item.itemID),
                 to_llu(item.seqID),
                 to_llu(item.count),
@@ -354,7 +363,7 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
     // delete tbl_wear and move them to tbl_inventory
     // need to insert one by one since items in tbl_wear usually has non-empty extAttrList
 
-    auto queryWear = g_dbPod->createQuery(u8R"###( delete from tbl_wear where fld_dbid = %llu returning * )###", to_llu(dbidOpt.value()));
+    auto queryWear = g_dbPod->createQuery(u8R"###( delete from tbl_wear where fld_dbid = %llu returning * )###", to_llu(dbidOpt.value().first));
     while(queryWear.executeStep()){
         const SDItem item
         {
@@ -379,7 +388,7 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
                 u8R"###( values                                                                                                                )###"
                 u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                           )###",
 
-                to_llu(dbidOpt.value()),
+                to_llu(dbidOpt.value().first),
                 to_llu(item.itemID),
                 to_llu(item.seqID),
                 to_llu(item.count),
@@ -418,9 +427,9 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
         return;
     }
 
-    auto query = g_dbPod->createQuery(u8R"###(select fld_dbid, fld_name from tbl_char where fld_dbid = %llu or fld_name = '%s')###", to_llu(dbidOpt.value()), name.c_str());
+    auto query = g_dbPod->createQuery(u8R"###(select fld_dbid, fld_name from tbl_char where fld_dbid = %llu or fld_name = '%s')###", to_llu(dbidOpt.value().first), name.c_str());
     if(query.executeStep()){
-        if(const auto existDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")); existDBID == dbidOpt.value()){
+        if(const auto existDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")); existDBID == dbidOpt.value().first){
             fnCreateCharError(CRTCHARERR_CHAREXIST);
             return;
         }
@@ -438,7 +447,7 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
             u8R"###( values                                                                                     )###"
             u8R"###(     (%llu, '%s', '%s', '%d', %d, %d, %d);                                                  )###",
 
-            to_llu(dbidOpt.value()),
+            to_llu(dbidOpt.value().first),
             to_cstr(cmCC.name),
             to_cstr(jobName(cmCC.job)),
             to_d(DBCOM_MAPID(u8"道馆_1")),

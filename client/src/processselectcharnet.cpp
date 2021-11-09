@@ -80,9 +80,14 @@ void ProcessSelectChar::net_ONLINEERROR(const uint8_t *buf, size_t)
                 m_notifyBoard.addLog(u8"先创建角色以开始游戏");
                 return;
             }
+        case ONLINEERR_MULTIONLINE:
+            {
+                m_notifyBoard.addLog(u8"请勿频繁登录");
+                return;
+            }
         default:
             {
-                throw bad_reach();
+                throw bad_value(smOE.error);
             }
     }
 }

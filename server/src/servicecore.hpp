@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <utility>
 #include <unordered_map>
 #include "serverobject.hpp"
 
@@ -10,7 +11,7 @@ class ServiceCore final: public ServerObject
         std::unordered_map<uint32_t, ServerMap *> m_mapList;
 
     private:
-        std::unordered_map<uint32_t, uint32_t> m_dbidList; // channID -> dbid
+        std::unordered_map<uint32_t, std::pair<uint32_t, bool>> m_dbidList; // channID -> {dbid, online}
 
     public:
         ServiceCore();
@@ -28,7 +29,7 @@ class ServiceCore final: public ServerObject
         void onActivate() override;
 
     private:
-        std::optional<uint32_t> findDBID(uint32_t channID) const;
+        std::optional<std::pair<uint32_t, bool>> findDBID(uint32_t channID) const;
 
     private:
         void on_AM_LOGIN(const ActorMsgPack &);
