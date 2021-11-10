@@ -523,9 +523,9 @@ namespace mathf
         return true;
     }
 
-    class ARDVar final
+    class ARBVar final
     {
-        // adjusted random distributed variable
+        // adjusted random binary variable
         // idea from https://dota2.fandom.com/zh/wiki/%E9%9A%8F%E6%9C%BA%E5%88%86%E5%B8%83
         // code from https://www.jianshu.com/p/4151cc2c642d
 
@@ -586,7 +586,7 @@ namespace mathf
             int m_count = 0;
 
         public:
-            ARDVar(double p)
+            ARBVar(double p)
                 : m_prob([p]()
                   {
                       fflassert(p >= 0.0);
