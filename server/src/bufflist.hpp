@@ -57,6 +57,12 @@ class BuffList final
         }
 
     public:
+        void erase(int tag)
+        {
+            m_buffList.erase(tag);
+        }
+
+    public:
         void runOnTrigger(int btgr)
         {
             fflassert(validBuffActTrigger(btgr));

@@ -424,7 +424,11 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     }
 
     if(const auto buffIDOpt = item.getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
-        addBuff(buffIDOpt.value());
+        const auto tag = addBuff(buffIDOpt.value());
+        m_onWearOff[wltype] = [tag, this]()
+        {
+            m_buffList.erase(tag);
+        };
     }
 }
 
@@ -517,6 +521,12 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
         .wltype = wltype,
         .item = addedItem,
     }));
+
+    if(auto cbp = m_onWearOff.find(wltype); cbp != m_onWearOff.end()){
+        fflassert(cbp->second);
+        cbp->second();
+        m_onWearOff.erase(cbp);
+    }
 }
 
 void Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t)

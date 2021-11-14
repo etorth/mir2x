@@ -915,6 +915,8 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
                 {SDItem::EA_ACHOLY, mathf::rand<int>(1, 5)},
                 {SDItem::EA_ACDARK, mathf::rand<int>(1, 5)},
                 {SDItem::EA_ACPHANTOM, mathf::rand<int>(1, 5)},
+
+                {SDItem::EA_BUFFID, DBCOM_BUFFID(u8"恢复光环使能")},
             },
         };
     }

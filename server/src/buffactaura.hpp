@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <memory>
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
@@ -7,12 +8,25 @@
 class BattleObject;
 class BaseBuffActAura: public BaseBuffAct
 {
+    private:
+        BattleObject * const m_bo;
+
     protected:
-        BaseBuffActAura(uint32_t, uint32_t);
+        BaseBuffActAura(BattleObject *, uint32_t, uint32_t);
 
     protected:
         ~BaseBuffActAura();
 
     public:
-        static BaseBuffActAura *createAura(uint32_t, uint32_t);
+        static BaseBuffActAura *createAura(BattleObject *, uint32_t, uint32_t);
+
+    private:
+        void transmit();
+        void transmitHelper(std::vector<uint64_t>);
+
+    public:
+        uint32_t getBuffID() const
+        {
+            return DBCOM_BUFFID(getBAR().aura.buff);
+        }
 };

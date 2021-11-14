@@ -1169,21 +1169,22 @@ void BattleObject::updateBuffList()
     }
 }
 
-void BattleObject::addBuff(uint32_t buffID)
+int BattleObject::addBuff(uint32_t buffID)
 {
     switch(buffID){
         case DBCOM_BUFFID(u8"治愈术"):
         case DBCOM_BUFFID(u8"施毒术"):
+        case DBCOM_BUFFID(u8"恢复光环"):
             {
-                m_buffList.addBuff(std::make_unique<BaseBuff>(buffID, this));
-                break;
+                const auto tag = m_buffList.addBuff(std::make_unique<BaseBuff>(buffID, this));
+                dispatchBuffIDList();
+                return tag;
             }
         default:
             {
-                break;
+                return 0;
             }
     }
-    dispatchBuffIDList();
 }
 
 bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)

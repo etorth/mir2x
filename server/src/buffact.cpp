@@ -34,7 +34,7 @@ BaseBuffAct *BaseBuffAct::createBuffAct(BattleObject *bo, uint32_t argBuffID, ui
     const auto &bar = DBCOM_BUFFACTRECORD(argBuffActID);
     fflassert(bar);
 
-    if(bar.isAura             ()) return BaseBuffActAura             ::createAura             (    argBuffID, argBuffActID);
+    if(bar.isAura             ()) return BaseBuffActAura             ::createAura             (bo, argBuffID, argBuffActID);
     if(bar.isController       ()) return BaseBuffActController       ::createController       (    argBuffID, argBuffActID);
     if(bar.isAttributeModifier()) return BaseBuffActAttributeModifier::createAttributeModifier(bo, argBuffID, argBuffActID);
 

@@ -58,18 +58,11 @@
     },
 },
 
-{   .name = u8"恢复光环",
+{   .name = u8"恢复光环使能",
     .favor = 1,
-    .dispellable = 1,
-    .icon
-    {
-        .show = 1,
-        .gfxID = 0X1800000D,
-    },
-
     .actList
     {
-        {   .name = u8"恢复光环",
+        {   .name = u8"恢复光环使能",
             .aura
             {
                 .radius = 10,
@@ -78,6 +71,25 @@
                     .in = 500,
                     .out = 500,
                 },
+            },
+        },
+    },
+},
+
+{   .name = u8"恢复光环",
+    .favor = 1,
+    .icon
+    {
+        .show = 1,
+        .gfxID = 0X1800000D,
+    },
+
+    .actList
+    {
+        {   .name = u8"HP持续",
+            .attributeModifier
+            {
+                .percentage = 5,
             },
         },
     },

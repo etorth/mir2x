@@ -17,6 +17,7 @@ class BattleObject: public CharObject
 {
     public:
         friend class CharObject;
+        friend class BaseBuffActAura;
         friend class BaseBuffActTrigger;
         friend class BaseBuffActAttributeModifier;
         template<uint32_t> friend class BuffActTrigger;
@@ -249,7 +250,7 @@ class BattleObject: public CharObject
         }
 
     protected:
-        void addBuff(uint32_t);
+        int  addBuff(uint32_t);
         void sendBuff(uint64_t, uint32_t);
         void dispatchBuffIDList();
 
