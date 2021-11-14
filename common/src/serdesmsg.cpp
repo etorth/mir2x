@@ -145,6 +145,10 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
     if(ir.equip.acElem.dark    < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：暗黑 %+d</par> )###""\n", std::abs(ir.equip.acElem.dark   )); }
     if(ir.equip.acElem.phantom < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：幻影 %+d</par> )###""\n", std::abs(ir.equip.acElem.phantom)); }
 
+    if(const auto buffIDOpt = getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
+        xmlStr += str_printf(u8R"###( <par color='green'>附加BUFF：%s</par> )###""\n", to_cstr(DBCOM_BUFFRECORD(buffIDOpt.value()).name));
+    }
+
     if(false
             || ir.equip.load.body > 0
             || ir.equip.load.weapon > 0
