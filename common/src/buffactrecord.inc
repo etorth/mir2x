@@ -86,12 +86,12 @@
 },
 
 // 触发
-{   .name = u8"HP",
+{   .name = u8"HP移动伤害",
     .type = u8"触发",
 },
 
 // 属性修改
-{   .name = u8"HP_MODIFIER",
+{   .name = u8"HP",
     .type = u8"属性修改",
 },
 
