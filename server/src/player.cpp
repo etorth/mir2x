@@ -219,11 +219,6 @@ bool Player::update()
     if(m_buffList.update()){
         dispatchBuffIDList();
     }
-
-    const auto hpRecover = m_sdHealth.getHPRecover();
-    const auto mpRecover = m_sdHealth.getMPRecover();
-    updateHealth(hpRecover, mpRecover);
-
     return true;
 }
 
@@ -310,9 +305,9 @@ bool Player::goGhost()
     amDFO.Y     = Y();
 
     if(true
-            && checkActorPod()
+            && hasActorPod()
             && m_map
-            && m_map->checkActorPod()){
+            && m_map->hasActorPod()){
         m_actorPod->forward(m_map->UID(), {AM_DEADFADEOUT, amDFO});
     }
 
@@ -445,9 +440,9 @@ bool Player::ActionValid(const ActionNode &)
 void Player::dispatchOffline()
 {
     if(true
-            && checkActorPod()
+            && hasActorPod()
             && m_map
-            && m_map->checkActorPod()){
+            && m_map->hasActorPod()){
 
         AMOffline amO;
         std::memset(&amO, 0, sizeof(amO));

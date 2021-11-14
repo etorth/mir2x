@@ -1,3 +1,4 @@
+#include <memory>
 #include <cinttypes>
 #include "pathf.hpp"
 #include "uidf.hpp"
@@ -104,6 +105,14 @@ BattleObject::BattleObject(
 {
     fflassert(m_map);
     m_lastActionTime.fill(0);
+    m_stateTrigger.install([ptimer = std::make_shared<hres_timer>(), this]() mutable -> bool
+    {
+        if(hasActorPod() && (ptimer->diff_secf() >= 1.0f)){
+            updateHealth(m_sdHealth.getHPRecover(), m_sdHealth.getMPRecover());
+            ptimer->reset();
+        }
+        return false;
+    });
 }
 
 bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<void()> onOK, std::function<void()> onError)

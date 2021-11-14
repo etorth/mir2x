@@ -858,7 +858,7 @@ bool Monster::goGhost()
     // send this to remove the map grid coverage
     // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
 
-    if(checkActorPod() && m_map && m_map->checkActorPod()){
+    if(hasActorPod() && m_map && m_map->hasActorPod()){
         m_actorPod->forward(m_map->UID(), {AM_DEADFADEOUT, amDFO});
     }
 

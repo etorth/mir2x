@@ -203,7 +203,7 @@ ActionNode CharObject::makeActionStand() const
 
 void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
 {
-    fflassert(checkActorPod());
+    fflassert(hasActorPod());
     AMAction amA;
     std::memset(&amA, 0, sizeof(amA));
 
@@ -248,7 +248,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
 
 void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
 {
-    fflassert(checkActorPod());
+    fflassert(hasActorPod());
     AMAction amA;
     std::memset(&amA, 0, sizeof(amA));
 

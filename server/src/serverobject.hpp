@@ -41,7 +41,7 @@ class ServerObject
 
         const char *UIDName() const
         {
-            return checkActorPod() ? m_UIDName.c_str() : "UID_INACTIVE";
+            return hasActorPod() ? m_UIDName.c_str() : "UID_INACTIVE";
         }
 
     public:
@@ -54,7 +54,7 @@ class ServerObject
         void deactivate();
 
     public:
-        bool checkActorPod() const
+        bool hasActorPod() const
         {
             return m_actorPod && m_actorPod->UID();
         }

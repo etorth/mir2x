@@ -42,7 +42,7 @@ ServerObject::ServerObject(uint64_t uid)
         m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
         {
             if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 1000 < currTick){
-                if(checkActorPod()){
+                if(hasActorPod()){
                     m_actorPod->PrintMonitor();
                 }
                 lastCheckTick = currTick;
