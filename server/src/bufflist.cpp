@@ -7,7 +7,7 @@ std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
 {
     scoped_alloc::svobuf_wrapper<BaseBuffActAttackModifier *, 16> amodList;
     for(auto &p: m_buffList){
-        for(auto &actr: p->m_runList){
+        for(auto &actr: p.second->m_runList){
             if(actr.ptr->getBAR().isAttackModifier()){
                 auto pmodifier = dynamic_cast<BaseBuffActAttackModifier *>(actr.ptr.get());
                 fflassert(pmodifier);
@@ -41,7 +41,7 @@ std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
     std::vector<T *> result; \
  \
     for(auto &p: m_buffList){ \
-        for(auto &[tpsCount, ptr]: p->m_runList){ \
+        for(auto &[tpsCount, ptr]: p.second->m_runList){ \
             const auto &bar = DBCOM_BUFFACTRECORD(name); \
             fflassert(bar); \
  \

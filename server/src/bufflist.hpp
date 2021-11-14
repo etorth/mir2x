@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <memory>
 #include <vector>
 #include "buff.hpp"
@@ -16,17 +17,22 @@ class BuffList final
         hres_timer m_timer;
 
     private:
-        std::vector<std::unique_ptr<BaseBuff>> m_buffList;
+        std::map<int, std::unique_ptr<BaseBuff>> m_buffList;
 
     public:
         /* ctor */  BuffList() = default;
         /* dtor */ ~BuffList() = default;
 
     public:
-        BaseBuff *addBuff(std::unique_ptr<BaseBuff> buffPtr)
+        int addBuff(std::unique_ptr<BaseBuff> buffPtr)
         {
-            m_buffList.push_back(std::move(buffPtr));
-            return m_buffList.back().get();
+            if(m_buffList.empty()){
+                m_buffList[1] = std::move(buffPtr);
+            }
+            else{
+                m_buffList[m_buffList.rbegin()->first + 1] = std::move(buffPtr);
+            }
+            return m_buffList.rbegin()->first;
         }
 
     public:
@@ -36,14 +42,13 @@ class BuffList final
             // follow the same design way as BaseMagic in client/src/basemagic.hpp
 
             bool changed = false;
-            for(size_t i = 0; i < m_buffList.size();){
-                if(m_buffList[i]->update(m_timer.diff_msecf())){
-                    std::swap(m_buffList[i], m_buffList.back());
-                    m_buffList.pop_back();
+            for(auto p = m_buffList.begin(); p != m_buffList.end();){
+                if(p->second->update(m_timer.diff_msecf())){
+                    p = m_buffList.erase(p);
                     changed = true;
                 }
                 else{
-                    i++;
+                    p++;
                 }
             }
 
@@ -56,7 +61,7 @@ class BuffList final
         {
             fflassert(validBuffActTrigger(btgr));
             for(auto &p: m_buffList){
-                p->runOnTrigger(btgr);
+                p.second->runOnTrigger(btgr);
             }
         }
 
@@ -67,8 +72,8 @@ class BuffList final
             idList.reserve(m_buffList.size());
 
             for(const auto &p: m_buffList){
-                if(!showIconOnly || p->getBR().icon.show){
-                    idList.push_back(p->id());
+                if(!showIconOnly || p.second->getBR().icon.show){
+                    idList.push_back(p.second->id());
                 }
             }
             return idList;
@@ -81,8 +86,8 @@ class BuffList final
             std::vector<BaseBuff *> result;
 
             for(auto &p: m_buffList){
-                if(p->getBR().isBuff(name)){
-                    result.push_back(p.get());
+                if(p.second->getBR().isBuff(name)){
+                    result.push_back(p.second.get());
                 }
             }
             return result;
@@ -95,7 +100,7 @@ class BuffList final
             std::vector<BaseBuffAct *> result;
 
             for(auto &p: m_buffList){
-                for(auto &actr: p->m_runList){
+                for(auto &actr: p.second->m_runList){
                     if(actr.ptr->getBAR().isBuffAct(name)){
                         result.push_back(actr.ptr.get());
                     }
