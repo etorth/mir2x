@@ -25,14 +25,17 @@ BaseBuffAct *BaseBuffAct::createBuffAct(uint32_t argBuffID, uint32_t argBuffActI
     fflassert(argBuffID > 0);
     fflassert(argBuffID < DBCOM_BUFFENDID());
 
+    const auto &br = DBCOM_BUFFRECORD(argBuffID);
+    fflassert(br);
+
     fflassert(argBuffActID > 0);
     fflassert(argBuffActID < DBCOM_BUFFACTENDID());
 
-    const auto &bar = DBCOM_BUFFACTRECORD(argBuffID);
+    const auto &bar = DBCOM_BUFFACTRECORD(argBuffActID);
     fflassert(bar);
 
     if(bar.isAura      ()) return BaseBuffActAura      ::createAura      (argBuffID, argBuffActID);
     if(bar.isController()) return BaseBuffActController::createController(argBuffID, argBuffActID);
 
-    throw fflvalue(argBuffID, argBuffActID, bar.name, bar.type);
+    throw fflvalue(argBuffID, argBuffActID, br.name, bar.name, bar.type);
 }
