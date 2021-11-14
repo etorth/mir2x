@@ -1,23 +1,24 @@
 #pragma once
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include "buffact.hpp"
 
-class BattleObject;
+class BaseBuff;
 class BaseBuffActAttributeModifier: public BaseBuffAct
 {
-    protected:
-        BattleObject * const m_bo;
+    private:
+        friend class BaseBuffAct;
 
     protected:
         const std::function<void()> m_onDone;
 
     protected:
-        BaseBuffActAttributeModifier(BattleObject *, uint32_t, uint32_t);
+        BaseBuffActAttributeModifier(BaseBuff *, size_t);
 
     public:
         ~BaseBuffActAttributeModifier() override;
 
-    public:
-        static BaseBuffActAttributeModifier *createAttributeModifier(BattleObject *, uint32_t, uint32_t);
+    protected:
+        static BaseBuffActAttributeModifier *createAttributeModifier(BaseBuff *, size_t);
 };

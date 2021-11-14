@@ -1,56 +1,57 @@
 #pragma once
 #include <memory>
+#include <cstddef>
 #include "fflerror.hpp"
 #include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 
-class BattleObject;
+class BaseBuff;
 class BaseBuffAct
 {
-    protected:
-        const uint32_t m_buffID;
+    private:
+        friend class BaseBuff;
 
     protected:
-        const uint32_t m_buffActID;
+        BaseBuff * const m_buff;
+
+    protected:
+        const size_t m_actOff;
+
+    protected:
+        const uint32_t m_id;
 
     public:
-        BaseBuffAct(uint32_t, uint32_t);
+        BaseBuffAct(BaseBuff *, size_t);
 
     public:
         virtual ~BaseBuffAct() = default;
 
-    public:
-        static BaseBuffAct *createBuffAct(BattleObject *, uint32_t, uint32_t);
+    protected:
+        static BaseBuffAct *createBuffAct(BaseBuff *, size_t);
 
     public:
-        uint32_t buffID() const
+        uint32_t id() const
         {
-            return m_buffID;
-        }
-
-        uint32_t buffActID() const
-        {
-            return m_buffActID;
+            return m_id;
         }
 
     public:
-        const auto &getBR() const
+        BaseBuff * getBuff()
         {
-            return DBCOM_BUFFRECORD(buffID());
+            return m_buff;
         }
 
-        const auto &getBAR() const
+        const BaseBuff *getBuff() const
         {
-            return DBCOM_BUFFACTRECORD(buffActID());
+            return m_buff;
         }
 
-        const auto &getBAREF() const
-        {
-            for(const auto &baref: getBR().actList){
-                if(baref.isBuffActRef(getBAR().name)){
-                    return baref;
-                }
-            }
-            throw fflvalue(getBR().name, getBAR().name);
-        }
+    public:
+        const BuffRecord & getBR() const;
+
+    public:
+        const BuffActRecord & getBAR() const;
+
+    public:
+        const BuffRecord::BuffActRecordRef & getBAREF() const;
 };

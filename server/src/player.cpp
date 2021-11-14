@@ -803,7 +803,7 @@ void Player::onCMActionSpell(CMAction cmA)
                     }
                 }
                 else{
-                    addBuff(DBCOM_BUFFID(u8"治愈术"));
+                    addBuff(UID(), DBCOM_BUFFID(u8"治愈术"));
                 }
                 break;
             }

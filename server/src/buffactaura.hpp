@@ -5,20 +5,23 @@
 #include "fflerror.hpp"
 #include "buffact.hpp"
 
-class BattleObject;
+class BaseBuff;
 class BaseBuffActAura: public BaseBuffAct
 {
     private:
-        BattleObject * const m_bo;
+        friend class BaseBuffAct;
 
     protected:
-        BaseBuffActAura(BattleObject *, uint32_t, uint32_t);
+        const uint32_t m_auraBuffID;
+
+    protected:
+        BaseBuffActAura(BaseBuff *, size_t);
 
     protected:
         ~BaseBuffActAura();
 
-    public:
-        static BaseBuffActAura *createAura(BattleObject *, uint32_t, uint32_t);
+    protected:
+        static BaseBuffActAura *createAura(BaseBuff *, size_t);
 
     public:
         void transmit();
@@ -27,8 +30,8 @@ class BaseBuffActAura: public BaseBuffAct
         void transmitHelper(std::vector<uint64_t>);
 
     public:
-        uint32_t getBuffID() const
+        uint32_t getAuraBuffID() const
         {
-            return DBCOM_BUFFID(getBAR().aura.buff);
+            return m_auraBuffID;
         }
 };

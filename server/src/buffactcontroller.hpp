@@ -1,15 +1,16 @@
 #pragma once
-#include <memory>
-#include "dbcomid.hpp"
-#include "fflerror.hpp"
+#include <cstddef>
 #include "buffact.hpp"
 
-class BattleObject;
+class BaseBuff;
 class BaseBuffActController: public BaseBuffAct
 {
-    protected:
-        BaseBuffActController(uint32_t, uint32_t);
+    private:
+        friend class BaseBuffAct;
 
-    public:
-        static BaseBuffActController *createController(uint32_t, uint32_t);
+    protected:
+        BaseBuffActController(BaseBuff *, size_t);
+
+    protected:
+        static BaseBuffActController *createController(BaseBuff *, size_t);
 };

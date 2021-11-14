@@ -1,10 +1,15 @@
+#include "fflerror.hpp"
+#include "buff.hpp"
+#include "buffact.hpp"
 #include "buffactcontroller.hpp"
 
-BaseBuffActController::BaseBuffActController(uint32_t argBuffID, uint32_t argBuffActID)
-    : BaseBuffAct(argBuffID, argBuffActID)
-{}
-
-BaseBuffActController *BaseBuffActController::createController(uint32_t argBuffID, uint32_t argBuffActID)
+BaseBuffActController::BaseBuffActController(BaseBuff *argBuff, size_t argBuffActOff)
+    : BaseBuffAct(argBuff, argBuffActOff)
 {
-    return new BaseBuffActController(argBuffID, argBuffActID);
+    fflassert(getBAR().isController());
+}
+
+BaseBuffActController *BaseBuffActController::createController(BaseBuff *argBuff, size_t argBuffActOff)
+{
+    return new BaseBuffActController(argBuff, argBuffActOff);
 }

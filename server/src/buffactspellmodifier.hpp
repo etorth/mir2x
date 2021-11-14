@@ -1,12 +1,13 @@
 #pragma once
-#include "buffact.hpp"
 #include "fflerror.hpp"
+#include "buffact.hpp"
 
+class BaseBuff;
 class BaseBuffActSpellModifier: public BaseBuffAct
 {
-    public:
-        BaseBuffActSpellModifier(uint32_t, uint32_t);
+    protected:
+        BaseBuffActSpellModifier(BaseBuff *, size_t);
 
-    public:
-        static BaseBuffActSpellModifier *createSpellModifier(uint32_t, uint32_t);
+    protected:
+        static BaseBuffActSpellModifier *createSpellModifier(BaseBuff *, size_t);
 };

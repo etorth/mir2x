@@ -1,16 +1,22 @@
 #include "strf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
+#include "buff.hpp"
+#include "buffact.hpp"
 #include "buffactattackmodifier.hpp"
 
-BaseBuffActAttackModifier::BaseBuffActAttackModifier(uint32_t argBuffID, uint32_t argBuffActID)
-    : BaseBuffAct(argBuffID, argBuffActID)
+BaseBuffActAttackModifier::BaseBuffActAttackModifier(BaseBuff *argBuff, size_t argBuffActOff)
+    : BaseBuffAct(argBuff, argBuffActOff)
     , m_roller([this]() -> float
       {
-          fflassert(getBAREF().attackModifier.prob >= 0);
-          fflassert(getBAREF().attackModifier.prob <= 100);
-          return getBAREF().attackModifier.prob / 100.0f;
+          const auto prob = getBAREF().attackModifier.prob;
+          fflassert(prob >= 0);
+          fflassert(prob <= 100);
+          return to_f(prob) / 100.0;
       }())
-{}
+{
+    fflassert(getBAR().isAttackModifier());
+}
 
 uint32_t BaseBuffActAttackModifier::rollBuff()
 {
@@ -42,4 +48,9 @@ uint32_t BaseBuffActAttackModifier::rollModifier()
         }
     }
     return 0;
+}
+
+BaseBuffActAttackModifier *BaseBuffActAttackModifier::createAttackModifier(BaseBuff *argBuff, size_t argBuffActOff)
+{
+    return new BaseBuffActAttackModifier(argBuff, argBuffActOff);
 }

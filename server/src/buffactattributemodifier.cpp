@@ -2,83 +2,82 @@
 #include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 #include "battleobject.hpp"
+#include "buff.hpp"
+#include "buffact.hpp"
 #include "buffactattributemodifier.hpp"
 
 extern MonoServer *g_monoServer;
-BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uint32_t argBuffID, uint32_t argBuffActID)
-    : BaseBuffAct(argBuffID, argBuffActID)
-    , m_bo([bo]()
-      {
-          fflassert(bo);
-          return bo;
-      }())
+BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BaseBuff *argBuff, size_t argBuffActOff)
+    : BaseBuffAct(argBuff, argBuffActOff)
     , m_onDone([this]() -> std::function<void()>
       {
+          fflassert(getBAR().isAttributeModifier());
           const auto percentage = getBAREF().attributeModifier.percentage;
           const auto value      = getBAREF().attributeModifier.value;
 
           fflassert(std::abs(percentage) >= 0);
           fflassert(std::abs(percentage) <= 100);
 
-          switch(buffActID()){
+          const auto bo = getBuff()->getBO();
+          switch(id()){
               case DBCOM_BUFFACTID(u8"HP"):
                   {
-                      m_bo->updateHealth(std::lround(m_bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value);
+                      bo->updateHealth(std::lround(bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value);
                       return {};
                   }
               case DBCOM_BUFFACTID(u8"MP"):
                   {
-                      m_bo->updateHealth(0, std::lround(m_bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value);
+                      bo->updateHealth(0, std::lround(bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value);
                       return {};
                   }
               case DBCOM_BUFFACTID(u8"HP上限"):
                   {
-                      const auto addMaxHP = std::lround(m_bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value;
-                      const auto tag = m_bo->m_sdHealth.buffedMaxHP.add(addMaxHP);
+                      const auto addMaxHP = std::lround(bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value;
+                      const auto tag = bo->m_sdHealth.buffedMaxHP.add(addMaxHP);
 
-                      m_bo->updateHealth();
-                      return [tag, this]()
+                      bo->updateHealth();
+                      return [tag, bo]()
                       {
-                          m_bo->m_sdHealth.buffedMaxHP.erase(tag);
+                          bo->m_sdHealth.buffedMaxHP.erase(tag);
                       };
                   }
               case DBCOM_BUFFACTID(u8"MP上限"):
                   {
-                      const auto addMaxMP = std::lround(m_bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value;
-                      const auto tag = m_bo->m_sdHealth.buffedMaxMP.add(addMaxMP);
+                      const auto addMaxMP = std::lround(bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value;
+                      const auto tag = bo->m_sdHealth.buffedMaxMP.add(addMaxMP);
 
-                      m_bo->updateHealth();
-                      return [tag, this]()
+                      bo->updateHealth();
+                      return [tag, bo]()
                       {
-                          m_bo->m_sdHealth.buffedMaxMP.erase(tag);
+                          bo->m_sdHealth.buffedMaxMP.erase(tag);
                       };
                   }
               case DBCOM_BUFFACTID(u8"HP持续"):
                   {
-                      const auto addHP = std::lround(m_bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value;
-                      const auto tag = m_bo->m_sdHealth.buffedHPRecover.add(addHP);
+                      const auto addHP = std::lround(bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value;
+                      const auto tag = bo->m_sdHealth.buffedHPRecover.add(addHP);
 
-                      m_bo->updateHealth();
-                      return [tag, this]()
+                      bo->updateHealth();
+                      return [tag, bo]()
                       {
-                          m_bo->m_sdHealth.buffedHPRecover.erase(tag);
+                          bo->m_sdHealth.buffedHPRecover.erase(tag);
                       };
                   }
               case DBCOM_BUFFACTID(u8"MP恢复"):
                   {
-                      const auto addMP = std::lround(m_bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value;
-                      const auto tag = m_bo->m_sdHealth.buffedMPRecover.add(addMP);
+                      const auto addMP = std::lround(bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value;
+                      const auto tag = bo->m_sdHealth.buffedMPRecover.add(addMP);
 
-                      m_bo->updateHealth();
-                      return [tag, this]()
+                      bo->updateHealth();
+                      return [tag, bo]()
                       {
-                          m_bo->m_sdHealth.buffedMPRecover.erase(tag);
+                          bo->m_sdHealth.buffedMPRecover.erase(tag);
                       };
                   }
               case DBCOM_BUFFACTID(u8"DC下限"):
               case DBCOM_BUFFACTID(u8"DC上限"):
                   {
-                      const auto &[tag, taggedMap] = m_bo->updateBuffedAbility(buffActID(), percentage, value);
+                      const auto &[tag, taggedMap] = bo->updateBuffedAbility(id(), percentage, value);
                       return [tag, &taggedMap]()
                       {
                           taggedMap.erase(tag);
@@ -112,7 +111,7 @@ BaseBuffActAttributeModifier::~BaseBuffActAttributeModifier()
     }
 }
 
-BaseBuffActAttributeModifier *BaseBuffActAttributeModifier::createAttributeModifier(BattleObject *bo, uint32_t argBuffID, uint32_t argBuffActID)
+BaseBuffActAttributeModifier *BaseBuffActAttributeModifier::createAttributeModifier(BaseBuff *argBuff, size_t argBuffActOff)
 {
-    return new BaseBuffActAttributeModifier(bo, argBuffID, argBuffActID);
+    return new BaseBuffActAttributeModifier(argBuff, argBuffActOff);
 }

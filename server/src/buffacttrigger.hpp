@@ -1,36 +1,27 @@
 #pragma once
-#include <memory>
-#include "fflerror.hpp"
+#include <cstdint>
+#include <cstddef>
+#include "dbcomid.hpp"
+#include "dbcomrecord.hpp"
 #include "buffact.hpp"
+#include "fflerror.hpp"
 
-class BattleObject;
+class BaseBuff;
 class BaseBuffActTrigger: public BaseBuffAct
 {
     private:
         template<uint32_t> friend class BuffActTrigger;
 
     protected:
-        BaseBuffActTrigger(uint32_t argBuffID, uint32_t argBuffActID)
-            : BaseBuffAct(argBuffID, argBuffActID)
+        BaseBuffActTrigger(BaseBuff *argBuff, size_t argBuffActOff)
+            : BaseBuffAct(argBuff, argBuffActOff)
         {
             fflassert(getBAR().isTrigger());
         }
 
     public:
-        virtual void runOnTrigger(BattleObject *, int) = 0;
+        virtual void runOnTrigger(int) = 0;
 
     public:
-        static BaseBuffActTrigger *createTrigger(uint32_t, uint32_t);
-};
-
-template<uint32_t INDEX> class BuffActTrigger: public BaseBuffActTrigger
-{
-    public:
-        BuffActTrigger(uint32_t argBuffID)
-            : BaseBuffActTrigger(argBuffID, INDEX)
-        {}
-
-    public:
-        void runOnTrigger(BattleObject *, int)
-        {}
+        static BaseBuffActTrigger *createTrigger(BaseBuff *, size_t);
 };

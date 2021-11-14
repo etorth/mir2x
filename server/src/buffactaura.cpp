@@ -4,31 +4,26 @@
 #include "buffactaura.hpp"
 #include "battleobject.hpp"
 
-BaseBuffActAura::BaseBuffActAura(BattleObject *argBO, uint32_t argBuffID, uint32_t argBuffActID)
-    : BaseBuffAct(argBuffID, argBuffActID)
-    , m_bo([argBO]()
+BaseBuffActAura::BaseBuffActAura(BaseBuff *argBuff, size_t argBuffActOff)
+    : BaseBuffAct(argBuff, argBuffActOff)
+    , m_auraBuffID([argBuffActOff, this]()
       {
-          fflassert(argBO);
-          switch(uidf::getUIDType(argBO->UID())){
-              case UID_MON:
-              case UID_PLY: return argBO;
-              default: throw fflvalue(uidf::getUIDString(argBO->UID()));
-          }
-      }())
-{
-    const auto id = DBCOM_BUFFID(getBAR().aura.buff);
-    const auto &br = DBCOM_BUFFRECORD(id);
+          fflassert(getBAR().isAura());
+          const auto id = DBCOM_BUFFID(getBAR().aura.buff);
+          const auto &br = DBCOM_BUFFRECORD(id);
 
-    fflassert(id);
-    fflassert(br);
-}
+          fflassert(id);
+          fflassert(br);
+          return id;
+      }())
+{}
 
 BaseBuffActAura::~BaseBuffActAura()
 {}
 
-BaseBuffActAura *BaseBuffActAura::createAura(BattleObject *argBO, uint32_t argBuffID, uint32_t argBuffActID)
+BaseBuffActAura *BaseBuffActAura::createAura(BaseBuff *argBuff, size_t argBuffActOff)
 {
-    return new BaseBuffActAura(argBO, argBuffID, argBuffActID);
+    return new BaseBuffActAura(argBuff, argBuffActOff);
 }
 
 void BaseBuffActAura::transmitHelper(std::vector<uint64_t> uidList)
@@ -41,27 +36,27 @@ void BaseBuffActAura::transmitHelper(std::vector<uint64_t> uidList)
             case UID_PLY:
             case UID_MON:
                 {
-                    if(currUID != m_bo->UID()){
-                        m_bo->checkFriend(currUID, [currUID, uidList = std::move(uidList), this](int friendType) mutable
+                    if(currUID != getBuff()->getBO()->UID()){
+                        getBuff()->getBO()->checkFriend(currUID, [currUID, uidList = std::move(uidList), this](int friendType) mutable
                         {
                             switch(friendType){
                                 case FT_FRIEND:
                                     {
-                                        if(DBCOM_BUFFRECORD(getBuffID()).favor >= 0){
-                                            m_bo->sendBuff(currUID, getBuffID());
+                                        if(getBR().favor >= 0){
+                                            getBuff()->getBO()->sendBuff(currUID, id());
                                         }
                                         break;
                                     }
                                 case FT_ENEMY:
                                     {
-                                        if(DBCOM_BUFFRECORD(getBuffID()).favor <= 0){
-                                            m_bo->sendBuff(currUID, getBuffID());
+                                        if(getBR().favor <= 0){
+                                            getBuff()->getBO()->sendBuff(currUID, id());
                                         }
                                         break;
                                     }
                                 case FT_NEUTRAL:
                                     {
-                                        m_bo->sendBuff(currUID, getBuffID());
+                                        getBuff()->getBO()->sendBuff(currUID, id());
                                         break;
                                     }
                                 default:
@@ -84,5 +79,5 @@ void BaseBuffActAura::transmitHelper(std::vector<uint64_t> uidList)
 
 void BaseBuffActAura::transmit()
 {
-    transmitHelper(m_bo->getInViewUIDList());
+    transmitHelper(getBuff()->getBO()->getInViewUIDList());
 }

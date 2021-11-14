@@ -1,10 +1,14 @@
+#include "buff.hpp"
+#include "buffact.hpp"
 #include "buffactspellmodifier.hpp"
 
-BaseBuffActSpellModifier::BaseBuffActSpellModifier(uint32_t argBuffID, uint32_t argBuffActID)
-    : BaseBuffAct(argBuffID, argBuffActID)
-{}
-
-BaseBuffActSpellModifier *BaseBuffActSpellModifier::createSpellModifier(uint32_t argBuffID, uint32_t argBuffActID)
+BaseBuffActSpellModifier::BaseBuffActSpellModifier(BaseBuff *argBuff, size_t argBuffActOff)
+    : BaseBuffAct(argBuff, argBuffActOff)
 {
-    return new BaseBuffActSpellModifier(argBuffID, argBuffActID);
+    fflassert(getBAR().isSpellModifier());
+}
+
+BaseBuffActSpellModifier *BaseBuffActSpellModifier::createSpellModifier(BaseBuff *argBuff, size_t argBuffActOff)
+{
+    return new BaseBuffActSpellModifier(argBuff, argBuffActOff);
 }

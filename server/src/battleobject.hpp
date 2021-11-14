@@ -250,7 +250,7 @@ class BattleObject: public CharObject
         }
 
     protected:
-        int  addBuff(uint32_t);
+        int   addBuff(uint64_t, uint32_t);
         void sendBuff(uint64_t, uint32_t);
         void dispatchBuffIDList();
 

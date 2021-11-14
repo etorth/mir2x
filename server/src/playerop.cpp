@@ -397,7 +397,7 @@ void Player::on_AM_ADDBUFF(const ActorMsgPack &mpk)
                         case FT_FRIEND:
                         case FT_NEUTRAL:
                             {
-                                addBuff(DBCOM_BUFFID(u8"治愈术"));
+                                addBuff(amAB.from, DBCOM_BUFFID(u8"治愈术"));
                                 return;
                             }
                         default:
@@ -416,7 +416,7 @@ void Player::on_AM_ADDBUFF(const ActorMsgPack &mpk)
                         case FT_ENEMY:
                         case FT_NEUTRAL:
                             {
-                                addBuff(DBCOM_BUFFID(u8"施毒术"));
+                                addBuff(amAB.from, DBCOM_BUFFID(u8"施毒术"));
                                 return;
                             }
                         default:
