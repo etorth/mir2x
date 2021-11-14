@@ -1,7 +1,7 @@
 #pragma once
-#include <memory>
+#include <cstdint>
 #include <functional>
-#include "dbcomrecord.hpp"
+#include "buffact.hpp"
 
 class BattleObject;
 class BaseBuffActAttributeModifier: public BaseBuffAct
@@ -12,9 +12,12 @@ class BaseBuffActAttributeModifier: public BaseBuffAct
     protected:
         const std::function<void()> m_onDone;
 
-    public:
+    protected:
         BaseBuffActAttributeModifier(BattleObject *, uint32_t, uint32_t);
 
     public:
         ~BaseBuffActAttributeModifier() override;
+
+    public:
+        static BaseBuffActAttributeModifier *createAttributeModifier(BattleObject *, uint32_t, uint32_t);
 };

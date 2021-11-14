@@ -4,6 +4,7 @@
 #include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 
+class BattleObject;
 class BaseBuffAct
 {
     protected:
@@ -19,7 +20,7 @@ class BaseBuffAct
         virtual ~BaseBuffAct() = default;
 
     public:
-        static BaseBuffAct *createBuffAct(uint32_t, uint32_t);
+        static BaseBuffAct *createBuffAct(BattleObject *, uint32_t, uint32_t);
 
     public:
         uint32_t buffID() const

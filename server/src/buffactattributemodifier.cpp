@@ -1,4 +1,5 @@
 #include "monoserver.hpp"
+#include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
 #include "battleobject.hpp"
 #include "buffactattributemodifier.hpp"
@@ -34,12 +35,12 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uin
           }
 
           if(getBAR().isBuffAct(u8"HP")){
-              m_bo->updateHealth(12);
+              m_bo->updateHealth(10);
               return {};
           }
 
           if(getBAR().isBuffAct(u8"MP")){
-              m_bo->updateHealth(-12);
+              m_bo->updateHealth(0, 10);
               return {};
           }
 
@@ -65,4 +66,9 @@ BaseBuffActAttributeModifier::~BaseBuffActAttributeModifier()
     if(!errInfo.empty()){
         g_monoServer->addLog(LOGTYPE_FATAL, "Attribute modifier callback failed: %s", to_cstr(errInfo));
     }
+}
+
+BaseBuffActAttributeModifier *BaseBuffActAttributeModifier::createAttributeModifier(BattleObject *bo, uint32_t argBuffID, uint32_t argBuffActID)
+{
+    return new BaseBuffActAttributeModifier(bo, argBuffID, argBuffActID);
 }

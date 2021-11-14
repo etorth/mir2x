@@ -23,7 +23,7 @@ BaseBuff::BaseBuff(uint32_t argBuffID, BattleObject *argBO)
         m_runList.push_back(BuffActRunner
         {
             .tpsCount = 0,
-            .ptr = std::unique_ptr<BaseBuffAct>(BaseBuffAct::createBuffAct(argBuffID, DBCOM_BUFFACTID(baref.name))),
+            .ptr = std::unique_ptr<BaseBuffAct>(BaseBuffAct::createBuffAct(argBO, argBuffID, DBCOM_BUFFACTID(baref.name))),
         });
     }
 }
