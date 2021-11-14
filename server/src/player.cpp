@@ -27,11 +27,13 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     , m_hair(initParam.hair)
     , m_hairColor(initParam.hairColor)
 {
-    m_sdHealth.uid   = UID();
-    m_sdHealth.hp    = initParam.hp;
-    m_sdHealth.mp    = initParam.mp;
+    m_sdHealth.uid = UID();
+    m_sdHealth.hp = initParam.hp;
+    m_sdHealth.mp = initParam.mp;
     m_sdHealth.maxHP = Player::maxHP(UID(), level());
     m_sdHealth.maxMP = Player::maxMP(UID(), level());
+    m_sdHealth.hpRecover = 1;
+    m_sdHealth.hpRecover = 1;
 
     m_sdItemStorage.gold = initParam.gold;
 
@@ -217,6 +219,11 @@ bool Player::update()
     if(m_buffList.update()){
         dispatchBuffIDList();
     }
+
+    const auto hpRecover = m_sdHealth.getHPRecover();
+    const auto mpRecover = m_sdHealth.getMPRecover();
+    updateHealth(hpRecover, mpRecover);
+
     return true;
 }
 
@@ -1095,19 +1102,6 @@ int Player::MaxStep() const
         return 3;
     }else{
         return 2;
-    }
-}
-
-void Player::recoverHealth()
-{
-    const auto lastHP = m_sdHealth.hp;
-    const auto lastMP = m_sdHealth.mp;
-
-    m_sdHealth.hp = std::min<int>(m_sdHealth.maxHP, m_sdHealth.hp + std::max<int>(m_sdHealth.maxHP / 60, 1));
-    m_sdHealth.mp = std::min<int>(m_sdHealth.maxMP, m_sdHealth.mp + std::max<int>(m_sdHealth.maxMP / 60, 1));
-
-    if((lastHP != m_sdHealth.hp) || (lastMP != m_sdHealth.mp)){
-        reportHealth();
     }
 }
 

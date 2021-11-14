@@ -230,9 +230,6 @@ class Player final: public BattleObject
         virtual int MaxStep() const;
 
     protected:
-        virtual void recoverHealth();
-
-    protected:
         void gainExp(int);
 
     protected:
