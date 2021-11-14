@@ -58,11 +58,11 @@ struct BuffActRecord
     {
         const struct CanDoParam
         {
-            const int move   : 1 = 0;
-            const int attack : 1 = 0;
-            const int spell  : 1 = 0;
-            const int hitted : 1 = 0;
-            const int item   : 1 = 0;
+            const int move   : 2 = 0;
+            const int attack : 2 = 0;
+            const int spell  : 2 = 0;
+            const int hitted : 2 = 0;
+            const int item   : 2 = 0;
         }
         can {};
     }
@@ -142,11 +142,11 @@ struct BuffRecord
 
     const int duration    : 20 = 0; // in seconds
     const int favor       :  2 = 0; // debuff: -1, neutral: 0, buff: 1
-    const int dispellable :  1 = 0;
+    const int dispellable :  2 = 0;
 
     const struct IconParam
     {
-        const int show : 1 = 0;
+        const int show : 2 = 0;
         const uint32_t gfxID = SYS_TEXNIL;
     }
     icon {};
