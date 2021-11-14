@@ -796,12 +796,12 @@ struct SDHealth
 
     int getHPRecover() const
     {
-        return std::max<int>(0, hpRecover + buffedHPRecover.sum());
+        return hpRecover + buffedHPRecover.sum();
     }
 
     int getMPRecover() const
     {
-        return std::max<int>(0, mpRecover + buffedMPRecover.sum());
+        return mpRecover + buffedMPRecover.sum();
     }
 };
 
