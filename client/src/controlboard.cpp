@@ -1399,8 +1399,8 @@ void ControlBoard::drawFocusFace() const
             const auto &br = DBCOM_BUFFRECORD(id);
             fflassert(br);
 
-            if(br.gfxID != SYS_TEXNIL){
-                if(auto iconTexPtr = g_progUseDB->retrieve(br.gfxID)){
+            if(br.icon.gfxID != SYS_TEXNIL){
+                if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
                     const int buffIconOffX = buffIconOffStartX + (drawIconCount % 5) * buffIconDrawW;
                     const int buffIconOffY = buffIconOffStartY - (drawIconCount / 5) * buffIconDrawH;
 

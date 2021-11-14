@@ -9,7 +9,7 @@ bool ClientShipwreckLord::onActionAttack(const ActionNode &action)
     const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
 
-    switch(const auto magicID = action.extParam.attack.damageID){
+    switch(const auto magicID = action.extParam.attack.magicID){
         case DBCOM_MAGICID(u8"物理攻击"):
             {
                 m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode

@@ -6,67 +6,133 @@
 #include "sysconst.hpp"
 #include "protocoldef.hpp"
 
-enum BuffModifierType: int
+enum BuffActTriggerType: int
 {
-    BMOD_NONE  = 0,
-    BMOD_BEGIN = 1,
-    BMOD_HP    = 1,
-    BMOD_HPMAX,
-    BMOD_MP,
-    BMOD_MPMAX,
-    BMOD_END,
+    BATGR_NONE  = 0,
+    BATGR_BEGIN = 1,
+
+    BATGR_TIME   = 1 << 0,
+    BATGR_MOVE   = 1 << 1,
+    BATGR_ATTACK = 1 << 2,
+    BATGR_HITTED = 1 << 3,
+
+    BATGR_END,
 };
 
-constexpr bool validBuffModifier(int bmod)
+constexpr bool validBuffActTrigger(int btgr)
 {
-    return bmod >= BMOD_BEGIN && bmod < BMOD_END;
+    return (btgr & (~((BATGR_END - 1) | (BATGR_END - 2)))) == 0;
 }
 
-struct BuffModifierRecord
-{
-    const int type = 0;
-    const int arg  = 0;
-};
-
-enum BuffTriggerType: int
-{
-    BTGR_NONE  = 0,
-    BTGR_BEGIN = 1,
-
-    BTGR_TIME   = 1 << 0,
-    BTGR_MOVE   = 1 << 1,
-    BTGR_ATTACK = 1 << 2,
-    BTGR_HITTED = 1 << 3,
-
-    BTGR_END,
-};
-
-constexpr bool validBuffTrigger(int btgr)
-{
-    return (btgr & (~((BTGR_END - 1) | (BTGR_END - 2)))) == 0;
-}
-
-struct BuffTriggerRecord
+struct AttackModifierRecord
 {
     const char8_t * const name = nullptr;
-
     operator bool() const
     {
         return name && !std::u8string_view(name).empty();
     }
 };
 
-struct BuffTriggerRecordRef
+struct SpellModifierRecord
 {
     const char8_t * const name = nullptr;
+    operator bool() const
+    {
+        return name && !std::u8string_view(name).empty();
+    }
+};
 
-    const int on  = 0;
-    const int tps = 0;
-    const int arg = 0;
+struct BuffActRecord
+{
+    const char8_t * const name = nullptr;
+    const char8_t * const type = nullptr; // 光环/控制/触发/属性修改/攻击修改/施法修改
+
+    const struct BuffActAuraParam
+    {
+        const char8_t * const buff = nullptr;
+        const int self = 0;
+    }
+    aura {};
+
+    const struct BuffActControllerParam
+    {
+        const struct CanDoParam
+        {
+            const int move   : 1 = 0;
+            const int attack : 1 = 0;
+            const int spell  : 1 = 0;
+            const int hitted : 1 = 0;
+            const int item   : 1 = 0;
+        }
+        can {};
+    }
+    controller {};
+
+    const struct BuffActTriggerParam
+    {
+    }
+    trigger {};
+
+    const struct BuffActAttackModifierParam
+    {
+        const char8_t * const buff     = nullptr;
+        const char8_t * const modifier = nullptr;
+    }
+    attackModifier {};
+
+    const struct BuffActSpellModifierParam
+    {
+        const char8_t * const buff     = nullptr;
+        const char8_t * const modifier = nullptr;
+    }
+    spellModifier {};
+
+    const struct BuffActAttributeModifierParam
+    {
+        const char8_t * const name = nullptr;
+    }
+    attributeModifier {};
 
     operator bool () const
     {
-        return name && !std::u8string_view(name).empty();
+        return true
+            && name && !std::u8string_view(name).empty()
+            && type && !std::u8string_view(type).empty();
+    }
+
+    constexpr bool isBuffAct(const char8_t *actName) const
+    {
+        return actName && std::u8string_view(name) == actName;
+    }
+
+    constexpr bool isAura() const
+    {
+        return type && std::u8string_view(type) == u8"光环";
+    }
+
+    constexpr bool isController() const
+    {
+        return type && std::u8string_view(type) == u8"控制";
+    }
+
+    constexpr bool isTrigger() const
+    {
+        return type && std::u8string_view(type) == u8"触发";
+    }
+
+    constexpr bool isAttributeModifier() const
+    {
+        return type && std::u8string_view(type) == u8"属性修改";
+    }
+
+    constexpr bool isAttackModifier() const
+    {
+        return type && std::u8string_view(type) == u8"攻击修改";
+    }
+
+    constexpr bool isSpellModifier() const
+    {
+        return type && std::u8string_view(type) == u8"施法修改";
     }
 };
 
@@ -74,17 +140,92 @@ struct BuffRecord
 {
     const char8_t * const name = nullptr;
 
-    const int negative = 0;
-    const int disperse = 0;
+    const int duration    : 20 = 0; // in seconds
+    const int favor       :  2 = 0; // debuff: -1, neutral: 0, buff: 1
+    const int dispellable :  1 = 0;
 
-    const uint32_t time = 0;
-    const uint32_t gfxID = SYS_TEXNIL;
+    const struct IconParam
+    {
+        const int show : 1 = 0;
+        const uint32_t gfxID = SYS_TEXNIL;
+    }
+    icon {};
 
-    const std::initializer_list<BuffModifierRecord  > modList {};
-    const std::initializer_list<BuffTriggerRecordRef> tgrList {};
+    struct BuffActRecordRef
+    {
+        const char8_t * const name = nullptr;
+
+        const struct BuffActAuraParam
+        {
+            const int radius = 0;
+            const struct LingerParam
+            {
+                const int in  = 0;
+                const int out = 0;
+            }
+            linger {};
+        }
+        aura {};
+
+        const struct BuffActControllerParam
+        {
+        }
+        controller {};
+
+        const struct BuffActTriggerParam
+        {
+            const int on = 0;
+            const int tps = 0;
+        }
+        trigger {};
+
+        const struct BuffActAttackModifierParam
+        {
+            const int prob = 0;
+        }
+        attackModifier {};
+
+        const struct BuffActSpellModifierParam
+        {
+        }
+        spellModifier {};
+
+        const struct BuffActAttributeModifierParam
+        {
+            const int percentage = 0;
+            const int value      = 0;
+        }
+        attributeModifier {};
+
+        constexpr bool isBuffActRef(const char8_t *actName) const
+        {
+            return name && actName && std::u8string_view(name) == actName;
+        }
+
+        operator bool() const
+        {
+            return name && !std::u8string_view(name).empty();
+        }
+    };
+    const std::initializer_list<BuffActRecordRef> actList {};
 
     operator bool() const
     {
         return name && !std::u8string_view(name).empty();
+    }
+
+    constexpr bool isBuff(const char8_t *buffName) const
+    {
+        return name && buffName && std::u8string_view(name) == buffName;
+    }
+
+    constexpr bool hasBuffAct(const char8_t *actName) const
+    {
+        for(const auto &baref: actList){
+            if(baref.isBuffActRef(actName)){
+                return true;
+            }
+        }
+        return false;
     }
 };

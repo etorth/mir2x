@@ -196,7 +196,7 @@ void InitView::addIVLog(int logType, const char *format, ...)
         case LOGIV_INFO   : g_log->addLog(LOGTYPE_INFO,    "%s", logStr.c_str()); break;
         case LOGIV_WARNING: g_log->addLog(LOGTYPE_WARNING, "%s", logStr.c_str()); break;
         case LOGIV_FATAL  : g_log->addLog(LOGTYPE_FATAL,   "%s", logStr.c_str()); break;
-        default: throw bad_reach();
+        default: throw fflreach();
     }
 
     {

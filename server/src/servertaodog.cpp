@@ -111,7 +111,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
             .x = X(),
             .y = Y(),
             .aimUID = targetUID,
-            .damageID = to_u32(dcType),
+            .magicID = to_u32(dcType),
         });
 
         addDelay(550, [dcType, this]()

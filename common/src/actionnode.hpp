@@ -175,6 +175,7 @@ struct ActionNode
     struct ExtParamSpell
     {
         uint32_t magicID;
+        uint32_t modifierID;
     };
 
     struct ExtParamMove
@@ -185,7 +186,8 @@ struct ActionNode
 
     struct ExtParamAttack
     {
-        uint32_t damageID;
+        uint32_t magicID;
+        uint32_t modifierID;
     };
 
     struct ExtParamHitted
@@ -362,8 +364,9 @@ struct ActionSpell
     const int aimX = x;
     const int aimY = y;
 
-    const uint64_t aimUID  = 0;
+    const uint64_t aimUID = 0;
     const uint32_t magicID = 0;
+    const uint32_t modifierID = 0;
 
     operator ActionNode () const
     {
@@ -451,7 +454,8 @@ struct ActionAttack
     const int y = -1;
 
     const uint64_t aimUID = 0;
-    const uint32_t damageID = 0;
+    const uint32_t magicID = 0;
+    const uint32_t modifierID = 0;
 
     operator ActionNode () const
     {
@@ -465,7 +469,8 @@ struct ActionAttack
         node.y = y;
 
         node.aimUID = aimUID;
-        node.extParam.attack.damageID = damageID;
+        node.extParam.attack.magicID = magicID;
+        node.extParam.attack.modifierID = modifierID;
         return node;
     }
 };

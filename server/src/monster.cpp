@@ -227,14 +227,14 @@ bool Monster::randomTurn()
     return false;
 }
 
-void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std::function<void()> onError)
+void Monster::attackUID(uint64_t uid, int magicID, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canAttack()){
         onError();
         return;
     }
 
-    if(!dcValid(nDC, true)){
+    if(!dcValid(magicID, true)){
         onError();
         return;
     }
@@ -243,12 +243,12 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
     // before response received we can't allow any attack request
 
     m_attackLock = true;
-    getCOLocation(nUID, [this, nDC, nUID, onOK, onError](const COLocation &coLoc)
+    getCOLocation(uid, [this, magicID, uid, onOK, onError](const COLocation &coLoc)
     {
         fflassert(m_attackLock);
         m_attackLock = false;
 
-        const auto &mr = DBCOM_MAGICRECORD(nDC);
+        const auto &mr = DBCOM_MAGICRECORD(magicID);
         if(!pathf::inDCCastRange(mr.castRange, X(), Y(), coLoc.x, coLoc.y)){
             if(onError){
                 onError();
@@ -267,14 +267,20 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
             return;
         }
 
+        const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
         dispatchAction(ActionAttack
         {
             .speed = attackSpeed(),
             .x = X(),
             .y = Y(),
-            .aimUID = nUID,
-            .damageID = to_u32(nDC),
+            .aimUID = uid,
+            .magicID = to_u32(magicID),
+            .modifierID = to_u32(modifierID),
         });
+
+        if(buffID){
+            sendBuff(uid, buffID);
+        }
 
         // send attack message to target
         // target can ignore this message directly
@@ -284,9 +290,9 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         //   2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
         //   3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
 
-        addDelay(550, [this, nUID, nDC]()
+        addDelay(550, [this, uid, magicID]()
         {
-            dispatchAttackDamage(nUID, nDC);
+            dispatchAttackDamage(uid, magicID);
         });
 
         if(onOK){
@@ -294,10 +300,10 @@ void Monster::attackUID(uint64_t nUID, int nDC, std::function<void()> onOK, std:
         }
     },
 
-    [this, nUID, onError]()
+    [this, uid, onError]()
     {
         m_attackLock = false;
-        m_inViewCOList.erase(nUID);
+        m_inViewCOList.erase(uid);
 
         if(onError){
             onError();
@@ -1338,7 +1344,7 @@ void Monster::checkFriend_ctrlByMonster(uint64_t targetUID, std::function<void(i
                                 }
                             default:
                                 {
-                                    throw bad_value(uidf::getUIDString(finalMasterUID));
+                                    throw fflvalue(uidf::getUIDString(finalMasterUID));
                                 }
                         }
                     }
@@ -1359,7 +1365,7 @@ void Monster::checkFriend_ctrlByMonster(uint64_t targetUID, std::function<void(i
             }
         default:
             {
-                throw bad_value(uidf::getUIDString(targetUID));
+                throw fflvalue(uidf::getUIDString(targetUID));
             }
     }
 }
@@ -1403,7 +1409,7 @@ void Monster::checkFriend_ctrlByPlayer(uint64_t targetUID, std::function<void(in
                                 }
                             default:
                                 {
-                                    throw bad_value(finalMasterUID);
+                                    throw fflvalue(finalMasterUID);
                                 }
                         }
                     }
@@ -1427,7 +1433,7 @@ void Monster::checkFriend_ctrlByPlayer(uint64_t targetUID, std::function<void(in
             }
         default:
             {
-                throw bad_value(targetUID);
+                throw fflvalue(targetUID);
             }
     }
 }
@@ -1526,7 +1532,7 @@ void Monster::queryPlayerFriend(uint64_t fromUID, uint64_t targetUID, std::funct
                             }
                         default:
                             {
-                                throw bad_reach();
+                                throw fflreach();
                             }
                     }
                 }

@@ -184,7 +184,7 @@ std::array<const uint32_t *, 3> WilImagePackage::decode(bool mergeLayer, bool re
                     }
                 default:
                     {
-                        throw bad_reach();
+                        throw fflreach();
                     }
             }
             dstNowPosInRow += hdCopyCount;

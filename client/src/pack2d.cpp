@@ -92,7 +92,7 @@ void Pack2D::findRoom(PackBin &bin)
             }
         }
     }
-    throw bad_reach();
+    throw fflreach();
 }
 
 void Pack2D::pack(std::vector<PackBin> &binList, size_t packWidth, int packMethod)

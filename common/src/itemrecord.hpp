@@ -163,6 +163,11 @@ struct ItemRecord
         }
     }
 
+    constexpr bool isItem(const char8_t *itemName) const
+    {
+        return name && itemName && std::u8string_view(name) == name;
+    }
+
     constexpr bool isGold() const
     {
         return std::u8string_view(type) == u8"金币";

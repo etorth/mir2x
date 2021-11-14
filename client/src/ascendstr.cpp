@@ -47,7 +47,7 @@ AscendStr::AscendStr(int argType, int argValue, int argX, int argY)
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }

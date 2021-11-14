@@ -10,7 +10,7 @@ bool ClientMinotaurGuardian::onActionAttack(const ActionNode &action)
     const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     m_motionQueue = makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED);
 
-    switch(const auto magicID = action.extParam.attack.damageID){
+    switch(const auto magicID = action.extParam.attack.magicID){
         case DBCOM_MAGICID(u8"潘夜右护卫_电魔杖"):
         case DBCOM_MAGICID(u8"潘夜左护卫_火魔杖"):
             {

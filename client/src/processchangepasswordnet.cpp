@@ -79,7 +79,7 @@ void ProcessChangePassword::net_CHANGEPASSWORDERROR(const uint8_t *buf, size_t)
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }

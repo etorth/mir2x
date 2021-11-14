@@ -124,7 +124,7 @@ void Channel::doReadPackHeadCode()
                             }
                         default:
                             {
-                                throw bad_reach();
+                                throw fflreach();
                             }
                     }
                 });
@@ -136,7 +136,7 @@ void Channel::doReadPackHeadCode()
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }
@@ -181,7 +181,7 @@ void Channel::doReadPackBody(size_t maskSize, size_t bodySize)
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }
@@ -240,7 +240,7 @@ void Channel::doSendPack()
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }
@@ -317,7 +317,7 @@ void Channel::close()
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }

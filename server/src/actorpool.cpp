@@ -335,7 +335,7 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
                 }
         }
     }
-    throw bad_reach();
+    throw fflreach();
 }
 
 void ActorPool::detach(const Receiver *receiverPtr)
@@ -585,7 +585,7 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome, uint64_t s
         // finished currQ without detach the actor
         // check when we are running currQ if any other thread post more messages to nextQ
     }
-    throw bad_reach();
+    throw fflreach();
 }
 
 void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)

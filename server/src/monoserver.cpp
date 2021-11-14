@@ -172,7 +172,7 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
                 }
             default:
                 {
-                    throw bad_reach();
+                    throw fflreach();
                 }
         }
     }();

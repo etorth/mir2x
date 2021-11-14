@@ -154,7 +154,7 @@ class WilImagePackage
                 case   17: return 24;
                 case 5000: return 28;
                 case 6000: return 32;
-                default  : throw bad_reach();
+                default  : throw fflreach();
             }
         }
 
@@ -164,7 +164,7 @@ class WilImagePackage
                 case   17: return 17;
                 case 5000: return 21;
                 case 6000: return 21;
-                default  : throw bad_reach();
+                default  : throw fflreach();
             }
         }
 
@@ -180,6 +180,6 @@ class WilImagePackage
                     return fileName;
                 }
             }
-            throw bad_reach();
+            throw fflreach();
         }
 };

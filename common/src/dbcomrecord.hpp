@@ -40,7 +40,13 @@ const MapRecord &DBCOM_MAPRECORD(const char8_t *);
 const BuffRecord &DBCOM_BUFFRECORD(uint32_t);
 const BuffRecord &DBCOM_BUFFRECORD(const char8_t *);
 
-const BuffTriggerRecord &DBCOM_BUFFTRIGGERRECORD(uint32_t);
-const BuffTriggerRecord &DBCOM_BUFFTRIGGERRECORD(const char8_t *);
+const BuffActRecord &DBCOM_BUFFACTRECORD(uint32_t);
+const BuffActRecord &DBCOM_BUFFACTRECORD(const char8_t *);
+
+const AttackModifierRecord &DBCOM_ATTACKMODIFIERRECORD(uint32_t);
+const AttackModifierRecord &DBCOM_ATTACKMODIFIERRECORD(const char8_t *);
+
+const SpellModifierRecord &DBCOM_SPELLMODIFIERRECORD(uint32_t);
+const SpellModifierRecord &DBCOM_SPELLMODIFIERRECORD(const char8_t *);
 
 bool getClothGender(uint32_t);

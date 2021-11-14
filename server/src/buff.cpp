@@ -1,61 +1,49 @@
 #include "uidf.hpp"
 #include "fflerror.hpp"
 #include "buff.hpp"
+#include "buffact.hpp"
 #include "dbcomrecord.hpp"
-#include "bufftrigger.hpp"
-#include "buffmodifier.hpp"
 #include "battleobject.hpp"
 
-BaseBuff::BaseBuff(uint32_t id, BattleObject *bo)
-    : m_id(id)
-    , m_br([id]() -> const auto &
+BaseBuff::BaseBuff(uint32_t argBuffID, BattleObject *argBO)
+    : m_id(argBuffID)
+    , m_bo([argBO]()
       {
-          const auto &br = DBCOM_BUFFRECORD(id);
-          fflassert(br);
-          return br;
-      }())
-    , m_bo([bo]()
-      {
-          fflassert(bo);
-          switch(uidf::getUIDType(bo->UID())){
+          fflassert(argBO);
+          switch(uidf::getUIDType(argBO->UID())){
               case UID_MON:
-              case UID_PLY: return bo;
-              default: throw bad_value(uidf::getUIDString(bo->UID()));
+              case UID_PLY: return argBO;
+              default: throw fflvalue(uidf::getUIDString(argBO->UID()));
           }
       }())
 {
-    m_modList.reserve(m_br.modList.size());
-    for(const auto &[type, arg]: m_br.modList){
-        fflassert(validBuffModifier(type));
-        m_modList.push_back(std::make_unique<BaseBuffModifier>(m_bo, type, arg));
-    }
-
-    m_tgrList.reserve(m_br.tgrList.size());
-    for(const auto &tr: m_br.tgrList){
-        const auto tgrId = DBCOM_BUFFTRIGGERID(tr.name);
-        fflassert(tgrId > 0);
-        fflassert(tgrId < DBCOM_BUFFTRIGGERENDID());
-        m_tgrList.push_back(std::make_tuple(0, BaseBuffTrigger::createTrigger(tgrId, tr.arg)));
+    m_actList.reserve(getBR().actList.size());
+    for(const auto &baref: getBR().actList){
+        fflassert(baref);
+        m_actList.push_back(BuffActRunner
+        {
+            .tpsCount = 0,
+            .ptr = std::unique_ptr<BaseBuffAct>(BaseBuffAct::createBuffAct(argBuffID, DBCOM_BUFFACTID(baref.name))),
+        });
     }
 }
 
 BaseBuff::~BaseBuff()
-{
-}
+{}
 
 void BaseBuff::runOnUpdate()
 {
-    for(size_t i = 0; auto &[tpsCount, trigger]: m_tgrList){
-        fflassert(trigger);
-        fflassert(tpsCount >= 0);
+    for(auto &[tpsCount, ptr]: m_actList){
+        if(ptr->getBAR().isTrigger()){
+            fflassert(validBuffActTrigger(ptr->getBAREF().trigger.on));
+            if(ptr->getBAREF().trigger.on & BATGR_TIME){
+                auto ptgr = dynamic_cast<BaseBuffActTrigger *>(ptr.get());
+                fflassert(ptgr);
 
-        const auto &tr = m_br.tgrList.begin()[i++];
-        fflassert(tr);
-        fflassert(validBuffTrigger(tr.on));
-
-        if(tr.on | BTGR_TIME){
-            for(const auto needed = std::lround(m_accuTime * tr.tps / 1000.0); tpsCount < needed; ++tpsCount){
-                trigger->runOnTrigger(m_bo, BTGR_TIME);
+                const auto neededCount = std::lround(m_accuTime * ptr->getBAREF().trigger.tps / 1000.0);
+                while(tpsCount++ < neededCount){
+                    ptgr->runOnTrigger(m_bo, BATGR_TIME);
+                }
             }
         }
     }
@@ -63,19 +51,22 @@ void BaseBuff::runOnUpdate()
 
 void BaseBuff::runOnTrigger(int btgr)
 {
-    fflassert(validBuffTrigger(btgr));
-    for(size_t i = 0; auto &[tpsCount, trigger]: m_tgrList){
-        fflassert(trigger);
-        fflassert(tpsCount >= 0);
+    fflassert(validBuffActTrigger(btgr));
+    for(auto &[tpsCount, ptr]: m_actList){
+        if(ptr->getBAR().isTrigger()){
+            fflassert(validBuffActTrigger(ptr->getBAREF().trigger.on));
+            auto ptgr = dynamic_cast<BaseBuffActTrigger *>(ptr.get());
+            fflassert(ptgr);
 
-        const auto &tr = m_br.tgrList.begin()[i++];
-        fflassert(tr);
-        fflassert(validBuffTrigger(tr.on));
-
-        for(int m = 1; m < BTGR_END; m <<= 1){
-            if(tr.on | m){
-                trigger->runOnTrigger(m_bo, m);
+            for(int m = 1; m < BATGR_END; m <<= 1){
+                if(ptr->getBAREF().trigger.on & m){
+                    ptgr->runOnTrigger(m_bo, m);
+                }
             }
         }
     }
+}
+
+void BaseBuff::runOnDone()
+{
 }

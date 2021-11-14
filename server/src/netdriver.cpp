@@ -178,7 +178,7 @@ std::array<std::tuple<const uint8_t *, size_t>, 2> NetDriver::encodePostBuf(uint
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }

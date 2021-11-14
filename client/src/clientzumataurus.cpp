@@ -185,7 +185,7 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
             .y = action.y,
         }));
 
-        switch(action.extParam.attack.damageID){
+        switch(action.extParam.attack.magicID){
             case DBCOM_MAGICID(u8"祖玛教主_火墙"):
                 {
                     m_motionQueue.back()->effect = std::unique_ptr<MotionAlignedEffect>(new MotionAlignedEffect
@@ -267,7 +267,7 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
                 }
             default:
                 {
-                    throw bad_reach();
+                    throw fflreach();
                 }
         }
     }

@@ -562,7 +562,7 @@ std::tuple<int, int, int, int> PurchaseBoard::getExt1PageGridLoc(int gridX, int 
 void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
 {
     if(extendedPageCount() <= 0){
-        throw bad_reach();
+        throw fflreach();
     }
 
     fflassert(itemIndex >= 0);
@@ -605,7 +605,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
 void PurchaseBoard::drawExt1() const
 {
     if(extendedBoardGfxID() != 1){
-        throw bad_reach();
+        throw fflreach();
     }
 
     m_closeExt1Button .draw();
@@ -696,7 +696,7 @@ void PurchaseBoard::drawExt1() const
 void PurchaseBoard::drawExt2() const
 {
     if(extendedBoardGfxID() != 2){
-        throw bad_reach();
+        throw fflreach();
     }
 
     const auto [extItemID, extSeqID] = getExtSelectedItemSeqID();
@@ -756,7 +756,7 @@ std::tuple<uint32_t, uint32_t> PurchaseBoard::getExtSelectedItemSeqID() const
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }

@@ -350,7 +350,7 @@ bool BattleObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, b
 
                     if(onOK){
                         onOK();
-                        m_buffList.runOnTrigger(BTGR_MOVE);
+                        m_buffList.runOnTrigger(BATGR_MOVE);
                     }
                     return;
                 }
@@ -817,7 +817,7 @@ int BattleObject::estimateHop(int nX, int nY)
                     case 1:
                     case 2:
                     case 3: break;
-                    default: throw bad_value(nMaxStep);
+                    default: throw fflvalue(nMaxStep);
                 }
 
                 if(false
@@ -1120,7 +1120,7 @@ void BattleObject::queryFinalMaster(uint64_t targetUID, std::function<void(uint6
                                 }
                             default:
                                 {
-                                    throw bad_reach();
+                                    throw fflreach();
                                 }
                         }
                     }
@@ -1200,4 +1200,32 @@ bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP
         return true;
     }
     return false;
+}
+
+std::pair<int, SDTaggedValMap &> BattleObject::updateBuffedAbility(uint32_t buffActID, int value)
+{
+    switch(buffActID){
+        case DBCOM_BUFFACTID(u8"DC下限"):
+            {
+                return {m_sdBuffedAbility.dc[0].add(value), m_sdBuffedAbility.dc[0]};
+            }
+        case DBCOM_BUFFACTID(u8"DC上限"):
+            {
+                return {m_sdBuffedAbility.dc[1].add(value), m_sdBuffedAbility.dc[1]};
+            }
+        default:
+            {
+                throw fflvalue(buffActID);
+            }
+    }
+}
+
+void BattleObject::sendBuff(uint64_t uid, uint32_t buffID)
+{
+    AMAddBuff amAB;
+    std::memset(&amAB, 0, sizeof(amAB));
+
+    amAB.id = buffID;
+    amAB.from = UID();
+    m_actorPod->forward(uid, {AM_ADDBUFF, amAB});
 }

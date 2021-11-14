@@ -221,7 +221,7 @@ uint64_t ProcessRun::getFocusUID(int focusType) const
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }
@@ -446,8 +446,8 @@ void ProcessRun::draw() const
             const auto &br = DBCOM_BUFFRECORD(id);
             fflassert(br);
 
-            if(br.gfxID != SYS_TEXNIL){
-                if(auto iconTexPtr = g_progUseDB->retrieve(br.gfxID)){
+            if(br.icon.gfxID != SYS_TEXNIL){
+                if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
                     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
                     g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, 0, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
                     buffIconOffX -= buffIconDrawW;
@@ -1335,7 +1335,7 @@ bool ProcessRun::trackAttack(bool bForce, uint64_t nUID)
                 .x = getMyHero()->currMotion()->endX,
                 .y = getMyHero()->currMotion()->endY,
                 .aimUID = nUID,
-                .damageID = [this]() -> uint32_t
+                .magicID = [this]() -> uint32_t
                 {
                     if(getMyHero()->getNextStrike()){
                         getMyHero()->setNextStrike(false);
@@ -1470,7 +1470,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID)
         }
     }
 
-    throw bad_reach();
+    throw fflreach();
 }
 
 bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)

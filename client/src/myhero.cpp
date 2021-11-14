@@ -180,7 +180,7 @@ bool MyHero::decompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, 
 bool MyHero::decompActionMove()
 {
     if(m_actionQueue.empty() || m_actionQueue.front().type != ACTION_MOVE){
-        throw bad_reach();
+        throw fflreach();
     }
 
     const auto currAction = m_actionQueue.front();
@@ -279,7 +279,7 @@ bool MyHero::decompActionMove()
 bool MyHero::decompActionAttack()
 {
     if(m_actionQueue.empty() || m_actionQueue.front().type != ACTION_ATTACK){
-        throw bad_reach();
+        throw fflreach();
     }
 
     const auto currAction = m_actionQueue.front();
@@ -303,7 +303,7 @@ bool MyHero::decompActionAttack()
         .x = nX0,
         .y = nY0,
         .aimUID = currAction.aimUID,
-        .damageID = currAction.extParam.attack.damageID,
+        .magicID = currAction.extParam.attack.magicID,
     };
 
     if(auto coPtr = m_processRun->findUID(currAction.aimUID)){
@@ -364,7 +364,7 @@ bool MyHero::decompActionAttack()
                             .x = nXt,
                             .y = nYt,
                             .aimUID = currAction.aimUID,
-                            .damageID = currAction.extParam.attack.damageID,
+                            .magicID = currAction.extParam.attack.magicID,
                         });
 
                         m_actionQueue.emplace_front(ActionMove
@@ -409,7 +409,7 @@ bool MyHero::decompActionAttack()
 bool MyHero::decompActionSpell()
 {
     if(m_actionQueue.empty() || m_actionQueue.front().type != ACTION_SPELL){
-        throw bad_reach();
+        throw fflreach();
     }
 
     const auto currAction = m_actionQueue.front();

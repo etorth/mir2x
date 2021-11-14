@@ -120,7 +120,7 @@ namespace cerealf
                     }
                 default:
                     {
-                        throw bad_value(flag);
+                        throw fflvalue(flag);
                     }
             }
         }(), std::ios::binary);

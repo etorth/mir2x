@@ -178,7 +178,7 @@ bool pathf::inDCCastRange(const DCCastRange &r, int x0, int y0, int x1, int y1)
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }

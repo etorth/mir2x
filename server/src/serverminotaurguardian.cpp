@@ -87,7 +87,7 @@ DamageNode ServerMinotaurGuardian::getAttackDamage(int dc) const
                 }
             default:
                 {
-                    throw bad_reach();
+                    throw fflreach();
                 }
         }
     }
@@ -114,7 +114,7 @@ DamageNode ServerMinotaurGuardian::getAttackDamage(int dc) const
                 }
             default:
                 {
-                    throw bad_reach();
+                    throw fflreach();
                 }
         }
     }

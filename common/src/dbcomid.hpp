@@ -45,14 +45,24 @@ namespace
         #include "itemrecord.inc"
     };
 
-    constexpr BuffTriggerRecord _inn_BuffTriggerRecordList []
+    constexpr BuffActRecord _inn_BuffActRecordList []
     {
-        #include "bufftriggerrecord.inc"
+        #include "buffactrecord.inc"
     };
 
     constexpr BuffRecord _inn_BuffRecordList []
     {
         #include "buffrecord.inc"
+    };
+
+    constexpr AttackModifierRecord _inn_AttackModifierRecordList []
+    {
+        #include "attackmodifierrecord.inc"
+    };
+
+    constexpr SpellModifierRecord _inn_SpellModifierRecordList []
+    {
+        #include "spellmodifierrecord.inc"
     };
 
     constexpr MonsterRecord _inn_MonsterRecordList []
@@ -83,16 +93,20 @@ template<typename T, size_t N> constexpr uint32_t DBCOM_IDHELPER(const T (&itemL
     return 0;
 }
 
-constexpr uint32_t DBCOM_ITEMID       (const char8_t *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,        name); }
-constexpr uint32_t DBCOM_MONSTERID    (const char8_t *name) { return DBCOM_IDHELPER(_inn_MonsterRecordList,     name); }
-constexpr uint32_t DBCOM_MAGICID      (const char8_t *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,       name); }
-constexpr uint32_t DBCOM_MAPID        (const char8_t *name) { return DBCOM_IDHELPER(_inn_MapRecordList,         name); }
-constexpr uint32_t DBCOM_BUFFID       (const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffRecordList,        name); }
-constexpr uint32_t DBCOM_BUFFTRIGGERID(const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffTriggerRecordList, name); }
+constexpr uint32_t DBCOM_ITEMID          (const char8_t *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,           name); }
+constexpr uint32_t DBCOM_MONSTERID       (const char8_t *name) { return DBCOM_IDHELPER(_inn_MonsterRecordList,        name); }
+constexpr uint32_t DBCOM_MAGICID         (const char8_t *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,          name); }
+constexpr uint32_t DBCOM_MAPID           (const char8_t *name) { return DBCOM_IDHELPER(_inn_MapRecordList,            name); }
+constexpr uint32_t DBCOM_BUFFID          (const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffRecordList,           name); }
+constexpr uint32_t DBCOM_BUFFACTID       (const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffActRecordList,        name); }
+constexpr uint32_t DBCOM_ATTACKMODIFIERID(const char8_t *name) { return DBCOM_IDHELPER(_inn_AttackModifierRecordList, name); }
+constexpr uint32_t DBCOM_SPELLMODIFIERID (const char8_t *name) { return DBCOM_IDHELPER(_inn_SpellModifierRecordList,  name); }
 
-constexpr uint32_t DBCOM_ITEMENDID       () { return std::extent_v<decltype(_inn_ItemRecordList       )>; }
-constexpr uint32_t DBCOM_MONSTERENDID    () { return std::extent_v<decltype(_inn_MonsterRecordList    )>; }
-constexpr uint32_t DBCOM_MAGICENDID      () { return std::extent_v<decltype(_inn_MagicRecordList      )>; }
-constexpr uint32_t DBCOM_MAPENDID        () { return std::extent_v<decltype(_inn_MapRecordList        )>; }
-constexpr uint32_t DBCOM_BUFFENDID       () { return std::extent_v<decltype(_inn_BuffRecordList       )>; }
-constexpr uint32_t DBCOM_BUFFTRIGGERENDID() { return std::extent_v<decltype(_inn_BuffTriggerRecordList)>; }
+constexpr uint32_t DBCOM_ITEMENDID          () { return std::extent_v<decltype(_inn_ItemRecordList          )>; }
+constexpr uint32_t DBCOM_MONSTERENDID       () { return std::extent_v<decltype(_inn_MonsterRecordList       )>; }
+constexpr uint32_t DBCOM_MAGICENDID         () { return std::extent_v<decltype(_inn_MagicRecordList         )>; }
+constexpr uint32_t DBCOM_MAPENDID           () { return std::extent_v<decltype(_inn_MapRecordList           )>; }
+constexpr uint32_t DBCOM_BUFFENDID          () { return std::extent_v<decltype(_inn_BuffRecordList          )>; }
+constexpr uint32_t DBCOM_BUFFACTENDID       () { return std::extent_v<decltype(_inn_BuffActRecordList       )>; }
+constexpr uint32_t DBCOM_ATTACKMODIFIERENDID() { return std::extent_v<decltype(_inn_AttackModifierRecordList)>; }
+constexpr uint32_t DBCOM_SPELLMODIFIERENDID () { return std::extent_v<decltype(_inn_SpellModifierRecordList )>; }

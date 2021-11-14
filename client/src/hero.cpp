@@ -528,7 +528,7 @@ bool Hero::parseAction(const ActionNode &action)
                                 case MOTION_SPELL0:
                                 case MOTION_SPELL1:
                                 case MOTION_ATTACKMODE: return gfxEntry.motion;
-                                default: throw bad_reach();
+                                default: throw fflreach();
                             }
                         }();
 
@@ -638,7 +638,7 @@ bool Hero::parseAction(const ActionNode &action)
                                                     });
                                                 }
                                                 else{
-                                                    throw bad_reach();
+                                                    throw fflreach();
                                                 }
                                             });
                                         }
@@ -913,7 +913,7 @@ bool Hero::parseAction(const ActionNode &action)
             {
                 if(auto coPtr = m_processRun->findUID(action.aimUID)){
                     if(const auto attackDir = PathFind::GetDirection(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
-                        const auto magicID = action.extParam.attack.damageID;
+                        const auto magicID = action.extParam.attack.magicID;
                         const auto [swingMotion, motionSpeed, magicName, lagFrame] = [magicID, this]() -> std::tuple<int, int, const char8_t *, int>
                         {
                             const auto doubleHanded = [this]() -> bool

@@ -1,47 +1,68 @@
 {},
 
 {   .name = u8"治愈术",
-    .time = 6000,
-    .gfxID = 0X18000083,
-
-    .modList
+    .duration = 6000,
+    .favor = 1,
+    .dispellable = 1,
+    .icon
     {
-        {   .type = BMOD_HP,
-            .arg = 20,
-        },
-
-        {   .type = BMOD_HPMAX,
-            .arg = 200,
-        },
+        .show = 1,
+        .gfxID = 0X18000083,
     },
 
-    .tgrList
+    .actList
     {
-        {   .name = u8"HP_MODIFIER",
-            .on = BTGR_TIME,
-            .tps = 2,
-            .arg = 5,
+        {   .name = u8"HP",
+            .attributeModifier
+            {
+                .value = 10,
+            },
         },
     },
 },
 
 {   .name = u8"施毒术",
-    .time = 6000,
-    .gfxID = 0X18000074,
-
-    .modList
+    .duration = 6000,
+    .favor = -1,
+    .dispellable = 1,
+    .icon
     {
-        {   .type = BMOD_HP,
-            .arg = -20,
-        },
+        .show = 1,
+        .gfxID = 0X18000074,
     },
 
-    .tgrList
+    .actList
     {
-        {   .name = u8"HP_MODIFIER",
-            .on = BTGR_TIME | BTGR_MOVE,
-            .tps = 2,
-            .arg = -5,
+        {   .name = u8"HP",
+            .attributeModifier
+            {
+                .value = -10,
+            },
+        },
+    },
+},
+
+{   .name = u8"恢复光环",
+    .favor = 1,
+    .dispellable = 1,
+    .icon
+    {
+        .show = 1,
+        .gfxID = 0X1800000D,
+    },
+
+    .actList
+    {
+        {   .name = u8"恢复光环",
+            .aura
+            {
+                .radius = 10,
+                .linger
+                {
+                    .in = 500,
+                    .out = 500,
+                },
+            },
         },
     },
 },

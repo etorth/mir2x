@@ -140,7 +140,7 @@ RotateCoord::RotateCoord(int centerX, int centerY, int startX, int startY, int w
 
     // report bug
     // there is case doesn't cover
-    throw bad_reach();
+    throw fflreach();
 }
 
 void RotateCoord::checkOverlap()
@@ -421,7 +421,7 @@ bool RotateCoord::forward()
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }

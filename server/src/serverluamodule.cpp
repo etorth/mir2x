@@ -60,7 +60,7 @@ ServerLuaModule::ServerLuaModule()
                     return {x, y};
                 }
             }
-            throw bad_reach();
+            throw fflreach();
         };
 
         if(const auto mapID = DBCOM_MAPID(to_u8cstr(mapName))){

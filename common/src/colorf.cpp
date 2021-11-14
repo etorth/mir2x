@@ -88,7 +88,7 @@ uint32_t colorf::string2RGBA(const char *color)
                 && b >= 0 && b < 256){ // should always be true if the regex is correct
             return colorf::RGBA(r, g, b, 255);
         }
-        throw bad_reach();
+        throw fflreach();
     }
 
     // matches RGBA(xx, xx, xx, xx)
@@ -116,7 +116,7 @@ uint32_t colorf::string2RGBA(const char *color)
                 && a >= 0 && a < 256){ // should always be true if the regex is correct
             return colorf::RGBA(r, g, b, a);
         }
-        throw bad_reach();
+        throw fflreach();
     }
     throw fflerror("invalid color string: %s", color);
 }

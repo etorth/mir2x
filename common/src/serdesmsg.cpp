@@ -382,7 +382,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
             return m_list.back();
         }
     }
-    throw bad_reach();
+    throw fflreach();
 }
 
 std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID, uint32_t seqID, size_t count)

@@ -716,6 +716,30 @@ struct SDTaggedValMap
     }
 };
 
+struct SDBuffedAbility
+{
+    SDTaggedValMap dc[2];
+    SDTaggedValMap mc[2];
+    SDTaggedValMap sc[2];
+
+    SDTaggedValMap  ac[2];
+    SDTaggedValMap mac[2];
+
+    SDTaggedValMap dcHit;
+    SDTaggedValMap mcHit;
+
+    SDTaggedValMap dcDodge;
+    SDTaggedValMap mcDodge;
+
+    SDTaggedValMap speed;
+    SDTaggedValMap luckCurse;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(dc[0], dc[1], mc[0], mc[1], sc[0], sc[1], ac[0], ac[1], mac[0], mac[1], dcHit, mcHit, dcDodge, mcDodge, speed, luckCurse);
+    }
+};
+
 struct SDHealth
 {
     uint64_t uid = 0;
@@ -726,12 +750,18 @@ struct SDHealth
     int maxHP = 0;
     int maxMP = 0;
 
-    SDTaggedValMap buffMaxHP;
-    SDTaggedValMap buffMaxMP;
+    int hpRecover = 0;
+    int mpRecover = 0;
+
+    SDTaggedValMap buffedMaxHP;
+    SDTaggedValMap buffedMaxMP;
+
+    SDTaggedValMap buffedHPRecover;
+    SDTaggedValMap buffedMPRecover;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, hp, mp, maxHP, maxMP, buffMaxHP, buffMaxMP);
+        ar(uid, hp, mp, maxHP, maxMP, hpRecover, mpRecover, buffedMaxHP, buffedMaxMP, buffedHPRecover, buffedMPRecover);
     }
 
     bool updateHealth(int addHP = 0, int addMP = 0, int addMaxHP = 0, int addMaxMP = 0)
@@ -748,20 +778,20 @@ struct SDHealth
         mp = std::max<int>(0, std::min<int>(mp + addMP, getMaxMP()));
 
         return false
-            || (oldHP    != hp)
-            || (oldMP    != mp)
+            || (oldHP != hp)
+            || (oldMP != mp)
             || (oldMaxHP != maxHP)
             || (oldMaxMP != maxMP);
     }
 
     int getMaxHP() const
     {
-        return std::max<int>(0, maxHP + buffMaxHP.sum());
+        return std::max<int>(0, maxHP + buffedMaxHP.sum());
     }
 
     int getMaxMP() const
     {
-        return std::max<int>(0, maxMP + buffMaxMP.sum());
+        return std::max<int>(0, maxMP + buffedMaxMP.sum());
     }
 };
 

@@ -67,7 +67,7 @@ void NetIO::doReadHeadCode()
                 }
             default:
                 {
-                    throw bad_reach();
+                    throw fflreach();
                 }
         }
     });
@@ -97,7 +97,7 @@ void NetIO::doReadBody(size_t maskSize, size_t bodySize)
         case 0:
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 
@@ -203,7 +203,7 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize)
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 

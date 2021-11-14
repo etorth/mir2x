@@ -31,7 +31,7 @@ void ProcessSelectChar::net_QUERYCHARERROR(const uint8_t *buf, size_t)
         case QUERYCHARERR_NOLOGIN:
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }
@@ -61,7 +61,7 @@ void ProcessSelectChar::net_DELETECHARERROR(const uint8_t *buf, size_t)
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }
@@ -87,7 +87,7 @@ void ProcessSelectChar::net_ONLINEERROR(const uint8_t *buf, size_t)
             }
         default:
             {
-                throw bad_value(smOE.error);
+                throw fflvalue(smOE.error);
             }
     }
 }

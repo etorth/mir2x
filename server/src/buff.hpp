@@ -2,20 +2,30 @@
 #include <cmath>
 #include <tuple>
 #include <vector>
+#include <memory>
+#include <cstdint>
 #include "uidf.hpp"
 #include "buffrecord.hpp"
+#include "dbcomrecord.hpp"
 
 class BattleObject;
-class BaseBuffTrigger;
-class BaseBuffModifier;
+class BaseBuffAct;
+class BuffList;
 
 class BaseBuff
 {
-    protected:
-        const uint32_t m_id;
+    private:
+        friend class BuffList;
+
+    private:
+        struct BuffActRunner
+        {
+            long tpsCount = 0;
+            std::unique_ptr<BaseBuffAct> ptr;
+        };
 
     protected:
-        const BuffRecord &m_br;
+        const uint32_t m_id;
 
     protected:
         BattleObject * const m_bo;
@@ -24,8 +34,7 @@ class BaseBuff
         double m_accuTime = 0.0;
 
     protected:
-        std::vector<std::unique_ptr<BaseBuffModifier>> m_modList;
-        std::vector<std::tuple<long, std::unique_ptr<BaseBuffTrigger>>> m_tgrList;
+        std::vector<BuffActRunner> m_actList;
 
     public:
         BaseBuff(uint32_t, BattleObject *);
@@ -42,10 +51,10 @@ class BaseBuff
     public:
         virtual bool done() const
         {
-            if(m_br.time <= 0){
+            if(getBR().duration <= 0){
                 return false;
             }
-            return std::lround(m_accuTime) >= m_br.time;
+            return std::lround(m_accuTime) >= getBR().duration;
         }
 
     public:
@@ -62,13 +71,13 @@ class BaseBuff
         }
 
     public:
-        virtual void runOnDone()
-        {
-        }
-
-    public:
         virtual void runOnUpdate();
+        virtual void runOnTrigger(int);
+        virtual void runOnDone();
 
     public:
-        void runOnTrigger(int);
+        const BuffRecord &getBR() const
+        {
+            return DBCOM_BUFFRECORD(id());
+        }
 };

@@ -463,7 +463,7 @@ void InventoryBoard::drawInvOpTitle() const
                 case INVOP_TRADE : return u8"【请选择出售物品】";
                 case INVOP_SECURE: return u8"【请选择存储物品】";
                 case INVOP_REPAIR: return u8"【请选择修理物品】";
-                default: throw bad_reach();
+                default: throw fflreach();
             }
         }(),
 
@@ -591,7 +591,7 @@ void InventoryBoard::startInvOp(SDStartInvOp sdSIOP)
         case INVOP_TRADE : m_invOpButton.setTexID({0X000000B3, 0X000000B3, 0X000000B4}); return;
         case INVOP_SECURE: m_invOpButton.setTexID({0X000000B5, 0X000000B5, 0X000000B6}); return;
         case INVOP_REPAIR: m_invOpButton.setTexID({0X000000B1, 0X000000B1, 0X000000B2}); return;
-        default: throw bad_reach();
+        default: throw fflreach();
     }
 }
 

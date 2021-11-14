@@ -359,7 +359,7 @@ void ProcessSelectChar::switchCharGfx()
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }

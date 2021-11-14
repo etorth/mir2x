@@ -121,7 +121,7 @@ const tinyxml2::XMLElement *XMLRoot::getXMLNode(const char *nodePath) const
             }
         }
     }
-    throw bad_reach();
+    throw fflreach();
 }
 
 bool XMLRoot::load(const char *fileName)

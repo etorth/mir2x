@@ -22,7 +22,7 @@ class ClientWoomaTaurus: public ClientMonster
                 .y = action.y,
             }));
 
-            switch(action.extParam.attack.damageID){
+            switch(action.extParam.attack.magicID){
                 case DBCOM_MAGICID(u8"沃玛教主_电光"):
                     {
                         m_motionQueue.back()->addTrigger(false, [this](MotionNode *motionPtr) -> bool
@@ -60,7 +60,7 @@ class ClientWoomaTaurus: public ClientMonster
                     }
                 default:
                     {
-                        throw fflerror("invalid DC: id = %d, name = %s", to_d(action.extParam.attack.damageID), to_cstr(DBCOM_MAGICRECORD(action.extParam.attack.damageID).name));
+                        throw fflerror("invalid DC: id = %d, name = %s", to_d(action.extParam.attack.magicID), to_cstr(DBCOM_MAGICRECORD(action.extParam.attack.magicID).name));
                     }
             }
         }

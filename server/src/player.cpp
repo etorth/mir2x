@@ -605,7 +605,7 @@ void Player::onCMActionAttack(CMAction stCMA)
         int nX0 = stCMA.action.x;
         int nY0 = stCMA.action.y;
 
-        int nDCType = stCMA.action.extParam.attack.damageID;
+        int nDCType = stCMA.action.extParam.attack.magicID;
         uint64_t nAimUID = stCMA.action.aimUID;
 
         if(rstLocation.mapID != mapID()){
@@ -645,7 +645,7 @@ void Player::onCMActionAttack(CMAction stCMA)
                                                 .x = stCMA.action.x,
                                                 .y = stCMA.action.y,
                                                 .aimUID = stCMA.action.aimUID,
-                                                .damageID = [nDCType, this]() -> uint32_t
+                                                .magicID = [nDCType, this]() -> uint32_t
                                                 {
                                                     if(to_u32(nDCType) == DBCOM_MAGICID(u8"攻杀剑术") && !m_nextStrike){
                                                         return DBCOM_MAGICID(u8"物理攻击");
@@ -792,12 +792,7 @@ void Player::onCMActionSpell(CMAction cmA)
                                         case FT_FRIEND:
                                         case FT_NEUTRAL:
                                             {
-                                                AMAddBuff amAB;
-                                                std::memset(&amAB, 0, sizeof(amAB));
-
-                                                amAB.id = DBCOM_BUFFID(u8"治愈术");
-                                                amAB.from = UID();
-                                                m_actorPod->forward(cmA.action.aimUID, {AM_ADDBUFF, amAB});
+                                                sendBuff(cmA.action.aimUID, DBCOM_BUFFID(u8"治愈术"));
                                                 return;
                                             }
                                         default:
@@ -1066,7 +1061,7 @@ void Player::onCMActionSpell(CMAction cmA)
                         }
                     default:
                         {
-                            throw bad_reach();
+                            throw fflreach();
                         }
                 }
 
@@ -1219,7 +1214,7 @@ void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
                             }
                         default:
                             {
-                                throw bad_value(uidf::getUIDString(finalMasterUID));
+                                throw fflvalue(uidf::getUIDString(finalMasterUID));
                             }
                     }
                 });
@@ -1227,7 +1222,7 @@ void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
             }
         default:
             {
-                throw bad_value(uidf::getUIDString(targetUID));
+                throw fflvalue(uidf::getUIDString(targetUID));
             }
     }
 }

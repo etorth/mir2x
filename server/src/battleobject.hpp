@@ -9,7 +9,7 @@
 #include "damagenode.hpp"
 #include "actionnode.hpp"
 #include "protocoldef.hpp"
-#include "bufftrigger.hpp"
+#include "buffacttrigger.hpp"
 #include "buff.hpp"
 #include "bufflist.hpp"
 
@@ -17,9 +17,9 @@ class BattleObject: public CharObject
 {
     public:
         friend class CharObject;
-        friend class BaseBuffTrigger;
-        friend class BaseBuffModifier;
-        template<uint32_t> friend class BuffTrigger;
+        friend class BaseBuffActTrigger;
+        friend class BaseBuffActAttributeModifier;
+        template<uint32_t> friend class BuffActTrigger;
 
     protected:
         class BOPathFinder final: public AStarPathFinder
@@ -68,6 +68,7 @@ class BattleObject: public CharObject
 
     protected:
         SDHealth m_sdHealth;
+        SDBuffedAbility m_sdBuffedAbility;
 
     protected:
         BuffList m_buffList;
@@ -249,6 +250,7 @@ class BattleObject: public CharObject
 
     protected:
         void addBuff(uint32_t);
+        void sendBuff(uint64_t, uint32_t);
         void dispatchBuffIDList();
 
     protected:
@@ -260,4 +262,7 @@ class BattleObject: public CharObject
                 int = 0,    // mp
                 int = 0,    // maxHP
                 int = 0);   // maxMP
+
+    protected:
+        virtual std::pair<int, SDTaggedValMap &> updateBuffedAbility(uint32_t, int);
 };

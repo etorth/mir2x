@@ -115,7 +115,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
             .x = X(),
             .y = Y(),
             .aimUID = targetUID,
-            .damageID = to_u32(dcType),
+            .magicID = to_u32(dcType),
         });
 
         addDelay(550, [dcType, coLoc, this]()
@@ -189,7 +189,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
                                 }
                             default:
                                 {
-                                    throw bad_reach();
+                                    throw fflreach();
                                 }
                         }
 
@@ -221,7 +221,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
                     }
                 default:
                     {
-                        throw bad_reach();
+                        throw fflreach();
                     }
             }
         });

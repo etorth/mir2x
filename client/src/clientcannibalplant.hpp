@@ -97,7 +97,7 @@ class ClientCannibalPlant: public ClientStandMonster
                     }
                 default:
                     {
-                        throw bad_reach();
+                        throw fflreach();
                     }
             }
         }

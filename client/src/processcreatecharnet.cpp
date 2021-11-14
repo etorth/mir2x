@@ -32,7 +32,7 @@ void ProcessCreateChar::net_CREATECHARERROR(const uint8_t *buf, size_t)
             }
         default:
             {
-                throw bad_reach();
+                throw fflreach();
             }
     }
 }
