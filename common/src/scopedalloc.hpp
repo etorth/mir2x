@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: scopedalloc.hpp
- *        Created: 06/10/2020 12:53:04
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: g++ -std=c++14
- *
- *         Author: ANHONG
- *          Email:
- *   Organization:
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdio>
 #include <cstdlib>
