@@ -34,7 +34,7 @@ class BaseBuff
         double m_accuTime = 0.0;
 
     protected:
-        std::vector<BuffActRunner> m_actList;
+        std::vector<BuffActRunner> m_runList;
 
     public:
         BaseBuff(uint32_t, BattleObject *);

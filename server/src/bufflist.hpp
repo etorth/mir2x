@@ -95,7 +95,7 @@ class BuffList final
             std::vector<BaseBuffAct *> result;
 
             for(auto &p: m_buffList){
-                for(auto &actr: p->m_actList){
+                for(auto &actr: p->m_runList){
                     if(actr.ptr->getBAR().isBuffAct(name)){
                         result.push_back(actr.ptr.get());
                     }

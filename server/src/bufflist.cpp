@@ -12,7 +12,7 @@ std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
     std::vector<T *> result; \
  \
     for(auto &p: m_buffList){ \
-        for(auto &[tpsCount, ptr]: p->m_actList){ \
+        for(auto &[tpsCount, ptr]: p->m_runList){ \
             const auto &bar = DBCOM_BUFFACTRECORD(name); \
             fflassert(bar); \
  \

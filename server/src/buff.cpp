@@ -17,10 +17,10 @@ BaseBuff::BaseBuff(uint32_t argBuffID, BattleObject *argBO)
           }
       }())
 {
-    m_actList.reserve(getBR().actList.size());
+    m_runList.reserve(getBR().actList.size());
     for(const auto &baref: getBR().actList){
         fflassert(baref);
-        m_actList.push_back(BuffActRunner
+        m_runList.push_back(BuffActRunner
         {
             .tpsCount = 0,
             .ptr = std::unique_ptr<BaseBuffAct>(BaseBuffAct::createBuffAct(argBuffID, DBCOM_BUFFACTID(baref.name))),
@@ -33,7 +33,7 @@ BaseBuff::~BaseBuff()
 
 void BaseBuff::runOnUpdate()
 {
-    for(auto &[tpsCount, ptr]: m_actList){
+    for(auto &[tpsCount, ptr]: m_runList){
         if(ptr->getBAR().isTrigger()){
             fflassert(validBuffActTrigger(ptr->getBAREF().trigger.on));
             if(ptr->getBAREF().trigger.on & BATGR_TIME){
@@ -52,7 +52,7 @@ void BaseBuff::runOnUpdate()
 void BaseBuff::runOnTrigger(int btgr)
 {
     fflassert(validBuffActTrigger(btgr));
-    for(auto &[tpsCount, ptr]: m_actList){
+    for(auto &[tpsCount, ptr]: m_runList){
         if(ptr->getBAR().isTrigger()){
             fflassert(validBuffActTrigger(ptr->getBAREF().trigger.on));
             auto ptgr = dynamic_cast<BaseBuffActTrigger *>(ptr.get());
