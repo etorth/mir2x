@@ -1201,8 +1201,8 @@ bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP
 
 std::pair<int, SDTaggedValMap &> BattleObject::updateBuffedAbility(uint32_t buffActID, int percentage, int value)
 {
-    fflassert(percentage >= 0);
-    fflassert(percentage <= 100);
+    fflassert(std::abs(percentage) >= 0);
+    fflassert(std::abs(percentage) <= 100);
 
     const auto fnAddValue = [percentage, value](int currValue) -> int
     {

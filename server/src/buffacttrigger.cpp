@@ -22,7 +22,7 @@ _decl_buff_act_trigger(u8"HP")(BattleObject *bo, int)
     bo->updateHealth(5);
 }
 
-_decl_buff_act_trigger(u8"HP恢复")(BattleObject *bo, int)
+_decl_buff_act_trigger(u8"HP持续")(BattleObject *bo, int)
 {
     bo->updateHealth(5);
 }

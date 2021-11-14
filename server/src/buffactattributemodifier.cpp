@@ -14,23 +14,26 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uin
       }())
     , m_onDone([this]() -> std::function<void()>
       {
-          const auto percent = getBAREF().attributeModifier.percentage;
-          const auto value   = getBAREF().attributeModifier.value;
+          const auto percentage = getBAREF().attributeModifier.percentage;
+          const auto value      = getBAREF().attributeModifier.value;
+
+          fflassert(std::abs(percentage) >= 0);
+          fflassert(std::abs(percentage) <= 100);
 
           switch(buffActID()){
               case DBCOM_BUFFACTID(u8"HP"):
                   {
-                      m_bo->updateHealth(std::lround(m_bo->m_sdHealth.getMaxHP() * percent / 100.0) + value);
+                      m_bo->updateHealth(std::lround(m_bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value);
                       return {};
                   }
               case DBCOM_BUFFACTID(u8"MP"):
                   {
-                      m_bo->updateHealth(0, std::lround(m_bo->m_sdHealth.getMaxMP() * percent / 100.0) + value);
+                      m_bo->updateHealth(0, std::lround(m_bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value);
                       return {};
                   }
               case DBCOM_BUFFACTID(u8"HP上限"):
                   {
-                      const auto addMaxHP = std::lround(m_bo->m_sdHealth.getMaxHP() * percent / 100.0) + value;
+                      const auto addMaxHP = std::lround(m_bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value;
                       const auto tag = m_bo->m_sdHealth.buffedMaxHP.add(addMaxHP);
 
                       m_bo->updateHealth();
@@ -41,7 +44,7 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uin
                   }
               case DBCOM_BUFFACTID(u8"MP上限"):
                   {
-                      const auto addMaxMP = std::lround(m_bo->m_sdHealth.getMaxMP() * percent / 100.0) + value;
+                      const auto addMaxMP = std::lround(m_bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value;
                       const auto tag = m_bo->m_sdHealth.buffedMaxMP.add(addMaxMP);
 
                       m_bo->updateHealth();
@@ -50,9 +53,9 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uin
                           m_bo->m_sdHealth.buffedMaxMP.erase(tag);
                       };
                   }
-              case DBCOM_BUFFACTID(u8"HP恢复"):
+              case DBCOM_BUFFACTID(u8"HP持续"):
                   {
-                      const auto addHP = std::lround(m_bo->m_sdHealth.getMaxHP() * percent / 100.0) + value;
+                      const auto addHP = std::lround(m_bo->m_sdHealth.getMaxHP() * percentage / 100.0) + value;
                       const auto tag = m_bo->m_sdHealth.buffedHPRecover.add(addHP);
 
                       m_bo->updateHealth();
@@ -63,7 +66,7 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uin
                   }
               case DBCOM_BUFFACTID(u8"MP恢复"):
                   {
-                      const auto addMP = std::lround(m_bo->m_sdHealth.getMaxMP() * percent / 100.0) + value;
+                      const auto addMP = std::lround(m_bo->m_sdHealth.getMaxMP() * percentage / 100.0) + value;
                       const auto tag = m_bo->m_sdHealth.buffedMPRecover.add(addMP);
 
                       m_bo->updateHealth();
@@ -75,7 +78,7 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uin
               case DBCOM_BUFFACTID(u8"DC下限"):
               case DBCOM_BUFFACTID(u8"DC上限"):
                   {
-                      const auto &[tag, taggedMap] = m_bo->updateBuffedAbility(buffActID(), percent, value);
+                      const auto &[tag, taggedMap] = m_bo->updateBuffedAbility(buffActID(), percentage, value);
                       return [tag, &taggedMap]()
                       {
                           taggedMap.erase(tag);
@@ -83,7 +86,7 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uin
                   }
               default:
                   {
-                      throw fflvalue(getBR().name, getBAR().name, percent, value);
+                      throw fflvalue(getBR().name, getBAR().name, percentage, value);
                   }
           }
       }())
