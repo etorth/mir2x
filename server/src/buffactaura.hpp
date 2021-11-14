@@ -20,8 +20,10 @@ class BaseBuffActAura: public BaseBuffAct
     public:
         static BaseBuffActAura *createAura(BattleObject *, uint32_t, uint32_t);
 
-    private:
+    public:
         void transmit();
+
+    private:
         void transmitHelper(std::vector<uint64_t>);
 
     public:
