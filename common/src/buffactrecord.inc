@@ -87,6 +87,7 @@
 
 // 触发
 {   .name = u8"HP",
+    .type = u8"触发",
 },
 
 // 属性修改
@@ -114,6 +115,30 @@
     .type = u8"属性修改",
 },
 
+{   .name = u8"隐身",
+    .type = u8"属性修改",
+},
+
+{   .name = u8"相位",
+    .type = u8"属性修改",
+},
+
+{   .name = u8"无敌",
+    .type = u8"属性修改",
+},
+
+{   .name = u8"技能免疫",
+    .type = u8"属性修改",
+},
+
+{   .name = u8"攻击免疫",
+    .type = u8"属性修改",
+},
+
+{   .name = u8"虚无",
+    .type = u8"属性修改",
+},
+
 // 攻击修改
 {   .name = u8"重击",
     .type = u8"攻击修改",
@@ -132,53 +157,10 @@
 },
 
 // 施法修改
-{   .name = u8"淬毒",
-    .type = u8"攻击修改",
+{   .name = u8"魔法连击",
+    .type = u8"施法修改",
     .attackModifier
     {
-        .modifier = u8"淬毒",
+        .modifier = u8"魔法连击",
     },
-},
-
-{   .name = u8"传送",
-},
-
-{   .name = u8"隐身",
-},
-
-{   .name = u8"相位",
-},
-
-{   .name = u8"无敌",
-    .controller
-    {
-        .can
-        {
-            .move    = 1,
-            .attack  = 1,
-            .spell   = 1,
-            .hitted  = 1,
-            .item    = 1,
-        },
-    },
-},
-
-{   .name = u8"技能免疫",
-    .controller
-    {
-        .can
-        {
-            .move    = 1,
-            .attack  = 1,
-            .spell   = 1,
-            .hitted  = 1,
-            .item    = 1,
-        },
-    },
-},
-
-{   .name = u8"攻击免疫",
-},
-
-{   .name = u8"虚无",
 },

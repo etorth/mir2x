@@ -32,7 +32,7 @@ const static struct ItemRecordAssertor
     ItemRecordAssertor()
     {
         fflassert(!DBCOM_ITEMRECORD(nullptr));
-        for(uint32_t i = 0; i < DBCOM_ITEMENDID(); ++i){
+        for(uint32_t i = 1; i < DBCOM_ITEMENDID(); ++i){
             const auto &ir = DBCOM_ITEMRECORD(i);
             fflassert(ir);
 
@@ -51,7 +51,7 @@ const static struct BuffActRecordAssertor
     BuffActRecordAssertor()
     {
         fflassert(!DBCOM_BUFFACTRECORD(nullptr));
-        for(uint32_t i = 0; i < DBCOM_BUFFACTENDID(); ++i){
+        for(uint32_t i = 1; i < DBCOM_BUFFACTENDID(); ++i){
             const auto &bar = DBCOM_BUFFACTRECORD(i);
             fflassert(bar);
 

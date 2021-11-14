@@ -165,7 +165,7 @@ struct ItemRecord
 
     constexpr bool isItem(const char8_t *itemName) const
     {
-        return name && itemName && std::u8string_view(name) == name;
+        return name && itemName && std::u8string_view(name) == itemName;
     }
 
     constexpr bool isGold() const
