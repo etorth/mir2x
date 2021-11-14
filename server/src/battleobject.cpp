@@ -1199,20 +1199,28 @@ bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP
     return false;
 }
 
-std::pair<int, SDTaggedValMap &> BattleObject::updateBuffedAbility(uint32_t buffActID, int value)
+std::pair<int, SDTaggedValMap &> BattleObject::updateBuffedAbility(uint32_t buffActID, int percentage, int value)
 {
+    fflassert(percentage >= 0);
+    fflassert(percentage <= 100);
+
+    const auto fnAddValue = [percentage, value](int currValue) -> int
+    {
+        return std::lround(currValue * percentage / 100.0) + value;
+    };
+
     switch(buffActID){
         case DBCOM_BUFFACTID(u8"DC下限"):
             {
-                return {m_sdBuffedAbility.dc[0].add(value), m_sdBuffedAbility.dc[0]};
+                return {m_sdBuffedAbility.dc[0].add(fnAddValue(m_sdBuffedAbility.dc[0].sum())), m_sdBuffedAbility.dc[0]};
             }
         case DBCOM_BUFFACTID(u8"DC上限"):
             {
-                return {m_sdBuffedAbility.dc[1].add(value), m_sdBuffedAbility.dc[1]};
+                return {m_sdBuffedAbility.dc[1].add(fnAddValue(m_sdBuffedAbility.dc[1].sum())), m_sdBuffedAbility.dc[1]};
             }
         default:
             {
-                throw fflvalue(buffActID);
+                throw fflvalue(buffActID, percentage, value);
             }
     }
 }

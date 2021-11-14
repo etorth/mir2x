@@ -264,5 +264,8 @@ class BattleObject: public CharObject
                 int = 0);   // maxMP
 
     protected:
-        virtual std::pair<int, SDTaggedValMap &> updateBuffedAbility(uint32_t, int);
+        virtual std::pair<int, SDTaggedValMap &> updateBuffedAbility(
+                uint32_t,   // buffActID
+                int,        // percentage
+                int);       // value
 };
