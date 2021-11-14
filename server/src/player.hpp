@@ -66,6 +66,10 @@ class Player final: public BattleObject
         SDLearnedMagicList m_sdLearnedMagicList;
         SDRuntimeConfig    m_sdRuntimeConfig;
 
+    private:
+        std::unordered_map<int, std::function<void()>> m_onBeltOff;
+        std::unordered_map<int, std::function<void()>> m_onWearOff;
+
     public:
         Player(const SDInitPlayer &, const ServerMap *);
 
