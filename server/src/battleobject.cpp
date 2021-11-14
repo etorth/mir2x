@@ -104,18 +104,6 @@ BattleObject::BattleObject(
 {
     fflassert(m_map);
     m_lastActionTime.fill(0);
-    m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
-    {
-        if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 5000 < currTick){
-            if(checkActorPod()){
-                // remove all dead ones
-                // dispatch action requires check location list
-                dispatchAction(makeActionStand());
-            }
-            lastCheckTick = currTick;
-        }
-        return false;
-    });
 }
 
 bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<void()> onOK, std::function<void()> onError)

@@ -40,15 +40,6 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     dbLoadInventory();
     dbLoadLearnedMagic();
     dbLoadRuntimeConfig();
-
-    m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
-    {
-        if(const auto currTick = g_monoServer->getCurrTick(); currTick >= (lastCheckTick + 1000)){
-            recoverHealth();
-            lastCheckTick = currTick;
-        }
-        return false;
-    });
 }
 
 void Player::operateAM(const ActorMsgPack &rstMPK)

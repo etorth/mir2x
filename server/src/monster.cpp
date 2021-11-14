@@ -109,10 +109,7 @@ Monster::Monster(uint32_t monID,
     : BattleObject(mapCPtr, uidf::buildMonsterUID(monID), mapX, mapY, direction)
     , m_masterUID(masterUID)
 {
-    if(!getMR()){
-        throw fflerror("invalid monster record: MonsterID = %llu", to_llu(monsterID()));
-    }
-
+    fflassert(getMR());
     m_sdHealth.uid   = UID();
     m_sdHealth.hp    = getMR().hp;
     m_sdHealth.mp    = getMR().mp;
