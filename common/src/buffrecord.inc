@@ -15,7 +15,16 @@
         {   .name = u8"HP",
             .attributeModifier
             {
-                .value = 10,
+                .percentage = 1,
+                .value = 20,
+            },
+        },
+
+        {   .name = u8"HP恢复",
+            .attributeModifier
+            {
+                .percentage = 1,
+                .value = 20,
             },
         },
     },

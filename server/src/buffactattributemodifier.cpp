@@ -50,6 +50,28 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BattleObject *bo, uin
                           m_bo->m_sdHealth.buffedMaxMP.erase(tag);
                       };
                   }
+              case DBCOM_BUFFACTID(u8"HP恢复"):
+                  {
+                      const auto addHP = std::lround(m_bo->m_sdHealth.getMaxHP() * percent / 100.0) + value;
+                      const auto tag = m_bo->m_sdHealth.buffedHPRecover.add(addHP);
+
+                      m_bo->updateHealth();
+                      return [tag, this]()
+                      {
+                          m_bo->m_sdHealth.buffedHPRecover.erase(tag);
+                      };
+                  }
+              case DBCOM_BUFFACTID(u8"MP恢复"):
+                  {
+                      const auto addMP = std::lround(m_bo->m_sdHealth.getMaxMP() * percent / 100.0) + value;
+                      const auto tag = m_bo->m_sdHealth.buffedMPRecover.add(addMP);
+
+                      m_bo->updateHealth();
+                      return [tag, this]()
+                      {
+                          m_bo->m_sdHealth.buffedMPRecover.erase(tag);
+                      };
+                  }
               case DBCOM_BUFFACTID(u8"DC下限"):
               case DBCOM_BUFFACTID(u8"DC上限"):
                   {

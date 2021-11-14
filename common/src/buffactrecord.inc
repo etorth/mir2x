@@ -95,6 +95,10 @@
     .type = u8"属性修改",
 },
 
+{   .name = u8"HP恢复",
+    .type = u8"属性修改",
+},
+
 {   .name = u8"MP_MODIFIER",
     .type = u8"属性修改",
 },
@@ -112,6 +116,10 @@
 },
 
 {   .name = u8"DC上限",
+    .type = u8"属性修改",
+},
+
+{   .name = u8"MP恢复",
     .type = u8"属性修改",
 },
 
