@@ -422,6 +422,10 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     if(currItem){
         addInventoryItem(currItem, false);
     }
+
+    if(const auto buffIDOpt = item.getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
+        addBuff(buffIDOpt.value());
+    }
 }
 
 void Player::net_CM_REQUESTEQUIPBELT(uint8_t, const uint8_t *buf, size_t)
