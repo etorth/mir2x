@@ -1179,6 +1179,12 @@ std::tuple<int, BaseBuff *> BattleObject::addBuff(uint64_t fromUID, uint32_t buf
         case DBCOM_BUFFID(u8"恢复光环"):
         case DBCOM_BUFFID(u8"恢复光环使能"):
             {
+                for(const auto pbuff: m_buffList.hasBuff(DBCOM_BUFFRECORD(buffID).name)){
+                    if(pbuff->fromUID() == fromUID){
+                        return {0, nullptr};
+                    }
+                }
+
                 const auto buffTag = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, buffID));
                 dispatchBuffIDList();
                 return buffTag;
