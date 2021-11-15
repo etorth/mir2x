@@ -293,9 +293,8 @@ void SDWear::setWLItem(int i, SDItem item)
 
 const SDItem &SDWear::getWLItem(int i) const
 {
-    if(!(i >= WLG_BEGIN && i < WLG_END)){
-        throw fflerror("bad wltype: %d", i);
-    }
+    fflassert(i >= WLG_BEGIN);
+    fflassert(i < WLG_END);
 
     if(const auto p = m_list.find(i); p != m_list.end()){
         return p->second;

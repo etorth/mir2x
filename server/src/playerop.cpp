@@ -110,7 +110,12 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 
     if(addedInView > 0){
+        m_buffList.sendAura(amA.UID);
         dispatchAction(amA.UID, makeActionStand());
+    }
+
+    if(addedInView < 0){
+        // remove some aura
     }
 
     // always need to notify client for CO gets added/moved/removed

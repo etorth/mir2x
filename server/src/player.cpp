@@ -1243,6 +1243,23 @@ void Player::postOnlineOK()
     postNetMessage(SM_BELT,             cerealf::serialize(m_sdItemStorage.belt));
     postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
     postNetMessage(SM_RUNTIMECONFIG,    cerealf::serialize(m_sdRuntimeConfig));
+
+    for(int wltype = WLG_BEGIN; wltype < WLG_END; ++wltype){
+        if(const auto &item = m_sdItemStorage.wear.getWLItem(wltype)){
+            if(const auto buffIDOpt = item.getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
+                if(const auto [tag, pbuff] = addBuff(UID(), buffIDOpt.value()); pbuff){
+                    if(const auto auraList = pbuff->getAuraList(); !auraList.empty()){
+                        pbuff->dispatchAura();
+                    }
+
+                    m_onWearOff[wltype] = [tag, this]()
+                    {
+                        m_buffList.erase(tag);
+                    };
+                }
+            }
+        }
+    }
 }
 
 bool Player::hasInventoryItem(uint32_t itemID, uint32_t seqID, size_t count) const
