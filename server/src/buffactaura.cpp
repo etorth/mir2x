@@ -1,4 +1,7 @@
 #include "uidf.hpp"
+#include "mathf.hpp"
+#include "dbcomid.hpp"
+#include "dbcomrecord.hpp"
 #include "fflerror.hpp"
 #include "friendtype.hpp"
 #include "buffactaura.hpp"
@@ -33,33 +36,43 @@ void BaseBuffActAura::transmit(uint64_t targetUID)
         case UID_PLY:
         case UID_MON:
             {
-                getBuff()->getBO()->checkFriend(targetUID, [targetUID, this](int friendType)
+                getBuff()->getBO()->getCOLocation(targetUID, [targetUID, this](const COLocation &coLoc)
                 {
-                    switch(friendType){
-                        case FT_FRIEND:
-                            {
-                                if(getBR().favor >= 0){
-                                    getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
-                                }
-                                break;
-                            }
-                        case FT_ENEMY:
-                            {
-                                if(getBR().favor <= 0){
-                                    getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
-                                }
-                                break;
-                            }
-                        case FT_NEUTRAL:
-                            {
-                                getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
-                                break;
-                            }
-                        default:
-                            {
-                                break;
-                            }
+                    const auto &baref = getBAREF();
+                    fflassert(baref);
+
+                    if(mathf::LDistance2<int>(getBuff()->getBO()->X(), getBuff()->getBO()->Y(), coLoc.x, coLoc.y) > baref.aura.radius * baref.aura.radius){
+                        return;
                     }
+
+                    getBuff()->getBO()->checkFriend(targetUID, [targetUID, this](int friendType)
+                    {
+                        switch(friendType){
+                            case FT_FRIEND:
+                                {
+                                    if(getBR().favor >= 0){
+                                        getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                    }
+                                    break;
+                                }
+                            case FT_ENEMY:
+                                {
+                                    if(getBR().favor <= 0){
+                                        getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                    }
+                                    break;
+                                }
+                            case FT_NEUTRAL:
+                                {
+                                    getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                        }
+                    });
                 });
                 break;
             }
