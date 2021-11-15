@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: playerop.cpp
- *        Created: 05/11/2016 17:37:54
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cinttypes>
 #include "totype.hpp"
 #include "mathf.hpp"
@@ -99,6 +81,14 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
         }
     }();
 
+    const auto distChanged = [dstX, dstY, amA, this]() -> bool
+    {
+        if(const auto coLocPtr = getInViewCOPtr(amA.UID)){
+            return mathf::LDistance2<int>(X(), Y(), coLocPtr->x, coLocPtr->y) != mathf::LDistance2<int>(X(), Y(), dstX, dstY);
+        }
+        return true;
+    }();
+
     const auto addedInView = updateInViewCO(COLocation
     {
         .uid = amA.UID,
@@ -110,12 +100,11 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 
     if(addedInView > 0){
-        m_buffList.sendAura(amA.UID);
         dispatchAction(amA.UID, makeActionStand());
     }
 
-    if(addedInView < 0){
-        // remove some aura
+    if(distChanged){
+        m_buffList.sendAura(amA.UID);
     }
 
     // always need to notify client for CO gets added/moved/removed
