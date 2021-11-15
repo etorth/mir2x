@@ -60,11 +60,6 @@ void BaseBuff::runOnUpdate()
                 }
             }
         }
-        else if(ptr->getBAR().isAura()){
-            auto paura = dynamic_cast<BaseBuffActAura *>(ptr.get());
-            fflassert(paura);
-            paura->transmit();
-        }
     }
 }
 

@@ -36,6 +36,9 @@ class BuffList final
         }
 
     public:
+        void sendAura(uint64_t);
+
+    public:
         bool update()
         {
             // for update()/done()/runOnUpdate()

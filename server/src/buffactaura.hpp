@@ -17,21 +17,15 @@ class BaseBuffActAura: public BaseBuffAct
     protected:
         BaseBuffActAura(BaseBuff *, size_t);
 
-    protected:
-        ~BaseBuffActAura();
-
-    protected:
-        static BaseBuffActAura *createAura(BaseBuff *, size_t);
-
     public:
-        void transmit();
-
-    private:
-        void transmitHelper(std::vector<uint64_t>);
+        void transmit(uint64_t);
 
     public:
         uint32_t getAuraBuffID() const
         {
             return m_auraBuffID;
         }
+
+    protected:
+        static BaseBuffActAura *createAura(BaseBuff *, size_t);
 };

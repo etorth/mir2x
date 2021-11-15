@@ -3,6 +3,19 @@
 #include "bufflist.hpp"
 #include "scopedalloc.hpp"
 
+void BuffList::sendAura(uint64_t uid)
+{
+    for(auto &p: m_buffList){
+        for(auto &actr: p.second->m_runList){
+            if(actr.ptr->getBAR().isAura()){
+                auto paura = dynamic_cast<BaseBuffActAura *>(actr.ptr.get());
+                fflassert(paura);
+                paura->transmit(uid);
+            }
+        }
+    }
+}
+
 std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
 {
     scoped_alloc::svobuf_wrapper<BaseBuffActAttackModifier *, 16> amodList;

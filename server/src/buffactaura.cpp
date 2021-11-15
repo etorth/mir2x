@@ -18,66 +18,52 @@ BaseBuffActAura::BaseBuffActAura(BaseBuff *argBuff, size_t argBuffActOff)
       }())
 {}
 
-BaseBuffActAura::~BaseBuffActAura()
-{}
+void BaseBuffActAura::transmit(uint64_t targetUID)
+{
+    fflassert(targetUID);
+    fflassert(targetUID != getBuff()->getBO()->UID());
+    switch(uidf::getUIDType(targetUID)){
+        case UID_PLY:
+        case UID_MON:
+            {
+                getBuff()->getBO()->checkFriend(targetUID, [targetUID, this](int friendType)
+                {
+                    switch(friendType){
+                        case FT_FRIEND:
+                            {
+                                if(getBR().favor >= 0){
+                                    getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                }
+                                break;
+                            }
+                        case FT_ENEMY:
+                            {
+                                if(getBR().favor <= 0){
+                                    getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                }
+                                break;
+                            }
+                        case FT_NEUTRAL:
+                            {
+                                getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
+                    }
+                });
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
 
 BaseBuffActAura *BaseBuffActAura::createAura(BaseBuff *argBuff, size_t argBuffActOff)
 {
     return new BaseBuffActAura(argBuff, argBuffActOff);
-}
-
-void BaseBuffActAura::transmitHelper(std::vector<uint64_t> uidList)
-{
-    while(!uidList.empty()){
-        const auto currUID = uidList.back();
-        uidList.pop_back();
-
-        switch(uidf::getUIDType(currUID)){
-            case UID_PLY:
-            case UID_MON:
-                {
-                    if(currUID != getBuff()->getBO()->UID()){
-                        getBuff()->getBO()->checkFriend(currUID, [currUID, uidList = std::move(uidList), this](int friendType) mutable
-                        {
-                            switch(friendType){
-                                case FT_FRIEND:
-                                    {
-                                        if(getBR().favor >= 0){
-                                            getBuff()->getBO()->sendBuff(currUID, getAuraBuffID());
-                                        }
-                                        break;
-                                    }
-                                case FT_ENEMY:
-                                    {
-                                        if(getBR().favor <= 0){
-                                            getBuff()->getBO()->sendBuff(currUID, getAuraBuffID());
-                                        }
-                                        break;
-                                    }
-                                case FT_NEUTRAL:
-                                    {
-                                        getBuff()->getBO()->sendBuff(currUID, getAuraBuffID());
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        break;
-                                    }
-                            }
-                            transmitHelper(std::move(uidList));
-                        });
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-    }
-}
-
-void BaseBuffActAura::transmit()
-{
-    transmitHelper(getBuff()->getBO()->getInViewUIDList());
 }
