@@ -1175,6 +1175,7 @@ int BattleObject::addBuff(uint64_t fromUID, uint32_t buffID)
         case DBCOM_BUFFID(u8"治愈术"):
         case DBCOM_BUFFID(u8"施毒术"):
         case DBCOM_BUFFID(u8"恢复光环"):
+        case DBCOM_BUFFID(u8"恢复光环使能"):
             {
                 const auto tag = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, buffID));
                 dispatchBuffIDList();

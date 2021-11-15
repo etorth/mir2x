@@ -43,20 +43,20 @@ void BaseBuffActAura::transmitHelper(std::vector<uint64_t> uidList)
                                 case FT_FRIEND:
                                     {
                                         if(getBR().favor >= 0){
-                                            getBuff()->getBO()->sendBuff(currUID, id());
+                                            getBuff()->getBO()->sendBuff(currUID, getAuraBuffID());
                                         }
                                         break;
                                     }
                                 case FT_ENEMY:
                                     {
                                         if(getBR().favor <= 0){
-                                            getBuff()->getBO()->sendBuff(currUID, id());
+                                            getBuff()->getBO()->sendBuff(currUID, getAuraBuffID());
                                         }
                                         break;
                                     }
                                 case FT_NEUTRAL:
                                     {
-                                        getBuff()->getBO()->sendBuff(currUID, id());
+                                        getBuff()->getBO()->sendBuff(currUID, getAuraBuffID());
                                         break;
                                     }
                                 default:

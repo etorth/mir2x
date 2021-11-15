@@ -65,50 +65,40 @@ void Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
 void Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
 {
     const auto amAB = mpk.conv<AMAddBuff>();
-    switch(amAB.id){
-        case DBCOM_BUFFID(u8"治愈术"):
-            {
-                checkFriend(amAB.from, [amAB, this](int friendType)
+    fflassert(amAB.id);
+    fflassert(DBCOM_BUFFRECORD(amAB.id));
+
+    checkFriend(amAB.from, [amAB, this](int friendType)
+    {
+        const auto &br = DBCOM_BUFFRECORD(amAB.id);
+        fflassert(br);
+
+        switch(friendType){
+            case FT_FRIEND:
                 {
-                    switch(friendType){
-                        case FT_FRIEND:
-                        case FT_NEUTRAL:
-                            {
-                                addBuff(amAB.from, DBCOM_BUFFID(u8"治愈术"));
-                                return;
-                            }
-                        default:
-                            {
-                                return;
-                            }
+                    if(br.favor >= 0){
+                        addBuff(amAB.from, amAB.id);
                     }
-                });
-                break;
-            }
-        case DBCOM_BUFFID(u8"施毒术"):
-            {
-                checkFriend(amAB.from, [amAB, this](int friendType)
+                    return;
+                }
+            case FT_ENEMY:
                 {
-                    switch(friendType){
-                        case FT_ENEMY:
-                        case FT_NEUTRAL:
-                            {
-                                addBuff(amAB.from, DBCOM_BUFFID(u8"施毒术"));
-                                return;
-                            }
-                        default:
-                            {
-                                return;
-                            }
+                    if(br.favor <= 0){
+                        addBuff(amAB.from, amAB.id);
                     }
-                });
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
+                    return;
+                }
+            case FT_NEUTRAL:
+                {
+                    addBuff(amAB.from, amAB.id);
+                    return;
+                }
+            default:
+                {
+                    return;
+                }
+        }
+    });
 }
 
 void Monster::on_AM_EXP(const ActorMsgPack &rstMPK)
