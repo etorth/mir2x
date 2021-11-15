@@ -24,7 +24,7 @@ class BuffList final
         /* dtor */ ~BuffList() = default;
 
     public:
-        int addBuff(std::unique_ptr<BaseBuff> buffPtr)
+        std::tuple<int, BaseBuff *> addBuff(std::unique_ptr<BaseBuff> buffPtr)
         {
             if(m_buffList.empty()){
                 m_buffList[1] = std::move(buffPtr);
@@ -32,7 +32,12 @@ class BuffList final
             else{
                 m_buffList[m_buffList.rbegin()->first + 1] = std::move(buffPtr);
             }
-            return m_buffList.rbegin()->first;
+
+            return
+            {
+                m_buffList.rbegin()->first,
+                m_buffList.rbegin()->second.get(),
+            };
         }
 
     public:

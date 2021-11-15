@@ -6,13 +6,7 @@
 void BuffList::sendAura(uint64_t uid)
 {
     for(auto &p: m_buffList){
-        for(auto &actr: p.second->m_runList){
-            if(actr.ptr->getBAR().isAura()){
-                auto paura = dynamic_cast<BaseBuffActAura *>(actr.ptr.get());
-                fflassert(paura);
-                paura->transmit(uid);
-            }
-        }
+        p.second->sendAura(uid);
     }
 }
 

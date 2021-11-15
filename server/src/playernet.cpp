@@ -424,11 +424,17 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     }
 
     if(const auto buffIDOpt = item.getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
-        const auto tag = addBuff(UID(), buffIDOpt.value());
-        m_onWearOff[wltype] = [tag, this]()
-        {
-            m_buffList.erase(tag);
-        };
+        if(const auto [tag, pbuff] = addBuff(UID(), buffIDOpt.value()); pbuff && pbuff->hasAura()){
+            foreachInViewCO([pbuff](const COLocation &coLoc)
+            {
+                pbuff->sendAura(coLoc.uid);
+            });
+
+            m_onWearOff[wltype] = [tag, this]()
+            {
+                m_buffList.erase(tag);
+            };
+        }
     }
 }
 

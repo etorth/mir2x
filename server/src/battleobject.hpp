@@ -250,8 +250,12 @@ class BattleObject: public CharObject
         }
 
     protected:
-        int   addBuff(uint64_t, uint32_t);
+        std::tuple<int, BaseBuff *> addBuff(uint64_t, uint32_t);
+
+    protected:
         void sendBuff(uint64_t, uint32_t);
+
+    protected:
         void dispatchBuffIDList();
 
     protected:

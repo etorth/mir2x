@@ -84,3 +84,26 @@ void BaseBuff::runOnTrigger(int btgr)
 void BaseBuff::runOnDone()
 {
 }
+
+bool BaseBuff::hasAura() const
+{
+    for(auto &[tpsCount, ptr]: m_runList){
+        if(ptr->getBAR().isAura()){
+            auto paura = dynamic_cast<BaseBuffActAura *>(ptr.get());
+            fflassert(paura);
+            return true;
+        }
+    }
+    return false;
+}
+
+void BaseBuff::sendAura(uint64_t uid)
+{
+    for(auto &[tpsCount, ptr]: m_runList){
+        if(ptr->getBAR().isAura()){
+            auto paura = dynamic_cast<BaseBuffActAura *>(ptr.get());
+            fflassert(paura);
+            paura->transmit(uid);
+        }
+    }
+}

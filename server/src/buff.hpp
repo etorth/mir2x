@@ -95,6 +95,10 @@ class BaseBuff
         virtual void runOnDone();
 
     public:
+        bool hasAura() const;
+        void sendAura(uint64_t);
+
+    public:
         const BuffRecord &getBR() const
         {
             return DBCOM_BUFFRECORD(id());

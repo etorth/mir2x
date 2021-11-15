@@ -1169,7 +1169,7 @@ void BattleObject::updateBuffList()
     }
 }
 
-int BattleObject::addBuff(uint64_t fromUID, uint32_t buffID)
+std::tuple<int, BaseBuff *> BattleObject::addBuff(uint64_t fromUID, uint32_t buffID)
 {
     switch(buffID){
         case DBCOM_BUFFID(u8"治愈术"):
@@ -1177,13 +1177,13 @@ int BattleObject::addBuff(uint64_t fromUID, uint32_t buffID)
         case DBCOM_BUFFID(u8"恢复光环"):
         case DBCOM_BUFFID(u8"恢复光环使能"):
             {
-                const auto tag = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, buffID));
+                const auto buffTag = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, buffID));
                 dispatchBuffIDList();
-                return tag;
+                return buffTag;
             }
         default:
             {
-                return 0;
+                return {0, nullptr};
             }
     }
 }
