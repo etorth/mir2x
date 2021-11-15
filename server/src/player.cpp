@@ -773,6 +773,9 @@ void Player::onCMActionSpell(CMAction cmA)
 
     switch(magicID){
         case DBCOM_MAGICID(u8"治愈术"):
+        case DBCOM_MAGICID(u8"施毒术"):
+        case DBCOM_MAGICID(u8"幽灵盾"):
+        case DBCOM_MAGICID(u8"神圣战甲术"):
             {
                 if(cmA.action.aimUID){
                     switch(uidf::getUIDType(cmA.action.aimUID)){
@@ -781,20 +784,53 @@ void Player::onCMActionSpell(CMAction cmA)
                             {
                                 checkFriend(cmA.action.aimUID, [cmA, this](int friendType)
                                 {
-                                    switch(friendType){
-                                        case FT_FRIEND:
-                                        case FT_NEUTRAL:
-                                            {
-                                                sendBuff(cmA.action.aimUID, DBCOM_BUFFID(u8"治愈术"));
-                                                return;
-                                            }
-                                        default:
-                                            {
-                                                return;
-                                            }
+                                    const static std::unordered_map<uint32_t, uint32_t> s_magic2buffID
+                                    {
+                                        {DBCOM_MAGICID(u8"治愈术"    ), DBCOM_BUFFID(u8"治愈术"    )},
+                                        {DBCOM_MAGICID(u8"施毒术"    ), DBCOM_BUFFID(u8"施毒术"    )},
+                                        {DBCOM_MAGICID(u8"幽灵盾"    ), DBCOM_BUFFID(u8"幽灵盾"    )},
+                                        {DBCOM_MAGICID(u8"神圣战甲术"), DBCOM_BUFFID(u8"神圣战甲术")},
+                                    };
+
+                                    const auto id = [cmA]() -> uint32_t
+                                    {
+                                        if(const auto p = s_magic2buffID.find(cmA.action.extParam.spell.magicID); p != s_magic2buffID.end()){
+                                            return p->second;
+                                        }
+                                        return 0;
+                                    }();
+
+                                    if(id){
+                                        const auto &br = DBCOM_BUFFRECORD(id);
+                                        fflassert(br);
+
+                                        switch(friendType){
+                                            case FT_FRIEND:
+                                                {
+                                                    if(br.favor >= 0){
+                                                        sendBuff(cmA.action.aimUID, id);
+                                                    }
+                                                    return;
+                                                }
+                                            case FT_ENEMY:
+                                                {
+                                                    if(br.favor <= 0){
+                                                        sendBuff(cmA.action.aimUID, id);
+                                                    }
+                                                    return;
+                                                }
+                                            case FT_NEUTRAL:
+                                                {
+                                                    sendBuff(cmA.action.aimUID, id);
+                                                    return;
+                                                }
+                                            default:
+                                                {
+                                                    return;
+                                                }
+                                        }
                                     }
                                 });
-                                break;
                             }
                         default:
                             {
@@ -804,43 +840,6 @@ void Player::onCMActionSpell(CMAction cmA)
                 }
                 else{
                     addBuff(UID(), DBCOM_BUFFID(u8"治愈术"));
-                }
-                break;
-            }
-        case DBCOM_MAGICID(u8"施毒术"):
-            {
-                if(cmA.action.aimUID){
-                    switch(uidf::getUIDType(cmA.action.aimUID)){
-                        case UID_MON:
-                        case UID_PLY:
-                            {
-                                checkFriend(cmA.action.aimUID, [cmA, this](int friendType)
-                                {
-                                    switch(friendType){
-                                        case FT_ENEMY:
-                                        case FT_NEUTRAL:
-                                            {
-                                                AMAddBuff amAB;
-                                                std::memset(&amAB, 0, sizeof(amAB));
-
-                                                amAB.id = DBCOM_BUFFID(u8"施毒术");
-                                                amAB.from = UID();
-                                                m_actorPod->forward(cmA.action.aimUID, {AM_ADDBUFF, amAB});
-                                                return;
-                                            }
-                                        default:
-                                            {
-                                                return;
-                                            }
-                                    }
-                                });
-                                break;
-                            }
-                        default:
-                            {
-                                break;
-                            }
-                    }
                 }
                 break;
             }

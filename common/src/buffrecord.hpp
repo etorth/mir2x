@@ -192,8 +192,8 @@ struct BuffRecord
 
         const struct BuffActAttributeModifierParam
         {
+            const int value = 0;
             const int percentage = 0;
-            const int value      = 0;
         }
         attributeModifier {};
 

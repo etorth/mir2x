@@ -22,8 +22,8 @@
         {   .name = u8"HP持续",
             .attributeModifier
             {
-                .percentage = 1,
                 .value = 20,
+                .percentage = 1,
             },
         },
     },
@@ -51,8 +51,8 @@
         {   .name = u8"HP持续",
             .attributeModifier
             {
-                .percentage = -1,
                 .value = -20,
+                .percentage = -1,
             },
         },
     },
@@ -89,6 +89,66 @@
         {   .name = u8"HP持续",
             .attributeModifier
             {
+                .percentage = 5,
+            },
+        },
+    },
+},
+
+{   .name = u8"幽灵盾",
+    .duration = 30,
+    .favor = 1,
+    .dispellable = 1,
+    .icon
+    {
+        .show = 1,
+        .gfxID = 0X18000200,
+    },
+
+    .actList
+    {
+        {   .name = u8"MAC下限",
+            .attributeModifier
+            {
+                .value = 2,
+                .percentage = 5,
+            },
+        },
+
+        {   .name = u8"MAC上限",
+            .attributeModifier
+            {
+                .value = 2,
+                .percentage = 5,
+            },
+        },
+    },
+},
+
+{   .name = u8"神圣战甲术",
+    .duration = 30,
+    .favor = 1,
+    .dispellable = 1,
+    .icon
+    {
+        .show = 1,
+        .gfxID = 0X18000232,
+    },
+
+    .actList
+    {
+        {   .name = u8"AC下限",
+            .attributeModifier
+            {
+                .value = 2,
+                .percentage = 5,
+            },
+        },
+
+        {   .name = u8"AC上限",
+            .attributeModifier
+            {
+                .value = 2,
                 .percentage = 5,
             },
         },
