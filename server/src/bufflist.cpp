@@ -35,6 +35,18 @@ std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
     return {buffID, modifierID};
 }
 
+void BuffList::updateAura(uint64_t targetUID)
+{
+    // 1. send auras to targetUID if needed
+    // 2. check if any auras from targetUID should be removed
+
+    sendAura(targetUID);
+    for(auto &p: m_buffList){
+        if(p.second->fromUID() == targetUID){
+        }
+    }
+}
+
 #define _decl_func_has_buff_act(T, F, isT) std::vector<T *> F(const char8_t *name) \
 { \
     fflassert(str_haschar(name)); \

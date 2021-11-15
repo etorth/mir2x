@@ -105,6 +105,9 @@ class BaseBuff
         void dispatchAura();
 
     public:
+        void updateAura(uint64_t);
+
+    public:
         const BuffRecord &getBR() const
         {
             return DBCOM_BUFFRECORD(id());

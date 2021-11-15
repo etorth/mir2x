@@ -83,6 +83,10 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
 
     const auto distChanged = [dstX, dstY, amA, this]() -> bool
     {
+        if(amA.mapID != mapID()){
+            return true;
+        }
+
         if(const auto coLocPtr = getInViewCOPtr(amA.UID)){
             return mathf::LDistance2<int>(X(), Y(), coLocPtr->x, coLocPtr->y) != mathf::LDistance2<int>(X(), Y(), dstX, dstY);
         }
@@ -104,7 +108,7 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
     }
 
     if(distChanged){
-        m_buffList.sendAura(amA.UID);
+        m_buffList.updateAura(amA.UID);
     }
 
     // always need to notify client for CO gets added/moved/removed

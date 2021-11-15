@@ -57,6 +57,9 @@ class BuffList final
         }
 
     public:
+        void updateAura(uint64_t);
+
+    public:
         bool update()
         {
             // for update()/done()/runOnUpdate()
