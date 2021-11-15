@@ -130,6 +130,14 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         }
     }();
 
+    const auto distChanged = [dstX, dstY, amA, this]() -> bool
+    {
+        if(const auto coLocPtr = getInViewCOPtr(amA.UID)){
+            return mathf::LDistance2<int>(X(), Y(), coLocPtr->x, coLocPtr->y) != mathf::LDistance2<int>(X(), Y(), dstX, dstY);
+        }
+        return true;
+    }();
+
     const auto addedInView = updateInViewCO(COLocation
     {
         .uid = amA.UID,
@@ -139,6 +147,10 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         .y = dstY,
         .direction = amA.action.direction,
     });
+
+    if(distChanged){
+        m_buffList.sendAura(amA.UID);
+    }
 
     // if sent is a player and is removed from this inview CO list
     // then this CO doesn't need to send its location to player, player should call trimInViewCO()
