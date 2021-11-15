@@ -96,7 +96,7 @@
 },
 
 {   .name = u8"幽灵盾",
-    .duration = 30,
+    .duration = 30000,
     .favor = 1,
     .dispellable = 1,
     .icon
@@ -126,7 +126,7 @@
 },
 
 {   .name = u8"神圣战甲术",
-    .duration = 30,
+    .duration = 30000,
     .favor = 1,
     .dispellable = 1,
     .icon
