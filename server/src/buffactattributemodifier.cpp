@@ -76,6 +76,10 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BaseBuff *argBuff, si
                   }
               case DBCOM_BUFFACTID(u8"DC下限"):
               case DBCOM_BUFFACTID(u8"DC上限"):
+              case DBCOM_BUFFACTID(u8"AC下限"):
+              case DBCOM_BUFFACTID(u8"AC上限"):
+              case DBCOM_BUFFACTID(u8"MAC下限"):
+              case DBCOM_BUFFACTID(u8"MAC上限"):
                   {
                       const auto &[tag, taggedMap] = bo->updateBuffedAbility(id(), percentage, value);
                       return [tag, &taggedMap]()

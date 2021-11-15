@@ -91,6 +91,10 @@
     .type = u8"触发",
 },
 
+{   .name = u8"MP移动伤害",
+    .type = u8"触发",
+},
+
 // 属性修改
 {   .name = u8"HP",
     .type = u8"属性修改",
@@ -100,15 +104,19 @@
     .type = u8"属性修改",
 },
 
-{   .name = u8"MP_MODIFIER",
+{   .name = u8"HP上限",
     .type = u8"属性修改",
 },
 
-{   .name = u8"HPMAX_MODIFIER",
+{   .name = u8"MP",
     .type = u8"属性修改",
 },
 
-{   .name = u8"MPMAX_MODIFIER",
+{   .name = u8"MP持续",
+    .type = u8"属性修改",
+},
+
+{   .name = u8"MP上限",
     .type = u8"属性修改",
 },
 
@@ -120,15 +128,19 @@
     .type = u8"属性修改",
 },
 
-{   .name = u8"MP恢复",
+{   .name = u8"AC下限",
     .type = u8"属性修改",
 },
 
-{   .name = u8"HP上限",
+{   .name = u8"AC上限",
     .type = u8"属性修改",
 },
 
-{   .name = u8"MP上限",
+{   .name = u8"MAC下限",
+    .type = u8"属性修改",
+},
+
+{   .name = u8"MAC上限",
     .type = u8"属性修改",
 },
 

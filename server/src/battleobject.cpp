@@ -1174,6 +1174,8 @@ std::tuple<int, BaseBuff *> BattleObject::addBuff(uint64_t fromUID, uint32_t buf
     switch(buffID){
         case DBCOM_BUFFID(u8"治愈术"):
         case DBCOM_BUFFID(u8"施毒术"):
+        case DBCOM_BUFFID(u8"幽灵盾"):
+        case DBCOM_BUFFID(u8"神圣战甲术"):
         case DBCOM_BUFFID(u8"恢复光环"):
         case DBCOM_BUFFID(u8"恢复光环使能"):
             {
@@ -1219,6 +1221,22 @@ std::pair<int, SDTaggedValMap &> BattleObject::updateBuffedAbility(uint32_t buff
         case DBCOM_BUFFACTID(u8"DC上限"):
             {
                 return {m_sdBuffedAbility.dc[1].add(fnAddValue(m_sdBuffedAbility.dc[1].sum())), m_sdBuffedAbility.dc[1]};
+            }
+        case DBCOM_BUFFACTID(u8"AC下限"):
+            {
+                return {m_sdBuffedAbility.ac[0].add(fnAddValue(m_sdBuffedAbility.ac[0].sum())), m_sdBuffedAbility.ac[0]};
+            }
+        case DBCOM_BUFFACTID(u8"AC上限"):
+            {
+                return {m_sdBuffedAbility.ac[1].add(fnAddValue(m_sdBuffedAbility.ac[1].sum())), m_sdBuffedAbility.ac[1]};
+            }
+        case DBCOM_BUFFACTID(u8"MAC下限"):
+            {
+                return {m_sdBuffedAbility.mac[0].add(fnAddValue(m_sdBuffedAbility.mac[0].sum())), m_sdBuffedAbility.mac[0]};
+            }
+        case DBCOM_BUFFACTID(u8"MAC上限"):
+            {
+                return {m_sdBuffedAbility.mac[1].add(fnAddValue(m_sdBuffedAbility.mac[1].sum())), m_sdBuffedAbility.mac[1]};
             }
         default:
             {
