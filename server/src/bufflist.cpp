@@ -3,13 +3,6 @@
 #include "bufflist.hpp"
 #include "scopedalloc.hpp"
 
-void BuffList::sendAura(uint64_t uid)
-{
-    for(auto &p: m_buffList){
-        p.second->sendAura(uid);
-    }
-}
-
 std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
 {
     scoped_alloc::svobuf_wrapper<BaseBuffActAttackModifier *, 16> amodList;

@@ -41,7 +41,20 @@ class BuffList final
         }
 
     public:
-        void sendAura(uint64_t);
+        void sendAura(uint64_t targetUID)
+        {
+            for(auto &p: m_buffList){
+                p.second->sendAura(targetUID);
+            }
+        }
+
+    public:
+        void dispatchAura()
+        {
+            for(auto &p: m_buffList){
+                p.second->dispatchAura();
+            }
+        }
 
     public:
         bool update()

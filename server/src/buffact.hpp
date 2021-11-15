@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <memory>
 #include <cstddef>
 #include "fflerror.hpp"

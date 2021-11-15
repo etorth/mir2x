@@ -18,6 +18,13 @@ BaseBuffActAura::BaseBuffActAura(BaseBuff *argBuff, size_t argBuffActOff)
       }())
 {}
 
+void BaseBuffActAura::dispatch()
+{
+    for(const auto uid: getBuff()->getBO()->getInViewUIDList()){
+        transmit(uid);
+    }
+}
+
 void BaseBuffActAura::transmit(uint64_t targetUID)
 {
     fflassert(targetUID);

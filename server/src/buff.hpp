@@ -9,6 +9,7 @@
 #include "dbcomrecord.hpp"
 
 class BattleObject;
+class BaseBuffActAura;
 class BaseBuffAct;
 class BuffList;
 
@@ -95,8 +96,13 @@ class BaseBuff
         virtual void runOnDone();
 
     public:
-        bool hasAura() const;
+        std::vector<BaseBuffActAura *> getAuraList();
+
+    public:
         void sendAura(uint64_t);
+
+    public:
+        void dispatchAura();
 
     public:
         const BuffRecord &getBR() const

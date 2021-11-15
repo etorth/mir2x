@@ -18,6 +18,7 @@ class BaseBuffActAura: public BaseBuffAct
         BaseBuffActAura(BaseBuff *, size_t);
 
     public:
+        void dispatch();
         void transmit(uint64_t);
 
     public:

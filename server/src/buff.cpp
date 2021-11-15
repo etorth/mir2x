@@ -85,25 +85,29 @@ void BaseBuff::runOnDone()
 {
 }
 
-bool BaseBuff::hasAura() const
+std::vector<BaseBuffActAura *> BaseBuff::getAuraList()
 {
-    for(auto &[tpsCount, ptr]: m_runList){
-        if(ptr->getBAR().isAura()){
-            auto paura = dynamic_cast<BaseBuffActAura *>(ptr.get());
+    std::vector<BaseBuffActAura *> result;
+    for(auto &run: m_runList){
+        if(run.ptr->getBAR().isAura()){
+            auto paura = dynamic_cast<BaseBuffActAura *>(run.ptr.get());
             fflassert(paura);
-            return true;
+            result.push_back(paura);
         }
     }
-    return false;
+    return result;
 }
 
 void BaseBuff::sendAura(uint64_t uid)
 {
-    for(auto &[tpsCount, ptr]: m_runList){
-        if(ptr->getBAR().isAura()){
-            auto paura = dynamic_cast<BaseBuffActAura *>(ptr.get());
-            fflassert(paura);
-            paura->transmit(uid);
-        }
+    for(auto paura: getAuraList()){
+        paura->transmit(uid);
+    }
+}
+
+void BaseBuff::dispatchAura()
+{
+    for(auto paura: getAuraList()){
+        paura->dispatch();
     }
 }
