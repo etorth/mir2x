@@ -61,6 +61,8 @@ template<typename T> std::string _ffl_bad_value_type_helper(const std::unordered
 template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::map<K, V> &);
 template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::unordered_map<K, V> &);
 
+template<typename T> std::string _ffl_bad_value_type_helper(const std::list<T> &);
+template<typename T> std::string _ffl_bad_value_type_helper(const std::deque<T> &);
 template<typename T> std::string _ffl_bad_value_type_helper(const std::vector<T> &);
 template<typename U, typename V> std::string _ffl_bad_value_type_helper(const std::pair<U, V> &);
 
@@ -70,65 +72,28 @@ template<typename T> std::string _ffl_bad_value_type_helper(const T &t)
     return dynamic_cast<const std::stringstream &>(std::stringstream() << t).str();
 }
 
-template<typename T> std::string _ffl_bad_value_type_helper(const std::set<T> &s)
-{
-    std::string result = "{";
-    for(const auto &t: s){
-        if(result.size() > 1){
-            result += ",";
-        }
-        result += _ffl_bad_value_type_helper(t);
-    }
-    return result + "}";
+#define _ffl_bad_value_container_type_macro_helper(c) \
+{ \
+    std::string result = "{"; \
+    for(const auto &item_in_c: c){ \
+        if(result.size() > 1){ \
+            result += ","; \
+        } \
+        result += _ffl_bad_value_type_helper(item_in_c); \
+    } \
+    return result + "}"; \
 }
 
-template<typename T> std::string _ffl_bad_value_type_helper(const std::unordered_set<T> &s)
-{
-    std::string result = "{";
-    for(const auto &t: s){
-        if(result.size() > 1){
-            result += ",";
-        }
-        result += _ffl_bad_value_type_helper(t);
-    }
-    return result + "}";
-}
+template<typename T> std::string _ffl_bad_value_type_helper(const std::set<T> &s)           _ffl_bad_value_container_type_macro_helper(s)
+template<typename T> std::string _ffl_bad_value_type_helper(const std::unordered_set<T> &s) _ffl_bad_value_container_type_macro_helper(s)
 
-template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::map<K, V> &m)
-{
-    std::string result = "{";
-    for(const auto &t: m){
-        if(result.size() > 1){
-            result += ",";
-        }
-        result += _ffl_bad_value_type_helper(t);
-    }
-    return result + "}";
-}
+template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::map<K, V> &m)           _ffl_bad_value_container_type_macro_helper(m)
+template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::unordered_map<K, V> &m) _ffl_bad_value_container_type_macro_helper(m)
 
-template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::unordered_map<K, V> &m)
-{
-    std::string result = "{";
-    for(const auto &t: m){
-        if(result.size() > 1){
-            result += ",";
-        }
-        result += _ffl_bad_value_type_helper(t);
-    }
-    return result + "}";
-}
-
-template<typename T> std::string _ffl_bad_value_type_helper(const std::vector<T> &v)
-{
-    std::string result = "{";
-    for(const auto &t: v){
-        if(result.size() > 1){
-            result += ",";
-        }
-        result += _ffl_bad_value_type_helper(t);
-    }
-    return result + "}";
-}
+template<typename T> std::string _ffl_bad_value_type_helper(const std::list<T> &l)   _ffl_bad_value_container_type_macro_helper(l)
+template<typename T> std::string _ffl_bad_value_type_helper(const std::deque<T> &q)  _ffl_bad_value_container_type_macro_helper(q)
+template<typename T> std::string _ffl_bad_value_type_helper(const std::vector<T> &v) _ffl_bad_value_container_type_macro_helper(v)
+#undef _ffl_bad_value_container_type_macro_helper
 
 template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::pair<K, V> &p)
 {
