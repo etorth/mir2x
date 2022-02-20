@@ -3,7 +3,9 @@
 #include <unordered_set>
 #include <map>
 #include <unordered_map>
+#include <list>
 #include <vector>
+#include <deque>
 #include <sstream>
 #include <cstring>
 #include <stdexcept>
