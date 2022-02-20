@@ -2090,14 +2090,12 @@ void ProcessRun::queryPlayerWLDesp(uint64_t uid) const
 void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, size_t count)
 {
     fflassert(uidf::getUIDType(npcUID) == UID_NPC);
-    const SDItem checkItem
+    fflassert((SDItem
     {
         .itemID = itemID,
         .seqID = seqID,
         .count = 1, // can buy more than SYS_INVGRIDMAXHOLD
-    };
-
-    fflassert(checkItem);
+    }));
 
     if(count <= 0){
         throw fflerror("invalid buy count: %zu", count);
@@ -2219,14 +2217,12 @@ void ProcessRun::requestGrabBelt(int slot)
 
 void ProcessRun::requestDropItem(uint32_t itemID, uint32_t seqID, size_t count)
 {
-    const SDItem checkItem
+    fflassert((SDItem
     {
         .itemID = itemID,
         .seqID = seqID,
         .count = count,
-    };
-
-    fflassert(checkItem);
+    }));
 
     CMDropItem cmDI;
     std::memset(&cmDI, 0, sizeof(cmDI));

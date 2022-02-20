@@ -602,14 +602,12 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
 void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmCI = ClientMsg::conv<CMDropItem>(buf);
-    const SDItem checkItem
+    fflassert((SDItem
     {
         .itemID = cmCI.itemID,
         .seqID = cmCI.seqID,
         .count = to_uz(cmCI.count),
-    };
-
-    fflassert(checkItem);
+    }));
 
     const auto &ir = DBCOM_ITEMRECORD(cmCI.itemID);
     fflassert(ir);
