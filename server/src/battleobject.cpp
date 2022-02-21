@@ -348,6 +348,7 @@ bool BattleObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, b
                     if(onOK){
                         onOK();
                         m_buffList.runOnTrigger(BATGR_MOVE);
+                        m_buffList.runOnMove();
                     }
                     return;
                 }
@@ -1169,7 +1170,13 @@ void BattleObject::updateBuffList()
     }
 }
 
-std::tuple<int, BaseBuff *> BattleObject::addBuff(uint64_t fromUID, uint32_t buffID)
+void BattleObject::removeBuff(int tag)
+{
+    m_buffList.erase(tag);
+    dispatchBuffIDList();
+}
+
+std::tuple<int, BaseBuff *> BattleObject::addBuff(uint64_t fromUID, uint32_t fromBuff, uint32_t buffID)
 {
     switch(buffID){
         case DBCOM_BUFFID(u8"治愈术"):
@@ -1185,7 +1192,7 @@ std::tuple<int, BaseBuff *> BattleObject::addBuff(uint64_t fromUID, uint32_t buf
                     }
                 }
 
-                const auto buffTag = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, buffID));
+                const auto buffTag = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuff, buffID));
                 dispatchBuffIDList();
                 return buffTag;
             }
@@ -1251,12 +1258,13 @@ std::pair<int, SDTaggedValMap &> BattleObject::updateBuffedAbility(uint32_t buff
     }
 }
 
-void BattleObject::sendBuff(uint64_t uid, uint32_t buffID)
+void BattleObject::sendBuff(uint64_t uid, uint32_t fromBuff, uint32_t buffID)
 {
     AMAddBuff amAB;
     std::memset(&amAB, 0, sizeof(amAB));
 
     amAB.id = buffID;
+    amAB.fromBuff = fromBuff;
     amAB.from = UID();
     m_actorPod->forward(uid, {AM_ADDBUFF, amAB});
 }

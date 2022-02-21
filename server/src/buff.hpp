@@ -13,6 +13,10 @@ class BaseBuffActAura;
 class BaseBuffAct;
 class BuffList;
 
+// buff is an embeded class of BattleObject
+// it always has a bound BO pointer and overlives buff
+// it should be possible to put into BattleObject as an nested class but we split it out
+
 class BaseBuff
 {
     private:
@@ -32,10 +36,10 @@ class BaseBuff
         const uint64_t m_fromUID;
 
     protected:
-        const uint32_t m_id;
+        const uint32_t m_fromBuff;
 
     protected:
-        const uint32_t m_fromBuff = 0;
+        const uint32_t m_id;
 
     protected:
         double m_accuTime = 0.0;
@@ -44,7 +48,7 @@ class BaseBuff
         std::vector<BuffActRunner> m_runList;
 
     public:
-        BaseBuff(BattleObject *, uint64_t, uint32_t);
+        BaseBuff(BattleObject *, uint64_t, uint32_t, uint32_t);
 
     public:
         virtual ~BaseBuff();
@@ -58,6 +62,11 @@ class BaseBuff
         uint64_t fromUID() const
         {
             return m_fromUID;
+        }
+
+        uint32_t fromBuff() const
+        {
+            return m_fromBuff;
         }
 
     public:
@@ -99,7 +108,7 @@ class BaseBuff
         virtual void runOnDone();
 
     public:
-        virtual void runOnUIDMove(int, uint64_t);
+        virtual void runOnMove(int);
 
     public:
         std::vector<BaseBuffActAura *> getAuraList();
@@ -125,13 +134,17 @@ class BaseBuff
             return DBCOM_BUFFRECORD(m_fromBuff);
         }
 
-        const BuffRecord::BuffActRecordRef &fromBAREF() const
+    public:
+        const BuffRecord::BuffActRecordRef *fromAuraBAREF() const
         {
-            for(const auto &raref: fromBR().actList){
-                if(raref.name && (std::u8string_view(raref.name) == getBR().name)){
-                    return raref;
+            for(const auto &baref: fromBR().actList){
+                const auto &bar = DBCOM_BUFFACTRECORD(baref.name);
+                fflassert(bar, baref.name);
+
+                if(bar.isAura() && std::u8string_view(bar.name) == getBR().name){
+                    return &baref;
                 }
             }
-            throw fflreach();
+            return nullptr;
         }
 };

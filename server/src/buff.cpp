@@ -6,7 +6,7 @@
 #include "dbcomrecord.hpp"
 #include "battleobject.hpp"
 
-BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint32_t argBuffID)
+BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint32_t argFromBuff, uint32_t argBuffID)
     : m_bo([argBO]()
       {
           fflassert(argBO);
@@ -24,6 +24,7 @@ BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint32_t argBuffID)
               default: throw fflvalue(uidf::getUIDString(argFromUID));
           }
       }())
+    , m_fromBuff(argFromBuff)
     , m_id([argBuffID]()
       {
           fflassert(argBuffID);
@@ -81,8 +82,19 @@ void BaseBuff::runOnTrigger(int btgr)
     }
 }
 
-void BaseBuff::runOnUIDMove(int, uint64_t)
+void BaseBuff::runOnMove(int tag)
 {
+    if(fromAuraBAREF()){
+        getBO()->getCOLocation(fromUID(), [tag, this](const COLocation &coLoc)
+        {
+            const auto bap = fromAuraBAREF();
+            fflassert(bap);
+
+            if((getBO()->mapID() != coLoc.mapID) || (mathf::LDistance2<int>(getBO()->X(), getBO()->Y(), coLoc.x, coLoc.y) > bap->aura.radius * bap->aura.radius)){
+                getBO()->removeBuff(tag);
+            }
+        });
+    }
 }
 
 void BaseBuff::runOnDone()

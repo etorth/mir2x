@@ -57,9 +57,6 @@ class BuffList final
         }
 
     public:
-        void updateAura(uint64_t);
-
-    public:
         bool update()
         {
             // for update()/done()/runOnUpdate()
@@ -96,10 +93,10 @@ class BuffList final
         }
 
     public:
-        void runOnUIDMove(uint64_t uid)
+        void runOnMove()
         {
             for(auto &[tag, p]: m_buffList){
-                p->runOnUIDMove(tag, uid);
+                p->runOnMove(tag);
             }
         }
 

@@ -276,7 +276,7 @@ void Monster::attackUID(uint64_t uid, int magicID, std::function<void()> onOK, s
         });
 
         if(buffID){
-            sendBuff(uid, buffID);
+            sendBuff(uid, 0, buffID);
         }
 
         // send attack message to target

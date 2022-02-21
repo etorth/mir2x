@@ -9,7 +9,7 @@
 
 BaseBuffActAura::BaseBuffActAura(BaseBuff *argBuff, size_t argBuffActOff)
     : BaseBuffAct(argBuff, argBuffActOff)
-    , m_auraBuffID([argBuffActOff, this]()
+    , m_auraBuffID([this]()
       {
           fflassert(getBAR().isAura());
           const auto id = DBCOM_BUFFID(getBAR().aura.buff);
@@ -51,20 +51,20 @@ void BaseBuffActAura::transmit(uint64_t targetUID)
                             case FT_FRIEND:
                                 {
                                     if(getBR().favor >= 0){
-                                        getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                        getBuff()->getBO()->sendBuff(targetUID, getBuff()->id(), getAuraBuffID());
                                     }
                                     break;
                                 }
                             case FT_ENEMY:
                                 {
                                     if(getBR().favor <= 0){
-                                        getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                        getBuff()->getBO()->sendBuff(targetUID, getBuff()->id(), getAuraBuffID());
                                     }
                                     break;
                                 }
                             case FT_NEUTRAL:
                                 {
-                                    getBuff()->getBO()->sendBuff(targetUID, getAuraBuffID());
+                                    getBuff()->getBO()->sendBuff(targetUID, getBuff()->id(), getAuraBuffID());
                                     break;
                                 }
                             default:

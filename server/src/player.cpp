@@ -808,20 +808,20 @@ void Player::onCMActionSpell(CMAction cmA)
                                             case FT_FRIEND:
                                                 {
                                                     if(br.favor >= 0){
-                                                        sendBuff(cmA.action.aimUID, id);
+                                                        sendBuff(cmA.action.aimUID, 0, id);
                                                     }
                                                     return;
                                                 }
                                             case FT_ENEMY:
                                                 {
                                                     if(br.favor <= 0){
-                                                        sendBuff(cmA.action.aimUID, id);
+                                                        sendBuff(cmA.action.aimUID, 0, id);
                                                     }
                                                     return;
                                                 }
                                             case FT_NEUTRAL:
                                                 {
-                                                    sendBuff(cmA.action.aimUID, id);
+                                                    sendBuff(cmA.action.aimUID, 0, id);
                                                     return;
                                                 }
                                             default:
@@ -839,7 +839,7 @@ void Player::onCMActionSpell(CMAction cmA)
                     }
                 }
                 else{
-                    addBuff(UID(), DBCOM_BUFFID(u8"治愈术"));
+                    addBuff(UID(), 0, DBCOM_BUFFID(u8"治愈术"));
                 }
                 break;
             }
@@ -1247,7 +1247,7 @@ void Player::postOnlineOK()
     for(int wltype = WLG_BEGIN; wltype < WLG_END; ++wltype){
         if(const auto &item = m_sdItemStorage.wear.getWLItem(wltype)){
             if(const auto buffIDOpt = item.getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
-                if(const auto [tag, pbuff] = addBuff(UID(), buffIDOpt.value()); pbuff){
+                if(const auto [tag, pbuff] = addBuff(UID(), 0, buffIDOpt.value()); pbuff){
                     if(const auto auraList = pbuff->getAuraList(); !auraList.empty()){
                         pbuff->dispatchAura();
                     }

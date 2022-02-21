@@ -45,7 +45,7 @@ class CharObject: public ServerObject
     public:
         ~CharObject() = default;
 
-    protected:
+    public:
         int X() const
         {
             return m_X;
@@ -56,7 +56,7 @@ class CharObject: public ServerObject
             return m_Y;
         }
 
-    protected:
+    public:
         int Direction() const
         {
             return m_direction;

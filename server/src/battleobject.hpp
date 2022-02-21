@@ -17,6 +17,7 @@ class BattleObject: public CharObject
 {
     public:
         friend class CharObject;
+        friend class BaseBuff;
         friend class BaseBuffActAura;
         friend class BaseBuffActTrigger;
         friend class BaseBuffActAttributeModifier;
@@ -250,10 +251,11 @@ class BattleObject: public CharObject
         }
 
     protected:
-        std::tuple<int, BaseBuff *> addBuff(uint64_t, uint32_t);
+        void removeBuff(int);
+        std::tuple<int, BaseBuff *> addBuff(uint64_t, uint32_t, uint32_t);
 
     protected:
-        void sendBuff(uint64_t, uint32_t);
+        void sendBuff(uint64_t, uint32_t, uint32_t);
 
     protected:
         void dispatchBuffIDList();

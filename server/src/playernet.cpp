@@ -424,7 +424,7 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
     }
 
     if(const auto buffIDOpt = item.getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
-        if(const auto [tag, pbuff] = addBuff(UID(), buffIDOpt.value()); pbuff){
+        if(const auto [tag, pbuff] = addBuff(UID(), 0, buffIDOpt.value()); pbuff){
             if(const auto auraList = pbuff->getAuraList(); !auraList.empty()){
                 pbuff->dispatchAura();
             }

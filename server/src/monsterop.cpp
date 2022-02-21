@@ -77,20 +77,20 @@ void Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
             case FT_FRIEND:
                 {
                     if(br.favor >= 0){
-                        addBuff(amAB.from, amAB.id);
+                        addBuff(amAB.from, amAB.fromBuff, amAB.id);
                     }
                     return;
                 }
             case FT_ENEMY:
                 {
                     if(br.favor <= 0){
-                        addBuff(amAB.from, amAB.id);
+                        addBuff(amAB.from, amAB.fromBuff, amAB.id);
                     }
                     return;
                 }
             case FT_NEUTRAL:
                 {
-                    addBuff(amAB.from, amAB.id);
+                    addBuff(amAB.from, amAB.fromBuff, amAB.id);
                     return;
                 }
             default:
@@ -130,17 +130,17 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         }
     }();
 
-    const auto distChanged = [dstX, dstY, amA, this]() -> bool
-    {
-        if(amA.mapID != mapID()){
-            return true;
-        }
-
-        if(const auto coLocPtr = getInViewCOPtr(amA.UID)){
-            return mathf::LDistance2<int>(X(), Y(), coLocPtr->x, coLocPtr->y) != mathf::LDistance2<int>(X(), Y(), dstX, dstY);
-        }
-        return true;
-    }();
+    // const auto distChanged = [dstX, dstY, amA, this]() -> bool
+    // {
+    //     if(amA.mapID != mapID()){
+    //         return true;
+    //     }
+    //
+    //     if(const auto coLocPtr = getInViewCOPtr(amA.UID)){
+    //         return mathf::LDistance2<int>(X(), Y(), coLocPtr->x, coLocPtr->y) != mathf::LDistance2<int>(X(), Y(), dstX, dstY);
+    //     }
+    //     return true;
+    // }();
 
     const auto addedInView = updateInViewCO(COLocation
     {
@@ -152,15 +152,12 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         .direction = amA.action.direction,
     });
 
-    if(distChanged){
-        m_buffList.updateAura(amA.UID);
-    }
-
     // if sent is a player and is removed from this inview CO list
     // then this CO doesn't need to send its location to player, player should call trimInViewCO()
 
     if(addedInView > 0){
         dispatchAction(amA.UID, makeActionStand());
+        m_buffList.sendAura(amA.UID);
         if(uidf::isPlayer(amA.UID)){
             dispatchHealth(amA.UID);
             m_actorPod->setMetronomeFreq(10);
