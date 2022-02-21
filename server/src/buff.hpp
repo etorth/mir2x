@@ -36,7 +36,6 @@ class BaseBuff
 
     protected:
         const uint32_t m_fromBuff = 0;
-        const   size_t m_fromBuffActOff = 0;
 
     protected:
         double m_accuTime = 0.0;
@@ -128,6 +127,11 @@ class BaseBuff
 
         const BuffRecord::BuffActRecordRef &fromBAREF() const
         {
-            return fromBR().actList.begin()[m_fromBuffActOff];
+            for(const auto &raref: fromBR().actList){
+                if(raref.name && (std::u8string_view(raref.name) == getBR().name)){
+                    return raref;
+                }
+            }
+            throw fflreach();
         }
 };
