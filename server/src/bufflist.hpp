@@ -95,8 +95,16 @@ class BuffList final
     public:
         void runOnMove()
         {
-            for(auto &[tag, p]: m_buffList){
-                p->runOnMove(tag);
+            // TODO BaseBuff::runOnMove() can call removeBuff()
+            // which destruct the Buff itself and this causes dangling pointer
+
+            for(auto p = m_buffList.begin(); p != m_buffList.end();){
+                auto pnext = std::next(p);
+                auto tag = p->first;
+                auto pbuff = p->second.get();
+
+                pbuff->runOnMove(tag);
+                p = pnext;
             }
         }
 
