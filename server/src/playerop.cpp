@@ -81,17 +81,17 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
         }
     }();
 
-    // const auto distChanged = [dstX, dstY, amA, this]() -> bool
-    // {
-    //     if(amA.mapID != mapID()){
-    //         return true;
-    //     }
-    //
-    //     if(const auto coLocPtr = getInViewCOPtr(amA.UID)){
-    //         return mathf::LDistance2<int>(X(), Y(), coLocPtr->x, coLocPtr->y) != mathf::LDistance2<int>(X(), Y(), dstX, dstY);
-    //     }
-    //     return true;
-    // }();
+    const auto distChanged = [dstX, dstY, amA, this]() -> bool
+    {
+        if(amA.mapID != mapID()){
+            return true;
+        }
+
+        if(const auto coLocPtr = getInViewCOPtr(amA.UID)){
+            return mathf::LDistance2<int>(X(), Y(), coLocPtr->x, coLocPtr->y) != mathf::LDistance2<int>(X(), Y(), dstX, dstY);
+        }
+        return true;
+    }();
 
     const auto addedInView = updateInViewCO(COLocation
     {
@@ -103,9 +103,12 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
         .direction = amA.action.direction,
     });
 
+    if(distChanged){
+        m_buffList.sendAura(amA.UID);
+    }
+
     if(addedInView > 0){
         dispatchAction(amA.UID, makeActionStand());
-        m_buffList.sendAura(amA.UID);
     }
 
     // always need to notify client for CO gets added/moved/removed
