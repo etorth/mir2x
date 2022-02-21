@@ -58,7 +58,7 @@
     },
 },
 
-{   .name = u8"恢复光环使能",
+{   .name = u8"龙纹圣光",
     .favor = 1,
     .actList
     {

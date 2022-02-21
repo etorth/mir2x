@@ -35,6 +35,10 @@ class BaseBuff
         const uint32_t m_id;
 
     protected:
+        const uint32_t m_fromBuff = 0;
+        const   size_t m_fromBuffActOff = 0;
+
+    protected:
         double m_accuTime = 0.0;
 
     protected:
@@ -96,6 +100,9 @@ class BaseBuff
         virtual void runOnDone();
 
     public:
+        virtual void runOnUIDMove(int, uint64_t);
+
+    public:
         std::vector<BaseBuffActAura *> getAuraList();
 
     public:
@@ -111,5 +118,16 @@ class BaseBuff
         const BuffRecord &getBR() const
         {
             return DBCOM_BUFFRECORD(id());
+        }
+
+    public:
+        const BuffRecord &fromBR() const
+        {
+            return DBCOM_BUFFRECORD(m_fromBuff);
+        }
+
+        const BuffRecord::BuffActRecordRef &fromBAREF() const
+        {
+            return fromBR().actList.begin()[m_fromBuffActOff];
         }
 };

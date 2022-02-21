@@ -96,6 +96,14 @@ class BuffList final
         }
 
     public:
+        void runOnUIDMove(uint64_t uid)
+        {
+            for(auto &[tag, p]: m_buffList){
+                p->runOnUIDMove(tag, uid);
+            }
+        }
+
+    public:
         std::vector<uint32_t> getIDList(bool showIconOnly = true) const
         {
             std::vector<uint32_t> idList;

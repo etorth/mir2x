@@ -81,6 +81,10 @@ void BaseBuff::runOnTrigger(int btgr)
     }
 }
 
+void BaseBuff::runOnUIDMove(int, uint64_t)
+{
+}
+
 void BaseBuff::runOnDone()
 {
 }
