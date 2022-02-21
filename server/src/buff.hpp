@@ -141,7 +141,7 @@ class BaseBuff
                 const auto &bar = DBCOM_BUFFACTRECORD(baref.name);
                 fflassert(bar, baref.name);
 
-                if(bar.isAura() && std::u8string_view(bar.name) == getBR().name){
+                if(bar.isAura() && std::u8string_view(bar.aura.buff) == getBR().name){
                     return &baref;
                 }
             }
