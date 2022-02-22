@@ -11,5 +11,5 @@ class ServerMinotaurGuardian final: public Monster
         corof::eval_poller updateCoroFunc() override;
 
     protected:
-        DamageNode getAttackDamage(int) const override;
+        DamageNode getAttackDamage(int, int) const override;
 };

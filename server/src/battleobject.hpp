@@ -118,7 +118,7 @@ class BattleObject: public CharObject
     protected:
         void dispatchHealth();
         void dispatchHealth(uint64_t);
-        void dispatchAttackDamage(uint64_t, int);
+        void dispatchAttackDamage(uint64_t, int, int);
 
     protected:
         virtual std::optional<std::tuple<int, int, int>> oneStepReach(int, int) const;
@@ -173,10 +173,10 @@ class BattleObject: public CharObject
         virtual bool dcValid(int, bool) = 0;
 
     protected:
-        virtual DamageNode getAttackDamage(int) const = 0;
+        virtual DamageNode getAttackDamage(int, int) const = 0;
 
     protected:
-        virtual bool struckDamage(const DamageNode &) = 0;
+        virtual bool struckDamage(uint64_t, const DamageNode &) = 0;
 
     protected:
         void addMonster(uint32_t, int, int, bool);

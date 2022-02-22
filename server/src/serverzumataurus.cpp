@@ -200,7 +200,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
                             if(m_map->groundValid(pathGX, pathGY)){
                                 amSFLD.x = pathGX;
                                 amSFLD.y = pathGY;
-                                amSFLD.damage = getAttackDamage(dcType);
+                                amSFLD.damage = getAttackDamage(dcType, 0);
                                 addDelay(10 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this]()
                                 {
                                     if(castMapID == mapID()){

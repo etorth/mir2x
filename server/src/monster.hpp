@@ -132,10 +132,10 @@ class Monster: public BattleObject
         bool dcValid(int, bool);
 
     protected:
-        bool struckDamage(const DamageNode &) override;
+        bool struckDamage(uint64_t, const DamageNode &) override;
 
     protected:
-        DamageNode getAttackDamage(int) const override;
+        DamageNode getAttackDamage(int, int) const override;
 
     private:
         void on_AM_EXP             (const ActorMsgPack &);

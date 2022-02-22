@@ -182,4 +182,9 @@ struct ItemRecord
     {
         return std::u8string_view(type) == u8"武器";
     }
+
+    constexpr bool isRing() const
+    {
+        return std::u8string_view(type) == u8"戒指";
+    }
 };

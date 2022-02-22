@@ -48,6 +48,10 @@ BaseBuffAct *BaseBuffAct::createBuffAct(BaseBuff *argBuff, size_t argBuffActOff)
         return BaseBuffActAttributeModifier::createAttributeModifier(argBuff, argBuffActOff);
     }
 
+    if(bar.isAttackModifier()){
+        return BaseBuffActAttackModifier::createAttackModifier(argBuff, argBuffActOff);
+    }
+
     throw fflvalue(argBuff, argBuffActOff, uidf::getUIDString(argBuff->getBO()->UID()), argBuff->getBR().name, argBuff->getBR().actList.begin()[argBuffActOff].name);
 }
 

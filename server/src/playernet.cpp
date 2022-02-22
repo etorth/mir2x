@@ -95,7 +95,7 @@ void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t)
 void Player::net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmRMD = ClientMsg::conv<CMRequestMagicDamage>(buf);
-    dispatchAttackDamage(cmRMD.aimUID, DBCOM_MAGICID(u8"物理攻击"));
+    dispatchAttackDamage(cmRMD.aimUID, DBCOM_MAGICID(u8"物理攻击"), 0);
 }
 
 void Player::net_CM_REQUESTADDEXP(uint8_t, const uint8_t *buf, size_t)

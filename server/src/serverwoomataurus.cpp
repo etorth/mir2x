@@ -87,6 +87,6 @@ void ServerWoomaTaurus::sendThunderBolt(uint64_t uid)
     dispatchInViewCONetPackage(SM_CASTMAGIC, smFM);
     addDelay(300, [uid, this]()
     {
-        dispatchAttackDamage(uid, DBCOM_MAGICID(u8"沃玛教主_雷电术"));
+        dispatchAttackDamage(uid, DBCOM_MAGICID(u8"沃玛教主_雷电术"), 0);
     });
 }

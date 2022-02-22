@@ -85,5 +85,5 @@ class ServerTaoDog final: public ServerTaoSummon
         void onAMAttack(const ActorMsgPack &) override;
 
     protected:
-        DamageNode getAttackDamage(int) const override;
+        DamageNode getAttackDamage(int, int) const override;
 };

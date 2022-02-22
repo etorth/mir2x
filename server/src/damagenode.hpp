@@ -31,7 +31,7 @@ struct DamageNode
 
     int dcHit;
     int mcHit;
-    int effect; // 穿刺 吸血 etc
+    int modifierID; // 穿刺 吸血 etc
 
     operator bool () const
     {
@@ -44,6 +44,7 @@ struct PlainPhyDamage
 {
     int damage = 0;
     int dcHit = 0;
+    int modifierID = 0;
     operator DamageNode() const;
 };
 
@@ -52,5 +53,6 @@ struct MagicDamage
     int magicID = 0;
     int damage = 0;
     int mcHit = 0;
+    int modifierID = 0;
     operator DamageNode() const;
 };

@@ -287,9 +287,9 @@ void Monster::attackUID(uint64_t uid, int magicID, std::function<void()> onOK, s
         //   2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
         //   3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
 
-        addDelay(550, [this, uid, magicID]()
+        addDelay(550, [this, uid, magicID, modifierID]()
         {
-            dispatchAttackDamage(uid, magicID);
+            dispatchAttackDamage(uid, magicID, modifierID);
         });
 
         if(onOK){
@@ -732,7 +732,7 @@ void Monster::reportCO(uint64_t toUID)
     m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
 }
 
-DamageNode Monster::getAttackDamage(int dc) const
+DamageNode Monster::getAttackDamage(int dc, int modifierID) const
 {
     switch(dc){
         case DBCOM_MAGICID(u8"物理攻击"):
@@ -741,6 +741,7 @@ DamageNode Monster::getAttackDamage(int dc) const
                 {
                     .damage = mathf::rand<int>(getMR().dc[0], getMR().dc[1]),
                     .dcHit = getMR().dcHit,
+                    .modifierID = modifierID,
                 };
             }
         default:
@@ -750,6 +751,7 @@ DamageNode Monster::getAttackDamage(int dc) const
                     .magicID = dc,
                     .damage = mathf::rand<int>(getMR().mc[0], getMR().mc[1]),
                     .mcHit = getMR().mcHit,
+                    .modifierID = modifierID,
                 };
             }
     }
@@ -866,7 +868,7 @@ bool Monster::goGhost()
     return true;
 }
 
-bool Monster::struckDamage(const DamageNode &node)
+bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
 {
     if(node){
         const bool phyDC = (to_u32(node.magicID) == DBCOM_MAGICID(u8"物理攻击"));
@@ -912,6 +914,24 @@ bool Monster::struckDamage(const DamageNode &node)
         if(damage > 0){
             m_sdHealth.hp = std::max<int>(0, m_sdHealth.hp - damage);
             dispatchHealth();
+
+            switch(node.modifierID){
+                case DBCOM_ATTACKMODIFIERID(u8"吸血"):
+                    {
+                        AMHeal amH;
+                        std::memset(&amH, 0, sizeof(amH));
+
+                        amH.mapID = mapID();
+                        amH.addHP = std::min<int>(damage, 20);
+
+                        m_actorPod->forward(fromUID, {AM_HEAL, amH});
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
 
             if(m_sdHealth.hp <= 0){
                 goDie();
@@ -1598,7 +1618,7 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
                         .direction = Direction(),
                     });
 
-                    struckDamage(amA.damage);
+                    struckDamage(amA.UID, amA.damage);
                     return;
                 }
             default:

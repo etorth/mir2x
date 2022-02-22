@@ -176,13 +176,13 @@ class Player final: public BattleObject
         void dispatchOffline();
 
     protected:
-        bool struckDamage(const DamageNode &);
+        bool struckDamage(uint64_t, const DamageNode &) override;
 
     protected:
         void RequestKillPets();
 
     protected:
-        DamageNode getAttackDamage(int) const;
+        DamageNode getAttackDamage(int, int) const override;
 
     protected:
         bool dcValid(int, bool);

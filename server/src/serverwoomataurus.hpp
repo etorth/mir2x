@@ -13,7 +13,7 @@ class ServerWoomaTaurus final: public Monster
         corof::eval_poller updateCoroFunc() override;
 
     protected:
-        DamageNode getAttackDamage(int dc) const override
+        DamageNode getAttackDamage(int dc, int) const override
         {
             switch(dc){
                 case DBCOM_MAGICID(u8"沃玛教主_电光"):

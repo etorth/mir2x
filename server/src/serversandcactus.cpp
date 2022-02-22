@@ -50,7 +50,7 @@ corof::eval_poller ServerSandCactus::updateCoroFunc()
     co_return true;
 }
 
-DamageNode ServerSandCactus::getAttackDamage(int dc) const
+DamageNode ServerSandCactus::getAttackDamage(int dc, int) const
 {
     fflassert(to_u32(dc) == DBCOM_MAGICID(u8"沙漠树魔_喷刺"));
     return MagicDamage

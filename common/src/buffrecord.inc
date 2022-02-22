@@ -95,6 +95,43 @@
     },
 },
 
+{   .name = u8"吸血鬼的诅咒",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"吸血光环使能",
+            .aura
+            {
+                .radius = 5,
+                .linger
+                {
+                    .in = 500,
+                    .out = 500,
+                },
+            },
+        },
+    },
+},
+
+{   .name = u8"吸血光环",
+    .favor = 1,
+    .icon
+    {
+        .show = 1,
+        .gfxID = 0X1800011D,
+    },
+
+    .actList
+    {
+        {   .name = u8"吸血",
+            .attackModifier
+            {
+                .prob = 100,
+            },
+        },
+    },
+},
+
 {   .name = u8"幽灵盾",
     .duration = 30000,
     .favor = 1,

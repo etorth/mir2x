@@ -28,7 +28,7 @@ class ServerTaoSkeleton final: public ServerTaoSummon
         {}
 
     protected:
-        DamageNode getAttackDamage(int dc) const override
+        DamageNode getAttackDamage(int dc, int) const override
         {
             fflassert(to_u32(dc) == DBCOM_MAGICID(u8"物理攻击"));
             return PlainPhyDamage

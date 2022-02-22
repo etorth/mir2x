@@ -320,7 +320,7 @@ bool Player::dcValid(int, bool)
     return true;
 }
 
-DamageNode Player::getAttackDamage(int nDC) const
+DamageNode Player::getAttackDamage(int nDC, int) const
 {
     const auto node = getCombatNode(m_sdItemStorage.wear, {}, UID(), level());
     const double elemRatio = 1.0 + 0.1 * [nDC, &node]() -> int
@@ -388,7 +388,7 @@ DamageNode Player::getAttackDamage(int nDC) const
     }
 }
 
-bool Player::struckDamage(const DamageNode &node)
+bool Player::struckDamage(uint64_t, const DamageNode &node)
 {
     // hack for debug
     // make the player never die
@@ -707,7 +707,7 @@ void Player::onCMActionAttack(CMAction stCMA)
                                             }
 
                                             for(const auto uid: aimUIDList){
-                                                dispatchAttackDamage(uid, nDCType);
+                                                dispatchAttackDamage(uid, nDCType, 0);
                                             }
 
                                             if(m_nextStrike){
@@ -860,7 +860,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                         addDelay(delay, [cmA, this]()
                         {
-                            dispatchAttackDamage(cmA.action.aimUID, cmA.action.extParam.spell.magicID);
+                            dispatchAttackDamage(cmA.action.aimUID, cmA.action.extParam.spell.magicID, 0);
                         });
                     });
                 }
@@ -884,7 +884,7 @@ void Player::onCMActionSpell(CMAction cmA)
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
                     addDelay(300, [smFM, this]()
                     {
-                        dispatchAttackDamage(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"));
+                        dispatchAttackDamage(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"), 0);
                     });
                 });
                 break;
@@ -1064,7 +1064,7 @@ void Player::onCMActionSpell(CMAction cmA)
                     if(m_map->groundValid(pathGX, pathGY)){
                         amSFLD.x = pathGX;
                         amSFLD.y = pathGY;
-                        amSFLD.damage = getAttackDamage(magicID);
+                        amSFLD.damage = getAttackDamage(magicID, 0);
                         addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this]()
                         {
                             if(castMapID == mapID()){

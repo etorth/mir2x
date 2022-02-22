@@ -31,7 +31,7 @@ class ServerSandCactus final: public Monster
         corof::eval_poller updateCoroFunc() override;
 
     protected:
-        DamageNode getAttackDamage(int) const override;
+        DamageNode getAttackDamage(int, int) const override;
 
     protected:
         bool canMove() const override

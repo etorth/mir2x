@@ -62,7 +62,7 @@ corof::eval_poller ServerMinotaurGuardian::updateCoroFunc()
     co_return true;
 }
 
-DamageNode ServerMinotaurGuardian::getAttackDamage(int dc) const
+DamageNode ServerMinotaurGuardian::getAttackDamage(int dc, int) const
 {
     if(isMonster(u8"潘夜左护卫")){
         switch(dc){

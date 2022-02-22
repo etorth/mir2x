@@ -10,6 +10,15 @@
     },
 },
 
+{   .name = u8"吸血光环使能",
+    .type = u8"光环",
+    .aura
+    {
+        .buff = u8"吸血光环",
+        .self = 1,
+    },
+},
+
 // 控制
 {   .name = u8"眩晕",
     .type = u8"控制",
@@ -174,6 +183,14 @@
     .attackModifier
     {
         .modifier = u8"重击",
+    },
+},
+
+{   .name = u8"吸血",
+    .type = u8"攻击修改",
+    .attackModifier
+    {
+        .modifier = u8"吸血",
     },
 },
 

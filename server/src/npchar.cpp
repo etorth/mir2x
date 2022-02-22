@@ -920,6 +920,20 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             },
         };
     }
+    else if(ir.isRing()){
+        return SDItem
+        {
+            .itemID = itemID,
+            .seqID =  seqID,
+            .count = 1,
+            .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
+            .extAttrList
+            {
+                {SDItem::EA_DC, mathf::rand<int>(1, 5)},
+                {SDItem::EA_BUFFID, DBCOM_BUFFID(u8"吸血鬼的诅咒")},
+            },
+        };
+    }
     else{
         return SDItem
         {

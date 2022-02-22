@@ -105,6 +105,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
             return;
         }
 
+        const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
         dispatchAction(ActionAttack
         {
             .speed = attackSpeed(),
@@ -112,9 +113,14 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
             .y = Y(),
             .aimUID = targetUID,
             .magicID = to_u32(dcType),
+            .modifierID = to_u32(modifierID),
         });
 
-        addDelay(550, [dcType, this]()
+        if(buffID){
+            sendBuff(buffID, 0, buffID);
+        }
+
+        addDelay(550, [dcType, modifierID, this]()
         {
             std::vector<std::tuple<int, int>> gridList;
             for(const auto r: {1, 2}){
@@ -135,7 +141,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
 
             amA.X = X();
             amA.Y = Y();
-            amA.damage = getAttackDamage(dcType);
+            amA.damage = getAttackDamage(dcType, modifierID);
 
             foreachInViewCO([amA, gridList, this](const COLocation &inViewCOLoc)
             {
@@ -196,7 +202,7 @@ void ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
     Monster::onAMAttack(mpk);
 }
 
-DamageNode ServerTaoDog::getAttackDamage(int dc) const
+DamageNode ServerTaoDog::getAttackDamage(int dc, int modifierID) const
 {
     fflassert(to_u32(dc) == DBCOM_MAGICID(u8"神兽_喷火"));
     return MagicDamage
@@ -204,5 +210,6 @@ DamageNode ServerTaoDog::getAttackDamage(int dc) const
         .magicID = dc,
         .damage = mathf::rand<int>(getMR().mc[0] + m_masterSC[0], getMR().mc[1] + m_masterSC[1]),
         .mcHit = getMR().mcHit,
+        .modifierID = modifierID,
     };
 }
