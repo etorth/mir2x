@@ -252,7 +252,7 @@ class BattleObject: public CharObject
 
     protected:
         void removeBuff(int);
-        std::tuple<int, BaseBuff *> addBuff(uint64_t, uint32_t, uint32_t);
+        BaseBuff *addBuff(uint64_t, uint64_t, uint32_t);
 
     protected:
         void sendBuff(uint64_t, uint32_t, uint32_t);

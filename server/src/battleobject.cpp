@@ -1176,7 +1176,7 @@ void BattleObject::removeBuff(int tag)
     dispatchBuffIDList();
 }
 
-std::tuple<int, BaseBuff *> BattleObject::addBuff(uint64_t fromUID, uint32_t fromBuff, uint32_t buffID)
+BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t buffID)
 {
     switch(buffID){
         case DBCOM_BUFFID(u8"治愈术"):
@@ -1190,17 +1190,17 @@ std::tuple<int, BaseBuff *> BattleObject::addBuff(uint64_t fromUID, uint32_t fro
             {
                 for(const auto pbuff: m_buffList.hasBuff(DBCOM_BUFFRECORD(buffID).name)){
                     if(pbuff->fromUID() == fromUID){
-                        return {0, nullptr};
+                        return nullptr;
                     }
                 }
 
-                const auto buffTag = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuff, buffID));
+                const auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)));
                 dispatchBuffIDList();
-                return buffTag;
+                return buff;
             }
         default:
             {
-                return {0, nullptr};
+                return nullptr;
             }
     }
 }

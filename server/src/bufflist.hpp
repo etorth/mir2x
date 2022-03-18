@@ -1,7 +1,7 @@
 #pragma once
-#include <map>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 #include "buff.hpp"
 #include "buffactaura.hpp"
 #include "buffactcontroller.hpp"
@@ -17,27 +17,29 @@ class BuffList final
         hres_timer m_timer;
 
     private:
-        std::map<int, std::unique_ptr<BaseBuff>> m_buffList;
+        std::unordered_map<uint32_t, uint32_t> m_buffSeqBase;
+
+    private:
+        std::unordered_map<uint64_t, std::unique_ptr<BaseBuff>> m_buffList;
 
     public:
         /* ctor */  BuffList() = default;
         /* dtor */ ~BuffList() = default;
 
     public:
-        std::tuple<int, BaseBuff *> addBuff(std::unique_ptr<BaseBuff> buffPtr)
+        uint32_t rollSeqID(uint32_t buffID)
         {
-            if(m_buffList.empty()){
-                m_buffList[1] = std::move(buffPtr);
-            }
-            else{
-                m_buffList[m_buffList.rbegin()->first + 1] = std::move(buffPtr);
-            }
+            return m_buffSeqBase[buffID] = std::max<uint32_t>(1, m_buffSeqBase[buffID] + 1);
+        }
 
-            return
-            {
-                m_buffList.rbegin()->first,
-                m_buffList.rbegin()->second.get(),
-            };
+    public:
+        BaseBuff * addBuff(std::unique_ptr<BaseBuff> buffPtr)
+        {
+            fflassert(buffPtr);
+            fflassert(!m_buffList.count(buffPtr->buffSeq()), buffPtr->id(), buffPtr->seqID());
+
+            const auto buffSeq = buffPtr->buffSeq();
+            return (m_buffList[buffSeq] = std::move(buffPtr)).get();
         }
 
     public:
@@ -78,9 +80,9 @@ class BuffList final
         }
 
     public:
-        void erase(int tag)
+        void erase(uint64_t buffSeq)
         {
-            m_buffList.erase(tag);
+            m_buffList.erase(buffSeq);
         }
 
     public:

@@ -34,12 +34,11 @@ class BaseBuff
 
     protected:
         const uint64_t m_fromUID;
-
-    protected:
-        const uint32_t m_fromBuff;
+        const uint64_t m_fromBuffSeq;
 
     protected:
         const uint32_t m_id;
+        const uint32_t m_seqID;
 
     protected:
         double m_accuTime = 0.0;
@@ -48,7 +47,7 @@ class BaseBuff
         std::vector<BuffActRunner> m_runList;
 
     public:
-        BaseBuff(BattleObject *, uint64_t, uint32_t, uint32_t);
+        BaseBuff(BattleObject *, uint64_t, uint64_t, uint32_t, uint32_t);
 
     public:
         virtual ~BaseBuff();
@@ -59,6 +58,16 @@ class BaseBuff
             return m_id;
         }
 
+        uint32_t seqID() const
+        {
+            return m_seqID;
+        }
+
+        uint64_t buffSeq() const
+        {
+            return (to_u64(m_id) << 32) | m_seqID;
+        }
+
         uint64_t fromUID() const
         {
             return m_fromUID;
@@ -66,7 +75,12 @@ class BaseBuff
 
         uint32_t fromBuff() const
         {
-            return m_fromBuff;
+            return to_u32(m_fromBuffSeq >> 32);
+        }
+
+        uint64_t fromBuffSeq() const
+        {
+            return m_fromBuffSeq;
         }
 
     public:
@@ -131,7 +145,7 @@ class BaseBuff
     public:
         const BuffRecord &fromBR() const
         {
-            return DBCOM_BUFFRECORD(m_fromBuff);
+            return DBCOM_BUFFRECORD(fromBuff());
         }
 
     public:

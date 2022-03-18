@@ -6,7 +6,7 @@
 #include "dbcomrecord.hpp"
 #include "battleobject.hpp"
 
-BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint32_t argFromBuff, uint32_t argBuffID)
+BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint64_t argFromBuffSeq, uint32_t argBuffID, uint32_t argSeqID)
     : m_bo([argBO]()
       {
           fflassert(argBO);
@@ -24,12 +24,17 @@ BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint32_t argFromBuf
               default: throw fflvalue(uidf::getUIDString(argFromUID));
           }
       }())
-    , m_fromBuff(argFromBuff)
+    , m_fromBuffSeq(argFromBuffSeq)
     , m_id([argBuffID]()
       {
           fflassert(argBuffID);
           fflassert(DBCOM_BUFFRECORD(argBuffID));
           return argBuffID;
+      }())
+    , m_seqID([argSeqID]()
+      {
+          fflassert(argSeqID);
+          return argSeqID;
       }())
 {
     m_runList.reserve(getBR().actList.size());
