@@ -196,6 +196,9 @@ bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<voi
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 
+                    m_buffList.runOnTrigger(BATGR_MOVE);
+                    m_buffList.runOnMove();
+
                     if(onOK){
                         onOK();
                     }
@@ -345,10 +348,11 @@ bool BattleObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, b
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 
+                    m_buffList.runOnTrigger(BATGR_MOVE);
+                    m_buffList.runOnMove();
+
                     if(onOK){
                         onOK();
-                        m_buffList.runOnTrigger(BATGR_MOVE);
-                        m_buffList.runOnMove();
                     }
                     return;
                 }
@@ -443,6 +447,9 @@ bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::fu
                         dynamic_cast<Player *>(this)->reportAction(UID(), mapID(), amSMOK.action);
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
+
+                    m_buffList.runOnTrigger(BATGR_MOVE);
+                    m_buffList.runOnMove();
 
                     if(onOK){
                         onOK();
@@ -601,6 +608,9 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                                                                         dynamic_cast<Player *>(this)->reportStand();
                                                                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                                                                     }
+
+                                                                    m_buffList.runOnTrigger(BATGR_MOVE);
+                                                                    m_buffList.runOnMove();
 
                                                                     if(onOK){
                                                                         onOK();
