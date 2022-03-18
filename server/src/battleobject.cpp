@@ -1295,13 +1295,13 @@ std::pair<int, SDTaggedValMap &> BattleObject::updateBuffedAbility(uint32_t buff
     }
 }
 
-void BattleObject::sendBuff(uint64_t uid, uint32_t fromBuff, uint32_t buffID)
+void BattleObject::sendBuff(uint64_t uid, uint64_t fromBuffSeq, uint32_t buffID)
 {
     AMAddBuff amAB;
     std::memset(&amAB, 0, sizeof(amAB));
 
     amAB.id = buffID;
-    amAB.fromBuff = fromBuff;
-    amAB.from = UID();
+    amAB.fromUID = UID();
+    amAB.fromBuffSeq = fromBuffSeq;
     m_actorPod->forward(uid, {AM_ADDBUFF, amAB});
 }

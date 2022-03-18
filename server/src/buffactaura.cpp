@@ -51,20 +51,20 @@ void BaseBuffActAura::transmit(uint64_t targetUID)
                             case FT_FRIEND:
                                 {
                                     if(getBR().favor >= 0){
-                                        getBuff()->getBO()->sendBuff(targetUID, getBuff()->id(), getAuraBuffID());
+                                        getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
                                     }
                                     break;
                                 }
                             case FT_ENEMY:
                                 {
                                     if(getBR().favor <= 0){
-                                        getBuff()->getBO()->sendBuff(targetUID, getBuff()->id(), getAuraBuffID());
+                                        getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
                                     }
                                     break;
                                 }
                             case FT_NEUTRAL:
                                 {
-                                    getBuff()->getBO()->sendBuff(targetUID, getBuff()->id(), getAuraBuffID());
+                                    getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
                                     break;
                                 }
                             default:

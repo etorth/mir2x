@@ -389,7 +389,7 @@ void Player::on_AM_ADDBUFF(const ActorMsgPack &mpk)
     fflassert(amAB.id);
     fflassert(DBCOM_BUFFRECORD(amAB.id));
 
-    checkFriend(amAB.from, [amAB, this](int friendType)
+    checkFriend(amAB.fromUID, [amAB, this](int friendType)
     {
         const auto &br = DBCOM_BUFFRECORD(amAB.id);
         fflassert(br);
@@ -398,20 +398,20 @@ void Player::on_AM_ADDBUFF(const ActorMsgPack &mpk)
             case FT_FRIEND:
                 {
                     if(br.favor >= 0){
-                        addBuff(amAB.from, 0, amAB.id);
+                        addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
                     }
                     return;
                 }
             case FT_ENEMY:
                 {
                     if(br.favor <= 0){
-                        addBuff(amAB.from, 0, amAB.id);
+                        addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
                     }
                     return;
                 }
             case FT_NEUTRAL:
                 {
-                    addBuff(amAB.from, 0, amAB.id);
+                    addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
                     return;
                 }
             default:

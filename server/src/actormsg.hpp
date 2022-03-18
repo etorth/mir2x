@@ -469,8 +469,8 @@ struct AMCOCount
 struct AMAddBuff
 {
     int id;
-    uint32_t fromBuff;
-    uint64_t from;
+    uint64_t fromUID;
+    uint64_t fromBuffSeq;
 };
 
 struct AMRemoveBuff
