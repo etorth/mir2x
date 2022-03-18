@@ -87,18 +87,18 @@ void BaseBuff::runOnTrigger(int btgr)
     }
 }
 
-void BaseBuff::runOnMove(int tag)
+void BaseBuff::runOnMove()
 {
     if(fromAuraBAREF()){
-        getBO()->addDelay(0, [tag, this]() // may call removeBuff() and can break outside for-loop
+        getBO()->addDelay(0, [this]() // may call removeBuff() and can break outside for-loop
         {
-            getBO()->getCOLocation(fromUID(), [tag, this](const COLocation &coLoc)
+            getBO()->getCOLocation(fromUID(), [this](const COLocation &coLoc)
             {
                 const auto bap = fromAuraBAREF();
                 fflassert(bap);
 
                 if((getBO()->mapID() != coLoc.mapID) || (mathf::LDistance2<int>(getBO()->X(), getBO()->Y(), coLoc.x, coLoc.y) > bap->aura.radius * bap->aura.radius)){
-                    getBO()->removeBuff(tag);
+                    getBO()->removeBuff(buffSeq(), true);
                 }
             });
         });

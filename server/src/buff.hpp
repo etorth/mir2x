@@ -122,7 +122,7 @@ class BaseBuff
         virtual void runOnDone();
 
     public:
-        virtual void runOnMove(int);
+        virtual void runOnMove();
 
     public:
         std::vector<BaseBuffActAura *> getAuraList();

@@ -102,10 +102,9 @@ class BuffList final
 
             for(auto p = m_buffList.begin(); p != m_buffList.end();){
                 auto pnext = std::next(p);
-                auto tag = p->first;
                 auto pbuff = p->second.get();
 
-                pbuff->runOnMove(tag);
+                pbuff->runOnMove();
                 p = pnext;
             }
         }
@@ -133,6 +132,17 @@ class BuffList final
             for(auto &p: m_buffList){
                 if(p.second->getBR().isBuff(name)){
                     result.push_back(p.second.get());
+                }
+            }
+            return result;
+        }
+
+        std::vector<BaseBuff *> hasFromBuff(uint64_t fromUID, uint64_t fromBuffSeq)
+        {
+            std::vector<BaseBuff *> result;
+            for(auto &elemp: m_buffList){
+                if((elemp.second->fromUID() == fromUID) && (elemp.second->fromBuffSeq() == fromBuffSeq)){
+                    result.push_back(elemp.second.get());
                 }
             }
             return result;

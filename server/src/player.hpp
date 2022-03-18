@@ -109,6 +109,7 @@ class Player final: public BattleObject
     private:
         void on_AM_EXP(const ActorMsgPack &);
         void on_AM_ADDBUFF(const ActorMsgPack &);
+        void on_AM_REMOVEBUFF(const ActorMsgPack &);
         void on_AM_MISS(const ActorMsgPack &);
         void on_AM_HEAL(const ActorMsgPack &);
         void on_AM_GIFT(const ActorMsgPack &);
@@ -346,4 +347,25 @@ class Player final: public BattleObject
     public:
         static int maxHP(uint64_t, uint32_t);
         static int maxMP(uint64_t, uint32_t);
+
+    protected:
+        void addWearOffTrigger(int wltype, std::function<void()> trigger)
+        {
+            fflassert(wltype >= WLG_BEGIN, wltype);
+            fflassert(wltype <  WLG_END  , wltype);
+
+            fflassert(trigger);
+            auto lastTrigger = std::move(m_onWearOff[wltype]);
+
+            m_onWearOff[wltype] = [lastTrigger = std::move(lastTrigger), currTrigger = std::move(trigger)]()
+            {
+                if(lastTrigger){
+                    lastTrigger();
+                }
+
+                if(currTrigger){
+                    currTrigger();
+                }
+            };
+        }
 };

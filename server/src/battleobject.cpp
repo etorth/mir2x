@@ -1170,10 +1170,45 @@ void BattleObject::updateBuffList()
     }
 }
 
-void BattleObject::removeBuff(int tag)
+void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
 {
-    m_buffList.erase(tag);
-    dispatchBuffIDList();
+    m_buffList.erase(buffSeq);
+
+    AMRemoveBuff amRB;
+    std::memset(&amRB, 0, sizeof(amRB));
+
+    amRB.fromUID = UID();
+    amRB.fromBuffSeq = buffSeq;
+
+    for(const auto uid: getInViewUIDList()){
+        switch(uidf::getUIDType(uid)){
+            case UID_PLY:
+            case UID_MON:
+                {
+                    m_actorPod->forward(uid, {AM_REMOVEBUFF, amRB});
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+
+    if(dispatch){
+        dispatchBuffIDList();
+    }
+}
+
+void BattleObject::removeFromBuff(uint64_t fromUID, uint64_t fromBuffSeq, bool dispatch)
+{
+    for(auto pbuff: m_buffList.hasFromBuff(fromUID, fromBuffSeq)){
+        removeBuff(pbuff->buffSeq(), false);
+    }
+
+    if(dispatch){
+        dispatchBuffIDList();
+    }
 }
 
 BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t buffID)

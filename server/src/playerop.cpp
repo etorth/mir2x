@@ -422,6 +422,12 @@ void Player::on_AM_ADDBUFF(const ActorMsgPack &mpk)
     });
 }
 
+void Player::on_AM_REMOVEBUFF(const ActorMsgPack &mpk)
+{
+    const auto amRB = mpk.conv<AMRemoveBuff>();
+    removeFromBuff(amRB.fromUID, amRB.fromBuffSeq, true);
+}
+
 void Player::on_AM_EXP(const ActorMsgPack &mpk)
 {
     const auto amE = mpk.conv<AMExp>();

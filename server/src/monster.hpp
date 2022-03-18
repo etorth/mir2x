@@ -143,6 +143,7 @@ class Monster: public BattleObject
         void on_AM_HEAL            (const ActorMsgPack &);
         void on_AM_ATTACK          (const ActorMsgPack &);
         void on_AM_ADDBUFF         (const ActorMsgPack &);
+        void on_AM_REMOVEBUFF      (const ActorMsgPack &);
         void on_AM_ACTION          (const ActorMsgPack &);
         void on_AM_OFFLINE         (const ActorMsgPack &);
         void on_AM_UPDATEHP        (const ActorMsgPack &);

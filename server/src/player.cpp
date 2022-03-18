@@ -102,6 +102,11 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_ADDBUFF(rstMPK);
                 break;
             }
+        case AM_REMOVEBUFF:
+            {
+                on_AM_REMOVEBUFF(rstMPK);
+                break;
+            }
         case AM_MISS:
             {
                 on_AM_MISS(rstMPK);
@@ -1252,10 +1257,10 @@ void Player::postOnlineOK()
                         pbuff->dispatchAura();
                     }
 
-                    m_onWearOff[wltype] = [buffSeq = pbuff->buffSeq(), this]()
+                    addWearOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
                     {
-                        m_buffList.erase(buffSeq);
-                    };
+                        removeBuff(buffSeq, true);
+                    });
                 }
             }
         }

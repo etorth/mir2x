@@ -251,7 +251,10 @@ class BattleObject: public CharObject
         }
 
     protected:
-        void removeBuff(int);
+        void removeBuff(uint64_t, bool);
+        void removeFromBuff(uint64_t, uint64_t, bool);
+
+    protected:
         BaseBuff *addBuff(uint64_t, uint64_t, uint32_t);
 
     protected:

@@ -605,6 +605,11 @@ void Monster::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_ADDBUFF(rstMPK);
                 break;
             }
+        case AM_REMOVEBUFF:
+            {
+                on_AM_REMOVEBUFF(rstMPK);
+                break;
+            }
         case AM_QUERYFINALMASTER:
             {
                 on_AM_QUERYFINALMASTER(rstMPK);

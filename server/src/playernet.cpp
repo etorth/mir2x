@@ -429,10 +429,10 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
                 pbuff->dispatchAura();
             }
 
-            m_onWearOff[wltype] = [buffSeq = pbuff->buffSeq(), this]()
+            addWearOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
             {
-                m_buffList.erase(buffSeq);
-            };
+                removeBuff(buffSeq, true);
+            });
         }
     }
 }

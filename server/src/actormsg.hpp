@@ -70,6 +70,7 @@ enum ActorMsgPackType: int
     AM_QUERYPLAYERWLDESP,
     AM_COCOUNT,
     AM_ADDBUFF,
+    AM_REMOVEBUFF,
     AM_EXP,
     AM_MISS,
     AM_HEAL,
@@ -470,6 +471,12 @@ struct AMAddBuff
     int id;
     uint32_t fromBuff;
     uint64_t from;
+};
+
+struct AMRemoveBuff
+{
+    uint64_t fromUID;
+    uint64_t fromBuffSeq;
 };
 
 struct AMExp
