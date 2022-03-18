@@ -1257,7 +1257,7 @@ void Player::postOnlineOK()
                         pbuff->dispatchAura();
                     }
 
-                    addWearOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
+                    addWLOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
                     {
                         removeBuff(buffSeq, true);
                     });

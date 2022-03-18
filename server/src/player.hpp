@@ -68,7 +68,7 @@ class Player final: public BattleObject
 
     private:
         std::unordered_map<int, std::function<void()>> m_onBeltOff;
-        std::unordered_map<int, std::function<void()>> m_onWearOff;
+        std::unordered_map<int, std::function<void()>> m_onWLOff;
 
     public:
         Player(const SDInitPlayer &, const ServerMap *);
@@ -349,15 +349,15 @@ class Player final: public BattleObject
         static int maxMP(uint64_t, uint32_t);
 
     protected:
-        void addWearOffTrigger(int wltype, std::function<void()> trigger)
+        void addWLOffTrigger(int wltype, std::function<void()> trigger)
         {
             fflassert(wltype >= WLG_BEGIN, wltype);
             fflassert(wltype <  WLG_END  , wltype);
 
             fflassert(trigger);
-            auto lastTrigger = std::move(m_onWearOff[wltype]);
+            auto lastTrigger = std::move(m_onWLOff[wltype]);
 
-            m_onWearOff[wltype] = [lastTrigger = std::move(lastTrigger), currTrigger = std::move(trigger)]()
+            m_onWLOff[wltype] = [lastTrigger = std::move(lastTrigger), currTrigger = std::move(trigger)]()
             {
                 if(lastTrigger){
                     lastTrigger();

@@ -429,7 +429,7 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
                 pbuff->dispatchAura();
             }
 
-            addWearOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
+            addWLOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
             {
                 removeBuff(buffSeq, true);
             });
@@ -527,10 +527,10 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t)
         .item = addedItem,
     }));
 
-    if(auto cbp = m_onWearOff.find(wltype); cbp != m_onWearOff.end()){
+    if(auto cbp = m_onWLOff.find(wltype); cbp != m_onWLOff.end()){
         fflassert(cbp->second);
         cbp->second();
-        m_onWearOff.erase(cbp);
+        m_onWLOff.erase(cbp);
     }
 }
 
