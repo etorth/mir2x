@@ -305,6 +305,30 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
             g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
 
+            constexpr int buffIconDrawW = 16;
+            constexpr int buffIconDrawH = 16;
+
+            const int buffIconStartX = drawBarXP;
+            const int buffIconStartY = drawBarYP - buffIconDrawH;
+
+            if(getSDBuffIDList().has_value()){
+                for(int drawIconCount = 0; const auto id: getSDBuffIDList().value().idList){
+                    const auto &br = DBCOM_BUFFRECORD(id);
+                    fflassert(br);
+
+                    if(br.icon.gfxID != SYS_TEXNIL){
+                        if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
+                            const int buffIconOffX = buffIconStartX + (drawIconCount % 2) * buffIconDrawW;
+                            const int buffIconOffY = buffIconStartY - (drawIconCount / 2) * buffIconDrawH;
+
+                            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
+                            g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
+                            drawIconCount++;
+                        }
+                    }
+                }
+            }
+
             if(g_clientArgParser->alwaysDrawName || (focusMask & (1 << FOCUS_MOUSE))){
                 const int nLW = m_nameBoard.w();
                 const int nLH = m_nameBoard.h();

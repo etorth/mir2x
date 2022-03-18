@@ -236,6 +236,30 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
         g_sdlDevice->drawTexture(bar1Ptr, drawHPX, drawHPY, 0, 0, drawHPW, bar1TexH);
         g_sdlDevice->drawTexture(bar0Ptr, drawHPX, drawHPY);
+
+        constexpr int buffIconDrawW = 16;
+        constexpr int buffIconDrawH = 16;
+
+        const int buffIconStartX = drawHPX;
+        const int buffIconStartY = drawHPY - buffIconDrawH;
+
+        if(getSDBuffIDList().has_value()){
+            for(int drawIconCount = 0; const auto id: getSDBuffIDList().value().idList){
+                const auto &br = DBCOM_BUFFRECORD(id);
+                fflassert(br);
+
+                if(br.icon.gfxID != SYS_TEXNIL){
+                    if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
+                        const int buffIconOffX = buffIconStartX + (drawIconCount % 2) * buffIconDrawW;
+                        const int buffIconOffY = buffIconStartY - (drawIconCount / 2) * buffIconDrawH;
+
+                        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
+                        g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
+                        drawIconCount++;
+                    }
+                }
+            }
+        }
     }
 }
 
