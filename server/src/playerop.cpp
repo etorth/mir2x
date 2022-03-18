@@ -104,7 +104,7 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 
     if(distChanged){
-        m_buffList.sendAura(amA.UID);
+        m_buffList.updateAura(amA.UID);
     }
 
     if(addedInView > 0){

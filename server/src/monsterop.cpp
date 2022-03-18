@@ -159,7 +159,7 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 
     if(distChanged){
-        m_buffList.sendAura(amA.UID);
+        m_buffList.updateAura(amA.UID);
     }
 
     // if sent is a player and is removed from this inview CO list

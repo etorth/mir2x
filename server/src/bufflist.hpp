@@ -50,6 +50,16 @@ class BuffList final
             }
         }
 
+        void updateAura(uint64_t uid)
+        {
+            sendAura(uid);
+            for(auto &[buffSeq, pbuff]: m_buffList){
+                if((pbuff->fromUID() == uid) && pbuff->fromAuraBAREF()){
+                    pbuff->runOnMove(); // behave same as BO itself moves
+                }
+            }
+        }
+
     public:
         void dispatchAura()
         {
