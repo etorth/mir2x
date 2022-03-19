@@ -48,9 +48,12 @@ ClientZumaMonster::ClientZumaMonster(uint64_t uid, ProcessRun *proc, const Actio
             }
         case ACTION_MOVE:
             {
+                // use MOTION_MON_STAND
+                // MOTION_MON_WALK needs to figure the destination grid
+
                 m_currMotion.reset(new MotionNode
                 {
-                    .type = MOTION_MON_WALK,
+                    .type = MOTION_MON_STAND,
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
