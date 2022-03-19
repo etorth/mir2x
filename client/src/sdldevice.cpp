@@ -313,13 +313,25 @@ SDLDevice::~SDLDevice()
 
 void SDLDevice::setWindowIcon()
 {
-    Uint16 rawData[16 * 16]
+    const static Rawbuf s_winIconBuf
     {
         #include "winicon.inc"
     };
 
-    if(auto surfPtr = SDL_CreateRGBSurfaceFrom(rawData, 16, 16, 16, 16 * 2, 0X0F00, 0X00F0, 0X000F, 0XF000)){
-        SDL_SetWindowIcon(m_window, surfPtr);
+    SDL_RWops   * rwOpsPtr = nullptr;
+    SDL_Surface *  surfPtr = nullptr;
+
+    if((rwOpsPtr = SDL_RWFromConstMem(s_winIconBuf.data(), s_winIconBuf.size()))){
+        if((surfPtr = IMG_LoadPNG_RW(rwOpsPtr))){
+            SDL_SetWindowIcon(m_window, surfPtr);
+        }
+    }
+
+    if(rwOpsPtr){
+        SDL_FreeRW(rwOpsPtr);
+    }
+
+    if(surfPtr){
         SDL_FreeSurface(surfPtr);
     }
 }
