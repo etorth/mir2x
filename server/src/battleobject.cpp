@@ -344,6 +344,12 @@ bool BattleObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, b
                     m_actorPod->forward(rmpk.from(), {AM_MOVEOK, amMOK}, rmpk.seqID());
                     trimInViewCO();
 
+                    // here firstly we make map to boardcast the ActionMove
+                    // then if BO is a player, notify all its slaves with ActionStand
+
+                    // however the order of these two actions reaches neighbor can switch
+                    // from neighbor's view it firstly get an ActionStand but location changed, then get an ActionMove but destination is current location
+
                     if(isPlayer()){
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
