@@ -348,6 +348,9 @@ class Player final: public BattleObject
         static int maxHP(uint64_t, uint32_t);
         static int maxMP(uint64_t, uint32_t);
 
+    public:
+        void updateWLBuff();
+
     protected:
         void addWLOffTrigger(int wltype, std::function<void()> trigger)
         {

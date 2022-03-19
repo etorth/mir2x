@@ -264,7 +264,7 @@ class BattleObject: public CharObject
         void dispatchBuffIDList();
 
     protected:
-        virtual void updateBuffList();
+        virtual void updateBuffOnMove();
 
     protected:
         virtual bool updateHealth(

@@ -196,9 +196,7 @@ bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<voi
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 
-                    m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnMove();
-
+                    updateBuffOnMove();
                     if(onOK){
                         onOK();
                     }
@@ -344,13 +342,17 @@ bool BattleObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, b
                     m_actorPod->forward(rmpk.from(), {AM_MOVEOK, amMOK}, rmpk.seqID());
                     trimInViewCO();
 
+                    // here firstly we make map to boardcast the ActionMove
+                    // then if BO is a player, notify all its slaves with ActionStand
+
+                    // however the order of these two actions reaches neighbor can switch
+                    // from neighbor's view it firstly get an ActionStand but location changed, then get an ActionMove but destination is current location
+
                     if(isPlayer()){
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 
-                    m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnMove();
-
+                    updateBuffOnMove();
                     if(onOK){
                         onOK();
                     }
@@ -448,9 +450,7 @@ bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::fu
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 
-                    m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnMove();
-
+                    updateBuffOnMove();
                     if(onOK){
                         onOK();
                     }
@@ -609,9 +609,7 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                                                                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                                                                     }
 
-                                                                    m_buffList.runOnTrigger(BATGR_MOVE);
-                                                                    m_buffList.runOnMove();
-
+                                                                    updateBuffOnMove();
                                                                     if(onOK){
                                                                         onOK();
                                                                     }
@@ -1173,10 +1171,13 @@ void BattleObject::dispatchBuffIDList()
     }
 }
 
-void BattleObject::updateBuffList()
+void BattleObject::updateBuffOnMove()
 {
-    if(m_buffList.update()){
-        dispatchBuffIDList();
+    m_buffList.runOnTrigger(BATGR_MOVE);
+    m_buffList.runOnMove();
+
+    if(isPlayer()){
+        dynamic_cast<Player *>(this)->updateWLBuff();
     }
 }
 
