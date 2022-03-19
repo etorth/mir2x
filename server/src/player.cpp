@@ -1249,7 +1249,22 @@ void Player::postOnlineOK()
     postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
     postNetMessage(SM_RUNTIMECONFIG,    cerealf::serialize(m_sdRuntimeConfig));
 
-    updateWLBuff();
+    for(int wltype = WLG_BEGIN; wltype < WLG_END; ++wltype){
+        if(const auto &item = m_sdItemStorage.wear.getWLItem(wltype)){
+            if(const auto buffIDOpt = item.getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
+                if(const auto pbuff = addBuff(UID(), 0, buffIDOpt.value())){
+                    if(const auto auraList = pbuff->getAuraList(); !auraList.empty()){
+                        pbuff->dispatchAura();
+                    }
+
+                    addWLOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
+                    {
+                        removeBuff(buffSeq, true);
+                    });
+                }
+            }
+        }
+    }
 }
 
 bool Player::hasInventoryItem(uint32_t itemID, uint32_t seqID, size_t count) const
@@ -1428,26 +1443,6 @@ void Player::notifySlaveGLoc()
 {
     for(const auto uid: m_slaveList){
         dispatchAction(uid, makeActionStand());
-    }
-}
-
-void Player::updateWLBuff()
-{
-    for(int wltype = WLG_BEGIN; wltype < WLG_END; ++wltype){
-        if(const auto &item = m_sdItemStorage.wear.getWLItem(wltype)){
-            if(const auto buffIDOpt = item.getExtAttr<uint32_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
-                if(const auto pbuff = addBuff(UID(), 0, buffIDOpt.value())){
-                    if(const auto auraList = pbuff->getAuraList(); !auraList.empty()){
-                        pbuff->dispatchAura();
-                    }
-
-                    addWLOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
-                    {
-                        removeBuff(buffSeq, true);
-                    });
-                }
-            }
-        }
     }
 }
 
