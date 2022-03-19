@@ -859,7 +859,7 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
         return SDItem
         {
             .itemID = itemID,
-            .seqID =  seqID,
+            .seqID = seqID,
             .count = 1,
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
@@ -872,7 +872,7 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
         return SDItem
         {
             .itemID = itemID,
-            .seqID =  seqID,
+            .seqID = seqID,
             .count = 1,
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
@@ -881,9 +881,6 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
                 {SDItem::EA_MC, mathf::rand<int>(1, 5)},
                 {SDItem::EA_SC, mathf::rand<int>(1, 5)},
 
-                // {SDItem::EA_AC, mathf::rand<int>(1, 5)},
-                // {SDItem::EA_MAC, mathf::rand<int>(1, 5)},
-                //
                 // {SDItem::EA_DCHIT, mathf::rand<int>(1, 5)},
                 // {SDItem::EA_MCHIT, mathf::rand<int>(1, 5)},
                 // {SDItem::EA_DCDODGE, mathf::rand<int>(1, 5)},
@@ -925,7 +922,7 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
         return SDItem
         {
             .itemID = itemID,
-            .seqID =  seqID,
+            .seqID = seqID,
             .count = 1,
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
@@ -935,11 +932,25 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             },
         };
     }
+    else if(ir.isHelmet()){
+        return SDItem
+        {
+            .itemID = itemID,
+            .seqID = seqID,
+            .count = 1,
+            .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
+            .extAttrList
+            {
+                {SDItem::EA_AC, mathf::rand<int>(1, 5)},
+                {SDItem::EA_MAC, mathf::rand<int>(1, 5)},
+            },
+        };
+    }
     else{
         return SDItem
         {
             .itemID = itemID,
-            .seqID =  seqID,
+            .seqID = seqID,
             .count = 1,
             .extAttrList = {},
         };
