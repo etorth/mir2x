@@ -89,20 +89,23 @@ void BaseBuff::runOnTrigger(int btgr)
 
 void BaseBuff::runOnMove()
 {
-    if(fromAuraBAREF()){
-        if(getBO()->UID() == fromUID()){
-            return;
-        }
+    // BO has moved
+    // check if need to disable because out of radius
 
-        getBO()->addDelay(0, [this]() // may call removeBuff() and can break outside for-loop
+    if(getBO()->UID() == fromUID()){
+        return;
+    }
+
+    // capture this->getBO() should be fine, but don't capture *this*
+    // buff may get released before lambada triggered
+
+    if(const auto bap = fromAuraBAREF()){
+        getBO()->addDelay(0, [boPtr = getBO(), fromUID = fromUID(), buffSeq = buffSeq(), radius = bap->aura.radius]() // may call removeBuff() and can break outside for-loop
         {
-            getBO()->getCOLocation(fromUID(), [this](const COLocation &coLoc)
+            boPtr->getCOLocation(fromUID, [boPtr, buffSeq, radius](const COLocation &coLoc)
             {
-                const auto bap = fromAuraBAREF();
-                fflassert(bap);
-
-                if((getBO()->mapID() != coLoc.mapID) || (mathf::LDistance2<int>(getBO()->X(), getBO()->Y(), coLoc.x, coLoc.y) > bap->aura.radius * bap->aura.radius)){
-                    getBO()->removeBuff(buffSeq(), true);
+                if((boPtr->mapID() != coLoc.mapID) || (mathf::LDistance2<int>(boPtr->X(), boPtr->Y(), coLoc.x, coLoc.y) > radius * radius)){
+                    boPtr->removeBuff(buffSeq, true);
                 }
             });
         });
