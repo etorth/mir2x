@@ -9,7 +9,7 @@ environment:
     VCPKG_INSTALLED_TOOLS_PATH: C:\Tools\vcpkg\installed\x64-windows-static\tools
     PATH: $(VCPKG_INSTALLED_TOOLS_PATH%);$(VCPKG_INSTALLED_TOOLS_PATH)\fltk;$(VCPKG_INSTALLED_TOOLS_PATH)\lua;$(PATH)
     CMAKE_GENERATOR: -G"Visual Studio 17 2022"
-    CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake"
+    CMAKE_TOOLCHAIN_FILE: -DCMAKE_TOOLCHAIN_FILE="C:\\Tools\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake"
     CMAKE_VERBOSE_MAKEFILE: -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
     VCPKG_DEFAULT_TRIPLET: x64-windows
     VCPKG_TARGET_TRIPLET: -DVCPKG_TARGET_TRIPLET=x64-windows-static
