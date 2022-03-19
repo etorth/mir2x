@@ -237,10 +237,10 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         g_sdlDevice->drawTexture(bar1Ptr, drawHPX, drawHPY, 0, 0, drawHPW, bar1TexH);
         g_sdlDevice->drawTexture(bar0Ptr, drawHPX, drawHPY);
 
-        constexpr int buffIconDrawW = 16;
-        constexpr int buffIconDrawH = 16;
+        constexpr int buffIconDrawW = 10;
+        constexpr int buffIconDrawH = 10;
 
-        const int buffIconStartX = drawHPX;
+        const int buffIconStartX = drawHPX + 1;
         const int buffIconStartY = drawHPY - buffIconDrawH;
 
         if(getSDBuffIDList().has_value()){
@@ -250,8 +250,8 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
                 if(br.icon.gfxID != SYS_TEXNIL){
                     if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
-                        const int buffIconOffX = buffIconStartX + (drawIconCount % 2) * buffIconDrawW;
-                        const int buffIconOffY = buffIconStartY - (drawIconCount / 2) * buffIconDrawH;
+                        const int buffIconOffX = buffIconStartX + (drawIconCount % 3) * buffIconDrawW;
+                        const int buffIconOffY = buffIconStartY - (drawIconCount / 3) * buffIconDrawH;
 
                         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
                         g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);

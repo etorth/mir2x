@@ -305,10 +305,10 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             g_sdlDevice->drawTexture(pBar1, drawBarXP, drawBarYP, 0, 0, drawBarWidth, nBarH);
             g_sdlDevice->drawTexture(pBar0, drawBarXP, drawBarYP);
 
-            constexpr int buffIconDrawW = 16;
-            constexpr int buffIconDrawH = 16;
+            constexpr int buffIconDrawW = 10;
+            constexpr int buffIconDrawH = 10;
 
-            const int buffIconStartX = drawBarXP;
+            const int buffIconStartX = drawBarXP + 1;
             const int buffIconStartY = drawBarYP - buffIconDrawH;
 
             if(getSDBuffIDList().has_value()){
@@ -318,8 +318,8 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
 
                     if(br.icon.gfxID != SYS_TEXNIL){
                         if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
-                            const int buffIconOffX = buffIconStartX + (drawIconCount % 2) * buffIconDrawW;
-                            const int buffIconOffY = buffIconStartY - (drawIconCount / 2) * buffIconDrawH;
+                            const int buffIconOffX = buffIconStartX + (drawIconCount % 3) * buffIconDrawW;
+                            const int buffIconOffY = buffIconStartY - (drawIconCount / 3) * buffIconDrawH;
 
                             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
                             g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
