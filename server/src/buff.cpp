@@ -90,6 +90,10 @@ void BaseBuff::runOnTrigger(int btgr)
 void BaseBuff::runOnMove()
 {
     if(fromAuraBAREF()){
+        if(getBO()->UID() == fromUID()){
+            return;
+        }
+
         getBO()->addDelay(0, [this]() // may call removeBuff() and can break outside for-loop
         {
             getBO()->getCOLocation(fromUID(), [this](const COLocation &coLoc)
