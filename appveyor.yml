@@ -7,7 +7,7 @@ platform: x64
 
 environment:
     ENV_VCPKG_TARGET_TRIPLET: x64-windows-static
-    ENV_CMAKE_GENERATOR: "Visual Studio 17 2022"
+    ENV_CMAKE_GENERATOR: "\"Visual Studio 17 2022\""
     ENV_CMAKE_TOOLCHAIN_FILE: "C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
     ENV_VCPKG_INSTALLED_TOOLS_PATH: C:/Tools/vcpkg/installed/x64-windows-static/tools
     PATH: $(ENV_VCPKG_INSTALLED_TOOLS_PATH);$(ENV_VCPKG_INSTALLED_TOOLS_PATH)/fltk;$(ENV_VCPKG_INSTALLED_TOOLS_PATH)/lua;$(PATH)
