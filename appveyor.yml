@@ -6,13 +6,12 @@ image: Visual Studio 2022
 platform: x64
 
 environment:
-    VCPKG_INSTALLED_TOOLS_PATH: C:/Tools/vcpkg/installed/x64-windows-static/tools
-    PATH: $(VCPKG_INSTALLED_TOOLS_PATH%);$(VCPKG_INSTALLED_TOOLS_PATH)/fltk;$(VCPKG_INSTALLED_TOOLS_PATH)/lua;$(PATH)
-    CMAKE_GENERATOR: -G"Visual Studio 17 2022"
-    CMAKE_VERBOSE_MAKEFILE: -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-    VCPKG_DEFAULT_TRIPLET: x64-windows
-    VCPKG_TARGET_TRIPLET: -DVCPKG_TARGET_TRIPLET=x64-windows-static
+    ENV_VCPKG_TARGET_TRIPLET: x64-windows-static
+    ENV_CMAKE_GENERATOR: "Visual Studio 17 2022"
     ENV_CMAKE_TOOLCHAIN_FILE: "C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
+    ENV_VCPKG_INSTALLED_TOOLS_PATH: C:/Tools/vcpkg/installed/x64-windows-static/tools
+    PATH: $(ENV_VCPKG_INSTALLED_TOOLS_PATH);$(ENV_VCPKG_INSTALLED_TOOLS_PATH)/fltk;$(ENV_VCPKG_INSTALLED_TOOLS_PATH)/lua;$(PATH)
+    VCPKG_DEFAULT_TRIPLET: x64-windows
 
 configuration:
     - Release
@@ -48,8 +47,9 @@ before_build:
         git lfs prune
         mkdir build
         cd build
+        echo %PATH%
         cmake --version
-        cmake .. %CMAKE_GENERATOR% -DCMAKE_TOOLCHAIN_FILE=%ENV_CMAKE_TOOLCHAIN_FILE% %CMAKE_VERBOSE_MAKEFILE% %VCPKG_TARGET_TRIPLET%
+        cmake .. -G %ENV_CMAKE_GENERATOR% -DCMAKE_TOOLCHAIN_FILE=%ENV_CMAKE_TOOLCHAIN_FILE% -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DVCPKG_TARGET_TRIPLET=%ENV_VCPKG_TARGET_TRIPLET%
         cmake --build . --target package --config Release
 
 build_script:
