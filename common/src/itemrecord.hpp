@@ -192,4 +192,19 @@ struct ItemRecord
     {
         return std::u8string_view(type) == u8"头盔";
     }
+
+    constexpr bool isBook() const
+    {
+        return std::u8string_view(type) == u8"技能书";
+    }
+
+    constexpr bool isPotion() const
+    {
+        return std::u8string_view(type) == u8"恢复药水";
+    }
+
+    constexpr bool isDope() const
+    {
+        return std::u8string_view(type) == u8"强效药水";
+    }
 };

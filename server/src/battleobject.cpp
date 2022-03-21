@@ -1242,6 +1242,7 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
         case DBCOM_BUFFID(u8"吸血光环"):
         case DBCOM_BUFFID(u8"龙纹圣光"):
         case DBCOM_BUFFID(u8"吸血鬼的诅咒"):
+        case DBCOM_BUFFID(u8"强效太阳水"):
             {
                 for(const auto pbuff: m_buffList.hasBuff(DBCOM_BUFFRECORD(buffID).name)){
                     if(pbuff->fromUID() == fromUID){

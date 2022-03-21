@@ -612,9 +612,8 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
     const auto &ir = DBCOM_ITEMRECORD(cmCI.itemID);
     fflassert(ir);
 
-    if(to_u8sv(ir.type) == u8"技能书"){
-        const uint32_t magicID = DBCOM_MAGICID(ir.name);
-        if(m_sdLearnedMagicList.has(magicID)){
+    if(ir.isBook()){
+        if(const uint32_t magicID = DBCOM_MAGICID(ir.name); m_sdLearnedMagicList.has(magicID)){
             postNetMessage(SM_TEXT, str_printf(u8"你已掌握%s", to_cstr(ir.name)));
             return;
         }
@@ -628,6 +627,9 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
             postNetMessage(SM_TEXT, str_printf(u8"学习%s", to_cstr(ir.name)));
             postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
         }
+    }
+    else if(ir.isPotion()){
+        addBuff(UID(), 0, DBCOM_BUFFID(ir.name));
     }
     else{
         // TODO

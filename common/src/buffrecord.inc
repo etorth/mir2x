@@ -191,3 +191,23 @@
         },
     },
 },
+
+{   .name = u8"强效太阳水",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"HP",
+            .attributeModifier
+            {
+                .value = 110,
+            },
+        },
+
+        {   .name = u8"MP",
+            .attributeModifier
+            {
+                .value = 180,
+            },
+        },
+    },
+},
