@@ -3,6 +3,16 @@
 #include "dbcomid.hpp"
 #include "buffacttrigger.hpp"
 
+void BaseBuffActTrigger::checkTimedTrigger()
+{
+    if(getBAREF().trigger.on & BATGR_TIME){
+        const auto neededCount = std::lround(m_buff->accuTime() * getBAREF().trigger.tps / 1000.0);
+        while(m_tpsCount++ < neededCount){
+            runOnTrigger(BATGR_TIME);
+        }
+    }
+}
+
 template<uint32_t INDEX> class IndexedBuffActTrigger: public BaseBuffActTrigger
 {
     protected:

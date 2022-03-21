@@ -1,7 +1,6 @@
 {},
 
 {   .name = u8"治愈术",
-    .duration = 6000,
     .favor = 1,
     .dispellable = 1,
     .icon
@@ -13,6 +12,7 @@
     .actList
     {
         {   .name = u8"HP",
+            .duration = 0,
             .attributeModifier
             {
                 .value = 20,
@@ -20,6 +20,7 @@
         },
 
         {   .name = u8"HP持续",
+            .duration = 6000,
             .attributeModifier
             {
                 .value = 20,
@@ -30,7 +31,6 @@
 },
 
 {   .name = u8"施毒术",
-    .duration = 6000,
     .favor = -1,
     .dispellable = 1,
     .icon
@@ -42,6 +42,7 @@
     .actList
     {
         {   .name = u8"HP",
+            .duration = 0,
             .attributeModifier
             {
                 .value = -20,
@@ -49,6 +50,7 @@
         },
 
         {   .name = u8"HP持续",
+            .duration = 6000,
             .attributeModifier
             {
                 .value = -20,
@@ -133,7 +135,6 @@
 },
 
 {   .name = u8"幽灵盾",
-    .duration = 30000,
     .favor = 1,
     .dispellable = 1,
     .icon
@@ -145,6 +146,7 @@
     .actList
     {
         {   .name = u8"MAC下限",
+            .duration = 30000,
             .attributeModifier
             {
                 .value = 2,
@@ -153,6 +155,7 @@
         },
 
         {   .name = u8"MAC上限",
+            .duration = 30000,
             .attributeModifier
             {
                 .value = 2,
@@ -163,7 +166,6 @@
 },
 
 {   .name = u8"神圣战甲术",
-    .duration = 30000,
     .favor = 1,
     .dispellable = 1,
     .icon
@@ -175,6 +177,7 @@
     .actList
     {
         {   .name = u8"AC下限",
+            .duration = 30000,
             .attributeModifier
             {
                 .value = 2,
@@ -183,6 +186,7 @@
         },
 
         {   .name = u8"AC上限",
+            .duration = 30000,
             .attributeModifier
             {
                 .value = 2,
@@ -197,6 +201,7 @@
     .actList
     {
         {   .name = u8"HP",
+            .duration = 0,
             .attributeModifier
             {
                 .value = 110,
@@ -204,6 +209,7 @@
         },
 
         {   .name = u8"MP",
+            .duration = 0,
             .attributeModifier
             {
                 .value = 180,

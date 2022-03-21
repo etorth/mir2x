@@ -12,6 +12,9 @@ class BaseBuffActTrigger: public BaseBuffAct
     private:
         template<uint32_t> friend class BuffActTrigger;
 
+    private:
+        long m_tpsCount = 0;
+
     protected:
         BaseBuffActTrigger(BaseBuff *argBuff, size_t argBuffActOff)
             : BaseBuffAct(argBuff, argBuffActOff)
@@ -24,4 +27,7 @@ class BaseBuffActTrigger: public BaseBuffAct
 
     public:
         static BaseBuffActTrigger *createTrigger(BaseBuff *, size_t);
+
+    public:
+        void checkTimedTrigger(); // check if need trigger BATGR_TIME
 };

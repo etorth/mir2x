@@ -1,4 +1,5 @@
 #pragma once
+#include <set>
 #include <cmath>
 #include <tuple>
 #include <vector>
@@ -22,13 +23,6 @@ class BaseBuff
     private:
         friend class BuffList;
 
-    private:
-        struct BuffActRunner
-        {
-            long tpsCount = 0;
-            std::unique_ptr<BaseBuffAct> ptr;
-        };
-
     protected:
         BattleObject * const m_bo;
 
@@ -44,7 +38,7 @@ class BaseBuff
         double m_accuTime = 0.0;
 
     protected:
-        std::vector<BuffActRunner> m_runList;
+        std::set<std::unique_ptr<BaseBuffAct>> m_actList;
 
     public:
         BaseBuff(BattleObject *, uint64_t, uint64_t, uint32_t, uint32_t);
@@ -95,12 +89,15 @@ class BaseBuff
         }
 
     public:
+        double accuTime() const
+        {
+            return m_accuTime;
+        }
+
+    public:
         virtual bool done() const
         {
-            if(getBR().duration < 0){ // zero duration means one-shot buff
-                return false;
-            }
-            return std::lround(m_accuTime) >= getBR().duration;
+            return m_actList.empty();
         }
 
     public:
@@ -122,7 +119,7 @@ class BaseBuff
         virtual void runOnDone();
 
     public:
-        virtual void runOnMove();
+        virtual void runOnBOMove();
 
     public:
         std::vector<BaseBuffActAura *> getAuraList();

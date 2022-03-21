@@ -56,7 +56,7 @@ class BuffList final
             sendAura(uid);
             for(auto &[buffSeq, pbuff]: m_buffList){
                 if((pbuff->fromUID() == uid) && pbuff->fromAuraBAREF()){
-                    pbuff->runOnMove(); // behave same as BO itself moves
+                    pbuff->runOnBOMove(); // behave same as BO itself moves
                 }
             }
         }
@@ -106,16 +106,16 @@ class BuffList final
         }
 
     public:
-        void runOnMove()
+        void runOnBOMove()
         {
-            // TODO BaseBuff::runOnMove() can call removeBuff()
+            // TODO BaseBuff::runOnBOMove() can call removeBuff()
             // which destruct the Buff itself and this causes dangling pointer
 
             for(auto p = m_buffList.begin(); p != m_buffList.end();){
                 auto pnext = std::next(p);
                 auto pbuff = p->second.get();
 
-                pbuff->runOnMove();
+                pbuff->runOnBOMove();
                 p = pnext;
             }
         }
@@ -167,10 +167,10 @@ class BuffList final
             fflassert(str_haschar(name));
             std::vector<BaseBuffAct *> result;
 
-            for(auto &p: m_buffList){
-                for(auto &actr: p.second->m_runList){
-                    if(actr.ptr->getBAR().isBuffAct(name)){
-                        result.push_back(actr.ptr.get());
+            for(auto &elemp: m_buffList){
+                for(auto &actPtr: elemp.second->m_actList){
+                    if(actPtr->getBAR().isBuffAct(name)){
+                        result.push_back(actPtr.get());
                     }
                 }
             }

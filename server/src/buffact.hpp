@@ -48,6 +48,9 @@ class BaseBuffAct
         }
 
     public:
+        virtual bool done() const; // if duration has passed
+
+    public:
         const BuffRecord & getBR() const;
 
     public:

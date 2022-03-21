@@ -140,17 +140,8 @@ struct BuffRecord
 {
     const char8_t * const name = nullptr;
 
-    // duration: in ms: < 0: never finish
-    //                    0: one-shot buff
-    //                  > 0: has limited timeout
-
-    // favor:  -1: debuff
-    //          0: neutral
-    //          1: buff
-
-    const int duration    : 20 = -1;
-    const int favor       :  2 =  0;
-    const int dispellable :  2 =  0;
+    const int favor       : 2 = 0; // -1: debuff, 0: neutral, 1: buff
+    const int dispellable : 2 = 0;
 
     const struct IconParam
     {
@@ -162,6 +153,12 @@ struct BuffRecord
     struct BuffActRecordRef
     {
         const char8_t * const name = nullptr;
+
+        // every buff has an actList and each act in the list has different duration
+        // duration in ms < 0: unlimited
+        //                  0: one-shot act
+        //                > 0: limited timeout
+        const int duration = -1;
 
         const struct BuffActAuraParam
         {

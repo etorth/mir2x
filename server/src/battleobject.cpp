@@ -197,7 +197,7 @@ bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<voi
                     }
 
                     m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnMove();
+                    m_buffList.runOnBOMove();
                     m_buffList.dispatchAura();
 
                     if(onOK){
@@ -356,7 +356,7 @@ bool BattleObject::requestMove(int nX, int nY, int nSpeed, bool allowHalfMove, b
                     }
 
                     m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnMove();
+                    m_buffList.runOnBOMove();
                     m_buffList.dispatchAura();
 
                     if(onOK){
@@ -457,7 +457,7 @@ bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::fu
                     }
 
                     m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnMove();
+                    m_buffList.runOnBOMove();
                     m_buffList.dispatchAura();
 
                     if(onOK){
@@ -619,7 +619,7 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                                                                     }
 
                                                                     m_buffList.runOnTrigger(BATGR_MOVE);
-                                                                    m_buffList.runOnMove();
+                                                                    m_buffList.runOnBOMove();
                                                                     m_buffList.dispatchAura();
 
                                                                     if(onOK){
