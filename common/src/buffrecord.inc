@@ -196,6 +196,42 @@
     },
 },
 
+{   .name = u8"金创药（特）",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"HP持续",
+            .duration = 6000,
+            .attributeModifier
+            {
+                .value = 170,
+            },
+        },
+    },
+},
+
+{   .name = u8"太阳水",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"HP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .value = 70,
+            },
+        },
+
+        {   .name = u8"MP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .value = 110,
+            },
+        },
+    },
+},
+
 {   .name = u8"强效太阳水",
     .favor = 1,
     .actList

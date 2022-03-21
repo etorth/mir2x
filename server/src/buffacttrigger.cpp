@@ -59,6 +59,9 @@ template<uint32_t INDEX> class BuffActTrigger: public IndexedBuffActTrigger<INDE
     private: \
         friend class BaseBuffActTrigger; \
  \
+    private: \
+        static_assert(DBCOM_BUFFACTRECORD(name).isTrigger()); \
+ \
     public: \
         BuffActTrigger(BaseBuff *argBuff) \
             : IndexedBuffActTrigger<DBCOM_BUFFACTID(name)>(argBuff) \
@@ -79,14 +82,14 @@ void  BuffActTrigger<DBCOM_BUFFACTID(name)>::runOnTrigger
 //     }
 //
 
-_decl_named_buff_act_trigger(u8"HP")(int)
+_decl_named_buff_act_trigger(u8"HP移动伤害")(int)
 {
-    getBuff()->getBO()->updateHealth(5);
+    getBuff()->getBO()->updateHealth(-1);
 }
 
-_decl_named_buff_act_trigger(u8"HP持续")(int)
+_decl_named_buff_act_trigger(u8"MP移动伤害")(int)
 {
-    getBuff()->getBO()->updateHealth(5);
+    getBuff()->getBO()->updateHealth(0, -1);
 }
 
 #undef _decl_named_buff_act_trigger

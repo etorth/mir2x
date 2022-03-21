@@ -65,29 +65,6 @@ const static struct BuffActRecordAssertor
 }
 s_buffActRecordAssertor {};
 
-template<typename T, size_t N> const T &DBCOM_REFHELPER(const T (&itemList)[N], uint32_t id)
-{
-    return (id < to_u32(N)) ? itemList[id] : itemList[0];
-}
-
-const ItemRecord           &DBCOM_ITEMRECORD          (uint32_t id) { return DBCOM_REFHELPER(_inn_ItemRecordList,           id); }
-const MagicRecord          &DBCOM_MAGICRECORD         (uint32_t id) { return DBCOM_REFHELPER(_inn_MagicRecordList,          id); }
-const MonsterRecord        &DBCOM_MONSTERRECORD       (uint32_t id) { return DBCOM_REFHELPER(_inn_MonsterRecordList,        id); }
-const MapRecord            &DBCOM_MAPRECORD           (uint32_t id) { return DBCOM_REFHELPER(_inn_MapRecordList,            id); }
-const BuffRecord           &DBCOM_BUFFRECORD          (uint32_t id) { return DBCOM_REFHELPER(_inn_BuffRecordList,           id); }
-const BuffActRecord        &DBCOM_BUFFACTRECORD       (uint32_t id) { return DBCOM_REFHELPER(_inn_BuffActRecordList,        id); }
-const AttackModifierRecord &DBCOM_ATTACKMODIFIERRECORD(uint32_t id) { return DBCOM_REFHELPER(_inn_AttackModifierRecordList, id); }
-const SpellModifierRecord  &DBCOM_SPELLMODIFIERRECORD (uint32_t id) { return DBCOM_REFHELPER(_inn_SpellModifierRecordList,  id); }
-
-const ItemRecord           &DBCOM_ITEMRECORD          (const char8_t *name) { return DBCOM_ITEMRECORD          (DBCOM_ITEMID          (name)); }
-const MagicRecord          &DBCOM_MAGICRECORD         (const char8_t *name) { return DBCOM_MAGICRECORD         (DBCOM_MAGICID         (name)); }
-const MonsterRecord        &DBCOM_MONSTERRECORD       (const char8_t *name) { return DBCOM_MONSTERRECORD       (DBCOM_MONSTERID       (name)); }
-const MapRecord            &DBCOM_MAPRECORD           (const char8_t *name) { return DBCOM_MAPRECORD           (DBCOM_MAPID           (name)); }
-const BuffRecord           &DBCOM_BUFFRECORD          (const char8_t *name) { return DBCOM_BUFFRECORD          (DBCOM_BUFFID          (name)); }
-const BuffActRecord        &DBCOM_BUFFACTRECORD       (const char8_t *name) { return DBCOM_BUFFACTRECORD       (DBCOM_BUFFACTID       (name)); }
-const AttackModifierRecord &DBCOM_ATTACKMODIFIERRECORD(const char8_t *name) { return DBCOM_ATTACKMODIFIERRECORD(DBCOM_ATTACKMODIFIERID(name)); }
-const SpellModifierRecord  &DBCOM_SPELLMODIFIERRECORD (const char8_t *name) { return DBCOM_SPELLMODIFIERRECORD (DBCOM_SPELLMODIFIERID (name)); }
-
 bool getClothGender(uint32_t itemID)
 {
     if(const auto &ir = DBCOM_ITEMRECORD(itemID); ir && (to_u8sv(ir.type) == u8"衣服")){

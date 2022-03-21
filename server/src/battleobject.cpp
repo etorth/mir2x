@@ -1233,32 +1233,18 @@ void BattleObject::removeFromBuff(uint64_t fromUID, uint64_t fromBuffSeq, bool d
 
 BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t buffID)
 {
-    switch(buffID){
-        case DBCOM_BUFFID(u8"治愈术"):
-        case DBCOM_BUFFID(u8"施毒术"):
-        case DBCOM_BUFFID(u8"幽灵盾"):
-        case DBCOM_BUFFID(u8"神圣战甲术"):
-        case DBCOM_BUFFID(u8"恢复光环"):
-        case DBCOM_BUFFID(u8"吸血光环"):
-        case DBCOM_BUFFID(u8"龙纹圣光"):
-        case DBCOM_BUFFID(u8"吸血鬼的诅咒"):
-        case DBCOM_BUFFID(u8"强效太阳水"):
-            {
-                for(const auto pbuff: m_buffList.hasFromBuff(fromUID, fromBuffSeq, buffID)){
-                    if(!pbuff->getBR().stackable){
-                        return nullptr;
-                    }
-                }
-
-                const auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)));
-                dispatchBuffIDList();
-                return buff;
-            }
-        default:
-            {
+    if(DBCOM_BUFFRECORD(buffID)){
+        for(const auto pbuff: m_buffList.hasFromBuff(fromUID, fromBuffSeq, buffID)){
+            if(!pbuff->getBR().stackable){
                 return nullptr;
             }
+        }
+
+        const auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)));
+        dispatchBuffIDList();
+        return buff;
     }
+    return nullptr;
 }
 
 bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)
