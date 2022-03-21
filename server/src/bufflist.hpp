@@ -150,11 +150,11 @@ class BuffList final
             return result;
         }
 
-        std::vector<BaseBuff *> hasFromBuff(uint64_t fromUID, uint64_t fromBuffSeq)
+        std::vector<BaseBuff *> hasFromBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t buffID = 0)
         {
             std::vector<BaseBuff *> result;
             for(auto &elemp: m_buffList){
-                if((elemp.second->fromUID() == fromUID) && (elemp.second->fromBuffSeq() == fromBuffSeq)){
+                if((elemp.second->fromUID() == fromUID) && (elemp.second->fromBuffSeq() == fromBuffSeq) && (buffID == 0 || buffID == elemp.second->id())){
                     result.push_back(elemp.second.get());
                 }
             }

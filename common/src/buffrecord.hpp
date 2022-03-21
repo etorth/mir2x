@@ -141,6 +141,7 @@ struct BuffRecord
     const char8_t * const name = nullptr;
 
     const int favor       : 2 = 0; // -1: debuff, 0: neutral, 1: buff
+    const int stackable   : 8 = 0;
     const int dispellable : 2 = 0;
 
     const struct IconParam
