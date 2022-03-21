@@ -97,7 +97,7 @@ class BaseBuff
     public:
         virtual bool done() const
         {
-            if(getBR().duration <= 0){
+            if(getBR().duration < 0){ // zero duration means one-shot buff
                 return false;
             }
             return std::lround(m_accuTime) >= getBR().duration;

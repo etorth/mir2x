@@ -148,9 +148,9 @@ struct BuffRecord
     //          0: neutral
     //          1: buff
 
-    const int duration    : 20 = 0;
-    const int favor       :  2 = 0;
-    const int dispellable :  2 = 0;
+    const int duration    : 20 = -1;
+    const int favor       :  2 =  0;
+    const int dispellable :  2 =  0;
 
     const struct IconParam
     {
