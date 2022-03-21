@@ -140,8 +140,16 @@ struct BuffRecord
 {
     const char8_t * const name = nullptr;
 
-    const int duration    : 20 = 0; // in seconds
-    const int favor       :  2 = 0; // debuff: -1, neutral: 0, buff: 1
+    // duration: in ms: < 0: never finish
+    //                    0: one-shot buff
+    //                  > 0: has limited timeout
+
+    // favor:  -1: debuff
+    //          0: neutral
+    //          1: buff
+
+    const int duration    : 20 = 0;
+    const int favor       :  2 = 0;
     const int dispellable :  2 = 0;
 
     const struct IconParam
