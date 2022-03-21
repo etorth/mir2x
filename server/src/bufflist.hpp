@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <vector>
+#include <algorithm>
 #include <unordered_map>
 #include "buff.hpp"
 #include "buffactaura.hpp"
@@ -130,6 +131,8 @@ class BuffList final
                     idList.push_back(p.second->id());
                 }
             }
+
+            std::sort(idList.begin(), idList.end());
             return idList;
         }
 
