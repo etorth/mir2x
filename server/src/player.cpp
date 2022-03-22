@@ -1116,9 +1116,20 @@ void Player::gainExp(int addedExp)
         return;
     }
 
+    const auto oldMaxHP = Player::maxHP(UID(), level());
+    const auto oldMaxMP = Player::maxMP(UID(), level());
+
     m_exp += addedExp;
+
+    const auto addedMaxHP = std::max<int>(Player::maxHP(UID(), level()) - oldMaxHP, 0);
+    const auto addedMaxMP = std::max<int>(Player::maxMP(UID(), level()) - oldMaxMP, 0);
+
     dbUpdateExp();
     postExp();
+
+    if(addedMaxHP > 0 || addedMaxMP > 0){
+        updateHealth(0, 0, addedMaxHP, addedMaxMP);
+    }
 }
 
 bool Player::CanPickUp(uint32_t, uint32_t)

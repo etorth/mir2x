@@ -82,6 +82,22 @@ void  BuffActTrigger<DBCOM_BUFFACTID(name)>::runOnTrigger
 //     }
 //
 
+_decl_named_buff_act_trigger(u8"HP持续")(int trigger)
+{
+    if(trigger & BATGR_TIME){
+        const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().trigger.arg);
+        getBuff()->getBO()->updateHealth(value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxHP() / 100.0));
+    }
+}
+
+_decl_named_buff_act_trigger(u8"MP持续")(int trigger)
+{
+    if(trigger & BATGR_TIME){
+        const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().trigger.arg);
+        getBuff()->getBO()->updateHealth(0, value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxMP() / 100.0));
+    }
+}
+
 _decl_named_buff_act_trigger(u8"HP移动伤害")(int trigger)
 {
     if(trigger & BATGR_MOVE){

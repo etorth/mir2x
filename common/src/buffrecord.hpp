@@ -30,6 +30,12 @@
 //
 // user need to be pre-acknowledged for the exact type in the std::variant<...>
 
+struct BuffValuePercentage final
+{
+    int value = 0;
+    int percentage = 0;
+};
+
 using BuffArgType = std::variant<std::monostate,
       int,
       long,
@@ -37,11 +43,12 @@ using BuffArgType = std::variant<std::monostate,
       uint64_t,
       float,
       double,
-      std::u8string_view>;
+      std::u8string_view,
+      BuffValuePercentage>;
 
 template<typename T, typename ... Args> constexpr BuffArgType buffArgWrapper(Args && ... args)
 {
-    return BuffArgType(std::in_place_type_t<T>(), std::forward<Args>(args)...);
+    return BuffArgType{std::in_place_type_t<T>(), T{std::forward<Args>(args)...}}; // gcc fails if without T{...}, wired
 }
 
 enum BuffActTriggerType: int

@@ -278,4 +278,9 @@ class BattleObject: public CharObject
                 uint32_t,   // buffActID
                 int,        // percentage
                 int);       // value
+    public:
+        const auto &getHealth() const
+        {
+            return m_sdHealth;
+        }
 };

@@ -21,10 +21,11 @@
 
         {   .name = u8"HP持续",
             .duration = 6000,
-            .attributeModifier
+            .trigger
             {
-                .value = 20,
-                .percentage = 1,
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 5),
             },
         },
     },
@@ -51,10 +52,11 @@
 
         {   .name = u8"HP持续",
             .duration = 6000,
-            .attributeModifier
+            .trigger
             {
-                .value = -20,
-                .percentage = -1,
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(-20, -5),
             },
         },
     },
@@ -88,7 +90,7 @@
 
     .actList
     {
-        {   .name = u8"HP持续",
+        {   .name = u8"HP恢复",
             .attributeModifier
             {
                 .percentage = 5,
@@ -237,9 +239,11 @@
     {
         {   .name = u8"HP持续",
             .duration = 6000,
-            .attributeModifier
+            .trigger
             {
-                .value = 170,
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 5),
             },
         },
     },
