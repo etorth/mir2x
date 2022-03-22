@@ -233,11 +233,123 @@
     },
 },
 
+{   .name = u8"金创药（小）",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"HP持续",
+            .duration = 3000,
+            .trigger
+            {
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 1),
+            },
+        },
+    },
+},
+
+{   .name = u8"金创药（中）",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"HP持续",
+            .duration = 4000,
+            .trigger
+            {
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 1),
+            },
+        },
+    },
+},
+
+{   .name = u8"金创药（大）",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"HP持续",
+            .duration = 4000,
+            .trigger
+            {
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 1),
+            },
+        },
+    },
+},
+
 {   .name = u8"金创药（特）",
     .favor = 1,
     .actList
     {
         {   .name = u8"HP持续",
+            .duration = 6000,
+            .trigger
+            {
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 1),
+            },
+        },
+    },
+},
+
+{   .name = u8"魔法药（小）",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"MP持续",
+            .duration = 3000,
+            .trigger
+            {
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 1),
+            },
+        },
+    },
+},
+
+{   .name = u8"魔法药（中）",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"MP持续",
+            .duration = 4000,
+            .trigger
+            {
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 1),
+            },
+        },
+    },
+},
+
+{   .name = u8"魔法药（大）",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"MP持续",
+            .duration = 4000,
+            .trigger
+            {
+                .on = BATGR_TIME,
+                .tps = 2,
+                .arg = buffArgWrapper<BuffValuePercentage>(20, 1),
+            },
+        },
+    },
+},
+
+{   .name = u8"魔法药（特）",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"MP持续",
             .duration = 6000,
             .trigger
             {
