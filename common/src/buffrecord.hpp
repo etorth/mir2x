@@ -1,10 +1,48 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include <variant>
 #include <string_view>
 #include <initializer_list>
 #include "sysconst.hpp"
 #include "protocoldef.hpp"
+
+// BuffRecord liternal argument container
+// gcc errors out when using:
+//
+//   .arg
+//   {
+//       std::in_place_type_t<long>(),
+//       123,
+//   },
+//
+// needs to initialize as
+//
+//   .arg = std::variant<long, double, ...>
+//   {
+//       std::in_place_type_t<long>(),
+//       123
+//   }
+//
+// better just user helper function buffArgWrapper<T>(...) and do
+//
+//   .arg = buffArgWrapper<long>(123),
+//
+// user need to be pre-acknowledged for the exact type in the std::variant<...>
+
+using BuffArgType = std::variant<std::monostate,
+      int,
+      long,
+      uint32_t,
+      uint64_t,
+      float,
+      double,
+      std::u8string_view>;
+
+template<typename T, typename ... Args> constexpr BuffArgType buffArgWrapper(Args && ... args)
+{
+    return BuffArgType(std::in_place_type_t<T>(), std::forward<Args>(args)...);
+}
 
 enum BuffActTriggerType: int
 {
@@ -182,6 +220,7 @@ struct BuffRecord
         {
             const int on = 0;
             const int tps = 0;
+            const BuffArgType arg = {};
         }
         trigger {};
 
