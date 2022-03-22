@@ -635,6 +635,8 @@ void Player::onCMActionAttack(CMAction stCMA)
                                     case 1:
                                     case 2:
                                         {
+                                            const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
+
                                             // client reports 攻杀技术 but server need to validate if it's scheduled
                                             // if not scheduled then dispatch 物理攻击 instead, this is for client anti-cheat
                                             dispatchAction(ActionAttack
@@ -652,6 +654,7 @@ void Player::onCMActionAttack(CMAction stCMA)
                                                         return nDCType;
                                                     }
                                                 }(),
+                                                .modifierID = to_u32(modifierID),
                                             });
 
                                             std::vector<uint64_t> aimUIDList;
@@ -712,6 +715,9 @@ void Player::onCMActionAttack(CMAction stCMA)
                                             }
 
                                             for(const auto uid: aimUIDList){
+                                                if(buffID){
+                                                    sendBuff(uid, 0, buffID);
+                                                }
                                                 dispatchAttackDamage(uid, nDCType, 0);
                                             }
 

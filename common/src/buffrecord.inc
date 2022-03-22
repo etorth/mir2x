@@ -97,6 +97,41 @@
     },
 },
 
+{   .name = u8"死亡威慑",
+    .favor = 1,
+    .actList
+    {
+        {   .name = u8"战栗使能",
+            .attackModifier
+            {
+                .prob = 100,
+            },
+        },
+    },
+},
+
+{   .name = u8"战栗",
+    .favor = 0,
+    .icon
+    {
+        .show = 1,
+        .gfxID = 0X18000065,
+    },
+
+    .actList
+    {
+        {   .name = u8"HP移动伤害",
+            .duration = 6000,
+
+            .trigger
+            {
+                .on = BATGR_MOVE,
+                .arg = buffArgWrapper<int>(20),
+            },
+        },
+    },
+},
+
 {   .name = u8"吸血鬼的诅咒",
     .favor = 1,
     .actList

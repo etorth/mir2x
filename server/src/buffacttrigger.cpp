@@ -82,9 +82,11 @@ void  BuffActTrigger<DBCOM_BUFFACTID(name)>::runOnTrigger
 //     }
 //
 
-_decl_named_buff_act_trigger(u8"HP移动伤害")(int)
+_decl_named_buff_act_trigger(u8"HP移动伤害")(int trigger)
 {
-    getBuff()->getBO()->updateHealth(-1);
+    if(trigger & BATGR_MOVE){
+        getBuff()->getBO()->updateHealth(-1 * std::get<int>(getBAREF().trigger.arg));
+    }
 }
 
 _decl_named_buff_act_trigger(u8"MP移动伤害")(int)

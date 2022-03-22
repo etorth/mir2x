@@ -914,7 +914,13 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
                 // {SDItem::EA_ACDARK, mathf::rand<int>(1, 5)},
                 // {SDItem::EA_ACPHANTOM, mathf::rand<int>(1, 5)},
 
-                {SDItem::EA_BUFFID, DBCOM_BUFFID(u8"龙纹圣光")},
+                {SDItem::EA_BUFFID, [itemID]() -> uint32_t
+                {
+                    switch(itemID){
+                        case DBCOM_ITEMID(u8"龙纹剑"): return DBCOM_BUFFID(u8"龙纹圣光");
+                        default                      : return DBCOM_BUFFID(u8"死亡威慑");
+                    }
+                }()},
             },
         };
     }
