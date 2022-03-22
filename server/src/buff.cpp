@@ -48,6 +48,9 @@ BaseBuff::~BaseBuff()
 
 void BaseBuff::runOnUpdate()
 {
+    // update buff
+    // currenlty only trigger needs update
+
     for(auto p = m_actList.begin(); p != m_actList.end();){
         if(p->get()->getBAR().isTrigger()){
             fflassert(validBuffActTrigger(p->get()->getBAREF().trigger.on));

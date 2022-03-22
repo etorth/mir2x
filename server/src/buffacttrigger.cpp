@@ -6,8 +6,7 @@
 void BaseBuffActTrigger::checkTimedTrigger()
 {
     if(getBAREF().trigger.on & BATGR_TIME){
-        const auto neededCount = std::lround(m_buff->accuTime() * getBAREF().trigger.tps / 1000.0);
-        while(m_tpsCount++ < neededCount){
+        for(const auto neededCount = std::lround(getBuff()->accuTime() * getBAREF().trigger.tps / 1000.0); m_tpsCount < neededCount; ++m_tpsCount){
             runOnTrigger(BATGR_TIME);
         }
     }
