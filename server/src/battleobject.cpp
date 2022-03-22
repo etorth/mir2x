@@ -1250,11 +1250,7 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
 bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)
 {
     if(m_sdHealth.updateHealth(addHP, addMP, addMaxHP, addMaxMP)){
-        const auto sdBuf = cerealf::serialize(m_sdHealth);
-        dispatchInViewCONetPackage(SM_HEALTH, sdBuf);
-        if(isPlayer()){
-            dynamic_cast<Player *>(this)->postNetMessage(SM_HEALTH, sdBuf);
-        }
+        dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
         return true;
     }
     return false;

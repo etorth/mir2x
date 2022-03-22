@@ -1361,6 +1361,16 @@ void Player::setGold(size_t gold)
     reportGold();
 }
 
+bool Player::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)
+{
+    if(BattleObject::updateHealth(addHP, addMP, addMaxHP, addMaxMP)){
+        dbUpdateHealth();
+        postNetMessage(SM_HEALTH, cerealf::serialize(m_sdHealth));
+        return true;
+    }
+    return false;
+}
+
 void Player::setWLItem(int wltype, SDItem item)
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){

@@ -242,6 +242,7 @@ class Player final: public BattleObject
 
     private:
         void dbUpdateExp();
+        void dbUpdateHealth();
         void dbUpdateMapGLoc();
 
     private:
@@ -308,6 +309,15 @@ class Player final: public BattleObject
         }
 
         void setGold(size_t);
+
+    protected:
+        // TODO bad code need change
+        // virtual function with default parameters
+        bool updateHealth(
+                int = 0,            // hp
+                int = 0,            // mp
+                int = 0,            // maxHP
+                int = 0) override;  // maxMP
 
     public:
         uint32_t dbid() const
