@@ -34,6 +34,8 @@
 #include <type_traits>
 #include <condition_variable>
 
+#define disableParallelOnEnv(envName) [](){const static bool envset = std::getenv("" envName); return envset;}()
+
 // INTERFACE:
 // const int threadPool::poolSize
 //                                      // how many threads used in the pool, zero if pool is disabled
@@ -76,7 +78,7 @@
 //                                      //             [](int) { call_task3(); },
 //                                      //             [](int) { call_task4(); },
 //                                      //         },
-//                                      // 
+//                                      //
 //                                      //         std::getenv("DISABLE_POOL"))
 //                                      //     };
 //                                      //
@@ -122,7 +124,7 @@
 //                                      //         {
 //                                      //             count++;
 //                                      //         }
-//                                      //     
+//                                      //
 //                                      //         ~call_counter()
 //                                      //         {
 //                                      //             std::printf("%p get called %d times.\n", this, count.load());
@@ -184,7 +186,7 @@
 //                                      // 1. all exceptions will be forward to thread calling std::future<T>::get()
 //                                      // 2. if discard the returned std::future<T>, the postEvalTask() won't block, this is not like std::async
 //
-// globalThreadPool::parallelFor(size_t begin, size_t end, const ForCallable & forTask)
+// globalThreadPool::parallelFor(size_t begin, size_t end, const ForCallable & forTask, bool disableParallelFor = false)
 //                                      // if the global pool is not disabled, splits the given range [begin, end) evenly into N groups, where N = globalThreadPool::getGlobalPool().poolSize
 //                                      // post each group by globalThreadPool::postEvalTask(), it blocks till all N groups finishes or throws
 //                                      // example:
@@ -205,6 +207,40 @@
 
 class threadPool
 {
+    public:
+        class deadPoolError: public std::exception // give a distinct type to detect dead pool
+        {
+            const char *what() const noexcept override
+            {
+                return "deadPoolError";
+            }
+        };
+
+        // simple scope guard wrapper
+        // didn't check any exception when construct/destruct
+        class scopeGuard final
+        {
+            private:
+                std::function<void()> m_cb;
+
+            public:
+                template<typename ScopeCleanFunc> explicit scopeGuard(ScopeCleanFunc && func)
+                    : m_cb(std::forward<ScopeCleanFunc>(func))
+                {}
+
+            private:
+                scopeGuard              (const scopeGuard &) = delete;
+                scopeGuard & operator = (const scopeGuard &) = delete;
+
+            public:
+                ~scopeGuard()
+                {
+                    if(m_cb){
+                        m_cb();
+                    }
+                }
+        };
+
     public:
         class abortedTag final
         {
@@ -239,15 +275,80 @@ class threadPool
         bool m_stop = false;
 
     private:
-        std::vector<std::thread> m_workers;
-        std::queue<std::function<void(int)>> m_taskQ;
+        const int m_waitOnIdle; // in seconds
 
     private:
         std::mutex m_lock;
         std::condition_variable m_condition;
 
+    private:
+        std::queue<std::function<void(int)>> m_taskQ;
+
+    private:
+        // the worker lambda accesses *this* member variables
+        // make sure all member variables has been ready before start any worker thread
+        //
+        //     first  : true means current thread has been marked as idle
+        //     second : thread handle
+        //
+        std::vector<std::pair<bool, std::thread>> m_workers;
+
+    private:
+        auto getThreadFunc(int threadId)
+        {
+            return [this, threadId]()
+            {
+                while(true){
+                    std::function<void(int)> currTask;
+                    {
+                        std::unique_lock<std::mutex> lockGuard(m_lock);
+                        const auto eval = [&lockGuard, this]() -> bool
+                        {
+                            const auto pred = [this]() -> bool
+                            {
+                                // let it wait if:
+                                // 1. running
+                                // 2. and no task in the queue
+                                return m_stop || !m_taskQ.empty();
+                            };
+
+                            if(m_waitOnIdle > 0){
+                                return m_condition.wait_for(lockGuard, std::chrono::seconds(m_waitOnIdle), pred);
+                            }
+                            else{
+                                // no timeout enabled
+                                // equivalent to wait_for(INT_MAX, pred)
+                                m_condition.wait(lockGuard, pred);
+                                return true;
+                            }
+                        }();
+
+                        if(eval){
+                            if(m_stop && m_taskQ.empty()){
+                                return;
+                            }
+                            else{
+                                currTask = std::move(m_taskQ.front());
+                                m_taskQ.pop();
+                            }
+                        }
+                        else{
+                            // after maxWaitTime pred() still returns false
+                            // means pool is not stopped but didn't get any new tasks in maxWaitTime, aka idle for maxWaitTime, stop *current* thread
+                            m_workers.at(threadId).first = true;
+                            return;
+                        }
+                    }
+
+                    // no exception handling
+                    // use threadCBWrapper() if task may throw, otherwise the exception breaks the pool
+                    currTask((int)(threadId));
+                }
+            };
+        }
+
     public:
-        threadPool(size_t numThread, bool disable = false)
+        threadPool(size_t numThread, bool disable = false, int waitOnIdle = 0)
             : poolSize([numThread, disable]() -> size_t
               {
                   if(disable){
@@ -260,54 +361,53 @@ class threadPool
                   return threadPool::hwThreadCount();
               }())
             , disablePool(disable)
+            , m_waitOnIdle([waitOnIdle]() -> int
+              {
+                  if(waitOnIdle < 0){
+                      throw std::runtime_error(std::string("invalid wait time: ") + std::to_string(waitOnIdle));
+                  }
+                  else{
+                      return waitOnIdle;
+                  }
+              }())
         {
             if(disablePool){
                 return;
             }
 
-            m_workers.reserve(poolSize);
+            // the thread lambda accesses *this*
+            // so pre-allocate m_workers before start any threads
+
+            m_workers.resize(poolSize);
+
+            // defer the thread spawn if we enabled the waitOnIdle
+            // only pre-allocate the worker slots
+
+            // should be very careful for future change
+            // when calling finish() to exit the pool, the pool may not even spawn any threads yet, so thread::join() in finish() won't happen
+
             for(size_t threadId = 0; threadId < poolSize; ++threadId){
-                m_workers.emplace_back([this, threadId]()
-                {
-                    while(true){
-                        std::function<void(int)> currTask;
-                        {
-                            std::unique_lock<std::mutex> lockGuard(m_lock);
-                            m_condition.wait(lockGuard, [this]() -> bool
-                            {
-                                // let it wait if:
-                                // 1. running
-                                // 2. and no task in the queue
-                                return m_stop || !m_taskQ.empty();
-                            });
-
-                            if(m_stop && m_taskQ.empty()){
-                                return;
-                            }
-
-                            currTask = std::move(m_taskQ.front());
-                            m_taskQ.pop();
-                        }
-
-                        // no exception handling
-                        // use threadCBWrapper() if task may throw, otherwise the exception breaks the pool
-                        currTask((int)(threadId));
-                    }
-                });
+                if(m_waitOnIdle > 0){
+                    m_workers[threadId].first = true;
+                }
+                else{
+                    m_workers[threadId].first = false;
+                    m_workers[threadId].second = std::thread(getThreadFunc(threadId));
+                }
             }
         }
 
     public:
-        threadPool(std::initializer_list<std::function<void(int)>> taskList, bool disable = false)
-            : threadPool(taskList.size(), disable)
+        threadPool(std::initializer_list<std::function<void(int)>> taskList, bool disable = false, int waitOnIdle = 0)
+            : threadPool(taskList.size(), disable, waitOnIdle)
         {
             for(auto task: taskList){
                 addTask(std::move(task));
             }
         }
 
-        threadPool(threadPool::abortedTag &hasError, std::initializer_list<std::function<void(int)>> taskList, bool disable = false)
-            : threadPool(taskList.size(), disable)
+        threadPool(threadPool::abortedTag &hasError, std::initializer_list<std::function<void(int)>> taskList, bool disable = false, int waitOnIdle = 0)
+            : threadPool(taskList.size(), disable, waitOnIdle)
         {
             for(auto task: taskList){
                 addTask(hasError, std::move(task));
@@ -325,7 +425,7 @@ class threadPool
         {
             if(disablePool){
                 if(m_stop){
-                    throw std::runtime_error("adding task to stopped pool");
+                    throw deadPoolError();
                 }
                 task(0);
                 return;
@@ -336,7 +436,22 @@ class threadPool
             {
                 std::unique_lock<std::mutex> lockGuard(m_lock);
                 if(m_stop){
-                    throw std::runtime_error("adding new task to stopped pool");
+                    throw deadPoolError();
+                }
+
+                if(m_waitOnIdle > 0){
+                    const auto taskCntPending = m_taskQ.size() + 1;
+                    for(size_t i = 0, restored = 0; i < m_workers.size() && restored < taskCntPending; ++i){
+                        if(m_workers[i].first){
+                            if(m_workers[i].second.joinable()){
+                                m_workers[i].second.join();
+                            }
+
+                            restored++;
+                            m_workers[i].first = false;
+                            m_workers[i].second = std::thread(getThreadFunc((int)(i)));
+                        }
+                    }
                 }
                 m_taskQ.emplace(std::forward<Callable>(task));
             }
@@ -417,14 +532,20 @@ class threadPool
             // notify all and join
             // this implementation doesn't take care of exception
 
+            // need to make sure whenever a task get posted, there is an active thread running, especially when supporting lazy thread spawn in ctor()
+            // otherwise here the join() may not happen because thread may not get spawned yet
+            // in which case it causes posted task not get ran after finis() returns
+
             m_condition.notify_all();
             for(auto &worker: m_workers){
-                worker.join();
+                if(worker.second.joinable()){
+                    worker.second.join();
+                }
             }
 
             // release thread objects back to system
             // after threadPool::finish() the pool is dead, can't restart it
-            std::vector<std::thread>().swap(m_workers);
+            m_workers.clear();
         }
 
     public:
@@ -508,7 +629,25 @@ class globalThreadPool final
                 return 0;
             }(),
 
-            std::getenv("GLOBAL_THREAD_POOL_DISABLE"));
+            std::getenv("GLOBAL_THREAD_POOL_DISABLE"),
+            []() -> int
+            {
+                if(const auto p = std::getenv("GLOBAL_THREAD_POOL_WAIT_ON_IDLE")){
+                    int result = -1;
+                    try{
+                        result = std::stoi(p);
+                    }
+                    catch(...){
+                        //
+                    }
+
+                    if(result >= 0){
+                        return result;
+                    }
+                    throw std::runtime_error(std::string("invalid GLOBAL_THREAD_POOL_WAIT_ON_IDLE: ") + p);
+                }
+                return 10;
+            }());
             return globalPool;
         }
 
@@ -537,25 +676,27 @@ class globalThreadPool final
         }
 
     public:
-        template<typename ForCallable> static void parallelFor(size_t beginIndex, size_t endIndex, const ForCallable & forTask)
+        template<typename ForCallable> static void parallelFor(size_t beginIndex, size_t endIndex, const ForCallable & forTask, bool disableParallelFor = false)
         {
             if(beginIndex >= endIndex){
                 return;
             }
 
-            auto &pool = getGlobalPool();
-            if(pool.disablePool){
+            const auto &pool = getGlobalPool();
+            if(pool.disablePool || disableParallelFor){
                 for(size_t i = beginIndex; i < endIndex; ++i){
                     forTask(0, i);
                 }
                 return;
             }
 
-            const size_t groupSize = (endIndex - beginIndex + pool.poolSize - 1) / pool.poolSize;
-            std::vector<std::future<void>> forTaskResult;
-            forTaskResult.reserve(pool.poolSize);
+            const size_t numTasks = pool.poolSize * 4;
+            const size_t groupSize = (endIndex - beginIndex + numTasks - 1) / numTasks;
 
-            for(size_t group = 0; group < pool.poolSize; ++group){
+            std::vector<std::future<void>> forTaskResult;
+            forTaskResult.reserve(numTasks);
+
+            for(size_t group = 0; group < numTasks; ++group){
                 const size_t groupBegin = beginIndex + group * groupSize;
                 const size_t groupEnd = std::min<size_t>(groupBegin + groupSize, endIndex);
 
@@ -563,7 +704,7 @@ class globalThreadPool final
                     break;
                 }
 
-                forTaskResult.push_back(postEvalTask([groupBegin, groupEnd, &forTask](int threadId) -> void
+                forTaskResult.push_back(postEvalTask([groupBegin, groupEnd, &forTask](int threadId)
                 {
                     for(size_t i = groupBegin; i < groupEnd; ++i){
                         forTask(threadId, i);
@@ -573,6 +714,30 @@ class globalThreadPool final
 
             for(auto &taskResult: forTaskResult){
                 taskResult.get();
+            }
+        }
+
+        static void waitEvalTaskList(std::initializer_list<std::function<void(int)>> taskList, bool disableParallelRun = false)
+        {
+            if(getGlobalPool().disablePool || disableParallelRun){
+                for(auto &task: taskList){
+                    task(0);
+                }
+                return;
+            }
+
+            std::vector<std::future<void>> result;
+            result.reserve(taskList.size());
+
+            for(auto &task: taskList){
+                result.push_back(postEvalTask([&task](int threadId)
+                {
+                    task(threadId);
+                }));
+            }
+
+            for(auto &f: result){
+                f.get();
             }
         }
 };
