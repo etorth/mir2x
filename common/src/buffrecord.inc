@@ -15,7 +15,7 @@
             .duration = 0,
             .attributeModifier
             {
-                .value = 20,
+                .arg = buffArgWrapper<BuffValuePercentage>(20),
             },
         },
 
@@ -46,7 +46,7 @@
             .duration = 0,
             .attributeModifier
             {
-                .value = -20,
+                .arg = buffArgWrapper<BuffValuePercentage>(-20),
             },
         },
 
@@ -93,7 +93,7 @@
         {   .name = u8"HP恢复",
             .attributeModifier
             {
-                .percentage = 5,
+                .arg = buffArgWrapper<BuffValuePercentage>(0, 5),
             },
         },
     },
@@ -186,8 +186,7 @@
             .duration = 30000,
             .attributeModifier
             {
-                .value = 2,
-                .percentage = 5,
+                .arg = buffArgWrapper<BuffValuePercentage>(2, 5),
             },
         },
 
@@ -195,8 +194,7 @@
             .duration = 30000,
             .attributeModifier
             {
-                .value = 2,
-                .percentage = 5,
+                .arg = buffArgWrapper<BuffValuePercentage>(2, 5),
             },
         },
     },
@@ -217,8 +215,7 @@
             .duration = 30000,
             .attributeModifier
             {
-                .value = 2,
-                .percentage = 5,
+                .arg = buffArgWrapper<BuffValuePercentage>(2, 5),
             },
         },
 
@@ -226,8 +223,7 @@
             .duration = 30000,
             .attributeModifier
             {
-                .value = 2,
-                .percentage = 5,
+                .arg = buffArgWrapper<BuffValuePercentage>(2, 5),
             },
         },
     },
@@ -369,7 +365,7 @@
             .duration = 0,
             .attributeModifier
             {
-                .value = 70,
+                .arg = buffArgWrapper<BuffValuePercentage>(70),
             },
         },
 
@@ -377,7 +373,7 @@
             .duration = 0,
             .attributeModifier
             {
-                .value = 110,
+                .arg = buffArgWrapper<BuffValuePercentage>(110),
             },
         },
     },
@@ -391,7 +387,7 @@
             .duration = 0,
             .attributeModifier
             {
-                .value = 110,
+                .arg = buffArgWrapper<BuffValuePercentage>(110),
             },
         },
 
@@ -399,7 +395,7 @@
             .duration = 0,
             .attributeModifier
             {
-                .value = 180,
+                .arg = buffArgWrapper<BuffValuePercentage>(110),
             },
         },
     },

@@ -323,6 +323,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
 
                             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
                             g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
+                            g_sdlDevice->drawRectangle(colorf::GREEN | colorf::A_SHF(128), buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH);
                             drawIconCount++;
                         }
                     }

@@ -12,8 +12,7 @@ BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BaseBuff *argBuff, si
     , m_onDone([this]() -> std::function<void()>
       {
           fflassert(getBAR().isAttributeModifier());
-          const auto percentage = getBAREF().attributeModifier.percentage;
-          const auto value      = getBAREF().attributeModifier.value;
+          const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().attributeModifier.arg);
 
           fflassert(std::abs(percentage) >= 0);
           fflassert(std::abs(percentage) <= 100);
