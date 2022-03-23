@@ -1233,16 +1233,30 @@ void BattleObject::removeFromBuff(uint64_t fromUID, uint64_t fromBuffSeq, bool d
 
 BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t buffID)
 {
-    if(DBCOM_BUFFRECORD(buffID)){
-        for(const auto pbuff: m_buffList.hasFromBuff(fromUID, fromBuffSeq, buffID)){
-            if(!pbuff->getBR().stackable){
-                return nullptr;
-            }
-        }
+    // NOTE currently only remove buff added by self
+    // can not remove/override buffs added by other person to avoid cheating
 
-        const auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)));
+    const auto fnAddBuff = [fromUID, fromBuffSeq, buffID, this]()
+    {
+        auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)));
         dispatchBuffIDList();
         return buff;
+    };
+
+    if(const auto &br = DBCOM_BUFFRECORD(buffID); br){
+        auto pbuffList = m_buffList.hasBuff(br.name);
+        auto pbuffListFromUID = m_buffList.hasFromBuff(fromUID, fromBuffSeq, buffID);
+
+        fflassert(pbuffList.size() >= pbuffListFromUID.size());
+        if(to_d(pbuffList.size()) < br.stackCount + 1){
+            return fnAddBuff();
+        }
+        else if(!pbuffListFromUID.empty() && br.stackReplace){
+            // total number has reach max stack count
+            // but there are buffs from fromUID and can replace, remove the oldest and add new buff
+            m_buffList.erase(pbuffListFromUID.front()->buffSeq());
+            return fnAddBuff();
+        }
     }
     return nullptr;
 }

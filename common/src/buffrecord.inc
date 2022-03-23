@@ -231,8 +231,17 @@
 
 {   .name = u8"金创药（小）",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
+        {   .name = u8"HP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(10),
+            },
+        },
+
         {   .name = u8"HP持续",
             .duration = 3000,
             .trigger
@@ -247,8 +256,17 @@
 
 {   .name = u8"金创药（中）",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
+        {   .name = u8"HP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(20),
+            },
+        },
+
         {   .name = u8"HP持续",
             .duration = 4000,
             .trigger
@@ -263,8 +281,17 @@
 
 {   .name = u8"金创药（大）",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
+        {   .name = u8"HP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(40),
+            },
+        },
+
         {   .name = u8"HP持续",
             .duration = 4000,
             .trigger
@@ -279,8 +306,17 @@
 
 {   .name = u8"金创药（特）",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
+        {   .name = u8"HP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(60),
+            },
+        },
+
         {   .name = u8"HP持续",
             .duration = 6000,
             .trigger
@@ -295,8 +331,17 @@
 
 {   .name = u8"魔法药（小）",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
+        {   .name = u8"MP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(10),
+            },
+        },
+
         {   .name = u8"MP持续",
             .duration = 3000,
             .trigger
@@ -311,8 +356,17 @@
 
 {   .name = u8"魔法药（中）",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
+        {   .name = u8"MP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(20),
+            },
+        },
+
         {   .name = u8"MP持续",
             .duration = 4000,
             .trigger
@@ -327,8 +381,17 @@
 
 {   .name = u8"魔法药（大）",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
+        {   .name = u8"MP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(40),
+            },
+        },
+
         {   .name = u8"MP持续",
             .duration = 4000,
             .trigger
@@ -343,8 +406,17 @@
 
 {   .name = u8"魔法药（特）",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
+        {   .name = u8"MP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(60),
+            },
+        },
+
         {   .name = u8"MP持续",
             .duration = 6000,
             .trigger
@@ -359,6 +431,7 @@
 
 {   .name = u8"太阳水",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
         {   .name = u8"HP",
@@ -381,6 +454,7 @@
 
 {   .name = u8"强效太阳水",
     .favor = 1,
+    .stackReplace = 1,
     .actList
     {
         {   .name = u8"HP",

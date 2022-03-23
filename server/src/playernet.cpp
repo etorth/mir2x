@@ -612,10 +612,10 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
     const auto &ir = DBCOM_ITEMRECORD(cmCI.itemID);
     fflassert(ir);
 
+    bool consumed = false;
     if(ir.isBook()){
         if(const uint32_t magicID = DBCOM_MAGICID(ir.name); m_sdLearnedMagicList.has(magicID)){
             postNetMessage(SM_TEXT, str_printf(u8"你已掌握%s", to_cstr(ir.name)));
-            return;
         }
         else{
             m_sdLearnedMagicList.magicList.push_back(SDLearnedMagic
@@ -623,18 +623,24 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
                 .magicID = magicID,
             });
 
+            consumed = true;
             dbLearnMagic(DBCOM_MAGICID(ir.name));
             postNetMessage(SM_TEXT, str_printf(u8"学习%s", to_cstr(ir.name)));
             postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
         }
     }
     else if(ir.isPotion()){
-        addBuff(UID(), 0, DBCOM_BUFFID(ir.name));
+        if(addBuff(UID(), 0, DBCOM_BUFFID(ir.name))){
+            consumed = true;
+        }
     }
     else{
         // TODO
     }
-    removeInventoryItem(cmCI.itemID, cmCI.seqID, cmCI.count);
+
+    if(consumed){
+        removeInventoryItem(cmCI.itemID, cmCI.seqID, cmCI.count);
+    }
 }
 
 void Player::net_CM_SETMAGICKEY(uint8_t, const uint8_t *buf, size_t)

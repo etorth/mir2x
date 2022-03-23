@@ -191,9 +191,11 @@ struct BuffRecord
 {
     const char8_t * const name = nullptr;
 
-    const int favor       : 2 = 0; // -1: debuff, 0: neutral, 1: buff
-    const int stackable   : 8 = 0;
-    const int dispellable : 2 = 0;
+    const int favor        : 2 = 0; // -1: debuff, 0: neutral, 1: buff
+    const int dispellable  : 2 = 0;
+
+    const int stackCount   : 8 = 0; // 0: can not stack extra same buff, max count(buff) = 1
+    const int stackReplace : 1 = 0;
 
     const struct IconParam
     {
