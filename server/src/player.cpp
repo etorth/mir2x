@@ -788,51 +788,44 @@ void Player::onCMActionSpell(CMAction cmA)
         case DBCOM_MAGICID(u8"幽灵盾"):
         case DBCOM_MAGICID(u8"神圣战甲术"):
             {
+                const auto buffID = DBCOM_BUFFID(DBCOM_MAGICRECORD(magicID).name);
+                const auto &br = DBCOM_BUFFRECORD(buffID);
+
+                fflassert(buffID);
+                fflassert(br);
+
                 if(cmA.action.aimUID){
                     switch(uidf::getUIDType(cmA.action.aimUID)){
                         case UID_MON:
                         case UID_PLY:
                             {
-                                checkFriend(cmA.action.aimUID, [cmA, this](int friendType)
-                                {
-                                    const static std::unordered_map<uint32_t, uint32_t> s_magic2buffID
+                                if(br.favor == 0){
+                                    sendBuff(cmA.action.aimUID, 0, buffID);
+                                }
+                                else{
+                                    checkFriend(cmA.action.aimUID, [magicID, cmA, buffID, this](int friendType)
                                     {
-                                        {DBCOM_MAGICID(u8"治愈术"    ), DBCOM_BUFFID(u8"治愈术"    )},
-                                        {DBCOM_MAGICID(u8"施毒术"    ), DBCOM_BUFFID(u8"施毒术"    )},
-                                        {DBCOM_MAGICID(u8"幽灵盾"    ), DBCOM_BUFFID(u8"幽灵盾"    )},
-                                        {DBCOM_MAGICID(u8"神圣战甲术"), DBCOM_BUFFID(u8"神圣战甲术")},
-                                    };
-
-                                    const auto id = [cmA]() -> uint32_t
-                                    {
-                                        if(const auto p = s_magic2buffID.find(cmA.action.extParam.spell.magicID); p != s_magic2buffID.end()){
-                                            return p->second;
-                                        }
-                                        return 0;
-                                    }();
-
-                                    if(id){
-                                        const auto &br = DBCOM_BUFFRECORD(id);
+                                        const auto &br = DBCOM_BUFFRECORD(buffID);
                                         fflassert(br);
 
                                         switch(friendType){
                                             case FT_FRIEND:
                                                 {
                                                     if(br.favor >= 0){
-                                                        sendBuff(cmA.action.aimUID, 0, id);
+                                                        sendBuff(cmA.action.aimUID, 0, buffID);
                                                     }
                                                     return;
                                                 }
                                             case FT_ENEMY:
                                                 {
                                                     if(br.favor <= 0){
-                                                        sendBuff(cmA.action.aimUID, 0, id);
+                                                        sendBuff(cmA.action.aimUID, 0, buffID);
                                                     }
                                                     return;
                                                 }
                                             case FT_NEUTRAL:
                                                 {
-                                                    sendBuff(cmA.action.aimUID, 0, id);
+                                                    sendBuff(cmA.action.aimUID, 0, buffID);
                                                     return;
                                                 }
                                             default:
@@ -840,8 +833,9 @@ void Player::onCMActionSpell(CMAction cmA)
                                                     return;
                                                 }
                                         }
-                                    }
-                                });
+                                    });
+                                }
+                                break;
                             }
                         default:
                             {
@@ -849,8 +843,8 @@ void Player::onCMActionSpell(CMAction cmA)
                             }
                     }
                 }
-                else{
-                    addBuff(UID(), 0, DBCOM_BUFFID(u8"治愈术"));
+                else if(br.favor >= 0){
+                    addBuff(UID(), 0, buffID);
                 }
                 break;
             }
