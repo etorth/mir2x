@@ -141,6 +141,7 @@ class ProcessRun: public Process
 
     private:
         double m_starRatio = 0.0;
+        double m_iconRatio = 0.0;
 
     private:
         void scrollMap();

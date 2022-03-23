@@ -1,3 +1,4 @@
+#include <cmath>
 #include <memory>
 #include <numeric>
 #include <cstring>
@@ -172,10 +173,8 @@ void ProcessRun::update(double fUpdateTime)
         centerMyHero();
     }
 
-    m_starRatio += 0.05;
-    if(m_starRatio >= 2.50){
-        m_starRatio = 0.00;
-    }
+    m_starRatio = std::fmod(m_starRatio + 0.05, 2.50);
+    m_iconRatio = std::fmod(m_iconRatio + 0.05, 1.00);
 
     if(const auto currTick = SDL_GetTicks(); m_lastPingDone && (m_lastPingTick + 10ULL * 1000 < currTick)){
         m_lastPingDone = false;

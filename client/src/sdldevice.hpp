@@ -234,6 +234,10 @@ class SDLDevice final
        void drawWidthRectangle(uint32_t, size_t, int, int, int, int);
 
     public:
+       void drawHLineFading(uint32_t, uint32_t, int, int, int);
+       void drawVLineFading(uint32_t, uint32_t, int, int, int);
+
+    public:
        SDL_Renderer *getRenderer()
        {
            return m_renderer;

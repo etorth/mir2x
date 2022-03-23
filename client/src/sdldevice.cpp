@@ -750,6 +750,28 @@ void SDLDevice::drawWidthRectangle(uint32_t color, size_t frameLineWidth, int nX
     drawWidthRectangle(frameLineWidth, nX, nY, nW, nH);
 }
 
+void SDLDevice::drawHLineFading(uint32_t startColor, uint32_t endColor, int x, int y, int length)
+{
+    if(length){
+        SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND, this);
+        for(int i = 0; i < std::abs(length); ++i){
+            SDLDeviceHelper::EnableRenderColor enableColor(colorf::fadeRGBA(startColor, endColor, i * 1.0f / std::abs(length)), this);
+            SDL_RenderDrawPoint(getRenderer(), x + i * (length > 0 ? 1 : -1), y);
+        }
+    }
+}
+
+void SDLDevice::drawVLineFading(uint32_t startColor, uint32_t endColor, int x, int y, int length)
+{
+    if(length){
+        SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND, this);
+        for(int i = 0; i < std::abs(length); ++i){
+            SDLDeviceHelper::EnableRenderColor enableColor(colorf::fadeRGBA(startColor, endColor, i * 1.0f / std::abs(length)), this);
+            SDL_RenderDrawPoint(getRenderer(), x, y + i * (length > 0 ? 1 : -1));
+        }
+    }
+}
+
 void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
 {
     if(stringRGBA(m_renderer, x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
