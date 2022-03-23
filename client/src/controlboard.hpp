@@ -129,6 +129,9 @@ class ControlBoard: public Widget
     private:
         LayoutBoard m_logBoard;
 
+    private:
+        double m_accuTime = 0.0;
+
     public:
         ControlBoard(
                 int,    // boardW

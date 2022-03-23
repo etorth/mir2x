@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <cmath>
 #include <stdexcept>
 #include <algorithm>
 #include <functional>
@@ -737,6 +738,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
 void ControlBoard::update(double fUpdateTime)
 {
+    m_accuTime += fUpdateTime;
     m_cmdLine.update(fUpdateTime);
     m_logBoard.update(fUpdateTime);
     m_arcAniBoard.update(fUpdateTime);
@@ -1406,6 +1408,27 @@ void ControlBoard::drawFocusFace() const
 
                     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
                     g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
+
+                    const auto baseColor = [&br]() -> uint32_t
+                    {
+                        if(br.favor > 0){
+                            return colorf::GREEN;
+                        }
+                        else if(br.favor == 0){
+                            return colorf::YELLOW;
+                        }
+                        else{
+                            return colorf::RED;
+                        }
+                    }();
+
+                    const auto startColor = baseColor | colorf::A_SHF(255);
+                    const auto   endColor = baseColor | colorf::A_SHF( 64);
+
+                    const auto edgeGridCount = (buffIconDrawW + buffIconDrawH) * 2 - 4;
+                    const auto startLoc = std::lround(edgeGridCount * std::fmod(m_accuTime, 1500.0) / 1500.0);
+
+                    g_sdlDevice->drawBoxFading(startColor, endColor, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, startLoc, buffIconDrawW + buffIconDrawH);
                     drawIconCount++;
                 }
             }
