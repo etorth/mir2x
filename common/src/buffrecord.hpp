@@ -64,6 +64,12 @@ enum BuffActTriggerType: int
     BATGR_END,
 };
 
+enum BuffActDurationType: int
+{
+    BADUR_UNLIMITED = -1, // never finish until user cancel the buff
+    BADUR_INSTANT   =  0, // effect immediately take place in BuffAct::ctor() and BuffAct::done() always return true
+};
+
 constexpr bool validBuffActTrigger(int btgr)
 {
     return (btgr & (~((BATGR_END - 1) | (BATGR_END - 2)))) == 0;
@@ -199,12 +205,7 @@ struct BuffRecord
     struct BuffActRecordRef
     {
         const char8_t * const name = nullptr;
-
-        // every buff has an actList and each act in the list has different duration
-        // duration in ms < 0: unlimited
-        //                  0: one-shot act
-        //                > 0: limited timeout
-        const int duration = -1;
+        const int duration = BADUR_UNLIMITED;
 
         const struct BuffActAuraParam
         {

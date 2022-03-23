@@ -27,16 +27,19 @@ BaseBuffAct::BaseBuffAct(BaseBuff *argBuff, size_t argBuffActOff)
 
 bool BaseBuffAct::done() const
 {
-    if(getBAREF().duration < 0){
-        return false;
-    }
-    else if(getBAREF().duration == 0){
-        // zero duration means one-shot act
-        // needed action should be performed in BuffAct::ctor()
-        return true;
-    }
-    else{
-        return std::lround(m_buff->accuTime()) >= getBAREF().duration;
+    switch(getBAREF().duration){
+        case BADUR_UNLIMITED:
+            {
+                return false;
+            }
+        case BADUR_INSTANT:
+            {
+                return true;
+            }
+        default:
+            {
+                return std::lround(m_buff->accuTime()) >= getBAREF().duration;
+            }
     }
 }
 
