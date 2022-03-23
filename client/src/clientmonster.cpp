@@ -339,7 +339,9 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
 
                             const auto startColor = baseColor | colorf::A_SHF(255);
                             const auto   endColor = baseColor | colorf::A_SHF( 64);
-                            const auto startLoc   = std::lround((buffIconDrawW + buffIconDrawH) * 2 * std::fmod(m_accuUpdateTime, 1500.0) / 1500.0);
+
+                            const auto edgeGridCount = (buffIconDrawW + buffIconDrawH) * 2 - 4;
+                            const auto startLoc = std::lround(edgeGridCount * std::fmod(m_accuUpdateTime, 1500.0) / 1500.0);
 
                             g_sdlDevice->drawBoxFading(startColor, endColor, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, startLoc, buffIconDrawW + buffIconDrawH);
                             drawIconCount++;
