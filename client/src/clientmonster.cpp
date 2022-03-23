@@ -324,8 +324,21 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
                             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
                             g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
 
-                            const auto startColor = colorf::GREEN | colorf::A_SHF(255);
-                            const auto   endColor = colorf::GREEN | colorf::A_SHF( 64);
+                            const auto baseColor = [&br]() -> uint32_t
+                            {
+                                if(br.favor > 0){
+                                    return colorf::GREEN;
+                                }
+                                else if(br.favor == 0){
+                                    return colorf::YELLOW;
+                                }
+                                else{
+                                    return colorf::RED;
+                                }
+                            }();
+
+                            const auto startColor = baseColor | colorf::A_SHF(255);
+                            const auto   endColor = baseColor | colorf::A_SHF( 64);
                             const auto startLoc   = std::lround((buffIconDrawW + buffIconDrawH) * 2 * std::fmod(m_accuUpdateTime, 1500.0) / 1500.0);
 
                             g_sdlDevice->drawBoxFading(startColor, endColor, buffIconOffX, buffIconOffY, buffIconDrawW, buffIconDrawH, startLoc, buffIconDrawW + buffIconDrawH);

@@ -56,7 +56,7 @@
             {
                 .on = BATGR_TIME,
                 .tps = 2,
-                .arg = buffArgWrapper<BuffValuePercentage>(-20, -5),
+                .arg = buffArgWrapper<BuffValuePercentage>(0, -5),
             },
         },
     },
