@@ -774,6 +774,10 @@ void SDLDevice::drawVLineFading(uint32_t startColor, uint32_t endColor, int x, i
 
 void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int y, int w, int h, int start, int length)
 {
+    if((w == 0) || (h == 0) || (length == 0)){
+        return;
+    }
+
     SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND, this);
     if(w < 0){
         w  = -w;
@@ -784,9 +788,6 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
         h  = -h;
         y -=  h;
     }
-
-    w = std::max<int>(w, 1);
-    h = std::max<int>(h, 1);
 
     const auto edgeGridCount = [w, h]() -> int
     {
@@ -801,14 +802,19 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
         return (w + h) * 2 - 4;
     }();
 
+    const auto fnMod = [edgeGridCount](int offset)
+    {
+        return ((offset % edgeGridCount) + edgeGridCount) % edgeGridCount;
+    };
 
-    if(edgeGridCount <= 1){
-        SDLDeviceHelper::EnableRenderColor enableColor(startColor, this);
-        SDL_RenderDrawPoint(getRenderer(), x, y);
-        return;
+    if(length < 0){
+        start = fnMod(start + length);
+    }
+    else{
+        start = fnMod(start);
     }
 
-    start = (((start + length) % edgeGridCount) + edgeGridCount) % edgeGridCount;
+    start = fnMod(start - length + 1);
     length = std::min<int>(std::abs(length), edgeGridCount);
 
     // define the direction current x/y increments
@@ -823,7 +829,48 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
     //  v------->
     //
 
-    const auto fnNextPoint = [x, y, w, h, endX = x + w - 1, endY = y + h - 1](int currX, int currY, int dir) -> std::tuple<int, int, int>
+    const auto endX = x + w - 1;
+    const auto endY = y + h - 1;
+
+    auto [currX, currY, currDir] = [x, y, w, h, start, endX, endY]() -> std::tuple<int, int, int>
+    {
+        if((w == 1) && (h == 1)){
+            return {x, y, 3};
+        }
+        else if(w == 1){
+            if(start < h){
+                return {x, y + start, 3};
+            }
+            else{
+                return {x, endY - (start - h), 1};
+            }
+        }
+        else if(h == 1){
+            if(start < w){
+                return {x + start, y, 0};
+            }
+            else{
+                return {endX - (start - w), y, 2};
+            }
+        }
+        else if(start < h){
+            return {x, y + start, 3};
+        }
+        else if(start < w + h - 1){
+            return {x + (start - (h - 1)), endY, 0};
+        }
+        else if(start < w + h * 2 - 2){
+            return {endX, endY - (start - (w - 1) - (h - 1)), 1};
+        }
+        else if(start < w * 2 + h * 2 - 3){
+            return {endX - (start - (h - 1) - (w - 1) - (h - 1)), y, 2};
+        }
+        else{
+            throw fflvalue(x, y, w, h, start);
+        }
+    }();
+
+    const auto fnNextPoint = [x, y, w, h, endX, endY](int currX, int currY, int dir) -> std::tuple<int, int, int>
     {
         switch(dir){
             case 0:
@@ -868,7 +915,7 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
                         return {currX - 1, currY, 2};
                     }
                 }
-            default:
+            case 3:
                 {
                     if(currY == endY){
                         if(w == 1){
@@ -882,17 +929,12 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
                         return {currX, currY + 1, 3};
                     }
                 }
+            default:
+                {
+                    throw fflvalue(dir, currX, currY);
+                }
         }
     };
-
-    int currX = x;
-    int currY = y;
-    int currDir = (h == 1) ? 0 : 3;
-
-    // TODO need O(1) algorithm to find start point
-    for(int i = 0; i < start; ++i){
-        std::tie(currX, currY, currDir) = fnNextPoint(currX, currY, currDir);
-    }
 
     for(int i = 0; i < length; ++i){
         SDLDeviceHelper::EnableRenderColor enableColor(colorf::fadeRGBA(startColor, endColor,  1.0 - (1.0 * i / length)), this);
