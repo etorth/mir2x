@@ -238,6 +238,9 @@ class SDLDevice final
        void drawVLineFading(uint32_t, uint32_t, int, int, int);
 
     public:
+       void drawBoxFading(uint32_t, uint32_t, int, int, int, int, int, int);
+
+    public:
        SDL_Renderer *getRenderer()
        {
            return m_renderer;

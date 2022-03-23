@@ -772,6 +772,135 @@ void SDLDevice::drawVLineFading(uint32_t startColor, uint32_t endColor, int x, i
     }
 }
 
+void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int y, int w, int h, int start, int length)
+{
+    SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND, this);
+    if(w < 0){
+        w  = -w;
+        x -=  w;
+    }
+
+    if(h < 0){
+        h  = -h;
+        y -=  h;
+    }
+
+    w = std::max<int>(w, 1);
+    h = std::max<int>(h, 1);
+
+    const auto edgeGridCount = [w, h]() -> int
+    {
+        if(w == 1 && h == 1){
+            return 1;
+        }
+
+        if(w == 1 || h == 1){
+            return std::max<int>(w, h);
+        }
+
+        return (w + h) * 2 - 4;
+    }();
+
+
+    if(edgeGridCount <= 1){
+        SDLDeviceHelper::EnableRenderColor enableColor(startColor, this);
+        SDL_RenderDrawPoint(getRenderer(), x, y);
+        return;
+    }
+
+    start = (((start + length) % edgeGridCount) + edgeGridCount) % edgeGridCount;
+    length = std::min<int>(std::abs(length), edgeGridCount);
+
+    // define the direction current x/y increments
+    //
+    //  +------------ start point
+    //  |
+    //  v   2
+    //  <-------A
+    //  |       |
+    // 3|       |1
+    //  |   0   |
+    //  v------->
+    //
+
+    const auto fnNextPoint = [x, y, w, h, endX = x + w - 1, endY = y + h - 1](int currX, int currY, int dir) -> std::tuple<int, int, int>
+    {
+        switch(dir){
+            case 0:
+                {
+                    if(currX == endX){
+                        if(h == 1){
+                            return {currX - 1, currY, 2};
+                        }
+                        else{
+                            return {currX, currY - 1, 1};
+                        }
+                    }
+                    else{
+                        return {currX + 1, currY, 0};
+                    }
+                }
+            case 1:
+                {
+                    if(currY == y){
+                        if(w == 1){
+                            return {currX, currY + 1, 3};
+                        }
+                        else{
+                            return {currX - 1, currY, 2};
+                        }
+                    }
+                    else{
+                        return {currX, currY - 1, 1};
+                    }
+                }
+            case 2:
+                {
+                    if(currX == x){
+                        if(h == 1){
+                            return {currX + 1, currY, 0};
+                        }
+                        else{
+                            return {currX, currY + 1, 3};
+                        }
+                    }
+                    else{
+                        return {currX - 1, currY, 2};
+                    }
+                }
+            default:
+                {
+                    if(currY == endY){
+                        if(w == 1){
+                            return {currX, currY - 1, 1};
+                        }
+                        else{
+                            return {currX + 1, currY, 0};
+                        }
+                    }
+                    else{
+                        return {currX, currY + 1, 3};
+                    }
+                }
+        }
+    };
+
+    int currX = x;
+    int currY = y;
+    int currDir = (h == 1) ? 0 : 3;
+
+    // TODO need O(1) algorithm to find start point
+    for(int i = 0; i < start; ++i){
+        std::tie(currX, currY, currDir) = fnNextPoint(currX, currY, currDir);
+    }
+
+    for(int i = 0; i < length; ++i){
+        SDLDeviceHelper::EnableRenderColor enableColor(colorf::fadeRGBA(startColor, endColor,  1.0 - (1.0 * i / length)), this);
+        SDL_RenderDrawPoint(getRenderer(), currX, currY);
+        std::tie(currX, currY, currDir) = fnNextPoint(currX, currY, currDir);
+    }
+}
+
 void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
 {
     if(stringRGBA(m_renderer, x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
