@@ -122,7 +122,7 @@ class SkillBoard: public Widget
                 }
 
             public:
-                auto magicID() const
+                uint32_t magicID() const
                 {
                     return m_magicID;
                 }

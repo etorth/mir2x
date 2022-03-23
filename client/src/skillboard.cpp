@@ -444,9 +444,14 @@ bool SkillBoard::MagicIconButton::processEvent(const SDL_Event &event, bool vali
     const auto result = m_icon.processEvent(event, valid);
     if(event.type == SDL_KEYDOWN && cursorOn()){
         if(const auto key = SDLDeviceHelper::getKeyChar(event, false); (key >= '0' && key <= '9') || (key >= 'a' && key <= 'z')){
-            if(!SkillBoard::getMagicIconGfx(magicID()).passive){
-                m_config->setMagicKey(magicID(), key);
-                m_processRun->requestSetMagicKey(magicID(), key);
+            if(m_config->hasMagicID(magicID())){
+                if(SkillBoard::getMagicIconGfx(magicID()).passive){
+                    m_processRun->addCBLog(CBLOG_SYS, u8"无法为被动技能设置快捷键：%s", to_cstr(DBCOM_MAGICRECORD(magicID()).name));
+                }
+                else{
+                    m_config->setMagicKey(magicID(), key);
+                    m_processRun->requestSetMagicKey(magicID(), key);
+                }
             }
             return focusConsume(this, true);
         }
