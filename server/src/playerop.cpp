@@ -479,6 +479,15 @@ void Player::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
     reportOffline(amO.UID, amO.mapID);
 }
 
+void Player::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
+{
+    forwardNetPackage(mpk.from(), SM_BUFFIDLIST, cerealf::serialize(SDBuffIDList
+    {
+        .uid = UID(),
+        .idList = m_buffList.getIDList(),
+    }));
+}
+
 void Player::on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &mpk)
 {
     forwardNetPackage(mpk.from(), SM_PLAYERWLDESP, cerealf::serialize(SDUIDWLDesp

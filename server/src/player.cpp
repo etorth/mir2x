@@ -147,6 +147,11 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_RECVPACKAGE(rstMPK);
                 break;
             }
+        case AM_QUERYUIDBUFF:
+            {
+                on_AM_QUERYUIDBUFF(rstMPK);
+                break;
+            }
         case AM_QUERYCORECORD:
             {
                 on_AM_QUERYCORECORD(rstMPK);
@@ -207,6 +212,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         _support_cm(CM_QUERYGOLD                 );
         _support_cm(CM_NPCEVENT                  );
         _support_cm(CM_QUERYSELLITEMLIST         );
+        _support_cm(CM_QUERYUIDBUFF              );
         _support_cm(CM_QUERYPLAYERWLDESP         );
         _support_cm(CM_REQUESTEQUIPWEAR          );
         _support_cm(CM_REQUESTGRABWEAR           );

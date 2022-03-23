@@ -183,6 +183,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
                                             m_coList[smA.UID].reset(new ClientTaoSkeleton(smA.UID, this, smA.action));
+                                            queryUIDBuff(smA.UID);
                                         }
                                         return;
                                     }
@@ -190,6 +191,7 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
                                             m_coList[smA.UID].reset(new ClientTaoSkeletonExt(smA.UID, this, smA.action));
+                                            queryUIDBuff(smA.UID);
                                         }
                                         return;
                                     }
@@ -197,12 +199,14 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
                                     {
                                         if(!m_actionBlocker.contains(smA.UID)){
                                             m_coList[smA.UID].reset(new ClientTaoDog(smA.UID, this, smA.action));
+                                            queryUIDBuff(smA.UID);
                                         }
                                         return;
                                     }
                                 default:
                                     {
                                         m_coList[smA.UID].reset(ClientMonster::create(smA.UID, this, smA.action));
+                                        queryUIDBuff(smA.UID);
                                         return;
                                     }
                             }
@@ -239,11 +243,13 @@ void ProcessRun::net_CORECORD(const uint8_t *bufPtr, size_t)
         case UID_MON:
             {
                 m_coList[smCOR.UID].reset(ClientMonster::create(smCOR.UID, this, smCOR.action));
+                queryUIDBuff(smCOR.UID);
                 break;
             }
         case UID_PLY:
             {
                 m_coList[smCOR.UID].reset(new Hero(smCOR.UID, this, smCOR.action));
+                queryUIDBuff(smCOR.UID);
                 queryPlayerWLDesp(smCOR.UID);
                 break;
             }

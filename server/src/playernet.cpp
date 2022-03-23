@@ -221,6 +221,32 @@ void Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf, size_t)
     m_actorPod->forward(cmQSIL.npcUID, {AM_QUERYSELLITEMLIST, amQSIL});
 }
 
+void Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmQUIDB = ClientMsg::conv<CMQueryUIDBuff>(buf);
+    if(cmQUIDB.uid == UID()){
+        postNetMessage(SM_BUFFIDLIST, cerealf::serialize(SDBuffIDList
+        {
+            .uid = UID(),
+            .idList = m_buffList.getIDList(),
+        }));
+    }
+    else{
+        switch(uidf::getUIDType(cmQUIDB.uid)){
+            case UID_PLY:
+            case UID_MON:
+                {
+                    m_actorPod->forward(cmQUIDB.uid, AM_QUERYUIDBUFF);
+                    break;
+                }
+            default:
+                {
+                    throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQUIDB.uid), uidf::getUIDTypeCStr(cmQUIDB.uid));
+                }
+        }
+    }
+}
+
 void Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmQPWLD = ClientMsg::conv<CMQueryPlayerWLDesp>(buf);

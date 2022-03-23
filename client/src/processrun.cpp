@@ -1582,6 +1582,8 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                     }));
 
                     m_actionBlocker.erase(uid);
+
+                    queryUIDBuff(uid);
                     queryCORecord(uid);
                     return true;
                 });
@@ -1612,6 +1614,8 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                     }));
 
                     m_actionBlocker.erase(uid);
+
+                    queryUIDBuff(uid);
                     queryCORecord(uid);
                     return true;
                 });
@@ -1621,12 +1625,16 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
             {
                 addCBLog(CBLOG_SYS, u8"使用魔法: 召唤神兽");
                 m_coList[uid].reset(new ClientTaoDog(uid, this, action));
+
+                queryUIDBuff(uid);
                 queryCORecord(uid);
                 return;
             }
         default:
             {
                 m_coList[uid].reset(ClientMonster::create(uid, this, action));
+
+                queryUIDBuff(uid);
                 queryCORecord(uid);
                 return;
             }
@@ -2071,6 +2079,26 @@ void ProcessRun::requestMagicDamage(int magicID, uint64_t aimUID)
     cmRMD.aimUID  = aimUID;
 
     g_client->send(CM_REQUESTMAGICDAMAGE, cmRMD);
+}
+
+void ProcessRun::queryUIDBuff(uint64_t uid) const
+{
+    switch(uidf::getUIDType(uid)){
+        case UID_PLY:
+        case UID_MON:
+            {
+                CMQueryUIDBuff cmQUIDB;
+                std::memset(&cmQUIDB, 0, sizeof(cmQUIDB));
+
+                cmQUIDB.uid = uid;
+                g_client->send(CM_QUERYUIDBUFF, cmQUIDB);
+                break;
+            }
+        default:
+            {
+                throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
+            }
+    }
 }
 
 void ProcessRun::queryPlayerWLDesp(uint64_t uid) const

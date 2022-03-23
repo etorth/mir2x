@@ -158,6 +158,7 @@ class Monster: public BattleObject
         void on_AM_QUERYHEALTH     (const ActorMsgPack &);
         void on_AM_DEADFADEOUT     (const ActorMsgPack &);
         void on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
+        void on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
         void on_AM_QUERYCORECORD   (const ActorMsgPack &);
         void on_AM_QUERYLOCATION   (const ActorMsgPack &);
         void on_AM_QUERYNAMECOLOR  (const ActorMsgPack &);

@@ -347,6 +347,7 @@ class ProcessRun: public Process
         void onActionSpawn(uint64_t, const ActionNode &);
 
     public:
+        void queryUIDBuff(uint64_t) const;
         void queryPlayerWLDesp(uint64_t) const;
         void queryInvOp(int, uint32_t, uint32_t) const;
 

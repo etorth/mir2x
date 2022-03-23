@@ -62,6 +62,15 @@ void Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
     reportCO(amQCOR.UID);
 }
 
+void Monster::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
+{
+    forwardNetPackage(mpk.from(), SM_BUFFIDLIST, cerealf::serialize(SDBuffIDList
+    {
+        .uid = UID(),
+        .idList = m_buffList.getIDList(),
+    }));
+}
+
 void Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
 {
     const auto amAB = mpk.conv<AMAddBuff>();

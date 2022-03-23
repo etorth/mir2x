@@ -685,6 +685,11 @@ void Monster::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_QUERYLOCATION(rstMPK);
                 break;
             }
+        case AM_QUERYUIDBUFF:
+            {
+                on_AM_QUERYUIDBUFF(rstMPK);
+                break;
+            }
         case AM_QUERYCORECORD:
             {
                 on_AM_QUERYCORECORD(rstMPK);
