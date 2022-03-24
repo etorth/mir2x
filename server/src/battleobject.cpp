@@ -1233,15 +1233,26 @@ void BattleObject::removeFromBuff(uint64_t fromUID, uint64_t fromBuffSeq, bool d
 
 BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t buffID)
 {
-    // NOTE currently only remove buff added by self
-    // can not remove/override buffs added by other person to avoid cheating
-
-    const auto fnAddBuff = [fromUID, fromBuffSeq, buffID, this]()
+    const auto fnAddBuff = [fromUID, fromBuffSeq, buffID, this]() -> BaseBuff *
     {
-        auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)));
-        dispatchBuffIDList();
-        return buff;
+        if(auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)))){
+            for(const auto paura: buff->getAuraList()){
+                paura->dispatch();
+                if(paura->getBAR().aura.self){
+                    addBuff(fromUID, fromBuffSeq, DBCOM_BUFFID(paura->getBAR().aura.buff));
+                }
+            }
+
+            if(buff->getBR().icon.show){
+                dispatchBuffIDList();
+            }
+            return buff;
+        }
+        return nullptr;
     };
+
+    // NOTE currently only *replace* buff added by self
+    // can not remove/override buffs added by other person to avoid cheating
 
     if(const auto &br = DBCOM_BUFFRECORD(buffID); br){
         auto pbuffList = m_buffList.hasBuff(br.name);

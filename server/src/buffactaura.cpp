@@ -24,7 +24,18 @@ BaseBuffActAura::BaseBuffActAura(BaseBuff *argBuff, size_t argBuffActOff)
 void BaseBuffActAura::dispatch()
 {
     for(const auto uid: getBuff()->getBO()->getInViewUIDList()){
-        transmit(uid);
+        switch(uidf::getUIDType(uid)){
+            case UID_PLY:
+            case UID_MON:
+                {
+                    transmit(uid);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
     }
 }
 
