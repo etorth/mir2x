@@ -101,7 +101,9 @@ struct BuffActRecord
     const struct BuffActAuraParam
     {
         const char8_t * const buff = nullptr;
-        const int self = 0;
+
+        const int self    : 2 = 0; // adds buff to the holder of aura him/her-self
+        const int outlive : 2 = 0; // child buff outlives when parent buff gets done
     }
     aura {};
 
@@ -195,7 +197,7 @@ struct BuffRecord
     const int dispellable  : 2 = 0;
 
     const int stackCount   : 8 = 0; // 0: can not stack extra same buff, max count(buff) = 1
-    const int stackReplace : 1 = 0;
+    const int stackReplace : 2 = 0;
 
     const struct IconParam
     {

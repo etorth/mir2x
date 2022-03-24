@@ -162,6 +162,15 @@ class BuffList final
         }
 
     public:
+        BaseBuff *hasBuffSeq(uint64_t buffSeq) const
+        {
+            if(m_buffList.count(buffSeq)){
+                return m_buffList.at(buffSeq).get();
+            }
+            return nullptr;
+        }
+
+    public:
         std::vector<BaseBuffAct *> hasBuffAct(const char8_t *name)
         {
             fflassert(str_haschar(name));

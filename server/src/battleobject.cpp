@@ -1192,31 +1192,38 @@ void BattleObject::updateBuffList()
 
 void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
 {
-    m_buffList.erase(buffSeq);
+    if(auto buffp = m_buffList.hasBuffSeq(buffSeq)){
+        const auto fromUID = buffp->fromUID();
+        m_buffList.erase(buffSeq);
 
-    AMRemoveBuff amRB;
-    std::memset(&amRB, 0, sizeof(amRB));
+        AMRemoveBuff amRB;
+        std::memset(&amRB, 0, sizeof(amRB));
 
-    amRB.fromUID = UID();
-    amRB.fromBuffSeq = buffSeq;
+        amRB.fromUID = UID();
+        amRB.fromBuffSeq = buffSeq;
 
-    for(const auto uid: getInViewUIDList()){
-        switch(uidf::getUIDType(uid)){
-            case UID_PLY:
-            case UID_MON:
-                {
-                    m_actorPod->forward(uid, {AM_REMOVEBUFF, amRB});
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
+        for(const auto uid: getInViewUIDList()){
+            switch(uidf::getUIDType(uid)){
+                case UID_PLY:
+                case UID_MON:
+                    {
+                        m_actorPod->forward(uid, {AM_REMOVEBUFF, amRB});
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }
-    }
 
-    if(dispatch){
-        dispatchBuffIDList();
+        for(auto fromBuff: m_buffList.hasFromBuff(fromUID, buffSeq)){
+            removeBuff(fromBuff->buffSeq(), false);
+        }
+
+        if(dispatch){
+            dispatchBuffIDList();
+        }
     }
 }
 
@@ -1239,7 +1246,7 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
             for(const auto paura: buff->getAuraList()){
                 paura->dispatch();
                 if(paura->getBAR().aura.self){
-                    addBuff(fromUID, fromBuffSeq, DBCOM_BUFFID(paura->getBAR().aura.buff));
+                    addBuff(buff->fromUID(), buff->buffSeq(), DBCOM_BUFFID(paura->getBAR().aura.buff));
                 }
             }
 

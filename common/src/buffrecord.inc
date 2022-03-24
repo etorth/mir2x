@@ -93,7 +93,7 @@
         {   .name = u8"HP恢复",
             .attributeModifier
             {
-                .arg = buffArgWrapper<BuffValuePercentage>(0, 5),
+                .arg = buffArgWrapper<BuffValuePercentage>(1, 5),
             },
         },
     },
