@@ -30,6 +30,10 @@ struct ServerArgParser
     const bool disableProfiler;             // "--disable-profiler"
     const bool disableMapScript;            // "--disable-map-script"
 
+    const bool disableLearnMagicCheckJob;   // "--disable-learn-magic-check-job"
+    const bool disableLearnMagicCheckLevel; // "--disable-learn-magic-check-level"
+    const bool disableLearnMagicCheckPrior; // "--disable-learn-magic-check-prior"
+
     const bool traceActorMessage;           // "--trace-actor-message"
     const bool traceActorMessageCount;      // "--trace-actor-message-count"
     const bool enableUniqueActorMessageID;  // "--enable-unique-actor-message-id"
@@ -49,6 +53,9 @@ struct ServerArgParser
     ServerArgParser(const argh::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
         , disableMapScript(cmdParser["disable-map-script"])
+        , disableLearnMagicCheckJob(cmdParser["disable-learn-magic-check-job"])
+        , disableLearnMagicCheckLevel(cmdParser["disable-learn-magic-check-level"])
+        , disableLearnMagicCheckPrior(cmdParser["disable-learn-magic-check-prior"])
         , traceActorMessage(cmdParser["trace-actor-message"])
         , traceActorMessageCount(cmdParser["trace-actor-message-count"])
         , enableUniqueActorMessageID(cmdParser["enable-unique-actor-message-id"])

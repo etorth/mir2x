@@ -247,7 +247,9 @@ struct MagicRecord
     {
         const int level[3] = {0, 0, 0};
         const int train[3] = {0, 0, 0};
-        const char8_t *job = nullptr;
+
+        const char8_t *job   = nullptr;
+        const char8_t *prior = nullptr;
     }
     req {};
 

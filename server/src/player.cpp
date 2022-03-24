@@ -2,6 +2,7 @@
 #include "dbpod.hpp"
 #include "player.hpp"
 #include "uidf.hpp"
+#include "jobf.hpp"
 #include "pathf.hpp"
 #include "mathf.hpp"
 #include "dbcomid.hpp"
@@ -1493,4 +1494,77 @@ int Player::maxMP(uint64_t uid, uint32_t level)
     if(uidf::hasPlayerJob(uid, JOB_TAOIST )) result = std::max<int>(result, maxMPTaoist );
     if(uidf::hasPlayerJob(uid, JOB_WIZARD )) result = std::max<int>(result, maxMPWizard );
     return result;
+}
+
+bool Player::consumeBook(uint32_t itemID)
+{
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    fflassert(ir);
+    fflassert(ir.isBook());
+
+    const auto magicID = DBCOM_MAGICID(ir.name);
+    const auto &mr = DBCOM_MAGICRECORD(magicID);
+
+    fflassert(magicID);
+    fflassert(mr);
+
+    if(m_sdLearnedMagicList.has(magicID)){
+        postNetMessage(SM_TEXT, str_printf(u8"无法学习%s，因为你已掌握此技能", to_cstr(mr.name)));
+        return false;
+    }
+
+    if(!g_serverArgParser->disableLearnMagicCheckJob){
+        bool hasJob = false;
+        for(const auto reqJob: jobf::getJobList(to_cstr(mr.req.job))){
+            if(uidf::hasPlayerJob(UID(), reqJob)){
+                hasJob = true;
+                break;
+            }
+        }
+
+        if(!hasJob){
+            postNetMessage(SM_TEXT, str_printf(u8"无法学习%s，因为此项技能需要职业为%s", to_cstr(mr.name), to_cstr(mr.req.job)));
+            return false;
+        }
+    }
+
+    if(to_d(level()) < mr.req.level[0] && !g_serverArgParser->disableLearnMagicCheckLevel){
+        postNetMessage(SM_TEXT, str_printf(u8"无法学习%s，因为你尚未到达%d级", to_cstr(mr.name), mr.req.level[0]));
+        return false;
+    }
+
+    if(str_haschar(mr.req.prior) && !g_serverArgParser->disableLearnMagicCheckPrior){
+        const auto priorMagicID = DBCOM_MAGICID(mr.req.prior);
+        const auto &priorMR = DBCOM_MAGICRECORD(priorMagicID);
+
+        fflassert(priorMagicID);
+        fflassert(priorMR);
+
+        if(!m_sdLearnedMagicList.has(priorMagicID)){
+            postNetMessage(SM_TEXT, str_printf(u8"无法学习%s，因为你尚未学习前置魔法%s", to_cstr(mr.name), to_cstr(priorMR.name)));
+            return false;
+        }
+    }
+
+    m_sdLearnedMagicList.magicList.push_back(SDLearnedMagic
+    {
+        .magicID = magicID,
+    });
+
+    dbLearnMagic(magicID);
+    postNetMessage(SM_TEXT, str_printf(u8"恭喜掌握%s", to_cstr(mr.name)));
+    postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
+    return true;
+}
+
+bool Player::consumePotion(uint32_t itemID)
+{
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    fflassert(ir);
+    fflassert(ir.isPotion());
+
+    if(addBuff(UID(), 0, DBCOM_BUFFID(ir.name))){
+        return true;
+    }
+    return false;
 }

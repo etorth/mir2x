@@ -23,7 +23,9 @@
 #include "monoserver.hpp"
 #include "dbcomid.hpp"
 #include "dbcomrecord.hpp"
+#include "serverargparser.hpp"
 
+extern ServerArgParser *g_serverArgParser;
 void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t)
 {
     CMAction cmA;
@@ -636,25 +638,10 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
 
     bool consumed = false;
     if(ir.isBook()){
-        if(const uint32_t magicID = DBCOM_MAGICID(ir.name); m_sdLearnedMagicList.has(magicID)){
-            postNetMessage(SM_TEXT, str_printf(u8"你已掌握%s", to_cstr(ir.name)));
-        }
-        else{
-            m_sdLearnedMagicList.magicList.push_back(SDLearnedMagic
-            {
-                .magicID = magicID,
-            });
-
-            consumed = true;
-            dbLearnMagic(DBCOM_MAGICID(ir.name));
-            postNetMessage(SM_TEXT, str_printf(u8"学习%s", to_cstr(ir.name)));
-            postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
-        }
+        consumed = consumeBook(cmCI.itemID);
     }
     else if(ir.isPotion()){
-        if(addBuff(UID(), 0, DBCOM_BUFFID(ir.name))){
-            consumed = true;
-        }
+        consumed = consumePotion(cmCI.itemID);
     }
     else{
         // TODO
