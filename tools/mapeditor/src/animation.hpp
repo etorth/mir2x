@@ -44,7 +44,7 @@ class Animation
     public:
         Animation(std::initializer_list<std::tuple<int, int, std::initializer_list<uint8_t>>> ilist)
         {
-            for(const auto [dx, dy, data]: ilist){
+            for(const auto &[dx, dy, data]: ilist){
                 const Rawbuf imgData(data);
                 m_frameList.push_back(InnFrame
                 {
