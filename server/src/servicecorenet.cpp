@@ -42,7 +42,7 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
     const auto dbid = check_cast<uint32_t, unsigned>(queryAccount.getColumn("fld_dbid"));
     fflassert(dbid);
 
-    for(const auto [existChannID, existDBID]: m_dbidList){
+    for(const auto &[existChannID, existDBID]: m_dbidList){
         if(existChannID == channID){
             throw fflerror("internal error: channID reused before recycle: %d", to_d(channID));
         }

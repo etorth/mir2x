@@ -248,7 +248,7 @@ void MagicDrawArea::output() const
     std::fprintf(stdout, "{\n");
     std::fprintf(stdout, "switch(gfxDirIndex()){\n");
 
-    for(int i = 0; const auto [dx, dy]: m_offList){
+    for(int i = 0; const auto &[dx, dy]: m_offList){
         std::fprintf(stdout, "case %2d: return {%3d, %3d};\n", i++, dx, dy);
     }
 

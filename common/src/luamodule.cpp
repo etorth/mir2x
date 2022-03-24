@@ -226,7 +226,7 @@ LuaModule::LuaModule()
 
     m_luaState.set_function("convTableAsString", [this](sol::as_table_t<luaf::conv_table> convTable) -> std::string
     {
-        return luaf::buildBlob<luaf::conv_table>(convTable.source);
+        return luaf::buildBlob<luaf::conv_table>(convTable.value());
     });
 
     m_luaState.set_function("scalarFromString", [this](std::string s, sol::this_state state)

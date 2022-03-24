@@ -115,14 +115,14 @@ class XMLParagraph
     public:
         void insertUTF8String(int, int, const char *);
 
-    public:
-        tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *pDoc)
-        {
-            return m_XMLDocument.RootElement()->DeepClone(pDoc);
-        }
-
-    public:
-        tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *, int, int, int);
+    // public:
+    //     tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *pDoc)
+    //     {
+    //         return m_XMLDocument.RootElement()->DeepClone(pDoc);
+    //     }
+    //
+    // public:
+    //     tinyxml2::XMLNode *Clone(tinyxml2::XMLDocument *, int, int, int);
 
     public:
         tinyxml2::XMLNode *CloneLeaf(tinyxml2::XMLDocument *pDoc, int leaf) const

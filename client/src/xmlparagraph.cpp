@@ -265,45 +265,45 @@ std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leaf, int leafOff, int t
     return {nCurrLeaf, nCurrLeafOff, nAdvancedToken};
 }
 
-// lowest common ancestor
-const tinyxml2::XMLNode *XMLParagraph::leafCommonAncestor(int, int) const
-{
-    return nullptr;
-}
-
-tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc, int leaf, int leafOff, int tokenCount)
-{
-    auto [nEndLeaf, nEndLeafOff, nAdvancedToken] = nextLeafOff(leaf, leafOff, tokenCount);
-    if(nAdvancedToken != tokenCount){
-        // reach end before finish the given count
-    }
-
-    auto pClone = leafCommonAncestor(leaf, nEndLeaf)->DeepClone(pDoc);
-
-    if(leafOff != 0){
-        if(leafRef(leaf).type() != LEAF_UTF8GROUP){
-            throw fflerror("non-utf8 string leaf contains multiple tokens");
-        }
-
-        // make a copy here, for safe
-        // tinyxml2 doesn't specify if SetValue(Value()) works
-        auto pCloneLeaf = xmlf::getTreeFirstLeaf(pClone);
-        auto szNewValue = std::string(pCloneLeaf->Value() + leafRef(leaf).utf8CharOffRef()[leafOff]);
-        pCloneLeaf->SetValue(szNewValue.c_str());
-    }
-
-    if(nEndLeafOff != (leafRef(nEndLeaf).length() - 1)){
-        if(leafRef(nEndLeaf).type() != LEAF_UTF8GROUP){
-            throw fflerror("non-utf8 string leaf contains multiple tokens");
-        }
-
-        auto pCloneLeaf = xmlf::getTreeLastLeaf(pClone);
-        auto szNewValue = std::string(pCloneLeaf->Value(), pCloneLeaf->Value() + leafOff);
-        pCloneLeaf->SetValue(szNewValue.c_str());
-    }
-
-    return pClone;
-}
+// // lowest common ancestor
+// const tinyxml2::XMLNode *XMLParagraph::leafCommonAncestor(int, int) const
+// {
+//     return nullptr;
+// }
+//
+// tinyxml2::XMLNode *XMLParagraph::Clone(tinyxml2::XMLDocument *pDoc, int leaf, int leafOff, int tokenCount)
+// {
+//     auto [nEndLeaf, nEndLeafOff, nAdvancedToken] = nextLeafOff(leaf, leafOff, tokenCount);
+//     if(nAdvancedToken != tokenCount){
+//         // reach end before finish the given count
+//     }
+//
+//     auto pClone = leafCommonAncestor(leaf, nEndLeaf)->DeepClone(pDoc);
+//
+//     if(leafOff != 0){
+//         if(leafRef(leaf).type() != LEAF_UTF8GROUP){
+//             throw fflerror("non-utf8 string leaf contains multiple tokens");
+//         }
+//
+//         // make a copy here, for safe
+//         // tinyxml2 doesn't specify if SetValue(Value()) works
+//         auto pCloneLeaf = xmlf::getTreeFirstLeaf(pClone);
+//         auto szNewValue = std::string(pCloneLeaf->Value() + leafRef(leaf).utf8CharOffRef()[leafOff]);
+//         pCloneLeaf->SetValue(szNewValue.c_str());
+//     }
+//
+//     if(nEndLeafOff != (leafRef(nEndLeaf).length() - 1)){
+//         if(leafRef(nEndLeaf).type() != LEAF_UTF8GROUP){
+//             throw fflerror("non-utf8 string leaf contains multiple tokens");
+//         }
+//
+//         auto pCloneLeaf = xmlf::getTreeLastLeaf(pClone);
+//         auto szNewValue = std::string(pCloneLeaf->Value(), pCloneLeaf->Value() + leafOff);
+//         pCloneLeaf->SetValue(szNewValue.c_str());
+//     }
+//
+//     return pClone;
+// }
 
 void XMLParagraph::Join(const XMLParagraph &rstInput)
 {

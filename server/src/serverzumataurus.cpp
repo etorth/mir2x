@@ -196,7 +196,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
                         AMStrikeFixedLocDamage amSFLD;
                         std::memset(&amSFLD, 0, sizeof(amSFLD));
 
-                        for(const auto [pathGX, pathGY]: pathGridList){
+                        for(const auto &[pathGX, pathGY]: pathGridList){
                             if(m_map->groundValid(pathGX, pathGY)){
                                 amSFLD.x = pathGX;
                                 amSFLD.y = pathGY;

@@ -83,7 +83,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
     m_luaState.set_function("setNPCSell", [this](sol::as_table_t<std::vector<std::string>> itemNameList)
     {
         m_npcSell.clear();
-        for(const auto &itemName: itemNameList.source){
+        for(const auto &itemName: itemNameList.value()){
             if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
                 m_npcSell.insert(itemID);
             }
@@ -349,7 +349,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         fflassert(invOp <  INVOP_END);
 
         std::set<std::u8string> typeList;
-        for(const auto &type: typeTable.source){
+        for(const auto &type: typeTable.value()){
             typeList.insert(to_u8cstr(type));
         }
         m_npc->postStartInvOp(uidf::toUIDEx(uidString), invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});

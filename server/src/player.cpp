@@ -1072,7 +1072,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 AMStrikeFixedLocDamage amSFLD;
                 std::memset(&amSFLD, 0, sizeof(amSFLD));
 
-                for(const auto [pathGX, pathGY]: pathGridList){
+                for(const auto &[pathGX, pathGY]: pathGridList){
                     if(m_map->groundValid(pathGX, pathGY)){
                         amSFLD.x = pathGX;
                         amSFLD.y = pathGY;
