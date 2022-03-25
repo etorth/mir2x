@@ -475,6 +475,15 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         R"###( -- do the first sanity check here                               )###""\n"
         R"###( -- last in main call we also check it but with verbose disabled )###""\n"
         R"###( has_processNPCEvent(true, SYS_NPCINIT)                          )###""\n");
+
+//     // setup TLS config
+//     // make each thread has its own run env
+//
+//     m_luaState.script(INCLUA_BEGIN(char)
+// #include "npchartlsconfig.lua"
+//     INCLUA_END());
+//
+//     // after this line all lua code implicitly access TLS
 }
 
 void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::optional<std::string> value)
