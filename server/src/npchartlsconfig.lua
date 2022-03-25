@@ -6,13 +6,13 @@
 -- setup all variable-access in thread as implicitly thread-local
 
 local _G, coroutine = _G, coroutine
-local ____g_mir2x_threadId, ____g_mir2x_inMainThread = coroutine.running()
+local ____g_mir2x_mainThreadId, ____g_mir2x_inMainThread = coroutine.running()
 
 if not ____g_mir2x_inMainThread then
     -- TODO error out
 end
 
-local ____g_mir2x_threadLocalTable = setmetatable({[____g_mir2x_threadId] = _G}, {__mode = "k"})
+local ____g_mir2x_threadLocalTable = setmetatable({[____g_mir2x_mainThreadId] = _G}, {__mode = "k"})
 local ____g_mir2x_threadLocalMetaTable = {}
 
 function ____g_mir2x_threadLocalMetaTable:__index(k)
