@@ -74,6 +74,13 @@ function ____g_mir2x_threadLocalMetaTable:__newindex(k, v)
     currThreadTable[k] = v
 end
 
+function clearTLSTable()
+    local currThreadId, currInMainThread = coroutine.running()
+    if not currInMainThread then
+        ____g_mir2x_threadLocalTableList[currThreadId]= nil
+    end
+end
+
 -- convenient access to thread local variables via the `____g_mir2x_TLENV` table:
 -- user can use ____g_mir2x_TLENV.var to explicitly declare a thread local varible and access it
 ____g_mir2x_TLENV = setmetatable({}, ____g_mir2x_threadLocalMetaTable)

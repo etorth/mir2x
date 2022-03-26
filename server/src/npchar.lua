@@ -225,22 +225,26 @@ function main(uid)
     -- poll the event sink
     -- current call stack only process 1 event and then clean itself
     local from, event, value = waitEvent()
-    if event == SYS_NPCDONE then
-        return
-    elseif has_processNPCEvent(false, event) then
-        processNPCEvent[event](from, value)
-    else
-        -- don't exit this loop
-        -- always consume the event no matter if the NPC can handle it
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>我听不懂你在说什么。。。</par>
-                <par></par>
-                <par><event id="%s">关闭</event></par>
-            </layout>
-        ]], SYS_NPCDONE)
+    if event ~= SYS_NPCDONE then
+        if has_processNPCEvent(false, event) then
+            processNPCEvent[event](from, value)
+        else
+            -- don't exit this loop
+            -- always consume the event no matter if the NPC can handle it
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>我听不懂你在说什么。。。</par>
+                    <par></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], SYS_NPCDONE)
+        end
     end
+
+    -- clean TLS table
+    -- disable sharing states between events
+    clearTLSTable()
 end
 
 --
