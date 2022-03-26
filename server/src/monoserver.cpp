@@ -57,28 +57,29 @@ void MonoServer::addLog(const std::array<std::string, 4> &logDesc, const char *f
 {
     std::string s;
     str_format(format, s);
+
+    std::string logLine;
+    std::stringstream errStream(s);
+    std::vector<std::string> multiLine;
+
+    while(std::getline(errStream, logLine, '\n')){
+        multiLine.push_back(std::move(logLine));
+    }
+
     const int logType = std::atoi(logDesc[0].c_str());
-
-    switch(logType){
-        case Log::LOGTYPEV_DEBUG:
-            {
-                g_log->addLog(logDesc, "%s", s.c_str());
-                return;
+    if(logType != Log::LOGTYPEV_DEBUG){
+        {
+            const std::lock_guard<std::mutex> lockGuard(m_logLock);
+            for(const auto &line: multiLine){
+                m_logBuf.push_back((char)(logType));
+                m_logBuf.insert(m_logBuf.end(), line.c_str(), line.c_str() + line.size() + 1); // add extra '\0'
             }
-        default:
-            {
-                // flush the log window
-                // make LOGTYPEV_FATAL be seen before process crash
-                {
-                    std::lock_guard<std::mutex> lockGuard(m_logLock);
-                    m_logBuf.push_back((char)(logType));
-                    m_logBuf.insert(m_logBuf.end(), s.c_str(), s.c_str() + std::strlen(s.c_str()) + 1);
-                }
-                notifyGUI("FlushBrowser");
+        }
+        notifyGUI("FlushBrowser");
+    }
 
-                g_log->addLog(logDesc, "%s", s.c_str());
-                return;
-            }
+    for(const auto &line: multiLine){
+        g_log->addLog(logDesc, "%s", line.c_str());
     }
 }
 
