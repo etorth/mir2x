@@ -84,7 +84,14 @@ ____g_mir2x_TLENV = setmetatable({}, ____g_mir2x_threadLocalMetaTable)
 -- this npchartlsconfig.lua get sourced as a chunk, but the _ENV is derived from main thread
 -- so here chane it to ____g_mir2x_TLENV is good to replace _ENV for main(uid)
 -- check this blog how upvalue/local/global works: https://luyuhuang.tech/2020/03/20/lua53-environment.html
-_ENV = ____g_mir2x_TLENV
+--
+-- TODO wired bug
+-- for lua interpreter the _ENV switching here works
+-- but with sol2 if switch _ENV here, function like print() is disabled and get C stack overflow
+--
+-- disable the _ENV switch here
+-- do _ENV switch in the first line of main(uid)
+-- _ENV = ____g_mir2x_TLENV
 
 -- end tls setup
 -- following function variable access always goes into tls first

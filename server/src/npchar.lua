@@ -2,13 +2,12 @@
 --
 
 function sendQuery(uid, query)
-    sendCallStackQuery(getCallStackUID(), uid, query)
+    sendCallStackQuery(g_tlsArgs.uid, uid, query)
 end
 
 function waitEvent()
-    local callStackUID = getCallStackUID()
     while true do
-        local uid, event, value = pollCallStackEvent(callStackUID)
+        local uid, event, value = pollCallStackEvent(g_tlsArgs.uid)
         if uid then
             return uid, event, value
         end
@@ -135,54 +134,6 @@ function uidGrant(uid, item, count)
     end
 end
 
--- setup call stack table for thread-based parameters
--- we spawn call stack by sol::thread which still access global table
--- so we can't have tls per call stack, have to save call stack related globals into this table
---
--- TODO: take a look at this code for tls implementation
--- https://stackoverflow.com/a/24358483
-g_callStackTableList = {}
-
-function getCallStackTable()
-    local id, main_thread = coroutine.running()
-    if main_thread then
-        fatalPrintf('calling getCallStackTable() in main thead')
-    end
-
-    if not g_callStackTableList[id] then
-        g_callStackTableList[id] = {}
-    end
-    return g_callStackTableList[id]
-end
-
-function clearCallStackTable()
-    local id, main_thread = coroutine.running()
-    if main_thread then
-        fatalPrintf('calling clearCallStackTable() in main thead')
-    end
-    g_callStackTableList[id] = nil
-end
-
-function setCallStackUID(uid)
-    if not isUID(uid) then
-        fatalPrintf("invalid call stack uid: nil")
-    end
-
-    local callStackTable = getCallStackTable()
-    if callStackTable['CS_UID'] then
-        fatalPrintf('calling setCallStackUID() in same thread twice')
-    end
-    callStackTable['CS_UID'] = uid
-end
-
-function getCallStackUID()
-    local callStackTable = getCallStackTable()
-    if not callStackTable['CS_UID'] then
-        fatalPrintf('call stack has no uid setup, missed to call setCallStackUID(uid) in main()')
-    end
-    return callStackTable['CS_UID']
-end
-
 function uidGrantGold(uid, count)
     uidGrant(uid, '金币（小）', count)
 end
@@ -253,15 +204,29 @@ end
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
 function main(uid)
-    -- setup current call stack uid
+    -- switch _ENV for current thread as a work-around
+    -- check comments in npchartlsconfig.lua
+    --
+    -- NOTE can not use local _ENV since _ENV is an upvalue
+    -- for functions not defined inside this main(uid), local _ENV can not replace their _ENV
+    --
+    -- my understanding is upvalue is a compilation time concept
+    -- runtime value addressing doesn't backtrack the call stack to get local/upvalue/global
+    _ENV = ____g_mir2x_TLENV
+
+    -- setup tls global for current call stack
     -- all functions in current call stack can use this implicit argument as *this*
-    setCallStackUID(uid)
+
+    g_tlsArgs = {
+        uid = uid,
+        startTime = getNanoTstamp(),
+    }
 
     -- poll the event sink
     -- current call stack only process 1 event and then clean itself
     local from, event, value = waitEvent()
     if event == SYS_NPCDONE then
-        clearCallStackTable()
+        return
     elseif has_processNPCEvent(false, event) then
         processNPCEvent[event](from, value)
     else
@@ -276,10 +241,6 @@ function main(uid)
             </layout>
         ]], SYS_NPCDONE)
     end
-
-    -- event process done
-    -- clean the call stack itself, next event needs another call stack
-    clearCallStackTable()
 end
 
 --

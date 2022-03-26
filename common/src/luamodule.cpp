@@ -87,6 +87,11 @@ LuaModule::LuaModule()
         return to_d(timer.diff_msec());
     });
 
+    m_luaState.set_function("getNanoTstamp", []() -> std::string
+    {
+        return std::to_string(hres_tstamp().to_nsec());
+    });
+
     m_luaState.set_function("getAbsTime", []() -> int
     {
         return to_d(std::time(nullptr));

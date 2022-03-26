@@ -532,7 +532,9 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 requestDropItem(grabbedItem.itemID, grabbedItem.seqID, grabbedItem.count);
                             }
 
-                            else if(!getGroundItemIDList(mouseGridX, mouseGridY).empty()){
+                            else if(m_mir2xMapData.validC(mouseGridX, mouseGridY) && !getGroundItemIDList(mouseGridX, mouseGridY).empty()){
+                                // for small map becasue hero may be forced to put in center
+                                // then there are some grid on screen are actually invalid, skip them
                                 getMyHero()->emplaceAction(ActionMove
                                 {
                                     .speed = SYS_DEFSPEED,
