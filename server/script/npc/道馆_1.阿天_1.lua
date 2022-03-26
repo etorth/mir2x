@@ -88,9 +88,7 @@ processNPCEvent =
     end,
 
     ["npc_goto_get_set_password_1"] = function(uid, value)
-        tls = getCallStackTable()
-        tls['set_password_1'] = value
-
+        addLog(LOGTYPE_INFO, '1-st time password: %s', tostring(value))
         uidPostXML(uid,
         [[
             <layout>
@@ -104,13 +102,8 @@ processNPCEvent =
     end,
 
     ["npc_goto_get_set_password_2"] = function(uid, value)
-        tls = getCallStackTable()
-        firstInput = tls['set_password_1']
-
-        -- TODO this won't work, just keep the wrong code here
-        -- because every npc_goto uses a new main(uid) call, thus a fresh call stack
-
-        if firstInput == value then
+        addLog(LOGTYPE_INFO, '2-nd time password: %s', tostring(value))
+        if false then
             uidPostXML(uid,
             [[
                 <layout>
