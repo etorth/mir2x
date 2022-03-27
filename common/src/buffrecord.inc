@@ -474,3 +474,26 @@
         },
     },
 },
+
+{   .name = u8"万年雪霜",
+    .favor = 1,
+    .stackReplace = 1,
+    .actList
+    {
+        {   .name = u8"HP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(210),
+            },
+        },
+
+        {   .name = u8"MP",
+            .duration = 0,
+            .attributeModifier
+            {
+                .arg = buffArgWrapper<BuffValuePercentage>(210),
+            },
+        },
+    },
+},

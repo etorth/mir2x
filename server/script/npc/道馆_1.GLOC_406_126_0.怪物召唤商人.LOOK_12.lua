@@ -1,5 +1,3 @@
-addLog(LOGTYPE_INFO, 'NPC %s sources %s', getNPCFullName(), getFileName())
-
 processNPCEvent = {}
 do
     local monsterID = 1
