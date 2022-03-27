@@ -88,7 +88,7 @@ processNPCEvent =
     end,
 
     ["npc_goto_get_set_password_1"] = function(uid, value)
-        addLog(LOGTYPE_INFO, '1-st time password: %s', tostring(value))
+        getGlobalTable().firstPasswordInput = value
         uidPostXML(uid,
         [[
             <layout>
@@ -102,8 +102,7 @@ processNPCEvent =
     end,
 
     ["npc_goto_get_set_password_2"] = function(uid, value)
-        addLog(LOGTYPE_INFO, '2-nd time password: %s', tostring(value))
-        if false then
+        if getGlobalTable().firstPasswordInput == value then
             uidPostXML(uid,
             [[
                 <layout>
@@ -126,6 +125,10 @@ processNPCEvent =
                 </layout>
             ]], "npc_goto_set_password", SYS_NPCDONE)
         end
+
+        -- alwasy clear key in the global table
+        -- but don't call clearGlobalTable() since other scrit may still use it
+        getGlobalTable().firstPasswordInput = nil
     end,
 
     ["npc_goto_daily_quest"] = function(uid, value)

@@ -2,12 +2,12 @@
 --
 
 function sendQuery(uid, query)
-    sendCallStackQuery(g_tlsArgs.uid, uid, query)
+    sendCallStackQuery(getCallStackTable().uid, uid, query)
 end
 
 function waitEvent()
     while true do
-        local uid, event, value = pollCallStackEvent(g_tlsArgs.uid)
+        local uid, event, value = pollCallStackEvent(getCallStackTable().uid)
         if uid then
             return uid, event, value
         end
@@ -134,6 +134,52 @@ function uidGrant(uid, item, count)
     end
 end
 
+-- setup call stack table for thread-based parameters
+-- we spawn call stack by sol::thread which still access global table
+-- so we can't have tls per call stack, have to save call stack related globals into this table
+--
+-- npchartlsconfig.lua provides a method for tls support
+-- but it brings too much uncertainty
+g_callStackTableList = {}
+
+function getCallStackTable()
+    local threadId, inMainThread = coroutine.running()
+    if inMainThread then
+        fatalPrintf('calling getCallStackTable() in main thead')
+    end
+
+    if not g_callStackTableList[threadId] then
+        g_callStackTableList[threadId] = {}
+    end
+    return g_callStackTableList[threadId]
+end
+
+function clearCallStackTable()
+    local threadId, inMainThread = coroutine.running()
+    if inMainThread then
+        fatalPrintf('calling clearCallStackTable() in main thead')
+    end
+    g_callStackTableList[threadId] = nil
+end
+
+-- call stack get cleaned after one processNPCEvent call
+-- if script needs to transfer information between call stack, use this table, which uses uid as key
+--
+-- issue is it maybe hard to clear the table
+-- because we are not expected to inform NPCs that an uid has offline
+g_globalTableList = {}
+
+function getGlobalTable()
+    if not g_globalTableList[getCallStackTable().uid] then
+        g_globalTableList[getCallStackTable().uid] = {}
+    end
+    return g_globalTableList[getCallStackTable().uid]
+end
+
+function clearGlobalTable()
+    g_globalTableList[getCallStackTable().uid] = nil
+end
+
 function uidGrantGold(uid, count)
     uidGrant(uid, '金币（小）', count)
 end
@@ -204,23 +250,10 @@ end
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
 function main(uid)
-    -- switch _ENV for current thread as a work-around
-    -- check comments in npchartlsconfig.lua
-    --
-    -- NOTE can not use local _ENV since _ENV is an upvalue
-    -- for functions not defined inside this main(uid), local _ENV can not replace their _ENV
-    --
-    -- my understanding is upvalue is a compilation time concept
-    -- runtime value addressing doesn't backtrack the call stack to get local/upvalue/global
-    _ENV = ____g_mir2x_TLENV
-
-    -- setup tls global for current call stack
+    -- setup current call stack uid
     -- all functions in current call stack can use this implicit argument as *this*
-
-    g_tlsArgs = {
-        uid = uid,
-        startTime = getNanoTstamp(),
-    }
+    getCallStackTable().uid = uid
+    getCallStackTable().startTime = getNanoTstamp()
 
     -- poll the event sink
     -- current call stack only process 1 event and then clean itself
@@ -242,9 +275,9 @@ function main(uid)
         end
     end
 
-    -- clean TLS table
-    -- disable sharing states between events
-    clearTLSTable()
+    -- event process done
+    -- clean the call stack itself, next event needs another call stack
+    clearCallStackTable()
 end
 
 --
