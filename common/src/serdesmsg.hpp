@@ -36,7 +36,7 @@ struct SDInitPlayer
     uint32_t dbid = 0;
     uint32_t channID = 0;
 
-    std::string name;
+    std::string name {};
     uint32_t nameColor = 0;
 
     int x = 0;
@@ -62,26 +62,25 @@ struct SDInitPlayer
 
 struct SDInitNPChar
 {
-    std::string fullScriptName;
+    uint16_t lookID = 0;
+    std::string npcName {};
+    std::string fullScriptName {};
 
     uint32_t mapID = 0;
     int x = 0;
     int y = 0;
     int gfxDir = 0;
 
-    std::string npcName;
-    uint16_t lookID = 0;
-
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(fullScriptName, mapID, x, y, gfxDir, npcName, lookID);
+        ar(lookID, npcName, fullScriptName, mapID, x, y, gfxDir);
     }
 };
 
 struct SDNPCXMLLayout
 {
     uint64_t npcUID = 0;
-    std::string xmlLayout;
+    std::string xmlLayout {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
@@ -94,8 +93,8 @@ struct SDStartInvOp
     int invOp = INVOP_NONE;
 
     uint64_t uid = 0;
-    std::string queryTag;
-    std::string commitTag;
+    std::string queryTag {};
+    std::string commitTag {};
     std::vector<std::u8string> typeList;
 
     template<typename Archive> void serialize(Archive & ar)
@@ -122,8 +121,8 @@ struct SDStartInvOp
 struct SDStartInput
 {
     uint64_t uid = 0;
-    std::string title;
-    std::string commitTag;
+    std::string title {};
+    std::string commitTag {};
     bool show = false;
 
     template<typename Archive> void serialize(Archive & ar)
@@ -461,7 +460,7 @@ struct SDStartGameScene
     int direction = DIR_NONE;
 
     SDWLDesp desp;
-    std::string name;
+    std::string name {};
     uint32_t nameColor = 0;
 
     template<typename Archive> void serialize(Archive & ar)
@@ -681,8 +680,8 @@ struct SDNPCEvent
     int y = 0;
     uint32_t mapID = 0;
 
-    std::string event;
-    std::optional<std::string> value;
+    std::string event {};
+    std::optional<std::string> value {};
 
     template<typename Archive> void serialize(Archive & ar)
     {

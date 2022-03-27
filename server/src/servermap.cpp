@@ -1619,17 +1619,16 @@ void ServerMap::loadNPChar()
     // npc script file has format:
     // <MAP名称>.GLOC_x_y_dir.<NPC名称>.LOOK_id.lua
 
-    const auto expr = str_printf(R"#(%s\.GLOC_(\d+)_(\d+)_(\d+)\.(.*)\.LOOK_(\d+)\.lua)#", to_cstr(DBCOM_MAPRECORD(ID()).name));
-    //                               --       ----- ----- -----  ----       -----
-    //                               ^          ^     ^     ^     ^           ^
-    //                               |          |     |     |     |           |
-    //                               |          |     |     |     |           +------- look id
-    //                               |          |     |     |     +------------------- npc name
-    //                               |          |     |     +------------------------- npc stand gfx dir (may not be 8-dir)
-    //                               |          |     +------------------------------- npc grid y
-    //                               |          +------------------------------------- npc grid x
+    const auto expr = str_printf(R"#(%s\.(.*)\.GLOC_(\d+)_(\d+)_(\d+)\.LOOK_(\d+)\.lua)#", to_cstr(DBCOM_MAPRECORD(ID()).name));
+    //                               --  ----       ----- -----  ----       -----
+    //                               ^    ^           ^     ^     ^           ^
+    //                               |    |           |     |     |           |
+    //                               |    |           |     |     |           +------- look id
+    //                               |    |           |     |     +------------------- npc stand gfx dir (may not be 8-dir)
+    //                               |    |           |     +------------------------- npc grid y
+    //                               |    |           +------------------------------- npc grid x
+    //                               |    +------------------------------------------- npc name
     //                               +------------------------------------------------ map name
-
     const std::regex regExpr(expr);
     for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), false, expr.c_str())){
         std::match_results<std::string::const_iterator> result;
@@ -1638,19 +1637,19 @@ void ServerMap::loadNPChar()
             {
                 .fullScriptName = scriptPath + "/" + fileName,
                 .mapID = ID(),
-                .npcName {}, // suppress compiler warning
             };
 
             for(int i = 0; const auto &m: result){
                 switch(i++){
-                    case 1 : initNPChar.x       = std::stoi(m.str()); break;
-                    case 2 : initNPChar.y       = std::stoi(m.str()); break;
-                    case 3 : initNPChar.gfxDir  = std::stoi(m.str()); break;
-                    case 4 : initNPChar.npcName =           m.str() ; break;
+                    case 1 : initNPChar.npcName =           m.str() ; break;
+                    case 2 : initNPChar.x       = std::stoi(m.str()); break;
+                    case 3 : initNPChar.y       = std::stoi(m.str()); break;
+                    case 4 : initNPChar.gfxDir  = std::stoi(m.str()); break;
                     case 5 : initNPChar.lookID  = std::stoi(m.str()); break;
                     default:                                        ; break;
                 }
             }
+
             addNPChar(initNPChar);
         }
         else{

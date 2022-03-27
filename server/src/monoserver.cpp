@@ -529,13 +529,13 @@ bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID,
 
     amACO.buf.assign(cerealf::serialize(SDInitNPChar
     {
+        .lookID = lookID,
+        .npcName = npcName,
         .fullScriptName = fullScriptName,
         .mapID = mapID,
         .x = x,
         .y = y,
         .gfxDir = gfxDir,
-        .npcName = npcName,
-        .lookID = lookID,
     }));
 
     addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(fullScriptName));
