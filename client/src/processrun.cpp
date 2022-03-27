@@ -1,4 +1,5 @@
 #include <cmath>
+#include <ranges>
 #include <memory>
 #include <numeric>
 #include <cstring>
@@ -441,7 +442,7 @@ void ProcessRun::draw() const
             buffIconOffX -= boardPtr->w();
         }
 
-        for(const auto id: getMyHero()->getSDBuffIDList().value().idList){
+        for(const auto id: getMyHero()->getSDBuffIDList().value().idList | std::views::reverse){
             const auto &br = DBCOM_BUFFRECORD(id);
             fflassert(br);
 
