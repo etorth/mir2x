@@ -34,6 +34,11 @@ struct BuffValuePercentage final
 {
     int value = 0;
     int percentage = 0;
+
+    int gain(int base) const
+    {
+        return value + std::lround(base * percentage / 100.0);
+    }
 };
 
 using BuffArgType = std::variant<std::monostate,
