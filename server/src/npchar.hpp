@@ -59,30 +59,18 @@ class NPChar final: public CharObject
                     {}
                 };
 
-                struct NPCGLoc
-                {
-                    int   x = -1;
-                    int   y = -1;
-                    int dir = -1;
-                };
-
-            private:
-                const std::string m_npcName;
-
             private:
                 uint64_t m_seqID = 0;
                 std::unordered_map<uint64_t, LuaCallStack> m_callStackList;
 
             private:
-                int m_npcLookID = -1;               // setNPCLook
-                NPCGLoc m_npcGLoc;                  // setNPCGLoc
-                std::set<uint32_t> m_npcSell;       // setNPCSell
+                std::set<uint32_t> m_npcSell;
 
             private:
-                NPChar *m_npc = nullptr;
+                NPChar * const m_npc;
 
             public:
-                LuaNPCModule(const SDInitNPChar &);
+                LuaNPCModule(NPChar *, const std::string &);
 
             public:
                 void setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::optional<std::string> value);
@@ -116,29 +104,12 @@ class NPChar final: public CharObject
             public:
                 const auto &getNPCName() const
                 {
-                    return m_npcName;
-                }
-
-                const auto &getNPCGLoc() const
-                {
-                    return m_npcGLoc;
-                }
-
-                uint16_t getNPCLookID() const
-                {
-                    return m_npcLookID;
+                    return m_npc->getNPCName();
                 }
 
                 const auto &getNPCSell() const
                 {
                     return m_npcSell;
-                }
-
-            public:
-                void bindNPC(NPChar *npc)
-                {
-                    fflassert(npc && !m_npc);
-                    m_npc = npc;
                 }
         };
 
@@ -151,11 +122,12 @@ class NPChar final: public CharObject
         };
 
     private:
+        std::string m_npcName;
         std::unique_ptr<LuaNPCModule> m_luaModulePtr;
         std::unordered_map<uint32_t, std::map<uint32_t, SellItem>> m_sellItemList;
 
     public:
-        NPChar(const ServerMap *, std::unique_ptr<NPChar::LuaNPCModule>);
+        NPChar(const ServerMap *, const SDInitNPChar &initNPChar);
 
     public:
         bool update() override;
@@ -199,6 +171,12 @@ class NPChar final: public CharObject
 
     private:
         std::vector<SDCostItem> getCostItemList(const SDItem &) const;
+
+    public:
+        const std::string &getNPCName() const
+        {
+            return m_npcName;
+        }
 
     private:
         void fillSellItemList();

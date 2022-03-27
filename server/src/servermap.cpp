@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <regex>
 #include <sstream>
 #include <fstream>
 #include <algorithm>
@@ -1462,7 +1463,7 @@ NPChar *ServerMap::addNPChar(const SDInitNPChar &initParam)
     }
 
     try{
-        auto npcPtr = new NPChar(this, std::make_unique<NPChar::LuaNPCModule>(initParam));
+        auto npcPtr = new NPChar(this, initParam);
         npcPtr->activate();
         return npcPtr;
     }
@@ -1615,21 +1616,45 @@ void ServerMap::loadNPChar()
     const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
     const auto scriptPath = cfgScriptPath.empty() ? std::string("script/npc") : (cfgScriptPath + "/npc");
 
-    const auto reg = str_printf("%s\\..*\\.lua", to_cstr(DBCOM_MAPRECORD(ID()).name));
-    for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), true, reg.c_str())){
-        // file as: "道馆.铁匠.lua"
-        // parse the string to get "铁匠" as npc name
-        const auto p1 = fileName.find('.');
-        fflassert(p1 != std::string::npos);
+    // npc script file has format:
+    // <MAP名称>.GLOC_x_y_dir.<NPC名称>.LOOK_id.lua
 
-        const auto p2 = fileName.find('.', p1 + 1);
-        fflassert(p2 != std::string::npos);
+    const auto expr = str_printf(R"#(%s\.GLOC_(\d+)_(\d+)_(\d+)\.(.*)\.LOOK_(\d+)\.lua)#", to_cstr(DBCOM_MAPRECORD(ID()).name));
+    //                               --       ----- ----- -----  ----       -----
+    //                               ^          ^     ^     ^     ^           ^
+    //                               |          |     |     |     |           |
+    //                               |          |     |     |     |           +------- look id
+    //                               |          |     |     |     +------------------- npc name
+    //                               |          |     |     +------------------------- npc stand gfx dir (may not be 8-dir)
+    //                               |          |     +------------------------------- npc grid y
+    //                               |          +------------------------------------- npc grid x
+    //                               +------------------------------------------------ map name
 
-        addNPChar(SDInitNPChar
-        {
-            .filePath = scriptPath,
-            .mapID    = ID(),
-            .npcName  = fileName.substr(p1 + 1, p2 - p1 - 1),
-        });
+    const std::regex regExpr(expr);
+    for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), false, expr.c_str())){
+        std::match_results<std::string::const_iterator> result;
+        if(std::regex_match(fileName.begin(), fileName.end(), result, regExpr)){
+            SDInitNPChar initNPChar
+            {
+                .fullScriptName = scriptPath + "/" + fileName,
+                .mapID = ID(),
+                .npcName {}, // suppress compiler warning
+            };
+
+            for(int i = 0; const auto &m: result){
+                switch(i++){
+                    case 1 : initNPChar.x       = std::stoi(m.str()); break;
+                    case 2 : initNPChar.y       = std::stoi(m.str()); break;
+                    case 3 : initNPChar.gfxDir  = std::stoi(m.str()); break;
+                    case 4 : initNPChar.npcName =           m.str() ; break;
+                    case 5 : initNPChar.lookID  = std::stoi(m.str()); break;
+                    default:                                        ; break;
+                }
+            }
+            addNPChar(initNPChar);
+        }
+        else{
+            throw fflvalue(fileName);
+        }
     }
 }

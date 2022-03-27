@@ -121,7 +121,13 @@ class MonoServer final
                 bool);                  // use strict loc
 
     public:
-        bool addNPChar(const char *);
+        bool addNPChar(const char *,    // NPC name
+                uint16_t,               // look id
+                uint32_t,               // map id
+                int,                    // map x
+                int,                    // map y
+                int,                    // NPC gfx dir, may not be 8-dir
+                const char *);          // NPC script full name
 
     public:
         uint32_t getCurrTick() const

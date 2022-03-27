@@ -38,46 +38,12 @@ extern DBPod *g_dbPod;
 extern MonoServer *g_monoServer;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
-NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
+NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName)
     : ServerLuaModule()
-    , m_npcName(initParam.npcName)
+    , m_npc(npcPtr)
 {
-    fflassert(DBCOM_MAPRECORD(initParam.mapID));
-    fflassert(!initParam.npcName.empty());
-
-    m_luaState.set_function("setNPCLook", [done = false, this](int lookID) mutable
-    {
-        fflassert(!done);
-        fflassert(lookID >= 0);
-
-        m_npcLookID = lookID;
-        done = true;
-    });
-
-    m_luaState.set_function("setNPCGLoc", [done = false, this](sol::variadic_args args) mutable
-    {
-        const auto [x, y, dir] = [&args]() -> std::tuple<int, int, int>
-        {
-            const std::vector<sol::object> objArgs(args.begin(), args.end());
-            for(const auto &obj: objArgs){
-                fflassert(obj.is<int>());
-            }
-
-            switch(objArgs.size()){
-                case 2 : return {objArgs[0].as<int>(), objArgs[1].as<int>(), 0};
-                case 3 : return {objArgs[0].as<int>(), objArgs[1].as<int>(), objArgs[2].as<int>()};
-                default: throw fflerror("invalid argument length: %zu", objArgs.size());
-            }
-        }();
-
-        fflassert(!done);
-        fflassert(x >= 0 && y >= 0 && dir >= 0);
-
-        m_npcGLoc.x   = x;
-        m_npcGLoc.y   = y;
-        m_npcGLoc.dir = dir;
-        done = true;
-    });
+    fflassert(npcPtr);
+    fflassert(!scriptName.empty());
 
     // NOTE I didn't understand the different between sol::as_table_t and sol:nested
     m_luaState.set_function("setNPCSell", [this](sol::as_table_t<std::vector<std::string>> itemNameList)
@@ -104,7 +70,6 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 
     m_luaState.set_function("getUID", [this]() -> std::string
     {
-        fflassert(m_npc);
         return std::to_string(m_npc->rawUID());
     });
 
@@ -140,21 +105,20 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         }();
 
         if(skip){
-            return m_npcName.substr(0, m_npcName.find('_'));
+            return m_npc->getNPCName().substr(0, m_npc->getNPCName().find('_'));
         }
         else{
-            return m_npcName;
+            return m_npc->getNPCName();
         }
     });
 
-    m_luaState.set_function("getNPCFullName", [mapID = initParam.mapID, this]() -> std::string
+    m_luaState.set_function("getNPCFullName", [this]() -> std::string
     {
-        return std::string(to_cstr(DBCOM_MAPRECORD(mapID).name)) + "." + m_npcName;
+        return std::string(to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name)) + "." + m_npc->getNPCName();
     });
 
     m_luaState.set_function("getNPCMapName", [this](sol::variadic_args args) -> std::string
     {
-        fflassert(m_npc);
         const auto skip = [&args]() -> bool
         {
             switch(args.size()){
@@ -190,24 +154,20 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 
     m_luaState.set_function("getSubukGuildName", [this]() -> std::string
     {
-        fflassert(m_npc);
         return "占领沙巴克行会的名字";
     });
 
     m_luaState.set_function("addMonster", [this](std::string monsterName)
     {
-        fflassert(m_npc);
         const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
 
         fflassert(monsterID);
         m_npc->postAddMonster(monsterID);
     });
 
-    m_luaState.set_function("dbSetGKey", [mapID = initParam.mapID, this](std::string key, sol::object obj)
+    m_luaState.set_function("dbSetGKey", [this](std::string key, sol::object obj)
     {
-        fflassert(m_npc);
-        const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID).name), m_npcName.c_str());
-
+        const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
             g_dbPod->exec(
                     u8R"###( create table %s(                         )###"
@@ -221,11 +181,10 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         query.exec();
     });
 
-    m_luaState.set_function("dbGetGKey", [mapID = initParam.mapID, this](std::string key, sol::this_state s) -> sol::object
+    m_luaState.set_function("dbGetGKey", [this](std::string key, sol::this_state s) -> sol::object
     {
-        fflassert(m_npc);
         fflassert(!key.empty());
-        const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID).name), m_npcName.c_str());
+        const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
 
         sol::state_view sv(s);
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
@@ -239,11 +198,10 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         return luaf::buildLuaObj(sv, queryStatement.getColumn(0).getString());
     });
 
-    m_luaState.set_function("uidDBSetKey", [mapID = initParam.mapID, this](std::string uidString, std::string key, sol::object obj)
+    m_luaState.set_function("uidDBSetKey", [this](std::string uidString, std::string key, sol::object obj)
     {
-        fflassert(m_npc);
         const auto dbid = uidf::getPlayerDBID(uidf::toUIDEx(uidString));
-        const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID).name), m_npcName.c_str());
+        const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
 
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
             g_dbPod->exec(u8R"###(create table %s(fld_dbid integer not null primary key))###", npcDBName.c_str());
@@ -294,13 +252,11 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
         }
     });
 
-    m_luaState.set_function("uidDBGetKey", [mapID = initParam.mapID, this](std::string uidString, std::string key, sol::this_state s) -> sol::object
+    m_luaState.set_function("uidDBGetKey", [this](std::string uidString, std::string key, sol::this_state s) -> sol::object
     {
-        fflassert(m_npc);
         fflassert(!key.empty());
-
         const auto dbid = uidf::getPlayerDBID(uidf::toUIDEx(uidString));
-        const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID).name), m_npcName.c_str());
+        const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
 
         sol::state_view sv(s);
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
@@ -338,13 +294,11 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 
     m_luaState.set_function("uidPostSell", [this](std::string uidString)
     {
-        fflassert(m_npc);
         m_npc->postSell(uidf::toUIDEx(uidString));
     });
 
     m_luaState.set_function("uidPostStartInvOp", [this](std::string uidString, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
     {
-        fflassert(m_npc);
         fflassert(invOp >= INVOP_BEGIN);
         fflassert(invOp <  INVOP_END);
 
@@ -357,7 +311,6 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 
     m_luaState.set_function("uidPostInvOpCost", [this](std::string uidString, int invOp, int itemID, int seqID, int cost)
     {
-        fflassert(m_npc);
         fflassert(invOp >= INVOP_BEGIN);
         fflassert(invOp <  INVOP_END);
 
@@ -366,7 +319,6 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 
     m_luaState.set_function("uidPostStartInput", [this](std::string uidString, std::string title, std::string commitTag, bool show)
     {
-        fflassert(m_npc);
         fflassert(!title.empty());
         fflassert(!commitTag.empty());
         m_npc->postStartInput(uidf::toUIDEx(uidString), title, commitTag, show);
@@ -374,7 +326,6 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 
     m_luaState.set_function("uidPostXMLString", [this](std::string uidString, std::string xmlString)
     {
-        fflassert(m_npc);
         const uint64_t uid = [&uidString]() -> uint64_t
         {
             try{
@@ -397,13 +348,11 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 
     m_luaState.set_function("sendCallStackQuery", [this](std::string callStackUID, std::string uidString, std::string query)
     {
-        fflassert(m_npc);
         m_npc->sendQuery(uidf::toUIDEx(callStackUID), uidf::toUIDEx(uidString), query);
     });
 
     m_luaState.set_function("pollCallStackEvent", [this](std::string callStackUID)
     {
-        fflassert(m_npc);
         const uint64_t uid = [&callStackUID]() -> uint64_t
         {
             try{
@@ -443,33 +392,7 @@ NPChar::LuaNPCModule::LuaNPCModule(const SDInitNPChar &initParam)
 #include "npchar.lua"
     INCLUA_END());
 
-    m_luaState.script_file([mapID = initParam.mapID, this]() -> std::string
-    {
-        const auto scriptPath = []() -> std::string
-        {
-            if(const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath; !cfgScriptPath.empty()){
-                return cfgScriptPath + "/npc";
-            }
-            return std::string("script/npc");
-        }();
-
-        const auto scriptFileName = str_printf("%s/%s.%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(mapID).name), to_cstr(m_npcName));
-        fflassert(filesys::hasFile(scriptFileName.c_str()));
-        return scriptFileName;
-    }());
-
-    // source script done
-    // confirm in the script follow functions get called:
-    //
-    //     setNPCGLoc()
-    //     setNPCLook()
-    //
-    fflassert(m_npcLookID >= 0);
-    fflassert(m_npcGLoc.x >= 0 && m_npcGLoc.y >= 0 && m_npcGLoc.dir >= 0);
-
-    // NPC script has no state
-    // after source it finishes the script, not yield
-
+    m_luaState.script_file(scriptName);
     m_luaState.script
     (
         R"###( -- do the first sanity check here                               )###""\n"
@@ -542,20 +465,19 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
     }
 }
 
-NPChar::NPChar(const ServerMap *mapCPtr, std::unique_ptr<NPChar::LuaNPCModule> luaModulePtr)
+NPChar::NPChar(const ServerMap *mapCPtr, const SDInitNPChar &initNPChar)
     : CharObject
       {
           mapCPtr,
-          uidf::buildNPCUID(luaModulePtr->getNPCLookID()),
-          luaModulePtr->getNPCGLoc().x,
-          luaModulePtr->getNPCGLoc().y,
-          luaModulePtr->getNPCGLoc().dir,
+          uidf::buildNPCUID(initNPChar.lookID),
+
+          initNPChar.x,
+          initNPChar.y,
+          initNPChar.gfxDir, // NPC gfx dir, may not be the 8-dir
       }
-    , m_luaModulePtr(std::move(luaModulePtr))
+    , m_npcName(initNPChar.npcName)
 {
-    // LuaNPCModule(this) can access ``this"
-    // when constructing LuaNPCModule we need to confirm ``this" is ready
-    m_luaModulePtr->bindNPC(this);
+    m_luaModulePtr = std::make_unique<LuaNPCModule>(this, initNPChar.fullScriptName);
     if(!m_luaModulePtr->getNPCSell().empty()){
         fillSellItemList();
     }

@@ -1,2 +1,0 @@
-setNPCLook(10000)
-setNPCGLoc(170, 195)

@@ -22,17 +22,6 @@
 #include "serdesmsg.hpp"
 #include "dbcomrecord.hpp"
 
-std::string SDInitNPChar::getFileName() const
-{
-    fflassert(DBCOM_MAPRECORD(mapID));
-    if(filePath.empty()){
-        return str_printf("%s.%s.lua", to_cstr(DBCOM_MAPRECORD(mapID).name), to_cstr(npcName));
-    }
-    else{
-        return str_printf("%s/%s.%s.lua", to_cstr(filePath), to_cstr(DBCOM_MAPRECORD(mapID).name), to_cstr(npcName));
-    }
-}
-
 std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & params) const
 {
     fflassert(*this);

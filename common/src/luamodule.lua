@@ -96,7 +96,7 @@ function asyncWait(ms)
 end
 
 function getFileName()
-    return debug.getinfo(2, 'S').short_src
+    return debug.getinfo(2, 'S').source
 end
 
 function getBackTraceLine()

@@ -508,39 +508,37 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     return false;
 }
 
-bool MonoServer::addNPChar(const char *scriptPath)
+bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID, int x, int y, int gfxDir, const char *fullScriptName)
 {
-    fflassert(str_haschar(scriptPath));
-    fflassert(filesys::hasFile(scriptPath));
-    const auto [filePath, fileName, extName] = filesys::decompFileName(scriptPath, false);
-
-    char mapName[64];
-    char npcName[64];
-
-    if(std::sscanf(fileName.c_str(), "%[^.].%[^.].lua", mapName, npcName) != 2){
-        throw fflerror("invalid script: %s", scriptPath);
-    }
-
-    const auto mapID = DBCOM_MAPID(to_u8cstr(mapName));
     fflassert(mapID);
+    fflassert(x >= 0);
+    fflassert(y >= 0);
+
+    fflassert(str_haschar(npcName));
+    fflassert(str_haschar(fullScriptName));
+    fflassert(filesys::hasFile(fullScriptName), fullScriptName);
 
     AMAddCharObject amACO;
     std::memset(&amACO, 0, sizeof(amACO));
 
     amACO.type  = UID_NPC;
     amACO.mapID = mapID;
-    amACO.x = -1;
-    amACO.y = -1;
+    amACO.x = x;
+    amACO.y = y;
     amACO.strictLoc = false;
 
     amACO.buf.assign(cerealf::serialize(SDInitNPChar
     {
-        .filePath = filePath,
-        .mapID    = mapID,
-        .npcName  = npcName,
+        .fullScriptName = fullScriptName,
+        .mapID = mapID,
+        .x = x,
+        .y = y,
+        .gfxDir = gfxDir,
+        .npcName = npcName,
+        .lookID = lookID,
     }));
 
-    addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(scriptPath));
+    addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(fullScriptName));
     switch(auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); rmpk.type()){
         case AM_UID:
             {
