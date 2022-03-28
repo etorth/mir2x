@@ -1,10 +1,10 @@
 --, u8R"###(
 --
 
-LOGTYPE_INFO    = 0
-LOGTYPE_WARNING = 1
-LOGTYPE_FATAL   = 2
-LOGTYPE_DEBUG   = 3
+local LOGTYPE_INFO    <const> = 0
+local LOGTYPE_WARNING <const> = 1
+local LOGTYPE_FATAL   <const> = 2
+local LOGTYPE_DEBUG   <const> = 3
 
 -- example:
 --     addLog(LOGTYPE_INFO, 'hello world')
