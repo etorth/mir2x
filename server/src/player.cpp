@@ -11,7 +11,6 @@
 #include "charobject.hpp"
 #include "friendtype.hpp"
 #include "protocoldef.hpp"
-#include "dbcomrecord.hpp"
 #include "buildconfig.hpp"
 #include "serverargparser.hpp"
 
@@ -1411,13 +1410,9 @@ void Player::postExp()
 
 bool Player::canWear(uint32_t itemID, int wltype) const
 {
-    if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("invalid wltype: %d", wltype);
-    }
-
-    if(!itemID){
-        throw fflerror("invalid itemID: %llu", to_llu(itemID));
-    }
+    fflassert(itemID, itemID);
+    fflassert(wltype >= WLG_BEGIN, wltype);
+    fflassert(wltype <  WLG_END  , wltype);
 
     const auto &ir = DBCOM_ITEMRECORD(itemID);
     if(!ir){
@@ -1428,7 +1423,7 @@ bool Player::canWear(uint32_t itemID, int wltype) const
         return false;
     }
 
-    if(wltype == WLG_DRESS && getClothGender(itemID) != gender()){
+    if(wltype == WLG_DRESS && (!ir.clothGender().has_value() || ir.clothGender().value() != gender())){
         return false;
     }
 

@@ -3,7 +3,6 @@
 #include "fflerror.hpp"
 #include "buff.hpp"
 #include "buffact.hpp"
-#include "dbcomrecord.hpp"
 #include "battleobject.hpp"
 
 BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint64_t argFromBuffSeq, uint32_t argBuffID, uint32_t argSeqID)

@@ -11,7 +11,6 @@
 #include "processrun.hpp"
 #include "magicrecord.hpp"
 #include "protocoldef.hpp"
-#include "dbcomrecord.hpp"
 #include "attachmagic.hpp"
 #include "clientcreature.hpp"
 #include "clientmonster.hpp"

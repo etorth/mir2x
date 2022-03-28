@@ -7,7 +7,6 @@
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 
 uint64_t uidf::getMapUID(uint32_t mapID)
 {

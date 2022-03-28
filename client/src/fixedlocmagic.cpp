@@ -18,7 +18,6 @@
 
 #include "pathf.hpp"
 #include "sdldevice.hpp"
-#include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
 #include "fixedlocmagic.hpp"
 

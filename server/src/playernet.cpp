@@ -22,7 +22,6 @@
 #include "actorpod.hpp"
 #include "monoserver.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;

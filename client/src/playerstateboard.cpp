@@ -23,7 +23,6 @@
 #include "sdldevice.hpp"
 #include "combatnode.hpp"
 #include "processrun.hpp"
-#include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
 #include "inventoryboard.hpp"
 #include "clientargparser.hpp"

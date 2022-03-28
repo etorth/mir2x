@@ -1,7 +1,6 @@
 #include "colorf.hpp"
 #include "dbcomid.hpp"
 #include "sdldevice.hpp"
-#include "dbcomrecord.hpp"
 #include "attachmagic.hpp"
 #include "pngtexoffdb.hpp"
 

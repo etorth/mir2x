@@ -4,7 +4,6 @@
 #include <algorithm>
 #include "totype.hpp"
 #include "sysconst.hpp"
-#include "dbcomrecord.hpp"
 
 // MotionEffect has a bound MotionNode, assigned to MotionNode::effect
 // when MotionNode swapped out by its CO, MotionEffect won't and shouldn't get accessed anymore

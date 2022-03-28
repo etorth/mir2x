@@ -6,7 +6,6 @@
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
-#include "dbcomrecord.hpp"
 #include "magicrecord.hpp"
 
 class BaseMagic

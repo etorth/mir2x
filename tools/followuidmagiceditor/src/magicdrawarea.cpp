@@ -31,7 +31,7 @@
 #include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "flwrapper.hpp"
-#include "dbcomrecord.hpp"
+#include "dbcomid.hpp"
 #include "magicdrawarea.hpp"
 
 MagicDrawArea::MagicDrawArea(int argX, int argY, int argW, int argH)

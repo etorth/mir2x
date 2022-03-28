@@ -20,7 +20,6 @@
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "serdesmsg.hpp"
-#include "dbcomrecord.hpp"
 
 std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & params) const
 {

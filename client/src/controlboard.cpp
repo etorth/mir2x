@@ -28,7 +28,6 @@
 #include "sdldevice.hpp"
 #include "imageboard.hpp"
 #include "processrun.hpp"
-#include "dbcomrecord.hpp"
 #include "controlboard.hpp"
 #include "clientmonster.hpp"
 

@@ -1,6 +1,5 @@
 #include "monoserver.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 #include "battleobject.hpp"
 #include "buff.hpp"
 #include "buffact.hpp"

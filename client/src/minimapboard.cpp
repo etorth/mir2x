@@ -23,7 +23,6 @@
 #include "minimapboard.hpp"
 #include "maprecord.hpp"
 #include "processrun.hpp"
-#include "dbcomrecord.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;

@@ -23,7 +23,6 @@
 #include "mathf.hpp"
 #include "dbcomid.hpp"
 #include "monoserver.hpp"
-#include "dbcomrecord.hpp"
 #include "dropitemconfig.hpp"
 #include "serverconfigurewindow.hpp"
 

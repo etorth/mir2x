@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 #include "protocoldef.hpp"
 
@@ -206,5 +207,20 @@ struct ItemRecord
     constexpr bool isDope() const
     {
         return std::u8string_view(type) == u8"强效药水";
+    }
+
+    constexpr std::optional<bool> clothGender() const
+    {
+        if(type && (std::u8string_view(type) == u8"衣服")){
+            if(name){
+                if(std::u8string_view(name).find(u8"（男）") != std::u8string_view::npos){
+                    return true;
+                }
+                else if(std::u8string_view(name).find(u8"（女）") != std::u8string_view::npos){
+                    return false;
+                }
+            }
+        }
+        return {};
     }
 };

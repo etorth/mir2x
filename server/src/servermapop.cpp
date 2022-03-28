@@ -28,7 +28,6 @@
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "rotatecoord.hpp"
-#include "dbcomrecord.hpp"
 #include "serverargparser.hpp"
 
 extern MonoServer *g_monoServer;

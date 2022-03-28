@@ -21,7 +21,6 @@
 #include "uidf.hpp"
 #include "client.hpp"
 #include "clientmsg.hpp"
-#include "dbcomrecord.hpp"
 #include "protocoldef.hpp"
 #include "creaturemovable.hpp"
 

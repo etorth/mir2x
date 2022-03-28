@@ -34,7 +34,6 @@
 #include "raiitimer.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
-#include "dbcomrecord.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"

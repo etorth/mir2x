@@ -36,7 +36,6 @@
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 #include "protocoldef.hpp"
 #include "motioneffect.hpp"
 

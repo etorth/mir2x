@@ -34,7 +34,6 @@
 #include "friendtype.hpp"
 #include "randompick.hpp"
 #include "monoserver.hpp"
-#include "dbcomrecord.hpp"
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
 #include "dropitemconfig.hpp"

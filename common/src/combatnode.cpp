@@ -3,7 +3,6 @@
 #include "mathf.hpp"
 #include "fflerror.hpp"
 #include "combatnode.hpp"
-#include "dbcomrecord.hpp"
 
 int CombatNode::randPickDC() const
 {

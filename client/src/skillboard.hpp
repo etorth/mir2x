@@ -8,7 +8,6 @@
 #include "raiitimer.hpp"
 #include "labelboard.hpp"
 #include "texvslider.hpp"
-#include "dbcomrecord.hpp"
 #include "tritexbutton.hpp"
 #include "labelshadowboard.hpp"
 

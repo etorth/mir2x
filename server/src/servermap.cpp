@@ -37,7 +37,6 @@
 #include "servermap.hpp"
 #include "charobject.hpp"
 #include "monoserver.hpp"
-#include "dbcomrecord.hpp"
 #include "rotatecoord.hpp"
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"

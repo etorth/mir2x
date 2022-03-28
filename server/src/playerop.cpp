@@ -5,7 +5,6 @@
 #include "player.hpp"
 #include "dbcomid.hpp"
 #include "friendtype.hpp"
-#include "dbcomrecord.hpp"
 #include "actorpod.hpp"
 #include "netdriver.hpp"
 #include "monoserver.hpp"

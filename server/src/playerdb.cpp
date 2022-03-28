@@ -19,7 +19,6 @@
 #include "dbpod.hpp"
 #include "player.hpp"
 #include "monoserver.hpp"
-#include "dbcomrecord.hpp"
 
 extern DBPod *g_dbPod;
 extern MonoServer *g_monoServer;

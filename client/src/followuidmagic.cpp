@@ -40,7 +40,6 @@
 #include "dbcomid.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
-#include "dbcomrecord.hpp"
 #include "attachmagic.hpp"
 #include "pngtexoffdb.hpp"
 #include "followuidmagic.hpp"

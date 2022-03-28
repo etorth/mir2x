@@ -24,8 +24,8 @@
 #include "zsdb.hpp"
 #include "inndb.hpp"
 #include "hexstr.hpp"
-#include "dbcomrecord.hpp"
 #include "mir2xmapdata.hpp"
+#include "dbcomid.hpp"
 
 struct MapBinElement
 {

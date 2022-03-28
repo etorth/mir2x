@@ -26,7 +26,7 @@
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
+#include "dbcomid.hpp"
 #include "mainwindow.hpp"
 #include "aboutwindow.hpp"
 

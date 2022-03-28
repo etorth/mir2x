@@ -28,9 +28,7 @@
 #include "processrun.hpp"
 #include "motionnode.hpp"
 #include "attachmagic.hpp"
-#include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
-#include "dbcomrecord.hpp"
 #include "clientargparser.hpp"
 
 extern Log *g_log;
@@ -1376,7 +1374,7 @@ bool Hero::setWLItem(int wltype, SDItem item)
     switch(wltype){
         case WLG_DRESS:
             {
-                if((to_u8sv(ir.type) != u8"衣服") || (getClothGender(item.itemID) != gender())){
+                if((to_u8sv(ir.type) != u8"衣服") || (ir.clothGender().value() != gender())){
                     return false;
                 }
                 break;

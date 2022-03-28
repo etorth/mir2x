@@ -21,7 +21,6 @@
 #include "pngtexdb.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
-#include "dbcomrecord.hpp"
 
 extern PNGTexDB *g_itemDB;
 int InvPack::getWeight() const

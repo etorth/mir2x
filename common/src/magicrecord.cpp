@@ -1,6 +1,6 @@
 #include <memory>
+#include "dbcomid.hpp"
 #include "magicrecord.hpp"
-#include "dbcomrecord.hpp"
 
 std::pair<const MagicGfxEntry &, const MagicGfxEntryRef &> MagicRecord::getGfxEntry(const char8_t *stage) const
 {

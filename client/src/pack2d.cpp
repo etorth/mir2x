@@ -20,7 +20,6 @@
 #include "pack2d.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
-#include "dbcomrecord.hpp"
 
 bool Pack2D::occupied(int x, int y) const
 {

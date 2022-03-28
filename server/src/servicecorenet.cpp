@@ -4,7 +4,6 @@
 #include "idstrf.hpp"
 #include "dbcomid.hpp"
 #include "netdriver.hpp"
-#include "dbcomrecord.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "dispatcher.hpp"

@@ -4,7 +4,6 @@
 #include <cstddef>
 #include "fflerror.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 
 class BaseBuff;
 class BaseBuffAct

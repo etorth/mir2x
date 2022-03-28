@@ -23,7 +23,6 @@
 #include "fflerror.hpp"
 #include "battleobject.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 #include "monsterrecord.hpp"
 
 class Monster: public BattleObject

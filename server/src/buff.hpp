@@ -7,7 +7,7 @@
 #include <cstdint>
 #include "uidf.hpp"
 #include "buffrecord.hpp"
-#include "dbcomrecord.hpp"
+#include "dbcomid.hpp"
 
 class BattleObject;
 class BaseBuffActAura;

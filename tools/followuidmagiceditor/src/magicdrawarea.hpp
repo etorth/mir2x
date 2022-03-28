@@ -26,7 +26,7 @@
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Image.H>
 #include "magicframedb.hpp"
-#include "dbcomrecord.hpp"
+#include "dbcomid.hpp"
 
 class MagicDrawArea: public Fl_Box
 {

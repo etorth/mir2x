@@ -31,7 +31,6 @@
 #include "serdesmsg.hpp"
 #include "friendtype.hpp"
 #include "monoserver.hpp"
-#include "dbcomrecord.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern DBPod *g_dbPod;

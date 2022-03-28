@@ -23,7 +23,6 @@
 #include "fflerror.hpp"
 #include "argparser.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 
 struct ServerArgParser
 {

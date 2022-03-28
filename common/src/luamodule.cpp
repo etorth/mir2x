@@ -28,7 +28,6 @@
 #include "luamodule.hpp"
 #include "raiitimer.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 
 LuaModule::LuaModule()
     : m_luaState()

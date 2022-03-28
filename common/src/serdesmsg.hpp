@@ -29,7 +29,6 @@
 #include "fflerror.hpp"
 #include "protocoldef.hpp"
 #include "dbcomid.hpp"
-#include "dbcomrecord.hpp"
 
 struct SDInitPlayer
 {

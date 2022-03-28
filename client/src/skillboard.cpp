@@ -21,7 +21,6 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "skillboard.hpp"
-#include "dbcomrecord.hpp"
 #include "tritexbutton.hpp"
 
 extern PNGTexDB *g_progUseDB;

@@ -27,7 +27,6 @@
 #include "condcheck.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
-#include "dbcomrecord.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 #include "clientpathfinder.hpp"

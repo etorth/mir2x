@@ -21,7 +21,6 @@
 #include "dbcomid.hpp"
 #include "servermsg.hpp"
 #include "serdesmsg.hpp"
-#include "dbcomrecord.hpp"
 #include "actormsgpack.hpp"
 
 void NPChar::on_AM_ATTACK(const ActorMsgPack &)
