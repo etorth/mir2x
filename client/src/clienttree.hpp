@@ -55,10 +55,4 @@ class ClientTree: public ClientMonster
                     }
             }
         }
-
-    public:
-        bool visible() const override
-        {
-            return true;
-        }
 };
