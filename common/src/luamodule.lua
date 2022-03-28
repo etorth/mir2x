@@ -24,7 +24,7 @@ function fatalPrintf(s, ...)
     error(s:format(...))
 end
 
-function argDef(arg, def)
+function argDefault(arg, def)
     if arg == nil then
         assert(def ~= nil)
         return def

@@ -80,7 +80,7 @@ function uidRemove(uid, item, count)
         fatalPrintf('invalid item: %s', tostring(item))
     end
 
-    local value = uidQuery(uid, 'REMOVE %d %d %d', itemID, seqID, argDef(count, 1))
+    local value = uidQuery(uid, 'REMOVE %d %d %d', itemID, seqID, argDefault(count, 1))
     if value == '1' then
         return true
     elseif value == '0' then
@@ -124,7 +124,7 @@ function uidGrant(uid, item, count)
         fatalPrintf('invalid item: %s', tostring(item))
     end
 
-    local value = uidQuery(uid, 'GRANT %d %d', itemID, argDef(count, 1))
+    local value = uidQuery(uid, 'GRANT %d %d', itemID, argDefault(count, 1))
     if value == '1' then
         return true
     elseif value == '0' then
