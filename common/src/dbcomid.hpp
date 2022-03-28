@@ -135,30 +135,33 @@ namespace
     constexpr auto _inn_MapRecordOffList            = recordNameOffsetHelper(_inn_MapRecordList           );
 }
 
-template<typename T, uint32_t TL, size_t HL> constexpr uint32_t DBCOM_IDHELPER(const T (&itemList)[TL], const std::array<uint32_t, HL> &itemOffList, const char8_t *name)
+namespace
 {
-    static_assert(TL > 0);
-    static_assert(HL > 0);
+    template<typename T, uint32_t TL, size_t HL> constexpr uint32_t DBCOM_IDHELPER(const T (&itemList)[TL], const std::array<uint32_t, HL> &itemOffList, const char8_t *name)
+    {
+        static_assert(TL > 0);
+        static_assert(HL > 0);
 
-    if(name && name[0]){
-        const size_t h = u8StrViewHashHelper(name);
-        for(size_t j = 0; j < HL; ++j){
-            const size_t c = (h + j) % HL;
-            const uint32_t off = itemOffList[c];
+        if(name && name[0]){
+            const size_t h = u8StrViewHashHelper(name);
+            for(size_t j = 0; j < HL; ++j){
+                const size_t c = (h + j) % HL;
+                const uint32_t off = itemOffList[c];
 
-            if(!off){
-                return 0;
+                if(!off){
+                    return 0;
+                }
+
+                if(itemList[off].name && (std::u8string_view(itemList[off].name) == name)){
+                    return off;
+                }
+
+                // current slot has non-zero off
+                // but doesn't point to the item with given name, try next slot
             }
-
-            if(itemList[off].name && (std::u8string_view(itemList[off].name) == name)){
-                return off;
-            }
-
-            // current slot has non-zero off
-            // but doesn't point to the item with given name, try next slot
         }
+        return 0;
     }
-    return 0;
 }
 
 constexpr uint32_t DBCOM_ITEMID          (const char8_t *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,           _inn_ItemRecordOffList,           name); }
