@@ -275,12 +275,12 @@ bool ClientNPC::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
 
 ClientCreature::TargetBox ClientNPC::getTargetBox() const
 {
-    const auto texBaseID = getFrameGfxSeq(currMotion()->type, currMotion()->direction).gfxID(this);
-    if(!texBaseID.has_value()){
+    const auto texBodyID = getFrameGfxSeq(currMotion()->type, currMotion()->direction).gfxID(this);
+    if(!texBodyID.has_value()){
         return {};
     }
 
-    auto [bodyFrameTexPtr, dx, dy] = g_standNPCDB->retrieve(texBaseID.value() + m_currMotion->frame);
+    auto [bodyFrameTexPtr, dx, dy] = g_standNPCDB->retrieve(texBodyID.value());
     if(!bodyFrameTexPtr){
         return {};
     }
