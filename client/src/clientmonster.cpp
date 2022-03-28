@@ -62,6 +62,7 @@
 #include "clientbombspider.hpp"
 #include "clientshipwrecklord.hpp"
 #include "clientminotaurguardian.hpp"
+#include "clienttree.hpp"
 
 extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
@@ -852,6 +853,12 @@ ClientMonster *ClientMonster::create(uint64_t uid, ProcessRun *proc, const Actio
         case DBCOM_MONSTERID(u8"腐僵"):
             {
                 return new ClientRebornZombie(uid, proc, action);
+            }
+        case DBCOM_MONSTERID(u8"栗子树"):
+        case DBCOM_MONSTERID(u8"圣诞树"):
+        case DBCOM_MONSTERID(u8"圣诞树1"):
+            {
+                return new ClientTree(uid, proc, action);
             }
         default:
             {
