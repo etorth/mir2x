@@ -53,7 +53,7 @@ extern MonoServer *g_monoServer;
 extern MainWindow *g_mainWindow;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
-void MonoServer::addLog(const std::array<std::string, 4> &logDesc, const char *format, ...)
+void MonoServer::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
 {
     std::string s;
     str_format(format, s);
@@ -66,8 +66,7 @@ void MonoServer::addLog(const std::array<std::string, 4> &logDesc, const char *f
         multiLine.push_back(std::move(logLine));
     }
 
-    const int logType = std::atoi(logDesc[0].c_str());
-    if(logType != Log::LOGTYPEV_DEBUG){
+    if(const int logType = std::get<0>(typeLoc); logType != Log::LOGTYPEV_DEBUG){
         {
             const std::lock_guard<std::mutex> lockGuard(m_logLock);
             for(const auto &line: multiLine){
@@ -79,7 +78,7 @@ void MonoServer::addLog(const std::array<std::string, 4> &logDesc, const char *f
     }
 
     for(const auto &line: multiLine){
-        g_log->addLog(logDesc, "%s", line.c_str());
+        g_log->addLog(typeLoc, "%s", line.c_str());
     }
 }
 

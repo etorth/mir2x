@@ -102,7 +102,7 @@ class MonoServer final
         void addCWLogString(uint32_t, int, const char *, const char *);
 
     public:
-        void addLog(const std::array<std::string, 4> &, const char *, ...);
+        void addLog(const Log::LogTypeLoc &, const char *, ...);
 
     private:
         void StartNetwork();
