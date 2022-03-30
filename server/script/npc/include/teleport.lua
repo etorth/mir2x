@@ -17,8 +17,8 @@ function tp.uidSpaceMove(uid, mapName, x, y)
 end
 
 function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
-    gold  = argDef(gold,  0)
-    level = argDef(level, 0)
+    gold  = argDefault(gold,  0)
+    level = argDefault(level, 0)
 
     if type(gold) ~= 'number' or type(level) ~= 'number' then
         fatalPrintf("invalid argument type: gold: %s, level: %s", type(gold), type(level))
@@ -94,8 +94,8 @@ function tp.setTeleport(titlePar, dst)
                 elseif type(d.x) ~= 'number' or type(d.y) ~= 'number' then
                     addLog(LOGTYPE_WARNING, 'ignore invalid map location: npc = %s, map = %s', getNPCName(), d.map)
                 else
-                    local gold = argDef(d.gold, 0)
-                    local level = argDef(d.level, 0)
+                    local gold = argDefault(d.gold, 0)
+                    local level = argDefault(d.level, 0)
                     local gotoTag = string.format('tp_goto_%d::%s', i, SYS_NPCDONE)
 
                     local mapName = ''

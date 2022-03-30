@@ -15,7 +15,7 @@ processNPCEvent =
 
     ["npc_goto_1"] = function(uid, value)
         local currTime = getAbsTime()
-        local lastTime = argDef(uidDBGetKey(uid, 'fld_time'), 0)
+        local lastTime = argDefault(uidDBGetKey(uid, 'fld_time'), 0)
 
         if currTime > lastTime + 10 then
             uidGrantGold(uid, 1000)

@@ -19,7 +19,7 @@ processNPCEvent =
             parStr = parStr .. string.format('<par>fld_id: %d, fld_account: %s</par>', row.fld_dbid, row.fld_account)
         end
 
-        local clickCount = argDef(dbGetGKey('click_count'), 0)
+        local clickCount = argDefault(dbGetGKey('click_count'), 0)
         uidPostXML(uid,
         [[
             <layout>
@@ -41,9 +41,9 @@ processNPCEvent =
         ]],
 
         parStr,
-        argDef(uidDBGetKey(uid, 'fld_float'), 0.0),
-        argDef(uidDBGetKey(uid, 'fld_integer'), 0),
-        argDef(uidDBGetKey(uid, 'fld_text'), '(nil)'),
+        argDefault(uidDBGetKey(uid, 'fld_float'), 0.0),
+        argDefault(uidDBGetKey(uid, 'fld_integer'), 0),
+        argDefault(uidDBGetKey(uid, 'fld_text'), '(nil)'),
         clickCount,
         SYS_NPCDONE)
 

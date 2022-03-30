@@ -75,7 +75,7 @@ function main()
     while true do
         local rc, errMsg = coroutine.resume(addMonCo)
         if not rc then
-            fatalPrintf('addMonCo failed: %s', argDef(errMsg, 'unknown error'))
+            fatalPrintf('addMonCo failed: %s', argDefault(errMsg, 'unknown error'))
         end
         asyncWait(1000 * 5)
     end
