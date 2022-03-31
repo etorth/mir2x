@@ -21,7 +21,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <SDL2/SDL.h>
-#include "fflerror.hpp"
 
 class FPSMonitor
 {
