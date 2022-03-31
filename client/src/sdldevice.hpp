@@ -43,8 +43,8 @@ namespace SDLDeviceHelper
             Uint8 m_a;
 
         public:
-            EnableRenderColor(uint32_t, SDLDevice * = nullptr);
-           ~EnableRenderColor();
+            /* ctor */  EnableRenderColor(uint32_t, SDLDevice * = nullptr);
+            /* dtor */ ~EnableRenderColor();
     };
 
     struct EnableRenderBlendMode
@@ -56,8 +56,8 @@ namespace SDLDeviceHelper
             SDL_BlendMode m_blendMode;
 
         public:
-            EnableRenderBlendMode(SDL_BlendMode, SDLDevice * = nullptr);
-           ~EnableRenderBlendMode();
+            /* ctor */  EnableRenderBlendMode(SDL_BlendMode, SDLDevice * = nullptr);
+            /* dtor */ ~EnableRenderBlendMode();
     };
 
     class RenderNewFrame final
@@ -66,8 +66,8 @@ namespace SDLDeviceHelper
             SDLDevice *m_device;
 
         public:
-            RenderNewFrame(SDLDevice * = nullptr);
-           ~RenderNewFrame();
+            /* ctor */  RenderNewFrame(SDLDevice * = nullptr);
+            /* dtor */ ~RenderNewFrame();
     };
 
     class EnableTextureBlendMode final
@@ -79,8 +79,8 @@ namespace SDLDeviceHelper
             SDL_Texture *m_texPtr;
 
         public:
-            EnableTextureBlendMode(SDL_Texture *, SDL_BlendMode);
-           ~EnableTextureBlendMode();
+            /* ctor */  EnableTextureBlendMode(SDL_Texture *, SDL_BlendMode);
+            /* dtor */ ~EnableTextureBlendMode();
     };
 
     class EnableTextureModColor final
@@ -95,8 +95,8 @@ namespace SDLDeviceHelper
             SDL_Texture *m_texPtr;
 
         public:
-            EnableTextureModColor(SDL_Texture *, uint32_t);
-           ~EnableTextureModColor();
+            /* ctor */  EnableTextureModColor(SDL_Texture *, uint32_t);
+            /* dtor */ ~EnableTextureModColor();
     };
 
     struct SDLEventPLoc final
@@ -139,8 +139,8 @@ class SDLDevice final
        // for sound
 
     public:
-        SDLDevice();
-       ~SDLDevice();
+       /* ctor */  SDLDevice();
+       /* dtor */ ~SDLDevice();
 
     public:
        SDL_Texture *loadPNGTexture(const void *, size_t);
