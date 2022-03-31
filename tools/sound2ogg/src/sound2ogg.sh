@@ -44,14 +44,18 @@ then
     exit 1
 fi
 
-for wavfile in $1/*.[Ww][Aa][Vv]
-do
-    dir2ogg $wavfile -q 10 -Q # use best quality
-done
-
 for mp3file in $1/*.[Mm][Pp]3
 do
     dir2ogg $mp3file -t -Q # use original mp3 quality
+done
+
+# convert .mp3 first then .wav
+# there are several files with same basename but different extension
+# we prefer .wav since it's lossless
+
+for wavfile in $1/*.[Ww][Aa][Vv]
+do
+    dir2ogg $wavfile -q 10 -Q # use best quality
 done
 
 # done conversion
