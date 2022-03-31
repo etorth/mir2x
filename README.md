@@ -17,8 +17,6 @@
        src="https://badges.gitter.im/org.png"/>
 </a>
 
-With C++20 coroutine feature support, you need a compiler supports c++20 to compile.
-
 mir2x is a c/s based mir2ei implementation with various platforms supported. It contains all need components for game players and developers:
 
   - client
@@ -26,6 +24,12 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
   - pkgviewer
   - animaker
   - mapeditor
+
+Notes:
+- This repo uses C++20 coroutine, developer needs a compiler supports c++20 to build.
+- This repo uses following mir2 as a reference implementation:
+  - install server/client from [mir2-v1.45](https://github.com/etorth/CBWCQ3).
+  - install [win-xp](https://github.com/etorth/winxp-zh) to host and run the game server/client.
 
 YouTube links: [1](https://youtu.be/3Xne8UHlOl0) [2](https://youtu.be/jl1LPxe2EAA) [3](https://youtu.be/TtGONA83Mb8)
 
