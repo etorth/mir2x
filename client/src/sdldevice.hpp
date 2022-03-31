@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include "totype.hpp"
 #include "fflerror.hpp"

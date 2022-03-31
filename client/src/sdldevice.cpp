@@ -285,10 +285,31 @@ SDLDevice::SDLDevice()
     if((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
         throw fflerror("initialization failed for SDL2 IMG: %s", IMG_GetError());
     }
+
+    if(!g_clientArgParser->disableAudio){
+        if((Mix_Init(MIX_INIT_MP3) & MIX_INIT_MP3) != MIX_INIT_MP3){
+            throw fflerror("initialization failed for SDL2 MIX: %s", Mix_GetError());
+        }
+
+        if(Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 4096)){
+            throw fflerror("initialization failed for SDL2 MIX OpenAudio: %s", Mix_GetError());
+        }
+
+#if defined linux && SDL_VERSION_ATLEAST(2, 0, 8)
+        if(SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0") == SDL_FALSE){
+            throw fflerror("SDL failed to disable compositor bypass");
+        }
+#endif
+    }
 }
 
 SDLDevice::~SDLDevice()
 {
+    if(!g_clientArgParser->disableAudio){
+        Mix_CloseAudio();
+        Mix_Quit();
+    }
+
     for(auto p: m_fontList){
         TTF_CloseFont(p.second);
     }
