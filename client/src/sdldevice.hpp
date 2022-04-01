@@ -330,5 +330,6 @@ class SDLDevice final
        void drawString(uint32_t, int, int, const char *);
 
     public:
+       void stopBGM();
        void playBGM(Mix_Music *, int loops = -1);
 };

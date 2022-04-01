@@ -742,6 +742,7 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
         }
     }
 
+    g_sdlDevice->stopBGM();
     if(const auto bgmIDOpt = DBCOM_MAPRECORD(mapID).bgmID; bgmIDOpt.has_value()){
         g_sdlDevice->playBGM(g_bgmDB->retrieve(bgmIDOpt.value()));
     }

@@ -971,6 +971,14 @@ void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
     }
 }
 
+void SDLDevice::stopBGM()
+{
+    if(g_clientArgParser->disableAudio){
+        return;
+    }
+    Mix_HaltMusic();
+}
+
 void SDLDevice::playBGM(Mix_Music *music, int loops)
 {
     if(g_clientArgParser->disableAudio){
