@@ -46,17 +46,5 @@ class BGMusicDB: public innDB<uint32_t, BGMusicElement>
 
     public:
         std::optional<std::tuple<BGMusicElement, size_t>> loadResource(uint32_t) override;
-
-    public:
-        void freeResource(BGMusicElement &element) override
-        {
-            // check SDL_mixer docmument
-            // Mix_FreeMusic() stops music if it's playing, this is blocking when music doing fading out
-
-            if(element.music){
-                Mix_FreeMusic(element.music);
-                element.music = nullptr;
-                std::vector<uint8_t>().swap(element.musicFileData);
-            }
-        }
+        void freeResource(BGMusicElement &element) override;
 };

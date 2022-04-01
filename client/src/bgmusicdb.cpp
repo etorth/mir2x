@@ -35,3 +35,19 @@ std::optional<std::tuple<BGMusicElement, size_t>> BGMusicDB::loadResource(uint32
         .musicFileData = std::move(bgmDataBuf), // vector class guarantees .data() get preserved
     }, 1);
 }
+
+void BGMusicDB::freeResource(BGMusicElement &element)
+{
+    // check SDL_mixer docmument
+    // Mix_FreeMusic() stops music if it's playing, this is blocking when music doing fading out
+
+    if(g_clientArgParser->disableAudio){
+        return;
+    }
+
+    if(element.music){
+        Mix_FreeMusic(element.music);
+        element.music = nullptr;
+        std::vector<uint8_t>().swap(element.musicFileData);
+    }
+}
