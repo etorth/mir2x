@@ -12,6 +12,7 @@
 #include "sysconst.hpp"
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
+#include "bgmusicdb.hpp"
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
 #include "pathfinder.hpp"
@@ -35,6 +36,7 @@ extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
+extern BGMusicDB *g_bgmDB;
 extern PNGTexDB *g_itemDB;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
@@ -738,6 +740,10 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
                 addCBLog(CBLOG_ERR, u8"没有可用的地图");
             }
         }
+    }
+
+    if(const auto bgmIDOpt = DBCOM_MAPRECORD(mapID).bgmID; bgmIDOpt.has_value()){
+        g_sdlDevice->playBGM(g_bgmDB->retrieve(bgmIDOpt.value()));
     }
 }
 

@@ -259,8 +259,8 @@ int MiniMapBoard::getFrameSize() const
 SDL_Texture *MiniMapBoard::getMiniMapTexture() const
 {
     [[maybe_unused]] const auto [mapID, mapW, mapH] = m_processRun->getMap();
-    if(const auto miniMapID = DBCOM_MAPRECORD(mapID).miniMapID){
-        return g_progUseDB->retrieve(miniMapID);
+    if(const auto miniMapIDOpt = DBCOM_MAPRECORD(mapID).miniMapID; miniMapIDOpt.has_value()){
+        return g_progUseDB->retrieve(miniMapIDOpt.value());
     }
     return nullptr;
 }

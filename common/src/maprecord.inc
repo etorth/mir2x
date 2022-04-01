@@ -1,5 +1,4 @@
-{   .name = u8"", // 0
-},
+{},
 
 {   .name = u8"比奇县_0", // 1
     .miniMapID = 0X19001000,
@@ -182,6 +181,7 @@
 },
 
 {   .name = u8"道馆_1", // 24
+    .bgmID = 0X00010001,
     .miniMapID = 0X19001003,
     .mapSwitchList
     {
