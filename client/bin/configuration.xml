@@ -33,6 +33,10 @@
         <emojiDB>res/emoji/emoji.zsdb</emojiDB>
     </emoji>
 
+    <bgm>
+        <bgmDB>res/sound/bgm.zsdb</bgmDB>
+    </bgm>
+
     <network>
         <server>
             <ip>127.0.0.1</ip>

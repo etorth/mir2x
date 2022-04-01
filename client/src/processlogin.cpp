@@ -24,6 +24,7 @@
 #include "client.hpp"
 #include "message.hpp"
 #include "pngtexdb.hpp"
+#include "bgmusicdb.hpp"
 #include "sdldevice.hpp"
 #include "buildconfig.hpp"
 #include "notifyboard.hpp"
@@ -33,6 +34,7 @@ extern Log *g_log;
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
+extern BGMusicDB *g_bgmDB;
 
 ProcessLogin::ProcessLogin()
 	: Process()
@@ -121,6 +123,7 @@ ProcessLogin::ProcessLogin()
       }
 {
     m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());
+    g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00000001));
 }
 
 void ProcessLogin::update(double fUpdateTime)

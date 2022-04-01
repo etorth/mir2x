@@ -33,12 +33,15 @@
 #include "mapbindb.hpp"
 #include "threadpool.hpp"
 #include "emojidb.hpp"
+#include "bgmusicdb.hpp"
 #include "pngtexoffdb.hpp"
 
-extern Log *g_log;
-extern XMLConf *g_xmlConf;
+extern Log       *g_log;
+extern XMLConf   *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
-extern EmojiDB *g_emojiDB;
+
+extern EmojiDB   *g_emojiDB;
+extern BGMusicDB *g_bgmDB;
 
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
@@ -75,6 +78,7 @@ InitView::InitView(uint8_t fontSize)
           {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_selectCharDB, "root/texture/selectCharDB"); }},
           {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_mapBinDB,     "root/map/mapBinDB"        ); }},
           {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_emojiDB,      "root/emoji/emojiDB"       ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_bgmDB,        "root/bgm/bgmDB"           ); }},
       }
 {
     const Rawbuf boardData

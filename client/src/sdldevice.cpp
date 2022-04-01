@@ -970,3 +970,16 @@ void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
         throw fflerror("failed to draw 8x8 string: %s", s);
     }
 }
+
+void SDLDevice::playBGM(Mix_Music *music, int loops)
+{
+    if(g_clientArgParser->disableAudio){
+        return;
+    }
+
+    if(music){
+        if(Mix_PlayMusic(music, loops)){
+            throw fflerror("failed to play music: %s", Mix_GetError());
+        }
+    }
+}
