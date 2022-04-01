@@ -3,11 +3,13 @@
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
 #include "pngtexdb.hpp"
+#include "bgmusicdb.hpp"
 #include "pngtexoffdb.hpp"
 #include "processcreatechar.hpp"
 
 extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
+extern BGMusicDB *g_bgmDB;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_selectCharDB;
 
@@ -56,7 +58,9 @@ ProcessCreateChar::ProcessCreateChar()
           5000,
           10,
       }
-{}
+{
+    g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00000003));
+}
 
 void ProcessCreateChar::update(double fUpdateTime)
 {
