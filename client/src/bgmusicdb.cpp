@@ -9,7 +9,7 @@ std::optional<std::tuple<BGMusicElement, size_t>> BGMusicDB::loadResource(uint32
         return {};
     }
 
-    char bgmIndexString[8];
+    char bgmIndexString[16];
     std::vector<uint8_t> bgmDataBuf;
 
     if(!m_zsdbPtr->decomp(hexstr::to_string<uint32_t, 4>(key, bgmIndexString, true), 8, &bgmDataBuf)){
@@ -32,5 +32,6 @@ std::optional<std::tuple<BGMusicElement, size_t>> BGMusicDB::loadResource(uint32
     return std::make_tuple(BGMusicElement
     {
         .music = musicPtr,
+        .musicFileData = std::move(bgmDataBuf), // vector class guarantees .data() get preserved
     }, 1);
 }

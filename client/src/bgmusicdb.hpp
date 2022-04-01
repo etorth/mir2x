@@ -12,6 +12,7 @@
 struct BGMusicElement
 {
     Mix_Music *music = nullptr;
+    std::vector<uint8_t> musicFileData; // seems SDL_mixer access data during playing
 };
 
 class BGMusicDB: public innDB<uint32_t, BGMusicElement>
@@ -55,6 +56,7 @@ class BGMusicDB: public innDB<uint32_t, BGMusicElement>
             if(element.music){
                 Mix_FreeMusic(element.music);
                 element.music = nullptr;
+                std::vector<uint8_t>().swap(element.musicFileData);
             }
         }
 };
