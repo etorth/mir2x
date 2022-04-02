@@ -987,18 +987,23 @@ void SDLDevice::playBGM(Mix_Music *music, int loops)
     }
 }
 
-int SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle)
+bool SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle, int distance, int angle)
 {
     if(g_clientArgParser->disableAudio){
-        return -1;
+        return false;
     }
 
     if(!handle){
-        return -1;
+        return false;
     }
 
     if(!handle->chunk){
-        return -1;
+        return false;
+    }
+
+    fflassert(distance >= 0, distance);
+    if(distance > 255){
+        return false;
     }
 
     int pickedChannel = -1;
@@ -1006,7 +1011,7 @@ int SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle)
     {
         std::lock_guard<std::mutex> lockGuard(m_freeChannelLock);
         if(m_freeChannelList.empty()){
-            return -1;
+            return false;
         }
 
         // clean pending channel
@@ -1036,8 +1041,9 @@ int SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle)
     // otherwise halt the channel and call SDLDevice::recycleSoundEffectChannel()
 
     Mix_HaltChannel(pickedChannel);
+    Mix_SetPosition(pickedChannel, ((angle % 360) + 360) % 360, distance);
     Mix_PlayChannel(pickedChannel, handle->chunk, 0);
-    return pickedChannel;
+    return true;
 }
 
 void SDLDevice::recycleSoundEffectChannel(int channel)

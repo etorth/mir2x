@@ -319,7 +319,15 @@ class SDLDevice final
        void playBGM(Mix_Music *, int loops = -1);
 
     public:
-       int playSoundEffect(std::shared_ptr<SoundEffectHandle>);
+       // distance:    0 : overlaps with listener
+       //            255 : far enough but may not be competely silent
+       //          > 255 : culled, will not play
+       //
+       // angle:   0 : north
+       //         90 : east
+       //        180 : south
+       //        270 : west
+       bool playSoundEffect(std::shared_ptr<SoundEffectHandle>, int angle = 0, int distance = 0);
 
     private:
        static void recycleSoundEffectChannel(int);
