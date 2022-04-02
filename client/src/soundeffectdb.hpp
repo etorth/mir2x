@@ -37,6 +37,9 @@ class SoundEffectDB: public innDB<uint32_t, SoundEffectElement>
     public:
         std::shared_ptr<SoundEffectHandle> retrieve(uint32_t key)
         {
+            // several channel can play the same chunk
+            // this requires Mix_PlayChannel() RO-access to chunk data
+
             if(auto p = innLoad(key)){
                 return p->handle;
             }
