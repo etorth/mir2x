@@ -48,7 +48,7 @@ ProcessSelectChar::ProcessSelectChar()
     m_delete.active(false);
     m_notifyBoard.addLog(u8"正在下载游戏角色");
     g_client->send(CM_QUERYCHAR);
-    g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00000002));
+    g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040002));
 }
 
 void ProcessSelectChar::update(double fUpdateTime)

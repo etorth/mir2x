@@ -123,7 +123,7 @@ ProcessLogin::ProcessLogin()
       }
 {
     m_buildSignature.setText(u8"编译版本号:%s", getBuildSignature());
-    g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00000001));
+    g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040007));
 }
 
 void ProcessLogin::update(double fUpdateTime)

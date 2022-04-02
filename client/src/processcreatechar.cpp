@@ -59,7 +59,7 @@ ProcessCreateChar::ProcessCreateChar()
           10,
       }
 {
-    g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00000003));
+    g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040001));
 }
 
 void ProcessCreateChar::update(double fUpdateTime)

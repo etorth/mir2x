@@ -181,7 +181,7 @@
 },
 
 {   .name = u8"道馆_1", // 24
-    .bgmID = 0X00010001,
+    .bgmID = 0X00010002,
     .miniMapID = 0X19001003,
     .mapSwitchList
     {
