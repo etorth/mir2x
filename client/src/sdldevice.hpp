@@ -120,6 +120,7 @@ class SDLDevice final
        std::unordered_map<uint8_t, TTF_Font *> m_fontList;
 
     private:
+       std::mutex m_freeChannelLock;
        std::vector<int> m_freeChannelList;
        std::unordered_map<int, std::shared_ptr<SoundEffectHandle>> m_busyChannelList;
 
@@ -318,7 +319,7 @@ class SDLDevice final
        void playBGM(Mix_Music *, int loops = -1);
 
     public:
-       bool playSoundEffect(std::shared_ptr<SoundEffectHandle>);
+       int playSoundEffect(std::shared_ptr<SoundEffectHandle>);
 
     private:
        static void recycleSoundEffectChannel(int);

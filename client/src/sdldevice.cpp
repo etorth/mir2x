@@ -16,6 +16,7 @@
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
 #include "soundeffecthandle.hpp"
+#include "scopedalloc.hpp"
 
 extern Log *g_log;
 extern XMLConf *g_xmlConf;
@@ -986,44 +987,57 @@ void SDLDevice::playBGM(Mix_Music *music, int loops)
     }
 }
 
-bool SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle)
+int SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle)
 {
     if(g_clientArgParser->disableAudio){
-        return false;
+        return -1;
     }
 
     if(!handle){
-        return false;
+        return -1;
     }
 
     if(!handle->chunk){
-        return false;
+        return -1;
     }
 
-    if(m_freeChannelList.empty()){
-        return false;
-    }
-
-    // clean pending channel
-    // can't delete channel and handle in Mix_ChannelFinished()
-
-    for(const auto channel: m_freeChannelList | std::views::reverse){
-        if(!m_busyChannelList.erase(channel)){
-            break;
+    int pickedChannel = -1;
+    scoped_alloc::svobuf_wrapper<int, 64> delayedChannelList;
+    {
+        std::lock_guard<std::mutex> lockGuard(m_freeChannelLock);
+        if(m_freeChannelList.empty()){
+            return -1;
         }
+
+        // clean pending channel
+        // can't delete channel and handle in Mix_ChannelFinished()
+
+        for(const auto channel: m_freeChannelList | std::views::reverse){
+            if(m_busyChannelList.count(channel)){
+                delayedChannelList.c.push_back(channel);
+            }
+            else{
+                break;
+            }
+        }
+
+        pickedChannel = m_freeChannelList.back();
+        m_freeChannelList.pop_back();
     }
 
-    const auto channel = m_freeChannelList.back();
-    m_freeChannelList.pop_back();
+    for(const auto delayedChannel: delayedChannelList.c){
+        m_busyChannelList.erase(delayedChannel);
+    }
 
-    m_busyChannelList[channel] = handle;
+    fflassert(pickedChannel >= 0, pickedChannel);
+    m_busyChannelList[pickedChannel] = handle;
 
     // Mix_HaltChannel() does nothing if channel has done play
     // otherwise halt the channel and call SDLDevice::recycleSoundEffectChannel()
 
-    Mix_HaltChannel(channel);
-    Mix_PlayChannel(channel, handle->chunk, 0);
-    return true;
+    Mix_HaltChannel(pickedChannel);
+    Mix_PlayChannel(pickedChannel, handle->chunk, 0);
+    return pickedChannel;
 }
 
 void SDLDevice::recycleSoundEffectChannel(int channel)
