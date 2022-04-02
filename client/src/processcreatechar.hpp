@@ -32,6 +32,7 @@ class ProcessCreateChar: public Process
 
     private:
         double m_aniTime = 0.0;
+        uint32_t m_lastStartAbsFrame = 0;
 
     public:
         ProcessCreateChar();
@@ -70,4 +71,7 @@ class ProcessCreateChar: public Process
     public:
         void net_CREATECHAROK   (const uint8_t *, size_t);
         void net_CREATECHARERROR(const uint8_t *, size_t);
+
+    private:
+        void playMagicSoundEffect();
 };

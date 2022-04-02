@@ -68,6 +68,13 @@ void ProcessCreateChar::update(double fUpdateTime)
 {
     m_aniTime += fUpdateTime;
     m_notifyBoard.update(fUpdateTime);
+
+    if(const uint32_t frameCount = charFrameCount(m_job, m_activeGender); frameCount > 0){
+        if(const auto currAbsFrame = absFrame(); ((currAbsFrame % frameCount) == 0) && (m_lastStartAbsFrame != currAbsFrame)){
+            playMagicSoundEffect();
+            m_lastStartAbsFrame = currAbsFrame;
+        }
+    }
 }
 
 void ProcessCreateChar::draw() const
@@ -133,15 +140,7 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
                         m_activeGender = false;
                     }
 
-                    const int offGender = to_d(m_activeGender);
-                    const int offJob = m_job - JOB_BEGIN;
-
-                    const uint32_t seffID = UINT32_C(0X00010000) // base
-                        | (to_u32(offGender) << 4)               //
-                        | (to_u32(offJob   ) << 8)               //
-                        | (to_u32(0        ) << 0);              // 0 for create, 1 for select
-
-                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID));
+                    m_lastStartAbsFrame = 0;
                     break;
                 }
             default:
@@ -263,4 +262,17 @@ void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const
         fnDrawTexture(frameIndex);
         fnDrawTexture(frameIndex | magicMask);
     }
+}
+
+void ProcessCreateChar::playMagicSoundEffect()
+{
+    const int offGender = to_d(m_activeGender);
+    const int offJob = m_job - JOB_BEGIN;
+
+    const uint32_t seffID = UINT32_C(0X00010000) // base
+        | (to_u32(offGender) << 4)               //
+        | (to_u32(offJob   ) << 8)               //
+        | (to_u32(0        ) << 0);              // 0 for create, 1 for select
+
+    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID));
 }
