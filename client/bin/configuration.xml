@@ -33,9 +33,10 @@
         <emojiDB>res/emoji/emoji.zsdb</emojiDB>
     </emoji>
 
-    <bgm>
+    <sound>
         <bgmDB>res/sound/bgm.zsdb</bgmDB>
-    </bgm>
+        <seffDB>res/sound/seff.zsdb</seffDB>
+    </sound>
 
     <network>
         <server>

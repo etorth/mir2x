@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: sdldevice.hpp
- *        Created: 03/07/2016 23:57:04
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <array>
 #include <vector>
@@ -28,6 +10,7 @@
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "fpsmonitor.hpp"
+#include "soundeffecthandle.hpp"
 
 class SDLDevice;
 namespace SDLDeviceHelper
@@ -137,7 +120,8 @@ class SDLDevice final
        std::unordered_map<uint8_t, TTF_Font *> m_fontList;
 
     private:
-       // for sound
+       std::vector<int> m_freeChannelList;
+       std::unordered_map<int, std::shared_ptr<SoundEffectHandle>> m_busyChannelList;
 
     public:
        /* ctor */  SDLDevice();
@@ -332,4 +316,10 @@ class SDLDevice final
     public:
        void stopBGM();
        void playBGM(Mix_Music *, int loops = -1);
+
+    public:
+       bool playSoundEffect(std::shared_ptr<SoundEffectHandle>);
+
+    private:
+       static void recycleSoundEffectChannel(int);
 };

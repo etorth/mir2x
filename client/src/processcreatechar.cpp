@@ -4,12 +4,14 @@
 #include "sdldevice.hpp"
 #include "pngtexdb.hpp"
 #include "bgmusicdb.hpp"
+#include "soundeffectdb.hpp"
 #include "pngtexoffdb.hpp"
 #include "processcreatechar.hpp"
 
 extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
 extern BGMusicDB *g_bgmDB;
+extern SoundEffectDB *g_seffDB;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_selectCharDB;
 
@@ -130,6 +132,16 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
                     else if(mathf::pointInRectangle(px, py, 510, 310, 90, 260)){
                         m_activeGender = false;
                     }
+
+                    const int offGender = to_d(m_activeGender);
+                    const int offJob = m_job - JOB_BEGIN;
+
+                    const uint32_t seffID = UINT32_C(0X00010000) // base
+                        | (to_u32(offGender) << 4)               //
+                        | (to_u32(offJob   ) << 8)               //
+                        | (to_u32(0        ) << 0);              // 0 for create, 1 for select
+
+                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID));
                     break;
                 }
             default:

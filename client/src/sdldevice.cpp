@@ -1,21 +1,5 @@
-/*
- * =====================================================================================
- *
- *       Filename: sdldevice.cpp
- *        Created: 03/07/2016 23:57:04
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
+#include <ranges>
+#include <numeric>
 #include <cinttypes>
 #include <system_error>
 #include <unordered_map>
@@ -31,6 +15,7 @@
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
+#include "soundeffecthandle.hpp"
 
 extern Log *g_log;
 extern XMLConf *g_xmlConf;
@@ -300,6 +285,15 @@ SDLDevice::SDLDevice()
             throw fflerror("SDL failed to disable compositor bypass");
         }
 #endif
+
+        const int numChannel = 128;
+        if(Mix_AllocateChannels(numChannel) != numChannel){
+            throw fflerror("failed to allocate %d channels: %s", numChannel, Mix_GetError());
+        }
+
+        m_freeChannelList.resize(numChannel);
+        std::iota(m_freeChannelList.begin(), m_freeChannelList.end(), 0);
+        Mix_ChannelFinished(recycleSoundEffectChannel);
     }
 }
 
@@ -990,4 +984,57 @@ void SDLDevice::playBGM(Mix_Music *music, int loops)
             throw fflerror("failed to play music: %s", Mix_GetError());
         }
     }
+}
+
+bool SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle)
+{
+    if(g_clientArgParser->disableAudio){
+        return false;
+    }
+
+    if(!handle){
+        return false;
+    }
+
+    if(!handle->chunk){
+        return false;
+    }
+
+    if(m_freeChannelList.empty()){
+        return false;
+    }
+
+    // clean pending channel
+    // can't delete channel and handle in Mix_ChannelFinished()
+
+    for(const auto channel: m_freeChannelList | std::views::reverse){
+        if(!m_busyChannelList.erase(channel)){
+            break;
+        }
+    }
+
+    const auto channel = m_freeChannelList.back();
+    m_freeChannelList.pop_back();
+
+    m_busyChannelList[channel] = handle;
+
+    // Mix_HaltChannel() does nothing if channel has done play
+    // otherwise halt the channel and call SDLDevice::recycleSoundEffectChannel()
+
+    Mix_HaltChannel(channel);
+    Mix_PlayChannel(channel, handle->chunk, 0);
+    return true;
+}
+
+void SDLDevice::recycleSoundEffectChannel(int channel)
+{
+    // only put the channel to free list
+    // don't call handle.reset() here which may call into Mix_Funcs and is forbidden
+
+    // handle reset is done in next time when channel allocated for new playing
+    // this may cause resouce free delay
+
+    // don't need to lock here even it's called other than main thread
+    // SDL2 mixer calls SDL_LockAudio()/SDL_UnlockAudio()
+    g_sdlDevice->m_freeChannelList.push_back(channel);
 }

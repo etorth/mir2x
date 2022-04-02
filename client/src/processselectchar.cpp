@@ -2,6 +2,7 @@
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "bgmusicdb.hpp"
+#include "soundeffectdb.hpp"
 #include "pngtexoffdb.hpp"
 #include "sdldevice.hpp"
 #include "layoutboard.hpp"
@@ -10,6 +11,7 @@
 extern Log *g_log;
 extern Client *g_client;
 extern BGMusicDB *g_bgmDB;
+extern SoundEffectDB *g_seffDB;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_selectCharDB;
@@ -364,6 +366,17 @@ void ProcessSelectChar::switchCharGfx()
             {
                 throw fflreach();
             }
+    }
+
+    if(m_charAni == 1){
+        const int offGender = to_d(m_smChar.value().gender);
+        const int offJob = m_smChar.value().job.deserialize<std::vector<int>>().at(0) - JOB_BEGIN;
+
+        const uint32_t seffID = UINT32_C(0X00010000) // base
+            | (to_u32(offGender) << 4)               //
+            | (to_u32(offJob   ) << 8)               //
+            | (to_u32(1        ) << 0);              // 0 for create, 1 for select
+        g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID));
     }
 }
 

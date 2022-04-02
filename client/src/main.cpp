@@ -25,6 +25,7 @@
 #include "mapbindb.hpp"
 #include "emojidb.hpp"
 #include "bgmusicdb.hpp"
+#include "soundeffectdb.hpp"
 #include "notifyboard.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
@@ -48,6 +49,7 @@ PNGTexOffDB     *g_standNPCDB      = nullptr; // database for NPC
 PNGTexOffDB     *g_selectCharDB    = nullptr; // database for chars in ProcessSelectChar and ProcessCreateChar
 EmojiDB         *g_emojiDB         = nullptr; // database for emoticons
 BGMusicDB       *g_bgmDB           = nullptr; // database for bgm, contains .MP3/.WAV
+SoundEffectDB   *g_seffDB          = nullptr; // database for sound effect, contains .WAV
 MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
 XMLConf         *g_xmlConf         = nullptr; // for client configure XML parsing
@@ -96,6 +98,7 @@ int main(int argc, char *argv[])
         g_mapBinDB        = new MapBinDB();
         g_emojiDB         = new EmojiDB();
         g_bgmDB           = new BGMusicDB(5);
+        g_seffDB          = new SoundEffectDB(128);
         g_client          = new Client();       // loads fontex resource
         g_notifyBoard     = new NotifyBoard(DIR_UPLEFT, 0, 0, 10240, 0, 15, 0, colorf::RED + colorf::A_SHF(255), 0, 5);
 
