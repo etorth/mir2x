@@ -140,7 +140,8 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
                         m_activeGender = false;
                     }
 
-                    m_lastStartAbsFrame = 0;
+                    m_aniTime = 0.0;
+                    m_lastStartAbsFrame = UINT32_MAX; // force playing sound effect when switching chars
                     break;
                 }
             default:
