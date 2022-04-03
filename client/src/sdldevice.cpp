@@ -277,7 +277,7 @@ SDLDevice::SDLDevice()
             throw fflerror("initialization failed for SDL2 MIX: %s", Mix_GetError());
         }
 
-        if(Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 4096)){
+        if(Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 512)){
             throw fflerror("initialization failed for SDL2 MIX OpenAudio: %s", Mix_GetError());
         }
 
