@@ -83,7 +83,7 @@ bool ClientGuard::parseAction(const ActionNode &action)
             }
         default:
             {
-                throw fflreach();
+                throw fflvalue(actionName(action.type));
             }
     }
 }
