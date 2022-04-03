@@ -34,6 +34,9 @@ class ProcessSelectChar: public Process
         ProcessSelectChar();
 
     public:
+        ~ProcessSelectChar() override;
+
+    public:
         int id() const override
         {
             return PROCESSID_SELECTCHAR;

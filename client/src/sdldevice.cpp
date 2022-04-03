@@ -1046,6 +1046,11 @@ bool SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle, int d
     return true;
 }
 
+void SDLDevice::stopSoundEffect()
+{
+    Mix_HaltChannel(-1);
+}
+
 void SDLDevice::recycleSoundEffectChannel(int channel)
 {
     // only put the channel to free list

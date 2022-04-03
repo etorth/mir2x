@@ -328,6 +328,7 @@ class SDLDevice final
        //        180 : south
        //        270 : west
        bool playSoundEffect(std::shared_ptr<SoundEffectHandle>, int angle = 0, int distance = 0);
+       void stopSoundEffect();
 
     private:
        static void recycleSoundEffectChannel(int);

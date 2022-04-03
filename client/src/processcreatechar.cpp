@@ -64,6 +64,12 @@ ProcessCreateChar::ProcessCreateChar()
     g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040001));
 }
 
+ProcessCreateChar::~ProcessCreateChar()
+{
+    g_sdlDevice->stopBGM();
+    g_sdlDevice->stopSoundEffect();
+}
+
 void ProcessCreateChar::update(double fUpdateTime)
 {
     m_aniTime += fUpdateTime;

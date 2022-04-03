@@ -38,6 +38,9 @@ class ProcessCreateChar: public Process
         ProcessCreateChar();
 
     public:
+        ~ProcessCreateChar() override;
+
+    public:
         int id() const override
         {
             return PROCESSID_CREATECHAR;

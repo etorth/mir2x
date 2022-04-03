@@ -53,6 +53,12 @@ ProcessSelectChar::ProcessSelectChar()
     g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040002));
 }
 
+ProcessSelectChar::~ProcessSelectChar()
+{
+    g_sdlDevice->stopBGM();
+    g_sdlDevice->stopSoundEffect();
+}
+
 void ProcessSelectChar::update(double fUpdateTime)
 {
     m_charAniTime += fUpdateTime;
