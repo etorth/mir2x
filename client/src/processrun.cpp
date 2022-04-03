@@ -648,14 +648,17 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 }
 
-void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
+void ProcessRun::loadMap(uint32_t newMapID, int centerGX, int centerGY)
 {
-    fflassert(mapID > 0);
+    fflassert(newMapID > 0);
+    fflassert(mapID() != newMapID, mapID(), newMapID);
+
+    const auto lastMapID = mapID();
     ModalStringBoard loadStringBoard;
 
-    const auto fnSetDoneRatio = [&loadStringBoard, mapID](int ratio)
+    const auto fnSetDoneRatio = [&loadStringBoard, newMapID](int ratio)
     {
-        const std::string mapName = to_cstr(DBCOM_MAPRECORD(mapID).name);
+        const std::string mapName = to_cstr(DBCOM_MAPRECORD(newMapID).name);
         loadStringBoard.loadXML(str_printf
         (
             u8R"###( <layout>                                     )###""\n"
@@ -672,13 +675,13 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
         }
     };
 
-    const auto fnLoadMap = [mapID, &fnSetDoneRatio, centerGX, centerGY, this]()
+    const auto fnLoadMap = [newMapID, &fnSetDoneRatio, centerGX, centerGY, this]()
     {
-        const auto mapBinPtr = g_mapBinDB->retrieve(mapID);
+        const auto mapBinPtr = g_mapBinDB->retrieve(newMapID);
         fflassert(mapBinPtr);
         fnSetDoneRatio(30);
 
-        m_mapID = mapID;
+        m_mapID = newMapID;
         m_mir2xMapData = *mapBinPtr;
         m_groundItemIDList.clear();
         fnSetDoneRatio(40);
@@ -742,9 +745,14 @@ void ProcessRun::loadMap(uint32_t mapID, int centerGX, int centerGY)
         }
     }
 
-    g_sdlDevice->stopBGM();
-    if(const auto bgmIDOpt = DBCOM_MAPRECORD(mapID).bgmID; bgmIDOpt.has_value()){
-        g_sdlDevice->playBGM(g_bgmDB->retrieve(bgmIDOpt.value()));
+    const auto lastBGMIDOpt = DBCOM_MAPRECORD(lastMapID).bgmID;
+    const auto  newBGMIDOpt = DBCOM_MAPRECORD( newMapID).bgmID;
+
+    if(lastBGMIDOpt != newBGMIDOpt){
+        g_sdlDevice->stopBGM();
+        if(newBGMIDOpt.has_value()){
+            g_sdlDevice->playBGM(g_bgmDB->retrieve(newBGMIDOpt.value()));
+        }
     }
 }
 
