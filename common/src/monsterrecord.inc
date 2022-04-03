@@ -6244,6 +6244,7 @@
 {   .name = u8"圣诞树1",
     .lookID = 0X99,
     .view = 10,
+    .shadow = 0,
     .deadFadeOut = 1,
     .hp = 20000,
     .exp = 160,

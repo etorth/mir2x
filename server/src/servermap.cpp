@@ -1226,6 +1226,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 }
             case DBCOM_MONSTERID(u8"栗子树"):
             case DBCOM_MONSTERID(u8"圣诞树"):
+            case DBCOM_MONSTERID(u8"圣诞树1"):
                 {
                     monsterPtr = new ServerMonsterTree
                     {
