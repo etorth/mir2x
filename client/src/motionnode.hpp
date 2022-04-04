@@ -74,7 +74,9 @@ struct MotionNode final
     ////                                                                   ////
     ///////////////////////////////////////////////////////////////////////////
     /**/                                                                   /**/
-    /**/    const int type      = MOTION_NONE;                             /**/
+    /**/    const int type = MOTION_NONE;                                  /**/
+    /**/    const int seq  = 0;                                            /**/
+    /**/                                                                   /**/
     /**/    const int direction = DIR_NONE;                                /**/
     /**/    /***/ int speed     = SYS_DEFSPEED;                            /**/
     /**/                                                                   /**/
@@ -107,4 +109,7 @@ struct MotionNode final
 
     void print() const;
     double frameDelay() const;
+
+    uint64_t getSeqID() const;
+    uint64_t getSeqFrameID() const;
 };

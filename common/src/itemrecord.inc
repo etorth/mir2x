@@ -10195,7 +10195,7 @@
         {
             .mine = 1,
             .doubleHand = 1,
-            .type = u8"镐",
+            .category = u8"镐",
         },
     },
 },
@@ -10209,6 +10209,14 @@
     {
         .duration = 35,
         .dc = {1, 50},
+        .req
+        {
+            .level = 1,
+        },
+        .weapon
+        {
+            .category = u8"剑",
+        },
     },
 },
 
@@ -10224,6 +10232,10 @@
         .req
         {
             .level = 1,
+        },
+        .weapon
+        {
+            .category = u8"木剑",
         },
     },
 },
@@ -10241,6 +10253,10 @@
         .req
         {
             .level = 7,
+        },
+        .weapon
+        {
+            .category = u8"木剑",
         },
     },
 },
@@ -10264,6 +10280,10 @@
         {
             .level = 7,
         },
+        .weapon
+        {
+            .category = u8"木剑",
+        },
     },
 },
 
@@ -10280,6 +10300,10 @@
         {
             .level = 5,
         },
+        .weapon
+        {
+            .category = u8"剑",
+        },
     },
 },
 
@@ -10295,6 +10319,10 @@
         .req
         {
             .level = 10,
+        },
+        .weapon
+        {
+            .category = u8"剑",
         },
     },
 },
@@ -10344,6 +10372,10 @@
         {
             .level = 26,
         },
+        .weapon
+        {
+            .category = u8"剑",
+        },
     },
 },
 
@@ -10381,6 +10413,10 @@
         .req
         {
             .level = 3,
+        },
+        .weapon
+        {
+            .category = u8"匕首",
         },
     },
 },
@@ -10423,6 +10459,10 @@
         {
             .level = 60,
         },
+        .weapon
+        {
+            .category = u8"剑",
+        },
     },
 },
 
@@ -10464,7 +10504,7 @@
         {
             .mine = 1,
             .doubleHand = 1,
-            .type = u8"镐",
+            .category = u8"镐",
         },
     },
 },
@@ -10922,7 +10962,7 @@
         .weapon
         {
             .doubleHand = 1,
-            .type = u8"锏",
+            .category = u8"锏",
         }
     },
 },
@@ -10942,6 +10982,10 @@
     {
         .duration = 36,
         .dc = {2, 46},
+        .weapon
+        {
+            .category = u8"剑",
+        },
     },
     .description = u8"用天外玄铁打造，刀身刻有龙纹，潜藏着强大的气场，是荣耀和力量的象征。",
 },
@@ -11561,7 +11605,7 @@
         },
         .weapon
         {
-            .type = u8"棍",
+            .category = u8"棍",
         }
     },
 },

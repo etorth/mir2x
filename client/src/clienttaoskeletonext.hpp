@@ -11,6 +11,7 @@ class ClientTaoSkeletonExt: public ClientMonster
             m_currMotion.reset(new MotionNode
             {
                 .type = MOTION_MON_STAND,
+                .seq = rollMotionSeq(),
                 .direction = [&action]() -> int
                 {
                     if(action.type == ACTION_SPAWN){

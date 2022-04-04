@@ -36,6 +36,7 @@ ClientWedgeMoth::ClientWedgeMoth(uint64_t uid, ProcessRun *proc, const ActionNod
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
+                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.type) ? to_d(action.type) : DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
@@ -54,6 +55,7 @@ bool ClientWedgeMoth::onActionAttack(const ActionNode &action)
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_ATTACK0,
+        .seq = rollMotionSeq(),
         .direction = m_processRun->getAimDirection(action, currMotion()->direction),
         .x = action.x,
         .y = action.y,

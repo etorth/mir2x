@@ -30,6 +30,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_SPECIAL,
+                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
@@ -43,6 +44,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
+                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
@@ -56,6 +58,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_HITTED,
+                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
@@ -69,6 +72,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_DIE,
+                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
@@ -82,6 +86,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_ATTACK0,
+                    .seq = rollMotionSeq(),
                     .direction = m_processRun->getAimDirection(action, DIR_UP),
                     .x = action.x,
                     .y = action.y,
@@ -96,6 +101,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
+                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.aimX,
                     .y = action.aimY,
@@ -127,6 +133,7 @@ bool ClientTaoDog::onActionSpawn(const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_SPAWN,
+        .seq = rollMotionSeq(),
         .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
         .x = action.x,
         .y = action.y,
@@ -156,6 +163,7 @@ bool ClientTaoDog::onActionAttack(const ActionNode &action)
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_ATTACK0,
+        .seq = rollMotionSeq(),
         .direction = m_processRun->getAimDirection(action, endDir),
         .x = action.x,
         .y = action.y,

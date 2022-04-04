@@ -35,6 +35,7 @@ class ClientCannibalPlant: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
+                            .seq = rollMotionSeq(),
                             .direction = DIR_BEGIN,
                             .x = action.x,
                             .y = action.y,
@@ -48,6 +49,7 @@ class ClientCannibalPlant: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
+                            .seq = rollMotionSeq(),
                             .direction = DIR_BEGIN,
                             .x = action.x,
                             .y = action.y,
@@ -61,6 +63,7 @@ class ClientCannibalPlant: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_ATTACK0,
+                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_BEGIN,
                             .x = action.x,
                             .y = action.y,
@@ -74,6 +77,7 @@ class ClientCannibalPlant: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_SPAWN,
+                            .seq = rollMotionSeq(),
                             .direction = DIR_BEGIN,
                             .x = action.x,
                             .y = action.y,
@@ -87,6 +91,7 @@ class ClientCannibalPlant: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_HITTED,
+                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_BEGIN,
                             .x = action.x,
                             .y = action.y,
@@ -180,6 +185,7 @@ class ClientCannibalPlant: public ClientStandMonster
             return std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_STAND,
+                .seq = rollMotionSeq(),
                 .direction = DIR_BEGIN,
                 .x = m_currMotion->endX,
                 .y = m_currMotion->endY,

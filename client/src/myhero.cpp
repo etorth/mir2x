@@ -591,6 +591,7 @@ void MyHero::brakeMove()
         m_currMotion.reset(new MotionNode
         {
             .type = onHorse() ? MOTION_ONHORSESTAND : MOTION_STAND,
+            .seq = rollMotionSeq(),
             .direction = direction,
             .x = std::get<0>(loc[2]),
             .y = std::get<1>(loc[2]),
@@ -613,6 +614,7 @@ void MyHero::brakeMove()
                 m_currMotion.reset(new MotionNode
                 {
                     .type = motionType,
+                    .seq = rollMotionSeq(),
                     .direction = direction,
                     .speed = 200,
 

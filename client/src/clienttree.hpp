@@ -11,6 +11,7 @@ class ClientTree: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_HITTED,
+                            .seq = rollMotionSeq(),
                             .direction = DIR_BEGIN,
                             .x = action.x,
                             .y = action.y,
@@ -22,6 +23,7 @@ class ClientTree: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
+                            .seq = rollMotionSeq(),
                             .direction = DIR_BEGIN,
                             .x = action.x,
                             .y = action.y,

@@ -18,17 +18,10 @@
 #include <cinttypes>
 #include "log.hpp"
 #include "mathf.hpp"
-#include "colorf.hpp"
 #include "totype.hpp"
-#include "fflerror.hpp"
-#include "sdldevice.hpp"
 #include "motionnode.hpp"
-#include "pngtexoffdb.hpp"
 
 extern Log *g_log;
-extern SDLDevice *g_sdlDevice;
-extern PNGTexOffDB *g_magicDB;
-
 void MotionNode::runTrigger()
 {
     for(auto p = m_triggerList.begin(); p != m_triggerList.end();){
@@ -55,6 +48,7 @@ void MotionNode::addTrigger(bool addBefore, std::function<bool(MotionNode *)> op
 void MotionNode::print() const
 {
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::motion            = %s", to_cvptr(this), motionName(type)          );
+    g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::seq               = %d", to_cvptr(this), seq                       );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::direction         = %d", to_cvptr(this), direction                 );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::speed             = %d", to_cvptr(this), speed                     );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::x                 = %d", to_cvptr(this), x                         );
@@ -63,6 +57,16 @@ void MotionNode::print() const
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::endY              = %d", to_cvptr(this), endY                      );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::frame             = %d", to_cvptr(this), frame                     );
     g_log->addLog(LOGTYPE_INFO, "MotionNode::0x%016p::triggerList::size = %d", to_cvptr(this), to_d(m_triggerList.size()));
+}
+
+uint64_t MotionNode::getSeqID() const
+{
+    return (to_u64(this->type) << 48) | (to_u64(this->seq) << 16);
+}
+
+uint64_t MotionNode::getSeqFrameID() const
+{
+    return (to_u64(this->type) << 48) | (to_u64(this->seq) << 16) | to_u64(this->frame);
 }
 
 double MotionNode::frameDelay() const

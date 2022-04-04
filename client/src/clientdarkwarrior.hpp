@@ -20,6 +20,7 @@ class ClientDarkWarrior: public ClientMonster
             m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_ATTACK0,
+                .seq = rollMotionSeq(),
                 .direction = m_processRun->getAimDirection(action, endDir),
                 .x = action.x,
                 .y = action.y,

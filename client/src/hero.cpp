@@ -50,6 +50,7 @@ Hero::Hero(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_STAND,
+        .seq = rollMotionSeq(),
         .direction = DIR_DOWN,
         .x = action.x,
         .y = action.y,
@@ -288,7 +289,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 bool Hero::update(double ms)
 {
     updateAttachMagic(ms);
-    const CallOnExitHelper motionOnUpdate([lastType = m_currMotion->type, lastFrame = m_currMotion->frame, this]()
+    const CallOnExitHelper motionOnUpdate([lastSeqFrameID = m_currMotion->getSeqFrameID(), this]()
     {
         m_currMotion->runTrigger();
 
@@ -297,48 +298,63 @@ bool Hero::update(double ms)
         // TODO: 1. need to check ground type
         //       2. need to add positional sound effect
 
-        // TODO: need a better way to detect frame switch
-        //       only play on switch point
-
-        const bool  frameSwitch = (m_currMotion->type == lastType                 ) && (m_currMotion->frame == lastFrame + 1);
-        const bool motionSwitch = (m_currMotion->type != lastType || lastFrame > 0) && (m_currMotion->frame == 0);
-
-        if(!frameSwitch && !motionSwitch){
+        if(lastSeqFrameID == m_currMotion->getSeqFrameID()){
             return;
         }
 
-        const auto fnPlayStepSound = [frameSwitch, this](uint32_t seffBaseID)
+        const auto fnPlayStepSound = [this](uint32_t seffBaseID)
         {
-            if(frameSwitch){
-                if(m_currMotion->frame == 1){
-                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID));
-                }
-                else if(m_currMotion->frame == 4){
-                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID + 1));
-                }
+            if(m_currMotion->frame == 1){
+                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID));
+            }
+            else if(m_currMotion->frame == 4){
+                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID + 1));
             }
         };
 
-        const auto fnPlayStartActSound = [motionSwitch](uint32_t seffID)
+        const auto fnPlayAttackSound = [this]()
         {
-            if(motionSwitch){
-                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID));
+            if(const auto weaponItemID = getWLItem(WLG_WEAPON).itemID){
+                const auto &ir = DBCOM_ITEMRECORD(weaponItemID);
+                fflassert(ir);
+
+                if     (ir.equip.weapon.category == u8"匕首") g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 50));
+                else if(ir.equip.weapon.category == u8"木剑") g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 51));
+                else if(ir.equip.weapon.category == u8"剑"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 52));
+                else if(ir.equip.weapon.category == u8"刀"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 53));
+                else if(ir.equip.weapon.category == u8"斧"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 54));
+                else if(ir.equip.weapon.category == u8"锏"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 55));
+                else if(ir.equip.weapon.category == u8"棍"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 56));
+                else                                          g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 57)); // anything else, currently use bare-hand
+            }
+            else{
+                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 57)); // bare-hand
+            }
+        };
+
+        const auto fnPlayHittedSound = [this]() // TODO: check attacker's weapon category
+        {
+            if(const auto dressItemID = getWLItem(WLG_DRESS).itemID; DBCOM_ITEMRECORD(dressItemID)){
+                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 80));
+            }
+            else{
+                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 70));
             }
         };
 
         switch(m_currMotion->type){
-            case MOTION_WALK        : fnPlayStepSound    (0X01000000 +  1); break;
-            case MOTION_RUN         : fnPlayStepSound    (0X01000000 +  3); break;
-            case MOTION_ONHORSEWALK : fnPlayStepSound    (0X01000000 + 33); break;
-            case MOTION_ONHORSERUN  : fnPlayStepSound    (0X01000000 + 35); break;
-            case MOTION_HITTED      : fnPlayStartActSound(0X01010000 + 60); break;
+            case MOTION_WALK        : fnPlayStepSound(0X01000000 +  1); break;
+            case MOTION_RUN         : fnPlayStepSound(0X01000000 +  3); break;
+            case MOTION_ONHORSEWALK : fnPlayStepSound(0X01000000 + 33); break;
+            case MOTION_ONHORSERUN  : fnPlayStepSound(0X01000000 + 35); break;
             case MOTION_ONEHSWING   :
             case MOTION_ONEVSWING   :
             case MOTION_TWOHSWING   :
             case MOTION_TWOVSWING   :
             case MOTION_RANDSWING   :
             case MOTION_SPEARHSWING :
-            case MOTION_SPEARVSWING : fnPlayStartActSound(0X01010000 + 50); break;
+            case MOTION_SPEARVSWING : fnPlayAttackSound(); break;
+            case MOTION_HITTED      : fnPlayHittedSound(); break;
             default: break;
         }
     });
@@ -553,6 +569,7 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_STAND;
                     }(),
 
+                    .seq = rollMotionSeq(),
                     .direction = action.direction,
                     .x = action.x,
                     .y = action.y,
@@ -564,6 +581,7 @@ bool Hero::parseAction(const ActionNode &action)
                 m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = MOTION_SPINKICK,
+                    .seq = rollMotionSeq(),
                     .direction = [&action, this]() -> int
                     {
                         if(action.aimUID){
@@ -665,6 +683,7 @@ bool Hero::parseAction(const ActionNode &action)
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = motionSpell,
+                            .seq = rollMotionSeq(),
                             .direction = standDir,
                             .x = action.x,
                             .y = action.y,
@@ -995,6 +1014,7 @@ bool Hero::parseAction(const ActionNode &action)
                                 m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                                 {
                                     .type = MOTION_ATTACKMODE,
+                                    .seq = rollMotionSeq(),
                                     .direction = standDir,
                                     .x = action.x,
                                     .y = action.y,
@@ -1037,6 +1057,7 @@ bool Hero::parseAction(const ActionNode &action)
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = swingMotion,
+                            .seq = rollMotionSeq(),
                             .direction = attackDir,
                             .speed = motionSpeed,
                             .x = action.x,
@@ -1053,6 +1074,7 @@ bool Hero::parseAction(const ActionNode &action)
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ATTACKMODE,
+                            .seq = rollMotionSeq(),
                             .direction = attackDir,
                             .x = action.x,
                             .y = action.y,
@@ -1077,6 +1099,7 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_HITTED;
                     }(),
 
+                    .seq = rollMotionSeq(),
                     .direction = endDir,
                     .x = endX,
                     .y = endY,
@@ -1120,6 +1143,7 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_DIE;
                     }(),
 
+                    .seq = rollMotionSeq(),
                     .direction = dieDir,
                     .x = dieX,
                     .y = dieY,
@@ -1265,6 +1289,7 @@ std::unique_ptr<MotionNode> Hero::makeWalkMotion(int nX0, int nY0, int nX1, int 
         return std::unique_ptr<MotionNode>(new MotionNode
         {
             .type = nMotion,
+            .seq = rollMotionSeq(),
             .direction = nDirV[nSDY][nSDX],
             .speed = nSpeed,
             .x = nX0,
@@ -1456,6 +1481,7 @@ void Hero::jumpLoc(int x, int y, int direction)
             return MOTION_STAND;
         }(),
 
+        .seq = rollMotionSeq(),
         .direction = direction,
         .x = x,
         .y = y,
