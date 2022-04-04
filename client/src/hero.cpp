@@ -314,21 +314,23 @@ bool Hero::update(double ms)
 
         const auto fnPlayAttackSound = [this]()
         {
-            if(const auto weaponItemID = getWLItem(WLG_WEAPON).itemID){
-                const auto &ir = DBCOM_ITEMRECORD(weaponItemID);
-                fflassert(ir);
+            if(m_currMotion->frame == 0){
+                if(const auto weaponItemID = getWLItem(WLG_WEAPON).itemID){
+                    const auto &ir = DBCOM_ITEMRECORD(weaponItemID);
+                    fflassert(ir);
 
-                if     (ir.equip.weapon.category == u8"匕首") g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 50));
-                else if(ir.equip.weapon.category == u8"木剑") g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 51));
-                else if(ir.equip.weapon.category == u8"剑"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 52));
-                else if(ir.equip.weapon.category == u8"刀"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 53));
-                else if(ir.equip.weapon.category == u8"斧"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 54));
-                else if(ir.equip.weapon.category == u8"锏"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 55));
-                else if(ir.equip.weapon.category == u8"棍"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 56));
-                else                                          g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 57)); // anything else, currently use bare-hand
-            }
-            else{
-                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 57)); // bare-hand
+                    if     (ir.equip.weapon.category == u8"匕首") g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 50));
+                    else if(ir.equip.weapon.category == u8"木剑") g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 51));
+                    else if(ir.equip.weapon.category == u8"剑"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 52));
+                    else if(ir.equip.weapon.category == u8"刀"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 53));
+                    else if(ir.equip.weapon.category == u8"斧"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 54));
+                    else if(ir.equip.weapon.category == u8"锏"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 55));
+                    else if(ir.equip.weapon.category == u8"棍"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 56));
+                    else                                          g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 57)); // anything else, currently use bare-hand
+                }
+                else{
+                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 57)); // bare-hand
+                }
             }
         };
 
