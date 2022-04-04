@@ -10910,7 +10910,7 @@
         .weapon
         {
             .doubleHand = 1,
-            .type = u8"梃",
+            .type = u8"锏",
         }
     },
 },
