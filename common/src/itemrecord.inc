@@ -10191,6 +10191,12 @@
         {
             .level = 8,
         },
+        .weapon
+        {
+            .mine = 1,
+            .type = u8"镐",
+            .doubleHand = 1,
+        },
     },
 },
 
@@ -10453,6 +10459,12 @@
         .req
         {
             .level = 20,
+        },
+        .weapon
+        {
+            .mine = 1,
+            .type = u8"镐",
+            .doubleHand = 1,
         },
     },
 },

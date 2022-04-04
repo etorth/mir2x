@@ -80,17 +80,25 @@ struct ItemRecord
 
         const struct WeaponAttr
         {
+            const int mine = 0;
             const int doubleHand = 0;
-            const std::u8string_view type {}; // type of weapon, used for sound effect, possible types:
-                                              // 飞镖   ：袖里剑
-                                              // 短剑   : 短剑
-                                              // 木剑   : 木剑，桃木剑
-                                              // 长剑   : 所有剑
-                                              // 刀     : 所有刀
-                                              // 斧     : 青铜斧，修罗，炼狱
-                                              // 锏     : 裁决
-                                              // 棍     : 无极棍
-                                              // 法杖   ：魔杖，噬魂，天神法杖
+            const std::u8string_view type {}; // type of weapon, used for sound effect
+                                              // etorth/CBWCQ3 doesn't have this attribute, possible values:
+                                              //
+                                              //     飞镖   ：标枪，袖里剑
+                                              //     匕首   : 短剑，匕首
+                                              //     木剑   : 木剑，桃木剑，乌木剑
+                                              //     刀     :
+                                              //     剑     :
+                                              //     斧     :
+                                              //     锏     : 裁决之杖
+                                              //     镐     : 鹤嘴锄，风之鹤嘴锄
+                                              //     棍     : 无极棍
+                                              //     扇     : 逍遥扇
+                                              //     法杖   ：魔杖，噬魂，天神法杖
+                                              //
+                                              // still there are some weapons hard to give a category like 铁轮，泰伦拂尘，etc
+                                              // take them as 法杖 for now
         }
         weapon {};
     }
