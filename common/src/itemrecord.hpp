@@ -80,7 +80,17 @@ struct ItemRecord
 
         const struct WeaponAttr
         {
-            const bool doubleHand = false;
+            const int doubleHand = 0;
+            const std::u8string_view type {}; // type of weapon, used for sound effect, possible types:
+                                              // 飞镖   ：袖里剑
+                                              // 短剑   : 短剑
+                                              // 木剑   : 木剑，桃木剑
+                                              // 长剑   : 所有剑
+                                              // 刀     : 所有刀
+                                              // 斧     : 青铜斧，修罗，炼狱
+                                              // 梃     : 裁决
+                                              // 棍     : 无极棍
+                                              // 法杖   ：魔杖，噬魂，天神法杖
         }
         weapon {};
     }

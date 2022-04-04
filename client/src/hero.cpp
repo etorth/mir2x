@@ -292,47 +292,8 @@ bool Hero::update(double ms)
     {
         m_currMotion->runTrigger();
 
-        // hero step sound from:
-        // https://github.com/lzxsz/MIR2/blob/master/GameOfMir/Client/SoundUtil.pas
+        // check soundeffectdb.cpp for more detailed comments
         //
-        // s_walk_ground_l      = 1;
-        // s_walk_ground_r      = 2;
-        // s_run_ground_l       = 3;
-        // s_run_ground_r       = 4;
-        // s_walk_stone_l       = 5;
-        // s_walk_stone_r       = 6;
-        // s_run_stone_l        = 7;
-        // s_run_stone_r        = 8;
-        // s_walk_lawn_l        = 9;
-        // s_walk_lawn_r        = 10;
-        // s_run_lawn_l         = 11;
-        // s_run_lawn_r         = 12;
-        // s_walk_rough_l       = 13;
-        // s_walk_rough_r       = 14;
-        // s_run_rough_l        = 15;
-        // s_run_rough_r        = 16;
-        // s_walk_wood_l        = 17;
-        // s_walk_wood_r        = 18;
-        // s_run_wood_l         = 19;
-        // s_run_wood_r         = 20;
-        // s_walk_cave_l        = 21;
-        // s_walk_cave_r        = 22;
-        // s_run_cave_l         = 23;
-        // s_run_cave_r         = 24;
-        // s_walk_room_l        = 25;
-        // s_walk_room_r        = 26;
-        // s_run_room_l         = 27;
-        // s_run_room_r         = 28;
-        // s_walk_water_l       = 29;
-        // s_walk_water_r       = 30;
-        // s_run_water_l        = 31;
-        // s_run_water_r        = 32; // end of repo lzxsz/MIR2
-        //
-        // s_horse_walk_l       = 33;
-        // s_horse_walk_r       = 34;
-        // s_horse_run_l        = 35;
-        // s_horse_run_r        = 36; // manual copy of s_horse_run_l, original mir2ei doesn't have this file
-
         // TODO: 1. need to check ground type
         //       2. need to add positional sound effect
 
