@@ -10194,8 +10194,8 @@
         .weapon
         {
             .mine = 1,
-            .type = u8"镐",
             .doubleHand = 1,
+            .type = u8"镐",
         },
     },
 },
@@ -10463,8 +10463,8 @@
         .weapon
         {
             .mine = 1,
-            .type = u8"镐",
             .doubleHand = 1,
+            .type = u8"镐",
         },
     },
 },
