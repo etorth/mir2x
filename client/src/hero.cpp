@@ -300,24 +300,46 @@ bool Hero::update(double ms)
         // TODO: need a better way to detect frame switch
         //       only play on switch point
 
-        if((m_currMotion->type == lastType) && (m_currMotion->frame == lastFrame + 1)){
-            std::optional<uint32_t> seffBaseID;
-            switch(m_currMotion->type){
-                case MOTION_WALK        : seffBaseID = 0X01000000 +  1; break;
-                case MOTION_RUN         : seffBaseID = 0X01000000 +  3; break;
-                case MOTION_ONHORSEWALK : seffBaseID = 0X01000000 + 33; break;
-                case MOTION_ONHORSERUN  : seffBaseID = 0X01000000 + 35; break;
-                default: break;
-            }
+        const bool  frameSwitch = (m_currMotion->type == lastType                 ) && (m_currMotion->frame == lastFrame + 1);
+        const bool motionSwitch = (m_currMotion->type != lastType || lastFrame > 0) && (m_currMotion->frame == 0);
 
-            if(seffBaseID.has_value()){
+        if(!frameSwitch && !motionSwitch){
+            return;
+        }
+
+        const auto fnPlayStepSound = [frameSwitch, this](uint32_t seffBaseID)
+        {
+            if(frameSwitch){
                 if(m_currMotion->frame == 1){
-                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID.value()));
+                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID));
                 }
                 else if(m_currMotion->frame == 4){
-                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID.value() + 1));
+                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID + 1));
                 }
             }
+        };
+
+        const auto fnPlayStartActSound = [motionSwitch](uint32_t seffID)
+        {
+            if(motionSwitch){
+                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID));
+            }
+        };
+
+        switch(m_currMotion->type){
+            case MOTION_WALK        : fnPlayStepSound    (0X01000000 +  1); break;
+            case MOTION_RUN         : fnPlayStepSound    (0X01000000 +  3); break;
+            case MOTION_ONHORSEWALK : fnPlayStepSound    (0X01000000 + 33); break;
+            case MOTION_ONHORSERUN  : fnPlayStepSound    (0X01000000 + 35); break;
+            case MOTION_HITTED      : fnPlayStartActSound(0X01010000 + 60); break;
+            case MOTION_ONEHSWING   :
+            case MOTION_ONEVSWING   :
+            case MOTION_TWOHSWING   :
+            case MOTION_TWOVSWING   :
+            case MOTION_RANDSWING   :
+            case MOTION_SPEARHSWING :
+            case MOTION_SPEARVSWING : fnPlayStartActSound(0X01010000 + 50); break;
+            default: break;
         }
     });
 
