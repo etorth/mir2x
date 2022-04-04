@@ -135,8 +135,17 @@ bool ClientMonster::update(double ms)
         }
 
         switch(m_currMotion->type){
-            case MOTION_HITTED: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 60)); break;
-            default: break;
+            case MOTION_HITTED:
+                {
+                    if(m_currMotion->frame == 0){
+                        g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 60));
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
         }
     });
 
