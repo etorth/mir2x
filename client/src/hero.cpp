@@ -342,6 +342,7 @@ bool Hero::update(double ms)
             else{
                 g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 70));
             }
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01030000 + (gender() ? 138 : 139)));
         };
 
         switch(m_currMotion->type){
