@@ -101,7 +101,10 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
 
     const auto nGfxDressID = gfxDressID(dressGfxIndex, m_currMotion->type, m_currMotion->direction);
     if(!nGfxDressID.has_value()){
-        m_currMotion->print();
+        m_currMotion->print([](const std::string &s)
+        {
+            g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+        });
         return;
     }
 

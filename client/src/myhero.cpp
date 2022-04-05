@@ -65,9 +65,16 @@ bool MyHero::moveNextMotion()
     // oops we get invalid motion queue
     g_log->addLog(LOGTYPE_INFO, "Invalid motion queue:");
 
-    m_currMotion->print();
+    m_currMotion->print([](const std::string &s)
+    {
+        g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+    });
+
     for(auto &m: m_motionQueue){
-        m->print();
+        m->print([](const std::string &s)
+        {
+            g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+        });
     }
     throw fflerror("Current motion is not valid");
 }

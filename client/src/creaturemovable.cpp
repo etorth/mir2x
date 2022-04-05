@@ -187,9 +187,16 @@ bool CreatureMovable::motionQueueValid() const
         }
         else{
             g_log->addLog(LOGTYPE_WARNING, "Invalid motion queue:");
-            m_currMotion->print();
+            m_currMotion->print([](const std::string &s)
+            {
+                g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+            });
+
             for(auto &node: m_motionQueue){
-                node->print();
+                node->print([](const std::string &s)
+                {
+                    g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+                });
             }
             return false;
         }

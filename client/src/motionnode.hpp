@@ -31,9 +31,13 @@
 #pragma once
 #include <list>
 #include <memory>
+#include <cinttypes>
 #include <functional>
+#include "mathf.hpp"
 #include "motion.hpp"
+#include "totype.hpp"
 #include "sysconst.hpp"
+#include "strf.hpp"
 #include "fflerror.hpp"
 #include "dbcomid.hpp"
 #include "protocoldef.hpp"
@@ -104,12 +108,58 @@ struct MotionNode final
             || ((type >= MOTION_NPC_BEGIN) && (type < MOTION_NPC_END));
     }
 
-    void runTrigger();
-    void addTrigger(bool, std::function<bool(MotionNode *)>);
+    void runTrigger()
+    {
+        for(auto p = m_triggerList.begin(); p != m_triggerList.end();){
+            if((*p)(this)){
+                p = m_triggerList.erase(p);
+            }
+            else{
+                p++;
+            }
+        }
+    }
 
-    void print() const;
-    double frameDelay() const;
+    void addTrigger(bool addBefore, std::function<bool(MotionNode *)> op)
+    {
+        if(op){
+            if(addBefore){
+                m_triggerList.push_front(std::move(op));
+            }
+            else{
+                m_triggerList.push_back(std::move(op));
+            }
+        }
+    }
 
-    uint64_t getSeqID() const;
-    uint64_t getSeqFrameID() const;
+    void print(const std::function<void(const std::string &)> &logFunc) const
+    {
+        if(logFunc){
+            logFunc(str_printf("[0x%p]::motion            = %s", to_cvptr(this), motionName(this->type)    ));
+            logFunc(str_printf("[0x%p]::seq               = %d", to_cvptr(this), this->seq                 ));
+            logFunc(str_printf("[0x%p]::direction         = %d", to_cvptr(this), this->direction           ));
+            logFunc(str_printf("[0x%p]::speed             = %d", to_cvptr(this), this->speed               ));
+            logFunc(str_printf("[0x%p]::x                 = %d", to_cvptr(this), this->x                   ));
+            logFunc(str_printf("[0x%p]::y                 = %d", to_cvptr(this), this->y                   ));
+            logFunc(str_printf("[0x%p]::endX              = %d", to_cvptr(this), this->endX                ));
+            logFunc(str_printf("[0x%p]::endY              = %d", to_cvptr(this), this->endY                ));
+            logFunc(str_printf("[0x%p]::frame             = %d", to_cvptr(this), this->frame               ));
+            logFunc(str_printf("[0x%p]::triggerList::size = %d", to_cvptr(this), to_d(m_triggerList.size())));
+        }
+    }
+
+    double frameDelay() const
+    {
+        return (1000.0 / to_df(SYS_DEFFPS)) / (to_df(mathf::bound<int>(speed, SYS_MINSPEED, SYS_MAXSPEED)) / 100.0);
+    }
+
+    uint64_t getSeqID() const
+    {
+        return (to_u64(this->type) << 48) | (to_u64(this->seq) << 16);
+    }
+
+    uint64_t getSeqFrameID() const
+    {
+        return (to_u64(this->type) << 48) | (to_u64(this->seq) << 16) | to_u64(this->frame);
+    }
 };
