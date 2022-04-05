@@ -23,7 +23,6 @@ class ClientStandMonster: public ClientMonster
             m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_SPAWN,
-                .seq = rollMotionSeq(),
                 .direction = endDir,
                 .x = endX,
                 .y = endY,

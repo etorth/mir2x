@@ -29,7 +29,6 @@ ClientGuard::ClientGuard(uint64_t uid, ProcessRun *proc, const ActionNode &actio
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_ATTACK0,
-                    .seq = rollMotionSeq(),
                     .direction = m_processRun->getAimDirection(action, DIR_BEGIN),
                     .x = action.x,
                     .y = action.y,
@@ -41,7 +40,6 @@ ClientGuard::ClientGuard(uint64_t uid, ProcessRun *proc, const ActionNode &actio
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
                     .x = action.x,
                     .y = action.y,
@@ -65,7 +63,6 @@ bool ClientGuard::parseAction(const ActionNode &action)
                     m_currMotion.reset(new MotionNode
                     {
                         .type = MOTION_MON_STAND,
-                        .seq = rollMotionSeq(),
                         .direction = action.direction,
                         .x = action.x,
                         .y = action.y,
@@ -78,7 +75,6 @@ bool ClientGuard::parseAction(const ActionNode &action)
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_ATTACK0,
-                    .seq = rollMotionSeq(),
                     .direction = m_processRun->getAimDirection(action, m_currMotion->direction),
                     .x = action.x,
                     .y = action.y,

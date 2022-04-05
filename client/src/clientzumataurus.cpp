@@ -13,7 +13,6 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .seq = rollMotionSeq(),
                     .direction = DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
@@ -28,7 +27,6 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                     m_currMotion.reset(new MotionNode
                     {
                         .type = MOTION_MON_STAND,
-                        .seq = rollMotionSeq(),
                         .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                         .x = action.x,
                         .y = action.y,
@@ -39,7 +37,6 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                     m_currMotion.reset(new MotionNode
                     {
                         .type = MOTION_MON_STAND,
-                        .seq = rollMotionSeq(),
                         .direction = DIR_BEGIN,
                         .x = action.x,
                         .y = action.y,
@@ -53,7 +50,6 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_ATTACK0,
-                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
@@ -69,7 +65,6 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                     // use STAND
                     // otherwise need to figure out proper (endX, endY)
                     .type = MOTION_MON_STAND,
-                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
@@ -83,7 +78,6 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_SPAWN,
-                    .seq = rollMotionSeq(),
                     .direction = DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
@@ -98,7 +92,6 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                     m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                     {
                         .type = MOTION_MON_STAND,
-                        .seq = rollMotionSeq(),
                         .direction = DIR_DOWNLEFT,
                         .x = motionPtr->x,
                         .y = motionPtr->y,
@@ -120,7 +113,6 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_HITTED,
-                    .seq = rollMotionSeq(),
                     .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
@@ -142,7 +134,6 @@ bool ClientZumaTaurus::onActionSpawn(const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
-        .seq = rollMotionSeq(),
         .direction = DIR_BEGIN,
         .x = action.x,
         .y = action.y,
@@ -181,7 +172,6 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
         {
             .type = MOTION_MON_ATTACK0,
-            .seq = rollMotionSeq(),
             .direction = [&action, endDir, coPtr]() -> int
             {
                 const auto nX = coPtr->x();
@@ -300,7 +290,6 @@ void ClientZumaTaurus::addActionTransf()
         m_forcedMotionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
         {
             .type = MOTION_MON_STAND,
-            .seq = rollMotionSeq(),
             .direction = DIR_DOWNLEFT,
             .x = motionPtr->x,
             .y = motionPtr->y,

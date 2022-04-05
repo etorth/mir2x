@@ -55,7 +55,6 @@ class ClientMonster: public CreatureMovable
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_DIE,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -75,7 +74,6 @@ class ClientMonster: public CreatureMovable
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -157,7 +155,6 @@ class ClientMonster: public CreatureMovable
             return std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_STAND,
-                .seq = rollMotionSeq(),
                 .direction = m_currMotion->direction,
                 .x = m_currMotion->endX,
                 .y = m_currMotion->endY,

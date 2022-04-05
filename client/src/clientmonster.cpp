@@ -420,7 +420,6 @@ bool ClientMonster::onActionDie(const ActionNode &action)
     m_forcedMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_DIE,
-        .seq = rollMotionSeq(),
         .direction = directionValid(dieDir) ? to_d(dieDir) : DIR_UP,
         .x = dieX,
         .y = dieY,
@@ -446,7 +445,6 @@ bool ClientMonster::onActionStand(const ActionNode &action)
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_STAND,
-        .seq = rollMotionSeq(),
         .direction = action.direction,
         .x = action.x,
         .y = action.y,
@@ -461,7 +459,6 @@ bool ClientMonster::onActionHitted(const ActionNode &action)
     m_motionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_HITTED,
-        .seq = rollMotionSeq(),
         .direction = action.direction,
         .x = action.x,
         .y = action.y,
@@ -480,7 +477,6 @@ bool ClientMonster::onActionSpaceMove(const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
-        .seq = rollMotionSeq(),
         .direction = m_currMotion->direction,
         .x = action.aimX,
         .y = action.aimY,
@@ -497,7 +493,6 @@ bool ClientMonster::onActionJump(const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
-        .seq = rollMotionSeq(),
         .direction = action.direction,
         .x = action.x,
         .y = action.y,
@@ -525,7 +520,6 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
     m_currMotion = std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_STAND,
-        .seq = rollMotionSeq(),
         .direction = [&action]() -> int
         {
             if(directionValid(action.direction)){
@@ -548,7 +542,6 @@ bool ClientMonster::onActionAttack(const ActionNode &action)
         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
         {
             .type = MOTION_MON_ATTACK0,
-            .seq = rollMotionSeq(),
             .direction = [&action, endDir, coPtr]() -> int
             {
                 const auto nX = coPtr->x();
@@ -668,7 +661,6 @@ std::unique_ptr<MotionNode> ClientMonster::makeWalkMotion(int nX0, int nY0, int 
             return std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_WALK,
-                .seq = rollMotionSeq(),
                 .direction = nDirV[nSDY][nSDX],
                 .speed = nSpeed,
                 .x = nX0,

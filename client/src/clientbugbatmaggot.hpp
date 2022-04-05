@@ -32,7 +32,6 @@ class ClientBugbatMaggot: public ClientMonster
             m_currMotion.reset(new MotionNode
             {
                 .type = MOTION_MON_STAND,
-                .seq = rollMotionSeq(),
                 .direction = DIR_BEGIN,
                 .x = action.x,
                 .y = action.y,
@@ -45,7 +44,6 @@ class ClientBugbatMaggot: public ClientMonster
             m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_ATTACK0,
-                .seq = rollMotionSeq(),
                 .direction = DIR_BEGIN,
                 .x = m_currMotion->endX,
                 .y = m_currMotion->endY,

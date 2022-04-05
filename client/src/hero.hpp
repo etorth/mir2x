@@ -170,7 +170,6 @@ class Hero: public CreatureMovable
             return std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = onHorse() ? MOTION_ONHORSESTAND : MOTION_STAND,
-                .seq = rollMotionSeq(),
                 .direction = m_currMotion->direction,
                 .x = m_currMotion->endX,
                 .y = m_currMotion->endY,

@@ -15,7 +15,6 @@ class ClientMonkZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_SPAWN,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,
@@ -42,7 +41,6 @@ class ClientMonkZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_DIE,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,
@@ -54,7 +52,6 @@ class ClientMonkZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,

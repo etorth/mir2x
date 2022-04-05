@@ -97,7 +97,6 @@ class ClientNPC: public ClientCreature
             return std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_NPC_ACT,
-                .seq = rollMotionSeq(),
                 .direction = m_currMotion->direction,
                 .x = m_currMotion->endX,
                 .y = m_currMotion->endY,

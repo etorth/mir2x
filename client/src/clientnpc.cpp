@@ -222,7 +222,6 @@ bool ClientNPC::parseAction(const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = motion,
-        .seq = rollMotionSeq(),
         .direction = action.direction,
         .x = action.x,
         .y = action.y,

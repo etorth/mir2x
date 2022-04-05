@@ -12,7 +12,6 @@ ClientEvilCentipede::ClientEvilCentipede(uint64_t uid, ProcessRun *proc, const A
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .seq = rollMotionSeq(),
                     .direction = DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
@@ -26,7 +25,6 @@ ClientEvilCentipede::ClientEvilCentipede(uint64_t uid, ProcessRun *proc, const A
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .seq = rollMotionSeq(),
                     .direction = DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
@@ -40,7 +38,6 @@ ClientEvilCentipede::ClientEvilCentipede(uint64_t uid, ProcessRun *proc, const A
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_ATTACK0,
-                    .seq = rollMotionSeq(),
                     .direction = DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
@@ -54,7 +51,6 @@ ClientEvilCentipede::ClientEvilCentipede(uint64_t uid, ProcessRun *proc, const A
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_SPAWN,
-                    .seq = rollMotionSeq(),
                     .direction = DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
@@ -68,7 +64,6 @@ ClientEvilCentipede::ClientEvilCentipede(uint64_t uid, ProcessRun *proc, const A
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_HITTED,
-                    .seq = rollMotionSeq(),
                     .direction = DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
@@ -90,7 +85,6 @@ bool ClientEvilCentipede::onActionSpawn(const ActionNode &)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
-        .seq = rollMotionSeq(),
         .direction = DIR_BEGIN,
         .x = x(),
         .y = y(),
@@ -126,7 +120,6 @@ bool ClientEvilCentipede::onActionAttack(const ActionNode &)
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_ATTACK0,
-        .seq = rollMotionSeq(),
         .direction = DIR_BEGIN,
         .x = x(),
         .y = y(),
@@ -143,7 +136,6 @@ bool ClientEvilCentipede::onActionHitted(const ActionNode &)
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_HITTED,
-        .seq = rollMotionSeq(),
         .direction = DIR_BEGIN,
         .x = x(),
         .y = y(),

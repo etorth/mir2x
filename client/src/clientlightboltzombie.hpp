@@ -16,7 +16,6 @@ class ClientLightBoltZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_DIE,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.type) ? to_d(action.type) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -28,7 +27,6 @@ class ClientLightBoltZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.type) ? to_d(action.type) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -46,7 +44,6 @@ class ClientLightBoltZombie: public ClientMonster
             m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
             {
                 .type = MOTION_MON_ATTACK0,
-                .seq = rollMotionSeq(),
                 .direction = m_processRun->getAimDirection(action, endDir),
                 .x = action.x,
                 .y = action.y,

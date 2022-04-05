@@ -50,7 +50,6 @@ Hero::Hero(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_STAND,
-        .seq = rollMotionSeq(),
         .direction = DIR_DOWN,
         .x = action.x,
         .y = action.y,
@@ -575,7 +574,6 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_STAND;
                     }(),
 
-                    .seq = rollMotionSeq(),
                     .direction = action.direction,
                     .x = action.x,
                     .y = action.y,
@@ -587,7 +585,6 @@ bool Hero::parseAction(const ActionNode &action)
                 m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                 {
                     .type = MOTION_SPINKICK,
-                    .seq = rollMotionSeq(),
                     .direction = [&action, this]() -> int
                     {
                         if(action.aimUID){
@@ -689,7 +686,6 @@ bool Hero::parseAction(const ActionNode &action)
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = motionSpell,
-                            .seq = rollMotionSeq(),
                             .direction = standDir,
                             .x = action.x,
                             .y = action.y,
@@ -1020,7 +1016,6 @@ bool Hero::parseAction(const ActionNode &action)
                                 m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                                 {
                                     .type = MOTION_ATTACKMODE,
-                                    .seq = rollMotionSeq(),
                                     .direction = standDir,
                                     .x = action.x,
                                     .y = action.y,
@@ -1063,7 +1058,6 @@ bool Hero::parseAction(const ActionNode &action)
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = swingMotion,
-                            .seq = rollMotionSeq(),
                             .direction = attackDir,
                             .speed = motionSpeed,
                             .x = action.x,
@@ -1080,7 +1074,6 @@ bool Hero::parseAction(const ActionNode &action)
                         m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                         {
                             .type = MOTION_ATTACKMODE,
-                            .seq = rollMotionSeq(),
                             .direction = attackDir,
                             .x = action.x,
                             .y = action.y,
@@ -1105,7 +1098,6 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_HITTED;
                     }(),
 
-                    .seq = rollMotionSeq(),
                     .direction = endDir,
                     .x = endX,
                     .y = endY,
@@ -1149,7 +1141,6 @@ bool Hero::parseAction(const ActionNode &action)
                         return MOTION_DIE;
                     }(),
 
-                    .seq = rollMotionSeq(),
                     .direction = dieDir,
                     .x = dieX,
                     .y = dieY,
@@ -1295,7 +1286,6 @@ std::unique_ptr<MotionNode> Hero::makeWalkMotion(int nX0, int nY0, int nX1, int 
         return std::unique_ptr<MotionNode>(new MotionNode
         {
             .type = nMotion,
-            .seq = rollMotionSeq(),
             .direction = nDirV[nSDY][nSDX],
             .speed = nSpeed,
             .x = nX0,
@@ -1487,7 +1477,6 @@ void Hero::jumpLoc(int x, int y, int direction)
             return MOTION_STAND;
         }(),
 
-        .seq = rollMotionSeq(),
         .direction = direction,
         .x = x,
         .y = y,

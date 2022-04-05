@@ -16,7 +16,6 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -30,7 +29,6 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -44,7 +42,6 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_ATTACK0,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -58,7 +55,6 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_SPAWN,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -72,7 +68,6 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_SPAWN,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
@@ -86,7 +81,6 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_HITTED,
-                            .seq = rollMotionSeq(),
                             .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,

@@ -31,6 +31,8 @@
 #pragma once
 #include <list>
 #include <memory>
+#include <cstdint>
+#include <climits>
 #include <cinttypes>
 #include <functional>
 #include "mathf.hpp"
@@ -78,10 +80,8 @@ struct MotionNode final
     ////                                                                   ////
     ///////////////////////////////////////////////////////////////////////////
     /**/                                                                   /**/
-    /**/    const int type = MOTION_NONE;                                  /**/
-    /**/    const int seq  = 0;                                            /**/
-    /**/                                                                   /**/
-    /**/    const int direction = DIR_NONE;                                /**/
+    /**/    const int type      =  MOTION_NONE;                            /**/
+    /**/    const int direction =     DIR_NONE;                            /**/
     /**/    /***/ int speed     = SYS_DEFSPEED;                            /**/
     /**/                                                                   /**/
     /**/    const int x = -1;                                              /**/
@@ -97,8 +97,25 @@ struct MotionNode final
     ///////////////////////////////////////////////////////////////////////////
 
     // private members
-    // make it public to support init by initializer_list
+    // make public to support init by initializer_list
+
+    const uint32_t m_seq = []()
+    {
+        // if use ClientCreature::m_motionSeqRoller, needs make it mutable
+        // because ClientCreature::makeIdleMotion() changes it but which needs const-qualified *this*
+
+        if(static uint32_t rollMotionSeq = 1; rollMotionSeq == UINT32_MAX){
+            return rollMotionSeq = 1;
+        }
+        else{
+            return ++rollMotionSeq;
+        }
+    }();
+
     std::list<std::function<bool(MotionNode *)>> m_triggerList {};
+
+    // public member functions
+    // private member function get implemeted as anonymous lambdas
 
     operator bool () const
     {
@@ -135,16 +152,15 @@ struct MotionNode final
     void print(const std::function<void(const std::string &)> &logFunc) const
     {
         if(logFunc){
-            logFunc(str_printf("[0x%p]::motion            = %s", to_cvptr(this), motionName(this->type)    ));
-            logFunc(str_printf("[0x%p]::seq               = %d", to_cvptr(this), this->seq                 ));
-            logFunc(str_printf("[0x%p]::direction         = %d", to_cvptr(this), this->direction           ));
-            logFunc(str_printf("[0x%p]::speed             = %d", to_cvptr(this), this->speed               ));
-            logFunc(str_printf("[0x%p]::x                 = %d", to_cvptr(this), this->x                   ));
-            logFunc(str_printf("[0x%p]::y                 = %d", to_cvptr(this), this->y                   ));
-            logFunc(str_printf("[0x%p]::endX              = %d", to_cvptr(this), this->endX                ));
-            logFunc(str_printf("[0x%p]::endY              = %d", to_cvptr(this), this->endY                ));
-            logFunc(str_printf("[0x%p]::frame             = %d", to_cvptr(this), this->frame               ));
-            logFunc(str_printf("[0x%p]::triggerList::size = %d", to_cvptr(this), to_d(m_triggerList.size())));
+            logFunc(str_printf("[%llu]::motion            = %s", to_llu(m_seq), motionName(this->type)    ));
+            logFunc(str_printf("[%llu]::direction         = %d", to_llu(m_seq), this->direction           ));
+            logFunc(str_printf("[%llu]::speed             = %d", to_llu(m_seq), this->speed               ));
+            logFunc(str_printf("[%llu]::x                 = %d", to_llu(m_seq), this->x                   ));
+            logFunc(str_printf("[%llu]::y                 = %d", to_llu(m_seq), this->y                   ));
+            logFunc(str_printf("[%llu]::endX              = %d", to_llu(m_seq), this->endX                ));
+            logFunc(str_printf("[%llu]::endY              = %d", to_llu(m_seq), this->endY                ));
+            logFunc(str_printf("[%llu]::frame             = %d", to_llu(m_seq), this->frame               ));
+            logFunc(str_printf("[%llu]::triggerList::size = %d", to_llu(m_seq), to_d(m_triggerList.size())));
         }
     }
 
@@ -155,11 +171,11 @@ struct MotionNode final
 
     uint64_t getSeqID() const
     {
-        return (to_u64(this->type) << 48) | (to_u64(this->seq) << 16);
+        return (to_u64(this->type) << 48) | (to_u64(m_seq) << 16);
     }
 
     uint64_t getSeqFrameID() const
     {
-        return (to_u64(this->type) << 48) | (to_u64(this->seq) << 16) | to_u64(this->frame);
+        return (to_u64(this->type) << 48) | (to_u64(m_seq) << 16) | to_u64(this->frame);
     }
 };

@@ -7,7 +7,6 @@ bool ClientNumaWizard::onActionAttack_fireBall(const ActionNode &action)
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_ATTACK0,
-        .seq = rollMotionSeq(),
         .direction = m_processRun->getAimDirection(action, currMotion()->direction),
         .x = action.x,
         .y = action.y,
@@ -57,7 +56,6 @@ bool ClientNumaWizard::onActionAttack_thunderBolt(const ActionNode &action)
     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_ATTACK0,
-        .seq = rollMotionSeq(),
         .direction = m_processRun->getAimDirection(action, currMotion()->direction),
         .x = action.x,
         .y = action.y,

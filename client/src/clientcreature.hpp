@@ -338,18 +338,4 @@ class ClientCreature
 
     public:
         virtual void setBuff(int, int);
-
-    public:
-        static int rollMotionSeq()
-        {
-            // if use m_motionSeqRoller, needs make it mutable
-            // because this->makeIdleMotion() calls rollMotionSeq() but which needs const-qualified *this*
-
-            if(static int motionSeqRoller = 1; motionSeqRoller == INT_MAX){
-                return motionSeqRoller = 1;
-            }
-            else{
-                return ++motionSeqRoller;
-            }
-        }
 };
