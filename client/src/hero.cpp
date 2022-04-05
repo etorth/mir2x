@@ -338,13 +338,38 @@ bool Hero::update(double ms)
 
         const auto fnPlayHittedSound = [this]() // TODO: check attacker's weapon category
         {
-            if(const auto dressItemID = getWLItem(WLG_DRESS).itemID; DBCOM_ITEMRECORD(dressItemID)){
-                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 80));
-            }
-            else{
-                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 70));
-            }
             g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01030000 + (gender() ? 138 : 139)));
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve([this]() -> uint32_t
+            {
+                const bool hasDress = DBCOM_ITEMRECORD(getWLItem(WLG_DRESS).itemID);
+                switch(const auto fromUID = m_currMotion->extParam.hitted.fromUID; uidf::getUIDType(fromUID)){
+                    case UID_MON:
+                        {
+                            return 0X01010000 + (hasDress ? 83 : 73);
+                        }
+                    case UID_PLY:
+                        {
+                            if(const auto plyPtr = m_processRun->findUID(fromUID)){
+                                if(const auto itemID = dynamic_cast<const Hero *>(plyPtr)->getWLItem(WLG_WEAPON).itemID){
+                                    const auto &ir = DBCOM_ITEMRECORD(itemID);
+                                    fflassert(ir);
+
+                                    if     (ir.equip.weapon.category == u8"匕首") return 0X01010000 + (hasDress ? 80 : 70);
+                                    else if(ir.equip.weapon.category == u8"木剑") return 0X01010000 + (hasDress ? 82 : 72);
+                                    else if(ir.equip.weapon.category == u8"剑"  ) return 0X01010000 + (hasDress ? 80 : 70);
+                                    else if(ir.equip.weapon.category == u8"刀"  ) return 0X01010000 + (hasDress ? 80 : 70);
+                                    else if(ir.equip.weapon.category == u8"斧"  ) return 0X01010000 + (hasDress ? 81 : 71);
+                                    else if(ir.equip.weapon.category == u8"锏"  ) return 0X01010000 + (hasDress ? 80 : 70);
+                                }
+                            }
+                            return 0X01010000 + (hasDress ? 83 : 73);
+                        }
+                    default:
+                        {
+                            return 0X01010000 + (hasDress ? 83 : 73);
+                        }
+                }
+            }()));
         };
 
         switch(m_currMotion->type){
