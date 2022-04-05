@@ -37,8 +37,6 @@ YouTube links: [1](https://youtu.be/3Xne8UHlOl0) [2](https://youtu.be/jl1LPxe2EA
 
 <https://user-images.githubusercontent.com/1754214/161677834-e8f7f6af-c15c-4a29-8e3f-5980817d4c38.mp4>
 
-<img src="https://github.com/etorth/mir2x/raw/master/readme/mapeditor.png" width="800" height="520"/>
-
 
 ### Windows
 
