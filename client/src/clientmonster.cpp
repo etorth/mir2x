@@ -138,7 +138,7 @@ bool ClientMonster::update(double ms)
             case MOTION_MON_HITTED:
                 {
                     if(m_currMotion->frame == 0){
-                        g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 60));
+                        g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 61));
                     }
                     break;
                 }
