@@ -61,9 +61,15 @@ struct MotionNode final
         }
         attack{};
 
+        struct MotionHitted
+        {
+            const uint64_t fromUID = 0;
+        }
+        hitted{};
+
         struct MotionDie
         {
-            int fadeOut = 0;
+            int fadeOut = 0; //mutable during update
         }
         die{};
 

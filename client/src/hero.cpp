@@ -1101,6 +1101,13 @@ bool Hero::parseAction(const ActionNode &action)
                     .direction = endDir,
                     .x = endX,
                     .y = endY,
+                    .extParam
+                    {
+                        .hitted
+                        {
+                            .fromUID = action.fromUID,
+                        },
+                    },
                 }));
 
                 m_motionQueue.front()->addTrigger(true, [this](MotionNode *) -> bool

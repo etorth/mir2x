@@ -51,9 +51,15 @@ struct ActionNode
 
     uint16_t x;
     uint16_t y;
+
     uint16_t aimX;
     uint16_t aimY;
-    uint64_t aimUID;
+
+    union
+    {
+        uint64_t  aimUID;
+        uint64_t fromUID; // for ACTION_HITTED
+    };
 
     struct ExtParamStand
     {
@@ -480,6 +486,7 @@ struct ActionHitted
     const int x = -1;
     const int y = -1;
     const int direction = DIR_NONE;
+    const uint64_t fromUID = 0;
     const ActionNode::ExtParamHitted extParam = {};
 
     operator ActionNode () const
@@ -492,6 +499,7 @@ struct ActionHitted
         node.x = x;
         node.y = y;
         node.direction = direction;
+        node.fromUID = fromUID;
 
         node.extParam.hitted = extParam;
         return node;

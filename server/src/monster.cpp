@@ -1625,6 +1625,7 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
                         .x = X(),
                         .y = Y(),
                         .direction = Direction(),
+                        .fromUID = amA.UID,
                     });
 
                     struckDamage(amA.UID, amA.damage);

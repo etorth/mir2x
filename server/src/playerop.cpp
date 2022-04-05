@@ -354,6 +354,7 @@ void Player::on_AM_ATTACK(const ActorMsgPack &mpk)
         .x = X(),
         .y = Y(),
         .direction = Direction(),
+        .fromUID = amA.UID,
     });
     struckDamage(amA.UID, amA.damage);
     reportAction(UID(), mapID(), ActionHitted
@@ -361,6 +362,7 @@ void Player::on_AM_ATTACK(const ActorMsgPack &mpk)
         .x = X(),
         .y = Y(),
         .direction = Direction(),
+        .fromUID = amA.UID,
     });
 }
 

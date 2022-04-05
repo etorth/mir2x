@@ -128,8 +128,6 @@ bool ClientMonster::update(double ms)
     const CallOnExitHelper motionOnUpdate([lastSeqFrameID = m_currMotion->getSeqFrameID(), this]()
     {
         m_currMotion->runTrigger();
-
-        // check soundeffectdb.cpp for more detailed comments
         if(lastSeqFrameID == m_currMotion->getSeqFrameID()){
             return;
         }
@@ -138,7 +136,38 @@ bool ClientMonster::update(double ms)
             case MOTION_MON_HITTED:
                 {
                     if(m_currMotion->frame == 0){
-                        g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 61));
+                        switch(const auto fromUID = m_currMotion->extParam.hitted.fromUID; uidf::getUIDType(fromUID)){
+                            case UID_MON:
+                                {
+                                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 61));
+                                    break;
+                                }
+                            case UID_PLY:
+                                {
+                                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve([fromUID, this]() -> uint32_t
+                                    {
+                                        if(const auto plyPtr = m_processRun->findUID(fromUID)){
+                                            if(const auto itemID = dynamic_cast<const Hero *>(plyPtr)->getWLItem(WLG_WEAPON).itemID){
+                                                const auto &ir = DBCOM_ITEMRECORD(itemID);
+                                                fflassert(ir);
+
+                                                if     (ir.equip.weapon.category == u8"匕首") return 0X01010000 + 60;
+                                                else if(ir.equip.weapon.category == u8"木剑") return 0X01010000 + 61;
+                                                else if(ir.equip.weapon.category == u8"剑"  ) return 0X01010000 + 62;
+                                                else if(ir.equip.weapon.category == u8"刀"  ) return 0X01010000 + 63;
+                                                else if(ir.equip.weapon.category == u8"斧"  ) return 0X01010000 + 64;
+                                                else if(ir.equip.weapon.category == u8"锏"  ) return 0X01010000 + 65;
+                                            }
+                                        }
+                                        return 0X01010000 + 61; // use 木剑 sound effect as default
+                                    }()));
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                        }
                     }
                     break;
                 }
@@ -462,6 +491,13 @@ bool ClientMonster::onActionHitted(const ActionNode &action)
         .direction = action.direction,
         .x = action.x,
         .y = action.y,
+        .extParam
+        {
+            .hitted
+            {
+                .fromUID = action.fromUID,
+            },
+        },
     }));
     return true;
 }
