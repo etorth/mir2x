@@ -50,8 +50,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -81,8 +81,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           {SYS_U32NIL, 0X08000003, 0X08000004},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -113,8 +113,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -143,8 +143,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           {SYS_U32NIL, 0X08000007, 0X08000008},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -173,8 +173,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           {SYS_U32NIL, 0X08000005, 0X08000006},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -206,8 +206,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           {SYS_U32NIL, 0X08000009, 0X0800000A},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -241,8 +241,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -271,8 +271,8 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           {SYS_U32NIL, 0X0800000B, 0X0800000C},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,

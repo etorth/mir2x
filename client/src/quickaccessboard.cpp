@@ -50,8 +50,8 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
           {SYS_U32NIL, 0X00000061, 0X00000062},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,

@@ -54,8 +54,8 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
 
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -94,8 +94,8 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
 
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,

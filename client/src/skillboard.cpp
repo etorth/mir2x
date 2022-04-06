@@ -123,8 +123,8 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMag
 
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -306,8 +306,8 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
 
                   {
                       0X01020000 + 103,
-                      0X01020000 + 103,
-                      0X01020000 + 103,
+                      SYS_U32NIL,
+                      0X01020000 + 105,
                   },
 
                   [i, this]()
@@ -405,8 +405,8 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,

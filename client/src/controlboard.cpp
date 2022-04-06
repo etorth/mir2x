@@ -116,8 +116,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X0B000000, 0X0B000001},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -147,8 +147,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X0000001E, 0X0000001F},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -176,8 +176,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000020, 0X00000021},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -284,8 +284,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000030, 0X00000031},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -315,8 +315,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000033, 0X00000032},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -346,8 +346,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000035, 0X00000034},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -377,8 +377,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000036, 0X00000037},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -408,8 +408,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000038, 0X00000039},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -439,8 +439,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X0000003A, 0X0000003B},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -470,8 +470,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X0000003C, 0X0000003D},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -501,8 +501,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X0000003E, 0X0000003F},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -532,8 +532,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000040, 0X00000041},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -593,8 +593,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000028, 0X00000029},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -622,8 +622,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000023, 0X00000024},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -648,8 +648,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           {SYS_U32NIL, 0X00000025, 0X00000026},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,

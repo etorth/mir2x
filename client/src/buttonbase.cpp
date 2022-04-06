@@ -159,8 +159,8 @@ void ButtonBase::onClick()
         m_onClick();
     }
 
-    if(m_seffID[0] != SYS_U32NIL){
-        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[0])));
+    if(m_seffID[2] != SYS_U32NIL){
+        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[2])));
     }
 }
 
@@ -170,8 +170,8 @@ void ButtonBase::onOverIn()
         m_onOverIn();
     }
 
-    if(m_seffID[1] != SYS_U32NIL){
-        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[1])));
+    if(m_seffID[0] != SYS_U32NIL){
+        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[0])));
     }
 }
 
@@ -181,8 +181,8 @@ void ButtonBase::onOverOut()
         m_onOverOut();
     }
 
-    if(m_seffID[2] != SYS_U32NIL){
-        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[2])));
+    if(m_seffID[1] != SYS_U32NIL){
+        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[1])));
     }
 }
 

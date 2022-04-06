@@ -119,8 +119,8 @@ ProcessCreateAccount::ProcessCreateAccount()
 
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -147,8 +147,8 @@ ProcessCreateAccount::ProcessCreateAccount()
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,

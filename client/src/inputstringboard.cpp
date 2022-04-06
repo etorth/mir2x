@@ -76,8 +76,8 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
           {0X07000001, 0X07000002, 0X07000003},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
@@ -107,8 +107,8 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
           {0X07000004, 0X07000005, 0X07000006},
           {
               0X01020000 + 103,
-              0X01020000 + 103,
-              0X01020000 + 103,
+              SYS_U32NIL,
+              0X01020000 + 105,
           },
 
           nullptr,
