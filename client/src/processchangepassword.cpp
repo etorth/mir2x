@@ -152,6 +152,12 @@ ProcessChangePassword::ProcessChangePassword()
               0X0800000C,
           },
 
+          {
+              0X01020000 + 103,
+              0X01020000 + 103,
+              0X01020000 + 103,
+          },
+
           nullptr,
           nullptr,
           [this]()
@@ -174,6 +180,11 @@ ProcessChangePassword::ProcessChangePassword()
           m_x + 400,
           m_y + 288,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
+          {
+              0X01020000 + 103,
+              0X01020000 + 103,
+              0X01020000 + 103,
+          },
 
           nullptr,
           nullptr,

@@ -121,6 +121,12 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMag
               SkillBoard::getMagicIconGfx(argMagicID).magicIcon,
           },
 
+          {
+              0X01020000 + 103,
+              0X01020000 + 103,
+              0X01020000 + 103,
+          },
+
           nullptr,
           nullptr,
           nullptr,
@@ -298,6 +304,12 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
                       0X05000030 + to_u32(i),
                   },
 
+                  {
+                      0X01020000 + 103,
+                      0X01020000 + 103,
+                      0X01020000 + 103,
+                  },
+
                   [i, this]()
                   {
                       m_cursorOnTabIndex = i;
@@ -391,6 +403,11 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           317,
           402,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
+          {
+              0X01020000 + 103,
+              0X01020000 + 103,
+              0X01020000 + 103,
+          },
 
           nullptr,
           nullptr,

@@ -68,6 +68,11 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           100,
           100,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
+          {
+              0X01020000 + 103,
+              0X01020000 + 103,
+              0X01020000 + 103,
+          },
 
           nullptr,
           nullptr,

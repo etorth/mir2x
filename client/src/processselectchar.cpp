@@ -18,10 +18,10 @@ extern PNGTexOffDB *g_selectCharDB;
 
 ProcessSelectChar::ProcessSelectChar()
     : Process()
-	, m_start (DIR_UPLEFT, 335,  75, {0X0C000030, 0X0C000030, 0X0C000031}, nullptr, nullptr, [this](){ onStart (); })
-	, m_create(DIR_UPLEFT, 565, 130, {0X0C000010, 0X0C000010, 0X0C000011}, nullptr, nullptr, [this](){ onCreate(); })
-	, m_delete(DIR_UPLEFT, 110, 305, {0X0C000020, 0X0C000020, 0X0C000021}, nullptr, nullptr, [this](){ onDelete(); })
-	, m_exit  (DIR_UPLEFT,  45, 544, {0X0C000040, 0X0C000040, 0X0C000041}, nullptr, nullptr, [this](){ onExit  (); })
+	, m_start (DIR_UPLEFT, 335,  75, {0X0C000030, 0X0C000030, 0X0C000031}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ onStart (); })
+	, m_create(DIR_UPLEFT, 565, 130, {0X0C000010, 0X0C000010, 0X0C000011}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ onCreate(); })
+	, m_delete(DIR_UPLEFT, 110, 305, {0X0C000020, 0X0C000020, 0X0C000021}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ onDelete(); })
+	, m_exit  (DIR_UPLEFT,  45, 544, {0X0C000040, 0X0C000040, 0X0C000041}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ onExit  (); })
 
     , m_notifyBoard
       {

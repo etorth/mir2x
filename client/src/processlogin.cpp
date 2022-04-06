@@ -38,10 +38,10 @@ extern BGMusicDB *g_bgmDB;
 
 ProcessLogin::ProcessLogin()
 	: Process()
-	, m_button1(DIR_UPLEFT, 150, 482, {0X00000005, 0X00000006, 0X00000007}, nullptr, nullptr, [this](){ doCreateAccount();  })
-	, m_button2(DIR_UPLEFT, 352, 482, {0X00000008, 0X00000009, 0X0000000A}, nullptr, nullptr, [this](){ doChangePassword(); })
-	, m_button3(DIR_UPLEFT, 554, 482, {0X0000000B, 0X0000000C, 0X0000000D}, nullptr, nullptr, [this](){ doExit();           })
-    , m_button4(DIR_UPLEFT, 600, 536, {0X0000000E, 0X0000000F, 0X00000010}, nullptr, nullptr, [this](){ doLogin();          })
+	, m_button1(DIR_UPLEFT, 150, 482, {0X00000005, 0X00000006, 0X00000007}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ doCreateAccount();  })
+	, m_button2(DIR_UPLEFT, 352, 482, {0X00000008, 0X00000009, 0X0000000A}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ doChangePassword(); })
+	, m_button3(DIR_UPLEFT, 554, 482, {0X0000000B, 0X0000000C, 0X0000000D}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ doExit();           })
+    , m_button4(DIR_UPLEFT, 600, 536, {0X0000000E, 0X0000000F, 0X00000010}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ doLogin();          })
 	, m_idBox
       {
           DIR_UPLEFT,

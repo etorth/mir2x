@@ -17,11 +17,11 @@ extern PNGTexOffDB *g_selectCharDB;
 
 ProcessCreateChar::ProcessCreateChar()
     : Process()
-    , m_warrior(DIR_UPLEFT, 339, 539, {0X0D000030, 0X0D000031, 0X0D000032}, nullptr, nullptr, [this](){ m_job = JOB_WARRIOR; })
-    , m_wizard (DIR_UPLEFT, 381, 539, {0X0D000040, 0X0D000041, 0X0D000042}, nullptr, nullptr, [this](){ m_job = JOB_WIZARD ; })
-    , m_taoist (DIR_UPLEFT, 424, 539, {0X0D000050, 0X0D000051, 0X0D000052}, nullptr, nullptr, [this](){ m_job = JOB_TAOIST ; })
-    , m_submit (DIR_UPLEFT, 512, 549, {0X0D000010, 0X0D000011, 0X0D000012}, nullptr, nullptr, [this](){ onSubmit(); }, 0, 0, 0, 0, true, false)
-    , m_exit   (DIR_UPLEFT, 554, 549, {0X0D000020, 0X0D000021, 0X0D000022}, nullptr, nullptr, [this](){ onExit();   }, 0, 0, 0, 0, true, false)
+    , m_warrior(DIR_UPLEFT, 339, 539, {0X0D000030, 0X0D000031, 0X0D000032}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ m_job = JOB_WARRIOR; })
+    , m_wizard (DIR_UPLEFT, 381, 539, {0X0D000040, 0X0D000041, 0X0D000042}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ m_job = JOB_WIZARD ; })
+    , m_taoist (DIR_UPLEFT, 424, 539, {0X0D000050, 0X0D000051, 0X0D000052}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ m_job = JOB_TAOIST ; })
+    , m_submit (DIR_UPLEFT, 512, 549, {0X0D000010, 0X0D000011, 0X0D000012}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ onSubmit(); }, 0, 0, 0, 0, true, false)
+    , m_exit   (DIR_UPLEFT, 554, 549, {0X0D000020, 0X0D000021, 0X0D000022}, {0X01020000 + 103, 0X01020000 + 103, 0X01020000 + 103}, nullptr, nullptr, [this](){ onExit();   }, 0, 0, 0, 0, true, false)
 
     , m_nameLine
       {

@@ -117,6 +117,12 @@ ProcessCreateAccount::ProcessCreateAccount()
               0X0800000C,
           },
 
+          {
+              0X01020000 + 103,
+              0X01020000 + 103,
+              0X01020000 + 103,
+          },
+
           nullptr,
           nullptr,
           [this]()
@@ -139,6 +145,11 @@ ProcessCreateAccount::ProcessCreateAccount()
           m_x + 400,
           m_y + 267,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
+          {
+              0X01020000 + 103,
+              0X01020000 + 103,
+              0X01020000 + 103,
+          },
 
           nullptr,
           nullptr,
