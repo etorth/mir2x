@@ -126,8 +126,7 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        focus(false);
-        return false;
+        return focusConsume(this, false);
     }
 
     if(!show()){
@@ -149,13 +148,9 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
                     moveBy(newX - x(), newY - y());
-
-                    focus(true);
-                    return true;
+                    return focusConsume(this, true);
                 }
-
-                focus(false);
-                return false;
+                return focusConsume(this, false);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
@@ -185,18 +180,15 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
                             }
 
                             if(in(event.button.x, event.button.y)){
-                                focus(true);
-                                return true;
+                                return focusConsume(this, true);
                             }
                             else{
-                                focus(false);
-                                return false;
+                                return focusConsume(this, false);
                             }
                         }
                     default:
                         {
-                            focus(false);
-                            return false;
+                            return focusConsume(this, false);
                         }
                 }
             }
