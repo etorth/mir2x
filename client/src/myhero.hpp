@@ -165,15 +165,8 @@ class MyHero: public Hero
         void flushForcedMotion() override;
 
     public:
-        void setBelt(SDBelt belt)
-        {
-            m_sdBelt = std::move(belt);
-        }
-
-        void setBelt(int slot, SDItem item)
-        {
-            m_sdBelt.list.at(slot) = std::move(item);
-        }
+        void setBelt(SDBelt);
+        void setBelt(int, SDItem, bool playSound = true);
 
     public:
         bool canWear(uint32_t, int) const;

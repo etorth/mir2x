@@ -674,6 +674,19 @@ void MyHero::flushForcedMotion()
     m_actionQueue.clear();
 }
 
+void MyHero::setBelt(SDBelt belt)
+{
+    m_sdBelt = std::move(belt);
+}
+
+void MyHero::setBelt(int slot, SDItem item, bool playSound)
+{
+    if(item && playSound){
+        InvPack::playItemSoundEffect(itemID);
+    }
+    m_sdBelt.list.at(slot) = std::move(item);
+}
+
 bool MyHero::canWear(uint32_t itemID, int wltype) const
 {
     fflassert(itemID, itemID);

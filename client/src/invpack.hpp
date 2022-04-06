@@ -70,8 +70,8 @@ class InvPack
         }
 
     public:
-        void add(SDItem);
-        void add(SDItem, int, int);
+        void add(SDItem, bool playSound = true);
+        void add(SDItem, int, int, bool playSound = true);
 
     public:
         int update(SDItem);

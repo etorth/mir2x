@@ -38,14 +38,16 @@ int InvPack::getWeight() const
     return weight;
 }
 
-void InvPack::add(SDItem item)
+void InvPack::add(SDItem item, bool playSound)
 {
     fflassert(item);
     for(auto &bin: m_packBinList){
         if((bin.item.itemID == item.itemID) && (bin.item.seqID == item.seqID)){
             if(bin.item.count + item.count <= SYS_INVGRIDMAXHOLD){
                 bin.item.count += item.count;
-                playItemSoundEffect(item.itemID);
+                if(playSound){
+                    playItemSoundEffect(item.itemID);
+                }
                 return;
             }
             else{
@@ -65,16 +67,18 @@ void InvPack::add(SDItem item)
     auto addedBin = makePackBin(item);
     pack2D.add(addedBin);
     m_packBinList.push_back(addedBin);
-    playItemSoundEffect(item.itemID);
+    if(playSound){
+        playItemSoundEffect(item.itemID);
+    }
 }
 
-void InvPack::add(SDItem item, int x, int y)
+void InvPack::add(SDItem item, int x, int y, bool playSound)
 {
     fflassert(item);
     auto itemBin = makePackBin(item);
 
     if(!(x >= 0 && x + itemBin.w <= to_d(w()) && y >= 0)){
-        add(item);
+        add(item, playSound);
         return;
     }
 
@@ -84,13 +88,17 @@ void InvPack::add(SDItem item, int x, int y)
     }
 
     if(pack2D.occupied(x, y, itemBin.w, itemBin.h, true)){
-        add(item);
+        add(item, playSound);
         return;
     }
 
     itemBin.x = x;
     itemBin.y = y;
     m_packBinList.push_back(itemBin);
+
+    if(playSound){
+        playItemSoundEffect(item.itemID);
+    }
 }
 
 int InvPack::update(SDItem item)
@@ -190,7 +198,7 @@ void InvPack::setInventory(const SDInventory &sdInv)
 {
     m_packBinList.clear();
     for(const auto &item: sdInv.getItemList()){
-        add(item);
+        add(item, false);
     }
 }
 
