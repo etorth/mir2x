@@ -153,7 +153,7 @@ ProcessChangePassword::ProcessChangePassword()
           },
 
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },
@@ -181,7 +181,7 @@ ProcessChangePassword::ProcessChangePassword()
           m_y + 288,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },

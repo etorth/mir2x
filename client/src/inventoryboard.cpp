@@ -58,7 +58,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           12,
           {SYS_U32NIL, 0X000000C0, 0X000000C1},
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },
@@ -87,7 +87,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           498,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },
@@ -122,7 +122,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           },
 
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },

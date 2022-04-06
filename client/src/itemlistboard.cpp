@@ -48,7 +48,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           163,
           {SYS_U32NIL, 0X08000007, 0X08000008},
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },
@@ -78,7 +78,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           163,
           {SYS_U32NIL, 0X08000005, 0X08000006},
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },
@@ -108,7 +108,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           163,
           {SYS_U32NIL, 0X08000009, 0X0800000A},
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },
@@ -138,7 +138,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           159,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },

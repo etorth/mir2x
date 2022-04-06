@@ -105,7 +105,7 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
           13,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               0X01020000 + 105,
           },
