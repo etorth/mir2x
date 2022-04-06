@@ -682,7 +682,7 @@ void MyHero::setBelt(SDBelt belt)
 void MyHero::setBelt(int slot, SDItem item, bool playSound)
 {
     if(item && playSound){
-        InvPack::playItemSoundEffect(itemID);
+        InvPack::playItemSoundEffect(item.itemID);
     }
     m_sdBelt.list.at(slot) = std::move(item);
 }
