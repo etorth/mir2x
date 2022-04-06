@@ -31,7 +31,6 @@
 #include "uidf.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
-#include "soundeffectdb.hpp"
 #include "raiitimer.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
@@ -39,9 +38,7 @@
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
-extern SoundEffectDB *g_seffDB;
 extern SDLDevice *g_sdlDevice;
-
 void ProcessRun::net_STARTGAMESCENE(const uint8_t *buf, size_t bufSize)
 {
     auto sdSGS = cerealf::deserialize<SDStartGameScene>(buf, bufSize);
@@ -677,16 +674,8 @@ void ProcessRun::net_EQUIPWEAR(const uint8_t *buf, size_t bufSize)
         coPtr->setWLItem(sdEW.wltype, std::move(sdEW.item));
     }
 
-    switch(sdEW.wltype){
-        case WLG_DRESS   : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 112)); break;
-        case WLG_HELMET  : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 116)); break;
-        case WLG_WEAPON  : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 111)); break;
-        case WLG_NECKLACE: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 115)); break;
-        case WLG_ARMRING0:
-        case WLG_ARMRING1: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 114)); break;
-        case WLG_RING0   :
-        case WLG_RING1   : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 113)); break;
-        default          : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 118)); break;
+    if(sdEW.uid == m_myHeroUID){
+        playWLGItemSoundEffect(sdEW.wltype);
     }
 }
 
@@ -733,17 +722,7 @@ void ProcessRun::net_GRABWEAR(const uint8_t *buf, size_t bufSize)
     }
 
     invPackRef.setGrabbedItem(std::move(sdGW.item));
-    switch(wltype){
-        case WLG_DRESS   : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 112)); break;
-        case WLG_HELMET  : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 116)); break;
-        case WLG_WEAPON  : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 111)); break;
-        case WLG_NECKLACE: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 115)); break;
-        case WLG_ARMRING0:
-        case WLG_ARMRING1: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 114)); break;
-        case WLG_RING0   :
-        case WLG_RING1   : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 113)); break;
-        default          : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 118)); break;
-    }
+    playWLGItemSoundEffect(wltype);
 }
 
 void ProcessRun::net_GRABWEARERROR(const uint8_t *buf, size_t)

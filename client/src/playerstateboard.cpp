@@ -371,43 +371,6 @@ bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
 
-    const auto fnPlayItemPickSound = [](uint32_t itemID)
-    {
-        const auto &ir = DBCOM_ITEMRECORD(itemID);
-        fflassert(ir);
-
-        if(false
-                || to_u8sv(ir.type) == u8"恢复药水"
-                || to_u8sv(ir.type) == u8"功能药水"
-                || to_u8sv(ir.type) == u8"强效药水"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 108));
-        }
-        else if(to_u8sv(ir.type) == u8"武器"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 111));
-        }
-        else if(to_u8sv(ir.type) == u8"衣服"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 112));
-        }
-        else if(to_u8sv(ir.type) == u8"戒指"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 113));
-        }
-        else if(to_u8sv(ir.type) == u8"手镯"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 114));
-        }
-        else if(to_u8sv(ir.type) == u8"项链"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 115));
-        }
-        else if(to_u8sv(ir.type) == u8"头盔"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 116));
-        }
-        else if(to_u8sv(ir.type) == u8"勋章"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 117));
-        }
-        else{
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 118));
-        }
-    };
-
     switch(event.type){
         case SDL_MOUSEMOTION:
             {
@@ -439,7 +402,6 @@ bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
                                         else{
                                             invPackRef.add(grabbedItem);
                                             invPackRef.setGrabbedItem({});
-                                            fnPlayItemPickSound(grabbedItem.itemID);
                                         }
                                     }
                                     else if(myHeroPtr->getWLItem(i)){

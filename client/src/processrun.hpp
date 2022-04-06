@@ -453,4 +453,7 @@ class ProcessRun: public Process
         {
             m_delayCmdQ.addDelay(delayTick, std::move(cmd));
         }
+
+    private:
+        void playWLGItemSoundEffect(int);
 };

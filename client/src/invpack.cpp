@@ -21,8 +21,12 @@
 #include "pngtexdb.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
+#include "soundeffectdb.hpp"
 
 extern PNGTexDB *g_itemDB;
+extern SDLDevice *g_sdlDevice;
+extern SoundEffectDB *g_seffDB;
+
 int InvPack::getWeight() const
 {
     int weight = 0;
@@ -41,6 +45,7 @@ void InvPack::add(SDItem item)
         if((bin.item.itemID == item.itemID) && (bin.item.seqID == item.seqID)){
             if(bin.item.count + item.count <= SYS_INVGRIDMAXHOLD){
                 bin.item.count += item.count;
+                playAddItemSound(item.itemID);
                 return;
             }
             else{
@@ -60,6 +65,7 @@ void InvPack::add(SDItem item)
     auto addedBin = makePackBin(item);
     pack2D.add(addedBin);
     m_packBinList.push_back(addedBin);
+    playAddItemSound(item.itemID);
 }
 
 void InvPack::add(SDItem item, int x, int y)
@@ -157,6 +163,7 @@ void InvPack::setGrabbedItem(SDItem item)
     if(item.itemID){
         fflassert(item);
         m_grabbedItem = std::move(item);
+        playAddItemSound(item.itemID);
     }
     else{
         m_grabbedItem = {};
@@ -186,3 +193,42 @@ void InvPack::setInventory(const SDInventory &sdInv)
         add(item);
     }
 }
+
+void InvPack::playAddItemSound(uint32_t itemID)
+{
+    if(itemID){
+        const auto &ir = DBCOM_ITEMRECORD(itemID);
+        fflassert(ir);
+
+        if(false
+                || to_u8sv(ir.type) == u8"恢复药水"
+                || to_u8sv(ir.type) == u8"功能药水"
+                || to_u8sv(ir.type) == u8"强效药水"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 108));
+        }
+        else if(to_u8sv(ir.type) == u8"武器"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 111));
+        }
+        else if(to_u8sv(ir.type) == u8"衣服"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 112));
+        }
+        else if(to_u8sv(ir.type) == u8"戒指"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 113));
+        }
+        else if(to_u8sv(ir.type) == u8"手镯"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 114));
+        }
+        else if(to_u8sv(ir.type) == u8"项链"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 115));
+        }
+        else if(to_u8sv(ir.type) == u8"头盔"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 116));
+        }
+        else if(to_u8sv(ir.type) == u8"勋章"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 117));
+        }
+        else{
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 118));
+        }
+    }
+};
