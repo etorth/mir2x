@@ -97,7 +97,10 @@ class InvPack
         void setGold(int);
 
     public:
-        size_t getGold() const;
+        size_t getGold() const
+        {
+            return m_gold;
+        }
 
     public:
         void setInventory(const SDInventory &);

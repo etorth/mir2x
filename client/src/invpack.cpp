@@ -112,12 +112,20 @@ int InvPack::update(SDItem item)
         if((bin.item.itemID == item.itemID) && (bin.item.seqID == item.seqID)){
             const int changed = to_d(item.count) - to_d(bin.item.count);
             bin.item = std::move(item);
+
+            if(changed > 0){
+                playItemSoundEffect(item.itemID);
+            }
             return changed;
         }
     }
 
     const int changed = to_d(item.count);
     add(std::move(item));
+
+    if(changed > 0){
+        playItemSoundEffect(item.itemID);
+    }
     return changed;
 }
 

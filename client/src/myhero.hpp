@@ -26,8 +26,7 @@
 class MyHero: public Hero
 {
     private:
-        uint32_t m_exp  = 0;
-        uint32_t m_gold = 0;
+        uint32_t m_exp = 0;
 
     private:
         std::unordered_map<uint32_t, uint64_t> m_lastCastTime;
@@ -97,12 +96,12 @@ class MyHero: public Hero
 
         uint32_t getGold() const
         {
-            return m_gold;
+            return m_invPack.getGold();
         }
 
-        void setGold(uint32_t nGold)
+        void setGold(int gold)
         {
-            m_gold = nGold;
+            return m_invPack.setGold(gold);
         }
 
     public:
