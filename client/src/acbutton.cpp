@@ -42,6 +42,10 @@ ACButton::ACButton(dir8_t dir, int x, int y, ProcessRun *proc, const std::vector
               setLabel();
           },
 
+          SYS_U32NIL,
+          SYS_U32NIL,
+          SYS_U32NIL,
+
           0,
           0,
           0,

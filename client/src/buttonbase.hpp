@@ -29,6 +29,7 @@
 #include <functional>
 
 #include "widget.hpp"
+#include "sysconst.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 
@@ -72,6 +73,9 @@ class ButtonBase: public Widget
         const bool m_onClickDone;
 
     protected:
+        const uint32_t m_seffID[3];
+
+    protected:
         const int m_offset[3][2];
 
     protected:
@@ -91,6 +95,10 @@ class ButtonBase: public Widget
                 std::function<void()> fnOnOverOut = nullptr,
                 std::function<void()> fnOnClick   = nullptr,
 
+                uint32_t seffIDOnOverIn  = SYS_U32NIL,
+                uint32_t seffIDOnOverOut = SYS_U32NIL,
+                uint32_t seffIDOnClick   = SYS_U32NIL,
+
                 int offXOnOver  = 0,
                 int offYOnOver  = 0,
                 int offXOnClick = 0,
@@ -101,6 +109,12 @@ class ButtonBase: public Widget
                 bool    autoFree    = false)
             : Widget(argDir, argX, argY, argW, argH, widgetPtr, autoFree)
             , m_onClickDone(onClickDone)
+            , m_seffID
+              {
+                  seffIDOnOverIn,
+                  seffIDOnOverOut,
+                  seffIDOnClick,
+              }
             , m_offset
               {
                   {0            , 0          },

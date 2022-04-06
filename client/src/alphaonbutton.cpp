@@ -57,6 +57,10 @@ AlphaOnButton::AlphaOnButton(
           std::move(fnOnOverOut),
           std::move(fnOnClick),
 
+          SYS_U32NIL,
+          SYS_U32NIL,
+          SYS_U32NIL,
+
           0,
           0,
           0,

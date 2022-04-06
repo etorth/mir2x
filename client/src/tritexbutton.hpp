@@ -63,6 +63,10 @@ class TritexButton: public ButtonBase
                   std::move(fnOnOverOut),
                   std::move(fnOnClick),
 
+                  SYS_U32NIL,
+                  SYS_U32NIL,
+                  SYS_U32NIL,
+
                   offXOnOver,
                   offYOnOver,
                   offXOnClick,

@@ -19,6 +19,11 @@
 #include <functional>
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
+#include "sdldevice.hpp"
+#include "soundeffectdb.hpp"
+
+extern SDLDevice *g_sdlDevice;
+extern SoundEffectDB *g_seffDB;
 
 bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
 {
@@ -153,6 +158,10 @@ void ButtonBase::onClick()
     if(m_onClick){
         m_onClick();
     }
+
+    if(m_seffID[0] != SYS_U32NIL){
+        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[0])));
+    }
 }
 
 void ButtonBase::onOverIn()
@@ -160,12 +169,20 @@ void ButtonBase::onOverIn()
     if(m_onOverIn){
         m_onOverIn();
     }
+
+    if(m_seffID[1] != SYS_U32NIL){
+        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[1])));
+    }
 }
 
 void ButtonBase::onOverOut()
 {
     if(m_onOverOut){
         m_onOverOut();
+    }
+
+    if(m_seffID[2] != SYS_U32NIL){
+        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[2])));
     }
 }
 
