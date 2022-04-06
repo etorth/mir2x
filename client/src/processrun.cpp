@@ -13,7 +13,6 @@
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
 #include "bgmusicdb.hpp"
-#include "soundeffectdb.hpp"
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
 #include "pathfinder.hpp"
@@ -35,7 +34,6 @@ extern Log *g_log;
 extern Client *g_client;
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
-extern SoundEffectDB *g_seffDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
 extern BGMusicDB *g_bgmDB;
@@ -2336,21 +2334,4 @@ int ProcessRun::getAimDirection(const ActionNode &action, int defDir) const
         }
     }
     return defDir;
-}
-
-void ProcessRun::playWLGItemSoundEffect(int wltype)
-{
-    if(wltype >= WLG_BEGIN && wltype < WLG_END){
-        switch(wltype){
-            case WLG_WEAPON  : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 111)); break;
-            case WLG_DRESS   : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 112)); break;
-            case WLG_RING0   :
-            case WLG_RING1   : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 113)); break;
-            case WLG_ARMRING0:
-            case WLG_ARMRING1: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 114)); break;
-            case WLG_NECKLACE: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 115)); break;
-            case WLG_HELMET  : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 116)); break;
-            default          : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 118)); break;
-        }
-    }
 }

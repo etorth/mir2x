@@ -671,11 +671,7 @@ void ProcessRun::net_EQUIPWEAR(const uint8_t *buf, size_t bufSize)
     }
 
     if(auto coPtr = dynamic_cast<Hero *>(findUID(sdEW.uid))){
-        coPtr->setWLItem(sdEW.wltype, std::move(sdEW.item));
-    }
-
-    if(sdEW.uid == m_myHeroUID){
-        playWLGItemSoundEffect(sdEW.wltype);
+        coPtr->setWLItem(sdEW.wltype, std::move(sdEW.item), sdEW.uid == m_myHeroUID);
     }
 }
 
@@ -720,9 +716,7 @@ void ProcessRun::net_GRABWEAR(const uint8_t *buf, size_t bufSize)
     if(auto currItem = invPackRef.getGrabbedItem()){
         invPackRef.add(std::move(currItem));
     }
-
     invPackRef.setGrabbedItem(std::move(sdGW.item));
-    playWLGItemSoundEffect(wltype);
 }
 
 void ProcessRun::net_GRABWEARERROR(const uint8_t *buf, size_t)

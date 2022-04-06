@@ -159,7 +159,7 @@ class Hero: public CreatureMovable
 
     public:
         const SDItem &getWLItem(int) const;
-        bool          setWLItem(int, SDItem);
+        bool          setWLItem(int, SDItem, bool playSound = false);
 
     public:
         void jumpLoc(int, int, int);
