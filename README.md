@@ -35,7 +35,7 @@ Notes:
 
 YouTube links: [1](https://youtu.be/3Xne8UHlOl0) [2](https://youtu.be/jl1LPxe2EAA) [3](https://youtu.be/TtGONA83Mb8)
 
-<https://user-images.githubusercontent.com/1754214/161677834-e8f7f6af-c15c-4a29-8e3f-5980817d4c38.mp4>
+<https://user-images.githubusercontent.com/1754214/162067911-ee99c636-d7cb-4715-a033-685aa8697061.mp4>
 
 
 ### Windows
