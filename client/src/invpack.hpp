@@ -94,7 +94,6 @@ class InvPack
 
     public:
         void setGold(int);
-        void addGold(int);
 
     public:
         size_t getGold() const;

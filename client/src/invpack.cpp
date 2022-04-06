@@ -180,18 +180,10 @@ void InvPack::setGrabbedItem(SDItem item)
 
 void InvPack::setGold(int gold)
 {
-    if(gold < 0){
-        throw fflerror("invalid argument: gold = %d", gold);
+    fflassert(gold >= 0, gold);
+    if(std::exchange(m_gold, gold) < to_uz(gold)){
+        g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 106));
     }
-    m_gold = (size_t)(gold);
-}
-
-void InvPack::addGold(int gold)
-{
-    if(const auto newGold = to_d(m_gold) + gold; newGold >= 0){
-        m_gold = (size_t)(newGold);
-    }
-    throw fflerror("invalid argument: gold = %d", gold);
 }
 
 void InvPack::setInventory(const SDInventory &sdInv)
