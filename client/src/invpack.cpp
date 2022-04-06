@@ -45,7 +45,7 @@ void InvPack::add(SDItem item)
         if((bin.item.itemID == item.itemID) && (bin.item.seqID == item.seqID)){
             if(bin.item.count + item.count <= SYS_INVGRIDMAXHOLD){
                 bin.item.count += item.count;
-                playAddItemSound(item.itemID);
+                playItemSoundEffect(item.itemID);
                 return;
             }
             else{
@@ -65,7 +65,7 @@ void InvPack::add(SDItem item)
     auto addedBin = makePackBin(item);
     pack2D.add(addedBin);
     m_packBinList.push_back(addedBin);
-    playAddItemSound(item.itemID);
+    playItemSoundEffect(item.itemID);
 }
 
 void InvPack::add(SDItem item, int x, int y)
@@ -163,7 +163,7 @@ void InvPack::setGrabbedItem(SDItem item)
     if(item.itemID){
         fflassert(item);
         m_grabbedItem = std::move(item);
-        playAddItemSound(item.itemID);
+        playItemSoundEffect(item.itemID);
     }
     else{
         m_grabbedItem = {};
@@ -194,7 +194,7 @@ void InvPack::setInventory(const SDInventory &sdInv)
     }
 }
 
-void InvPack::playAddItemSound(uint32_t itemID)
+void InvPack::playItemSoundEffect(uint32_t itemID)
 {
     if(itemID){
         const auto &ir = DBCOM_ITEMRECORD(itemID);

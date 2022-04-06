@@ -103,5 +103,5 @@ class InvPack
         void setInventory(const SDInventory &);
 
     private:
-        void playAddItemSound(uint32_t);
+        static void playItemSoundEffect(uint32_t);
 };
