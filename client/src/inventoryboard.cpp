@@ -573,10 +573,14 @@ void InventoryBoard::packBinConsume(const PackBin &bin)
     const auto &ir = DBCOM_ITEMRECORD(bin.item.itemID);
     fflassert(ir);
 
+    // play item consuming sound effect without server confirmation
+    // because for some items like 药水, server won't send back confirmation message
+
     if(false
             || to_u8sv(ir.type) == u8"恢复药水"
             || to_u8sv(ir.type) == u8"强化药水"
             || to_u8sv(ir.type) == u8"技能书"){
+        InvPack::playItemSoundEffect(bin.item.itemID, true);
         m_processRun->requestConsumeItem(bin.item.itemID, bin.item.seqID, 1);
     }
 }

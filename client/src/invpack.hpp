@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#pragma once
 #include <vector>
 #include "pack2d.hpp"
 #include "sysconst.hpp"
@@ -102,5 +103,5 @@ class InvPack
         void setInventory(const SDInventory &);
 
     public:
-        static void playItemSoundEffect(uint32_t);
+        static void playItemSoundEffect(uint32_t, bool consume = false);
 };

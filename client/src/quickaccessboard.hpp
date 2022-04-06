@@ -51,4 +51,7 @@ class QuickAccessBoard: public Widget
             }
             throw fflerror("invalid quick access grid index: %d", i);
         }
+
+    public:
+        void gridConsume(int);
 };

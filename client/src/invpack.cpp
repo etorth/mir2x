@@ -194,7 +194,7 @@ void InvPack::setInventory(const SDInventory &sdInv)
     }
 }
 
-void InvPack::playItemSoundEffect(uint32_t itemID)
+void InvPack::playItemSoundEffect(uint32_t itemID, bool consume)
 {
     if(itemID){
         const auto &ir = DBCOM_ITEMRECORD(itemID);
@@ -204,7 +204,7 @@ void InvPack::playItemSoundEffect(uint32_t itemID)
                 || to_u8sv(ir.type) == u8"恢复药水"
                 || to_u8sv(ir.type) == u8"功能药水"
                 || to_u8sv(ir.type) == u8"强效药水"){
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 108));
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + (consume ? 107 : 108)));
         }
         else if(to_u8sv(ir.type) == u8"武器"){
             g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 111));

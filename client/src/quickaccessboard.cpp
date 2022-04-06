@@ -18,6 +18,7 @@
 
 #include <tuple>
 #include "totype.hpp"
+#include "invpack.hpp"
 #include "pngtexdb.hpp"
 #include "sysconst.hpp"
 #include "sdldevice.hpp"
@@ -186,15 +187,53 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
                                 return focusConsume(this, false);
                             }
                         }
+                    case SDL_BUTTON_RIGHT:
+                        {
+                            for(int i = 0; i < 6; ++i){
+                                const auto [gridX, gridY, gridW, gridH] = getGridLoc(i);
+                                if(mathf::pointInRectangle(event.button.x, event.button.y, x() + gridX, y() + gridY, gridW, gridH)){
+                                    gridConsume(i);
+                                    break;
+                                }
+                            }
+
+                            if(in(event.button.x, event.button.y)){
+                                return focusConsume(this, true);
+                            }
+                            else{
+                                return focusConsume(this, false);
+                            }
+                        }
                     default:
                         {
                             return focusConsume(this, false);
                         }
                 }
             }
+        case SDL_KEYDOWN:
+            {
+                if(focus()){
+                    if(const auto ch = SDLDeviceHelper::getKeyChar(event, false); ch >= '1' && ch <= '6'){
+                        gridConsume(ch - '1');
+                    }
+                    return focusConsume(this, true);
+                }
+                return focusConsume(this, false);
+            }
         default:
             {
                 return false;
             }
+    }
+}
+
+void QuickAccessBoard::gridConsume(int i)
+{
+    fflassert(i >= 0, i);
+    fflassert(i <  6, i);
+
+    if(const auto &beltCRef = m_processRun->getMyHero()->getBelt(); beltCRef.list.at(i)){
+        InvPack::playItemSoundEffect(beltCRef.list.at(i).itemID, true);
+        m_processRun->requestConsumeItem(beltCRef.list.at(i).itemID, beltCRef.list.at(i).seqID, 1);
     }
 }
