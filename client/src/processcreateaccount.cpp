@@ -112,7 +112,7 @@ ProcessCreateAccount::ProcessCreateAccount()
           m_x + 189,
           m_y + 233,
           {
-              SYS_TEXNIL,
+              SYS_U32NIL,
               0X0800000B,
               0X0800000C,
           },
@@ -138,7 +138,7 @@ ProcessCreateAccount::ProcessCreateAccount()
           DIR_UPLEFT,
           m_x + 400,
           m_y + 267,
-          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+          {SYS_U32NIL, 0X0000001C, 0X0000001D},
 
           nullptr,
           nullptr,

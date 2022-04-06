@@ -151,7 +151,7 @@ struct MagicGfxEntry
     const char8_t *stage = nullptr;
     const char8_t *type  = nullptr;
 
-    const uint32_t gfxID = SYS_TEXNIL;
+    const uint32_t gfxID = SYS_U32NIL;
     const uint32_t modColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0XFF);
 
     const int frameCount = 0;

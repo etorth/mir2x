@@ -700,7 +700,7 @@ void DrawArea::drawFloatObject(int gridX, int gridY, int floatObj, int floatWinX
                     if(g_editorMap.tile(gridX, gridY).valid){
                         return g_editorMap.tile(gridX, gridY).texID;
                     }
-                    return SYS_TEXNIL;
+                    return SYS_U32NIL;
                 }
             case FOBJ_OBJ0:
             case FOBJ_OBJ1:
@@ -708,16 +708,16 @@ void DrawArea::drawFloatObject(int gridX, int gridY, int floatObj, int floatWinX
                     if(const auto &obj = g_editorMap.cell(gridX, gridY).obj[(floatObj == FOBJ_OBJ0) ? 0 : 1]; obj.valid){
                         return obj.texID;
                     }
-                    return SYS_TEXNIL;
+                    return SYS_U32NIL;
                 }
             default:
                 {
-                    return SYS_TEXNIL;
+                    return SYS_U32NIL;
                 }
         }
     }();
 
-    if(imageIndex == SYS_TEXNIL){
+    if(imageIndex == SYS_U32NIL){
         return;
     }
 

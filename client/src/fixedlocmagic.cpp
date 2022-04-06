@@ -30,7 +30,7 @@ void FixedLocMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
         return;
     }
 
-    if(m_gfxEntry.gfxID == SYS_TEXNIL){
+    if(m_gfxEntry.gfxID == SYS_U32NIL){
         return;
     }
 

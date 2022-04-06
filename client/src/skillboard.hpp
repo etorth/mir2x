@@ -18,7 +18,7 @@ class SkillBoard: public Widget
         struct MagicIconGfx
         {
             const uint32_t magicID = 0;
-            const uint32_t magicIcon = SYS_TEXNIL;
+            const uint32_t magicIcon = SYS_U32NIL;
 
             const int x = 0;
             const int y = 0;

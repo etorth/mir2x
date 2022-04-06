@@ -76,8 +76,8 @@ FollowUIDMagic::FollowUIDMagic(
 
 uint32_t FollowUIDMagic::frameTexID() const
 {
-    if(m_gfxEntry.gfxID == SYS_TEXNIL){
-        return SYS_TEXNIL;
+    if(m_gfxEntry.gfxID == SYS_U32NIL){
+        return SYS_U32NIL;
     }
 
     switch(m_gfxEntry.gfxDirType){
@@ -124,7 +124,7 @@ bool FollowUIDMagic::update(double ms)
 
 void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 {
-    if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
+    if(const auto texID = frameTexID(); texID != SYS_U32NIL){
         if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
             const auto gfxEntryModColor = m_gfxEntryRef ? m_gfxEntryRef.modColor : m_gfxEntry.modColor;
             SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(gfxEntryModColor, modColor));

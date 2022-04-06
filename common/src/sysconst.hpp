@@ -75,7 +75,8 @@ constexpr size_t SYS_IDSIZE = 64;
 constexpr size_t SYS_PWDSIZE = 64;
 constexpr size_t SYS_NAMESIZE = 64;
 
-constexpr uint32_t SYS_TEXNIL = 0XFFFFFFFF;
+constexpr uint32_t SYS_U32NIL = 0XFFFFFFFF;
+constexpr uint64_t SYS_U64NIL = 0XFFFFFFFFFFFFFFFFULL;
 constexpr int SYS_MAXNPCDISTANCE = 10;
 
 constexpr char SYS_NPCINIT [] = "RSVD_NPC_INIT__2967391362393263";

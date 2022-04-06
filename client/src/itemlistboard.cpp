@@ -46,7 +46,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           25,
           163,
-          {SYS_TEXNIL, 0X08000007, 0X08000008},
+          {SYS_U32NIL, 0X08000007, 0X08000008},
 
           nullptr,
           nullptr,
@@ -71,7 +71,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           67,
           163,
-          {SYS_TEXNIL, 0X08000005, 0X08000006},
+          {SYS_U32NIL, 0X08000005, 0X08000006},
 
           nullptr,
           nullptr,
@@ -96,7 +96,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           115,
           163,
-          {SYS_TEXNIL, 0X08000009, 0X0800000A},
+          {SYS_U32NIL, 0X08000009, 0X0800000A},
 
           nullptr,
           nullptr,
@@ -121,7 +121,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           158,
           159,
-          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+          {SYS_U32NIL, 0X0000001C, 0X0000001D},
 
           nullptr,
           nullptr,

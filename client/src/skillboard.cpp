@@ -293,7 +293,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
                   tabY,
 
                   {
-                      SYS_TEXNIL,
+                      SYS_U32NIL,
                       0X05000020 + to_u32(i),
                       0X05000030 + to_u32(i),
                   },
@@ -327,7 +327,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
                       m_tabButtonList.at(m_selectedTabIndex)->setOff();
                       m_tabButtonList.at(m_selectedTabIndex)->setTexID(
                       {
-                          SYS_TEXNIL,
+                          SYS_U32NIL,
                           0X05000020 + to_u32(m_selectedTabIndex),
                           0X05000030 + to_u32(m_selectedTabIndex),
                       });
@@ -390,7 +390,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           DIR_UPLEFT,
           317,
           402,
-          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+          {SYS_U32NIL, 0X0000001C, 0X0000001D},
 
           nullptr,
           nullptr,

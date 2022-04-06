@@ -47,7 +47,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           257,
           183,
-          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+          {SYS_U32NIL, 0X0000001C, 0X0000001D},
 
           nullptr,
           nullptr,
@@ -73,7 +73,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           105,
           185,
-          {SYS_TEXNIL, 0X08000003, 0X08000004},
+          {SYS_U32NIL, 0X08000003, 0X08000004},
 
           nullptr,
           nullptr,
@@ -100,7 +100,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           448,
           159,
-          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+          {SYS_U32NIL, 0X0000001C, 0X0000001D},
 
           nullptr,
           nullptr,
@@ -125,7 +125,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           315,
           163,
-          {SYS_TEXNIL, 0X08000007, 0X08000008},
+          {SYS_U32NIL, 0X08000007, 0X08000008},
 
           nullptr,
           nullptr,
@@ -150,7 +150,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           357,
           163,
-          {SYS_TEXNIL, 0X08000005, 0X08000006},
+          {SYS_U32NIL, 0X08000005, 0X08000006},
 
           nullptr,
           nullptr,
@@ -178,7 +178,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           405,
           163,
-          {SYS_TEXNIL, 0X08000009, 0X0800000A},
+          {SYS_U32NIL, 0X08000009, 0X0800000A},
 
           nullptr,
           nullptr,
@@ -208,7 +208,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           474,
           56,
-          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+          {SYS_U32NIL, 0X0000001C, 0X0000001D},
 
           nullptr,
           nullptr,
@@ -233,7 +233,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           366,
           60,
-          {SYS_TEXNIL, 0X0800000B, 0X0800000C},
+          {SYS_U32NIL, 0X0800000B, 0X0800000C},
 
           nullptr,
           nullptr,

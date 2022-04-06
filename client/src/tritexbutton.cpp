@@ -53,7 +53,7 @@ void TritexButton::initButtonSize()
     int maxW = 0;
     int maxH = 0;
     for(const int state: {0, 1, 2}){
-        if(m_texID[state] != SYS_TEXNIL){
+        if(m_texID[state] != SYS_U32NIL){
             if(auto texPtr = g_progUseDB->retrieve(m_texID[state])){
                 const auto [texCurrW, texCurrH] = SDLDeviceHelper::getTextureSize(texPtr);
                 maxW = std::max<int>(texCurrW, maxW);

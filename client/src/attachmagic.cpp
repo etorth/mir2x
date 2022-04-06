@@ -9,7 +9,7 @@ extern PNGTexOffDB *g_magicDB;
 
 void AttachMagic::drawShift(int shiftX, int shiftY, uint32_t modColor) const
 {
-    if(m_gfxEntry.gfxID == SYS_TEXNIL){
+    if(m_gfxEntry.gfxID == SYS_U32NIL){
         return;
     }
 
@@ -33,7 +33,7 @@ void AttachMagic::drawShift(int shiftX, int shiftY, uint32_t modColor) const
 
 void Thunderbolt::drawShift(int shiftX, int shiftY, uint32_t modColor) const
 {
-    if(m_gfxEntry.gfxID == SYS_TEXNIL){
+    if(m_gfxEntry.gfxID == SYS_U32NIL){
         return;
     }
 

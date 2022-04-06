@@ -56,7 +56,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           DIR_UPLEFT,
           374,
           12,
-          {SYS_TEXNIL, 0X000000C0, 0X000000C1},
+          {SYS_U32NIL, 0X000000C0, 0X000000C1},
 
           nullptr,
           nullptr,
@@ -80,7 +80,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           DIR_UPLEFT,
           394,
           498,
-          {SYS_TEXNIL, 0X0000001C, 0X0000001D},
+          {SYS_U32NIL, 0X0000001C, 0X0000001D},
 
           nullptr,
           nullptr,

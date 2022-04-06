@@ -126,7 +126,7 @@ std::tuple<Fl_Image *, int, int> MagicDrawArea::getFrameImage(int gfxDirIndex)
     const auto &gfxEntry = DBCOM_MAGICRECORD(m_magicID).getGfxEntry(u8"运行").first;
     fflassert(gfxEntry);
 
-    if(gfxEntry.gfxID == SYS_TEXNIL){
+    if(gfxEntry.gfxID == SYS_U32NIL){
         return {nullptr, 0, 0};
     }
     return m_frameDBPtr->retrieve(gfxEntry.gfxID + m_frame + gfxDirIndex * gfxEntry.gfxIDCount);

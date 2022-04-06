@@ -360,7 +360,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
                     const auto &br = DBCOM_BUFFRECORD(id);
                     fflassert(br);
 
-                    if(br.icon.gfxID != SYS_TEXNIL){
+                    if(br.icon.gfxID != SYS_U32NIL){
                         if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
                             const int buffIconOffX = buffIconStartX + (drawIconCount % 3) * buffIconDrawW;
                             const int buffIconOffY = buffIconStartY - (drawIconCount / 3) * buffIconDrawH;

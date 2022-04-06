@@ -207,7 +207,7 @@ struct BuffRecord
     const struct IconParam
     {
         const int show : 2 = 0;
-        const uint32_t gfxID = SYS_TEXNIL;
+        const uint32_t gfxID = SYS_U32NIL;
     }
     icon {};
 

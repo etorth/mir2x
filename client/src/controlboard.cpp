@@ -113,7 +113,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           148,
           2,
-          {SYS_TEXNIL, 0X0B000000, 0X0B000001},
+          {SYS_U32NIL, 0X0B000000, 0X0B000001},
 
           nullptr,
           nullptr,
@@ -139,7 +139,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           8,
           72,
-          {SYS_TEXNIL, 0X0000001E, 0X0000001F},
+          {SYS_U32NIL, 0X0000001E, 0X0000001F},
 
           nullptr,
           nullptr,
@@ -163,7 +163,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           109,
           72,
-          {SYS_TEXNIL, 0X00000020, 0X00000021},
+          {SYS_U32NIL, 0X00000020, 0X00000021},
 
           nullptr,
           nullptr,
@@ -266,7 +266,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           48,
           33,
-          {SYS_TEXNIL, 0X00000030, 0X00000031},
+          {SYS_U32NIL, 0X00000030, 0X00000031},
 
           nullptr,
           nullptr,
@@ -292,7 +292,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           77,
           31,
-          {SYS_TEXNIL, 0X00000033, 0X00000032},
+          {SYS_U32NIL, 0X00000033, 0X00000032},
 
           nullptr,
           nullptr,
@@ -318,7 +318,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           105,
           33,
-          {SYS_TEXNIL, 0X00000035, 0X00000034},
+          {SYS_U32NIL, 0X00000035, 0X00000034},
 
           nullptr,
           nullptr,
@@ -344,7 +344,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           40,
           11,
-          {SYS_TEXNIL, 0X00000036, 0X00000037},
+          {SYS_U32NIL, 0X00000036, 0X00000037},
 
           nullptr,
           nullptr,
@@ -370,7 +370,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           72,
           8,
-          {SYS_TEXNIL, 0X00000038, 0X00000039},
+          {SYS_U32NIL, 0X00000038, 0X00000039},
 
           nullptr,
           nullptr,
@@ -396,7 +396,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           108,
           11,
-          {SYS_TEXNIL, 0X0000003A, 0X0000003B},
+          {SYS_U32NIL, 0X0000003A, 0X0000003B},
 
           nullptr,
           nullptr,
@@ -422,7 +422,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           40,
           61,
-          {SYS_TEXNIL, 0X0000003C, 0X0000003D},
+          {SYS_U32NIL, 0X0000003C, 0X0000003D},
 
           nullptr,
           nullptr,
@@ -448,7 +448,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           72,
           72,
-          {SYS_TEXNIL, 0X0000003E, 0X0000003F},
+          {SYS_U32NIL, 0X0000003E, 0X0000003F},
 
           nullptr,
           nullptr,
@@ -474,7 +474,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           108,
           61,
-          {SYS_TEXNIL, 0X00000040, 0X00000041},
+          {SYS_U32NIL, 0X00000040, 0X00000041},
 
           nullptr,
           nullptr,
@@ -530,7 +530,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           boardW - 178 - 181,
           3,
-          {SYS_TEXNIL, 0X00000028, 0X00000029},
+          {SYS_U32NIL, 0X00000028, 0X00000029},
 
           nullptr,
           nullptr,
@@ -554,7 +554,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           boardW - 178 - 260,
           87,
-          {SYS_TEXNIL, 0X00000023, 0X00000024},
+          {SYS_U32NIL, 0X00000023, 0X00000024},
 
           nullptr,
           nullptr,
@@ -575,7 +575,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           boardW - 178 - 220,
           87,
-          {SYS_TEXNIL, 0X00000025, 0X00000026},
+          {SYS_U32NIL, 0X00000025, 0X00000026},
 
           nullptr,
           nullptr,
@@ -1400,7 +1400,7 @@ void ControlBoard::drawFocusFace() const
             const auto &br = DBCOM_BUFFRECORD(id);
             fflassert(br);
 
-            if(br.icon.gfxID != SYS_TEXNIL){
+            if(br.icon.gfxID != SYS_U32NIL){
                 if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
                     const int buffIconOffX = buffIconOffStartX + (drawIconCount % 5) * buffIconDrawW;
                     const int buffIconOffY = buffIconOffStartY - (drawIconCount / 5) * buffIconDrawH;

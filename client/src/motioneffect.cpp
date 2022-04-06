@@ -46,7 +46,7 @@ uint32_t MotionEffect::frameTexID() const
         }
         return m_gfxEntry.gfxID + gfxIndex;
     }
-    return SYS_TEXNIL;
+    return SYS_U32NIL;
 }
 
 void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
@@ -55,7 +55,7 @@ void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
     // because we call it by currMotion: CO::m_currMotion->effect->drawShift()
 
     fflassert(!done());
-    if(const auto texID = frameTexID(); texID != SYS_TEXNIL){
+    if(const auto texID = frameTexID(); texID != SYS_U32NIL){
         if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
             SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(m_gfxEntryRef ? m_gfxEntryRef.modColor : m_gfxEntry.modColor, modColor));
             SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
@@ -98,7 +98,7 @@ uint32_t HeroSpellMagicEffect::frameTexID() const
     if(frame() < MotionEffect::frameCount()){
         return MotionEffect::frameTexID();
     }
-    return SYS_TEXNIL;
+    return SYS_U32NIL;
 }
 
 void HeroSpellMagicEffect::update(double ms)

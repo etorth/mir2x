@@ -411,7 +411,7 @@ void ProcessRun::draw() const
     if(m_drawMagicKey){
         int magicKeyOffX = 0;
         for(const auto &[magicID, magicKey]: dynamic_cast<const SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getConfig().getMagicKeyList()){
-            if(const auto &iconGfx = SkillBoard::getMagicIconGfx(magicID); iconGfx && iconGfx.magicIcon != SYS_TEXNIL){
+            if(const auto &iconGfx = SkillBoard::getMagicIconGfx(magicID); iconGfx && iconGfx.magicIcon != SYS_U32NIL){
                 if(auto texPtr = g_progUseDB->retrieve(iconGfx.magicIcon + to_u32(0X00001000))){
                     g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
                     const auto coolDownAngle = getMyHero()->getMagicCoolDownAngle(magicID);
@@ -447,7 +447,7 @@ void ProcessRun::draw() const
             const auto &br = DBCOM_BUFFRECORD(id);
             fflassert(br);
 
-            if(br.icon.gfxID != SYS_TEXNIL){
+            if(br.icon.gfxID != SYS_U32NIL){
                 if(auto iconTexPtr = g_progUseDB->retrieve(br.icon.gfxID)){
                     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(iconTexPtr);
                     g_sdlDevice->drawTexture(iconTexPtr, buffIconOffX, 0, buffIconDrawW, buffIconDrawH, 0, 0, texW, texH);
