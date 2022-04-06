@@ -122,7 +122,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMag
           },
 
           {
-              0X01020000 + 103,
+              SYS_U32NIL,
               SYS_U32NIL,
               SYS_U32NIL,
           },
