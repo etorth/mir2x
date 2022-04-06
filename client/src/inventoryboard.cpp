@@ -19,11 +19,13 @@
 #include "luaf.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "soundeffectdb.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern PNGTexDB *g_itemDB;
+extern SoundEffectDB *g_seffDB;
 extern SDLDevice *g_sdlDevice;
 
 InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget, bool autoDelete)
@@ -293,6 +295,43 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
         }
     }
 
+    const auto fnPlayItemPickSound = [](uint32_t itemID)
+    {
+        const auto &ir = DBCOM_ITEMRECORD(itemID);
+        fflassert(ir);
+
+        if(false
+                || to_u8sv(ir.type) == u8"恢复药水"
+                || to_u8sv(ir.type) == u8"功能药水"
+                || to_u8sv(ir.type) == u8"强效药水"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 108));
+        }
+        else if(to_u8sv(ir.type) == u8"武器"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 111));
+        }
+        else if(to_u8sv(ir.type) == u8"衣服"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 112));
+        }
+        else if(to_u8sv(ir.type) == u8"戒指"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 113));
+        }
+        else if(to_u8sv(ir.type) == u8"手镯"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 114));
+        }
+        else if(to_u8sv(ir.type) == u8"项链"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 115));
+        }
+        else if(to_u8sv(ir.type) == u8"头盔"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 116));
+        }
+        else if(to_u8sv(ir.type) == u8"勋章"){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 117));
+        }
+        else{
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 118));
+        }
+    };
+
     switch(event.type){
         case SDL_MOUSEMOTION:
             {
@@ -328,6 +367,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                                             // prefer to use current location to store
                                             invPackRef.add(lastGrabbedItem, selectedPackBin.x, selectedPackBin.y);
                                         }
+                                        fnPlayItemPickSound(selectedPackBin.item.itemID);
                                     }
                                     else if(lastGrabbedItem){
                                         const auto [gridX, gridY] = getInvGrid(event.button.x, event.button.y);
@@ -336,6 +376,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                                         const auto startGridY = gridY - gridH / 2;
                                         invPackRef.add(lastGrabbedItem, startGridX, startGridY);
                                         invPackRef.setGrabbedItem({});
+                                        fnPlayItemPickSound(lastGrabbedItem.itemID);
                                     }
                                 }
                                 else{
@@ -345,12 +386,12 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
 
                                         if(m_sdInvOp.hasType(DBCOM_ITEMRECORD(selectedItem.item.itemID).type)){
                                             m_processRun->sendNPCEvent(m_sdInvOp.uid, m_sdInvOp.queryTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item. seqID)).c_str());
+                                            fnPlayItemPickSound(selectedItem.item.itemID);
                                         }
                                         else{
                                             m_processRun->addCBLog(CBLOG_ERR, u8"只能维修%s", to_cstr(typeListString(m_sdInvOp.typeList)));
                                             m_selectedIndex = -1;
                                             m_invOpCost = -1;
-                                            
                                         }
                                     }
                                     else{
@@ -366,7 +407,9 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                         {
                             if(in(event.button.x, event.button.y)){
                                 if(const int selectedPackIndex = getPackBinIndex(event.button.x, event.button.y); selectedPackIndex >= 0){
-                                    packBinConsume(invPackRef.getPackBinList().at(selectedPackIndex));
+                                    const auto &packBin = invPackRef.getPackBinList().at(selectedPackIndex);
+                                    packBinConsume(packBin);
+                                    fnPlayItemPickSound(packBin.item.itemID);
                                 }
                                 return focusConsume(this, true);
                             }
@@ -569,6 +612,8 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
 void InventoryBoard::packBinConsume(const PackBin &bin)
 {
     const auto &ir = DBCOM_ITEMRECORD(bin.item.itemID);
+    fflassert(ir);
+
     if(false
             || to_u8sv(ir.type) == u8"恢复药水"
             || to_u8sv(ir.type) == u8"强化药水"
