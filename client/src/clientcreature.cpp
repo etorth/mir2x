@@ -185,7 +185,7 @@ void ClientCreature::playSoundEffect(uint32_t seffID)
     const auto dGX = selfGX - heroGX;
     const auto dGY = selfGY - heroGY;
 
-    const auto [angle, distance] = [dGX, dGY]() -> std::tuple<long, long>
+    const auto [distance, angle] = [dGX, dGY]() -> std::tuple<long, long>
     {
         if(dGX == 0 && dGY == 0){
             return {0, 0};
@@ -193,10 +193,10 @@ void ClientCreature::playSoundEffect(uint32_t seffID)
 
         return
         {
-            std::lround(90.0 - 180.0 * std::atan2(dGX, -dGY) / mathf::pi),
             std::lround(mathf::LDistance<double>(dGX, dGY, 0, 0)),
+            std::lround(90.0 - 180.0 * std::atan2(-dGY, dGX) / mathf::pi),
         };
     }();
 
-    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID), angle, distance);
+    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID), distance, angle);
 }

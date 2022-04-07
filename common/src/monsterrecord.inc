@@ -898,6 +898,7 @@
     .lookID = 0X19,
     .tameable = 1,
     .view = 10,
+    .shadow = 0,
     .deadFadeOut = 1,
     .hp = 22,
     .exp = 352,
