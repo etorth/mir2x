@@ -194,7 +194,7 @@ void ClientCreature::playSoundEffect(uint32_t seffID)
         return
         {
             std::lround(mathf::LDistance<double>(dGX, dGY, 0, 0)),
-            std::lround(90.0 - 180.0 * std::atan2(dGX, -dGY) / mathf::pi),
+            std::lround(90.0 - 180.0 * std::atan2(-dGY, dGX) / mathf::pi),
         };
     }();
 
