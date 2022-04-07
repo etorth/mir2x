@@ -114,6 +114,9 @@ class ClientMonster: public CreatureMovable
         }
 
     public:
+        uint32_t getSeffID(int) const;
+
+    public:
         int getFrameCount(int motion, int direction) const override
         {
             return getFrameGfxSeq(motion, direction).count;

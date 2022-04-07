@@ -25,6 +25,12 @@
 #include "sysconst.hpp"
 #include "protocoldef.hpp"
 
+constexpr int MONSEFF_SPAWN  = 0;
+constexpr int MONSEFF_STAND  = 1;
+constexpr int MONSEFF_ATTACK = 2;
+constexpr int MONSEFF_HITTED = 4;
+constexpr int MONSEFF_DIE    = 5;
+
 constexpr std::array<std::optional<std::tuple<std::u8string_view, uint32_t>>, SYS_SEFFSIZE> seffMapWrapper(std::initializer_list<std::tuple<uint32_t, std::u8string_view, uint32_t>> seffList)
 {
     std::array<std::optional<std::tuple<std::u8string_view, uint32_t>>, SYS_SEFFSIZE> result {};
@@ -67,7 +73,7 @@ struct MonsterRecord
     {
         // priority level:
         // 1. ref: redirect to another monster
-        // 2. list: seff.list[i] redirect to another monster per entry
+        // 2. list: seff.list[i] redirect to another monster per entry if has value
 
         const std::u8string_view ref {};
         const std::array<std::optional<std::tuple<std::u8string_view, uint32_t>>, SYS_SEFFSIZE> list {};

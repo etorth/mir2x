@@ -1,6 +1,34 @@
 #include <cstdint>
+#include "totype.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
+
+const static struct MonsterRecordAssertor
+{
+    MonsterRecordAssertor()
+    {
+        fflassert(!DBCOM_MONSTERRECORD(nullptr));
+        for(uint32_t i = 1; i < DBCOM_MONSTERENDID(); ++i){
+            const auto &mr = DBCOM_MONSTERRECORD(i);
+            fflassert(mr);
+
+            for(const auto &seffItem: mr.seff.list){
+                if(seffItem.has_value()){
+                    if(const auto &[subname, suboff] = seffItem.value(); !subname.empty()){
+                        fflassert(suboff < SYS_SEFFSIZE);
+                    }
+                }
+            }
+
+            for(uint32_t j = i + 1; j < DBCOM_MONSTERENDID(); ++j){
+                const auto &next_mr = DBCOM_ITEMRECORD(j);
+                fflassert(next_mr);
+                fflassert(to_u8sv(next_mr.name) != mr.name, next_mr.name);
+            }
+        }
+    }
+}
+s_monsterRecordAssertor {};
 
 const static struct ItemRecordAssertor
 {

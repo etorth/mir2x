@@ -131,9 +131,29 @@ bool ClientMonster::update(double ms)
         }
 
         switch(m_currMotion->type){
+            case MOTION_MON_SPAWN:
+                {
+                    if(m_currMotion->frame == 0){
+                        playSoundEffect(getSeffID(MONSEFF_SPAWN));
+                    }
+                    break;
+                }
+            case MOTION_MON_STAND: // shall only play when show up
+                {
+                    break;
+                }
+            case MOTION_MON_ATTACK0:
+            case MOTION_MON_ATTACK1:
+                {
+                    if(m_currMotion->frame == 0){
+                        playSoundEffect(getSeffID(MONSEFF_ATTACK));
+                    }
+                    break;
+                }
             case MOTION_MON_HITTED:
                 {
                     if(m_currMotion->frame == 0){
+                        playSoundEffect(getSeffID(MONSEFF_HITTED));
                         switch(const auto fromUID = m_currMotion->extParam.hitted.fromUID; uidf::getUIDType(fromUID)){
                             case UID_MON:
                                 {
@@ -166,6 +186,13 @@ bool ClientMonster::update(double ms)
                                     break;
                                 }
                         }
+                    }
+                    break;
+                }
+            case MOTION_MON_DIE:
+                {
+                    if(m_currMotion->frame == 0){
+                        playSoundEffect(getSeffID(MONSEFF_DIE));
                     }
                     break;
                 }
@@ -401,6 +428,38 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             }
         }
     }
+}
+
+static uint32_t monsterSeffBaseIDHelper(std::u8string_view monName, int offset)
+{
+    fflassert(!monName.empty());
+    fflassert(offset >= 0, offset);
+    fflassert(offset < to_d(SYS_SEFFSIZE), offset, SYS_SEFFSIZE);
+
+    const auto &mr = DBCOM_MONSTERRECORD(monName.data());
+    fflassert(mr);
+
+    if(mr.seff.ref.empty()){
+        if(mr.seff.list.at(offset).has_value()){
+            if(const auto &[subname, suboff] = mr.seff.list.at(offset).value(); subname.empty()){
+                return suboff;
+            }
+            else{
+                return monsterSeffBaseIDHelper(subname, offset);
+            }
+        }
+        else{
+            return SYS_MONSEFFBASE(mr.lookID) + offset;
+        }
+    }
+    else{
+        return monsterSeffBaseIDHelper(mr.seff.ref, offset);
+    }
+}
+
+uint32_t ClientMonster::getSeffID(int offset) const
+{
+    return monsterSeffBaseIDHelper(getMR().name, offset);
 }
 
 bool ClientMonster::parseAction(const ActionNode &action)
