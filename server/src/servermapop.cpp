@@ -198,7 +198,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
         nDstY = std::rand() % H();
     }
 
-    const auto loc = GetValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
+    const auto loc = getRCValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
     if(!loc.has_value()){
         m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
         return;

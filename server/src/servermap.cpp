@@ -219,12 +219,21 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
             }
         }();
 
-        if(const auto locopt = mapPtr->GetValidGrid(false, false, -1, regionX, regionY, regionW, regionH); locopt.has_value()){
-            return sol::as_returns(std::array<int, 2>
-            {
-                std::get<0>(locopt.value()),
-                std::get<1>(locopt.value()),
-            });
+        // randGLoc doesn't check CO's on map, only check groundValid()
+        // given region should have been checked by countGLoc to make sure it has valid grid
+
+        // give a maximal loop count
+        // script may give bad region without checking
+
+        constexpr int maxTryCount = 1024;
+        for(int i = 0; i < maxTryCount; ++i){
+            if(const auto locopt = mapPtr->getRCValidGrid(false, false, 1, regionX, regionY, regionW, regionH); locopt.has_value()){
+                return sol::as_returns(std::array<int, 2>
+                {
+                    std::get<0>(locopt.value()),
+                    std::get<1>(locopt.value()),
+                });
+            }
         }
 
         // give detailed failure message
@@ -764,17 +773,17 @@ std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool chec
     return {};
 }
 
-std::optional<std::tuple<int, int>> ServerMap::GetValidGrid(bool checkCO, bool checkLock, int checkCount) const
+std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool checkLock, int checkCount) const
 {
-    return GetValidGrid(checkCO, checkLock, checkCount, 0, 0, W(), H());
+    return getRCValidGrid(checkCO, checkLock, checkCount, 0, 0, W(), H());
 }
 
-std::optional<std::tuple<int, int>> ServerMap::GetValidGrid(bool checkCO, bool checkLock, int checkCount, int startX, int startY) const
+std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool checkLock, int checkCount, int startX, int startY) const
 {
     return getRCGLoc(checkCO, checkLock, checkCount, startX, startY, 0, 0, W(), H());
 }
 
-std::optional<std::tuple<int, int>> ServerMap::GetValidGrid(bool checkCO, bool checkLock, int checkCount, int regionX, int regionY, int regionW, int regionH) const
+std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool checkLock, int checkCount, int regionX, int regionY, int regionW, int regionH) const
 {
     fflassert(regionW > 0);
     fflassert(regionH > 0);
@@ -1153,7 +1162,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
         nHintY = std::rand() % H();
     }
 
-    if(const auto loc = GetValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
+    if(const auto loc = getRCValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
         const auto [nDstX, nDstY] = loc.value();
         Monster *monsterPtr = nullptr;
         switch(nMonsterID){
@@ -1492,7 +1501,7 @@ Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
         nHintY = std::rand() % H();
     }
 
-    if(const auto loc = GetValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
+    if(const auto loc = getRCValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
         auto playerPtr = new Player
         {
             initPlayer,

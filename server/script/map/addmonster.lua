@@ -95,13 +95,20 @@ function addmon.monGener(monGenList)
                         local regionMaxCount = math.max(1, math.min(math.floor(locInfo.gridCount / monsterMaxDensity), locInfo.count))
                         local needCount = regionMaxCount - aliveMonCount
 
+                        -- regions without valid grids has been filtered out
+                        -- randGLoc() shall always succeeds
+
                         while needCount > 0 do
                             local addX, addY = randGLoc(locInfo.x, locInfo.y, locInfo.w, locInfo.h)
-                            local uidString = addMonster(genList.name, addX, addY, true)
+                            if addX ~= nil and addY ~= nil then
+                                local uidString = addMonster(genList.name, addX, addY, true)
 
-                            if uidString ~= nil then
-                                table.insert(locInfo.uidList, uidString)
-                                needCount = needCount - 1
+                                if uidString ~= nil then
+                                    table.insert(locInfo.uidList, uidString)
+                                    needCount = needCount - 1
+                                end
+                            else
+                                addLog(LOGTYPE_WARNING, 'randGLoc() failed: map = %s, x = %d, y = %d, w = %d, h = %d', getMapName(), locInfo.x, locInfo.y, locInfo.w, locInfo.h)
                             end
                         end
                         locInfo.lastUpdateTime = currTime

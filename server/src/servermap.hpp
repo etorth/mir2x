@@ -227,9 +227,9 @@ class ServerMap final: public ServerObject
         [[maybe_unused]] std::optional<std::tuple<int, int>> getRCGLoc(bool, bool, int, int, int, int, int, int, int) const;
 
     private:
-        [[maybe_unused]] std::optional<std::tuple<int, int>> GetValidGrid(bool, bool, int) const;
-        [[maybe_unused]] std::optional<std::tuple<int, int>> GetValidGrid(bool, bool, int, int, int) const;
-        [[maybe_unused]] std::optional<std::tuple<int, int>> GetValidGrid(bool, bool, int, int, int, int, int) const;
+        [[maybe_unused]] std::optional<std::tuple<int, int>> getRCValidGrid(bool, bool, int) const;
+        [[maybe_unused]] std::optional<std::tuple<int, int>> getRCValidGrid(bool, bool, int, int, int) const;
+        [[maybe_unused]] std::optional<std::tuple<int, int>> getRCValidGrid(bool, bool, int, int, int, int, int) const;
 
     private:
         void notifyNewCO(uint64_t, int, int);
