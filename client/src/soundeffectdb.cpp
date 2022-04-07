@@ -112,6 +112,12 @@
 // s_man_die                = 144.wav
 // s_wom_die                = 145.wav
 
+// monster sound effect list, direct copy of mir2ei/Sound/*.wav, with renaming: xyz-p -> 0X02000000 + (xyz - 200) * 16 + p
+// before renaming, changes:
+// 1. remove '224-2 .wav', it's identical to '224-2.wav'
+// 2. renaming 238,9-x.wav -> 800-x.wav, since 238 and 239 are both taken
+//    this sound effect set hears like for some angry 钉耙猫 type, since 238 and a29 are 多钩猫 and 钉耙猫
+
 // magic and monster sound effects, to be continued
 
 extern ClientArgParser *g_clientArgParser;
