@@ -28,7 +28,6 @@
 #include "processrun.hpp"
 #include "protocoldef.hpp"
 #include "pngtexoffdb.hpp"
-#include "soundeffectdb.hpp"
 #include "clientargparser.hpp"
 #include "clientpathfinder.hpp"
 #include "creaturemovable.hpp"
@@ -69,7 +68,6 @@ extern Log *g_log;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_monsterDB;
-extern SoundEffectDB *g_seffDB;
 extern ClientArgParser *g_clientArgParser;
 
 std::optional<uint32_t> MonsterFrameGfxSeq::gfxID(const ClientMonster *monPtr, std::optional<int> frameOpt) const
@@ -139,12 +137,12 @@ bool ClientMonster::update(double ms)
                         switch(const auto fromUID = m_currMotion->extParam.hitted.fromUID; uidf::getUIDType(fromUID)){
                             case UID_MON:
                                 {
-                                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 61));
+                                    playSoundEffect(0X01010000 + 61);
                                     break;
                                 }
                             case UID_PLY:
                                 {
-                                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve([fromUID, this]() -> uint32_t
+                                    playSoundEffect([fromUID, this]() -> uint32_t
                                     {
                                         if(const auto plyPtr = m_processRun->findUID(fromUID)){
                                             if(const auto itemID = dynamic_cast<const Hero *>(plyPtr)->getWLItem(WLG_WEAPON).itemID){
@@ -160,7 +158,7 @@ bool ClientMonster::update(double ms)
                                             }
                                         }
                                         return 0X01010000 + 61; // use 木剑 sound effect as default
-                                    }()));
+                                    }());
                                     break;
                                 }
                             default:

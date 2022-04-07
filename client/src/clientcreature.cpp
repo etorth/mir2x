@@ -7,15 +7,20 @@
 #include "motion.hpp"
 #include "fflerror.hpp"
 #include "sysconst.hpp"
+#include "sdldevice.hpp"
 #include "ascendstr.hpp"
 #include "processrun.hpp"
 #include "magicrecord.hpp"
 #include "protocoldef.hpp"
 #include "attachmagic.hpp"
+#include "soundeffectdb.hpp"
 #include "clientcreature.hpp"
 #include "clientmonster.hpp"
 
 extern Log *g_log;
+extern SDLDevice *g_sdlDevice;
+extern SoundEffectDB *g_seffDB;
+
 bool ClientCreature::advanceMotionFrame()
 {
     m_currMotion->frame = (m_currMotion->frame + 1) % getFrameCountEx(m_currMotion->type, m_currMotion->direction);
@@ -163,4 +168,35 @@ bool ClientCreature::isMonster(const char8_t *name) const
 void ClientCreature::setBuff(int, int)
 {
     // do nothing by default
+}
+
+void ClientCreature::playSoundEffect(uint32_t seffID)
+{
+    if(seffID == SYS_U32NIL){
+        return;
+    }
+
+    fflassert(m_processRun);
+    fflassert(m_processRun->getMyHero());
+
+    const auto [selfGX, selfGY] = location();
+    const auto [heroGX, heroGY] = m_processRun->getMyHero()->location();
+
+    const auto dGX = selfGX - heroGX;
+    const auto dGY = selfGY - heroGY;
+
+    const auto [angle, distance] = [dGX, dGY]() -> std::tuple<long, long>
+    {
+        if(dGX == 0 && dGY == 0){
+            return {0, 0};
+        }
+
+        return
+        {
+            std::lround(90.0 - 180.0 * std::atan2(dGX, -dGY) / mathf::pi),
+            std::lround(mathf::LDistance<double>(dGX, dGY, 0, 0)),
+        };
+    }();
+
+    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID), angle, distance);
 }

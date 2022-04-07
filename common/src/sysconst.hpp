@@ -75,6 +75,12 @@ constexpr size_t SYS_IDSIZE = 64;
 constexpr size_t SYS_PWDSIZE = 64;
 constexpr size_t SYS_NAMESIZE = 64;
 
+constexpr size_t SYS_SEFFSIZE = 16;
+constexpr uint32_t SYS_MONSEFFBASE(int lookID)
+{
+    return 0X02000000 + lookID * SYS_SEFFSIZE;
+}
+
 constexpr uint32_t SYS_U32NIL = 0XFFFFFFFF;
 constexpr uint64_t SYS_U64NIL = 0XFFFFFFFFFFFFFFFFULL;
 constexpr int SYS_MAXNPCDISTANCE = 10;

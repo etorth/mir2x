@@ -12,6 +12,12 @@
 
 namespace mathf
 {
+#ifdef M_PI
+    constexpr double pi = M_PI;
+#else
+    constexpr double pi = 3.1415926535;
+#endif
+
     template<std::integral T> T rand(T min, T max)
     {
         return min + (T)(std::rand() % (1 + std::max<int>(max - min, 0)));

@@ -307,10 +307,10 @@ bool Hero::update(double ms)
         const auto fnPlayStepSound = [this](uint32_t seffBaseID)
         {
             if(m_currMotion->frame == 1){
-                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID));
+                playSoundEffect(seffBaseID);
             }
             else if(m_currMotion->frame == 4){
-                g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffBaseID + 1));
+                playSoundEffect(seffBaseID + 1);
             }
         };
 
@@ -321,25 +321,25 @@ bool Hero::update(double ms)
                     const auto &ir = DBCOM_ITEMRECORD(weaponItemID);
                     fflassert(ir);
 
-                    if     (ir.equip.weapon.category == u8"匕首") g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 50));
-                    else if(ir.equip.weapon.category == u8"木剑") g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 51));
-                    else if(ir.equip.weapon.category == u8"剑"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 52));
-                    else if(ir.equip.weapon.category == u8"刀"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 53));
-                    else if(ir.equip.weapon.category == u8"斧"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 54));
-                    else if(ir.equip.weapon.category == u8"锏"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 55));
-                    else if(ir.equip.weapon.category == u8"棍"  ) g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 56));
-                    else                                          g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 57)); // anything else, currently use bare-hand
+                    if     (ir.equip.weapon.category == u8"匕首") playSoundEffect(0X01010000 + 50);
+                    else if(ir.equip.weapon.category == u8"木剑") playSoundEffect(0X01010000 + 51);
+                    else if(ir.equip.weapon.category == u8"剑"  ) playSoundEffect(0X01010000 + 52);
+                    else if(ir.equip.weapon.category == u8"刀"  ) playSoundEffect(0X01010000 + 53);
+                    else if(ir.equip.weapon.category == u8"斧"  ) playSoundEffect(0X01010000 + 54);
+                    else if(ir.equip.weapon.category == u8"锏"  ) playSoundEffect(0X01010000 + 55);
+                    else if(ir.equip.weapon.category == u8"棍"  ) playSoundEffect(0X01010000 + 56);
+                    else                                          playSoundEffect(0X01010000 + 57); // anything else, currently use bare-hand
                 }
                 else{
-                    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01010000 + 57)); // bare-hand
+                    playSoundEffect(0X01010000 + 57); // bare-hand
                 }
             }
         };
 
         const auto fnPlayHittedSound = [this]() // TODO: check attacker's weapon category
         {
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01030000 + (gender() ? 138 : 139)));
-            g_sdlDevice->playSoundEffect(g_seffDB->retrieve([this]() -> uint32_t
+            playSoundEffect(0X01030000 + (gender() ? 138 : 139));
+            playSoundEffect([this]() -> uint32_t
             {
                 const bool hasDress = DBCOM_ITEMRECORD(getWLItem(WLG_DRESS).itemID);
                 switch(const auto fromUID = m_currMotion->extParam.hitted.fromUID; uidf::getUIDType(fromUID)){
@@ -369,7 +369,7 @@ bool Hero::update(double ms)
                             return 0X01010000 + (hasDress ? 83 : 73);
                         }
                 }
-            }()));
+            }());
         };
 
         switch(m_currMotion->type){
@@ -1496,15 +1496,15 @@ bool Hero::setWLItem(int wltype, SDItem item, bool playSound)
     m_sdWLDesp.wear.setWLItem(wltype, std::move(item));
     if(playSound){
         switch(wltype){
-            case WLG_WEAPON  : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 111)); break;
-            case WLG_DRESS   : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 112)); break;
+            case WLG_WEAPON  : playSoundEffect(0X01020000 + 111); break;
+            case WLG_DRESS   : playSoundEffect(0X01020000 + 112); break;
             case WLG_RING0   :
-            case WLG_RING1   : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 113)); break;
+            case WLG_RING1   : playSoundEffect(0X01020000 + 113); break;
             case WLG_ARMRING0:
-            case WLG_ARMRING1: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 114)); break;
-            case WLG_NECKLACE: g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 115)); break;
-            case WLG_HELMET  : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 116)); break;
-            default          : g_sdlDevice->playSoundEffect(g_seffDB->retrieve(0X01020000 + 118)); break;
+            case WLG_ARMRING1: playSoundEffect(0X01020000 + 114); break;
+            case WLG_NECKLACE: playSoundEffect(0X01020000 + 115); break;
+            case WLG_HELMET  : playSoundEffect(0X01020000 + 116); break;
+            default          : playSoundEffect(0X01020000 + 118); break;
         }
     }
     return true;

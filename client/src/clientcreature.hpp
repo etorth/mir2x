@@ -338,4 +338,7 @@ class ClientCreature
 
     public:
         virtual void setBuff(int, int);
+
+    public:
+        void playSoundEffect(uint32_t);
 };
