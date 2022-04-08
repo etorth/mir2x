@@ -3,6 +3,10 @@
 #include "soundeffectdb.hpp"
 #include "hexstr.hpp"
 
+// sound index remap information mostly from:
+// 1. lzxsz/MIR2
+// 2. CBWCQ3/SoundList.wwl
+
 // sound effect is directly copy of mir2ei/Sound/*.wav, with name remapping
 // for index and it's meaning, check: https://github.com/lzxsz/MIR2/blob/master/GameOfMir/Client/SoundUtil.pas
 //
@@ -113,12 +117,27 @@
 // s_wom_die                = 145.wav
 
 // monster sound effect list, direct copy of mir2ei/Sound/*.wav, with renaming: xyz-p -> 0X02000000 + (xyz - 200) * 16 + p
+// I decoded SoundList.wwl in CBWCQ3 to find monster part, it's a map of lookID -> sound file
+// minor fix may be needed based on this SoundList.wwl file result
+//
 // before renaming, changes:
 // 1. remove '224-2 .wav', it's identical to '224-2.wav'
 // 2. renaming 238,9-x.wav -> 800-x.wav, since 238 and 239 are both taken
 //    this sound effect set hears like for some angry 钉耙猫 type, since 238 and a29 are 多钩猫 and 钉耙猫
 
-// magic and monster sound effects, to be continued
+// magic and monster sound effects
+// I decoded SoundList.wwl in CBWCQ3 to find magic part, it's a map of magic index -> sound file
+// minor fix may be needed based on this SoundList.wwl file result
+//
+// unlike monster which has lookID, magic in mir2x has no lookID, so need to put this information into MagicRecord
+// SoundList.wwl shows all magic sound files has name as [Mm]\d+-\d.wav, renaming rule:
+//
+//     mxxx-y.wav -> 0X04000000 + xxx * 16 + (y - 1)
+//
+// use (y - 1) not y because that seems SoundList.wwl shows there is no mxxx-0.wav file
+// changes before renaming:
+// 1. M27-L.wav -> M27-1.wav
+// 2. remove M27-R.wav, because looks M27-L.wav and M27-R.wav are identical, and these two files are not used for magic sound actually
 
 extern ClientArgParser *g_clientArgParser;
 std::optional<std::tuple<SoundEffectElement, size_t>> SoundEffectDB::loadResource(uint32_t key)
