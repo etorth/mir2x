@@ -22,6 +22,9 @@ class BaseMagic
         const MagicGfxEntryRef &m_gfxEntryRef = m_gfxEntryPair.second;
 
     protected:
+        const uint32_t m_seffID;
+
+    protected:
         const int m_gfxDirIndex;
 
     protected:
@@ -54,6 +57,7 @@ class BaseMagic
                   }
                   throw fflerror("invalid magicStage: %s", to_cstr(magicStage));
               }())
+            , m_seffID(???)
             , m_gfxDirIndex(dirIndex)
         {
             // gfxDirIndex is the index of gfx set
