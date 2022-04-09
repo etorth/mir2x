@@ -42,6 +42,7 @@
 },
 
 {   .name = u8"魔法特效_护身符",
+    .seffBase = 13,
     .gfxList
     {
         {
