@@ -41,6 +41,16 @@ inline std::string _ffl_bad_value_type_helper(const std::u8string &s)
     return _ffl_bad_value_type_helper((const char *)(s.c_str()));
 }
 
+inline std::string _ffl_bad_value_type_helper(const std::string_view &s)
+{
+    return _ffl_bad_value_type_helper(std::string(s.data(), s.size()));
+}
+
+inline std::string _ffl_bad_value_type_helper(const std::u8string_view &s)
+{
+    return _ffl_bad_value_type_helper(std::u8string(s.data(), s.size()));
+}
+
 inline std::string _ffl_bad_value_type_helper(char ch)
 {
     if(ch == '\0'){

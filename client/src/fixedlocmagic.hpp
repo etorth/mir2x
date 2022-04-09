@@ -43,7 +43,7 @@ class FixedLocMagic: public BaseMagic
             , m_x(x)
             , m_y(y)
         {
-            fflassert(m_gfxEntry.checkType(u8"固定"));
+            fflassert(m_gfxEntry->checkType(u8"固定"));
         }
 
     public:
@@ -259,7 +259,7 @@ class IceThorn_RUN: public FixedLocMagic
     public:
         bool done() const override
         {
-            return absFrame() >= std::max<int>(m_gfxEntry.frameCount, m_iceSlagFrameCount[0] + m_iceSlagFrameCount[1] + m_iceSlagFrameCount[2]);
+            return absFrame() >= std::max<int>(m_gfxEntry->frameCount, m_iceSlagFrameCount[0] + m_iceSlagFrameCount[1] + m_iceSlagFrameCount[2]);
         }
 
     private:
@@ -288,7 +288,7 @@ class IceThorn_RUN: public FixedLocMagic
     public:
         void drawViewOff(int viewX, int viewY, uint32_t modColor) const override
         {
-            if(absFrame() < m_gfxEntry.frameCount){
+            if(absFrame() < m_gfxEntry->frameCount){
                 FixedLocMagic::drawViewOff(viewX, viewY, modColor);
             }
         }
@@ -352,7 +352,7 @@ class SingleFrameEffect_RUN: public FixedLocMagic
         {
             fflassert(t1 >= 0);
             fflassert(t2 >  0);
-            fflassert(m_gfxEntry.frameCount == 1);
+            fflassert(m_gfxEntry->frameCount == 1);
         }
 
     public:

@@ -17,19 +17,16 @@ MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, M
           fflassert(str_haschar(magicName));
           fflassert(str_haschar(stageName));
 
-          const auto &mr = DBCOM_MAGICRECORD(magicName);
-          fflassert(mr);
-
-          const auto gfxPair = mr.getGfxEntry(stageName);
+          const auto gfxPair = DBCOM_MAGICGFXENTRY(magicName, stageName);
           fflassert(gfxPair.first);
-          fflassert(gfxPair.first.loop == 0);
-          fflassert(gfxPair.first.checkType(u8"附着"));
+          fflassert(gfxPair.first->loop == 0);
+          fflassert(gfxPair.first->checkType(u8"附着"));
 
-          fflassert(gfxPair.first.frameCount > 0);
-          fflassert(gfxPair.first.frameCount <= gfxPair.first.gfxIDCount);
+          fflassert(gfxPair.first->frameCount > 0);
+          fflassert(gfxPair.first->frameCount <= gfxPair.first->gfxIDCount);
 
-          fflassert(gfxPair.first.speed >= SYS_MINSPEED);
-          fflassert(gfxPair.first.speed <= SYS_MAXSPEED);
+          fflassert(gfxPair.first->speed >= SYS_MINSPEED);
+          fflassert(gfxPair.first->speed <= SYS_MAXSPEED);
           return gfxPair;
       }())
 {
@@ -41,10 +38,10 @@ uint32_t MotionEffect::frameTexID() const
 {
     fflassert(!done());
     if(const auto gfxIndex = gfxFrame(); gfxIndex >= 0){
-        if(m_gfxEntry.gfxDirType > 1){
-            return m_gfxEntry.gfxID + gfxIndex + (m_motion->direction - DIR_BEGIN) * m_gfxEntry.gfxIDCount;
+        if(m_gfxEntry->gfxDirType > 1){
+            return m_gfxEntry->gfxID + gfxIndex + (m_motion->direction - DIR_BEGIN) * m_gfxEntry->gfxIDCount;
         }
-        return m_gfxEntry.gfxID + gfxIndex;
+        return m_gfxEntry->gfxID + gfxIndex;
     }
     return SYS_U32NIL;
 }
@@ -57,7 +54,7 @@ void MotionEffect::drawShift(int shiftX, int shiftY, uint32_t modColor)
     fflassert(!done());
     if(const auto texID = frameTexID(); texID != SYS_U32NIL){
         if(auto [texPtr, offX, offY] = g_magicDB->retrieve(texID); texPtr){
-            SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(m_gfxEntryRef ? m_gfxEntryRef.modColor : m_gfxEntry.modColor, modColor));
+            SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::modRGBA(m_gfxEntryRef ? m_gfxEntryRef->modColor : m_gfxEntry->modColor, modColor));
             SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, SDL_BLENDMODE_BLEND);
             g_sdlDevice->drawTexture(texPtr, shiftX + offX, shiftY + offY);
         }
@@ -76,10 +73,10 @@ HeroSpellMagicEffect::HeroSpellMagicEffect(const char8_t *magicName, Hero *heroP
         default: throw fflerror("invalid motion type: %s", motionName(m_motion->type));
     }
 
-    switch(m_gfxEntry.gfxDirType){
+    switch(m_gfxEntry->gfxDirType){
         case  1: break;
         case  8: break;
-        default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry.gfxDirType);
+        default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
     }
 }
 
@@ -141,9 +138,9 @@ int MotionAlignedEffect::absFrame() const
     const auto fspeed = [this]() -> double
     {
         if(m_useMotionSpeed){
-            return to_df(m_motion->speed * m_gfxEntry.frameCount) / to_df(m_creature->getFrameCountEx(m_motion->type, m_motion->direction));
+            return to_df(m_motion->speed * m_gfxEntry->frameCount) / to_df(m_creature->getFrameCountEx(m_motion->type, m_motion->direction));
         }
-        return to_df(m_gfxEntry.speed);
+        return to_df(m_gfxEntry->speed);
     }();
     return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (fspeed / 100.0));
 }

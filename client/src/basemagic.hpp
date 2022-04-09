@@ -15,14 +15,14 @@ class BaseMagic
         const MagicRecord &m_magicRecord;
 
     private:
-        const std::pair<const MagicGfxEntry &, const MagicGfxEntryRef &> m_gfxEntryPair;
+        const std::pair<const MagicGfxEntry *, const MagicGfxEntryRef *> m_gfxEntryPair;
 
     protected:
-        const MagicGfxEntry    &m_gfxEntry    = m_gfxEntryPair.first;
-        const MagicGfxEntryRef &m_gfxEntryRef = m_gfxEntryPair.second;
+        const MagicGfxEntry    * m_gfxEntry    = m_gfxEntryPair.first;
+        const MagicGfxEntryRef * m_gfxEntryRef = m_gfxEntryPair.second;
 
     protected:
-        const uint32_t m_seffID;
+        const std::optional<uint32_t> m_seffID;
 
     protected:
         const int m_gfxDirIndex;
@@ -35,35 +35,7 @@ class BaseMagic
         std::list<std::function<bool(BaseMagic *)>> m_onUpdateCBList;
 
     public:
-        BaseMagic(const char8_t *magicName, const char8_t *magicStage, int dirIndex)
-            : m_magicID([magicName]() -> uint32_t
-              {
-                  if(const auto magicID = DBCOM_MAGICID(magicName)){
-                      return magicID;
-                  }
-                  throw fflerror("invalid magicName: %s", to_cstr(magicName));
-              }())
-            , m_magicRecord([this]() -> const auto &
-              {
-                  if(const auto &mr = DBCOM_MAGICRECORD(magicID())){
-                      return mr;
-                  }
-                  throw fflerror("invalid magicID: %d", magicID());
-              }())
-            , m_gfxEntryPair([magicStage, this]()
-              {
-                  if(const auto &p = m_magicRecord.getGfxEntry(magicStage); p.first){
-                      return p;
-                  }
-                  throw fflerror("invalid magicStage: %s", to_cstr(magicStage));
-              }())
-            , m_seffID(???)
-            , m_gfxDirIndex(dirIndex)
-        {
-            // gfxDirIndex is the index of gfx set
-            // the gfx set can be for different direction or not
-            fflassert(gfxDirIndex() >= 0 && gfxDirIndex() < getGfxEntry().gfxDirType);
-        }
+        BaseMagic(const char8_t *, const char8_t *, int);
 
     public:
         virtual ~BaseMagic() = default;
@@ -79,7 +51,7 @@ class BaseMagic
             return DBCOM_MAGICRECORD(magicID()).name;
         }
 
-        const MagicGfxEntry &getGfxEntry() const
+        const MagicGfxEntry * getGfxEntry() const
         {
             return m_gfxEntry;
         }
@@ -87,6 +59,11 @@ class BaseMagic
         int gfxDirIndex() const
         {
             return m_gfxDirIndex;
+        }
+
+        std::optional<uint32_t> getSeffID() const
+        {
+            return m_seffID;
         }
 
     public:
@@ -97,7 +74,7 @@ class BaseMagic
 
         bool checkMagic(const char8_t *name, const char8_t *stage) const
         {
-            return magicID() == DBCOM_MAGICID(name) && getGfxEntry().checkStage(stage);
+            return magicID() == DBCOM_MAGICID(name) && getGfxEntry()->checkStage(stage);
         }
 
     public:
@@ -146,8 +123,8 @@ class BaseMagic
     public:
         int frame() const
         {
-            if(m_gfxEntry.loop){
-                return absFrame() % m_gfxEntry.frameCount;
+            if(m_gfxEntry->loop){
+                return absFrame() % m_gfxEntry->frameCount;
             }
             else{
                 return absFrame();
@@ -156,27 +133,29 @@ class BaseMagic
 
         virtual int absFrame() const
         {
-            return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (m_gfxEntry.speed / 100.0));
+            return std::lround((m_accuTime / 1000.0) * SYS_DEFFPS * (m_gfxEntry->speed / 100.0));
         }
 
     public:
-        void addOnDone(std::function<void(BaseMagic *)> onDone)
+        BaseMagic *addOnDone(std::function<void(BaseMagic *)> onDone)
         {
             m_onDoneCBList.push_back(std::move(onDone));
+            return this;
         }
 
-        void addTrigger(std::function<bool(BaseMagic *)> onUpdate)
+        BaseMagic *addTrigger(std::function<bool(BaseMagic *)> onUpdate)
         {
             m_onUpdateCBList.push_back(std::move(onUpdate));
+            return this;
         }
 
     public:
         virtual bool done() const
         {
-            if(m_gfxEntry.loop){
+            if(m_gfxEntry->loop){
                 return false;
             }
-            return absFrame() >= m_gfxEntry.frameCount;
+            return absFrame() >= m_gfxEntry->frameCount;
         }
 
     protected:

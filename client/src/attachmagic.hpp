@@ -11,7 +11,7 @@ class AttachMagic: public BaseMagic
         AttachMagic(const char8_t *magicName, const char8_t *magicStage, int gfxDirIndex = 0)
             : BaseMagic(magicName, magicStage, gfxDirIndex)
         {
-            fflassert(m_gfxEntry.checkType(u8"附着"));
+            fflassert(m_gfxEntry->checkType(u8"附着"));
         }
 
     public:

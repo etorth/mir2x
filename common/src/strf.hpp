@@ -102,6 +102,12 @@
 bool str_haschar(const char *);
 bool str_haschar(const char8_t *);
 
+bool str_haschar(const std::string &);
+bool str_haschar(const std::u8string &);
+
+bool str_haschar(const std::string_view &);
+bool str_haschar(const std::u8string_view &);
+
 template<std::integral T> [[nodiscard]] std::string str_ksep(T t, char sep = ',')
 {
     std::string result;

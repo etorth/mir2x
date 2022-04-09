@@ -22,11 +22,11 @@ class MotionEffect
         MotionNode * const m_motion;
 
     private:
-        const std::pair<const MagicGfxEntry &, const MagicGfxEntryRef &> m_gfxEntryPair;
+        const std::pair<const MagicGfxEntry *, const MagicGfxEntryRef *> m_gfxEntryPair;
 
     protected:
-        const MagicGfxEntry    & m_gfxEntry    = m_gfxEntryPair.first;
-        const MagicGfxEntryRef & m_gfxEntryRef = m_gfxEntryPair.second;
+        const MagicGfxEntry    * m_gfxEntry    = m_gfxEntryPair.first;
+        const MagicGfxEntryRef * m_gfxEntryRef = m_gfxEntryPair.second;
 
     public:
         MotionEffect(const char8_t *, const char8_t *, MotionNode *);
@@ -37,7 +37,7 @@ class MotionEffect
     public:
         virtual int speed() const
         {
-            return m_gfxEntry.speed;
+            return m_gfxEntry->speed;
         }
 
     public:
@@ -58,7 +58,7 @@ class MotionEffect
 
         virtual int frameCount() const
         {
-            return m_gfxEntry.frameCount;
+            return m_gfxEntry->frameCount;
         }
 
     public:

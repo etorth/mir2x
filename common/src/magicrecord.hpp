@@ -215,7 +215,7 @@ struct MagicGfxEntry
 
             constexpr operator bool () const
             {
-                return !name.empty() && stage.empty();
+                return !name.empty();
             }
         }
         ref {};
@@ -340,8 +340,4 @@ struct MagicRecord
     {
         return name && name[0];
     }
-
-    // need to be non-constexpr
-    // because to support magic gfx entry reference
-    std::pair<const MagicGfxEntry &, const MagicGfxEntryRef &> getGfxEntry(const char8_t *) const;
 };

@@ -86,6 +86,7 @@
 },
 
 {   .name = u8"魔法特效_召唤骷髅",
+    .seffBase = 17,
     .gfxList
     {
         {
@@ -108,6 +109,7 @@
 },
 
 {   .name = u8"魔法特效_雷电术",
+    .seffBase = 11,
     .gfxList
     {
         {
@@ -120,6 +122,7 @@
 },
 
 {   .name = u8"魔法特效_火球术",
+    .seffBase = 1,
     .gfxList
     {
         {
@@ -162,6 +165,7 @@
 },
 
 {   .name = u8"魔法特效_大火球",
+    .seffBase = 5,
     .gfxList
     {
         {
@@ -213,6 +217,7 @@
 },
 
 {   .name = u8"魔法特效_瞬息移动",
+    .seffBase = 21,
     .gfxList
     {
         {
@@ -276,6 +281,7 @@
     .mpInc = 6,
     .power = {15, 19},
     .addPower = {7, 11},
+    .seffBase = 11,
     .gfxList
     {
         {
@@ -308,6 +314,7 @@
     .coolDown = 100,
     .mp = 20,
     .mpInc = 30,
+    .seffBase = 31,
     .gfxList
     {
         {
@@ -471,6 +478,7 @@
     .mp = 7,
     .mpInc = 2,
     .power = {11, 15},
+    .seffBase = 2,
     .gfxList
     {
         {
@@ -519,6 +527,7 @@
     .coolDown = 600,
     .mp = 10,
     .mpInc = 5,
+    .seffBase = 6,
     .gfxList
     {
         {
@@ -572,6 +581,7 @@
     .mp = 8,
     .mpInc = 1,
     .power = {0, 2},
+    .seffBase = 8,
     .gfxList
     {
         {
@@ -598,6 +608,7 @@
     .mpInc = 15,
     .power = {14, 14},
     .addPower = {12, 16},
+    .seffBase = 10,
     .gfxList
     {
         {
@@ -656,6 +667,7 @@
     .mpInc = 3,
     .power = {6, 10},
     .addPower = {3, 3},
+    .seffBase = 13,
     .gfxList
     {
         {
@@ -695,6 +707,7 @@
     .coolDown = 700,
     .mp = 10,
     .mpInc = 5,
+    .seffBase = 14,
     .gfxList
     {
         {
@@ -734,6 +747,7 @@
     .coolDown = 700,
     .mp = 10,
     .mpInc = 5,
+    .seffBase = 15,
     .gfxList
     {
         {
@@ -773,6 +787,7 @@
     .coolDown = 1000,
     .mp = 15,
     .mpInc = 10,
+    .seffBase = 16,
     .gfxList
     {
         {
@@ -804,6 +819,7 @@
     .coolDown = 700,
     .mp = 5,
     .mpInc = 5,
+    .seffBase = 18,
     .gfxList
     {
         {
@@ -866,6 +882,7 @@
     .coolDown = 600,
     .mp = 3,
     .mpInc = 3,
+    .seffBase = 20,
     .gfxList
     {
         {
@@ -930,6 +947,7 @@
     .mpInc = 30,
     .power = {2, 9},
     .addPower = {1, 6},
+    .seffBase = 22,
     .gfxList
     {
         {
@@ -966,6 +984,7 @@
     .mpInc = 15,
     .power = {14, 18},
     .addPower = {12, 16},
+    .seffBase = 9,
     .gfxList
     {
         {
@@ -1003,6 +1022,7 @@
     .mpInc = 20,
     .power = {14, 18},
     .addPower = {14, 18},
+    .seffBase = 23,
     .gfxList
     {
         {
@@ -1038,6 +1058,7 @@
     .mpInc = 20,
     .power = {14, 18},
     .addPower = {14, 18},
+    .seffBase = 24,
     .gfxList
     {
         {
@@ -1128,6 +1149,7 @@
     .mpInc = 20,
     .power = {8, 12},
     .addPower = {4, 4},
+    .seffBase = 29,
     .gfxList
     {
         {
@@ -1159,6 +1181,7 @@
     .coolDown = 2000,
     .mp = 15,
     .mpInc = 15,
+    .seffBase = 30,
     .gfxList
     {
         {
@@ -1184,6 +1207,7 @@
     .coolDown = 1000,
     .mp = 30,
     .mpInc = 30,
+    .seffBase = 32,
     .gfxList
     {
         {
@@ -1217,6 +1241,7 @@
     .mpInc = 20,
     .power = {12, 16},
     .addPower = {14, 18},
+    .seffBase = 33,
     .gfxList
     {
         {
@@ -1324,6 +1349,7 @@
     .mpInc = 3,
     .power = {6, 10},
     .addPower = {3, 3},
+    .seffBase = 37,
     .gfxList
     {
         {
@@ -1373,6 +1399,7 @@
     .mpInc = 4,
     .power = {8, 12},
     .addPower = {7, 7},
+    .seffBase = 38,
     .gfxList
     {
         {
@@ -1423,6 +1450,7 @@
     .mpInc = 1,
     .power = {4, 8},
     .addPower = {0, 4},
+    .seffBase = 39,
     .gfxList
     {
         {
@@ -1488,6 +1516,7 @@
     .mpInc = 6,
     .power = {13, 17},
     .addPower = {7, 11},
+    .seffBase = 40,
     .gfxList
     {
         {
@@ -1535,6 +1564,7 @@
     .mpInc = 1,
     .power = {6, 10},
     .addPower = {0, 4},
+    .seffBase = 41,
     .gfxList
     {
         {
@@ -1601,6 +1631,7 @@
     .mpInc = 15,
     .power = {12, 16},
     .addPower = {12, 16},
+    .seffBase = 53,
     .gfxList
     {
         {
@@ -1634,6 +1665,7 @@
     .mpInc = 1,
     .power = {5, 9},
     .addPower = {0, 4},
+    .seffBase = 67,
     .gfxList
     {
         {
@@ -1702,6 +1734,7 @@
     .mpInc = 20,
     .power = {13, 17},
     .addPower = {14, 18},
+    .seffBase = 72,
     .gfxList
     {
         {
@@ -1737,6 +1770,7 @@
     .mpInc = 15,
     .power = {13, 17},
     .addPower = {12, 16},
+    .seffBase = 73,
     .gfxList
     {
         // 击风 and 风震天 are actually using same gfx
@@ -1790,6 +1824,7 @@
     .mpInc = 6,
     .power = {14, 18},
     .addPower = {7, 11},
+    .seffBase = 74,
     .gfxList
     {
         {
@@ -1831,6 +1866,7 @@
     .coolDown = 5000,
     .mp = 100,
     .mpInc = 100,
+    .seffBase = 77,
     .gfxList
     {
         {
@@ -1862,6 +1898,7 @@
     .coolDown = 700,
     .mp = 10,
     .mpInc = 5,
+    .seffBase = 89,
     .gfxList
     {
         {
@@ -1901,6 +1938,7 @@
     .coolDown = 700,
     .mp = 10,
     .mpInc = 5,
+    .seffBase = 94,
     .gfxList
     {
         {
@@ -1941,6 +1979,7 @@
     .mpInc = 20,
     .power = {2, 4},
     .addPower = {3, 5},
+    .seffBase = 102,
     .gfxList
     {
         {
@@ -1989,6 +2028,7 @@
     .coolDown = 2500,
     .mp = 20,
     .mpInc = 20,
+    .seffBase = 104,
     .gfxList
     {
         {
@@ -2021,6 +2061,7 @@
     .coolDown = 2000,
     .mp = 20,
     .mpInc = 25,
+    .seffBase = 105,
     .gfxList
     {
         {
@@ -2054,6 +2095,7 @@
     .mpInc = 100,
     .power = {2, 4},
     .addPower = {3, 5},
+    .seffBase = 106,
     .gfxList
     {
         {
@@ -2079,6 +2121,7 @@
     .coolDown = 200,
     .mp = 40,
     .mpInc = 10,
+    .seffBase = 107,
     .gfxList
     {
         {
@@ -2111,6 +2154,7 @@
     .coolDown = 200,
     .mp = 40,
     .mpInc = 20,
+    .seffBase = 108,
     .gfxList
     {
         {
@@ -2137,6 +2181,7 @@
     .mpInc = 20,
     .power = {16, 20},
     .addPower = {16, 20},
+    .seffBase = 110,
     .gfxList
     {
         {
@@ -2164,6 +2209,7 @@
     .mpInc = 30,
     .power = {20, 40},
     .addPower = {20, 30},
+    .seffBase = 111,
     .gfxList
     {
         {
@@ -2198,6 +2244,7 @@
     .mpInc = 10,
     .power = {6, 2},
     .addPower = {1, 1},
+    .seffBase = 112,
     .gfxList
     {
         {
@@ -2224,6 +2271,7 @@
     .mpInc = 20,
     .power = {32, 40},
     .addPower = {14, 22},
+    .seffBase = 113,
     .gfxList
     {
         {
@@ -2264,6 +2312,7 @@
     .coolDown = 100,
     .mp = 20,
     .mpInc = 10,
+    .seffBase = 120,
     .gfxList
     {
         {
@@ -2295,6 +2344,7 @@
     .coolDown = 100,
     .mp = 120,
     .mpInc = 80,
+    .seffBase = 121,
     .gfxList
     {
         {
@@ -2319,6 +2369,7 @@
     .coolDown = 200,
     .mp = 60,
     .mpInc = 50,
+    .seffBase = 122,
     .gfxList
     {
         {
@@ -2371,6 +2422,7 @@
     .mpInc = 30,
     .power = {4, 8},
     .addPower = {3, 4},
+    .seffBase = 123,
     .gfxList
     {
         {

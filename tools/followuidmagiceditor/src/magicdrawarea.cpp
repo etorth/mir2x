@@ -123,13 +123,13 @@ void MagicDrawArea::clear()
 
 std::tuple<Fl_Image *, int, int> MagicDrawArea::getFrameImage(int gfxDirIndex)
 {
-    const auto &gfxEntry = DBCOM_MAGICRECORD(m_magicID).getGfxEntry(u8"运行").first;
+    const auto gfxEntry = DBCOM_MAGICGFXENTRY(m_magicID, u8"运行").first;
     fflassert(gfxEntry);
 
-    if(gfxEntry.gfxID == SYS_U32NIL){
+    if(gfxEntry->gfxID == SYS_U32NIL){
         return {nullptr, 0, 0};
     }
-    return m_frameDBPtr->retrieve(gfxEntry.gfxID + m_frame + gfxDirIndex * gfxEntry.gfxIDCount);
+    return m_frameDBPtr->retrieve(gfxEntry->gfxID + m_frame + gfxDirIndex * gfxEntry->gfxIDCount);
 }
 
 void MagicDrawArea::draw()
@@ -259,7 +259,7 @@ void MagicDrawArea::output() const
 
 void MagicDrawArea::updateFrame()
 {
-    m_frame = (m_frame + 1) % DBCOM_MAGICRECORD(m_magicID).getGfxEntry(u8"运行").first.frameCount;
+    m_frame = (m_frame + 1) % DBCOM_MAGICGFXENTRY(m_magicID, u8"运行").first->frameCount;
 }
 
 std::tuple<int, int> MagicDrawArea::getGfxDirPLoc(int gfxDirIndex) const

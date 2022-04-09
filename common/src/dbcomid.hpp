@@ -189,3 +189,45 @@ constexpr const BuffRecord           &DBCOM_BUFFRECORD          (const char8_t *
 constexpr const BuffActRecord        &DBCOM_BUFFACTRECORD       (const char8_t *name) { return DBCOM_BUFFACTRECORD       (DBCOM_BUFFACTID       (name)); }
 constexpr const AttackModifierRecord &DBCOM_ATTACKMODIFIERRECORD(const char8_t *name) { return DBCOM_ATTACKMODIFIERRECORD(DBCOM_ATTACKMODIFIERID(name)); }
 constexpr const SpellModifierRecord  &DBCOM_SPELLMODIFIERRECORD (const char8_t *name) { return DBCOM_SPELLMODIFIERRECORD (DBCOM_SPELLMODIFIERID (name)); }
+
+constexpr const ItemRecord           &DBCOM_ITEMRECORD          (const std::u8string_view &name) { return DBCOM_ITEMRECORD          (DBCOM_ITEMID          (name.data())); }
+constexpr const MagicRecord          &DBCOM_MAGICRECORD         (const std::u8string_view &name) { return DBCOM_MAGICRECORD         (DBCOM_MAGICID         (name.data())); }
+constexpr const MonsterRecord        &DBCOM_MONSTERRECORD       (const std::u8string_view &name) { return DBCOM_MONSTERRECORD       (DBCOM_MONSTERID       (name.data())); }
+constexpr const MapRecord            &DBCOM_MAPRECORD           (const std::u8string_view &name) { return DBCOM_MAPRECORD           (DBCOM_MAPID           (name.data())); }
+constexpr const BuffRecord           &DBCOM_BUFFRECORD          (const std::u8string_view &name) { return DBCOM_BUFFRECORD          (DBCOM_BUFFID          (name.data())); }
+constexpr const BuffActRecord        &DBCOM_BUFFACTRECORD       (const std::u8string_view &name) { return DBCOM_BUFFACTRECORD       (DBCOM_BUFFACTID       (name.data())); }
+constexpr const AttackModifierRecord &DBCOM_ATTACKMODIFIERRECORD(const std::u8string_view &name) { return DBCOM_ATTACKMODIFIERRECORD(DBCOM_ATTACKMODIFIERID(name.data())); }
+constexpr const SpellModifierRecord  &DBCOM_SPELLMODIFIERRECORD (const std::u8string_view &name) { return DBCOM_SPELLMODIFIERRECORD (DBCOM_SPELLMODIFIERID (name.data())); }
+
+constexpr const std::pair<const MagicGfxEntry *, const MagicGfxEntryRef *> DBCOM_MAGICGFXENTRY(const std::u8string_view &name, const std::u8string_view &stage)
+{
+    if(name.empty()){
+        return {nullptr, nullptr};
+    }
+
+    if(stage.empty()){
+        return {nullptr, nullptr};
+    }
+
+    if(magicStageID(stage.data()) >= MST_BEGIN){
+        return {nullptr, nullptr};
+    }
+
+    if(const auto &mr = DBCOM_MAGICRECORD(name)){
+        for(const auto &entry: mr.gfxList){
+            if(entry.ref && entry.ref.checkStage(stage.data())){
+                return {DBCOM_MAGICGFXENTRY(std::u8string_view(entry.ref.name), stage).first, &entry.ref};
+            }
+
+            if(entry && entry.checkStage(stage.data())){
+                return {&entry, nullptr};
+            }
+        }
+    }
+    return {nullptr, nullptr};
+}
+
+constexpr const std::pair<const MagicGfxEntry *, const MagicGfxEntryRef *> DBCOM_MAGICGFXENTRY(uint32_t magicID, const std::u8string_view &stage)
+{
+    return DBCOM_MAGICGFXENTRY(DBCOM_MAGICRECORD(magicID).name, stage);
+}

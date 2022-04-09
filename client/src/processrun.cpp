@@ -333,7 +333,7 @@ void ProcessRun::draw() const
     {
         LocHashTable<std::vector<FixedLocMagic *>> table;
         for(auto &p: m_fixedLocMagicList){
-            if(p->getGfxEntry().onGround){
+            if(p->getGfxEntry()->onGround){
                 table[{p->x(), p->y()}].push_back(p.get());
             }
         }
@@ -397,7 +397,7 @@ void ProcessRun::draw() const
 
     // draw magics
     for(auto &p: m_fixedLocMagicList){
-        if(!p->getGfxEntry().onGround){
+        if(!p->getGfxEntry()->onGround){
             p->drawViewOff(m_viewX, m_viewY, colorf::WHITE + colorf::A_SHF(255));
         }
     }
