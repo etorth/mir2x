@@ -53,7 +53,7 @@ BaseMagic::BaseMagic(const char8_t *magicName, const char8_t *magicStage, int di
 
           const auto gfxPair = DBCOM_MAGICGFXENTRY(magicName, magicStage);
           fflassert(gfxPair.first);
-          fflassert(gfxPair.first->checkType(magicStage));
+          fflassert(gfxPair.first->checkStage(magicStage));
 
           fflassert(gfxPair.first->frameCount > 0);
           fflassert(gfxPair.first->frameCount <= gfxPair.first->gfxIDCount);
