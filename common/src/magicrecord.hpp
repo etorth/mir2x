@@ -69,11 +69,11 @@ enum MagicStageType: int
 {
     MST_NONE  = 0,
     MST_BEGIN = 1,
-    MST_SPELL = 1,
-    MST_START,
-    MST_RUN,
-    MST_DONE,
-    MST_HITTED,
+    MST_SPELL = 1,  // motion effect to start the magic
+    MST_START,      // magic started, for non-sustaining magic this is the main part
+    MST_DONE,       // magic explosion
+    MST_RUN,        // sustaining magic status, not common
+    MST_HITTED,     // sustaining magic get attacked, not common
     MST_END,
 };
 
@@ -82,8 +82,8 @@ constexpr inline const char8_t *magicStageName(int type)
     switch(type){
         case MST_SPELL  : return u8"启动";
         case MST_START  : return u8"开始";
-        case MST_RUN    : return u8"运行";
         case MST_DONE   : return u8"结束";
+        case MST_RUN    : return u8"运行";
         case MST_HITTED : return u8"挨打";
         default         : return nullptr ;
     }

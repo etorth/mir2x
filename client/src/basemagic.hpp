@@ -35,7 +35,44 @@ class BaseMagic
         std::list<std::function<bool(BaseMagic *)>> m_onUpdateCBList;
 
     public:
-        BaseMagic(const char8_t *, const char8_t *, int);
+        BaseMagic(const char8_t *magicName, const char8_t *magicStage, int dirIndex)
+            : m_magicID([magicName]() -> uint32_t
+              {
+                  if(const auto magicID = DBCOM_MAGICID(magicName)){
+                      return magicID;
+                  }
+                  throw fflerror("invalid magicName: %s", to_cstr(magicName));
+              }())
+            , m_magicRecord([this]() -> const auto &
+              {
+                  if(const auto &mr = DBCOM_MAGICRECORD(magicID())){
+                      return mr;
+                  }
+                  throw fflerror("invalid magicID: %d", magicID());
+              }())
+            , m_gfxEntryPair([magicName, magicStage]()
+              {
+                  fflassert(str_haschar(magicName));
+                  fflassert(str_haschar(magicStage));
+
+                  const auto gfxPair = DBCOM_MAGICGFXENTRY(magicName, magicStage);
+                  fflassert(gfxPair.first);
+                  fflassert(gfxPair.first->checkStage(magicStage));
+
+                  fflassert(gfxPair.first->frameCount > 0);
+                  fflassert(gfxPair.first->frameCount <= gfxPair.first->gfxIDCount);
+
+                  fflassert(gfxPair.first->speed >= SYS_MINSPEED);
+                  fflassert(gfxPair.first->speed <= SYS_MAXSPEED);
+                  return gfxPair;
+              }())
+            , m_seffID(DBCOM_MAGICGFXSEFFID(to_u8sv(magicName), to_u8sv(magicStage)))
+            , m_gfxDirIndex(dirIndex)
+        {
+            // gfxDirIndex is the index of gfx set
+            // the gfx set can be for different direction or not
+            fflassert(gfxDirIndex() >= 0 && gfxDirIndex() < getGfxEntry()->gfxDirType);
+        }
 
     public:
         virtual ~BaseMagic() = default;

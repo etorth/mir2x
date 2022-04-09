@@ -1030,7 +1030,15 @@ bool Hero::parseAction(const ActionNode &action)
                                     })->addOnDone([targetUID, magicID, proc = m_processRun](BaseMagic *)
                                     {
                                         if(auto coPtr = proc->findUID(targetUID)){
-                                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束")));
+                                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束")))->addTrigger([targetUID, proc](BaseMagic *magic)
+                                            {
+                                                if(auto targetPtr = proc->findUID(targetUID)){
+                                                    if(const auto seffIDOpt = magic->getSeffID(); seffIDOpt.has_value()){
+                                                        targetPtr->playSoundEffect(seffIDOpt.value());
+                                                    }
+                                                }
+                                                return true;
+                                            });
                                         }
                                     });
                                     return true;
@@ -1042,6 +1050,16 @@ bool Hero::parseAction(const ActionNode &action)
                                 break;
                             }
                     }
+
+                    m_motionQueue.back()->addTrigger(false, [uid = UID(), magicID, proc = m_processRun](MotionNode *)
+                    {
+                        if(auto selfPtr = proc->findUID(uid)){
+                            if(const auto seffIDOpt = DBCOM_MAGICGFXSEFFID(magicID, u8"启动"); seffIDOpt.has_value()){
+                                selfPtr->playSoundEffect(seffIDOpt.value());
+                            }
+                        }
+                        return true;
+                    });
 
                     if(motionSpell == MOTION_SPELL0){
                         for(int i = 0; i < 2; ++i){

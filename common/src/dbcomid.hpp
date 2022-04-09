@@ -230,3 +230,38 @@ constexpr const std::pair<const MagicGfxEntry *, const MagicGfxEntryRef *> DBCOM
 {
     return DBCOM_MAGICGFXENTRY(DBCOM_MAGICRECORD(magicID).name, stage);
 }
+
+constexpr const std::optional<uint32_t> DBCOM_MAGICGFXSEFFID(const std::u8string_view &name, const std::u8string_view &stage)
+{
+    if(name.empty()){
+        return {};
+    }
+
+    if(stage.empty()){
+        return {};
+    }
+
+    if(const auto stageVal = magicStageID(stage.data()); (stageVal >= MST_BEGIN) && (stageVal < MST_END)){
+        if(const auto [gfxEntry, gfxEntryRef] = DBCOM_MAGICGFXENTRY(name, stage); gfxEntry){
+            if(gfxEntry->seff.ref){
+                return DBCOM_MAGICGFXSEFFID(gfxEntry->seff.ref.name, gfxEntry->seff.ref.stage.empty() ? stage : gfxEntry->seff.ref.stage);
+            }
+
+            if(gfxEntry->seff.absSeffID.has_value()){
+                return gfxEntry->seff.absSeffID;
+            }
+
+            if(const auto &mr = DBCOM_MAGICRECORD(name)){
+                if(mr.seffBase.has_value()){
+                    return 0X04000000 + mr.seffBase.value() * 16 + (magicStageID(stage.data()) - MST_BEGIN);
+                }
+            }
+        }
+    }
+    return {};
+}
+
+constexpr const std::optional<uint32_t> DBCOM_MAGICGFXSEFFID(uint32_t magicID, const std::u8string_view &stage)
+{
+    return DBCOM_MAGICGFXSEFFID(DBCOM_MAGICRECORD(magicID).name, stage);
+}
