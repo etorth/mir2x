@@ -212,11 +212,6 @@ struct MagicGfxEntry
         {
             const std::u8string_view name  {};
             const std::u8string_view stage {};
-
-            constexpr operator bool () const
-            {
-                return !name.empty();
-            }
         }
         ref {};
 
