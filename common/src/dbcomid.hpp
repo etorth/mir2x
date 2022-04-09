@@ -209,21 +209,20 @@ constexpr const std::pair<const MagicGfxEntry *, const MagicGfxEntryRef *> DBCOM
         return {nullptr, nullptr};
     }
 
-    if(magicStageID(stage.data()) >= MST_BEGIN){
-        return {nullptr, nullptr};
-    }
+    if(const auto stageVal = magicStageID(stage.data()); (stageVal >= MST_BEGIN) && (stageVal < MST_END)){
+        if(const auto &mr = DBCOM_MAGICRECORD(name)){
+            for(const auto &entry: mr.gfxList){
+                if(entry.ref && entry.ref.checkStage(stage.data())){
+                    return {DBCOM_MAGICGFXENTRY(std::u8string_view(entry.ref.name), stage).first, &entry.ref};
+                }
 
-    if(const auto &mr = DBCOM_MAGICRECORD(name)){
-        for(const auto &entry: mr.gfxList){
-            if(entry.ref && entry.ref.checkStage(stage.data())){
-                return {DBCOM_MAGICGFXENTRY(std::u8string_view(entry.ref.name), stage).first, &entry.ref};
-            }
-
-            if(entry && entry.checkStage(stage.data())){
-                return {&entry, nullptr};
+                if(entry && entry.checkStage(stage.data())){
+                    return {&entry, nullptr};
+                }
             }
         }
     }
+
     return {nullptr, nullptr};
 }
 
