@@ -465,7 +465,7 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
         case DBCOM_MAGICID(u8"魔法盾"):
             {
                 if(auto coPtr = findUID(smCM.UID)){
-                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"开始")))->addOnDone([smCM, this](BaseMagic *)
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")))->addOnDone([smCM, this](BaseMagic *)
                     {
                         if(auto coPtr = findUID(smCM.UID)){
                             coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")));
@@ -477,7 +477,7 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
         case DBCOM_MAGICID(u8"阴阳法环"):
             {
                 if(auto coPtr = findUID(smCM.UID)){
-                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"阴阳法环", u8"开始")))->addOnDone([smCM, this](BaseMagic *)
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"阴阳法环", u8"运行")))->addOnDone([smCM, this](BaseMagic *)
                     {
                         if(auto coPtr = findUID(smCM.UID)){
                             coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new TaoYellowBlueRing()));

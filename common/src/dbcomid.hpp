@@ -243,8 +243,8 @@ constexpr const std::optional<uint32_t> DBCOM_MAGICGFXSEFFID(const std::u8string
 
     if(const auto stageIndex = magicStageID(stage.data()); (stageIndex >= MST_BEGIN) && (stageIndex < MST_END)){
         if(const auto [gfxEntry, gfxEntryRef] = DBCOM_MAGICGFXENTRY(name, stage); gfxEntry){
-            if(!gfxEntry->seff.ref.name.empty()){
-                return DBCOM_MAGICGFXSEFFID(gfxEntry->seff.ref.name, gfxEntry->seff.ref.stage.empty() ? stage : gfxEntry->seff.ref.stage);
+            if(gfxEntry->seff.ref.name && !std::u8string_view(gfxEntry->seff.ref.name).empty()){
+                return DBCOM_MAGICGFXSEFFID(gfxEntry->seff.ref.name, std::u8string_view(gfxEntry->seff.ref.stage).empty() ? stage : gfxEntry->seff.ref.stage);
             }
 
             if(gfxEntry->seff.absSeffID.has_value()){

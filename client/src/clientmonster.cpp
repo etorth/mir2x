@@ -575,8 +575,8 @@ bool ClientMonster::onActionSpaceMove(const ActionNode &action)
         .y = action.aimY,
     });
 
-    m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(u8"瞬息移动", u8"开始", action.x, action.y)));
-    addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
+    m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(u8"瞬息移动", u8"运行", action.x, action.y)));
+    addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"裂解")));
     return true;
 }
 

@@ -85,7 +85,7 @@ bool ClientDualAxeSkeleton::onActionAttack(const ActionNode &action)
             // an dual-axe-skeleton can throw dual-axe-magic and die immediately, which makes *this* dangling
 
             if(auto coPtr = proc->findUID(targetUID)){
-                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"掷斧骷髅_掷斧", u8"结束")));
+                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"掷斧骷髅_掷斧", u8"裂解")));
             }
         });
         return true;

@@ -22,7 +22,7 @@ class Thunderbolt: public AttachMagic
 {
     public:
         Thunderbolt()
-            : AttachMagic(u8"雷电术", u8"开始")
+            : AttachMagic(u8"雷电术", u8"运行")
         {}
 
     public:

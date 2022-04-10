@@ -70,9 +70,9 @@ enum MagicStageType: int
     MST_NONE  = 0,
     MST_BEGIN = 1,
     MST_SPELL = 1,  // motion effect to start the magic
-    MST_START,      // magic started, for non-sustaining magic this is the main part
-    MST_DONE,       // magic explosion
-    MST_RUN,        // sustaining magic status, not common
+    MST_RUN,        // magic running, for non-sustainable magic this is the main part
+    MST_EXPLODE,    // magic explosion
+    MST_SUSTAIN,    // sustaining magic status, not common
     MST_HITTED,     // sustaining magic get attacked, not common
     MST_END,
 };
@@ -81,9 +81,9 @@ constexpr inline const char8_t *magicStageName(int type)
 {
     switch(type){
         case MST_SPELL  : return u8"启动";
-        case MST_START  : return u8"开始";
-        case MST_DONE   : return u8"结束";
         case MST_RUN    : return u8"运行";
+        case MST_EXPLODE: return u8"裂解";
+        case MST_SUSTAIN: return u8"持续";
         case MST_HITTED : return u8"挨打";
         default         : return nullptr ;
     }
@@ -92,9 +92,9 @@ constexpr inline const char8_t *magicStageName(int type)
 constexpr inline int magicStageID(const char8_t *type)
 {
     if(type && std::u8string_view(type) == u8"启动") return MST_SPELL;
-    if(type && std::u8string_view(type) == u8"开始") return MST_START;
     if(type && std::u8string_view(type) == u8"运行") return MST_RUN;
-    if(type && std::u8string_view(type) == u8"结束") return MST_DONE;
+    if(type && std::u8string_view(type) == u8"裂解") return MST_EXPLODE;
+    if(type && std::u8string_view(type) == u8"持续") return MST_SUSTAIN;
     if(type && std::u8string_view(type) == u8"挨打") return MST_HITTED;
     return                                                  MST_NONE;
 }
@@ -210,8 +210,8 @@ struct MagicGfxEntry
 
         const struct MagicGfxEntrySoundEffectRef
         {
-            const std::u8string_view name  {};
-            const std::u8string_view stage {};
+            const char8_t * name  = nullptr;
+            const char8_t * stage = nullptr;
         }
         ref {};
 
@@ -254,9 +254,9 @@ struct MagicGfxEntry
     {
         return false
             || checkStage(u8"启动")
-            || checkStage(u8"开始")
             || checkStage(u8"运行")
-            || checkStage(u8"结束")
+            || checkStage(u8"裂解")
+            || checkStage(u8"持续")
             || checkStage(u8"挨打");
     }
 

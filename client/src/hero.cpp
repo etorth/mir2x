@@ -655,8 +655,8 @@ bool Hero::parseAction(const ActionNode &action)
             {
                 flushForcedMotion();
                 jumpLoc(action.aimX, action.aimY, m_currMotion->direction);
-                m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(u8"瞬息移动", u8"开始", action.x, action.y)));
-                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"结束")));
+                m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(u8"瞬息移动", u8"运行", action.x, action.y)));
+                addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"裂解")));
                 break;
             }
         case ACTION_SPELL:
@@ -801,7 +801,7 @@ bool Hero::parseAction(const ActionNode &action)
                                     m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
                                     {
                                         u8"风震天",
-                                        u8"开始",
+                                        u8"运行",
 
                                         aimX,
                                         aimY,
@@ -816,7 +816,7 @@ bool Hero::parseAction(const ActionNode &action)
                                                 proc->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
                                                 {
                                                     u8"风震天",
-                                                    u8"结束",
+                                                    u8"裂解",
 
                                                     nextX,
                                                     nextY,
@@ -950,7 +950,7 @@ bool Hero::parseAction(const ActionNode &action)
                                     if(magicID == DBCOM_MAGICID(u8"击风")){
                                         addedMagic->addOnDone([aimX, aimY, magicID, this](BaseMagic *)
                                         {
-                                            m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束", aimX, aimY)));
+                                            m_processRun->addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic(DBCOM_MAGICRECORD(magicID).name, u8"裂解", aimX, aimY)));
                                         });
                                     }
                                     return true;
@@ -1019,43 +1019,18 @@ bool Hero::parseAction(const ActionNode &action)
                                         targetUID,
                                         m_processRun,
 
-                                    }))->addTrigger([uid = UID(), proc = m_processRun, seffChannelPtr = std::shared_ptr<SDLSoundEffectChannel>()](BaseMagic *magic) mutable -> bool
+                                    }))->addTrigger([uid = UID(), proc = m_processRun](BaseMagic *magic) -> bool
                                     {
-                                        // TODO potential bug
-                                        //      for FollowUIDMagic the sound effect get played in a loop
-                                        //      if there is no explict call to seffChannelPtr->halt() the channel get hold forever
-                                        //
-                                        //      currently call halt() if ditance >= 255
-                                        //      but this trigger may get disabled before distance gets bigger than 255
-                                        //
-                                        //      a working hack is to use ProcessRun::addDelay()
-                                        //      force the channel get relesed after several seconds, this only works for FollowUDMagic since it's moving out of map
-                                        const auto [distance, angle] = dynamic_cast<FollowUIDMagic *>(magic)->getSoundEffectPosition();
-                                        if(seffChannelPtr){
-                                            if(distance >= 255){
-                                                seffChannelPtr->halt();
-                                                return true;
-                                            }
-                                            else{
-                                                if(!seffChannelPtr->halted()){
-                                                    seffChannelPtr->setPosition(distance, angle);
-                                                }
-                                            }
-                                        }
-                                        else{
+                                        if(auto selfPtr = proc->findUID(uid)){
                                             if(const auto seffIDOpt = magic->getSeffID(); seffIDOpt.has_value()){
-                                                seffChannelPtr = g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffIDOpt.value()), -1, distance, angle);
-                                                proc->addDelay(10 * 1000, [seffChannelPtr]()
-                                                {
-                                                    seffChannelPtr->halt();
-                                                });
+                                                selfPtr->playSoundEffect(seffIDOpt.value());
                                             }
                                         }
-                                        return false;
+                                        return true;
                                     })->addOnDone([targetUID, magicID, proc = m_processRun](BaseMagic *)
                                     {
                                         if(auto coPtr = proc->findUID(targetUID)){
-                                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束")))->addTrigger([targetUID, proc](BaseMagic *magic)
+                                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"裂解")))->addTrigger([targetUID, proc](BaseMagic *magic)
                                             {
                                                 if(auto targetPtr = proc->findUID(targetUID)){
                                                     if(const auto seffIDOpt = magic->getSeffID(); seffIDOpt.has_value()){
@@ -1197,7 +1172,7 @@ bool Hero::parseAction(const ActionNode &action)
                                 // don't replace the ptr holding by p, just add a new magic, since the callback is by ptr holding by p
                                 for(auto &p: m_attachMagicList){
                                     if(p->magicID() == DBCOM_MAGICID(u8"魔法盾")){
-                                        addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"运行")));
+                                        addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"魔法盾", u8"持续")));
                                         break;
                                     }
                                 }

@@ -29,7 +29,7 @@ bool ClientMinotaurGuardian::onActionAttack(const ActionNode &action)
                     }
 
                     if(auto coPtr = m_processRun->findUID(targetUID)){
-                        coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"结束")));
+                        coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(DBCOM_MAGICRECORD(magicID).name, u8"裂解")));
                     }
                     return true;
                 });
@@ -99,7 +99,7 @@ bool ClientMinotaurGuardian::onActionAttack(const ActionNode &action)
                     }))->addOnDone([targetUID, proc = m_processRun](BaseMagic *)
                     {
                         if(auto coPtr = proc->findUID(targetUID)){
-                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"潘夜左护卫_火球术", u8"结束")));
+                            coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"潘夜左护卫_火球术", u8"裂解")));
                         }
                     });
                     return true;

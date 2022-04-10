@@ -80,11 +80,6 @@
                 { -4, -51},
                 { 12, -57},
             },
-
-            .seff
-            {
-                .absSeffID = 0X04000000 + 13 * 16 + 1, // 开始 -> 运行
-            },
             .loop = 1,
             .speed = 200,
         },
@@ -105,7 +100,7 @@
         },
 
         {
-            .stage = u8"开始",
+            .stage = u8"运行",
             .type  = u8"固定",
             .gfxID = 0X000002EE,
             .frameCount = 10,
@@ -119,7 +114,7 @@
     .gfxList
     {
         {
-            .stage = u8"开始",
+            .stage = u8"运行",
             .type  = u8"附着",
             .gfxID = 0X000005AA,
             .frameCount = 5,
@@ -162,7 +157,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000244,
             .frameCount = 10,
@@ -214,7 +209,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000708,
             .frameCount = 10,
@@ -227,14 +222,14 @@
     .gfxList
     {
         {
-            .stage = u8"开始",
+            .stage = u8"运行",
             .type  = u8"固定",  // don't use 附着
             .gfxID = 0X0000006E,
             .frameCount = 10,
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000938,
             .frameCount = 10,
@@ -302,7 +297,7 @@
             .ref
             {
                 .name = u8"魔法特效_雷电术",
-                .stage = u8"开始",
+                .stage = u8"运行",
             },
         },
     },
@@ -332,7 +327,7 @@
         },
 
         {
-            .stage = u8"开始",
+            .stage = u8"运行",
             .type  = u8"附着",
             .gfxID = 0X00000347,
             .frameCount = 10,
@@ -380,7 +375,7 @@
             .ref
             {
                 .name  = u8"魔法特效_召唤骷髅",
-                .stage = u8"开始",
+                .stage = u8"运行",
             },
         },
     },
@@ -423,7 +418,7 @@
             .ref
             {
                 .name = u8"魔法特效_火球术",
-                .stage = u8"结束",
+                .stage = u8"裂解",
             },
         },
     },
@@ -466,7 +461,7 @@
             .ref
             {
                 .name = u8"魔法特效_大火球",
-                .stage = u8"结束",
+                .stage = u8"裂解",
             },
         },
     },
@@ -693,7 +688,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000474,
             .frameCount = 10,
@@ -733,7 +728,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X000000C8,
             .frameCount = 10,
@@ -773,7 +768,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X000000AA,
             .frameCount = 10,
@@ -869,7 +864,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000334,
             .frameCount = 10,
@@ -925,7 +920,7 @@
             .ref
             {
                 .name = u8"魔法特效_瞬息移动",
-                .stage = u8"开始",
+                .stage = u8"运行",
             },
         },
 
@@ -933,7 +928,7 @@
             .ref
             {
                 .name = u8"魔法特效_瞬息移动",
-                .stage = u8"结束",
+                .stage = u8"裂解",
             },
         },
     },
@@ -1383,7 +1378,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000D0C,
             .frameCount = 10,
@@ -1433,7 +1428,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000D7A,
             .frameCount = 10,
@@ -1499,7 +1494,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000B2C,
             .frameCount = 10,
@@ -1549,7 +1544,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000B9A,
             .frameCount = 10,
@@ -1613,7 +1608,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X00000C9E,
             .frameCount = 10,
@@ -1716,7 +1711,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X0100024E,
             .modColor = colorf::RGBA(255, 255, 255, 120),
@@ -1791,7 +1786,7 @@
         },
 
         {
-            .stage = u8"开始",
+            .stage = u8"运行",
             .type  = u8"固定",
             .gfxID = 0X010007BC,
             .frameCount = 10,
@@ -1807,7 +1802,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"固定",
             .gfxID = 0X010007D0,
             .frameCount = 10,
@@ -1851,7 +1846,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"固定",
             .gfxID = 0X010007D0,
             .frameCount = 10,
@@ -1924,7 +1919,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X0100074E,
             .frameCount = 10,
@@ -1964,7 +1959,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X0100008C,
             .frameCount = 10,
@@ -2041,7 +2036,7 @@
             .ref
             {
                 .name = u8"魔法特效_瞬息移动",
-                .stage = u8"开始",
+                .stage = u8"运行",
             },
         },
 
@@ -2049,7 +2044,7 @@
             .ref
             {
                 .name = u8"魔法特效_瞬息移动",
-                .stage = u8"结束",
+                .stage = u8"裂解",
             },
         },
     },
@@ -2082,7 +2077,7 @@
             .ref
             {
                 .name  = u8"魔法特效_召唤骷髅",
-                .stage = u8"开始",
+                .stage = u8"运行",
             },
         },
     },
@@ -2300,7 +2295,7 @@
             .ref
             {
                 .name = u8"魔法特效_大火球",
-                .stage = u8"结束",
+                .stage = u8"裂解",
             },
         },
     },
@@ -2388,7 +2383,7 @@
         },
 
         {
-            .stage = u8"开始",
+            .stage = u8"运行",
             .type  = u8"附着",
             .gfxID = 0X02000122,
             .modColor = colorf::RGBA(255, 255, 255, 100),
@@ -2398,7 +2393,7 @@
         {
             .stage = u8"运行",
             .type  = u8"附着",
-            .gfxID = 0X0200012A, // use special gfx, this one uses last frame of 阴阳法环:开始
+            .gfxID = 0X0200012A, // use special gfx, this one uses last frame of 阴阳法环:运行
             .modColor = colorf::RGBA(255, 255, 255, 100),
             .frameCount = 1,
             .loop = 1,
@@ -2554,7 +2549,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X010003A2,
             .frameCount = 6,
@@ -2602,7 +2597,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X010003A2,
             .frameCount = 6,
@@ -2633,7 +2628,7 @@
             .ref
             {
                 .name = u8"魔法特效_火球术",
-                .stage = u8"结束",
+                .stage = u8"裂解",
             },
         },
     },
@@ -2654,7 +2649,7 @@
             .ref
             {
                 .name = u8"魔法特效_雷电术",
-                .stage = u8"开始",
+                .stage = u8"运行",
             },
         },
     },
@@ -2821,7 +2816,7 @@
             .ref
             {
                 .name = u8"魔法特效_雷电术",
-                .stage = u8"开始",
+                .stage = u8"运行",
             },
         },
     },
@@ -2847,7 +2842,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X010003A2,
             .frameCount = 6,
@@ -2914,7 +2909,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X010003A2,
             .frameCount = 6,
@@ -3125,7 +3120,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X0100033E,
             .frameCount = 6,
@@ -3149,7 +3144,7 @@
             .ref
             {
                 .name = u8"魔法特效_雷电术",
-                .stage = u8"开始",
+                .stage = u8"运行",
             },
         },
     },
@@ -3187,7 +3182,7 @@
         },
 
         {
-            .stage = u8"结束",
+            .stage = u8"裂解",
             .type  = u8"附着",
             .gfxID = 0X01000316,
             .frameCount = 6,
@@ -3219,7 +3214,7 @@
             .ref
             {
                 .name = u8"魔法特效_火球术",
-                .stage = u8"结束",
+                .stage = u8"裂解",
             },
         },
     },

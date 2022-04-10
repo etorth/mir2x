@@ -77,7 +77,7 @@ void ProcessSelectChar::net_ONLINEERROR(const uint8_t *buf, size_t)
     switch(smOE.error){
         case ONLINEERR_NOCHAR:
             {
-                m_notifyBoard.addLog(u8"先创建角色以开始游戏");
+                m_notifyBoard.addLog(u8"先创建角色以运行游戏");
                 return;
             }
         case ONLINEERR_MULTIONLINE:

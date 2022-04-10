@@ -43,7 +43,7 @@ bool ClientNumaWizard::onActionAttack_fireBall(const ActionNode &action)
         }))->addOnDone([targetUID, proc = m_processRun](BaseMagic *)
         {
             if(auto coPtr = proc->findUID(targetUID)){
-                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"诺玛法老_火球术", u8"结束")));
+                coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"诺玛法老_火球术", u8"裂解")));
             }
         });
         return true;

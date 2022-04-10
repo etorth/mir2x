@@ -1581,7 +1581,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                 addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
                 {
                     u8"召唤骷髅",
-                    u8"开始",
+                    u8"运行",
                     action.x,
                     action.y,
 
@@ -1613,7 +1613,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
                 addFixedLocMagic(std::unique_ptr<FixedLocMagic>(new FixedLocMagic
                 {
                     u8"超强召唤骷髅",
-                    u8"开始",
+                    u8"运行",
                     action.x,
                     action.y,
 
