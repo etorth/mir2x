@@ -453,4 +453,7 @@ class ProcessRun: public Process
         {
             m_delayCmdQ.addDelay(delayTick, std::move(cmd));
         }
+
+    public:
+        std::shared_ptr<SDLSoundEffectChannel> playSoundEffectAt(uint32_t, int, int, size_t repeats = 1) const;
 };

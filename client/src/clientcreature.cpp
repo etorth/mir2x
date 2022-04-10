@@ -178,25 +178,5 @@ void ClientCreature::playSoundEffect(uint32_t seffID)
 
     fflassert(m_processRun);
     fflassert(m_processRun->getMyHero());
-
-    const auto [selfGX, selfGY] = location();
-    const auto [heroGX, heroGY] = m_processRun->getMyHero()->location();
-
-    const auto dGX = selfGX - heroGX;
-    const auto dGY = selfGY - heroGY;
-
-    const auto [distance, angle] = [dGX, dGY]() -> std::tuple<long, long>
-    {
-        if(dGX == 0 && dGY == 0){
-            return {0, 0};
-        }
-
-        return
-        {
-            std::lround(mathf::LDistance<double>(dGX, dGY, 0, 0)),
-            std::lround(90.0 - 180.0 * std::atan2(-dGY, dGX) / mathf::pi),
-        };
-    }();
-
-    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID), 0, distance, angle);
+    m_processRun->playSoundEffectAt(seffID, x(), y(), 1);
 }

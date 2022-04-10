@@ -444,7 +444,15 @@ void ProcessRun::net_GROUNDFIREWALLLIST(const uint8_t *buf, size_t bufSize)
                     {
                         p->x,
                         p->y,
-                    }));
+                    }))->addTrigger([this](BaseMagic *magic)
+                    {
+                        if(const auto fireWallMagic = dynamic_cast<FireWall_RUN *>(magic)){
+                            if(const auto seffIDOpt = fireWallMagic->getSeffID(); seffIDOpt.has_value()){
+                                playSoundEffectAt(seffIDOpt.value(), fireWallMagic->x(), fireWallMagic->y());
+                            }
+                        }
+                        return true;
+                    });
                 }
             }
         }

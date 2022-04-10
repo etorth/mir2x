@@ -13,6 +13,7 @@
 #include "mapbindb.hpp"
 #include "pngtexdb.hpp"
 #include "bgmusicdb.hpp"
+#include "soundeffectdb.hpp"
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
 #include "pathfinder.hpp"
@@ -37,6 +38,7 @@ extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
 extern BGMusicDB *g_bgmDB;
+extern SoundEffectDB *g_seffDB;
 extern PNGTexDB *g_itemDB;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
@@ -2334,4 +2336,32 @@ int ProcessRun::getAimDirection(const ActionNode &action, int defDir) const
         }
     }
     return defDir;
+}
+
+std::shared_ptr<SDLSoundEffectChannel> ProcessRun::playSoundEffectAt(uint32_t seffID, int locGX, int locGY, size_t repeats) const
+{
+    if(seffID == SYS_U32NIL){
+        return {};
+    }
+
+    fflassert(getMyHero());
+    const auto [heroGX, heroGY] = getMyHero()->location();
+
+    const auto dGX = locGX - heroGX;
+    const auto dGY = locGY - heroGY;
+
+    const auto [distance, angle] = [dGX, dGY]() -> std::tuple<long, long>
+    {
+        if(dGX == 0 && dGY == 0){
+            return {0, 0};
+        }
+
+        return
+        {
+            std::lround(mathf::LDistance<double>(dGX, dGY, 0, 0)),
+            std::lround(90.0 - 180.0 * std::atan2(-dGY, dGX) / mathf::pi),
+        };
+    }();
+
+    return g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID), distance, angle, repeats);
 }

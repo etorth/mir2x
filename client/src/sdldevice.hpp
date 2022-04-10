@@ -362,7 +362,7 @@ class SDLDevice final
 
     public:
        void stopBGM();
-       void playBGM(Mix_Music *, int loops = -1);
+       void playBGM(Mix_Music *, size_t repeats = 0); // by default repeats forever
 
     public:
        size_t channelCount() const
@@ -370,6 +370,9 @@ class SDLDevice final
            return m_channelCount;
        }
 
+       // repeats : 0 : plays forever
+       //           N : repeat N times
+       //
        // distance:    0 : overlaps with listener
        //            255 : far enough but may not be competely silent
        //          > 255 : culled, will not play
@@ -381,7 +384,7 @@ class SDLDevice final
        //
        // return   empty : no channel allocated for playing
        //      non-empty : playing channel, channel can not get reused before halt() or dtor() called
-       std::shared_ptr<SDLSoundEffectChannel> playSoundEffect(std::shared_ptr<SoundEffectHandle>, int loops = 0, int distance = 0, int angle = 0);
+       std::shared_ptr<SDLSoundEffectChannel> playSoundEffect(std::shared_ptr<SoundEffectHandle>, int distance = 0, int angle = 0, size_t repeats = 1);
        void stopSoundEffect();
 
     private:

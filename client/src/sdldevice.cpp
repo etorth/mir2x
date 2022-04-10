@@ -1037,20 +1037,20 @@ void SDLDevice::stopBGM()
     Mix_HaltMusic();
 }
 
-void SDLDevice::playBGM(Mix_Music *music, int loops)
+void SDLDevice::playBGM(Mix_Music *music, size_t repeats)
 {
     if(g_clientArgParser->disableAudio){
         return;
     }
 
     if(music){
-        if(Mix_PlayMusic(music, loops)){
+        if(Mix_PlayMusic(music, (repeats == 0) ? -1 : (to_d(repeats) - 1))){
             throw fflerror("failed to play music: %s", Mix_GetError());
         }
     }
 }
 
-std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle, int loops, int distance, int angle)
+std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle, int distance, int angle, size_t repeats)
 {
     if(g_clientArgParser->disableAudio){
         return {};
@@ -1108,7 +1108,7 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
 
     Mix_HaltChannel(pickedChannel);
     Mix_SetPosition(pickedChannel, ((angle % 360) + 360) % 360, distance);
-    Mix_PlayChannel(pickedChannel, handle->chunk, std::max<int>(-1, loops));
+    Mix_PlayChannel(pickedChannel, handle->chunk, (repeats == 0) ? -1 : (to_d(repeats) - 1));
 
     // return shared_ptr that hooks to m_channelStateList[pickedChannel].hooked
     // p->dtor() or p->halt() shall get called to unhook the flag, otherwise this channel gets hold on forever
