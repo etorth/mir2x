@@ -490,7 +490,15 @@ void ProcessRun::net_CASTMAGIC(const uint8_t *bufPtr, size_t)
         case DBCOM_MAGICID(u8"沃玛教主_雷电术"):
             {
                 if(auto coPtr = findUID(smCM.AimUID)){
-                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new Thunderbolt()));
+                    coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new Thunderbolt()))->addTrigger([smCM, this](BaseMagic *magic)
+                    {
+                        if(auto targetPtr = findUID(smCM.AimUID)){
+                            if(const auto seffIDOpt = magic->getSeffID(); seffIDOpt.has_value()){
+                                targetPtr->playSoundEffect(seffIDOpt.value());
+                            }
+                        }
+                        return true;
+                    });
                 }
                 return;
             }
