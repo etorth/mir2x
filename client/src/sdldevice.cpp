@@ -265,14 +265,15 @@ SDLSoundEffectChannel::SDLSoundEffectChannel(SDLDevice *sdlDevice, int channel)
 
 SDLSoundEffectChannel::~SDLSoundEffectChannel()
 {
-    try{
-        halt();
-    }
-    catch(const std::exception &e){
-        g_log->addLog(LOGTYPE_WARNING, "Failed to halt sound channel: %s", to_cstr(e.what()));
-    }
-    catch(...){
-        g_log->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: unknown error");
+    if(m_channel >= 0){
+        if(auto p = m_sdlDevice->m_channelStateList.find(m_channel); p != m_sdlDevice->m_channelStateList.end()){
+            if(const auto hooked = std::exchange(p->second.hooked, false); !hooked){
+                g_log->addLog(LOGTYPE_WARNING, "Sound channel gets unhooked unexpectedly: %d", m_channel);
+            }
+        }
+        else{
+            g_log->addLog(LOGTYPE_WARNING, "Sound channel has no associated state: %d", m_channel);
+        }
     }
 }
 
@@ -289,7 +290,8 @@ void SDLSoundEffectChannel::halt()
         //
         // a channel has not called this->halt() must still has a slot in m_channelStateList
         // because only an explicit this->halt() call unhooks the channel, and makes it avaiable to next play request
-        Mix_HaltChannel(m_channel); // this triggers SDLDevice::recycleSoundEffectChannel() if hasn't reach end yet
+
+        Mix_HaltChannel(m_channel);
         m_sdlDevice->m_channelStateList.erase(m_channel);
 
         m_channel = -1;
@@ -1067,7 +1069,7 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
     }
 
     int pickedChannel = -1;
-    scoped_alloc::svobuf_wrapper<int, 64> idleChannelList;
+    scoped_alloc::svobuf_wrapper<int64_t, 64> idleChannelList; // use int64_t because ASAN reports error: alignment < 8
     {
         // clean pending channel
         // can't delete channel and handle in Mix_ChannelFinished()
@@ -1078,10 +1080,10 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
 
         const std::lock_guard<std::mutex> lockGuard(m_freeChannelLock);
         for(const auto channel: m_freeChannelList){
-            if(auto p = m_channelStateList.find(channel); p != m_channelStateList.end()){
-                if(p->second.hooked){
-                    continue;
-                }
+            if(auto p = m_channelStateList.find(channel); (p != m_channelStateList.end()) && p->second.hooked){
+                continue;
+            }
+            else{
                 idleChannelList.c.push_back(channel);
             }
         }
@@ -1090,12 +1092,12 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
             return {};
         }
 
-        pickedChannel = idleChannelList.c.back();
+        pickedChannel = to_d(idleChannelList.c.back());
         m_freeChannelList.erase(pickedChannel);
     }
 
-    for(const auto delayedChannel: idleChannelList.c){
-        m_channelStateList.erase(delayedChannel);
+    for(const auto idleChannel: idleChannelList.c){
+        m_channelStateList.erase(idleChannel);
     }
 
     fflassert(pickedChannel >= 0, pickedChannel);
