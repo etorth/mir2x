@@ -236,8 +236,19 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
             }
         }
 
+        // failed to pick a random location
+        // try brutle force to get a location, shall always succeeds if given region has valid grid(s)
+
+        if(const auto locopt = mapPtr->getRCValidGrid(false, false, -1, regionX, regionY, regionW, regionH); locopt.has_value()){
+            return sol::as_returns(std::array<int, 2>
+            {
+                std::get<0>(locopt.value()),
+                std::get<1>(locopt.value()),
+            });
+        }
+
         // give detailed failure message
-        // need it to validate map monster gen coroutine
+        // need it to validate map monster gen coroutine, otherwise this can throw
 
         if(useFullMap){
             throw fflerror("no valid grid on map: map = %s", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
