@@ -123,6 +123,14 @@ class SDLSoundEffectChannel // controller of sound effect and channl playing it
         virtual ~SDLSoundEffectChannel();
 
     public:
+        // returns true if this->halt() get called
+        // channel may have stopped before this->halt() because of finished playing or errors
+        bool halted() const
+        {
+            return m_channel < 0;
+        }
+
+    public:
         void halt();
         void pause();
         void resume();

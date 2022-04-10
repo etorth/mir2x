@@ -1019,14 +1019,39 @@ bool Hero::parseAction(const ActionNode &action)
                                         targetUID,
                                         m_processRun,
 
-                                    }))->addTrigger([uid = UID(), proc = m_processRun](BaseMagic *magic) -> bool
+                                    }))->addTrigger([uid = UID(), proc = m_processRun, seffChannelPtr = std::shared_ptr<SDLSoundEffectChannel>()](BaseMagic *magic) mutable -> bool
                                     {
-                                        if(auto selfPtr = proc->findUID(uid)){
-                                            if(const auto seffIDOpt = magic->getSeffID(); seffIDOpt.has_value()){
-                                                selfPtr->playSoundEffect(seffIDOpt.value());
+                                        // TODO potential bug
+                                        //      for FollowUIDMagic the sound effect get played in a loop
+                                        //      if there is no explict call to seffChannelPtr->halt() the channel get hold forever
+                                        //
+                                        //      currently call halt() if ditance >= 255
+                                        //      but this trigger may get disabled before distance gets bigger than 255
+                                        //
+                                        //      a working hack is to use ProcessRun::addDelay()
+                                        //      force the channel get relesed after several seconds, this only works for FollowUDMagic since it's moving out of map
+                                        const auto [distance, angle] = dynamic_cast<FollowUIDMagic *>(magic)->getSoundEffectPosition();
+                                        if(seffChannelPtr){
+                                            if(distance >= 255){
+                                                seffChannelPtr->halt();
+                                                return true;
+                                            }
+                                            else{
+                                                if(!seffChannelPtr->halted()){
+                                                    seffChannelPtr->setPosition(distance, angle);
+                                                }
                                             }
                                         }
-                                        return true;
+                                        else{
+                                            if(const auto seffIDOpt = magic->getSeffID(); seffIDOpt.has_value()){
+                                                seffChannelPtr = g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffIDOpt.value()), -1, distance, angle);
+                                                proc->addDelay(10 * 1000, [seffChannelPtr]()
+                                                {
+                                                    seffChannelPtr->halt();
+                                                });
+                                            }
+                                        }
+                                        return false;
                                     })->addOnDone([targetUID, magicID, proc = m_processRun](BaseMagic *)
                                     {
                                         if(auto coPtr = proc->findUID(targetUID)){

@@ -62,9 +62,11 @@ FollowUIDMagic::FollowUIDMagic(
         uint64_t uid,
         ProcessRun *runPtr)
     : BaseMagic(magicName, magicStage, gfxDirIndex)
+    , m_startX(x)
+    , m_startY(y)
+    , m_flyDirIndex(flyDirIndex)
     , m_x(x)
     , m_y(y)
-    , m_flyDirIndex(flyDirIndex)
     , m_moveSpeed(moveSpeed)
     , m_uid(uid)
     , m_process(runPtr)
@@ -154,10 +156,36 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 
 bool FollowUIDMagic::done() const
 {
+    if(mathf::LDistance(m_x, m_y, m_startX, m_startY) > 255){
+        return true;
+    }
+
     if(const auto coPtr = m_process->findUID(m_uid)){
         const auto [srcTargetX, srcTargetY] = targetPLoc();
         const auto [dstTargetX, dstTargetY] = coPtr->getTargetBox().targetPLoc();
         return (std::abs(srcTargetX - dstTargetX) < 24 && std::abs(srcTargetY - dstTargetY) < 16) || (mathf::LDistance2<int>(srcTargetX, srcTargetY, dstTargetX, dstTargetY) > m_lastLDistance2);
     }
     return false;
+}
+
+std::tuple<int, int> FollowUIDMagic::getSoundEffectPosition() const
+{
+    const auto selfGX = m_x / SYS_MAPGRIDXP;
+    const auto selfGY = m_y / SYS_MAPGRIDYP;
+
+    fflassert(m_process->getMyHero());
+    const auto [heroGX, heroGY] = m_process->getMyHero()->location();
+
+    const auto dGX = selfGX - heroGX;
+    const auto dGY = selfGY - heroGY;
+
+    if(dGX == 0 && dGY == 0){
+        return {0, 0};
+    }
+
+    return
+    {
+        std::lround(mathf::LDistance<double>(dGX, dGY, 0, 0)),
+        std::lround(90.0 - 180.0 * std::atan2(-dGY, dGX) / mathf::pi),
+    };
 }

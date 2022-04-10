@@ -26,16 +26,18 @@ class ProcessRun;
 class FollowUIDMagic: public BaseMagic
 {
     protected:
-        int m_x;
-        int m_y;
-        int m_flyDirIndex;
+        const int m_startX;
+        const int m_startY;
+        const int m_flyDirIndex;
 
     protected:
+        int m_x;
+        int m_y;
         int m_moveSpeed;
 
     protected:
-        uint64_t m_uid;
-        ProcessRun *m_process;
+        const uint64_t m_uid;
+        ProcessRun * const m_process;
 
     private:
         int m_lastLDistance2 = INT_MAX;
@@ -87,4 +89,17 @@ class FollowUIDMagic: public BaseMagic
                 m_y + tyOff,
             };
         }
+
+    public:
+        std::tuple<int, int> location() const
+        {
+            return
+            {
+                m_x / SYS_MAPGRIDXP,
+                m_y / SYS_MAPGRIDYP,
+            };
+        }
+
+    public:
+        std::tuple<int, int> getSoundEffectPosition() const;
 };
