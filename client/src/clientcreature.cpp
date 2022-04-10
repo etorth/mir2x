@@ -198,5 +198,5 @@ void ClientCreature::playSoundEffect(uint32_t seffID)
         };
     }();
 
-    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID), distance, angle);
+    g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID), 0, distance, angle);
 }

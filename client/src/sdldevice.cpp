@@ -254,6 +254,67 @@ int SDLDeviceHelper::getTextureHeight(SDL_Texture *texture)
     return std::get<1>(getTextureSize(texture));
 }
 
+SDLSoundEffectChannel::SDLSoundEffectChannel(SDLDevice *sdlDevice, int channel)
+    : m_sdlDevice(sdlDevice)
+    , m_channel(channel)
+{
+    fflassert(m_sdlDevice);
+    fflassert(m_channel >= 0, m_channel);
+    fflassert(m_channel < to_d(m_sdlDevice->channelCount()), m_channel, m_sdlDevice->channelCount());
+}
+
+SDLSoundEffectChannel::~SDLSoundEffectChannel()
+{
+    try{
+        halt();
+    }
+    catch(const std::exception &e){
+        g_log->addLog(LOGTYPE_WARNING, "Failed to halt sound channel: %s", to_cstr(e.what()));
+    }
+    catch(...){
+        g_log->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: unknown error");
+    }
+}
+
+void SDLSoundEffectChannel::halt()
+{
+    if(m_channel >= 0){
+        // SDL_mixer can halt a channel several times, it ignores later halt requests
+        // call Mix_HaltChannel() can trigger SDLDevice::recycleSoundEffectChannel() if channel is not done yet
+        // if channel has reaches its end this function is a nop
+        //
+        // TODO dangerous here
+        //      SDLDevice should make sure a channel shall not get allocated to other sound effect before this->halt() called
+        //      otherwise this function halt same channel playing other sound
+        //
+        // a channel has not called this->halt() must still has a slot in m_channelStateList
+        // because only an explicit this->halt() call unhooks the channel, and makes it avaiable to next play request
+        Mix_HaltChannel(m_channel); // this triggers SDLDevice::recycleSoundEffectChannel() if hasn't reach end yet
+        m_sdlDevice->m_channelStateList.erase(m_channel);
+
+        m_channel = -1;
+    }
+}
+
+void SDLSoundEffectChannel::pause()
+{
+    fflassert(m_channel >= 0);
+    Mix_Pause(m_channel);
+}
+
+void SDLSoundEffectChannel::resume()
+{
+    fflassert(m_channel >= 0);
+    Mix_Resume(m_channel);
+}
+
+void SDLSoundEffectChannel::setPosition(int distance, int angle)
+{
+    fflassert(m_channel >= 0);
+    fflassert(distance >= 0, distance);
+    Mix_SetPosition(m_channel, ((angle % 360) + 360) % 360, std::min<int>(distance, 255));
+}
+
 SDLDevice::SDLDevice()
 {
     if(g_sdlDevice){
@@ -287,13 +348,13 @@ SDLDevice::SDLDevice()
         }
 #endif
 
-        const int numChannel = 128;
-        if(Mix_AllocateChannels(numChannel) != numChannel){
-            throw fflerror("failed to allocate %d channels: %s", numChannel, Mix_GetError());
+        if(Mix_AllocateChannels(m_channelCount) != to_d(m_channelCount)){
+            throw fflerror("failed to allocate %zu channels: %s", m_channelCount, Mix_GetError());
         }
 
-        m_freeChannelList.resize(numChannel);
-        std::iota(m_freeChannelList.begin(), m_freeChannelList.end(), 0);
+        for(int channel = 0; channel < to_d(m_channelCount); ++channel){
+            m_freeChannelList.insert(channel);
+        }
         Mix_ChannelFinished(recycleSoundEffectChannel);
     }
 }
@@ -987,63 +1048,73 @@ void SDLDevice::playBGM(Mix_Music *music, int loops)
     }
 }
 
-bool SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle, int distance, int angle)
+std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_ptr<SoundEffectHandle> handle, int loops, int distance, int angle)
 {
     if(g_clientArgParser->disableAudio){
-        return false;
+        return {};
     }
 
     if(!handle){
-        return false;
+        return {};
     }
 
     if(!handle->chunk){
-        return false;
+        return {};
     }
 
-    fflassert(distance >= 0, distance);
-    if(distance > 255){
-        return false;
+    if(distance < 0){
+        return {};
     }
 
     int pickedChannel = -1;
-    scoped_alloc::svobuf_wrapper<int, 64> delayedChannelList;
+    scoped_alloc::svobuf_wrapper<int, 64> idleChannelList;
     {
-        std::lock_guard<std::mutex> lockGuard(m_freeChannelLock);
-        if(m_freeChannelList.empty()){
-            return false;
-        }
-
         // clean pending channel
         // can't delete channel and handle in Mix_ChannelFinished()
 
-        for(const auto channel: m_freeChannelList | std::views::reverse){
-            if(m_busyChannelList.count(channel)){
-                delayedChannelList.c.push_back(channel);
-            }
-            else{
-                break;
+        // for channels in m_freeChannelList, their are not playing
+        // but there can still be a SDLSoundEffectChannel hooked to it, and can control it
+        // shall not allocate it to new sound effect before this hooked SDLSoundEffectChannel get released
+
+        const std::lock_guard<std::mutex> lockGuard(m_freeChannelLock);
+        for(const auto channel: m_freeChannelList){
+            if(auto p = m_channelStateList.find(channel); p != m_channelStateList.end()){
+                if(p->second.hooked){
+                    continue;
+                }
+                idleChannelList.c.push_back(channel);
             }
         }
 
-        pickedChannel = m_freeChannelList.back();
-        m_freeChannelList.pop_back();
+        if(idleChannelList.c.empty()){
+            return {};
+        }
+
+        pickedChannel = idleChannelList.c.back();
+        m_freeChannelList.erase(pickedChannel);
     }
 
-    for(const auto delayedChannel: delayedChannelList.c){
-        m_busyChannelList.erase(delayedChannel);
+    for(const auto delayedChannel: idleChannelList.c){
+        m_channelStateList.erase(delayedChannel);
     }
 
     fflassert(pickedChannel >= 0, pickedChannel);
-    m_busyChannelList[pickedChannel] = handle;
+    m_channelStateList.try_emplace(pickedChannel, true, handle);
 
     // Mix_HaltChannel() does nothing if channel has done play
     // otherwise halt the channel and call SDLDevice::recycleSoundEffectChannel()
 
     Mix_HaltChannel(pickedChannel);
     Mix_SetPosition(pickedChannel, ((angle % 360) + 360) % 360, distance);
-    Mix_PlayChannel(pickedChannel, handle->chunk, 0);
-    return true;
+    Mix_PlayChannel(pickedChannel, handle->chunk, std::max<int>(-1, loops));
+
+    // return shared_ptr that hooks to m_channelStateList[pickedChannel].hooked
+    // p->dtor() or p->halt() shall get called to unhook the flag, otherwise this channel gets hold on forever
+    return std::shared_ptr<SDLSoundEffectChannel>(new SDLSoundEffectChannel
+    {
+        this,
+        pickedChannel,
+    });
 }
 
 void SDLDevice::stopSoundEffect()
@@ -1061,5 +1132,7 @@ void SDLDevice::recycleSoundEffectChannel(int channel)
 
     // don't need to lock here even it's called other than main thread
     // SDL2 mixer calls SDL_LockAudio()/SDL_UnlockAudio()
-    g_sdlDevice->m_freeChannelList.push_back(channel);
+
+    const std::lock_guard<std::mutex> lockGuard(g_sdlDevice->m_freeChannelLock);
+    g_sdlDevice->m_freeChannelList.insert(channel);
 }

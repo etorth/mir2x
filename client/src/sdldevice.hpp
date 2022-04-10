@@ -104,8 +104,46 @@ namespace SDLDeviceHelper
     int getTextureHeight(SDL_Texture *);
 }
 
+class SDLDevice;
+class SDLSoundEffectChannel // controller of sound effect and channl playing it
+{
+    private:
+        friend class SDLDevice;
+
+    private:
+        SDLDevice *m_sdlDevice;
+
+    private:
+        int m_channel;
+
+    private:
+        SDLSoundEffectChannel(SDLDevice *, int);
+
+    public:
+        virtual ~SDLSoundEffectChannel();
+
+    public:
+        void halt();
+        void pause();
+        void resume();
+        void setPosition(int, int);
+};
+
 class SDLDevice final
 {
+    private:
+        friend class SDLSoundEffectChannel;
+
+    private:
+        struct SoundChannelHookState
+        {
+            bool hooked = false;
+            std::shared_ptr<SoundEffectHandle> handle {};
+        };
+
+    private:
+        const size_t m_channelCount = 128;
+
     private:
         SDL_Window   *m_window   = nullptr;
         SDL_Renderer *m_renderer = nullptr;
@@ -121,8 +159,8 @@ class SDLDevice final
 
     private:
        std::mutex m_freeChannelLock;
-       std::vector<int> m_freeChannelList;
-       std::unordered_map<int, std::shared_ptr<SoundEffectHandle>> m_busyChannelList;
+       std::unordered_set<int> m_freeChannelList;
+       std::unordered_map<int, SoundChannelHookState> m_channelStateList;
 
     public:
        /* ctor */  SDLDevice();
@@ -319,6 +357,11 @@ class SDLDevice final
        void playBGM(Mix_Music *, int loops = -1);
 
     public:
+       size_t channelCount() const
+       {
+           return m_channelCount;
+       }
+
        // distance:    0 : overlaps with listener
        //            255 : far enough but may not be competely silent
        //          > 255 : culled, will not play
@@ -327,7 +370,10 @@ class SDLDevice final
        //         90 : east
        //        180 : south
        //        270 : west
-       bool playSoundEffect(std::shared_ptr<SoundEffectHandle>, int distance = 0, int angle = 0);
+       //
+       // return   empty : no channel allocated for playing
+       //      non-empty : playing channel, channel can not get reused before halt() or dtor() called
+       std::shared_ptr<SDLSoundEffectChannel> playSoundEffect(std::shared_ptr<SoundEffectHandle>, int loops = 0, int distance = 0, int angle = 0);
        void stopSoundEffect();
 
     private:
