@@ -156,7 +156,13 @@ void FollowUIDMagic::drawViewOff(int viewX, int viewY, uint32_t modColor) const
 
 bool FollowUIDMagic::done() const
 {
-    if(mathf::LDistance(m_x, m_y, m_startX, m_startY) > 255){
+    const auto startGX = m_startX / SYS_MAPGRIDXP;
+    const auto startGY = m_startY / SYS_MAPGRIDYP;
+
+    const auto currGX = m_x / SYS_MAPGRIDXP;
+    const auto currGY = m_y / SYS_MAPGRIDYP;
+
+    if(mathf::LDistance(startGX, startGY, currGX, currGY) > 255){
         return true;
     }
 
