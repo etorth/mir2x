@@ -119,6 +119,12 @@ class SDLSoundEffectChannel // controller of sound effect and channl playing it
     private:
         SDLSoundEffectChannel(SDLDevice *, int);
 
+    private:
+        SDLSoundEffectChannel              (      SDLSoundEffectChannel &&) = delete;
+        SDLSoundEffectChannel              (const SDLSoundEffectChannel  &) = delete;
+        SDLSoundEffectChannel & operator = (      SDLSoundEffectChannel &&) = delete;
+        SDLSoundEffectChannel & operator = (const SDLSoundEffectChannel  &) = delete;
+
     public:
         virtual ~SDLSoundEffectChannel();
 
