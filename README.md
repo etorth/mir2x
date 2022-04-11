@@ -46,6 +46,9 @@ https://ci.appveyor.com/project/etorth/mir2x/build/artifacts
 ```
 If complains missing dll, you may need to copy .dll files from mir2x/bin to mir2x/client and mir2x/server.
 
+If you are running on WSL, you need PulseAudio to support sound.
+<img src="https://github.com/etorth/mir2x/raw/master/readme/pulseaudio.png" width="800" height="700"/>
+
 ### Building from source
 
 mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++20 to run. Mir2x needs some pre-installed packages before compile:
