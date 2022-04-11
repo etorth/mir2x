@@ -46,8 +46,8 @@ https://ci.appveyor.com/project/etorth/mir2x/build/artifacts
 ```
 If complains missing dll, you may need to copy .dll files from mir2x/bin to mir2x/client and mir2x/server.
 
-If you are running on WSL, you need PulseAudio to support sound.
-<img src="https://github.com/etorth/mir2x/raw/master/readme/pulseaudio.png" width="800" height="700"/>
+If running on WSL/WSL2, check the following to configure PulseAudio to support sound effect, the sound may get played with noticable delay.
+<img src="https://github.com/etorth/mir2x/raw/master/readme/pulseaudio.png"/>
 
 ### Building from source
 
