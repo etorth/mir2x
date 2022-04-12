@@ -51,7 +51,7 @@ If running on WSL/WSL2, check the following to configure PulseAudio to support s
 
 ### Building from source
 
-mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++20 to run. Mir2x needs some pre-installed packages before compile:
+mir2x game is developed for Linux-only environment, however I finished all coding and testing with Windows WSL, please refer [here](https://github.com/etorth/mir2x/wiki/How-to-compile-and-run-on-windows) how to setup and run everything on windows. mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++20 to run. Mir2x needs some pre-installed packages before compile:
 
 ```sh
 libsdl2-dev
