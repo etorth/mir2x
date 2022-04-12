@@ -76,7 +76,7 @@ $ make
 $ make install
 ```
 ### First time run
-The above steps install binaries in mir2x/b/install, to start the monoserver, click menu server/launch to start the service before start client:
+The above steps install binaries in mir2x/b/install, to start the monoserver, find a linux machine to host the monoserver, I tried to host it on Oracle Cloud, it works perfectly with the ```always-free``` plan. Click menu server/launch to start the service before start client:
 
 ```sh
 $ cd mir2x/b/install/server
@@ -89,7 +89,7 @@ Start client, currently you can use default account (id = test, pwd = 123456) to
 $ cd mir2x/b/install/client
 $ ./client
 ```
-
+I tried to host the monoserver on Orcale Cloud, it works perfectly with the ```always free``` plan.
 ### Code style
 
 Global variables:
