@@ -89,7 +89,7 @@ Start client, currently you can use default account (id = test, pwd = 123456) to
 $ cd mir2x/b/install/client
 $ ./client
 ```
-I tried to host the monoserver on Orcale Cloud, it works perfectly with the ```always free``` plan.
+
 ### Code style
 
 Global variables:
