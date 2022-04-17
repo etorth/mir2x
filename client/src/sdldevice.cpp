@@ -1047,6 +1047,9 @@ void SDLDevice::stopBGM()
 
 void SDLDevice::setBGMVolume(float volume)
 {
+    if(g_clientArgParser->disableAudio){
+        return;
+    }
     Mix_VolumeMusic(std::lround(mathf::bound<float>(volume, 0.0f, 1.0f) * SDL_MIX_MAXVOLUME));
 }
 
@@ -1134,11 +1137,32 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
 
 void SDLDevice::stopSoundEffect()
 {
+    if(g_clientArgParser->disableAudio){
+        return;
+    }
     Mix_HaltChannel(-1);
+}
+
+void SDLDevice::setSoundEffectVolume(float volume)
+{
+    if(g_clientArgParser->disableAudio){
+        return;
+    }
+
+    // use post channel to configure the volume
+    // each channel has own volume and may change during playing, like firewall sound changes when MyHero moves
+
+    if(!Mix_SetDistance(MIX_CHANNEL_POST, std::lround((1.0f - mathf::bound<float>(volume, 0.0f, 1.0f)) * 255))){
+        throw fflerror("failed to setup sound effect volume: %s", Mix_GetError());
+    }
 }
 
 void SDLDevice::recycleSoundEffectChannel(int channel)
 {
+    if(g_clientArgParser->disableAudio){
+        throw fflerror("sound effect callback is triggered with audio disabled");
+    }
+
     // only put the channel to free list
     // don't call handle.reset() here which may call into Mix_Funcs and is forbidden
 

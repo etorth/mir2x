@@ -388,6 +388,7 @@ class SDLDevice final
        //      non-empty : playing channel, channel can not get reused before halt() or dtor() called
        std::shared_ptr<SDLSoundEffectChannel> playSoundEffect(std::shared_ptr<SoundEffectHandle>, int distance = 0, int angle = 0, size_t repeats = 1);
        void stopSoundEffect();
+       void setSoundEffectVolume(float);
 
     private:
        static void recycleSoundEffectChannel(int);
