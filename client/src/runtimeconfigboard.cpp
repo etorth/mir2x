@@ -70,7 +70,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
 
           true,
           1,
-          nullptr,
+          [this](float)
+          {
+              g_sdlDevice->setBGMVolume(getMusicVolume().value_or(0.0f));
+          },
           this,
       }
 
@@ -94,6 +97,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           return proc;
       }())
 {
+    // 1.0f -> SDL_MIX_MAXVOLUME
+    // SDL_mixer initial sound/music volume is SDL_MIX_MAXVOLUME
+
+    m_musicSlider.setValue(1.0f, false);
+    m_soundEffectSlider.setValue(1.0f, false);
+
     show(false);
     auto texPtr = g_progUseDB->retrieve(0X0000001B);
 
