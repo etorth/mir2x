@@ -730,6 +730,8 @@ void ProcessRun::loadMap(uint32_t newMapID, int centerGX, int centerGY)
         fnSetDoneRatio(100);
     };
 
+    g_sdlDevice->stopSoundEffect();
+
     fnSetDoneRatio(0);
     auto loadThread = std::async(std::launch::async, fnLoadMap);
     loadStringBoard.waitDone();
