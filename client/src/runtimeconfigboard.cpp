@@ -61,8 +61,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
       {
           DIR_UPLEFT,
           280,
-          125,
-          200,
+          124,
+          194,
           6,
 
           true,
@@ -75,8 +75,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
       {
           DIR_UPLEFT,
           280,
-          185,
-          200,
+          184,
+          194,
           6,
 
           true,
@@ -147,8 +147,13 @@ void RuntimeConfigBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_musicSwitch.draw();
     m_soundEffectSwitch.draw();
 
-    m_musicSlider.draw();
-    m_soundEffectSlider.draw();
+    if(m_musicSwitch.getValue()){
+        m_musicSlider.draw();
+    }
+
+    if(m_soundEffectSwitch.getValue()){
+        m_soundEffectSlider.draw();
+    }
 
     for(int i = 0; const auto &[infoText, buttonPtr]: m_switchList){
         const auto [infoX, infoY, buttonX, buttonY] = getEntryPLoc(i++);
@@ -172,12 +177,18 @@ bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
         static_cast<Widget *>(&m_closeButton),
         static_cast<Widget *>(&m_musicSwitch),
         static_cast<Widget *>(&m_soundEffectSwitch),
-        static_cast<Widget *>(&m_musicSlider),
-        static_cast<Widget *>(&m_soundEffectSlider),
     }){
         if(widgetPtr->processEvent(event, valid)){
             return focusConsume(this, true);
         }
+    }
+
+    if(m_musicSwitch.getValue() && m_musicSlider.processEvent(event, valid)){
+        return focusConsume(this, true);
+    }
+
+    if(m_soundEffectSwitch.getValue() && m_soundEffectSlider.processEvent(event, valid)){
+        return focusConsume(this, true);
     }
 
     for(const auto &[infoText, buttonPtr]: m_switchList){

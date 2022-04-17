@@ -28,11 +28,11 @@ class TexSlider: public Slider
         {
             constexpr static SliderTexInfo s_sliderTexInfo []
             {
-                {8, 8,  7,  8, 5, 0X00000080},
-                {8, 8,  7,  8, 5, 0X00000081},
-                {5, 5,  8,  9, 4, 0X00000088},
-                {8, 8, 12, 13, 7, 0X00000089},
-                {8, 8, 12, 13, 7, 0X0000008A},
+                { 8,  8,  7,  8, 5, 0X00000080},
+                {18, 18,  9,  9, 5, 0X00000081},
+                { 5,  5,  8,  9, 4, 0X00000088},
+                { 8,  8, 12, 13, 7, 0X00000089},
+                { 8,  8, 12, 13, 7, 0X0000008A},
             };
 
             if(index >= 0 && index < to_d(std::extent_v<decltype(s_sliderTexInfo)>)){
