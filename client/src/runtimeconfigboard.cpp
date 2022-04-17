@@ -39,6 +39,37 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           this,
       }
 
+    , m_attackModeSwitch
+      {
+          DIR_UPLEFT,
+          431,
+          55,
+          {
+              0X0000130,
+              0X0000131,
+              0X0000130,
+          },
+
+          {
+              SYS_U32NIL,
+              SYS_U32NIL,
+              0X01020000 + 105,
+          },
+
+          nullptr,
+          nullptr,
+          nullptr,
+
+          0,
+          0,
+          0,
+          0,
+
+          false,
+          false,
+          this,
+      }
+
     , m_musicSwitch
       {
           431,
@@ -112,7 +143,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
     fflassert(texPtr);
     std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 
-    const std::array<std::tuple<const char8_t *, bool, std::function<void(bool)>>, 20> entryList // there is only 20 free slots
+    const std::array<std::tuple<const char8_t *, bool, std::function<void(bool)>>, 19> entryList // there is only 19 free slots
     {{
         {u8"游戏设置选项", false, [](bool){},},
         {u8"游戏设置选项",  true, [](bool){},},
@@ -156,6 +187,9 @@ void RuntimeConfigBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     drawEntryTitle(u8"【游戏设置】", 255, 35);
     m_closeButton.draw();
 
+    drawEntryTitle(u8"攻击模式", 345, 67);
+    m_attackModeSwitch.draw();
+
     drawEntryTitle(u8"背景音乐", 345,  97);
     drawEntryTitle(u8"音效",     345, 157);
 
@@ -190,6 +224,7 @@ bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
     for(auto widgetPtr:
     {
         static_cast<Widget *>(&m_closeButton),
+        static_cast<Widget *>(&m_attackModeSwitch),
         static_cast<Widget *>(&m_musicSwitch),
         static_cast<Widget *>(&m_soundEffectSwitch),
     }){
@@ -270,11 +305,8 @@ std::tuple<int, int, int, int> RuntimeConfigBoard::getEntryPLoc(size_t entry)
     if(entry < 12){
         return {100, 67 + entry * 30, 186, 55 + entry * 30};
     }
-    else if(entry == 12){
-        return {345, 67, 431, 55};
-    }
-    else if(entry >= 13 && entry < 20){
-        return {345, 67 + (entry - 8) * 30, 431, 55 + (entry - 8) * 30};
+    else if(entry >= 12 && entry < 19){
+        return {345, 67 + (entry - 7) * 30, 431, 55 + (entry - 7) * 30};
     }
     else{
         throw fflvalue(entry);

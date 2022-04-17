@@ -90,6 +90,9 @@ class RuntimeConfigBoard: public Widget
         TritexButton m_closeButton;
 
     private:
+        TritexButton m_attackModeSwitch;
+
+    private:
         OnOffTexButton m_musicSwitch;
         OnOffTexButton m_soundEffectSwitch;
 
