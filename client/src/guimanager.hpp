@@ -27,6 +27,7 @@
 #include "quickaccessboard.hpp"
 #include "playerstateboard.hpp"
 #include "inputstringboard.hpp"
+#include "runtimeconfigboard.hpp"
 #include "secureditemlistboard.hpp"
 
 class ProcessRun;
@@ -47,6 +48,7 @@ class GUIManager: public WidgetGroup
         QuickAccessBoard m_quickAccessBoard;
         PlayerStateBoard m_playerStateBoard;
         InputStringBoard m_inputStringBoard;
+        RuntimeConfigBoard m_runtimeConfigBoard;
         SecuredItemListBoard m_securedItemListBoard;
 
     public:

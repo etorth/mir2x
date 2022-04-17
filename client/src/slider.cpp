@@ -1,24 +1,5 @@
-/*
- * =====================================================================================
- *
- *       Filename: slider.cpp
- *        Created: 08/12/2015 09:59:15
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
-#include "widget.hpp"
+#include <SDL2/SDL.h>
 #include "slider.hpp"
-#include "bevent.hpp"
 
 bool Slider::processEvent(const SDL_Event &e, bool valid)
 {
@@ -26,7 +7,7 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
         return focusConsume(this, false);
     }
 
-    auto fnInSlider = [this](int eventX, int eventY) -> bool
+    const auto fnInSlider = [this](int eventX, int eventY) -> bool
     {
         const auto [sliderX, sliderY, sliderW, sliderH] = getSliderRectangle();
         return mathf::pointInRectangle<int>(eventX, eventY, sliderX, sliderY, sliderW, sliderH);
@@ -44,14 +25,12 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
                     setValue([&e, this]() -> float
                     {
                         if(m_hslider){
-                            return ((e.button.x - x()) * 1.0f) / w();
+                            return ((e.button.x - x()) * 1.0f) / std::max<int>(1, w());
                         }
-                        return ((e.button.y - y()) * 1.0f) / h();
-                    }());
-
-                    if(m_onChanged){
-                        m_onChanged(getValue());
-                    }
+                        else{
+                            return ((e.button.y - y()) * 1.0f) / std::max<int>(1, h());
+                        }
+                    }(), true);
                     return focusConsume(this, true);
                 }
                 else{
@@ -74,16 +53,12 @@ bool Slider::processEvent(const SDL_Event &e, bool valid)
             {
                 if(e.motion.state & SDL_BUTTON_LMASK){
                     if(fnInSlider(e.motion.x, e.motion.y) || focus()){
+                        m_sliderState = BEVENT_DOWN;
                         if(m_hslider){
-                            addValue(pixel2Value(e.motion.xrel));
+                            addValue(pixel2Value(e.motion.xrel), true);
                         }
                         else{
-                            addValue(pixel2Value(e.motion.yrel));
-                        }
-
-                        m_sliderState = BEVENT_DOWN;
-                        if(m_onChanged){
-                            m_onChanged(getValue());
+                            addValue(pixel2Value(e.motion.yrel), true);
                         }
                         return focusConsume(this, true);
                     }

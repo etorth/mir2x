@@ -87,17 +87,12 @@ namespace SDLDeviceHelper
     {
         const int x = -1;
         const int y = -1;
-
-        operator bool () const
-        {
-            return x >= 0 && y >= 0;
-        }
     };
 
     char getKeyChar(const SDL_Event &, bool);
 
     SDLEventPLoc getMousePLoc();
-    SDLEventPLoc getEventPLoc(const SDL_Event &);
+    std::optional<SDLEventPLoc> getEventPLoc(const SDL_Event &);
 
     std::tuple<int, int> getTextureSize(SDL_Texture *);
     int getTextureWidth (SDL_Texture *);

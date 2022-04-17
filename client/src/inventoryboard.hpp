@@ -25,7 +25,7 @@
 #include <string>
 #include "widget.hpp"
 #include "labelboard.hpp"
-#include "texvslider.hpp"
+#include "texslider.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -50,7 +50,7 @@ class InventoryBoard: public Widget
         WMDAniBoard m_wmdAniBoard;
 
     private:
-        TexVSlider m_slider;
+        TexSlider m_slider;
 
     private:
         TritexButton m_sortButton;

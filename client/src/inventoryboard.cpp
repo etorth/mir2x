@@ -43,10 +43,11 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           DIR_UPLEFT,
           410,
           64,
-
+          5,
           367,
-          2,
 
+          false,
+          0,
           nullptr,
           this,
       }
@@ -402,7 +403,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                 if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_invGridX0, y() + m_invGridY0, SYS_INVGRIDGW * SYS_INVGRIDPW, SYS_INVGRIDGH * SYS_INVGRIDPH)){
                     const auto rowCount = getRowCount();
                     if(rowCount > SYS_INVGRIDGH){
-                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (rowCount - SYS_INVGRIDGH));
+                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (rowCount - SYS_INVGRIDGH), false);
                     }
                     return focusConsume(this, true);
                 }

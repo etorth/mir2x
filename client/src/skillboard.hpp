@@ -7,7 +7,7 @@
 #include "widget.hpp"
 #include "raiitimer.hpp"
 #include "labelboard.hpp"
-#include "texvslider.hpp"
+#include "texslider.hpp"
 #include "tritexbutton.hpp"
 #include "labelshadowboard.hpp"
 
@@ -187,7 +187,7 @@ class SkillBoard: public Widget
         std::vector<TritexButton *> m_tabButtonList;
 
     private:
-        TexVSlider m_slider;
+        TexSlider m_slider;
 
     private:
         TritexButton m_closeButton;

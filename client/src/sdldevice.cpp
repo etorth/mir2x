@@ -212,21 +212,29 @@ SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getMousePLoc()
     };
 }
 
-SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getEventPLoc(const SDL_Event &event)
+std::optional<SDLDeviceHelper::SDLEventPLoc> SDLDeviceHelper::getEventPLoc(const SDL_Event &event)
 {
     switch(event.type){
         case SDL_MOUSEMOTION:
             {
-                return {event.motion.x, event.motion.y};
+                return SDLDeviceHelper::SDLEventPLoc
+                {
+                    event.motion.x,
+                    event.motion.y,
+                };
             }
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             {
-                return {event.button.x, event.button.y};
+                return SDLDeviceHelper::SDLEventPLoc
+                {
+                    event.button.x,
+                    event.button.y,
+                };
             }
         default:
             {
-                return {-1, -1};
+                return {};
             }
     }
 }

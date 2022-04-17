@@ -28,7 +28,7 @@
 #include "acbutton.hpp"
 #include "sdldevice.hpp"
 #include "inputline.hpp"
-#include "texvslider.hpp"
+#include "texslider.hpp"
 #include "layoutboard.hpp"
 #include "texaniboard.hpp"
 #include "wmdaniboard.hpp"
@@ -102,7 +102,7 @@ class ControlBoard: public Widget
         TritexButton m_buttonTeam;
         TritexButton m_buttonTask;
         TritexButton m_buttonHorse;
-        TritexButton m_buttonEnvConfig;
+        TritexButton m_buttonRuntimeConfig;
         TritexButton m_buttonSysMessage;
 
     private:
@@ -121,7 +121,7 @@ class ControlBoard: public Widget
         TexAniBoard m_arcAniBoard;
 
     private:
-        TexVSlider m_slider;
+        TexSlider m_slider;
 
     private:
         InputLine m_cmdLine;

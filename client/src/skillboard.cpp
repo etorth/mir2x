@@ -345,7 +345,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
                       });
 
                       m_selectedTabIndex = i;
-                      m_slider.setValue(0);
+                      m_slider.setValue(0, false);
 
                       const auto r = getPageRectange();
                       for(auto pagePtr: m_skillPageList){
@@ -381,10 +381,11 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           DIR_UPLEFT,
           326,
           74,
-
+          5,
           266,
-          2,
 
+          false,
+          0,
           [this](float value)
           {
               const auto r = SkillBoard::getPageRectange();
@@ -504,7 +505,7 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
 
     const auto r = getPageRectange();
     const auto loc = SDLDeviceHelper::getMousePLoc();
-    const bool captureEvent = loc && mathf::pointInRectangle(loc.x, loc.y, x() + r[0], y() + r[1], r[2], r[3]);
+    const bool captureEvent = (loc.x >= 0 && loc.y >= 0) && mathf::pointInRectangle(loc.x, loc.y, x() + r[0], y() + r[1], r[2], r[3]);
 
     if(m_skillPageList.at(m_selectedTabIndex)->processEvent(event, captureEvent && valid)){
         return focusConsume(this, true);
@@ -543,7 +544,7 @@ bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
             {
                 auto pagePtr = m_skillPageList.at(m_selectedTabIndex);
                 if(captureEvent && (r[3] < pagePtr->h())){
-                    m_slider.addValue(event.wheel.y * -0.1f);
+                    m_slider.addValue(event.wheel.y * -0.1f, false);
                     pagePtr->moveTo(r[0], r[1] - (pagePtr->h() - r[3]) * m_slider.getValue());
                 }
                 return focusConsume(this, true);

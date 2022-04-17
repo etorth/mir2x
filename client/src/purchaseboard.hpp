@@ -21,7 +21,7 @@
 #include <cstdint>
 #include "widget.hpp"
 #include "serdesmsg.hpp"
-#include "texvslider.hpp"
+#include "texslider.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -79,7 +79,7 @@ class PurchaseBoard: public Widget
         TritexButton m_selectExt2Button;
 
     private:
-        TexVSlider m_slider;
+        TexSlider m_slider;
 
     private:
         ProcessRun *m_processRun;

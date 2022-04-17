@@ -325,10 +325,11 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           DIR_UPLEFT,
           266,
           27,
-
+          5,
           123,
-          2,
 
+          false,
+          0,
           nullptr,
           this,
       }
@@ -480,7 +481,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
                 if(mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 19, 15, 252 - 19, 15 + (57 - 15) * 4)){
                     if(m_itemList.size() > 4){
-                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4));
+                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4), false);
                     }
                 }
                 else if(extendedBoardGfxID() == 1 && extendedPageCount() > 0 && mathf::pointInRectangle<int>(mousePX - x(), mousePY - y(), 313, 41, 152, 114)){

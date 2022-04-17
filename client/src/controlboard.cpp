@@ -493,7 +493,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           &m_right,
       }
 
-    , m_buttonEnvConfig
+    , m_buttonRuntimeConfig
       {
           DIR_UPLEFT,
           72,
@@ -509,7 +509,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              if(auto p = m_processRun->getWidget("InventoryBoard")){
+              if(auto p = m_processRun->getWidget("RuntimeConfigBoard")){
                   flipShow(p);
               }
           },
@@ -722,9 +722,11 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           boardW - 178 - 176,
           40,
-
+          5,
           60,
-          0,
+
+          false,
+          2,
           nullptr,
 
           &m_middle,
@@ -885,7 +887,7 @@ void ControlBoard::drawRight() const
     m_buttonTeam.draw();
     m_buttonTask.draw();
     m_buttonHorse.draw();
-    m_buttonEnvConfig.draw();
+    m_buttonRuntimeConfig.draw();
     m_buttonSysMessage.draw();
 
     m_buttonAC.draw();
@@ -1081,27 +1083,27 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
 {
     bool takeEvent = false;
 
-    takeEvent |= m_levelBox         .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_slider           .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_cmdLine          .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonClose      .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonMinize     .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonQuickAccess.processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonExchange   .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonMiniMap    .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonMagicKey   .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonGuild      .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonTeam       .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonTask       .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonHorse      .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonEnvConfig  .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonSysMessage .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonAC         .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonDC         .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonInventory  .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonHeroState  .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonHeroMagic  .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonSwitchMode .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_levelBox           .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_slider             .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_cmdLine            .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonClose        .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonMinize       .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonQuickAccess  .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonExchange     .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonMiniMap      .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonMagicKey     .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonGuild        .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonTeam         .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonTask         .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonHorse        .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonRuntimeConfig.processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonSysMessage   .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonAC           .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonDC           .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonInventory    .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonHeroState    .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonHeroMagic    .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonSwitchMode   .processEvent(event, valid && !takeEvent);
 
     if(m_expand){
         takeEvent |= m_buttonEmoji.processEvent(event, valid && !takeEvent);
@@ -1222,7 +1224,7 @@ void ControlBoard::addLog(int logType, const char *log)
     tinyxml2::XMLPrinter printer;
     xmlDoc.Print(&printer);
     m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, printer.CStr());
-    m_slider.setValue(1.0f);
+    m_slider.setValue(1.0f, false);
 }
 
 bool ControlBoard::CheckMyHeroMoved()

@@ -98,6 +98,14 @@ GUIManager::GUIManager(ProcessRun *proc)
           this,
       }
 
+    , m_runtimeConfigBoard
+      {
+          g_sdlDevice->getRendererWidth()  / 2 - 255,
+          g_sdlDevice->getRendererHeight() / 2 - 234,
+          proc,
+          this,
+      }
+
     , m_securedItemListBoard
       {
           0,
@@ -202,11 +210,17 @@ Widget *GUIManager::getWidget(const std::string &name)
         return &m_inputStringBoard;
     }
 
+    else if(name == "RuntimeConfigBoard"){
+        return &m_runtimeConfigBoard;
+    }
+
     else if(name == "SecuredItemListBoard"){
         return &m_securedItemListBoard;
     }
 
-    return nullptr;
+    else{
+        throw fflvalue(name);
+    }
 }
 
 void GUIManager::onWindowResize()
