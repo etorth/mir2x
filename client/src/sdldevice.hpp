@@ -363,6 +363,7 @@ class SDLDevice final
 
     public:
        void stopBGM();
+       void setBGMVolume(float);
        void playBGM(Mix_Music *, size_t repeats = 0); // by default repeats forever
 
     public:

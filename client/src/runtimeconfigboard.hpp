@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "mathf.hpp"
 #include "widget.hpp"
 #include "labelboard.hpp"
 #include "texslider.hpp"
@@ -116,4 +117,21 @@ class RuntimeConfigBoard: public Widget
 
     protected:
         static std::tuple<int, int, int, int> getEntryPLoc(size_t);
+
+    public:
+        std::optional<float> getMusicVolume() const
+        {
+            if(m_musicSwitch.getValue()){
+                return mathf::bound<float>(m_musicSlider.getValue(), 0.0f, 1.0f);
+            }
+            return {};
+        }
+
+        std::optional<float> getSoundEffectVolume() const
+        {
+            if(m_soundEffectSwitch.getValue()){
+                return mathf::bound<float>(m_soundEffectSlider.getValue(), 0.0f, 1.0f);
+            }
+            return {};
+        }
 };

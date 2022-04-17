@@ -1045,6 +1045,11 @@ void SDLDevice::stopBGM()
     Mix_HaltMusic();
 }
 
+void SDLDevice::setBGMVolume(float volume)
+{
+    Mix_VolumeMusic(std::lround(mathf::bound<float>(volume, 0.0f, 1.0f) * SDL_MIX_MAXVOLUME));
+}
+
 void SDLDevice::playBGM(Mix_Music *music, size_t repeats)
 {
     if(g_clientArgParser->disableAudio){

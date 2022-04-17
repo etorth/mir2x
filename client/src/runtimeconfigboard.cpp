@@ -44,7 +44,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           431,
           85,
           true,
-          nullptr,
+          [this](bool)
+          {
+              g_sdlDevice->setBGMVolume(getMusicVolume().value_or(0.0f));
+          },
           this
       }
 
