@@ -56,7 +56,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           431,
           145,
           true,
-          nullptr,
+          [this](bool)
+          {
+              g_sdlDevice->setSoundEffectVolume(getSoundEffectVolume().value_or(0.0f));
+          },
           this
       }
 
