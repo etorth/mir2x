@@ -41,7 +41,11 @@ namespace PathFind
 {
     enum
     {
-        INVALID = 0, OBSTACLE, OCCUPIED, LOCKED, FREE,
+        INVALID = 0,
+        OBSTACLE,
+        OCCUPIED,
+        LOCKED,
+        FREE,
     };
 
     struct PathNode final
@@ -59,11 +63,6 @@ namespace PathFind
             return X == argX && Y == argY;
         }
     };
-
-    inline bool ValidDir(int nDirection)
-    {
-        return  nDirection >= DIR_BEGIN && nDirection < DIR_END;
-    }
 
     inline int GetBack(int nDirection)
     {

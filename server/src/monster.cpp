@@ -426,7 +426,7 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
         {
             // randomly pick a location
             // for some COs it doesn't have direction
-            if(!PathFind::ValidDir(nDirection)){
+            if(!directionValid(nDirection)){
                 nDirection = ((std::rand() % 8) + (DIR_NONE + 1));
             }
 
