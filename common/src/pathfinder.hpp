@@ -70,22 +70,6 @@ namespace PathFind
         return  nDirection >= DIR_BEGIN && nDirection < DIR_END;
     }
 
-    inline const char *GetDirName(int nDirection)
-    {
-        switch (nDirection){
-            case DIR_NONE      : return "DIR_NONE";
-            case DIR_UP        : return "DIR_UP";
-            case DIR_DOWN      : return "DIR_DOWN";
-            case DIR_LEFT      : return "DIR_LEFT";
-            case DIR_RIGHT     : return "DIR_RIGHT";
-            case DIR_UPLEFT    : return "DIR_UPLEFT";
-            case DIR_UPRIGHT   : return "DIR_UPRIGHT";
-            case DIR_DOWNLEFT  : return "DIR_DOWNLEFT";
-            case DIR_DOWNRIGHT : return "DIR_DOWNRIGHT";
-            default            : return "DIR_UNKNOWN";
-        }
-    }
-
     inline int GetBack(int nDirection)
     {
         switch (nDirection){
