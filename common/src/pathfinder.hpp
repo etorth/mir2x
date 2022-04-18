@@ -5,10 +5,10 @@
  *        Created: 03/28/2017 17:04:54
  *    Description: A-Star algorithm for path finding
  *
- *                 if we have a prefperence, we should make it by the cost function,
+ *                 if we have a preference, we should make it by the cost function,
  *                 rather than hack the source to make a priority
  *
- *                 support jump on the map with step size as (1, 2, 3)
+ *                 support jump on the map with step size as [1, 2, 3]
  *                 store direction information in each node and calculate cost with it
  *
  *
@@ -33,9 +33,8 @@
 #include "fsa.h"
 #include "stlastar.h"
 #include "totype.hpp"
-#include "strf.hpp"
+#include "mathf.hpp"
 #include "fflerror.hpp"
-#include "condcheck.hpp"
 #include "protocoldef.hpp"
 
 namespace PathFind
@@ -155,7 +154,53 @@ namespace PathFind
         return nDirV[nDY + 1][nDX + 1];
     }
 
-    int MaxReachNode(const PathFind::PathNode *, size_t, size_t);
+    inline int MaxReachNode(const PathFind::PathNode *pNodeV, size_t nSize, size_t nMaxStepLen)
+    {
+        if(true
+                && pNodeV           //
+                && nSize            // if nSize == 1 then return 0
+                && nMaxStepLen){    // doesn't request nMaxStepLen < nSize here
+
+            // 1. verify all nodes
+            for(size_t nIndex = 1; nIndex < nSize; ++nIndex){
+                switch(mathf::LDistance2(pNodeV[nIndex].X, pNodeV[nIndex].Y, pNodeV[nIndex - 1].X, pNodeV[nIndex - 1].Y)){
+                    case 1:
+                    case 2:
+                        {
+                            break;
+                        }
+                    default:
+                        {
+                            return -1;
+                        }
+                }
+            }
+
+            // 2. calculate the max reach node
+            switch(nSize){
+                case 0  : return -1;
+                case 1  : return  0;
+                case 2  : return  1;
+                default : {
+                              if(nMaxStepLen < nSize){
+                                  int nDX = std::abs(pNodeV[nMaxStepLen].X - pNodeV[0].X);
+                                  int nDY = std::abs(pNodeV[nMaxStepLen].Y - pNodeV[0].Y);
+                                  if(true
+                                          && ((std::max<size_t>)(nDX, nDY) == nMaxStepLen)
+                                          && ((std::min<size_t>)(nDX, nDY) == 0 || nDX == nDY)){
+                                      return to_d(nMaxStepLen);
+                                  }
+                              }
+
+                              // if 1. no enough nodes
+                              //    2. nodes can't reach nMaxStepLen straight
+                              // then force use single step walk
+                              return 1;
+                          }
+            }
+        }
+        return -1;
+    }
 }
 
 class AStarPathFinderNode;
@@ -180,11 +225,9 @@ class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
             , m_maxStep(nMaxStepSize)
             , m_foundPath(false)
         {
-            condcheck(m_oneStepCost);
-            condcheck(false
-                    || (m_maxStep == 1)
-                    || (m_maxStep == 2)
-                    || (m_maxStep == 3));
+            fflassert(m_oneStepCost);
+            fflassert(m_maxStep >= 0, m_maxStep);
+            fflassert(m_maxStep <= 3, m_maxStep);
         }
 
     public:
@@ -254,7 +297,7 @@ class AStarPathFinderNode
             , m_direction(nDirection)
             , m_finder(pFinder)
         {
-            condcheck(pFinder);
+            fflassert(pFinder);
         }
 
     public:
@@ -371,7 +414,7 @@ class AStarPathFinderNode
             int nDstY = rstNode.Y();
 
             auto fCost = m_finder->m_oneStepCost(nSrcX, nSrcY, nDstX, nDstY);
-            condcheck(fCost >= 0.00);
+            fflassert(fCost >= 0.00);
 
             if(Direction() < 0){
                 return (float)(fCost);
@@ -382,7 +425,7 @@ class AStarPathFinderNode
 
             auto nOldDirIndex = Direction();
             auto nNewDirIndex = PathFind::GetDirection(nSrcX, nSrcY, nDstX, nDstY) - (DIR_NONE + 1);
-            condcheck(true
+            fflassert(true
                     && (nOldDirIndex >= 0) && (nOldDirIndex < 8)
                     && (nNewDirIndex >= 0) && (nNewDirIndex < 8));
 
