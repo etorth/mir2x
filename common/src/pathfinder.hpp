@@ -49,9 +49,9 @@ namespace PathFind
         int X = -1;
         int Y = -1;
 
-        bool operator == (const PathNode & rstNode)
+        bool operator == (const PathNode & node)
         {
-            return (rstNode.X == X) && (rstNode.Y == Y);
+            return (node.X == X) && (node.Y == Y);
         }
 
         bool eq(int argX, int argY) const
