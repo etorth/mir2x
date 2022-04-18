@@ -1,29 +1,16 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientpathfinder.hpp
- *        Created: 03/28/2017 21:13:11
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-#include <map>
+#include <unordered_map>
 #include "pathfinder.hpp"
+#include "lochashtable.hpp"
 
+class ProcessRun;
 class ClientPathFinder final: public AStarPathFinder
 {
     private:
         friend class ProcessRun;
+
+    private:
+        const ProcessRun * const m_proc;
 
     private:
         const bool m_checkGround;
@@ -32,10 +19,10 @@ class ClientPathFinder final: public AStarPathFinder
         const int m_checkCreature;
 
     private:
-        mutable std::map<uint64_t, int> m_cache;
+        mutable LocHashTable<int> m_cache;
 
     public:
-        ClientPathFinder(bool, int, int);
+        ClientPathFinder(const ProcessRun *, bool, int, int);
 
     private:
         int getGrid(int, int) const;

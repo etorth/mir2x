@@ -1,109 +1,46 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientpathfinder.cpp
- *        Created: 03/28/2017 21:15:25
- *    Description: class for path finding in ProcessRun
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
-#include "log.hpp"
-#include "client.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
-extern Log *g_log;
-extern Client *g_client;
-
-ClientPathFinder::ClientPathFinder(bool bCheckGround, int nCheckCreature, int nMaxStep)
-    : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
+ClientPathFinder::ClientPathFinder(const ProcessRun *argProc, bool argCheckGround, int argCheckCreature, int argMaxStep)
+    : AStarPathFinder([this](int argSrcX, int argSrcY, int argDstX, int argDstY) -> double
       {
-          if(0){
-              if(true
-                      && MaxStep() != 1
-                      && MaxStep() != 2
-                      && MaxStep() != 3){
-                  throw fflerror("invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-              }
+          fflassert(MaxStep() >= 1, MaxStep());
+          fflassert(MaxStep() <= 3, MaxStep());
 
-              int nDistance2 = mathf::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
-              if(true
-                      && nDistance2 != 1
-                      && nDistance2 != 2
-                      && nDistance2 != MaxStep() * MaxStep()
-                      && nDistance2 != MaxStep() * MaxStep() * 2){
-                  throw fflerror("invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-              }
+          const int distance = mathf::LDistance2<int>(argSrcX, argSrcY, argDstX, argDstY);
+          if(true
+                  && distance != 1
+                  && distance != 2
+                  && distance != MaxStep() * MaxStep()
+                  && distance != MaxStep() * MaxStep() * 2){
+              throw fflerror("invalid step checked: (%d, %d) -> (%d, %d)", argSrcX, argSrcY, argDstX, argDstY);
           }
 
-          auto pRun = (ProcessRun *)(g_client->ProcessValid(PROCESSID_RUN));
+          return m_proc->OneStepCost(this, m_checkGround, m_checkCreature, argSrcX, argSrcY, argDstX, argDstY);
+      }, argMaxStep)
 
-          if(!pRun){
-              throw fflerror("ProcessRun is invalid");
-          }
-          return pRun->OneStepCost(this, m_checkGround, m_checkCreature, nSrcX, nSrcY, nDstX, nDstY);
-      }, nMaxStep)
-    , m_checkGround(bCheckGround)
-    , m_checkCreature(nCheckCreature)
+    , m_proc(argProc)
+    , m_checkGround(argCheckGround)
+    , m_checkCreature(argCheckCreature)
 {
-    switch(m_checkCreature){
-        case 0:
-        case 1:
-        case 2:
-            {
-                break;
-            }
-        default:
-            {
-                throw fflerror("invalid CheckCreature provided: %d, should be (0, 1, 2)", m_checkCreature);
-            }
-    }
+    fflassert(m_proc);
 
-    switch(MaxStep()){
-        case 1:
-        case 2:
-        case 3:
-            {
-                break;
-            }
-        default:
-            {
-                throw fflerror("invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-            }
-    }
+    fflassert(m_checkCreature >= 0, m_checkCreature);
+    fflassert(m_checkCreature <= 2, m_checkCreature);
+
+    fflassert(MaxStep() >= 1, MaxStep());
+    fflassert(MaxStep() <= 3, MaxStep());
 }
 
-int ClientPathFinder::getGrid(int nX, int nY) const
+int ClientPathFinder::getGrid(int argX, int argY) const
 {
-    auto pRun = (ProcessRun *)(g_client->ProcessValid(PROCESSID_RUN));
-
-    if(!pRun){
-        throw fflerror("ProcessRun is invalid");
-    }
-
-    if(!pRun->validC(nX, nY)){
+    if(!m_proc->validC(argX, argY)){
         return PathFind::INVALID;
     }
 
-    int32_t nX32 = nX;
-    int32_t nY32 = nY;
-
-    uint64_t nKey = (to_u64(nX32) << 32) | nY32;
-    if(auto p = m_cache.find(nKey); p != m_cache.end()){
+    if(const auto p = m_cache.find({argX, argY}); p != m_cache.end()){
         return p->second;
     }
-
-    auto nGrid = pRun->CheckPathGrid(nX, nY);
-    m_cache[nKey] = nGrid;
-    return nGrid;
+    return m_cache[{argX, argY}] = m_proc->CheckPathGrid(argX, argY);
 }

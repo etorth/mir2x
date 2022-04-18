@@ -121,7 +121,7 @@ std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, i
                 // the complex path solver
                 // we can always use this solver only
 
-                ClientPathFinder stPathFinder(checkGround, checkCreature, nMaxStep);
+                ClientPathFinder stPathFinder(m_processRun, checkGround, checkCreature, nMaxStep);
                 if(stPathFinder.Search(x0, y0, x1, y1)){
                     return stPathFinder.GetPathNode();
                 }else{
