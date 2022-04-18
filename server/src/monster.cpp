@@ -1177,7 +1177,7 @@ bool Monster::MoveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
                         }
                     }
 
-                    if(!stvPathNode.back().Eq(nX, nY)){
+                    if(!stvPathNode.back().eq(nX, nY)){
                         stvPathNode.emplace_back(nX, nY);
                     }
                     m_AStarCache.Cache(stvPathNode, mapID());

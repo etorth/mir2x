@@ -46,22 +46,17 @@ namespace PathFind
 
     struct PathNode final
     {
-        int X;
-        int Y;
-
-        PathNode(int nX = -1, int nY = -1)
-            : X(nX)
-            , Y(nY)
-        {}
+        int X = -1;
+        int Y = -1;
 
         bool operator == (const PathNode & rstNode)
         {
             return (rstNode.X == X) && (rstNode.Y == Y);
         }
 
-        bool Eq(int nX, int nY) const
+        bool eq(int argX, int argY) const
         {
-            return X == nX && Y == nY;
+            return X == argX && Y == argY;
         }
     };
 
