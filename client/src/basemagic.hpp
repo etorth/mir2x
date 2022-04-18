@@ -71,7 +71,8 @@ class BaseMagic
         {
             // gfxDirIndex is the index of gfx set
             // the gfx set can be for different direction or not
-            fflassert(gfxDirIndex() >= 0 && gfxDirIndex() < getGfxEntry()->gfxDirType);
+            fflassert(gfxDirIndex() >= 0, gfxDirIndex());
+            fflassert(gfxDirIndex() < getGfxEntry()->gfxDirType, gfxDirIndex(), getGfxEntry()->gfxDirType);
         }
 
     public:
