@@ -146,7 +146,7 @@ std::deque<std::unique_ptr<MotionNode>> CreatureMovable::makeWalkMotionQueue(int
             {
                 // 0 means error
                 // 1 means can't find a path here since we know LDistance2 != 0
-                throw fflerror("Can't find a path: (%d, %d) -> (%d, %d)", startX, startY, endX, endY);
+                throw fflerror("Can't find a path: (%d, %d) -> (%d, %d): uid = %s", startX, startY, endX, endY, to_cstr(uidf::getUIDString(UID())));
             }
         default:
             {
