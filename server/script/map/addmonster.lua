@@ -93,20 +93,23 @@ function addmon.monGener(monGenList)
                         -- this is not exact, some monster can create more monsters
                         local monsterMaxDensity = 8
                         local regionMaxCount = math.max(1, math.min(math.floor(locInfo.gridCount / monsterMaxDensity), locInfo.count))
-                        local needCount = regionMaxCount - aliveMonCount
+                        local tryCount = regionMaxCount - aliveMonCount
 
                         -- regions without valid grids has been filtered out
                         -- randGLoc() shall always succeeds
 
-                        while needCount > 0 do
+                        while tryCount > 0 do
                             local addX, addY = randGLoc(locInfo.x, locInfo.y, locInfo.w, locInfo.h)
                             if addX ~= nil and addY ~= nil then
                                 local uidString = addMonster(genList.name, addX, addY, true)
 
                                 if uidString ~= nil then
                                     table.insert(locInfo.uidList, uidString)
-                                    needCount = needCount - 1
                                 end
+
+                                -- even failed still decrement the tryCount
+                                -- otherwise this falls into dead loop with option: --disable-monster-spawn
+                                tryCount = tryCount - 1
                             else
                                 addLog(LOGTYPE_WARNING, 'randGLoc() failed: map = %s, x = %d, y = %d, w = %d, h = %d', getMapName(), locInfo.x, locInfo.y, locInfo.w, locInfo.h)
                             end
