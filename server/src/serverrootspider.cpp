@@ -1,10 +1,10 @@
+#include "pathf.hpp"
 #include "sysconst.hpp"
-#include "pathfinder.hpp"
 #include "serverrootspider.hpp"
 
 void ServerRootSpider::addBombSpider()
 {
-    const auto [spawnGX, spawnGY] = PathFind::getFrontPLoc(X(), Y(), Direction() + 3, 1);
+    const auto [spawnGX, spawnGY] = pathf::getFrontGLoc(X(), Y(), Direction() + 3, 1);
 
     AMAddCharObject amACO;
     std::memset(&amACO, 0, sizeof(amACO));

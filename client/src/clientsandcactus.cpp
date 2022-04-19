@@ -1,21 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientsandcactus.hpp
- *        Created: 07/31/2021 08:26:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
+#include "pathf.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientsandcactus.hpp"
@@ -34,7 +17,7 @@ ClientSandCactus::ClientSandCactus(uint64_t uid, ProcessRun *proc, const ActionN
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .direction = directionValid(action.type) ? to_d(action.type) : DIR_BEGIN,
+                    .direction = pathf::dirValid(action.type) ? to_d(action.type) : DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
                 });

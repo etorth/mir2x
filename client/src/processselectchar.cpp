@@ -1,4 +1,6 @@
 #include "log.hpp"
+#include "jobf.hpp"
+#include "pathf.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "bgmusicdb.hpp"
@@ -204,7 +206,7 @@ void ProcessSelectChar::drawCharName() const
         xmlStr += str_printf(u8R"###(     <par color='RGB(237,226,200)'>角色：%s</par> )###""\n", to_cstr(name));
         xmlStr += str_printf(u8R"###(     <par color='RGB(175,196,175)'>等级：%d</par> )###""\n", to_d(SYS_LEVEL(exp)));
         for(const auto job: jobList){
-            xmlStr += str_printf(u8R"###( <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobName(job)));
+            xmlStr += str_printf(u8R"###( <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobf::jobName(job)));
         }
         xmlStr += str_printf(u8R"###( </layout> )###""\n");
         charBoard.loadXML(to_cstr(xmlStr));

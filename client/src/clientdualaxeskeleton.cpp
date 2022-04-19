@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "pathf.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientdualaxeskeleton.hpp"
@@ -35,7 +36,7 @@ ClientDualAxeSkeleton::ClientDualAxeSkeleton(uint64_t uid, ProcessRun *proc, con
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .direction = directionValid(action.type) ? to_d(action.type) : DIR_BEGIN,
+                    .direction = pathf::dirValid(action.type) ? to_d(action.type) : DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
                 });

@@ -1,4 +1,5 @@
 #pragma once
+#include "pathf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
@@ -16,7 +17,7 @@ class ClientLightBoltZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_DIE,
-                            .direction = directionValid(action.type) ? to_d(action.type) : DIR_UP,
+                            .direction = pathf::dirValid(action.type) ? to_d(action.type) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
                         });
@@ -27,7 +28,7 @@ class ClientLightBoltZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .direction = directionValid(action.type) ? to_d(action.type) : DIR_UP,
+                            .direction = pathf::dirValid(action.type) ? to_d(action.type) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
                         });

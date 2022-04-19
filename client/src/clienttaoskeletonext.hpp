@@ -1,4 +1,5 @@
 #pragma once
+#include "pathf.hpp"
 #include "clientmonster.hpp"
 
 class ClientTaoSkeletonExt: public ClientMonster
@@ -16,7 +17,7 @@ class ClientTaoSkeletonExt: public ClientMonster
                     if(action.type == ACTION_SPAWN){
                         return DIR_DOWNLEFT;
                     }
-                    else if(directionValid(action.direction)){
+                    else if(pathf::dirValid(action.direction)){
                         return action.direction;
                     }
                     else{

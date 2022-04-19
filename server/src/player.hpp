@@ -233,8 +233,21 @@ class Player final: public BattleObject
     protected:
         bool goOffline();
 
+        bool onHorse() const
+        {
+            return false;
+        }
+
     protected:
-        virtual int MaxStep() const;
+        int maxStep() const override
+        {
+            if(onHorse()){
+                return 3;
+            }
+            else{
+                return 2;
+            }
+        }
 
     protected:
         void gainExp(int);

@@ -1,5 +1,6 @@
 #include "strf.hpp"
 #include "hero.hpp"
+#include "pathf.hpp"
 #include "colorf.hpp"
 #include "sdldevice.hpp"
 #include "pngtexoffdb.hpp"
@@ -31,7 +32,7 @@ MotionEffect::MotionEffect(const char8_t *magicName, const char8_t *stageName, M
       }())
 {
     fflassert(m_motion);
-    fflassert(directionValid(m_motion->direction));
+    fflassert(pathf::dirValid(m_motion->direction));
 }
 
 uint32_t MotionEffect::frameTexID() const

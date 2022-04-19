@@ -1,10 +1,10 @@
 #pragma once
 #include <unordered_map>
-#include "pathfinder.hpp"
+#include "pathf.hpp"
 #include "lochashtable.hpp"
 
 class ProcessRun;
-class ClientPathFinder final: public AStarPathFinder
+class ClientPathFinder final: public pathf::AStarPathFinder
 {
     private:
         friend class ProcessRun;

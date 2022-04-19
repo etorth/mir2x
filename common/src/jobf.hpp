@@ -24,6 +24,21 @@
 
 namespace jobf
 {
+    inline bool jobValid(int job)
+    {
+        return job >= JOB_BEGIN && job < JOB_END;
+    }
+
+    inline const char8_t * jobName(int job)
+    {
+        switch(job){
+            case JOB_WARRIOR: return u8"战士";
+            case JOB_TAOIST : return u8"道士";
+            case JOB_WIZARD : return u8"法师";
+            default         : return nullptr;
+        }
+    }
+
     inline std::vector<int> getJobList(const std::string &s)
     {
         std::vector<int> jobList;

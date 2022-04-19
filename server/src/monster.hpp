@@ -34,26 +34,31 @@ class Monster: public BattleObject
 
     protected:
         // a-star algorithm is so expensive
-        // current logic is every step we do MoveOneStep()
+        // current logic is every step we do moveOneStep()
 
         // cache the a-star result helps
         // but it makes monster stop if path node is blocked
         // so I need to keep tracking time to refresh the cache
 
-        struct AStarCache
+        class AStarCache
         {
-            // we refresh (drop) the cache every 2 sec
-            // since co's are moving and valid road won't keep valid
-            // 2sec because many monsters have WalkWait = 1sec
-            const static uint32_t Refresh = 2000;
+            private:
+                // we refresh (drop) the cache every 2 sec
+                // since co's are moving and valid road won't keep valid
+                // 2 sec because many monsters have WalkWait = 1sec
+                constexpr static uint32_t m_refresh = 2000;
 
-            uint32_t Time;
-            uint32_t mapID;
-            std::vector<PathFind::PathNode> Path;
+            private:
+                uint32_t m_time = 0;
+                uint32_t m_mapID = 0;
+                std::vector<pathf::PathNode> m_path;
 
-            AStarCache();
-            bool Retrieve(int *, int *, int, int, int, int, uint32_t);
-            void Cache(std::vector<PathFind::PathNode>, uint32_t);
+            public:
+                AStarCache() = default;
+
+            public:
+                void cache(uint32_t, const pathf::PathNode *, size_t);
+                std::optional<pathf::PathNode> retrieve(uint32_t, int, int, int, int);
         };
 
     protected:
@@ -74,7 +79,7 @@ class Monster: public BattleObject
         uint64_t m_masterUID;
 
     protected:
-        AStarCache m_AStarCache;
+        AStarCache m_astarCache;
 
     protected:
         corof::eval_poller m_updateCoro;
@@ -171,7 +176,7 @@ class Monster: public BattleObject
         void reportCO(uint64_t) override;
 
     protected:
-        bool MoveOneStep(int, int, std::function<void()>, std::function<void()>);
+        bool moveOneStep(int, int, std::function<void()>, std::function<void()>);
 
     protected:
         virtual void pickTarget(std::function<void(uint64_t)>);
@@ -192,11 +197,11 @@ class Monster: public BattleObject
         void queryMaster(uint64_t, std::function<void(uint64_t)>);
 
     protected:
-        bool MoveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
-        bool MoveOneStepDStar   (int, int, std::function<void()>, std::function<void()>);
-        bool MoveOneStepGreedy  (int, int, std::function<void()>, std::function<void()>);
-        bool MoveOneStepCombine (int, int, std::function<void()>, std::function<void()>);
-        bool MoveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
+        bool moveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
+        bool moveOneStepDStar   (int, int, std::function<void()>, std::function<void()>);
+        bool moveOneStepGreedy  (int, int, std::function<void()>, std::function<void()>);
+        bool moveOneStepCombine (int, int, std::function<void()>, std::function<void()>);
+        bool moveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
 
     public:
         void onActivate() override

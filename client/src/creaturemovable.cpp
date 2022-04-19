@@ -25,7 +25,7 @@
 #include "creaturemovable.hpp"
 
 extern Log *g_log;
-std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, int x1, int y1, bool checkGround, int checkCreature)
+std::vector<pathf::PathNode> CreatureMovable::parseMovePath(int x0, int y0, int x1, int y1, bool checkGround, int checkCreature)
 {
     if(!m_processRun->canMove(true, 0, x0, y0)){
         return {};
@@ -122,9 +122,10 @@ std::vector<PathFind::PathNode> CreatureMovable::parseMovePath(int x0, int y0, i
                 // we can always use this solver only
 
                 ClientPathFinder stPathFinder(m_processRun, checkGround, checkCreature, nMaxStep);
-                if(stPathFinder.Search(x0, y0, x1, y1)){
-                    return stPathFinder.GetPathNode();
-                }else{
+                if(stPathFinder.search(x0, y0, currMotion()->direction, x1, y1)){
+                    return stPathFinder.getPathNode();
+                }
+                else{
                     // we can't find a path
                     // return the starting point only
                     return {{x0, y0}};

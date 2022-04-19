@@ -27,7 +27,7 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                     m_currMotion.reset(new MotionNode
                     {
                         .type = MOTION_MON_STAND,
-                        .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                        .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                         .x = action.x,
                         .y = action.y,
                     });
@@ -50,7 +50,7 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_ATTACK0,
-                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
                 });
@@ -65,7 +65,7 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                     // use STAND
                     // otherwise need to figure out proper (endX, endY)
                     .type = MOTION_MON_STAND,
-                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
                 });
@@ -113,7 +113,7 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_HITTED,
-                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
                 });
@@ -179,7 +179,7 @@ bool ClientZumaTaurus::onActionAttack(const ActionNode &action)
                 if(mathf::LDistance2<int>(nX, nY, action.x, action.y) == 0){
                     return endDir;
                 }
-                return PathFind::GetDirection(action.x, action.y, nX, nY);
+                return pathf::getOffDir(action.x, action.y, nX, nY);
             }(),
             .x = action.x,
             .y = action.y,

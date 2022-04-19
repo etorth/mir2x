@@ -1,22 +1,5 @@
-/*
- * =====================================================================================
- *
- *       Filename: clienttaoskeleton.hpp
- *        Created: 08/31/2015 08:26:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
+#include "pathf.hpp"
 #include "clientmonster.hpp"
 
 class ClientTaoSkeleton: public ClientMonster
@@ -34,7 +17,7 @@ class ClientTaoSkeleton: public ClientMonster
                     if(action.type == ACTION_SPAWN){
                         return DIR_DOWNLEFT;
                     }
-                    else if(directionValid(action.direction)){
+                    else if(pathf::dirValid(action.direction)){
                         return action.direction;
                     }
                     else{

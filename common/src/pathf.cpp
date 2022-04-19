@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: pathf.cpp
- *        Created: 03/28/2017 17:04:54
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cfloat>
 #include "pathf.hpp"
 #include "mathf.hpp"
@@ -180,4 +162,133 @@ bool pathf::inDCCastRange(const DCCastRange &r, int x0, int y0, int x1, int y1)
                 throw fflreach();
             }
     }
+}
+
+float pathf::AStarPathFinderNode::GoalDistanceEstimate(const AStarPathFinderNode &node) const
+{
+    // use Chebyshev's distance instead of Manhattan distance
+    // since we allow max step size as 1, 2, 3, and for optimal solution
+
+    // to make A-star algorithm admissible
+    // we need to make h(x) never over-estimate the distance
+
+    const auto maxStep = m_finder->maxStep();
+    const auto dx = std::labs(node.X() - X());
+    const auto dy = std::labs(node.Y() - Y());
+
+    return std::max<float>(
+    {
+        to_f((dx / maxStep) + (dx % maxStep)), // take jump if can, then use move
+        to_f((dy / maxStep) + (dy % maxStep)), //
+    });
+}
+
+bool pathf::AStarPathFinderNode::IsGoal(const AStarPathFinderNode &goalNode) const
+{
+    return (X() == goalNode.X()) && (Y() == goalNode.Y()); // don't check direction
+}
+
+bool pathf::AStarPathFinderNode::GetSuccessors(AStarSearch<AStarPathFinderNode> *searcher, const AStarPathFinderNode *parent) const
+{
+    const auto distanceJump = {m_finder->maxStep(), 1}; // move and jump
+    const auto distanceMove = {                     1}; // move only
+
+    for(const auto distance: (m_finder->maxStep() > 1) ? distanceJump : distanceMove){
+        for(int dir = DIR_BEGIN; dir < DIR_END; ++dir){
+            const auto [newX, newY] = pathf::getFrontGLoc(X(), Y(), dir, distance);
+            if(true
+                    && parent
+                    && parent->X() == newX
+                    && parent->Y() == newY){ // don't go back
+                continue;
+            }
+
+            // when add a successor we always check it's distance between the ParentNode
+            // means for m_moveChecker(x0, y0, x1, y1) we guarentee that (x1, y1) inside propor distance to (x0, y0)
+
+            if(m_finder->m_oneStepCost(X(), Y(), Direction(), newX, newY).has_value()){
+                AStarPathFinderNode node
+                {
+                    newX,
+                    newY,
+                    dir,
+                    m_finder,
+                };
+                searcher->AddSuccessor(node); // searcher interface requires lvalue-ref
+            }
+        }
+    }
+
+    // need to always return true
+    // return false means out of memory in the astar-algorithm template code
+    return true;
+}
+
+// give very close weight for StepSize = 1 and StepSize = maxStep to prefer bigger hops
+// but I have to make Weight(maxStep) = Weight(1) + dW ( > 0 ), reason:
+//       for maxStep = 3 and path as following:
+//                       A B C D E
+//       if I want to move (A->C), we can do (A->B->C) and (A->D->C)
+//       then if there are of same weight I can't prefer (A->B->C)
+//
+//       but for maxStep = 2 I don't have this issue
+// actually for dW < Weight(1) is good enough
+
+// cost :   valid  :     1.00
+//        occupied :   100.00
+//         invalid : 10000.00
+//
+// we should have cost(invalid) >> cost(occupied), otherwise
+//          XXAXX
+//          XOXXX
+//          XXBXX
+// path (A->O->B) and (A->X->B) are of equal cost
+
+// if can't go through we return the infinite
+// be careful of following situation which could make mistake
+//
+//     XOOAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+//     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXO
+//     XOOBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+//
+// here ``O" means ``can pass" and ``X" means not, then if we do move (A->B)
+// if the path is too long then likely it takes(A->X->B) rather than (A->OOOOOOO...OOO->B)
+//
+// method to solve it:
+//  1. put path length constraits
+//  2. define inifinite = Map::W() * Map::H() as any path can have
+
+float pathf::AStarPathFinderNode::GetCost(const AStarPathFinderNode &node) const
+{
+    const auto cost = m_finder->m_oneStepCost(X(), Y(), Direction(), node.X(), node.Y());
+    fflassert(cost.has_value() && cost.value() >= 0.0f);
+    return cost.value();
+}
+
+bool pathf::AStarPathFinderNode::IsSameState(const AStarPathFinderNode &node) const
+{
+    return (X() == node.X()) && (Y() == node.Y()) && (Direction() == node.Direction());
+}
+
+bool pathf::AStarPathFinder::search(int srcX, int srcY, int srcDir, int dstX, int dstY, size_t searchCount)
+{
+    AStarPathFinderNode srcNode {srcX, srcY,    srcDir, this};
+    AStarPathFinderNode dstNode {dstX, dstY, DIR_BEGIN, this};
+
+    SetStartAndGoalStates(srcNode, dstNode);
+
+    m_hasPath = false;
+    for(size_t c = 0; (searchCount <= 0) || (c < searchCount); ++c){
+        if(const auto searchState = SearchStep(); searchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED){
+            m_hasPath = true;
+            break;
+        }
+        else if(searchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SEARCHING){
+            continue;
+        }
+        else{
+            break;
+        }
+    }
+    return m_hasPath;
 }

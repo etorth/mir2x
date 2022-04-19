@@ -391,72 +391,24 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
     // checkResult(m_coHandler());
 }
 
-ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *pMap, int nMaxStep, int nCheckCO)
-    : AStarPathFinder([this](int nSrcX, int nSrcY, int nDstX, int nDstY) -> double
+ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMaxStep, int argCheckCO)
+    : AStarPathFinder([this](int srcX, int srcY, int srcDir, int dstX, int dstY) -> std::optional<double>
       {
-          // comment the following code out
-          // seems it triggers some wired msvc compilation error:
-          // error C2248: 'AStarPathFinder::MaxStep': cannot access protected member declared in class 'AStarPathFinder'
+          // treat checkCO and checkLock same
+          // from server's view occupied and to-be-occupied are equivlent
+          return m_map->oneStepCost(m_checkCO, m_checkCO, srcX, srcY, srcDir, dstX, dstY);
+      }, argMaxStep)
 
-          // if(0){
-          //     if(true
-          //             && MaxStep() != 1
-          //             && MaxStep() != 2
-          //             && MaxStep() != 3){
-          //
-          //         g_monoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-          //         return 10000.00;
-          //     }
-          //
-          //     int nDistance2 = mathf::LDistance2(nSrcX, nSrcY, nDstX, nDstY);
-          //     if(true
-          //             && nDistance2 != 1
-          //             && nDistance2 != 2
-          //             && nDistance2 != MaxStep() * MaxStep()
-          //             && nDistance2 != MaxStep() * MaxStep() * 2){
-          //
-          //         g_monoServer->addLog(LOGTYPE_FATAL, "Invalid step checked: (%d, %d) -> (%d, %d)", nSrcX, nSrcY, nDstX, nDstY);
-          //         return 10000.00;
-          //     }
-          // }
-
-          const int nCheckLock = m_checkCO;
-          return m_map->OneStepCost(m_checkCO, nCheckLock, nSrcX, nSrcY, nDstX, nDstY);
-      }, nMaxStep)
-    , m_map(pMap)
-    , m_checkCO(nCheckCO)
+    , m_map(mapPtr)
+    , m_checkCO(argCheckCO)
 {
-    if(!pMap){
-        g_monoServer->addLog(LOGTYPE_FATAL, "Invalid argument: ServerMap = %p, CheckCreature = %d", pMap, nCheckCO);
-    }
+    fflassert(m_map);
 
-    switch(nCheckCO){
-        case 0:
-        case 1:
-        case 2:
-            {
-                break;
-            }
-        default:
-            {
-                g_monoServer->addLog(LOGTYPE_FATAL, "Invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
-                break;
-            }
-    }
+    fflassert(m_checkCO >= 0, m_checkCO);
+    fflassert(m_checkCO <= 2, m_checkCO);
 
-    switch(MaxStep()){
-        case 1:
-        case 2:
-        case 3:
-            {
-                break;
-            }
-        default:
-            {
-                g_monoServer->addLog(LOGTYPE_FATAL, "Invalid MaxStep provided: %d, should be (1, 2, 3)", MaxStep());
-                break;
-            }
-    }
+    fflassert(maxStep() >= 1, maxStep());
+    fflassert(maxStep() <= 3, maxStep());
 }
 
 ServerMap::ServerMap(uint32_t mapID)
@@ -621,128 +573,97 @@ bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
     return false;
 }
 
-double ServerMap::OneStepCost(int nCheckCO, int nCheckLock, int nX0, int nY0, int nX1, int nY1) const
+std::optional<double> ServerMap::oneStepCost(int checkCO, int checkLock, int srcX, int srcY, int srcDir, int dstX, int dstY) const
 {
-    switch(nCheckCO){
-        case 0:
-        case 1:
-        case 2:
-            {
-                break;
-            }
-        default:
-            {
-                throw fflerror("invalid CheckCO provided: %d, should be (0, 1, 2)", nCheckCO);
-            }
-    }
+    fflassert(checkCO >= 0, checkCO);
+    fflassert(checkCO <= 2, checkCO);
 
-    switch(nCheckLock){
-        case 0:
-        case 1:
-        case 2:
-            {
-                break;
-            }
-        default:
-            {
-                throw fflerror("invalid CheckLock provided: %d, should be (0, 1, 2)", nCheckLock);
-            }
-    }
+    fflassert(checkLock >= 0, checkLock);
+    fflassert(checkLock <= 2, checkLock);
 
-    int nMaxIndex = -1;
-    switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
-        case 0:
-            {
-                nMaxIndex = 0;
-                break;
-            }
-        case 1:
-        case 2:
-            {
-                nMaxIndex = 1;
-                break;
-            }
-        case 4:
-        case 8:
-            {
-                nMaxIndex = 2;
-                break;
-            }
+    int hopSize = -1;
+    switch(mathf::LDistance2(srcX, srcY, dstX, dstY)){
+        case  1:
+        case  2: hopSize = 1; break;
+        case  4:
+        case  8: hopSize = 2; break;
         case  9:
-        case 18:
-            {
-                nMaxIndex = 3;
-                break;
-            }
-        default:
-            {
-                return -1.00;
-            }
+        case 18: hopSize = 3; break;
+        case  0: return .0;
+        default: return {};
     }
 
-    const int nDX = (nX1 > nX0) - (nX1 < nX0);
-    const int nDY = (nY1 > nY0) - (nY1 < nY0);
+    double gridExtraPen = 0.00;
+    const auto hopDir = pathf::getOffDir(srcX, srcY, dstX, dstY);
 
-    double fExtraPen = 0.00;
-    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-        switch(auto nGrid = CheckPathGrid(nX0 + nDX * nIndex, nY0 + nDY * nIndex)){
-            case PathFind::FREE:
+    for(int stepSize = 1; stepSize <= hopSize; ++stepSize){
+        const auto [currX, currY] = pathf::getFrontGLoc(srcX, srcY, hopDir, stepSize);
+        switch(const auto pfGrid = checkPathGrid(currX, currY)){
+            case PF_FREE:
                 {
                     break;
                 }
-            case PathFind::OCCUPIED:
+            case PF_OCCUPIED:
                 {
-                    switch(nCheckCO){
+                    switch(checkCO){
+                        case 0:
+                            {
+                                break;
+                            }
                         case 1:
                             {
-                                fExtraPen += 100.00;
+                                gridExtraPen += 100.00;
                                 break;
                             }
                         case 2:
                             {
-                                return -1.00;
+                                return {};
                             }
                         default:
                             {
-                                break;
+                                throw fflvalue(checkCO);
                             }
                     }
                     break;
                 }
-            case PathFind::LOCKED:
+            case PF_LOCKED:
                 {
-                    if(((nIndex == 0) || (nIndex == nMaxIndex))){
-                        switch(nCheckLock){
+                    if(stepSize == hopSize){
+                        switch(checkLock){
+                            case 0:
+                                {
+                                    break;
+                                }
                             case 1:
                                 {
-                                    fExtraPen += 100.00;
+                                    gridExtraPen += 100.00;
                                     break;
                                 }
                             case 2:
                                 {
-                                    return -1.00;
+                                    return {};
                                 }
                             default:
                                 {
-                                    break;
+                                    throw fflvalue(checkLock);
                                 }
                         }
                     }
                     break;
                 }
-            case PathFind::INVALID:
-            case PathFind::OBSTACLE:
+            case PF_NONE:
+            case PF_OBSTACLE:
                 {
-                    return -1.00;
+                    return {};
                 }
             default:
                 {
-                    throw fflerror("invalid grid provided: %d at (%d, %d)", nGrid, nX0 + nDX * nIndex, nY0 + nDY * nIndex);
+                    throw fflvalue(currX, currY, pfGrid);
                 }
         }
     }
 
-    return 1.00 + nMaxIndex * 0.10 + fExtraPen;
+    return 1.00 + hopSize * 0.10 + gridExtraPen + pathf::getDirDiff(srcDir, hopDir) * 0.01;
 }
 
 std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool checkLock, int checkCount, int centerX, int centerY, int regionX, int regionY, int regionW, int regionH) const
@@ -1525,31 +1446,25 @@ Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
     return nullptr;
 }
 
-int ServerMap::CheckPathGrid(int nX, int nY) const
+int ServerMap::checkPathGrid(int argX, int argY) const
 {
-    if(!m_mir2xMapData.validC(nX, nY)){
-        return PathFind::INVALID;
+    if(!m_mir2xMapData.validC(argX, argY)){
+        return PF_NONE;
     }
 
-    if(!m_mir2xMapData.cell(nX, nY).land.canThrough()){
-        return PathFind::OBSTACLE;
+    if(!m_mir2xMapData.cell(argX, argY).land.canThrough()){
+        return PF_OBSTACLE;
     }
 
-    // for(auto nUID: getUIDList(nX, nY)){
-    //     if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
-    //         return PatFind::OCCUPIED;
-    //     }
-    // }
-
-    if(!getUIDList(nX, nY).empty()){
-        return PathFind::OCCUPIED;
+    if(!getUIDList(argX, argY).empty()){
+        return PF_OCCUPIED;
     }
 
-    if(getGrid(nX, nY).locked){
-        return PathFind::LOCKED;
+    if(getGrid(argX, argY).locked){
+        return PF_LOCKED;
     }
 
-    return PathFind::FREE;
+    return PF_FREE;
 }
 
 void ServerMap::updateMapGrid()

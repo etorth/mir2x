@@ -43,25 +43,17 @@ enum dir8_t: int
     DIR_END,
 };
 
-inline bool directionValid(int direction)
+enum PathFindType: int
 {
-    return direction >= DIR_BEGIN && direction < DIR_END;
-}
+    PF_NONE  = 0, // grid outside of map
+    PF_BEGIN = 1,
 
-inline const char *directionName(int direction)
-{
-    switch(direction){
-        case DIR_UP       : return "DIR_UP";
-        case DIR_UPRIGHT  : return "DIR_UPRIGHT";
-        case DIR_RIGHT    : return "DIR_RIGHT";
-        case DIR_DOWNRIGHT: return "DIR_DOWNRIGHT";
-        case DIR_DOWN     : return "DIR_DOWN";
-        case DIR_DOWNLEFT : return "DIR_DOWNLEFT";
-        case DIR_LEFT     : return "DIR_LEFT";
-        case DIR_UPLEFT   : return "DIR_UPLEFT";
-        default           : return "UNKNOWN";
-    }
-}
+    PF_OBSTACLE = 1,
+    PF_OCCUPIED,
+    PF_LOCKED,
+    PF_FREE,
+    PF_END,
+};
 
 enum ActExtType: int
 {
@@ -149,21 +141,6 @@ enum JobType: int
     JOB_WIZARD,
     JOB_END,
 };
-
-inline bool jobValid(int job)
-{
-    return job >= JOB_BEGIN && job < JOB_END;
-}
-
-inline const char8_t * jobName(int job)
-{
-    switch(job){
-        case JOB_WARRIOR: return u8"战士";
-        case JOB_TAOIST : return u8"道士";
-        case JOB_WIZARD : return u8"法师";
-        default         : return nullptr;
-    }
-}
 
 // keep it POD
 // used in actor/server/client message

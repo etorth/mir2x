@@ -16,7 +16,6 @@
 #include "soundeffectdb.hpp"
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
-#include "pathfinder.hpp"
 #include "processrun.hpp"
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
@@ -760,22 +759,53 @@ void ProcessRun::loadMap(uint32_t newMapID, int centerGX, int centerGY)
     }
 }
 
-bool ProcessRun::canMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
+int ProcessRun::checkPathGrid(int argX, int argY) const
 {
-    switch(auto nGrid = CheckPathGrid(nX, nY)){
-        case PathFind::FREE:
+    if(!m_mir2xMapData.validC(argX, argY)){
+        return PF_NONE;
+    }
+
+    if(!m_mir2xMapData.cell(argX, argY).land.canThrough()){
+        return PF_OBSTACLE;
+    }
+
+    // we should take EndX/EndY, not X()/Y() as occupied
+    // because server only checks EndX/EndY, if we use X()/Y() to request move it just fails
+
+    bool locked = false;
+    for(auto &p: m_coList){
+        if(true
+                && (p.second)
+                && (p.second->currMotion()->endX == argX)
+                && (p.second->currMotion()->endY == argY)){
+            return PF_OCCUPIED;
+        }
+
+        if(!locked
+                && p.second->x() == argX
+                && p.second->y() == argY){
+            locked = true;
+        }
+    }
+    return locked ? PF_LOCKED : PF_FREE;
+}
+
+bool ProcessRun::canMove(bool checkGround, int checkCreature, int argX, int argY)
+{
+    switch(const auto pfGrid = checkPathGrid(argX, argY)){
+        case PF_FREE:
             {
                 return true;
             }
-        case PathFind::OBSTACLE:
-        case PathFind::INVALID:
+        case PF_OBSTACLE:
+        case PF_NONE:
             {
-                return bCheckGround ? false : true;
+                return checkGround ? false : true;
             }
-        case PathFind::OCCUPIED:
-        case PathFind::LOCKED:
+        case PF_OCCUPIED:
+        case PF_LOCKED:
             {
-                switch(nCheckCreature){
+                switch(checkCreature){
                     case 0:
                     case 1:
                         {
@@ -787,149 +817,91 @@ bool ProcessRun::canMove(bool bCheckGround, int nCheckCreature, int nX, int nY)
                         }
                     default:
                         {
-                            throw fflerror("invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
+                            throw fflvalue(checkCreature);
                         }
                 }
             }
         default:
             {
-                throw fflerror("invalid grid provided: %d at (%d, %d)", nGrid, nX, nY);
+                throw fflvalue(checkGround, checkCreature, argX, argY, pfGrid);
             }
     }
 }
 
-int ProcessRun::CheckPathGrid(int nX, int nY) const
+bool ProcessRun::canMove(bool checkGround, int checkCreature, int srcX, int srcY, int dstX, int dstY)
 {
-    if(!m_mir2xMapData.validC(nX, nY)){
-        return PathFind::INVALID;
-    }
-
-    if(!m_mir2xMapData.cell(nX, nY).land.canThrough()){
-        return PathFind::OBSTACLE;
-    }
-
-    // we should take EndX/EndY, not X()/Y() as occupied
-    // because server only checks EndX/EndY, if we use X()/Y() to request move it just fails
-
-    bool bLocked = false;
-    for(auto &p: m_coList){
-        if(true
-                && (p.second)
-                && (p.second->currMotion()->endX == nX)
-                && (p.second->currMotion()->endY == nY)){
-            return PathFind::OCCUPIED;
-        }
-
-        if(!bLocked
-                && p.second->x() == nX
-                && p.second->y() == nY){
-            bLocked = true;
-        }
-    }
-    return bLocked ? PathFind::LOCKED : PathFind::FREE;
+    return oneStepCost(nullptr, checkGround, checkCreature, srcX, srcY, DIR_BEGIN, dstX, dstY).value_or(-1.00) >= 0.0;
 }
 
-bool ProcessRun::canMove(bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1)
+std::optional<double> ProcessRun::oneStepCost(const ClientPathFinder *finder, bool checkGround, int checkCreature, int srcX, int srcY, int srcDir, int dstX, int dstY) const
 {
-    return OneStepCost(nullptr, bCheckGround, nCheckCreature, nX0, nY0, nX1, nY1) >= 0.00;
-}
+    fflassert(checkCreature >= 0, checkCreature);
+    fflassert(checkCreature <= 2, checkCreature);
 
-double ProcessRun::OneStepCost(const ClientPathFinder *pFinder, bool bCheckGround, int nCheckCreature, int nX0, int nY0, int nX1, int nY1) const
-{
-    switch(nCheckCreature){
-        case 0:
-        case 1:
-        case 2:
-            {
-                break;
-            }
-        default:
-            {
-                throw fflerror("invalid CheckCreature provided: %d, should be (0, 1, 2)", nCheckCreature);
-            }
-    }
-
-    int nMaxIndex = -1;
-    switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
-        case 0:
-            {
-                nMaxIndex = 0;
-                break;
-            }
-        case 1:
-        case 2:
-            {
-                nMaxIndex = 1;
-                break;
-            }
-        case 4:
-        case 8:
-            {
-                nMaxIndex = 2;
-                break;
-            }
+    int hopSize = -1;
+    switch(mathf::LDistance2(srcX, srcY, dstX, dstY)){
+        case  1:
+        case  2: hopSize = 1; break;
+        case  4:
+        case  8: hopSize = 2; break;
         case  9:
-        case 18:
-            {
-                nMaxIndex = 3;
-                break;
-            }
-        default:
-            {
-                return -1.00;
-            }
+        case 18: hopSize = 3; break;
+        case  0: return .0;
+        default: return {};
     }
 
-    int nDX = (nX1 > nX0) - (nX1 < nX0);
-    int nDY = (nY1 > nY0) - (nY1 < nY0);
+    double gridExtraPen = 0.00;
+    const auto hopDir = pathf::getOffDir(srcX, srcY, dstX, dstY);
 
-    double fExtraPen = 0.00;
-    for(int nIndex = 0; nIndex <= nMaxIndex; ++nIndex){
-        int nCurrX = nX0 + nDX * nIndex;
-        int nCurrY = nY0 + nDY * nIndex;
-        switch(auto nGrid = pFinder ? pFinder->getGrid(nCurrX, nCurrY) : this->CheckPathGrid(nCurrX, nCurrY)){
-            case PathFind::FREE:
+    for(int stepSize = 1; stepSize <= hopSize; ++stepSize){
+        const auto [currX, currY] = pathf::getFrontGLoc(srcX, srcY, hopDir, stepSize);
+        switch(const auto pfGrid = finder ? finder->getGrid(currX, currY) : this->checkPathGrid(currX, currY)){
+            case PF_FREE:
                 {
                     break;
                 }
-            case PathFind::LOCKED:
-            case PathFind::OCCUPIED:
+            case PF_LOCKED:
+            case PF_OCCUPIED:
                 {
-                    switch(nCheckCreature){
+                    switch(checkCreature){
+                        case 0:
+                            {
+                                break;
+                            }
                         case 1:
                             {
-                                fExtraPen += 100.00;
+                                gridExtraPen += 100.00;
                                 break;
                             }
                         case 2:
                             {
-                                return -1.00;
+                                return {};
                             }
                         default:
                             {
-                                break;
+                                throw fflvalue(checkCreature);
                             }
                     }
                     break;
                 }
-            case PathFind::INVALID:
-            case PathFind::OBSTACLE:
+            case PF_NONE:
+            case PF_OBSTACLE:
                 {
-                    if(bCheckGround){
-                        return -1.00;
+                    if(checkGround){
+                        return {};
                     }
 
-                    fExtraPen += 10000.00;
+                    gridExtraPen += 10000.00;
                     break;
                 }
             default:
                 {
-                    throw fflerror("invalid grid provided: %d at (%d, %d)", nGrid, nCurrX, nCurrY);
+                    throw fflvalue(currX, currY, pfGrid);
                 }
         }
     }
 
-    return 1.00 + nMaxIndex * 0.10 + fExtraPen;
+    return 1.00 + hopSize * 0.10 + gridExtraPen + pathf::getDirDiff(srcDir, hopDir) * 0.01;
 }
 
 bool ProcessRun::luaCommand(const char *luaCmdString)
@@ -2332,7 +2304,7 @@ int ProcessRun::getAimDirection(const ActionNode &action, int defDir) const
         if(const auto box = coPtr->getTargetBox()){ // just ot check if still a good target
             const auto [aimX, aimY] = coPtr->location();
             const auto dir = pathf::getDir8(aimX - action.x, aimY - action.y);
-            if(dir >= 0 && directionValid(dir + DIR_BEGIN)){
+            if(dir >= 0 && pathf::dirValid(dir + DIR_BEGIN)){
                 return dir + DIR_BEGIN;
             }
         }

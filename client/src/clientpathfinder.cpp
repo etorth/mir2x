@@ -1,23 +1,13 @@
 #include "fflerror.hpp"
+#include "pathf.hpp"
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
 ClientPathFinder::ClientPathFinder(const ProcessRun *argProc, bool argCheckGround, int argCheckCreature, int argMaxStep)
-    : AStarPathFinder([this](int argSrcX, int argSrcY, int argDstX, int argDstY) -> double
+    : AStarPathFinder([this](int argSrcX, int argSrcY, int argSrcDir, int argDstX, int argDstY) -> std::optional<double>
       {
-          fflassert(MaxStep() >= 1, MaxStep());
-          fflassert(MaxStep() <= 3, MaxStep());
-
-          const int distance = mathf::LDistance2<int>(argSrcX, argSrcY, argDstX, argDstY);
-          if(true
-                  && distance != 1
-                  && distance != 2
-                  && distance != MaxStep() * MaxStep()
-                  && distance != MaxStep() * MaxStep() * 2){
-              throw fflerror("invalid step checked: (%d, %d) -> (%d, %d)", argSrcX, argSrcY, argDstX, argDstY);
-          }
-
-          return m_proc->OneStepCost(this, m_checkGround, m_checkCreature, argSrcX, argSrcY, argDstX, argDstY);
+          fflassert(pathf::hopValid(maxStep(), argSrcX, argSrcY, argDstX, argDstY), maxStep(), argSrcX, argSrcY, pathf::dirName(argSrcDir), argDstX, argDstY);
+          return m_proc->oneStepCost(this, m_checkGround, m_checkCreature, argSrcX, argSrcY, argSrcDir, argDstX, argDstY);
       }, argMaxStep)
 
     , m_proc(argProc)
@@ -29,18 +19,18 @@ ClientPathFinder::ClientPathFinder(const ProcessRun *argProc, bool argCheckGroun
     fflassert(m_checkCreature >= 0, m_checkCreature);
     fflassert(m_checkCreature <= 2, m_checkCreature);
 
-    fflassert(MaxStep() >= 1, MaxStep());
-    fflassert(MaxStep() <= 3, MaxStep());
+    fflassert(maxStep() >= 1, maxStep());
+    fflassert(maxStep() <= 3, maxStep());
 }
 
 int ClientPathFinder::getGrid(int argX, int argY) const
 {
     if(!m_proc->validC(argX, argY)){
-        return PathFind::INVALID;
+        return PF_NONE;
     }
 
     if(const auto p = m_cache.find({argX, argY}); p != m_cache.end()){
         return p->second;
     }
-    return m_cache[{argX, argY}] = m_proc->CheckPathGrid(argX, argY);
+    return m_cache[{argX, argY}] = m_proc->checkPathGrid(argX, argY);
 }

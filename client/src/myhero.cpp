@@ -1,23 +1,6 @@
-/*
- * =====================================================================================
- *
- *       Filename: myhero.cpp
- *        Created: 08/31/2015 08:52:57 PM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <algorithm>
 #include "log.hpp"
+#include "pathf.hpp"
 #include "client.hpp"
 #include "myhero.hpp"
 #include "message.hpp"
@@ -349,14 +332,7 @@ bool MyHero::decompActionAttack()
                                     // one hop we can reach the attack location
                                     // but we know step size between (nX0, nY0) and (nX1, nY1) > 1
 
-                                    int nXm  = -1;
-                                    int nYm  = -1;
-                                    int nDir = PathFind::GetDirection(nX0, nY0, nX1, nY1);
-                                    PathFind::GetFrontLocation(&nXm, &nYm, nX0, nY0, nDir, 1);
-
-                                    nXt = nXm;
-                                    nYt = nYm;
-
+                                    std::tie(nXt, nYt) = pathf::getFrontGLoc(nX0, nY0, pathf::getOffDir(nX0, nY0, nX1, nY1), 1);
                                     break;
                                 }
                             default:
@@ -431,7 +407,7 @@ bool MyHero::decompActionSpell()
                 }
             default:
                 {
-                    return PathFind::GetDirection(nX0, nY0, nX1, nY1);
+                    return pathf::getOffDir(nX0, nY0, nX1, nY1);
                 }
         }
     };
@@ -453,7 +429,7 @@ bool MyHero::decompActionSpell()
     // otherwise server doesn't know client has made direction turn
     // when summon skeleton or dog it appears at wrong place, not in front
 
-    if(directionValid(standDir) && m_currMotion->direction != standDir){
+    if(pathf::dirValid(standDir) && m_currMotion->direction != standDir){
         m_actionQueue.emplace_front(ActionStand
         {
             .x = currAction.x,

@@ -255,9 +255,6 @@ class ProcessRun: public Process
         bool canMove(bool, int, int, int, int, int);
 
     public:
-        double MoveCost(bool, int, int, int, int);
-
-    public:
         uint64_t getFocusUID(int) const;
         void setFocusUID(int, uint64_t);
 
@@ -331,8 +328,8 @@ class ProcessRun: public Process
         bool removeGroundItemID(uint32_t, int, int);
 
     public:
-        int CheckPathGrid(int, int) const;
-        double OneStepCost(const ClientPathFinder *, bool, int, int, int, int, int) const;
+        int checkPathGrid(int, int) const;
+        std::optional<double> oneStepCost(const ClientPathFinder *, bool, int, int, int, int, int, int) const;
 
     private:
         std::tuple<int, int> getRandLoc(uint32_t);

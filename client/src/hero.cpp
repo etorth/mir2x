@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: hero.cpp
- *        Created: 09/03/2015 03:49:00
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cmath>
 #include "log.hpp"
 #include "hero.hpp"
@@ -615,7 +597,7 @@ bool Hero::parseAction(const ActionNode &action)
                         if(action.aimUID){
                             if(auto coPtr = m_processRun->findUID(action.aimUID)){
                                 if(mathf::CDistance<int>(coPtr->x(), coPtr->y(), x(), y()) == 1){
-                                    return PathFind::GetDirection(coPtr->x(), coPtr->y(), x(), y());
+                                    return pathf::getOffDir(coPtr->x(), coPtr->y(), x(), y());
                                 }
                             }
                         }
@@ -706,7 +688,7 @@ bool Hero::parseAction(const ActionNode &action)
                         }
                     }();
 
-                    fflassert(directionValid(standDir));
+                    fflassert(pathf::dirValid(standDir));
                     m_motionQueue.push_back(std::unique_ptr<MotionNode>(new MotionNode
                     {
                         .type = motionSpell,
@@ -1078,7 +1060,7 @@ bool Hero::parseAction(const ActionNode &action)
         case ACTION_ATTACK:
             {
                 if(auto coPtr = m_processRun->findUID(action.aimUID)){
-                    if(const auto attackDir = PathFind::GetDirection(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
+                    if(const auto attackDir = pathf::getOffDir(action.x, action.y, coPtr->x(), coPtr->y()); attackDir >= DIR_BEGIN && attackDir < DIR_END){
                         const auto magicID = action.extParam.attack.magicID;
                         const auto [swingMotion, motionSpeed, magicName, lagFrame] = [magicID, this]() -> std::tuple<int, int, const char8_t *, int>
                         {

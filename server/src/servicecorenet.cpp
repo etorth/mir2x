@@ -448,7 +448,7 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
 
             to_llu(dbidOpt.value().first),
             to_cstr(cmCC.name),
-            to_cstr(jobName(cmCC.job)),
+            to_cstr(jobf::jobName(cmCC.job)),
             to_d(DBCOM_MAPID(u8"道馆_1")),
             405,
             120,

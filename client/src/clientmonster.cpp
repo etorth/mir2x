@@ -1,23 +1,7 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientmonster.cpp
- *        Created: 08/31/2015 08:26:57
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include "log.hpp"
+#include "pathf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
@@ -506,7 +490,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
     m_forcedMotionQueue.emplace_back(std::unique_ptr<MotionNode>(new MotionNode
     {
         .type = MOTION_MON_DIE,
-        .direction = directionValid(dieDir) ? to_d(dieDir) : DIR_UP,
+        .direction = pathf::dirValid(dieDir) ? to_d(dieDir) : DIR_UP,
         .x = dieX,
         .y = dieY,
     }));
@@ -615,7 +599,7 @@ bool ClientMonster::onActionSpawn(const ActionNode &action)
         .type = MOTION_MON_STAND,
         .direction = [&action]() -> int
         {
-            if(directionValid(action.direction)){
+            if(pathf::dirValid(action.direction)){
                 return action.direction;
             }
             return DIR_UP;
@@ -642,7 +626,7 @@ bool ClientMonster::onActionAttack(const ActionNode &action)
                 if(mathf::LDistance2<int>(nX, nY, action.x, action.y) == 0){
                     return endDir;
                 }
-                return PathFind::GetDirection(action.x, action.y, nX, nY);
+                return pathf::getOffDir(action.x, action.y, nX, nY);
             }(),
             .x = action.x,
             .y = action.y,

@@ -1,21 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientdualaxeskeleton.cpp
- *        Created: 07/31/2021 08:26:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
+#include "pathf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
@@ -36,7 +19,7 @@ ClientWedgeMoth::ClientWedgeMoth(uint64_t uid, ProcessRun *proc, const ActionNod
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .direction = directionValid(action.type) ? to_d(action.type) : DIR_BEGIN,
+                    .direction = pathf::dirValid(action.type) ? to_d(action.type) : DIR_BEGIN,
                     .x = action.x,
                     .y = action.y,
                 });

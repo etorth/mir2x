@@ -19,6 +19,7 @@
 #pragma once
 #include <cstdint>
 #include <cstdlib>
+#include "pathf.hpp"
 #include "colorf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
@@ -204,7 +205,7 @@ class HellFire_RUN: public FixedLocMagic
             , m_fireRun1   (u8"地狱火", u8"运行", x, y, (dir + 1) % 2)
             , m_fireDir(dir)
         {
-            fflassert(directionValid(m_fireDir));
+            fflassert(pathf::dirValid(m_fireDir));
         }
 
     public:
@@ -310,7 +311,7 @@ class IceThrust_RUN: public FixedLocMagic
             , m_iceRun1(x, y, (dir + 1) % 2)
             , m_iceDir(dir)
         {
-            fflassert(directionValid(m_iceDir));
+            fflassert(pathf::dirValid(m_iceDir));
         }
 
     public:

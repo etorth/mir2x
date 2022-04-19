@@ -1,4 +1,5 @@
 #pragma once
+#include "pathf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
@@ -16,7 +17,7 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
                         });
@@ -29,7 +30,7 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
                         });
@@ -42,7 +43,7 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_ATTACK0,
-                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
                         });
@@ -55,7 +56,7 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_SPAWN,
-                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
                         });
@@ -68,7 +69,7 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_SPAWN,
-                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
                         });
@@ -81,7 +82,7 @@ class ClientRebornZombie: public ClientStandMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_HITTED,
-                            .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                            .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                             .x = action.x,
                             .y = action.y,
                         });
@@ -112,9 +113,9 @@ class ClientRebornZombie: public ClientStandMonster
             }
             else{
                 switch(motion){
-                    case MOTION_MON_STAND : return {.gfxMotionID = MOTION_MON_DIE, .begin = 9, .count =  1};
+                    case MOTION_MON_STAND: return {.gfxMotionID = MOTION_MON_DIE, .begin = 9, .count =  1};
                     case MOTION_MON_SPAWN: return {.gfxMotionID = MOTION_MON_DIE, .begin = 0, .count = 10};
-                    default               : return {};
+                    default              : return {};
                 }
             }
         }

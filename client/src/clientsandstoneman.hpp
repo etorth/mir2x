@@ -1,4 +1,5 @@
 #pragma once
+#include "pathf.hpp"
 #include "fixedlocmagic.hpp"
 #include "clientmonster.hpp"
 
@@ -15,7 +16,7 @@ class ClientSandStoneMan: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_SPAWN,
-                            .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
+                            .direction = pathf::dirValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,
                         });
@@ -41,7 +42,7 @@ class ClientSandStoneMan: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_DIE,
-                            .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
+                            .direction = pathf::dirValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,
                         });
@@ -68,7 +69,7 @@ class ClientSandStoneMan: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
+                            .direction = pathf::dirValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,
                         });

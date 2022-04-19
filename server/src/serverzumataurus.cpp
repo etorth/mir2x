@@ -98,7 +98,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
             return;
         }
 
-        if(const auto newDir = PathFind::GetDirection(X(), Y(), coLoc.x, coLoc.y); directionValid(newDir)){
+        if(const auto newDir = pathf::getOffDir(X(), Y(), coLoc.x, coLoc.y); pathf::dirValid(newDir)){
             m_direction = newDir;
         }
 
@@ -149,7 +149,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
                     }
                 case DBCOM_MAGICID(u8"祖玛教主_地狱火"):
                     {
-                        if(const auto dirIndex = pathf::getDir8(coLoc.x - X(), coLoc.y - Y()); (dirIndex >= 0) && directionValid(dirIndex + DIR_BEGIN)){
+                        if(const auto dirIndex = pathf::getDir8(coLoc.x - X(), coLoc.y - Y()); (dirIndex >= 0) && pathf::dirValid(dirIndex + DIR_BEGIN)){
                             m_direction = dirIndex + DIR_BEGIN;
                         }
 

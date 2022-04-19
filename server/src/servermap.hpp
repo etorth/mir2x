@@ -25,12 +25,12 @@
 #include <concepts>
 #include <unordered_set>
 
+#include "pathf.hpp"
 #include "mathf.hpp"
 #include "totype.hpp"
 #include "sysconst.hpp"
 #include "querytype.hpp"
 #include "serdesmsg.hpp"
-#include "pathfinder.hpp"
 #include "cachequeue.hpp"
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
@@ -81,9 +81,7 @@ class ServerMap final: public ServerObject
         };
 
     private:
-        // bind to servermap
-        // only for server map internal usage
-        class ServerPathFinder: public AStarPathFinder
+        class ServerPathFinder: public pathf::AStarPathFinder
         {
             private:
                 const ServerMap *m_map;
@@ -92,12 +90,11 @@ class ServerMap final: public ServerObject
                 const int m_checkCO;
 
             public:
-                ServerPathFinder(const ServerMap*, int, int);
-               ~ServerPathFinder() = default;
+               /* ctor */  ServerPathFinder(const ServerMap*, int, int);
+               /* dtor */ ~ServerPathFinder() = default;
         };
 
-        // the server pathfinder will call canMove() etc
-        // which I refuse to set as public since it's dynamically updated
+    private:
         friend class ServerPathFinder;
 
     private:
@@ -177,7 +174,7 @@ class ServerMap final: public ServerObject
         bool canMove(bool, bool, int, int) const;
 
     protected:
-        double OneStepCost(int, int, int, int, int, int) const;
+        std::optional<double> oneStepCost(int, int, int, int, int, int, int) const;
 
     public:
         const Mir2xMapData &getMapData() const
@@ -329,7 +326,7 @@ class ServerMap final: public ServerObject
         void postGroundFireWallList(uint64_t, int, int);
 
     private:
-        int CheckPathGrid(int, int) const;
+        int checkPathGrid(int, int) const;
 
     private:
         void updateMapGrid();

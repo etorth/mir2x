@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: hero.hpp
- *        Created: 09/03/2015 03:48:41
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <tuple>
 #include <array>

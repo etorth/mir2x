@@ -94,7 +94,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
             return;
         }
 
-        if(const auto newDir = PathFind::GetDirection(X(), Y(), coLoc.x, coLoc.y); directionValid(newDir)){
+        if(const auto newDir = pathf::getOffDir(X(), Y(), coLoc.x, coLoc.y); pathf::dirValid(newDir)){
             m_direction = newDir;
         }
 

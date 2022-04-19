@@ -844,8 +844,10 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     AMPathFind amPF;
     std::memcpy(&amPF, rstMPK.data(), sizeof(amPF));
 
-    int nX0 = amPF.X;
-    int nY0 = amPF.Y;
+    int nX0  = amPF.X;
+    int nY0  = amPF.Y;
+    int nDir = amPF.direction;
+
     int nX1 = amPF.EndX;
     int nY1 = amPF.EndY;
 
@@ -876,7 +878,7 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     }
 
     ServerPathFinder stPathFinder(this, amPF.MaxStep, amPF.CheckCO);
-    if(!stPathFinder.Search(nX0, nY0, nX1, nY1)){
+    if(!stPathFinder.search(nX0, nY0, nDir, nX1, nY1)){
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }

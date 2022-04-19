@@ -1,21 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: clienttaodog.cpp
- *        Created: 08/31/2015 08:26:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
+#include "pathf.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clienttaodog.hpp"
@@ -30,7 +13,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_SPECIAL,
-                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
                 });
@@ -43,7 +26,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
                 });
@@ -56,7 +39,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_HITTED,
-                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
                 });
@@ -69,7 +52,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_DIE,
-                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.x,
                     .y = action.y,
                 });
@@ -96,7 +79,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+                    .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
                     .x = action.aimX,
                     .y = action.aimY,
                 });
@@ -127,7 +110,7 @@ bool ClientTaoDog::onActionSpawn(const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_SPAWN,
-        .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+        .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
         .x = action.x,
         .y = action.y,
     });

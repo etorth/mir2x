@@ -1,5 +1,6 @@
 #pragma once
 #include "uidf.hpp"
+#include "pathf.hpp"
 #include "clientmonster.hpp"
 
 class ClientMonkZombie: public ClientMonster
@@ -15,7 +16,7 @@ class ClientMonkZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_SPAWN,
-                            .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
+                            .direction = pathf::dirValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,
                         });
@@ -41,7 +42,7 @@ class ClientMonkZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_DIE,
-                            .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
+                            .direction = pathf::dirValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,
                         });
@@ -52,7 +53,7 @@ class ClientMonkZombie: public ClientMonster
                         m_currMotion.reset(new MotionNode
                         {
                             .type = MOTION_MON_STAND,
-                            .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
+                            .direction = pathf::dirValid(action.direction) ? action.direction : to_d(DIR_UP),
                             .x = action.x,
                             .y = action.y,
                         });

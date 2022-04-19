@@ -21,7 +21,6 @@
 #include <deque>
 #include <vector>
 #include <cstdint>
-#include "pathfinder.hpp"
 #include "motionnode.hpp"
 #include "clientcreature.hpp"
 #include "clientpathfinder.hpp"
@@ -74,7 +73,7 @@ class CreatureMovable: public ClientCreature
         //      0 : error happens
         //      1 : can't find a path and keep standing on (nX0, nY0)
         //     >1 : path found
-        virtual std::vector<PathFind::PathNode> parseMovePath(
+        virtual std::vector<pathf::PathNode> parseMovePath(
                 int, int,       // src
                 int, int,       // dst
                 bool,           // bCheckGround

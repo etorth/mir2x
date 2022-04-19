@@ -390,6 +390,8 @@ struct AMPathFind
 
     int X;
     int Y;
+    int direction;
+
     int EndX;
     int EndY;
 };

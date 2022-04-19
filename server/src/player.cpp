@@ -547,7 +547,7 @@ void Player::onCMActionStand(CMAction stCMA)
             case 0:
             default:
                 {
-                    if(directionValid(nDirection)){
+                    if(pathf::dirValid(nDirection)){
                         m_direction = nDirection;
                     }
 
@@ -571,7 +571,7 @@ void Player::onCMActionMove(CMAction stCMA)
     switch(estimateHop(nX0, nY0)){
         case 0:
             {
-                requestMove(nX1, nY1, MoveSpeed(), false, false, [this]()
+                requestMove(nX1, nY1, moveSpeed(), false, false, [this]()
                 {
                     dbUpdateMapGLoc();
                 },
@@ -629,7 +629,7 @@ void Player::onCMActionAttack(CMAction stCMA)
                     switch(estimateHop(nX0, nY0)){
                         case 0:
                             {
-                                if(const auto aimDir = PathFind::GetDirection(X(), Y(), rstLocation.x, rstLocation.y); directionValid(aimDir)){
+                                if(const auto aimDir = pathf::getOffDir(X(), Y(), rstLocation.x, rstLocation.y); pathf::dirValid(aimDir)){
                                     m_direction = aimDir;
                                     dispatchAction(makeActionStand());
 
@@ -675,7 +675,7 @@ void Player::onCMActionAttack(CMAction stCMA)
                                                     {
                                                         scoped_alloc::svobuf_wrapper<std::tuple<int, int>, 3> aimGridList;
                                                         for(int d: {-1, 0, 1}){
-                                                            aimGridList.c.push_back(pathf::getFrontGLoc(X(), Y(), pathf::nextDirection(Direction(), d)));
+                                                            aimGridList.c.push_back(pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(Direction(), d)));
                                                         }
 
                                                         for(const auto &[uid, coLoc]: m_inViewCOList){
@@ -929,9 +929,7 @@ void Player::onCMActionSpell(CMAction cmA)
         case DBCOM_MAGICID(u8"召唤骷髅"):
         case DBCOM_MAGICID(u8"超强召唤骷髅"):
             {
-                int nFrontX = -1;
-                int nFrontY = -1;
-                PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2);
+                const auto [nFrontX, nFrontY] = pathf::getFrontGLoc(X(), Y(), Direction(), 2);
 
                 SMCastMagic smFM;
                 std::memset(&smFM, 0, sizeof(smFM));
@@ -959,9 +957,7 @@ void Player::onCMActionSpell(CMAction cmA)
             }
         case DBCOM_MAGICID(u8"召唤神兽"):
             {
-                int nFrontX = -1;
-                int nFrontY = -1;
-                PathFind::GetFrontLocation(&nFrontX, &nFrontY, X(), Y(), Direction(), 2);
+                const auto [nFrontX, nFrontY] = pathf::getFrontGLoc(X(), Y(), Direction(), 2);
 
                 SMCastMagic smFM;
                 std::memset(&smFM, 0, sizeof(smFM));
@@ -1024,7 +1020,7 @@ void Player::onCMActionSpell(CMAction cmA)
         case DBCOM_MAGICID(u8"冰沙掌"):
         case DBCOM_MAGICID(u8"疾光电影"):
             {
-                if(const auto dirIndex = pathf::getDir8(cmA.action.aimX - cmA.action.x, cmA.action.aimY - cmA.action.y); (dirIndex >= 0) && directionValid(dirIndex + DIR_BEGIN)){
+                if(const auto dirIndex = pathf::getDir8(cmA.action.aimX - cmA.action.x, cmA.action.aimY - cmA.action.y); (dirIndex >= 0) && pathf::dirValid(dirIndex + DIR_BEGIN)){
                     m_direction = dirIndex + DIR_BEGIN;
                 }
 
@@ -1098,15 +1094,6 @@ void Player::onCMActionSpell(CMAction cmA)
             {
                 break;
             }
-    }
-}
-
-int Player::MaxStep() const
-{
-    if(Horse()){
-        return 3;
-    }else{
-        return 2;
     }
 }
 

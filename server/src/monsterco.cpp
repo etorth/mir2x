@@ -82,7 +82,7 @@ corof::eval_awaiter<bool> Monster::coro_moveForward()
         }
 
         corof::async_variable<bool> done;
-        p->requestMove(nextX, nextY, p->MoveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
+        p->requestMove(nextX, nextY, p->moveSpeed(), false, false, [&done](){ done.assign(true); }, [&done](){ done.assign(false); });
         co_return (co_await done);
     };
     return fnwait(this).to_awaiter<bool>();

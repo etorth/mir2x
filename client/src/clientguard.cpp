@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include "pathf.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientguard.hpp"
@@ -40,7 +41,7 @@ ClientGuard::ClientGuard(uint64_t uid, ProcessRun *proc, const ActionNode &actio
                 m_currMotion.reset(new MotionNode
                 {
                     .type = MOTION_MON_STAND,
-                    .direction = directionValid(action.direction) ? action.direction : to_d(DIR_UP),
+                    .direction = pathf::dirValid(action.direction) ? action.direction : to_d(DIR_UP),
                     .x = action.x,
                     .y = action.y,
                 });

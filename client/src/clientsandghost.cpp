@@ -1,3 +1,4 @@
+#include "pathf.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clientsandghost.hpp"
@@ -8,7 +9,7 @@ bool ClientSandGhost::onActionSpawn(const ActionNode &action)
     m_currMotion.reset(new MotionNode
     {
         .type = MOTION_MON_STAND,
-        .direction = directionValid(action.direction) ? to_d(action.direction) : DIR_UP,
+        .direction = pathf::dirValid(action.direction) ? to_d(action.direction) : DIR_UP,
         .x = action.x,
         .y = action.y,
     });
