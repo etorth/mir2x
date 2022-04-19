@@ -172,11 +172,11 @@ namespace pathf
 
         private:
             AStarPathFinderNode() = default;
-            AStarPathFinderNode(int argX, int argY, int argDir, AStarPathFinder *finder)
+            AStarPathFinderNode(int argX, int argY, int argDir, AStarPathFinder *argFinder)
                 : m_X(argX)
                 , m_Y(argY)
                 , m_direction(argDir)
-                , m_finder(finder)
+                , m_finder(argFinder)
             {
                 fflassert(m_finder);
                 fflassert(dirValid(m_direction));
