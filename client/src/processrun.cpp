@@ -901,7 +901,7 @@ std::optional<double> ProcessRun::oneStepCost(const ClientPathFinder *finder, bo
         }
     }
 
-    return 1.00 + hopSize * 0.10 + gridExtraPen + pathf::getDirDiff(srcDir, hopDir) * 0.01;
+    return 1.00 + hopSize * 0.10 + gridExtraPen + pathf::getDirAbsDiff(srcDir, hopDir) * 0.01;
 }
 
 bool ProcessRun::luaCommand(const char *luaCmdString)

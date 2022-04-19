@@ -396,6 +396,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMa
       {
           // treat checkCO and checkLock same
           // from server's view occupied and to-be-occupied are equivlent
+          fflassert(pathf::hopValid(maxStep(), srcX, srcY, dstX, dstY));
           return m_map->oneStepCost(m_checkCO, m_checkCO, srcX, srcY, srcDir, dstX, dstY);
       }, argMaxStep)
 
@@ -663,7 +664,7 @@ std::optional<double> ServerMap::oneStepCost(int checkCO, int checkLock, int src
         }
     }
 
-    return 1.00 + hopSize * 0.10 + gridExtraPen + pathf::getDirDiff(srcDir, hopDir) * 0.01;
+    return 1.00 + hopSize * 0.10 + gridExtraPen + pathf::getDirAbsDiff(srcDir, hopDir) * 0.01;
 }
 
 std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool checkLock, int checkCount, int centerX, int centerY, int regionX, int regionY, int regionW, int regionH) const

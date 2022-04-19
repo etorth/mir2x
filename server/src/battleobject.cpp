@@ -963,7 +963,7 @@ std::optional<double> BattleObject::oneStepCost(const BattleObject::BOPathFinder
         }
     }
 
-    return 1.00 + hopSize * 0.10 + gridExtraPen + pathf::getDirDiff(srcDir, hopDir) * 0.01;
+    return 1.00 + hopSize * 0.10 + gridExtraPen + pathf::getDirAbsDiff(srcDir, hopDir) * 0.01;
 }
 
 void BattleObject::setLastAction(int type)

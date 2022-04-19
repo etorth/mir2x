@@ -91,13 +91,19 @@ namespace pathf
         return DIR_BEGIN + (((((dir - DIR_BEGIN) + diff) % dirCount) + dirCount) % dirCount);
     }
 
-    inline int getDirDiff(int srcDir, int dstDir)
+    inline int getDirDiff(int srcDir, int dstDir) // always return clock-wise
     {
         fflassert(dirValid(srcDir), srcDir);
         fflassert(dirValid(dstDir), dstDir);
 
         constexpr int dirCount = DIR_END - DIR_BEGIN;
         return (((dstDir - srcDir) % dirCount) + dirCount) % dirCount;
+    }
+
+    inline int getDirAbsDiff(int srcDir, int dstDir) // clock-wise or anti-clock-wise, take minimal
+    {
+        const auto dirDiff = getDirDiff(srcDir, dstDir);
+        return std::min<int>(DIR_END - DIR_BEGIN - dirDiff, dirDiff);
     }
 
     inline std::tuple<int, int> getFrontGLoc(int x, int y, int dir, int length = 1)
