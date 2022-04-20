@@ -157,6 +157,10 @@ namespace pathf
 
 namespace pathf
 {
+    // 1. profiling shows A-star is very expensive, about 1/3 runtime time are spent in A-star search
+    // 2. current A-star algorithm has bug to support the turn-cost
+    // 3. check this page for jump-point-search algorithm: https://harablog.wordpress.com/2011/09/07/jump-point-search/
+
     class AStarPathFinder;
     class AStarPathFinderNode
     {
