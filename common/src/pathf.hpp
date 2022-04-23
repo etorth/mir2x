@@ -305,6 +305,16 @@ namespace pathf
             InnNode m_srcNode {};
 
         private:
+            // special dst node that can never be reached by stepping
+            // it has zero cost to all (m_dstX, m_dstY, DIR_BEGIN ~ DIR_END) for multi-targeting
+            const InnNode m_dstDrainNode
+            {
+                .x = 0,
+                .y = 0,
+                .dir = DIR_NONE, // invalid direction, un-reachable by stepping
+            };
+
+        private:
             int m_dstX = 0;
             int m_dstY = 0;
 
@@ -334,7 +344,7 @@ namespace pathf
         public:
             bool hasPath() const
             {
-                return findLastNode().has_value();
+                return m_prevSet.find(m_dstDrainNode) != m_prevSet.end();
             }
 
         public:
@@ -348,9 +358,7 @@ namespace pathf
             bool checkGLoc(int, int, int) const;
 
         private:
-            std::optional<InnNode> findLastNode() const;
-
-        private:
             double h(const InnNode &) const;
+            void updatePath(const InnNode &, const InnNode &, double, double);
     };
 }

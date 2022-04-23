@@ -214,13 +214,8 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
     });
 
     for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_openSet.empty(); ++c){
-        // TODO check (x, y) only, drops the dir dimemsion, this may gives suboptimal solution
-        // say the optimum is (m_dstX, m_dstY, bestDir), the first found (m_dstX, m_dstY, dir) may not neccessarily with dir == bestDir
-        // solution can be:
-        // 1. add a m_checkDir flag for the path finder, especially for server side, tested and works
-        // 2. or, create a special node as dstNode, which is zero-cost to all (m_dstX, m_dstY, dir), we search best way to dstNode
         const auto currNode = m_openSet.pick();
-        if(currNode.node.eq(m_dstX, m_dstY)){
+        if(currNode.node == m_dstDrainNode){
             return true;
         }
 
@@ -240,6 +235,14 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
             }
             throw fflerror("node in open set has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
         }();
+
+        // reach the dst grid
+        // add an edge to m_dstDrainNode for multi-targeting
+
+        if(currNode.node.eq(m_dstX, m_dstY)){
+            updatePath(currNode.node, m_dstDrainNode, 0.0, 0.0);
+            continue;
+        }
 
         for(const auto distance: (m_maxStep > 1) ? distanceJump : distanceMove){
             for(int nextDir = DIR_BEGIN; nextDir < DIR_END; ++nextDir){
@@ -263,23 +266,7 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
                 }
 
                 fflassert(hopCost.value() >= 0.0, hopCost.value());
-                const auto nextNode_g = hopCost.value() + m_g[currNode.node];
-
-                // here can drop the check: pg->second > nextNode_g
-                // because h() is consistent, check: https://en.wikipedia.org/wiki/Consistent_heuristic
-
-                if(const auto pg = m_g.find(nextNode); (pg == m_g.end()) || (pg->second > nextNode_g)){
-                    m_g[nextNode] = nextNode_g;
-                    m_prevSet[nextNode] = currNode.node;
-
-                    if(!m_openSet.has(nextNode)){
-                        m_openSet.add(InnPQNode
-                        {
-                            .node = nextNode,
-                            .f = nextNode_g + h(nextNode),
-                        });
-                    }
-                }
+                updatePath(currNode.node, nextNode, hopCost.value(), h(nextNode));
             }
         }
     }
@@ -295,7 +282,7 @@ std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
     fflassert(hasPath());
     std::vector<pathf::PathNode> result;
 
-    auto currNode = findLastNode().value();
+    auto currNode = m_dstDrainNode;
     auto p = m_prevSet.find(currNode);
 
     while(p != m_prevSet.end()){
@@ -341,19 +328,28 @@ bool pathf::AStarPathFinder::checkGLoc(int x, int y, int dir) const
     return false;
 }
 
-std::optional<pathf::AStarPathFinder::InnNode> pathf::AStarPathFinder::findLastNode() const
+void pathf::AStarPathFinder::updatePath(const pathf::AStarPathFinder::InnNode &currNode, const pathf::AStarPathFinder::InnNode &nextNode, double hopCost, double nextNode_h)
 {
-    for(int dir = DIR_BEGIN; dir < DIR_END; ++dir){
-        const pathf::AStarPathFinder::InnNode currNode
-        {
-            .x = m_dstX,
-            .y = m_dstY,
-            .dir = dir,
-        };
+    // currNode always valid
+    // nextNode can be m_dstDrainNode which is not a valid node
 
-        if(m_prevSet.count(currNode)){
-            return currNode;
+    fflassert(hopCost >= 0.0, hopCost);
+    fflassert(nextNode_h >= 0.0, nextNode_h);
+
+    // here can drop the check: pg->second > nextNode_g
+    // because our h() is consistent, check: https://en.wikipedia.org/wiki/Consistent_heuristic
+
+    const auto nextNode_g = m_g.at(currNode) + hopCost;
+    if(const auto pg = m_g.find(nextNode); (pg == m_g.end()) || (pg->second > nextNode_g)){
+        m_g[nextNode] = nextNode_g;
+        m_prevSet[nextNode] = currNode;
+
+        if(!m_openSet.has(nextNode)){
+            m_openSet.add(InnPQNode
+            {
+                .node = nextNode,
+                .f = nextNode_g + nextNode_h,
+            });
         }
     }
-    return {};
 }
