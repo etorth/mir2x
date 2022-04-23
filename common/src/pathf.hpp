@@ -206,7 +206,7 @@ namespace pathf
 
             struct InnPQNode final
             {
-                InnNode pathNode;
+                InnNode node;
                 double  f;
 
                 bool operator < (const InnPQNode &param) const noexcept
@@ -229,7 +229,7 @@ namespace pathf
                 public:
                     void add(const InnPQNode &node)
                     {
-                        m_count[node.pathNode]++;
+                        m_count[node.node]++;
                         this->push(node);
                     }
 
@@ -240,7 +240,7 @@ namespace pathf
                         fflassert(!m_count.empty());
 
                         const auto t = top();
-                        const auto p = m_count.find(t.pathNode);
+                        const auto p = m_count.find(t.node);
 
                         fflassert(p != m_count.end());
                         fflassert(p->second >= 1, p->second);

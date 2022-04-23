@@ -209,23 +209,36 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
     m_g[m_srcNode] = 0.0;
     m_openSet.add(pathf::AStarPathFinder::InnPQNode
     {
-        .pathNode = m_srcNode,
+        .node = m_srcNode,
         .f = h(m_srcNode),
     });
 
     for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_openSet.empty(); ++c){
         const auto currNode = m_openSet.pick();
-        if(currNode.pathNode.eq(m_dstX, m_dstY)){
+        if(currNode.node.eq(m_dstX, m_dstY)){
             return true;
         }
 
         const auto distanceJump = {m_maxStep, 1}; // move and jump
         const auto distanceMove = {           1}; // move only
+        const auto prevNode = [&currNode, this]() -> std::optional<pathf::AStarPathFinder::InnNode>
+        {
+            // all other node in m_openSet mush have parent, except src node
+            // src node can NOT have parent
 
-        const auto prevNode = m_prevSet[currNode.pathNode];
+            if(currNode.node == m_srcNode){
+                return {};
+            }
+
+            if(const auto p = m_prevSet.find(currNode.node); p != m_prevSet.end()){
+                return p->second;
+            }
+            throw fflerror("node in open set has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
+        }();
+
         for(const auto distance: (m_maxStep > 1) ? distanceJump : distanceMove){
             for(int nextDir = DIR_BEGIN; nextDir < DIR_END; ++nextDir){
-                const auto [nextX, nextY] = pathf::getFrontGLoc(currNode.pathNode.x, currNode.pathNode.y, nextDir, distance);
+                const auto [nextX, nextY] = pathf::getFrontGLoc(currNode.node.x, currNode.node.y, nextDir, distance);
                 fflassert(checkGLoc(nextX, nextY, nextDir), nextX, nextY, nextDir);
 
                 const InnNode nextNode
@@ -235,29 +248,29 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
                     .dir = nextDir,
                 };
 
-                if(prevNode == nextNode){
+                if(prevNode.has_value() && prevNode.value() == nextNode){
                     continue; // don't go back
                 }
 
-                const auto hopCost = m_oneStepCost(currNode.pathNode.x, currNode.pathNode.y, currNode.pathNode.dir, nextNode.x, nextNode.y);
+                const auto hopCost = m_oneStepCost(currNode.node.x, currNode.node.y, currNode.node.dir, nextNode.x, nextNode.y);
                 if(!hopCost.has_value()){
                     continue; // can not reach
                 }
 
                 fflassert(hopCost.value() >= 0.0, hopCost.value());
-                const auto nextNode_g = hopCost.value() + m_g[currNode.pathNode];
+                const auto nextNode_g = hopCost.value() + m_g[currNode.node];
 
                 // here can drop the check: pg->second > nextNode_g
                 // because h() is consistent, check: https://en.wikipedia.org/wiki/Consistent_heuristic
 
                 if(const auto pg = m_g.find(nextNode); (pg == m_g.end()) || (pg->second > nextNode_g)){
                     m_g[nextNode] = nextNode_g;
-                    m_prevSet[nextNode] = currNode.pathNode;
+                    m_prevSet[nextNode] = currNode.node;
 
                     if(!m_openSet.has(nextNode)){
                         m_openSet.add(InnPQNode
                         {
-                            .pathNode = nextNode,
+                            .node = nextNode,
                             .f = nextNode_g + h(nextNode),
                         });
                     }
