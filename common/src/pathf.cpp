@@ -233,7 +233,7 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
             if(const auto p = m_prevSet.find(currNode.node); p != m_prevSet.end()){
                 return p->second;
             }
-            throw fflerror("node in open set has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
+            throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
         }();
 
         // reach the dst grid
@@ -300,7 +300,7 @@ std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
         currNode = p->second;
         p = m_prevSet.find(currNode);
     }
-    throw fflerror("intermiediate node has parent: (%d, %d, %s)", currNode.x, currNode.y, pathf::dirName(currNode.dir));
+    throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.x, currNode.y, pathf::dirName(currNode.dir));
 }
 
 bool pathf::AStarPathFinder::checkGLoc(int x, int y) const
