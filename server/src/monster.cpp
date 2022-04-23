@@ -1007,12 +1007,14 @@ bool Monster::moveOneStep(int nX, int nY, std::function<void()> onOK, std::funct
 bool Monster::moveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        onError();
+        if(onError){
+            onError();
+        }
         return false;
     }
 
     BattleObject::BOPathFinder stFinder(this, 1);
-    if(!stFinder.search(X(), Y(), Direction(), nX, nY)){
+    if(!stFinder.search(X(), Y(), Direction(), nX, nY).value_or(false)){
         if(onError){
             onError();
         }
