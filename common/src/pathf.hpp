@@ -218,40 +218,38 @@ namespace pathf
             class InnPQ: public std::priority_queue<InnPQNode>
             {
                 private:
-                    phmap::flat_hash_map<InnNode, size_t, InnNodeHash> m_count;
+                    phmap::flat_hash_set<InnNode, InnNodeHash> m_has;
 
                 public:
                     bool has(const InnNode &node) const
                     {
-                        return m_count.count(node);
+                        return m_has.find(node) != m_has.end();
                     }
 
                 public:
                     void add(const InnPQNode &node)
                     {
-                        m_count[node.node]++;
-                        this->push(node);
+                        if(m_has.insert(node.node).second){
+                            this->push(node);
+                        }
+                        else{
+                            throw fflvalue(node.node.x, node.node.y, pathf::dirName(node.node.dir), node.f);
+                        }
                     }
 
                 public:
                     InnPQNode pick()
                     {
-                        fflassert(!empty());
-                        fflassert(!m_count.empty());
+                        fflassert(!this->empty());
+                        fflassert(!m_has.empty());
 
                         const auto t = top();
-                        const auto p = m_count.find(t.node);
+                        const auto p = m_has.find(t.node);
 
-                        fflassert(p != m_count.end());
-                        fflassert(p->second >= 1, p->second);
+                        fflassert(p != m_has.end());
 
                         this->pop();
-                        if(p->second == 1){
-                            m_count.erase(p);
-                        }
-                        else{
-                            p->second--;
-                        }
+                        m_has.erase(p);
 
                         return t;
                     }
@@ -259,8 +257,8 @@ namespace pathf
                 public:
                     void clear()
                     {
+                        m_has.clear();
                         this->c.clear();
-                        m_count.clear();
                     }
             };
 
