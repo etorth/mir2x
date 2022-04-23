@@ -214,8 +214,11 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
     });
 
     for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_openSet.empty(); ++c){
-        // check (x, y) only, drops the dir dimemsion, this may gives suboptimal solution
+        // TODO check (x, y) only, drops the dir dimemsion, this may gives suboptimal solution
         // say the optimum is (m_dstX, m_dstY, bestDir), the first found (m_dstX, m_dstY, dir) may not neccessarily with dir == bestDir
+        // solution can be:
+        // 1. add a m_checkDir flag for the path finder, especially for server side, tested and works
+        // 2. or, create a special node as dstNode, which is zero-cost to all (m_dstX, m_dstY, dir), we search best way to dstNode
         const auto currNode = m_openSet.pick();
         if(currNode.node.eq(m_dstX, m_dstY)){
             return true;
