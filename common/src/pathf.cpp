@@ -159,12 +159,12 @@ bool pathf::inDCCastRange(const DCCastRange &r, int x0, int y0, int x1, int y1)
             }
         default:
             {
-                throw fflreach();
+                throw fflvalue(r.type);
             }
     }
 }
 
-float pathf::AStarPathFinderNode::GoalDistanceEstimate(const AStarPathFinderNode &node) const
+double pathf::AStarPathFinder::h(const InnNode &node) const
 {
     // use Chebyshev's distance instead of Manhattan distance
     // since we allow max step size as 1, 2, 3, and for optimal solution
@@ -172,123 +172,170 @@ float pathf::AStarPathFinderNode::GoalDistanceEstimate(const AStarPathFinderNode
     // to make A-star algorithm admissible
     // we need to make h(x) never over-estimate the distance
 
-    const auto maxStep = m_finder->maxStep();
-    const auto dx = std::labs(node.X() - X());
-    const auto dy = std::labs(node.Y() - Y());
+    // also h(x) is consistent, although the implementation doesn't require it
+    // check: https://en.wikipedia.org/wiki/Consistent_heuristic
 
-    return std::max<float>(
+    const auto dx = std::labs(node.x - m_dstX);
+    const auto dy = std::labs(node.y - m_dstY);
+
+    return std::max<double>(
     {
-        to_f((dx / maxStep) + (dx % maxStep)), // take jump if can, then use move
-        to_f((dy / maxStep) + (dy % maxStep)), //
+        1.0 * ((dx / m_maxStep) + (dx % m_maxStep)), // take jump if can, then use move
+        1.0 * ((dy / m_maxStep) + (dy % m_maxStep)), //
     });
 }
 
-bool pathf::AStarPathFinderNode::IsGoal(const AStarPathFinderNode &goalNode) const
+std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDir, int dstX, int dstY, size_t searchCount)
 {
-    return (X() == goalNode.X()) && (Y() == goalNode.Y()); // don't check direction
-}
+    fflassert(checkGLoc(srcX, srcY, srcDir), srcX, srcY, srcDir);
+    fflassert(checkGLoc(dstX, dstY), dstX, dstY);
 
-bool pathf::AStarPathFinderNode::GetSuccessors(AStarSearch<AStarPathFinderNode> *searcher, const AStarPathFinderNode *parent) const
-{
-    const auto distanceJump = {m_finder->maxStep(), 1}; // move and jump
-    const auto distanceMove = {                     1}; // move only
+    m_srcNode = InnNode
+    {
+        .x = srcX,
+        .y = srcY,
+        .dir = srcDir,
+    };
 
-    for(const auto distance: (m_finder->maxStep() > 1) ? distanceJump : distanceMove){
-        for(int dir = DIR_BEGIN; dir < DIR_END; ++dir){
-            const auto [newX, newY] = pathf::getFrontGLoc(X(), Y(), dir, distance);
-            if(true
-                    && parent
-                    && parent->X() == newX
-                    && parent->Y() == newY){ // don't go back
-                continue;
-            }
+    fflassert(!m_srcNode.eq(m_dstX, m_dstY), srcX, srcY, srcDir, dstX, dstY);
 
-            // when add a successor we always check it's distance between the ParentNode
-            // means for m_moveChecker(x0, y0, x1, y1) we guarentee that (x1, y1) inside propor distance to (x0, y0)
+    m_dstX = dstX;
+    m_dstY = dstY;
 
-            if(m_finder->m_oneStepCost(X(), Y(), Direction(), newX, newY).has_value()){
-                AStarPathFinderNode node
+    m_g.clear();
+    m_prevSet.clear();
+    m_openSet.clear();
+
+    m_g[m_srcNode] = 0.0;
+    m_openSet.add(pathf::AStarPathFinder::InnPQNode
+    {
+        .pathNode = m_srcNode,
+        .f = h(m_srcNode),
+    });
+
+    for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_openSet.empty(); ++c){
+        const auto currNode = m_openSet.pick();
+        if(currNode.pathNode.eq(m_dstX, m_dstY)){
+            return true;
+        }
+
+        const auto distanceJump = {m_maxStep, 1}; // move and jump
+        const auto distanceMove = {           1}; // move only
+
+        const auto prevNode = m_prevSet[currNode.pathNode];
+        for(const auto distance: (m_maxStep > 1) ? distanceJump : distanceMove){
+            for(int nextDir = DIR_BEGIN; nextDir < DIR_END; ++nextDir){
+                const auto [nextX, nextY] = pathf::getFrontGLoc(currNode.pathNode.x, currNode.pathNode.y, nextDir, distance);
+                fflassert(checkGLoc(nextX, nextY, nextDir), nextX, nextY, nextDir);
+
+                const InnNode nextNode
                 {
-                    newX,
-                    newY,
-                    dir,
-                    m_finder,
+                    .x = nextX,
+                    .y = nextY,
+                    .dir = nextDir,
                 };
-                searcher->AddSuccessor(node); // searcher interface requires lvalue-ref
+
+                if(prevNode == nextNode){
+                    continue; // don't go back
+                }
+
+                const auto hopCost = m_oneStepCost(currNode.pathNode.x, currNode.pathNode.y, currNode.pathNode.dir, nextNode.x, nextNode.y);
+                if(!hopCost.has_value()){
+                    continue; // can not reach
+                }
+
+                fflassert(hopCost.value() >= 0.0, hopCost.value());
+                const auto nextNode_g = hopCost.value() + m_g[currNode.pathNode];
+
+                // here can drop the check: pg->second > nextNode_g
+                // because h() is consistent, check: https://en.wikipedia.org/wiki/Consistent_heuristic
+
+                if(const auto pg = m_g.find(nextNode); (pg == m_g.end()) || (pg->second > nextNode_g)){
+                    m_g[nextNode] = nextNode_g;
+                    m_prevSet[nextNode] = currNode.pathNode;
+
+                    if(!m_openSet.has(nextNode)){
+                        m_openSet.add(InnPQNode
+                        {
+                            .pathNode = nextNode,
+                            .f = nextNode_g + h(nextNode),
+                        });
+                    }
+                }
             }
         }
     }
 
-    // need to always return true
-    // return false means out of memory in the astar-algorithm template code
-    return true;
+    if(m_openSet.empty()){
+        return false;
+    }
+    return {};
 }
 
-// give very close weight for StepSize = 1 and StepSize = maxStep to prefer bigger hops
-// but I have to make Weight(maxStep) = Weight(1) + dW ( > 0 ), reason:
-//       for maxStep = 3 and path as following:
-//                       A B C D E
-//       if I want to move (A->C), we can do (A->B->C) and (A->D->C)
-//       then if there are of same weight I can't prefer (A->B->C)
-//
-//       but for maxStep = 2 I don't have this issue
-// actually for dW < Weight(1) is good enough
-
-// cost :   valid  :     1.00
-//        occupied :   100.00
-//         invalid : 10000.00
-//
-// we should have cost(invalid) >> cost(occupied), otherwise
-//          XXAXX
-//          XOXXX
-//          XXBXX
-// path (A->O->B) and (A->X->B) are of equal cost
-
-// if can't go through we return the infinite
-// be careful of following situation which could make mistake
-//
-//     XOOAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-//     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXO
-//     XOOBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-//
-// here ``O" means ``can pass" and ``X" means not, then if we do move (A->B)
-// if the path is too long then likely it takes(A->X->B) rather than (A->OOOOOOO...OOO->B)
-//
-// method to solve it:
-//  1. put path length constraits
-//  2. define inifinite = Map::W() * Map::H() as any path can have
-
-float pathf::AStarPathFinderNode::GetCost(const AStarPathFinderNode &node) const
+std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
 {
-    const auto cost = m_finder->m_oneStepCost(X(), Y(), Direction(), node.X(), node.Y());
-    fflassert(cost.has_value() && cost.value() >= 0.0f);
-    return cost.value();
-}
+    fflassert(hasPath());
+    std::vector<pathf::PathNode> result;
 
-bool pathf::AStarPathFinderNode::IsSameState(const AStarPathFinderNode &node) const
-{
-    return (X() == node.X()) && (Y() == node.Y()) && (Direction() == node.Direction());
-}
+    auto currNode = findLastNode().value();
+    auto p = m_prevSet.find(currNode);
 
-bool pathf::AStarPathFinder::search(int srcX, int srcY, int srcDir, int dstX, int dstY, size_t searchCount)
-{
-    AStarPathFinderNode srcNode {srcX, srcY,    srcDir, this};
-    AStarPathFinderNode dstNode {dstX, dstY, DIR_BEGIN, this};
+    while(p != m_prevSet.end()){
+        result.push_back(pathf::PathNode
+        {
+            .X = to_d(p->second.x),
+            .Y = to_d(p->second.y),
+        });
 
-    SetStartAndGoalStates(srcNode, dstNode);
-
-    m_hasPath = false;
-    for(size_t c = 0; (searchCount <= 0) || (c < searchCount); ++c){
-        if(const auto searchState = SearchStep(); searchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SUCCEEDED){
-            m_hasPath = true;
-            break;
+        if(p->second == m_srcNode){
+            std::reverse(result.begin(), result.end());
+            return result;
         }
-        else if(searchState == AStarSearch<AStarPathFinderNode>::SEARCH_STATE_SEARCHING){
-            continue;
-        }
-        else{
-            break;
+
+        currNode = p->second;
+        p = m_prevSet.find(currNode);
+    }
+    throw fflerror("intermiediate node has parent: (%d, %d, %s)", currNode.x, currNode.y, pathf::dirName(currNode.dir));
+}
+
+bool pathf::AStarPathFinder::checkGLoc(int x, int y) const
+{
+    return checkGLoc(x, y, DIR_BEGIN);
+}
+
+bool pathf::AStarPathFinder::checkGLoc(int x, int y, int dir) const
+{
+    if(pathf::dirValid(dir)){
+        const InnNode node
+        {
+            .x = x,
+            .y = y,
+            .dir = dir,
+        };
+
+        if(true
+                && node.x == x
+                && node.y == y
+                && node.dir == dir){
+            return true;
         }
     }
-    return m_hasPath;
+    return false;
+}
+
+std::optional<pathf::AStarPathFinder::InnNode> pathf::AStarPathFinder::findLastNode() const
+{
+    for(int dir = DIR_BEGIN; dir < DIR_END; ++dir){
+        const pathf::AStarPathFinder::InnNode currNode
+        {
+            .x = m_dstX,
+            .y = m_dstY,
+            .dir = dir,
+        };
+
+        if(m_prevSet.count(currNode)){
+            return currNode;
+        }
+    }
+    return {};
 }

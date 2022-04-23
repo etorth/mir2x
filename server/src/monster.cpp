@@ -81,14 +81,12 @@ std::optional<pathf::PathNode> Monster::AStarCache::retrieve(uint32_t mapID, int
     return {};
 }
 
-void Monster::AStarCache::cache(uint32_t mapID, const pathf::PathNode *node, size_t size)
+void Monster::AStarCache::cache(uint32_t mapID, std::vector<pathf::PathNode> nodeList)
 {
-    fflassert(node);
-    fflassert(size > 0);
-
+    fflassert(!nodeList.empty());
     m_time = g_monoServer->getCurrTick();
     m_mapID = mapID;
-    m_path.assign(node, node + size);
+    m_path.swap(nodeList);
 }
 
 Monster::Monster(uint32_t monID,
@@ -1021,13 +1019,15 @@ bool Monster::moveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, st
         return false;
     }
 
-    const auto [stPathNode, nNodeNum] = stFinder.getFirstNPathNode<5>();
-    if(nNodeNum < 2){
-        throw fflerror("incorrect pathnode number: %zu", nNodeNum);
+    auto pathList = stFinder.getPathNode();
+    const auto stPathNode = pathList.at(1);
+
+    if(pathList.size() < 2){
+        throw fflerror("incorrect pathnode number: %zu", pathList.size());
     }
 
-    m_astarCache.cache(mapID(), stPathNode.data(), nNodeNum);
-    return requestMove(stPathNode[1].X, stPathNode[1].Y, moveSpeed(), false, false, onOK, onError);
+    m_astarCache.cache(mapID(), std::move(pathList));
+    return requestMove(stPathNode.X, stPathNode.Y, moveSpeed(), false, false, onOK, onError);
 }
 
 bool Monster::moveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
@@ -1169,8 +1169,8 @@ bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
                     if(!stvPathNode.back().eq(nX, nY)){
                         stvPathNode.emplace_back(nX, nY);
                     }
-                    m_astarCache.cache(mapID(), stvPathNode.data(), stvPathNode.size());
 
+                    m_astarCache.cache(mapID(), std::move(stvPathNode));
                     requestMove(amPFOK.Point[1].X, amPFOK.Point[1].Y, moveSpeed(), false, false, onOK, onError);
                     break;
                 }

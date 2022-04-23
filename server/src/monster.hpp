@@ -57,7 +57,7 @@ class Monster: public BattleObject
                 AStarCache() = default;
 
             public:
-                void cache(uint32_t, const pathf::PathNode *, size_t);
+                void cache(uint32_t, std::vector<pathf::PathNode>);
                 std::optional<pathf::PathNode> retrieve(uint32_t, int, int, int, int);
         };
 

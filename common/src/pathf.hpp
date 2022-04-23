@@ -2,17 +2,18 @@
 #include <tuple>
 #include <cmath>
 #include <array>
+#include <queue>
 #include <vector>
 #include <optional>
+#include <algorithm>
 #include <functional>
 
-#include "fsa.h"
-#include "stlastar.h"
-#include "totype.hpp"
 #include "mathf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 #include "protocoldef.hpp"
 #include "magicrecord.hpp" // DCCastRange
+#include "parallel_hashmap/phmap.h"
 
 namespace pathf
 {
@@ -157,85 +158,169 @@ namespace pathf
 
 namespace pathf
 {
-    // 1. profiling shows A-star is very expensive, about 1/3 runtime time are spent in A-star search
-    // 2. current A-star algorithm has bug to support the turn-cost
-    // 3. check this page for jump-point-search algorithm: https://harablog.wordpress.com/2011/09/07/jump-point-search/
+    // check for D-star algorithm:
+    //
+    //     https://en.wikipedia.org/wiki/D*
+    //
+    // check for A-star with JPS algorithm:
+    //
+    //     https://harablog.wordpress.com/2011/09/07/jump-point-search/
+    //
+    // implementation based on: https://en.wikipedia.org/wiki/A*_search_algorithm
 
-    class AStarPathFinder;
-    class AStarPathFinderNode
-    {
-        public:
-            friend class AStarPathFinder;
-            friend class AStarSearch<AStarPathFinderNode>;
-
-        private:
-            int m_X;
-            int m_Y;
-
-        private:
-            // direction when *stopping* at current place
-            // if m_direction is invalid, we don't take consider of turn cost
-            int m_direction;
-
-        private:
-            AStarPathFinder *m_finder;
-
-        private:
-            AStarPathFinderNode() = default;
-            AStarPathFinderNode(int argX, int argY, int argDir, AStarPathFinder *argFinder)
-                : m_X(argX)
-                , m_Y(argY)
-                , m_direction(argDir)
-                , m_finder(argFinder)
-            {
-                fflassert(m_finder);
-                fflassert(dirValid(m_direction));
-            }
-
-        public:
-            int X() const
-            {
-                return m_X;
-            }
-
-            int Y() const
-            {
-                return m_Y;
-            }
-
-            int Direction() const
-            {
-                return m_direction;
-            }
-
-        public:
-            float GoalDistanceEstimate(                                    const AStarPathFinderNode &) const;
-            bool  IsGoal              (                                    const AStarPathFinderNode &) const;
-            bool  GetSuccessors       (AStarSearch<AStarPathFinderNode> *, const AStarPathFinderNode *) const;
-            float GetCost             (                                    const AStarPathFinderNode &) const;
-            bool  IsSameState         (                                    const AStarPathFinderNode &) const;
-    };
-
-    class AStarPathFinder: public AStarSearch<AStarPathFinderNode>
+    class AStarPathFinder
     {
         private:
-            friend class AStarPathFinderNode;
+            struct InnNode final
+            {
+                int64_t x   : 29;
+                int64_t y   : 29;
+                int64_t dir :  6;
 
-        private:
-            const std::function<std::optional<double>(int, int, int, int, int)> m_oneStepCost;
+                bool eq(int argX, int argY) const
+                {
+                    return this->x == argX && this->y== argY;
+                }
+
+                bool eq(int argX, int argY, int argDir) const
+                {
+                    return eq(argX, argY) && this->dir == argDir;
+                }
+
+                bool operator == (const InnNode & param) const noexcept
+                {
+                    return eq(param.x, param.y, param.dir);
+                }
+            };
+
+            struct InnNodeHash final
+            {
+                size_t operator() (const InnNode &node) const noexcept
+                {
+                    return 0uz
+                        + ((size_t)(node.x  ) << (29 + 6))
+                        + ((size_t)(node.y  ) << (     6))
+                        + ((size_t)(node.dir) << (     0));
+                }
+            };
+
+            struct InnPQNode final
+            {
+                InnNode pathNode;
+                double  f;
+
+                bool operator < (const InnPQNode &param) const noexcept
+                {
+                    return this->f > param.f;
+                }
+            };
+
+            class InnPQ: public std::priority_queue<InnPQNode>
+            {
+                private:
+                    phmap::flat_hash_map<InnNode, size_t, InnNodeHash> m_count;
+
+                public:
+                    bool has(const InnNode &node) const
+                    {
+                        return m_count.count(node);
+                    }
+
+                public:
+                    void add(const InnPQNode &node)
+                    {
+                        m_count[node.pathNode]++;
+                        this->push(node);
+                    }
+
+                public:
+                    InnPQNode pick()
+                    {
+                        fflassert(!empty());
+                        fflassert(!m_count.empty());
+
+                        const auto t = top();
+                        const auto p = m_count.find(t.pathNode);
+
+                        fflassert(p != m_count.end());
+                        fflassert(p->second >= 1, p->second);
+
+                        this->pop();
+                        if(p->second == 1){
+                            m_count.erase(p);
+                        }
+                        else{
+                            p->second--;
+                        }
+
+                        return t;
+                    }
+
+                public:
+                    void clear()
+                    {
+                        this->c.clear();
+                        m_count.clear();
+                    }
+            };
 
         private:
             const int m_maxStep;
 
         private:
-            bool m_hasPath;
+            // give very close weight for StepSize = 1 and StepSize = maxStep to prefer bigger hops
+            // but have to make Weight(maxStep) = Weight(1) + dW ( > 0 ), reason:
+            //       for maxStep = 3 and path as following:
+            //                       A B C D E
+            //       if I want to move (A->C), we can do (A->B->C) and (A->D->C)
+            //       then if there are of same weight I can't prefer (A->B->C)
+            //
+            //       but for maxStep = 2 I don't have this issue
+            // actually for dW < Weight(1) is good enough
+
+            // cost :   valid  :     1.00
+            //        occupied :   100.00
+            //         invalid : 10000.00
+            //
+            // we should have cost(invalid) >> cost(occupied), otherwise
+            //          XXAXX
+            //          XOXXX
+            //          XXBXX
+            // path (A->O->B) and (A->X->B) are of equal cost
+
+            // if can't go through we return the infinite
+            // be careful of following situation which could make mistake
+            //
+            //     XOOAOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+            //     XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXO
+            //     XOOBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+            //
+            // here ``O" means ``can pass" and ``X" means not, then if we do move (A->B)
+            // if the path is too long then likely it takes(A->X->B) rather than (A->OOOOOOO...OOO->B)
+            //
+            // method to solve it:
+            //  1. put path length constraits
+            //  2. define inifinite = Map::W() * Map::H() as any path can have
+            const std::function<std::optional<double>(int, int, int, int, int)> m_oneStepCost;
+
+        private:
+            InnNode m_srcNode {};
+
+        private:
+            int m_dstX = 0;
+            int m_dstY = 0;
+
+        private:
+            phmap::flat_hash_map<InnNode, double, InnNodeHash> m_g;
+            phmap::flat_hash_map<InnNode, InnNode, InnNodeHash> m_prevSet;
+
+        private:
+            InnPQ m_openSet;
 
         public:
-            AStarPathFinder(std::function<std::optional<double>(int, int, int, int, int)> fnOneStepCost, int argMaxStepSize)
-                : AStarSearch<AStarPathFinderNode>()
+            AStarPathFinder(int argMaxStepSize, std::function<std::optional<double>(int, int, int, int, int)> fnOneStepCost)
+                : m_maxStep(argMaxStepSize)
                 , m_oneStepCost(std::move(fnOneStepCost))
-                , m_maxStep(argMaxStepSize)
-                , m_hasPath(false)
             {
                 fflassert(m_oneStepCost);
                 fflassert(m_maxStep >= 1, m_maxStep);
@@ -243,15 +328,6 @@ namespace pathf
             }
 
         public:
-            ~AStarPathFinder()
-            {
-                if(m_hasPath){
-                    FreeSolutionNodes();
-                }
-                EnsureMemoryFreed();
-            }
-
-        protected:
             int maxStep() const
             {
                 return m_maxStep;
@@ -260,60 +336,23 @@ namespace pathf
         public:
             bool hasPath() const
             {
-                return m_hasPath;
+                return findLastNode().has_value();
             }
 
         public:
-            bool search(int, int, int, int, int, size_t searchCount = 0);
+            std::optional<bool> search(int, int, int, int, int, size_t searchCount = 0);
 
         public:
-            std::vector<pathf::PathNode> getPathNode()
-            {
-                if(!hasPath()){
-                    return {};
-                }
+            std::vector<pathf::PathNode> getPathNode() const;
 
-                std::vector<pathf::PathNode> result;
-                if(auto node = GetSolutionStart()){
-                    result.emplace_back(node->X(), node->Y());
-                }
-                else{
-                    return {};
-                }
+        private:
+            bool checkGLoc(int, int     ) const;
+            bool checkGLoc(int, int, int) const;
 
-                while(auto node = GetSolutionNext()){
-                    result.emplace_back(node->X(), node->Y());
-                }
+        private:
+            std::optional<InnNode> findLastNode() const;
 
-                return result;
-            }
-
-        public:
-            template<size_t N> std::tuple<std::array<pathf::PathNode, N>, size_t> getFirstNPathNode()
-            {
-                static_assert(N >= 2);
-                std::array<pathf::PathNode, N> result {};
-
-                if(!hasPath()){
-                    return {result, 0};
-                }
-
-                if(auto node = GetSolutionStart()){
-                    result[0] = {node->X(), node->Y()};
-                }
-                else{
-                    return {result, 0};
-                }
-
-                for(size_t i = 1; i < result.size(); ++i){
-                    if(auto node = GetSolutionNext()){
-                        result[i] = {node->X(), node->Y()};
-                    }
-                    else{
-                        return {result, i};
-                    }
-                }
-                return {result, result.size()};
-            }
+        private:
+            double h(const InnNode &) const;
     };
 }

@@ -885,7 +885,8 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
 
     // drop the first node
     // it's should be the provided start point
-    if(!stPathFinder.GetSolutionStart()){
+    const auto pathList = stPathFinder.getPathNode();
+    if(pathList.size() < 2){
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }
@@ -894,12 +895,13 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     int nCurrX = nX0;
     int nCurrY = nY0;
 
-    while(auto pNode1 = stPathFinder.GetSolutionNext()){
+    for(size_t i = 1; i < pathList.size(); ++i){
+        const auto pNode1 = pathList.data() + i;
         if(nCurrN >= to_d(nPathCount)){
             break;
         }
-        int nEndX = pNode1->X();
-        int nEndY = pNode1->Y();
+        int nEndX = pNode1->X;
+        int nEndY = pNode1->Y;
         switch(mathf::LDistance2(nCurrX, nCurrY, nEndX, nEndY)){
             case 1:
             case 2:

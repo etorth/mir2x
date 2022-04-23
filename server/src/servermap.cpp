@@ -392,13 +392,13 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
 }
 
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMaxStep, int argCheckCO)
-    : AStarPathFinder([this](int srcX, int srcY, int srcDir, int dstX, int dstY) -> std::optional<double>
+    : AStarPathFinder(argMaxStep, [this](int srcX, int srcY, int srcDir, int dstX, int dstY) -> std::optional<double>
       {
           // treat checkCO and checkLock same
           // from server's view occupied and to-be-occupied are equivlent
           fflassert(pathf::hopValid(maxStep(), srcX, srcY, dstX, dstY));
           return m_map->oneStepCost(m_checkCO, m_checkCO, srcX, srcY, srcDir, dstX, dstY);
-      }, argMaxStep)
+      })
 
     , m_map(mapPtr)
     , m_checkCO(argCheckCO)
