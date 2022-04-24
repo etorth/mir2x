@@ -197,7 +197,7 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
         .dir = srcDir,
     };
 
-    fflassert(!m_srcNode.eq(m_dstX, m_dstY), srcX, srcY, srcDir, dstX, dstY);
+    fflassert(!m_srcNode.eq(dstX, dstY), srcX, srcY, srcDir, dstX, dstY);
 
     m_dstX = dstX;
     m_dstY = dstY;
