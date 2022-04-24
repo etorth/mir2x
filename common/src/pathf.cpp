@@ -164,7 +164,7 @@ bool pathf::inDCCastRange(const DCCastRange &r, int x0, int y0, int x1, int y1)
     }
 }
 
-double pathf::AStarPathFinder::h(const InnNode &node) const
+double pathf::AStarPathFinder::h(const pathf::AStarPathFinder::InnNode &node) const
 {
     // use Chebyshev's distance instead of Manhattan distance
     // since we allow max step size as 1, 2, 3, and for optimal solution
@@ -190,7 +190,7 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
     fflassert(checkGLoc(srcX, srcY, srcDir), srcX, srcY, srcDir);
     fflassert(checkGLoc(dstX, dstY), dstX, dstY);
 
-    m_srcNode = InnNode
+    m_srcNode = pathf::AStarPathFinder::InnNode
     {
         .x = srcX,
         .y = srcY,
@@ -270,7 +270,7 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
                 const auto [nextX, nextY] = pathf::getFrontGLoc(currNode.node.x, currNode.node.y, nextDir, distance);
                 fflassert(checkGLoc(nextX, nextY, nextDir), nextX, nextY, nextDir);
 
-                const InnNode nextNode
+                const pathf::AStarPathFinder::InnNode nextNode
                 {
                     .x = nextX,
                     .y = nextY,
@@ -332,7 +332,7 @@ bool pathf::AStarPathFinder::checkGLoc(int x, int y) const
 bool pathf::AStarPathFinder::checkGLoc(int x, int y, int dir) const
 {
     if(pathf::dirValid(dir)){
-        const InnNode node
+        const pathf::AStarPathFinder::InnNode node
         {
             .x = x,
             .y = y,
@@ -366,7 +366,7 @@ void pathf::AStarPathFinder::updatePath(const pathf::AStarPathFinder::InnNode &c
         m_prevSet[nextNode] = currNode;
 
         if(!m_openSet.has(nextNode)){
-            m_openSet.add(InnPQNode
+            m_openSet.add(pathf::AStarPathFinder::InnPQNode
             {
                 .node = nextNode,
                 .f = nextNode_g + nextNode_h,
