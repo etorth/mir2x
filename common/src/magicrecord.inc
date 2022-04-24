@@ -3145,7 +3145,7 @@
             {
                 .name = u8"魔法特效_雷电术",
                 .stage = u8"运行",
-                .modColor = colorf::RGBA(255, 223, 223, 127),
+                .modColor = colorf::YELLOW + colorf::A_SHF(127),
             },
         },
     },
