@@ -206,12 +206,33 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
     m_prevSet.clear();
     m_openSet.clear();
 
-    m_g[m_srcNode] = 0.0;
-    m_openSet.add(pathf::AStarPathFinder::InnPQNode
-    {
-        .node = m_srcNode,
-        .f = h(m_srcNode),
-    });
+    if(m_checkFirstTurn){
+        m_g[m_srcNode] = 0.0;
+        m_openSet.add(pathf::AStarPathFinder::InnPQNode
+        {
+            .node = m_srcNode,
+            .f = h(m_srcNode),
+        });
+    }
+    else{
+        // don't need to explicitly push an imaginary src point as m_dstDrainNode
+        // alternatively we can directly push all children of the imaginary src point into open set, which are actually (m_srcNode.x, m_srcNode.y, [DIR_BEGIN, DIR_END))
+        for(int firstDir = DIR_BEGIN; firstDir < DIR_END; ++firstDir){
+            const pathf::AStarPathFinder::InnNode firstNode
+            {
+                .x = srcX,
+                .y = srcY,
+                .dir= firstDir,
+            };
+
+            m_g[firstNode] = 0.0;
+            m_openSet.add(pathf::AStarPathFinder::InnPQNode
+            {
+                .node = firstNode,
+                .f = h(firstNode), // h(firstNode) are same for all directions
+            });
+        }
+    }
 
     for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_openSet.empty(); ++c){
         const auto currNode = m_openSet.pick();
@@ -226,7 +247,7 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
             // all other node in m_openSet mush have parent, except src node
             // src node can NOT have parent
 
-            if(currNode.node == m_srcNode){
+            if(currNode.node.eq(m_srcNode.x, m_srcNode.y)){
                 return {};
             }
 
@@ -292,7 +313,7 @@ std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
             .Y = to_d(p->second.y),
         });
 
-        if(p->second == m_srcNode){
+        if(p->second.eq(m_srcNode.x, m_srcNode.y)){
             std::reverse(result.begin(), result.end());
             return result;
         }

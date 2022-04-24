@@ -268,6 +268,63 @@ namespace pathf
             };
 
         private:
+            // why sometime path planning needs to ignore first turn?
+            // during planning, path finder respects turn by a small cost which helps to smooth the path
+            // but when a character start to move, usually we would like to ignore the first turn, it can be a direct turn-back
+            //
+            // +---+---+---+
+            // |   | A |   |   in game we take  hop cost as: N * 0.10 + 1.0, N is jump size: 1, 2, 3
+            // +---+---+---+                   turn ocst as: D * 0.01      , D is diff of direction: 0, 1, 2, 3, 4
+            // |   |   |   |
+            // +---+---+---+
+            // |   |   |   |   we need to plan path from A -> B
+            // +---+---+---+   the result depends on the initial direction when character at A
+            // | B |   |   |
+            // +---+---+---+
+            //
+            // case 1: when character at A initial direction is DIR_RIGHT:
+            //
+            //  +---+---+---+
+            //  |   | A |   |
+            //  +---+---+---+
+            //  |   |   | o |  cost = 0.01 + 1.10 + 0.02 + 1.20
+            //  +---+---+---+
+            //  |   | o |   |
+            //  +---+---+---+
+            //  | B |   |   |
+            //  +---+---+---+
+            //
+            // for this case, what we would expect is:
+            //
+            //  +---+---+---+
+            //  |   | A |   |
+            //  +---+---+---+
+            //  |   | o |   |  cost = 0.02 + 1.20 + 0.01 + 1.10
+            //  +---+---+---+
+            //  |   | o |   |  this shows two path actually has same cost
+            //  +---+---+---+  if we would liek the algorithm to prefer this one, we need to ignore the initial turn
+            //  | B |   |   |  means don't consider the first turn as a sharp-turn in the path
+            //  +---+---+---+
+            //
+            //
+            //
+            // case 2: when character at A initial direction is any other than DIR_RIGHT:
+            //
+            //  +---+---+---+
+            //  |   | A |   |
+            //  +---+---+---+
+            //  | o |   |   |  cost = 0.01 * D + 1.10 + 1.20
+            //  +---+---+---+
+            //  | o |   |   |  prettry expected
+            //  +---+---+---+  the path is prettry smooth
+            //  | B |   |   |
+            //  +---+---+---+
+            //
+            // the way to ignore the first turn is same as how we ignore direction at dst point
+            // we connect all possible (m_srcNode.x, m_srcNode.y, [DIR_BEGIN, DIR_END)) to an imaginary src node
+            const bool m_checkFirstTurn;
+
+        private:
             const int m_maxStep;
 
         private:
@@ -311,7 +368,7 @@ namespace pathf
 
         private:
             // special dst node that can never be reached by stepping
-            // it has zero cost to all (m_dstX, m_dstY, DIR_BEGIN ~ DIR_END) for multi-targeting
+            // it has zero cost to all (m_dstX, m_dstY, [DIR_BEGIN ~ DIR_END)) for multi-targeting
             const InnNode m_dstDrainNode
             {
                 .x = 0,
@@ -331,13 +388,20 @@ namespace pathf
             InnPQ m_openSet;
 
         public:
-            AStarPathFinder(int argMaxStepSize, std::function<std::optional<double>(int, int, int, int, int)> fnOneStepCost)
-                : m_maxStep(argMaxStepSize)
+            AStarPathFinder(bool argCheckFirstTurn, int argMaxStepSize, std::function<std::optional<double>(int, int, int, int, int)> fnOneStepCost)
+                : m_checkFirstTurn(argCheckFirstTurn)
+                , m_maxStep(argMaxStepSize)
                 , m_oneStepCost(std::move(fnOneStepCost))
             {
                 fflassert(m_oneStepCost);
                 fflassert(m_maxStep >= 1, m_maxStep);
                 fflassert(m_maxStep <= 3, m_maxStep);
+            }
+
+        public:
+            bool checkFirstTurn() const
+            {
+                return m_checkFirstTurn;
             }
 
         public:

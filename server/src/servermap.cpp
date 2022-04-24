@@ -392,7 +392,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
 }
 
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMaxStep, int argCheckCO)
-    : AStarPathFinder(argMaxStep, [this](int srcX, int srcY, int srcDir, int dstX, int dstY) -> std::optional<double>
+    : AStarPathFinder(false, argMaxStep, [this](int srcX, int srcY, int srcDir, int dstX, int dstY) -> std::optional<double>
       {
           // treat checkCO and checkLock same
           // from server's view occupied and to-be-occupied are equivlent
