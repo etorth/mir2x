@@ -45,14 +45,14 @@ bool ClientMinotaurGuardian::onActionAttack(const ActionNode &action)
                     .y = action.y,
                 }));
 
-                m_motionQueue.back()->addTrigger(false, [targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
+                m_motionQueue.back()->addTrigger(false, [magicID, targetUID = action.aimUID, this](MotionNode *motionPtr) -> bool
                 {
                     if(motionPtr->frame < 4){
                         return false;
                     }
 
                     if(auto coPtr = m_processRun->findUID(targetUID)){
-                        coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new Thunderbolt()));
+                        coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new Thunderbolt(DBCOM_MAGICRECORD(magicID).name)));
                     }
                     return true;
                 });
