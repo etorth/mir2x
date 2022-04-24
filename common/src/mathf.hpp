@@ -20,7 +20,7 @@ namespace mathf
 
     template<std::integral T> T rand(T min, T max)
     {
-        return min + (T)(std::rand() % (1 + std::max<int>(max - min, 0)));
+        return min + static_cast<T>(std::rand() % (1 + std::max<int>(max - min, 0)));
     }
 
     template<std::floating_point T> T rand(T min, T max)

@@ -123,30 +123,12 @@ bool Monster::randomMove()
             return requestMove(dstX, dstY, moveSpeed(), false, false);
         };
 
-        auto fnMakeOneTurn = [this]() -> bool
+        const auto fnMakeOneTurn = [this]() -> bool
         {
-            static const int nDirV[]
-            {
-                DIR_UP,
-                DIR_UPRIGHT,
-                DIR_RIGHT,
-                DIR_DOWNRIGHT,
-                DIR_DOWN,
-                DIR_DOWNLEFT,
-                DIR_LEFT,
-                DIR_UPLEFT,
-            };
-
-            auto nDirCount = to_d(std::extent<decltype(nDirV)>::value);
-            auto nDirStart = to_d(std::rand() % nDirCount);
-
-            for(int nIndex = 0; nIndex < nDirCount; ++nIndex){
-                auto nDirection = nDirV[(nDirStart + nIndex) % nDirCount];
-                if(Direction() != nDirection){
-                    if(oneStepReach(nDirection, 1).has_value()){
-                        // current direction is possible for next move
-                        // report the turn and do motion (by chance) in next update
-                        m_direction = nDirection;
+            for(int i = 0, startDir = pathf::getRandDir(); i < 8; ++i){
+                if(const auto currDir = pathf::getNextDir(startDir, i); Direction() != currDir){
+                    if(oneStepReach(currDir, 1).has_value()){
+                        m_direction = currDir;
                         dispatchAction(makeActionStand());
 
                         // we won't do reportStand() for monster
@@ -183,28 +165,10 @@ bool Monster::randomMove()
 
 bool Monster::randomTurn()
 {
-    constexpr int dirs[]
-    {
-        DIR_UP,
-        DIR_UPRIGHT,
-        DIR_RIGHT,
-        DIR_DOWNRIGHT,
-        DIR_DOWN,
-        DIR_DOWNLEFT,
-        DIR_LEFT,
-        DIR_UPLEFT,
-    };
-
-    const auto dirCount = to_d(std::extent<decltype(dirs)>::value);
-    const auto dirStart = to_d(std::rand() % dirCount);
-
-    for(int i = 0; i < dirCount; ++i){
-        const auto dir = dirs[(dirStart + i) % dirCount];
-        if(Direction() != dir){
-            if(oneStepReach(dir, 1).has_value()){
-                // current direction is possible for next move
-                // report the turn and do motion (by chance) in next update
-                m_direction = dir;
+    for(int i = 0, startDir = pathf::getRandDir(); i < 8; ++i){
+        if(const auto currDir = pathf::getNextDir(startDir, i); Direction() != currDir){
+            if(oneStepReach(currDir, 1).has_value()){
+                m_direction = currDir;
                 dispatchAction(makeActionStand());
                 return true;
             }

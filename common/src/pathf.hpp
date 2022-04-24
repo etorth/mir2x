@@ -69,6 +69,11 @@ namespace pathf
         }
     }
 
+    inline int getRandDir()
+    {
+        return mathf::rand<int>(DIR_BEGIN, DIR_END - 1);
+    }
+
     inline int getBackDir(int direction)
     {
         switch(direction){
