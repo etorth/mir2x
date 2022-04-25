@@ -365,6 +365,8 @@ void pathf::AStarPathFinder::updatePath(const pathf::AStarPathFinder::InnNode &c
         m_g[nextNode] = nextNode_g;
         m_prevSet[nextNode] = currNode;
 
+        // TODO bug here, when the open set has already contained nextNode
+        // we shall re-sort the open set, otherwise nextNode always uses old nextNode_g in it
         if(!m_openSet.has(nextNode)){
             m_openSet.add(pathf::AStarPathFinder::InnPQNode
             {
