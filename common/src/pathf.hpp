@@ -348,6 +348,9 @@ namespace pathf
             const std::function<std::optional<double>(int, int, int, int, int)> m_oneStepCost;
 
         private:
+            std::optional<double> m_hLastStep {};
+
+        private:
             InnNode m_srcNode {};
 
         private:

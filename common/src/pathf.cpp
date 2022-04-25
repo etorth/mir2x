@@ -175,14 +175,15 @@ double pathf::AStarPathFinder::h(const pathf::AStarPathFinder::InnNode &node) co
     // also h(x) is consistent, although the implementation doesn't require it
     // check: https://en.wikipedia.org/wiki/Consistent_heuristic
 
-    const auto dx = std::labs(node.x - m_dstX);
-    const auto dy = std::labs(node.y - m_dstY);
-
-    return std::max<double>(
-    {
-        1.0 * ((dx / m_maxStep) + (dx % m_maxStep)), // take jump if can, then use move
-        1.0 * ((dy / m_maxStep) + (dy % m_maxStep)), //
-    });
+    if(const auto d = std::max<long>(std::labs(node.x - m_dstX), std::labs(node.y - m_dstY)); d == 0){
+        return 0.0;
+    }
+    else if(d < m_maxStep){
+        return 1.0;
+    }
+    else{
+        return 1.0 * ((d - (m_maxStep - 1)) / m_maxStep + (d - (m_maxStep - 1)) % m_maxStep) + m_hLastStep.value_or(1.0);
+    }
 }
 
 std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDir, int dstX, int dstY, size_t searchCount)
@@ -205,6 +206,22 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
     m_g.clear();
     m_prevSet.clear();
     m_openSet.clear();
+
+    // estimate the last step min cost for h()
+    // extremely helpful when dst node is occupied or invalid
+
+    m_hLastStep.reset();
+    for(int lastDir = DIR_BEGIN; lastDir < DIR_END; ++lastDir){
+        const auto [lastStepX, lastStepY] = pathf::getFrontGLoc(m_dstX, m_dstY, lastDir, 1);
+        if(const auto lastStepCostOpt = m_oneStepCost(lastStepX, lastStepY, lastDir, m_dstX, m_dstY); lastStepCostOpt.has_value()){
+            if(m_hLastStep.has_value()){
+                m_hLastStep = std::min<double>(m_hLastStep.value(), lastStepCostOpt.value());
+            }
+            else{
+                m_hLastStep = lastStepCostOpt.value();
+            }
+        }
+    }
 
     if(m_checkFirstTurn){
         m_g[m_srcNode] = 0.0;
