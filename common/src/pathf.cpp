@@ -208,7 +208,7 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
 
     if(m_checkFirstTurn){
         m_g[m_srcNode] = 0.0;
-        m_openSet.add(pathf::AStarPathFinder::InnPQNode
+        m_openSet.update(pathf::AStarPathFinder::InnPQNode
         {
             .node = m_srcNode,
             .f = h(m_srcNode),
@@ -226,7 +226,7 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
             };
 
             m_g[firstNode] = 0.0;
-            m_openSet.add(pathf::AStarPathFinder::InnPQNode
+            m_openSet.update(pathf::AStarPathFinder::InnPQNode
             {
                 .node = firstNode,
                 .f = h(firstNode), // h(firstNode) are same for all directions
@@ -365,14 +365,10 @@ void pathf::AStarPathFinder::updatePath(const pathf::AStarPathFinder::InnNode &c
         m_g[nextNode] = nextNode_g;
         m_prevSet[nextNode] = currNode;
 
-        // TODO bug here, when the open set has already contained nextNode
-        // we shall re-sort the open set, otherwise nextNode always uses old nextNode_g in it
-        if(!m_openSet.has(nextNode)){
-            m_openSet.add(pathf::AStarPathFinder::InnPQNode
-            {
-                .node = nextNode,
-                .f = nextNode_g + nextNode_h,
-            });
-        }
+        m_openSet.update(pathf::AStarPathFinder::InnPQNode
+        {
+            .node = nextNode,
+            .f = nextNode_g + nextNode_h,
+        });
     }
 }

@@ -220,50 +220,34 @@ namespace pathf
                 }
             };
 
-            class InnPQ: public std::priority_queue<InnPQNode>
+            class InnPQ: public phmap::flat_hash_map<InnNode, double, InnNodeHash>
             {
-                private:
-                    phmap::flat_hash_set<InnNode, InnNodeHash> m_has;
-
                 public:
-                    bool has(const InnNode &node) const
+                    void update(const InnPQNode &node)
                     {
-                        return m_has.find(node) != m_has.end();
-                    }
-
-                public:
-                    void add(const InnPQNode &node)
-                    {
-                        if(m_has.insert(node.node).second){
-                            this->push(node);
-                        }
-                        else{
-                            throw fflvalue(node.node.x, node.node.y, pathf::dirName(node.node.dir), node.f);
-                        }
+                        this->insert_or_assign(node.node, node.f);
                     }
 
                 public:
                     InnPQNode pick()
                     {
+                        // linearly find the minNode by O(n), makes pick() slow while update() is O(1)
+                        // based on the fact that 1 pick() needs 8 or 16 update()
+
                         fflassert(!this->empty());
-                        fflassert(!m_has.empty());
+                        auto p = std::min_element(this->begin(), this->end(), [](const auto &x, const auto &y)
+                        {
+                            return x.second < y.second;
+                        });
 
-                        const auto t = top();
-                        const auto p = m_has.find(t.node);
+                        const InnPQNode minNode
+                        {
+                            .node = p->first,
+                            .f = p->second,
+                        };
 
-                        fflassert(p != m_has.end());
-
-                        this->pop();
-                        m_has.erase(p);
-
-                        return t;
-                    }
-
-                public:
-                    void clear()
-                    {
-                        m_has.clear();
-                        this->c.clear();
+                        this->erase(p);
+                        return minNode;
                     }
             };
 
