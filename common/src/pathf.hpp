@@ -225,6 +225,8 @@ namespace pathf
                 public:
                     void update(const InnPQNode &node)
                     {
+                        // some A-star tutorial says assignment is much rare than insertion
+                        // my measurement is about 75% ~ 90% are insertion, so 10% ~ 25% assignment, it's not rare but much less than insertion
                         this->insert_or_assign(node.node, node.f);
                     }
 
