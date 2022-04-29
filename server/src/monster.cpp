@@ -978,7 +978,7 @@ bool Monster::moveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, st
     }
 
     BattleObject::BOPathFinder stFinder(this, 1);
-    if(!stFinder.search(X(), Y(), Direction(), nX, nY).value_or(false)){
+    if(!stFinder.search(X(), Y(), Direction(), nX, nY).hasPath()){
         if(onError){
             onError();
         }

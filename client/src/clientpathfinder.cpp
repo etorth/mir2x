@@ -4,7 +4,7 @@
 #include "clientpathfinder.hpp"
 
 ClientPathFinder::ClientPathFinder(const ProcessRun *argProc, bool argCheckGround, int argCheckCreature, int argMaxStep)
-    : AStarPathFinder(false, argMaxStep, [this](int argSrcX, int argSrcY, int argSrcDir, int argDstX, int argDstY) -> std::optional<double>
+    : AStarPathFinder(1, argMaxStep, [this](int argSrcX, int argSrcY, int argSrcDir, int argDstX, int argDstY) -> std::optional<double>
       {
           fflassert(pathf::hopValid(maxStep(), argSrcX, argSrcY, argDstX, argDstY), maxStep(), argSrcX, argSrcY, pathf::dirName(argSrcDir), argDstX, argDstY);
           return m_proc->oneStepCost(this, m_checkGround, m_checkCreature, argSrcX, argSrcY, argSrcDir, argDstX, argDstY);

@@ -164,37 +164,143 @@ bool pathf::inDCCastRange(const DCCastRange &r, int x0, int y0, int x1, int y1)
     }
 }
 
-double pathf::AStarPathFinder::h(const pathf::AStarPathFinder::InnNode &node) const
+void pathf::AStarPathFinder::expand_f()
 {
-    // use Chebyshev's distance instead of Manhattan distance
-    // since we allow max step size as 1, 2, 3, and for optimal solution
+    // search direction: ---------------->---------------
+    // moving direction: prevNode -> currNode -> nextNode
 
-    // to make A-star algorithm admissible
-    // we need to make h(x) never over-estimate the distance
-
-    // also h(x) is consistent, although the implementation doesn't require it
-    // check: https://en.wikipedia.org/wiki/Consistent_heuristic
-
-    const auto dx = std::labs(node.x - m_dstX);
-    const auto dy = std::labs(node.y - m_dstY);
-
-    return std::max<double>(
+    const auto currNode = m_cost_PQ_f.pick();
+    const auto prevNode = [&currNode, this]() -> std::optional<pathf::AStarPathFinder::InnNode>
     {
-        1.0 * ((dx / m_maxStep) + (dx % m_maxStep)), // take jump if can, then use move
-        1.0 * ((dy / m_maxStep) + (dy % m_maxStep)), //
-    });
+        // all other node in m_openSet mush have parent, except src node
+        // src node can NOT have parent
+
+        if(currNode.node.eq(m_srcNode.x, m_srcNode.y)){
+            return {};
+        }
+
+        if(const auto p = m_parentSet_f.find(currNode.node); p != m_parentSet_f.end()){
+            return p->second;
+        }
+        throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
+    }();
+
+    for(const auto stepSize: m_stepSizeList){
+        for(const auto i: m_nextMoveDirList){
+            const auto nextDir = pathf::getNextDir(currNode.node.dir, i);
+            const auto [nextX, nextY] = pathf::getFrontGLoc(currNode.node.x, currNode.node.y, nextDir, stepSize);
+            fflassert(checkGLoc(nextX, nextY, nextDir), nextX, nextY, nextDir);
+
+            const pathf::AStarPathFinder::InnNode nextNode
+            {
+                .x   = nextX,
+                .y   = nextY,
+                .dir = nextDir,
+            };
+
+            if(prevNode.has_value() && prevNode.value() == nextNode){
+                continue; // don't go back
+            }
+
+            const auto hopCost = m_oneStepCost(currNode.node.x, currNode.node.y, m_checkTurn == 0 ? nextNode.dir : currNode.node.dir, nextNode.x, nextNode.y);
+            if(!hopCost.has_value()){
+                continue; // can not reach
+            }
+
+            fflassert(hopCost.value() >= 0.0, hopCost.value());
+            const auto reducedCost = hopCost.value() - pf(currNode.node.x, currNode.node.y) + pf(nextNode.x, nextNode.y);
+
+            fflassert(reducedCost >= 0.0, reducedCost);
+            if(!m_cost_f.count(nextNode) || currNode.cost + reducedCost < m_cost_f.at(nextNode)){
+                m_cost_f[nextNode] = reducedCost;
+                m_parentSet_f[nextNode] = currNode.node;
+                m_cost_PQ_f.update(pathf::AStarPathFinder::InnPQNode
+                {
+                    .node = nextNode,
+                    .cost = currNode.cost + reducedCost,
+                });
+            }
+
+            if(const auto p = m_cost_r.find(nextNode); p != m_cost_r.end()){
+                updateDoneCost(nextNode, currNode.cost + reducedCost + p->second);
+            }
+        }
+    }
 }
 
-std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDir, int dstX, int dstY, size_t searchCount)
+void pathf::AStarPathFinder::expand_r()
+{
+    // search direction: ----------------<---------------
+    // moving direction: fromNode -> currNode -> prevNode
+
+    const auto currNode = m_cost_PQ_r.top();
+    const auto prevNode = [&currNode, this]() -> std::optional<pathf::AStarPathFinder::InnNode>
+    {
+        // all other node in m_openSet mush have parent, except src node
+        // src node can NOT have parent
+
+        if(currNode.node.eq(m_dstX, m_dstY)){
+            return {};
+        }
+
+        if(const auto p = m_parentSet_r.find(currNode.node); p != m_parentSet_r.end()){
+            return p->second;
+        }
+        throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
+    }();
+
+    for(const auto stepSize: m_stepSizeList){
+        const auto [fromX, fromY] = pathf::getBackGLoc(currNode.node.x, currNode.node.y, currNode.node.dir, stepSize);
+        checkGLoc(fromX, fromY);
+
+        for(int i: m_nextTurnDirList){
+            const pathf::AStarPathFinder::InnNode fromNode
+            {
+                .x   = fromX,
+                .y   = fromY,
+                .dir = pathf::getNextDir(currNode.node.dir, i),
+            };
+
+            if(prevNode.has_value() && prevNode.value() == fromNode){
+                continue; // don't go back
+            }
+
+            const auto hopCost = m_oneStepCost(fromNode.x, fromNode.y, fromNode.dir, currNode.node.x, currNode.node.y);
+            if(!hopCost.has_value()){
+                continue; // can not reach
+            }
+
+            fflassert(hopCost.value() >= 0.0, hopCost.value());
+            const auto reducedCost = hopCost.value() - pr(currNode.node.x, currNode.node.y) + pr(fromNode.x, fromNode.y);
+
+            fflassert(reducedCost >= 0.0, reducedCost);
+            if(!m_cost_r.count(fromNode) || currNode.cost + reducedCost < m_cost_r.at(fromNode)){
+                m_cost_r[fromNode] = reducedCost;
+                m_parentSet_r[fromNode] = currNode.node;
+                m_cost_PQ_r.update(pathf::AStarPathFinder::InnPQNode
+                {
+                    .node = fromNode,
+                    .cost = currNode.cost + reducedCost,
+                });
+            }
+
+            if(const auto p = m_cost_f.find(fromNode); p != m_cost_f.end()){
+                updateDoneCost(fromNode, currNode.cost + reducedCost + p->second);
+            }
+        }
+    }
+}
+
+pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, int srcY, int srcDir, int dstX, int dstY, size_t searchCount)
 {
     fflassert(checkGLoc(srcX, srcY, srcDir), srcX, srcY, srcDir);
     fflassert(checkGLoc(dstX, dstY), dstX, dstY);
 
     m_srcNode = pathf::AStarPathFinder::InnNode
     {
-        .x = srcX,
-        .y = srcY,
-        .dir = srcDir,
+        .x   = srcX,
+        .y   = srcY,
+        .dir = (m_checkTurn == 0) ? DIR_BEGIN : srcDir,
     };
 
     fflassert(!m_srcNode.eq(dstX, dstY), srcX, srcY, srcDir, dstX, dstY);
@@ -202,126 +308,108 @@ std::optional<bool> pathf::AStarPathFinder::search(int srcX, int srcY, int srcDi
     m_dstX = dstX;
     m_dstY = dstY;
 
-    m_g.clear();
-    m_prevSet.clear();
-    m_openSet.clear();
+    m_pi_f_s = pi(m_srcNode.x, m_srcNode.y, m_dstX     , m_dstY     );
+    m_pi_r_t = pi(m_dstX     , m_dstY     , m_srcNode.x, m_srcNode.y);
 
-    if(m_checkFirstTurn){
-        m_g[m_srcNode] = 0.0;
-        m_openSet.update(pathf::AStarPathFinder::InnPQNode
+    m_parentSet_f.clear();
+    m_parentSet_r.clear();
+
+    m_cost_PQ_f.clear();
+    m_cost_PQ_r.clear();
+
+    m_doneCost.reset();
+    m_doneNode.reset();
+
+    for(int i = 0; i < ((m_checkTurn != 1) ? 1 : 8); ++i){
+        const pathf::AStarPathFinder::InnNode firstNode
         {
-            .node = m_srcNode,
-            .f = h(m_srcNode),
+            .x   = m_srcNode.x,
+            .y   = m_srcNode.y,
+            .dir = pathf::getNextDir(m_srcNode.dir, i),
+        };
+
+        m_cost_f[firstNode] = 0.0;
+        m_cost_PQ_f.update(pathf::AStarPathFinder::InnPQNode
+        {
+            .node = firstNode,
+            .cost = 0.0,
         });
     }
-    else{
-        // don't need to explicitly push an imaginary src point as m_dstDrainNode
-        // alternatively we can directly push all children of the imaginary src point into open set, which are actually (m_srcNode.x, m_srcNode.y, [DIR_BEGIN, DIR_END))
-        for(int firstDir = DIR_BEGIN; firstDir < DIR_END; ++firstDir){
-            const pathf::AStarPathFinder::InnNode firstNode
-            {
-                .x = srcX,
-                .y = srcY,
-                .dir= firstDir,
-            };
 
-            m_g[firstNode] = 0.0;
-            m_openSet.update(pathf::AStarPathFinder::InnPQNode
-            {
-                .node = firstNode,
-                .f = h(firstNode), // h(firstNode) are same for all directions
-            });
-        }
-    }
-
-    for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_openSet.empty(); ++c){
-        const auto currNode = m_openSet.pick();
-        if(currNode.node == m_dstDrainNode){
-            return true;
-        }
-
-        const auto distanceJump = {m_maxStep, 1}; // move and jump
-        const auto distanceMove = {           1}; // move only
-        const auto prevNode = [&currNode, this]() -> std::optional<pathf::AStarPathFinder::InnNode>
+    for(int i = 0; i < ((m_checkTurn == 0) ? 1 : 8); ++i){
+        const pathf::AStarPathFinder::InnNode lastNode
         {
-            // all other node in m_openSet mush have parent, except src node
-            // src node can NOT have parent
+            .x   = m_dstX,
+            .y   = m_dstY,
+            .dir = pathf::getNextDir(m_srcNode.dir, i),
+        };
 
-            if(currNode.node.eq(m_srcNode.x, m_srcNode.y)){
-                return {};
-            }
+        m_cost_r[lastNode] = 0.0;
+        m_cost_PQ_r.update(pathf::AStarPathFinder::InnPQNode
+        {
+            .node = lastNode,
+            .cost = 0.0,
+        });
+    }
 
-            if(const auto p = m_prevSet.find(currNode.node); p != m_prevSet.end()){
-                return p->second;
-            }
-            throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
-        }();
-
-        // reach the dst grid
-        // add an edge to m_dstDrainNode for multi-targeting
-
-        if(currNode.node.eq(m_dstX, m_dstY)){
-            updatePath(currNode.node, m_dstDrainNode, 0.0, 0.0);
-            continue;
+    for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_cost_PQ_f.empty() && !m_cost_PQ_r.empty(); ++c){
+        expand_f();
+        if(m_cost_PQ_f.empty()){
+            break;
         }
 
-        for(const auto distance: (m_maxStep > 1) ? distanceJump : distanceMove){
-            for(int nextDir = DIR_BEGIN; nextDir < DIR_END; ++nextDir){
-                const auto [nextX, nextY] = pathf::getFrontGLoc(currNode.node.x, currNode.node.y, nextDir, distance);
-                fflassert(checkGLoc(nextX, nextY, nextDir), nextX, nextY, nextDir);
+        if(m_cost_PQ_f.top().cost + m_cost_PQ_r.top().cost >= m_doneCost.value_or(DBL_MAX)){
+            break;
+        }
 
-                const pathf::AStarPathFinder::InnNode nextNode
-                {
-                    .x = nextX,
-                    .y = nextY,
-                    .dir = nextDir,
-                };
+        expand_r();
+        if(m_cost_PQ_r.empty()){
+            break;
+        }
 
-                if(prevNode.has_value() && prevNode.value() == nextNode){
-                    continue; // don't go back
-                }
-
-                const auto hopCost = m_oneStepCost(currNode.node.x, currNode.node.y, currNode.node.dir, nextNode.x, nextNode.y);
-                if(!hopCost.has_value()){
-                    continue; // can not reach
-                }
-
-                fflassert(hopCost.value() >= 0.0, hopCost.value());
-                updatePath(currNode.node, nextNode, hopCost.value(), h(nextNode));
-            }
+        if(m_cost_PQ_f.top().cost + m_cost_PQ_r.top().cost >= m_doneCost.value_or(DBL_MAX)){
+            break;
         }
     }
 
-    if(m_openSet.empty()){
-        return false;
-    }
-    return {};
+    return {hasPath(), false};
 }
 
 std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
 {
     fflassert(hasPath());
-    std::vector<pathf::PathNode> result;
+    const auto fnAppendParentNode = [](const auto &startNode, int stopNodeX, int stopNodeY, const auto &parentSet, auto &result)
+    {
+        auto currNode = startNode;
+        for(auto p = parentSet.find(currNode); p != parentSet.end(); p = parentSet.find(currNode)){
+            result.push_back(pathf::PathNode
+            {
+                .X = to_d(p->second.x),
+                .Y = to_d(p->second.y),
+            });
 
-    auto currNode = m_dstDrainNode;
-    auto p = m_prevSet.find(currNode);
+            if(p->second.eq(stopNodeX, stopNodeY)){
+                return;
+            }
 
-    while(p != m_prevSet.end()){
-        result.push_back(pathf::PathNode
-        {
-            .X = to_d(p->second.x),
-            .Y = to_d(p->second.y),
-        });
-
-        if(p->second.eq(m_srcNode.x, m_srcNode.y)){
-            std::reverse(result.begin(), result.end());
-            return result;
+            currNode = p->second;
         }
 
-        currNode = p->second;
-        p = m_prevSet.find(currNode);
-    }
-    throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.x, currNode.y, pathf::dirName(currNode.dir));
+        throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.x, currNode.y, pathf::dirName(currNode.dir));
+    };
+
+    std::vector<pathf::PathNode> result;
+    fnAppendParentNode(m_doneNode.value(), m_srcNode.x, m_srcNode.y, m_parentSet_f, result);
+
+    std::reverse(result.begin(), result.end());
+    result.push_back(pathf::PathNode
+    {
+        .X = to_d(m_doneNode.value().x),
+        .Y = to_d(m_doneNode.value().y),
+    });
+
+    fnAppendParentNode(m_doneNode.value(), m_dstX, m_dstY, m_parentSet_r, result);
+    return result;
 }
 
 bool pathf::AStarPathFinder::checkGLoc(int x, int y) const
@@ -334,8 +422,8 @@ bool pathf::AStarPathFinder::checkGLoc(int x, int y, int dir) const
     if(pathf::dirValid(dir)){
         const pathf::AStarPathFinder::InnNode node
         {
-            .x = x,
-            .y = y,
+            .x   = x,
+            .y   = y,
             .dir = dir,
         };
 
@@ -347,28 +435,4 @@ bool pathf::AStarPathFinder::checkGLoc(int x, int y, int dir) const
         }
     }
     return false;
-}
-
-void pathf::AStarPathFinder::updatePath(const pathf::AStarPathFinder::InnNode &currNode, const pathf::AStarPathFinder::InnNode &nextNode, double hopCost, double nextNode_h)
-{
-    // currNode always valid
-    // nextNode can be m_dstDrainNode which is not a valid node
-
-    fflassert(hopCost >= 0.0, hopCost);
-    fflassert(nextNode_h >= 0.0, nextNode_h);
-
-    // here can drop the check: pg->second > nextNode_g
-    // because our h() is consistent, check: https://en.wikipedia.org/wiki/Consistent_heuristic
-
-    const auto nextNode_g = m_g.at(currNode) + hopCost;
-    if(const auto pg = m_g.find(nextNode); (pg == m_g.end()) || (pg->second > nextNode_g)){
-        m_g[nextNode] = nextNode_g;
-        m_prevSet[nextNode] = currNode;
-
-        m_openSet.update(pathf::AStarPathFinder::InnPQNode
-        {
-            .node = nextNode,
-            .f = nextNode_g + nextNode_h,
-        });
-    }
 }

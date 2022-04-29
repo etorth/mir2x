@@ -1,4 +1,5 @@
 #pragma once
+#include <span>
 #include <tuple>
 #include <cmath>
 #include <array>
@@ -144,6 +145,16 @@ namespace pathf
 
         return offDir[dy + 1][dx + 1];
     }
+
+    inline int getOffDirEx(int argSrcX, int argSrcY, int argDstX, int argDstY)
+    {
+        if(const auto dir = getOffDir(argSrcX, argSrcY, argDstX, argDstY); dirValid(dir)){
+            return dir;
+        }
+        else{
+            throw fflvalue(argSrcX, argSrcY, argDstX, argDstY);
+        }
+    }
 }
 
 namespace pathf
@@ -175,6 +186,31 @@ namespace pathf
 
     class AStarPathFinder
     {
+        public:
+            class PathFindResult final
+            {
+                private:
+                    const bool m_hasPath;
+                    const bool m_doneSearch;
+
+                public:
+                    PathFindResult(bool hasPath, bool doneSearch)
+                        : m_hasPath(hasPath)
+                        , m_doneSearch(doneSearch)
+                    {}
+
+                public:
+                    bool hasPath() const
+                    {
+                        return m_hasPath;
+                    }
+
+                    bool doneSearch() const
+                    {
+                        return m_doneSearch;
+                    }
+            };
+
         private:
             struct InnNode final
             {
@@ -212,11 +248,11 @@ namespace pathf
             struct InnPQNode final
             {
                 InnNode node;
-                double  f;
+                double  cost;
 
                 bool operator < (const InnPQNode &param) const noexcept
                 {
-                    return this->f > param.f;
+                    return this->cost > param.cost;
                 }
             };
 
@@ -227,7 +263,23 @@ namespace pathf
                     {
                         // some A-star tutorial says assignment is much rare than insertion
                         // my measurement is about 75% ~ 90% are insertion, so 10% ~ 25% assignment, it's not rare but much less than insertion
-                        this->insert_or_assign(node.node, node.f);
+                        this->insert_or_assign(node.node, node.cost);
+                    }
+
+                public:
+                    InnPQNode top() const
+                    {
+                        fflassert(!this->empty());
+                        auto p = std::min_element(this->begin(), this->end(), [](const auto &x, const auto &y)
+                        {
+                            return x.second < y.second;
+                        });
+
+                        return InnPQNode
+                        {
+                            .node = p-> first,
+                            .cost = p->second,
+                        };
                     }
 
                 public:
@@ -236,20 +288,9 @@ namespace pathf
                         // linearly find the minNode by O(n), makes pick() slow while update() is O(1)
                         // based on the fact that 1 pick() needs 8 or 16 update()
 
-                        fflassert(!this->empty());
-                        auto p = std::min_element(this->begin(), this->end(), [](const auto &x, const auto &y)
-                        {
-                            return x.second < y.second;
-                        });
-
-                        const InnPQNode minNode
-                        {
-                            .node = p->first,
-                            .f = p->second,
-                        };
-
-                        this->erase(p);
-                        return minNode;
+                        const auto t = top();
+                        this->erase(t.node);
+                        return t;
                     }
             };
 
@@ -308,10 +349,19 @@ namespace pathf
             //
             // the way to ignore the first turn is same as how we ignore direction at dst point
             // we connect all possible (m_srcNode.x, m_srcNode.y, [DIR_BEGIN, DIR_END)) to an imaginary src node
-            const bool m_checkFirstTurn;
-
+            const int m_checkTurn; // 0: check  no turns
+                                   // 1: check all turns except the first one
+                                   // 2: check all turns
         private:
             const int m_maxStep;
+
+        private:
+            const std::array<int, 8>   m_nextMoveDirList;
+            const std::span<const int> m_nextTurnDirList;
+
+        private:
+            const std::array<int, 2>   m_stepSizeBuf;
+            const std::span<const int> m_stepSizeList;
 
         private:
             // give very close weight for StepSize = 1 and StepSize = maxStep to prefer bigger hops
@@ -353,41 +403,52 @@ namespace pathf
             InnNode m_srcNode {};
 
         private:
-            // special dst node that can never be reached by stepping
-            // it has zero cost to all (m_dstX, m_dstY, [DIR_BEGIN ~ DIR_END)) for multi-targeting
-            const InnNode m_dstDrainNode
-            {
-                .x = 0,
-                .y = 0,
-                .dir = DIR_NONE, // invalid direction, un-reachable by stepping
-            };
-
-        private:
             int m_dstX = 0;
             int m_dstY = 0;
 
         private:
-            phmap::flat_hash_map<InnNode, double, InnNodeHash> m_g;
-            phmap::flat_hash_map<InnNode, InnNode, InnNodeHash> m_prevSet;
+            double m_pi_r_t = 0.0;
+            double m_pi_f_s = 0.0;
 
         private:
-            InnPQ m_openSet;
+            std::optional< double> m_doneCost {};
+            std::optional<InnNode> m_doneNode {};
+
+        private:
+            phmap::flat_hash_map<InnNode, double, InnNodeHash> m_cost_f;
+            phmap::flat_hash_map<InnNode, double, InnNodeHash> m_cost_r;
+
+        private:
+            InnPQ m_cost_PQ_f;
+            InnPQ m_cost_PQ_r;
+
+        private:
+            phmap::flat_hash_map<InnNode, InnNode, InnNodeHash> m_parentSet_f;
+            phmap::flat_hash_map<InnNode, InnNode, InnNodeHash> m_parentSet_r;
 
         public:
-            AStarPathFinder(bool argCheckFirstTurn, int argMaxStepSize, std::function<std::optional<double>(int, int, int, int, int)> fnOneStepCost)
-                : m_checkFirstTurn(argCheckFirstTurn)
+            AStarPathFinder(bool argCheckTurn, int argMaxStepSize, std::function<std::optional<double>(int, int, int, int, int)> fnOneStepCost)
+                : m_checkTurn(argCheckTurn)
                 , m_maxStep(argMaxStepSize)
+                , m_nextMoveDirList{0, +1, -1, +2, -2, +3, -3, 4}
+                , m_nextTurnDirList(m_nextMoveDirList.begin(), (m_checkTurn == 0) ? 1 : 8)
+                , m_stepSizeBuf{m_maxStep, 1}
+                , m_stepSizeList(m_stepSizeBuf.begin(), (m_maxStep > 1) ? 2 : 1)
                 , m_oneStepCost(std::move(fnOneStepCost))
             {
                 fflassert(m_oneStepCost);
+
+                fflassert(m_checkTurn >= 0, m_checkTurn);
+                fflassert(m_checkTurn <= 2, m_checkTurn);
+
                 fflassert(m_maxStep >= 1, m_maxStep);
                 fflassert(m_maxStep <= 3, m_maxStep);
             }
 
         public:
-            bool checkFirstTurn() const
+            int checkTurn() const
             {
-                return m_checkFirstTurn;
+                return m_checkTurn;
             }
 
         public:
@@ -399,11 +460,11 @@ namespace pathf
         public:
             bool hasPath() const
             {
-                return m_prevSet.find(m_dstDrainNode) != m_prevSet.end();
+                return m_doneNode.has_value();
             }
 
         public:
-            std::optional<bool> search(int, int, int, int, int, size_t searchCount = 0);
+            PathFindResult search(int, int, int, int, int, size_t searchCount = 0);
 
         public:
             std::vector<pathf::PathNode> getPathNode() const;
@@ -413,7 +474,31 @@ namespace pathf
             bool checkGLoc(int, int, int) const;
 
         private:
-            double h(const InnNode &) const;
-            void updatePath(const InnNode &, const InnNode &, double, double);
+            void updateDoneCost(const InnNode &node, double cost)
+            {
+                m_doneNode = node;
+                m_doneCost = std::min<double>(m_doneCost.value_or(DBL_MAX), cost);
+            }
+
+        private:
+            void expand_f();
+            void expand_r();
+
+        private:
+            double pi(int srcX, int srcY, int dstX, int dstY) const
+            {
+                const auto d = std::max<long>(std::labs(dstX - srcX), std::labs(dstY - srcY));
+                return 1.0 * ((d / m_maxStep) + (d % m_maxStep));
+            }
+
+            double pf(int x, int y) const
+            {
+                return (pi(x, y, m_dstX, m_dstY) - pi(x, y, m_srcNode.x, m_srcNode.y) + m_pi_r_t) / 2.0;
+            }
+
+            double pr(int x, int y) const
+            {
+                return (pi(x, y, m_srcNode.x, m_srcNode.y) - pi(x, y, m_dstX, m_dstY) + m_pi_f_s) / 2.0;
+            }
     };
 }

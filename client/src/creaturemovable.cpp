@@ -122,7 +122,7 @@ std::vector<pathf::PathNode> CreatureMovable::parseMovePath(int x0, int y0, int 
                 // we can always use this solver only
 
                 ClientPathFinder stPathFinder(m_processRun, checkGround, checkCreature, nMaxStep);
-                if(stPathFinder.search(x0, y0, currMotion()->direction, x1, y1).value_or(false)){
+                if(stPathFinder.search(x0, y0, currMotion()->direction, x1, y1).hasPath()){
                     return stPathFinder.getPathNode();
                 }
                 else{

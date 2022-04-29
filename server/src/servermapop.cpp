@@ -878,7 +878,7 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     }
 
     ServerPathFinder stPathFinder(this, amPF.MaxStep, amPF.CheckCO);
-    if(!stPathFinder.search(nX0, nY0, nDir, nX1, nY1).value_or(false)){
+    if(!stPathFinder.search(nX0, nY0, nDir, nX1, nY1).hasPath()){
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }
