@@ -236,7 +236,7 @@ void pathf::AStarPathFinder::expand_r()
     // search direction: ----------------<---------------
     // moving direction: fromNode -> currNode -> prevNode
 
-    const auto currNode = m_cost_PQ_r.top();
+    const auto currNode = m_cost_PQ_r.pick();
     const auto prevNode = [&currNode, this]() -> std::optional<pathf::AStarPathFinder::InnNode>
     {
         if(currNode.node.eq(m_dstX, m_dstY)){
