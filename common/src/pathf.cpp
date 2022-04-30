@@ -392,24 +392,24 @@ pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, 
     for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_cost_PQ_f.empty() && !m_cost_PQ_r.empty(); ++c){
         expand_f();
         if(m_cost_PQ_f.empty()){
-            break;
+            return {hasPath(), true};
         }
 
         if(fnCheckStop()){
-            break;
+            return {hasPath(), true};
         }
 
         expand_r();
         if(m_cost_PQ_r.empty()){
-            break;
+            return {hasPath(), true};
         }
 
         if(fnCheckStop()){
-            break;
+            return {hasPath(), true};
         }
     }
 
-    return {hasPath(), false};
+    return {hasPath(), m_cost_PQ_f.empty() || m_cost_PQ_r.empty()};
 }
 
 std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
