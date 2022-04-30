@@ -165,6 +165,40 @@ bool pathf::inDCCastRange(const DCCastRange &r, int x0, int y0, int x1, int y1)
     }
 }
 
+// shortest but not most efficient Dijkstra path search template:
+//
+//     priority_queue pq;                                               ( 1)
+//     unordered_map found;                                             ( 2)
+//     unordered_map parent;                                            ( 3)
+//                                                                      ( 4)
+//     pq.push(start_point);                                            ( 5)
+//     while(!pq.empty()){                                              ( 6)
+//         const auto [prev, curr, cost] = pq.top();                    ( 7)
+//         if(found.has(curr)){                                         ( 8)
+//             continue;                                                ( 9)
+//         }                                                            (10)
+//                                                                      (11)
+//         found[curr] = cost;                                          (12)
+//         parent[curr] = prev;                                         (13)
+//                                                                      (14)
+//         for(next: neighbor_list(curr)){                              (15)
+//             pq.push({curr, next, step_cost(curr, next)})             (16)
+//         }                                                            (17)
+//     }                                                                (18)
+//                                                                      (19)
+//     for(auto curr: found){                                           (20)
+//         std::cout << curr << parent.at(curr) << cost << std::endl;   (21)
+//     }                                                                (22)
+//
+// (note-1). always drop a pq node if it's already found at line-9, this means if a path to v is found, it must be the shortest path
+// (note-2). we only update found[v] when it's on top of the pq at line-12, we didn't update at line-15 then update the value if get better path
+// (note-3). at line-15 we didn't check if the hop-path is better than what's already in found map, because of (note-1)
+
+// but for a practical Dijkstra algoritm used in this game
+// (note-1). we always update found map immediately, although it can be a suboptimal path, then if we run out of searchCount, we still get a path
+// (note-2). we check at line-16, only push when newly found path is smaller than what we already have, this decrese the pq size
+// (note-3). we pop out worse path on top of pq, this is needed for the stop criteria: top_f + top_r < u
+
 void pathf::AStarPathFinder::expand_f()
 {
     // search direction: ---------------->---------------
