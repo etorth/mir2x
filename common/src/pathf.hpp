@@ -182,7 +182,12 @@ namespace pathf
     //
     //     https://harablog.wordpress.com/2011/09/07/jump-point-search/
     //
-    // implementation based on: https://en.wikipedia.org/wiki/A*_search_algorithm
+    // implementation is based on two papers:
+    //
+    //     1. readme/a-star-path-finding.pdf
+    //     2. readme/bidirectional-a-star-ppt.pdf
+    //
+    // these two papers convert bi-directional A-star to bi-directional Dijkstra path-finding problem
 
     class AStarPathFinder
     {
@@ -238,10 +243,10 @@ namespace pathf
             {
                 size_t operator() (const InnNode &node) const noexcept
                 {
-                    return 0uz
-                        + ((size_t)(node.x  ) << (29 + 6))
-                        + ((size_t)(node.y  ) << (     6))
-                        + ((size_t)(node.dir) << (     0));
+                    static_assert(sizeof(node) <= sizeof( size_t));
+                    static_assert(sizeof(node) <= sizeof(int64_t));
+
+                    return as_type<size_t>(&node);
                 }
             };
 
