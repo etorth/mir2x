@@ -183,6 +183,15 @@ void pathf::AStarPathFinder::expand_f()
         throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
     }();
 
+    while(!m_cost_PQ_f.empty()){
+        if(auto p = m_cost_f.find(m_cost_PQ_f.top().node); p != m_cost_f.end() && p->second < m_cost_PQ_f.top().cost){
+            m_cost_PQ_f.pop();
+        }
+        else{
+            break;
+        }
+    }
+
     for(const auto stepSize: m_stepSizeList){
         for(const auto d: getDirDiffList(m_checkTurn == 0 ? 1 : 8)){
             const auto nextDir = pathf::getNextDir(currNode.node.dir, d);
@@ -218,7 +227,7 @@ void pathf::AStarPathFinder::expand_f()
                 }
 
                 m_parentSet_f[nextNode] = currNode.node;
-                m_cost_PQ_f.update(pathf::AStarPathFinder::InnPQNode
+                m_cost_PQ_f.push(pathf::AStarPathFinder::InnPQNode
                 {
                     .node = nextNode,
                     .cost = currNode.cost + reducedCost,
@@ -249,6 +258,15 @@ void pathf::AStarPathFinder::expand_r()
         }
         throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
     }();
+
+    while(!m_cost_PQ_r.empty()){
+        if(auto p = m_cost_r.find(m_cost_PQ_r.top().node); p != m_cost_r.end() && p->second < m_cost_PQ_r.top().cost){
+            m_cost_PQ_r.pop();
+        }
+        else{
+            break;
+        }
+    }
 
     for(const auto stepSize: m_stepSizeList){
         for(const auto dFrom: getDirDiffList(m_checkTurn == 0 ? 8 : 1)){
@@ -288,7 +306,7 @@ void pathf::AStarPathFinder::expand_r()
                     }
 
                     m_parentSet_r[fromNode] = currNode.node;
-                    m_cost_PQ_r.update(pathf::AStarPathFinder::InnPQNode
+                    m_cost_PQ_r.push(pathf::AStarPathFinder::InnPQNode
                     {
                         .node = fromNode,
                         .cost = currNode.cost + reducedCost,
@@ -343,7 +361,7 @@ pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, 
         };
 
         m_cost_f[firstNode] = 0.0;
-        m_cost_PQ_f.update(pathf::AStarPathFinder::InnPQNode
+        m_cost_PQ_f.push(pathf::AStarPathFinder::InnPQNode
         {
             .node = firstNode,
             .cost = 0.0,
@@ -359,7 +377,7 @@ pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, 
         };
 
         m_cost_r[lastNode] = 0.0;
-        m_cost_PQ_r.update(pathf::AStarPathFinder::InnPQNode
+        m_cost_PQ_r.push(pathf::AStarPathFinder::InnPQNode
         {
             .node = lastNode,
             .cost = 0.0,

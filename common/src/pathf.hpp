@@ -261,41 +261,22 @@ namespace pathf
                 }
             };
 
-            class InnPQ: public phmap::flat_hash_map<InnNode, double, InnNodeHash>
+            class InnPQ: public std::priority_queue<InnPQNode>
             {
-                public:
-                    void update(const InnPQNode &node)
-                    {
-                        // some A-star tutorial says assignment is much rare than insertion
-                        // my measurement is about 75% ~ 90% are insertion, so 10% ~ 25% assignment, it's not rare but much less than insertion
-                        this->insert_or_assign(node.node, node.cost);
-                    }
-
-                public:
-                    InnPQNode top() const
-                    {
-                        fflassert(!this->empty());
-                        auto p = std::min_element(this->begin(), this->end(), [](const auto &x, const auto &y)
-                        {
-                            return x.second < y.second;
-                        });
-
-                        return InnPQNode
-                        {
-                            .node = p-> first,
-                            .cost = p->second,
-                        };
-                    }
-
                 public:
                     InnPQNode pick()
                     {
                         // linearly find the minNode by O(n), makes pick() slow while update() is O(1)
                         // based on the fact that 1 pick() needs 8 or 16 update()
 
-                        const auto t = top();
-                        this->erase(t.node);
+                        const auto t = this->top();
+                        this->pop();
                         return t;
+                    }
+
+                    void clear()
+                    {
+                        this->c.clear();
                     }
             };
 
