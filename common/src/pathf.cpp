@@ -193,7 +193,9 @@ void pathf::AStarPathFinder::expand_f()
     }
 
     for(const auto stepSize: m_stepSizeList){
-        for(const auto d: getDirDiffList(m_checkTurn == 0 ? 1 : 8)){
+        for(const auto d: getDirDiffList(8)){
+            // always use currNode.node.dir to calculate nextDir for 1 hop
+            // when checkTurn is zero, you can not know which direction exactly currNode is
             const auto nextDir = pathf::getNextDir(currNode.node.dir, d);
             const auto [nextX, nextY] = pathf::getFrontGLoc(currNode.node.x, currNode.node.y, nextDir, stepSize);
             fflassert(checkGLoc(nextX, nextY, nextDir), nextX, nextY, nextDir);
@@ -202,14 +204,14 @@ void pathf::AStarPathFinder::expand_f()
             {
                 .x   = nextX,
                 .y   = nextY,
-                .dir = nextDir,
+                .dir = ((m_checkTurn == 0) ? DIR_BEGIN : nextDir),
             };
 
             if(prevNode.has_value() && prevNode.value() == nextNode){
                 continue; // don't go back
             }
 
-            const auto hopCost = m_oneStepCost(currNode.node.x, currNode.node.y, m_checkTurn == 0 ? nextNode.dir : currNode.node.dir, nextNode.x, nextNode.y);
+            const auto hopCost = m_oneStepCost(currNode.node.x, currNode.node.y, m_checkTurn == 0 ? nextDir : currNode.node.dir, nextNode.x, nextNode.y);
             if(!hopCost.has_value()){
                 continue; // can not reach
             }
@@ -272,6 +274,9 @@ void pathf::AStarPathFinder::expand_r()
         for(const auto dFrom: getDirDiffList(m_checkTurn == 0 ? 8 : 1)){
             // need to match from direction
             // if ignore turn completely, all 8 directions can be used
+            //
+            // always use currNode.node.dir to calculate nextDir for 1 hop
+            // when checkTurn is zero, you can not know which direction exactly currNode is
             const auto fromDir = pathf::getNextDir(currNode.node.dir, dFrom);
             const auto [fromX, fromY] = pathf::getBackGLoc(currNode.node.x, currNode.node.y, fromDir, stepSize);
 
