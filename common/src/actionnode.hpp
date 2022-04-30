@@ -49,11 +49,11 @@ struct ActionNode
     uint16_t speed     : 9;
     uint16_t direction : 5;
 
-    uint16_t x;
-    uint16_t y;
+    int16_t x;
+    int16_t y;
 
-    uint16_t aimX;
-    uint16_t aimY;
+    int16_t aimX;
+    int16_t aimY;
 
     union
     {
