@@ -1,6 +1,7 @@
 #include <cfloat>
 #include "pathf.hpp"
 #include "mathf.hpp"
+#include "logprof.hpp"
 #include "fflerror.hpp"
 
 namespace
@@ -304,6 +305,8 @@ void pathf::AStarPathFinder::expand_r()
 
 pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, int srcY, int srcDir, int dstX, int dstY, size_t searchCount)
 {
+    logProfiler();
+
     fflassert(checkGLoc(srcX, srcY, srcDir), srcX, srcY, srcDir);
     fflassert(checkGLoc(dstX, dstY), dstX, dstY);
 
