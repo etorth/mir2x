@@ -20,7 +20,7 @@
 
 extern MonoServer *g_monoServer;
 BattleObject::BOPathFinder::BOPathFinder(const BattleObject *boPtr, int checkCO)
-    : pathf::AStarPathFinder(false, boPtr->maxStep(), [this](int srcX, int srcY, int srcDir, int dstX, int dstY) -> std::optional<double>
+    : pathf::AStarPathFinder(0, boPtr->maxStep(), [this](int srcX, int srcY, int srcDir, int dstX, int dstY) -> std::optional<double>
       {
           fflassert(pathf::hopValid(maxStep(), srcX, srcY, dstX, dstY), maxStep(), srcX, srcY, dstX, dstY);
           return m_BO->oneStepCost(this, m_checkCO, srcX, srcY, srcDir, dstX, dstY);
