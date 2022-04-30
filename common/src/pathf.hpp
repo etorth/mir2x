@@ -361,12 +361,14 @@ namespace pathf
             const int m_maxStep;
 
         private:
-            const std::array<int, 8>   m_nextMoveDirList;
-            const std::span<const int> m_nextTurnDirList;
-
-        private:
             const std::array<int, 2>   m_stepSizeBuf;
             const std::span<const int> m_stepSizeList;
+
+        private:
+            constexpr static int m_dirDiffList []
+            {
+                0, +1, -1, +2, -2, +3, -3, 4,
+            };
 
         private:
             // give very close weight for StepSize = 1 and StepSize = maxStep to prefer bigger hops
@@ -435,10 +437,8 @@ namespace pathf
             AStarPathFinder(bool argCheckTurn, int argMaxStepSize, std::function<std::optional<double>(int, int, int, int, int)> fnOneStepCost)
                 : m_checkTurn(argCheckTurn)
                 , m_maxStep(argMaxStepSize)
-                , m_nextMoveDirList{0, +1, -1, +2, -2, +3, -3, 4}
-                , m_nextTurnDirList(m_nextMoveDirList.begin(), (m_checkTurn == 0) ? 1 : 8)
                 , m_stepSizeBuf{m_maxStep, 1}
-                , m_stepSizeList(m_stepSizeBuf.begin(), (m_maxStep > 1) ? 2 : 1)
+                , m_stepSizeList(m_stepSizeBuf.begin(), (m_maxStep == 1) ? 1 : 2)
                 , m_oneStepCost(std::move(fnOneStepCost))
             {
                 fflassert(m_oneStepCost);
@@ -481,8 +481,10 @@ namespace pathf
         private:
             void updateDoneCost(const InnNode &node, double cost)
             {
-                m_doneNode = node;
-                m_doneCost = std::min<double>(m_doneCost.value_or(DBL_MAX), cost);
+                if(cost < m_doneCost.value_or(DBL_MAX)){
+                    m_doneNode = node;
+                    m_doneCost = cost;
+                }
             }
 
         private:
@@ -504,6 +506,12 @@ namespace pathf
             double pr(int x, int y) const
             {
                 return (pi(x, y, m_srcNode.x, m_srcNode.y) - pi(x, y, m_dstX, m_dstY) + m_pi_f_s) / 2.0;
+            }
+
+        private:
+            constexpr static std::span<const int> getDirDiffList(size_t length)
+            {
+                return {m_dirDiffList, std::min<size_t>(std::extent_v<decltype(m_dirDiffList)>, length)};
             }
     };
 }

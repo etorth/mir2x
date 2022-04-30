@@ -172,9 +172,6 @@ void pathf::AStarPathFinder::expand_f()
     const auto currNode = m_cost_PQ_f.pick();
     const auto prevNode = [&currNode, this]() -> std::optional<pathf::AStarPathFinder::InnNode>
     {
-        // all other node in m_openSet mush have parent, except src node
-        // src node can NOT have parent
-
         if(currNode.node.eq(m_srcNode.x, m_srcNode.y)){
             return {};
         }
@@ -186,8 +183,8 @@ void pathf::AStarPathFinder::expand_f()
     }();
 
     for(const auto stepSize: m_stepSizeList){
-        for(const auto i: m_nextMoveDirList){
-            const auto nextDir = pathf::getNextDir(currNode.node.dir, i);
+        for(const auto d: getDirDiffList(m_checkTurn == 0 ? 1 : 8)){
+            const auto nextDir = pathf::getNextDir(currNode.node.dir, d);
             const auto [nextX, nextY] = pathf::getFrontGLoc(currNode.node.x, currNode.node.y, nextDir, stepSize);
             fflassert(checkGLoc(nextX, nextY, nextDir), nextX, nextY, nextDir);
 
@@ -211,8 +208,14 @@ void pathf::AStarPathFinder::expand_f()
             const auto reducedCost = hopCost.value() - pf(currNode.node.x, currNode.node.y) + pf(nextNode.x, nextNode.y);
 
             fflassert(reducedCost >= 0.0, reducedCost);
-            if(!m_cost_f.count(nextNode) || currNode.cost + reducedCost < m_cost_f.at(nextNode)){
-                m_cost_f[nextNode] = reducedCost;
+            if(auto p = m_cost_f.find(nextNode); p == m_cost_f.end() || currNode.cost + reducedCost < p->second){
+                if(p == m_cost_f.end()){
+                    m_cost_f.try_emplace(nextNode, currNode.cost + reducedCost);
+                }
+                else{
+                    p->second = currNode.cost + reducedCost;
+                }
+
                 m_parentSet_f[nextNode] = currNode.node;
                 m_cost_PQ_f.update(pathf::AStarPathFinder::InnPQNode
                 {
@@ -236,9 +239,6 @@ void pathf::AStarPathFinder::expand_r()
     const auto currNode = m_cost_PQ_r.top();
     const auto prevNode = [&currNode, this]() -> std::optional<pathf::AStarPathFinder::InnNode>
     {
-        // all other node in m_openSet mush have parent, except src node
-        // src node can NOT have parent
-
         if(currNode.node.eq(m_dstX, m_dstY)){
             return {};
         }
@@ -250,42 +250,53 @@ void pathf::AStarPathFinder::expand_r()
     }();
 
     for(const auto stepSize: m_stepSizeList){
-        const auto [fromX, fromY] = pathf::getBackGLoc(currNode.node.x, currNode.node.y, currNode.node.dir, stepSize);
-        checkGLoc(fromX, fromY);
+        for(const auto dFrom: getDirDiffList(m_checkTurn == 0 ? 8 : 1)){
+            // need to match from direction
+            // if ignore turn completely, all 8 directions can be used
+            const auto fromDir = pathf::getNextDir(currNode.node.dir, dFrom);
+            const auto [fromX, fromY] = pathf::getBackGLoc(currNode.node.x, currNode.node.y, fromDir, stepSize);
 
-        for(int i: m_nextTurnDirList){
-            const pathf::AStarPathFinder::InnNode fromNode
-            {
-                .x   = fromX,
-                .y   = fromY,
-                .dir = pathf::getNextDir(currNode.node.dir, i),
-            };
-
-            if(prevNode.has_value() && prevNode.value() == fromNode){
-                continue; // don't go back
-            }
-
-            const auto hopCost = m_oneStepCost(fromNode.x, fromNode.y, fromNode.dir, currNode.node.x, currNode.node.y);
-            if(!hopCost.has_value()){
-                continue; // can not reach
-            }
-
-            fflassert(hopCost.value() >= 0.0, hopCost.value());
-            const auto reducedCost = hopCost.value() - pr(currNode.node.x, currNode.node.y) + pr(fromNode.x, fromNode.y);
-
-            fflassert(reducedCost >= 0.0, reducedCost);
-            if(!m_cost_r.count(fromNode) || currNode.cost + reducedCost < m_cost_r.at(fromNode)){
-                m_cost_r[fromNode] = reducedCost;
-                m_parentSet_r[fromNode] = currNode.node;
-                m_cost_PQ_r.update(pathf::AStarPathFinder::InnPQNode
+            checkGLoc(fromX, fromY);
+            for(const auto d: getDirDiffList(m_checkTurn == 0 ? 1 : 8)){
+                const pathf::AStarPathFinder::InnNode fromNode
                 {
-                    .node = fromNode,
-                    .cost = currNode.cost + reducedCost,
-                });
-            }
+                    .x   = fromX,
+                    .y   = fromY,
+                    .dir = ((m_checkTurn == 0) ? DIR_BEGIN : pathf::getNextDir(currNode.node.dir, d)),
+                };
 
-            if(const auto p = m_cost_f.find(fromNode); p != m_cost_f.end()){
-                updateDoneCost(fromNode, currNode.cost + reducedCost + p->second);
+                if(prevNode.has_value() && prevNode.value() == fromNode){
+                    continue; // don't go back
+                }
+
+                const auto hopCost = m_oneStepCost(fromNode.x, fromNode.y, (m_checkTurn == 0) ? fromDir : fromNode.dir, currNode.node.x, currNode.node.y);
+                if(!hopCost.has_value()){
+                    continue; // can not reach
+                }
+
+                fflassert(hopCost.value() >= 0.0, hopCost.value());
+                const auto reducedCost = hopCost.value() - pr(currNode.node.x, currNode.node.y) + pr(fromNode.x, fromNode.y);
+
+                fflassert(reducedCost >= 0.0, reducedCost);
+                if(auto p = m_cost_r.find(fromNode); p == m_cost_r.end() || currNode.cost + reducedCost < p->second){
+                    if(p == m_cost_r.end()){
+                        m_cost_r.try_emplace(fromNode, currNode.cost + reducedCost);
+                    }
+                    else{
+                        p->second = currNode.cost + reducedCost;
+                    }
+
+                    m_parentSet_r[fromNode] = currNode.node;
+                    m_cost_PQ_r.update(pathf::AStarPathFinder::InnPQNode
+                    {
+                        .node = fromNode,
+                        .cost = currNode.cost + reducedCost,
+                    });
+                }
+
+                if(const auto p = m_cost_f.find(fromNode); p != m_cost_f.end()){
+                    updateDoneCost(fromNode, currNode.cost + reducedCost + p->second);
+                }
             }
         }
     }
@@ -300,7 +311,7 @@ pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, 
     {
         .x   = srcX,
         .y   = srcY,
-        .dir = (m_checkTurn == 0) ? DIR_BEGIN : srcDir,
+        .dir = ((m_checkTurn == 0) ? DIR_BEGIN : srcDir),
     };
 
     fflassert(!m_srcNode.eq(dstX, dstY), srcX, srcY, srcDir, dstX, dstY);
@@ -320,12 +331,12 @@ pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, 
     m_doneCost.reset();
     m_doneNode.reset();
 
-    for(int i = 0; i < ((m_checkTurn != 1) ? 1 : 8); ++i){
+    for(const auto d: getDirDiffList(m_checkTurn == 1 ? 8 : 1)){
         const pathf::AStarPathFinder::InnNode firstNode
         {
             .x   = m_srcNode.x,
             .y   = m_srcNode.y,
-            .dir = pathf::getNextDir(m_srcNode.dir, i),
+            .dir = pathf::getNextDir(m_srcNode.dir, d),
         };
 
         m_cost_f[firstNode] = 0.0;
@@ -336,12 +347,12 @@ pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, 
         });
     }
 
-    for(int i = 0; i < ((m_checkTurn == 0) ? 1 : 8); ++i){
+    for(const auto d: getDirDiffList(m_checkTurn == 0 ? 1 : 8)){
         const pathf::AStarPathFinder::InnNode lastNode
         {
             .x   = m_dstX,
             .y   = m_dstY,
-            .dir = pathf::getNextDir(m_srcNode.dir, i),
+            .dir = pathf::getNextDir(m_srcNode.dir, d),
         };
 
         m_cost_r[lastNode] = 0.0;
@@ -352,13 +363,18 @@ pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, 
         });
     }
 
+    const auto fnCheckStop = [this]() -> bool
+    {
+        return m_cost_PQ_f.top().cost + m_cost_PQ_r.top().cost >= m_doneCost.value_or(DBL_MAX);
+    };
+
     for(size_t c = 0; (searchCount <= 0 || c < searchCount) && !m_cost_PQ_f.empty() && !m_cost_PQ_r.empty(); ++c){
         expand_f();
         if(m_cost_PQ_f.empty()){
             break;
         }
 
-        if(m_cost_PQ_f.top().cost + m_cost_PQ_r.top().cost >= m_doneCost.value_or(DBL_MAX)){
+        if(fnCheckStop()){
             break;
         }
 
@@ -367,7 +383,7 @@ pathf::AStarPathFinder::PathFindResult pathf::AStarPathFinder::search(int srcX, 
             break;
         }
 
-        if(m_cost_PQ_f.top().cost + m_cost_PQ_r.top().cost >= m_doneCost.value_or(DBL_MAX)){
+        if(fnCheckStop()){
             break;
         }
     }
