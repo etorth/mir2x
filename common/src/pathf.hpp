@@ -476,7 +476,20 @@ namespace pathf
             double pi(int srcX, int srcY, int dstX, int dstY) const
             {
                 const auto d = std::max<long>(std::labs(dstX - srcX), std::labs(dstY - srcY));
-                return 1.0 * ((d / m_maxStep) + (d % m_maxStep));
+                constexpr double lowb_eps = 0.00001;
+
+                // this implemetation converts A-star into Dijkstra algorithm
+                // h(v) is a lower bound of path cost cost(v), and reduced_cost(v) = cost(v) - h(v)
+                // to make reduced_cost() always positive, uses huristic function:
+                //
+                //     h(v) = h(v) - lowb_eps
+                //
+                // this helps to avoid h(v) to be exact tight
+                // tight h(v) sometimes causes reduced_cost(v) be a very small negative decimal while it should always be non-negative
+
+                return 0.0
+                    + (1.0 + 0.1 * m_maxStep - lowb_eps) * (d / m_maxStep)
+                    + (1.0 + 0.1 *         1 - lowb_eps) * (d % m_maxStep);
             }
 
             double pf(int x, int y) const
