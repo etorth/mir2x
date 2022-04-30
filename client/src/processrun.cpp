@@ -1783,6 +1783,14 @@ void ProcessRun::drawObject(int x, int y, int objd, bool alpha) const
             g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
         }
     }
+
+    if(objd == OBJD_OVERGROUND1){
+        if(g_clientArgParser->fillMapPassGrid){
+            if(!(m_mir2xMapData.validC(x, y) && m_mir2xMapData.cell(x, y).land.canThrough())){
+                g_sdlDevice->fillRectangle(colorf::YELLOW + colorf::A_SHF(127), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
+            }
+        }
+    }
 }
 
 void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1) const

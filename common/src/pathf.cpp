@@ -396,6 +396,10 @@ std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
     fflassert(hasPath());
     const auto fnAppendParentNode = [](const auto &startNode, int stopNodeX, int stopNodeY, const auto &parentSet, auto &result)
     {
+        if(startNode.eq(stopNodeX, stopNodeY)){
+            return;
+        }
+
         auto currNode = startNode;
         for(auto p = parentSet.find(currNode); p != parentSet.end(); p = parentSet.find(currNode)){
             result.push_back(pathf::PathNode
