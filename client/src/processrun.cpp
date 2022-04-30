@@ -392,6 +392,16 @@ void ProcessRun::draw() const
         }
     }
 
+    if(g_clientArgParser->fillMapBlockGrid){
+        for(int y = y0; y <= y1; ++y){
+            for(int x = x0; x <= x1; ++x){
+                if(!(m_mir2xMapData.validC(x, y) && m_mir2xMapData.cell(x, y).land.canThrough())){
+                    g_sdlDevice->fillRectangle(colorf::YELLOW + colorf::A_SHF(127), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
+                }
+            }
+        }
+    }
+
     // draw all rotating stars
     // notify players that there is somethig to check
     drawRotateStar(x0, y0, x1, y1);
@@ -1781,14 +1791,6 @@ void ProcessRun::drawObject(int x, int y, int objd, bool alpha) const
 
             SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, colorf::RGBA(0XFF, 0XFF, 0XFF, drawAlphaObj));
             g_sdlDevice->drawTexture(texPtr, x * SYS_MAPGRIDXP - m_viewX, (y + 1) * SYS_MAPGRIDYP - m_viewY - texH);
-        }
-    }
-
-    if(objd == OBJD_OVERGROUND1){
-        if(g_clientArgParser->fillMapPassGrid){
-            if(!(m_mir2xMapData.validC(x, y) && m_mir2xMapData.cell(x, y).land.canThrough())){
-                g_sdlDevice->fillRectangle(colorf::YELLOW + colorf::A_SHF(127), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY);
-            }
         }
     }
 }

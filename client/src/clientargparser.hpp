@@ -28,7 +28,7 @@ struct ClientArgParser
     const bool drawUID;                 // "--draw-uid"
     const bool alwaysDrawName;          // "--always-draw-name"
     const bool drawMapGrid;             // "--draw-map-grid"
-    const bool fillMapPassGrid;         // "--fill-map-pass-grid"
+    const bool fillMapBlockGrid;        // "--fill-map-block-grid"
     const bool drawMagicGrid;           // "--draw-magic-grid"
     const bool drawTranspGrid;          // "--draw-transp-grid"
     const bool drawHPBar;               // "--draw-hp-bar"
@@ -58,7 +58,7 @@ struct ClientArgParser
         , drawUID(cmdParser["draw-uid"])
         , alwaysDrawName(cmdParser["always-draw-name"])
         , drawMapGrid(cmdParser["draw-map-grid"])
-        , fillMapPassGrid(cmdParser["fill-map-pass-grid"])
+        , fillMapBlockGrid(cmdParser["fill-map-block-grid"])
         , drawMagicGrid(cmdParser["draw-magic-grid"])
         , drawTranspGrid(cmdParser["draw-transp-grid"])
         , drawHPBar(cmdParser["draw-hp-bar"])
