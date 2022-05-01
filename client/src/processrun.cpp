@@ -284,23 +284,6 @@ void ProcessRun::draw() const
         }
     }
 
-    if(g_clientArgParser->drawMapGrid){
-        const int gridX0 = m_viewX / SYS_MAPGRIDXP;
-        const int gridY0 = m_viewY / SYS_MAPGRIDYP;
-
-        const int gridX1 = (m_viewX + g_sdlDevice->getRendererWidth()) / SYS_MAPGRIDXP;
-        const int gridY1 = (m_viewY + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP;
-
-        SDLDeviceHelper::EnableRenderColor drawColor(colorf::RGBA(0, 255, 0, 128));
-        for(int x = gridX0; x <= gridX1; ++x){
-            g_sdlDevice->drawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_sdlDevice->getRendererHeight());
-        }
-
-        for(int y = gridY0; y <= gridY1; ++y){
-            g_sdlDevice->drawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_sdlDevice->getRendererWidth(), y * SYS_MAPGRIDYP - m_viewY);
-        }
-    }
-
     // draw ground ash, ice mark etc.
     // should be draw immediately before dead actors, like over-ground objects
     for(const auto &p: m_fixedLocMagicList){
@@ -399,6 +382,23 @@ void ProcessRun::draw() const
                     g_sdlDevice->fillRectangle(colorf::YELLOW + colorf::A_SHF(127), x * SYS_MAPGRIDXP - m_viewX, y * SYS_MAPGRIDYP - m_viewY, SYS_MAPGRIDXP, SYS_MAPGRIDYP);
                 }
             }
+        }
+    }
+
+    if(g_clientArgParser->drawMapGrid){
+        const int gridX0 = m_viewX / SYS_MAPGRIDXP;
+        const int gridY0 = m_viewY / SYS_MAPGRIDYP;
+
+        const int gridX1 = (m_viewX + g_sdlDevice->getRendererWidth ()) / SYS_MAPGRIDXP;
+        const int gridY1 = (m_viewY + g_sdlDevice->getRendererHeight()) / SYS_MAPGRIDYP;
+
+        SDLDeviceHelper::EnableRenderColor drawColor(colorf::RGBA(0, 255, 0, 128));
+        for(int x = gridX0; x <= gridX1; ++x){
+            g_sdlDevice->drawLine(x * SYS_MAPGRIDXP - m_viewX, 0, x * SYS_MAPGRIDXP - m_viewX, g_sdlDevice->getRendererHeight());
+        }
+
+        for(int y = gridY0; y <= gridY1; ++y){
+            g_sdlDevice->drawLine(0, y * SYS_MAPGRIDYP - m_viewY, g_sdlDevice->getRendererWidth(), y * SYS_MAPGRIDYP - m_viewY);
         }
     }
 
