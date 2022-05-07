@@ -943,11 +943,13 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(600, [this, magicID, smFM]()
                 {
-                    if(to_u32(magicID) == DBCOM_MAGICID(u8"召唤骷髅")){
-                        addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
-                    }
-                    else{
-                        addMonster(DBCOM_MONSTERID(u8"超强骷髅"), smFM.AimX, smFM.AimY, false);
+                    for(int i = 0; i < g_serverArgParser->summonCount; ++i){
+                        if(to_u32(magicID) == DBCOM_MAGICID(u8"召唤骷髅")){
+                            addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
+                        }
+                        else{
+                            addMonster(DBCOM_MONSTERID(u8"超强骷髅"), smFM.AimX, smFM.AimY, false);
+                        }
                     }
 
                     // addMonster will send ACTION_SPAWN to client
@@ -971,7 +973,9 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(1000, [this, smFM]()
                 {
-                    addMonster(DBCOM_MONSTERID(u8"神兽"), smFM.AimX, smFM.AimY, false);
+                    for(int i = 0; i < g_serverArgParser->summonCount; ++i){
+                        addMonster(DBCOM_MONSTERID(u8"神兽"), smFM.AimX, smFM.AimY, false);
+                    }
                 });
                 break;
             }

@@ -48,6 +48,7 @@ struct ServerArgParser
     const int  preloadMapID;                // "--preload-map-id"
     const int  actorPoolThread;             // "--actor-pool-thread"
     const int  logicalFPS;                  // "--logical-fps"
+    const int  summonCount;                 // "--summon-count"
 
     ServerArgParser(const argh::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
@@ -126,6 +127,23 @@ struct ServerArgParser
               }
               else{
                   return 10;
+              }
+          }())
+        , summonCount([&cmdParser]() -> int
+          {
+              if(const auto numStr = cmdParser("summon-count").str(); !numStr.empty()){
+                  try{
+                      if(const auto count = std::stoi(numStr); count > 0){
+                          return count;
+                      }
+                  }
+                  catch(...){
+                      // ...
+                  }
+                  throw fflerror("invalid count: %s", numStr.c_str());
+              }
+              else{
+                  return 1;
               }
           }())
     {}
