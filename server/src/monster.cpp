@@ -345,7 +345,9 @@ void Monster::trackUID(uint64_t nUID, DCCastRange r, std::function<void()> onOK,
 void Monster::followMaster(std::function<void()> onOK, std::function<void()> onError)
 {
     if(!(masterUID() && canMove())){
-        onError();
+        if(onError){
+            onError();
+        }
         return;
     }
 
@@ -359,39 +361,36 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
         // possible during the location query master changed
 
         if(coLoc.uid != masterUID()){
-            onError();
+            if(onError){
+                onError();
+            }
             return false;
         }
 
         if(!canMove()){
-            onError();
+            if(onError){
+                onError();
+            }
             return false;
         }
 
-        auto nX         = coLoc.x;
-        auto nY         = coLoc.y;
-        auto nMapID     = coLoc.mapID;
-        auto nDirection = coLoc.direction;
-
-        // get back location with different distance
-        // here we use different distance if space move and follow
-
-        auto fnGetBack = [](int nX, int nY, int nDirection, int nLD) -> std::tuple<int, int>
+        const auto nX         = coLoc.x;
+        const auto nY         = coLoc.y;
+        const auto nMapID     = coLoc.mapID;
+        const auto nDirection = pathf::dirValid(coLoc.direction) ? coLoc.direction : [this]() -> int
         {
-            // randomly pick a location
-            // for some COs it doesn't have direction
-            if(!pathf::dirValid(nDirection)){
-                nDirection = ((std::rand() % 8) + (DIR_NONE + 1));
+            switch(uidf::getUIDType(masterUID())){
+                case UID_PLY: return pathf::getRandDir();
+                default     : return DIR_BEGIN;
             }
-            return pathf::getBackGLoc(nX, nY, nDirection, nLD);
-        };
+        }();
 
         if((nMapID == mapID()) && (mathf::LDistance<double>(nX, nY, X(), Y()) < 10.0)){
 
             // not that long
             // slave should move step by step
 
-            auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 1);
+            const auto [nBackX, nBackY] = pathf::getBackGLoc(nX, nY, nDirection, 1);
             switch(mathf::LDistance2(nBackX, nBackY, X(), Y())){
                 case 0:
                     {
@@ -399,11 +398,13 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
                         // need to make a turn if needed
 
                         if(Direction() != nDirection){
-                            m_direction= nDirection;
+                            m_direction = nDirection;
                             dispatchAction(makeActionStand());
                         }
 
-                        onOK();
+                        if(onOK){
+                            onOK();
+                        }
                         return true;
                     }
                 default:
@@ -416,7 +417,7 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
             // long distance
             // need to do spacemove or even mapswitch
 
-            const auto [nBackX, nBackY] = fnGetBack(nX, nY, nDirection, 3);
+            const auto [nBackX, nBackY] = pathf::getBackGLoc(nX, nY, nDirection, 3);
             if(nMapID == mapID()){
                 return requestSpaceMove(nBackX, nBackY, false, onOK, onError);
             }

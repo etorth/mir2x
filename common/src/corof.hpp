@@ -263,7 +263,7 @@ namespace corof
             template<typename U = T> void assign(U && u)
             {
                 fflassert(!m_var.has_value());
-                m_var = std::move(u);
+                m_var = std::make_optional<T>(std::move(u));
             }
 
         public:
