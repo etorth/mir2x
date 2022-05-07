@@ -1158,6 +1158,8 @@ void ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
             .duration = amCFW.duration,
             .dps      = amCFW.dps,
         });
+
+        m_fireWallLocList.insert({amCFW.x, amCFW.y});
         postGridFireWallList(amCFW.x, amCFW.y);
     }
 }

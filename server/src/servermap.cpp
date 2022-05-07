@@ -876,6 +876,7 @@ void ServerMap::addGridItem(SDItem item, int x, int y, bool post)
         .dropTime = hres_tstamp().to_msec(),
     });
 
+    m_gridItemLocList.insert({x, y});
     if(post){
         postGridItemIDList(x, y);
     }
@@ -896,6 +897,7 @@ void ServerMap::addGridItemID(uint32_t itemID, int x, int y, bool post)
         .dropTime = hres_tstamp().to_msec(),
     });
 
+    m_gridItemLocList.insert({x, y});
     if(post){
         postGridItemIDList(x, y);
     }
@@ -1470,79 +1472,107 @@ int ServerMap::checkPathGrid(int argX, int argY) const
 
 void ServerMap::updateMapGrid()
 {
-    for(int nX = 0; nX < W(); ++nX){
-        for(int nY = 0; nY < H(); ++nY){
+    updateMapGridFireWall();
+    updateMapGridGroundItem();
+}
 
-            bool hasDoneWallFire = false;
-            auto &gridFireWallList = getGrid(nX, nY).fireWallList;
+void ServerMap::updateMapGridFireWall()
+{
+    for(auto locIter = m_fireWallLocList.begin(); locIter != m_fireWallLocList.end();){
+        const auto nX = std::get<0>(*locIter);
+        const auto nY = std::get<1>(*locIter);
 
-            for(auto p = gridFireWallList.begin(); p != gridFireWallList.end();){
-                const auto currTime = hres_tstamp().to_msec();
-                if(currTime >= p->startTime + p->duration){
-                    hasDoneWallFire = true;
-                    p = gridFireWallList.erase(p);
-                    continue;
-                }
+        bool hasDoneWallFire = false;
+        auto &gridFireWallList = getGrid(nX, nY).fireWallList;
 
-                if(p->dps > 0 && currTime > p->lastAttackTime + 1000 / p->dps){
-                    AMAttack amA;
-                    std::memset(&amA, 0, sizeof(amA));
+        for(auto p = gridFireWallList.begin(); p != gridFireWallList.end();){
+            const auto currTime = hres_tstamp().to_msec();
+            if(currTime >= p->startTime + p->duration){
+                hasDoneWallFire = true;
+                p = gridFireWallList.erase(p);
+                continue;
+            }
 
-                    amA.UID = p->uid;
-                    amA.mapID = UID();
-                    amA.X = nX;
-                    amA.Y = nY;
+            if(p->dps > 0 && currTime > p->lastAttackTime + 1000 / p->dps){
+                AMAttack amA;
+                std::memset(&amA, 0, sizeof(amA));
 
-                    amA.damage = MagicDamage
-                    {
-                        .magicID = to_d(DBCOM_MAGICID(u8"火墙")),
-                        .damage = mathf::rand(p->minDC, p->maxDC),
-                        .mcHit = p->mcHit,
-                    };
+                amA.UID = p->uid;
+                amA.mapID = UID();
+                amA.X = nX;
+                amA.Y = nY;
 
-                    doUIDList(nX, nY, [amA, this](uint64_t uid) -> bool
-                    {
-                        if(uid != amA.UID){
-                            switch(uidf::getUIDType(uid)){
-                                case UID_PLY:
-                                case UID_MON:
-                                    {
-                                        m_actorPod->forward(uid, {AM_ATTACK, amA});
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        break;
-                                    }
-                            }
+                amA.damage = MagicDamage
+                {
+                    .magicID = to_d(DBCOM_MAGICID(u8"火墙")),
+                    .damage = mathf::rand(p->minDC, p->maxDC),
+                    .mcHit = p->mcHit,
+                };
+
+                doUIDList(nX, nY, [amA, this](uint64_t uid) -> bool
+                {
+                    if(uid != amA.UID){
+                        switch(uidf::getUIDType(uid)){
+                            case UID_PLY:
+                            case UID_MON:
+                                {
+                                    m_actorPod->forward(uid, {AM_ATTACK, amA});
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
                         }
-                        return false;
-                    });
-                    p->lastAttackTime = currTime;
-                }
+                    }
+                    return false;
+                });
+                p->lastAttackTime = currTime;
+            }
+            p++;
+        }
+
+        if(hasDoneWallFire){
+            postGridFireWallList(nX, nY);
+        }
+
+        if(gridFireWallList.empty()){
+            locIter = m_fireWallLocList.erase(locIter);
+        }
+        else{
+            locIter++;
+        }
+    }
+}
+
+void ServerMap::updateMapGridGroundItem()
+{
+    for(auto locIter = m_gridItemLocList.begin(); locIter != m_gridItemLocList.end();){
+        const auto nX = std::get<0>(*locIter);
+        const auto nY = std::get<1>(*locIter);
+
+        bool hasItemExpired = false;
+        auto &gridItemList = getGridItemList(nX, nY);
+
+        for(auto p = gridItemList.begin(); p != gridItemList.end();){
+            if(hres_tstamp().to_msec() >= p->dropTime + 120 * 1000){
+                hasItemExpired = true;
+                p = gridItemList.erase(p);
+            }
+            else{
                 p++;
             }
+        }
 
-            if(hasDoneWallFire){
-                postGridFireWallList(nX, nY);
-            }
+        if(hasItemExpired){
+            postGridItemIDList(nX, nY);
+        }
 
-            bool hasItemExpired = false;
-            auto &gridItemList = getGridItemList(nX, nY);
-
-            for(auto p = gridItemList.begin(); p != gridItemList.end();){
-                if(hres_tstamp().to_msec() >= p->dropTime + 120 * 1000){
-                    hasItemExpired = true;
-                    p = gridItemList.erase(p);
-                }
-                else{
-                    p++;
-                }
-            }
-
-            if(hasItemExpired){
-                postGridItemIDList(nX, nY);
-            }
+        if(gridItemList.empty()){
+            locIter = m_gridItemLocList.erase(locIter);
+        }
+        else{
+            locIter++;
         }
     }
 }

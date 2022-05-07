@@ -35,6 +35,8 @@
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
 #include "batchluamodule.hpp"
+#include "lochashtable.hpp"
+#include "parallel_hashmap/phmap.h"
 
 class ServerGuard;
 class Player;
@@ -147,6 +149,8 @@ class ServerMap final: public ServerObject
 
     private:
         std::vector<MapGrid> m_gridList;
+        phmap::flat_hash_set<std::tuple<int, int>, LocHashHelper> m_fireWallLocList;
+        phmap::flat_hash_set<std::tuple<int, int>, LocHashHelper> m_gridItemLocList;
 
     private:
         std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
@@ -156,7 +160,9 @@ class ServerMap final: public ServerObject
 
     public:
         ServerMap(uint32_t);
-       ~ServerMap() = default;
+
+    private:
+        ~ServerMap() = default;
 
     public:
         uint32_t ID() const { return m_ID; }
@@ -330,6 +336,8 @@ class ServerMap final: public ServerObject
 
     private:
         void updateMapGrid();
+        void updateMapGridFireWall();
+        void updateMapGridGroundItem();
 
     private:
         template<std::predicate<uint64_t> F> bool doUIDList(int x, int y, const F &func)
