@@ -52,10 +52,10 @@ std::optional<uint32_t> NPCFrameGfxSeq::gfxID(const ClientNPC *npcPtr, std::opti
         fflassert(frame < count);
 
         return 0
-            + (to_u32(npcPtr->lookID()                & 0X07FF) << 12)
-            + (to_u32(npcPtr->currMotion()->type      & 0X000F) <<  8)
-            + (to_u32(npcPtr->currMotion()->direction & 0X0007) <<  5)
-            + (to_u32(frame                           & 0X001F) <<  0);
+            + (to_u32((npcPtr->lookID()                           ) & 0X07FF) << 12)
+            + (to_u32((npcPtr->currMotion()->type                 ) & 0X000F) <<  8)
+            + (to_u32((npcPtr->currMotion()->direction - DIR_BEGIN) & 0X0007) <<  5)
+            + (to_u32((frame                                      ) & 0X001F) <<  0);
     }
     return {};
 }

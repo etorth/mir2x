@@ -26,7 +26,7 @@ CharObject::CharObject(
 {
     fflassert(m_map);
     fflassert(m_map->validC(X(), Y()), X(), Y());
-    fflassert(pathf::dirValid(Direction()), Direction());
+    fflassert(pathf::dirValid(Direction()), Direction()); // for NPC direction is gfxDir + DIR_BEGIN
 }
 
 void CharObject::getCOLocation(uint64_t uid, std::function<void(const COLocation &)> onOK, std::function<void()> onError)

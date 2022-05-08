@@ -472,7 +472,7 @@ NPChar::NPChar(const ServerMap *mapCPtr, const SDInitNPChar &initNPChar)
 
           initNPChar.x,
           initNPChar.y,
-          initNPChar.gfxDir, // NPC gfx dir, may not be the 8-dir
+          initNPChar.gfxDir + DIR_BEGIN, // NPC gfx dir, may not be the 8-dir, but should be in DIR_BEGIN + [0, 8)
       }
     , m_npcName(initNPChar.npcName)
 {
