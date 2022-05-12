@@ -25,13 +25,15 @@ mir2x is a c/s based mir2ei implementation with various platforms supported. It 
   - animaker
   - mapeditor
 
-Notes:
+### Notes
 - This repo uses C++20 coroutine, developer needs a compiler supports c++20 to build.
 - This repo uses classic v1.45 mir2 as a reference implementation, you can try the original game:
   - Install [win-xp](https://github.com/etorth/winxp-zh) to host and run the game server/client, tested on real machine or virtualbox machine.
   - Install server/client from [mir2-v1.45](https://github.com/etorth/CBWCQ3).
   - Change screen resolution to 16bit mode to run the game.
-- Check the tutorial [here](https://github.com/etorth/mir2x/wiki/Host-your-monoserver-on-Oracle-Cloud) for how to run the ```monoserver``` remotely with Oracle Cloud.
+
+### Public Server
+- Check the tutorial [here](https://github.com/etorth/mir2x/wiki/Host-your-monoserver-on-Oracle-Cloud) for how to run the ```monoserver``` with Oracle Cloud as a public server.
 - You can try the public test server ```192.9.241.118``` by
   ```shell
   client --server-ip=192.9.241.118
