@@ -136,7 +136,7 @@ void Channel::doReadPackHeadCode()
             }
         default:
             {
-                throw fflreach();
+                throw fflvalue(m_state);
             }
     }
 }
@@ -181,7 +181,7 @@ void Channel::doReadPackBody(size_t maskSize, size_t bodySize)
             }
         default:
             {
-                throw fflreach();
+                throw fflvalue(m_state);
             }
     }
 }
@@ -240,7 +240,7 @@ void Channel::doSendPack()
             }
         default:
             {
-                throw fflreach();
+                throw fflvalue(m_state);
             }
     }
 }
@@ -317,7 +317,7 @@ void Channel::close()
             }
         default:
             {
-                throw fflreach();
+                throw fflvalue(m_state);
             }
     }
 }
@@ -325,7 +325,7 @@ void Channel::close()
 void Channel::launch()
 {
     fflassert(g_netDriver->isNetThread());
-    fflassert(m_state == CS_NONE);
+    fflassert(m_state == CS_NONE, m_state);
 
     m_state = CS_RUNNING,
     doReadPackHeadCode();
@@ -334,8 +334,8 @@ void Channel::launch()
 void Channel::bindPlayer(uint64_t uid)
 {
     fflassert(g_netDriver->isNetThread());
-    fflassert(uidf::isPlayer(uid));
+    fflassert(uidf::isPlayer(uid), uidf::getUIDString(uid));
 
-    fflassert(!m_playerUID);
+    fflassert(!m_playerUID, uidf::getUIDString(m_playerUID));
     m_playerUID = uid;
 }
