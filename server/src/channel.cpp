@@ -50,7 +50,7 @@ Channel::~Channel()
 do{ \
     if(ec){ \
         (channPtr)->m_state = CS_STOPPED; \
-        throw ChannError((channPtr)->id(), "network error on channel %d: %s", (channPtr)->id(), (ec).message().c_str()); \
+        throw ChannelError((channPtr)->id(), "network error on channel %d: %s", (channPtr)->id(), (ec).message().c_str()); \
     } \
 }while(0)
 

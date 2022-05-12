@@ -64,7 +64,7 @@ void NetDriver::launch(uint32_t port)
                 m_io->run();
                 break; // run() exited normally
             }
-            catch(const ChannError &e){
+            catch(const ChannelError &e){
                 doClose(e.channID());
                 g_monoServer->addLog(LOGTYPE_WARNING, "Channel %d disconnected.", to_d(e.channID()));
             }
@@ -94,7 +94,7 @@ void NetDriver::acceptNewConnection()
     m_acceptor->async_accept(slotRef.channPtr->socket(), [channID, this](std::error_code ec)
     {
         if(ec){
-            throw ChannError(channID, "network error when accepting new connection: %s", ec.message().c_str());
+            throw ChannelError(channID, "network error when accepting new connection: %s", ec.message().c_str());
         }
 
         auto channPtr = m_channList.at(channID).channPtr.get();

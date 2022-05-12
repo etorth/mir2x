@@ -8,7 +8,7 @@
 #include "strf.hpp"
 #include "dispatcher.hpp"
 
-class ChannError: public std::exception
+class ChannelError: public std::exception
 {
     private:
         const uint32_t m_channID;
@@ -17,11 +17,11 @@ class ChannError: public std::exception
         std::string m_what;
 
     public:
-        ChannError(uint32_t channID)
+        ChannelError(uint32_t channID)
             : m_channID(channID)
         {}
 
-        ChannError(uint32_t channID, const char *format, ...)
+        ChannelError(uint32_t channID, const char *format, ...)
             : m_channID(channID)
         {
             str_format(format, m_what);
@@ -30,7 +30,7 @@ class ChannError: public std::exception
     public:
         const char *what() const noexcept override
         {
-            return m_what.empty() ? "ChannError: unknown error" : m_what.c_str();
+            return m_what.empty() ? "ChannelError: unknown error" : m_what.c_str();
         }
 
     public:
