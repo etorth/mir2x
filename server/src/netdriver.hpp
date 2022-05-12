@@ -50,8 +50,10 @@ class NetDriver final
         std::thread m_thread;
 
     private:
-        std::queue<uint32_t> m_channIDQ;
-        std::vector<ChannelSlot> m_channList;
+        // use queue instead of vector
+        // we don't want to reuse a channel slot immediately after it disconnects
+        std::deque<uint32_t> m_channelIDList;
+        std::vector<ChannelSlot> m_channelSlotList;
 
     public:
         NetDriver();
