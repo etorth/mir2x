@@ -470,6 +470,17 @@ class threadPool
                 return;
             }
 
+            if(disablePool){
+                if(m_stop){
+                    throw deadPoolError();
+                }
+
+                for(size_t i = beginIndex; i < endIndex; ++i){
+                    forTask(0, i);
+                }
+                return;
+            }
+
             // best effort to make all calls accessing same functor
             // otherwise if use capture by value then different group accesses different functor
 
@@ -684,6 +695,9 @@ class globalThreadPool final
 
             const auto &pool = getGlobalPool();
             if(pool.disablePool || disableParallelFor){
+                // won't check pool.m_stop here
+                // because 1. we may need acquire pool.m_lock if check it
+                //         2. this pool is internal and can NOT be stopped externally
                 for(size_t i = beginIndex; i < endIndex; ++i){
                     forTask(0, i);
                 }
@@ -720,6 +734,9 @@ class globalThreadPool final
         static void waitEvalTaskList(std::initializer_list<std::function<void(int)>> taskList, bool disableParallelRun = false)
         {
             if(getGlobalPool().disablePool || disableParallelRun){
+                // won't check getGlobalPool().m_stop here
+                // because 1. we may need acquire getGlobalPool().m_lock if check it
+                //         2. this pool is internal and can NOT be stopped externally
                 for(auto &task: taskList){
                     task(0);
                 }
