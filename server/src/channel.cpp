@@ -77,7 +77,7 @@ void Channel::doReadPackHeadCode()
                                 {
                                     _abort_channel_if_errcode(channPtr, ec);
                                     if(channPtr->m_readLen[0] != 255){
-                                        fflassert(to_uz(channPtr->m_readLen[0]) <= cmsg.dataLen());
+                                        fflassert(to_uz(channPtr->m_readLen[0]) <= cmsg.dataLen(), channPtr->m_readLen[0], cmsg.name());
                                         channPtr->doReadPackBody(cmsg.maskLen(), channPtr->m_readLen[0]);
                                     }
                                     else{
