@@ -152,8 +152,38 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
 int CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)
 {
     const auto oldSize = to_d(m_inViewCOList.size());
+    const auto oldDirection = [&coLoc, this]() -> int
+    {
+        if(const auto p = getInViewCOPtr(coLoc.uid)){
+            return p->direction;
+        }
+        return DIR_NONE;
+    }();
+
     if(!forceDelete && inView(coLoc.mapID, coLoc.x, coLoc.y)){
-        m_inViewCOList[coLoc.uid] = coLoc;
+        m_inViewCOList.insert_or_assign(coLoc.uid, COLocation
+        {
+            .uid   = coLoc.uid,
+            .mapID = coLoc.mapID,
+
+            .x = coLoc.x,
+            .y = coLoc.y,
+
+            // for CO mov: 1. send ACTION_MOVE to map, map then does boardcasts for the ACTION_MOVE
+            //             2. send ACTION_STAND to all its cached neighbors
+
+            // this makes the possibility:
+            //
+            //     1. neighbor firstly received ACTION_STAND, which has a valid direction
+            //     2. neighbor then received ACTION_MOVE from map, which doesn't have an direction
+            //
+            // if 2) overwrites 1), neighbor has no valid direction for the moving CO
+            // current solution is always reusing last direction if new coming action doesn't have one
+
+            // if this is the first action, and without a valid direction
+            // then we keep the cached direction as DIR_NONE
+            .direction = pathf::dirValid(coLoc.direction) ? coLoc.direction : oldDirection,
+        });
     }
     else{
         m_inViewCOList.erase(coLoc.uid);
