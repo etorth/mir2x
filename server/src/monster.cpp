@@ -904,14 +904,18 @@ bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
 bool Monster::moveOneStep(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        onError();
+        if(onError){
+            onError();
+        }
         return false;
     }
 
     switch(estimateHop(nX, nY)){
         case 0:
             {
-                onError();
+                if(onError){
+                    onError();
+                }
                 return false;
             }
         case 1:
@@ -927,7 +931,9 @@ bool Monster::moveOneStep(int nX, int nY, std::function<void()> onOK, std::funct
             }
         default:
             {
-                onError();
+                if(onError){
+                    onError();
+                }
                 return false;
             }
     }
@@ -1093,7 +1099,9 @@ bool Monster::moveOneStepCombine(int nX, int nY, std::function<void()> onOK, std
 bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        onError();
+        if(onError){
+            onError();
+        }
         return false;
     }
 
@@ -1143,7 +1151,9 @@ bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
                 }
             default:
                 {
-                    onError();
+                    if(onError){
+                        onError();
+                    }
                     break;
                 }
         }
