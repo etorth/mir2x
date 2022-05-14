@@ -30,7 +30,6 @@ extern ServerArgParser *g_serverArgParser;
 
 ServerObject::ServerObject(uint64_t uid)
     : m_UID(uid)
-    , m_UIDName(uidf::getUIDString(uid))
 {
     m_stateTrigger.install([this]() -> bool
     {

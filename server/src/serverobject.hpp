@@ -11,7 +11,6 @@ class ServerObject
 {
     private:
         const uint64_t m_UID;
-        const std::string m_UIDName;
 
     protected:
         ActorPod *m_actorPod = nullptr;
@@ -37,11 +36,6 @@ class ServerObject
         uint64_t rawUID() const
         {
             return m_UID;
-        }
-
-        const char *UIDName() const
-        {
-            return hasActorPod() ? m_UIDName.c_str() : "UID_INACTIVE";
         }
 
     public:

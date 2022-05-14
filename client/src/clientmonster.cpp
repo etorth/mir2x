@@ -92,10 +92,7 @@ std::optional<uint32_t> MonsterFrameGfxSeq::gfxID(const ClientMonster *monPtr, s
 ClientMonster::ClientMonster(uint64_t uid, ProcessRun *proc)
     : CreatureMovable(uid, proc)
 {
-    if(uidf::getUIDType(uid) != UID_MON){
-        throw fflerror("invalid UID for monster type: UIDName = %s", to_cstr(uidf::getUIDString(uid)));
-    }
-
+    fflassert(uidf::getUIDType(uid) == UID_MON, uidf::getUIDString(uid));
     if(g_clientArgParser->drawUID){
         m_nameBoard.setText(u8"%s(%llu)", DBCOM_MONSTERRECORD(monsterID()).name, to_llu(UID()));
     }
