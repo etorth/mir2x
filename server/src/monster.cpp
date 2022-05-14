@@ -180,12 +180,16 @@ bool Monster::randomTurn()
 void Monster::attackUID(uint64_t uid, int magicID, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canAttack()){
-        onError();
+        if(onError){
+            onError();
+        }
         return;
     }
 
     if(!dcValid(magicID, true)){
-        onError();
+        if(onError){
+            onError();
+        }
         return;
     }
 
@@ -271,7 +275,9 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
         const auto nMapID = coLoc.mapID;
 
         if(!m_map->in(nMapID, nX, nY)){
-            onError();
+            if(onError){
+                onError();
+            }
             return;
         }
 
@@ -292,12 +298,16 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
         const auto nextDir = pathf::getNextDir(nDir, 1);
         const auto [nFrontX, nFrontY] = pathf::getFrontGLoc(nX, nY, nextDir, 1);
         if(!m_map->groundValid(nFrontX, nFrontY)){
-            onError();
+            if(onError){
+                onError();
+            }
             return;
         }
 
         if(nFrontX == X() && nFrontY == Y()){
-            onOK();
+            if(onOK){
+                onOK();
+            }
         }
         else{
             requestJump(nFrontX, nFrontY, pathf::getBackDir(nextDir), onOK, onError);
@@ -949,10 +959,6 @@ bool Monster::moveOneStep(int nX, int nY, std::function<void()> onOK, std::funct
             {
                 return moveOneStepAStar(nX, nY, onOK, onError);
             }
-        case FPMETHOD_DSTAR:
-            {
-                return moveOneStepDStar(nX, nY, onOK, onError);
-            }
         case FPMETHOD_GREEDY:
             {
                 return moveOneStepGreedy(nX, nY, onOK, onError);
@@ -1006,7 +1012,9 @@ bool Monster::moveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, st
 bool Monster::moveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        onError();
+        if(onError){
+            onError();
+        }
         return false;
     }
 
@@ -1019,14 +1027,18 @@ bool Monster::moveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std:
     }
 
     if(pathNodePtr->c.empty()){
-        onError();
+        if(onError){
+            onError();
+        }
         return false;
     }
 
     const auto fnOnNodeListError = [nX, nY, longJump, onOK, onError, this]()
     {
         if(!longJump){
-            onError();
+            if(onError){
+                onError();
+            }
             return;
         }
 
@@ -1038,21 +1050,27 @@ bool Monster::moveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std:
         }
 
         if(minPathNodePtr->c.empty()){
-            onError();
+            if(onError){
+                onError();
+            }
             return;
         }
 
         requestMove(minPathNodePtr->c[0].X, minPathNodePtr->c[0].Y, moveSpeed(), false, false, onOK, [this, minPathNodePtr, onOK, onError]()
         {
             if(minPathNodePtr->c.size() == 1){
-                onError();
+                if(onError){
+                    onError();
+                }
                 return;
             }
 
             requestMove(minPathNodePtr->c[1].X, minPathNodePtr->c[1].Y, moveSpeed(), false, false, onOK, [this, minPathNodePtr, onOK, onError]()
             {
                 if(minPathNodePtr->c.size() == 2){
-                    onError();
+                    if(onError){
+                        onError();
+                    }
                     return;
                 }
 
@@ -1086,7 +1104,9 @@ bool Monster::moveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std:
 bool Monster::moveOneStepCombine(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
     if(!canMove()){
-        onError();
+        if(onError){
+            onError();
+        }
         return false;
     }
 
@@ -1158,11 +1178,6 @@ bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
                 }
         }
     });
-}
-
-bool Monster::moveOneStepDStar(int, int, std::function<void()>, std::function<void()>)
-{
-    throw fflerror("Not supported now");
 }
 
 int Monster::FindPathMethod()

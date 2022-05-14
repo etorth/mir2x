@@ -66,7 +66,6 @@ class Monster: public BattleObject
         {
             FPMETHOD_NONE,
             FPMETHOD_ASTAR,
-            FPMETHOD_DSTAR,
             FPMETHOD_GREEDY,
             FPMETHOD_COMBINE,
             FPMETHOD_NEIGHBOR,
@@ -198,7 +197,6 @@ class Monster: public BattleObject
 
     protected:
         bool moveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
-        bool moveOneStepDStar   (int, int, std::function<void()>, std::function<void()>);
         bool moveOneStepGreedy  (int, int, std::function<void()>, std::function<void()>);
         bool moveOneStepCombine (int, int, std::function<void()>, std::function<void()>);
         bool moveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
