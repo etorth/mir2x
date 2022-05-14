@@ -1229,7 +1229,14 @@ void Player::RequestKillPets()
 
 void Player::postOnlineOK()
 {
-    postNetMessage(SM_ONLINEOK);
+    SMOnlineOK smOOK;
+    std::memset(&smOOK, 0, sizeof(smOOK));
+
+    smOOK.uid = UID();
+    smOOK.mapID = mapID();
+    smOOK.action = makeActionStand();
+
+    postNetMessage(SM_ONLINEOK, smOOK);
     postNetMessage(SM_STARTGAMESCENE, cerealf::serialize(SDStartGameScene
     {
         .uid = UID(),

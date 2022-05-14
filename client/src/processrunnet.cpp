@@ -41,16 +41,20 @@
 extern SDLDevice *g_sdlDevice;
 void ProcessRun::net_STARTGAMESCENE(const uint8_t *buf, size_t bufSize)
 {
-    auto sdSGS = cerealf::deserialize<SDStartGameScene>(buf, bufSize);
-    loadMap(sdSGS.mapID, sdSGS.x, sdSGS.y);
+    const auto sdSGS = cerealf::deserialize<SDStartGameScene>(buf, bufSize);
 
-    m_myHeroUID = sdSGS.uid;
-    m_coList[m_myHeroUID].reset(new MyHero(m_myHeroUID, this, ActionStand
+    // verfy mapID and myHeroUID
+    // myHeroUID and mapID has been sent by smOnlineOK
+
+    fflassert(sdSGS.mapID == mapID(), sdSGS.mapID, mapID());
+    fflassert(sdSGS.uid == getMyHeroUID(), sdSGS.uid, getMyHeroUID());
+
+    getMyHero()->parseAction(ActionStand
     {
         .x = sdSGS.x,
         .y = sdSGS.y,
         .direction = DIR_DOWN,
-    }));
+    });
 
     getMyHero()->setName(to_cstr(sdSGS.name), sdSGS.nameColor);
     getMyHero()->setWLDesp(std::move(sdSGS.desp));
@@ -130,7 +134,9 @@ void ProcessRun::net_ACTION(const uint8_t *bufPtr, size_t)
         // shouldn't accept ACTION_SPAWN
         // we shouldn't have spawn action after co created
         if(smA.action.type == ACTION_SPAWN){
-            throw fflerror("existing CO get spawn action: name = %s", uidf::getUIDString(smA.UID).c_str());
+            // TODO ACTION_SPAWN should be the first action
+            //      but current implementation sometimes ACTION_SPAWN comes later, ignore it
+            return;
         }
 
         // clear all pending action

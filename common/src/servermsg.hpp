@@ -136,6 +136,13 @@ struct SMDeleteCharError
     uint8_t error;
 };
 
+struct SMOnlineOK
+{
+    uint64_t uid;
+    uint32_t mapID;
+    ActionNode action;
+};
+
 struct SMOnlineError
 {
     uint8_t error;
@@ -357,7 +364,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_CREATECHARERROR,     1, sizeof(SMCreateCharError)    )
                 _add_server_msg_type_case(SM_DELETECHAROK,        0, 0                            )
                 _add_server_msg_type_case(SM_DELETECHARERROR,     1, sizeof(SMDeleteCharError)    )
-                _add_server_msg_type_case(SM_ONLINEOK,            3, 0                            )
+                _add_server_msg_type_case(SM_ONLINEOK,            1, sizeof(SMOnlineOK)           )
                 _add_server_msg_type_case(SM_ONLINEERROR,         1, sizeof(SMOnlineError)        )
                 _add_server_msg_type_case(SM_STARTGAMESCENE,      3, 0                            )
                 _add_server_msg_type_case(SM_RUNTIMECONFIG,       3, 0                            )
@@ -429,6 +436,7 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMDeleteCharError>
                     || std::is_same_v<T, SMQueryCharOK>
                     || std::is_same_v<T, SMQueryCharError>
+                    || std::is_same_v<T, SMOnlineOK>
                     || std::is_same_v<T, SMOnlineError>
                     || std::is_same_v<T, SMAction>
                     || std::is_same_v<T, SMCORecord>

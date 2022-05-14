@@ -67,7 +67,10 @@ class ProcessRun: public Process
         std::vector<UserCommand> m_userCommandList;
 
     private:
-        uint32_t     m_mapID;
+        const uint64_t m_myHeroUID;
+
+    private:
+        uint32_t m_mapID = 0;
         Mir2xMapData m_mir2xMapData;
 
     private:
@@ -75,9 +78,6 @@ class ProcessRun: public Process
 
     private:
         DelayCommandQueue m_delayCmdQ;
-
-    private:
-        uint64_t m_myHeroUID;
 
     private:
         FPSMonitor m_fps;
@@ -100,14 +100,14 @@ class ProcessRun: public Process
         }
 
     private:
-        std::array<uint64_t, FOCUS_END> m_focusUIDTable;
+        std::array<uint64_t, FOCUS_END> m_focusUIDTable {};
 
     private:
-        int m_viewX;
-        int m_viewY;
+        int m_viewX = 0;
+        int m_viewY = 0;
 
     private:
-        bool m_mapScrolling;
+        bool m_mapScrolling = false;
 
     private:
         WilAniTimer m_aniTimer;
@@ -150,7 +150,7 @@ class ProcessRun: public Process
         void loadMap(uint32_t, int, int);
 
     public:
-        ProcessRun();
+        ProcessRun(const SMOnlineOK &);
         virtual ~ProcessRun() = default;
 
     public:

@@ -714,11 +714,6 @@ void Client::switchProcess(int oldID, int newID)
                             m_currentProcess = std::make_unique<ProcessChangePassword>();
                             break;
                         }
-                    case PROCESSID_RUN:
-                        {
-                            m_currentProcess = std::make_unique<ProcessRun>();
-                            break;
-                        }
                     default:
                         {
                             break;
@@ -761,7 +756,8 @@ void Client::switchProcess(int oldID, int newID)
                 switch(newID){
                     case PROCESSID_RUN:
                         {
-                            m_currentProcess = std::make_unique<ProcessRun>();
+                            fflassert(m_smOOK.has_value());
+                            m_currentProcess = std::make_unique<ProcessRun>(m_smOOK.value());
                             break;
                         }
                     case PROCESSID_CREATECHAR:

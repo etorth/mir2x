@@ -42,19 +42,26 @@ extern PNGTexDB *g_itemDB;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
 
-ProcessRun::ProcessRun()
+ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
     : Process()
-    , m_mapID(0)
-    , m_myHeroUID(0)
-    , m_viewX(0)
-    , m_viewY(0)
-    , m_mapScrolling(false)
+    , m_myHeroUID(smOOK.uid)
     , m_luaModule(this)
     , m_GUIManager(this)
     , m_mousePixlLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_mouseGridLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
 {
-    m_focusUIDTable.fill(0);
+    loadMap(smOOK.mapID, smOOK.action.x, smOOK.action.y);
+    m_coList.insert_or_assign(m_myHeroUID, std::unique_ptr<ClientCreature>(new MyHero
+    {
+        m_myHeroUID,
+        this,
+        ActionStand
+        {
+            .x = smOOK.action.x,
+            .y = smOOK.action.y,
+            .direction = DIR_DOWN,
+        },
+    }));
     RegisterUserCommand();
 }
 

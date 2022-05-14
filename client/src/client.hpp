@@ -68,11 +68,16 @@ class Client final
         std::unique_ptr<Process> m_currentProcess;
 
     private:
+        std::optional<SMOnlineOK> m_smOOK;
+
+    private:
         std::string m_clipboardBuf;
 
     public:
         Client();
-       ~Client();
+
+    public:
+        ~Client();
 
     public:
         void mainLoop();
@@ -143,6 +148,12 @@ class Client final
                 return p;
             }
             throw fflerror("not in process run");
+        }
+
+    public:
+        void setOnlineOK(const SMOnlineOK &smOOK)
+        {
+            m_smOOK = smOOK;
         }
 
     private:
