@@ -50,7 +50,7 @@
  *                     3. va_list declared in func_a can be passed to func_b via a pointer
  *                        to it, in which case the original function may make further use
  *                        of the original va_list after func_b returns
- *                      
+ *
  *                          void func_b(va_list *ap)
  *                          {
  *                              // pull out one argument from ap
@@ -91,6 +91,7 @@
 #include <string>
 #include <cstdarg>
 #include <concepts>
+#include <algorithm>
 #include <filesystem>
 
 #ifdef __GNUC__

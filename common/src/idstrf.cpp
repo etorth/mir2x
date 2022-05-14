@@ -1,4 +1,5 @@
 #include <regex>
+#include <cstring>
 #include "idstrf.hpp"
 
 // regex for 0~255
