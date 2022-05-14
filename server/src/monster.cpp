@@ -1189,7 +1189,9 @@ void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::
 {
     const auto viewDistance = getMR().view;
     if(viewDistance <= 0){
-        fnTarget(0);
+        if(fnTarget){
+            fnTarget(0);
+        }
         return;
     }
 
@@ -1224,7 +1226,9 @@ void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::
         checkFriend(minDistanceUID, [this, minDistanceUID, seen = std::move(seen), fnTarget = std::move(fnTarget)](int friendType) mutable
         {
             if(friendType == FT_ENEMY){
-                fnTarget(minDistanceUID);
+                if(fnTarget){
+                    fnTarget(minDistanceUID);
+                }
                 return;
             }
 
@@ -1233,14 +1237,18 @@ void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::
         });
     }
     else{
-        fnTarget(0);
+        if(fnTarget){
+            fnTarget(0);
+        }
     }
 }
 
 void Monster::searchNearestTarget(std::function<void(uint64_t)> fnTarget)
 {
     if(m_inViewCOList.empty()){
-        fnTarget(0);
+        if(fnTarget){
+            fnTarget(0);
+        }
         return;
     }
 
@@ -1248,13 +1256,17 @@ void Monster::searchNearestTarget(std::function<void(uint64_t)> fnTarget)
     //      and if too far monster should pick up a target near it
     for(auto p = m_offenderList.rbegin(); p != m_offenderList.rend(); ++p){
         if(m_actorPod->checkUIDValid(p->uid)){
-            fnTarget(p->uid);
+            if(fnTarget){
+                fnTarget(p->uid);
+            }
             return;
         }
     }
 
     if(uidf::isNeutralMode(UID())){
-        fnTarget(0);
+        if(fnTarget){
+            fnTarget(0);
+        }
         return;
     }
 
