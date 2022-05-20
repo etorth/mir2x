@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: buttonbase.cpp
- *        Created: 08/21/2015 04:12:57
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <functional>
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"

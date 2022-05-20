@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: ascendstr.hpp
- *        Created: 07/20/2017 00:31:01
- *    Description: decide to not implement it as magic
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cmath>
 #include "totype.hpp"
