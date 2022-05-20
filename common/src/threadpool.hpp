@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: threadpool.hpp
- *        Created: 01/23/2019 13:46:24
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: g++ -std=c++14
- *
- *         Author: ANHONG
- *          Email:
- *   Organization:
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <mutex>
 #include <queue>
@@ -27,6 +9,7 @@
 #include <thread>
 #include <future>
 #include <cstddef>
+#include <numeric>
 #include <utility>
 #include <stdexcept>
 #include <exception>
@@ -208,6 +191,9 @@
 class threadPool
 {
     public:
+        friend class globalThreadPool; // only global pool support recursive task
+
+    public:
         class deadPoolError: public std::exception // give a distinct type to detect dead pool
         {
             const char *what() const noexcept override
@@ -267,9 +253,32 @@ class threadPool
                 }
         };
 
+    private:
+        struct innTaskNode
+        {
+            size_t level = 0;
+            std::function<void(int)> task;
+
+            bool operator < (const innTaskNode &param) const noexcept
+            {
+                return this->level < param.level;
+            }
+        };
+
+        struct innWorkerThread
+        {
+            bool idle = false;
+            size_t level = 0;
+            std::thread threadHandle {};
+        };
+
     public:
         const size_t poolSize;
         const bool   disablePool;
+
+    private:
+        const uint64_t m_threadPoolID;
+        const bool     m_allowRecursive;
 
     private:
         bool m_stop = false;
@@ -282,7 +291,10 @@ class threadPool
         std::condition_variable m_condition;
 
     private:
-        std::queue<std::function<void(int)>> m_taskQ;
+        size_t m_idleThreadCount = 0;
+
+    private:
+        std::priority_queue<innTaskNode> m_taskQ;
 
     private:
         // the worker lambda accesses *this* member variables
@@ -291,17 +303,29 @@ class threadPool
         //     first  : true means current thread has been marked as idle
         //     second : thread handle
         //
-        std::vector<std::pair<bool, std::thread>> m_workers;
+        std::vector<innWorkerThread> m_workers;
 
     private:
         auto getThreadFunc(int threadId)
         {
             return [this, threadId]()
             {
+                getCurrThreadID(threadId);
+                getCurrThreadPoolID(m_threadPoolID);
+
                 while(true){
-                    std::function<void(int)> currTask;
+                    innTaskNode currTask;
                     {
                         std::unique_lock<std::mutex> lockGuard(m_lock);
+                        m_idleThreadCount++;
+
+                        // when a thread is trying to pick a task and task queue is not empty
+                        // this thread shall not count for m_idleThreadCount
+
+                        // but is fine because when task queue is not empty
+                        // following lambda returns immediately without release the lock
+                        // then outside world can not observe the m_idleThreadCount increments then decrements
+
                         const auto eval = [&lockGuard, this]() -> bool
                         {
                             const auto pred = [this]() -> bool
@@ -323,32 +347,54 @@ class threadPool
                             }
                         }();
 
+                        // thread has re-acquired lock
+                        // when reaches here, thread already has something to do, either execute task or exit
+                        m_idleThreadCount--;
+
                         if(eval){
                             if(m_stop && m_taskQ.empty()){
                                 return;
                             }
                             else{
-                                currTask = std::move(m_taskQ.front());
+                                currTask = std::move(m_taskQ.top());
                                 m_taskQ.pop();
                             }
                         }
                         else{
                             // after maxWaitTime pred() still returns false
                             // means pool is not stopped but didn't get any new tasks in maxWaitTime, aka idle for maxWaitTime, stop *current* thread
-                            m_workers.at(threadId).first = true;
+                            m_workers.at(threadId).idle = true;
                             return;
                         }
                     }
 
                     // no exception handling
                     // use threadCBWrapper() if task may throw, otherwise the exception breaks the pool
-                    currTask((int)(threadId));
+
+                    // thread-level gets assigned always and only before executing a task
+                    // thread-level can only be r/w-accessed by itself's thread, worker thread j shall not access level[i] when i != j
+
+                    m_workers[threadId].level = currTask.level;
+                    currTask.task(threadId);
                 }
             };
         }
 
-    public:
-        threadPool(size_t numThread, bool disable = false, int waitOnIdle = 0)
+    private:
+        static int getCurrThreadID(int threadID = -1)
+        {
+            const thread_local int t_threadID = threadID;
+            return t_threadID;
+        }
+
+        static uint64_t getCurrThreadPoolID(uint64_t threadPoolID = 0)
+        {
+            const thread_local uint64_t t_threadPoolID = threadPoolID;
+            return t_threadPoolID;
+        }
+
+    private:
+        threadPool(size_t numThread, bool disable, int waitOnIdle, bool allowRecursive) // for globalThreadPool only to enable recursive task
             : poolSize([numThread, disable]() -> size_t
               {
                   if(disable){
@@ -360,7 +406,15 @@ class threadPool
                   }
                   return threadPool::hwThreadCount();
               }())
+
             , disablePool(disable)
+            , m_threadPoolID([]() -> uint64_t
+              {
+                  static std::atomic<uint64_t> threadPoolID {1};
+                  return threadPoolID++;
+              }())
+
+            , m_allowRecursive(allowRecursive)
             , m_waitOnIdle([waitOnIdle]() -> int
               {
                   if(waitOnIdle < 0){
@@ -388,16 +442,20 @@ class threadPool
 
             for(size_t threadId = 0; threadId < poolSize; ++threadId){
                 if(m_waitOnIdle > 0){
-                    m_workers[threadId].first = true;
+                    m_workers[threadId].idle = true;
                 }
                 else{
-                    m_workers[threadId].first = false;
-                    m_workers[threadId].second = std::thread(getThreadFunc(threadId));
+                    m_workers[threadId].idle = false;
+                    m_workers[threadId].threadHandle = std::thread(getThreadFunc(threadId));
                 }
             }
         }
 
     public:
+        threadPool(size_t numThread, bool disable = false, int waitOnIdle = 0)
+            : threadPool(numThread, disable, waitOnIdle, false)
+        {}
+
         threadPool(std::initializer_list<std::function<void(int)>> taskList, bool disable = false, int waitOnIdle = 0)
             : threadPool(taskList.size(), disable, waitOnIdle)
         {
@@ -439,21 +497,67 @@ class threadPool
                     throw deadPoolError();
                 }
 
+                // a task adding subtask in same thread pool is called recursive task
+                // we don't trace which worker thread does task-adding, worker thread j added task then executed by worker thread i is a recursive task
+
+                const auto recursiveTask = (getCurrThreadPoolID() == m_threadPoolID);
+                if(recursiveTask){
+                    if(m_allowRecursive){
+                        if(m_idleThreadCount == 0){
+                            const auto deadThreadCount = std::accumulate(m_workers.begin(), m_workers.end(), 0, [](auto curr, const auto &worker)
+                            {
+                                return curr + (worker.idle ? 1 : 0);
+                            });
+
+                            // there is no thread waiting for new task, nor possible thread slots
+                            // if push to task queue, it's possible that there is no thread going to execute it if all worker threads are under-hold
+
+                            // execute task immediately
+                            // the task itself can recursively call addTask()
+
+                            if(deadThreadCount == 0){
+                                lockGuard.unlock();
+                                task(getCurrThreadID());
+                                return;
+                            }
+                        }
+                    }
+                    else{
+                        throw std::runtime_error("threadPool::addTask: recursive task added");
+                    }
+                }
+
+                // post task to task queue
+                // we are sure the task can get a worker thread for execution
+
+                // TODO is this really good?
+                //      when we post current task with level[threadId] + 1, it may not be at the top of task queue
+
+                // but should be fine, since even it's not on top
+                // parent-task that depends on this task has lower level, and which holds current thread only
+
                 if(m_waitOnIdle > 0){
                     const auto taskCntPending = m_taskQ.size() + 1;
                     for(size_t i = 0, restored = 0; i < m_workers.size() && restored < taskCntPending; ++i){
-                        if(m_workers[i].first){
-                            if(m_workers[i].second.joinable()){
-                                m_workers[i].second.join();
+                        if(m_workers[i].idle){
+                            if(m_workers[i].threadHandle.joinable()){
+                                m_workers[i].threadHandle.join();
                             }
 
                             restored++;
-                            m_workers[i].first = false;
-                            m_workers[i].second = std::thread(getThreadFunc((int)(i)));
+                            m_workers[i].idle = false;
+                            m_workers[i].threadHandle = std::thread(getThreadFunc((int)(i)));
                         }
                     }
                 }
-                m_taskQ.emplace(std::forward<Callable>(task));
+
+                // prefer recursive tasks, not task that added by non-worker threads, otherwise may cause starvation
+                // only globalThreadPool can add recursive tasks, otherwise alterating-recursive-task-adding by two pools can mess up everything
+
+                innTaskNode newTask;
+                newTask.level = recursiveTask ? (m_workers[getCurrThreadID()].level + 1) : 0;
+                newTask.task  = std::forward<Callable>(task); // TODO move outside of lock
+                m_taskQ.push(std::move(newTask));
             }
             m_condition.notify_one();
         }
@@ -549,8 +653,8 @@ class threadPool
 
             m_condition.notify_all();
             for(auto &worker: m_workers){
-                if(worker.second.joinable()){
-                    worker.second.join();
+                if(worker.threadHandle.joinable()){
+                    worker.threadHandle.join();
                 }
             }
 
@@ -658,7 +762,9 @@ class globalThreadPool final
                     throw std::runtime_error(std::string("invalid GLOBAL_THREAD_POOL_WAIT_ON_IDLE: ") + p);
                 }
                 return 10;
-            }());
+            }(),
+
+            std::getenv("GLOBAL_THREAD_POOL_DISABLE_RECURSIVE_TASK") ? false : true);
             return globalPool;
         }
 
