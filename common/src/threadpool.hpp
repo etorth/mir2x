@@ -554,10 +554,11 @@ class threadPool
                 // prefer recursive tasks, not task that added by non-worker threads, otherwise may cause starvation
                 // only globalThreadPool can add recursive tasks, otherwise alterating-recursive-task-adding by two pools can mess up everything
 
-                innTaskNode newTask;
-                newTask.level = recursiveTask ? (m_workers[getCurrThreadID()].level + 1) : 0;
-                newTask.task  = std::forward<Callable>(task); // TODO move outside of lock
-                m_taskQ.push(std::move(newTask));
+                m_taskQ.push(innTaskNode
+                {
+                    .level = recursiveTask ? (m_workers[getCurrThreadID()].level + 1) : 0,
+                    .task = std::forward<Callable>(task),
+                });
             }
             m_condition.notify_one();
         }
