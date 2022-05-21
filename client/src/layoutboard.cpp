@@ -378,7 +378,11 @@ bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
                 }
             default:
                 {
-                    node->tpset->clearEvent(-1);
+                    // layout board only handle mouse motion/click events
+                    // ignore any other unexcepted events
+
+                    // for GNOME3 I found sometimes here comes SDL_KEYMAPCHANGED after SDL_MOUSEBUTTONDOWN
+                    // need to ignore this event, don't call clearEvent()
                     return false;
                 }
         }
