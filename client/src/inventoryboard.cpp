@@ -580,9 +580,12 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
     const auto textBoxW = std::max<int>(hoverTextBoard.w(), 200) + 20;
     const auto textBoxH = hoverTextBoard.h() + 20;
 
-    g_sdlDevice->fillRectangle(colorf::RGBA(  0,   0,   0, 200), mousePX, mousePY, textBoxW, textBoxH, 5);
-    g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 200), mousePX, mousePY, textBoxW, textBoxH, 5);
-    hoverTextBoard.drawAt(DIR_UPLEFT, mousePX + 10, mousePY + 10);
+    const auto drawBoardPX = mathf::bound<int>(mousePX, 0, g_sdlDevice->getRendererWidth () - textBoxW);
+    const auto drawBoardPY = mathf::bound<int>(mousePY, 0, g_sdlDevice->getRendererHeight() - textBoxH);
+
+    g_sdlDevice->fillRectangle(colorf::RGBA(  0,   0,   0, 200), drawBoardPX, drawBoardPY, textBoxW, textBoxH, 5);
+    g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 200), drawBoardPX, drawBoardPY, textBoxW, textBoxH, 5);
+    hoverTextBoard.drawAt(DIR_UPLEFT, drawBoardPX + 10, drawBoardPY + 10);
 }
 
 void InventoryBoard::packBinConsume(const PackBin &bin)
