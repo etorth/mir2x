@@ -335,9 +335,10 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         m_npc->sendQuery(callStackUID, uid, query);
     });
 
-    m_luaState.set_function("pollCallStackEvent", [this](uint64_t uid)
+    m_luaState.set_function("pollCallStackEvent", [this](uint64_t uid, sol::this_state s)
     {
-        return sol::as_returns([uid, this]() -> std::vector<std::string>
+        sol::state_view sv(s);
+        return sol::as_returns([uid, &sv, this]() -> std::vector<sol::object>
         {
             if(auto p = m_callStackList.find(uid); p != m_callStackList.end()){
                 const auto fromUID = p->second.from;
@@ -351,11 +352,20 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
                     throw fflerror("detected uid %llu with empty event", to_llu(fromUID));
                 }
 
-
                 if(!p->second.value.has_value()){
-                    return {std::to_string(fromUID), std::move(p->second.event)};
+                    return
+                    {
+                        sol::object(sv, sol::in_place_type<uint64_t>, fromUID),
+                        sol::object(sv, sol::in_place_type<std::string>, std::move(p->second.event)),
+                    };
                 }
-                return {std::to_string(fromUID), std::move(p->second.event), std::move(p->second.value.value())};
+
+                return
+                {
+                    sol::object(sv, sol::in_place_type<uint64_t>, fromUID),
+                    sol::object(sv, sol::in_place_type<std::string>, std::move(p->second.event)),
+                    sol::object(sv, sol::in_place_type<std::string>, std::move(p->second.value.value())),
+                };
             }
             throw fflerror("can't find call stack UID = %llu", to_llu(uid));
         }());

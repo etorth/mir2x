@@ -7,9 +7,12 @@ end
 
 function waitEvent()
     while true do
-        local fromUIDString, event, value = pollCallStackEvent(getCallStackTable().uid)
-        if fromUIDString then
-            return tonumber(fromUIDString), event, value
+        local fromUID, event, value = pollCallStackEvent(getCallStackTable().uid)
+        if fromUID then
+            if(type(event) ~= 'string') then
+                fatalPrintf('Pull uid %s with invalid event', tostring(fromUID))
+            end
+            return fromUID, event, value
         end
         coroutine.yield()
     end
