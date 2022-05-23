@@ -413,7 +413,7 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMa
 }
 
 ServerMap::ServerMap(uint32_t mapID)
-    : ServerObject(uidf::getMapUID(mapID))
+    : ServerObject(uidf::getMapBaseUID(mapID))
     , m_ID(mapID)
     , m_mir2xMapData([mapID]()
       {

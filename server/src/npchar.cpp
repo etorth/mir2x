@@ -72,9 +72,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         return std::to_string(m_npc->rawUID());
     });
 
-    m_luaState.set_function("getUIDString", [](std::string uidString) -> std::string
+    m_luaState.set_function("getUIDString", [](uint64_t uid) -> std::string
     {
-        return uidf::getUIDString(uidf::toUID(uidString));
+        return uidf::getUIDString(uid);
     });
 
     m_luaState.set_function("getNPCName", [this](sol::variadic_args args) -> std::string
@@ -197,9 +197,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         return luaf::buildLuaObj(sv, queryStatement.getColumn(0).getString());
     });
 
-    m_luaState.set_function("uidDBSetKey", [this](std::string uidString, std::string key, sol::object obj)
+    m_luaState.set_function("uidDBSetKey", [this](uint64_t uid, std::string key, sol::object obj)
     {
-        const auto dbid = uidf::getPlayerDBID(uidf::toUIDEx(uidString));
+        const auto dbid = uidf::getPlayerDBID(uid);
         const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
 
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
@@ -251,10 +251,10 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }
     });
 
-    m_luaState.set_function("uidDBGetKey", [this](std::string uidString, std::string key, sol::this_state s) -> sol::object
+    m_luaState.set_function("uidDBGetKey", [this](uint64_t uid, std::string key, sol::this_state s) -> sol::object
     {
         fflassert(!key.empty());
-        const auto dbid = uidf::getPlayerDBID(uidf::toUIDEx(uidString));
+        const auto dbid = uidf::getPlayerDBID(uid);
         const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
 
         sol::state_view sv(s);
@@ -291,12 +291,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }
     });
 
-    m_luaState.set_function("uidPostSell", [this](std::string uidString)
+    m_luaState.set_function("uidPostSell", [this](uint64_t uid)
     {
-        m_npc->postSell(uidf::toUIDEx(uidString));
+        m_npc->postSell(uid);
     });
 
-    m_luaState.set_function("uidPostStartInvOp", [this](std::string uidString, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
+    m_luaState.set_function("uidPostStartInvOp", [this](uint64_t uid, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
     {
         fflassert(invOp >= INVOP_BEGIN);
         fflassert(invOp <  INVOP_END);
@@ -305,64 +305,38 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         for(const auto &type: typeTable.value()){
             typeList.insert(to_u8cstr(type));
         }
-        m_npc->postStartInvOp(uidf::toUIDEx(uidString), invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
+        m_npc->postStartInvOp(uid, invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
     });
 
-    m_luaState.set_function("uidPostInvOpCost", [this](std::string uidString, int invOp, int itemID, int seqID, int cost)
+    m_luaState.set_function("uidPostInvOpCost", [this](uint64_t uid, int invOp, int itemID, int seqID, int cost)
     {
         fflassert(invOp >= INVOP_BEGIN);
         fflassert(invOp <  INVOP_END);
 
-        m_npc->postInvOpCost(uidf::toUIDEx(uidString), invOp, itemID, seqID, cost);
+        m_npc->postInvOpCost(uid, invOp, itemID, seqID, cost);
     });
 
-    m_luaState.set_function("uidPostStartInput", [this](std::string uidString, std::string title, std::string commitTag, bool show)
+    m_luaState.set_function("uidPostStartInput", [this](uint64_t uid, std::string title, std::string commitTag, bool show)
     {
         fflassert(!title.empty());
         fflassert(!commitTag.empty());
-        m_npc->postStartInput(uidf::toUIDEx(uidString), title, commitTag, show);
+        m_npc->postStartInput(uid, title, commitTag, show);
     });
 
-    m_luaState.set_function("uidPostXMLString", [this](std::string uidString, std::string xmlString)
+    m_luaState.set_function("uidPostXMLString", [this](uint64_t uid, std::string xmlString)
     {
-        const uint64_t uid = [&uidString]() -> uint64_t
-        {
-            try{
-                return std::stoull(uidString);
-            }
-            catch(...){
-                //
-            }
-            return 0;
-        }();
-
-        if(uid){
-            m_npc->postXMLLayout(uid, std::move(xmlString));
-        }
-
-        else{
-            addLogString(0, u8"invalid UID: 0");
-        }
+        fflassert(uid);
+        fflassert(uidf::isPlayer(uid), uid, uidf::getUIDString(uid));
+        m_npc->postXMLLayout(uid, std::move(xmlString));
     });
 
-    m_luaState.set_function("sendCallStackQuery", [this](std::string callStackUID, std::string uidString, std::string query)
+    m_luaState.set_function("sendCallStackQuery", [this](uint64_t callStackUID, uint64_t uid, std::string query)
     {
-        m_npc->sendQuery(uidf::toUIDEx(callStackUID), uidf::toUIDEx(uidString), query);
+        m_npc->sendQuery(callStackUID, uid, query);
     });
 
-    m_luaState.set_function("pollCallStackEvent", [this](std::string callStackUID)
+    m_luaState.set_function("pollCallStackEvent", [this](uint64_t uid)
     {
-        const uint64_t uid = [&callStackUID]() -> uint64_t
-        {
-            try{
-                return std::stoull(callStackUID);
-            }
-            catch(...){
-                //
-            }
-            return 0;
-        }();
-
         return sol::as_returns([uid, this]() -> std::vector<std::string>
         {
             if(auto p = m_callStackList.find(uid); p != m_callStackList.end()){
@@ -431,7 +405,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
 
         // initial call to make main reaches its event polling point
         // need to assign event to let it advance
-        const auto result = p->second.co_callback(std::to_string(callStackUID));
+        const auto result = p->second.co_callback(callStackUID);
         fnCheckCOResult(result);
     }
 

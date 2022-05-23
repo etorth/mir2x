@@ -45,7 +45,7 @@ class ClientNPC: public ClientCreature
     public:
         uint16_t lookID() const
         {
-            return uidf::getLookID(UID());
+            return uidf::getNPCID(UID());
         }
 
     public:

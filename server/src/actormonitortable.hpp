@@ -32,7 +32,7 @@ class ActorMonitorTable: public Fl_TableImpl
             size_t maxAvgDelay = 0;
             size_t maxMessageDone = 0;
             size_t maxMessagePending = 0;
-            std::array<size_t, UID_MAX> uidTypeCountList;
+            std::array<size_t, UID_END> uidTypeCountList;
 
             ActorMonitorDrawHelper()
             {

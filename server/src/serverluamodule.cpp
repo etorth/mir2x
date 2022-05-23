@@ -43,9 +43,9 @@ ServerLuaModule::ServerLuaModule()
         }
     }().c_str()));
 
-    m_luaState.set_function("isUIDAlive", [](std::string uidString)
+    m_luaState.set_function("isUIDAlive", [](uint64_t uid)
     {
-        return g_actorPool->checkUIDValid(uidf::toUIDEx(uidString));
+        return g_actorPool->checkUIDValid(uid);
     });
 
     m_luaState.set_function("randMapGLoc", [](std::string mapName)

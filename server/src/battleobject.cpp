@@ -470,7 +470,7 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                     // if request rejected then it stays in current map
 
                     m_moveLock = true;
-                    m_actorPod->forward(uidf::getMapUID(argMapID), {AM_TRYMAPSWITCH, amTMS}, [mpk, onOK, onError, this](const ActorMsgPack &rmpk)
+                    m_actorPod->forward(uidf::getMapBaseUID(argMapID), {AM_TRYMAPSWITCH, amTMS}, [mpk, onOK, onError, this](const ActorMsgPack &rmpk)
                     {
                         fflassert(m_moveLock);
                         m_moveLock = false;

@@ -33,14 +33,16 @@ LuaModule::LuaModule()
     : m_luaState()
 {
     m_luaState.open_libraries();
-    m_luaState.script(str_printf("UID_ERR = %d", UID_ERR));
-    m_luaState.script(str_printf("UID_COR = %d", UID_COR));
-    m_luaState.script(str_printf("UID_NPC = %d", UID_NPC));
-    m_luaState.script(str_printf("UID_MAP = %d", UID_MAP));
-    m_luaState.script(str_printf("UID_PLY = %d", UID_PLY));
-    m_luaState.script(str_printf("UID_MON = %d", UID_MON));
-    m_luaState.script(str_printf("UID_ETC = %d", UID_ETC));
-    m_luaState.script(str_printf("UID_INN = %d", UID_INN));
+
+    m_luaState.script(str_printf("UID_NONE  = %d", UID_NONE ));
+    m_luaState.script(str_printf("UID_BEGIN = %d", UID_BEGIN));
+    m_luaState.script(str_printf("UID_COR   = %d", UID_COR  ));
+    m_luaState.script(str_printf("UID_MAP   = %d", UID_MAP  ));
+    m_luaState.script(str_printf("UID_NPC   = %d", UID_NPC  ));
+    m_luaState.script(str_printf("UID_MON   = %d", UID_MON  ));
+    m_luaState.script(str_printf("UID_PLY   = %d", UID_PLY  ));
+    m_luaState.script(str_printf("UID_RCV   = %d", UID_RCV  ));
+    m_luaState.script(str_printf("UID_END   = %d", UID_END  ));
 
     m_luaState.script(str_printf("INVOP_TRADE  = %d", INVOP_TRADE ));
     m_luaState.script(str_printf("INVOP_SECURE = %d", INVOP_SECURE));
@@ -100,20 +102,9 @@ LuaModule::LuaModule()
 #include "luamodule.lua"
     INCLUA_END());
 
-    m_luaState.set_function("uidType", [](std::string uidString)
+    m_luaState.set_function("getUIDType", [](uint64_t uid)
     {
-        return uidf::getUIDType(uidf::toUIDEx(uidString));
-    });
-
-    m_luaState.set_function("isUID", [](std::string uidString)
-    {
-        try{
-            uidf::toUIDEx(uidString);
-            return true;
-        }
-        catch(...){
-            return false;
-        }
+        return uidf::getUIDType(uid);
     });
 
     m_luaState.set_function("sleep", [](int nSleepMS)

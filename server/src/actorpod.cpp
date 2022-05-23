@@ -31,21 +31,18 @@ extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
-ActorPod::ActorPod(uint64_t nUID,
+ActorPod::ActorPod(uint64_t uid,
         std::function<void()> fnTrigger,
         std::function<void(const ActorMsgPack &)> fnOperation,
         double updateFreq,
         uint64_t expireTime)
-    : m_UID([nUID]() -> uint64_t
+    : m_UID([uid]() -> uint64_t
       {
-          if(!nUID){
-              throw fflerror("provide user-defined zero UID");
-          }
-
-          if(nUID & 0X00FF000000000000ULL){
-              throw fflerror("provide user-defined UID has non-zero bits at 0X00FF000000000000: 0x%016llu", to_llu(nUID));
-          }
-          return nUID;
+          fflassert(uid);
+          fflassert(uidf::getUIDType(uid) != UID_RCV);
+          fflassert(uidf::getUIDType(uid) >= UID_BEGIN, uid, uidf::getUIDString(uid));
+          fflassert(uidf::getUIDType(uid) <  UID_END  , uid, uidf::getUIDString(uid));
+          return uid;
       }())
     , m_trigger(std::move(fnTrigger))
     , m_operation(std::move(fnOperation))

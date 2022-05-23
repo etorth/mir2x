@@ -61,6 +61,6 @@ class NPCChatBoard: public Widget
     private:
         uint32_t getNPCFaceKey() const
         {
-            return 0X50000000 | uidf::getLookID(m_NPCUID);
+            return 0X50000000 | uidf::getNPCID(m_NPCUID);
         }
 };

@@ -432,7 +432,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                         AMMapSwitchTrigger amMST;
                         std::memset(&amMST, 0, sizeof(amMST));
 
-                        amMST.UID   = uidf::getMapUID(getGrid(amTJ.EndX, amTJ.EndY).mapID); // TODO
+                        amMST.UID   = uidf::getMapBaseUID(getGrid(amTJ.EndX, amTJ.EndY).mapID); // TODO
                         amMST.mapID = getGrid(amTJ.EndX, amTJ.EndY).mapID;
                         amMST.X     = getGrid(amTJ.EndX, amTJ.EndY).switchX;
                         amMST.Y     = getGrid(amTJ.EndX, amTJ.EndY).switchY;
@@ -673,7 +673,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                         AMMapSwitchTrigger amMST;
                         std::memset(&amMST, 0, sizeof(amMST));
 
-                        amMST.UID   = uidf::getMapUID(getGrid(nMostX, nMostY).mapID); // TODO
+                        amMST.UID   = uidf::getMapBaseUID(getGrid(nMostX, nMostY).mapID); // TODO
                         amMST.mapID = getGrid(nMostX, nMostY).mapID;
                         amMST.X     = getGrid(nMostX, nMostY).switchX;
                         amMST.Y     = getGrid(nMostX, nMostY).switchY;

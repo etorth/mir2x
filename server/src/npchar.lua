@@ -7,9 +7,9 @@ end
 
 function waitEvent()
     while true do
-        local uid, event, value = pollCallStackEvent(getCallStackTable().uid)
-        if uid then
-            return uid, event, value
+        local fromUIDString, event, value = pollCallStackEvent(getCallStackTable().uid)
+        if fromUIDString then
+            return tonumber(fromUIDString), event, value
         end
         coroutine.yield()
     end
@@ -185,12 +185,8 @@ function uidGrantGold(uid, count)
 end
 
 function uidPostXML(uid, xmlFormat, ...)
-    if type(uid) ~= 'string' or type(xmlFormat) ~= 'string' then
+    if type(uid) ~= 'number' or type(xmlFormat) ~= 'string' then
         fatalPrintf("invalid argument type: uid: %s, xmlFormat: %s", type(uid), type(xmlFormat))
-    end
-
-    if not isUID(uid) then
-        fatalPrintf("not a valid uid string: %s", uid)
     end
     uidPostXMLString(uid, xmlFormat:format(...))
 end

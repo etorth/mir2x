@@ -571,7 +571,7 @@ bool MonoServer::loadMap(const std::string &mapName)
     switch(const auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
         case AM_LOADMAPOK:
             {
-                addLog(LOGTYPE_INFO, "Load map %s: uid = %s", to_cstr(mapName), uidf::getUIDString(uidf::getMapUID(amLM.mapID)).c_str());
+                addLog(LOGTYPE_INFO, "Load map %s: uid = %s", to_cstr(mapName), uidf::getUIDString(uidf::getMapBaseUID(amLM.mapID)).c_str());
                 return true;
             }
         default:
