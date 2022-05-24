@@ -87,6 +87,15 @@ function fromString(s)
     end
 end
 
+function hasChar(s)
+    if s == nil then
+        return false
+    end
+
+    assertType(s, 'string')
+    return string.len(s) > 0
+end
+
 function asyncWait(ms)
     local start = getTime()
     while getTime() < start + ms

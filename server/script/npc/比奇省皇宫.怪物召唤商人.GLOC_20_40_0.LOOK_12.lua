@@ -5,7 +5,7 @@ do
 
     while(true) do
         local monsterName = getMonsterName(monsterID)
-        if monsterName == '' then
+        if not hasChar(monsterName) then
             break
         end
 

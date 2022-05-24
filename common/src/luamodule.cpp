@@ -114,17 +114,18 @@ LuaModule::LuaModule()
         }
     });
 
-    m_luaState.set_function("exit", [](int nExitCode)
+    m_luaState.set_function("exit", [](int exitCode)
     {
-        std::exit(nExitCode);
+        std::exit(exitCode);
     });
 
-    m_luaState.set_function("getItemName", [](int itemID) -> std::string
+    m_luaState.set_function("getItemName", [](int itemID, sol::this_state s) -> sol::object
     {
-        if(const auto s = to_cstr(DBCOM_ITEMRECORD(itemID).name)){
-            return s;
+        sol::state_view sv(s);
+        if(const auto name = DBCOM_ITEMRECORD(itemID).name; str_haschar(name)){
+            return sol::object(sv, sol::in_place_type<std::string>, std::string(to_cstr(name)));
         }
-        return "";
+        return sol::make_object(sv, sol::nil);
     });
 
     m_luaState.set_function("getItemID", [](std::string itemName) -> int
@@ -132,12 +133,13 @@ LuaModule::LuaModule()
         return DBCOM_ITEMID(to_u8cstr(itemName));
     });
 
-    m_luaState.set_function("getMonsterName", [](int monsterID) -> std::string
+    m_luaState.set_function("getMonsterName", [](int monsterID, sol::this_state s) -> sol::object
     {
-        if(const auto s = to_cstr(DBCOM_MONSTERRECORD(monsterID).name)){
-            return s;
+        sol::state_view sv(s);
+        if(const auto name = DBCOM_MONSTERRECORD(monsterID).name; str_haschar(name)){
+            return sol::object(sv, sol::in_place_type<std::string>, std::string(to_cstr(name)));
         }
-        return "";
+        return sol::make_object(sv, sol::nil);
     });
 
     m_luaState.set_function("getMonsterID", [](std::string monsterName) -> int

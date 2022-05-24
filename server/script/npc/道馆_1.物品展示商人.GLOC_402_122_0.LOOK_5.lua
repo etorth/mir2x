@@ -4,7 +4,7 @@ do
 
     while(true) do
         local itemName = getItemName(itemID)
-        if itemName == '' then
+        if not hasChar(itemName) then
             break
         end
 
