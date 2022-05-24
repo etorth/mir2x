@@ -9,8 +9,10 @@ function waitEvent()
     while true do
         local fromUID, event, value = pollCallStackEvent(getCallStackTable().uid)
         if fromUID then
-            if(type(event) ~= 'string') then
-                fatalPrintf('Pull uid %s with invalid event', tostring(fromUID))
+            assertType(fromUID, 'integer')
+            assertType(event, 'string')
+            if value then
+                assertType(value, 'string')
             end
             return fromUID, event, value
         end
