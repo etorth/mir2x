@@ -220,13 +220,13 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         const auto objType = [&key, &obj]() -> std::string
         {
             if(obj.is<int>()){
-                return "integer";
+                return "INTEGER";
             }
             else if(obj.is<double>()){
-                return "real";
+                return "REAL";
             }
             else if(obj.is<std::string>()){
-                return "text";
+                return "TEXT";
             }
             else{
                 throw fflerror("invalid object type: name = %s", to_cstr(key));
@@ -237,13 +237,13 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
             g_dbPod->exec(u8R"###(alter table %s add column %s %s)###", npcDBName.c_str(), key.c_str(), objType.c_str());
         }
         else if(colType != objType){
-            throw fflerror("column type mismatch, expected %s:%s, get type %s", npcDBName.c_str(), key.c_str(), objType.c_str());
+            throw fflerror("column %s:%s type mismatch, expected %s, get type %s", npcDBName.c_str(), key.c_str(), colType.c_str(), objType.c_str());
         }
 
-        if(objType == "integer"){
+        if(objType == "INTEGER"){
             g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, %d) on conflict(fld_dbid) do update set %s=%d)###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<int>(), key.c_str(), obj.as<int>());
         }
-        else if(objType == "real"){
+        else if(objType == "REAL"){
             g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, %f) on conflict(fld_dbid) do update set %s=%f)###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<double>(), key.c_str(), obj.as<double>());
         }
         else{
