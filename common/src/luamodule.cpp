@@ -34,36 +34,36 @@ LuaModule::LuaModule()
 {
     m_luaState.open_libraries();
 
-    m_luaState.script(str_printf("UID_NONE  = %d", UID_NONE ));
-    m_luaState.script(str_printf("UID_BEGIN = %d", UID_BEGIN));
-    m_luaState.script(str_printf("UID_COR   = %d", UID_COR  ));
-    m_luaState.script(str_printf("UID_MAP   = %d", UID_MAP  ));
-    m_luaState.script(str_printf("UID_NPC   = %d", UID_NPC  ));
-    m_luaState.script(str_printf("UID_MON   = %d", UID_MON  ));
-    m_luaState.script(str_printf("UID_PLY   = %d", UID_PLY  ));
-    m_luaState.script(str_printf("UID_RCV   = %d", UID_RCV  ));
-    m_luaState.script(str_printf("UID_END   = %d", UID_END  ));
+    execString("UID_NONE  = %d", UID_NONE );
+    execString("UID_BEGIN = %d", UID_BEGIN);
+    execString("UID_COR   = %d", UID_COR  );
+    execString("UID_MAP   = %d", UID_MAP  );
+    execString("UID_NPC   = %d", UID_NPC  );
+    execString("UID_MON   = %d", UID_MON  );
+    execString("UID_PLY   = %d", UID_PLY  );
+    execString("UID_RCV   = %d", UID_RCV  );
+    execString("UID_END   = %d", UID_END  );
 
-    m_luaState.script(str_printf("INVOP_TRADE  = %d", INVOP_TRADE ));
-    m_luaState.script(str_printf("INVOP_SECURE = %d", INVOP_SECURE));
-    m_luaState.script(str_printf("INVOP_REPAIR = %d", INVOP_REPAIR));
+    execString("INVOP_TRADE  = %d", INVOP_TRADE );
+    execString("INVOP_SECURE = %d", INVOP_SECURE);
+    execString("INVOP_REPAIR = %d", INVOP_REPAIR);
 
-    m_luaState.script(str_printf("DIR_UP        = %d", DIR_UP       ));
-    m_luaState.script(str_printf("DIR_UPRIGHT   = %d", DIR_UPRIGHT  ));
-    m_luaState.script(str_printf("DIR_RIGHT     = %d", DIR_RIGHT    ));
-    m_luaState.script(str_printf("DIR_DOWNRIGHT = %d", DIR_DOWNRIGHT));
-    m_luaState.script(str_printf("DIR_DOWN      = %d", DIR_DOWN     ));
-    m_luaState.script(str_printf("DIR_DOWNLEFT  = %d", DIR_DOWNLEFT ));
-    m_luaState.script(str_printf("DIR_LEFT      = %d", DIR_LEFT     ));
-    m_luaState.script(str_printf("DIR_UPLEFT    = %d", DIR_UPLEFT   ));
+    execString("DIR_UP        = %d", DIR_UP       );
+    execString("DIR_UPRIGHT   = %d", DIR_UPRIGHT  );
+    execString("DIR_RIGHT     = %d", DIR_RIGHT    );
+    execString("DIR_DOWNRIGHT = %d", DIR_DOWNRIGHT);
+    execString("DIR_DOWN      = %d", DIR_DOWN     );
+    execString("DIR_DOWNLEFT  = %d", DIR_DOWNLEFT );
+    execString("DIR_LEFT      = %d", DIR_LEFT     );
+    execString("DIR_UPLEFT    = %d", DIR_UPLEFT   );
 
-    m_luaState.script(str_printf("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT ));
-    m_luaState.script(str_printf("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE ));
-    m_luaState.script(str_printf("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY));
-    m_luaState.script(str_printf("SYS_NPCERROR = \"%s\"", SYS_NPCERROR));
-    m_luaState.script(str_printf("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL)));
+    execString("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT );
+    execString("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE );
+    execString("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY);
+    execString("SYS_NPCERROR = \"%s\"", SYS_NPCERROR);
+    execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 
-    m_luaState.set_function("addLogString", [this](sol::object logType, sol::object logInfo)
+    bindFunction("addLogString", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){
             addLogString(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
@@ -83,17 +83,17 @@ LuaModule::LuaModule()
         addLogString(1, u8"Invalid argument: addLogString(?, \"?\")");
     });
 
-    m_luaState.set_function("getTime", [timer = hres_timer()]() -> int
+    bindFunction("getTime", [timer = hres_timer()]() -> int
     {
         return to_d(timer.diff_msec());
     });
 
-    m_luaState.set_function("getNanoTstamp", []() -> std::string
+    bindFunction("getNanoTstamp", []() -> std::string
     {
         return std::to_string(hres_tstamp().to_nsec());
     });
 
-    m_luaState.set_function("getAbsTime", []() -> int
+    bindFunction("getAbsTime", []() -> int
     {
         return to_d(std::time(nullptr));
     });
@@ -102,24 +102,24 @@ LuaModule::LuaModule()
 #include "luamodule.lua"
     INCLUA_END());
 
-    m_luaState.set_function("getUIDType", [](uint64_t uid)
+    bindFunction("getUIDType", [](uint64_t uid)
     {
         return uidf::getUIDType(uid);
     });
 
-    m_luaState.set_function("sleep", [](int nSleepMS)
+    bindFunction("sleep", [](int nSleepMS)
     {
         if(nSleepMS > 0){
             std::this_thread::sleep_for(std::chrono::milliseconds(nSleepMS));
         }
     });
 
-    m_luaState.set_function("exit", [](int exitCode)
+    bindFunction("exit", [](int exitCode)
     {
         std::exit(exitCode);
     });
 
-    m_luaState.set_function("getItemName", [](int itemID, sol::this_state s) -> sol::object
+    bindFunction("getItemName", [](int itemID, sol::this_state s) -> sol::object
     {
         sol::state_view sv(s);
         if(const auto name = DBCOM_ITEMRECORD(itemID).name; str_haschar(name)){
@@ -128,12 +128,12 @@ LuaModule::LuaModule()
         return sol::make_object(sv, sol::nil);
     });
 
-    m_luaState.set_function("getItemID", [](std::string itemName) -> int
+    bindFunction("getItemID", [](std::string itemName) -> int
     {
         return DBCOM_ITEMID(to_u8cstr(itemName));
     });
 
-    m_luaState.set_function("getMonsterName", [](int monsterID, sol::this_state s) -> sol::object
+    bindFunction("getMonsterName", [](int monsterID, sol::this_state s) -> sol::object
     {
         sol::state_view sv(s);
         if(const auto name = DBCOM_MONSTERRECORD(monsterID).name; str_haschar(name)){
@@ -142,22 +142,22 @@ LuaModule::LuaModule()
         return sol::make_object(sv, sol::nil);
     });
 
-    m_luaState.set_function("getMonsterID", [](std::string monsterName) -> int
+    bindFunction("getMonsterID", [](std::string monsterName) -> int
     {
         return DBCOM_MONSTERID(to_u8cstr(monsterName));
     });
 
-    m_luaState.set_function("getMapName", [](int mapID) -> std::string
+    bindFunction("getMapName", [](int mapID) -> std::string
     {
         return to_cstr(DBCOM_MAPRECORD(mapID).name);
     });
 
-    m_luaState.set_function("getMapID", [](std::string mapName) -> int
+    bindFunction("getMapID", [](std::string mapName) -> int
     {
         return DBCOM_MAPID(to_u8cstr(mapName));
     });
 
-    m_luaState.set_function("randString", [this](sol::variadic_args args) -> std::string
+    bindFunction("randString", [this](sol::variadic_args args) -> std::string
     {
         // generate random string
         // for debug purpose of utf8 layout board
@@ -216,32 +216,32 @@ LuaModule::LuaModule()
         return result;
     });
 
-    m_luaState.set_function("scalarAsString", [this](sol::object obj) -> std::string
+    bindFunction("scalarAsString", [this](sol::object obj) -> std::string
     {
         return luaf::buildBlob<sol::object>(obj);
     });
 
-    m_luaState.set_function("convTableAsString", [this](sol::as_table_t<luaf::conv_table> convTable) -> std::string
+    bindFunction("convTableAsString", [this](sol::as_table_t<luaf::conv_table> convTable) -> std::string
     {
         return luaf::buildBlob<luaf::conv_table>(convTable.value());
     });
 
-    m_luaState.set_function("scalarFromString", [this](std::string s, sol::this_state state)
+    bindFunction("scalarFromString", [this](std::string s, sol::this_state state)
     {
         return luaf::buildLuaObj(sol::state_view(state), s);
     });
 
-    m_luaState.set_function("convTableFromString", [this](std::string s)
+    bindFunction("convTableFromString", [this](std::string s)
     {
         return luaf::buildLuaConvTable(s);
     });
 
-    m_luaState.set_function("asKeyString", [this](std::string s) -> std::string
+    bindFunction("asKeyString", [this](std::string s) -> std::string
     {
         return luaf::asKeyString(s);
     });
 
-    m_luaState.set_function("fromKeyString", [this](std::string s) -> std::string
+    bindFunction("fromKeyString", [this](std::string s) -> std::string
     {
         return luaf::fromKeyString(s);
     });

@@ -21,6 +21,8 @@
 
 #pragma once
 #include <sol/sol.hpp>
+#include "strf.hpp"
+#include "filesys.hpp"
 
 class LuaModule
 {
@@ -37,6 +39,32 @@ class LuaModule
         sol::state &getLuaState()
         {
             return m_luaState;
+        }
+
+    public:
+        void execFile(const char *path)
+        {
+            fflassert(     str_haschar(path), path);
+            fflassert(filesys::hasFile(path), path);
+
+            m_luaState.script_file(path);
+        }
+
+        void execString(const char *format, ...)
+        {
+            std::string s;
+            str_format(format, s);
+
+            if(str_haschar(s)){
+                m_luaState.script(s);
+            }
+        }
+
+    public:
+        template<typename Callable> void bindFunction(const char *funcName, Callable && callable)
+        {
+            fflassert(str_haschar(funcName), funcName);
+            m_luaState.set_function(funcName, std::forward<Callable>(callable));
         }
 
     protected:
