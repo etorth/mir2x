@@ -1,7 +1,7 @@
 processNPCEvent = {}
 do
     local monsterID = 1
-    local monsterNameString = ''
+    local monsterNameStrList = {}
 
     while(true) do
         local monsterName = getMonsterName(monsterID)
@@ -9,12 +9,15 @@ do
             break
         end
 
-        if monsterName ~= '未知' then
-            local tagName = string.format('goto_tag_%d', monsterID)
-            monsterNameString = monsterNameString .. string.format([[<event id="%s" wrap="false">%s，</event>]], tagName, monsterName)
+        local suffixDigits = string.match(monsterName, '^.-(%d+)$')
+        if suffixDigits == nil then
+            if monsterName ~= '未知' then
+                local tagName = string.format('goto_tag_%d', monsterID)
+                monsterNameStrList[#monsterNameStrList + 1] = string.format([[<event id="%s" wrap="false">%s，</event>]], tagName, monsterName)
 
-            processNPCEvent[tagName] = function(uid, value)
-                addMonster(monsterName)
+                processNPCEvent[tagName] = function(uid, value)
+                    addMonster(monsterName)
+                end
             end
         end
         monsterID = monsterID + 1
@@ -30,6 +33,6 @@ do
                 <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], uidQueryName(uid), getNPCName(), monsterNameString, SYS_NPCDONE)
+        ]], uidQueryName(uid), getNPCName(), table.concat(monsterNameStrList), SYS_NPCDONE)
     end
 end
