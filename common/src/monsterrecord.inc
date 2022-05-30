@@ -2683,6 +2683,73 @@
     .walkWait = 500,
     .walkStep = 1,
     .attackWait = 2000,
+    .dropItemList
+    {
+        {
+            {   .item = u8"金币（小）",
+                .probRecip = 4,
+                .count = 1600,
+            },
+
+            {   .item = u8"金创药（小）",
+                .probRecip = 10,
+            },
+
+            {   .item = u8"魔法药（小）",
+                .probRecip = 40,
+            },
+
+            {   .item = u8"金创药（中）",
+                .probRecip = 20,
+            },
+
+            {   .item = u8"金创药（中）",
+                .probRecip = 80,
+            },
+
+            {   .item = u8"金创药（大）",
+                .probRecip = 30,
+            },
+
+            {   .item = u8"魔法药（大）",
+                .probRecip = 120,
+            },
+
+            {   .item = u8"牙齿",
+                .probRecip = 10,
+            },
+
+            {   .item = u8"攻击神水（大）",
+                .probRecip = 2000,
+            },
+
+            {   .item = u8"自然神水（大）",
+                .probRecip = 2000,
+            },
+
+            {   .item = u8"灵魂神水（大）",
+                .probRecip = 2000,
+            },
+
+            {   .item = u8"疾风神水（大）",
+                .probRecip = 2000,
+            },
+
+            {   .item = u8"体力强效神水（大）",
+                .probRecip = 2000,
+            },
+
+            {   .item = u8"魔力强效神水（大）",
+                .probRecip = 2000,
+            },
+        },
+
+        {
+            {   .item = u8"牙齿",
+                .probRecip = 10,
+            },
+        },
+    },
 },
 
 {   .name = u8"黑野猪0",

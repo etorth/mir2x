@@ -121,6 +121,15 @@ struct MonsterRecord
     const int attackWait   = 0;
     const int attackEffect = 0;
 
+    struct DropItem
+    {
+        const char8_t *item = nullptr;
+        const int probRecip = 1;
+        const int repeat    = 1;
+        const int count     = 1;
+    };
+    const std::initializer_list<std::initializer_list<DropItem>> dropItemList {};
+
     const char8_t *dcName = nullptr;
     const char8_t *description = nullptr;
 
