@@ -131,9 +131,9 @@ ServerLuaModule::ServerLuaModule()
         return sol::nested<decltype(queryResult)>(std::move(queryResult));
     });
 
-    m_luaState.script(INCLUA_BEGIN(char)
+    m_luaState.script(BEGIN_LUAINC(char)
 #include "serverluamodule.lua"
-    INCLUA_END());
+    END_LUAINC());
 }
 
 void ServerLuaModule::addLogString(int nLogType, const char8_t *logInfo)

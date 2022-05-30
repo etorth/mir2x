@@ -371,9 +371,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }());
     });
 
-    m_luaState.script(INCLUA_BEGIN(char)
+    m_luaState.script(BEGIN_LUAINC(char)
 #include "npchar.lua"
-    INCLUA_END());
+    END_LUAINC());
 
     m_luaState.script_file(scriptName);
     m_luaState.script

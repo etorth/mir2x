@@ -61,10 +61,10 @@ class LuaModule
         }
 
     public:
-        template<typename Callable> void bindFunction(const char *funcName, Callable && callable)
+        template<typename Callable> void bindFunction(const char *func, Callable && callable)
         {
-            fflassert(str_haschar(funcName), funcName);
-            m_luaState.set_function(funcName, std::forward<Callable>(callable));
+            fflassert(str_haschar(func), func);
+            m_luaState.set_function(func, std::forward<Callable>(callable));
         }
 
     protected:
@@ -76,9 +76,9 @@ class LuaModule
 //
 //     const auto s
 //     {
-//         INCLUA_BEGIN(char)
+//         BEGIN_LUAINC(char)
 //             #include "script.lua"
-//         INCLUA_END()
+//         END_LUAINC()
 //     };
 //
 // the script need to be in a special format
@@ -92,7 +92,7 @@ class LuaModule
 //     -- )###"      <-- required
 //
 
-#define INCLUA_BEGIN(script_byte_type) \
+#define BEGIN_LUAINC(script_byte_type) \
 []() \
 { \
     using _INCLUA_BYTE_TYPE = script_byte_type; \
@@ -103,7 +103,7 @@ class LuaModule
     { \
         _consume_decr_op
 
-#define INCLUA_END() \
+#define END_LUAINC() \
     }; \
     return (const _INCLUA_BYTE_TYPE *)(_use_second_cstr[1]); \
 }()

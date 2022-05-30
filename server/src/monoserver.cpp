@@ -975,7 +975,7 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
         }
     });
 
-    modulePtr->getLuaState().script(INCLUA_BEGIN(char)
+    modulePtr->getLuaState().script(BEGIN_LUAINC(char)
 #include "monoserver.lua"
-    INCLUA_END());
+    END_LUAINC());
 }

@@ -98,9 +98,9 @@ LuaModule::LuaModule()
         return to_d(std::time(nullptr));
     });
 
-    m_luaState.script(INCLUA_BEGIN(char)
+    m_luaState.script(BEGIN_LUAINC(char)
 #include "luamodule.lua"
-    INCLUA_END());
+    END_LUAINC());
 
     bindFunction("getUIDType", [](uint64_t uid)
     {
