@@ -21,16 +21,6 @@
 #include <stdexcept>
 #include "strf.hpp"
 
-bool str_haschar(const char *s)
-{
-    return s && s[0] != '\0';
-}
-
-bool str_haschar(const char8_t *s)
-{
-    return str_haschar(reinterpret_cast<const char *>(s));
-}
-
 bool str_haschar(const std::string        &s) { return !s.empty(); }
 bool str_haschar(const std::u8string      &s) { return !s.empty(); }
 bool str_haschar(const std::string_view   &s) { return !s.empty(); }

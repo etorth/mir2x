@@ -100,8 +100,15 @@
     #define STR_PRINTF_CHECK_FORMAT(n)
 #endif
 
-bool str_haschar(const char *);
-bool str_haschar(const char8_t *);
+constexpr bool str_haschar(const char *s)
+{
+    return s && s[0] != '\0';
+}
+
+constexpr bool str_haschar(const char8_t *s)
+{
+    return s && s[0] != '\0';
+}
 
 bool str_haschar(const std::string &);
 bool str_haschar(const std::u8string &);
