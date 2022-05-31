@@ -56,14 +56,6 @@ bool idstrf::isCharName(const char *s)
 bool idstrf::isPassword(const char *s)
 {
     if(str_haschar(s)){
-        const auto fnIsSpecials = [](char ch) -> bool
-        {
-            const char specialchars[] = "~!@#$%^&*()";
-            const auto beginp = specialchars;
-            const auto   endp = specialchars + sizeof(specialchars) - 1;
-            return std::find(beginp, endp, ch) != endp;
-        };
-
         size_t digits   = 0;    // 0-9
         size_t lowers   = 0;    // a-z
         size_t uppers   = 0;    // A-Z
@@ -80,7 +72,7 @@ bool idstrf::isPassword(const char *s)
             else if(s[i] >= 'A' && s[i] <= 'Z'){
                 uppers++;
             }
-            else if(fnIsSpecials(s[i])){
+            else if(std::string_view("~!@#$%^&*()").find(s[i]) != std::string_view::npos){
                 specials++;
             }
             length++;

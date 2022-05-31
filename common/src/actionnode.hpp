@@ -63,7 +63,7 @@ struct ActionNode
 
     struct ExtParamStand
     {
-        struct DogStand
+        struct TaoDogStand
         {
             uint8_t standMode;
         };
@@ -105,7 +105,7 @@ struct ActionNode
 
         union
         {
-            DogStand dog;
+            TaoDogStand dog;
             CannibalPlantStand cannibalPlant;
             SandGhostStand sandGhost;
             RebornZombieStand rebornZombie;
@@ -118,7 +118,7 @@ struct ActionNode
 
     struct ExtParamTransf
     {
-        struct DogTransf
+        struct TaoDogTransf
         {
             uint8_t standModeReq;
         };
@@ -155,7 +155,7 @@ struct ActionNode
 
         union
         {
-            DogTransf dog;
+            TaoDogTransf dog;
             CannibalPlantTransf cannibalPlant;
             SandGhostTransf sandGhost;
             RebornZombieTransf rebornZombie;
@@ -167,14 +167,14 @@ struct ActionNode
 
     struct ExtParamDie
     {
-        struct DogDie
+        struct TaoDogDie
         {
             uint8_t standMode;
         };
 
         union
         {
-            DogDie dog;
+            TaoDogDie dog;
         };
     };
 
@@ -198,14 +198,14 @@ struct ActionNode
 
     struct ExtParamHitted
     {
-        struct DogHitted
+        struct TaoDogHitted
         {
             uint8_t standMode;
         };
 
         union
         {
-            DogHitted dog;
+            TaoDogHitted dog;
         };
     };
 
