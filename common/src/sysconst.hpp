@@ -21,6 +21,12 @@
 #include <cstdint>
 #include <type_traits>
 
+#ifdef MIR2X_DEBUG_MODE
+    constexpr bool SYS_DEBUG = true;
+#else
+    constexpr bool SYS_DEBUG = false;
+#endif
+
 // In code of mirx, the MAX_Y_COUNT_FOR_OBJ_H is 44, means we need to check 44 * 32 in
 // height when drawing map because of the long object slice. Do some math the screen
 // height is 600, then for object slice it's (44 * 32 - 600) / 32 = 25.25, means there

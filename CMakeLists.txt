@@ -24,6 +24,10 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 # cmake disble assert() if in release mode
 ADD_COMPILE_DEFINITIONS(CONDCHECK)
 
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    ADD_COMPILE_DEFINITIONS(MIR2X_DEBUG_MODE)
+ENDIF()
+
 IF(WIN32 AND MSVC)
     # won't use the /WX
     # have a lot secure warnings
