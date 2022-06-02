@@ -16,7 +16,7 @@ function fatalPrintf(s, ...)
     if type(s) ~= 'string' then
         error(string.format('invalid argument type: fatalPrintf(%s, ...)', type(s)))
     end
-    error(s:format(...))
+    error(s:format(...), 2)
 end
 
 function argDefault(arg, def)
@@ -35,11 +35,11 @@ function assertType(var, typestr)
 
     if type(var) == 'number' then
         if math.type(var) ~= typestr then
-            fatalPrintf('assertion failed: expect type(var) as %s, get %s', math.type(var), typestr)
+            fatalPrintf('assertion failed: expect type(var) as %s, get %s', typestr, math.type(var))
         end
     else
         if type(var) ~= typestr then
-            fatalPrintf('assertion failed: expect type(var) as %s, get %s', type(var), typestr)
+            fatalPrintf('assertion failed: expect type(var) as %s, get %s', typestr, type(var))
         end
     end
 end
@@ -101,6 +101,38 @@ end
 
 function getFileName()
     return debug.getinfo(2, 'S').source
+end
+
+function getROTable(t)
+    assertType(t, 'table')
+    return setmetatable({}, {
+        __index = t,
+        __newindex = function(t, k, v)
+            error("attempt to update a read-only table", 2)
+        end,
+
+        __pairs = function(t)
+            local function iter(t, k)
+                local v
+                k, v = next(t, k)
+                if v ~= nil then
+                    return k, v
+                end
+            end
+            return iter, t, nil
+        end,
+
+        __ipairs = function(t)
+            local function iter(t, i)
+                i = i + 1
+                local v = t[i]
+                if v ~= nil then
+                    return i, v
+                end
+            end
+            return iter, t, 0
+        end,
+    })
 end
 
 function getBackTraceLine()
