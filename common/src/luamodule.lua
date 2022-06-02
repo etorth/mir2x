@@ -35,11 +35,11 @@ function assertType(var, typestr)
 
     if type(var) == 'number' then
         if math.type(var) ~= typestr then
-            fatalPrintf('assertion failed: expect type(var) as %s, get %s', typestr, math.type(var))
+            fatalPrintf('assertion failed: expect %s, get %s', typestr, math.type(var))
         end
     else
         if type(var) ~= typestr then
-            fatalPrintf('assertion failed: expect type(var) as %s, get %s', typestr, type(var))
+            fatalPrintf('assertion failed: expect %s, get %s', typestr, type(var))
         end
     end
 end
@@ -103,7 +103,7 @@ function getFileName()
     return debug.getinfo(2, 'S').source
 end
 
-function getROTable(t)
+function rotable(t)
     assertType(t, 'table')
     return setmetatable({}, {
         __index = t,

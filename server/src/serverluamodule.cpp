@@ -36,7 +36,7 @@ ServerLuaModule::ServerLuaModule()
     : LuaModule()
 {
     execString(
-            R"###( g_serverArgParser = getROTable({ )###"
+            R"###( g_serverArgParser = rotable({    )###"
             R"###(     disableMapScript    = %s,    )###"
             R"###(     disablePetSpawn     = %s,    )###"
             R"###(     disableGuardSpawn   = %s,    )###"
