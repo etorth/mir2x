@@ -50,7 +50,7 @@ ServerLuaModule::ServerLuaModule()
             to_boolcstr(g_serverArgParser->disableMonsterSpawn),
             to_boolcstr(g_serverArgParser->disableNPCSpawn    ));
 
-    execString(str_printf("package.path = package.path .. ';%s/?.lua'", []() -> std::string
+    execString("package.path = package.path .. ';%s/?.lua'", []() -> std::string
     {
         if(const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath; cfgScriptPath.empty()){
             return "script";
@@ -58,7 +58,7 @@ ServerLuaModule::ServerLuaModule()
         else{
             return cfgScriptPath;
         }
-    }().c_str()).c_str());
+    }().c_str());
 
     bindFunction("isUIDAlive", [](uint64_t uid)
     {
@@ -148,7 +148,7 @@ ServerLuaModule::ServerLuaModule()
         return sol::nested<decltype(queryResult)>(std::move(queryResult));
     });
 
-    execFile(BEGIN_LUAINC(char)
+    execString(BEGIN_LUAINC(char)
 #include "serverluamodule.lua"
     END_LUAINC());
 }
