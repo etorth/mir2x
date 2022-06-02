@@ -111,18 +111,11 @@ function getROTable(t)
             error("attempt to update a read-only table", 2)
         end,
 
-        __pairs = function(t)
-            local function iter(t, k)
-                local v
-                k, v = next(t, k)
-                if v ~= nil then
-                    return k, v
-                end
-            end
-            return iter, t, nil
+        __pairs = function(_)
+            return next, t, nil
         end,
 
-        __ipairs = function(t)
+        __ipairs = function(_)
             local function iter(t, i)
                 i = i + 1
                 local v = t[i]
