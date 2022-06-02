@@ -69,6 +69,9 @@ class LuaModule
 
     protected:
         virtual void addLogString(int, const char8_t *) = 0;
+
+    public:
+        bool pfrCheck(const sol::protected_function_result &); // parse if pfr is an error
 };
 
 // directives to include a lua file to C++ src code

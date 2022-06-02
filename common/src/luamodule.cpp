@@ -34,6 +34,11 @@ LuaModule::LuaModule()
 {
     m_luaState.open_libraries();
 
+    execString("LOGTYPE_INFO    = 0");
+    execString("LOGTYPE_WARNING = 1");
+    execString("LOGTYPE_FATAL   = 2");
+    execString("LOGTYPE_DEBUG   = 3");
+
     execString("UID_NONE  = %d", UID_NONE );
     execString("UID_BEGIN = %d", UID_BEGIN);
     execString("UID_COR   = %d", UID_COR  );
@@ -247,4 +252,20 @@ LuaModule::LuaModule()
     {
         return luaf::fromKeyString(s);
     });
+}
+
+bool LuaModule::pfrCheck(const sol::protected_function_result &pfr)
+{
+    if(pfr.valid()){
+        return true;
+    }
+
+    const sol::error err = pfr;
+    std::stringstream errStream(err.what());
+
+    std::string errStr;
+    while(std::getline(errStream, errStr, '\n')){
+        addLogString(Log::LOGTYPEV_WARNING, to_u8cstr(errStr));
+    }
+    return false;
 }

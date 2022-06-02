@@ -1,11 +1,6 @@
 --, u8R"###(
 --
 
-LOGTYPE_INFO    = 0
-LOGTYPE_WARNING = 1
-LOGTYPE_FATAL   = 2
-LOGTYPE_DEBUG   = 3
-
 -- example:
 --     addLog(LOGTYPE_INFO, 'hello world')
 --     addLog(LOGTYPE_INFO, 'hello world: %d', 12)

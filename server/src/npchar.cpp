@@ -394,29 +394,13 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
         return;
     }
 
-    const auto fnCheckCOResult = [this](const auto &result)
-    {
-        if(result.valid()){
-            return;
-        }
-
-        const sol::error err = result;
-        std::stringstream errStream(err.what());
-
-        std::string errLine;
-        while(std::getline(errStream, errLine, '\n')){
-            addLogString(1, to_u8cstr(errLine));
-        }
-    };
-
     auto p = m_callStackList.find(callStackUID);
     if(p == m_callStackList.end()){
         p = m_callStackList.insert({callStackUID, LuaNPCModule::LuaCallStack(this)}).first;
 
         // initial call to make main reaches its event polling point
         // need to assign event to let it advance
-        const auto result = p->second.co_callback(callStackUID);
-        fnCheckCOResult(result);
+        pfrCheck(p->second.co_callback(callStackUID));
     }
 
     if(!p->second.co_callback){
@@ -430,9 +414,7 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
     p->second.event = std::move(event);
     p->second.value = std::move(value);
 
-    const auto result = p->second.co_callback();
-    fnCheckCOResult(result);
-
+    pfrCheck(p->second.co_callback());
     if(!p->second.co_callback){
         // not invocable anymore after the event-driven call
         // the event handling coroutine is done

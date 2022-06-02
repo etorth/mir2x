@@ -60,25 +60,9 @@ class ServerMap final: public ServerObject
                 void resumeLoop()
                 {
                     if(!m_coHandler){
-                        throw fflerror("ServerMap lua coroutine is not callable");
+                        throw fflerror("ServerMap coroutine is not callable");
                     }
-                    checkResult(m_coHandler());
-                }
-
-            private:
-                template<typename T> void checkResult(const T &result)
-                {
-                    if(result.valid()){
-                        return;
-                    }
-
-                    const sol::error err = result;
-                    std::stringstream errStream(err.what());
-
-                    std::string errLine;
-                    while(std::getline(errStream, errLine, '\n')){
-                        addLogString(1, to_u8cstr(errLine));
-                    }
+                    pfrCheck(m_coHandler());
                 }
         };
 
