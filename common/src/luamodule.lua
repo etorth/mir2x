@@ -16,7 +16,7 @@ function fatalPrintf(s, ...)
     if type(s) ~= 'string' then
         error(string.format('invalid argument type: fatalPrintf(%s, ...)', type(s)))
     end
-    error(s:format(...), 2)
+    error(s:format(...))
 end
 
 function argDefault(arg, def)
@@ -113,7 +113,7 @@ function rotable(tbl, recursive)
         return setmetatable({}, {
             __index = tb,
             __newindex = function()
-                error("attempt to update a read-only table", 2)
+                error("attempt to update a read-only table")
             end,
 
             __pairs = function()
