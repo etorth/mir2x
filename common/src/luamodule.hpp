@@ -80,6 +80,14 @@ class LuaModule
             // we would like to take the lua code as raw string
             // but it contains %s, execString() parses it incorrectly as format string
 
+            // execRawString() is only used to include lua file:
+            //
+            //    execRawString(BEGIN_LUAINC(char)
+            //        #include "xxx.lua"
+            //    END_LUAINC());
+            //
+            // in xxx.lua there can be string.format() calls and execRawString() doesn't parse it
+
             return m_luaState.script(s, [](lua_State *, sol::protected_function_result result)
             {
                 // default handler
