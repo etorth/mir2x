@@ -103,29 +103,54 @@ function getFileName()
     return debug.getinfo(2, 'S').source
 end
 
-function rotable(t)
-    assertType(t, 'table')
-    return setmetatable({}, {
-        __index = t,
-        __newindex = function(t, k, v)
-            error("attempt to update a read-only table", 2)
-        end,
+function rotable(tbl, recursive)
+    assertType(tbl, 'table')
+    if recursive ~= nil then
+        assertType(recursive, 'boolean')
+    end
 
-        __pairs = function(_)
-            return next, t, nil
-        end,
+    local function plain_rotable(tb)
+        return setmetatable({}, {
+            __index = tb,
+            __newindex = function()
+                error("attempt to update a read-only table", 2)
+            end,
 
-        __ipairs = function(_)
-            local function iter(t, i)
-                i = i + 1
-                local v = t[i]
-                if v ~= nil then
-                    return i, v
+            __pairs = function()
+                return next, tb, nil
+            end,
+
+            __ipairs = function()
+                local function iter(t, i)
+                    local j = i + 1
+                    local v = t[j]
+                    if v ~= nil then
+                        return j, v
+                    end
                 end
+                return iter, tbl, 0
+            end,
+
+            __len = function()
+                return #tb
             end
-            return iter, t, 0
-        end,
-    })
+        })
+    end
+
+    local function dfs_rotable(tb)
+        for k, v in pairs(tb) do
+            if type(v) == 'table' then
+                tb[k] = plain_rotable(dfs_rotable(v))
+            end
+        end
+        return plain_rotable(tb)
+    end
+
+    if (recursive == nil or recursive) then
+        return dfs_rotable(tbl)
+    else
+        return plain_rotable(tbl)
+    end
 end
 
 function getBackTraceLine()
