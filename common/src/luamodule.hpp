@@ -57,16 +57,6 @@ class LuaModule
 
         sol::protected_function_result execString(const char *format, ...)
         {
-            // fails when format contains lua string.format() string, like
-            //
-            //    execString(
-            //        "function my_error(err)                             ""\n"
-            //        "    error(string.format('dected error: %s', err))  ""\n"
-            //        "end                                                ""\n");
-            //
-            // we would like to take the lua code as raw string
-            // but it contains %s, execString() parses it incorrectly as format string
-
             std::string s;
             str_format(format, s);
 
@@ -80,6 +70,16 @@ class LuaModule
 
         sol::protected_function_result execRawString(const char *s)
         {
+            // execString() fails when format contains lua string.format() string, like
+            //
+            //    execString(
+            //        "function my_error(err)                             ""\n"
+            //        "    error(string.format('dected error: %s', err))  ""\n"
+            //        "end                                                ""\n");
+            //
+            // we would like to take the lua code as raw string
+            // but it contains %s, execString() parses it incorrectly as format string
+
             return m_luaState.script(s, [](lua_State *, sol::protected_function_result result)
             {
                 // default handler
