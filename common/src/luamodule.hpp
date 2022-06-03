@@ -42,22 +42,50 @@ class LuaModule
         }
 
     public:
-        void execFile(const char *path)
+        sol::protected_function_result execFile(const char *path)
         {
             fflassert(     str_haschar(path), path);
             fflassert(filesys::hasFile(path), path);
 
-            m_luaState.script_file(path);
+            return m_luaState.script_file(path, [](lua_State *, sol::protected_function_result result)
+            {
+                // default handler
+                // do nothing and let the call site handle the errors
+                return result;
+            });
         }
 
-        void execString(const char *format, ...)
+        sol::protected_function_result execString(const char *format, ...)
         {
+            // fails when format contains lua string.format() string, like
+            //
+            //    execString(
+            //        "function my_error(err)                             ""\n"
+            //        "    error(string.format('dected error: %s', err))  ""\n"
+            //        "end                                                ""\n");
+            //
+            // we would like to take the lua code as raw string
+            // but it contains %s, execString() parses it incorrectly as format string
+
             std::string s;
             str_format(format, s);
 
-            if(str_haschar(s)){
-                m_luaState.script(s);
-            }
+            return m_luaState.script(s, [](lua_State *, sol::protected_function_result result)
+            {
+                // default handler
+                // do nothing and let the call site handle the errors
+                return result;
+            });
+        }
+
+        sol::protected_function_result execRawString(const char *s)
+        {
+            return m_luaState.script(s, [](lua_State *, sol::protected_function_result result)
+            {
+                // default handler
+                // do nothing and let the call site handle the errors
+                return result;
+            });
         }
 
     public:

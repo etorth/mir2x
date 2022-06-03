@@ -25,5 +25,6 @@ function help(queryKey)
         addCWLogString(2, "> ", "No registered help information for input")
     end
 end
+
 --
 -- )###"

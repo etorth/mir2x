@@ -927,13 +927,7 @@ bool ProcessRun::luaCommand(const char *luaCmdString)
         return false;
     }
 
-    const auto callResult = m_luaModule.getLuaState().script(luaCmdString, [](lua_State *, sol::protected_function_result result)
-    {
-        // default handler
-        // do nothing and let the call site handle the errors
-        return result;
-    });
-
+    const auto callResult = m_luaModule.execString(luaCmdString);
     if(callResult.valid()){
         return true;
     }
@@ -1141,11 +1135,11 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     }
 
     // initialization before registration
-    luaModulePtr->getLuaState().script(str_printf("CBLOG_DEF = %d", CBLOG_DEF));
-    luaModulePtr->getLuaState().script(str_printf("CBLOG_SYS = %d", CBLOG_SYS));
-    luaModulePtr->getLuaState().script(str_printf("CBLOG_DBG = %d", CBLOG_DBG));
-    luaModulePtr->getLuaState().script(str_printf("CBLOG_ERR = %d", CBLOG_ERR));
-    luaModulePtr->getLuaState().set_function("addCBLog", [this](sol::object logType, sol::object logInfo)
+    luaModulePtr->execString("CBLOG_DEF = %d", CBLOG_DEF);
+    luaModulePtr->execString("CBLOG_SYS = %d", CBLOG_SYS);
+    luaModulePtr->execString("CBLOG_DBG = %d", CBLOG_DBG);
+    luaModulePtr->execString("CBLOG_ERR = %d", CBLOG_ERR);
+    luaModulePtr->bindFunction("addCBLog", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){
             switch(logType.as<int>()){
@@ -1181,14 +1175,14 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 
     // register command playerList
     // return a table (userData) to lua for ipairs() check
-    luaModulePtr->getLuaState().set_function("playerList", [this](sol::this_state stThisLua)
+    luaModulePtr->bindFunction("playerList", [this](sol::this_state stThisLua)
     {
         return sol::make_object(sol::state_view(stThisLua), GetPlayerList());
     });
 
     // register command moveTo(x, y)
     // wait for server to move player if possible
-    luaModulePtr->getLuaState().set_function("moveTo", [this](sol::variadic_args args)
+    luaModulePtr->bindFunction("moveTo", [this](sol::variadic_args args)
     {
         int locX = 0;
         int locY = 0;
@@ -1250,7 +1244,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 
     // register command ``listPlayerInfo"
     // this command call to get a player info table and print to out port
-    luaModulePtr->getLuaState().script(R"#(
+    luaModulePtr->execString(R"#(
         function listPlayerInfo ()
             for k, v in ipairs(playerList())
             do
@@ -1261,7 +1255,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 
     // register command ``help"
     // part-1: divide into two parts, part-1 create the table for help
-    luaModulePtr->getLuaState().script(R"#(
+    luaModulePtr->execString(R"#(
         helpInfoTable = {
             wear     = "put on different dress",
             moveTo   = "move to other position on current map",
@@ -1270,7 +1264,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
     )#");
 
     // part-2: make up the function to print the table entry
-    luaModulePtr->getLuaState().script(R"#(
+    luaModulePtr->execString(R"#(
         function help (queryKey)
             if helpInfoTable[queryKey]
             then
@@ -1283,7 +1277,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 
     // register command ``myHero.xxx"
     // I need to insert a table to micmic a instance myHero in the future
-    luaModulePtr->getLuaState().set_function("myHero_dress", [this](int nDress)
+    luaModulePtr->bindFunction("myHero_dress", [this](int nDress)
     {
         if(nDress >= 0){
             getMyHero()->setWLItem(WLG_DRESS, SDItem
@@ -1295,7 +1289,7 @@ void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
 
     // register command ``myHero.xxx"
     // I need to insert a table to micmic a instance myHero in the future
-    luaModulePtr->getLuaState().set_function("myHero_weapon", [this](int nWeapon)
+    luaModulePtr->bindFunction("myHero_weapon", [this](int nWeapon)
     {
         if(nWeapon >= 0){
             getMyHero()->setWLItem(WLG_WEAPON, SDItem

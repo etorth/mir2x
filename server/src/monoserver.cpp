@@ -848,7 +848,7 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
 
     // register command quit
     // exit current command window and free all related resource
-    modulePtr->getLuaState().set_function("quit", [this, nCWID]()
+    modulePtr->bindFunction("quit", [this, nCWID]()
     {
         // 1. show exiting messages
         addCWLogString(nCWID, 0, "> ", "Command window is requested to exit now...");
@@ -862,7 +862,7 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
 
     // register command addCWLogString
     // print one line in command window, won't add message to log system
-    modulePtr->getLuaState().set_function("addCWLogString", [this, nCWID](sol::object logType, sol::object prompt, sol::object logInfo)
+    modulePtr->bindFunction("addCWLogString", [this, nCWID](sol::object logType, sol::object prompt, sol::object logInfo)
     {
         if(true
                 && logType.is<int>()
@@ -877,7 +877,7 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     });
 
     // register command countMonster(monsterID, mapID)
-    modulePtr->getLuaState().set_function("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
+    modulePtr->bindFunction("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
     {
         auto nRet = getMonsterCount(nMonsterID, nMapID).value_or(-1);
         if(nRet < 0){
@@ -898,7 +898,7 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     //      end
     // here we get an exception from lua caught by sol2: ``std::bad_alloc"
     // but we want more detailed information like print the function usage out
-    modulePtr->getLuaState().set_function("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
+    modulePtr->bindFunction("addMonster", [this, nCWID](int nMonsterID, int nMapID, sol::variadic_args stVariadicArgs) -> bool
     {
         auto fnPrintUsage = [this, nCWID]()
         {
@@ -951,22 +951,22 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
 
     // register command mapList
     // return a table (userData) to lua for ipairs() check
-    modulePtr->getLuaState().set_function("getMapIDList", [this](sol::this_state stThisLua)
+    modulePtr->bindFunction("getMapIDList", [this](sol::this_state stThisLua)
     {
         return sol::make_object(sol::state_view(stThisLua), getMapList());
     });
 
-    modulePtr->getLuaState().set_function("loadMap", [this](std::string mapName)
+    modulePtr->bindFunction("loadMap", [this](std::string mapName)
     {
         return loadMap(mapName);
     });
 
-    modulePtr->getLuaState().set_function("getCWID", [nCWID]() -> int
+    modulePtr->bindFunction("getCWID", [nCWID]() -> int
     {
         return nCWID;
     });
 
-    modulePtr->getLuaState().set_function("history", [nCWID, this]()
+    modulePtr->bindFunction("history", [nCWID, this]()
     {
         for(const auto &s: g_mainWindow->getCWHistory(nCWID)){
             if(!s.empty()){
@@ -975,7 +975,7 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
         }
     });
 
-    modulePtr->getLuaState().script(BEGIN_LUAINC(char)
+    modulePtr->execRawString(BEGIN_LUAINC(char)
 #include "monoserver.lua"
     END_LUAINC());
 }

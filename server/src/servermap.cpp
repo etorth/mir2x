@@ -74,22 +74,22 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         throw fflerror("ServerMapLuaModule binds to empty ServerMap");
     }
 
-    getLuaState().set_function("getMapID", [mapPtr]() -> int
+    bindFunction("getMapID", [mapPtr]() -> int
     {
         return to_d(mapPtr->ID());
     });
 
-    getLuaState().set_function("getMapName", [mapPtr]() -> std::string
+    bindFunction("getMapName", [mapPtr]() -> std::string
     {
         return std::string(to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
     });
 
-    getLuaState().set_function("getMapSize", [mapPtr]()
+    bindFunction("getMapSize", [mapPtr]()
     {
         return sol::as_returns(std::vector<int>{mapPtr->W(), mapPtr->H()});
     });
 
-    getLuaState().set_function("getCanThroughGridCount", [mapPtr, gridCount = to_d(-1)]() mutable -> int
+    bindFunction("getCanThroughGridCount", [mapPtr, gridCount = to_d(-1)]() mutable -> int
     {
         if(gridCount >= 0){
             return gridCount;
@@ -106,7 +106,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return gridCount;
     });
 
-    getLuaState().set_function("getRandLoc", [mapPtr]()
+    bindFunction("getRandLoc", [mapPtr]()
     {
         std::array<int, 2> loc;
         while(true){
@@ -122,7 +122,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return sol::as_returns(loc);
     });
 
-    getLuaState().set_function("countGLoc", [fullCount = -1, mapPtr](sol::variadic_args args) mutable
+    bindFunction("countGLoc", [fullCount = -1, mapPtr](sol::variadic_args args) mutable
     {
         const std::vector<sol::object> argList(args.begin(), args.end());
         const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, mapPtr]() -> std::tuple<bool, int, int, int, int>
@@ -184,7 +184,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return count;
     });
 
-    getLuaState().set_function("randGLoc", [mapPtr](sol::variadic_args args)
+    bindFunction("randGLoc", [mapPtr](sol::variadic_args args)
     {
         const std::vector<sol::object> argList(args.begin(), args.end());
         const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, mapPtr]() -> std::tuple<bool, int, int, int, int>
@@ -258,7 +258,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         }
     });
 
-    getLuaState().set_function("getMonsterCount", [mapPtr](sol::variadic_args args) -> int
+    bindFunction("getMonsterCount", [mapPtr](sol::variadic_args args) -> int
     {
         const std::vector<sol::object> argList(args.begin(), args.end());
         switch(argList.size()){
@@ -289,15 +289,11 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return -1;
     });
 
-    getLuaState().set_function("addMonster", [mapPtr](sol::object monInfo, sol::variadic_args args, sol::this_state s) -> sol::object
+    bindFunction("addMonster", [mapPtr](sol::object monInfo, sol::variadic_args args) -> uint64_t
     {
-        sol::state_view sv(s);
-        const auto fnGetLuaUIDString = [&sv](const Monster *monPtr) -> sol::object
+        const auto fnGetMonsterUID = [](const Monster *monPtr) -> uint64_t
         {
-            if(monPtr){
-                return sol::object(sv, sol::in_place_type<std::string>, std::to_string(monPtr->UID()));
-            }
-            return sol::make_object(sv, sol::nil);
+            return monPtr ? monPtr->UID() : 0;
         };
 
         const uint32_t monID = [&monInfo]() -> uint32_t
@@ -313,51 +309,49 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
             return 0;
         }();
 
-        if(!monID){
-            return fnGetLuaUIDString(nullptr);
-        }
-
-        const std::vector<sol::object> argList(args.begin(), args.end());
-        switch(argList.size()){
-            case 0:
-                {
-                    return fnGetLuaUIDString(mapPtr->addMonster(monID, 0, -1, -1, false));
-                }
-            case 2:
-                {
-                    if(true
-                            && argList[0].is<int>()
-                            && argList[1].is<int>()){
-
-                        const auto nX = argList[0].as<int>();
-                        const auto nY = argList[1].as<int>();
-                        return fnGetLuaUIDString(mapPtr->addMonster(monID, 0, nX, nY, false));
+        if(monID){
+            const std::vector<sol::object> argList(args.begin(), args.end());
+            switch(argList.size()){
+                case 0:
+                    {
+                        return fnGetMonsterUID(mapPtr->addMonster(monID, 0, -1, -1, false));
                     }
-                    break;
-                }
-            case 3:
-                {
-                    if(true
-                            && argList[0].is<int >()
-                            && argList[1].is<int >()
-                            && argList[2].is<bool>()){
+                case 2:
+                    {
+                        if(true
+                                && argList[0].is<int>()
+                                && argList[1].is<int>()){
 
-                        const auto nX = argList[0].as<int >();
-                        const auto nY = argList[1].as<int >();
-                        const auto bStrictLoc = argList[2].as<bool>();
-                        return fnGetLuaUIDString(mapPtr->addMonster(monID, 0, nX, nY, bStrictLoc));
+                            const auto nX = argList[0].as<int>();
+                            const auto nY = argList[1].as<int>();
+                            return fnGetMonsterUID(mapPtr->addMonster(monID, 0, nX, nY, false));
+                        }
+                        break;
                     }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
+                case 3:
+                    {
+                        if(true
+                                && argList[0].is<int >()
+                                && argList[1].is<int >()
+                                && argList[2].is<bool>()){
+
+                            const auto nX = argList[0].as<int >();
+                            const auto nY = argList[1].as<int >();
+                            const auto bStrictLoc = argList[2].as<bool>();
+                            return fnGetMonsterUID(mapPtr->addMonster(monID, 0, nX, nY, bStrictLoc));
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }
-        return fnGetLuaUIDString(nullptr);
+        return fnGetMonsterUID(nullptr);
     });
 
-    getLuaState().set_function("addGuard", [mapPtr](std::string type, int x, int y, int direction) -> bool
+    bindFunction("addGuard", [mapPtr](std::string type, int x, int y, int direction) -> bool
     {
         const uint32_t monID = DBCOM_MONSTERID(to_u8cstr(type));
         if(!monID){
@@ -366,7 +360,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return mapPtr->addGuard(monID, x, y, direction);
     });
 
-    getLuaState().script_file([mapPtr]() -> std::string
+    execFile([mapPtr]() -> std::string
     {
         const auto configScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
         const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
@@ -381,7 +375,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
             return defaultScriptName;
         }
         throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
-    }());
+    }().c_str());
 
     m_coHandler = getLuaState()["main"];
     if(!m_coHandler){

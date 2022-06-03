@@ -74,8 +74,8 @@ function addmon.monGener(monGenList)
                         -- seems lua remove a key is pretty complicated
                         -- see: https://stackoverflow.com/questions/12394841/safely-remove-items-from-an-array-table-while-iterating
                         local deadKeyList = {}
-                        for ikey, uidString in pairs(locInfo.uidList) do
-                            if not isUIDAlive(uidString) then
+                        for ikey, uid in pairs(locInfo.uidList) do
+                            if not isUIDAlive(uid) then
                                 table.insert(deadKeyList, ikey)
                             end
                         end
@@ -101,10 +101,10 @@ function addmon.monGener(monGenList)
                         while tryCount > 0 do
                             local addX, addY = randGLoc(locInfo.x, locInfo.y, locInfo.w, locInfo.h)
                             if addX ~= nil and addY ~= nil then
-                                local uidString = addMonster(genList.name, addX, addY, true)
+                                local uid = addMonster(genList.name, addX, addY, true)
 
-                                if uidString ~= nil then
-                                    table.insert(locInfo.uidList, uidString)
+                                if uid ~= 0 then
+                                    table.insert(locInfo.uidList, uid)
                                 end
 
                                 -- even failed still decrement the tryCount

@@ -195,7 +195,7 @@ class CommandWindow {} {
         return;
     }
 
-    m_luaModule->getLuaState().script_file(fileName);
+    m_luaModule->execFile(fileName);
 }} {}
   }
 }

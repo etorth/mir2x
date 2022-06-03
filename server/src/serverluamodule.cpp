@@ -148,7 +148,7 @@ ServerLuaModule::ServerLuaModule()
         return sol::nested<decltype(queryResult)>(std::move(queryResult));
     });
 
-    execString(BEGIN_LUAINC(char)
+    execRawString(BEGIN_LUAINC(char)
 #include "serverluamodule.lua"
     END_LUAINC());
 }

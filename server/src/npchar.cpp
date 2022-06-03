@@ -42,10 +42,10 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
     , m_npc(npcPtr)
 {
     fflassert(npcPtr);
-    fflassert(!scriptName.empty());
+    fflassert(str_haschar(scriptName));
 
     // NOTE I didn't understand the different between sol::as_table_t and sol:nested
-    m_luaState.set_function("setNPCSell", [this](sol::as_table_t<std::vector<std::string>> itemNameList)
+    bindFunction("setNPCSell", [this](sol::as_table_t<std::vector<std::string>> itemNameList)
     {
         m_npcSell.clear();
         for(const auto &itemName: itemNameList.value()){
@@ -55,29 +55,29 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }
     });
 
-    m_luaState.set_function("addNPCSell", [this](std::string itemName)
+    bindFunction("addNPCSell", [this](std::string itemName)
     {
         if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
             m_npcSell.insert(itemID);
         }
     });
 
-    m_luaState.set_function("clearNPCSell", [this]()
+    bindFunction("clearNPCSell", [this]()
     {
         m_npcSell.clear();
     });
 
-    m_luaState.set_function("getUID", [this]() -> std::string
+    bindFunction("getUID", [this]() -> std::string
     {
         return std::to_string(m_npc->rawUID());
     });
 
-    m_luaState.set_function("getUIDString", [](uint64_t uid) -> std::string
+    bindFunction("getUIDString", [](uint64_t uid) -> std::string
     {
         return uidf::getUIDString(uid);
     });
 
-    m_luaState.set_function("getNPCName", [this](sol::variadic_args args) -> std::string
+    bindFunction("getNPCName", [this](sol::variadic_args args) -> std::string
     {
         const auto skip = [&args]() -> bool
         {
@@ -111,12 +111,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }
     });
 
-    m_luaState.set_function("getNPCFullName", [this]() -> std::string
+    bindFunction("getNPCFullName", [this]() -> std::string
     {
         return std::string(to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name)) + "." + m_npc->getNPCName();
     });
 
-    m_luaState.set_function("getNPCMapName", [this](sol::variadic_args args) -> std::string
+    bindFunction("getNPCMapName", [this](sol::variadic_args args) -> std::string
     {
         const auto skip = [&args]() -> bool
         {
@@ -151,12 +151,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }
     });
 
-    m_luaState.set_function("getSubukGuildName", [this]() -> std::string
+    bindFunction("getSubukGuildName", [this]() -> std::string
     {
         return "占领沙巴克行会的名字";
     });
 
-    m_luaState.set_function("addMonster", [this](std::string monsterName)
+    bindFunction("addMonster", [this](std::string monsterName)
     {
         const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
 
@@ -164,7 +164,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         m_npc->postAddMonster(monsterID);
     });
 
-    m_luaState.set_function("dbSetGKey", [this](std::string key, sol::object obj)
+    bindFunction("dbSetGKey", [this](std::string key, sol::object obj)
     {
         const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
@@ -180,7 +180,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         query.exec();
     });
 
-    m_luaState.set_function("dbGetGKey", [this](std::string key, sol::this_state s) -> sol::object
+    bindFunction("dbGetGKey", [this](std::string key, sol::this_state s) -> sol::object
     {
         fflassert(!key.empty());
         const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
@@ -197,7 +197,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         return luaf::buildLuaObj(sv, queryStatement.getColumn(0).getString());
     });
 
-    m_luaState.set_function("uidDBSetKey", [this](uint64_t uid, std::string key, sol::object obj)
+    bindFunction("uidDBSetKey", [this](uint64_t uid, std::string key, sol::object obj)
     {
         const auto dbid = uidf::getPlayerDBID(uid);
         const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
@@ -251,7 +251,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }
     });
 
-    m_luaState.set_function("uidDBGetKey", [this](uint64_t uid, std::string key, sol::this_state s) -> sol::object
+    bindFunction("uidDBGetKey", [this](uint64_t uid, std::string key, sol::this_state s) -> sol::object
     {
         fflassert(!key.empty());
         const auto dbid = uidf::getPlayerDBID(uid);
@@ -291,12 +291,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }
     });
 
-    m_luaState.set_function("uidPostSell", [this](uint64_t uid)
+    bindFunction("uidPostSell", [this](uint64_t uid)
     {
         m_npc->postSell(uid);
     });
 
-    m_luaState.set_function("uidPostStartInvOp", [this](uint64_t uid, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
+    bindFunction("uidPostStartInvOp", [this](uint64_t uid, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
     {
         fflassert(invOp >= INVOP_BEGIN);
         fflassert(invOp <  INVOP_END);
@@ -308,7 +308,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         m_npc->postStartInvOp(uid, invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
     });
 
-    m_luaState.set_function("uidPostInvOpCost", [this](uint64_t uid, int invOp, int itemID, int seqID, int cost)
+    bindFunction("uidPostInvOpCost", [this](uint64_t uid, int invOp, int itemID, int seqID, int cost)
     {
         fflassert(invOp >= INVOP_BEGIN);
         fflassert(invOp <  INVOP_END);
@@ -316,26 +316,26 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         m_npc->postInvOpCost(uid, invOp, itemID, seqID, cost);
     });
 
-    m_luaState.set_function("uidPostStartInput", [this](uint64_t uid, std::string title, std::string commitTag, bool show)
+    bindFunction("uidPostStartInput", [this](uint64_t uid, std::string title, std::string commitTag, bool show)
     {
         fflassert(!title.empty());
         fflassert(!commitTag.empty());
         m_npc->postStartInput(uid, title, commitTag, show);
     });
 
-    m_luaState.set_function("uidPostXMLString", [this](uint64_t uid, std::string xmlString)
+    bindFunction("uidPostXMLString", [this](uint64_t uid, std::string xmlString)
     {
         fflassert(uid);
         fflassert(uidf::isPlayer(uid), uid, uidf::getUIDString(uid));
         m_npc->postXMLLayout(uid, std::move(xmlString));
     });
 
-    m_luaState.set_function("sendCallStackQuery", [this](uint64_t callStackUID, uint64_t uid, std::string query)
+    bindFunction("sendCallStackQuery", [this](uint64_t callStackUID, uint64_t uid, std::string query)
     {
         m_npc->sendQuery(callStackUID, uid, query);
     });
 
-    m_luaState.set_function("pollCallStackEvent", [this](uint64_t uid, sol::this_state s)
+    bindFunction("pollCallStackEvent", [this](uint64_t uid, sol::this_state s)
     {
         sol::state_view sv(s);
         return sol::as_returns([uid, &sv, this]() -> std::vector<sol::object>
@@ -371,12 +371,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }());
     });
 
-    m_luaState.script(BEGIN_LUAINC(char)
+    execRawString(BEGIN_LUAINC(char)
 #include "npchar.lua"
     END_LUAINC());
 
-    m_luaState.script_file(scriptName);
-    m_luaState.script
+    execFile(scriptName.c_str());
+    execString
     (
         R"###( -- do the first sanity check here                               )###""\n"
         R"###( -- last in main call we also check it but with verbose disabled )###""\n"
