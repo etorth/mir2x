@@ -60,7 +60,7 @@ ServerLuaModule::ServerLuaModule()
         }
     }().c_str());
 
-    bindFunction("isUIDAlive", [](uint64_t uid)
+    bindFunction("uidAlive", [](uint64_t uid)
     {
         return g_actorPool->checkUIDValid(uid);
     });

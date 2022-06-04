@@ -75,7 +75,7 @@ function addmon.monGener(monGenList)
                         -- see: https://stackoverflow.com/questions/12394841/safely-remove-items-from-an-array-table-while-iterating
                         local deadKeyList = {}
                         for ikey, uid in pairs(locInfo.uidList) do
-                            if not isUIDAlive(uid) then
+                            if not uidAlive(uid) then
                                 table.insert(deadKeyList, ikey)
                             end
                         end
