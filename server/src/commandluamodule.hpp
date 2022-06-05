@@ -5,11 +5,13 @@
 class CommandLuaModule: public ServerLuaModule
 {
     private:
-        uint32_t m_CWID;
+        const uint32_t m_CWID;
 
     public:
         CommandLuaModule(uint32_t);
-       ~CommandLuaModule() = default;
+        
+    public:
+        ~CommandLuaModule() override = default;
 
     public:
         uint32_t CWID() const
