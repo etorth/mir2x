@@ -1128,17 +1128,15 @@ void ProcessRun::RegisterUserCommand()
     });
 }
 
-void ProcessRun::RegisterLuaExport(ClientLuaModule *luaModulePtr)
+void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
 {
-    if(!luaModulePtr){
-        throw fflerror("null ClientLuaModule pointer");
-    }
+    fflassert(luaModulePtr);
 
-    // initialization before registration
     luaModulePtr->execString("CBLOG_DEF = %d", CBLOG_DEF);
     luaModulePtr->execString("CBLOG_SYS = %d", CBLOG_SYS);
     luaModulePtr->execString("CBLOG_DBG = %d", CBLOG_DBG);
     luaModulePtr->execString("CBLOG_ERR = %d", CBLOG_ERR);
+
     luaModulePtr->bindFunction("addCBLog", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){

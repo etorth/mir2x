@@ -25,10 +25,8 @@ ClientLuaModule::ClientLuaModule(ProcessRun *proc)
     : LuaModule()
     , m_proc(proc)
 {
-    if(!m_proc){
-        throw fflerror("null ProcessRun pointer");
-    }
-    m_proc->RegisterLuaExport(this);
+    fflassert(m_proc);
+    m_proc->registerLuaExport(this);
 }
 
 void ClientLuaModule::addLogString(int logType, const char8_t *logInfo)

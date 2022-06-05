@@ -59,13 +59,7 @@ class LuaModule
         {
             std::string s;
             str_format(format, s);
-
-            return m_luaState.script(s, [](lua_State *, sol::protected_function_result result)
-            {
-                // default handler
-                // do nothing and let the call site handle the errors
-                return result;
-            });
+            return execRawString(s.c_str());
         }
 
         sol::protected_function_result execRawString(const char *s)

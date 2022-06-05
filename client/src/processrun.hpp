@@ -278,7 +278,7 @@ class ProcessRun: public Process
         void RegisterUserCommand();
 
     public:
-        void RegisterLuaExport(ClientLuaModule *);
+        void registerLuaExport(ClientLuaModule *);
 
     public:
         ClientCreature *findUID(uint64_t, bool checkVisible = true) const;
