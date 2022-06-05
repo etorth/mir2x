@@ -13,8 +13,68 @@
 
 LuaModule::LuaModule()
     : m_luaState()
+    , m_replaceEnv(m_luaState, sol::create)
 {
     m_luaState.open_libraries();
+    execRawString(R"###(
+        local _G = _G
+        local error = error
+        local coroutine = coroutine
+        local RESERVED_NAME_G_sandbox = {}
+
+        function getTLSTable()
+            local threadId, inMainThread = coroutine.running()
+            if inMainThread then
+                error('call getTLSTable() in main thread')
+            else
+                if RESERVED_NAME_G_sandbox[threadId] == nil then
+                    RESERVED_NAME_G_sandbox[threadId] = {}
+                end
+                return RESERVED_NAME_G_sandbox[threadId]
+            end
+        end
+
+        function clearTLSTable()
+            local threadId, inMainThread = coroutine.running()
+            if inMainThread then
+                error('call clearTLSTable() in main thread')
+            else
+                RESERVED_NAME_G_sandbox[threadId] = nil
+            end
+        end
+
+        RESERVED_NAME_replaceEnvMetaTable = {
+            __index = function(_, key)
+                local threadId, inMainThread = coroutine.running()
+                if not inMainThread then
+                    if RESERVED_NAME_G_sandbox[threadId] ~= nil and RESERVED_NAME_G_sandbox[threadId][key] ~= nil then
+                        return RESERVED_NAME_G_sandbox[threadId][key]
+                    end
+                end
+                return _G[key]
+            end,
+
+            __newindex = function(_, key, value)
+                local threadId, inMainThread = coroutine.running()
+                if inMainThread then
+                    _G[key] = value
+                else
+                    if RESERVED_NAME_G_sandbox[threadId] == nil then
+                        RESERVED_NAME_G_sandbox[threadId] = {}
+                    end
+                    RESERVED_NAME_G_sandbox[threadId][key] = value
+                end
+            end
+        }
+    )###");
+
+    m_replaceEnv[sol::metatable_key] = sol::table(m_luaState["RESERVED_NAME_replaceEnvMetaTable"]);
+
+    // idea from: https://blog.rubenwardy.com/2020/07/26/sol3-script-sandbox/
+    // set replaceEnv as default environment, otherwise I don't know how to setup replaceEnv to thread/coroutine
+
+    lua_rawgeti(m_luaState.lua_state(), LUA_REGISTRYINDEX, m_replaceEnv.registry_index());
+    lua_rawseti(m_luaState.lua_state(), LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
 
     execString("LOGTYPE_INFO    = 0");
     execString("LOGTYPE_WARNING = 1");

@@ -10,6 +10,7 @@ class LuaModule
 {
     protected:
         sol::state m_luaState;
+        sol::environment m_replaceEnv;
 
     public:
         LuaModule();

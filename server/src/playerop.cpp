@@ -461,7 +461,7 @@ void Player::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();
     fflassert(m_channID.has_value());
-    fflassert(m_channID.value() == amBC.channID);
+    fflassert(m_channID.value() == amBC.channID, m_channID.value(), amBC.channID);
 
     // AM_BADCHANNEL is sent by Channel::dtor
     // when player get this message the channel has already been destructed

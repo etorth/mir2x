@@ -2,12 +2,12 @@
 --
 
 function sendQuery(uid, query)
-    sendCallStackQuery(getCallStackTable().uid, uid, query)
+    sendCallStackQuery(getTLSTable().uid, uid, query)
 end
 
 function waitEvent()
     while true do
-        local fromUID, event, value = pollCallStackEvent(getCallStackTable().uid)
+        local fromUID, event, value = pollCallStackEvent(getTLSTable().uid)
         if fromUID then
             assertType(fromUID, 'integer')
             assertType(event, 'string')
@@ -139,50 +139,69 @@ function uidGrant(uid, item, count)
     end
 end
 
--- setup call stack table for thread-based parameters
--- we spawn call stack by sol::thread which still access global table
--- so we can't have tls per call stack, have to save call stack related globals into this table
---
--- npchartlsconfig.lua provides a method for tls support
--- but it brings too much uncertainty
-g_callStackTableList = {}
-
-function getCallStackTable()
-    local threadId, inMainThread = coroutine.running()
-    if inMainThread then
-        fatalPrintf('calling getCallStackTable() in main thead')
-    end
-
-    if not g_callStackTableList[threadId] then
-        g_callStackTableList[threadId] = {}
-    end
-    return g_callStackTableList[threadId]
-end
-
-function clearCallStackTable()
-    local threadId, inMainThread = coroutine.running()
-    if inMainThread then
-        fatalPrintf('calling clearCallStackTable() in main thead')
-    end
-    g_callStackTableList[threadId] = nil
-end
-
 -- call stack get cleaned after one processNPCEvent call
--- if script needs to transfer information between call stack, use this table, which uses uid as key
+-- if script needs to transfer information between call stacks, use this table, which uses uid as key
 --
--- issue is it maybe hard to clear the table
--- because we are not expected to inform NPCs that an uid has offline
-g_globalTableList = {}
+-- drawback: it's hard to clear the table
+-- because players are not expected to inform NPCs that they are to be offline
+-- uid outside of NPC's view can trigger to call clearGlobalTable(uid) but it's not a gentle way
 
-function getGlobalTable()
-    if not g_globalTableList[getCallStackTable().uid] then
-        g_globalTableList[getCallStackTable().uid] = {}
+local g_uidGlobalTableList = {}
+function getGlobalTable(uid)
+    if uid ~= nil then
+        assertType(uid, 'integer')
+    else
+        uid = getTLSTable().uid
     end
-    return g_globalTableList[getCallStackTable().uid]
+
+    if not g_uidGlobalTableList[uid] then
+        g_uidGlobalTableList[uid] = {}
+    end
+    return g_uidGlobalTableList[uid]
 end
 
-function clearGlobalTable()
-    g_globalTableList[getCallStackTable().uid] = nil
+-- clean a global table of a uid
+-- NPC needs a better way to trigger to delete the uid global table
+--
+-- support clearGlobalTable()                   : uid = getTLSTable().uid, clearElemOnly = true
+-- support clearGlobalTable(uid)                :                          clearElemOnly = true
+-- support clearGlobalTable(clearElemOnly)      : uid = getTLSTable().uid
+-- support clearGlobalTable(uid, clearElemOnly) :
+
+function clearGlobalTable(arg1, arg2)
+    local uid = nil
+    local clearElemOnly = nil
+
+    if arg1 == nil then
+        uid = getTLSTable().uid
+        clearElemOnly = true
+    elseif arg2 == nil then
+        if type(arg1) == 'number' and math.type(arg1) == 'integer' then
+            uid = arg1
+            clearElemOnly = true
+        elseif type(arg1) == 'boolean' then
+            uid = getTLSTable().uid
+            clearElemOnly = arg1
+        else
+            fatalPrintf('invalid argument type: %s', type(arg1))
+        end
+    else
+        assertType(arg1, 'integer')
+        assertType(arg2, 'boolean')
+
+        uid = arg1
+        clearElemOnly = arg2
+    end
+
+    if g_uidGlobalTableList[uid] ~= nil then
+        if clearElemOnly then
+            for k, v in pairs(g_uidGlobalTableList[uid]) do
+                g_uidGlobalTableList[uid][k] = nil
+            end
+        else
+            g_uidGlobalTableList[uid] = nil
+        end
+    end
 end
 
 function uidGrantGold(uid, count)
@@ -253,8 +272,8 @@ end
 function main(uid)
     -- setup current call stack uid
     -- all functions in current call stack can use this implicit argument as *this*
-    getCallStackTable().uid = uid
-    getCallStackTable().startTime = getNanoTstamp()
+    getTLSTable().uid = uid
+    getTLSTable().startTime = getNanoTstamp()
 
     -- poll the event sink
     -- current call stack only process 1 event and then clean itself
@@ -278,7 +297,7 @@ function main(uid)
 
     -- event process done
     -- clean the call stack itself, next event needs another call stack
-    clearCallStackTable()
+    clearTLSTable()
 end
 
 --
