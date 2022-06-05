@@ -1,24 +1,8 @@
-/*
- * =====================================================================================
- *
- *       Filename: flwrapper.hpp
- *        Created: 02/11/2019 21:54:22
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
+#include <FL/Fl.H>
 #include <FL/fl_draw.H>
+#include "threadpool.hpp"
 
 namespace fl_wrapper
 {
@@ -79,5 +63,12 @@ namespace fl_wrapper
             return s_table[index];
         }
         return FL_BLACK;
+    }
+
+    template<typename Callable> void mtcall(Callable &&f)
+    {
+        Fl::lock();
+        const threadPool::scopeGuard lockGuard([](){ Fl::unlock(); });
+        f();
     }
 }

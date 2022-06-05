@@ -1,22 +1,5 @@
-/*
- * =====================================================================================
- *
- *       Filename: commandinput.cpp
- *        Created: 06/04/2017 13:01:35
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "totype.hpp"
+#include "flwrapper.hpp"
 #include "monoserver.hpp"
 #include "threadpool.hpp"
 #include "commandinput.hpp"
@@ -159,13 +142,11 @@ int CommandInput::handle(int event)
 
                                     // need to protect any FLTK widget access by Fl::lock() and Fl::unlock()
                                     // check FLTK manual for multithreading: https://www.fltk.org/doc-1.3/advanced.html
-
-                                    Fl::lock();
+                                    fl_wrapper::mtcall([this]()
                                     {
                                         activate();
                                         m_window->redrawAll();
-                                    }
-                                    Fl::unlock();
+                                    });
                                 });
 
                                 // to inform fltk that we have handled this event
