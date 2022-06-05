@@ -85,8 +85,8 @@ int CommandInput::handle(int event)
                             if(true && m_window
                                     && m_window->getLuaModule()){
 
-                                // 1. print current command for echo
-                                //    should give method to disable the echo
+                                // print current command for echo
+                                // should give method to disable the echo
 
                                 // won't use CommandWindow::AddLog() directly
                                 // use MonoServer::AddCWLog() for thread-safe access
@@ -126,20 +126,13 @@ int CommandInput::handle(int event)
                                     }
                                 }
 
-                                // 2. put a task in the LuaModule::TaskHub
-                                //    and return immediately for current thread
+                                // put a task in the thread pool
+                                // and return immediately for current thread, don't block GUI logic
 
                                 deactivate();
                                 m_worker->addTask([this, cwid, currCmdStr](int)
                                 {
-                                    Fl::lock();
-                                    const threadPool::scopeGuard lockGuard([](){ Fl::unlock(); });
-                                    {
-                                        const threadPool::scopeGuard lockGuard([this]()
-                                        {
-                                            activate();
-                                        });
-
+                                    try{
                                         if(const auto callResult = m_window->getLuaModule()->execRawString(currCmdStr.c_str()); callResult.valid()){
                                             // default nothing printed
                                             // can put information here to show call succeeds
@@ -157,7 +150,22 @@ int CommandInput::handle(int event)
                                             }
                                         }
                                     }
-                                    m_window->redrawAll();
+                                    catch(const std::exception &e){
+                                        g_monoServer->addCWLogString(cwid, 2, ">>> ", e.what());
+                                    }
+                                    catch(...){
+                                        g_monoServer->addCWLogString(cwid, 2, ">>> ", "unknown error");
+                                    }
+
+                                    // need to protect any FLTK widget access by Fl::lock() and Fl::unlock()
+                                    // check FLTK manual for multithreading: https://www.fltk.org/doc-1.3/advanced.html
+
+                                    Fl::lock();
+                                    {
+                                        activate();
+                                        m_window->redrawAll();
+                                    }
+                                    Fl::unlock();
                                 });
 
                                 // to inform fltk that we have handled this event
