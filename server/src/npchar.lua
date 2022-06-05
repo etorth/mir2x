@@ -146,6 +146,8 @@ end
 -- because players are not expected to inform NPCs that they are to be offline
 -- uid outside of NPC's view can trigger to call clearGlobalTable(uid) but it's not a gentle way
 
+-- use upvalue than global variable
+-- otherwise when update this table the real update happens in TLS table
 local g_uidGlobalTableList = {}
 function getGlobalTable(uid)
     if uid ~= nil then
