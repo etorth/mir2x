@@ -8,7 +8,6 @@
 #include "uidf.hpp"
 #include "mathf.hpp"
 #include "fflerror.hpp"
-#include "condcheck.hpp"
 #include "processrun.hpp"
 #include "protocoldef.hpp"
 #include "pngtexoffdb.hpp"

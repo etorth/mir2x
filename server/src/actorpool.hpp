@@ -13,7 +13,6 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include "uidf.hpp"
-#include "condcheck.hpp"
 #include "raiitimer.hpp"
 #include "actormsgpack.hpp"
 #include "actormonitor.hpp"
@@ -352,7 +351,7 @@ class ActorPool final
                             if(m_expected != MAILBOX_DETACHED){
                                 // big error here and should never happen
                                 // someone stolen the mailbox without accquire the lock
-                                condcheck(m_expected == MAILBOX_DETACHED);
+                                std::abort();
                             }
                         }
                     }

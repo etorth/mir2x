@@ -15,7 +15,6 @@
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "mapbindb.hpp"
-#include "condcheck.hpp"
 #include "servermap.hpp"
 #include "charobject.hpp"
 #include "monoserver.hpp"
