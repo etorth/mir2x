@@ -132,8 +132,14 @@ int CommandInput::handle(int event)
                                 deactivate();
                                 m_worker->addTask([this, cwid, currCmdStr](int)
                                 {
+                                    Fl::lock();
+                                    const threadPool::scopeGuard lockGuard([](){ Fl::unlock(); });
                                     {
-                                        const DisableFlWidget disable(this);
+                                        const threadPool::scopeGuard lockGuard([this]()
+                                        {
+                                            activate();
+                                        });
+
                                         if(const auto callResult = m_window->getLuaModule()->execRawString(currCmdStr.c_str()); callResult.valid()){
                                             // default nothing printed
                                             // can put information here to show call succeeds
