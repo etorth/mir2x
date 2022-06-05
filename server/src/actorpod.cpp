@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: actorpod.cpp
- *        Created: 05/03/2016 15:00:35
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #include <cstdio>
 #include <atomic>
 #include <cinttypes>

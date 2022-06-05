@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: serversandghost.hpp
- *        Created: 07/24/2021 03:48:41 AM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include "dbcomid.hpp"
 #include "monster.hpp"

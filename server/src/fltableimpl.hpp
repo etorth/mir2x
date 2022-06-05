@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: fltableimpl.hpp
- *        Created: 12/04/2018 22:59:06
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <concepts>
 #include <Fl/Fl_Table_Row.H>

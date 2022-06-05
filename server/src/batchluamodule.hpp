@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: batchluamodule.hpp
- *        Created: 12/19/2017 23:39:38
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include "serverluamodule.hpp"
 

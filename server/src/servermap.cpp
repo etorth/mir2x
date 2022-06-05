@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: servermap.cpp
- *        Created: 04/06/2016 08:52:57 PM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <regex>
 #include <sstream>
 #include <fstream>

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: serverargparser.hpp
- *        Created: 11/26/2018 07:34:22
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <thread>
 #include <cstdint>

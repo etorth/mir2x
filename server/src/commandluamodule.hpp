@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: commandluamodule.hpp
- *        Created: 06/02/2017 17:39:56
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #pragma once
 #include <cstdint>
 #include "serverluamodule.hpp"

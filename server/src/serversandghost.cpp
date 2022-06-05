@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: serversandghost.cpp
- *        Created: 07/24/2021 03:48:41 AM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <optional>
 #include "mathf.hpp"
 #include "dbcomid.hpp"

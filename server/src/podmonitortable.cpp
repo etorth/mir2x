@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: podmonitortable.cpp
- *        Created: 12/04/2018 23:39:19
- *    Description: check FLTK/examples/table-*.cxx
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <FL/Fl.H>
 #include <algorithm>
 #include <FL/fl_draw.H>

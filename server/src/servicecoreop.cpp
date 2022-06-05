@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: servicecoreop.cpp
- *        Created: 05/03/2016 21:29:58
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #include <string>
 #include <type_traits>
 

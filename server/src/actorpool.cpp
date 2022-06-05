@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: actorpool.cpp
- *        Created: 09/02/2018 19:07:15
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <mutex>
 #include <thread>
 #include <cstdint>

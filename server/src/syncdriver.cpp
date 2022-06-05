@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: syncdriver.cpp
- *        Created: 06/09/2016 17:32:50
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cinttypes>
 #include "uidf.hpp"
 #include "fflerror.hpp"

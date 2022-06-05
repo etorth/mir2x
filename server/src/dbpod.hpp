@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: dbpod.hpp
- *        Created: 05/20/2016 14:31:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <mutex>
 #include <thread>

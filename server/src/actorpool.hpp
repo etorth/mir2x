@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: actorpool.hpp
- *        Created: 09/02/2018 18:20:15
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <map>
 #include <mutex>

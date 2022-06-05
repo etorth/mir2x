@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: batchluamodule.cpp
- *        Created: 12/19/2017 23:42:06
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <sol/sol.hpp>
 #include "monoserver.hpp"
 #include "batchluamodule.hpp"

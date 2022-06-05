@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: strikemagicnode.hpp
- *        Created: 05/03/2016 13:19:07
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cstdint>
 #include <cstring>
 #include <type_traits>

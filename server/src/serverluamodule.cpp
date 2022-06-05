@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: serverluamodule.cpp
- *        Created: 12/19/2017 20:16:03
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
 #include "mapbindb.hpp"

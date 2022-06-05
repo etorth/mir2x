@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: playerdb.cpp
- *        Created: 04/07/2016 03:48:41 AM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "dbpod.hpp"
 #include "player.hpp"
 #include "monoserver.hpp"

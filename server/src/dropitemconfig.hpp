@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: dropitemconfig.hpp
- *        Created: 07/30/2017 00:11:10
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <map>
 #include <vector>

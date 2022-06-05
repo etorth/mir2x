@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: playernet.cpp
- *        Created: 05/19/2016 15:26:25
- *    Description: how player respond for different net package
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cinttypes>
 #include "player.hpp"
 #include "message.hpp"

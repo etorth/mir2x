@@ -1,23 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: monoserver.hpp
- *        Created: 02/27/2016 16:45:49
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-
 #include <mutex>
 #include <queue>
 #include <vector>

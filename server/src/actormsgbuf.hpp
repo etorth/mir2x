@@ -1,22 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: actormsgbuf.hpp
- *        Created: 05/03/2016 13:14:40
- *    Description: used to shorten the argument list, so keep it simple
- *                 ActorMsgBuf won't maintain the validation of the pointer
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include <type_traits>

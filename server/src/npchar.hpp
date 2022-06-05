@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: npchar.hpp
- *        Created: 04/12/2020 15:53:55
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <memory>
 #include <cstdint>

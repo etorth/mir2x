@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: monsterop.cpp
- *        Created: 05/03/2016 21:49:38
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <algorithm>
 #include "player.hpp"
 #include "monster.hpp"

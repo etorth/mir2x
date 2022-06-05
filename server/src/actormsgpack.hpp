@@ -1,23 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: actormsgpack.hpp
- *        Created: 04/20/2016 21:57:08
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-
 #include <cstring>
 #include <cstdint>
 #include <utility>

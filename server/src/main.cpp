@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 08/31/2015 08:52:57 PM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #include <ctime>
 #include <asio.hpp>
 #include "log.hpp"

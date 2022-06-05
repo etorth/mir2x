@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: monsterco.cpp
- *        Created: 03/19/2019 06:43:21
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "uidf.hpp"
 #include "pathf.hpp"
 #include "corof.hpp"

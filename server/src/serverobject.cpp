@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: serverobject.cpp
- *        Created: 04/28/2016 20:51:29
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cinttypes>
 #include "actorpod.hpp"
 #include "serverargparser.hpp"

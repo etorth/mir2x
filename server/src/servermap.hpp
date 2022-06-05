@@ -1,23 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: servermap.hpp
- *        Created: 09/03/2015 03:49:00
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-
 #include <tuple>
 #include <memory>
 #include <vector>

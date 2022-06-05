@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: dispatcher.cpp
- *        Created: 01/26/2018 15:37:14
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cinttypes>
 #include "uidf.hpp"
 #include "actorpool.hpp"

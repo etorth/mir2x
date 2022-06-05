@@ -1,22 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: actorpod.hpp
- *        Created: 04/20/2016 21:49:14
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #pragma once
-
 #include <map>
 #include <array>
 #include <string>

@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: monoserver.cpp
- *        Created: 08/31/2015 10:45:48 PM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #include <thread>
 #include <chrono>
 #include <vector>

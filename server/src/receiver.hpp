@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: receiver.hpp
- *        Created: 08/23/2018 04:44:33
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <vector>
 #include <cstdint>
