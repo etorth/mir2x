@@ -5,7 +5,9 @@ class ServerLuaModule: public LuaModule
 {
     public:
         ServerLuaModule();
-       ~ServerLuaModule() = default;
+
+    public:
+        ~ServerLuaModule() override = default;
 
     protected:
        void addLogString(int, const char8_t *) override;

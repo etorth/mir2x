@@ -8,7 +8,9 @@ class BatchLuaModule: public ServerLuaModule
 
     public:
         BatchLuaModule();
-       ~BatchLuaModule() = default;
+
+    public:
+        ~BatchLuaModule() override = default;
 
     public:
         bool LoadBatch(const char *szCmd)
