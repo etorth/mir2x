@@ -148,6 +148,10 @@ end
 
 -- use upvalue than global variable
 -- otherwise when update this table the real update happens in TLS table
+
+-- TODO
+-- use uidRead('var_name'), uidWrite('var_name', var) to replace this
+-- keep information in uid object, not in NPC table, then there is no life cycle issue
 local g_uidGlobalTableList = {}
 function getGlobalTable(uid)
     if uid ~= nil then
