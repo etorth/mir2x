@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: imgf.cpp
- *        Created: 02/06/2016 04:25:40
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <png.h>
 #include <cstdio>
 #include <cstring>

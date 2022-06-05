@@ -1,22 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: luaf.hpp
- *        Created: 04/22/2021 20:24:34
- *    Description:
- *
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <string>
 #include <cstddef>

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: creaturemovable.hpp
- *        Created: 04/25/2020 22:25:20
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <array>
 #include <deque>

@@ -1,23 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientcreature.hpp
- *        Created: 04/07/2016 03:48:41
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-
 #include <list>
 #include <deque>
 #include <array>

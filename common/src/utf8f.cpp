@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: utf8f.cpp
- *        Created: 12/12/2018 07:27:12
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #include <utf8.h>
 #include <cstring>
 #include <cstdint>

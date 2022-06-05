@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: sysconst.hpp
- *        Created: 04/11/2016 22:24:56
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <vector>
 #include <cstdint>

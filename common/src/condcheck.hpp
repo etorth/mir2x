@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: condcheck.hpp
- *        Created: 08/18/2017 14:59:38
- *    Description: don't use assert
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdio>
 #include <cstdlib>

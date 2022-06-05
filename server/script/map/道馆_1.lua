@@ -1,19 +1,3 @@
--- =====================================================================================
---
---       Filename: 道馆.lua
---        Created: 08/31/2015 08:52:57 PM
---    Description: lua 5.3
---
---        Version: 1.0
---       Revision: none
---       Compiler: gcc
---
---         Author: ANHONG
---          Email: anhonghe@gmail.com
---   Organization: USTC
---
--- =====================================================================================
-
 addGuard('大刀卫士', 371, 160, DIR_DOWNLEFT)
 addGuard('大刀卫士', 375, 164, DIR_DOWNLEFT)
 addGuard('大刀卫士', 368, 112, DIR_UPLEFT)

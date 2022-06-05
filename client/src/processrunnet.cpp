@@ -1,24 +1,5 @@
-/*
- * =====================================================================================
- *
- *       Filename: processrunnet.cpp
- *        Created: 08/31/2015 03:43:46
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <memory>
 #include <cstring>
-
 #include "log.hpp"
 #include "pathf.hpp"
 #include "client.hpp"

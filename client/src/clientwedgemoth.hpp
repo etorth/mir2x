@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientwedgemoth.hpp
- *        Created: 07/31/2021 08:26:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"

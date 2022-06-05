@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: processsync.cpp
- *        Created: 08/14/2015 02:47:49
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "log.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: imagecache.cpp
- *        Created: 02/14/2016 15:40:17
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "colorf.hpp"
 #include "alphaf.hpp"
 #include "imagemapdb.hpp"

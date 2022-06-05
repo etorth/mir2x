@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: imageboard.cpp
- *        Created: 03/25/2020 22:27:45
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "colorf.hpp"
 #include "totype.hpp"
 #include "sdldevice.hpp"

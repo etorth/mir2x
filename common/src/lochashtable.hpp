@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: lochashtable.hpp
- *        Created: 05/20/2020 10:44:04
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <utility>
 #include <cstdint>

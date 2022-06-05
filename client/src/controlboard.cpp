@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: controlboard.cpp
- *        Created: 08/21/2016 04:12:57
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cmath>
 #include <stdexcept>
 #include <algorithm>

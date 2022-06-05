@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: creaturemovable.cpp
- *        Created: 04/25/2020 22:25:23
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <vector>
 #include "log.hpp"
 #include "pathf.hpp"

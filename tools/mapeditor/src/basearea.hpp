@@ -1,23 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: basearea.hpp
- *        Created: 07/26/2015 04:27:57
- *    Description: derived class from Fl_Box
- *                 support cropped drawing for all primitives
- *                 used as base class for MainDrawArea and LayerViewArea
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <map>
 #include <memory>

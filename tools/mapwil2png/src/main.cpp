@@ -1,22 +1,6 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 04/03/2017 18:02:52
- *    Description: convert map graphics res to png files, usage:
- *
- *                     mapwil2png map-wil-path map-png-output-dir
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// convert map graphics res to png files, usage:
+//
+//     mapwil2png map-wil-path map-png-output-dir
 
 #include <vector>
 #include <string>

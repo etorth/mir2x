@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: pngtexoffdb.cpp
- *        Created: 06/18/21 18:55:42
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "sdldevice.hpp"
 #include "pngtexoffdb.hpp"
 

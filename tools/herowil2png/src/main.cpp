@@ -1,38 +1,22 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 04/03/2017 18:02:52
- *    Description: convert hero graphics res to png files, usage:
- *
- *                      herowil2png gender path-to-package basename extension out-dir
- *
- *                 parameters:
- *                      gender   : 1 :    male
- *                                 0 :  female
- *
- *                      pathInfo : path
- *                               : basename
- *                               : extension
- *
- *                      out-dir  : output folder
- *                              
- *                  path-to-package/basename.extension should exist, i.e.
- *
- *                      wil2png 0 /home/you WM-Hero wil /home/you/out
- *
- *                  otherwise get error
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// convert hero graphics res to png files, usage:
+//
+//      herowil2png gender path-to-package basename extension out-dir
+//
+// parameters:
+//      gender   : 1 :    male
+//                 0 :  female
+//
+//      pathInfo : path
+//               : basename
+//               : extension
+//
+//      out-dir  : output folder
+//
+// path-to-package/basename.extension should exist, i.e.
+//
+//      wil2png 0 /home/you WM-Hero wil /home/you/out
+//
+// otherwise get error
 
 #include <vector>
 #include <cstdio>
@@ -49,7 +33,7 @@
 
 void printUsage()
 {
-    const char *szUsage = 
+    const char *szUsage =
         "Usage: convert hero graphics res to png files, work as:\n"
         "            wil2png gender path-to-package basename extension out-dir\n"
         "       parameters:\n"
@@ -97,7 +81,7 @@ const char *createOffsetFileName(char *szFileName,
 
         std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
                 szOutDir,
-                nEncode, 
+                nEncode,
                 ((nDX > 0) ? "1" : "0"),
                 ((nDY > 0) ? "1" : "0"),
                 std::abs(nDX),

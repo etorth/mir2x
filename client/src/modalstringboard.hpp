@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: modalstringboard.hpp
- *        Created: 07/18/2021 23:06:52
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <vector>
 #include <cstdint>

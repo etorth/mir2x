@@ -1,22 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: controlboard.hpp
- *        Created: 08/21/2016 04:12:57
- *    Description: main control pannel for running client
- *                 try support dynamically allocated control board
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include <functional>

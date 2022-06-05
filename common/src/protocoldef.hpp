@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: protocoldef.hpp
- *        Created: 06/03/2016 11:40:51
- *    Description: always: XXX_BEGIN = XXX_NONE + 1
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #pragma once
 #include <cstdint>
 #include "motion.hpp"

@@ -1,27 +1,11 @@
-/*
- * =====================================================================================
- *
- *       Filename: msgbase.hpp
- *        Created: 04/24/2017 00:46:48
- *    Description: length encoding for mode 1:
- *
- *                  [0 - 254]          : length in 0 ~ 254
- *                  [    255][0 ~ 255] : length as 0 ~ 255 + 255
- *
- *                  1. most likely we are using 0 ~ 254
- *                  2. if compressed length more than 254 we need two bytes
- *                  3. we support range in [0, 255 + 255]
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// length encoding for mode 1:
+//
+//  [0 - 254]          : length in 0 ~ 254
+//  [    255][0 ~ 255] : length as 0 ~ 255 + 255
+//
+//  1. most likely we are using 0 ~ 254
+//  2. if compressed length more than 254 we need two bytes
+//  3. we support range in [0, 255 + 255]
 
 #pragma once
 #include <cstdint>

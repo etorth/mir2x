@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: zsdb.cpp
- *        Created: 11/13/2018 22:58:28
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <regex>
 #include <zstd.h>
 #include <cerrno>

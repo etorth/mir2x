@@ -1,22 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: utf8f.hpp
- *        Created: 12/12/2018 07:26:25
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
-
 #pragma once
 #include <vector>
 #include <cstdint>

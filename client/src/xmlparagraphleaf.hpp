@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: xmlparagraphleaf.hpp
- *        Created: 12/22/2018 07:38:04
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <vector>
 #include <cstddef>

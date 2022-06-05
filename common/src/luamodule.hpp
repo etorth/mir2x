@@ -1,23 +1,5 @@
-/*
- * =====================================================================================
- *
- *       Filename: luamodule.hpp
- *        Created: 06/03/2017 20:24:34
- *    Description:
- *                 base class to register all functions, libs.
- *                 don't call lua error("..") from C++, it calls longmp, skips all dtors
- *
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// base class to register all functions, libs.
+// don't call lua error("..") from C++, it calls longmp, skips all dtors
 
 #pragma once
 #include <sol/sol.hpp>

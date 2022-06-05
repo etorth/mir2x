@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: serdesmsg.cpp
- *        Created: 01/24/2016 19:30:45
- *    Description: net message used by client and mono-server
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "mathf.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"

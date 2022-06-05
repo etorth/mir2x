@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: statetrigger.hpp
- *        Created: 06/05/2016 02:03:44
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <list>
 #include <utility>

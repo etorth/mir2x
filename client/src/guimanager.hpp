@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: guimanager.hpp
- *        Created: 08/12/2015 09:59:15
- *    Description: public API for class client only
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include "widget.hpp"
 #include "minimapboard.hpp"

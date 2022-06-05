@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: imagecache.hpp
- *        Created: 02/14/2016 15:40:17
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include <vector>

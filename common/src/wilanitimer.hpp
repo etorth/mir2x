@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: wilanitimer.hpp
- *        Created: 06/08/2021 22:17:08
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include <cstring>

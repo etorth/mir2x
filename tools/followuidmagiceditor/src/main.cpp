@@ -1,22 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 08/31/2015 08:52:57 PM
- *    Description: 
- *
- *                 Usage: followuidmagiceditor 大火球 /home/anhong/mir2x/client/bin/Res/Texture/magic.zsdb
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// Usage: followuidmagiceditor 大火球 /home/anhong/mir2x/client/bin/Res/Texture/magic.zsdb
 
 #include <string>
 #include <cstdint>

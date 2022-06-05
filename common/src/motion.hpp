@@ -1,23 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: motion.hpp
- *        Created: 04/04/2017 23:57:00
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-
 enum MotionType: int
 {
     //===================================

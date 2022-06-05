@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: editormap.cpp
- *        Created: 02/08/2016 22:17:08
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <memory>
 #include <vector>
 #include <cstdint>

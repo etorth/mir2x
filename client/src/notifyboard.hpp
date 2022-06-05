@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: notifyboard.hpp
- *        Created: 03/22/2020 16:43:00
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <deque>
 #include <memory>

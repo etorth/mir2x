@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: fileptr.hpp
- *        Created: 11/29/2018 08:25:27
- *    Description: give a little automation to file operations
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdio>
 #include <memory>

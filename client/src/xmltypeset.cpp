@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: xmltypeset.cpp
- *        Created: 12/11/2018 04:44:07
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cinttypes>
 #include "log.hpp"
 #include "lalign.hpp"

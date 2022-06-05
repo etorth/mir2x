@@ -1,28 +1,12 @@
-/*
- * =====================================================================================
- *
- *       Filename: initview.hpp
- *        Created: 07/18/2017 16:00:20
- *    Description: a seperate procedure to load all resource at beginning
- *                 this procedure has its own event loop and two threads
- *
- *                 thread-1: event loop for a small window to view what's loading
- *                 thread-2: loading the resource
- *
- *                 requirement:
- *                 1. SDL
- *                 2.
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// a seperate procedure to load all resource at beginning
+// this procedure has its own event loop and two threads
+//
+// thread-1: event loop for a small window to view what's loading
+// thread-2: loading the resource
+//
+// requirement:
+// 1. SDL
+// 2.
 
 #pragma once
 #include <atomic>

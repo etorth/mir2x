@@ -1,26 +1,10 @@
-/*
- * =====================================================================================
- *
- *       Filename: xmlroot.hpp
- *        Created: 06/17/2015 06:24:14
- *    Description: analyze specifically formatted XML
- *                      <ROOT>
- *                          <NODE>
- *                              ...
- *                          </NODE>
- *                      </ROOT>
- *                 start with root node <ROOT> and format as hierarchical text desc.
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// analyze specifically formatted XML
+//      <ROOT>
+//          <NODE>
+//              ...
+//          </NODE>
+//      </ROOT>
+// start with root node <ROOT> and format as hierarchical text desc.
 
 #pragma once
 #include <optional>

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: initview.cpp
- *        Created: 07/18/2017 16:04:25
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <mutex>
 #include <memory>
 #include <chrono>

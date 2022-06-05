@@ -1,41 +1,25 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 04/03/2017 18:02:52
- *    Description: convert monster graphics res to png files, usage:
- *
- *                      monsterwil2png fileIndex            # index for monster files, 0 ~ 19
- *                                     path-to-package      #
- *                                     bodyFileName         # body file
- *                                     bodyFileNameExt      # body file
- *                                     shadowFileName       # shadow file
- *                                     shadowFileNameExt    # shadow file
- *                                     out-dir              # output file path
- *                                     prefix-width         # add prefix for easier view in file manger, 0 means no prefix
- *
- *                  for one decoding, following two files should exist
- *                      path-to-package/bodyFileName.bodyFileNameExt
- *                      path-to-package/shadowFileName.shadowFileNameExt
- *
- *                  i.e.
- *                      monsterwil2png 13 /home/you Mon-14 wil MonS-14 wil /home/you/out 4
- *
- *                  otherwise get error
- *
- *                  this command will try to find shadow images in shadow files
- *                  if not find it will dynamically create one
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// convert monster graphics res to png files, usage:
+//
+//      monsterwil2png fileIndex            # index for monster files, 0 ~ 19
+//                     path-to-package      #
+//                     bodyFileName         # body file
+//                     bodyFileNameExt      # body file
+//                     shadowFileName       # shadow file
+//                     shadowFileNameExt    # shadow file
+//                     out-dir              # output file path
+//                     prefix-width         # add prefix for easier view in file manger, 0 means no prefix
+//
+// for one decoding, following two files should exist
+//      path-to-package/bodyFileName.bodyFileNameExt
+//      path-to-package/shadowFileName.shadowFileNameExt
+//
+// i.e.
+//      monsterwil2png 13 /home/you Mon-14 wil MonS-14 wil /home/you/out 4
+//
+// otherwise get error
+//
+// this command will try to find shadow images in shadow files
+// if not find it will dynamically create one
 
 #include <vector>
 #include <cstdio>

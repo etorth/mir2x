@@ -1,26 +1,10 @@
-/*
- * =====================================================================================
- *
- *       Filename: pack2d.hpp
- *        Created: 11/07/2017 23:30:43
- *    Description: maintain a 2D mask to take care of valid grids
- *                 if one grid is taken then mask it as 1
- *
- *                 so for 2X2 masked grid
- *                 we can't tell if it's a 2x2 obj or 4 * 1x1 objs
- *
- *                 need more advanced 2d packing algorithm
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// maintain a 2D mask to take care of valid grids
+// if one grid is taken then mask it as 1
+//
+// so for 2X2 masked grid
+// we can't tell if it's a 2x2 obj or 4 * 1x1 objs
+//
+// need more advanced 2d packing algorithm
 
 #pragma once
 #include <tuple>

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: colorf.cpp
- *        Created: 03/31/2016 19:48:57
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <regex>
 #include "strf.hpp"
 #include "colorf.hpp"

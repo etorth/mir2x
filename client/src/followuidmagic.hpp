@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: followuidmagic.hpp
- *        Created: 12/07/2020 21:19:44
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include "sysconst.hpp"

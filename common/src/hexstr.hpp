@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: hexstr.hpp
- *        Created: 02/06/2016 13:35:51
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstddef>
 #include <cstdint>

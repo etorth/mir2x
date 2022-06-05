@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: notifyboard.cpp
- *        Created: 03/22/2020 16:45:16
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "strf.hpp"
 #include "totype.hpp"
 #include "xmltypeset.hpp"

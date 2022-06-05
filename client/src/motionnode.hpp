@@ -1,32 +1,16 @@
-/*
- * =====================================================================================
- *
- *       Filename: motionnode.hpp
- *        Created: 04/05/2017 12:38:46
- *    Description: for field MotionNode::speed
- *
- *                      means % speed of default speed
- *
- *                 i.e. if default speed is 100 FPS:
- *
- *                      MotionNode::speed :  20 : FPS =  20 : min
- *                                           50 : FPS =  50 : slow
- *                                          100 : FPS = 100 : default
- *                                          200 : FPS = 200 : fast
- *                                          500 : FPS = 500 : max
- *
- *                  currently support speed : 20 ~ 500 => speed x5 or d5
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// for field MotionNode::speed
+//
+//      means % speed of default speed
+//
+// i.e. if default speed is 100 FPS:
+//
+//      MotionNode::speed :  20 : FPS =  20 : min
+//                           50 : FPS =  50 : slow
+//                          100 : FPS = 100 : default
+//                          200 : FPS = 200 : fast
+//                          500 : FPS = 500 : max
+//
+//  currently support speed : 20 ~ 500 => speed x5 or d5
 
 #pragma once
 #include <list>

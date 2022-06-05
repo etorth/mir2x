@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: rawbuf.cpp
- *        Created: 12/23/2018 03:48:03
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cerrno>
 #include <cstdio>
 #include <cstring>

@@ -1,23 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: processlogo.hpp
- *        Created: 08/13/2015 12:07:39
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-
 #include <SDL2/SDL.h>
 #include "process.hpp"
 

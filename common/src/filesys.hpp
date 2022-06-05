@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: filesys.hpp
- *        Created: 02/08/2016 22:15:46
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <tuple>
 #include <string>

@@ -1,22 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: logprof.cpp
- *        Created: 11/20/2020 19:03:56
- *    Description:
- *
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <string>
 #include <cstring>
 #include <fstream>

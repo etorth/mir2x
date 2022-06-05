@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: emojidb.hpp
- *        Created: 02/26/2016 21:48:43
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <SDL2/SDL.h>
 #include <unordered_map>

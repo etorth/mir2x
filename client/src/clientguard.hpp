@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientguard.hpp
- *        Created: 08/31/2015 08:26:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include "clientmonster.hpp"
 

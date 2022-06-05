@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: fontexdb.cpp
- *        Created: 02/24/2016 17:51:16
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "fontexdb.hpp"
 #include "sdldevice.hpp"
 

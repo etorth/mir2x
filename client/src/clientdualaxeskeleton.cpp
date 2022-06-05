@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientdualaxeskeleton.cpp
- *        Created: 07/31/2021 08:26:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "pathf.hpp"
 #include "fflerror.hpp"
 #include "processrun.hpp"

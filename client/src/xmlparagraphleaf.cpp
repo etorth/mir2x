@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: xmlparagraphleaf.cpp
- *        Created: 12/22/2018 07:38:31
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <utf8.h>
 #include <tinyxml2.h>
 

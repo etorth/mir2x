@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: inputstringboard.cpp
- *        Created: 10/08/2017 19:22:30
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "widget.hpp"
 #include "colorf.hpp"
 #include "pngtexdb.hpp"

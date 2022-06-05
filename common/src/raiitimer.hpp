@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: raiitimer.hpp
- *        Created: 12/05/2018 01:42:56
- *    Description: high resolution timer for profiling
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #ifdef _MSC_VER
     #include <windows.h>

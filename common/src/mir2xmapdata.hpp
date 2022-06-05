@@ -1,22 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: mir2xmapdata.hpp
- *        Created: 08/31/2015 18:26:57
- *    Description: class to record data for mir2x map
- *                 this class won't define operation over the data
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <array>
 #include <vector>

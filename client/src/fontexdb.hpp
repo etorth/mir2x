@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: fontexdb.hpp
- *        Created: 02/24/2016 17:51:16
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstring>
 #include <SDL2/SDL.h>

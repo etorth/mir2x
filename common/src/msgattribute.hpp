@@ -1,23 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: msgattribute.hpp
- *        Created: 04/23/2017 23:05:02
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
-
 #include <cstddef>
 #include <cstdint>
 #include <string>

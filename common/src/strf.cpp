@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: strf.cpp
- *        Created: 11/27/2018 22:36:12
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <vector>
 #include <cstring>
 #include <stdexcept>

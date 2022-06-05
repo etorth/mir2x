@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: bitstreamf.hpp
- *        Created: 08/17/2017 19:32:15
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <vector>
 #include <cstdint>

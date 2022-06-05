@@ -1,22 +1,5 @@
-/*
- * =====================================================================================
- *
- *       Filename: widget.hpp
- *        Created: 08/12/2015 09:59:15
- *    Description:
- *                 class Widget has no resize()
- *                 widget has no box concept like gtk, it can't calculate size in parent
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// class Widget has no resize()
+// widget has no box concept like gtk, it can't calculate size in parent
 
 #pragma once
 #include <list>

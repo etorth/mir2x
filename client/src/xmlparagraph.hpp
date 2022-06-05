@@ -1,22 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: xmlparagraph.hpp
- *        Created: 12/11/2018 04:16:22
- *    Description:
- *
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <vector>
 #include <stdexcept>

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: fixedlocmagic.hpp
- *        Created: 08/07/2017 21:19:44
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include <cstdlib>

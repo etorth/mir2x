@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: cerealf.hpp
- *        Created: 11/13/2018 22:31:02
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <string>
 #include <sstream>

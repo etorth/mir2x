@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: xmlparagraph.cpp
- *        Created: 12/11/2018 04:20:39
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <tuple>
 #include <utf8.h>
 #include <stdexcept>

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 08/31/2017 16:12:32
- *    Description: convert a file name to its code
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cstdio>
 #include <cstring>
 #include "dbcomid.hpp"

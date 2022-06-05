@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: followuidmagic.cpp
- *        Created: 12/07/2020 21:19:44
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 // Magic following UID has two offsets
 // Location a is the <m_x, m_y>, offset (b - a) is where to draw frame gfxs
 // Location c is the magic gfx arrow head (or fireball head) in the frame animation, which is used as target point

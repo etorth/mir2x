@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: magicrecord.hpp
- *        Created: 08/04/2017 23:00:09
- *    Description: description of magic
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <tuple>
 #include <utility>

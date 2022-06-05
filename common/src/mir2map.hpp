@@ -1,22 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: mir2map.hpp
- *        Created: 05/03/2016 15:00:35
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #pragma once
-
 #include <string>
 #include <vector>
 #include <cstdint>

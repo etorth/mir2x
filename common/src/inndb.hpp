@@ -1,31 +1,15 @@
-/*
- * =====================================================================================
- *
- *       Filename: inndb.hpp
- *        Created: 02/26/2016 21:48:43
- *    Description: Basic class of all integral based map cache
- *
- *                 Internal Database support for 
- *                 1. LRU
- *                 2. Easy for extension
- *
- *                 this class load resources with a external handler function
- *                 store it in a hash-table based cache
- *
- *                 to instantiation this class
- *                 1. define loadResource()
- *                 2. define freeResource()
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// Basic class of all integral based map cache
+//
+// Internal Database support for
+// 1. LRU
+// 2. Easy for extension
+//
+// this class load resources with a external handler function
+// store it in a hash-table based cache
+//
+// to instantiation this class
+// 1. define loadResource()
+// 2. define freeResource()
 
 #pragma once
 #include <list>

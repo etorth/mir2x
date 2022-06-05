@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: npcchatboard.cpp
- *        Created: 04/12/2020 19:03:35
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <string_view>
 #include "uidf.hpp"
 #include "totype.hpp"

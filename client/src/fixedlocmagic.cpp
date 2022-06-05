@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: fixedlocmagic.cpp
- *        Created: 08/07/2017 21:31:24
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "pathf.hpp"
 #include "sdldevice.hpp"
 #include "pngtexoffdb.hpp"

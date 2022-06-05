@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: maprecord.hpp
- *        Created: 08/31/2017 11:12:01
- *    Description: configuration of mir2x map data
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include <optional>

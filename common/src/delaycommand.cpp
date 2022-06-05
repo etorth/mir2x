@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: delaycommand.cpp
- *        Created: 05/04/2016 14:13:04
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "fflerror.hpp"
 #include "raiitimer.hpp"
 #include "delaycommand.hpp"

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: processrun.hpp
- *        Created: 08/31/2015 03:42:07
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <set>
 #include <map>

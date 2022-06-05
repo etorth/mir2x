@@ -1,24 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: landtype.hpp
- *        Created: 08/16/2017 23:36:45
- *    Description: for every cell we have land type
- *
- *                 LandType is a bitfiled in EditorMap and Mir2xMapData
- *                 so it should take at most N bits
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 enum LandType: int
 {

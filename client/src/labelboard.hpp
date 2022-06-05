@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: labelboard.hpp
- *        Created: 08/20/2015 08:59:11
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <string>
 #include <vector>

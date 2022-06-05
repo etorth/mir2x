@@ -1,35 +1,19 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 04/03/2017 18:02:52
- *    Description: convert magic graphics res to png files, usage:
- *
- *                      magicwil2png mir2x_Data_path    # data path
- *                                   out-dir            # output dir
- *                                   N                  # prefix width, zero means no prefix
- *
- *                  i.e. if mir2x Data installed at: /mnt/c/Users/anhong/Desktop/Data
- *                  there are files:
- *
- *                      /mnt/c/Users/anhong/Desktop/Data/Magic.wil
- *                      /mnt/c/Users/anhong/Desktop/Data/MagicEx.wil
- *                      /mnt/c/Users/anhong/Desktop/Data/MagicEx2.wil
- *
- *                  then issue command:
- *
- *                      magicwil2png /mnt/c/Users/anhong/Desktop/Data out-dir 4
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// convert magic graphics res to png files, usage:
+//
+//      magicwil2png mir2x_Data_path    # data path
+//                   out-dir            # output dir
+//                   N                  # prefix width, zero means no prefix
+//
+//  i.e. if mir2x Data installed at: /mnt/c/Users/anhong/Desktop/Data
+//  there are files:
+//
+//      /mnt/c/Users/anhong/Desktop/Data/Magic.wil
+//      /mnt/c/Users/anhong/Desktop/Data/MagicEx.wil
+//      /mnt/c/Users/anhong/Desktop/Data/MagicEx2.wil
+//
+//  then issue command:
+//
+//      magicwil2png /mnt/c/Users/anhong/Desktop/Data out-dir 4
 
 #include <vector>
 #include <cstdio>

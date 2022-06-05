@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientnpc.cpp
- *        Created: 04/12/2020 12:53:00
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "uidf.hpp"
 #include "mathf.hpp"
 #include "sdldevice.hpp"

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: inputline.hpp
- *        Created: 06/19/2017 11:05:07
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <functional>
 #include "colorf.hpp"

@@ -519,7 +519,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                 // we check the end grids for CO and Lock
                 // but for middle grids we only check the CO, no Lock
 
-                condcheck(nStepSize == 2 || nStepSize == 3);
+                fflassert(nStepSize == 2 || nStepSize == 3, nStepSize);
 
                 int nDX = (amTM.EndX > amTM.X) - (amTM.EndX < amTM.X);
                 int nDY = (amTM.EndY > amTM.Y) - (amTM.EndY < amTM.Y);

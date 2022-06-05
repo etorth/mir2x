@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientcannibalplant.cpp
- *        Created: 08/31/2015 08:26:19
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "fflerror.hpp"
 #include "processrun.hpp"
 #include "clienttaodog.hpp"

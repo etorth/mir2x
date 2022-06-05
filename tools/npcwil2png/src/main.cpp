@@ -1,35 +1,19 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 04/03/2017 18:02:52
- *    Description: convert npc graphics res to png files, usage:
- *
- *                      npcwil2png path-to-package basename extension out-dir
- *
- *                 parameters:
- *                      pathInfo : path
- *                               : basename
- *                               : extension
- *
- *                      out-dir  : output folder
- *                              
- *                  path-to-package/basename.extension should exist, i.e.
- *
- *                      wil2png /home/you WM-Hero wil /home/you/out
- *
- *                  otherwise get error
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// convert npc graphics res to png files, usage:
+//
+//      npcwil2png path-to-package basename extension out-dir
+//
+// parameters:
+//      pathInfo : path
+//               : basename
+//               : extension
+//
+//      out-dir  : output folder
+//
+// path-to-package/basename.extension should exist, i.e.
+//
+//      wil2png /home/you WM-Hero wil /home/you/out
+//
+// otherwise get error
 
 #include <map>
 #include <array>
@@ -51,7 +35,7 @@
 
 void printUsage()
 {
-    const char *usage = 
+    const char *usage =
         "Usage: convert npc graphics res to png files, work as:\n"
         "            wil2png path-to-package basename extension out-dir\n"
         "       parameters:\n"
@@ -235,7 +219,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
         if(lookId >= 29 && lookId <= 33) return  0;
         if(lookId >= 34 && lookId <= 35) return  1;
         if(lookId >= 36 && lookId <= 39) return  0;
-        if(lookId == 40)                 return  4; 
+        if(lookId == 40)                 return  4;
         if(lookId == 41)                 return -1; // no this lookId
         if(lookId == 42)                 return  0;
         if(lookId == 43)                 return  1;
@@ -356,7 +340,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
                 fflassert(shadowW > 0);
                 fflassert(shadowH > 0);
 
-                const auto shadowFileName = createOffsetFileName(outDir, true, lookId, encodeMotion, dir, frame, 
+                const auto shadowFileName = createOffsetFileName(outDir, true, lookId, encodeMotion, dir, frame,
                         projectShadow ? imgInfo->shadowPX : (imgInfo->px + 3),
                         projectShadow ? imgInfo->shadowPY : (imgInfo->py + 2));
                 imgf::saveImageBuffer(reinterpret_cast<const uint8_t *>(shadowBuf), shadowW, shadowH, shadowFileName.c_str());

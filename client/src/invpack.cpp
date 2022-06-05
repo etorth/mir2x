@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: invpack.cpp
- *        Created: 11/11/2017 01:03:43
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "dbcomid.hpp"
 #include "invpack.hpp"
 #include "pngtexdb.hpp"

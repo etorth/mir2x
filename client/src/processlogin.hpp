@@ -1,22 +1,4 @@
-/*
- * =====================================================================================
- *
- *       Filename: processlogin.hpp
- *        Created: 08/14/2015 02:47:30 PM
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #pragma once
-
 #include <cstdint>
 #include <SDL2/SDL.h>
 

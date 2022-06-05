@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: layerviewarea.hpp
- *        Created: 07/26/2017 04:27:57
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <functional>
 #include "basearea.hpp"

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: pack2d.cpp
- *        Created: 11/07/2017 23:35:04
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <algorithm>
 #include "pack2d.hpp"
 #include "totype.hpp"

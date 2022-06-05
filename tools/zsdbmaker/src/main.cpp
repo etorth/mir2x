@@ -1,19 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 07/20/2017 00:34:13
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *
- * =====================================================================================
- */
 #include <regex>
 #include <cstdio>
 #include <fstream>

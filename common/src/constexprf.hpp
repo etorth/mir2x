@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: constexprf.hpp
- *        Created: 08/05/2017 12:14:11
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <string_view>
 namespace constexprf

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: xmlroot.cpp
- *        Created: 06/17/2015 06:25:24
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cstdlib>
 #include <cstring>
 #include <string>

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: processlogo.cpp
- *        Created: 08/13/2015 12:15:38
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "client.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"

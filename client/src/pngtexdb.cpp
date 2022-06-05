@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: pngtexdb.cpp
- *        Created: 02/26/2021 21:48:43
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 

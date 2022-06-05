@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: itemlistboard.hpp
- *        Created: 07/09/2021 23:31:52
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include "widget.hpp"

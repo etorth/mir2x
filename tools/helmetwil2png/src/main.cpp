@@ -1,44 +1,28 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 04/03/2017 18:02:52
- *    Description: convert helmet graphics res to png files, usage:
- *
- *                      helmetwil2png gender index \
- *                          helmet-wil-path        \
- *                          helmet-wil-basename    \
- *                          helmet-wil-extension   \
- *                          helmet-output-dir
- *
- *                 parameters:
- *                      gender   : 1 : male
- *                                 0 : female
- *                      index    : 1 : [W]M-Helmet1.wil
- *                                 2 : [W]M-Helmet2.wil
- *
- *                      pathInfo : path
- *                               : basename
- *                               : extension
- *
- *                      out-dir  : output folder
- *                              
- *                  path-to-package/basename.extension should exist, i.e.
- *
- *                      helmetwil2png 0 1 /home/you WM-Helmet wil /home/you/out
- *
- *                  otherwise get error
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// convert helmet graphics res to png files, usage:
+//
+//      helmetwil2png gender index
+//          helmet-wil-path
+//          helmet-wil-basename
+//          helmet-wil-extension
+//          helmet-output-dir
+//
+// parameters:
+//      gender   : 1 : male
+//                 0 : female
+//      index    : 1 : [W]M-Helmet1.wil
+//                 2 : [W]M-Helmet2.wil
+//
+//      pathInfo : path
+//               : basename
+//               : extension
+//
+//      out-dir  : output folder
+//
+// path-to-package/basename.extension should exist, i.e.
+//
+//      helmetwil2png 0 1 /home/you WM-Helmet wil /home/you/out
+//
+// otherwise get error
 
 #include <vector>
 #include <cstdio>
@@ -84,7 +68,7 @@ const char *createOffsetFileName(char *szFileName,
 
         std::sprintf(szFileName, "%s/%08" PRIX32 "%s%s%04X%04X.PNG",
                 szOutDir,
-                nEncode, 
+                nEncode,
                 ((nDX > 0) ? "1" : "0"),
                 ((nDY > 0) ? "1" : "0"),
                 std::abs(nDX),

@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: wilimagepackage.cpp
- *        Created: 02/14/2016 16:33:12
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cmath>
 #include <string>
 #include <cstdio>

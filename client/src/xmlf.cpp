@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: xmlf.cpp
- *        Created: 12/11/2018 21:25:20
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
 #include <utility>
 #include <algorithm>
 #include "totype.hpp"

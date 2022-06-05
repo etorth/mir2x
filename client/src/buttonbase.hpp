@@ -1,28 +1,10 @@
-/*
- * =====================================================================================
- *
- *       Filename: buttonbase.hpp
- *        Created: 08/25/2016 04:12:57
- *    Description:
- *
- *              basic button class to handle event logic only
- *              1. no draw
- *              2. no texture id field
- *
- *              I support two callbacks only: off->on and on->click
- *              this class ask user to configure whether the on->click is triggered
- *              at the PRESS or RELEASE event.
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
+// basic button class to handle event logic only
+// 1. no draw
+// 2. no texture id field
+//
+// I support two callbacks only: off->on and on->click
+// this class ask user to configure whether the on->click is triggered
+// at the PRESS or RELEASE event.
 
 #pragma once
 #include <cstdint>

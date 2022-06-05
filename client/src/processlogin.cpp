@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: processlogin.cpp
- *        Created: 08/14/2015 02:47:49
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cstring>
 #include <iostream>
 #include <algorithm>

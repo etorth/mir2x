@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: main.cpp
- *        Created: 08/31/2017 16:12:32
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <regex>
 #include <memory>
 #include <string>

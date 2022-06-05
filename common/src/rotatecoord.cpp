@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: rotatecoord.cpp
- *        Created: 08/15/2015 04:01:57
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <algorithm>
 #include "mathf.hpp"
 #include "fflerror.hpp"

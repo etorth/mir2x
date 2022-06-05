@@ -1,22 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: tritexbutton.hpp
- *        Created: 08/26/2016 13:20:23
- *    Description: button with three texture, it has a position shift when
- *                 state changes.
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include <functional>

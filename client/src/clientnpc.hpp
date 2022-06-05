@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: clientnpc.hpp
- *        Created: 04/12/2020 12:49:26
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <cstdint>
 #include <optional>

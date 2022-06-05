@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: layerviewarea.cpp
- *        Created: 08/24/2017 15:52:11
- *    Description: 
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include <cmath>
 #include <FL/fl_draw.H>
 #include "flwrapper.hpp"

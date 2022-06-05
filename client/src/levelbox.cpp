@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: levelbox.cpp
- *        Created: 03/28/2020 05:47:00
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #include "widget.hpp"
 #include "levelbox.hpp"
 #include "sdldevice.hpp"

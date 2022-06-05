@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: labelshadowboard.hpp
- *        Created: 11/28/2020 08:59:11
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include "widget.hpp"
 #include "labelboard.hpp"

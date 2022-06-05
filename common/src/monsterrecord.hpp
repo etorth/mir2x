@@ -1,21 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename: monsterrecord.hpp
- *        Created: 05/08/2017 16:21:14
- *    Description:
- *
- *        Version: 1.0
- *       Revision: none
- *       Compiler: gcc
- *
- *         Author: ANHONG
- *          Email: anhonghe@gmail.com
- *   Organization: USTC
- *
- * =====================================================================================
- */
-
 #pragma once
 #include <tuple>
 #include <array>
