@@ -132,29 +132,23 @@ int CommandInput::handle(int event)
                                 deactivate();
                                 m_worker->addTask([this, cwid, currCmdStr](int)
                                 {
-                                    const DisableFlWidget disable(this);
-                                    auto callResult = m_window->getLuaModule()->getLuaState().script(currCmdStr.c_str(), [](lua_State *, sol::protected_function_result result)
                                     {
-                                        // default handler
-                                        // do nothing and let the call site handle the errors
-                                        return result;
-                                    });
+                                        const DisableFlWidget disable(this);
+                                        if(const auto callResult = m_window->getLuaModule()->execRawString(currCmdStr.c_str()); callResult.valid()){
+                                            // default nothing printed
+                                            // can put information here to show call succeeds
+                                        }
+                                        else{
+                                            sol::error err = callResult;
+                                            std::stringstream errStream(err.what());
 
-                                    if(callResult.valid()){
-                                        // default nothing printed
-                                        // we can put information here to show call succeeds
-                                        // or we can unlock the input widget to allow next command
-                                    }
-                                    else{
-                                        sol::error err = callResult;
-                                        std::stringstream errStream(err.what());
+                                            // need to handle here
+                                            // error message could be more than one line
 
-                                        // need to handle here
-                                        // error message could be more than one line
-
-                                        std::string errLine;
-                                        while(std::getline(errStream, errLine, '\n')){
-                                            g_monoServer->addCWLogString(cwid, 2, ">>> ", errLine.c_str());
+                                            std::string errLine;
+                                            while(std::getline(errStream, errLine, '\n')){
+                                                g_monoServer->addCWLogString(cwid, 2, ">>> ", errLine.c_str());
+                                            }
                                         }
                                     }
                                     m_window->redrawAll();

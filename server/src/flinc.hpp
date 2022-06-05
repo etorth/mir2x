@@ -42,12 +42,6 @@ class DisableFlWidget final
     public:
         ~DisableFlWidget()
         {
-            enable();
-        }
-
-    public:
-        void enable()
-        {
             if(m_widget){
                 m_widget->activate();
             }
