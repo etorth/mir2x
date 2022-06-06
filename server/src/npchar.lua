@@ -1,6 +1,12 @@
 --, u8R"###(
 --
 
+-- send lua code to uid to execute
+-- used to support complicated logic through actor message
+function uidExecute(code)
+    assertType(code, 'string')
+end
+
 function sendQuery(uid, query)
     sendCallStackQuery(getTLSTable().uid, uid, query)
 end

@@ -799,3 +799,14 @@ struct SDBuffIDList
         ar(uid, idList);
     }
 };
+
+struct SDLuaCallResult
+{
+    std::string error  {};
+    std::string result {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(error, result);
+    }
+};
