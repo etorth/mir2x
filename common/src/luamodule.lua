@@ -42,6 +42,7 @@ function assertType(var, typestr)
             fatalPrintf('assertion failed: expect %s, get %s', typestr, type(var))
         end
     end
+    return var
 end
 
 function assertValue(var, value)
