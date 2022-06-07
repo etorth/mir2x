@@ -49,6 +49,7 @@ function assertValue(var, value)
     if var ~= value then
         fatalPrintf('assertion failed: expect [%s](%s), get [%s](%s)', type(var), tostring(value), type(value), tostring(var))
     end
+    return var
 end
 
 function asString(arg)
