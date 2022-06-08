@@ -52,36 +52,19 @@ function assertValue(var, value)
     return var
 end
 
-function asString(arg)
-    typeStr = type(arg)
-    if typeStr == 'nil' or typeStr == 'number' or typeStr == 'boolean' or typeStr == 'string' then
-        return scalarAsString(arg)
-    elseif typeStr == 'table' then
-        local convTable = {}
-        for k, v in pairs(arg) do
-            convTable[asKeyString(asString(k))] = asString(v)
-        end
-        return convTableAsString(convTable)
-    else
-        fatalPrintf('asString(%s) type not supported: %s', tostring(arg), type(arg))
-    end
-end
-
-function fromString(s)
-    if type(s) ~= 'string' then
-        fatalPrintf('fromString(%s) expecting string, provided %s', tostring(s), type(s))
+function isArray(tbl)
+    if type(tbl) ~= 'table' then
+        return false
     end
 
-    if string.sub(s, -1) == 't' then -- conv_table
-        local convTable = convTableFromString(s)
-        local realTable = {}
-        for k, v in pairs(convTable) do
-            realTable[fromString(fromKeyString(k))] = fromString(v)
+    local i = 0
+    for _ in pairs(tbl) do
+        i = i + 1
+        if tbl[i] == nil then
+            return false
         end
-        return realTable
-    else
-        return scalarFromString(s)
     end
+    return true
 end
 
 function hasChar(s)

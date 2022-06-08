@@ -106,10 +106,11 @@ LuaModule::LuaModule()
 
     execString("SYS_DEBUG = %s", to_boolcstr(SYS_DEBUG));
 
-    execString("SYS_NPCINIT  = \"%s\"", SYS_NPCINIT );
-    execString("SYS_NPCDONE  = \"%s\"", SYS_NPCDONE );
-    execString("SYS_NPCQUERY = \"%s\"", SYS_NPCQUERY);
-    execString("SYS_NPCERROR = \"%s\"", SYS_NPCERROR);
+    execString("SYS_NPCINIT  = \'%s\'", SYS_NPCINIT );
+    execString("SYS_NPCDONE  = \'%s\'", SYS_NPCDONE );
+    execString("SYS_NPCQUERY = \'%s\'", SYS_NPCQUERY);
+    execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
+    execString("SYS_EXECDONE = \'%s\'", SYS_EXECDONE);
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 
     bindFunction("addLogString", [this](sol::object logType, sol::object logInfo)
@@ -264,39 +265,9 @@ LuaModule::LuaModule()
         }
         return result;
     });
-
-    bindFunction("scalarAsString", [this](sol::object obj) -> std::string
-    {
-        return luaf::buildBlob<sol::object>(obj);
-    });
-
-    bindFunction("convTableAsString", [this](sol::as_table_t<luaf::conv_table> convTable) -> std::string
-    {
-        return luaf::buildBlob<luaf::conv_table>(convTable.value());
-    });
-
-    bindFunction("scalarFromString", [this](std::string s, sol::this_state state)
-    {
-        return luaf::buildLuaObj(sol::state_view(state), s);
-    });
-
-    bindFunction("convTableFromString", [this](std::string s)
-    {
-        return luaf::buildLuaConvTable(s);
-    });
-
-    bindFunction("asKeyString", [this](std::string s) -> std::string
-    {
-        return luaf::asKeyString(s);
-    });
-
-    bindFunction("fromKeyString", [this](std::string s) -> std::string
-    {
-        return luaf::fromKeyString(s);
-    });
 }
 
-bool LuaModule::pfrCheck(const sol::protected_function_result &pfr)
+bool LuaModule::pfrCheck(const sol::protected_function_result &pfr, const std::function<void(const std::string &)> &errDrainFunc)
 {
     if(pfr.valid()){
         return true;
@@ -307,7 +278,12 @@ bool LuaModule::pfrCheck(const sol::protected_function_result &pfr)
 
     std::string errStr;
     while(std::getline(errStream, errStr, '\n')){
-        addLogString(Log::LOGTYPEV_WARNING, to_u8cstr(errStr));
+        if(errDrainFunc){
+            errDrainFunc(errStr);
+        }
+        else{
+            addLogString(Log::LOGTYPEV_WARNING, to_u8cstr(errStr));
+        }
     }
     return false;
 }

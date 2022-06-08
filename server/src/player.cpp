@@ -42,6 +42,27 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     dbLoadInventory();
     dbLoadLearnedMagic();
     dbLoadRuntimeConfig();
+
+    m_luaModulePtr = std::make_unique<ServerLuaModule>();
+    m_luaModulePtr->bindFunction("getUID", [this]() -> uint64_t
+    {
+        return UID();
+    });
+
+    m_luaModulePtr->bindFunction("getLevel", [this]() -> uint64_t
+    {
+        return level();
+    });
+
+    m_luaModulePtr->bindFunction("getGold", [this]() -> uint64_t
+    {
+        return gold();
+    });
+
+    m_luaModulePtr->bindFunction("getName", [this]() -> std::string
+    {
+        return name();
+    });
 }
 
 void Player::operateAM(const ActorMsgPack &rstMPK)
@@ -185,6 +206,11 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
         case AM_NOTIFYDEAD:
             {
                 on_AM_NOTIFYDEAD(rstMPK);
+                break;
+            }
+        case AM_EXECUTE:
+            {
+                on_AM_EXECUTE(rstMPK);
                 break;
             }
         default:

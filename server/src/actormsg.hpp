@@ -13,6 +13,8 @@ enum ActorMsgPackType: int
     AM_ERROR,
     AM_BADACTORPOD,
     AM_BADCHANNEL,
+    AM_SDBUFFER,
+    AM_EXECUTE,
     AM_TIMEOUT,
     AM_UID,
     AM_PING,

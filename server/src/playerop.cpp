@@ -1,5 +1,6 @@
 #include <cinttypes>
 #include "totype.hpp"
+#include "luaf.hpp"
 #include "mathf.hpp"
 #include "pathf.hpp"
 #include "player.hpp"
@@ -588,4 +589,26 @@ void Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 
     m_slaveList.insert(rstMPK.from());
     m_actorPod->forward(rstMPK.from(), {AM_CHECKMASTEROK, amCMOK}, rstMPK.seqID());
+}
+
+void Player::on_AM_EXECUTE(const ActorMsgPack &mpk)
+{
+    SDLuaCallResult sdLCR;
+    const auto fnDrainError = [&sdLCR](const std::string &s)
+    {
+        sdLCR.error.push_back(s);
+    };
+
+    try{
+        if(const auto pfr = m_luaModulePtr->execRawString(mpk.deserialize<std::string>().c_str()); m_luaModulePtr->pfrCheck(pfr, fnDrainError)){
+            sdLCR.serVarList = luaf::pfrBuildBlobList(pfr);
+        }
+    }
+    catch(const std::exception &e){
+        fnDrainError(e.what());
+    }
+    catch(...){
+        fnDrainError("unknown error");
+    }
+    m_actorPod->forward(mpk.from(), {AM_SDBUFFER, cerealf::serialize(sdLCR)}, mpk.seqID());
 }

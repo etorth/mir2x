@@ -31,13 +31,13 @@ class NPChar final: public CharObject
                     // and the query response needs to match the seqID
 
                     const uint64_t seqID;
-                    sol::thread co_runner;
-                    sol::coroutine co_callback;
+                    sol::thread runner;
+                    sol::coroutine callback;
 
                     LuaCallStack(LuaNPCModule *luaModulePtr)
                         : seqID(luaModulePtr->peekSeqID())
-                        , co_runner(sol::thread::create(luaModulePtr->getLuaState().lua_state()))
-                        , co_callback(sol::state_view(co_runner.state())["main"])
+                        , runner(sol::thread::create(luaModulePtr->getLuaState().lua_state()))
+                        , callback(sol::state_view(runner.state())["main"])
                     {}
                 };
 
@@ -133,7 +133,8 @@ class NPChar final: public CharObject
         void on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
 
     private:
-        void sendQuery(uint64_t, uint64_t, const std::string &);
+        void sendQuery  (uint64_t, uint64_t, const std::string &);
+        void sendExecute(uint64_t, uint64_t, const std::string &);
 
     private:
         // NPChar::postXXX functions are for NPC -> client directly

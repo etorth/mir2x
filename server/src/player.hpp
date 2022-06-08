@@ -7,6 +7,7 @@
 #include "monoserver.hpp"
 #include "battleobject.hpp"
 #include "combatnode.hpp"
+#include "serverluamodule.hpp"
 
 class Player final: public BattleObject
 {
@@ -52,6 +53,9 @@ class Player final: public BattleObject
         std::unordered_map<int, std::function<void()>> m_onBeltOff;
         std::unordered_map<int, std::function<void()>> m_onWLOff;
 
+    private:
+        std::unique_ptr<ServerLuaModule> m_luaModulePtr;
+
     public:
         Player(const SDInitPlayer &, const ServerMap *);
 
@@ -74,6 +78,11 @@ class Player final: public BattleObject
             return to_u32(SYS_LEVEL(exp()));
         }
 
+        std::string name() const
+        {
+            return m_name;
+        }
+
     public:
         int Speed(int) const override
         {
@@ -89,59 +98,60 @@ class Player final: public BattleObject
         void operateAM(const ActorMsgPack &);
 
     private:
-        void on_AM_EXP(const ActorMsgPack &);
-        void on_AM_ADDBUFF(const ActorMsgPack &);
-        void on_AM_REMOVEBUFF(const ActorMsgPack &);
-        void on_AM_MISS(const ActorMsgPack &);
-        void on_AM_HEAL(const ActorMsgPack &);
-        void on_AM_GIFT(const ActorMsgPack &);
-        void on_AM_ACTION(const ActorMsgPack &);
-        void on_AM_ATTACK(const ActorMsgPack &);
-        void on_AM_OFFLINE(const ActorMsgPack &);
-        void on_AM_CORECORD(const ActorMsgPack &);
-        void on_AM_NPCQUERY(const ActorMsgPack &);
-        void on_AM_METRONOME(const ActorMsgPack &);
-        void on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
-        void on_AM_SENDPACKAGE(const ActorMsgPack &);
-        void on_AM_RECVPACKAGE(const ActorMsgPack &);
-        void on_AM_BADCHANNEL(const ActorMsgPack &);
-        void on_AM_NOTIFYDEAD(const ActorMsgPack &);
-        void on_AM_NOTIFYNEWCO(const ActorMsgPack &);
-        void on_AM_QUERYHEALTH(const ActorMsgPack &);
-        void on_AM_DEADFADEOUT(const ActorMsgPack &);
-        void on_AM_BADACTORPOD(const ActorMsgPack &);
-        void on_AM_BINDCHANNEL(const ActorMsgPack &);
-        void on_AM_CHECKMASTER(const ActorMsgPack &);
-        void on_AM_QUERYCORECORD(const ActorMsgPack &);
-        void on_AM_QUERYLOCATION(const ActorMsgPack &);
-        void on_AM_QUERYFRIENDTYPE(const ActorMsgPack &);
-        void on_AM_REMOVEGROUNDITEM(const ActorMsgPack &);
-        void on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
+        void on_AM_EXP              (const ActorMsgPack &);
+        void on_AM_ADDBUFF          (const ActorMsgPack &);
+        void on_AM_REMOVEBUFF       (const ActorMsgPack &);
+        void on_AM_MISS             (const ActorMsgPack &);
+        void on_AM_HEAL             (const ActorMsgPack &);
+        void on_AM_GIFT             (const ActorMsgPack &);
+        void on_AM_ACTION           (const ActorMsgPack &);
+        void on_AM_ATTACK           (const ActorMsgPack &);
+        void on_AM_OFFLINE          (const ActorMsgPack &);
+        void on_AM_CORECORD         (const ActorMsgPack &);
+        void on_AM_NPCQUERY         (const ActorMsgPack &);
+        void on_AM_METRONOME        (const ActorMsgPack &);
+        void on_AM_MAPSWITCHTRIGGER (const ActorMsgPack &);
+        void on_AM_SENDPACKAGE      (const ActorMsgPack &);
+        void on_AM_RECVPACKAGE      (const ActorMsgPack &);
+        void on_AM_BADCHANNEL       (const ActorMsgPack &);
+        void on_AM_NOTIFYDEAD       (const ActorMsgPack &);
+        void on_AM_NOTIFYNEWCO      (const ActorMsgPack &);
+        void on_AM_QUERYHEALTH      (const ActorMsgPack &);
+        void on_AM_DEADFADEOUT      (const ActorMsgPack &);
+        void on_AM_BADACTORPOD      (const ActorMsgPack &);
+        void on_AM_BINDCHANNEL      (const ActorMsgPack &);
+        void on_AM_CHECKMASTER      (const ActorMsgPack &);
+        void on_AM_QUERYCORECORD    (const ActorMsgPack &);
+        void on_AM_QUERYLOCATION    (const ActorMsgPack &);
+        void on_AM_QUERYFRIENDTYPE  (const ActorMsgPack &);
+        void on_AM_REMOVEGROUNDITEM (const ActorMsgPack &);
+        void on_AM_QUERYUIDBUFF     (const ActorMsgPack &);
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
+        void on_AM_EXECUTE          (const ActorMsgPack &);
 
     private:
-        void net_CM_REQUESTADDEXP           (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTKILLPETS         (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTSPACEMOVE        (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTMAGICDAMAGE      (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTKILLPETS           (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTSPACEMOVE          (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTMAGICDAMAGE        (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYCORECORD           (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYSELLITEMLIST       (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYUIDBUFF            (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYPLAYERWLDESP       (uint8_t, const uint8_t *, size_t);
-        void net_CM_ACTION                  (uint8_t, const uint8_t *, size_t);
-        void net_CM_PICKUP                  (uint8_t, const uint8_t *, size_t);
-        void net_CM_PING                    (uint8_t, const uint8_t *, size_t);
-        void net_CM_CONSUMEITEM             (uint8_t, const uint8_t *, size_t);
-        void net_CM_BUY                     (uint8_t, const uint8_t *, size_t);
-        void net_CM_QUERYGOLD               (uint8_t, const uint8_t *, size_t);
-        void net_CM_NPCEVENT                (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTEQUIPWEAR        (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTGRABWEAR         (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTEQUIPBELT        (uint8_t, const uint8_t *, size_t);
-        void net_CM_REQUESTGRABBELT         (uint8_t, const uint8_t *, size_t);
-        void net_CM_DROPITEM                (uint8_t, const uint8_t *, size_t);
-        void net_CM_SETMAGICKEY             (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYCORECORD             (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYSELLITEMLIST         (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYUIDBUFF              (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYPLAYERWLDESP         (uint8_t, const uint8_t *, size_t);
+        void net_CM_ACTION                    (uint8_t, const uint8_t *, size_t);
+        void net_CM_PICKUP                    (uint8_t, const uint8_t *, size_t);
+        void net_CM_PING                      (uint8_t, const uint8_t *, size_t);
+        void net_CM_CONSUMEITEM               (uint8_t, const uint8_t *, size_t);
+        void net_CM_BUY                       (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYGOLD                 (uint8_t, const uint8_t *, size_t);
+        void net_CM_NPCEVENT                  (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTEQUIPWEAR          (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTGRABWEAR           (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTEQUIPBELT          (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTGRABBELT           (uint8_t, const uint8_t *, size_t);
+        void net_CM_DROPITEM                  (uint8_t, const uint8_t *, size_t);
+        void net_CM_SETMAGICKEY               (uint8_t, const uint8_t *, size_t);
 
     protected:
         void reportGold();

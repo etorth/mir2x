@@ -802,11 +802,11 @@ struct SDBuffIDList
 
 struct SDLuaCallResult
 {
-    std::string error  {};
-    std::string result {};
+    std::vector<std::string> error {}; // a multiline error
+    std::vector<std::string> serVarList {}; // multiple *serialized* results, lua supports return-multiple-results syntax
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(error, result);
+        ar(error, serVarList);
     }
 };

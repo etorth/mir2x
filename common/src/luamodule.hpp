@@ -84,7 +84,7 @@ class LuaModule
         virtual void addLogString(int, const char8_t *) = 0;
 
     public:
-        bool pfrCheck(const sol::protected_function_result &); // parse if pfr is an error
+        bool pfrCheck(const sol::protected_function_result &, const std::function<void(const std::string &)> & = nullptr); // parse if pfr is an error
 };
 
 // directives to include a lua file to C++ src code

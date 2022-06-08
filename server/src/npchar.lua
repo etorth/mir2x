@@ -1,10 +1,26 @@
 --, u8R"###(
 --
 
+function sendExecute(uid, code)
+    sendCallStackExecute(getTLSTable().uid, uid, code)
+end
+
 -- send lua code to uid to execute
 -- used to support complicated logic through actor message
-function uidExecute(code)
+function uidExecute(uid, code)
     assertType(code, 'string')
+    sendExecute(uid, code)
+
+    local resList = {waitEvent()}
+    if resList[1] ~= uid then
+        fatalPrintf('Send lua code to uid %s but get response from %d', uid, resList[1])
+    end
+
+    if resList[2] ~= SYS_EXECDONE then
+        fatalPrintf('Wait event as SYS_EXECDONE but get %s', resList[2])
+    end
+
+    return table.unpack(resList, 3)
 end
 
 function sendQuery(uid, query)
@@ -13,16 +29,18 @@ end
 
 function waitEvent()
     while true do
-        local fromUID, event, value = pollCallStackEvent(getTLSTable().uid)
-        if fromUID then
-            assertType(fromUID, 'integer')
+        local resList = {pollCallStackEvent(getTLSTable().uid)}
+        if next(resList) == nil then
+            coroutine.yield()
+        else
+            local from  = resList[1]
+            local event = resList[2]
+
+            assertType(from, 'integer')
             assertType(event, 'string')
-            if value then
-                assertType(value, 'string')
-            end
-            return fromUID, event, value
+
+            return table.unpack(resList)
         end
-        coroutine.yield()
     end
 end
 
@@ -45,7 +63,7 @@ function uidQuery(uid, query, ...)
 end
 
 function uidQueryName(uid)
-    return uidQuery(uid, 'NAME')
+    return uidExecute(uid, [[ return getName() ]])
 end
 
 function uidQueryRedName(uid)
@@ -57,7 +75,7 @@ function uidQueryLevel(uid)
 end
 
 function uidQueryGold(uid)
-    return tonumber(uidQuery(uid, 'GOLD'))
+    return uidExecute(uid, [[ return getGold() ]])
 end
 
 function convItemSeqID(item)
