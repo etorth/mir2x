@@ -76,6 +76,41 @@ function hasChar(s)
     return string.len(s) > 0
 end
 
+function convItemSeqID(item)
+    if math.type(item) == 'integer' then
+        if item >= 0 then
+            return item, 0
+        else
+            fatalPrintf("Invalid argument: item = %s", tostring(item))
+        end
+
+    elseif type(item) == 'string' then
+        return getItemID(item), 0
+
+    elseif isArray(item) then
+        local itemID = convItemSeqID(item[1])
+        if item[2] == nil then
+            return itemID, 0
+
+        elseif math.type(item[2]) == 'integer' then
+            if item[2] >= 0 then
+                return itemID, item[2]
+            else
+                fatalPrintf('Invalid argument: {%d, %d}', itemID, item[2])
+            end
+
+        else
+            fatalPrintf('Invalid argument: {%d, %s}', itemID, tostring(item[2]));
+        end
+
+    elseif type(item) == 'table' then
+        return convItemSeqID(item.itemID, item.seqID)
+
+    else
+        fatalPrintf('Invalid argument: item = %s', tostring(item))
+    end
+end
+
 function asyncWait(ms)
     local start = getTime()
     while getTime() < start + ms

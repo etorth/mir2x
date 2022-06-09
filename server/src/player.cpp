@@ -63,6 +63,82 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     {
         return name();
     });
+
+    m_luaModulePtr->bindFunction("secureItem", [this](uint32_t itemID, uint32_t seqID)
+    {
+        secureItem(itemID, seqID);
+    });
+
+    m_luaModulePtr->bindFunction("reportSecuredItemList", [this]()
+    {
+        reportSecuredItemList();
+    });
+
+    m_luaModulePtr->bindFunction("addItem", [this](int itemID, int itemCount)
+    {
+        const auto &ir = DBCOM_ITEMRECORD(itemID);
+        fflassert(ir);
+        fflassert(itemCount > 0);
+
+        if(ir.isGold()){
+            setGold(getGold() + itemCount);
+        }
+        else{
+            int added = 0;
+            while(added < itemCount){
+                const auto &addedItem = addInventoryItem(SDItem
+                {
+                    .itemID = to_u32(itemID),
+                    .seqID  = 1,
+                    .count = std::min<size_t>(ir.packable() ? SYS_INVGRIDMAXHOLD : 1, itemCount - added),
+                }, false);
+                added += addedItem.count;
+            }
+        }
+    });
+
+    m_luaModulePtr->bindFunction("removeItem", [this](int itemID, int seqID, int count) -> bool
+    {
+        fflassert(itemID >  0, itemID);
+        fflassert( seqID >= 0,  seqID);
+        fflassert( count >  0,  count);
+
+        const auto argItemID = to_u32(itemID);
+        const auto argSeqID  = to_u32( seqID);
+        const auto argCount  = to_uz ( count);
+
+        const auto &ir = DBCOM_ITEMRECORD(argItemID);
+        fflassert(ir);
+
+        if(ir.isGold()){
+            fflassert(argSeqID == 0, argSeqID);
+            if(m_sdItemStorage.gold >= argCount){
+                setGold(m_sdItemStorage.gold - argCount);
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+        else if(argSeqID > 0){
+            fflassert(argCount == 1, argCount);
+            return removeInventoryItem(argItemID, argSeqID) > 0;
+        }
+        else{
+            fflassert(argCount > 0);
+            if(hasInventoryItem(argItemID, argSeqID, argCount)){
+                removeInventoryItem(argItemID, 0, argCount);
+                return true;
+            }
+            else{
+                return false;
+            }
+        }
+    });
+
+    m_luaModulePtr->execRawString(BEGIN_LUAINC(char)
+#include "player.lua"
+    END_LUAINC());
 }
 
 void Player::operateAM(const ActorMsgPack &rstMPK)
@@ -1366,7 +1442,7 @@ const SDItem &Player::findInventoryItem(uint32_t itemID, uint32_t seqID) const
     return m_sdItemStorage.inventory.find(itemID, seqID);
 }
 
-void Player::addSecuredItem(uint32_t itemID, uint32_t seqID)
+void Player::secureItem(uint32_t itemID, uint32_t seqID)
 {
     fflassert(findInventoryItem(itemID, seqID));
     dbSecureItem(itemID, seqID);

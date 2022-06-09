@@ -28,13 +28,10 @@ void NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
 
 void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
 {
-    if(!mpk.from()){
-        throw fflerror("NPC event comes from zero uid");
-    }
-
+    fflassert(mpk.from());
     const auto sdNPCE = mpk.deserialize<SDNPCEvent>();
 
-    // when CO initiatively sends a message to NPC, we assume it's UID is the callStackUID
+    // when CO initially sends a message to NPC, we assume its UID is the callStackUID
     // when NPC querys CO attributes the response should be handled in actor response handler, not here
 
     if(false
@@ -62,7 +59,7 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         return;
     }
 
-    // last call stack has not been done yet
+    // last call stack may have not been done yet
     // but player initializes new call stack, have to abandon last call stack and start a new one
 
     if(m_luaModulePtr->getCallStackSeqID(mpk.from())){

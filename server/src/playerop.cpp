@@ -194,7 +194,7 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
     if(tokenList.front() == "SECURE"){
         const auto itemID = std::stoi(tokenList.at(1));
         const auto  seqID = std::stoi(tokenList.at(2));
-        addSecuredItem(itemID, seqID);
+        secureItem(itemID, seqID);
         fnResp("1");
         return;
     }

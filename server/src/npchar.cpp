@@ -405,6 +405,9 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
         throw fflerror("lua coroutine is not callable");
     }
 
+    // setup the event
+    // event may get consumed if coroutine yields in pollCallStackEvent()
+
     p->second.from  = from;
     p->second.event = std::move(event);
     p->second.value = std::move(value);
@@ -412,18 +415,11 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
     // comsume the event
     // call the coroutine to make it fail or stuck at next pollCallStackEvent()
 
-    pfrCheck(p->second.runner.callback());
+    if(!pfrCheck(p->second.runner.callback())){
+        throw fflerror("lua coroutine run failed");
+    }
+
     if(!p->second.runner.callback){
-        // not invocable anymore after the event-driven call
-        // the event handling coroutine is done
-        //
-        // remove the call stack when an event sequence is done, i.e.
-        // 1. get event SYS_NPCINIT from player, init main()
-        // 2. in processNPCEvent(SYS_NPCINIT), script calls uidQueryName(), this sends QUERY_NAME
-        // 3. get event NAME
-        // 4. in processNPCEvent(SYS_NPCINIT), script calls uidQueryLevel(), this sends QUERY_LEVEL
-        // 5. get event LEVEL
-        // 6. send uidPostXML() to player, done main()
         m_callStackList.erase(p);
     }
 }

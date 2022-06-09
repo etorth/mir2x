@@ -1,32 +1,6 @@
 --, u8R"###(
 --
 
-function sendExecute(uid, code)
-    sendCallStackExecute(getTLSTable().uid, uid, code)
-end
-
--- send lua code to uid to execute
--- used to support complicated logic through actor message
-function uidExecute(uid, code)
-    assertType(code, 'string')
-    sendExecute(uid, code)
-
-    local resList = {waitEvent()}
-    if resList[1] ~= uid then
-        fatalPrintf('Send lua code to uid %s but get response from %d', uid, resList[1])
-    end
-
-    if resList[2] ~= SYS_EXECDONE then
-        fatalPrintf('Wait event as SYS_EXECDONE but get %s', resList[2])
-    end
-
-    return table.unpack(resList, 3)
-end
-
-function sendQuery(uid, query)
-    sendCallStackQuery(getTLSTable().uid, uid, query)
-end
-
 function waitEvent()
     while true do
         local resList = {pollCallStackEvent(getTLSTable().uid)}
@@ -42,6 +16,29 @@ function waitEvent()
             return table.unpack(resList)
         end
     end
+end
+
+-- send lua code to uid to execute
+-- used to support complicated logic through actor message
+function uidExecuteString(uid, code)
+    assertType(uid, 'integer')
+    assertType(code, 'string')
+    sendCallStackExecute(getTLSTable().uid, uid, code)
+
+    local resList = {waitEvent()}
+    if resList[1] ~= uid then
+        fatalPrintf('Send lua code to uid %s but get response from %d', uid, resList[1])
+    end
+
+    if resList[2] ~= SYS_EXECDONE then
+        fatalPrintf('Wait event as SYS_EXECDONE but get %s', resList[2])
+    end
+
+    return table.unpack(resList, 3)
+end
+
+function uidExecute(uid, code, ...)
+    return uidExecuteString(uid, code:format(...))
 end
 
 function uidQueryString(uid, query)
@@ -71,36 +68,11 @@ function uidQueryRedName(uid)
 end
 
 function uidQueryLevel(uid)
-    return tonumber(uidQuery(uid, 'LEVEL'))
+    return uidExecute(uid, [[ return getLevel() ]])
 end
 
 function uidQueryGold(uid)
     return uidExecute(uid, [[ return getGold() ]])
-end
-
-function convItemSeqID(item)
-    if math.type(item) == 'integer' then
-        return item, 0
-    elseif type(item) == 'string' then
-        return getItemID(item), 0
-    elseif type(item) == 'table' then
-        if item.itemID ~= nil then
-            local itemID = convItemSeqID(item.itemID)
-            if item.seqID == nil then
-                return itemID, 0
-            elseif math.type(item.seqID) == 'integer' then
-                return itemID, item.seqID
-            elseif type(item.seqID) == 'string' then
-                return itemID, tonumber(item.seqID)
-            else
-                fatalPrintf("invalid augument: unexpected item.seqID type: %s", type(item.seqID))
-            end
-        else
-            fatalPrintf("invalid augument: table has no itemID")
-        end
-    else
-        fatalPrintf('invalid argument: item = %s', tostring(item))
-    end
 end
 
 function uidRemove(uid, item, count)
@@ -108,15 +80,7 @@ function uidRemove(uid, item, count)
     if itemID == 0 then
         fatalPrintf('invalid item: %s', tostring(item))
     end
-
-    local value = uidQuery(uid, 'REMOVE %d %d %d', itemID, seqID, argDefault(count, 1))
-    if value == '1' then
-        return true
-    elseif value == '0' then
-        return false
-    else
-        fatalPrintf('invalid query result: %s', value)
-    end
+    return uidExecute(uid, [[ return removeItem(%d, %d, %d) ]], itemID, seqID, argDefault(count, 1))
 end
 
 -- always use 金币（小）to represent the gold item
@@ -126,25 +90,11 @@ function uidRemoveGold(uid, count)
 end
 
 function uidSecureItem(uid, itemID, seqID)
-    local result = uidQuery(uid, 'SECURE %d %d', itemID, seqID)
-    if result == '1' then
-        return true
-    elseif result == '0' then
-        return false
-    else
-        fatalPrintf('invalid query result: %s', result)
-    end
+    uidExecute(uid, [[ secureItem(%d, %d) ]], itemID, seqID)
 end
 
 function uidShowSecuredItemList(uid)
-    local result = uidQuery(uid, 'SHOWSECURED')
-    if result == '1' then
-        return true
-    elseif result == '0' then
-        return false
-    else
-        fatalPrintf('invalid query result: %s', result)
-    end
+    uidExecute(uid, [[ reportSecuredItemList() ]])
 end
 
 function uidGrant(uid, item, count)
@@ -152,15 +102,7 @@ function uidGrant(uid, item, count)
     if itemID == 0 then
         fatalPrintf('invalid item: %s', tostring(item))
     end
-
-    local value = uidQuery(uid, 'GRANT %d %d', itemID, argDefault(count, 1))
-    if value == '1' then
-        return true
-    elseif value == '0' then
-        return false
-    else
-        fatalPrintf('invalid query result: %s', value)
-    end
+    uidExecute(uid, [[ addItem(%d, %d) ]], itemID, argDefault(count, 1))
 end
 
 -- call stack get cleaned after one processNPCEvent call
