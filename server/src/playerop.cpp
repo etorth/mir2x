@@ -176,63 +176,6 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
         })}, seqID);
     };
 
-    if(tokenList.front() == "GOLD"){
-        fnResp(std::to_string(m_sdItemStorage.gold));
-        return;
-    }
-
-    if(tokenList.front() == "LEVEL"){
-        fnResp(std::to_string(level()));
-        return;
-    }
-
-    if(tokenList.front() == "NAME"){
-        fnResp(m_name);
-        return;
-    }
-
-    if(tokenList.front() == "SECURE"){
-        const auto itemID = std::stoi(tokenList.at(1));
-        const auto  seqID = std::stoi(tokenList.at(2));
-        secureItem(itemID, seqID);
-        fnResp("1");
-        return;
-    }
-
-    if(tokenList.front() == "GRANT"){
-        const auto itemID = std::stoi(tokenList.at(1));
-        const auto  count = std::stoi(tokenList.at(2));
-
-        const auto &ir = DBCOM_ITEMRECORD(itemID);
-        fflassert(ir);
-        fflassert(count > 0);
-
-        if(ir.isGold()){
-            setGold(getGold() + count);
-        }
-        else{
-            int added = 0;
-            while(added < count){
-                const auto &addedItem = addInventoryItem(SDItem
-                {
-                    .itemID = to_u32(itemID),
-                    .seqID  = 1,
-                    .count  = std::min<size_t>(ir.packable() ? SYS_INVGRIDMAXHOLD : 1, count - added),
-                }, false);
-                added += addedItem.count;
-            }
-        }
-
-        fnResp("1");
-        return;
-    }
-
-    if(tokenList.front() == "SHOWSECURED"){
-        reportSecuredItemList();
-        fnResp("1");
-        return;
-    }
-
     if(tokenList.front() == "SPACEMOVE"){
         const auto argMapID = std::stoi(tokenList.at(1));
         const auto argX     = std::stoi(tokenList.at(2));
@@ -259,42 +202,6 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
             {
                 fnResp("0");
             });
-        }
-        return;
-    }
-
-    if(tokenList.front() == "REMOVE"){
-        const auto argItemID = to_u32(std::stoi(tokenList.at(1)));
-        const auto argSeqID  = to_u32(std::stoi(tokenList.at(2)));
-        const auto argCount  = to_uz (std::stoi(tokenList.at(3)));
-
-        const auto &ir = DBCOM_ITEMRECORD(argItemID);
-        fflassert(ir);
-
-        if(ir.isGold()){
-            fflassert(argSeqID == 0);
-            if(m_sdItemStorage.gold >= argCount){
-                fnResp("1");
-                setGold(m_sdItemStorage.gold - argCount);
-            }
-            else{
-                fnResp("0");
-            }
-        }
-        else if(argSeqID > 0){
-            fflassert(argCount == 1);
-            const auto delCount = removeInventoryItem(argItemID, argSeqID);
-            fnResp(delCount ? "1" : "0");
-        }
-        else{
-            fflassert(argCount > 0);
-            if(hasInventoryItem(argItemID, argSeqID, argCount)){
-                removeInventoryItem(argItemID, 0, argCount);
-                fnResp("1");
-            }
-            else{
-                fnResp("0");
-            }
         }
         return;
     }
