@@ -520,14 +520,14 @@ void NPChar::sendRemoteCall(uint64_t callStackUID, uint64_t uid, const std::stri
         .quasiFunc = quasiFunc,
     })},
 
-    [callStackUID, uid, seqID, code /* not ref */, this](const ActorMsgPack &mpk)
+    [callStackUID, uid, seqID, code /* not ref */, quasiFunc, this](const ActorMsgPack &mpk)
     {
         if(uid != mpk.from()){
-            throw fflerror("code sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
+            throw fflerror("%s sent to uid %llu but get response from %llu", quasiFunc ? "quasi-func" : "lua code", to_llu(uid), to_llu(mpk.from()));
         }
 
         if(mpk.seqID()){
-            throw fflerror("code result expects response");
+            throw fflerror("call of %s expects response", quasiFunc ? "quasi-func" : "lua code");
         }
 
         if(m_luaModulePtr->getCallStackSeqID(callStackUID) != seqID){
