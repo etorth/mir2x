@@ -108,7 +108,6 @@ LuaModule::LuaModule()
 
     execString("SYS_NPCINIT  = \'%s\'", SYS_NPCINIT );
     execString("SYS_NPCDONE  = \'%s\'", SYS_NPCDONE );
-    execString("SYS_NPCQUERY = \'%s\'", SYS_NPCQUERY);
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
     execString("SYS_EXECDONE = \'%s\'", SYS_EXECDONE);
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));

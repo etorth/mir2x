@@ -100,7 +100,6 @@ enum ActorMsgPackType: int
     AM_NAMECOLOR,
     AM_MASTERKILL,
     AM_MASTERHITTED,
-    AM_NPCQUERY,
     AM_NPCEVENT,
     AM_NPCERROR,
     AM_BUY,
@@ -615,11 +614,6 @@ struct AMFriendType
 struct AMNameColor
 {
     int Color;
-};
-
-struct AMNPCQuery
-{
-    char query[128];
 };
 
 struct AMNPCError

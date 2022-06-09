@@ -41,10 +41,6 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         return;
     }
 
-    if(sdNPCE.event == SYS_NPCQUERY){
-        throw fflerror("unexcepted NPC event: event = %s, value = %s", to_cstr(sdNPCE.event), to_cstr(sdNPCE.value.value_or("(nil)")));
-    }
-
     // can be SYS_NPCINIT or scritp event
     // script event defines like text button pressed etc
 
