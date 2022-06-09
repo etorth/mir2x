@@ -1,13 +1,5 @@
 local tp = {}
 
-function tp.uidSpaceMove(uid, mapName, x, y)
-    local mapID = getMapID(mapName)
-    if mapID == 0 then
-        return false
-    end
-    return uidQuasiFunc(uid, "SPACEMOVE %d %d %d", mapID, x, y)
-end
-
 function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     gold  = argDefault(gold,  0)
     level = argDefault(level, 0)
@@ -38,7 +30,7 @@ function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
         return
     end
 
-    if tp.uidSpaceMove(uid, mapName, x, y) then
+    if uidSpaceMove(uid, mapName, x, y) then
         uidRemoveGold(uid, gold)
     end
 end

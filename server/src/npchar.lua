@@ -62,6 +62,25 @@ function uidQuasiFunc(uid, quasifunc, ...)
     return uidQuasiFuncString(uid, quasifunc:format(...))
 end
 
+function uidSpaceMove(uid, map, x, y)
+    local mapID = nil
+    if type(map) == 'string' then
+        mapID = getMapID(map)
+    elseif math.type(map) == 'integer' and map >= 0 then
+        mapID = map
+    else
+        fatalPrintf("Invalid argument: map = %s, x = %s, y = %s", map, x, y)
+    end
+
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+
+    if mapID == 0 then
+        return false
+    end
+    return uidQuasiFunc(uid, "SPACEMOVE %d %d %d", mapID, x, y)
+end
+
 function uidQueryName(uid)
     return uidExecute(uid, [[ return getName() ]])
 end
