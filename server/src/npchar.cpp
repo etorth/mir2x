@@ -542,14 +542,9 @@ void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &q
         }
 
         switch(mpk.type()){
-            case AM_NPCEVENT:
+            case AM_SDBUFFER:
                 {
-                    const auto sdNPCE = mpk.deserialize<SDNPCEvent>();
-                    if(!query.starts_with(sdNPCE.event)){
-                        throw fflerror("invalid response: query = %s, event = %s", to_cstr(query), to_cstr(sdNPCE.event));
-                    }
-
-                    m_luaModulePtr->setEvent(callStackUID, uid, SYS_NPCQUERY, sdNPCE.value);
+                    m_luaModulePtr->setEvent(callStackUID, uid, SYS_EXECDONE, std::string(reinterpret_cast<const char *>(mpk.data()), mpk.size()));
                     return;
                 }
             default:

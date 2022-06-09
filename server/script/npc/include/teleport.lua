@@ -5,15 +5,7 @@ function tp.uidSpaceMove(uid, mapName, x, y)
     if mapID == 0 then
         return false
     end
-
-    local value = uidQuery(uid, "SPACEMOVE %d %d %d", mapID, x, y)
-    if value == '1' then
-        return true
-    elseif value == '0' then
-        return false
-    else
-        fatalPrintf('invalid value: %s', value)
-    end
+    return uidQuery(uid, "SPACEMOVE %d %d %d", mapID, x, y)
 end
 
 function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)

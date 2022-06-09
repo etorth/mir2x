@@ -161,18 +161,11 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
     const auto tokenList = parseNPCQuery(mpk.conv<AMNPCQuery>().query);
     fflassert(!tokenList.empty());
 
-    const auto fnResp = [from = mpk.from(), seqID = mpk.seqID(), argX = X(), argY = Y(), argMapID = mapID(), argEvent = tokenList.front(), this](std::optional<std::string> value)
+    const auto fnSendResp = [from = mpk.from(), seqID = mpk.seqID(), this](bool done)
     {
-        // capture all variables by copy
-        // this lambda can be registered into other callbacks
-
-        m_actorPod->forward(from, {AM_NPCEVENT, cerealf::serialize(SDNPCEvent
+        m_actorPod->forward(from, {AM_SDBUFFER, cerealf::serialize(SDLuaCallResult
         {
-            .x = argX,
-            .y = argY,
-            .mapID = argMapID,
-            .event = argEvent,
-            .value = std::move(value),
+            .serVarList = {luaf::buildBlob<bool>(done)},
         })}, seqID);
     };
 
@@ -183,29 +176,35 @@ void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
 
         if(to_u32(argMapID) == mapID()){
             requestSpaceMove(argX, argY, false,
-            [fnResp]() mutable
+            [fnSendResp]()
             {
-                fnResp("1");
+                fnSendResp("1");
             },
-            [fnResp]() mutable
+
+            [fnSendResp]()
             {
-                fnResp("0");
+                fnSendResp("0");
             });
         }
         else{
             requestMapSwitch(argMapID, argX, argY, false,
-            [fnResp]() mutable
+            [fnSendResp]()
             {
-                fnResp("1");
+                fnSendResp("1");
             },
-            [fnResp]() mutable
+
+            [fnSendResp]()
             {
-                fnResp("0");
+                fnSendResp("0");
             });
         }
-        return;
     }
-    fnResp(SYS_NPCERROR);
+    else{
+        m_actorPod->forward(mpk.from(), {AM_SDBUFFER, cerealf::serialize(SDLuaCallResult
+        {
+            .error = {{str_printf("invalid quasi-func: %s", to_cstr(tokenList.front()))}},
+        })}, mpk.seqID());
+    }
 }
 
 void Player::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)

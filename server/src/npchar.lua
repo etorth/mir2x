@@ -42,17 +42,20 @@ function uidExecute(uid, code, ...)
 end
 
 function uidQueryString(uid, query)
-    sendQuery(uid, query)
-    local from, event, value = waitEvent()
+    assertType(uid, 'integer')
+    assertType(query, 'string')
+    sendCallStackQuery(getTLSTable().uid, uid, query)
 
-    if from ~= uid then
-        fatalPrintf('Send query to uid %s but get response from %s', uid, from)
+    local resList = {waitEvent()}
+    if resList[1] ~= uid then
+        fatalPrintf('Send quasi-func to uid %s but get response from %d', uid, resList[1])
     end
 
-    if event ~= SYS_NPCQUERY then
-        fatalPrintf('Wait event as SYS_NPCQUERY but get %s', tostring(event))
+    if resList[2] ~= SYS_EXECDONE then
+        fatalPrintf('Wait event as SYS_EXECDONE but get %s', resList[2])
     end
-    return value
+
+    return table.unpack(resList, 3)
 end
 
 function uidQuery(uid, query, ...)
