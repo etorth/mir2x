@@ -346,7 +346,7 @@ class Player final: public BattleObject
         bool canWear(uint32_t, int) const;
 
     private:
-        static std::vector<std::string> parseNPCQuery(const char *);
+        static std::vector<std::string> parseRemoteCall(const char *);
 
     private:
         template<typename... Args> void dispatchNetPackage(bool sendSelf, uint8_t type, Args && ... args)

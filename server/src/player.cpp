@@ -1528,7 +1528,7 @@ bool Player::canWear(uint32_t itemID, int wltype) const
     return true;
 }
 
-std::vector<std::string> Player::parseNPCQuery(const char *query)
+std::vector<std::string> Player::parseRemoteCall(const char *query)
 {
     fflassert(str_haschar(query));
 

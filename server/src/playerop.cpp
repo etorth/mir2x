@@ -448,18 +448,23 @@ void Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 
 void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
+    const auto fnSendSerVarList = [from = mpk.from(), seqID = mpk.seqID(), this](std::vector<std::string> error, std::vector<std::string> serVarList)
+    {
+        if(!error.empty()){
+            fflassert(serVarList.empty(), error, serVarList.size());
+        }
+
+        m_actorPod->forward(from, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+        {
+            .error = std::move(error),
+            .serVarList = std::move(serVarList),
+        })}, seqID);
+    };
+
     const auto sdRC = mpk.deserialize<SDRemoteCall>();
     if(sdRC.quasiFunc){
-        const auto tokenList = parseNPCQuery(sdRC.code.c_str());
+        const auto tokenList = parseRemoteCall(sdRC.code.c_str());
         fflassert(!tokenList.empty());
-
-        const auto fnSendResp = [from = mpk.from(), seqID = mpk.seqID(), this](bool done)
-        {
-            m_actorPod->forward(from, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
-            {
-                .serVarList = {luaf::buildBlob<bool>(done)},
-            })}, seqID);
-        };
 
         if(tokenList.front() == "SPACEMOVE"){
             const auto argMapID = std::stoi(tokenList.at(1));
@@ -468,46 +473,45 @@ void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 
             if(to_u32(argMapID) == mapID()){
                 requestSpaceMove(argX, argY, false,
-                [fnSendResp]()
+                [fnSendSerVarList]()
                 {
-                    fnSendResp(true);
+                    fnSendSerVarList({}, {luaf::buildBlob(true)});
                 },
 
-                [fnSendResp]()
+                [fnSendSerVarList]()
                 {
-                    fnSendResp(false);
+                    fnSendSerVarList({}, {luaf::buildBlob(false)});
                 });
             }
             else{
                 requestMapSwitch(argMapID, argX, argY, false,
-                [fnSendResp]()
+                [fnSendSerVarList]()
                 {
-                    fnSendResp(true);
+                    fnSendSerVarList({}, {luaf::buildBlob(true)});
                 },
 
-                [fnSendResp]()
+                [fnSendSerVarList]()
                 {
-                    fnSendResp(false);
+                    fnSendSerVarList({}, {luaf::buildBlob(false)});
                 });
             }
         }
         else{
-            m_actorPod->forward(mpk.from(), {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
-            {
-                .error = {{str_printf("invalid quasi-func: %s", to_cstr(tokenList.front()))}},
-            })}, mpk.seqID());
+            fnSendSerVarList({str_printf("invalid quasi-func: %s", to_cstr(tokenList.front()))}, {});
         }
     }
     else{
-        SDRemoteCallResult sdRCR;
-        const auto fnDrainError = [&sdRCR](const std::string &s)
+        std::vector<std::string> error;
+        const auto fnDrainError = [&error](const std::string &s)
         {
-            sdRCR.error.push_back(s);
+            error.push_back(s);
         };
 
         if(const auto pfr = m_luaModulePtr->execRawString(sdRC.code.c_str()); m_luaModulePtr->pfrCheck(pfr, fnDrainError)){
-            sdRCR.serVarList = luaf::pfrBuildBlobList(pfr);
+            fnSendSerVarList(std::move(error), luaf::pfrBuildBlobList(pfr));
         }
-        m_actorPod->forward(mpk.from(), {AM_SDBUFFER, cerealf::serialize(sdRCR)}, mpk.seqID());
+        else{
+            fnSendSerVarList(std::move(error), {});
+        }
     }
 }
