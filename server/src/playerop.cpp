@@ -511,6 +511,11 @@ void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
             fnSendSerVarList(std::move(error), luaf::pfrBuildBlobList(pfr));
         }
         else{
+            // put error message if error happened but there is no explicit error message
+            // if error and serVarList are both empty, caller side takes it as a successfully call
+            if(error.empty()){
+                error.push_back("unknown error");
+            }
             fnSendSerVarList(std::move(error), {});
         }
     }
