@@ -512,7 +512,7 @@ void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
         }
         else{
             // put error message if error happened but there is no explicit error message
-            // if error and serVarList are both empty, caller side takes it as a successfully call
+            // if error and serVarList are both empty, caller side takes it as a successfully call without explicit results
             if(error.empty()){
                 error.push_back("unknown error");
             }
