@@ -108,7 +108,6 @@ class Player final: public BattleObject
         void on_AM_ATTACK           (const ActorMsgPack &);
         void on_AM_OFFLINE          (const ActorMsgPack &);
         void on_AM_CORECORD         (const ActorMsgPack &);
-        void on_AM_NPCQUERY         (const ActorMsgPack &);
         void on_AM_METRONOME        (const ActorMsgPack &);
         void on_AM_MAPSWITCHTRIGGER (const ActorMsgPack &);
         void on_AM_SENDPACKAGE      (const ActorMsgPack &);
@@ -127,7 +126,7 @@ class Player final: public BattleObject
         void on_AM_REMOVEGROUNDITEM (const ActorMsgPack &);
         void on_AM_QUERYUIDBUFF     (const ActorMsgPack &);
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
-        void on_AM_EXECUTE          (const ActorMsgPack &);
+        void on_AM_REMOTECALL          (const ActorMsgPack &);
 
     private:
         void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t);

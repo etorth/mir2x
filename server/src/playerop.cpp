@@ -156,57 +156,6 @@ void Player::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
     }
 }
 
-void Player::on_AM_NPCQUERY(const ActorMsgPack &mpk)
-{
-    const auto tokenList = parseNPCQuery(mpk.conv<AMNPCQuery>().query);
-    fflassert(!tokenList.empty());
-
-    const auto fnSendResp = [from = mpk.from(), seqID = mpk.seqID(), this](bool done)
-    {
-        m_actorPod->forward(from, {AM_SDBUFFER, cerealf::serialize(SDLuaCallResult
-        {
-            .serVarList = {luaf::buildBlob<bool>(done)},
-        })}, seqID);
-    };
-
-    if(tokenList.front() == "SPACEMOVE"){
-        const auto argMapID = std::stoi(tokenList.at(1));
-        const auto argX     = std::stoi(tokenList.at(2));
-        const auto argY     = std::stoi(tokenList.at(3));
-
-        if(to_u32(argMapID) == mapID()){
-            requestSpaceMove(argX, argY, false,
-            [fnSendResp]()
-            {
-                fnSendResp("1");
-            },
-
-            [fnSendResp]()
-            {
-                fnSendResp("0");
-            });
-        }
-        else{
-            requestMapSwitch(argMapID, argX, argY, false,
-            [fnSendResp]()
-            {
-                fnSendResp("1");
-            },
-
-            [fnSendResp]()
-            {
-                fnSendResp("0");
-            });
-        }
-    }
-    else{
-        m_actorPod->forward(mpk.from(), {AM_SDBUFFER, cerealf::serialize(SDLuaCallResult
-        {
-            .error = {{str_printf("invalid quasi-func: %s", to_cstr(tokenList.front()))}},
-        })}, mpk.seqID());
-    }
-}
-
 void Player::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
 {
     AMLocation amL;
@@ -497,24 +446,68 @@ void Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
     m_actorPod->forward(rstMPK.from(), {AM_CHECKMASTEROK, amCMOK}, rstMPK.seqID());
 }
 
-void Player::on_AM_EXECUTE(const ActorMsgPack &mpk)
+void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
-    SDLuaCallResult sdLCR;
-    const auto fnDrainError = [&sdLCR](const std::string &s)
-    {
-        sdLCR.error.push_back(s);
-    };
+    const auto sdRC = mpk.deserialize<SDRemoteCall>();
+    if(sdRC.quasiFunc){
+        const auto tokenList = parseNPCQuery(sdRC.code.c_str());
+        fflassert(!tokenList.empty());
 
-    try{
-        if(const auto pfr = m_luaModulePtr->execRawString(mpk.deserialize<std::string>().c_str()); m_luaModulePtr->pfrCheck(pfr, fnDrainError)){
-            sdLCR.serVarList = luaf::pfrBuildBlobList(pfr);
+        const auto fnSendResp = [from = mpk.from(), seqID = mpk.seqID(), this](bool done)
+        {
+            m_actorPod->forward(from, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+            {
+                .serVarList = {luaf::buildBlob<bool>(done)},
+            })}, seqID);
+        };
+
+        if(tokenList.front() == "SPACEMOVE"){
+            const auto argMapID = std::stoi(tokenList.at(1));
+            const auto argX     = std::stoi(tokenList.at(2));
+            const auto argY     = std::stoi(tokenList.at(3));
+
+            if(to_u32(argMapID) == mapID()){
+                requestSpaceMove(argX, argY, false,
+                [fnSendResp]()
+                {
+                    fnSendResp(true);
+                },
+
+                [fnSendResp]()
+                {
+                    fnSendResp(false);
+                });
+            }
+            else{
+                requestMapSwitch(argMapID, argX, argY, false,
+                [fnSendResp]()
+                {
+                    fnSendResp(true);
+                },
+
+                [fnSendResp]()
+                {
+                    fnSendResp(false);
+                });
+            }
+        }
+        else{
+            m_actorPod->forward(mpk.from(), {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+            {
+                .error = {{str_printf("invalid quasi-func: %s", to_cstr(tokenList.front()))}},
+            })}, mpk.seqID());
         }
     }
-    catch(const std::exception &e){
-        fnDrainError(e.what());
+    else{
+        SDRemoteCallResult sdRCR;
+        const auto fnDrainError = [&sdRCR](const std::string &s)
+        {
+            sdRCR.error.push_back(s);
+        };
+
+        if(const auto pfr = m_luaModulePtr->execRawString(sdRC.code.c_str()); m_luaModulePtr->pfrCheck(pfr, fnDrainError)){
+            sdRCR.serVarList = luaf::pfrBuildBlobList(pfr);
+        }
+        m_actorPod->forward(mpk.from(), {AM_SDBUFFER, cerealf::serialize(sdRCR)}, mpk.seqID());
     }
-    catch(...){
-        fnDrainError("unknown error");
-    }
-    m_actorPod->forward(mpk.from(), {AM_SDBUFFER, cerealf::serialize(sdLCR)}, mpk.seqID());
 }

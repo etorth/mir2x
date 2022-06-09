@@ -312,14 +312,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         m_npc->postXMLLayout(uid, std::move(xmlString));
     });
 
-    bindFunction("sendCallStackQuery", [this](uint64_t callStackUID, uint64_t uid, std::string query)
+    bindFunction("sendCallStackRemoteCall", [this](uint64_t callStackUID, uint64_t uid, std::string code, bool quasiFunc)
     {
-        m_npc->sendQuery(callStackUID, uid, query);
-    });
-
-    bindFunction("sendCallStackExecute", [this](uint64_t callStackUID, uint64_t uid, std::string code)
-    {
-        m_npc->sendExecute(callStackUID, uid, code);
+        m_npc->sendRemoteCall(callStackUID, uid, code, quasiFunc);
     });
 
     bindFunction("pollCallStackEvent", [this](uint64_t uid, sol::this_state s)
@@ -346,7 +341,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
 
                 if(event == SYS_EXECDONE){
                     fflassert(value.has_value());
-                    const auto sdLCR = cerealf::deserialize<SDLuaCallResult>(value.value());
+                    const auto sdLCR = cerealf::deserialize<SDRemoteCallResult>(value.value());
                     if(sdLCR.error.empty()){
                         for(const auto &s: sdLCR.serVarList){
                             eventStack.push_back(luaf::buildLuaObj(sv, s));
@@ -512,58 +507,20 @@ void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitT
     }));
 }
 
-void NPChar::sendQuery(uint64_t callStackUID, uint64_t uid, const std::string &query)
+void NPChar::sendRemoteCall(uint64_t callStackUID, uint64_t uid, const std::string &code, bool quasiFunc)
 {
-    AMNPCQuery amNPCQ;
-    std::memset(&amNPCQ, 0, sizeof(amNPCQ));
-
     const auto seqID = m_luaModulePtr->getCallStackSeqID(callStackUID);
     if(!seqID){
-        throw fflerror("calling sendQuery(%llu, %llu, %s) outside of LuaCallStack", to_llu(callStackUID), to_llu(uid), to_cstr(query));
+        throw fflerror("calling sendRemoteCall(%llu, %llu, %s, %s) outside of LuaCallStack", to_llu(callStackUID), to_llu(uid), to_cstr(code), to_boolcstr(quasiFunc));
     }
 
-    if(query.size() >= sizeof(amNPCQ.query)){
-        throw fflerror("query name is too long: %s", query.c_str());
-    }
-
-    std::strcpy(amNPCQ.query, query.c_str());
-    m_actorPod->forward(uid, {AM_NPCQUERY, amNPCQ}, [callStackUID, uid, seqID, query /* not ref */, this](const ActorMsgPack &mpk)
+    m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
     {
-        if(uid != mpk.from()){
-            throw fflerror("query sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
-        }
+        .code = code,
+        .quasiFunc = quasiFunc,
+    })},
 
-        if(mpk.seqID()){
-            throw fflerror("query result expects response");
-        }
-
-        if(m_luaModulePtr->getCallStackSeqID(callStackUID) != seqID){
-            return;
-        }
-
-        switch(mpk.type()){
-            case AM_SDBUFFER:
-                {
-                    m_luaModulePtr->setEvent(callStackUID, uid, SYS_EXECDONE, std::string(reinterpret_cast<const char *>(mpk.data()), mpk.size()));
-                    return;
-                }
-            default:
-                {
-                    m_luaModulePtr->close(callStackUID);
-                    return;
-                }
-        }
-    });
-}
-
-void NPChar::sendExecute(uint64_t callStackUID, uint64_t uid, const std::string &code)
-{
-    const auto seqID = m_luaModulePtr->getCallStackSeqID(callStackUID);
-    if(!seqID){
-        throw fflerror("calling sendExecute(%llu, %llu, %s) outside of LuaCallStack", to_llu(callStackUID), to_llu(uid), to_cstr(code));
-    }
-
-    m_actorPod->forward(uid, {AM_EXECUTE, cerealf::serialize(code)}, [callStackUID, uid, seqID, code /* not ref */, this](const ActorMsgPack &mpk)
+    [callStackUID, uid, seqID, code /* not ref */, this](const ActorMsgPack &mpk)
     {
         if(uid != mpk.from()){
             throw fflerror("code sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));

@@ -5,7 +5,7 @@ function tp.uidSpaceMove(uid, mapName, x, y)
     if mapID == 0 then
         return false
     end
-    return uidQuery(uid, "SPACEMOVE %d %d %d", mapID, x, y)
+    return uidQuasiFunc(uid, "SPACEMOVE %d %d %d", mapID, x, y)
 end
 
 function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)

@@ -174,11 +174,6 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_MAPSWITCHTRIGGER(rstMPK);
                 break;
             }
-        case AM_NPCQUERY:
-            {
-                on_AM_NPCQUERY(rstMPK);
-                break;
-            }
         case AM_QUERYLOCATION:
             {
                 on_AM_QUERYLOCATION(rstMPK);
@@ -284,9 +279,9 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_NOTIFYDEAD(rstMPK);
                 break;
             }
-        case AM_EXECUTE:
+        case AM_REMOTECALL:
             {
-                on_AM_EXECUTE(rstMPK);
+                on_AM_REMOTECALL(rstMPK);
                 break;
             }
         default:

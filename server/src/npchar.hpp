@@ -149,8 +149,7 @@ class NPChar final: public CharObject
         void on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
 
     private:
-        void sendQuery  (uint64_t, uint64_t, const std::string &);
-        void sendExecute(uint64_t, uint64_t, const std::string &);
+        void sendRemoteCall(uint64_t, uint64_t, const std::string &, bool);
 
     private:
         // NPChar::postXXX functions are for NPC -> client directly

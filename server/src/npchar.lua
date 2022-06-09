@@ -23,7 +23,7 @@ end
 function uidExecuteString(uid, code)
     assertType(uid, 'integer')
     assertType(code, 'string')
-    sendCallStackExecute(getTLSTable().uid, uid, code)
+    sendCallStackRemoteCall(getTLSTable().uid, uid, code, false)
 
     local resList = {waitEvent()}
     if resList[1] ~= uid then
@@ -41,10 +41,10 @@ function uidExecute(uid, code, ...)
     return uidExecuteString(uid, code:format(...))
 end
 
-function uidQueryString(uid, query)
+function uidQuasiFuncString(uid, quasifunc)
     assertType(uid, 'integer')
-    assertType(query, 'string')
-    sendCallStackQuery(getTLSTable().uid, uid, query)
+    assertType(quasifunc, 'string')
+    sendCallStackRemoteCall(getTLSTable().uid, uid, quasifunc, true)
 
     local resList = {waitEvent()}
     if resList[1] ~= uid then
@@ -58,8 +58,8 @@ function uidQueryString(uid, query)
     return table.unpack(resList, 3)
 end
 
-function uidQuery(uid, query, ...)
-    return uidQueryString(uid, query:format(...))
+function uidQuasiFunc(uid, quasifunc, ...)
+    return uidQuasiFuncString(uid, quasifunc:format(...))
 end
 
 function uidQueryName(uid)

@@ -14,7 +14,7 @@ enum ActorMsgPackType: int
     AM_BADACTORPOD,
     AM_BADCHANNEL,
     AM_SDBUFFER,
-    AM_EXECUTE,
+    AM_REMOTECALL,
     AM_TIMEOUT,
     AM_UID,
     AM_PING,

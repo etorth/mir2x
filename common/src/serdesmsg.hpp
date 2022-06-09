@@ -800,7 +800,18 @@ struct SDBuffIDList
     }
 };
 
-struct SDLuaCallResult
+struct SDRemoteCall
+{
+    std::string code {};
+    bool quasiFunc = false;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(code, quasiFunc);
+    }
+};
+
+struct SDRemoteCallResult
 {
     std::vector<std::string> error {}; // a multiline error
     std::vector<std::string> serVarList {}; // multiple *serialized* results, lua supports return-multiple-results syntax
