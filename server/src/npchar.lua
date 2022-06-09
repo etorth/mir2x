@@ -299,7 +299,7 @@ end
 -- entry coroutine for event handling
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
-function main(uid)
+function coth_main(uid)
     -- setup current call stack uid
     -- all functions in current call stack can use this implicit argument as *this*
     getTLSTable().uid = uid

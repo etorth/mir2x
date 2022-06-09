@@ -15,6 +15,17 @@ class NPChar final: public CharObject
                 friend class NPChar;
 
             private:
+                struct LuaCallStackRunner
+                {
+                    sol::thread runner;
+                    sol::coroutine callback;
+
+                    LuaCallStackRunner(sol::state &luaState)
+                        : runner(sol::thread::create(luaState.lua_state()))
+                        , callback(sol::state_view(runner.state())["coth_main"])
+                    {}
+                };
+
                 struct LuaCallStack
                 {
                     uint64_t from = 0;
@@ -31,14 +42,19 @@ class NPChar final: public CharObject
                     // and the query response needs to match the seqID
 
                     const uint64_t seqID;
-                    sol::thread runner;
-                    sol::coroutine callback;
+                    LuaCallStackRunner runner;
 
                     LuaCallStack(LuaNPCModule *luaModulePtr)
                         : seqID(luaModulePtr->peekSeqID())
-                        , runner(sol::thread::create(luaModulePtr->getLuaState().lua_state()))
-                        , callback(sol::state_view(runner.state())["main"])
+                        , runner(luaModulePtr->getLuaState())
                     {}
+
+                    void clearEvent()
+                    {
+                        from = 0;
+                        event.clear();
+                        value.reset();
+                    }
                 };
 
             private:

@@ -328,26 +328,25 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         return sol::as_returns([uid, &sv, this]() -> std::vector<sol::object>
         {
             if(auto p = m_callStackList.find(uid); p != m_callStackList.end()){
-                const auto fromUID = p->second.from;
-                p->second.from = 0;
+                const auto from = p->second.from;
+                const auto event = std::move(p->second.event);
+                const auto value = std::move(p->second.value);
 
-                if(!fromUID){
+                p->second.clearEvent();
+                if(!from){
                     return {};
                 }
 
-                if(p->second.event.empty()){
-                    throw fflerror("detected uid %llu with empty event", to_llu(fromUID));
-                }
-
+                fflassert(str_haschar(event));
                 std::vector<sol::object> eventStack
                 {
-                    sol::object(sv, sol::in_place_type<uint64_t>, fromUID),
-                    sol::object(sv, sol::in_place_type<std::string>, std::move(p->second.event)),
+                    sol::object(sv, sol::in_place_type<uint64_t>, from),
+                    sol::object(sv, sol::in_place_type<std::string>, event),
                 };
 
-                if(p->second.event == SYS_EXECDONE){
-                    fflassert(p->second.value.has_value());
-                    const auto sdLCR = cerealf::deserialize<SDLuaCallResult>(p->second.value.value());
+                if(event == SYS_EXECDONE){
+                    fflassert(value.has_value());
+                    const auto sdLCR = cerealf::deserialize<SDLuaCallResult>(value.value());
                     if(sdLCR.error.empty()){
                         for(const auto &s: sdLCR.serVarList){
                             eventStack.push_back(luaf::buildLuaObj(sv, s));
@@ -358,11 +357,11 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
                         for(const auto &line: sdLCR.error){
                             g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                         }
-                        throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(fromUID)));
+                        throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(from)));
                     }
                 }
-                else if(p->second.value.has_value()){
-                    eventStack.push_back(sol::object(sv, sol::in_place_type<std::string>, p->second.value.value()));
+                else if(value.has_value()){
+                    eventStack.push_back(sol::object(sv, sol::in_place_type<std::string>, value.value()));
                 }
                 return eventStack;
             }
@@ -399,10 +398,10 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
 
         // initial call to make main reaches its event polling point
         // need to assign event to let it advance
-        pfrCheck(p->second.callback(callStackUID));
+        pfrCheck(p->second.runner.callback(callStackUID));
     }
 
-    if(!p->second.callback){
+    if(!p->second.runner.callback){
         throw fflerror("lua coroutine is not callable");
     }
 
@@ -413,8 +412,8 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
     // comsume the event
     // call the coroutine to make it fail or stuck at next pollCallStackEvent()
 
-    pfrCheck(p->second.callback());
-    if(!p->second.callback){
+    pfrCheck(p->second.runner.callback());
+    if(!p->second.runner.callback){
         // not invocable anymore after the event-driven call
         // the event handling coroutine is done
         //
