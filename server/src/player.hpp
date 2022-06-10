@@ -44,7 +44,7 @@ class Player final: public BattleObject
             public:
                 ~CallDoneFlag()
                 {
-                    set();
+                    *m_flag = true;
                 }
 
             public:
@@ -55,11 +55,6 @@ class Player final: public BattleObject
                 CallDoneFlag & operator = (      CallDoneFlag &&) = delete;
 
             public:
-                void set()
-                {
-                    *m_flag = true;
-                }
-
                 operator bool () const
                 {
                     return *m_flag;

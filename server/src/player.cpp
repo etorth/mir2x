@@ -184,6 +184,44 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
+    m_luaModulePtr->bindFunction("RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runSeqID)
+    {
+        const int startDir = pathf::getRandDir();
+        {
+            const CallDoneFlag doneFlag;
+            for(int i = 0; i < 8; ++i){
+                const auto [newX, newY] = pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(startDir, i));
+                if(m_map->groundValid(newX, newY)){
+                    requestMove(newX, newY, SYS_DEFSPEED, false, false, [doneFlag, onOK, runSeqID, this]()
+                    {
+                        // player doesn't sendback it's move to client in requestMove()
+                        // because player's move usually is driven by client, here need to sendback this forced move
+
+                        onOK();
+                        reportAction(UID(), mapID(), makeActionStand());
+
+                        if(doneFlag){
+                            resumeCORunner(runSeqID);
+                        }
+                    },
+
+                    [doneFlag, onError, runSeqID, this]()
+                    {
+                        onError();
+                        if(doneFlag){
+                            resumeCORunner(runSeqID);
+                        }
+                    });
+                    return;
+                }
+            }
+        }
+
+        // failed to find a good next location
+        // or anything happened that we failed to call requestMove
+        onError();
+    });
+
     m_luaModulePtr->bindFunction("RSVD_NAME_requestPause", [this](int ms, sol::function onDone, uint64_t runSeqID)
     {
         fflassert(ms >= 0, ms);

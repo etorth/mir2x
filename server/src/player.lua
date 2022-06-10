@@ -17,6 +17,24 @@ function pause(ms)
     end
 end
 
+function randomMove()
+    local done = nil
+    local function onOK()
+        done = true
+    end
+
+    local function onError()
+        done = false
+    end
+
+    RSVD_NAME_randomMoveCoop(onOK, onError, getTLSTable().runSeqID)
+
+    if done == nil then
+        coroutine.yield()
+    end
+    return done
+end
+
 function spaceMove(mapID, x, y)
     local done = nil
     local function onOK()
