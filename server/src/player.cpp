@@ -137,7 +137,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
-    m_luaModulePtr->bindFunction("requestSpaceMove", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runSeqID)
+    m_luaModulePtr->bindFunction("RSVD_NAME_requestSpaceMove", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runSeqID)
     {
         const auto &mr = DBCOM_MAPRECORD(argMapID);
         fflassert(mr, argMapID);
@@ -175,7 +175,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
-    m_luaModulePtr->bindFunction("requestPause", [this](int ms, uint64_t runSeqID)
+    m_luaModulePtr->bindFunction("RSVD_NAME_requestPause", [this](int ms, uint64_t runSeqID)
     {
         fflassert(ms >= 0, ms);
         fflassert(runSeqID > 0, runSeqID);

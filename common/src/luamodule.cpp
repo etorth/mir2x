@@ -20,17 +20,17 @@ LuaModule::LuaModule()
         local _G = _G
         local error = error
         local coroutine = coroutine
-        local RESERVED_NAME_G_sandbox = {}
+        local RSVD_NAME_G_sandbox = {}
 
         function getTLSTable()
             local threadId, inMainThread = coroutine.running()
             if inMainThread then
                 error('call getTLSTable() in main thread')
             else
-                if RESERVED_NAME_G_sandbox[threadId] == nil then
-                    RESERVED_NAME_G_sandbox[threadId] = {}
+                if RSVD_NAME_G_sandbox[threadId] == nil then
+                    RSVD_NAME_G_sandbox[threadId] = {}
                 end
-                return RESERVED_NAME_G_sandbox[threadId]
+                return RSVD_NAME_G_sandbox[threadId]
             end
         end
 
@@ -39,16 +39,16 @@ LuaModule::LuaModule()
             if inMainThread then
                 error('call clearTLSTable() in main thread')
             else
-                RESERVED_NAME_G_sandbox[threadId] = nil
+                RSVD_NAME_G_sandbox[threadId] = nil
             end
         end
 
-        RESERVED_NAME_replaceEnvMetaTable = {
+        RSVD_NAME_replaceEnvMetaTable = {
             __index = function(_, key)
                 local threadId, inMainThread = coroutine.running()
                 if not inMainThread then
-                    if RESERVED_NAME_G_sandbox[threadId] ~= nil and RESERVED_NAME_G_sandbox[threadId][key] ~= nil then
-                        return RESERVED_NAME_G_sandbox[threadId][key]
+                    if RSVD_NAME_G_sandbox[threadId] ~= nil and RSVD_NAME_G_sandbox[threadId][key] ~= nil then
+                        return RSVD_NAME_G_sandbox[threadId][key]
                     end
                 end
                 return _G[key]
@@ -59,16 +59,16 @@ LuaModule::LuaModule()
                 if inMainThread then
                     _G[key] = value
                 else
-                    if RESERVED_NAME_G_sandbox[threadId] == nil then
-                        RESERVED_NAME_G_sandbox[threadId] = {}
+                    if RSVD_NAME_G_sandbox[threadId] == nil then
+                        RSVD_NAME_G_sandbox[threadId] = {}
                     end
-                    RESERVED_NAME_G_sandbox[threadId][key] = value
+                    RSVD_NAME_G_sandbox[threadId][key] = value
                 end
             end
         }
     )###");
 
-    m_replaceEnv[sol::metatable_key] = sol::table(m_luaState["RESERVED_NAME_replaceEnvMetaTable"]);
+    m_replaceEnv[sol::metatable_key] = sol::table(m_luaState["RSVD_NAME_replaceEnvMetaTable"]);
 
     // idea from: https://blog.rubenwardy.com/2020/07/26/sol3-script-sandbox/
     // set replaceEnv as default environment, otherwise I don't know how to setup replaceEnv to thread/coroutine

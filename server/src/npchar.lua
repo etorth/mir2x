@@ -3,7 +3,7 @@
 
 function waitEvent()
     while true do
-        local resList = {pollCallStackEvent(getTLSTable().uid)}
+        local resList = {RSVD_NAME_pollCallStackEvent(getTLSTable().uid)}
         if next(resList) == nil then
             coroutine.yield()
         else
@@ -23,7 +23,7 @@ end
 function uidExecuteString(uid, code)
     assertType(uid, 'integer')
     assertType(code, 'string')
-    sendCallStackRemoteCall(getTLSTable().uid, uid, code, false)
+    RSVD_NAME_sendCallStackRemoteCall(getTLSTable().uid, uid, code, false)
 
     local resList = {waitEvent()}
     if resList[1] ~= uid then

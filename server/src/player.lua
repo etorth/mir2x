@@ -5,7 +5,7 @@ function pause(ms)
     assertType(ms, 'integer')
     assert(ms >= 0)
 
-    requestPause(ms, getTLSTable().runSeqID)
+    RSVD_NAME_requestPause(ms, getTLSTable().runSeqID)
     coroutine.yield()
 end
 
@@ -26,7 +26,7 @@ function spaceMove(mapID, x, y)
         -- more importantly, don't do runner-resume in the onOK/onError callback
         -- which causes crash, because if we resume in onOK/onError, then when the callback gets triggeerred, stack is:
         --
-        --   --C-->onOK/onError-->resumeCORunner(getTLSTable().runSeqID)-->code in this runner after requestSpaceMove/coroutine.yield()
+        --   --C-->onOK/onError-->resumeCORunner(getTLSTable().runSeqID)-->code in this runner after RSVD_NAME_requestSpaceMove/coroutine.yield()
         --     ^       ^                ^                                   ^
         --     |       |                |                                   |
         --     |       |                |                                   +------ lua
@@ -43,7 +43,7 @@ function spaceMove(mapID, x, y)
         -- transparent logic same as onOK
     end
 
-    requestSpaceMove(mapID, x, y, onOK, onError, getTLSTable().runSeqID)
+    RSVD_NAME_requestSpaceMove(mapID, x, y, onOK, onError, getTLSTable().runSeqID)
 
     coroutine.yield()
     return done
