@@ -87,6 +87,23 @@ class LuaModule
         bool pfrCheck(const sol::protected_function_result &, const std::function<void(const std::string &)> & = nullptr); // parse if pfr is an error
 };
 
+struct LuaCORunner
+{
+    // sol::thread can be reused for multiple coroutines
+    // but I guess changes of previous coroutine persists in the thread stack
+
+    sol::thread runner;
+    sol::coroutine callback;
+
+    LuaCORunner(sol::state &s, const std::string &func)
+        : runner(sol::thread::create(s.lua_state()))
+        , callback(sol::state_view(runner.state())[func])
+    {
+        fflassert(str_haschar(func), func);
+        fflassert(callback, func);
+    }
+};
+
 // directives to include a lua file to C++ src code
 // usage example:
 //

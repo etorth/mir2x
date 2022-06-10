@@ -1,6 +1,7 @@
 #include <cinttypes>
 #include "dbpod.hpp"
 #include "player.hpp"
+#include "luaf.hpp"
 #include "uidf.hpp"
 #include "jobf.hpp"
 #include "pathf.hpp"
@@ -133,6 +134,90 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
             else{
                 return false;
             }
+        }
+    });
+
+    m_luaModulePtr->bindFunction("requestSpaceMove", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runSeqID)
+    {
+        const auto &mr = DBCOM_MAPRECORD(argMapID);
+        fflassert(mr, argMapID);
+
+        fflassert(argX >= 0, argX);
+        fflassert(argY >= 0, argY);
+
+        fflassert(runSeqID > 0, runSeqID);
+        const auto fnResumeRunner = [runSeqID, this]()
+        {
+            std::vector<std::string> error;
+            const auto fnDrainError = [&error](const std::string &s)
+            {
+                error.push_back(s);
+            };
+
+            if(auto p = m_runnerList.find(runSeqID); p != m_runnerList.end()){
+                fflassert(p->second.callback, runSeqID);
+                const auto fnSendSerVarList = [from = p->second.from, seqID = p->second.seqID, this](std::vector<std::string> error, std::vector<std::string> serVarList)
+                {
+                    if(!error.empty()){
+                        fflassert(serVarList.empty(), error, serVarList.size());
+                    }
+
+                    m_actorPod->forward(from, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+                    {
+                        .error = std::move(error),
+                        .serVarList = std::move(serVarList),
+                    })}, seqID);
+                };
+
+                if(const auto pfr = p->second.callback(); m_luaModulePtr->pfrCheck(pfr, fnDrainError)){
+                    // trigger the coroutine only *one* time
+                    // in principle the script runs in synchronized model, so here we can trigger aribitary time
+                    if(p->second.callback){
+                        // still not done yet, wait for next trigger
+                        // script is ill-formed if there is no scheduled trigger for next
+                    }
+                    else{
+                        fnSendSerVarList({}, luaf::pfrBuildBlobList(pfr));
+                    }
+                }
+                else{
+                    if(error.empty()){
+                        error.push_back("unknown error");
+                    }
+                    fnSendSerVarList(std::move(error), {});
+                }
+            }
+            else{
+                throw fflvalue(runSeqID);
+            }
+        };
+
+        if(to_u32(argMapID) == mapID()){
+            requestSpaceMove(argX, argY, false, [onOK, fnResumeRunner]()
+            {
+                onOK();
+                fnResumeRunner();
+            },
+
+            [onError, fnResumeRunner]()
+            {
+                onError();
+                fnResumeRunner();
+            });
+        }
+        else{
+            requestMapSwitch(argMapID, argX, argY, false,
+            [onOK, fnResumeRunner]()
+            {
+                onOK();
+                fnResumeRunner();
+            },
+
+            [onError, fnResumeRunner]()
+            {
+                onError();
+                fnResumeRunner();
+            });
         }
     });
 

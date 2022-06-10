@@ -462,61 +462,73 @@ void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
     };
 
     const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    if(sdRC.quasiFunc){
-        const auto tokenList = parseRemoteCall(sdRC.code.c_str());
-        fflassert(!tokenList.empty());
+    const auto runSeqID = m_runSeqID++;
 
-        if(tokenList.front() == "SPACEMOVE"){
-            const auto argMapID = std::stoi(tokenList.at(1));
-            const auto argX     = std::stoi(tokenList.at(2));
-            const auto argY     = std::stoi(tokenList.at(3));
+    PlayerLuaCORunner runner
+    {
+        m_luaModulePtr->getLuaState(),
+        mpk.from(),
+        mpk.seqID(),
+    };
 
-            if(to_u32(argMapID) == mapID()){
-                requestSpaceMove(argX, argY, false,
-                [fnSendSerVarList]()
-                {
-                    fnSendSerVarList({}, {luaf::buildBlob(true)});
-                },
+    const auto pfr = runner.callback(str_printf(
+        R"###( getTLSTable().runSeqID = %llu )###""\n"
+        R"###( do                            )###""\n"
+        R"###(    %s                         )###""\n"
+        R"###( end                           )###""\n", to_llu(runSeqID), to_cstr(sdRC.code)));
 
-                [fnSendSerVarList]()
-                {
-                    fnSendSerVarList({}, {luaf::buildBlob(false)});
-                });
-            }
-            else{
-                requestMapSwitch(argMapID, argX, argY, false,
-                [fnSendSerVarList]()
-                {
-                    fnSendSerVarList({}, {luaf::buildBlob(true)});
-                },
+    std::vector<std::string> error;
+    const auto fnDrainError = [&error](const std::string &s)
+    {
+        error.push_back(s);
+    };
 
-                [fnSendSerVarList]()
-                {
-                    fnSendSerVarList({}, {luaf::buildBlob(false)});
-                });
-            }
+    if(m_luaModulePtr->pfrCheck(pfr, fnDrainError)){
+        if(runner.callback){
+            // initial run succeeds but coroutine is not finished yet
+            // need to save for later trigger
+            m_runnerList.insert_or_assign(runSeqID, std::move(runner));
         }
         else{
-            fnSendSerVarList({str_printf("invalid quasi-func: %s", to_cstr(tokenList.front()))}, {});
+            // initial run succeeds and coroutine finished
+            // simple cases like: uidExecute(uid, [[ return getName() ]])
+            //
+            // for this case there is no need to uses coroutine
+            // but we can not predict script from NPC is synchronized call or not
+            //
+            // for cases like spaceMove() we can use quasi-function from NPC side
+            // but it prevents NPC side to execute commands like:
+            //
+            //     uidExecute(uid, [[
+            //         spaceMove(12, 22, 12) -- impossible if using quasi-function
+            //         return getLevel()
+            //     ]])
+            //
+            // for the quasi-function solution player side has no spaceMove() function avaiable
+            // player side can only support like:
+            //
+            //     'SPACEMOVE 12, 22, 12'
+            //
+            // this is because spaveMove is a async operation, it needs callbacks
+            // this limits the script for NPC side, put everything into coroutine is a solution for it, but with cost
+            //
+            // for how quasi-function was implemented
+            // check commit: 30981cc539a05b41309330eaa04fbf3042c9d826
+            //
+            // starting/running an coroutine with a light function in Lua costs ~280 ns
+            // alternatively call a light function directly takes ~30 ns, best try is every time let uidExecute() do as much as possible
+            //
+            // light cases, no yield in script
+            // directly return the result with save the runner
+            fnSendSerVarList(std::move(error), luaf::pfrBuildBlobList(pfr));
         }
     }
     else{
-        std::vector<std::string> error;
-        const auto fnDrainError = [&error](const std::string &s)
-        {
-            error.push_back(s);
-        };
-
-        if(const auto pfr = m_luaModulePtr->execRawString(sdRC.code.c_str()); m_luaModulePtr->pfrCheck(pfr, fnDrainError)){
-            fnSendSerVarList(std::move(error), luaf::pfrBuildBlobList(pfr));
+        // put error message if error happened but there is no explicit error message
+        // if error and serVarList are both empty, caller side takes it as a successfully call without explicit results
+        if(error.empty()){
+            error.push_back("unknown error");
         }
-        else{
-            // put error message if error happened but there is no explicit error message
-            // if error and serVarList are both empty, caller side takes it as a successfully call without explicit results
-            if(error.empty()){
-                error.push_back("unknown error");
-            }
-            fnSendSerVarList(std::move(error), {});
-        }
+        fnSendSerVarList(std::move(error), {});
     }
 }

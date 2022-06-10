@@ -11,6 +11,22 @@
 
 class Player final: public BattleObject
 {
+    private:
+        struct PlayerLuaCORunner: public LuaCORunner
+        {
+            uint64_t from;
+            uint64_t seqID;
+
+            PlayerLuaCORunner(sol::state &s, uint64_t argFrom, uint64_t argSeqID)
+                : LuaCORunner(s, "coth_runner")
+                , from(argFrom)
+                , seqID(argSeqID)
+            {
+                fflassert(from);
+                fflassert(seqID);
+            }
+        };
+
     public:
         friend class ServerObject;
         friend class   CharObject;
@@ -55,6 +71,10 @@ class Player final: public BattleObject
 
     private:
         std::unique_ptr<ServerLuaModule> m_luaModulePtr;
+
+    private:
+        uint64_t m_runSeqID = 1;
+        std::unordered_map<uint64_t, PlayerLuaCORunner> m_runnerList;
 
     public:
         Player(const SDInitPlayer &, const ServerMap *);

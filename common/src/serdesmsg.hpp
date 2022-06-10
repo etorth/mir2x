@@ -803,11 +803,9 @@ struct SDBuffIDList
 struct SDRemoteCall
 {
     std::string code {};
-    bool quasiFunc = false;
-
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(code, quasiFunc);
+        ar(code);
     }
 };
 

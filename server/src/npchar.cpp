@@ -312,9 +312,9 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         m_npc->postXMLLayout(uid, std::move(xmlString));
     });
 
-    bindFunction("sendCallStackRemoteCall", [this](uint64_t callStackUID, uint64_t uid, std::string code, bool quasiFunc)
+    bindFunction("sendCallStackRemoteCall", [this](uint64_t callStackUID, uint64_t uid, std::string code)
     {
-        m_npc->sendRemoteCall(callStackUID, uid, code, quasiFunc);
+        m_npc->sendRemoteCall(callStackUID, uid, code);
     });
 
     bindFunction("pollCallStackEvent", [this](uint64_t uid, sol::this_state s)
@@ -507,27 +507,26 @@ void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitT
     }));
 }
 
-void NPChar::sendRemoteCall(uint64_t callStackUID, uint64_t uid, const std::string &code, bool quasiFunc)
+void NPChar::sendRemoteCall(uint64_t callStackUID, uint64_t uid, const std::string &code)
 {
     const auto seqID = m_luaModulePtr->getCallStackSeqID(callStackUID);
     if(!seqID){
-        throw fflerror("calling sendRemoteCall(%llu, %llu, %s, %s) outside of LuaCallStack", to_llu(callStackUID), to_llu(uid), to_cstr(code), to_boolcstr(quasiFunc));
+        throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of LuaCallStack", to_llu(callStackUID), to_llu(uid), to_cstr(code));
     }
 
     m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
     {
         .code = code,
-        .quasiFunc = quasiFunc,
     })},
 
-    [callStackUID, uid, seqID, code /* not ref */, quasiFunc, this](const ActorMsgPack &mpk)
+    [callStackUID, uid, seqID, code /* not ref */, this](const ActorMsgPack &mpk)
     {
         if(uid != mpk.from()){
-            throw fflerror("%s sent to uid %llu but get response from %llu", quasiFunc ? "quasi-func" : "lua code", to_llu(uid), to_llu(mpk.from()));
+            throw fflerror("lua code sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
         }
 
         if(mpk.seqID()){
-            throw fflerror("call of %s expects response", quasiFunc ? "quasi-func" : "lua code");
+            throw fflerror("call of lua code expects response");
         }
 
         if(m_luaModulePtr->getCallStackSeqID(callStackUID) != seqID){

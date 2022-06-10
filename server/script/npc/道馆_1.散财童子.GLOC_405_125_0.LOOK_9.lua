@@ -18,7 +18,7 @@ processNPCEvent =
         local lastTime = argDefault(uidDBGetKey(uid, 'fld_time'), 0)
 
         if currTime > lastTime + 10 then
-            uidGrantGold(uid, 1000)
+            uidGrantGold(uid, 1000000)
             uidDBSetKey(uid, 'fld_time', currTime)
         else
             uidPostXML(uid,

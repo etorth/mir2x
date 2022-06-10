@@ -15,17 +15,6 @@ class NPChar final: public CharObject
                 friend class NPChar;
 
             private:
-                struct LuaCallStackRunner
-                {
-                    sol::thread runner;
-                    sol::coroutine callback;
-
-                    LuaCallStackRunner(sol::state &luaState)
-                        : runner(sol::thread::create(luaState.lua_state()))
-                        , callback(sol::state_view(runner.state())["coth_main"])
-                    {}
-                };
-
                 struct LuaCallStack
                 {
                     uint64_t from = 0;
@@ -42,11 +31,11 @@ class NPChar final: public CharObject
                     // and the query response needs to match the seqID
 
                     const uint64_t seqID;
-                    LuaCallStackRunner runner;
+                    LuaCORunner runner;
 
                     LuaCallStack(LuaNPCModule *luaModulePtr)
                         : seqID(luaModulePtr->peekSeqID())
-                        , runner(luaModulePtr->getLuaState())
+                        , runner(luaModulePtr->getLuaState(), "coth_main")
                     {}
 
                     void clearEvent()
@@ -149,7 +138,7 @@ class NPChar final: public CharObject
         void on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
 
     private:
-        void sendRemoteCall(uint64_t, uint64_t, const std::string &, bool);
+        void sendRemoteCall(uint64_t, uint64_t, const std::string &);
 
     private:
         // NPChar::postXXX functions are for NPC -> client directly

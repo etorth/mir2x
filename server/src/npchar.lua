@@ -41,27 +41,6 @@ function uidExecute(uid, code, ...)
     return uidExecuteString(uid, code:format(...))
 end
 
-function uidQuasiFuncString(uid, quasifunc)
-    assertType(uid, 'integer')
-    assertType(quasifunc, 'string')
-    sendCallStackRemoteCall(getTLSTable().uid, uid, quasifunc, true)
-
-    local resList = {waitEvent()}
-    if resList[1] ~= uid then
-        fatalPrintf('Send quasi-func to uid %s but get response from %d', uid, resList[1])
-    end
-
-    if resList[2] ~= SYS_EXECDONE then
-        fatalPrintf('Wait event as SYS_EXECDONE but get %s', resList[2])
-    end
-
-    return table.unpack(resList, 3)
-end
-
-function uidQuasiFunc(uid, quasifunc, ...)
-    return uidQuasiFuncString(uid, quasifunc:format(...))
-end
-
 function uidSpaceMove(uid, map, x, y)
     local mapID = nil
     if type(map) == 'string' then
@@ -74,11 +53,7 @@ function uidSpaceMove(uid, map, x, y)
 
     assertType(x, 'integer')
     assertType(y, 'integer')
-
-    if mapID == 0 then
-        return false
-    end
-    return uidQuasiFunc(uid, "SPACEMOVE %d %d %d", mapID, x, y)
+    return uidExecute(uid, [[ return spaceMove(%d, %d, %d) ]], mapID, x, y)
 end
 
 function uidQueryName(uid)

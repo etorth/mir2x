@@ -4,9 +4,8 @@ function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     gold  = argDefault(gold,  0)
     level = argDefault(level, 0)
 
-    if type(gold) ~= 'number' or type(level) ~= 'number' then
-        fatalPrintf("invalid argument type: gold: %s, level: %s", type(gold), type(level))
-    end
+    assertType(gold, 'integer')
+    assertType(level, 'integer')
 
     if gold > 0 and gold > uidQueryGold(uid) then
         uidPostXML(uid,
