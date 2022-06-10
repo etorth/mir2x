@@ -137,7 +137,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
-    m_luaModulePtr->bindFunction("RSVD_NAME_requestSpaceMove", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runSeqID)
+    m_luaModulePtr->bindFunction("RSVD_NAME_spaceMoveCoop", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runSeqID)
     {
         const auto &mr = DBCOM_MAPRECORD(argMapID);
         fflassert(mr, argMapID);
@@ -198,7 +198,16 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
                         // because player's move usually is driven by client, here need to sendback this forced move
 
                         onOK();
-                        reportAction(UID(), mapID(), makeActionStand());
+                        const auto [oldX, oldY] = pathf::getBackGLoc(X(), Y(), Direction());
+
+                        reportAction(UID(), mapID(), ActionMove
+                        {
+                            .speed = SYS_DEFSPEED,
+                            .x = oldX,
+                            .y = oldY,
+                            .aimX = X(),
+                            .aimY = Y(),
+                        });
 
                         if(doneFlag){
                             resumeCORunner(runSeqID);
@@ -222,7 +231,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         onError();
     });
 
-    m_luaModulePtr->bindFunction("RSVD_NAME_requestPause", [this](int ms, sol::function onDone, uint64_t runSeqID)
+    m_luaModulePtr->bindFunction("RSVD_NAME_pauseCoop", [this](int ms, sol::function onDone, uint64_t runSeqID)
     {
         fflassert(ms >= 0, ms);
         fflassert(runSeqID > 0, runSeqID);

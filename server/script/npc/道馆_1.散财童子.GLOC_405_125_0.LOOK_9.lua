@@ -8,10 +8,10 @@ processNPCEvent =
                 <par></par>
                 <par><event id="npc_goto_1">领取金币</event></par>
                 <par><event id="npc_goto_2">领取装备</event></par>
-                <par><event id="npc_goto_random_move">随机游走100步</event></par>
+                <par><event id="npc_goto_random_move_%s">随机行走100步</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE))
+        ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE, SYS_NPCDONE))
     end,
 
     ["npc_goto_1"] = function(uid, value)
@@ -40,7 +40,7 @@ processNPCEvent =
         uidGrant(uid, '井中月', 1)
     end,
 
-    ["npc_goto_random_move"] = function(uid, value)
+    ["npc_goto_random_move_" .. SYS_NPCDONE] = function(uid, value)
         uidExecute(uid, [[
             local i = 1
             while i < 100 do

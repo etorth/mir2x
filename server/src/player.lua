@@ -10,7 +10,7 @@ function pause(ms)
         done = true
     end
 
-    RSVD_NAME_requestPause(ms, onDone, getTLSTable().runSeqID)
+    RSVD_NAME_pauseCoop(ms, onDone, getTLSTable().runSeqID)
 
     if done == nil then
         coroutine.yield()
@@ -69,7 +69,7 @@ function spaceMove(mapID, x, y)
         -- transparent logic same as onOK
     end
 
-    RSVD_NAME_requestSpaceMove(mapID, x, y, onOK, onError, getTLSTable().runSeqID)
+    RSVD_NAME_spaceMoveCoop(mapID, x, y, onOK, onError, getTLSTable().runSeqID)
 
     -- onOK/onError can get ran immedately in RSVD_NAME_requestSpaceMove
     -- in this situation we shall not yield
