@@ -147,42 +147,55 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
 
         fflassert(runSeqID > 0, runSeqID);
 
+        const CallDoneFlag doneFlag;
         if(to_u32(argMapID) == mapID()){
-            requestSpaceMove(argX, argY, false, [onOK, runSeqID, this]()
+            requestSpaceMove(argX, argY, false, [doneFlag, onOK, runSeqID, this]()
             {
                 onOK();
-                resumeCORunner(runSeqID);
+                if(doneFlag){
+                    resumeCORunner(runSeqID);
+                }
             },
 
-            [onError, runSeqID, this]()
+            [doneFlag, onError, runSeqID, this]()
             {
                 onError();
-                resumeCORunner(runSeqID);
+                if(doneFlag){
+                    resumeCORunner(runSeqID);
+                }
             });
         }
         else{
-            requestMapSwitch(argMapID, argX, argY, false, [onOK, runSeqID, this]()
+            requestMapSwitch(argMapID, argX, argY, false, [doneFlag, onOK, runSeqID, this]()
             {
                 onOK();
-                resumeCORunner(runSeqID);
+                if(doneFlag){
+                    resumeCORunner(runSeqID);
+                }
             },
 
-            [onError, runSeqID, this]()
+            [doneFlag, onError, runSeqID, this]()
             {
                 onError();
-                resumeCORunner(runSeqID);
+                if(doneFlag){
+                    resumeCORunner(runSeqID);
+                }
             });
         }
     });
 
-    m_luaModulePtr->bindFunction("RSVD_NAME_requestPause", [this](int ms, uint64_t runSeqID)
+    m_luaModulePtr->bindFunction("RSVD_NAME_requestPause", [this](int ms, sol::function onDone, uint64_t runSeqID)
     {
         fflassert(ms >= 0, ms);
         fflassert(runSeqID > 0, runSeqID);
 
-        addDelay(ms, [runSeqID, this]()
+        const CallDoneFlag doneFlag;
+        addDelay(ms, [doneFlag, onDone, runSeqID, this]()
         {
-            resumeCORunner(runSeqID);
+            onDone();
+            if(doneFlag){
+                resumeCORunner(runSeqID);
+            }
         });
     });
 

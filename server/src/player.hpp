@@ -27,6 +27,45 @@ class Player final: public BattleObject
             }
         };
 
+        class CallDoneFlag final
+        {
+            private:
+                std::shared_ptr<bool> m_flag;
+
+            public:
+                explicit CallDoneFlag()
+                    : m_flag(std::make_shared<bool>(false))
+                {}
+
+                CallDoneFlag(const CallDoneFlag &arg)
+                    : m_flag(arg.m_flag)
+                {}
+
+            public:
+                ~CallDoneFlag()
+                {
+                    set();
+                }
+
+            public:
+                CallDoneFlag(CallDoneFlag &&) = delete;
+
+            public:
+                CallDoneFlag & operator = (const CallDoneFlag & ) = delete;
+                CallDoneFlag & operator = (      CallDoneFlag &&) = delete;
+
+            public:
+                void set()
+                {
+                    *m_flag = true;
+                }
+
+                operator bool () const
+                {
+                    return *m_flag;
+                }
+        };
+
     public:
         friend class ServerObject;
         friend class   CharObject;

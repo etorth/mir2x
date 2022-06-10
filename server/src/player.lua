@@ -5,8 +5,16 @@ function pause(ms)
     assertType(ms, 'integer')
     assert(ms >= 0)
 
-    RSVD_NAME_requestPause(ms, getTLSTable().runSeqID)
-    coroutine.yield()
+    local done = nil
+    local function onDone()
+        done = true
+    end
+
+    RSVD_NAME_requestPause(ms, onDone, getTLSTable().runSeqID)
+
+    if done == nil then
+        coroutine.yield()
+    end
 end
 
 function spaceMove(mapID, x, y)
@@ -45,7 +53,12 @@ function spaceMove(mapID, x, y)
 
     RSVD_NAME_requestSpaceMove(mapID, x, y, onOK, onError, getTLSTable().runSeqID)
 
-    coroutine.yield()
+    -- onOK/onError can get ran immedately in RSVD_NAME_requestSpaceMove
+    -- in this situation we shall not yield
+
+    if done == nil then
+        coroutine.yield()
+    end
     return done
 end
 
