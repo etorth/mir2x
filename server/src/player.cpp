@@ -1738,7 +1738,7 @@ void Player::resumeCORunner(uint64_t runSeqID)
         }
     }
     else{
-        throw fflvalue(runSeqID);
+        throw fflerror("try to resume a coroutine which doesn't exist in the runner list: runSeqID = %llu", runSeqID);
     }
 }
 
