@@ -1727,12 +1727,12 @@ void Player::resumeCORunner(uint64_t runSeqID)
                 // script is ill-formed if there is no scheduled trigger for next
             }
             else{
-                fnSendSerVarList({}, luaf::pfrBuildBlobList(pfr));
+                fnSendSerVarList(std::move(error), luaf::pfrBuildBlobList(pfr));
             }
         }
         else{
             if(error.empty()){
-                error.push_back("unknown error");
+                error.push_back(str_printf("unknown error for runner: runSeqID = %llu", to_llu(runSeqID)));
             }
             fnSendSerVarList(std::move(error), {});
         }

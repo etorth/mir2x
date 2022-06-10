@@ -527,7 +527,7 @@ void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
         // put error message if error happened but there is no explicit error message
         // if error and serVarList are both empty, caller side takes it as a successfully call without explicit results
         if(error.empty()){
-            error.push_back("unknown error");
+            error.push_back(str_printf("unknown error for runner: runSeqID = %llu", to_llu(runSeqID)));
         }
         fnSendSerVarList(std::move(error), {});
     }
