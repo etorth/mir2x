@@ -105,6 +105,7 @@ LuaModule::LuaModule()
     execString("DIR_UPLEFT    = %d", DIR_UPLEFT   );
 
     execString("SYS_DEBUG = %s", to_boolcstr(SYS_DEBUG));
+    execString("SYS_GOLDNAME = \'%s\'", SYS_GOLDNAME);
 
     execString("SYS_NPCINIT  = \'%s\'", SYS_NPCINIT );
     execString("SYS_NPCDONE  = \'%s\'", SYS_NPCDONE );

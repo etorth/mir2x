@@ -1,7 +1,7 @@
 --, u8R"###(
 --
 
-function waitEvent()
+local function RSVD_NAME_waitEvent()
     while true do
         local resList = {RSVD_NAME_pollCallStackEvent(getTLSTable().uid)}
         if next(resList) == nil then
@@ -25,7 +25,7 @@ function uidExecuteString(uid, code)
     assertType(code, 'string')
     RSVD_NAME_sendCallStackRemoteCall(getTLSTable().uid, uid, code, false)
 
-    local resList = {waitEvent()}
+    local resList = {RSVD_NAME_waitEvent()}
     if resList[1] ~= uid then
         fatalPrintf('Send lua code to uid %s but get response from %d', uid, resList[1])
     end
@@ -80,10 +80,8 @@ function uidRemove(uid, item, count)
     return uidExecute(uid, [[ return removeItem(%d, %d, %d) ]], itemID, seqID, argDefault(count, 1))
 end
 
--- always use 金币（小）to represent the gold item
--- when convert to a SDItem the real 小中大 will get figured out by the count
 function uidRemoveGold(uid, count)
-    return uidRemove(uid, '金币（小）', count)
+    return uidRemove(uid, SYS_GOLDNAME, count)
 end
 
 function uidSecureItem(uid, itemID, seqID)
@@ -149,7 +147,7 @@ end
 -- entry coroutine for event handling
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
-function coth_main(uid)
+function RSVD_NAME_coth_main(uid)
     -- setup current call stack uid
     -- all functions in current call stack can use this implicit argument as *this*
     getTLSTable().uid = uid
@@ -157,7 +155,7 @@ function coth_main(uid)
 
     -- poll the event sink
     -- current call stack only process 1 event and then clean itself
-    local from, event, value = waitEvent()
+    local from, event, value = RSVD_NAME_waitEvent()
 
     assertType(from, 'integer')
     assertType(event, 'string')

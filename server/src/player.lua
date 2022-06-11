@@ -80,7 +80,7 @@ function spaceMove(mapID, x, y)
     return done
 end
 
-function coth_runner(code)
+function RSVD_NAME_coth_runner(code)
     assertType(code, 'string')
     return (load(code))()
 end

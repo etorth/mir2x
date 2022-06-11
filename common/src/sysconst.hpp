@@ -71,7 +71,9 @@ constexpr uint32_t SYS_MONSEFFBASE(int lookID)
 
 constexpr uint32_t SYS_U32NIL = 0XFFFFFFFF;
 constexpr uint64_t SYS_U64NIL = 0XFFFFFFFFFFFFFFFFULL;
+
 constexpr int SYS_MAXNPCDISTANCE = 10;
+constexpr char SYS_GOLDNAME[] = "金币（小）"; // always use 金币（小）to represent the gold item
 
 constexpr char SYS_NPCINIT [] = "RSVD_NAME_NPC_INIT__90360178872";
 constexpr char SYS_NPCDONE [] = "RSVD_NAME_NPC_DONE__14208236065";

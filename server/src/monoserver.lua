@@ -15,16 +15,5 @@ function listMap()
     end
 end
 
-g_helpTable = {}
-g_helpTable["listMap"] = "print all map indices to current window"
-
-function help(queryKey)
-    if g_helpTable[queryKey] then
-        addCWLogString(0, "> ", g_helpTable[queryKey])
-    else
-        addCWLogString(2, "> ", "No registered help information for input")
-    end
-end
-
 --
 -- )###"

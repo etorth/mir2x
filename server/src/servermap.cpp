@@ -358,12 +358,14 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
     }().c_str()));
 
+    pfrCheck(execRawString(BEGIN_LUAINC(char)
+#include "servermap.lua"
+    END_LUAINC()));
+
     m_coHandler = getLuaState()["main"];
     if(!m_coHandler){
         throw fflerror("can't load lua entry function: main()");
     }
-
-    // checkResult(m_coHandler());
 }
 
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMaxStep, int argCheckCO)
