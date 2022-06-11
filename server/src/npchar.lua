@@ -113,55 +113,37 @@ function uidPostXML(uid, xmlFormat, ...)
     uidPostXMLString(uid, xmlFormat:format(...))
 end
 
-function has_processNPCEvent(verbose, event)
-    verbose = verbose or false
-    if type(verbose) ~= 'boolean' then
-        verbose = false
-        addLog(LOGTYPE_WARNING, 'parmeter verbose is not boolean type, assumed false')
+local RSVD_NAME_npcEventHandler = nil
+function setEventHandler(eventHandler)
+    if RSVD_NAME_npcEventHandler ~= nil then
+        fatalPrintf('Call setEventHandler() twice')
     end
 
-    if type(event) ~= 'string' then
-        event = nil
-        addLog(LOGTYPE_WARNING, 'parmeter event is not string type, ignored')
+    assertType(eventHandler, 'table')
+    if eventHandler[SYS_NPCINIT] == nil then
+        fatalPrintf('Event handler does not support SYS_NPCINIT')
     end
 
-    if not processNPCEvent then
-        if verbose then
-            addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is not defined", getNPCFullName())
-        end
+    if type(eventHandler[SYS_NPCINIT]) ~= 'function' then
+        fatalPrintf('Event handler for SYS_NPCINIT is not callable')
+    end
+
+    RSVD_NAME_npcEventHandler = eventHandler
+end
+
+function hasEventHandler(event)
+    assert(hasChar(event))
+    if RSVD_NAME_npcEventHandler == nil then
         return false
-    elseif type(processNPCEvent) ~= 'table' then
-        if verbose then
-            addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is not a function table", getNPCFullName())
-        end
-        return false
-    else
-        local count = 0
-        for _ in pairs(processNPCEvent) do
-            -- here for each entry we can check if the key is string and value is function type
-            -- but can possibly be OK if the event is not triggered
-            count = count + 1
-        end
-
-        if count == 0 then
-            if verbose then
-                addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent is empty", getNPCFullName())
-            end
-            return false
-        end
-
-        if not event then
-            return true
-        end
-
-        if type(processNPCEvent[event]) ~= 'function' then
-            if verbose then
-                addLog(LOGTYPE_WARNING, "NPC %s: processNPCEvent[%s] is not a function", getNPCFullName(), event)
-            end
-            return false
-        end
-        return true
     end
+
+    assertType(RSVD_NAME_npcEventHandler, 'table')
+    if RSVD_NAME_npcEventHandler[event] == nil then
+        return false
+    end
+
+    assertType(RSVD_NAME_npcEventHandler[event], 'function')
+    return true
 end
 
 -- entry coroutine for event handling
@@ -176,12 +158,14 @@ function coth_main(uid)
     -- poll the event sink
     -- current call stack only process 1 event and then clean itself
     local from, event, value = waitEvent()
+
+    assertType(from, 'integer')
+    assertType(event, 'string')
+
     if event ~= SYS_NPCDONE then
-        if has_processNPCEvent(false, event) then
-            processNPCEvent[event](from, value)
+        if hasEventHandler(event) then
+            RSVD_NAME_npcEventHandler[event](from, value)
         else
-            -- don't exit this loop
-            -- always consume the event no matter if the NPC can handle it
             uidPostXML(uid,
             [[
                 <layout>

@@ -1,5 +1,4 @@
-
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         if uidQueryRedName(uid) then
@@ -51,4 +50,4 @@ processNPCEvent =
             </layout>
         ]], SYS_NPCDONE)
     end,
-}
+})

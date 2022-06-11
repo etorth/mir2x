@@ -1,4 +1,3 @@
-
 local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
     local priceTable = {
         ['金色栗子'] = 10000,
@@ -37,7 +36,7 @@ local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
     end
 end
 
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         if uidQueryRedName(uid) then
@@ -71,4 +70,4 @@ processNPCEvent =
     ["npc_goto_trade"] = function(uid, value)
         onSellChestnut(uid, value, "npc_goto_trade", SYS_NPCINIT)
     end,
-}
+})

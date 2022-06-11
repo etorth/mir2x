@@ -130,7 +130,7 @@ function tp.setTeleport(titlePar, dst)
             </layout>
         ]], titlePar, dstParList, SYS_NPCDONE)
     end
-    processNPCEvent = processHandle
+    setEventHandler(processHandle)
 end
 
 return tp

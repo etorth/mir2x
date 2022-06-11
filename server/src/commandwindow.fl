@@ -195,7 +195,7 @@ class CommandWindow {} {
         return;
     }
 
-    m_luaModule->execFile(fileName);
+    m_luaModule->pfrCheck(m_luaModule->execFile(fileName));
 }} {}
   }
 }

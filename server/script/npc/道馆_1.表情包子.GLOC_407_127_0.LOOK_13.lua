@@ -1,4 +1,4 @@
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         uidPostXML(uid,
@@ -11,4 +11,4 @@ processNPCEvent =
             </layout>
         ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE)
     end,
-}
+})

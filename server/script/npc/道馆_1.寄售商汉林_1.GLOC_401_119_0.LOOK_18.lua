@@ -1,5 +1,4 @@
-
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         uidPostXML(uid,
@@ -39,4 +38,4 @@ processNPCEvent =
         uidGrant(uid, '五彩鞋', 1)
         uidGrant(uid, '井中月', 1)
     end,
-}
+})

@@ -17,7 +17,7 @@ extern ServerConfigureWindow *g_serverConfigureWindow;
 ServerLuaModule::ServerLuaModule()
     : LuaModule()
 {
-    execString(
+    pfrCheck(execString(
             R"###( g_serverArgParser = rotable({    )###"
             R"###(     disableMapScript    = %s,    )###"
             R"###(     disablePetSpawn     = %s,    )###"
@@ -30,9 +30,9 @@ ServerLuaModule::ServerLuaModule()
             to_boolcstr(g_serverArgParser->disablePetSpawn    ),
             to_boolcstr(g_serverArgParser->disableGuardSpawn  ),
             to_boolcstr(g_serverArgParser->disableMonsterSpawn),
-            to_boolcstr(g_serverArgParser->disableNPCSpawn    ));
+            to_boolcstr(g_serverArgParser->disableNPCSpawn    )));
 
-    execString("package.path = package.path .. ';%s/?.lua'", []() -> std::string
+    pfrCheck(execString("package.path = package.path .. ';%s/?.lua'", []() -> std::string
     {
         if(const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath; cfgScriptPath.empty()){
             return "script";
@@ -40,7 +40,7 @@ ServerLuaModule::ServerLuaModule()
         else{
             return cfgScriptPath;
         }
-    }().c_str());
+    }().c_str()));
 
     bindFunction("uidAlive", [](uint64_t uid)
     {
@@ -130,9 +130,9 @@ ServerLuaModule::ServerLuaModule()
         return sol::nested<decltype(queryResult)>(std::move(queryResult));
     });
 
-    execRawString(BEGIN_LUAINC(char)
+    pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "serverluamodule.lua"
-    END_LUAINC());
+    END_LUAINC()));
 }
 
 void ServerLuaModule::addLogString(int nLogType, const char8_t *logInfo)

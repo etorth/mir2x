@@ -341,7 +341,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
         return mapPtr->addGuard(monID, x, y, direction);
     });
 
-    execFile([mapPtr]() -> std::string
+    pfrCheck(execFile([mapPtr]() -> std::string
     {
         const auto configScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
         const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
@@ -356,7 +356,7 @@ ServerMap::ServerMapLuaModule::ServerMapLuaModule(ServerMap *mapPtr)
             return defaultScriptName;
         }
         throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(mapPtr->ID()).name));
-    }().c_str());
+    }().c_str()));
 
     m_coHandler = getLuaState()["main"];
     if(!m_coHandler){

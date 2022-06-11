@@ -1,4 +1,4 @@
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         uidPostXML(uid, string.format(
@@ -51,4 +51,4 @@ processNPCEvent =
             end
         ]])
     end,
-}
+})

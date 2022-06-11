@@ -246,9 +246,9 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         });
     });
 
-    m_luaModulePtr->execRawString(BEGIN_LUAINC(char)
+    m_luaModulePtr->pfrCheck(m_luaModulePtr->execRawString(BEGIN_LUAINC(char)
 #include "player.lua"
-    END_LUAINC());
+    END_LUAINC()));
 }
 
 void Player::operateAM(const ActorMsgPack &rstMPK)

@@ -364,16 +364,19 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         }());
     });
 
-    execRawString(BEGIN_LUAINC(char)
+    pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "npchar.lua"
-    END_LUAINC());
+    END_LUAINC()));
 
-    execFile(scriptName.c_str());
-    execString
-    (
-        R"###( -- do the first sanity check here                               )###""\n"
-        R"###( -- last in main call we also check it but with verbose disabled )###""\n"
-        R"###( has_processNPCEvent(true, SYS_NPCINIT)                          )###""\n");
+    pfrCheck(execFile(scriptName.c_str()));
+    pfrCheck(execRawString(R"###(
+        -- sanity check
+        -- print warning message for NPCs that have not script installed
+
+        if not hasEventHandler(SYS_NPCINIT) then
+            addLog(LOGTYPE_WARNING, '%s: No event handler for SYS_NPCINIT', getNPCFullName())
+        end
+    )###"));
 }
 
 void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::optional<std::string> value)

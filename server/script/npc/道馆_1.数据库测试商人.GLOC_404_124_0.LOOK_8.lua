@@ -1,4 +1,4 @@
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         uidPostXML(uid, string.format(
@@ -52,4 +52,4 @@ processNPCEvent =
         uidDBSetKey(uid, 'fld_integer', getAbsTime())
         uidDBSetKey(uid, 'fld_text', randString(20, 'abcdefghijklmn'))
     end,
-}
+})

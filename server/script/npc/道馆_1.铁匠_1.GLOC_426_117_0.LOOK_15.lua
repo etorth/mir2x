@@ -8,7 +8,7 @@ setNPCSell({
 })
 
 local invop = require('npc.include.invop')
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         if uidQueryRedName(uid) then
@@ -181,4 +181,4 @@ processNPCEvent =
             </layout>
         ]], 0, SYS_NPCINIT)
     end,
-}
+})

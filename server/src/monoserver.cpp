@@ -958,7 +958,7 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
         }
     });
 
-    modulePtr->execRawString(BEGIN_LUAINC(char)
+    modulePtr->pfrCheck(modulePtr->execRawString(BEGIN_LUAINC(char)
 #include "monoserver.lua"
-    END_LUAINC());
+    END_LUAINC()));
 }

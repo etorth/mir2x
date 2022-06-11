@@ -2,7 +2,7 @@ setNPCSell({
     '治愈术',
 })
 
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         if uidQueryRedName(uid) then
@@ -118,4 +118,4 @@ processNPCEvent =
             </layout>
         ]], SYS_NPCINIT)
     end,
-}
+})

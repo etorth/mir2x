@@ -8,7 +8,7 @@ local function randomHeadString()
     end
 end
 
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         uidPostXML(uid, string.format(
@@ -25,4 +25,4 @@ processNPCEvent =
     ["event_post_sell"] = function(uid, value)
         uidPostSell(uid)
     end,
-}
+})

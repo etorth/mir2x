@@ -1,6 +1,5 @@
-
 local dq = require('npc.include.dailyquest')
-processNPCEvent =
+setEventHandler(
 {
     [SYS_NPCINIT] = function(uid, value)
         uidPostXML(uid,
@@ -48,4 +47,4 @@ processNPCEvent =
     ["npc_goto_2"] = function(uid, value)
         dq.setQuest(0, uid, value)
     end
-}
+})
