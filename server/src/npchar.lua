@@ -130,7 +130,13 @@ function setEventHandler(eventHandler)
 end
 
 function hasEventHandler(event)
+    if event == nil then
+        return RSVD_NAME_npcEventHandler ~= nil
+    end
+
+    assertType(event, 'string')
     assert(hasChar(event))
+
     if RSVD_NAME_npcEventHandler == nil then
         return false
     end

@@ -373,8 +373,8 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         -- sanity check
         -- print warning message for NPCs that have not script installed
 
-        if not hasEventHandler(SYS_NPCINIT) then
-            addLog(LOGTYPE_WARNING, '%s: No event handler for SYS_NPCINIT', getNPCFullName())
+        if not hasEventHandler() then
+            addLog(LOGTYPE_WARNING, '%s: No event handler installed', getNPCFullName())
         end
     )###"));
 }
