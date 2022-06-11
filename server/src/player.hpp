@@ -33,7 +33,7 @@ class Player final: public BattleObject
                 std::shared_ptr<bool> m_flag;
 
             public:
-                explicit CallDoneFlag()
+                CallDoneFlag()
                     : m_flag(std::make_shared<bool>(false))
                 {}
 

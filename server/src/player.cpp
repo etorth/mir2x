@@ -146,41 +146,42 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         fflassert(argY >= 0, argY);
 
         fflassert(runSeqID > 0, runSeqID);
+        {
+            const CallDoneFlag doneFlag;
+            if(to_u32(argMapID) == mapID()){
+                requestSpaceMove(argX, argY, false, [doneFlag, onOK, runSeqID, this]()
+                {
+                    onOK();
+                    if(doneFlag){
+                        resumeCORunner(runSeqID);
+                    }
+                },
 
-        const CallDoneFlag doneFlag;
-        if(to_u32(argMapID) == mapID()){
-            requestSpaceMove(argX, argY, false, [doneFlag, onOK, runSeqID, this]()
-            {
-                onOK();
-                if(doneFlag){
-                    resumeCORunner(runSeqID);
-                }
-            },
+                [doneFlag, onError, runSeqID, this]()
+                {
+                    onError();
+                    if(doneFlag){
+                        resumeCORunner(runSeqID);
+                    }
+                });
+            }
+            else{
+                requestMapSwitch(argMapID, argX, argY, false, [doneFlag, onOK, runSeqID, this]()
+                {
+                    onOK();
+                    if(doneFlag){
+                        resumeCORunner(runSeqID);
+                    }
+                },
 
-            [doneFlag, onError, runSeqID, this]()
-            {
-                onError();
-                if(doneFlag){
-                    resumeCORunner(runSeqID);
-                }
-            });
-        }
-        else{
-            requestMapSwitch(argMapID, argX, argY, false, [doneFlag, onOK, runSeqID, this]()
-            {
-                onOK();
-                if(doneFlag){
-                    resumeCORunner(runSeqID);
-                }
-            },
-
-            [doneFlag, onError, runSeqID, this]()
-            {
-                onError();
-                if(doneFlag){
-                    resumeCORunner(runSeqID);
-                }
-            });
+                [doneFlag, onError, runSeqID, this]()
+                {
+                    onError();
+                    if(doneFlag){
+                        resumeCORunner(runSeqID);
+                    }
+                });
+            }
         }
     });
 
@@ -235,15 +236,16 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     {
         fflassert(ms >= 0, ms);
         fflassert(runSeqID > 0, runSeqID);
-
-        const CallDoneFlag doneFlag;
-        addDelay(ms, [doneFlag, onDone, runSeqID, this]()
         {
-            onDone();
-            if(doneFlag){
-                resumeCORunner(runSeqID);
-            }
-        });
+            const CallDoneFlag doneFlag;
+            addDelay(ms, [doneFlag, onDone, runSeqID, this]()
+            {
+                onDone();
+                if(doneFlag){
+                    resumeCORunner(runSeqID);
+                }
+            });
+        }
     });
 
     m_luaModulePtr->pfrCheck(m_luaModulePtr->execRawString(BEGIN_LUAINC(char)
