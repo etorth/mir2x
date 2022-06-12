@@ -1,6 +1,10 @@
 --, u8R"###(
 --
 
+function postString(msg, ...)
+    postRawString(msg:format(...))
+end
+
 function pause(ms)
     assertType(ms, 'integer')
     assert(ms >= 0)

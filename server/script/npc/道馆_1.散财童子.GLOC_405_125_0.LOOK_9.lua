@@ -9,6 +9,7 @@ setEventHandler(
                 <par><event id="npc_goto_1">领取金币</event></par>
                 <par><event id="npc_goto_2">领取装备</event></par>
                 <par><event id="npc_goto_random_move::%s">随机行走100步</event></par>
+                <par><event id="npc_goto_test_player_trigger">测试任务触发器</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
         ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE, SYS_NPCDONE))
@@ -50,5 +51,54 @@ setEventHandler(
                 end
             end
         ]])
+    end,
+
+    ["npc_goto_test_player_trigger"] = function(uid, value)
+        local firstTimeAdded = uidExecute(uid, [[
+            if _G.RSVD_NAME_player_trigger_added then
+                return false
+            else
+                local killedCount = 0
+                local killedMaxCount = 100
+
+                addTrigger(ON_KILL, function(monsterID)
+                    killedCount = killedCount + 1
+                    postString('测试任务触发器：【%s】：%%s杀死了%%s，当前共杀死了%%d只怪物。', getName(), getMonsterName(monsterID), killedCount)
+
+                    if killedCount < killedMaxCount then
+                        return false
+                    else
+                        postString('测试任务触发器：【%s】：触发器已经触发%%d次，自动解除触发。', killedCount)
+                        _G.RSVD_NAME_player_trigger_added = nil
+                        return true
+                    end
+                end)
+
+                _G.RSVD_NAME_player_trigger_added = true
+                return true
+            end
+        ]], getNPCName(), getNPCName())
+
+        if firstTimeAdded then
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>尝试杀死一只怪物，测试是否触发系统消息！此系统消息自动触发<t color="RED">100</t>次后自动解除。<emoji id="2"/></par>
+                    <par></par>
+                    <par><event id="%s">返回</event></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], SYS_NPCINIT, SYS_NPCDONE)
+        else
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>你已经安装了任务触发器。</par>
+                    <par></par>
+                    <par><event id="%s">返回</event></par>
+                    <par><event id="%s">关闭</event></par>
+                </layout>
+            ]], SYS_NPCINIT, SYS_NPCDONE)
+        end
     end,
 })

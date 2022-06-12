@@ -45,6 +45,13 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     dbLoadRuntimeConfig();
 
     m_luaModulePtr = std::make_unique<ServerLuaModule>();
+
+    m_luaModulePtr->execString("ON_NONE    = %d", ON_NONE   );
+    m_luaModulePtr->execString("ON_BEGIN   = %d", ON_BEGIN  );
+    m_luaModulePtr->execString("ON_KILL    = %d", ON_KILL   );
+    m_luaModulePtr->execString("ON_LEVELUP = %d", ON_LEVELUP);
+    m_luaModulePtr->execString("ON_END     = %d", ON_END    );
+
     m_luaModulePtr->bindFunction("getUID", [this]() -> uint64_t
     {
         return UID();
@@ -63,6 +70,19 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     m_luaModulePtr->bindFunction("getName", [this]() -> std::string
     {
         return name();
+    });
+
+    m_luaModulePtr->bindFunction("addTrigger", [this](int eventType, sol::function eventHandler)
+    {
+        fflassert(eventType >= ON_BEGIN, eventType);
+        fflassert(eventType <  ON_END  , eventType);
+
+        m_scriptEventList[eventType].push_back(eventHandler);
+    });
+
+    m_luaModulePtr->bindFunction("postRawString", [this](std::string msg)
+    {
+        postNetMessage(SM_TEXT, msg);
     });
 
     m_luaModulePtr->bindFunction("secureItem", [this](uint32_t itemID, uint32_t seqID)

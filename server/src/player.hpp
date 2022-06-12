@@ -12,6 +12,18 @@
 class Player final: public BattleObject
 {
     private:
+        enum ScriptEvent: int
+        {
+            ON_NONE  = 0,
+            ON_BEGIN = 1,
+
+            ON_KILL = ON_BEGIN,
+            ON_LEVELUP,
+
+            ON_END,
+        };
+
+    private:
         struct PlayerLuaCORunner: public LuaCORunner
         {
             uint64_t from;
@@ -109,6 +121,9 @@ class Player final: public BattleObject
     private:
         uint64_t m_runSeqID = 1;
         std::unordered_map<uint64_t, PlayerLuaCORunner> m_runnerList;
+
+    private:
+        std::unordered_map<int, std::vector<sol::function>> m_scriptEventList;
 
     public:
         Player(const SDInitPlayer &, const ServerMap *);
@@ -265,7 +280,7 @@ class Player final: public BattleObject
             postNetMessage(headCode, buf.data(), buf.length());
         }
 
-        template<typename T> void postNetMessage(uint8_t headCode, T& t)
+        template<typename T> void postNetMessage(uint8_t headCode, const T &t)
         {
             static_assert(std::is_trivially_copyable_v<T>);
             postNetMessage(headCode, &t, sizeof(t));
