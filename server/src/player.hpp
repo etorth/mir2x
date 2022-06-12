@@ -472,11 +472,11 @@ class Player final: public BattleObject
                             // if multiple results returned
                             // we only check the first one, ignore all rest as lua does
 
-                            if(const auto obj = (sol::object)(*(pfr.cbegin())); obj == sol::nil){
-                                return false;
-                            }
-                            else if(obj.is<bool>()){
+                            if(const auto obj = (sol::object)(*(pfr.cbegin())); obj.is<bool>()){
                                 return obj.as<bool>();
+                            }
+                            else if(obj == sol::nil){
+                                return false;
                             }
                             else{
                                 throw fflerror("trigger returns invalid type(s): count = %d, [0]: %s", to_d(pfr.return_count()), to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
