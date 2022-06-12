@@ -77,7 +77,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         fflassert(eventType >= ON_BEGIN, eventType);
         fflassert(eventType <  ON_END  , eventType);
 
-        m_scriptEventList[eventType].push_back(eventHandler);
+        m_scriptEventTriggerList[eventType].push_back(eventHandler);
     });
 
     m_luaModulePtr->bindFunction("postRawString", [this](std::string msg)

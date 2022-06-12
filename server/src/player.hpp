@@ -123,7 +123,7 @@ class Player final: public BattleObject
         std::unordered_map<uint64_t, PlayerLuaCORunner> m_runnerList;
 
     private:
-        std::unordered_map<int, std::vector<sol::function>> m_scriptEventList;
+        std::unordered_map<int, std::vector<sol::function>> m_scriptEventTriggerList;
 
     public:
         Player(const SDInitPlayer &, const ServerMap *);
@@ -452,6 +452,46 @@ class Player final: public BattleObject
                     currTrigger();
                 }
             };
+        }
+
+    protected:
+        template<typename... Args> void runScriptEventTrigger(int eventType, Args && ... args)
+        {
+            fflassert(eventType >= ON_BEGIN, eventType);
+            fflassert(eventType <  ON_END  , eventType);
+
+            if(const auto p = m_scriptEventTriggerList.find(eventType); p != m_scriptEventTriggerList.end()){
+                for(auto q = p->second.begin(); q != p->second.end();){
+                    if(const auto pfr = (*q)(std::forward<Args>(args)...); m_luaModulePtr->pfrCheck(pfr)){
+                        const auto done = [&pfr]() -> bool
+                        {
+                            if(pfr.return_count() == 0){
+                                return false;
+                            }
+
+                            // if multiple results returned
+                            // we only check the first one, ignore all rest as lua does
+
+                            const auto obj = (sol::object)(*(pfr.cbegin()));
+                            if(obj.is<bool>()){
+                                return obj.as<bool>();
+                            }
+                            throw fflerror("trigger returns invalid type(s): count = %d, [0]: %s", to_d(pfr.return_count()), to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
+                        }();
+
+                        if(done){
+                            std::swap(*q, *(p->second.rbegin()));
+                            p->second.pop_back();
+                        }
+                        else{
+                            ++q;
+                        }
+                    }
+                    else{
+                        throw fflerror("event trigger error: event = %d", to_d(eventType));
+                    }
+                }
+            }
         }
 
     protected:

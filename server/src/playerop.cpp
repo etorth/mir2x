@@ -289,17 +289,7 @@ void Player::on_AM_EXP(const ActorMsgPack &mpk)
 {
     const auto amE = mpk.conv<AMExp>();
     if(!m_slaveList.contains(mpk.from()) && uidf::isMonster(mpk.from())){
-        if(const auto p = m_scriptEventList.find(ON_KILL); p != m_scriptEventList.end()){
-            for(auto q = p->second.begin(); q != p->second.end();){
-                if(const bool result = (*q)(uidf::getMonsterID(mpk.from())); result){
-                    std::swap(*q, *(p->second.rbegin()));
-                    p->second.pop_back();
-                }
-                else{
-                    ++q;
-                }
-            }
-        }
+        runScriptEventTrigger(ON_KILL, uidf::getMonsterID(mpk.from()));
     }
     gainExp(amE.exp);
 }
