@@ -5,6 +5,7 @@
 #include "uidf.hpp"
 #include "luaf.hpp"
 #include "totype.hpp"
+#include "hexstr.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "luamodule.hpp"
@@ -205,6 +206,17 @@ LuaModule::LuaModule()
     bindFunction("getMapID", [](std::string mapName) -> int
     {
         return DBCOM_MAPID(to_u8cstr(mapName));
+    });
+
+    bindFunction("asciiString", [](std::string s)
+    {
+        char buf[8];
+        std::string hexStr;
+
+        for(const auto ch: s){
+            hexStr.insert(hexStr.end(), hexstr::to_string((unsigned char)(ch), buf, false), (const char *)(buf) + 2);
+        }
+        return hexStr;
     });
 
     bindFunction("randString", [this](sol::variadic_args args) -> std::string
