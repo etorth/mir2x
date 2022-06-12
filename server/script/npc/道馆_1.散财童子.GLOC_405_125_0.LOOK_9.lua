@@ -54,7 +54,7 @@ setEventHandler(
     end,
 
     ["npc_goto_test_player_trigger"] = function(uid, value)
-        local maxTriggerTime = 100
+        local maxTriggerTime = 10
         local firstTimeAdded = uidExecute(uid, [[
             if _G.RSVD_NAME_player_trigger_added then
                 return false
