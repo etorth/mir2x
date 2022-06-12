@@ -83,7 +83,7 @@ setEventHandler(
             uidPostXML(uid,
             [[
                 <layout>
-                    <par>尝试杀死一只怪物，测试是否触发系统消息！此系统消息自动触发<t color="RED">100</t>次后自动解除。<emoji id="2"/></par>
+                    <par>尝试杀死一只怪物，测试是否触发系统消息！此消息触发<t color="RED">100</t>次后自动解除。<emoji id="2"/></par>
                     <par></par>
                     <par><event id="%s">返回</event></par>
                     <par><event id="%s">关闭</event></par>
