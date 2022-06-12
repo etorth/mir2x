@@ -54,12 +54,13 @@ setEventHandler(
     end,
 
     ["npc_goto_test_player_trigger"] = function(uid, value)
+        local maxTriggerTime = 100
         local firstTimeAdded = uidExecute(uid, [[
             if _G.RSVD_NAME_player_trigger_added then
                 return false
             else
                 local killedCount = 0
-                local killedMaxCount = 100
+                local killedMaxCount = %d
 
                 addTrigger(ON_KILL, function(monsterID)
                     killedCount = killedCount + 1
@@ -77,18 +78,18 @@ setEventHandler(
                 _G.RSVD_NAME_player_trigger_added = true
                 return true
             end
-        ]], getNPCName(), getNPCName())
+        ]], maxTriggerTime, getNPCName(), getNPCName())
 
         if firstTimeAdded then
             uidPostXML(uid,
             [[
                 <layout>
-                    <par>尝试杀死一只怪物，测试是否触发系统消息！此消息触发<t color="RED">100</t>次后自动解除。<emoji id="2"/></par>
+                    <par>尝试杀死一只怪物，测试是否触发系统消息！此消息触发<t color="RED">%d</t>次后自动解除。<emoji id="2"/></par>
                     <par></par>
                     <par><event id="%s">返回</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCINIT, SYS_NPCDONE)
+            ]], maxTriggerTime, SYS_NPCINIT, SYS_NPCDONE)
         else
             uidPostXML(uid,
             [[
