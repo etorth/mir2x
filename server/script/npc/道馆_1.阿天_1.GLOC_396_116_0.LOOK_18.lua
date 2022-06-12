@@ -85,7 +85,7 @@ setEventHandler(
     end,
 
     ["npc_goto_get_set_password_1"] = function(uid, value)
-        uidExecute(uid, [[ g_firstPasswordInput = '%s' ]], value)
+        uidExecute(uid, [[ _G.RSVD_NAME_firstPasswordInput = '%s' ]], value)
         uidPostXML(uid,
         [[
             <layout>
@@ -99,7 +99,7 @@ setEventHandler(
     end,
 
     ["npc_goto_get_set_password_2"] = function(uid, value)
-        if uidExecute(uid, [[ return g_firstPasswordInput ]]) == value then
+        if uidExecute(uid, [[ return _G.RSVD_NAME_firstPasswordInput ]]) == value then
             uidPostXML(uid,
             [[
                 <layout>
@@ -123,7 +123,7 @@ setEventHandler(
             ]], "npc_goto_set_password", SYS_NPCDONE)
         end
 
-        uidExecute(uid, [[ g_firstPasswordInput = nil ]])
+        uidExecute(uid, [[ _G.RSVD_NAME_firstPasswordInput = nil ]])
     end,
 
     ["npc_goto_daily_quest"] = function(uid, value)
