@@ -208,7 +208,7 @@ LuaModule::LuaModule()
         return DBCOM_MAPID(to_u8cstr(mapName));
     });
 
-    bindFunction("asciiString", [](std::string s)
+    bindFunction("hexString", [](std::string s)
     {
         char buf[8];
         std::string hexStr;
