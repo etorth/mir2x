@@ -207,49 +207,55 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
 
     m_luaModulePtr->bindFunction("RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runSeqID)
     {
-        const int startDir = pathf::getRandDir();
+        const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
         {
-            const CallDoneFlag doneFlag;
+            const int startDir = pathf::getRandDir();
             for(int i = 0; i < 8; ++i){
-                const auto [newX, newY] = pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(startDir, i));
-                if(m_map->groundValid(newX, newY)){
-                    requestMove(newX, newY, SYS_DEFSPEED, false, false, [doneFlag, onOK, runSeqID, this]()
-                    {
-                        // player doesn't sendback it's move to client in requestMove()
-                        // because player's move usually is driven by client, here need to sendback this forced move
-
-                        onOK();
-                        const auto [oldX, oldY] = pathf::getBackGLoc(X(), Y(), Direction());
-
-                        reportAction(UID(), mapID(), ActionMove
-                        {
-                            .speed = SYS_DEFSPEED,
-                            .x = oldX,
-                            .y = oldY,
-                            .aimX = X(),
-                            .aimY = Y(),
-                        });
-
-                        if(doneFlag){
-                            resumeCORunner(runSeqID);
-                        }
-                    },
-
-                    [doneFlag, onError, runSeqID, this]()
-                    {
-                        onError();
-                        if(doneFlag){
-                            resumeCORunner(runSeqID);
-                        }
-                    });
-                    return;
+                if(const auto [newX, newY] = pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(startDir, i)); m_map->groundValid(newX, newY)){
+                    return {{newX, newY}};
                 }
             }
-        }
+            return {};
+        }();
 
-        // failed to find a good next location
-        // or anything happened that we failed to call requestMove
-        onError();
+        if(newGLoc.has_value()){
+            const auto [newX, newY] = newGLoc.value();
+            {
+                const CallDoneFlag doneFlag;
+                requestMove(newX, newY, SYS_DEFSPEED, false, false, [doneFlag, onOK, runSeqID, this]()
+                {
+                    // player doesn't sendback it's move to client in requestMove()
+                    // because player's move usually is driven by client, here need to sendback this forced move
+
+                    onOK();
+                    const auto [oldX, oldY] = pathf::getBackGLoc(X(), Y(), Direction());
+
+                    reportAction(UID(), mapID(), ActionMove
+                    {
+                        .speed = SYS_DEFSPEED,
+                        .x = oldX,
+                        .y = oldY,
+                        .aimX = X(),
+                        .aimY = Y(),
+                    });
+
+                    if(doneFlag){
+                        resumeCORunner(runSeqID);
+                    }
+                },
+
+                [doneFlag, onError, runSeqID, this]()
+                {
+                    onError();
+                    if(doneFlag){
+                        resumeCORunner(runSeqID);
+                    }
+                });
+            }
+        }
+        else{
+            onError();
+        }
     });
 
     m_luaModulePtr->bindFunction("RSVD_NAME_pauseCoop", [this](int ms, sol::function onDone, uint64_t runSeqID)
