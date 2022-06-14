@@ -1,7 +1,7 @@
 local dq = {}
 
-local RSVD_NAME_questList = rotable({
-
+local RSVD_NAME_questList = rotable(
+{
     function(uid, value)
         uidPostXML(uid,
         [[
