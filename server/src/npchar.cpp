@@ -374,7 +374,7 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         -- print warning message for NPCs that have not script installed
 
         if not hasEventHandler() then
-            addLog(LOGTYPE_WARNING, '%s: No event handler installed', getNPCFullName())
+            addLog(LOGTYPE_WARNING, 'No event handler installed: %s', getNPCFullName())
         end
     )###"));
 }

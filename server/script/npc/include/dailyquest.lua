@@ -1864,12 +1864,14 @@ function dq.setQuest(questID, uid, value)
         end
     }
 
-    if math.type(questID) ~= 'integer' then
-        fatalPrintf('Invalid questID: type = %s', math.type(questID))
-    elseif questID < 0 then
+    assertType(questID, 'integer')
+    if questID < 0 then
         fatalPrintf('Invalid questID: %d', questID)
+
     elseif questID == 0 then
-        questList[math.random(1, #questList)](uid, value)
+        -- questList[math.random(1, #questList)](uid, value)
+        questList[2](uid, value)
+
     else
         questList[1 + (questID % #questList)](uid, value)
     end
