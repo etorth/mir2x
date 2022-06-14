@@ -45,6 +45,17 @@ setEventHandler(
     end,
 
     ["npc_goto_2"] = function(uid, value)
-        dq.setQuest(0, uid, value)
+        if uidQueryLevel(uid) < 7 then
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>你还没有足够能力执行此任务，修炼到7级后，再来找我吧。</par>
+                    <par></par>
+                    <par><event id="%s">结束</event></par>
+                </layout>
+            ]], SYS_NPCDONE)
+        else
+            dq.setQuest(0, uid, value)
+        end
     end
 })
