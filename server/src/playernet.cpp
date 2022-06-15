@@ -432,7 +432,7 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t)
         addInventoryItem(currItem, false);
     }
 
-    if(const auto buffIDOpt = item.getExtAttr<SDItem::EA_BUFFID_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
+    if(const auto buffIDOpt = item.getExtAttr<SDItem::EA_BUFFID_t>(); buffIDOpt.has_value() && buffIDOpt.value()){
         if(const auto pbuff = addBuff(UID(), 0, buffIDOpt.value())){
             addWLOffTrigger(wltype, [buffSeq = pbuff->buffSeq(), this]()
             {

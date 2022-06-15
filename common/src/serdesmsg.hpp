@@ -160,7 +160,7 @@ struct SDItem
     constexpr static int EA_BEGIN = 1;
 
     constexpr static int _ea_counter_begin = __COUNTER__;
-#define _macro_def_EA_type(eaType, eaValType) constexpr static int eaType = __COUNTER__ - _ea_counter_begin; using eaType##_t = eaValType;
+#define _macro_def_EA_type(eaType, eaValType) constexpr static int eaType = __COUNTER__ - _ea_counter_begin; struct eaType##_t { constexpr static int value = eaType; using type = eaValType; };
 
     _macro_def_EA_type(EA_DC , int)
     _macro_def_EA_type(EA_MC , int)
@@ -246,13 +246,13 @@ struct SDItem
     operator bool () const;
     static std::vector<SDItem> buildGoldItem(size_t);
 
-    template<typename T> std::optional<T> getExtAttr(int attrType) const
+    template<typename T> std::optional<typename T::type> getExtAttr() const
     {
-        fflassert(attrType >= EA_BEGIN);
-        fflassert(attrType <  EA_END);
+        static_assert(T::value >= EA_BEGIN);
+        static_assert(T::value <  EA_END  );
 
-        if(const auto p = extAttrList.find(attrType); p != extAttrList.end()){
-            return cerealf::deserialize<T>(p->second);
+        if(const auto p = extAttrList.find(T::value); p != extAttrList.end()){
+            return cerealf::deserialize<typename T::type>(p->second);
         }
         return {};
     }

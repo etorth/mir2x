@@ -43,36 +43,36 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
     xmlStr += str_printf(u8R"###( <par>%s</par> )###""\n", str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，暂无物品描述。");
 
     xmlStr += str_printf(u8R"###( <par></par> )###""\n");
-    const auto fnAddAttrValuePair = [&xmlStr, this](int val0, int val1, const char8_t *valName, int extType)
+    const auto fnAddAttrValuePair = [&xmlStr, this](int val0, int val1, const char8_t *valName, std::optional<int> extAttr)
     {
-        if(const auto extAttr = getExtAttr<int>(extType); val0 > 0 || val1 > 0 || (extAttr.has_value() && extAttr.value() != 0)){
+        if(val0 > 0 || val1 > 0 || (extAttr.has_value() && extAttr.value() != 0)){
             const auto extAttrStr = str_printf("<t color='green'>（%+d）</t>", extAttr.value_or(0));
             xmlStr += str_printf(u8R"###( <par>%s %d - %d%s</par> )###""\n", to_cstr(valName), val0, val1 + extAttr.value_or(0), extAttr.has_value() ? extAttrStr.c_str() : "");
         }
     };
 
-    const auto fnAddAttrValue = [&xmlStr, this](int val, const char8_t *valName, int extType)
+    const auto fnAddAttrValue = [&xmlStr, this](int val, const char8_t *valName, std::optional<int> extAttr)
     {
-        if(const auto extAttr = getExtAttr<int>(extType); val || (extAttr.has_value() && extAttr.value() != 0)){
+        if(val || (extAttr.has_value() && extAttr.value() != 0)){
             const auto extAttrStr = str_printf("<t color='green'>（%+d）</t>", extAttr.value_or(0));
             xmlStr += str_printf(u8R"###( <par>%s %+d%s</par> )###""\n", to_cstr(valName), val + extAttr.value_or(0), extAttr.has_value() ? extAttrStr.c_str() : "");
         }
     };
 
-    fnAddAttrValuePair(ir.equip. dc[0], ir.equip. dc[1], u8"攻击", SDItem::EA_DC);
-    fnAddAttrValuePair(ir.equip. mc[0], ir.equip. mc[1], u8"魔法", SDItem::EA_MC);
-    fnAddAttrValuePair(ir.equip. sc[0], ir.equip. sc[1], u8"道术", SDItem::EA_SC);
-    fnAddAttrValuePair(ir.equip. ac[0], ir.equip. ac[1], u8"防御", SDItem::EA_AC);
-    fnAddAttrValuePair(ir.equip.mac[0], ir.equip.mac[1], u8"魔防", SDItem::EA_MAC);
+    fnAddAttrValuePair(ir.equip. dc[0], ir.equip. dc[1], u8"攻击", getExtAttr<SDItem::EA_DC_t >());
+    fnAddAttrValuePair(ir.equip. mc[0], ir.equip. mc[1], u8"魔法", getExtAttr<SDItem::EA_MC_t >());
+    fnAddAttrValuePair(ir.equip. sc[0], ir.equip. sc[1], u8"道术", getExtAttr<SDItem::EA_SC_t >());
+    fnAddAttrValuePair(ir.equip. ac[0], ir.equip. ac[1], u8"防御", getExtAttr<SDItem::EA_AC_t >());
+    fnAddAttrValuePair(ir.equip.mac[0], ir.equip.mac[1], u8"魔防", getExtAttr<SDItem::EA_MAC_t>());
 
-    fnAddAttrValue(ir.equip.dcHit,   u8"命中",     SDItem::EA_DCHIT);
-    fnAddAttrValue(ir.equip.mcHit,   u8"魔法命中", SDItem::EA_MCHIT);
-    fnAddAttrValue(ir.equip.dcDodge, u8"闪避",     SDItem::EA_DCDODGE);
-    fnAddAttrValue(ir.equip.mcDodge, u8"魔法闪避", SDItem::EA_MCDODGE);
-    fnAddAttrValue(ir.equip.speed,   u8"速度",     SDItem::EA_SPEED);
-    fnAddAttrValue(ir.equip.comfort, u8"舒适度",   SDItem::EA_COMFORT);
+    fnAddAttrValue(ir.equip.dcHit,   u8"命中",     getExtAttr<SDItem::EA_DCHIT_t  >());
+    fnAddAttrValue(ir.equip.mcHit,   u8"魔法命中", getExtAttr<SDItem::EA_MCHIT_t  >());
+    fnAddAttrValue(ir.equip.dcDodge, u8"闪避",     getExtAttr<SDItem::EA_DCDODGE_t>());
+    fnAddAttrValue(ir.equip.mcDodge, u8"魔法闪避", getExtAttr<SDItem::EA_MCDODGE_t>());
+    fnAddAttrValue(ir.equip.speed,   u8"速度",     getExtAttr<SDItem::EA_SPEED_t  >());
+    fnAddAttrValue(ir.equip.comfort, u8"舒适度",   getExtAttr<SDItem::EA_COMFORT_t>());
 
-    if(const auto extLuckCurseAttr = getExtAttr<int>(SDItem::EA_LUCKCURSE); ir.equip.luckCurse || (extLuckCurseAttr.value_or(0) != 0)){
+    if(const auto extLuckCurseAttr = getExtAttr<SDItem::EA_LUCKCURSE_t>(); ir.equip.luckCurse || (extLuckCurseAttr.value_or(0) != 0)){
         if(const auto luckCurseSum = ir.equip.luckCurse + extLuckCurseAttr.value_or(0); luckCurseSum >= 0){
             const auto extAttrStr = str_printf("<t color='%s'>（%+d）</t>", (extLuckCurseAttr.value_or(0) >= 0) ? "green" : "red", extLuckCurseAttr.value_or(0));
             xmlStr += str_printf(u8R"###( <par>幸运 %+d%s</par> )###""\n", luckCurseSum, extLuckCurseAttr.value_or(0) ? extAttrStr.c_str() : "");
@@ -83,13 +83,13 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
         }
     }
 
-    fnAddAttrValue(ir.equip.hp.add,     u8"生命上限",   SDItem::EA_HPADD);
-    fnAddAttrValue(ir.equip.hp.steal,   u8"生命盗取",   SDItem::EA_HPSTEAL);
-    fnAddAttrValue(ir.equip.hp.recover, u8"生命恢复",   SDItem::EA_HPRECOVER);
+    fnAddAttrValue(ir.equip.hp.add,     u8"生命上限", getExtAttr<SDItem::EA_HPADD_t>());
+    fnAddAttrValue(ir.equip.hp.steal,   u8"生命盗取", getExtAttr<SDItem::EA_HPSTEAL_t>());
+    fnAddAttrValue(ir.equip.hp.recover, u8"生命恢复", getExtAttr<SDItem::EA_HPRECOVER_t>());
 
-    fnAddAttrValue(ir.equip.mp.add,     u8"魔法上限",   SDItem::EA_MPADD);
-    fnAddAttrValue(ir.equip.mp.steal,   u8"魔法盗取",   SDItem::EA_MPSTEAL);
-    fnAddAttrValue(ir.equip.mp.recover, u8"魔法恢复",   SDItem::EA_MPRECOVER);
+    fnAddAttrValue(ir.equip.mp.add,     u8"魔法上限", getExtAttr<SDItem::EA_MPADD_t>());
+    fnAddAttrValue(ir.equip.mp.steal,   u8"魔法盗取", getExtAttr<SDItem::EA_MPSTEAL_t>());
+    fnAddAttrValue(ir.equip.mp.recover, u8"魔法恢复", getExtAttr<SDItem::EA_MPRECOVER_t>());
 
     if(ir.equip.dcElem.fire    > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：火 %+d</par> )###""\n",   ir.equip.dcElem.fire   ); }
     if(ir.equip.dcElem.ice     > 0){ xmlStr += str_printf(u8R"###( <par color='green'>攻击元素：冰 %+d</par> )###""\n",   ir.equip.dcElem.ice    ); }
@@ -115,7 +115,7 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
     if(ir.equip.acElem.dark    < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：暗黑 %+d</par> )###""\n", std::abs(ir.equip.acElem.dark   )); }
     if(ir.equip.acElem.phantom < 0){ xmlStr += str_printf(u8R"###( <par color='red'>弱防元素：幻影 %+d</par> )###""\n", std::abs(ir.equip.acElem.phantom)); }
 
-    if(const auto buffIDOpt = getExtAttr<SDItem::EA_BUFFID_t>(SDItem::EA_BUFFID); buffIDOpt.has_value() && buffIDOpt.value()){
+    if(const auto buffIDOpt = getExtAttr<SDItem::EA_BUFFID_t>(); buffIDOpt.has_value() && buffIDOpt.value()){
         xmlStr += str_printf(u8R"###( <par color='green'>附加BUFF：%s</par> )###""\n", to_cstr(DBCOM_BUFFRECORD(buffIDOpt.value()).name));
     }
 
@@ -125,9 +125,9 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
             || ir.equip.load.inventory > 0){
 
         xmlStr += str_printf(u8R"###( <par></par> )###""\n");
-        fnAddAttrValue(ir.equip.load.body,      u8"身体负重", SDItem::EA_LOADBODY);
-        fnAddAttrValue(ir.equip.load.weapon,    u8"武器负重", SDItem::EA_LOADWEAPON);
-        fnAddAttrValue(ir.equip.load.inventory, u8"包裹负重", SDItem::EA_LOADINVENTORY);
+        fnAddAttrValue(ir.equip.load.body,      u8"身体负重", getExtAttr<SDItem::EA_LOADBODY_t>());
+        fnAddAttrValue(ir.equip.load.weapon,    u8"武器负重", getExtAttr<SDItem::EA_LOADWEAPON_t>());
+        fnAddAttrValue(ir.equip.load.inventory, u8"包裹负重", getExtAttr<SDItem::EA_LOADINVENTORY_t>());
     }
 
     if(false
