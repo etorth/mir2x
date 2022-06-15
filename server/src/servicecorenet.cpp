@@ -349,7 +349,7 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
                 to_llu(item.duration[1]));
     }
 
-    const auto emptyAttrBuf = cerealf::serialize<SDItemExtAttrList>({});
+    const auto emptyAttrBuf = cerealf::serialize<std::unordered_map<int, std::string>>({});
     if(insertedBeltItemCount > 0){
         insertQueryBeltString += u8";";
         auto insertQuery = g_dbPod->createQuery(insertQueryBeltString.c_str());

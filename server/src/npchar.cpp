@@ -736,7 +736,7 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                {SDItem::EA_COLOR, colorf::RGBA(mathf::rand(100, 255), mathf::rand(100, 255), mathf::rand(100, 255), 0XFF)},
+                {SDItem::EA_COLOR, cerealf::serialize(colorf::RGBA(mathf::rand(100, 255), mathf::rand(100, 255), mathf::rand(100, 255), 0XFF))},
             },
         };
     }
@@ -749,9 +749,9 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                {SDItem::EA_DC, mathf::rand<int>(1, 5)},
-                {SDItem::EA_MC, mathf::rand<int>(1, 5)},
-                {SDItem::EA_SC, mathf::rand<int>(1, 5)},
+                {SDItem::EA_DC, cerealf::serialize(mathf::rand<int>(1, 5))},
+                {SDItem::EA_MC, cerealf::serialize(mathf::rand<int>(1, 5))},
+                {SDItem::EA_SC, cerealf::serialize(mathf::rand<int>(1, 5))},
 
                 // {SDItem::EA_DCHIT, mathf::rand<int>(1, 5)},
                 // {SDItem::EA_MCHIT, mathf::rand<int>(1, 5)},
@@ -786,13 +786,13 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
                 // {SDItem::EA_ACDARK, mathf::rand<int>(1, 5)},
                 // {SDItem::EA_ACPHANTOM, mathf::rand<int>(1, 5)},
 
-                {SDItem::EA_BUFFID, [itemID]() -> uint32_t
+                {SDItem::EA_BUFFID, cerealf::serialize([itemID]() -> uint32_t
                 {
                     switch(itemID){
                         case DBCOM_ITEMID(u8"龙纹剑"): return DBCOM_BUFFID(u8"龙纹圣光");
                         default                      : return DBCOM_BUFFID(u8"死亡威慑");
                     }
-                }()},
+                }())},
             },
         };
     }
@@ -805,8 +805,8 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                {SDItem::EA_DC, mathf::rand<int>(1, 5)},
-                {SDItem::EA_BUFFID, DBCOM_BUFFID(u8"吸血鬼的诅咒")},
+                {SDItem::EA_DC, cerealf::serialize(mathf::rand<int>(1, 5))},
+                {SDItem::EA_BUFFID, cerealf::serialize(DBCOM_BUFFID(u8"吸血鬼的诅咒"))},
             },
         };
     }
@@ -819,8 +819,8 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                {SDItem::EA_AC, mathf::rand<int>(1, 5)},
-                {SDItem::EA_MAC, mathf::rand<int>(1, 5)},
+                {SDItem::EA_AC, cerealf::serialize(mathf::rand<int>(1, 5))},
+                {SDItem::EA_MAC, cerealf::serialize(mathf::rand<int>(1, 5))},
             },
         };
     }

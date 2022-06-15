@@ -139,9 +139,6 @@ struct SDCostItem
     }
 };
 
-using SDItemExtAttr      = std::variant<int, double, uint32_t, std::array<int, 2>, std::string>;
-using SDItemExtAttrList  = std::unordered_map<int, SDItemExtAttr>;
-
 struct SDItem
 {
     enum SDItemXMLLayoutParamType: int
@@ -159,70 +156,75 @@ struct SDItem
         XML_END,
     };
 
-    enum SDItemExtAttrType: int
-    {
-        EA_NONE  = 0,
-        EA_BEGIN = 1,
-        EA_DC    = 1,
-        EA_MC,
-        EA_SC,
-        EA_AC,
-        EA_MAC,
+    constexpr static int EA_NONE  = 0;
+    constexpr static int EA_BEGIN = 1;
 
-        EA_DCHIT,
-        EA_MCHIT,
+    constexpr static int _ea_counter_begin = __COUNTER__;
+#define _macro_def_EA_type(eaType, eaValType) constexpr static int eaType = __COUNTER__ - _ea_counter_begin; using eaType##_t = eaValType;
 
-        EA_DCDODGE,
-        EA_MCDODGE,
+    _macro_def_EA_type(EA_DC , int)
+    _macro_def_EA_type(EA_MC , int)
+    _macro_def_EA_type(EA_SC , int)
+    _macro_def_EA_type(EA_AC , int)
+    _macro_def_EA_type(EA_MAC, int)
 
-        EA_SPEED,
-        EA_COMFORT,
-        EA_LUCKCURSE,
+    _macro_def_EA_type(EA_DCHIT, int)
+    _macro_def_EA_type(EA_MCHIT, int)
 
-        EA_HPADD,
-        EA_HPSTEAL,
-        EA_HPRECOVER,
+    _macro_def_EA_type(EA_DCDODGE, int)
+    _macro_def_EA_type(EA_MCDODGE, int)
 
-        EA_MPADD,
-        EA_MPSTEAL,
-        EA_MPRECOVER,
+    _macro_def_EA_type(EA_SPEED, int)
+    _macro_def_EA_type(EA_COMFORT, int)
+    _macro_def_EA_type(EA_LUCKCURSE, int)
 
-        EA_DCFIRE,
-        EA_DCICE,
-        EA_DCLIGHT,
-        EA_DCWIND,
-        EA_DCHOLY,
-        EA_DCDARK,
-        EA_DCPHANTOM,
+    _macro_def_EA_type(EA_HPADD, int)
+    _macro_def_EA_type(EA_HPSTEAL, int)
+    _macro_def_EA_type(EA_HPRECOVER, int)
 
-        EA_ACFIRE,
-        EA_ACICE,
-        EA_ACLIGHT,
-        EA_ACWIND,
-        EA_ACHOLY,
-        EA_ACDARK,
-        EA_ACPHANTOM,
+    _macro_def_EA_type(EA_MPADD, int)
+    _macro_def_EA_type(EA_MPSTEAL, int)
+    _macro_def_EA_type(EA_MPRECOVER, int)
 
-        EA_LOADBODY,
-        EA_LOADWEAPON,
-        EA_LOADINVENTORY,
+    _macro_def_EA_type(EA_DCFIRE   , int)
+    _macro_def_EA_type(EA_DCICE    , int)
+    _macro_def_EA_type(EA_DCLIGHT  , int)
+    _macro_def_EA_type(EA_DCWIND   , int)
+    _macro_def_EA_type(EA_DCHOLY   , int)
+    _macro_def_EA_type(EA_DCDARK   , int)
+    _macro_def_EA_type(EA_DCPHANTOM, int)
 
-        EA_EXTEXP,
-        EA_EXTGOLD,
-        EA_EXTDROP,
+    _macro_def_EA_type(EA_ACFIRE   , int)
+    _macro_def_EA_type(EA_ACICE    , int)
+    _macro_def_EA_type(EA_ACLIGHT  , int)
+    _macro_def_EA_type(EA_ACWIND   , int)
+    _macro_def_EA_type(EA_ACHOLY   , int)
+    _macro_def_EA_type(EA_ACDARK   , int)
+    _macro_def_EA_type(EA_ACPHANTOM, int)
 
-        EA_BUFFID,
+    _macro_def_EA_type(EA_LOADBODY, int)
+    _macro_def_EA_type(EA_LOADWEAPON, int)
+    _macro_def_EA_type(EA_LOADINVENTORY, int)
 
-        EA_COLOR, // u32
-        EA_END,
-    };
+    _macro_def_EA_type(EA_EXTEXP, int)
+    _macro_def_EA_type(EA_EXTGOLD, int)
+    _macro_def_EA_type(EA_EXTDROP, int)
+
+    _macro_def_EA_type(EA_BUFFID, int)
+
+    using _EA_TELEPORT_t = std::tuple<uint32_t, int, int>;
+    _macro_def_EA_type(EA_TELEPORT, _EA_TELEPORT_t)
+    _macro_def_EA_type(EA_COLOR, uint32_t)
+    _macro_def_EA_type(EA_END, void)
+
+#undef _macro_def_EA_type
 
     uint32_t itemID = 0;
     uint32_t  seqID = 0;
 
     size_t count = 1;
     size_t duration[2] = {0, 0};
-    SDItemExtAttrList extAttrList = {};
+    std::unordered_map<int, std::string> extAttrList = {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
@@ -250,7 +252,7 @@ struct SDItem
         fflassert(attrType <  EA_END);
 
         if(const auto p = extAttrList.find(attrType); p != extAttrList.end()){
-            return std::get<T>(p->second);
+            return cerealf::deserialize<T>(p->second);
         }
         return {};
     }

@@ -42,7 +42,7 @@ void Player::dbLoadInventory()
                 check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
                 check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
             },
-            .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
+            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
         };
 
         fflassert(item);
@@ -131,7 +131,7 @@ SDItem Player::dbRetrieveSecuredItem(uint32_t itemID, uint32_t seqID)
                 check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
                 check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
             },
-            .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
+            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
         };
 
         fflassert(item);
@@ -163,7 +163,7 @@ std::vector<SDItem> Player::dbLoadSecuredItemList() const
                 check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
                 check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
             },
-            .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
+            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
         };
 
         fflassert(item);
@@ -301,7 +301,7 @@ void Player::dbLoadWear()
                 check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
                 check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
             },
-            .extAttrList = cerealf::deserialize<SDItemExtAttrList>(query.getColumn("fld_extattrlist")),
+            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
         };
 
         if(!DBCOM_ITEMRECORD(item.itemID).wearable(wltype)){
