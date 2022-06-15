@@ -159,8 +159,8 @@ struct SDItem
     constexpr static int EA_NONE  = 0;
     constexpr static int EA_BEGIN = 1;
 
-    constexpr static int _ea_counter_begin = __COUNTER__;
-#define _macro_def_EA_type(eaType, eaValType) constexpr static int eaType = __COUNTER__ - _ea_counter_begin; struct eaType##_t { constexpr static int value = eaType; using type = eaValType; };
+    constexpr static int _ea_def_counter_begin = __COUNTER__;
+#define _macro_def_EA_type(eaType, eaValType) constexpr static int eaType = __COUNTER__ - _ea_def_counter_begin; struct eaType##_t { constexpr static int value = eaType; using type = eaValType; };
 
     _macro_def_EA_type(EA_DC , int)
     _macro_def_EA_type(EA_MC , int)
@@ -212,8 +212,8 @@ struct SDItem
 
     _macro_def_EA_type(EA_BUFFID, int)
 
-    using _EA_TELEPORT_t = std::tuple<uint32_t, int, int>;
-    _macro_def_EA_type(EA_TELEPORT, _EA_TELEPORT_t)
+    using _helper_type_EA_TELEPORT_t = std::tuple<uint32_t, int, int>;
+    _macro_def_EA_type(EA_TELEPORT, _helper_type_EA_TELEPORT_t)
     _macro_def_EA_type(EA_COLOR, uint32_t)
     _macro_def_EA_type(EA_END, void)
 
