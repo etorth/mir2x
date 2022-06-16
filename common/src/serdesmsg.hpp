@@ -168,7 +168,7 @@ struct SDItem
         constexpr static int value = eaType; \
         using type = eaValType; \
     }; \
-    template<typename ... Args> static std::pair<int, std::string> build_##eaType(Args && ... args) \
+    template<typename ... Args> static std::pair<const int, std::string> build_##eaType(Args && ... args) \
     { \
         return {eaType, cerealf::serialize<eaValType>(eaValType(std::forward<Args>(args)...), -1)}; \
     } \
