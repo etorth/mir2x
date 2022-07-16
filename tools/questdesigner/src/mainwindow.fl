@@ -9,7 +9,7 @@ class MainWindow {} {
       xywh {799 323 765 520} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
-        xywh {0 0 765 25}
+        xywh {0 0 765 25} box FLAT_BOX
       } {
         Submenu {} {
           label Project
@@ -72,7 +72,7 @@ class MainWindow {} {
         }
       }
       Fl_Box {} {
-        xywh {0 23 765 500} resizable
+        xywh {0 23 765 500} box DOWN_BOX resizable
       }
     }
   }
