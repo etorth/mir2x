@@ -10,5 +10,5 @@ class QD_Desktop: public Fl_Scroll
         QD_Desktop(int, int, int, int, const char * = nullptr);
 
     protected:
-        void draw();
+        void draw() override;
 };
