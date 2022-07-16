@@ -2,12 +2,10 @@
 version 1.0304
 header_name {.h}
 code_name {.cxx}
-class MainWindow {open
-} {
-  Function {MainWindow()} {open
-  } {
+class MainWindow {} {
+  Function {MainWindow()} {} {
     Fl_Window m_window {
-      label QuestDesigner open
+      label QuestDesigner
       xywh {799 323 765 520} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
@@ -73,10 +71,14 @@ class MainWindow {open
           }
         }
       }
-      Fl_Box m_desktop {
+      Fl_Group {} {
         xywh {10 25 745 485} resizable
-        code0 {\#include "qddesktop.hpp"}
-        class QD_Desktop
+      } {
+        Fl_Box m_desktop {
+          xywh {10 25 745 485}
+          code0 {\#include "qddesktop.hpp"}
+          class QD_Desktop
+        }
       }
     }
   }
