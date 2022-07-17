@@ -2,8 +2,8 @@
 version 1.0304
 header_name {.h}
 code_name {.cxx}
-class MainWindow {} {
-  Function {MainWindow()} {} {
+class QD_MainWindow {} {
+  Function {QD_MainWindow()} {} {
     Fl_Window m_window {
       label QuestDesigner
       xywh {799 323 765 520} type Double resizable visible
