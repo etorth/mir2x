@@ -2,8 +2,8 @@
 version 1.0304
 header_name {.h}
 code_name {.cxx}
-widget_class QD_CondChecker_level {
-  xywh {762 422 315 25} type Double visible
+widget_class QD_CondChecker_level {open
+  xywh {762 422 380 25} type Double visible
 } {
   Fl_Box {} {
     label {等级}
@@ -14,8 +14,11 @@ widget_class QD_CondChecker_level {
     code0 {\#include "qdorderchoice.hpp"}
     class QD_OrderChoice
   } {}
+  Fl_Value_Input {} {
+    xywh {265 0 65 25} labeltype NO_LABEL align 84
+  }
   Fl_Box {} {
     label {级}
-    xywh {265 0 50 25} align 80
+    xywh {330 0 50 25} align 80
   }
 }
