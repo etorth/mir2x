@@ -1,7 +1,7 @@
 #include "qddesktop.hpp"
 
-QD_Desktop::QD_Desktop(int x, int y, int w, int h, const char *l)
-    : Fl_Scroll(x, y, w, h, l)
+QD_Desktop::QD_Desktop(int argX, int argY, int argW, int argH, const char *argLabel)
+    : Fl_Scroll(argX, argY, argW, argH, argLabel)
 {}
 
 void QD_Desktop::draw()
