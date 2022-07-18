@@ -17,7 +17,8 @@ int QD_NodeEditGroup::handle(int event)
 {
     const auto result = Fl_Group::handle(event);
     if(event == FL_PUSH && !result){
-        m_title->edit(false);
+        m_title   ->edit(false);
+        m_questLog->edit(false);
         return 1;
     }
     return result;
