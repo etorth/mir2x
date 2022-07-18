@@ -12,7 +12,7 @@ int main()
     Fl::set_font(FL_HELVETICA, "文泉驿等宽正黑");
 
     g_mainWindow = new QD_MainWindow();
-    g_mainWindow->showAll();
+    g_mainWindow->show();
 
     return Fl::run();
 }

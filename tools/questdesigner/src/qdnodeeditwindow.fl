@@ -5,7 +5,7 @@ code_name {.cxx}
 class QD_NodeEditWindow {} {
   Function {QD_NodeEditWindow()} {} {
     Fl_Window m_window {
-      label QuestDesigner
+      label NodeEditWindow
       xywh {799 323 765 520} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
@@ -74,15 +74,13 @@ class QD_NodeEditWindow {} {
       Fl_Group {} {
         xywh {10 25 745 485} resizable
       } {
-        Fl_Box m_desktop {
-          xywh {10 25 745 485} box DOWN_BOX
-          code0 {\#include "qddesktop.hpp"}
-          class QD_Desktop
+        Fl_Box {} {
+          xywh {10 25 745 485} box DOWN_BOX color 138 labeltype NO_LABEL resizable
         }
       }
     }
   }
-  Function {showAll()} {return_type void
+  Function {show()} {return_type void
   } {
     code {m_window->show();} {}
   }

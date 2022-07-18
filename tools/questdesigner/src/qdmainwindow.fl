@@ -57,6 +57,15 @@ class QD_MainWindow {} {
             xywh {40 40 36 21} shortcut 0x40061 divider
           }
           MenuItem {} {
+            label {Edit Node}
+            callback {{
+    auto p = new QD_NodeEditWindow();
+    p->show();
+}}
+            xywh {0 0 36 21} divider
+            code0 {\#include "qdnodeeditwindow.hpp"}
+          }
+          MenuItem {} {
             label Preferences
             xywh {50 50 36 21}
           }
@@ -82,7 +91,7 @@ class QD_MainWindow {} {
       }
     }
   }
-  Function {showAll()} {return_type void
+  Function {show()} {return_type void
   } {
     code {m_window->show();} {}
   }
