@@ -1,3 +1,5 @@
+#include <sstream>
+#include <FL/fl_draw.H>
 #include "strf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
@@ -33,10 +35,34 @@ int QD_BaseInputButton::handle(int event)
     }
 
     if(const auto textptr = m_input->value(); str_haschar(textptr)){
-        m_button->copy_label(textptr);
+        std::stringstream ss(textptr);
+        std::string token;
+        std::string currTitle;
+
+        while(std::getline(ss, token, '\n')){
+            if(currTitle.empty()){
+                currTitle = token;
+            }
+            else{
+                currTitle += "\n";
+                currTitle += token;
+            }
+
+            int titleW = 0;
+            int titleH = 0;
+            fl_measure(currTitle.c_str(), titleW, titleH, false);
+
+            if(titleH >= m_button->h()){
+                break;
+            }
+
+            m_button->copy_label(currTitle.c_str());
+            m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE | FL_ALIGN_LEFT));
+        }
     }
     else{
         m_button->copy_label(m_defaultLabel.c_str());
+        m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE));
     }
     return result;
 }
