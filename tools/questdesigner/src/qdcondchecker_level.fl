@@ -2,8 +2,8 @@
 version 1.0304
 header_name {.h}
 code_name {.cxx}
-widget_class QD_CondChecker_level {open
-  xywh {762 422 380 25} type Double visible
+widget_class QD_CondChecker_level {
+  xywh {762 422 380 25} type Double visible position_relative
 } {
   Fl_Box {} {
     label {等级}

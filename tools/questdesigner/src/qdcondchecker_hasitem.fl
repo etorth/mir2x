@@ -2,8 +2,8 @@
 version 1.0304
 header_name {.h}
 code_name {.cxx}
-widget_class QD_CondChecker_hasItem {open
-  xywh {762 422 355 25} type Double visible
+widget_class QD_CondChecker_hasItem {
+  xywh {762 422 355 25} type Double visible position_relative
 } {
   Fl_Box {} {
     label {拥有物品}
@@ -16,7 +16,7 @@ widget_class QD_CondChecker_hasItem {open
     label {个}
     xywh {160 0 50 25} align 80
   }
-  Fl_Choice {} {open selected
+  Fl_Choice {} {
     xywh {210 0 145 25} down_box BORDER_BOX labeltype NO_LABEL
     code0 {\#include "qditemchoice.hpp"}
     class QD_ItemChoice

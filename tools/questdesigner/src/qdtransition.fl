@@ -1,0 +1,32 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.h}
+code_name {.cxx}
+widget_class QD_Transition {open
+  xywh {864 231 265 140} type Double visible position_relative
+} {
+  Fl_Box {} {
+    label {@>}
+    xywh {0 0 35 140} box UP_BOX
+  }
+  Fl_Button {} {
+    label button
+    xywh {35 0 140 35}
+  }
+  Fl_Button {} {
+    label button
+    xywh {35 35 140 35}
+  }
+  Fl_Button {} {
+    label button
+    xywh {35 70 140 35}
+  }
+  Fl_Button {} {
+    label button
+    xywh {35 105 140 35}
+  }
+  Fl_Button {} {
+    label button
+    xywh {175 0 90 140}
+  }
+}
