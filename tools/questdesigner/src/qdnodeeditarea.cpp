@@ -1,8 +1,12 @@
+#include <Fl/Fl_Box.H>
 #include "qdnodeeditarea.hpp"
 
 QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const char *argLabel)
     : Fl_Scroll(argX, argY, argW, argH, argLabel)
 {
+    {   new Fl_Box(0, 0, 20, 20); // dummy widget to hold corner-margin
+    }
+
     {   m_title = new QD_InputLineButton(50, 50, 665, 20, "设置节点名称");
         m_title->input_align(FL_ALIGN_CENTER);
         m_title->wrap(false);
