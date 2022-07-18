@@ -34,6 +34,10 @@ void QD_InputLineButton::edit(bool enable)
 int QD_InputLineButton::handle(int event)
 {
     const auto result = Fl_Group::handle(event);
+    if(event == FL_UNFOCUS){
+        edit(false);
+    }
+
     if(const auto textptr = m_input->value(); str_haschar(textptr)){
         m_button->copy_label(textptr);
     }
