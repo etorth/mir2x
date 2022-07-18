@@ -19,6 +19,6 @@ widget_class QD_CondChecker_level {
   }
   Fl_Box {} {
     label {级}
-    xywh {330 0 50 25} align 80 resizable
+    xywh {330 0 50 25} align 80
   }
 }
