@@ -6,7 +6,7 @@ QD_NodeEditGroup::QD_NodeEditGroup(int argX, int argY, int argW, int argH, const
     {   m_title = new QD_InputLineButton(50, 50, 665, 20, "设置节点名称");
     }
 
-    {   m_questLog = new Fl_Multiline_Input(50, 80, 665, 200);
+    {   m_questLog = new QD_InputMultilineButton(50, 80, 665, 200, "设置节点日志");
         m_questLog->wrap(true);
     }
 

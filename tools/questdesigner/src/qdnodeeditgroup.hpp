@@ -3,12 +3,13 @@
 #include <Fl/Fl_Group.H>
 #include <Fl/Fl_Multiline_Input.H>
 #include "qdinputlinebutton.hpp"
+#include "qdinputmultilinebutton.hpp"
 
 class QD_NodeEditGroup: public Fl_Group
 {
     private:
         QD_InputLineButton *m_title = nullptr;
-        Fl_Multiline_Input *m_questLog = nullptr;
+        QD_InputMultilineButton *m_questLog = nullptr;
 
     public:
         QD_NodeEditGroup(int, int, int, int, const char * = nullptr);
