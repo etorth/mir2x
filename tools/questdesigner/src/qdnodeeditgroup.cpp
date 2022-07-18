@@ -10,6 +10,10 @@ QD_NodeEditGroup::QD_NodeEditGroup(int argX, int argY, int argW, int argH, const
         m_questLog->wrap(true);
     }
 
+    {   m_enterTrigger = new QD_InputMultilineButton(50, 300, 665, 200, "设置节点进入逻辑");
+        m_enterTrigger->wrap(true);
+    }
+
     this->end();
 }
 
@@ -17,8 +21,9 @@ int QD_NodeEditGroup::handle(int event)
 {
     const auto result = Fl_Group::handle(event);
     if(event == FL_PUSH && !result){
-        m_title   ->edit(false);
-        m_questLog->edit(false);
+        m_title       ->edit(false);
+        m_questLog    ->edit(false);
+        m_enterTrigger->edit(false);
         return 1;
     }
     return result;
