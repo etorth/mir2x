@@ -27,6 +27,11 @@ void QD_BaseInputButton::wrap(bool b)
     m_input->wrap(b);
 }
 
+void QD_BaseInputButton::input_align(Fl_Align align)
+{
+    m_inputAlign = align;
+}
+
 int QD_BaseInputButton::handle(int event)
 {
     const auto result = Fl_Group::handle(event);
@@ -57,12 +62,12 @@ int QD_BaseInputButton::handle(int event)
             }
 
             m_button->copy_label(currTitle.c_str());
-            m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE | FL_ALIGN_LEFT));
+            m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE | m_inputAlign));
         }
     }
     else{
         m_button->copy_label(m_defaultLabel.c_str());
-        m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE));
+        m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE | FL_ALIGN_CENTER));
     }
     return result;
 }

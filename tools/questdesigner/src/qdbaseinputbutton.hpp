@@ -16,6 +16,9 @@ class QD_BaseInputButton: public Fl_Group
         const std::string m_defaultLabel;
 
     protected:
+        Fl_Align m_inputAlign = FL_ALIGN_CENTER;
+
+    protected:
         QD_BaseInputButton(int, int, int, int, const char * = nullptr);
 
     public:
@@ -23,6 +26,9 @@ class QD_BaseInputButton: public Fl_Group
 
     public:
         void wrap(bool b);
+
+    public:
+        void input_align(Fl_Align);
 
     protected:
         int handle(int);
