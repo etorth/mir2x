@@ -1,7 +1,7 @@
-#include "qdnodeeditgroup.hpp"
+#include "qdnodeeditarea.hpp"
 
-QD_NodeEditGroup::QD_NodeEditGroup(int argX, int argY, int argW, int argH, const char *argLabel)
-    : Fl_Group(argX, argY, argW, argH, argLabel)
+QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const char *argLabel)
+    : Fl_Scroll(argX, argY, argW, argH, argLabel)
 {
     {   m_title = new QD_InputLineButton(50, 50, 665, 20, "设置节点名称");
         m_title->input_align(FL_ALIGN_CENTER);
@@ -21,7 +21,7 @@ QD_NodeEditGroup::QD_NodeEditGroup(int argX, int argY, int argW, int argH, const
     this->end();
 }
 
-int QD_NodeEditGroup::handle(int event)
+int QD_NodeEditArea::handle(int event)
 {
     const auto result = Fl_Group::handle(event);
     if(event == FL_PUSH && !result){

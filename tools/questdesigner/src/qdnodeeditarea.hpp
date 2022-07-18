@@ -1,11 +1,11 @@
 #pragma once
 #include <FL/Fl.H>
-#include <Fl/Fl_Group.H>
+#include <Fl/Fl_Scroll.H>
 #include <Fl/Fl_Multiline_Input.H>
 #include "qdinputlinebutton.hpp"
 #include "qdinputmultilinebutton.hpp"
 
-class QD_NodeEditGroup: public Fl_Group
+class QD_NodeEditArea: public Fl_Scroll
 {
     private:
         QD_InputLineButton *m_title = nullptr;
@@ -15,7 +15,7 @@ class QD_NodeEditGroup: public Fl_Group
         QD_InputMultilineButton *m_enterTrigger = nullptr;
 
     public:
-        QD_NodeEditGroup(int, int, int, int, const char * = nullptr);
+        QD_NodeEditArea(int, int, int, int, const char * = nullptr);
 
     public:
         int handle(int) override;

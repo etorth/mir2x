@@ -9,7 +9,7 @@ class QD_NodeEditWindow {} {
       callback {{
     delete this;
 }}
-      xywh {2779 309 765 520} type Double resizable visible
+      xywh {2785 309 765 520} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 765 25} box NO_BOX
@@ -69,15 +69,15 @@ class QD_NodeEditWindow {} {
           xywh {0 0 70 21}
         } {
           MenuItem {} {
-            label {About Me}
+            label {About Me  }
             xywh {0 0 36 21}
           }
         }
       }
-      Fl_Group {} {
+      Fl_Scroll {} {
         xywh {10 25 745 485} box DOWN_BOX color 138 resizable
-        code0 {\#include "qdnodeeditgroup.hpp"}
-        class QD_NodeEditGroup
+        code0 {\#include "qdnodeeditarea.hpp"}
+        class QD_NodeEditArea
       } {}
     }
   }
