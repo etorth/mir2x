@@ -2,16 +2,12 @@
 version 1.0304
 header_name {.h}
 code_name {.cxx}
-widget_class QD_Transition {open
-  xywh {864 231 265 140} type Double visible position_relative
+widget_class QD_Transition {
+  xywh {855 277 265 140} type Double resizable visible position_relative
 } {
   Fl_Box {} {
     label {@>}
     xywh {0 0 35 140} box UP_BOX
-  }
-  Fl_Button {} {
-    label button
-    xywh {35 0 140 35}
   }
   Fl_Button {} {
     label button
@@ -27,6 +23,15 @@ widget_class QD_Transition {open
   }
   Fl_Button {} {
     label button
+    callback {{
+    size(w() + 2, h() + 2);
+    redraw();
+}}
     xywh {175 0 90 140}
   }
+  Fl_Group {} {
+    xywh {35 0 140 35} resizable
+    code0 {\#include "qdcondchecker_level.hpp"}
+    class QD_CondChecker_level
+  } {}
 }
