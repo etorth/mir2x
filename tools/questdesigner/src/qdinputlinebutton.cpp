@@ -37,5 +37,8 @@ int QD_InputLineButton::handle(int event)
     if(const auto textptr = m_input->value(); str_haschar(textptr)){
         m_button->copy_label(textptr);
     }
+    else{
+        m_button->copy_label("设置节点名称");
+    }
     return result;
 }

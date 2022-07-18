@@ -4,7 +4,7 @@ QD_NodeEditGroup::QD_NodeEditGroup(int argX, int argY, int argW, int argH, const
     : Fl_Group(argX, argY, argW, argH, argLabel)
 {
     {
-        m_title = new QD_InputLineButton(50, 50, 665, 20, "Title");
+        m_title = new QD_InputLineButton(50, 50, 665, 20, "设置节点名称");
     }
     this->end();
 }
