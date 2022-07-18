@@ -3,9 +3,13 @@
 QD_NodeEditGroup::QD_NodeEditGroup(int argX, int argY, int argW, int argH, const char *argLabel)
     : Fl_Group(argX, argY, argW, argH, argLabel)
 {
-    {
-        m_title = new QD_InputLineButton(50, 50, 665, 20, "设置节点名称");
+    {   m_title = new QD_InputLineButton(50, 50, 665, 20, "设置节点名称");
     }
+
+    {   m_questLog = new Fl_Multiline_Input(50, 80, 665, 200);
+        m_questLog->wrap(true);
+    }
+
     this->end();
 }
 
