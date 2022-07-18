@@ -1,3 +1,4 @@
+#include "strf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "qdinputlinebutton.hpp"
@@ -32,15 +33,9 @@ void QD_InputLineButton::edit(bool enable)
 
 int QD_InputLineButton::handle(int event)
 {
-    switch(event){
-        case FL_UNFOCUS:
-            {
-                edit(false);
-                return 1;
-            }
-        default:
-            {
-                return Fl_Group::handle(event);
-            }
+    const auto result = Fl_Group::handle(event);
+    if(const auto textptr = m_input->value(); str_haschar(textptr)){
+        m_button->copy_label(textptr);
     }
+    return result;
 }
