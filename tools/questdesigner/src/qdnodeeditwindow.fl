@@ -81,7 +81,7 @@ class QD_NodeEditWindow {} {
           xywh {10 25 745 485} box DOWN_BOX color 138 labeltype NO_LABEL resizable
         }
         Fl_Group {} {open
-          xywh {50 50 665 20}
+          xywh {50 50 665 20} box UP_BOX
           code0 {\#include "qdinputlinebutton.hpp"}
           class QD_InputLineButton
         } {}

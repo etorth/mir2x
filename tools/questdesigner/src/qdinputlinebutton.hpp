@@ -14,6 +14,9 @@ class QD_InputLineButton: public Fl_Group
     public:
         QD_InputLineButton(int, int, int, int, const char * = nullptr);
 
+    public:
+        void edit(bool);
+
     protected:
         int handle(int);
 };
