@@ -19,8 +19,8 @@ class QD_InputMultilineButton: public QD_BaseInputButton
                 edit(false);
                 m_button->callback(+[](Fl_Widget *, void *p)
                 {
-                    static_cast<QD_InputLineButton *>(p)->edit(true);
-                    static_cast<QD_InputLineButton *>(p)->take_focus();
+                    static_cast<QD_BaseInputButton *>(p)->edit(true);
+                    static_cast<QD_BaseInputButton *>(p)->take_focus();
                 }, this);
             }
             this->end();

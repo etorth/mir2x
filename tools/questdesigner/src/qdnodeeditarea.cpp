@@ -1,4 +1,5 @@
 #include <Fl/Fl_Box.H>
+#include "qdtransition.hpp"
 #include "qdnodeeditarea.hpp"
 
 QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const char *argLabel)
@@ -20,6 +21,10 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
     {   m_enterTrigger = new QD_InputMultilineButton(50, 300, 665, 200, "设置节点进入逻辑");
         m_enterTrigger->input_align(FL_ALIGN_LEFT);
         m_enterTrigger->wrap(true);
+    }
+
+    {
+        new QD_Transition(50, 550, 285, 140);
     }
 
     this->end();
