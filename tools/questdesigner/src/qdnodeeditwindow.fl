@@ -6,7 +6,10 @@ class QD_NodeEditWindow {} {
   Function {QD_NodeEditWindow()} {} {
     Fl_Window m_window {
       label NodeEditWindow
-      xywh {799 323 765 520} type Double resizable visible
+      callback {{
+    delete this;
+}}
+      xywh {2779 309 765 520} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 765 25} box NO_BOX
@@ -79,6 +82,9 @@ class QD_NodeEditWindow {} {
         }
       }
     }
+  }
+  Function {~QD_NodeEditWindow()} {} {
+    code {Fl::delete_widget(m_window);} {}
   }
   Function {show()} {return_type void
   } {
