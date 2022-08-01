@@ -7,7 +7,7 @@ widget_class QD_CondChecker_level {
 } {
   Fl_Box {} {
     label {等级}
-    xywh {0 0 115 25} align 80
+    xywh {0 0 115 25} box FLAT_BOX align 80
   }
   Fl_Choice {} {
     xywh {119 0 145 25} down_box BORDER_BOX labeltype NO_LABEL
@@ -19,6 +19,6 @@ widget_class QD_CondChecker_level {
   }
   Fl_Box {} {
     label {级}
-    xywh {330 0 50 25} align 80
+    xywh {330 0 50 25} box FLAT_BOX align 80
   }
 }
