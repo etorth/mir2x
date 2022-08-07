@@ -2,10 +2,18 @@
 version 1.0304
 header_name {.h}
 code_name {.cxx}
-widget_class QD_Transition {
-  xywh {2256 354 265 140} type Double resizable visible position_relative
+decl {\#include <array>} {public global
+}
+
+decl {\#include <optional>} {public global
+}
+
+widget_class QD_Transition {open
+  xywh {175 190 265 140} type Double resizable visible position_relative
 } {
-  Fl_Box {} {
+  decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
+  }
+  Fl_Box m_dragBox {
     label {@>}
     xywh {0 0 35 140} box UP_BOX
   }
@@ -42,4 +50,49 @@ widget_class QD_Transition {
     code0 {\#include "qdcondchecker_level.hpp"}
     class QD_CondChecker_level
   } {}
+  Function {handle(int event)} {return_type int
+  } {
+    code {int result = Fl_Group::handle(event);
+if(Fl::event_button() == 1){
+    switch(event){
+        case FL_PUSH:
+            {
+                m_lastDragLoc = {Fl::event_x(), Fl::event_y()};
+                result = 1;
+                break;
+            }
+        case FL_DRAG:
+            {
+                if(m_lastDragLoc.has_value()){
+                    const int ex = Fl::event_x();
+                    const int ey = Fl::event_y();
+
+                    const int xdiff = ex - m_lastDragLoc.value()[0];
+                    const int ydiff = ey - m_lastDragLoc.value()[1];
+
+                    position(x() + xdiff, y() + ydiff);
+                    parent()->redraw();
+
+                    m_lastDragLoc = {ex, ey};
+                }
+                else{
+                    m_lastDragLoc = {Fl::event_x(), Fl::event_y()};
+                }
+
+                result = 1;
+                break;
+            }
+        case FL_RELEASE:
+            {
+                result = 1;
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+return result;} {}
+  }
 }
