@@ -8,6 +8,9 @@ decl {\#include <array>} {public global
 decl {\#include <optional>} {public global
 }
 
+decl {\#include "flwrapper.hpp"} {public global
+}
+
 widget_class QD_Transition {open
   xywh {175 190 265 140} type Double resizable visible position_relative
 } {
@@ -53,7 +56,7 @@ widget_class QD_Transition {open
   Function {handle(int event)} {return_type int
   } {
     code {int result = Fl_Group::handle(event);
-if(Fl::event_button() == 1){
+if(Fl::event_button() == FL_LEFT_MOUSE){
     switch(event){
         case FL_PUSH:
             {
@@ -86,6 +89,39 @@ if(Fl::event_button() == 1){
             {
                 m_lastDragLoc.reset();
                 result = 1;
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+else if(Fl::event_button() == FL_RIGHT_MOUSE){
+    switch(event){
+        case FL_PUSH:
+            {
+                fl_wrapper::menu_item rclick_menu[]
+                {
+                    // have to put verbose zeros here
+                    // otherwse gcc gives -Werror=missing-field-initializers for tailing fields
+
+                    {"Edit this box", 0, 0, 0, FL_MENU_INACTIVE|FL_MENU_DIVIDER},
+                    {"Add input box", 0, +[](Fl_Widget *, void *)
+                    {
+                    }},
+
+                    {"Add output box", 0, +[](Fl_Widget *, void *)
+                    {
+                    }},
+
+                    {},
+                };
+
+                if(const Fl_Menu_Item *m = rclick_menu->popup(Fl::event_x(), Fl::event_y(), 0, 0, 0); m){
+                    m->do_callback(this, m->user_data());
+                    redraw();
+                }
                 break;
             }
         default:
