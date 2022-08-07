@@ -84,6 +84,7 @@ if(Fl::event_button() == 1){
             }
         case FL_RELEASE:
             {
+                m_lastDragLoc.reset();
                 result = 1;
                 break;
             }
