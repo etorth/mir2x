@@ -2,6 +2,9 @@
 version 1.0304
 header_name {.h}
 code_name {.cxx}
+decl {\#include <FL/fl_draw.H>} {public global
+}
+
 widget_class QD_CondChecker_level {
   xywh {762 422 230 35} type Double resizable
   code0 {\#include <FL/fl_draw.H>} visible position_relative

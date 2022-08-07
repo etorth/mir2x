@@ -11,8 +11,8 @@ decl {\#include <optional>} {public global
 decl {\#include "flwrapper.hpp"} {public global
 }
 
-widget_class QD_Transition {open
-  xywh {175 190 265 140} type Double resizable visible position_relative
+widget_class QD_Transition {
+  xywh {972 354 265 140} type Double resizable visible position_relative
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
@@ -26,7 +26,7 @@ widget_class QD_Transition {open
     size(w() + 2, h() + 2);
     parent()->redraw();
 }}
-    xywh {35 35 140 35}
+    xywh {35 70 140 35}
   }
   Fl_Button {} {
     label button
@@ -34,10 +34,6 @@ widget_class QD_Transition {open
     size(w() - 2, h() - 2);
     parent()->redraw();
 }}
-    xywh {35 70 140 35}
-  }
-  Fl_Button {} {
-    label button
     xywh {35 105 140 35}
   }
   Fl_Button {} {
@@ -46,12 +42,17 @@ widget_class QD_Transition {open
     size(w() + 2, h() + 2);
     parent()->redraw();
 }}
-    xywh {175 35 90 105}
+    xywh {175 70 90 70}
   }
   Fl_Group {} {
     xywh {35 0 230 35}
     code0 {\#include "qdcondchecker_level.hpp"}
     class QD_CondChecker_level
+  } {}
+  Fl_Group {} {
+    xywh {35 35 230 35}
+    code0 {\#include "qdcondchecker_hasitem.hpp"}
+    class QD_CondChecker_hasItem
   } {}
   Function {handle(int event)} {return_type int
   } {
