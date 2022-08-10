@@ -1,5 +1,7 @@
 #include <sstream>
 #include <FL/fl_draw.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Multiline_Input.H>
 #include "strf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
@@ -70,4 +72,28 @@ int QD_BaseInputButton::handle(int event)
         m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE | FL_ALIGN_CENTER));
     }
     return result;
+}
+
+void QD_BaseInputButton::create_widget(bool multiLine)
+{
+    begin();
+    {
+        if(multiLine){
+            m_input = new Fl_Multiline_Input(x(), y(), w(), h());
+        }
+        else{
+            m_input = new Fl_Input(x(), y(), w(), h());
+        }
+
+        m_button = new Fl_Button(x(), y(), w(), h(), m_defaultLabel.c_str());
+
+        edit(false);
+        m_button->when(FL_WHEN_CHANGED);
+        m_button->callback(+[](Fl_Widget *, void *p)
+        {
+            static_cast<QD_BaseInputButton *>(p)->edit(true);
+            static_cast<QD_BaseInputButton *>(p)->take_focus();
+        }, this);
+    }
+    end();
 }

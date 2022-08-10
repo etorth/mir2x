@@ -32,4 +32,7 @@ class QD_BaseInputButton: public Fl_Group
 
     protected:
         int handle(int);
+
+    protected:
+        void create_widget(bool);
 };
