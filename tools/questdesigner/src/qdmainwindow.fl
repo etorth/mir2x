@@ -6,7 +6,7 @@ class QD_MainWindow {} {
   Function {QD_MainWindow()} {} {
     Fl_Window m_window {
       label QuestDesigner
-      xywh {740 196 765 520} type Double hide resizable
+      xywh {740 196 765 520} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 765 25} box NO_BOX
@@ -20,7 +20,25 @@ class QD_MainWindow {} {
             callback {{
     m_tabs->begin();
     {
-        auto grp = new Fl_Group(m_tabs->x() + 10, m_tabs->y() + 20, m_tabs->w() - 20, m_tabs->h() - 30, "Label");
+        int newx = 0;
+        int newy = 0;
+        int neww = 0;
+        int newh = 0;
+
+        if(auto p = m_tabs->value()){
+            newx = p->x();
+            newy = p->y();
+            neww = p->w();
+            newh = p->h();
+        }
+        else{
+            newx = m_tabs->x() + 10;
+            newy = m_tabs->y() + 20;
+            neww = m_tabs->w() - 20;
+            newh = m_tabs->h() - 40;
+        }
+
+        auto grp = new Fl_Group(newx, newy, neww, newh, "Label");
         {
             new QD_Desktop(grp->x() + 30, grp->y() + 30, grp->w() - 60, grp->h() - 60);
         }
@@ -95,7 +113,7 @@ class QD_MainWindow {} {
         }
       }
       Fl_Tabs m_tabs {
-        xywh {10 65 745 445} color 254 resizable
+        xywh {10 65 745 445} color 254
       } {}
     }
     code {m_tabs->selection_color(FL_DARK_CYAN);} {}
