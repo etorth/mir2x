@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "threadpool.hpp"
-#include <Fl/Fl_Multiline_Input.H>
+#include <FL/Fl_Multiline_Input.H>
 
 class CommandWindow;
 class CommandInput : public Fl_Multiline_Input

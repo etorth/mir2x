@@ -8,7 +8,7 @@ decl {\#include <string>} {public global
 decl {\#include <FL/fl_ask.H>} {private local
 }
 
-decl {\#include <Fl/Fl_Text_Buffer.H>} {private local
+decl {\#include <FL/Fl_Text_Buffer.H>} {private local
 }
 
 class ScriptWindow {} {

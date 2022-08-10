@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <FL/Fl.H>
-#include <Fl/Fl_Choice.H>
-#include <Fl/Fl_Menu_Item.H>
+#include <FL/Fl_Choice.H>
+#include <FL/Fl_Menu_Item.H>
 
 class QD_OrderChoice: public Fl_Choice
 {

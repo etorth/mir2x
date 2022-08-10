@@ -5,7 +5,7 @@ code_name {.cpp}
 decl {\#include <functional>} {private local
 }
 
-decl {\#include <Fl/Fl_Text_Buffer.H>} {private local
+decl {\#include <FL/Fl_Text_Buffer.H>} {private local
 }
 
 decl {\#include "log.hpp"} {private local

@@ -2,9 +2,9 @@
 #include <string>
 #include <vector>
 #include <FL/Fl.H>
-#include <Fl/Fl_Group.H>
-#include <Fl/Fl_Input.H>
-#include <Fl/Fl_Button.H>
+#include <FL/Fl_Group.H>
+#include <FL/Fl_Input.H>
+#include <FL/Fl_Button.H>
 
 class QD_BaseInputButton: public Fl_Group
 {

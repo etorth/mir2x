@@ -1,6 +1,6 @@
 #pragma once
 #include <concepts>
-#include <Fl/Fl_Table_Row.H>
+#include <FL/Fl_Table_Row.H>
 #include "strf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"

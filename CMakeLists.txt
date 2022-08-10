@@ -120,6 +120,31 @@ INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_BINARY_DIR}/config_file)
 CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/buildconfig.hpp.in ${CMAKE_BINARY_DIR}/config_file/buildconfig.hpp)
 CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/logprof.hpp.in     ${CMAKE_BINARY_DIR}/config_file/logprof.hpp    )
 
+FUNCTION(FLTK_PARSE_FL_FILE ARG_HPP ARG_CPP)
+    FILE(GLOB T_ALL_FL "*.[fF][lL]")
+
+    SET(RES_HPP "")
+    SET(RES_CPP "")
+
+    FOREACH(T_FL ${T_ALL_FL})
+        GET_FILENAME_COMPONENT(T_BASE ${T_FL} NAME_WE)
+
+        SET(T_OUT_HPP ${T_BASE}.hpp)
+        SET(T_OUT_CPP ${T_BASE}.cpp)
+
+        SET(RES_HPP ${RES_HPP} ${T_OUT_HPP})
+        SET(RES_CPP ${RES_CPP} ${T_OUT_CPP})
+
+        ADD_CUSTOM_COMMAND(OUTPUT ${T_OUT_HPP} ${T_OUT_CPP}
+            DEPENDS ${T_FL}
+            COMMAND ${MIR2X_3RD_PARTY_DIR}/fltk/install/bin/fluid -c -o ${T_OUT_CPP} -h ${T_OUT_HPP} ${T_FL}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    ENDFOREACH()
+
+    SET(${ARG_HPP} "${RES_HPP}" PARENT_SCOPE)
+    SET(${ARG_CPP} "${RES_CPP}" PARENT_SCOPE)
+ENDFUNCTION()
+
 ADD_CUSTOM_TARGET(mir2x_3rds)
 FILE(GLOB MIR2X_DEPS_DIR "${CMAKE_SOURCE_DIR}/cmake/deps/*.cmake")
 FOREACH(MIR2X_DEP ${MIR2X_DEPS_DIR})
@@ -136,9 +161,8 @@ IF(WIN32)
 ENDIF()
 
 # include external cmake packages
-FIND_PACKAGE(FLTK    REQUIRED)
-FIND_PACKAGE(OpenGL  REQUIRED)
-FIND_PACKAGE(PNG     REQUIRED)
+FIND_PACKAGE(OpenGL REQUIRED)
+FIND_PACKAGE(PNG    REQUIRED)
 
 # TODO
 # appveyor says "can find make command"

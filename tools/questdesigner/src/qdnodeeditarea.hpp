@@ -1,7 +1,7 @@
 #pragma once
 #include <FL/Fl.H>
-#include <Fl/Fl_Scroll.H>
-#include <Fl/Fl_Multiline_Input.H>
+#include <FL/Fl_Scroll.H>
+#include <FL/Fl_Multiline_Input.H>
 #include "qdinputlinebutton.hpp"
 #include "qdinputmultilinebutton.hpp"
 

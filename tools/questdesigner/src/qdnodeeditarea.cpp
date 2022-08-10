@@ -1,4 +1,4 @@
-#include <Fl/Fl_Box.H>
+#include <FL/Fl_Box.H>
 #include "qdtransition.hpp"
 #include "qdnodeeditarea.hpp"
 

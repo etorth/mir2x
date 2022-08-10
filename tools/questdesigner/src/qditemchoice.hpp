@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <FL/Fl.H>
-#include <Fl/Fl_Choice.H>
+#include <FL/Fl_Choice.H>
 
 class QD_ItemChoice: public Fl_Choice
 {
