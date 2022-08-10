@@ -1,26 +1,26 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0304
+version 1.0400
 header_name {.h}
 code_name {.cxx}
 decl {\#include <FL/fl_draw.H>} {public global
 }
 
 widget_class QD_CondChecker_hasItem {
-  xywh {896 427 230 35} type Double resizable visible position_relative
+  xywh {896 427 380 35} resizable visible position_relative
 } {
   Fl_Box {} {
     label {拥有物品}
-    xywh {0 0 50 35} box FLAT_BOX align 80
+    xywh {0 0 100 35} box FLAT_BOX align 80
   }
   Fl_Value_Input m_input {
-    xywh {50 0 50 35} labeltype NO_LABEL
+    xywh {100 0 100 35} labeltype NO_LABEL
   }
   Fl_Box {} {
     label {个}
-    xywh {100 0 30 35} box FLAT_BOX align 80
+    xywh {200 0 30 35} box FLAT_BOX align 80
   }
   Fl_Choice {} {
-    xywh {130 0 100 35} down_box BORDER_BOX labeltype NO_LABEL
+    xywh {230 0 150 35} down_box BORDER_BOX labeltype NO_LABEL
     code0 {\#include "qditemchoice.hpp"}
     class QD_ItemChoice
   } {}
