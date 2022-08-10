@@ -1,12 +1,12 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0304
+version 1.0400
 header_name {.h}
 code_name {.cxx}
 class QD_MainWindow {} {
   Function {QD_MainWindow()} {} {
     Fl_Window m_window {
       label QuestDesigner
-      xywh {799 323 765 520} type Double resizable visible
+      xywh {740 196 765 520} type Double hide resizable
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 765 25} box NO_BOX
@@ -17,7 +17,21 @@ class QD_MainWindow {} {
         } {
           MenuItem {} {
             label New
+            callback {{
+    m_tabs->begin();
+    {
+        auto grp = new Fl_Group(m_tabs->x() + 10, m_tabs->y() + 20, m_tabs->w() - 20, m_tabs->h() - 30, "Label");
+        {
+            new QD_Desktop(grp->x() + 30, grp->y() + 30, grp->w() - 60, grp->h() - 60);
+        }
+        grp->end();
+    }
+    m_tabs->end();
+    m_window->redraw();
+}}
             xywh {0 0 36 21}
+            code0 {\#include <FL/Fl_Group.H>}
+            code1 {\#include "qddesktop.hpp"}
           }
           MenuItem {} {
             label Open
@@ -80,16 +94,11 @@ class QD_MainWindow {} {
           }
         }
       }
-      Fl_Group {} {
-        xywh {10 25 745 485} resizable
-      } {
-        Fl_Box m_desktop {
-          xywh {10 25 745 485} box DOWN_BOX
-          code0 {\#include "qddesktop.hpp"}
-          class QD_Desktop
-        }
-      }
+      Fl_Tabs m_tabs {
+        xywh {10 65 745 445} color 254 resizable
+      } {}
     }
+    code {m_tabs->selection_color(FL_DARK_CYAN);} {}
   }
   Function {show()} {return_type void
   } {
