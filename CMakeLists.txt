@@ -32,6 +32,8 @@ IF(WIN32 AND MSVC)
     ADD_COMPILE_DEFINITIONS(WIN32_LEAN_AND_MEAN)
     ADD_COMPILE_DEFINITIONS(_HAS_STD_BYTE=0)
 ELSE()
+    ADD_LINK_OPTIONS(-lfltk -lXrender -lXcursor -lXfixes -lXft -lfontconfig -lXinerama -pthread -lpthread -ldl -lm -lX11 -ljpeg)
+
     ADD_COMPILE_OPTIONS(-fcoroutines)
     ADD_COMPILE_OPTIONS(-fno-strict-aliasing)
     ADD_COMPILE_OPTIONS(-Wall -Wfatal-errors -Wextra -Wunused -Werror)
