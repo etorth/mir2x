@@ -31,6 +31,7 @@ class QD_MainWindow {} {
             new QD_Desktop(grp->x(), grp->y(), grp->w(), grp->h());
         }
         grp->end();
+        m_tabs->resizable(grp);
     }
     m_tabs->end();
     m_window->redraw();
