@@ -17,7 +17,7 @@ class QD_MainWindow {} {
         } {
           MenuItem {} {
             label New
-            callback {createTab<QD_QuestEditArea>("Label");}
+            callback {createTab<QD_QuestEditArea>(1, "Label");}
             xywh {0 0 36 21}
             code0 {\#include "qdquesteditarea.hpp"}
           }
@@ -60,7 +60,7 @@ class QD_MainWindow {} {
           }
           MenuItem {} {
             label {Edit Node}
-            callback {createTab<QD_NodeEditArea>("New node");}
+            callback {createTab<QD_NodeEditArea>(2, "New node");}
             xywh {0 0 36 21} divider
             code0 {\#include "qdnodeeditarea.hpp"}
           }
@@ -82,9 +82,7 @@ class QD_MainWindow {} {
       Fl_Tabs m_tabs {
         callback {{
     if(auto grp = (Fl_Group *)(o->value())){
-        if(auto pedit = grp->child(0)){
-            o->selection_color(pedit->color());
-        }
+        o->selection_color(grp->color());
     }
 }}
         xywh {5 25 755 470} resizable
@@ -99,30 +97,29 @@ class QD_MainWindow {} {
   } {
     code {m_window->show();} {}
   }
-  Function {createTab(const char *label)} {return_type {template<typename T> void}
+  Function {createTab(Fl_Color col, const char *label)} {return_type {template<typename T> void}
   } {
     code {{
-    T *widget = nullptr;
     Fl_Group *grp = nullptr;
-
     m_tabs->begin();
     {
         int rx = 0;
         int ry = 0;
         int rw = 0;
         int rh = 0;
-
         m_tabs->client_area(rx, ry, rw, rh);
+
         grp = new Fl_Group(rx, ry, rw, rh, label ? label : "Label");
         {
-            widget = new T(grp->x(), grp->y(), grp->w(), grp->h());
+            new T(grp->x() + 5, grp->y() + 5, grp->w() - 10, grp->h() - 10);
         }
         grp->end();
+        grp->color(col);
     }
     m_tabs->end();
     m_tabs->value(grp);
     m_tabs->resizable(grp);
-    m_tabs->selection_color(widget->color());
+    m_tabs->selection_color(grp->color());
     m_window->redraw();
 }} {}
   }
