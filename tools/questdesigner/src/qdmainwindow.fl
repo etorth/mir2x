@@ -17,7 +17,7 @@ class QD_MainWindow {} {
         } {
           MenuItem {} {
             label New
-            callback {createTab<QD_QuestEditArea>();}
+            callback {createTab<QD_QuestEditArea>("Label");}
             xywh {0 0 36 21}
             code0 {\#include "qdquesteditarea.hpp"}
           }
@@ -60,7 +60,7 @@ class QD_MainWindow {} {
           }
           MenuItem {} {
             label {Edit Node}
-            callback {createTab<QD_NodeEditArea>();}
+            callback {createTab<QD_NodeEditArea>("New node");}
             xywh {0 0 36 21} divider
             code0 {\#include "qdnodeeditarea.hpp"}
           }
@@ -99,7 +99,7 @@ class QD_MainWindow {} {
   } {
     code {m_window->show();} {}
   }
-  Function {createTab()} {return_type {template<typename T> void}
+  Function {createTab(const char *label)} {return_type {template<typename T> void}
   } {
     code {{
     T *widget = nullptr;
@@ -113,7 +113,7 @@ class QD_MainWindow {} {
         int rh = 0;
 
         m_tabs->client_area(rx, ry, rw, rh);
-        grp = new Fl_Group(rx, ry, rw, rh, "Label");
+        grp = new Fl_Group(rx, ry, rw, rh, label ? label : "Label");
         {
             widget = new T(grp->x(), grp->y(), grp->w(), grp->h());
         }
