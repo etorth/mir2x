@@ -28,6 +28,13 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
     }
 
     this->end();
+    this->color(138);
+}
+
+void QD_NodeEditArea::draw()
+{
+    Fl_Scroll::draw();
+    fl_draw_box(FL_DOWN_FRAME, x(), y(), w(), h(), color());
 }
 
 int QD_NodeEditArea::handle(int event)

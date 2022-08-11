@@ -18,5 +18,6 @@ class QD_NodeEditArea: public Fl_Scroll
         QD_NodeEditArea(int, int, int, int, const char * = nullptr);
 
     public:
+        void draw();
         int handle(int) override;
 };

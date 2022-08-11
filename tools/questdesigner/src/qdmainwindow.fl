@@ -80,11 +80,24 @@ class QD_MainWindow {} {
           MenuItem {} {
             label {Edit Node}
             callback {{
-    auto p = new QD_NodeEditWindow();
-    p->show();
+    m_tabs->begin();
+    {
+        int rx = 0;
+        int ry = 0;
+        int rw = 0;
+        int rh = 0;
+
+        m_tabs->client_area(rx, ry, rw, rh);
+        auto grp = new Fl_Group(rx, ry, rw, rh, "Edit node");
+        {
+            new QD_NodeEditArea(grp->x(), grp->y(), grp->w(), grp->h());
+        }
+        grp->end();
+        m_tabs->resizable(grp);
+    }
 }}
             xywh {0 0 36 21} divider
-            code0 {\#include "qdnodeeditwindow.hpp"}
+            code0 {\#include "qdnodeeditarea.hpp"}
           }
           MenuItem {} {
             label Preferences
