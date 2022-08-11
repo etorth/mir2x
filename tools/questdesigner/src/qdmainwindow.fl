@@ -32,6 +32,7 @@ class QD_MainWindow {} {
         }
         grp->end();
         m_tabs->resizable(grp);
+        m_tabs->selection_color(((Fl_Group *)(m_tabs->value()))->child(0)->color());
     }
     m_tabs->end();
     m_window->redraw();
@@ -94,7 +95,10 @@ class QD_MainWindow {} {
         }
         grp->end();
         m_tabs->resizable(grp);
+        m_tabs->selection_color(((Fl_Group *)(m_tabs->value()))->child(0)->color());
     }
+    m_tabs->end();
+    m_window->redraw();
 }}
             xywh {0 0 36 21} divider
             code0 {\#include "qdnodeeditarea.hpp"}
@@ -115,14 +119,20 @@ class QD_MainWindow {} {
         }
       }
       Fl_Tabs m_tabs {
-        xywh {5 25 755 470} color 254 resizable
+        callback {{
+    if(auto grp = (Fl_Group *)(o->value())){
+        if(auto pedit = grp->child(0)){
+            o->selection_color(pedit->color());
+        }
+    }
+}}
+        xywh {5 25 755 470} resizable
       } {}
       Fl_Box m_statusBar {
         label label
         xywh {0 495 765 25} box THIN_UP_BOX align 84
       }
     }
-    code {m_tabs->selection_color(FL_DARK_CYAN);} {}
   }
   Function {show()} {return_type void
   } {
