@@ -113,7 +113,7 @@ class QD_MainWindow {} {
         }
       }
       Fl_Tabs m_tabs {
-        xywh {10 65 745 445} color 254
+        xywh {10 65 745 445} color 254 resizable
       } {}
     }
     code {m_tabs->selection_color(FL_DARK_CYAN);} {}
