@@ -17,7 +17,7 @@ class QD_MainWindow {} {
         } {
           MenuItem {} {
             label New
-            callback {createTab<QD_QuestEditArea>(1, "Label");}
+            callback {createTab<QD_QuestEditArea>(0x3399ff00, "New quest");}
             xywh {0 0 36 21}
             code0 {\#include "qdquesteditarea.hpp"}
           }
@@ -60,7 +60,7 @@ class QD_MainWindow {} {
           }
           MenuItem {} {
             label {Edit Node}
-            callback {createTab<QD_NodeEditArea>(2, "New node");}
+            callback {createTab<QD_NodeEditArea>(0x00cccc00, "New node");}
             xywh {0 0 36 21} divider
             code0 {\#include "qdnodeeditarea.hpp"}
           }
@@ -100,6 +100,7 @@ class QD_MainWindow {} {
   Function {createTab(Fl_Color col, const char *label)} {return_type {template<typename T> void}
   } {
     code {{
+    T *widget = nullptr;
     Fl_Group *grp = nullptr;
     m_tabs->begin();
     {
@@ -111,10 +112,11 @@ class QD_MainWindow {} {
 
         grp = new Fl_Group(rx, ry, rw, rh, label ? label : "Label");
         {
-            new T(grp->x() + 5, grp->y() + 5, grp->w() - 10, grp->h() - 10);
+            widget = new T(grp->x() + 5, grp->y() + 5, grp->w() - 10, grp->h() - 10);
         }
         grp->end();
         grp->color(col);
+        grp->resizable(widget);
     }
     m_tabs->end();
     m_tabs->value(grp);

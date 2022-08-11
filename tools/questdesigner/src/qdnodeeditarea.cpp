@@ -28,6 +28,7 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
     }
 
     this->end();
+    this->color(137);
 }
 
 int QD_NodeEditArea::handle(int event)
