@@ -85,7 +85,7 @@ class QD_MainWindow {} {
         o->selection_color(grp->color());
     }
 }}
-        xywh {5 25 755 470} resizable
+        xywh {0 25 765 470} resizable
       } {}
       Fl_Box m_statusBar {
         label label
