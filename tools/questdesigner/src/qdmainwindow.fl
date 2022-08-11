@@ -102,7 +102,7 @@ class QD_MainWindow {} {
         }
       }
       Fl_Tabs m_tabs {
-        xywh {5 25 755 470} color 254 resizable
+        xywh {5 20 755 470} color 254 resizable
       } {}
       Fl_Box m_statusBar {
         label label
