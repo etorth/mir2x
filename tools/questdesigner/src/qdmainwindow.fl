@@ -9,7 +9,7 @@ class QD_MainWindow {} {
       xywh {775 185 765 520} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
-        xywh {0 0 765 25} box NO_BOX
+        xywh {0 0 765 25} box THIN_UP_BOX
       } {
         Submenu {} {
           label Project
@@ -102,7 +102,7 @@ class QD_MainWindow {} {
         }
       }
       Fl_Tabs m_tabs {
-        xywh {5 30 755 465} color 254 resizable
+        xywh {5 25 755 470} color 254 resizable
       } {}
       Fl_Box m_statusBar {
         label label
