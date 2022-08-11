@@ -17,29 +17,9 @@ class QD_MainWindow {} {
         } {
           MenuItem {} {
             label New
-            callback {{
-    m_tabs->begin();
-    {
-        int rx = 0;
-        int ry = 0;
-        int rw = 0;
-        int rh = 0;
-
-        m_tabs->client_area(rx, ry, rw, rh);
-        auto grp = new Fl_Group(rx, ry, rw, rh, "Label");
-        {
-            new QD_QuestEditArea(grp->x(), grp->y(), grp->w(), grp->h());
-        }
-        grp->end();
-        m_tabs->resizable(grp);
-        m_tabs->selection_color(((Fl_Group *)(m_tabs->value()))->child(0)->color());
-    }
-    m_tabs->end();
-    m_window->redraw();
-}}
+            callback {createTab<QD_QuestEditArea>();}
             xywh {0 0 36 21}
-            code0 {\#include <FL/Fl_Group.H>}
-            code1 {\#include "qdquesteditarea.hpp"}
+            code0 {\#include "qdquesteditarea.hpp"}
           }
           MenuItem {} {
             label Open
@@ -80,26 +60,7 @@ class QD_MainWindow {} {
           }
           MenuItem {} {
             label {Edit Node}
-            callback {{
-    m_tabs->begin();
-    {
-        int rx = 0;
-        int ry = 0;
-        int rw = 0;
-        int rh = 0;
-
-        m_tabs->client_area(rx, ry, rw, rh);
-        auto grp = new Fl_Group(rx, ry, rw, rh, "Edit node");
-        {
-            new QD_NodeEditArea(grp->x(), grp->y(), grp->w(), grp->h());
-        }
-        grp->end();
-        m_tabs->resizable(grp);
-        m_tabs->selection_color(((Fl_Group *)(m_tabs->value()))->child(0)->color());
-    }
-    m_tabs->end();
-    m_window->redraw();
-}}
+            callback {createTab<QD_NodeEditArea>();}
             xywh {0 0 36 21} divider
             code0 {\#include "qdnodeeditarea.hpp"}
           }
@@ -137,5 +98,32 @@ class QD_MainWindow {} {
   Function {show()} {return_type void
   } {
     code {m_window->show();} {}
+  }
+  Function {createTab()} {return_type {template<typename T> void}
+  } {
+    code {{
+    T *widget = nullptr;
+    Fl_Group *grp = nullptr;
+
+    m_tabs->begin();
+    {
+        int rx = 0;
+        int ry = 0;
+        int rw = 0;
+        int rh = 0;
+
+        m_tabs->client_area(rx, ry, rw, rh);
+        grp = new Fl_Group(rx, ry, rw, rh, "Label");
+        {
+            widget = new T(grp->x(), grp->y(), grp->w(), grp->h());
+        }
+        grp->end();
+    }
+    m_tabs->end();
+    m_tabs->value(grp);
+    m_tabs->resizable(grp);
+    m_tabs->selection_color(widget->color());
+    m_window->redraw();
+}} {}
   }
 }
