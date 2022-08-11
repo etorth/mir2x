@@ -2,10 +2,11 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Scroll.H>
 #include <FL/Fl_Multiline_Input.H>
+#include "qdbaseeditarea.hpp"
 #include "qdinputlinebutton.hpp"
 #include "qdinputmultilinebutton.hpp"
 
-class QD_NodeEditArea: public Fl_Scroll
+class QD_NodeEditArea: public QD_BaseEditArea
 {
     private:
         QD_InputLineButton *m_title = nullptr;
@@ -18,6 +19,5 @@ class QD_NodeEditArea: public Fl_Scroll
         QD_NodeEditArea(int, int, int, int, const char * = nullptr);
 
     public:
-        void draw();
         int handle(int) override;
 };

@@ -3,7 +3,7 @@
 #include "qdnodeeditarea.hpp"
 
 QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const char *argLabel)
-    : Fl_Scroll(argX, argY, argW, argH, argLabel)
+    : QD_BaseEditArea(argX, argY, argW, argH, argLabel)
 {
     {   new Fl_Box(0, 0, 20, 20); // dummy widget to hold corner-margin
     }
@@ -29,12 +29,6 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
 
     this->end();
     this->color(138);
-}
-
-void QD_NodeEditArea::draw()
-{
-    Fl_Scroll::draw();
-    fl_draw_box(FL_DOWN_FRAME, x(), y(), w(), h(), color());
 }
 
 int QD_NodeEditArea::handle(int event)

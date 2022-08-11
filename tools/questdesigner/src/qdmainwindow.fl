@@ -28,7 +28,7 @@ class QD_MainWindow {} {
         m_tabs->client_area(rx, ry, rw, rh);
         auto grp = new Fl_Group(rx, ry, rw, rh, "Label");
         {
-            new QD_Desktop(grp->x(), grp->y(), grp->w(), grp->h());
+            new QD_QuestEditArea(grp->x(), grp->y(), grp->w(), grp->h());
         }
         grp->end();
         m_tabs->resizable(grp);
@@ -38,7 +38,7 @@ class QD_MainWindow {} {
 }}
             xywh {0 0 36 21}
             code0 {\#include <FL/Fl_Group.H>}
-            code1 {\#include "qddesktop.hpp"}
+            code1 {\#include "qdquesteditarea.hpp"}
           }
           MenuItem {} {
             label Open
