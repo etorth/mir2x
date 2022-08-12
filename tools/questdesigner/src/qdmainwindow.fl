@@ -17,7 +17,7 @@ class QD_MainWindow {} {
         } {
           MenuItem {} {
             label New
-            callback {createTab<QD_QuestEditArea>(0x3399ff00, "New quest");}
+            callback {createTab<QD_QuestEditArea>(0x6fa6f900, "New quest");}
             xywh {0 0 36 21}
             code0 {\#include "qdquesteditarea.hpp"}
           }
@@ -60,7 +60,7 @@ class QD_MainWindow {} {
           }
           MenuItem {} {
             label {Edit Node}
-            callback {createTab<QD_NodeEditArea>(0x00cccc00, "New node");}
+            callback {createTab<QD_NodeEditArea>(0x42d78700, "New node");}
             xywh {0 0 36 21} divider
             code0 {\#include "qdnodeeditarea.hpp"}
           }
