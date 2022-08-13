@@ -27,6 +27,11 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
         new QD_Transition(50, 550, 285, 140);
     }
 
+    {   m_leaveTrigger = new QD_InputMultilineButton(1000, 400, 665, 200, "设置节点离开逻辑");
+        m_leaveTrigger->input_align(FL_ALIGN_LEFT);
+        m_leaveTrigger->wrap(true);
+    }
+
     this->end();
     this->color(0x29b26900);
 }
@@ -38,6 +43,7 @@ int QD_NodeEditArea::handle(int event)
         m_title->edit(false);
         m_questLog->edit(false);
         m_enterTrigger->edit(false);
+        m_leaveTrigger->edit(false);
         return 1;
     }
     return result;

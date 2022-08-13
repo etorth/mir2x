@@ -15,6 +15,9 @@ class QD_NodeEditArea: public QD_BaseEditArea
     private:
         QD_InputMultilineButton *m_enterTrigger = nullptr;
 
+    private:
+        QD_InputMultilineButton *m_leaveTrigger = nullptr;
+
     public:
         QD_NodeEditArea(int, int, int, int, const char * = nullptr);
 
