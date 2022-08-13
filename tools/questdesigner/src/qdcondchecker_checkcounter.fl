@@ -10,14 +10,14 @@ widget_class QD_CondChecker_checkCounter {
   code0 {\#include <FL/fl_draw.H>} visible position_relative_rescale
 } {
   Fl_Box {} {
-    label {等级}
+    label {计数器}
     xywh {0 0 90 35} box FLAT_BOX align 80
   }
   Fl_Choice m_counterList {
     xywh {90 0 150 35} down_box BORDER_BOX labeltype NO_LABEL
   } {}
   Fl_Box {} {
-    label {级}
+    label {值}
     xywh {240 0 30 35} box FLAT_BOX align 80
   }
   Fl_Choice {} {

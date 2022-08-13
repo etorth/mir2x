@@ -12,13 +12,13 @@ decl {\#include "flwrapper.hpp"} {public global
 }
 
 widget_class QD_Transition {
-  xywh {2661 400 490 140} resizable visible position_relative_rescale
+  xywh {739 441 490 190} hide resizable position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
   Fl_Box m_dragBox {
     label {@>}
-    xywh {0 0 35 140} box UP_BOX
+    xywh {0 0 35 190} box UP_BOX
   }
   Fl_Button {} {
     label button
@@ -26,7 +26,7 @@ widget_class QD_Transition {
     size(w() + 2, h() + 2);
     parent()->redraw();
 }}
-    xywh {35 70 140 35}
+    xywh {35 120 140 35}
   }
   Fl_Button {} {
     label button
@@ -34,7 +34,7 @@ widget_class QD_Transition {
     size(w() - 2, h() - 2);
     parent()->redraw();
 }}
-    xywh {35 105 140 35}
+    xywh {35 155 140 35}
   }
   Fl_Button {} {
     label button
@@ -42,7 +42,7 @@ widget_class QD_Transition {
     size(w() + 2, h() + 2);
     parent()->redraw();
 }}
-    xywh {175 70 90 70}
+    xywh {175 120 90 70}
   }
   Fl_Group {} {
     xywh {35 0 230 35}
@@ -55,8 +55,13 @@ widget_class QD_Transition {
     class QD_CondChecker_hasItem
   } {}
   Fl_Group {} {
+    xywh {35 70 230 35}
+    code0 {\#include "qdcondchecker_checkcounter.hpp"}
+    class QD_CondChecker_checkCounter
+  } {}
+  Fl_Group {} {
     label {设置条件触发逻辑}
-    xywh {265 0 225 140} labeltype NO_LABEL
+    xywh {265 0 225 190} labeltype NO_LABEL
     code0 {\#include "qdinputtextbutton.hpp"}
     class QD_InputTextButton
   } {}
