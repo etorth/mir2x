@@ -6,9 +6,6 @@
 
 class QD_OrderChoice: public Fl_Choice
 {
-    public:
-        QD_OrderChoice(int, int, int, int, const char * = nullptr);
-
     private:
         constexpr static Fl_Menu_Item m_menuItemList []
         {
@@ -21,4 +18,11 @@ class QD_OrderChoice: public Fl_Choice
 
             {0,0,0,0,0,0,0,0,0},
         };
+
+    public:
+        QD_OrderChoice(int argX, int argY, int argW, int argH, const char *argLabel = nullptr)
+            : Fl_Choice(argX, argY, argW, argH, argLabel)
+        {
+            menu(m_menuItemList);
+        }
 };

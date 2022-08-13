@@ -1,0 +1,31 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+decl {\#include <FL/fl_draw.H>} {public global
+}
+
+widget_class QD_CondChecker_checkCounter {
+  xywh {0 0 467 35} resizable
+  code0 {\#include <FL/fl_draw.H>} visible position_relative_rescale
+} {
+  Fl_Box {} {
+    label {等级}
+    xywh {0 0 90 35} box FLAT_BOX align 80
+  }
+  Fl_Choice m_counterList {
+    xywh {90 0 150 35} down_box BORDER_BOX labeltype NO_LABEL
+  } {}
+  Fl_Box {} {
+    label {级}
+    xywh {240 0 30 35} box FLAT_BOX align 80
+  }
+  Fl_Choice {} {
+    xywh {270 0 100 35} down_box BORDER_BOX labeltype NO_LABEL
+    code0 {\#include "qdorderchoice.hpp"}
+    class QD_OrderChoice
+  } {}
+  Fl_Value_Input m_value {
+    xywh {367 0 100 35} labeltype NO_LABEL align 84
+  }
+}
