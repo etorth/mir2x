@@ -1,0 +1,95 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+decl {\#include <string>} {private local
+}
+
+decl {\#include <sstream>} {private local
+}
+
+widget_class QD_InputTextButton {
+  xywh {2945 468 300 100} visible position_relative_rescale
+} {
+  decl {std::string m_defaultLabel;} {private local
+  }
+  decl {Fl_Align m_inputAlign = FL_ALIGN_CENTER;} {private local
+  }
+  Fl_Text_Editor m_editor {
+    xywh {0 0 300 100}
+    code0 {m_editor->buffer(new Fl_Text_Buffer());}
+  }
+  Fl_Button m_button {
+    label button
+    xywh {0 0 300 100}
+    code0 {m_defaultLabel = m_button->label() ? m_button->label() : "";}
+  }
+  Function {edit(bool enable)} {return_type void
+  } {
+    code {{
+    if(enable){
+        m_edit  ->show();
+        m_button->hide();
+    }
+    else{
+        m_edit  ->hide();
+        m_button->show();
+    }
+}} {}
+  }
+  Function {handle(int event)} {return_type void
+  } {
+    code {{
+    const auto result = Fl_Group::handle(event);
+    if(event == FL_UNFOCUS){
+        edit(false);
+    }
+
+    std::string text;
+    auto textptr = m_editor->buffer()->text();
+
+    if(textptr){
+        text = textptr;
+        std::free(textptr);
+    }
+
+    if(str_haschar(text)){
+        std::stringstream ss(text);
+        std::string token;
+        std::string currTitle;
+
+        while(std::getline(ss, token, '\\n')){
+            if(currTitle.empty()){
+                currTitle = token;
+            }
+            else{
+                currTitle += "\\n";
+                currTitle += token;
+            }
+
+            int titleW = 0;
+            int titleH = 0;
+            fl_measure(currTitle.c_str(), titleW, titleH, false);
+
+            if(titleH >= m_button->h()){
+                break;
+            }
+
+            m_button->copy_label(currTitle.c_str());
+            m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE | m_inputAlign));
+        }
+    }
+    else{
+        m_button->copy_label(m_defaultLabel.c_str());
+        m_button->align(Fl_Align(FL_ALIGN_CLIP | FL_ALIGN_INSIDE | FL_ALIGN_CENTER));
+    }
+    return result;
+}} {}
+  }
+  Function {label_align(Fl_Align align)} {return_type void
+  } {
+    code {{
+    m_inputAlign = align;
+}} {}
+  }
+}
