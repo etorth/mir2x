@@ -23,16 +23,17 @@ widget_class QD_InputTextButton {
     code0 {m_editor->buffer(new Fl_Text_Buffer());}
   }
   Fl_Button m_button {
-    label button
     xywh {0 0 300 100}
   }
   code {{
-    if(label()){
+    if(label() && str_haschar(label())){
         m_defaultLabel = label();
         m_button->copy_label(label());
     }
 
+    labeltype(FL_NO_LABEL);
     edit(false);
+
     m_button->when(FL_WHEN_CHANGED);
     m_button->callback(+[](Fl_Widget *, void *p)
     {
