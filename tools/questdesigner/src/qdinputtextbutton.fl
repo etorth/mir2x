@@ -2,10 +2,13 @@
 version 1.0400
 header_name {.h}
 code_name {.cxx}
-decl {\#include <string>} {private local
+decl {\#include <string>} {public global
 }
 
 decl {\#include <sstream>} {private local
+}
+
+decl {\#include "strf.hpp"} {private local
 }
 
 widget_class QD_InputTextButton {
@@ -16,28 +19,41 @@ widget_class QD_InputTextButton {
   decl {Fl_Align m_inputAlign = FL_ALIGN_CENTER;} {private local
   }
   Fl_Text_Editor m_editor {
-    xywh {0 0 300 100}
+    xywh {0 0 300 100} labeltype NO_LABEL
     code0 {m_editor->buffer(new Fl_Text_Buffer());}
   }
   Fl_Button m_button {
     label button
     xywh {0 0 300 100}
-    code0 {m_defaultLabel = m_button->label() ? m_button->label() : "";}
   }
+  code {{
+    if(label()){
+        m_defaultLabel = label();
+        m_button->copy_label(label());
+    }
+
+    edit(false);
+    m_button->when(FL_WHEN_CHANGED);
+    m_button->callback(+[](Fl_Widget *, void *p)
+    {
+        static_cast<QD_InputTextButton *>(p)->edit(true);
+        static_cast<QD_InputTextButton *>(p)->take_focus();
+    }, this);
+}} {}
   Function {edit(bool enable)} {return_type void
   } {
     code {{
     if(enable){
-        m_edit  ->show();
+        m_editor->show();
         m_button->hide();
     }
     else{
-        m_edit  ->hide();
+        m_editor->hide();
         m_button->show();
     }
 }} {}
   }
-  Function {handle(int event)} {return_type void
+  Function {handle(int event)} {return_type int
   } {
     code {{
     const auto result = Fl_Group::handle(event);

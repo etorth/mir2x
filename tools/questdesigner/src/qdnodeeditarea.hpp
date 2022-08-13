@@ -4,6 +4,7 @@
 #include <FL/Fl_Multiline_Input.H>
 #include "qdbaseeditarea.hpp"
 #include "qdinputlinebutton.hpp"
+#include "qdinputtextbutton.hpp"
 #include "qdinputmultilinebutton.hpp"
 
 class QD_NodeEditArea: public QD_BaseEditArea
@@ -16,7 +17,7 @@ class QD_NodeEditArea: public QD_BaseEditArea
         QD_InputMultilineButton *m_enterTrigger = nullptr;
 
     private:
-        QD_InputMultilineButton *m_leaveTrigger = nullptr;
+        QD_InputTextButton *m_leaveTrigger = nullptr;
 
     public:
         QD_NodeEditArea(int, int, int, int, const char * = nullptr);

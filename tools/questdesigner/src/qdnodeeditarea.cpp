@@ -27,9 +27,8 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
         new QD_Transition(50, 550, 285, 140);
     }
 
-    {   m_leaveTrigger = new QD_InputMultilineButton(1000, 400, 665, 200, "设置节点离开逻辑");
-        m_leaveTrigger->input_align(FL_ALIGN_LEFT);
-        m_leaveTrigger->wrap(true);
+    {   m_leaveTrigger = new QD_InputTextButton(1000, 400, 665, 200, "设置节点离开逻辑");
+        m_leaveTrigger->label_align(FL_ALIGN_LEFT);
     }
 
     this->end();
