@@ -55,7 +55,8 @@ widget_class QD_Transition {
     class QD_CondChecker_hasItem
   } {}
   Fl_Group {} {
-    xywh {265 0 225 140}
+    label {设置条件触发逻辑}
+    xywh {265 0 225 140} labeltype NO_LABEL
     code0 {\#include "qdinputtextbutton.hpp"}
     class QD_InputTextButton
   } {}
