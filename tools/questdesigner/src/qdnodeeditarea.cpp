@@ -24,7 +24,7 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
     }
 
     {
-        new QD_Transition(50, 550, 285, 140);
+        new QD_Transition(50, 550, 500, 140);
     }
 
     {   m_leaveTrigger = new QD_InputTextButton(1000, 400, 665, 200, "设置节点离开逻辑");

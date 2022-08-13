@@ -7,7 +7,7 @@ decl {\#include <FL/fl_draw.H>} {public global
 
 widget_class QD_CondChecker_level {
   xywh {762 422 290 35} resizable
-  code0 {\#include <FL/fl_draw.H>} visible position_relative
+  code0 {\#include <FL/fl_draw.H>} visible position_relative_rescale
 } {
   Fl_Box {} {
     label {等级}

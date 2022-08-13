@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0304
+version 1.0400
 header_name {.h}
 code_name {.cxx}
 decl {\#include <array>} {public global
@@ -12,7 +12,7 @@ decl {\#include "flwrapper.hpp"} {public global
 }
 
 widget_class QD_Transition {
-  xywh {972 354 265 140} type Double resizable visible position_relative
+  xywh {2661 400 490 140} resizable visible position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
@@ -53,6 +53,11 @@ widget_class QD_Transition {
     xywh {35 35 230 35}
     code0 {\#include "qdcondchecker_hasitem.hpp"}
     class QD_CondChecker_hasItem
+  } {}
+  Fl_Group {} {
+    xywh {265 0 225 140}
+    code0 {\#include "qdinputtextbutton.hpp"}
+    class QD_InputTextButton
   } {}
   Function {handle(int event)} {return_type int
   } {

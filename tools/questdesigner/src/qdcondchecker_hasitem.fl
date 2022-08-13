@@ -6,7 +6,7 @@ decl {\#include <FL/fl_draw.H>} {public global
 }
 
 widget_class QD_CondChecker_hasItem {
-  xywh {896 427 380 35} resizable visible position_relative
+  xywh {896 427 380 35} resizable visible position_relative_rescale
 } {
   Fl_Box {} {
     label {拥有物品}
