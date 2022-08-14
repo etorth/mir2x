@@ -2,18 +2,26 @@
 version 1.0400
 header_name {.h}
 code_name {.cxx}
-widget_class QD_CondCheckerBox {open
+decl {\#include <array>} {public global
+}
+
+decl {\#include <optional>} {public global
+}
+
+widget_class QD_CondCheckerBox {
   xywh {2875 479 400 100} box UP_BOX resizable visible position_relative_rescale
 } {
-  Fl_Menu_Bar {} {open
+  decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
+  }
+  Fl_Menu_Bar {} {
     xywh {0 0 375 25}
   } {
     Submenu {} {
-      label Edit open
+      label Edit
       xywh {10 10 100 20}
     } {
       Submenu {} {
-        label Setting open
+        label Setting
         xywh {10 10 100 20}
       } {
         MenuItem {} {
@@ -146,5 +154,51 @@ redraw();}
         Fl_Group::redraw();
     }
 }} {}
+  }
+  Function {handle(int event)} {return_type int
+  } {
+    code {int result = Fl_Group::handle(event);
+if(Fl::event_button() == FL_LEFT_MOUSE){
+    switch(event){
+        case FL_PUSH:
+            {
+                m_lastDragLoc = {Fl::event_x(), Fl::event_y()};
+                result = 1;
+                break;
+            }
+        case FL_DRAG:
+            {
+                if(m_lastDragLoc.has_value()){
+                    const int ex = Fl::event_x();
+                    const int ey = Fl::event_y();
+
+                    const int xdiff = ex - m_lastDragLoc.value()[0];
+                    const int ydiff = ey - m_lastDragLoc.value()[1];
+
+                    position(x() + xdiff, y() + ydiff);
+                    parent()->redraw();
+
+                    m_lastDragLoc = {ex, ey};
+                }
+                else{
+                    m_lastDragLoc = {Fl::event_x(), Fl::event_y()};
+                }
+
+                result = 1;
+                break;
+            }
+        case FL_RELEASE:
+            {
+                m_lastDragLoc.reset();
+                result = 1;
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+}
+return result;} {}
   }
 }
