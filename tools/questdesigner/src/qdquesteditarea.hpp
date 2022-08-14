@@ -8,4 +8,7 @@ class QD_QuestEditArea: public QD_BaseEditArea
 {
     public:
         QD_QuestEditArea(int, int, int, int, const char * = nullptr);
+
+    public:
+        int handle(int) override;
 };

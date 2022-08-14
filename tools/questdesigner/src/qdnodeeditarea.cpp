@@ -1,4 +1,5 @@
 #include <FL/Fl_Box.H>
+#include "flwrapper.hpp"
 #include "qdtransition.hpp"
 #include "qdnodeeditarea.hpp"
 #include "qdcondcheckerbox.hpp"
@@ -42,13 +43,40 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
 
 int QD_NodeEditArea::handle(int event)
 {
-    const auto result = Fl_Group::handle(event);
-    if(event == FL_PUSH && !result){
-        m_title->edit(false);
-        m_questLog->edit(false);
-        m_enterTrigger->edit(false);
-        m_leaveTrigger->edit(false);
-        return 1;
+    int result = QD_BaseEditArea::handle(event);
+    if(!result){
+        if(event == FL_PUSH){
+            result = 1;
+            m_title->edit(false);
+            m_questLog->edit(false);
+            m_enterTrigger->edit(false);
+            m_leaveTrigger->edit(false);
+
+            if(Fl::event_button() == FL_RIGHT_MOUSE){
+                fl_wrapper::menu_item rclick_menu[]
+                {
+                    {"New CondChecker", 0, +[](Fl_Widget *, void *p)
+                    {
+                        static_cast<QD_NodeEditArea *>(p)->begin();
+                        {
+                            new QD_CondCheckerBox(500, 600, 500, 140);
+                        }
+                        static_cast<QD_NodeEditArea *>(p)->end();
+                    }, this},
+
+                    {"Exit", 0, +[](Fl_Widget *, void *)
+                    {
+                    }},
+
+                    {},
+                };
+
+                if(const Fl_Menu_Item *m = rclick_menu->popup(Fl::event_x(), Fl::event_y(), 0, 0, 0); m){
+                    m->do_callback(this, m->user_data());
+                    redraw();
+                }
+            }
+        }
     }
     return result;
 }
