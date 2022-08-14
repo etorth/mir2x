@@ -9,12 +9,16 @@ decl {\#include <optional>} {public global
 }
 
 widget_class QD_CondCheckerBox {open
-  xywh {2866 541 400 100} box UP_BOX resizable visible position_relative_rescale
+  xywh {2866 541 400 100} box UP_BOX hide resizable position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
-  Fl_Menu_Bar {} {
-    xywh {0 0 95 25} box NO_BOX
+  decl {const int m_menuBarW = 100;} {private local
+  }
+  decl {const int m_menuBarH = 25;} {private local
+  }
+  Fl_Menu_Bar m_menuBar {
+    xywh {0 0 100 25} box NO_BOX
   } {
     Submenu {} {
       label Edit
@@ -82,29 +86,6 @@ widget_class QD_CondCheckerBox {open
         MenuItem {} {
           label Add
           callback {{
-    int newX = 0;
-    int newY = 0;
-    int newW = 0;
-    int newH = 0;
-    
-    if(m_outputs->children() > 0){
-        newW = m_outputs->child(0)->w();
-        newH = m_outputs->child(0)->h();
-        newX = m_outputs->child(0)->x();
-        newY = m_outputs->child(0)->y() + newH;
-    }
-    else{
-        newX = m_outputs->x();
-        newY = m_outputs->y();
-        newW = m_outputs->w();
-        newH = newW;
-    }
-    
-    m_outputs->begin();
-    {
-        new Fl_Button(newX, newY, newW, newH, "@>");
-    }
-    m_outputs->end();
     parent()->redraw();
 }}
           xywh {0 0 100 20}
@@ -133,10 +114,7 @@ redraw();}
       }
     }
   }
-  Fl_Box {} {
-    xywh {95 0 280 25}
-  }
-  Fl_Button {} {
+  Fl_Button m_close {
     label {@-2circle}
     xywh {374 0 26 25}
   }
@@ -155,22 +133,36 @@ redraw();}
   Fl_Group m_centerBox {
     xywh {25 25 350 75} box UP_BOX resizable
   } {}
-  Function {calculateLayout()} {return_type void
+  code {calculateLayout();} {}
+  Function {resize(int newX, int newY, int newW, int newH)} {return_type void
   } {
     code {{
-    // recalculate box layout
-    // +---------------------------------+-+
-    // |                                 |x|
-    // | +-------------------------------+-+
-    // | |                               | |
-    // | |                               +-+
-    // +-+                               |>|
-    // |>|                               |>|
-    // +-+                               |>|
-    // | |                               |>|
-    // | |                               +-+
-    // | |                               | |
-    // +-+-------------------------------+-+
+    // resize the whole box
+    // check comments in calculateSize() for layout
+    const int closeBtnW = m_menuBarH;
+    const int closeBtnH = m_menuBarH;
+
+    const int inBoxW = closeBtnW;
+    const int inBoxH = closeBtnH;
+
+    const int outBoxW = inBoxW;
+    const int outBoxH = inBoxH;
+
+    newW = std::max<int>({newW, m_menuBarW + closeBtnW,    inBoxW + outBoxW});
+    newH = std::max<int>({newH, m_menuBarH +    inBoxH, closeBtnH + outBoxH * m_outputs->children()});
+
+    x(newX);
+    y(newY);
+    w(newW);
+    h(newH);
+
+    m_menuBar->resize(newX, newY, m_menuBarW, m_menuBarH);
+    m_close->resize(newX + newW - closeBtnW, newY, closeBtnW, closeBtnH);
+
+    m_input->resize(newX, newY + m_menuBarH + (newH - m_menuBarH - inBoxH) / 2, inBoxW, inBoxH);
+    m_outputs->resize(newX + newW - outBoxW, newY + closeBtnH + (newH - closeBtnH - outBoxH * m_outputs->children()) / 2, outBoxW, outBoxH * m_outputs->children());
+
+    m_centerBox->resize(newX + inBoxW, newY + m_menuBarH, newW - inBoxW - outBoxW, newH - m_menuBarH);
 }} {}
   }
   Function {redraw()} {return_type void
@@ -229,5 +221,51 @@ if(Fl::event_button() == FL_LEFT_MOUSE){
     }
 }
 return result;} {}
+  }
+  Function {calculateLayout()} {return_type void
+  } {
+    code {{
+    const auto [newW, newH] = calculateSize(m_centerBox->w(), m_centerBox->h());
+    resize(x(), y(), newW, newH);
+}} {}
+  }
+  Function {calculateSize(int centerBoxW, int centerBoxH)} {return_type {std::array<int, 2>}
+  } {
+    code {{
+    // calculate layout, two parameters
+    // 1. size of centerBox
+    // 2. count of outbox
+    //
+    // +-------+-------------------------+-+
+    // | menus |                         |x|
+    // | +-----+-------------------------+-+
+    // | |                               | |
+    // | |                               +-+
+    // +-+                               |>|
+    // |>|                               |>|
+    // +-+                               |>|
+    // | |                               |>|
+    // | |                               +-+
+    // | |                               | |
+    // +-+-------------------------------+-+
+
+    centerBoxW = std::max<int>(0, centerBoxW);
+    centerBoxH = std::max<int>(0, centerBoxH);
+
+    const int closeBtnW = m_menuBarH;
+    const int closeBtnH = m_menuBarH;
+
+    const int inBoxW = closeBtnW;
+    const int inBoxH = closeBtnH;
+
+    const int outBoxW = inBoxW;
+    const int outBoxH = inBoxH;
+
+    return
+    {
+        std::max<int>({m_menuBarW + closeBtnW, inBoxW + centerBoxW + outBoxW}),
+        std::max<int>({m_menuBarH + inBoxH, m_menuBarH + centerBoxH, closeBtnH + outBoxH * m_outputs->children()}),
+    };
+}} {}
   }
 }
