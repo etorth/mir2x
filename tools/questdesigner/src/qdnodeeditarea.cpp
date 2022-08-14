@@ -1,6 +1,7 @@
 #include <FL/Fl_Box.H>
 #include "flwrapper.hpp"
 #include "qdtransition.hpp"
+#include "qdcallbackbox.hpp"
 #include "qdnodeeditarea.hpp"
 #include "qdcondcheckerbox.hpp"
 
@@ -56,8 +57,13 @@ int QD_NodeEditArea::handle(int event)
                 fl_wrapper::menu_item rclick_menu[]
                 {
 
-                    {"New Callback", 0, +[](Fl_Widget *, void *)
+                    {"New Callback", 0, +[](Fl_Widget *, void * p)
                     {
+                        static_cast<QD_NodeEditArea *>(p)->begin();
+                        {
+                            new QD_CallbackBox(500, 700, 500, 140);
+                        }
+                        static_cast<QD_NodeEditArea *>(p)->end();
                     }, this},
 
                     {"New CondChecker", 0, +[](Fl_Widget *, void *p)
