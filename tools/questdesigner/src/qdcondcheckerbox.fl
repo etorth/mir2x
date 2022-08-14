@@ -8,8 +8,8 @@ decl {\#include <array>} {public global
 decl {\#include <optional>} {public global
 }
 
-widget_class QD_CondCheckerBox {open
-  xywh {2866 541 400 100} box UP_BOX hide resizable position_relative_rescale
+widget_class QD_CondCheckerBox {
+  xywh {2866 541 400 100} box UP_BOX resizable visible position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
@@ -87,6 +87,13 @@ widget_class QD_CondCheckerBox {open
           label Add
           callback {{
     parent()->redraw();
+    m_outputs->begin();
+    {
+        new Fl_Button(0, 0, 100, 100, "@>"); // no need to figure out the exact size and location here
+    }
+    m_outputs->end();
+    calculateLayout();
+    redraw();
 }}
           xywh {0 0 100 20}
         }
@@ -116,7 +123,7 @@ redraw();}
   }
   Fl_Button m_close {
     label {@-2circle}
-    xywh {374 0 26 25}
+    xywh {375 0 25 25}
   }
   Fl_Button m_input {
     label {@>}
@@ -148,8 +155,11 @@ redraw();}
     const int outBoxW = inBoxW;
     const int outBoxH = inBoxH;
 
-    newW = std::max<int>({newW, m_menuBarW + closeBtnW,    inBoxW + outBoxW});
-    newH = std::max<int>({newH, m_menuBarH +    inBoxH, closeBtnH + outBoxH * m_outputs->children()});
+    const int outBoxPackW = outBoxW;
+    const int outBoxPackH = outBoxH * std::max<int>(1, m_outputs->children());
+
+    newW = std::max<int>({newW, m_menuBarW + closeBtnW,    inBoxW + outBoxPackW});
+    newH = std::max<int>({newH, m_menuBarH +    inBoxH, closeBtnH + outBoxPackH});
 
     x(newX);
     y(newY);
@@ -160,9 +170,15 @@ redraw();}
     m_close->resize(newX + newW - closeBtnW, newY, closeBtnW, closeBtnH);
 
     m_input->resize(newX, newY + m_menuBarH + (newH - m_menuBarH - inBoxH) / 2, inBoxW, inBoxH);
-    m_outputs->resize(newX + newW - outBoxW, newY + closeBtnH + (newH - closeBtnH - outBoxH * m_outputs->children()) / 2, outBoxW, outBoxH * m_outputs->children());
+    m_outputs->resize(newX + newW - outBoxPackW, newY + closeBtnH + (newH - closeBtnH - outBoxPackH) / 2, outBoxPackW, outBoxPackH);
 
-    m_centerBox->resize(newX + inBoxW, newY + m_menuBarH, newW - inBoxW - outBoxW, newH - m_menuBarH);
+    for(int i = 0; i < m_outputs->children(); ++i){
+        if(Fl_Button *btn = dynamic_cast<Fl_Button*>(m_outputs->child(i))){
+            btn->resize(m_outputs->x(), m_outputs->y() + i * outBoxH, outBoxW, outBoxH);
+        }
+    }
+
+    m_centerBox->resize(newX + inBoxW, newY + m_menuBarH, newW - inBoxW - outBoxPackW, newH - m_menuBarH);
 }} {}
   }
   Function {redraw()} {return_type void
@@ -261,10 +277,13 @@ return result;} {}
     const int outBoxW = inBoxW;
     const int outBoxH = inBoxH;
 
+    const int outBoxPackW = outBoxW;
+    const int outBoxPackH = outBoxH * std::max<int>(1, m_outputs->children());
+
     return
     {
-        std::max<int>({m_menuBarW + closeBtnW, inBoxW + centerBoxW + outBoxW}),
-        std::max<int>({m_menuBarH + inBoxH, m_menuBarH + centerBoxH, closeBtnH + outBoxH * m_outputs->children()}),
+        std::max<int>({m_menuBarW + closeBtnW, inBoxW + centerBoxW + outBoxPackW}),
+        std::max<int>({m_menuBarH + inBoxH, m_menuBarH + centerBoxH, closeBtnH + outBoxPackH}),
     };
 }} {}
   }
