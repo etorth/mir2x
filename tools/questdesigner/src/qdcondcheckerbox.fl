@@ -8,7 +8,7 @@ decl {\#include <array>} {public global
 decl {\#include <optional>} {public global
 }
 
-widget_class QD_CondCheckerBox {
+widget_class QD_CondCheckerBox {open
   xywh {2866 541 400 100} box UP_BOX resizable visible position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
@@ -81,6 +81,32 @@ widget_class QD_CondCheckerBox {
       } {
         MenuItem {} {
           label Add
+          callback {{
+    int newX = 0;
+    int newY = 0;
+    int newW = 0;
+    int newH = 0;
+    
+    if(m_outputs->children() > 0){
+        newW = m_outputs->child(0)->w();
+        newH = m_outputs->child(0)->h();
+        newX = m_outputs->child(0)->x();
+        newY = m_outputs->child(0)->y() + newH;
+    }
+    else{
+        newX = m_outputs->x();
+        newY = m_outputs->y();
+        newW = m_outputs->w();
+        newH = newW;
+    }
+    
+    m_outputs->begin();
+    {
+        new Fl_Button(newX, newY, newW, newH, "@>");
+    }
+    m_outputs->end();
+    parent()->redraw();
+}}
           xywh {0 0 100 20}
         }
         MenuItem {} {
