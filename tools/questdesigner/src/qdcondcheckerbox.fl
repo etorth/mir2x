@@ -9,12 +9,12 @@ decl {\#include <optional>} {public global
 }
 
 widget_class QD_CondCheckerBox {
-  xywh {2875 479 400 100} box UP_BOX resizable visible position_relative_rescale
+  xywh {2866 541 400 100} box UP_BOX resizable visible position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
   Fl_Menu_Bar {} {
-    xywh {0 0 375 25}
+    xywh {0 0 95 25} box NO_BOX
   } {
     Submenu {} {
       label Edit
@@ -106,6 +106,9 @@ redraw();}
         xywh {10 10 100 20}
       }
     }
+  }
+  Fl_Box {} {
+    xywh {95 0 280 25}
   }
   Fl_Button {} {
     label {@-2circle}
