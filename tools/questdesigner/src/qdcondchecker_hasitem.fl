@@ -2,11 +2,12 @@
 version 1.0400
 header_name {.h}
 code_name {.cxx}
-decl {\#include <FL/fl_draw.H>} {public global
+decl {\#include "qdcondchecker_base.hpp"} {public global
 }
 
 widget_class QD_CondChecker_hasItem {
-  xywh {896 427 380 35} resizable visible position_relative_rescale
+  xywh {896 427 380 35} resizable
+  class QD_CondChecker_base visible position_relative_rescale
 } {
   Fl_Box {} {
     label {拥有物品}
@@ -24,11 +25,4 @@ widget_class QD_CondChecker_hasItem {
     code0 {\#include "qditemchoice.hpp"}
     class QD_ItemChoice
   } {}
-  Function {draw()} {return_type void
-  } {
-    code {{
-    Fl_Group::draw();
-    fl_draw_box(FL_UP_FRAME, x(), y(), w(), h(), color());
-}} {}
-  }
 }
