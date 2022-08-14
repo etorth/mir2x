@@ -1,0 +1,19 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0400
+header_name {.h}
+code_name {.cxx}
+decl {\#include <FL/fl_draw.H>} {private local
+}
+
+widget_class QD_CondChecker_base {
+  xywh {8 31 400 400} resizable
+  class Fl_Group visible position_relative_rescale
+} {
+  Function {draw()} {return_type void
+  } {
+    code {{
+    Fl_Group::draw();
+    fl_draw_box(FL_UP_FRAME, x(), y(), w(), h(), color());
+}} {}
+  }
+}

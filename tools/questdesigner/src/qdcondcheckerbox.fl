@@ -2,11 +2,105 @@
 version 1.0400
 header_name {.h}
 code_name {.cxx}
-widget_class QD_CondCheckerBox {
-  xywh {503 429 400 100} resizable visible position_relative_rescale
+widget_class QD_CondCheckerBox {open
+  xywh {2875 479 400 100} box UP_BOX resizable visible position_relative_rescale
 } {
+  Fl_Menu_Bar {} {open
+    xywh {0 0 375 25}
+  } {
+    Submenu {} {
+      label Edit open
+      xywh {10 10 100 20}
+    } {
+      Submenu {} {
+        label Setting open
+        xywh {10 10 100 20}
+      } {
+        MenuItem {} {
+          label {拥有物品}
+          callback {{
+    m_centerBox->clear();
+    m_centerBox->begin();
+    {
+        new QD_CondChecker_hasItem(m_centerBox->x(), m_centerBox->y(), m_centerBox->w(), m_centerBox->h());
+    }
+    m_centerBox->end();
+    redraw();
+}}
+          xywh {10 10 100 20}
+          code0 {\#include "qdcondchecker_hasitem.hpp"}
+        }
+        MenuItem {} {
+          label {等级}
+          callback {{
+    m_centerBox->clear();
+    m_centerBox->begin();
+    {
+        new QD_CondChecker_level(m_centerBox->x(), m_centerBox->y(), m_centerBox->w(), m_centerBox->h());
+    }
+    m_centerBox->end();
+    redraw();
+}}
+          xywh {20 20 100 20}
+          code0 {\#include "qdcondchecker_level.hpp"}
+        }
+        MenuItem {} {
+          label {计数器}
+          callback {{
+    m_centerBox->clear();
+    m_centerBox->begin();
+    {
+        new QD_CondChecker_checkCounter(m_centerBox->x(), m_centerBox->y(), m_centerBox->w(), m_centerBox->h());
+    }
+    m_centerBox->end();
+    redraw();
+}}
+          xywh {30 30 100 20}
+          code0 {\#include "qdcondchecker_checkcounter.hpp"}
+        }
+      }
+      MenuItem {} {
+        label Delete
+        callback {{
+    m_centerBox->clear();
+    redraw();
+}}
+        xywh {20 20 100 20} divider
+      }
+      Submenu {} {
+        label Output
+        xywh {0 0 100 20}
+      } {
+        MenuItem {} {
+          label Add
+          xywh {0 0 100 20}
+        }
+        MenuItem {} {
+          label Delete
+          xywh {10 10 100 20}
+        }
+      }
+    }
+    Submenu {} {
+      label View
+      xywh {0 0 100 20}
+    } {
+      MenuItem {} {
+        label {Room In}
+        callback {size(w() * 1.05, h() * 1.05);
+redraw();}
+        xywh {0 0 100 20}
+      }
+      MenuItem {} {
+        label {Room Out}
+        callback {size(std::max<int>(400, w() * 0.95), std::max<int>(100, h() * 0.95));
+redraw();}
+        xywh {10 10 100 20}
+      }
+    }
+  }
   Fl_Button {} {
-    label X
+    label {@-2circle}
     xywh {374 0 26 25}
   }
   Fl_Button m_input {
@@ -24,10 +118,6 @@ widget_class QD_CondCheckerBox {
   Fl_Group m_centerBox {
     xywh {25 25 350 75} box UP_BOX resizable
   } {}
-  Fl_Box m_title {
-    label label
-    xywh {0 0 375 25}
-  }
   Function {calculateLayout()} {return_type void
   } {
     code {{
@@ -44,6 +134,17 @@ widget_class QD_CondCheckerBox {
     // | |                               +-+
     // | |                               | |
     // +-+-------------------------------+-+
+}} {}
+  }
+  Function {redraw()} {return_type void
+  } {
+    code {{
+    if(parent()){
+        parent()->redraw();
+    }
+    else{
+        Fl_Group::redraw();
+    }
 }} {}
   }
 }
