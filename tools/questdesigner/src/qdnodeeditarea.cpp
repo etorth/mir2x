@@ -55,6 +55,11 @@ int QD_NodeEditArea::handle(int event)
             if(Fl::event_button() == FL_RIGHT_MOUSE){
                 fl_wrapper::menu_item rclick_menu[]
                 {
+
+                    {"New Callback", 0, +[](Fl_Widget *, void *)
+                    {
+                    }, this},
+
                     {"New CondChecker", 0, +[](Fl_Widget *, void *p)
                     {
                         static_cast<QD_NodeEditArea *>(p)->begin();
