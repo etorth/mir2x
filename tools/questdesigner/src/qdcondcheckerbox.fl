@@ -9,7 +9,7 @@ decl {\#include <optional>} {public global
 }
 
 widget_class QD_CondCheckerBox {
-  xywh {2833 497 400 100} box UP_BOX resizable visible position_relative_rescale
+  xywh {2647 398 400 100} box UP_BOX resizable visible position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
@@ -122,12 +122,13 @@ redraw();}
     }
   }
   Fl_Button m_close {
-    label {@-2circle}
     callback {if(fl_choice_n("Delete the condition checker?", "Yes", nullptr, nullptr) == 0){
     Fl::delete_widget(this);
 }}
-    xywh {375 0 25 25}
+    image {fluid-icons/free-windows-10-icons/PNG/Cancel.png} xywh {375 0 25 25} labeltype SHADOW_LABEL
     code0 {\#include <FL/fl_ask.H>}
+    code1 {\#include "qdiconbutton.hpp"}
+    class QD_IconButton
   }
   Fl_Button m_input {
     label {@>}
