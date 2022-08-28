@@ -153,9 +153,7 @@ void QD_NodeEditArea::setEdgeIn(Fl_Button *btn)
 {
     m_currEdgeIn = btn;
     if(m_currEdgeIn && m_currEdgeOut){
-        m_edges.insert({m_currEdgeIn, m_currEdgeOut});
-        m_currEdgeIn  = nullptr;
-        m_currEdgeOut = nullptr;
+        setEdgeOut(m_currEdgeOut);
     }
 }
 
@@ -163,6 +161,7 @@ void QD_NodeEditArea::setEdgeOut(Fl_Button *btn)
 {
     m_currEdgeOut = btn;
     if(m_currEdgeIn && m_currEdgeOut){
+        removeEdge(m_currEdgeOut, false);
         m_edges.insert({m_currEdgeIn, m_currEdgeOut});
         m_currEdgeIn  = nullptr;
         m_currEdgeOut = nullptr;
