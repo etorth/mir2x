@@ -1,4 +1,5 @@
 #pragma once
+#include <set>
 #include <FL/Fl.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Scroll.H>
@@ -27,6 +28,9 @@ class QD_NodeEditArea: public QD_BaseEditArea
         Fl_Button *m_currEdgeIn  = nullptr;
         Fl_Button *m_currEdgeOut = nullptr;
 
+    private:
+        std::set<std::tuple<Fl_Button *, Fl_Button *>> m_edges;
+
     public:
         QD_NodeEditArea(int, int, int, int, const char * = nullptr);
 
@@ -34,14 +38,18 @@ class QD_NodeEditArea: public QD_BaseEditArea
         int handle(int) override;
 
     public:
-        void setEdgeIn(Fl_Button *btn)
+        void setEdgeIn (Fl_Button *);
+        void setEdgeOut(Fl_Button *);
+
+    public:
+        Fl_Button *getEdgeIn()
         {
-            m_currEdgeIn = btn;
+            return m_currEdgeIn;
         }
 
-        void setEdgeOut(Fl_Button *btn)
+        Fl_Button *getEdgeOut()
         {
-            m_currEdgeOut = btn;
+            return m_currEdgeOut;
         }
 
     public:

@@ -105,34 +105,66 @@ int QD_NodeEditArea::handle(int event)
 void QD_NodeEditArea::draw()
 {
     QD_BaseEditArea::draw();
-    if(m_currEdgeIn || m_currEdgeOut){
+    const auto fnDrawEdge = [this](Fl_Button *in, Fl_Button *out)
+    {
         int  inX = 0;
         int  inY = 0;
         int outX = 0;
         int outY = 0;
 
-        if(m_currEdgeIn){
-            inX = m_currEdgeIn->x();
-            inY = m_currEdgeIn->y() + m_currEdgeIn->h() / 2;
+        if(in){
+            inX = in->x();
+            inY = in->y() + in->h() / 2;
         }
         else{
             inX = m_currEdgeX;
             inY = m_currEdgeY;
         }
 
-        if(m_currEdgeOut){
-            outX = m_currEdgeOut->x() + m_currEdgeOut->w();
-            outY = m_currEdgeOut->y() + m_currEdgeOut->h() / 2;
+        if(out){
+            outX = out->x() + out->w();
+            outY = out->y() + out->h() / 2;
         }
         else{
             outX = m_currEdgeX;
             outY = m_currEdgeY;
         }
 
-        fl_color(FL_MAGENTA);
-        fl_line_style(FL_SOLID, 2);
-        fl_begin_line();
         fl_line(inX, inY, outX, outY);
-        fl_end_line();
+    };
+
+    fl_color(FL_MAGENTA);
+    fl_line_style(FL_SOLID, 2);
+
+    fl_begin_line();
+    {
+        if(m_currEdgeIn || m_currEdgeOut){
+            fnDrawEdge(m_currEdgeIn, m_currEdgeOut);
+        }
+
+        for(auto [in, out]: m_edges){
+            fnDrawEdge(in, out);
+        }
+    }
+    fl_end_line();
+}
+
+void QD_NodeEditArea::setEdgeIn(Fl_Button *btn)
+{
+    m_currEdgeIn = btn;
+    if(m_currEdgeIn && m_currEdgeOut){
+        m_edges.insert({m_currEdgeIn, m_currEdgeOut});
+        m_currEdgeIn  = nullptr;
+        m_currEdgeOut = nullptr;
+    }
+}
+
+void QD_NodeEditArea::setEdgeOut(Fl_Button *btn)
+{
+    m_currEdgeOut = btn;
+    if(m_currEdgeIn && m_currEdgeOut){
+        m_edges.insert({m_currEdgeIn, m_currEdgeOut});
+        m_currEdgeIn  = nullptr;
+        m_currEdgeOut = nullptr;
     }
 }
