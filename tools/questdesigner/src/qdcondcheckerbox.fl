@@ -8,8 +8,14 @@ decl {\#include <array>} {public global
 decl {\#include <optional>} {public global
 }
 
+decl {\#include "qdnodeeditarea.hpp"} {private global
+}
+
+decl {class QD_NodeEditArea;} {public global
+}
+
 widget_class QD_CondCheckerBox {
-  xywh {586 386 400 100} box UP_BOX visible position_relative_rescale
+  xywh {185 527 400 100} box UP_BOX visible position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
@@ -132,6 +138,11 @@ redraw();}
   }
   Fl_Button m_input {
     label {@-1->}
+    callback {{
+    if(auto p = findNodeEditArea()){
+        p->setEdgeIn(o);
+    }
+}}
     xywh {0 45 25 25}
   }
   Fl_Pack m_outputs {
@@ -139,6 +150,11 @@ redraw();}
   } {
     Fl_Button {} {
       label {@-1>}
+      callback {{
+    if(auto p = findNodeEditArea()){
+        p->setEdgeOut(o);
+    }
+}}
       xywh {375 45 25 25}
     }
   }
@@ -248,6 +264,21 @@ return result;} {}
     code {{
     const auto [newW, newH] = calculateSize(m_centerBox->w(), m_centerBox->h());
     resize(x(), y(), newW, newH);
+}} {}
+  }
+  Function {findNodeEditArea()} {return_type {QD_NodeEditArea *}
+  } {
+    code {{
+    Fl_Widget *currptr = this;
+    while(currptr){
+        if(auto p = dynamic_cast<QD_NodeEditArea *>(currptr)){
+            return p;
+        }
+        else{
+            currptr = currptr->parent();
+        }
+    }
+    return nullptr;
 }} {}
   }
   Function {calculateSize(int centerBoxW, int centerBoxH)} {return_type {std::array<int, 2>}
