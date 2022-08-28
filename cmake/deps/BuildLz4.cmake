@@ -1,19 +1,3 @@
-#=======================================================================================
-#
-#        Filename: BuildLz4.cmake
-#         Created: 05/03/2016 13:19:07
-#     Description: required: MIR2X_3RD_PARTY_DIR
-#
-#         Version: 1.0
-#        Revision: none
-#        Compiler: cmake
-#
-#          Author: ANHONG
-#           Email: anhonghe@gmail.com
-#    Organization: USTC
-#
-#=======================================================================================
-
 INCLUDE(ExternalProject)
 
 IF(WIN32 AND MSVC)

@@ -1,25 +1,9 @@
-#=======================================================================================
-#
-#        Filename: BuildTinyXML2.cmake
-#         Created: 05/03/2016 13:19:07
-#     Description: required: MIR2X_3RD_PARTY_DIR
-#
-#         Version: 1.0
-#        Revision: none
-#        Compiler: cmake
-#
-#          Author: ANHONG
-#           Email: anhonghe@gmail.com
-#    Organization: USTC
-#
-#=======================================================================================
-
 INCLUDE(ExternalProject)
 
 ExternalProject_Add(
     tinyxml2
 
-    GIT_REPOSITORY "https://github.com/mir2x-deps/tinyxml2.git"
+    GIT_REPOSITORY "https://github.com/leethomason/tinyxml2.git"
     GIT_TAG        "master"
   
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/tinyxml2"

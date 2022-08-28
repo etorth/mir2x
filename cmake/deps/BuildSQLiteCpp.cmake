@@ -1,19 +1,3 @@
-#=======================================================================================
-#
-#        Filename: BuildG3Log.cmake
-#         Created: 05/03/2016 13:19:07
-#     Description: required: MIR2X_3RD_PARTY_DIR
-#
-#         Version: 1.0
-#        Revision: none
-#        Compiler: cmake
-#
-#          Author: ANHONG
-#           Email: anhonghe@gmail.com
-#    Organization: USTC
-#
-#=======================================================================================
-
 INCLUDE(ExternalProject)
 
 # for the CMAKE_ARGS, the author recommends -DCPACK_PACKAGING_INSTALL_PREFIX=xxx

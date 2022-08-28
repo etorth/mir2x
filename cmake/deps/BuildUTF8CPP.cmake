@@ -1,19 +1,3 @@
-#=======================================================================================
-#
-#        Filename: BuildUTF8CPP.cmake
-#         Created: 05/03/2016 13:19:07
-#     Description: required: MIR2X_3RD_PARTY_DIR
-#
-#         Version: 1.0
-#        Revision: none
-#        Compiler: cmake
-#
-#          Author: ANHONG
-#           Email: anhonghe@gmail.com
-#    Organization: USTC
-#
-#=======================================================================================
-
 INCLUDE(ExternalProject)
 
 ExternalProject_Add(
