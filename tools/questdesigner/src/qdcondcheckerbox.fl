@@ -95,7 +95,14 @@ widget_class QD_CondCheckerBox {
     parent()->redraw();
     m_outputs->begin();
     {
-        new Fl_Button(0, 0, 100, 100, "@>"); // no need to figure out the exact size and location here
+        auto outptr = new Fl_Button(0, 0, 100, 100, "@>"); // no need to figure out the exact size and location here
+        outptr->callback(+[](Fl_Widget *btn, void *arg)
+        {
+            if(auto p = dynamic_cast<QD_CondCheckerBox *>(static_cast<QD_CondCheckerBox *>(arg))->findNodeEditArea()){
+                p->setEdgeOut(dynamic_cast<Fl_Button *>(btn));
+                p->redraw();
+            }
+        }, this);
     }
     m_outputs->end();
     calculateLayout();
@@ -149,6 +156,7 @@ redraw();}
     callback {{
     if(auto p = findNodeEditArea()){
         p->setEdgeIn(o);
+        p->redraw();
     }
 }}
     xywh {0 45 25 25}
@@ -161,6 +169,7 @@ redraw();}
       callback {{
     if(auto p = findNodeEditArea()){
         p->setEdgeOut(o);
+        p->redraw();
     }
 }}
       xywh {375 45 25 25}
