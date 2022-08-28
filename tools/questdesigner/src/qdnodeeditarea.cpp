@@ -168,3 +168,20 @@ void QD_NodeEditArea::setEdgeOut(Fl_Button *btn)
         m_currEdgeOut = nullptr;
     }
 }
+
+void QD_NodeEditArea::removeEdge(Fl_Button *edgeEnd, std::optional<bool> inOnly)
+{
+    if(edgeEnd){
+        for(auto p = m_edges.begin(); p != m_edges.end();){
+            if(inOnly.value_or(true) && std::get<0>(*p) == edgeEnd){
+                p = m_edges.erase(p);
+            }
+            else if(!inOnly.value_or(false) && std::get<1>(*p) == edgeEnd){
+                p = m_edges.erase(p);
+            }
+            else{
+                ++p;
+            }
+        }
+    }
+}

@@ -1,5 +1,6 @@
 #pragma once
 #include <set>
+#include <optional>
 #include <FL/Fl.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Scroll.H>
@@ -51,6 +52,9 @@ class QD_NodeEditArea: public QD_BaseEditArea
         {
             return m_currEdgeOut;
         }
+
+    public:
+        void removeEdge(Fl_Button *, std::optional<bool> = {});
 
     public:
         void draw() override;

@@ -129,6 +129,14 @@ redraw();}
   }
   Fl_Button m_close {
     callback {if(fl_choice_n("Delete the condition checker?", "Yes", nullptr, nullptr) == 0){
+    if(auto p = findNodeEditArea()){
+        p->removeEdge(m_input);
+        for(int i = 0; i < m_outputs->children(); ++i){
+            if(Fl_Button *btn = dynamic_cast<Fl_Button*>(m_outputs->child(i))){
+                p->removeEdge(btn);
+            }
+        }
+    }
     Fl::delete_widget(this);
 }}
     image {fluid-icons/free-windows-10-icons/SVG/Cancel.svg} xywh {375 0 25 25} labeltype SHADOW_LABEL
