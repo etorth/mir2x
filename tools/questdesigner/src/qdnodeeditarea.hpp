@@ -19,6 +19,10 @@ class QD_NodeEditArea: public QD_BaseEditArea
     private:
         QD_InputTextButton *m_leaveTrigger = nullptr;
 
+    private:
+        QD_SocketIn  *m_currSocketIn  = nullptr;
+        QD_SocketOut *m_currSocketOut = nullptr;
+
     public:
         QD_NodeEditArea(int, int, int, int, const char * = nullptr);
 
