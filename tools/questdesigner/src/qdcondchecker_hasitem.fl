@@ -6,15 +6,20 @@ decl {\#include "qdcondchecker_base.hpp"} {public global
 }
 
 widget_class QD_CondChecker_hasItem {
-  xywh {896 427 380 35} resizable
+  xywh {206 343 380 35} resizable
   class QD_CondChecker_base visible position_relative_rescale
 } {
   Fl_Box {} {
-    label {拥有物品}
-    xywh {0 0 100 35} box FLAT_BOX align 80
+    label {拥有}
+    xywh {0 0 60 35} box FLAT_BOX align 80
   }
+  Fl_Choice {} {
+    xywh {60 0 75 35} down_box BORDER_BOX
+    code0 {\#include "qdorderchoice.hpp"}
+    class QD_OrderChoice
+  } {}
   Fl_Value_Input m_input {
-    xywh {100 0 100 35} labeltype NO_LABEL
+    xywh {135 0 65 35} labeltype NO_LABEL
   }
   Fl_Box {} {
     label {个}
