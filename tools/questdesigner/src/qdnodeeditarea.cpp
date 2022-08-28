@@ -1,4 +1,5 @@
 #include <FL/Fl_Box.H>
+#include <FL/fl_draw.H>
 #include "flwrapper.hpp"
 #include "qdtransition.hpp"
 #include "qdcallbackbox.hpp"
@@ -45,6 +46,15 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
 int QD_NodeEditArea::handle(int event)
 {
     int result = QD_BaseEditArea::handle(event);
+    if(event == FL_MOVE){
+        m_currEdgeX = Fl::event_x();
+        m_currEdgeY = Fl::event_y();
+
+        if(m_currEdgeIn || m_currEdgeOut){
+            redraw();
+        }
+    }
+
     if(!result){
         if(event == FL_PUSH){
             result = 1;
@@ -90,4 +100,39 @@ int QD_NodeEditArea::handle(int event)
         }
     }
     return result;
+}
+
+void QD_NodeEditArea::draw()
+{
+    QD_BaseEditArea::draw();
+    if(m_currEdgeIn || m_currEdgeOut){
+        int  inX = 0;
+        int  inY = 0;
+        int outX = 0;
+        int outY = 0;
+
+        if(m_currEdgeIn){
+            inX = m_currEdgeIn->x();
+            inY = m_currEdgeIn->y() + m_currEdgeIn->h() / 2;
+        }
+        else{
+            inX = m_currEdgeX;
+            inY = m_currEdgeY;
+        }
+
+        if(m_currEdgeOut){
+            outX = m_currEdgeOut->x() + m_currEdgeOut->w();
+            outY = m_currEdgeOut->y() + m_currEdgeOut->h() / 2;
+        }
+        else{
+            outX = m_currEdgeX;
+            outY = m_currEdgeY;
+        }
+
+        fl_color(FL_MAGENTA);
+        fl_line_style(FL_SOLID, 2);
+        fl_begin_line();
+        fl_line(inX, inY, outX, outY);
+        fl_end_line();
+    }
 }

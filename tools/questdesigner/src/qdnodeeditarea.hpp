@@ -21,6 +21,9 @@ class QD_NodeEditArea: public QD_BaseEditArea
         QD_InputTextButton *m_leaveTrigger = nullptr;
 
     private:
+        int m_currEdgeX = 0;
+        int m_currEdgeY = 0;
+
         Fl_Button *m_currEdgeIn  = nullptr;
         Fl_Button *m_currEdgeOut = nullptr;
 
@@ -40,4 +43,7 @@ class QD_NodeEditArea: public QD_BaseEditArea
         {
             m_currEdgeOut = btn;
         }
+
+    public:
+        void draw() override;
 };
