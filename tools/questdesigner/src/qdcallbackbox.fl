@@ -9,7 +9,7 @@ decl {\#include <optional>} {public global
 }
 
 widget_class QD_CallbackBox {
-  xywh {160 477 400 100} box UP_BOX resizable visible position_relative_rescale
+  xywh {108 442 400 99} box UP_BOX resizable visible position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
@@ -20,89 +20,6 @@ widget_class QD_CallbackBox {
   Fl_Menu_Bar m_menuBar {
     xywh {0 0 100 25} box NO_BOX
   } {
-    Submenu {} {
-      label Edit
-      xywh {10 10 100 20}
-    } {
-      Submenu {} {
-        label Setting
-        xywh {10 10 100 20}
-      } {
-        MenuItem {} {
-          label {拥有物品}
-          callback {{
-    m_centerBox->clear();
-    m_centerBox->begin();
-    {
-        new QD_CondChecker_hasItem(m_centerBox->x(), m_centerBox->y(), m_centerBox->w(), m_centerBox->h());
-    }
-    m_centerBox->end();
-    redraw();
-}}
-          xywh {10 10 100 20}
-          code0 {\#include "qdcondchecker_hasitem.hpp"}
-        }
-        MenuItem {} {
-          label {等级}
-          callback {{
-    m_centerBox->clear();
-    m_centerBox->begin();
-    {
-        new QD_CondChecker_level(m_centerBox->x(), m_centerBox->y(), m_centerBox->w(), m_centerBox->h());
-    }
-    m_centerBox->end();
-    redraw();
-}}
-          xywh {20 20 100 20}
-          code0 {\#include "qdcondchecker_level.hpp"}
-        }
-        MenuItem {} {
-          label {计数器}
-          callback {{
-    m_centerBox->clear();
-    m_centerBox->begin();
-    {
-        new QD_CondChecker_checkCounter(m_centerBox->x(), m_centerBox->y(), m_centerBox->w(), m_centerBox->h());
-    }
-    m_centerBox->end();
-    redraw();
-}}
-          xywh {30 30 100 20}
-          code0 {\#include "qdcondchecker_checkcounter.hpp"}
-        }
-      }
-      MenuItem {} {
-        label Delete
-        callback {{
-    m_centerBox->clear();
-    redraw();
-}}
-        xywh {20 20 100 20} divider
-      }
-      Submenu {} {
-        label Output
-        xywh {0 0 100 20}
-      } {
-        MenuItem {} {
-          label Add
-          callback {{
-    parent()->redraw();
-    m_outputs->begin();
-    {
-        new Fl_Button(0, 0, 100, 100, "@>"); // no need to figure out the exact size and location here
-    }
-    m_outputs->end();
-    calculateLayout();
-    redraw();
-}}
-          xywh {0 0 100 20}
-        }
-        MenuItem {} {
-          label Delete
-          xywh {10 10 100 20}
-        }
-      }
-    }
     Submenu {} {
       label View
       xywh {0 0 100 20}
@@ -127,6 +44,8 @@ redraw();}
 }}
     image {fluid-icons/free-windows-10-icons/SVG/Cancel.svg} xywh {375 0 25 25} align 208
     code0 {\#include <FL/fl_ask.H>}
+    code1 {\#include "qdiconbutton.hpp"}
+    class QD_IconButton
   }
   Fl_Button m_input {
     label {@>}
@@ -142,7 +61,12 @@ redraw();}
   }
   Fl_Group m_centerBox {
     xywh {25 25 350 75} box UP_BOX resizable
-  } {}
+  } {
+    Fl_Text_Editor m_editor {
+      xywh {25 25 350 75}
+      code0 {m_editor->buffer(new Fl_Text_Buffer());}
+    }
+  }
   code {calculateLayout();} {}
   Function {resize(int newX, int newY, int newW, int newH)} {return_type void
   } {
