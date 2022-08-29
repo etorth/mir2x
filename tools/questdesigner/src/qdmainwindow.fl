@@ -6,7 +6,13 @@ class QD_MainWindow {} {
   Function {QD_MainWindow()} {} {
     Fl_Window m_window {
       label QuestDesigner
-      xywh {775 185 765 520} type Double resizable visible
+      callback {{
+    if(fl_choice_n("Quit editor ?", "Yes", "No", nullptr) == 0){
+        std::exit(0);
+    }
+}}
+      xywh {99 217 765 520} type Double resizable
+      code0 {\#include <FL/fl_ask.H>} visible
     } {
       Fl_Menu_Bar {} {
         xywh {0 0 765 25} box THIN_UP_BOX
