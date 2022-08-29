@@ -170,13 +170,13 @@ void QD_NodeEditArea::draw()
             //    |
             //    +->-o
 
-            const float  midY = (fromY + toY) / 2.0;
-            const float diffX = (fromX - toX);
+            const float midY = (fromY + toY) / 2.0;
+            const float ctrlDiffX = mathf::bound<float>((fromX - toX) / 2.0, 20.0, 50.0);
 
-            const float controlDiffX = mathf::bound<float>(diffX / 2.0, 20.0, 50.0);
-            fl_curve(fromX, fromY, fromX + controlDiffX, fromY, fromX + controlDiffX, midY, fromX, midY);
+            fl_curve(fromX, fromY, fromX + ctrlDiffX, fromY, fromX + ctrlDiffX, midY, fromX, midY);
+            fl_curve(  toX,   toY,   toX - ctrlDiffX,   toY,   toX - ctrlDiffX, midY,   toX, midY);
+
             fl_line(fromX, midY, toX, midY);
-            fl_curve(toX, midY, toX - controlDiffX, midY, toX - controlDiffX, toY, toX, toY);
         }
     };
 
