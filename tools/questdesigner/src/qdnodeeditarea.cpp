@@ -26,8 +26,10 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
         m_enterTrigger->wrap(true);
     }
 
-    {
-        new QD_CondCheckerBox(500, 600, 500, 140);
+    {   m_socketIn = new Fl_Button(50, 530, 30, 30, "@-1->");
+    }
+
+    {   new QD_CondCheckerBox(500, 600, 500, 140);
     }
 
     {   m_leaveTrigger = new QD_InputTextButton(1000, 400, 665, 200, "设置节点离开逻辑");
