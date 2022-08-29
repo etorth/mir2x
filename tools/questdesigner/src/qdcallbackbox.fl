@@ -9,7 +9,7 @@ decl {\#include <optional>} {public global
 }
 
 widget_class QD_CallbackBox {
-  xywh {108 442 400 99} box UP_BOX resizable visible position_relative_rescale
+  xywh {77 440 400 99} box UP_BOX resizable visible position_relative_rescale
 } {
   decl {std::optional<std::array<int, 2>> m_lastDragLoc;} {private local
   }
@@ -56,7 +56,7 @@ redraw();}
   } {
     Fl_Button {} {
       label {@>}
-      xywh {375 51 25 25}
+      xywh {375 45 25 25}
     }
   }
   Fl_Group m_centerBox {
