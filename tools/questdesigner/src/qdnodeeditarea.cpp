@@ -160,39 +160,38 @@ void QD_NodeEditArea::draw()
         const int   toX =  inX;
         const int   toY =  inY;
 
-        if(fromX < toX){
-            fl_curve(fromX, fromY, (fromX + toX) / 2.0, fromY, (fromX + toX) / 2.0, toY, toX, toY);
-        }
-        else{
-            //               o->-+
-            //                   |
-            //    +---x------x---+
-            //    |
-            //    +->-o
+        fl_begin_line();
+        {
+            if(fromX < toX){
+                fl_curve(fromX, fromY, (fromX + toX) / 2.0, fromY, (fromX + toX) / 2.0, toY, toX, toY);
+            }
+            else{
+                //               o->-+
+                //                   |
+                //    +---x------x---+
+                //    |
+                //    +->-o
 
-            const float midY = (fromY + toY) / 2.0;
-            const float ctrlDiffX = mathf::bound<float>((fromX - toX) / 2.0, 20.0, 50.0);
+                const float midY = (fromY + toY) / 2.0;
+                const float ctrlDiffX = mathf::bound<float>((fromX - toX) / 2.0, 20.0, 50.0);
 
-            fl_curve(fromX, fromY, fromX + ctrlDiffX, fromY, fromX + ctrlDiffX, midY, fromX, midY);
-            fl_line(fromX, midY, toX, midY);
-            fl_curve(toX, midY, toX - ctrlDiffX, midY, toX - ctrlDiffX, toY, toX, toY);
+                fl_curve(fromX, fromY, fromX + ctrlDiffX, fromY, fromX + ctrlDiffX, midY, fromX, midY);
+                fl_curve(  toX,  midY,   toX - ctrlDiffX,  midY,   toX - ctrlDiffX,  toY,   toX,  toY);
+            }
         }
+        fl_end_line();
     };
 
     fl_color(FL_MAGENTA);
     fl_line_style(FL_SOLID, 2);
 
-    fl_begin_line();
-    {
-        if(m_currEdgeIn || m_currEdgeOut){
-            fnDrawEdge(m_currEdgeIn, m_currEdgeOut);
-        }
-
-        for(auto [in, out]: m_edges){
-            fnDrawEdge(in, out);
-        }
+    if(m_currEdgeIn || m_currEdgeOut){
+        fnDrawEdge(m_currEdgeIn, m_currEdgeOut);
     }
-    fl_end_line();
+
+    for(auto [in, out]: m_edges){
+        fnDrawEdge(in, out);
+    }
 }
 
 void QD_NodeEditArea::setEdgeIn(Fl_Button *btn)
