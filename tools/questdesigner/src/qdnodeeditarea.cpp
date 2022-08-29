@@ -51,7 +51,12 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
 int QD_NodeEditArea::handle(int event)
 {
     int result = QD_BaseEditArea::handle(event);
-    if(event == FL_MOVE){
+    if(false
+            || event == FL_PUSH
+            || event == FL_DRAG
+            || event == FL_RELEASE
+            || event == FL_MOVE){
+
         m_currEdgeX = Fl::event_x();
         m_currEdgeY = Fl::event_y();
 
