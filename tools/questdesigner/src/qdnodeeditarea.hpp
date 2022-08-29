@@ -2,6 +2,7 @@
 #include <set>
 #include <optional>
 #include <FL/Fl.H>
+#include <FL/Fl_Flex.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Scroll.H>
 #include <FL/Fl_Multiline_Input.H>
@@ -20,7 +21,8 @@ class QD_NodeEditArea: public QD_BaseEditArea
         QD_InputMultilineButton *m_enterTrigger = nullptr;
 
     private:
-        Fl_Button *m_socketIn = nullptr;
+        Fl_Button *m_socketIn   = nullptr;
+        Fl_Flex   *m_socketOuts = nullptr;
 
     private:
         QD_InputTextButton *m_leaveTrigger = nullptr;

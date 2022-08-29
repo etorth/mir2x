@@ -29,6 +29,14 @@ QD_NodeEditArea::QD_NodeEditArea(int argX, int argY, int argW, int argH, const c
     {   m_socketIn = new Fl_Button(50, 530, 30, 30, "@-1->");
     }
 
+    {
+        m_socketOuts = new Fl_Flex(1000, 200, 30, 30, Fl_Flex::VERTICAL);
+        {
+            new Fl_Button(0, 0, 0, 0, "@-1>");
+        }
+        m_socketOuts->end();
+    }
+
     {   new QD_CondCheckerBox(500, 600, 500, 140);
     }
 
@@ -81,6 +89,20 @@ int QD_NodeEditArea::handle(int event)
                         }
                         static_cast<QD_NodeEditArea *>(p)->end();
                     }, this},
+
+                    {"New Socket Out", 0, +[](Fl_Widget *, void *p)
+                    {
+                        auto socketOuts = static_cast<Fl_Flex *>(p);
+                        const auto socketHeight = socketOuts->h() / socketOuts->children();
+
+                        socketOuts->begin();
+                        {
+                            new Fl_Button(0, 0, 0, 0, "@-1>");
+                        }
+                        socketOuts->end();
+
+                        socketOuts->size(socketOuts->w(), socketHeight * socketOuts->children());
+                    }, m_socketOuts},
 
                     {"Exit", 0, +[](Fl_Widget *, void *)
                     {
