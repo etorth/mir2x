@@ -224,12 +224,10 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
                 const CallDoneFlag doneFlag;
                 requestMove(newX, newY, SYS_DEFSPEED, false, false, [doneFlag, onOK, runSeqID, this]()
                 {
-                    // player doesn't sendback it's move to client in requestMove()
-                    // because player's move usually is driven by client, here need to sendback this forced move
+                    // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
+                    // but here need to sendback the forced move since it's driven by server
 
-                    onOK();
                     const auto [oldX, oldY] = pathf::getBackGLoc(X(), Y(), Direction());
-
                     reportAction(UID(), mapID(), ActionMove
                     {
                         .speed = SYS_DEFSPEED,
@@ -239,6 +237,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
                         .aimY = Y(),
                     });
 
+                    onOK();
                     if(doneFlag){
                         resumeCORunner(runSeqID);
                     }
