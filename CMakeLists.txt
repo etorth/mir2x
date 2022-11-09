@@ -32,8 +32,6 @@ IF(WIN32 AND MSVC)
     ADD_COMPILE_DEFINITIONS(WIN32_LEAN_AND_MEAN)
     ADD_COMPILE_DEFINITIONS(_HAS_STD_BYTE=0)
 ELSE()
-    ADD_LINK_OPTIONS(-lfltk -lXrender -lXcursor -lXfixes -lXft -lfontconfig -lXinerama -pthread -lpthread -ldl -lm -lX11 -ljpeg)
-
     ADD_COMPILE_OPTIONS(-fcoroutines)
     ADD_COMPILE_OPTIONS(-fno-strict-aliasing)
     ADD_COMPILE_OPTIONS(-Wall -Wfatal-errors -Wextra -Wunused -Werror)
@@ -139,7 +137,7 @@ FUNCTION(FLTK_PARSE_FL_FILE ARG_HPP ARG_CPP)
 
         ADD_CUSTOM_COMMAND(OUTPUT ${T_OUT_HPP} ${T_OUT_CPP}
             DEPENDS ${T_FL}
-            COMMAND ${MIR2X_3RD_PARTY_DIR}/fltk/install/bin/fluid -c -o ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_CPP} -h ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_HPP} ${T_FL}
+            COMMAND fluid -c -o ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_CPP} -h ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_HPP} ${T_FL}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     ENDFOREACH()
 
@@ -165,6 +163,7 @@ ENDIF()
 # include external cmake packages
 FIND_PACKAGE(OpenGL REQUIRED)
 FIND_PACKAGE(PNG    REQUIRED)
+FIND_PACKAGE(FLTK   REQUIRED)
 
 # TODO
 # appveyor says "can find make command"

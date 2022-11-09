@@ -258,7 +258,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
-    m_luaModulePtr->bindFunction("RSVD_NAME_pauseCoop", [this](int ms, sol::function onDone, uint64_t runSeqID)
+    m_luaModulePtr->bindFunction("RSVD_NAME_pauseCoop", [this](int ms, sol::function onDone, sol::function, uint64_t runSeqID)
     {
         fflassert(ms >= 0, ms);
         fflassert(runSeqID > 0, runSeqID);

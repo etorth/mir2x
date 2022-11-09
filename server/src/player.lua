@@ -5,41 +5,7 @@ function postString(msg, ...)
     postRawString(msg:format(...))
 end
 
-function pause(ms)
-    assertType(ms, 'integer')
-    assert(ms >= 0)
-
-    local done = nil
-    local function onDone()
-        done = true
-    end
-
-    RSVD_NAME_pauseCoop(ms, onDone, getTLSTable().runSeqID)
-
-    if done == nil then
-        coroutine.yield()
-    end
-end
-
-function randomMove()
-    local done = nil
-    local function onOK()
-        done = true
-    end
-
-    local function onError()
-        done = false
-    end
-
-    RSVD_NAME_randomMoveCoop(onOK, onError, getTLSTable().runSeqID)
-
-    if done == nil then
-        coroutine.yield()
-    end
-    return done
-end
-
-function spaceMove(mapID, x, y)
+function call_RSVD_NAME_funcCoop(funcName, ...)
     local done = nil
     local function onOK()
         done = true
@@ -73,15 +39,36 @@ function spaceMove(mapID, x, y)
         -- transparent logic same as onOK
     end
 
-    RSVD_NAME_spaceMoveCoop(mapID, x, y, onOK, onError, getTLSTable().runSeqID)
+    local args = {...}
 
-    -- onOK/onError can get ran immedately in RSVD_NAME_requestSpaceMove
+    table.insert(args, onOK)
+    table.insert(args, onError)
+    table.insert(args, getTLSTable().runSeqID)
+
+    _G[string.format('RSVD_NAME_%sCoop', funcName)](table.unpack(args))
+
+    -- onOK/onError can get ran immedately in RSVD_NAME_funcCoop
     -- in this situation we shall not yield
 
     if done == nil then
         coroutine.yield()
     end
+
     return done
+end
+
+function pause(ms)
+    assertType(ms, 'integer')
+    assert(ms >= 0)
+    return call_RSVD_NAME_funcCoop('pause', ms)
+end
+
+function randomMove()
+    return call_RSVD_NAME_funcCoop('randomMove')
+end
+
+function spaceMove(mapID, x, y)
+    return call_RSVD_NAME_funcCoop('spaceMove', mapID, x, y)
 end
 
 function RSVD_NAME_coth_runner(code)
