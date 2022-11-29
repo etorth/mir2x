@@ -60,7 +60,10 @@ end
 function pause(ms)
     assertType(ms, 'integer')
     assert(ms >= 0)
-    return call_RSVD_NAME_funcCoop('pause', ms)
+
+    local oldTime = getTime()
+    RSVD_NAME_pauseYielding(ms, getTLSTable().runSeqID)
+    return getTime() - oldTime
 end
 
 function randomMove()

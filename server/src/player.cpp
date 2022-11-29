@@ -257,18 +257,14 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
-    m_luaModulePtr->bindFunction("RSVD_NAME_pauseCoop", [this](int ms, sol::function onOK, sol::function, uint64_t runSeqID)
+    m_luaModulePtr->bindYielding("RSVD_NAME_pauseYielding", [this](int ms, uint64_t runSeqID)
     {
         fflassert(ms >= 0, ms);
         fflassert(runSeqID > 0, runSeqID);
         {
-            const CallDoneFlag doneFlag;
-            addDelay(ms, [doneFlag, onOK, runSeqID, this]()
+            addDelay(ms, [runSeqID, this]()
             {
-                onOK();
-                if(doneFlag){
-                    resumeCORunner(runSeqID);
-                }
+                resumeCORunner(runSeqID);
             });
         }
     });
