@@ -139,9 +139,9 @@ LuaModule::LuaModule()
         return to_d(timer.diff_msec());
     });
 
-    bindFunction("getNanoTstamp", []() -> std::string
+    bindFunction("getNanoTstamp", []() -> uint64_t
     {
-        return std::to_string(hres_tstamp().to_nsec());
+        return hres_tstamp().to_nsec();
     });
 
     bindFunction("getAbsTime", []() -> int
