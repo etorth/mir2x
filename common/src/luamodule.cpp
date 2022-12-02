@@ -134,9 +134,9 @@ LuaModule::LuaModule()
         addLogString(1, u8"Invalid argument: addLogString(?, \"?\")");
     });
 
-    bindFunction("getTime", [timer = hres_timer()]() -> int
+    bindFunction("getTime", [timer = hres_timer()]() -> double
     {
-        return to_d(timer.diff_msec());
+        return timer.diff_msecf();
     });
 
     bindFunction("getNanoTstamp", []() -> uint64_t
