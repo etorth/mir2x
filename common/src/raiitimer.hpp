@@ -39,9 +39,9 @@ class hres_tstamp
         }
 
     public:
-        float to_secf() const
+        double to_secf() const
         {
-            return static_cast<float>(to_nsec()) / 1000000000.0f;
+            return static_cast<double>(to_nsec()) / 1000000000.0;
         }
 };
 
@@ -67,31 +67,20 @@ class hres_timer
             return hres_tstamp().to_nsec() - m_start.to_nsec();
         }
 
+        double diff_nsecf() const
+        {
+            return static_cast<double>(diff_nsec());
+        }
+
     public:
         uint64_t diff_usec() const { return diff_nsec() / 1000ULL; }
         uint64_t diff_msec() const { return diff_nsec() / 1000000ULL; }
         uint64_t diff_sec () const { return diff_nsec() / 1000000000ULL; }
 
     public:
-        float diff_nsecf() const
-        {
-            return static_cast<float>(diff_nsec());
-        }
-
-        float diff_usecf() const
-        {
-            return static_cast<float>(diff_nsec()) / 1000.0f;
-        }
-
-        float diff_msecf() const
-        {
-            return static_cast<float>(diff_nsec()) / 1000000.0f;
-        }
-
-        float diff_secf() const
-        {
-            return static_cast<float>(diff_nsec()) / 1000000000.0f;
-        }
+        double diff_usecf() const { return diff_nsecf() / 1000.0; }
+        double diff_msecf() const { return diff_nsecf() / 1000000.0; }
+        double diff_secf () const { return diff_nsecf() / 1000000000.0; }
 
     public:
         const auto &origin() const

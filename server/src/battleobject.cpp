@@ -65,7 +65,7 @@ BattleObject::BattleObject(
     m_lastActionTime.fill(0);
     m_stateTrigger.install([ptimer = std::make_shared<hres_timer>(), this]() mutable -> bool
     {
-        if(hasActorPod() && (ptimer->diff_secf() >= 1.0f)){
+        if(hasActorPod() && (ptimer->diff_secf() >= 1.0)){
             updateHealth(m_sdHealth.getHPRecover(), m_sdHealth.getMPRecover());
             ptimer->reset();
         }
