@@ -1,137 +1,31 @@
 #pragma once
-#include <set>
-#include <unordered_set>
-#include <map>
-#include <unordered_map>
-#include <list>
-#include <vector>
-#include <deque>
-#include <sstream>
 #include <cstring>
+#include <string>
 #include <stdexcept>
 #include "strf.hpp"
 
 #define fflerror(...) std::runtime_error(str_ffl() + ": " + str_printf(__VA_ARGS__))
 
-inline std::string _ffl_bad_value_type_helper(const char *s)
-{
-    if(!s){
-        return "(null)";
-    }
-    else if(!s[0]){
-        return "(empty)";
-    }
-    else{
-        return str_printf("\"%s\"", s);
-    }
-}
-
-inline std::string _ffl_bad_value_type_helper(const char8_t *s)
-{
-    return _ffl_bad_value_type_helper((const char *)(s));
-}
-
-inline std::string _ffl_bad_value_type_helper(const std::string &s)
-{
-    return _ffl_bad_value_type_helper(s.c_str());
-}
-
-inline std::string _ffl_bad_value_type_helper(const std::u8string &s)
-{
-    return _ffl_bad_value_type_helper((const char *)(s.c_str()));
-}
-
-inline std::string _ffl_bad_value_type_helper(const std::string_view &s)
-{
-    return _ffl_bad_value_type_helper(std::string(s.data(), s.size()));
-}
-
-inline std::string _ffl_bad_value_type_helper(const std::u8string_view &s)
-{
-    return _ffl_bad_value_type_helper(std::u8string(s.data(), s.size()));
-}
-
-inline std::string _ffl_bad_value_type_helper(char ch)
-{
-    if(ch == '\0'){
-        return "\'\\0\'";
-    }
-    else{
-        return str_printf("\'%c\'", ch);
-    }
-}
-
-inline std::string _ffl_bad_value_type_helper(bool b)
-{
-    return b ? "true" : "false";
-}
-
-
-template<typename T> std::string _ffl_bad_value_type_helper(const std::set<T> &);
-template<typename T> std::string _ffl_bad_value_type_helper(const std::unordered_set<T> &);
-
-template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::map<K, V> &);
-template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::unordered_map<K, V> &);
-
-template<typename T> std::string _ffl_bad_value_type_helper(const std::list<T> &);
-template<typename T> std::string _ffl_bad_value_type_helper(const std::deque<T> &);
-template<typename T> std::string _ffl_bad_value_type_helper(const std::vector<T> &);
-template<typename U, typename V> std::string _ffl_bad_value_type_helper(const std::pair<U, V> &);
-
-
-template<typename T> std::string _ffl_bad_value_type_helper(const T &t)
-{
-    return dynamic_cast<const std::stringstream &>(std::stringstream() << t).str();
-}
-
-#define _ffl_bad_value_container_type_macro_helper(c) \
-{ \
-    std::string result = "{"; \
-    for(const auto &item_in_c: c){ \
-        if(result.size() > 1){ \
-            result += ","; \
-        } \
-        result += _ffl_bad_value_type_helper(item_in_c); \
-    } \
-    return result + "}"; \
-}
-
-template<typename T> std::string _ffl_bad_value_type_helper(const std::set<T> &s)           _ffl_bad_value_container_type_macro_helper(s)
-template<typename T> std::string _ffl_bad_value_type_helper(const std::unordered_set<T> &s) _ffl_bad_value_container_type_macro_helper(s)
-
-template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::map<K, V> &m)           _ffl_bad_value_container_type_macro_helper(m)
-template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::unordered_map<K, V> &m) _ffl_bad_value_container_type_macro_helper(m)
-
-template<typename T> std::string _ffl_bad_value_type_helper(const std::list<T> &l)   _ffl_bad_value_container_type_macro_helper(l)
-template<typename T> std::string _ffl_bad_value_type_helper(const std::deque<T> &q)  _ffl_bad_value_container_type_macro_helper(q)
-template<typename T> std::string _ffl_bad_value_type_helper(const std::vector<T> &v) _ffl_bad_value_container_type_macro_helper(v)
-#undef _ffl_bad_value_container_type_macro_helper
-
-template<typename K, typename V> std::string _ffl_bad_value_type_helper(const std::pair<K, V> &p)
-{
-    return std::string("{") + _ffl_bad_value_type_helper(p.first) + "," + _ffl_bad_value_type_helper(p.second) + "}";
-}
-
-inline std::string _ffl_bad_value_helper(size_t index)
+inline std::string _fflerror_helper(size_t index)
 {
     return str_printf("[%zu]: NA", index);
 }
 
-template<typename T> std::string _ffl_bad_value_helper(size_t index, const T & t)
+template<typename T> std::string _fflerror_helper(size_t index, const T & t)
 {
-    return str_printf("[%zu]: %s", index, _ffl_bad_value_type_helper(t).c_str());
+    return str_printf("[%zu]: %s", index, str_any(t).c_str());
 }
 
-template<typename T, typename ... Args> std::string _ffl_bad_value_helper(size_t index, const T & t, Args && ... args)
+template<typename T, typename ... Args> std::string _fflerror_helper(size_t index, const T & t, Args && ... args)
 {
-    return _ffl_bad_value_helper(index, t) + ", " + _ffl_bad_value_helper(index + 1, std::forward<Args>(args)...);
+    return _fflerror_helper(index, t) + ", " + _fflerror_helper(index + 1, std::forward<Args>(args)...);
 }
 
-template<typename ... Args> constexpr size_t _ffl_va_count_helper(Args && ...)
+template<typename ... Args> constexpr size_t _fflerror_count_helper(Args && ...)
 {
     return sizeof...(Args);
 }
 
 #define fflreach() fflerror("fflreach")
-#define fflvalue(...) fflerror("%s", _ffl_bad_value_helper(0, __VA_ARGS__).c_str())
-#define fflassert(cond, ...) do{if(cond){}else{throw fflerror("assertion failed: %s%s", #cond, (_ffl_va_count_helper(__VA_ARGS__) == 0) ? "" : (std::string(", ") + _ffl_bad_value_helper(0, ##__VA_ARGS__)).c_str());}}while(0)
+#define fflvalue(...) fflerror("%s", _fflerror_helper(0, __VA_ARGS__).c_str())
+#define fflassert(cond, ...) do{if(cond){}else{throw fflerror("assertion failed: %s%s", #cond, (_fflerror_count_helper(__VA_ARGS__) == 0) ? "" : (std::string(", ") + _fflerror_helper(0, ##__VA_ARGS__)).c_str());}}while(0)

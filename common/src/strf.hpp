@@ -71,9 +71,17 @@
 // compiler and and call it from C++
 
 #pragma once
+#include <set>
+#include <map>
+#include <unordered_set>
+#include <unordered_map>
+#include <list>
+#include <vector>
+#include <deque>
 #include <string>
 #include <cstdarg>
 #include <concepts>
+#include <sstream>
 #include <algorithm>
 #include <filesystem>
 
@@ -159,6 +167,119 @@ template<std::integral T> [[nodiscard]] std::string str_ksep(T t, char sep = ','
         throw std::runtime_error(str_printf("call str_vprintf(%s) failed", (const char *)(format)));\
     }\
 }while(0)\
+
+inline std::string str_any(const char *s)
+{
+    if(!s){
+        return "(null)";
+    }
+    else if(!s[0]){
+        return "(empty)";
+    }
+    else{
+        return str_printf("\"%s\"", s);
+    }
+}
+
+inline std::string str_any(const char8_t *s)
+{
+    return str_any((const char *)(s));
+}
+
+inline std::string str_any(const std::string &s)
+{
+    return str_any(s.c_str());
+}
+
+inline std::string str_any(const std::u8string &s)
+{
+    return str_any((const char *)(s.c_str()));
+}
+
+inline std::string str_any(const std::string_view &s)
+{
+    return str_any(std::string(s.data(), s.size()));
+}
+
+inline std::string str_any(const std::u8string_view &s)
+{
+    return str_any(std::u8string(s.data(), s.size()));
+}
+
+inline std::string str_any(char ch)
+{
+    if(ch == '\0'){
+        return "\'\\0\'";
+    }
+    else{
+        return str_printf("\'%c\'", ch);
+    }
+}
+
+inline std::string str_any(bool b)
+{
+    return b ? "true" : "false";
+}
+
+template<typename T> std::string str_any(const std::set<T> &);
+template<typename T> std::string str_any(const std::unordered_set<T> &);
+
+template<typename K, typename V> std::string str_any(const std::map<K, V> &);
+template<typename K, typename V> std::string str_any(const std::unordered_map<K, V> &);
+
+template<typename T> std::string str_any(const std::list<T> &);
+template<typename T> std::string str_any(const std::deque<T> &);
+template<typename T> std::string str_any(const std::vector<T> &);
+template<typename U, typename V> std::string str_any(const std::pair<U, V> &);
+
+template<typename T> std::string str_any(const T &t)
+{
+    std::stringstream ss;
+    return dynamic_cast<std::stringstream &>(ss << t).str();
+}
+
+#define _str_any_container_helper(c) \
+{ \
+    std::string result = "{"; \
+    for(const auto &item_in_c: c){ \
+        if(result.size() > 1){ \
+            result += ","; \
+        } \
+        result += str_any(item_in_c); \
+    } \
+    return result + "}"; \
+}
+
+template<typename T> std::string str_any(const std::set<T> &s)           _str_any_container_helper(s)
+template<typename T> std::string str_any(const std::unordered_set<T> &s) _str_any_container_helper(s)
+
+template<typename K, typename V> std::string str_any(const std::map<K, V> &m)           _str_any_container_helper(m)
+template<typename K, typename V> std::string str_any(const std::unordered_map<K, V> &m) _str_any_container_helper(m)
+
+template<typename T> std::string str_any(const std::list<T> &l)   _str_any_container_helper(l)
+template<typename T> std::string str_any(const std::deque<T> &q)  _str_any_container_helper(q)
+template<typename T> std::string str_any(const std::vector<T> &v) _str_any_container_helper(v)
+#undef _str_any_container_helper
+
+template<typename K, typename V> std::string str_any(const std::pair<K, V> &p)
+{
+    return std::string("{") + str_any(p.first) + "," + str_any(p.second) + "}";
+}
+
+template<std::size_t I, typename... T> inline typename std::enable_if<I == sizeof...(T), std::string>::type _str_any_tuple_helper(const std::tuple<T...> &)
+{
+    return {};
+}
+
+template<std::size_t I, typename... T> inline typename std::enable_if<I <  sizeof...(T), std::string>::type _str_any_tuple_helper(const std::tuple<T...> &t)
+{
+    return std::string((I == 0) ? "" : ",") + str_any(std::get<I>(t)) + _str_any_tuple_helper<I + 1>(t);
+}
+
+template<typename... T> std::string str_any(const std::tuple<T...> &t)
+{
+    return "{" + _str_any_tuple_helper<0>(t) + "}";
+}
 
 // copy from boost
 // definition of BOOST_CURRENT_FUNCTION
