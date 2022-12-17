@@ -82,6 +82,7 @@
 #include <cstdarg>
 #include <concepts>
 #include <sstream>
+#include <iomanip>
 #include <algorithm>
 #include <filesystem>
 
@@ -106,6 +107,13 @@ bool str_haschar(const std::u8string &);
 
 bool str_haschar(const std::string_view &);
 bool str_haschar(const std::u8string_view &);
+
+template<typename T> str_quoted(const T &s)
+{
+    std::stringstream ss;
+    ss << std::quoted(s);
+    return ss.str();
+}
 
 template<std::integral T> [[nodiscard]] std::string str_ksep(T t, char sep = ',')
 {
