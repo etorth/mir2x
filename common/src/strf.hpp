@@ -108,7 +108,7 @@ bool str_haschar(const std::u8string &);
 bool str_haschar(const std::string_view &);
 bool str_haschar(const std::u8string_view &);
 
-template<typename T> str_quoted(const T &s)
+template<typename T> std::string str_quoted(const T &s)
 {
     std::stringstream ss;
     ss << std::quoted(s);
