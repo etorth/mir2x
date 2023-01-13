@@ -261,6 +261,6 @@ SDL_Texture *MiniMapBoard::getMiniMapTexture() const
 
 void MiniMapBoard::flipMiniMapShow()
 {
-    flipShow(this);
+    flipShow();
     setPLoc();
 }

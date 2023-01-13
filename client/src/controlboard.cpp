@@ -107,7 +107,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("QuickAccessBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -275,7 +275,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -306,7 +306,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("PlayerStateBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -337,7 +337,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("SkillBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -368,7 +368,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -399,7 +399,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -430,7 +430,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -461,7 +461,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -492,7 +492,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("RuntimeConfigBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 
@@ -523,7 +523,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = m_processRun->getWidget("InventoryBoard")){
-                  flipShow(p);
+                  p->flipShow();
               }
           },
 

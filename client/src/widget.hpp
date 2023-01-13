@@ -268,6 +268,11 @@ class Widget
             return m_show;
         }
 
+        void flipShow()
+        {
+            show(!show());
+        }
+
     public:
         void active(bool activeFlag)
         {
@@ -400,12 +405,4 @@ inline bool focusConsume(Widget *widgetPtr, bool setFocus)
 
     widgetPtr->focus(setFocus);
     return setFocus;
-}
-
-inline void flipShow(Widget *widgetPtr)
-{
-    if(!widgetPtr){
-        throw fflerror("invalid widget pointer: (null)");
-    }
-    widgetPtr->show(!widgetPtr->show());
 }
