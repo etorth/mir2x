@@ -61,7 +61,7 @@ void SkillBoard::SkillBoardConfig::setMagicKey(uint32_t magicID, std::optional<c
 }
 
 SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMagicID, SkillBoardConfig *configPtr, ProcessRun *proc, Widget *widgetPtr, bool autoDelete)
-    : WidgetGroup
+    : WidgetContainer
       {
           DIR_UPLEFT,
           argX,
@@ -133,7 +133,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMag
 void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
     if(const auto levelOpt = m_config->getMagicLevel(magicID()); levelOpt.has_value()){
-        WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
+        WidgetContainer::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 
         const LabelBoard magicLevel
         {
@@ -173,7 +173,7 @@ void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY,
 }
 
 SkillBoard::SkillPage::SkillPage(uint32_t pageImage, SkillBoardConfig *configPtr, ProcessRun *proc, Widget *widgetPtr, bool autoDelete)
-    : WidgetGroup
+    : WidgetContainer
       {
           DIR_UPLEFT,
           SkillBoard::getPageRectange().at(0),
@@ -230,7 +230,7 @@ void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int s
             g_sdlDevice->drawTexture(texPtr, dstXCrop, dstYCrop, srcXCrop, srcYCrop, srcWCrop, srcHCrop);
         }
     }
-    WidgetGroup::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
+    WidgetContainer::drawEx(dstX, dstY, srcX, srcY, srcW, srcH);
 }
 
 SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)

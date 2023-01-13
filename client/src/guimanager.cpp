@@ -6,7 +6,7 @@
 extern SDLDevice *g_sdlDevice;
 
 GUIManager::GUIManager(ProcessRun *proc)
-    : WidgetGroup
+    : WidgetContainer
       {
           DIR_UPLEFT,
           0,
@@ -107,12 +107,12 @@ void GUIManager::drawEx(int, int, int, int, int, int) const
     m_purchaseBoard.draw();
 
     const auto [w, h] = g_sdlDevice->getRendererSize();
-    WidgetGroup::drawEx(0, 0, 0, 0, w, h);
+    WidgetContainer::drawEx(0, 0, 0, 0, w, h);
 }
 
 void GUIManager::update(double fUpdateTime)
 {
-    WidgetGroup  ::update(fUpdateTime);
+    WidgetContainer  ::update(fUpdateTime);
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
 }
@@ -146,7 +146,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
     }
 
     bool tookEvent = false;
-    tookEvent |= WidgetGroup  ::processEvent(event, valid && !tookEvent);
+    tookEvent |= WidgetContainer  ::processEvent(event, valid && !tookEvent);
     tookEvent |= m_controlBoard.processEvent(event, valid && !tookEvent);
     tookEvent |= m_NPCChatBoard.processEvent(event, valid && !tookEvent);
     tookEvent |= m_miniMapBoard.processEvent(event, valid && !tookEvent);

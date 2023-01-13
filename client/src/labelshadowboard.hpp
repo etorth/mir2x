@@ -2,7 +2,7 @@
 #include "widget.hpp"
 #include "labelboard.hpp"
 
-class LabelShadowBoard: public WidgetGroup
+class LabelShadowBoard: public WidgetContainer
 {
     private:
         LabelBoard m_label;
@@ -23,7 +23,7 @@ class LabelShadowBoard: public WidgetGroup
                 uint32_t       fontShadowColor = colorf::BLACK + colorf::A_SHF(128),
                 Widget        *widgetPtr       = nullptr,
                 bool           autoDelete      = false)
-            : WidgetGroup
+            : WidgetContainer
               {
                   dir,
                   x,

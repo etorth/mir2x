@@ -92,7 +92,7 @@ bool LevelBox::processEvent(const SDL_Event &event, bool valid)
 
 void LevelBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
-    class DrawHelper: public WidgetGroup
+    class DrawHelper: public WidgetContainer
     {
         private:
             LabelBoard m_label;
@@ -100,7 +100,7 @@ void LevelBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH
 
         public:
             DrawHelper(int argX, int argY, int argW, int argH, uint32_t color, uint32_t level)
-                : WidgetGroup
+                : WidgetContainer
                   {
                       DIR_UPLEFT,
                       argX,

@@ -303,14 +303,14 @@ class Widget
 // simple *tiling* widget group
 // this class won't handle widget overlapping
 
-// when to use Widget, when to use WidgetGroup:
+// when to use Widget, when to use WidgetContainer:
 // when you are implement a widget from scratch, define how to draw every element, then use Widget
-// if your widget is a composition of other widgets, has many child widgets inside, then you should use WidgetGroup
+// if your widget is a composition of other widgets, has many child widgets inside, then you should use WidgetContainer
 
-class WidgetGroup: public Widget
+class WidgetContainer: public Widget
 {
     public:
-        WidgetGroup(dir8_t dir, int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
+        WidgetContainer(dir8_t dir, int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
             : Widget(dir, x, y, w, h, parent, autoDelete)
         {}
 
@@ -318,7 +318,7 @@ class WidgetGroup: public Widget
         bool processEvent(const SDL_Event &event, bool valid) override
         {
             // this function alters the draw order
-            // if a WidgetGroup has children having overlapping then be careful
+            // if a WidgetContainer has children having overlapping then be careful
 
             if(!show()){
                 return false;

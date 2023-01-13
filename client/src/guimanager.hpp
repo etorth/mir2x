@@ -13,7 +13,7 @@
 #include "secureditemlistboard.hpp"
 
 class ProcessRun;
-class GUIManager: public WidgetGroup
+class GUIManager: public WidgetContainer
 {
     private:
         ProcessRun *m_processRun;

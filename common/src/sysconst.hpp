@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include <cstddef>
 #include <type_traits>
 
 #ifdef MIR2X_DEBUG_MODE
