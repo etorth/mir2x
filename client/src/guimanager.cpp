@@ -112,7 +112,7 @@ void GUIManager::drawEx(int, int, int, int, int, int) const
 
 void GUIManager::update(double fUpdateTime)
 {
-    WidgetContainer  ::update(fUpdateTime);
+    WidgetContainer::update(fUpdateTime);
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
 }
@@ -146,7 +146,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
     }
 
     bool tookEvent = false;
-    tookEvent |= WidgetContainer  ::processEvent(event, valid && !tookEvent);
+    tookEvent |= WidgetContainer::processEvent(event, valid && !tookEvent);
     tookEvent |= m_controlBoard.processEvent(event, valid && !tookEvent);
     tookEvent |= m_NPCChatBoard.processEvent(event, valid && !tookEvent);
     tookEvent |= m_miniMapBoard.processEvent(event, valid && !tookEvent);
