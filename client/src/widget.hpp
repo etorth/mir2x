@@ -393,6 +393,26 @@ class WidgetContainer: public Widget
                 p->child->drawEx(dstXCrop, dstYCrop, srcXCrop - p->child->dx(), srcYCrop - p->child->dy(), srcWCrop, srcHCrop);
             }
         }
+
+    private:
+        template<typename F> std::optional<std::pair<int, int>> getVarRange(const F &f) const
+        {
+            if(m_childList.empty()){
+                return {};
+            }
+
+            const auto pr = std::minmax_element(m_childList.begin(), m_childList.end(), [&f](const auto &x, const auto &y)
+            {
+                return f(x) < f(y);
+            });
+
+            return std::make_pair(f(*pr.first), f(*pr.second));
+        }
+
+    public:
+        std::optional<std::pair<int, int>> dxRange() const { return getVarRange([](const auto &node) { return node.child->dx(); }); }
+        std::optional<std::pair<int, int>> dyRange() const { return getVarRange([](const auto &node) { return node.child->dy(); }); }
+        std::optional<std::pair<int, int>> dzRange() const { return getVarRange([](const auto &node) { return node.child->dz(); }); }
 };
 
 // focus helper
