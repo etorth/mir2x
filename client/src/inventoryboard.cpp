@@ -305,9 +305,9 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
                     moveBy(newX - x(), newY - y());
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
@@ -358,9 +358,9 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                                         m_invOpCost = -1;
                                     }
                                 }
-                                return focusConsume(this, true);
+                                return consumeFocus(true);
                             }
-                            return focusConsume(this, false);
+                            return consumeFocus(false);
                         }
                     case SDL_BUTTON_RIGHT:
                         {
@@ -369,13 +369,13 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                                     const auto &packBin = invPackRef.getPackBinList().at(selectedPackIndex);
                                     packBinConsume(packBin);
                                 }
-                                return focusConsume(this, true);
+                                return consumeFocus(true);
                             }
-                            return focusConsume(this, false);
+                            return consumeFocus(false);
                         }
                     default:
                         {
-                            return focusConsume(this, false);
+                            return consumeFocus(false);
                         }
                 }
             }
@@ -387,13 +387,13 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                     if(rowCount > SYS_INVGRIDGH){
                         m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (rowCount - SYS_INVGRIDGH), false);
                     }
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
                 return false;
             }
         default:
             {
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
     }
 }

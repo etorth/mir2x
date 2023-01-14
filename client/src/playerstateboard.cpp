@@ -347,11 +347,11 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
 bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(!show()){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(m_closeButton.processEvent(event, valid)){
@@ -369,9 +369,9 @@ bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
                     moveBy(newX - x(), newY - y());
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
@@ -397,17 +397,17 @@ bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
                                     break;
                                 }
                             }
-                            return focusConsume(this, in(event.button.x, event.button.y));
+                            return consumeFocus(in(event.button.x, event.button.y));
                         }
                     default:
                         {
-                            return focusConsume(this, false);
+                            return consumeFocus(false);
                         }
                 }
             }
         default:
             {
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
     }
 }

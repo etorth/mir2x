@@ -271,6 +271,28 @@ class Widget
             return m_focus;
         }
 
+        // focus helper
+        // we have tons of code like:
+        //
+        //     if(...){
+        //         p->focus(true);  // get focus
+        //         return true;     // since the event changes focus, then event is consumed
+        //     }
+        //     else{
+        //         p->focus(false); // event doesn't help to move focus to the widget
+        //         return false;    // not consumed, try next widget
+        //     }
+        //
+        // this function helps to simplify the code to:
+        //
+        //     return p->consumeFocus(...)
+
+        bool consumeFocus(bool focusArg)
+        {
+            focus(focusArg);
+            return focusArg;
+        }
+
     public:
         void show(bool showFlag)
         {
@@ -414,29 +436,3 @@ class WidgetContainer: public Widget
         std::optional<std::pair<int, int>> dyRange() const { return getVarRange([](const auto &node) { return node.child->dy(); }); }
         std::optional<std::pair<int, int>> dzRange() const { return getVarRange([](const auto &node) { return node.child->dz(); }); }
 };
-
-// focus helper
-// we have tons of code like:
-//
-//     if(...){
-//         focus(true);     // get focus
-//         return false;    // since the event changes focus, then event is consumed
-//     }
-//     else{
-//         focus(false);    // event doesn't help to move focus to the widget
-//         return false;    // not consumed, try next widget
-//     }
-//
-// this function helps to simplify the code to:
-//
-//     return focusConsume(this, ...)
-//
-inline bool focusConsume(Widget *widgetPtr, bool setFocus)
-{
-    if(!widgetPtr){
-        throw fflerror("invalid widget pointer: (null)");
-    }
-
-    widgetPtr->focus(setFocus);
-    return setFocus;
-}

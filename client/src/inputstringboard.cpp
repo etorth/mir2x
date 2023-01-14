@@ -168,11 +168,11 @@ void InputStringBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 bool InputStringBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(!show()){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(m_input.processEvent(event, valid)){

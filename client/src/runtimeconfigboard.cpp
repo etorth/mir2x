@@ -217,11 +217,11 @@ void RuntimeConfigBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(!show()){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     for(auto widgetPtr:
@@ -232,21 +232,21 @@ bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
         static_cast<Widget *>(&m_soundEffectSwitch),
     }){
         if(widgetPtr->processEvent(event, valid)){
-            return focusConsume(this, true);
+            return consumeFocus(true);
         }
     }
 
     if(m_musicSwitch.getValue() && m_musicSlider.processEvent(event, valid)){
-        return focusConsume(this, true);
+        return consumeFocus(true);
     }
 
     if(m_soundEffectSwitch.getValue() && m_soundEffectSlider.processEvent(event, valid)){
-        return focusConsume(this, true);
+        return consumeFocus(true);
     }
 
     for(const auto &[infoText, buttonPtr]: m_switchList){
         if(buttonPtr->processEvent(event, valid)){
-            return focusConsume(this, true);
+            return consumeFocus(true);
         }
     }
 
@@ -255,9 +255,9 @@ bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
             {
                 if(event.key.keysym.sym == SDLK_ESCAPE){
                     show(false);
-                    return focusConsume(this, false);
+                    return consumeFocus(false);
                 }
-                return focusConsume(this, true);
+                return consumeFocus(true);
             }
         case SDL_MOUSEMOTION:
             {
@@ -269,18 +269,18 @@ bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
                     moveBy(newX - x(), newY - y());
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             {
-                return focusConsume(this, in(event.button.x, event.button.y));
+                return consumeFocus(in(event.button.x, event.button.y));
             }
         default:
             {
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
     }
 }

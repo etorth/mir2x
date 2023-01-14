@@ -156,11 +156,11 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
 bool ItemListBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(!show()){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(m_leftButton.processEvent(event, valid)){

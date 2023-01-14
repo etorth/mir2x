@@ -114,7 +114,7 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(!show()){
@@ -136,9 +136,9 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
                     moveBy(newX - x(), newY - y());
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
@@ -168,10 +168,10 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
                             }
 
                             if(in(event.button.x, event.button.y)){
-                                return focusConsume(this, true);
+                                return consumeFocus(true);
                             }
                             else{
-                                return focusConsume(this, false);
+                                return consumeFocus(false);
                             }
                         }
                     case SDL_BUTTON_RIGHT:
@@ -185,15 +185,15 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
                             }
 
                             if(in(event.button.x, event.button.y)){
-                                return focusConsume(this, true);
+                                return consumeFocus(true);
                             }
                             else{
-                                return focusConsume(this, false);
+                                return consumeFocus(false);
                             }
                         }
                     default:
                         {
-                            return focusConsume(this, false);
+                            return consumeFocus(false);
                         }
                 }
             }
@@ -203,9 +203,9 @@ bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
                     if(const auto ch = SDLDeviceHelper::getKeyChar(event, false); ch >= '1' && ch <= '6'){
                         gridConsume(ch - '1');
                     }
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
         default:
             {

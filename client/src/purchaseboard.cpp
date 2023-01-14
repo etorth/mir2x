@@ -379,11 +379,11 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(!show()){
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(m_closeButton.processEvent(event, valid)){

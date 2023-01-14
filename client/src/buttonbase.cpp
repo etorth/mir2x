@@ -14,14 +14,14 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
             setState(BEVENT_OFF);
             onOverOut();
         }
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     if(!m_active){
         if(getState() != BEVENT_OFF){
             setState(BEVENT_OFF);
         }
-        return focusConsume(this, false);
+        return consumeFocus(false);
     }
 
     switch(event.type){
@@ -48,14 +48,14 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                                 break;
                             }
                     }
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
                 else{
                     if(getState() != BEVENT_OFF){
                         setState(BEVENT_OFF);
                         onOverOut();
                     }
-                    return focusConsume(this, false);
+                    return consumeFocus(false);
                 }
             }
         case SDL_MOUSEBUTTONDOWN:
@@ -81,14 +81,14 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                                 break;
                             }
                     }
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
                 else{
                     if(getState() != BEVENT_OFF){
                         setState(BEVENT_OFF);
                         onOverOut();
                     }
-                    return focusConsume(this, false);
+                    return consumeFocus(false);
                 }
             }
         case SDL_MOUSEMOTION:
@@ -118,19 +118,19 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                                 break;
                             }
                     }
-                    return focusConsume(this, true);
+                    return consumeFocus(true);
                 }
                 else{
                     if(getState() != BEVENT_OFF){
                         setState(BEVENT_OFF);
                         onOverOut();
                     }
-                    return focusConsume(this, false);
+                    return consumeFocus(false);
                 }
             }
         default:
             {
-                return focusConsume(this, false);
+                return consumeFocus(false);
             }
     }
 }
