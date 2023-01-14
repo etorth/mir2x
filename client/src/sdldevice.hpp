@@ -86,8 +86,8 @@ namespace SDLDeviceHelper
 
     struct SDLEventPLoc final
     {
-        const int x = -1;
-        const int y = -1;
+        const int x = 0;
+        const int y = 0;
     };
 
     char getKeyChar(const SDL_Event &, bool);

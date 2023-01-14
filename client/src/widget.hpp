@@ -356,6 +356,13 @@ class WidgetContainer: public Widget
         {}
 
     public:
+        virtual bool processUnhandledEvent(const SDL_Event &, bool valid)
+        {
+            // event not consumed by any child widget
+            return valid;
+        }
+
+    public:
         bool processEvent(const SDL_Event &event, bool valid) override
         {
             // this function alters the draw order
