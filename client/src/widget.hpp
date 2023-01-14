@@ -42,6 +42,9 @@ class Widget
         int m_h;
 
     protected:
+        int m_dz = 0;
+
+    protected:
         std::list<WidgetChildNode> m_childList;
 
     public:
@@ -220,6 +223,17 @@ class Widget
             }
         }
 
+        int w() const
+        {
+            return m_w;
+        }
+
+        int h() const
+        {
+            return m_h;
+        }
+
+    public:
         int dx() const
         {
             return x() - (m_parent ? m_parent->x() : 0);
@@ -230,14 +244,14 @@ class Widget
             return y() - (m_parent ? m_parent->y() : 0);
         }
 
-        int w() const
+        int dz() const
         {
-            return m_w;
+            return m_dz;
         }
 
-        int h() const
+        void dz(int dzArg)
         {
-            return m_h;
+            m_dz = dzArg;
         }
 
     public:
