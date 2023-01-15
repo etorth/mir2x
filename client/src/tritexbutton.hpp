@@ -29,10 +29,11 @@ class TritexButton: public ButtonBase
                 int offXOnClick = 0,
                 int offYOnClick = 0,
 
-                bool    onClickDone = true,
-                bool    alterColor  = true,
-                Widget *widgetPtr   = nullptr,
-                bool    autoDelete  = false)
+                bool onClickDone = true,
+                bool alterColor  = true,
+
+                Widget *widgetPtr  = nullptr,
+                bool    autoDelete = false)
             : ButtonBase
               {
                   argDir,
