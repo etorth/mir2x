@@ -249,9 +249,9 @@ class Widget
         }
 
     public:
-        void focus(bool focusFlag)
+        void focus(bool argFocus)
         {
-            m_focus = focusFlag;
+            m_focus = argFocus;
         }
 
         bool focus() const
@@ -282,9 +282,9 @@ class Widget
         }
 
     public:
-        void show(bool showFlag)
+        void show(bool argShow)
         {
-            m_show = showFlag;
+            m_show = argShow;
         }
 
         bool show() const
@@ -298,9 +298,9 @@ class Widget
         }
 
     public:
-        void active(bool activeFlag)
+        void active(bool argActive)
         {
-            m_active = activeFlag;
+            m_active = argActive;
         }
 
         bool active() const
