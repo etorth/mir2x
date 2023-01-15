@@ -16,6 +16,9 @@
 // are 26 cells of one object slice at most, then design data structure for object
 // rendering method based on this information
 
+constexpr int MAX_WINDOW_W = 800;
+constexpr int MAX_WINDOW_H = 600;
+
 constexpr double SYS_PI = 3.14159265359;
 constexpr int SYS_DEFFPS = 10;
 
