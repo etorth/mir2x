@@ -359,13 +359,14 @@ class WidgetContainer: public Widget
         {}
 
     private:
-        void sortChildWidgetByZVlue(std::vector<const Widget *> &childWidgetList) const
+        template<typename F> void sortChildWidgetByZVlue(std::vector<const Widget *> &childWidgetList, F f) const
         {
-            childWidgetList.resize(m_childList.size());
-            std::transform(m_childList.begin(), m_childList.end(), childWidgetList.begin(), [](const auto &node)
-            {
-                return node.child;
-            });
+            childWidgetList.reserve(m_childList.size());
+            for(const auto [child, autoDelete]: m_childList){
+                if(f(child)){
+                    childWidgetList.push_back(child);
+                }
+            }
 
             std::sort(childWidgetList.begin(), childWidgetList.end(), [](const auto &lhs, const auto &rhs)
             {
