@@ -332,6 +332,22 @@ class Widget
             m_x = x.value_or(m_x);
             m_y = y.value_or(m_y);
         }
+
+    public:
+        void setSize(int argW, int argH)
+        {
+            fflassert(argW >= 0, argW, argH);
+            fflassert(argH >= 0, argW, argH);
+
+            m_w = argW;
+            m_h = argH;
+        }
+
+        template<typename T> void setSize(const T &t)
+        {
+            const auto [argW, argH] = t;
+            setSize(argW, argH);
+        }
 };
 
 // simple *tiling* widget group
