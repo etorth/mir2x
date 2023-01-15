@@ -12,6 +12,7 @@
 #include "rawbuf.hpp"
 #include "colorf.hpp"
 #include "xmlconf.hpp"
+#include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
@@ -623,10 +624,10 @@ void SDLDevice::createMainWindow()
         }
     }();
 
-    m_window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, winFlag);
+    m_window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H, winFlag);
     fflassert(m_window);
 
-    SDL_SetWindowMinimumSize(m_window, 800, 600);
+    SDL_SetWindowMinimumSize(m_window, SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H);
     m_renderer = SDL_CreateRenderer(m_window, -1, 0);
 
     if(!m_renderer){
