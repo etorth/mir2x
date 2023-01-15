@@ -69,7 +69,7 @@ class Widget
         }
 
     public:
-        virtual void draw() const
+        void draw() const
         {
             if(show()){
                 drawEx(x(), y(), 0, 0, w(), h());
