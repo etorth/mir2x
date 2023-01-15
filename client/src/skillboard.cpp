@@ -396,7 +396,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           nullptr,
           [this]()
           {
-              show(false);
+              setShow(false);
           },
 
           0,
@@ -410,7 +410,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
       }
     , m_processRun(runPtr)
 {
-    show(false);
+    setShow(false);
     if(auto texPtr = g_progUseDB->retrieve(0X05000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }

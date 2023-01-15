@@ -42,8 +42,8 @@ ProcessLogin::ProcessLogin()
 
           [this]()
           {
-              m_idBox      .focus(false);
-              m_passwordBox.focus(true);
+              m_idBox      .setFocus(false);
+              m_passwordBox.setFocus(true);
           },
           [this]()
           {
@@ -69,8 +69,8 @@ ProcessLogin::ProcessLogin()
 
           [this]()
           {
-              m_idBox      .focus(true);
-              m_passwordBox.focus(false);
+              m_idBox      .setFocus(true);
+              m_passwordBox.setFocus(false);
           },
           [this]()
           {
@@ -155,8 +155,8 @@ void ProcessLogin::processEvent(const SDL_Event &event)
                                     && !m_idBox      .focus()
                                     && !m_passwordBox.focus()){
 
-                                m_idBox      .focus(true);
-                                m_passwordBox.focus(false);
+                                m_idBox      .setFocus(true);
+                                m_passwordBox.setFocus(false);
                                 return;
                             }
                         }

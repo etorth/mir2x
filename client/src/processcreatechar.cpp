@@ -217,12 +217,12 @@ void ProcessCreateChar::onExit()
 
 void ProcessCreateChar::setGUIActive(bool active)
 {
-    m_warrior .active(active);
-    m_wizard  .active(active);
-    m_taoist  .active(active);
-    m_submit  .active(active);
-    m_exit    .active(active);
-    m_nameLine.active(active);
+    m_warrior .setActive(active);
+    m_wizard  .setActive(active);
+    m_taoist  .setActive(active);
+    m_submit  .setActive(active);
+    m_exit    .setActive(active);
+    m_nameLine.setActive(active);
 }
 
 void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const

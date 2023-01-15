@@ -40,7 +40,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
           nullptr,
           [this]()
           {
-              show(false);
+              setShow(false);
           },
 
           0,
@@ -58,7 +58,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
         throw fflerror("no valid quick access board texture: texID = %llu", to_llu(m_texID));
     }
 
-    show(false);
+    setShow(false);
     std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 }
 

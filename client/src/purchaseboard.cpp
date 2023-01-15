@@ -40,7 +40,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           nullptr,
           [this]()
           {
-              show(false);
+              setShow(false);
               setExtendedItemID(0);
           },
 
@@ -317,7 +317,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
       }
     , m_processRun(runPtr)
 {
-    show(false);
+    setShow(false);
     if(auto texPtr = g_progUseDB->retrieve(0X08000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
@@ -426,7 +426,7 @@ bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
 
                 if(m_selectExt2Button.processEvent(event, valid)){
                     if(m_processRun->getWidget("InputStringBoard")->focus()){
-                        focus(false);
+                        setFocus(false);
                     }
                     return false;
                 }

@@ -43,7 +43,7 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
           [this]()
           {
               inputLineDone();
-              show(false);
+              setShow(false);
           },
 
           this,
@@ -67,7 +67,7 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
           [this]()
           {
               inputLineDone();
-              show(false);
+              setShow(false);
           },
 
           0,
@@ -97,7 +97,7 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
           nullptr,
           [this]()
           {
-              show(false);
+              setShow(false);
               m_input.clear();
           },
 
@@ -112,7 +112,7 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
           false,
       }
 {
-    show(false);
+    setShow(false);
     if(auto texPtr = g_progUseDB->retrieve(0X07000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
@@ -196,7 +196,7 @@ void InputStringBoard::inputLineDone()
     const std::string realInput = (inputPos == std::string::npos) ? "" : fullInput.substr(inputPos);
 
     m_input.clear();
-    m_input.focus(false);
+    m_input.setFocus(false);
 
     if(m_onDone){
         m_onDone(to_u8cstr(realInput));
@@ -209,6 +209,6 @@ void InputStringBoard::waitInput(std::u8string layoutString, std::function<void(
     m_onDone = std::move(onDone);
 
     clear();
-    show(true);
-    focus(true);
+    setShow(true);
+    setFocus(true);
 }

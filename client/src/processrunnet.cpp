@@ -541,7 +541,7 @@ void ProcessRun::net_STARTINVOP(const uint8_t *buf, size_t size)
     fflassert(size > 0);
     auto invBoardPtr = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"));
 
-    invBoardPtr->show(true);
+    invBoardPtr->setShow(true);
     invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getRendererWidth() - 1, 0);
     invBoardPtr->startInvOp(cerealf::deserialize<SDStartInvOp>(buf, size));
 }
@@ -571,8 +571,8 @@ void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
     auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
 
     npcChatBoardPtr->loadXML(sdNPCXMLL.npcUID, sdNPCXMLL.xmlLayout.c_str());
-    npcChatBoardPtr->show(true);
-    purchaseBoardPtr->show(false);
+    npcChatBoardPtr->setShow(true);
+    purchaseBoardPtr->setShow(false);
 }
 
 void ProcessRun::net_NPCSELL(const uint8_t *buf, size_t bufSize)
@@ -589,7 +589,7 @@ void ProcessRun::net_NPCSELL(const uint8_t *buf, size_t bufSize)
     }
 
     purchaseBoardPtr->loadSell(sdNPCS.npcUID, std::move(sdNPCS.itemList));
-    purchaseBoardPtr->show(true);
+    purchaseBoardPtr->setShow(true);
 }
 
 void ProcessRun::net_TEXT(const uint8_t *buf, size_t bufSize)
@@ -829,9 +829,9 @@ void ProcessRun::net_SHOWSECUREDITEMLIST(const uint8_t *buf, size_t bufSize)
     }
 
     itemBoardPtr->setItemList(std::move(cerealf::deserialize<SDShowSecuredItemList>(buf, bufSize).itemList));
-    itemBoardPtr->show(true);
+    itemBoardPtr->setShow(true);
 
     auto invBoardPtr = dynamic_cast<InventoryBoard *>(getWidget("InventoryBoard"));
-    invBoardPtr->show(true);
+    invBoardPtr->setShow(true);
     invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getRendererWidth() - 1, 0);
 }

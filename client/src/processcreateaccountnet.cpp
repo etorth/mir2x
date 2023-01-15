@@ -5,9 +5,9 @@
 void ProcessCreateAccount::net_CREATEACCOUNTOK(const uint8_t *, size_t)
 {
     setInfoStr(u8"注册成功", 2);
-    m_boxID.focus(false);
-    m_boxPwd.focus(false);
-    m_boxPwdConfirm.focus(false);
+    m_boxID.setFocus(false);
+    m_boxPwd.setFocus(false);
+    m_boxPwdConfirm.setFocus(false);
 }
 
 void ProcessCreateAccount::net_CREATEACCOUNTERROR(const uint8_t *buf, size_t)
@@ -19,9 +19,9 @@ void ProcessCreateAccount::net_CREATEACCOUNTERROR(const uint8_t *buf, size_t)
                 setInfoStr(u8"账号已存在", 2);
                 clearInput();
 
-                m_boxID.focus(true);
-                m_boxPwd.focus(false);
-                m_boxPwdConfirm.focus(false);
+                m_boxID.setFocus(true);
+                m_boxPwd.setFocus(false);
+                m_boxPwdConfirm.setFocus(false);
                 return;
             }
         case CRTACCERR_BADACCOUNT:
@@ -29,9 +29,9 @@ void ProcessCreateAccount::net_CREATEACCOUNTERROR(const uint8_t *buf, size_t)
                 setInfoStr(u8"无效的账号", 2);
                 clearInput();
 
-                m_boxID.focus(true);
-                m_boxPwd.focus(false);
-                m_boxPwdConfirm.focus(false);
+                m_boxID.setFocus(true);
+                m_boxPwd.setFocus(false);
+                m_boxPwdConfirm.setFocus(false);
                 return;
             }
         case CRTACCERR_BADPASSWORD:
@@ -39,9 +39,9 @@ void ProcessCreateAccount::net_CREATEACCOUNTERROR(const uint8_t *buf, size_t)
                 setInfoStr(u8"无效的密码", 2);
                 clearInput();
 
-                m_boxID.focus(true);
-                m_boxPwd.focus(false);
-                m_boxPwdConfirm.focus(false);
+                m_boxID.setFocus(true);
+                m_boxPwd.setFocus(false);
+                m_boxPwdConfirm.setFocus(false);
                 return;
             }
         default:

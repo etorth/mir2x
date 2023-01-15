@@ -130,7 +130,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           [this]()
           {
               onClose();
-              show(false);
+              setShow(false);
           },
 
           0,
@@ -144,7 +144,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           false,
       }
 {
-    show(false);
+    setShow(false);
     if(auto texPtr = g_progUseDB->retrieve(0X08000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }

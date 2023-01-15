@@ -26,7 +26,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           nullptr,
           [this]()
           {
-              show(false);
+              setShow(false);
           },
 
           0,
@@ -140,7 +140,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
     m_musicSlider.setValue(1.0f, false);
     m_soundEffectSlider.setValue(1.0f, false);
 
-    show(false);
+    setShow(false);
     auto texPtr = g_progUseDB->retrieve(0X0000001B);
 
     fflassert(texPtr);
@@ -254,7 +254,7 @@ bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_KEYDOWN:
             {
                 if(event.key.keysym.sym == SDLK_ESCAPE){
-                    show(false);
+                    setShow(false);
                     return consumeFocus(false);
                 }
                 return consumeFocus(true);

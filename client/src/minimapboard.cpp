@@ -106,7 +106,7 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           this,
       }
 {
-    show(false);
+    setShow(false);
 }
 
 void MiniMapBoard::drawEx(int, int, int, int, int, int) const

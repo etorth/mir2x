@@ -38,10 +38,10 @@ ProcessChangePassword::ProcessChangePassword()
 
           [this]()
           {
-              m_boxID           .focus(false);
-              m_boxPwd          .focus(true );
-              m_boxNewPwd       .focus(true );
-              m_boxNewPwdConfirm.focus(false);
+              m_boxID           .setFocus(false);
+              m_boxPwd          .setFocus(true );
+              m_boxNewPwd       .setFocus(true );
+              m_boxNewPwdConfirm.setFocus(false);
           },
           [this]()
           {
@@ -67,10 +67,10 @@ ProcessChangePassword::ProcessChangePassword()
 
           [this]()
           {
-              m_boxID           .focus(false);
-              m_boxPwd          .focus(false);
-              m_boxNewPwd       .focus(false);
-              m_boxNewPwdConfirm.focus(true );
+              m_boxID           .setFocus(false);
+              m_boxPwd          .setFocus(false);
+              m_boxNewPwd       .setFocus(false);
+              m_boxNewPwdConfirm.setFocus(true );
           },
           [this]()
           {
@@ -96,10 +96,10 @@ ProcessChangePassword::ProcessChangePassword()
 
           [this]()
           {
-              m_boxID           .focus(true );
-              m_boxPwd          .focus(false);
-              m_boxNewPwd       .focus(false);
-              m_boxNewPwdConfirm.focus(false);
+              m_boxID           .setFocus(true );
+              m_boxPwd          .setFocus(false);
+              m_boxNewPwd       .setFocus(false);
+              m_boxNewPwdConfirm.setFocus(false);
           },
           [this]()
           {
@@ -125,10 +125,10 @@ ProcessChangePassword::ProcessChangePassword()
 
           [this]()
           {
-              m_boxID           .focus(true );
-              m_boxPwd          .focus(false);
-              m_boxNewPwd       .focus(false);
-              m_boxNewPwdConfirm.focus(false);
+              m_boxID           .setFocus(true );
+              m_boxPwd          .setFocus(false);
+              m_boxNewPwd       .setFocus(false);
+              m_boxNewPwdConfirm.setFocus(false);
           },
           [this]()
           {
@@ -215,10 +215,10 @@ ProcessChangePassword::ProcessChangePassword()
           colorf::YELLOW + colorf::A_SHF(255)
       }
 {
-    m_boxID.focus(true);
-    m_boxPwd.focus(false);
-    m_boxNewPwd.focus(false);
-    m_boxNewPwdConfirm.focus(false);
+    m_boxID.setFocus(true);
+    m_boxPwd.setFocus(false);
+    m_boxNewPwd.setFocus(false);
+    m_boxNewPwdConfirm.setFocus(false);
 }
 
 void ProcessChangePassword::update(double fUpdateTime)
@@ -302,7 +302,7 @@ void ProcessChangePassword::processEvent(const SDL_Event &event)
                             for(size_t i = 0; i < std::extent_v<decltype(boxPtrList)>; ++i){
                                 if(boxPtrList[i]->focus()){
                                     for(size_t j = 0; j < std::extent_v<decltype(boxPtrList)>; ++j){
-                                        boxPtrList[j]->focus(j == ((i + 1) % std::extent_v<decltype(boxPtrList)>));
+                                        boxPtrList[j]->setFocus(j == ((i + 1) % std::extent_v<decltype(boxPtrList)>));
                                     }
                                     break;
                                 }

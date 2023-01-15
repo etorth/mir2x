@@ -249,7 +249,7 @@ class Widget
         }
 
     public:
-        void focus(bool argFocus)
+        void setFocus(bool argFocus)
         {
             m_focus = argFocus;
         }
@@ -275,14 +275,14 @@ class Widget
         //
         //     return p->consumeFocus(...)
 
-        bool consumeFocus(bool focusArg)
+        bool consumeFocus(bool argFocus)
         {
-            focus(focusArg);
-            return focusArg;
+            setFocus(argFocus);
+            return argFocus;
         }
 
     public:
-        void show(bool argShow)
+        void setShow(bool argShow)
         {
             m_show = argShow;
         }
@@ -294,11 +294,11 @@ class Widget
 
         void flipShow()
         {
-            show(!show());
+            setShow(!m_show);
         }
 
     public:
-        void active(bool argActive)
+        void setActive(bool argActive)
         {
             m_active = argActive;
         }
@@ -306,6 +306,11 @@ class Widget
         bool active() const
         {
             return m_active;
+        }
+
+        void flipActive()
+        {
+            setActive(!m_active);
         }
 
     public:

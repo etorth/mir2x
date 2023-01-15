@@ -1102,8 +1102,7 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
                 switch(event.key.keysym.sym){
                     case SDLK_RETURN:
                         {
-                            m_cmdLine.focus(true);
-                            return true;
+                            return m_cmdLine.consumeFocus(true);
                         }
                     default:
                         {
@@ -1128,7 +1127,7 @@ void ControlBoard::inputLineDone()
     const std::string realInput = (inputPos == std::string::npos) ? "" : fullInput.substr(inputPos);
 
     m_cmdLine.clear();
-    m_cmdLine.focus(false);
+    m_cmdLine.setFocus(false);
 
     if(realInput.empty()){
         return;

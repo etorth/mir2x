@@ -79,7 +79,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           nullptr,
           [this]()
           {
-              show(false);
+              setShow(false);
               m_sdInvOp.clear();
           },
 
@@ -129,7 +129,7 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
 
     , m_processRun(pRun)
 {
-    show(false);
+    setShow(false);
     auto texPtr = g_progUseDB->retrieve(0X0000001B);
     if(!texPtr){
         throw fflerror("no valid inventory frame texture");
@@ -267,8 +267,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        focus(false);
-        return false;
+        return consumeFocus(false);
     }
 
     if(!show()){

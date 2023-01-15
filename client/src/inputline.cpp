@@ -64,7 +64,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                         }
                     case SDLK_ESCAPE:
                         {
-                            focus(false);
+                            setFocus(false);
                             return true;
                         }
                     default:
@@ -82,8 +82,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(!in(event.button.x, event.button.y)){
-                    focus(false);
-                    return false;
+                    return consumeFocus(false);
                 }
 
                 const int eventX = event.button.x - x();
@@ -97,8 +96,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                 m_cursor = cursorX;
                 m_cursorBlink = 0.0;
 
-                focus(true);
-                return true;
+                return consumeFocus(true);
             }
         default:
             {

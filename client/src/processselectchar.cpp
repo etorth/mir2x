@@ -47,9 +47,9 @@ ProcessSelectChar::ProcessSelectChar()
           true,
       }
 {
-    m_start .active(false);
-    m_create.active(false);
-    m_delete.active(false);
+    m_start .setActive(false);
+    m_create.setActive(false);
+    m_delete.setActive(false);
     m_notifyBoard.addLog(u8"正在下载游戏角色");
     g_client->send(CM_QUERYCHAR);
     g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040002));
@@ -147,7 +147,7 @@ void ProcessSelectChar::onCreate()
 void ProcessSelectChar::onDelete()
 {
     if(hasChar()){
-        m_deleteInput.show(true);
+        m_deleteInput.setShow(true);
         m_deleteInput.waitInput(u8"<layout><par>删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。</par></layout>", [this](std::u8string inputString)
         {
             CMDeleteChar cmDC;
@@ -159,7 +159,7 @@ void ProcessSelectChar::onDelete()
                 cmDC.password.assign(inputString);
                 g_client->send(CM_DELETECHAR, cmDC);
             }
-            m_deleteInput.show(false);
+            m_deleteInput.setShow(false);
         });
     }
     else{
@@ -390,7 +390,7 @@ void ProcessSelectChar::switchCharGfx()
 
 void ProcessSelectChar::updateGUIActive()
 {
-    m_start .active( hasChar());
-    m_create.active(!hasChar());
-    m_delete.active( hasChar());
+    m_start .setActive( hasChar());
+    m_create.setActive(!hasChar());
+    m_delete.setActive( hasChar());
 }

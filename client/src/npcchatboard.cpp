@@ -60,7 +60,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           nullptr,
           [this]()
           {
-              show(false);
+              setShow(false);
               m_process->sendNPCEvent(m_NPCUID, SYS_NPCDONE);
           },
 
@@ -93,7 +93,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
     fnAssertImage(0X00000052, 386,  20);
     fnAssertImage(0X00000053, 386,  44);
     fnAssertImage(0X00000054, 386,  44);
-    show(false);
+    setShow(false);
 }
 
 void NPCChatBoard::drawWithNPCFace() const
@@ -187,7 +187,7 @@ void NPCChatBoard::onClickEvent(const char *id, const char *arg)
     }
 
     if(std::string_view(id).ends_with(SYS_NPCDONE)){
-        show(false);
+        setShow(false);
     }
 }
 

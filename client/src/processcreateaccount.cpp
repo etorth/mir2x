@@ -36,9 +36,9 @@ ProcessCreateAccount::ProcessCreateAccount()
 
           [this]()
           {
-              m_boxID        .focus(false);
-              m_boxPwd       .focus(true );
-              m_boxPwdConfirm.focus(false);
+              m_boxID        .setFocus(false);
+              m_boxPwd       .setFocus(true );
+              m_boxPwdConfirm.setFocus(false);
           },
           [this]()
           {
@@ -64,9 +64,9 @@ ProcessCreateAccount::ProcessCreateAccount()
 
           [this]()
           {
-              m_boxID        .focus(false);
-              m_boxPwd       .focus(false);
-              m_boxPwdConfirm.focus(true );
+              m_boxID        .setFocus(false);
+              m_boxPwd       .setFocus(false);
+              m_boxPwdConfirm.setFocus(true );
           },
           [this]()
           {
@@ -92,9 +92,9 @@ ProcessCreateAccount::ProcessCreateAccount()
 
           [this]()
           {
-              m_boxID        .focus(true );
-              m_boxPwd       .focus(false);
-              m_boxPwdConfirm.focus(false);
+              m_boxID        .setFocus(true );
+              m_boxPwd       .setFocus(false);
+              m_boxPwdConfirm.setFocus(false);
           },
           [this]()
           {
@@ -180,9 +180,9 @@ ProcessCreateAccount::ProcessCreateAccount()
           colorf::YELLOW + colorf::A_SHF(255)
       }
 {
-    m_boxID.focus(true);
-    m_boxPwd.focus(false);
-    m_boxPwdConfirm.focus(false);
+    m_boxID.setFocus(true);
+    m_boxPwd.setFocus(false);
+    m_boxPwdConfirm.setFocus(false);
 }
 
 void ProcessCreateAccount::update(double fUpdateTime)
@@ -262,7 +262,7 @@ void ProcessCreateAccount::processEvent(const SDL_Event &event)
                             for(size_t i = 0; i < std::extent_v<decltype(boxPtrList)>; ++i){
                                 if(boxPtrList[i]->focus()){
                                     for(size_t j = 0; j < std::extent_v<decltype(boxPtrList)>; ++j){
-                                        boxPtrList[j]->focus(j == ((i + 1) % std::extent_v<decltype(boxPtrList)>));
+                                        boxPtrList[j]->setFocus(j == ((i + 1) % std::extent_v<decltype(boxPtrList)>));
                                     }
                                     break;
                                 }

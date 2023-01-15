@@ -96,7 +96,7 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
           nullptr,
           [this]()
           {
-              show(false);
+              setShow(false);
           },
 
           0,
@@ -111,7 +111,7 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
       }
     , m_processRun(runPtr)
 {
-    show(false);
+    setShow(false);
     if(auto texPtr = g_progUseDB->retrieve(0X06000000)){
         std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
     }
