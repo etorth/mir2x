@@ -350,16 +350,37 @@ class Widget
 
 class WidgetContainer: public Widget
 {
+    private:
+        mutable std::vector<const Widget *> m_childWidgetPtrList;
+
     public:
         WidgetContainer(dir8_t dir, int x, int y, int w, int h, Widget *parent = nullptr, bool autoDelete = false)
             : Widget(dir, x, y, w, h, parent, autoDelete)
         {}
 
-    public:
-        virtual bool processUnhandledEvent(const SDL_Event &, bool valid)
+    private:
+        void sortChildWidgetByZVlue(std::vector<const Widget *> &childWidgetList) const
         {
-            // event not consumed by any child widget
-            return valid;
+            childWidgetList.resize(m_childList.size());
+            std::transform(m_childList.begin(), m_childList.end(), childWidgetList.begin(), [](const auto &node)
+            {
+                return node.child;
+            });
+
+            std::sort(childWidgetList.begin(), childWidgetList.end(), [](const auto &lhs, const auto &rhs)
+            {
+                if(lhs->dz() != rhs->dz()){
+                    return lhs->dz() < rhs->dz();
+                }
+                return lhs < rhs;
+            });
+        }
+
+    public:
+        virtual bool processUnhandledEvent(const SDL_Event &)
+        {
+            // valid event but not consumed by any child widget
+            return false;
         }
 
     public:
