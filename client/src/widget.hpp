@@ -15,13 +15,6 @@
 
 class Widget
 {
-    private:
-        struct WidgetChildNode
-        {
-            Widget   *child = nullptr;
-            bool autoDelete = false;
-        };
-
     protected:
         Widget * const m_parent;
 
@@ -45,7 +38,7 @@ class Widget
         int m_dz = 0;
 
     protected:
-        std::list<WidgetChildNode> m_childList;
+        std::list<std::pair<Widget *, bool>> m_childList;
 
     public:
         Widget(dir8_t dir, int x, int y, int w = 0, int h = 0, Widget *parent = nullptr, bool autoDelete = false)
@@ -57,24 +50,19 @@ class Widget
             , m_h(h)
         {
             if(m_parent){
-                m_parent->m_childList.push_back(WidgetChildNode
-                {
-                    .child = this,
-                    .autoDelete = autoDelete,
-                });
+                m_parent->m_childList.emplace_back(this, autoDelete);
             }
 
-            if(!(m_w >= 0 && m_h >= 0)){
-                throw fflerror("invalid size: w = %d, h = %d", m_w, m_h);
-            }
+            fflassert(m_w >= 0, m_w, m_h);
+            fflassert(m_h >= 0, m_w, m_h);
         }
 
     public:
         virtual ~Widget()
         {
-            for(auto node: m_childList){
-                if(node.autoDelete){
-                    delete node.child;
+            for(auto &[child, autoDelete]: m_childList){
+                if(autoDelete){
+                    delete child;
                 }
             }
             m_childList.clear();
@@ -147,8 +135,8 @@ class Widget
     public:
         virtual void update(double fUpdateTime)
         {
-            for(auto &node: m_childList){
-                node.child->update(fUpdateTime);
+            for(auto &[child, autoDelete]: m_childList){
+                child->update(fUpdateTime);
             }
         }
 
@@ -163,11 +151,11 @@ class Widget
             }
 
             bool took = false;
-            for(auto &node: m_childList){
-                if(!node.child->show()){
+            for(auto &[child, autoDelete]: m_childList){
+                if(!child->show()){
                     continue;
                 }
-                took |= node.child->processEvent(event, valid && !took);
+                took |= child->processEvent(event, valid && !took);
             }
             return took;
         }
@@ -358,25 +346,6 @@ class WidgetContainer: public Widget
             : Widget(dir, x, y, w, h, parent, autoDelete)
         {}
 
-    private:
-        template<typename F> void sortChildWidgetByZVlue(std::vector<const Widget *> &childWidgetList, F f) const
-        {
-            childWidgetList.reserve(m_childList.size());
-            for(const auto [child, autoDelete]: m_childList){
-                if(f(child)){
-                    childWidgetList.push_back(child);
-                }
-            }
-
-            std::sort(childWidgetList.begin(), childWidgetList.end(), [](const auto &lhs, const auto &rhs)
-            {
-                if(lhs->dz() != rhs->dz()){
-                    return lhs->dz() < rhs->dz();
-                }
-                return lhs < rhs;
-            });
-        }
-
     public:
         virtual bool processUnhandledEvent(const SDL_Event &)
         {
@@ -398,12 +367,12 @@ class WidgetContainer: public Widget
             auto focusedNode = m_childList.end();
 
             for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
-                if(!p->child->show()){
+                if(!p->first->show()){
                     continue;
                 }
 
-                took |= p->child->processEvent(event, valid && !took);
-                if(focusedNode == m_childList.end() && p->child->focus()){
+                took |= p->first->processEvent(event, valid && !took);
+                if(focusedNode == m_childList.end() && p->first->focus()){
                     focusedNode = p;
                 }
             }
@@ -419,7 +388,7 @@ class WidgetContainer: public Widget
         void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const override
         {
             for(auto p = m_childList.rbegin(); p != m_childList.rend(); ++p){
-                if(!p->child->show()){
+                if(!p->first->show()){
                     continue;
                 }
 
@@ -438,10 +407,10 @@ class WidgetContainer: public Widget
                             w(),
                             h(),
 
-                            p->child->dx(), p->child->dy(), p->child->w(), p->child->h())){
+                            p->first->dx(), p->first->dy(), p->first->w(), p->first->h())){
                     continue;
                 }
-                p->child->drawEx(dstXCrop, dstYCrop, srcXCrop - p->child->dx(), srcYCrop - p->child->dy(), srcWCrop, srcHCrop);
+                p->first->drawEx(dstXCrop, dstYCrop, srcXCrop - p->first->dx(), srcYCrop - p->first->dy(), srcWCrop, srcHCrop);
             }
         }
 
@@ -461,7 +430,7 @@ class WidgetContainer: public Widget
         }
 
     public:
-        std::optional<std::pair<int, int>> dxRange() const { return getVarRange([](const auto &node) { return node.child->dx(); }); }
-        std::optional<std::pair<int, int>> dyRange() const { return getVarRange([](const auto &node) { return node.child->dy(); }); }
-        std::optional<std::pair<int, int>> dzRange() const { return getVarRange([](const auto &node) { return node.child->dz(); }); }
+        std::optional<std::pair<int, int>> dxRange() const { return getVarRange([](const auto &node) { return node.first->dx(); }); }
+        std::optional<std::pair<int, int>> dyRange() const { return getVarRange([](const auto &node) { return node.first->dy(); }); }
+        std::optional<std::pair<int, int>> dzRange() const { return getVarRange([](const auto &node) { return node.first->dz(); }); }
 };
