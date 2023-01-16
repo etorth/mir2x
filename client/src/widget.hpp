@@ -237,11 +237,6 @@ class Widget
             return m_dz;
         }
 
-        void dz(int dzArg)
-        {
-            m_dz = dzArg;
-        }
-
     public:
         bool in(int pixelX, int pixelY) const
         {
@@ -334,6 +329,11 @@ class Widget
         }
 
     public:
+        void setDz(int dzArg)
+        {
+            m_dz = dzArg;
+        }
+
         void setSize(int argW, int argH)
         {
             fflassert(argW >= 0, argW, argH);
