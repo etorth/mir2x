@@ -19,7 +19,12 @@ ExternalProject_Add(
     LOG_INSTALL 1
 )
 
+# can not export LIBPINYIN_VERSION from ExternalProject_Add command
+# hack by hard-coding here
+
+SET(LIBPINYIN_VERSION "2.1.0")
 SET(LIBPINYIN_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/libpinyin/build/install/include/libpinyin-${LIBPINYIN_VERSION}")
+
 IF(WIN32)
     SET(LIBPINYIN_LIBRARIES pinyin_static)
 ELSE()
