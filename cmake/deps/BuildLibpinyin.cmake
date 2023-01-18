@@ -61,4 +61,5 @@ PKG_CHECK_MODULES(LIBPINYIN REQUIRED libpinyin)
 INCLUDE_DIRECTORIES(SYSTEM ${LIBPINYIN_INCLUDE_DIRS})
 LINK_DIRECTORIES(${LIBPINYIN_LIBRARY_DIRS})
 
-ADD_DEPENDENCIES(mir2x_3rds libpinyin)
+# libpinyin build during config stage
+# so there is no dependency support, it's already valid for build stage
