@@ -395,7 +395,6 @@ SDLDevice::~SDLDevice()
         SDL_DestroyRenderer(m_renderer);
     }
 
-    SDL_StopTextInput();
     SDL_Quit();
 }
 
@@ -644,8 +643,6 @@ void SDLDevice::createMainWindow()
     if(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
         throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
     }
-
-    SDL_StartTextInput();
 }
 
 void SDLDevice::drawTextureExt(SDL_Texture *texPtr,

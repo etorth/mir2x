@@ -1,10 +1,13 @@
 #include <cmath>
 #include "mathf.hpp"
 #include "colorf.hpp"
+#include "ime.hpp"
 #include "inputline.hpp"
 #include "sdldevice.hpp"
+#include "labelboard.hpp"
 #include "clientargparser.hpp"
 
+extern IME *g_ime;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
@@ -24,56 +27,89 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                 switch(event.key.keysym.sym){
                     case SDLK_TAB:
                         {
-                            if(m_onTab){
-                                m_onTab();
+                            if(!m_imeEnabled || g_ime->empty()){
+                                if(m_onTab){
+                                    m_onTab();
+                                }
                             }
                             return true;
                         }
                     case SDLK_RETURN:
                         {
-                            if(m_onCR){
+                            if(m_imeEnabled){
+                                if(const auto result = g_ime->result(); !result.empty()){
+                                    m_tpset.insertUTF8String(m_cursor++, 0, result.c_str());
+                                    g_ime->clear();
+                                }
+                                else if(m_onCR){
+                                    m_onCR();
+                                }
+                            }
+                            else if(m_onCR){
                                 m_onCR();
                             }
                             return true;
                         }
                     case SDLK_LEFT:
                         {
-                            m_cursor = std::max<int>(0, m_cursor - 1);
-                            m_cursorBlink = 0.0;
+                            if(!m_imeEnabled || g_ime->empty()){
+                                m_cursor = std::max<int>(0, m_cursor - 1);
+                                m_cursorBlink = 0.0;
+                            }
                             return true;
                         }
                     case SDLK_RIGHT:
                         {
-                            if(m_tpset.empty()){
-                                m_cursor = 0;
+                            if(!m_imeEnabled || g_ime->empty()){
+                                if(m_tpset.empty()){
+                                    m_cursor = 0;
+                                }
+                                else{
+                                    m_cursor = std::min<int>(m_tpset.lineTokenCount(0), m_cursor + 1);
+                                }
+                                m_cursorBlink = 0.0;
                             }
-                            else{
-                                m_cursor = std::min<int>(m_tpset.lineTokenCount(0), m_cursor + 1);
-                            }
-                            m_cursorBlink = 0.0;
                             return true;
                         }
                     case SDLK_BACKSPACE:
                         {
-                            if(m_cursor > 0){
-                                m_tpset.deleteToken(m_cursor - 1, 0, 1);
-                                m_cursor--;
+                            if(m_imeEnabled && !g_ime->empty()){
+                                g_ime->backspace();
                             }
-                            m_cursorBlink = 0.0;
+                            else{
+                                if(m_cursor > 0){
+                                    m_tpset.deleteToken(m_cursor - 1, 0, 1);
+                                    m_cursor--;
+                                }
+                                m_cursorBlink = 0.0;
+                            }
                             return true;
                         }
                     case SDLK_ESCAPE:
                         {
-                            setFocus(false);
+                            if(m_imeEnabled && !g_ime->empty()){
+                                g_ime->clear();
+                            }
+                            else{
+                                setFocus(false);
+                            }
                             return true;
                         }
                     default:
                         {
                             const char keyChar = SDLDeviceHelper::getKeyChar(event, true);
-                            if(keyChar != '\0'){
-                                const char text[] {keyChar, '\0'};
-                                m_tpset.insertUTF8String(m_cursor++, 0, text);
+                            if(m_imeEnabled){
+                                if(keyChar >= 'a' && keyChar <= 'z'){
+                                    g_ime->feed(keyChar);
+                                }
                             }
+                            else{
+                                if(keyChar != '\0'){
+                                    const char text[] {keyChar, '\0'};
+                                    m_tpset.insertUTF8String(m_cursor++, 0, text);
+                                }
+                            }
+
                             m_cursorBlink = 0.0;
                             return true;
                         }
@@ -129,6 +165,33 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
 
     if(needDraw){
         m_tpset.drawEx(dstCropX, dstCropY, srcCropX - tpsetX, srcCropY - tpsetY, srcCropW, srcCropH);
+    }
+
+    if(m_imeEnabled && !g_ime->empty()){
+        int offsetY = 50;
+        LabelBoard inputString(DIR_UPLEFT, 0, 0, to_u8cstr(g_ime->result()), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
+
+        const int inputBoardW = inputString.w();
+        const int inputBoardH = inputString.h();
+
+        inputString.drawEx(0, offsetY, 0, 0, inputBoardW, inputBoardH);
+        offsetY += inputBoardH;
+
+        if(const auto candidateList = g_ime->candidateList(); !candidateList.empty()){
+            for(int index = 1; const auto &candidate: candidateList){
+                LabelBoard candidateString(DIR_UPLEFT, 0, 0, str_printf(u8"%d. %s", index++, candidate.c_str()).c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
+
+                const int candidateBoardW = candidateString.w();
+                const int candidateBoardH = candidateString.h();
+
+                candidateString.drawEx(0, offsetY, 0, 0, candidateBoardW, candidateBoardH);
+                offsetY += candidateBoardH;
+
+                if(index >= 10){
+                    break;
+                }
+            }
+        }
     }
 
     if(std::fmod(m_cursorBlink, 1000.0) > 500.0){

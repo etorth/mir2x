@@ -1,5 +1,6 @@
 #include <cstdio>
 #include "log.hpp"
+#include "ime.hpp"
 #include "client.hpp"
 #include "xmlconf.hpp"
 #include "pngtexdb.hpp"
@@ -17,6 +18,7 @@
 
 ClientArgParser *g_clientArgParser = nullptr;
 Log             *g_log             = nullptr; // log information handler, must be inited first
+IME             *g_ime             = nullptr; //
 PNGTexDB        *g_progUseDB       = nullptr; // database for all PNG texture only
 PNGTexDB        *g_itemDB          = nullptr; // database for all PNG texture only
 PNGTexDB        *g_mapDB           = nullptr;
@@ -64,6 +66,7 @@ int main(int argc, char *argv[])
     try{
         g_xmlConf         = new XMLConf();
         g_sdlDevice       = new SDLDevice();
+        g_ime             = new IME();
         g_progUseDB       = new PNGTexDB(1024);
         g_itemDB          = new PNGTexDB(1024);
         g_mapDB           = new PNGTexDB(8192);

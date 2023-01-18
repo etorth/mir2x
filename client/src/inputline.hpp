@@ -3,6 +3,7 @@
 #include "colorf.hpp"
 #include "widget.hpp"
 #include "xmltypeset.hpp"
+#include "ime.hpp"
 
 class InputLine: public Widget
 {
@@ -20,6 +21,9 @@ class InputLine: public Widget
     protected:
         std::function<void()> m_onTab;
         std::function<void()> m_onCR;
+
+    protected:
+        bool m_imeEnabled = true;
 
     public:
         InputLine(

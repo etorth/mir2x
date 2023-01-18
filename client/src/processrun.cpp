@@ -655,10 +655,6 @@ void ProcessRun::processEvent(const SDL_Event &event)
                 }
                 break;
             }
-        case SDL_TEXTEDITING:
-            {
-                break;
-            }
         default:
             {
                 break;
