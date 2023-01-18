@@ -1,36 +1,64 @@
-INCLUDE(ExternalProject)
+FUNCTION(PREBUILD_GIT_REPO_LIBPINYIN)
+    SET(LIBPINYIN_PREBUILD_CMAKELIST_CONTENT "
+        CMAKE_MINIMUM_REQUIRED(VERSION ${CMAKE_MINIMUM_REQUIRED_VERSION})
 
-ExternalProject_Add(
-    libpinyin
+        PROJECT(PREBUILD_GIT_REPO_LIBPINYIN)
+        INCLUDE(ExternalProject)
 
-    GIT_REPOSITORY "https://github.com/etorth/libpinyin.git"
-    GIT_TAG        "main"
+        ExternalProject_add(
+            libpinyin
 
-    SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/libpinyin"
-    INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/libpinyin/build"
+            GIT_REPOSITORY \"https://github.com/etorth/libpinyin.git\"
+            GIT_TAG        \"main\"
 
-    UPDATE_COMMAND ""
-    PATCH_COMMAND ""
+            SOURCE_DIR  \"${MIR2X_3RD_PARTY_DIR}/libpinyin\"
+            INSTALL_DIR \"${MIR2X_3RD_PARTY_DIR}/libpinyin/build\"
 
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${MIR2X_3RD_PARTY_DIR}/libpinyin/build/install -DBUILD_SHARED_LIBS=OFF
+            UPDATE_COMMAND \"\"
+            PATCH_COMMAND  \"\"
 
-    LOG_BUILD 1
-    LOG_CONFIGURE 1
-    LOG_INSTALL 1
-)
+            CMAKE_ARGS \"-DCMAKE_INSTALL_PREFIX=${MIR2X_3RD_PARTY_DIR}/libpinyin/build/install\" \"-DBUILD_SHARED_LIBS=OFF\"
 
-# can not export LIBPINYIN_VERSION from ExternalProject_Add command
-# hack by hard-coding here
+            LOG_BUILD 1
+            LOG_CONFIGURE 1
+            LOG_INSTALL 1
 
-SET(LIBPINYIN_VERSION "2.1.0")
-SET(LIBPINYIN_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/libpinyin/build/install/include/libpinyin-${LIBPINYIN_VERSION}")
+            CMAKE_GENERATOR          \"${CMAKE_GENERATOR}\"
+            CMAKE_GENERATOR_TOOLSET  \"${CMAKE_GENERATOR_TOOLSET}\"
+            CMAKE_GENERATOR_PLATFORM \"${CMAKE_GENERATOR_PLATFORM}\"
+            CMAKE_GENERATOR_INSTANCE \"${CMAKE_GENERATOR_INSTANCE}\"
+        )
 
-IF(WIN32)
-    SET(LIBPINYIN_LIBRARIES pinyin_static)
-ELSE()
-    SET(LIBPINYIN_LIBRARIES "${CMAKE_STATIC_LIBRARY_PREFIX}pinyin${CMAKE_STATIC_LIBRARY_SUFFIX}")
-ENDIF()
+        ADD_CUSTOM_TARGET(PREBUILD_GIT_REPO_LIBPINYIN)
+        ADD_DEPENDENCIES(PREBUILD_GIT_REPO_LIBPINYIN libpinyin)
+    ")
+
+    SET(LIBPINYIN_PREBUILD_DIR "${MIR2X_3RD_PARTY_DIR}/libpinyin_prebuild")
+
+    FILE(MAKE_DIRECTORY "${LIBPINYIN_PREBUILD_DIR}" "${LIBPINYIN_PREBUILD_DIR}/build")
+    FILE(WRITE "${LIBPINYIN_PREBUILD_DIR}/CMakeLists.txt" "${LIBPINYIN_PREBUILD_CMAKELIST_CONTENT}")
+
+    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND}
+        -G "${CMAKE_GENERATOR}"
+        -A "${CMAKE_GENERATOR_PLATFORM}"
+        -T "${CMAKE_GENERATOR_TOOLSET}"
+
+        ..
+        WORKING_DIRECTORY "${LIBPINYIN_PREBUILD_DIR}/build")
+
+    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND}
+        --build .
+        --config ${CMAKE_BUILD_TYPE}
+
+        WORKING_DIRECTORY "${LIBPINYIN_PREBUILD_DIR}/build")
+ENDFUNCTION()
+
+PREBUILD_GIT_REPO_LIBPINYIN()
+
+SET(ENV{PKG_CONFIG_PATH} ${MIR2X_3RD_PARTY_DIR}/libpinyin/build/install/lib/pkgconfig:$ENV{PKG_CONFIG_PATH})
+PKG_CHECK_MODULES(LIBPINYIN REQUIRED libpinyin)
 
 INCLUDE_DIRECTORIES(SYSTEM ${LIBPINYIN_INCLUDE_DIRS})
-LINK_DIRECTORIES(${MIR2X_3RD_PARTY_DIR}/libpinyin/build/install/lib)
+LINK_DIRECTORIES(${LIBPINYIN_LIBRARY_DIRS})
+
 ADD_DEPENDENCIES(mir2x_3rds libpinyin)
