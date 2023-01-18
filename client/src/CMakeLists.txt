@@ -36,6 +36,6 @@ ELSE()
 ENDIF()
 
 INSTALL(TARGETS client DESTINATION client)
+INSTALL(DIRECTORY ${LIBPINYIN_LIBDIR}/libpinyin DESTINATION client)
 INSTALL(DIRECTORY ${CMAKE_SOURCE_DIR}/client/bin/res DESTINATION client)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/client/bin/configuration.xml DESTINATION client)
-INSTALL(DIRECTORY ${MIR2X_3RD_PARTY_DIR}/libpinyin/build/install/share/libpinyin DESTINATION client)
