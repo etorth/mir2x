@@ -327,9 +327,9 @@ void IMEBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     //            -->| |<-- m_candidateSpace
 
     if(auto frame = g_progUseDB->retrieve(0X09000100)){
-        // tex  +-----------------------------------+
-        //      |                                   |
-        //      +-----------------------------------+ size:(338, 53)
+        // tex  +-----+-----------------------+-----+
+        //      |     |                       |     |
+        //      +-----+-----------------------+-----+ size:(338, 53)
         //      |<--->|       repeatWidth     |<--->|
         //    marginWidth                   marginWidth
         //
@@ -353,8 +353,9 @@ void IMEBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 
         int drawDoneWidth = 0;
         const auto repeat = (coveredWidth + 1) / repeatWidth;
-        for(int i = 0; i < repeat; ++i){
-            g_sdlDevice->drawTexture(frame, dstX + marginWidth + drawDoneWidth, dstY, std::max<int>(coveredWidth / repeat, coveredWidth - drawDoneWidth), h(), marginWidth, 0, repeatWidth, texH);
+
+        while(drawDoneWidth < coveredWidth){
+            g_sdlDevice->drawTexture(frame, dstX + marginWidth + drawDoneWidth, dstY, std::min<int>(coveredWidth / repeat, coveredWidth - drawDoneWidth), h(), marginWidth, 0, repeatWidth, texH);
             drawDoneWidth += coveredWidth / repeat;
         }
     }
