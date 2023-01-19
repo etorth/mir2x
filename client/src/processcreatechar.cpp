@@ -25,7 +25,7 @@ ProcessCreateChar::ProcessCreateChar()
     , m_submit (DIR_UPLEFT, 512, 549, {0X0D000010, 0X0D000011, 0X0D000012}, {SYS_U32NIL, SYS_U32NIL, 0X01020000 + 105}, nullptr, nullptr, [this](){ onSubmit(); }, 0, 0, 0, 0, true, false)
     , m_exit   (DIR_UPLEFT, 554, 549, {0X0D000020, 0X0D000021, 0X0D000022}, {SYS_U32NIL, SYS_U32NIL, 0X01020000 + 105}, nullptr, nullptr, [this](){ onExit();   }, 0, 0, 0, 0, true, false)
 
-    , m_nameLine
+    , m_nameBox
       {
           DIR_UPLEFT,
           355,
@@ -105,7 +105,7 @@ void ProcessCreateChar::draw() const
     }
 
     g_sdlDevice->fillRectangle(colorf::RGBA(  0,   0,   0, 255), 355, 520, 90, 15);
-    m_nameLine.draw();
+    m_nameBox.draw();
     g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 100), 355, 520, 90, 15);
 
     if(auto texPtr = g_progUseDB->retrieve(0X0D000001)){
@@ -141,10 +141,25 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
     tookEvent |= m_taoist   .processEvent(event, !tookEvent);
     tookEvent |= m_submit   .processEvent(event, !tookEvent);
     tookEvent |= m_exit     .processEvent(event, !tookEvent);
-    tookEvent |= m_nameLine .processEvent(event, !tookEvent);
+    tookEvent |= m_nameBox  .processEvent(event, !tookEvent);
 
     if(!tookEvent){
         switch(event.type){
+        case SDL_KEYDOWN:
+            {
+                switch(event.key.keysym.sym){
+                    case SDLK_TAB:
+                        {
+                            m_nameBox.setFocus(true);
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                break;
+            }
             case SDL_MOUSEBUTTONDOWN:
                 {
                     const auto [px, py] = SDLDeviceHelper::getMousePLoc();
@@ -205,7 +220,7 @@ void ProcessCreateChar::onSubmit()
 {
     CMCreateChar cmCC;
     std::memset(&cmCC, 0, sizeof(cmCC));
-    const auto nameStr = m_nameLine.getRawString();
+    const auto nameStr = m_nameBox.getRawString();
 
     if(nameStr.empty() || nameStr.size() >= cmCC.name.capacity()){
         m_notifyBoard.addLog(u8"无效的角色名");
@@ -226,12 +241,12 @@ void ProcessCreateChar::onExit()
 
 void ProcessCreateChar::setGUIActive(bool active)
 {
-    m_warrior .setActive(active);
-    m_wizard  .setActive(active);
-    m_taoist  .setActive(active);
-    m_submit  .setActive(active);
-    m_exit    .setActive(active);
-    m_nameLine.setActive(active);
+    m_warrior.setActive(active);
+    m_wizard .setActive(active);
+    m_taoist .setActive(active);
+    m_submit .setActive(active);
+    m_exit   .setActive(active);
+    m_nameBox.setActive(active);
 }
 
 void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const

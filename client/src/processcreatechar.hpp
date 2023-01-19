@@ -25,7 +25,7 @@ class ProcessCreateChar: public Process
         TritexButton m_exit;
 
     private:
-        InputLine m_nameLine;
+        InputLine m_nameBox;
 
     private:
         NotifyBoard m_notifyBoard;
