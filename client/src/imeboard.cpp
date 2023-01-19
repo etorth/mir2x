@@ -226,7 +226,7 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
                                     m_onCommit(m_ime.result());
                                     m_onCommit(str_printf("%c", keyChar));
                                 }
-                                m_ime.clear();
+                                dropFocus();
                             }
                             return true;
                         }
@@ -235,7 +235,8 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(!in(event.button.x, event.button.y)){
-                    return consumeFocus(false);
+                    dropFocus();
+                    return true;
                 }
 
                 const int eventX = event.button.x - x();
@@ -253,26 +254,21 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEMOTION:
             {
-                if(in(event.motion.x, event.motion.y)){
-                    if(event.motion.state & SDL_BUTTON_LMASK){
-                    }
-                }
-
-                if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
+                if(in(event.motion.x, event.motion.y) && (event.motion.state & SDL_BUTTON_LMASK)){
                     const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
 
                     const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
                     const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
+
                     moveBy(newX - x(), newY - y());
-                    return consumeFocus(true);
                 }
-                return consumeFocus(false);
+                return true;
             }
         default:
             {
-                return false;
+                return true;
             }
     }
 }
