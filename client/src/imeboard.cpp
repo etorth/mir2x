@@ -351,12 +351,18 @@ void IMEBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         g_sdlDevice->drawTexture(frame, dstX,                     dstY, marginWidth, h(),                         0, 0, marginWidth, texH);
         g_sdlDevice->drawTexture(frame, dstX + w() - marginWidth, dstY, marginWidth, h(), marginWidth + repeatWidth, 0, marginWidth, texH);
 
-        int drawDoneWidth = 0;
         const auto repeat = (coveredWidth + 1) / repeatWidth;
-
-        while(drawDoneWidth < coveredWidth){
-            g_sdlDevice->drawTexture(frame, dstX + marginWidth + drawDoneWidth, dstY, std::min<int>(coveredWidth / repeat, coveredWidth - drawDoneWidth), h(), marginWidth, 0, repeatWidth, texH);
-            drawDoneWidth += coveredWidth / repeat;
+        for(int i = 0; i < repeat; ++i){
+            const auto dstCurrWidth = [i, repeat, coveredWidth]()
+            {
+                if(i + 1 == repeat){
+                    return coveredWidth - (coveredWidth / repeat) * i;
+                }
+                else{
+                    return coveredWidth / repeat;
+                }
+            }();
+            g_sdlDevice->drawTexture(frame, dstX + marginWidth + (coveredWidth / repeat) * i, dstY, dstCurrWidth, h(), marginWidth, 0, repeatWidth, texH);
         }
     }
 
