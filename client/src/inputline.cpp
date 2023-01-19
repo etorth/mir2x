@@ -102,6 +102,9 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                                 if(keyChar >= 'a' && keyChar <= 'z'){
                                     g_ime->feed(keyChar);
                                 }
+                                else if(keyChar >= '1' && keyChar <= '9'){
+                                    g_ime->select(keyChar - '1');
+                                }
                             }
                             else{
                                 if(keyChar != '\0'){
