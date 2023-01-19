@@ -68,17 +68,30 @@ IMEBoard::IMEBoard(
 
 void IMEBoard::update(double)
 {
-    const auto currCandidateList = m_ime.candidateList();
-    if(currCandidateList == m_candidateList){
-        return;
+    // in processEvent we only post request to IME
+    // all IME changes need to be polled in update(), or we can do it by callback
+
+    // problem of callback is not by IME, it's by SDL
+    // SDL texture creation is not thread-safe, if we add callback like onCandidateListChanged, we can't allocate texture inside
+
+    if(const auto currCandidateList = m_ime.candidateList(); currCandidateList == m_candidateList){
+        if(m_ime.empty()){
+            dropFocus();
+        }
+        else if(m_ime.done()){
+            if(m_onCommit){
+                m_onCommit(m_ime.result());
+            }
+            dropFocus();
+        }
     }
+    else{
+        m_labelBoardList.clear();
+        m_candidateList = currCandidateList;
 
-    m_candidateList = currCandidateList;
-
-    m_startIndex = 0;
-    m_labelBoardList.clear();
-
-    prepareLabelBoardList();
+        m_startIndex = 0;
+        prepareLabelBoardList();
+    }
 }
 
 void IMEBoard::updateSize()
@@ -196,9 +209,6 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
                     case SDLK_BACKSPACE:
                         {
                             m_ime.backspace();
-                            if(m_ime.empty()){
-                                dropFocus();
-                            }
                             return true;
                         }
                     case SDLK_ESCAPE:
@@ -208,12 +218,6 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
                     case SDLK_SPACE:
                         {
                             m_ime.select(m_startIndex);
-                            if(m_ime.done()){
-                                if(m_onCommit){
-                                    m_onCommit(m_ime.result());
-                                }
-                                dropFocus();
-                            }
                             return true;
                         }
                     default:

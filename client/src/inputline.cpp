@@ -1,4 +1,5 @@
 #include <cmath>
+#include <utf8.h>
 #include "mathf.hpp"
 #include "colorf.hpp"
 #include "imeboard.hpp"
@@ -76,7 +77,8 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                             if(m_imeEnabled && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [this](std::string s)
                                 {
-                                    m_tpset.insertUTF8String(m_cursor++, 0, s.c_str());
+                                    m_tpset.insertUTF8String(m_cursor, 0, s.c_str());
+                                    m_cursor += utf8::distance(s.begin(), s.end());
                                 });
                             }
                             else if(keyChar != '\0'){

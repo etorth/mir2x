@@ -222,7 +222,7 @@ bool IME::done() const
 {
     const auto imePtr = asIMEPtr(m_instance);
     const std::lock_guard<std::mutex> lock(imePtr->mtx);
-    return imePtr->stk.empty() || to_uz(imePtr->stk.back().second) >= imePtr->input.size();
+    return !imePtr->stk.empty() && to_uz(imePtr->stk.back().second) >= imePtr->input.size();
 }
 
 bool IME::empty() const
