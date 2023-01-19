@@ -19,10 +19,6 @@ IMEBoard::IMEBoard(
         uint32_t fontColorHover,
         uint32_t fontColorPressed,
 
-        uint32_t fontBgColor,
-        uint32_t fontBgColorHover,
-        uint32_t fontBgColorPressed,
-
         uint32_t separatorColor,
 
         Widget *parent,
@@ -48,10 +44,6 @@ IMEBoard::IMEBoard(
     , m_fontColor(fontColor)
     , m_fontColorHover(fontColorHover)
     , m_fontColorPressed(fontColorPressed)
-
-    , m_fontBgColor(fontBgColor)
-    , m_fontBgColorHover(fontBgColorHover)
-    , m_fontBgColorPressed(fontBgColorPressed)
 
     , m_separatorColor(separatorColor)
 

@@ -20,10 +20,6 @@ class IMEBoard: public Widget
         const uint32_t m_fontColorHover;
         const uint32_t m_fontColorPressed;
 
-        const uint32_t m_fontBgColor;
-        const uint32_t m_fontBgColorHover;
-        const uint32_t m_fontBgColorPressed;
-
         const uint32_t m_separatorColor;
 
     private:
@@ -59,11 +55,7 @@ class IMEBoard: public Widget
 
                 uint32_t = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF), // fontColor
                 uint32_t = colorf::RGBA(0XFF, 0X00, 0X00, 0XFF), // fontColorHover
-                uint32_t = colorf::RGBA(0X00, 0X00, 0XFF, 0X30), // fontColorPressed
-
-                uint32_t = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF), // fontBgColor
-                uint32_t = colorf::RGBA(0XFF, 0X00, 0X00, 0XFF), // fontBgColorHover
-                uint32_t = colorf::RGBA(0X00, 0X00, 0XFF, 0X30), // fontBgColorPressed
+                uint32_t = colorf::RGBA(0X00, 0X00, 0XFF, 0XFF), // fontColorPressed
 
                 uint32_t = colorf::RGBA(0XFF, 0XFF, 0X00, 0X30), // separatorColor
 
