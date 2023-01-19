@@ -231,6 +231,21 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
                         }
                 }
             }
+        case SDL_MOUSEBUTTONUP:
+            {
+                if(event.button.button == SDL_BUTTON_LEFT){
+                    const int eventX = event.button.x - x();
+                    const int eventY = event.button.y - y();
+
+                    for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
+                        m_labelBoardList[i]->setFontColor(m_fontColor);
+                        if(m_labelBoardList[i]->in(eventX, eventY)){
+                            m_ime.select(i);
+                        }
+                    }
+                }
+                return false;
+            }
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(!in(event.button.x, event.button.y)){
