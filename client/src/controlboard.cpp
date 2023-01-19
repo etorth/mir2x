@@ -722,6 +722,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           343 + (boardW - 800),
           17,
 
+          true,
+
           1,
           12,
 

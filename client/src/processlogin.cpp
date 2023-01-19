@@ -23,7 +23,7 @@ ProcessLogin::ProcessLogin()
 	, m_button1(DIR_UPLEFT, 150, 482, {0X00000005, 0X00000006, 0X00000007}, {SYS_U32NIL, SYS_U32NIL, 0X01020000 + 105}, nullptr, nullptr, [this](){ doCreateAccount();  })
 	, m_button2(DIR_UPLEFT, 352, 482, {0X00000008, 0X00000009, 0X0000000A}, {SYS_U32NIL, SYS_U32NIL, 0X01020000 + 105}, nullptr, nullptr, [this](){ doChangePassword(); })
 	, m_button3(DIR_UPLEFT, 554, 482, {0X0000000B, 0X0000000C, 0X0000000D}, {SYS_U32NIL, SYS_U32NIL, 0X01020000 + 105}, nullptr, nullptr, [this](){ doExit();           })
-    , m_button4(DIR_UPLEFT, 600, 536, {0X0000000E, 0X0000000F, 0X00000010}, {SYS_U32NIL, SYS_U32NIL, 0X01020000 + 105}, nullptr, nullptr, [this](){ doLogin();          })
+        , m_button4(DIR_UPLEFT, 600, 536, {0X0000000E, 0X0000000F, 0X00000010}, {SYS_U32NIL, SYS_U32NIL, 0X01020000 + 105}, nullptr, nullptr, [this](){ doLogin();          })
 	, m_idBox
       {
           DIR_UPLEFT,
@@ -31,6 +31,8 @@ ProcessLogin::ProcessLogin()
           540,
           146,
           18,
+
+          false,
 
           2,
           18,

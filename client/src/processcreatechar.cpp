@@ -31,6 +31,8 @@ ProcessCreateChar::ProcessCreateChar()
           85,
           15,
 
+          true,
+
           1,
           12,
 

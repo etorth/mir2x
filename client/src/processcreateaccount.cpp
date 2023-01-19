@@ -14,17 +14,19 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 ProcessCreateAccount::ProcessCreateAccount()
-	: Process()
+    : Process()
     , m_LBID        (DIR_UPLEFT, 0, 0, u8"账号"    , 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
     , m_LBPwd       (DIR_UPLEFT, 0, 0, u8"密码"    , 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
     , m_LBPwdConfirm(DIR_UPLEFT, 0, 0, u8"确认密码", 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
-	, m_boxID
+    , m_boxID
       {
           DIR_LEFT,
           m_x + 129 + 6, // offset + start of box in gfx + offset for input char
           m_y +  85,
           186,
           28,
+
+          false,
 
           2,
           15,

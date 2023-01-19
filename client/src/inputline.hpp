@@ -8,6 +8,9 @@
 class InputLine: public Widget
 {
     protected:
+        bool m_imeEnabled = true;
+
+    protected:
         XMLTypeset m_tpset;
 
     protected:
@@ -22,16 +25,15 @@ class InputLine: public Widget
         std::function<void()> m_onTab;
         std::function<void()> m_onCR;
 
-    protected:
-        bool m_imeEnabled = true;
-
     public:
         InputLine(
-                dir8_t   dir,
-                int      x,
-                int      y,
-                int      w,
-                int      h,
+                dir8_t dir,
+                int x,
+                int y,
+                int w,
+                int h,
+
+                bool imeEnabled,
 
                 uint8_t  font      =  0,
                 uint8_t  fontSize  = 10,
@@ -41,11 +43,13 @@ class InputLine: public Widget
                 int      cursorWidth = 2,
                 uint32_t cursorColor = colorf::WHITE + colorf::A_SHF(255),
 
-                std::function<void()>  onTab      = nullptr,
-                std::function<void()>  onCR       = nullptr,
-                Widget                *widgetPtr  = nullptr,
-                bool                   autoDelete = false)
+                std::function<void()> onTab = nullptr,
+                std::function<void()> onCR  = nullptr,
+
+                Widget *widgetPtr  = nullptr,
+                bool    autoDelete = false)
             : Widget(dir, x, y, w, h, widgetPtr, autoDelete)
+            , m_imeEnabled(imeEnabled)
             , m_tpset
               {
                   0,

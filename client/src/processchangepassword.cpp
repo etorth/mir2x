@@ -20,13 +20,15 @@ ProcessChangePassword::ProcessChangePassword()
     , m_LBPwd          (DIR_UPLEFT, 0, 0, u8"密码"    , 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
     , m_LBNewPwd       (DIR_UPLEFT, 0, 0, u8"新密码"  , 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
     , m_LBNewPwdConfirm(DIR_UPLEFT, 0, 0, u8"确认密码", 1, 15, 0, colorf::WHITE + colorf::A_SHF(255))
-	, m_boxID
+    , m_boxID
       {
           DIR_LEFT,
           m_x + 129 + 6, // offset + start of box in gfx + offset for input char
           m_y +  79,
           186,
           28,
+
+          false,
 
           2,
           15,
