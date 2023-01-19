@@ -331,29 +331,31 @@ void IMEBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         //      |                                   |
         //      +-----------------------------------+ size:(338, 53)
         //      |<--->|       repeatWidth     |<--->|
-        //      marginX                      marginX
+        //    marginWidth                   marginWidth
         //
         // ime  +-----+-----+-----+-----+-----+-----+
         //      |     |  0  |  1  |  2  | ... |     |
         //      +-----+-----+-----+-----+-----+-----+ size:(w(), h())
         //      |<--->|      coveredWidth     |<--->|
-        //      marginX                       marginX
+        //    marginWidth                   marginWidth
 
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(frame);
+
+        fflassert(w() >= texW, w(), texW);
+        fflassert(h() >= texH, h(), texH);
+
         const auto repeatWidth = std::min<int>(300, texW);
+        const auto marginWidth = (texW + 1 - repeatWidth) / 2;
+        const auto coveredWidth = w() - marginWidth * 2;
 
-        const auto marginX = (texW - repeatWidth) / 2;
-        const auto coveredWidth = w() - 2 * marginX;
+        g_sdlDevice->drawTexture(frame, dstX,                     dstY, marginWidth, h(),                         0, 0, marginWidth, texH);
+        g_sdlDevice->drawTexture(frame, dstX + w() - marginWidth, dstY, marginWidth, h(), marginWidth + repeatWidth, 0, marginWidth, texH);
 
-        g_sdlDevice->drawTexture(frame, dstX,                 dstY,                     0, 0, marginX, h());
-        g_sdlDevice->drawTexture(frame, dstX + w() - marginX, dstY, marginX + repeatWidth, 0, marginX, h());
-
-        int startX = dstX + marginX;
+        int drawDoneWidth = 0;
         const auto repeat = (coveredWidth + 1) / repeatWidth;
-
         for(int i = 0; i < repeat; ++i){
-            g_sdlDevice->drawTexture(frame, startX, dstY, coveredWidth / repeat, h(), marginX, 0, repeatWidth, texH);
-            startX += coveredWidth / repeat;
+            g_sdlDevice->drawTexture(frame, dstX + marginWidth + drawDoneWidth, dstY, std::max<int>(coveredWidth / repeat, coveredWidth - drawDoneWidth), h(), marginWidth, 0, repeatWidth, texH);
+            drawDoneWidth += coveredWidth / repeat;
         }
     }
 
