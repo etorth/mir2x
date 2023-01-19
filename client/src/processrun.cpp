@@ -19,6 +19,7 @@
 #include "processrun.hpp"
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
+#include "imeboard.hpp"
 #include "notifyboard.hpp"
 #include "npcchatboard.hpp"
 #include "modalstringboard.hpp"
@@ -32,6 +33,7 @@
 
 extern Log *g_log;
 extern Client *g_client;
+extern IMEBoard *g_imeBoard;
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_sdlDevice;
@@ -63,6 +65,7 @@ ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
         },
     }));
     RegisterUserCommand();
+    g_imeBoard->dropFocus();
 }
 
 void ProcessRun::scrollMap()
@@ -191,6 +194,8 @@ void ProcessRun::update(double fUpdateTime)
         m_lastPingTick = currTick;
         g_client->send(CM_PING, CMPing{currTick});
     }
+
+    g_imeBoard->update(fUpdateTime);
 }
 
 uint64_t ProcessRun::getFocusUID(int focusType) const
@@ -495,6 +500,8 @@ void ProcessRun::draw() const
         }
     }
 
+    g_imeBoard->draw();
+
     // draw NotifyBoard
     if(false){
         const int w = std::max<int>(g_notifyBoard->pw() + 10, 160);
@@ -518,6 +525,10 @@ void ProcessRun::draw() const
 
 void ProcessRun::processEvent(const SDL_Event &event)
 {
+    if(g_imeBoard->processEvent(event, true)){
+        return;
+    }
+
     if(m_GUIManager.processEvent(event, true)){
         return;
     }
