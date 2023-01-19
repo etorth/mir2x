@@ -33,10 +33,10 @@ class IMEBoard: public Widget
         size_t m_startIndex = 0;
 
     private:
-        const size_t m_startX = 10;
+        const size_t m_startX = 12;
         const size_t m_startY = 10;
 
-        const size_t m_separatorSpace = 8;
+        const size_t m_separatorSpace = 4;
         const size_t m_candidateSpace = 5;
 
     private:

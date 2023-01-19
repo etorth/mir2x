@@ -209,7 +209,7 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
                                 if(m_onCommit){
                                     m_onCommit(m_ime.result());
                                 }
-                                m_ime.clear();
+                                dropFocus();
                             }
                             return true;
                         }
