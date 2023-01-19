@@ -261,15 +261,30 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEMOTION:
             {
-                if(in(event.motion.x, event.motion.y) && (event.motion.state & SDL_BUTTON_LMASK)){
-                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
-                    const int maxX = rendererW - w();
-                    const int maxY = rendererH - h();
+                if(in(event.motion.x, event.motion.y)){
+                    if(event.motion.state & SDL_BUTTON_LMASK){
+                        const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+                        const int maxX = rendererW - w();
+                        const int maxY = rendererH - h();
 
-                    const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
-                    const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
+                        const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
+                        const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
 
-                    moveBy(newX - x(), newY - y());
+                        moveBy(newX - x(), newY - y());
+                    }
+                    else{
+                        const int eventX = event.motion.x - x();
+                        const int eventY = event.motion.y - y();
+
+                        for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
+                            if(m_labelBoardList.at(i)->in(eventX, eventY)){
+                                m_labelBoardList.at(i)->setFontColor(m_fontColorHover);
+                            }
+                            else{
+                                m_labelBoardList.at(i)->setFontColor(m_fontColor);
+                            }
+                        }
+                    }
                 }
                 return true;
             }
