@@ -213,6 +213,20 @@ SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getMousePLoc()
     };
 }
 
+std::tuple<int, int, Uint32> SDLDeviceHelper::getMouseState()
+{
+    int mousePX = -1;
+    int mousePY = -1;
+    Uint32 mouseState = SDL_GetMouseState(&mousePX, &mousePY);
+
+    return
+    {
+        mousePX,
+        mousePY,
+        mouseState,
+    };
+}
+
 std::optional<SDLDeviceHelper::SDLEventPLoc> SDLDeviceHelper::getEventPLoc(const SDL_Event &event)
 {
     switch(event.type){
@@ -518,13 +532,13 @@ void SDLDevice::drawTexture(SDL_Texture *texPtr, int dstX, int dstY)
     }
 }
 
-void SDLDevice::drawTexture(SDL_Texture, *texPtr, dir8_t dir, int anchorX, int anchorY)
+void SDLDevice::drawTexture(SDL_Texture *texPtr, dir8_t dir, int anchorX, int anchorY)
 {
     if(texPtr){
-        const auto [dstX, dstY] = [texPtr, anchorX, anchorY]() -> std::tuple<int, int>
+        const auto [dstX, dstY] = [texPtr, dir, anchorX, anchorY]() -> std::tuple<int, int>
         {
             const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-            switch(m_dir){
+            switch(dir){
                 case DIR_UPLEFT   : return {anchorX           , anchorY           };
                 case DIR_UP       : return {anchorX - texW / 2, anchorY           };
                 case DIR_UPRIGHT  : return {anchorX - texW    , anchorY           };

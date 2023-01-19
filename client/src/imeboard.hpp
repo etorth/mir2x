@@ -1,0 +1,92 @@
+#pragma once
+#include <string>
+#include <vector>
+#include <cstdint>
+#include "colorf.hpp"
+#include "ime.hpp"
+#include "labelboard.hpp"
+
+class IMEBoard: public Widget
+{
+    private:
+        IME m_ime;
+
+    private:
+        const uint8_t m_font;
+        const uint8_t m_fontSize;
+        const uint8_t m_fontStyle;
+
+        const uint32_t m_fontColor;
+        const uint32_t m_fontColorHover;
+        const uint32_t m_fontColorPressed;
+
+        const uint32_t m_fontBgColor;
+        const uint32_t m_fontBgColorHover;
+        const uint32_t m_fontBgColorPressed;
+
+        const uint32_t m_separatorColor;
+
+    private:
+        const size_t m_fontTokenHeight;
+
+    private:
+        size_t m_startIndex = 0;
+
+    private:
+        const size_t m_startX = 10;
+        const size_t m_startY = 10;
+
+        const size_t m_separatorSpace = 8;
+        const size_t m_candidateSpace = 5;
+
+    private:
+        Widget *m_inputWidget = nullptr;
+        std::function<void(std::string)> m_onCommit;
+
+    private:
+        std::vector<std::string> m_candidateList;
+        std::vector<std::unique_ptr<LabelBoard>> m_labelBoardList;
+
+    public:
+        IMEBoard(
+                dir8_t, // dir
+                int,    // x
+                int,    // y
+
+                uint8_t =  1, // font
+                uint8_t = 12, // fontSize
+                uint8_t =  0, // fontStyle
+
+                uint32_t = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF), // fontColor
+                uint32_t = colorf::RGBA(0XFF, 0X00, 0X00, 0XFF), // fontColorHover
+                uint32_t = colorf::RGBA(0X00, 0X00, 0XFF, 0X30), // fontColorPressed
+
+                uint32_t = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF), // fontBgColor
+                uint32_t = colorf::RGBA(0XFF, 0X00, 0X00, 0XFF), // fontBgColorHover
+                uint32_t = colorf::RGBA(0X00, 0X00, 0XFF, 0X30), // fontBgColorPressed
+
+                uint32_t = colorf::RGBA(0XFF, 0XFF, 0X00, 0X30), // separatorColor
+
+                Widget * = nullptr, // parent
+                bool     = false);  // autoDelete
+
+    public:
+        void update(double) override;
+
+    public:
+        bool processEvent(const SDL_Event &, bool) override;
+
+    public:
+        void drawEx(int, int, int, int, int, int) const override;
+
+    public:
+        void gainFocus(std::string, std::string, Widget *, std::function<void(std::string)>);
+        void dropFocus();
+
+    private:
+        void updateSize();
+        void prepareLabelBoardList();
+
+    private:
+        size_t totalLabelWidth() const;
+};

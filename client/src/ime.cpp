@@ -218,6 +218,13 @@ void IME::select(size_t index)
     imePtr->cond.notify_one();
 }
 
+bool IME::done() const
+{
+    const auto imePtr = asIMEPtr(m_instance);
+    const std::lock_guard<std::mutex> lock(imePtr->mtx);
+    return imePtr->stk.empty() || to_uz(imePtr->stk.back().second) >= imePtr->input.size();
+}
+
 bool IME::empty() const
 {
     const auto imePtr = asIMEPtr(m_instance);

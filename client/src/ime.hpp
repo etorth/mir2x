@@ -27,6 +27,7 @@ class IME
         void select(size_t);
 
     public:
+        bool done() const;
         bool empty() const;
         std::string input() const;
         std::string result() const;

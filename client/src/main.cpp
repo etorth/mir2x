@@ -1,12 +1,12 @@
 #include <cstdio>
 #include "log.hpp"
-#include "ime.hpp"
 #include "client.hpp"
 #include "xmlconf.hpp"
 #include "pngtexdb.hpp"
 #include "fontexdb.hpp"
 #include "mapbindb.hpp"
 #include "emojidb.hpp"
+#include "imeboard.hpp"
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
 #include "notifyboard.hpp"
@@ -18,7 +18,6 @@
 
 ClientArgParser *g_clientArgParser = nullptr;
 Log             *g_log             = nullptr; // log information handler, must be inited first
-IME             *g_ime             = nullptr; //
 PNGTexDB        *g_progUseDB       = nullptr; // database for all PNG texture only
 PNGTexDB        *g_itemDB          = nullptr; // database for all PNG texture only
 PNGTexDB        *g_mapDB           = nullptr;
@@ -38,6 +37,7 @@ MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
 XMLConf         *g_xmlConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_sdlDevice       = nullptr; // for SDL hardware device
+IMEBoard        *g_imeBoard        = nullptr; //
 NotifyBoard     *g_notifyBoard     = nullptr;
 Client          *g_client          = nullptr; // gobal instance
 
@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
     try{
         g_xmlConf         = new XMLConf();
         g_sdlDevice       = new SDLDevice();
-        g_ime             = new IME();
         g_progUseDB       = new PNGTexDB(1024);
         g_itemDB          = new PNGTexDB(1024);
         g_mapDB           = new PNGTexDB(8192);
@@ -85,6 +84,7 @@ int main(int argc, char *argv[])
         g_bgmDB           = new BGMusicDB(5);
         g_seffDB          = new SoundEffectDB(128);
         g_client          = new Client();       // loads fontex resource
+        g_imeBoard        = new IMEBoard(DIR_UPLEFT, 0, 0);
         g_notifyBoard     = new NotifyBoard(DIR_UPLEFT, 0, 0, 10240, 0, 15, 0, colorf::RED + colorf::A_SHF(255), 0, 5);
 
         g_client->mainLoop();

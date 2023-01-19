@@ -94,6 +94,8 @@ namespace SDLDeviceHelper
     char getKeyChar(const SDL_Event &, bool);
 
     SDLEventPLoc getMousePLoc();
+    std::tuple<int, int, Uint32> getMouseState();
+
     std::optional<SDLEventPLoc> getEventPLoc(const SDL_Event &);
 
     std::tuple<int, int> getTextureSize(SDL_Texture *);
