@@ -44,6 +44,11 @@ YouTube links: [1](https://youtu.be/Yz-bGOkDyEQ) [2](https://youtu.be/jl1LPxe2EA
 <https://user-images.githubusercontent.com/1754214/162589720-7dd9453b-55e4-4119-a1ee-c879093cf017.mp4>
 
 
+An IME for SDL fullscreen mode:
+
+<https://user-images.githubusercontent.com/1754214/213572554-785e826c-226d-43fa-a196-ee4f92112db2.mp4>
+
+
 ### Windows
 
 For windows please download binaries from appveyor
