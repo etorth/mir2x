@@ -120,6 +120,9 @@ void IMEBoard::prepareLabelBoardList()
                 m_fontSize,
                 m_fontStyle,
                 m_fontColor,
+
+                this,
+                false,
             });
         }
 
