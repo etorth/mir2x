@@ -518,6 +518,28 @@ void SDLDevice::drawTexture(SDL_Texture *texPtr, int dstX, int dstY)
     }
 }
 
+void SDLDevice::drawTexture(SDL_Texture, *texPtr, dir8_t dir, int anchorX, int anchorY)
+{
+    if(texPtr){
+        const auto [dstX, dstY] = [texPtr, anchorX, anchorY]() -> std::tuple<int, int>
+        {
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+            switch(m_dir){
+                case DIR_UPLEFT   : return {anchorX           , anchorY           };
+                case DIR_UP       : return {anchorX - texW / 2, anchorY           };
+                case DIR_UPRIGHT  : return {anchorX - texW    , anchorY           };
+                case DIR_RIGHT    : return {anchorX - texW    , anchorY - texH / 2};
+                case DIR_DOWNRIGHT: return {anchorX - texW    , anchorY - texH    };
+                case DIR_DOWN     : return {anchorX - texW / 2, anchorY - texH    };
+                case DIR_DOWNLEFT : return {anchorX           , anchorY - texH    };
+                case DIR_LEFT     : return {anchorX           , anchorY - texH / 2};
+                default           : return {anchorX - texW / 2, anchorY - texH / 2};
+            }
+        }();
+        drawTexture(texPtr, dstX, dstY);
+    }
+}
+
 TTF_Font *SDLDevice::createTTF(const void *data, size_t size, uint8_t fontPtSize)
 {
     fflassert(data);

@@ -9,6 +9,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 #include "totype.hpp"
+#include "protocoldef.hpp"
 #include "fflerror.hpp"
 #include "fpsmonitor.hpp"
 #include "soundeffecthandle.hpp"
@@ -182,6 +183,9 @@ class SDLDevice final
     public:
        void setWindowIcon();
        void toggleWindowFullscreen();
+
+    public:
+       void drawTexture(SDL_Texture *, dir8_t, int, int);
 
     public:
        void drawTexture(SDL_Texture *, int, int);
