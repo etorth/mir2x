@@ -327,8 +327,34 @@ void IMEBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     //            -->| |<-- m_candidateSpace
 
     if(auto frame = g_progUseDB->retrieve(0X09000100)){
+        // tex  +-----------------------------------+
+        //      |                                   |
+        //      +-----------------------------------+ size:(338, 53)
+        //      |<--->|       repeatWidth     |<--->|
+        //      marginX                      marginX
+        //
+        // ime  +-----+-----+-----+-----+-----+-----+
+        //      |     |  0  |  1  |  2  | ... |     |
+        //      +-----+-----+-----+-----+-----+-----+ size:(w(), h())
+        //      |<--->|      coveredWidth     |<--->|
+        //      marginX                       marginX
+
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(frame);
-        g_sdlDevice->drawTexture(frame, dstX, dstY, w(), h(), 0, 0, texW, texH);
+        const auto repeatWidth = std::min<int>(300, texW);
+
+        const auto marginX = (texW - repeatWidth) / 2;
+        const auto coveredWidth = w() - 2 * marginX;
+
+        g_sdlDevice->drawTexture(frame, dstX,                 dstY,                     0, 0, marginX, h());
+        g_sdlDevice->drawTexture(frame, dstX + w() - marginX, dstY, marginX + repeatWidth, 0, marginX, h());
+
+        int startX = dstX + marginX;
+        const auto repeat = (coveredWidth + 1) / repeatWidth;
+
+        for(int i = 0; i < repeat; ++i){
+            g_sdlDevice->drawTexture(frame, startX, dstY, coveredWidth / repeat, h(), marginX, 0, repeatWidth, texH);
+            startX += coveredWidth / repeat;
+        }
     }
 
     LabelBoard(
