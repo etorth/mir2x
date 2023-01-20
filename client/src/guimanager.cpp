@@ -1,8 +1,10 @@
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
+#include "imeboard.hpp"
 #include "processrun.hpp"
 #include "guimanager.hpp"
 
+extern IMEBoard *g_imeBoard;
 extern SDLDevice *g_sdlDevice;
 
 GUIManager::GUIManager(ProcessRun *proc)
@@ -97,6 +99,7 @@ GUIManager::GUIManager(ProcessRun *proc)
       }
 {
     fflassert(m_processRun);
+    g_imeBoard->dropFocus();
 }
 
 void GUIManager::drawEx(int, int, int, int, int, int) const
@@ -108,6 +111,7 @@ void GUIManager::drawEx(int, int, int, int, int, int) const
 
     const auto [w, h] = g_sdlDevice->getRendererSize();
     WidgetContainer::drawEx(0, 0, 0, 0, w, h);
+    g_imeBoard->draw();
 }
 
 void GUIManager::update(double fUpdateTime)
@@ -115,14 +119,12 @@ void GUIManager::update(double fUpdateTime)
     WidgetContainer::update(fUpdateTime);
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
+    g_imeBoard->update(fUpdateTime);
 }
 
 bool GUIManager::processEvent(const SDL_Event &event, bool valid)
 {
-    if(!valid){
-        throw fflerror("event passed to GUIManager is not valid");
-    }
-
+    fflassert(valid);
     switch(event.type){
         case SDL_WINDOWEVENT:
             {
@@ -146,10 +148,11 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
     }
 
     bool tookEvent = false;
+    tookEvent |=      g_imeBoard->processEvent(event, valid && !tookEvent);
     tookEvent |= WidgetContainer::processEvent(event, valid && !tookEvent);
-    tookEvent |= m_controlBoard.processEvent(event, valid && !tookEvent);
-    tookEvent |= m_NPCChatBoard.processEvent(event, valid && !tookEvent);
-    tookEvent |= m_miniMapBoard.processEvent(event, valid && !tookEvent);
+    tookEvent |=   m_controlBoard.processEvent(event, valid && !tookEvent);
+    tookEvent |=   m_NPCChatBoard.processEvent(event, valid && !tookEvent);
+    tookEvent |=   m_miniMapBoard.processEvent(event, valid && !tookEvent);
 
     return tookEvent;
 }
@@ -226,6 +229,7 @@ void GUIManager::onWindowResize()
         widgetPtr->moveBy(-moveDX, -moveDY);
     };
 
+    fnSetWidgetPLoc(g_imeBoard);
     fnSetWidgetPLoc(&m_skillBoard);
     fnSetWidgetPLoc(&m_inventoryBoard);
     fnSetWidgetPLoc(&m_quickAccessBoard);

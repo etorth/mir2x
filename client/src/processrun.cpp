@@ -19,7 +19,6 @@
 #include "processrun.hpp"
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
-#include "imeboard.hpp"
 #include "notifyboard.hpp"
 #include "npcchatboard.hpp"
 #include "modalstringboard.hpp"
@@ -33,7 +32,6 @@
 
 extern Log *g_log;
 extern Client *g_client;
-extern IMEBoard *g_imeBoard;
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;
 extern SDLDevice *g_sdlDevice;
@@ -48,7 +46,7 @@ ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
     : Process()
     , m_myHeroUID(smOOK.uid)
     , m_luaModule(this)
-    , m_GUIManager(this)
+    , m_guiManager(this)
     , m_mousePixlLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_mouseGridLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
 {
@@ -65,7 +63,6 @@ ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
         },
     }));
     RegisterUserCommand();
-    g_imeBoard->dropFocus();
 }
 
 void ProcessRun::scrollMap()
@@ -107,7 +104,7 @@ void ProcessRun::update(double fUpdateTime)
     m_aniTimer.update(std::lround(fUpdateTime));
 
     scrollMap();
-    m_GUIManager.update(fUpdateTime);
+    m_guiManager.update(fUpdateTime);
     m_delayCmdQ.exec();
 
     for(auto p = m_strikeGridList.begin(); p != m_strikeGridList.end();){
@@ -194,8 +191,6 @@ void ProcessRun::update(double fUpdateTime)
         m_lastPingTick = currTick;
         g_client->send(CM_PING, CMPing{currTick});
     }
-
-    g_imeBoard->update(fUpdateTime);
 }
 
 uint64_t ProcessRun::getFocusUID(int focusType) const
@@ -433,7 +428,7 @@ void ProcessRun::draw() const
 
     if(m_drawMagicKey){
         int magicKeyOffX = 0;
-        for(const auto &[magicID, magicKey]: dynamic_cast<const SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getConfig().getMagicKeyList()){
+        for(const auto &[magicID, magicKey]: dynamic_cast<const SkillBoard *>(m_guiManager.getWidget("SkillBoard"))->getConfig().getMagicKeyList()){
             if(const auto &iconGfx = SkillBoard::getMagicIconGfx(magicID); iconGfx && iconGfx.magicIcon != SYS_U32NIL){
                 if(auto texPtr = g_progUseDB->retrieve(iconGfx.magicIcon + to_u32(0X00001000))){
                     g_sdlDevice->drawTexture(texPtr, magicKeyOffX, 0);
@@ -489,7 +484,7 @@ void ProcessRun::draw() const
         p->draw(m_viewX, m_viewY);
     }
 
-    m_GUIManager.draw();
+    m_guiManager.draw();
     if(const auto selectedItemID = getMyHero()->getInvPack().getGrabbedItem().itemID){
         if(const auto &ir = DBCOM_ITEMRECORD(selectedItemID)){
             if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X01000000)){
@@ -499,8 +494,6 @@ void ProcessRun::draw() const
             }
         }
     }
-
-    g_imeBoard->draw();
 
     // draw NotifyBoard
     if(false){
@@ -525,11 +518,7 @@ void ProcessRun::draw() const
 
 void ProcessRun::processEvent(const SDL_Event &event)
 {
-    if(g_imeBoard->processEvent(event, true)){
-        return;
-    }
-
-    if(m_GUIManager.processEvent(event, true)){
+    if(m_guiManager.processEvent(event, true)){
         return;
     }
 
@@ -1894,7 +1883,7 @@ void ProcessRun::checkMagicSpell(const SDL_Event &event)
         return;
     }
 
-    const auto magicID = dynamic_cast<SkillBoard *>(m_GUIManager.getWidget("SkillBoard"))->getConfig().key2MagicID(key);
+    const auto magicID = dynamic_cast<SkillBoard *>(m_guiManager.getWidget("SkillBoard"))->getConfig().key2MagicID(key);
     if(!magicID){
         return;
     }

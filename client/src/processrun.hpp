@@ -98,7 +98,7 @@ class ProcessRun: public Process
         ClientLuaModule m_luaModule;
 
     private:
-        GUIManager m_GUIManager;
+        GUIManager m_guiManager;
 
     private:
         std::list<std::unique_ptr<FixedLocMagic>> m_fixedLocMagicList;
@@ -365,7 +365,7 @@ class ProcessRun: public Process
     public:
         GUIManager *getGUIManager()
         {
-            return &m_GUIManager;
+            return &m_guiManager;
         }
 
     public:
