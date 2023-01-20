@@ -170,6 +170,7 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_KEYDOWN:
             {
                 switch(event.key.keysym.sym){
+                    case SDLK_UP:
                     case SDLK_LEFT:
                     case SDLK_PAGEUP:
                         {
@@ -183,6 +184,7 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
                             prepareLabelBoardList();
                             return true;
                         }
+                    case SDLK_DOWN:
                     case SDLK_RIGHT:
                     case SDLK_PAGEDOWN:
                         {
@@ -209,6 +211,7 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
                         }
                     case SDLK_ESCAPE:
                         {
+                            dropFocus();
                             return true;
                         }
                     case SDLK_SPACE:
