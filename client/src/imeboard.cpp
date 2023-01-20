@@ -55,6 +55,7 @@ IMEBoard::IMEBoard(
     , m_inputWidget(nullptr)
     , m_onCommit(nullptr)
 {
+    dropFocus();
     updateSize();
 }
 
@@ -155,6 +156,9 @@ size_t IMEBoard::totalLabelWidth() const
 bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
+        if(focus()){
+            dropFocus();
+        }
         return false;
     }
 
