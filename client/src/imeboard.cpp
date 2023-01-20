@@ -234,17 +234,14 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONUP:
             {
                 if(event.button.button == SDL_BUTTON_LEFT){
-                    const int eventX = event.button.x - x();
-                    const int eventY = event.button.y - y();
-
                     for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
                         m_labelBoardList[i]->setFontColor(m_fontColor);
-                        if(m_labelBoardList[i]->in(eventX, eventY)){
+                        if(m_labelBoardList[i]->in(event.button.x, event.button.y)){
                             m_ime.select(i);
                         }
                     }
                 }
-                return false;
+                return true;
             }
         case SDL_MOUSEBUTTONDOWN:
             {
@@ -253,11 +250,8 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
                     return true;
                 }
 
-                const int eventX = event.button.x - x();
-                const int eventY = event.button.y - y();
-
                 for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
-                    if(m_labelBoardList.at(i)->in(eventX, eventY)){
+                    if(m_labelBoardList.at(i)->in(event.button.x, event.button.y)){
                         m_labelBoardList.at(i)->setFontColor(m_fontColorPressed);
                     }
                     else{
@@ -268,28 +262,22 @@ bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEMOTION:
             {
-                if(in(event.motion.x, event.motion.y)){
-                    if(event.motion.state & SDL_BUTTON_LMASK){
-                        const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
-                        const int maxX = rendererW - w();
-                        const int maxY = rendererH - h();
+                if(event.motion.state & SDL_BUTTON_LMASK){
+                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+                    const int maxX = rendererW - w();
+                    const int maxY = rendererH - h();
 
-                        const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
-                        const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
-
-                        moveBy(newX - x(), newY - y());
-                    }
-                    else{
-                        const int eventX = event.motion.x - x();
-                        const int eventY = event.motion.y - y();
-
-                        for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
-                            if(m_labelBoardList.at(i)->in(eventX, eventY)){
-                                m_labelBoardList.at(i)->setFontColor(m_fontColorHover);
-                            }
-                            else{
-                                m_labelBoardList.at(i)->setFontColor(m_fontColor);
-                            }
+                    const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
+                    const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
+                    moveBy(newX - x(), newY - y());
+                }
+                else if(in(event.motion.x, event.motion.y)){
+                    for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
+                        if(m_labelBoardList.at(i)->in(event.motion.x, event.motion.y)){
+                            m_labelBoardList.at(i)->setFontColor(m_fontColorHover);
+                        }
+                        else{
+                            m_labelBoardList.at(i)->setFontColor(m_fontColor);
                         }
                     }
                 }
