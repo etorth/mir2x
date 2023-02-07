@@ -62,7 +62,12 @@ int main(int argc, char *argv[])
                 std::printf("%s", s.c_str());
             });
         });
+
         g_mainWindow->showAll();
+        if(g_serverArgParser->autoLaunch){
+            g_monoServer = new MonoServer();
+            g_monoServer->Launch();
+        }
 
         while(Fl::wait() > 0){
             switch((uintptr_t)(Fl::thread_message())){

@@ -27,6 +27,7 @@ struct ServerArgParser
     const bool forceMonsterRandomMove;      // "--force-monster-random-move"
     const bool showStrikeGrid;              // "--show-strike-grid"
     const bool preloadMap;                  // "--preload-map"
+    const bool autoLaunch;                  // "--auto-launch"
     const int  preloadMapID;                // "--preload-map-id"
     const int  actorPoolThread;             // "--actor-pool-thread"
     const int  logicalFPS;                  // "--logical-fps"
@@ -48,6 +49,7 @@ struct ServerArgParser
         , forceMonsterRandomMove(cmdParser["force-monster-random-move"])
         , showStrikeGrid(cmdParser["show-strike-grid"])
         , preloadMap(cmdParser["preload-map"])
+        , autoLaunch(cmdParser["auto-launch"])
         , preloadMapID([&cmdParser]() -> int
           {
               if(const auto s = cmdParser("preload-map-id").str(); !s.empty()){

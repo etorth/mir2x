@@ -14,11 +14,13 @@ decl {\#include <string>} {public global
 decl {\#include <mutex>} {private local
 }
 
+decl {\#include "serverargparser.hpp"} {private local
+}
+
 decl {class CommandWindow;} {public global
 }
 
-class MainWindow {open
-} {
+class MainWindow {} {
   Function {MainWindow()} {} {
     Fl_Window m_window {
       label MonoServer
@@ -34,14 +36,16 @@ class MainWindow {open
           label Server
           xywh {0 0 62 20} labelfont 4
         } {
-          MenuItem {} {
+          MenuItem m_launchMenu {
             label {Launch        }
             callback {{
 	extern MonoServer *g_monoServer;
 	delete g_monoServer;
-	
+
 	g_monoServer = new MonoServer();
 	g_monoServer->Launch();
+
+	m_launchMenu->deactivate();
 }}
             xywh {0 0 30 20} shortcut 0x4006c labelfont 4 divider
             code0 {\#include "monoserver.hpp"}
@@ -943,6 +947,11 @@ class MainWindow {open
         pMenuItem->callback((Fl_Callback *)(fnCallback), (void *)((intptr_t)(nIndex)));
         pMenuItem->show();
     }
+
+    extern ServerArgParser *g_serverArgParser;
+    if(g_serverArgParser->autoLaunch){
+        m_launchMenu->deactivate();
+    }
 }} {}
   }
   Function {showAll()} {} {
@@ -1139,7 +1148,7 @@ class MainWindow {open
     }
 }} {}
   }
-  Function {getGUIFont()} {open return_type int
+  Function {getGUIFont()} {return_type int
   } {
     code {{
     return to_d(m_browser->textfont());
