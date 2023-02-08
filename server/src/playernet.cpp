@@ -606,7 +606,7 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
 
 void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
 {
-    const auto cmCI = ClientMsg::conv<CMDropItem>(buf);
+    const auto cmCI = ClientMsg::conv<CMConsumeItem>(buf);
     fflassert((SDItem
     {
         .itemID = cmCI.itemID,
@@ -631,6 +631,19 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
     if(consumed){
         removeInventoryItem(cmCI.itemID, cmCI.seqID, cmCI.count);
     }
+}
+
+void Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmMI = ClientMsg::conv<CMMakeItem>(buf);
+    const SDItem item
+    {
+        .itemID = cmMI.itemID,
+        .count = to_uz(cmMI.count),
+    };
+
+    fflassert(item);
+    addInventoryItem(item, false);
 }
 
 void Player::net_CM_SETMAGICKEY(uint8_t, const uint8_t *buf, size_t)

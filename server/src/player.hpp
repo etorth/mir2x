@@ -211,6 +211,7 @@ class Player final: public BattleObject
         void net_CM_PICKUP                    (uint8_t, const uint8_t *, size_t);
         void net_CM_PING                      (uint8_t, const uint8_t *, size_t);
         void net_CM_CONSUMEITEM               (uint8_t, const uint8_t *, size_t);
+        void net_CM_MAKEITEM                  (uint8_t, const uint8_t *, size_t);
         void net_CM_BUY                       (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYGOLD                 (uint8_t, const uint8_t *, size_t);
         void net_CM_NPCEVENT                  (uint8_t, const uint8_t *, size_t);

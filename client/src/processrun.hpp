@@ -403,7 +403,8 @@ class ProcessRun: public Process
     public:
         void requestPickUp();
         void requestMagicDamage(int, uint64_t);
-        void requestBuy(uint64_t, uint32_t, uint32_t, size_t count);
+        void requestBuy(uint64_t, uint32_t, uint32_t, size_t);
+        void requestMakeItem(uint32_t, size_t);
         void requestConsumeItem(uint32_t, uint32_t, size_t);
         void requestEquipWear(uint32_t, uint32_t, int);
         void requestGrabWear(int);

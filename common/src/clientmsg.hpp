@@ -37,6 +37,7 @@ enum CMType: uint8_t
     CM_QUERYSELLITEMLIST,
     CM_DROPITEM,
     CM_CONSUMEITEM,
+    CM_MAKEITEM,
     CM_BUY,
     CM_REQUESTEQUIPWEAR,
     CM_REQUESTGRABWEAR,
@@ -170,6 +171,12 @@ struct CMConsumeItem
     uint16_t count;
 };
 
+struct CMMakeItem
+{
+    uint32_t itemID;
+    uint16_t count;
+};
+
 struct CMBuy
 {
     uint64_t npcUID;
@@ -249,6 +256,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_QUERYSELLITEMLIST,          1, sizeof(CMQuerySellItemList)         )
                 _add_client_msg_type_case(CM_DROPITEM,                   1, sizeof(CMDropItem)                  )
                 _add_client_msg_type_case(CM_CONSUMEITEM,                1, sizeof(CMConsumeItem)               )
+                _add_client_msg_type_case(CM_MAKEITEM,                   1, sizeof(CMMakeItem)                  )
                 _add_client_msg_type_case(CM_BUY,                        1, sizeof(CMBuy)                       )
                 _add_client_msg_type_case(CM_REQUESTEQUIPWEAR,           1, sizeof(CMRequestEquipWear)          )
                 _add_client_msg_type_case(CM_REQUESTGRABWEAR,            1, sizeof(CMRequestGrabWear)           )
@@ -287,6 +295,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMQuerySellItemList>
                     || std::is_same_v<T, CMDropItem>
                     || std::is_same_v<T, CMConsumeItem>
+                    || std::is_same_v<T, CMMakeItem>
                     || std::is_same_v<T, CMBuy>
                     || std::is_same_v<T, CMRequestEquipWear>
                     || std::is_same_v<T, CMRequestGrabWear>

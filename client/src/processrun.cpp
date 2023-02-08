@@ -1085,8 +1085,14 @@ void ProcessRun::RegisterUserCommand()
                 }
             case 1 + 1:
                 {
-                    addCBLog(CBLOG_SYS, u8"获得%s", parmList[1].c_str());
-                    return 0;
+                    if(const auto itemID = DBCOM_ITEMID(to_u8cstr(parmList[1]))){
+                        requestMakeItem(itemID, 1);
+                        return 0;
+                    }
+                    else{
+                        addCBLog(CBLOG_ERR, u8"无效的物品名：%s", to_cstr(parmList[1]));
+                        return 1;
+                    }
                 }
             default:
                 {
@@ -2146,6 +2152,16 @@ void ProcessRun::requestConsumeItem(uint32_t itemID, uint32_t seqID, size_t coun
     cmCI.seqID  =  seqID;
     cmCI.count  =  count;
     g_client->send(CM_CONSUMEITEM, cmCI);
+}
+
+void ProcessRun::requestMakeItem(uint32_t itemID, size_t count)
+{
+    CMMakeItem cmMI;
+    std::memset(&cmMI, 0, sizeof(cmMI));
+
+    cmMI.itemID = itemID;
+    cmMI.count  = count;
+    g_client->send(CM_MAKEITEM, cmMI);
 }
 
 void ProcessRun::requestEquipWear(uint32_t itemID, uint32_t seqID, int wltype)
