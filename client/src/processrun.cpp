@@ -1084,10 +1084,36 @@ void ProcessRun::RegisterUserCommand()
                     return 1;
                 }
             case 1 + 1:
+            case 1 + 2:
                 {
                     if(const auto itemID = DBCOM_ITEMID(to_u8cstr(parmList[1]))){
-                        requestMakeItem(itemID, 1);
-                        return 0;
+                        const auto count = [&parmList]() -> int
+                        {
+                            if(parmList.size() == 1 + 1){
+                                return 1;
+                            }
+
+                            try{
+                                if(const auto count = std::stoi(parmList[2]); count > 1){
+                                    return count;
+                                }
+                                else{
+                                    return -1;
+                                }
+                            }
+                            catch(...){
+                                return -1;
+                            }
+                        }();
+
+                        if(count > 1){
+                            requestMakeItem(itemID, count);
+                            return 0;
+                        }
+                        else{
+                            addCBLog(CBLOG_ERR, u8"无效的物品数量：%s", to_cstr(parmList[2]));
+                            return 1;
+                        }
                     }
                     else{
                         addCBLog(CBLOG_ERR, u8"无效的物品名：%s", to_cstr(parmList[1]));

@@ -636,14 +636,24 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t)
 void Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmMI = ClientMsg::conv<CMMakeItem>(buf);
-    const SDItem item
-    {
-        .itemID = cmMI.itemID,
-        .count = to_uz(cmMI.count),
-    };
+    fflassert(cmMI.count > 1, cmMI.count);
 
-    fflassert(item);
-    addInventoryItem(item, false);
+    const auto &ir = DBCOM_ITEMRECORD(cmMI.itemID);
+    fflassert(ir, cmMI.itemID, cmMI.count);
+
+    size_t done = 0;
+    while(done <cmMI.count){
+        const SDItem item
+        {
+            .itemID = cmMI.itemID,
+            .count = ir.packable() ? std::min<size_t>(SYS_INVGRIDMAXHOLD, cmMI.count - done) : to_uz(1),
+        };
+
+        fflassert(item, item.itemID, item.count);
+        addInventoryItem(item, false);
+
+        done += item.count;
+    }
 }
 
 void Player::net_CM_SETMAGICKEY(uint8_t, const uint8_t *buf, size_t)
