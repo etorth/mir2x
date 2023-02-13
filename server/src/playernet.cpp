@@ -642,7 +642,7 @@ void Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t)
     fflassert(ir, cmMI.itemID, cmMI.count);
 
     size_t done = 0;
-    while(done <cmMI.count){
+    while(done < cmMI.count){
         const SDItem item
         {
             .itemID = cmMI.itemID,
