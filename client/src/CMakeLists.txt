@@ -6,12 +6,21 @@ ADD_DEPENDENCIES(client mir2x_3rds)
 # libpinyin generates libpinyin.pc for pkg-config to configure its paths, and ExternalProject_Add() runs in build stage
 # but PKG_CHECK_MODULES() is executed in configuration stage, it can not find libpinyin.pc in configuration stage
 
-# by default, libpinyin gets installed as shared libpinyin.so, to build static libpinyin.a, uses
+# by default, libpinyin is installed as shared libpinyin.so, which makes client depends libpinyin.so and path installed
+# to build static libpinyin.a, uses
 #
 #     $ git clone https://github.com/libpinyin/libpinyin.git
 #     $ cd libpinyin
-#     $ ./autogen.sh --prefix=/usr --enable-shared=no
-#     $ sudo make install
+#     $ ./autogen.sh --prefix=<your-libpinyin-install-path> --enable-shared=no
+#     $ make && make install
+#
+# then build mir2x as:
+#
+#     $ cmake ../mir2x ... -DCMAKE_PREFIX_PATH=<your-libpinyin-install-path/lib/pkgconfig>
+#
+# here CMAKE_PREFIX_PATH helps to find libpinyin.pc, or by setup PKG_CONFIG_PATH
+#
+#     $ env PKG_CONFIG_PATH=<your-libpinyin-install-path/lib/pkgconfig>:${PKG_CONFIG_PATH} cmake ../mir2x ...
 
 PKG_CHECK_MODULES(LIBPINYIN REQUIRED libpinyin)
 TARGET_INCLUDE_DIRECTORIES(client PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
