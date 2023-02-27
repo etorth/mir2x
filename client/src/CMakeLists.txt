@@ -2,6 +2,17 @@ AUX_SOURCE_DIRECTORY(. CLIENT_SRC)
 ADD_EXECUTABLE(client ${CLIENT_SRC})
 ADD_DEPENDENCIES(client mir2x_3rds)
 
+# can not use ExternalProject_Add() to add libpinyin as dependency
+# libpinyin generates libpinyin.pc for pkg-config to configure its paths, and ExternalProject_Add() runs in build stage
+# but PKG_CHECK_MODULES() is executed in configuration stage, it can not find libpinyin.pc in configuration stage
+
+# by default, libpinyin gets installed as shared libpinyin.so, to build static libpinyin.a, uses
+#
+#     $ git clone https://github.com/libpinyin/libpinyin.git
+#     $ cd libpinyin
+#     $ ./autogen.sh --prefix=/usr --enable-shared=no
+#     $ sudo make install
+
 PKG_CHECK_MODULES(LIBPINYIN REQUIRED libpinyin)
 TARGET_INCLUDE_DIRECTORIES(client PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
 
