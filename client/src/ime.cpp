@@ -33,7 +33,7 @@ struct _IME_Instance final
 
     _IME_Instance()
     {
-        context = pinyin_init("libpinyin/data", "libpinyin/data");
+        context = pinyin_init("libpinyin/data", "libpinyin/conf");
         fflassert(context);
 
         pinyin_set_options(context,
