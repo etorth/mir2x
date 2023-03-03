@@ -10,6 +10,7 @@ ExternalProject_Add(
 
     URL "http://www.lua.org/ftp/lua-5.4.4.tar.gz"
     DOWNLOAD_NAME "lua"
+    DOWNLOAD_EXTRACT_TIMESTAMP 0
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/lua"
     BUILD_IN_SOURCE TRUE
