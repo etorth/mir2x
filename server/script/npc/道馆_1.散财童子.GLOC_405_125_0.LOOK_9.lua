@@ -8,7 +8,7 @@ setEventHandler(
                 <par></par>
                 <par><event id="npc_goto_1">领取金币</event></par>
                 <par><event id="npc_goto_2">领取装备</event></par>
-                <par><event id="npc_goto_random_move::%s">随机行走100步</event></par>
+                <par><event id="npc_goto_random_move:%s">随机行走100步</event></par>
                 <par><event id="npc_goto_test_player_trigger">测试任务触发器</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
@@ -41,7 +41,7 @@ setEventHandler(
         uidGrant(uid, '井中月', 1)
     end,
 
-    ["npc_goto_random_move::" .. SYS_NPCDONE] = function(uid, value)
+    ["npc_goto_random_move:" .. SYS_NPCDONE] = function(uid, value)
         uidExecute(uid, [[
             local i = 1
             while i < 100 do
