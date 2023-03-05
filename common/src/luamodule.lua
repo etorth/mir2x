@@ -28,21 +28,41 @@ function argDefault(arg, def)
     end
 end
 
-function assertType(var, typestr)
-    if type(typestr) ~= 'string' then
-        fatalPrintf('invalid type string, expect string, get %s)', type(typestr))
+function assertType(var, ...)
+    local typestrs = {...}
+    for _, typestr in ipairs(typestrs) do
+        if type(typestr) ~= 'string' then
+            fatalPrintf('invalid type string, expect string, get %s', type(typestr))
+        end
+
+        if type(var) == 'number' then
+            if math.type(var) == typestr then
+                return var
+            end
+        else
+            if type(var) == typestr then
+                return var
+            end
+        end
     end
 
-    if type(var) == 'number' then
-        if math.type(var) ~= typestr then
-            fatalPrintf('assertion failed: expect %s, get %s', typestr, math.type(var))
-        end
+    if #typestrs == 0 then
+        fatalPrintf('invalid argument: no type string provided')
+    elseif #typestrs == 1 then
+        fatalPrintf('assertion failed: expect %s, get %s', typestrs[1], type(var))
     else
-        if type(var) ~= typestr then
-            fatalPrintf('assertion failed: expect %s, get %s', typestr, type(var))
+        local i = 1
+        local errStrs = {}
+
+        table.insert(errStrs, 'assertion failed: expect')
+        while i <= #typestrs - 2 do
+            table.insert(errStrs, string.format(' %s,', typestrs[i]))
+            i = i + 1
         end
+
+        table.insert(errStrs, ' %s or %s, get %s', typestrs[#typestrs - 1], typestrs[#typestrs], type(var))
+        fatalPrintf(table.concat(errStrs))
     end
-    return var
 end
 
 function assertValue(var, value)
@@ -74,6 +94,21 @@ function hasChar(s)
 
     assertType(s, 'string')
     return string.len(s) > 0
+end
+
+function splitString(str, sep)
+    assertType(str, 'string')
+    assertType(sep, 'string', 'nil')
+
+    if sep == nil then
+        sep = "%s"
+    end
+
+    local result = {}
+    for s in string.gmatch(str, '([^' .. sep .. ']+)') do
+        table.insert(result, s)
+    end
+    return result
 end
 
 function convItemSeqID(item)
