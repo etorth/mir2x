@@ -101,7 +101,8 @@ int CommandInput::handle(int event)
                                         // remove the enter and print it
                                         g_monoServer->addCWLogString(cwid, 0, fnGetPrompt(), currCmdStr.substr(currLoc, enterLoc - currLoc).c_str());
                                         currLoc = enterLoc + 1;
-                                    }else{
+                                    }
+                                    else{
                                         // can't find a enter
                                         // we done here for the whole string
                                         g_monoServer->addCWLogString(cwid, 0, fnGetPrompt(), currCmdStr.substr(currLoc).c_str());

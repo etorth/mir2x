@@ -1136,7 +1136,8 @@ bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
                     for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
                         if(m_map->groundValid(pCurr->X, pCurr->Y)){
                             stvPathNode.emplace_back(pCurr->X, pCurr->Y);
-                        }else{
+                        }
+                        else{
                             break;
                         }
                     }

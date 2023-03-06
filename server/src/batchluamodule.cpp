@@ -24,7 +24,8 @@ bool BatchLuaModule::LoopOne()
         // default nothing printed
         // we can put information here to show call succeeds
         return true;
-    }else{
+    }
+    else{
         sol::error stError = stCallResult;
 
         extern MonoServer *g_monoServer;

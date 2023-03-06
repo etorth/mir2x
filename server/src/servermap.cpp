@@ -419,7 +419,8 @@ ServerMap::ServerMap(uint32_t mapID)
                     getGrid(entry.x + nW, entry.y + nH).switchY = entry.endY;
                 }
             }
-        }else{
+        }
+        else{
             break;
         }
     }

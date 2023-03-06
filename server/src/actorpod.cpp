@@ -95,11 +95,13 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
                 throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): Response handler not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
             }
             m_respondCBList.erase(p);
-        }else{
+        }
+        else{
             // should only caused by deletion of timeout
             // do nothing for this case, don't take this as an error
         }
-    }else{
+    }
+    else{
         // this is not a responding message
         // use default message handling operation
         if(m_operation){
@@ -108,7 +110,8 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
                 raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
                 m_operation(mpk);
             }
-        }else{
+        }
+        else{
             // shoud I make it fatal?
             // we may get a lot warning message here
             throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): Message handler not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
@@ -201,7 +204,8 @@ bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint32_t respID, s
             return true;
         }
         throw fflerror("failed to register response handler for posted message: %s", mpkName(mbuf.type()));
-    }else{
+    }
+    else{
         // respond the response handler here
         // if post failed, it can only be the UID is detached
         if(opr){

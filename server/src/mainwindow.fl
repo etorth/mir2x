@@ -591,7 +591,8 @@ class MainWindow {} {
 // to retrieve the created windows, use cwid to find it
 {
     if(CreateCommandWindow() > 0){
-    }else{
+    }
+    else{
         fl_alert("%s", "Create command window failed");
     }
 }}
@@ -607,7 +608,8 @@ class MainWindow {} {
 
     if(bOpen){
         bOpen = false;
-    }else{
+    }
+    else{
         bOpen = true;
     }
 
@@ -616,7 +618,8 @@ class MainWindow {} {
             if(bOpen){
                 pCW->showAll();
                 (m_menuItemFirstCW + (nIndex - 1))->deactivate();
-            }else{
+            }
+            else{
                 pCW->hideAll();
                 (m_menuItemFirstCW + (nIndex - 1))->activate();
             }
@@ -1020,7 +1023,8 @@ class MainWindow {} {
             && (m_menuItemFirstCW + (nCWID - 1) <= m_menuItemLastCW)
             && (m_menuItemFirstCW + (nCWID - 1))->visible()){
         return (CommandWindow *)((m_menuItemFirstCW + (nCWID - 1))->user_data());
-    }else{
+    }
+    else{
         return nullptr;
     }
 }} {}
@@ -1036,13 +1040,15 @@ class MainWindow {} {
         // it's very important to make sure all command window menu item are hidden
         if(pMenuItem->visible()){
             continue;
-        }else{
+        }
+        else{
             // we find a valid slot
             // won't create new command window if it contains one
             CommandWindow *pCW = nullptr;
             if(pMenuItem->user_data()){
                 pCW = (CommandWindow *)(pMenuItem->user_data());
-            }else{
+            }
+            else{
                 pCW = new CommandWindow();
                 pMenuItem->user_data(pCW);
             }

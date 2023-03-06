@@ -64,7 +64,8 @@ void ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
         if(pMap.second && pMap.second->ID()){
             if(nIndex < std::extent_v<decltype(amML.MapList)>){
                 amML.MapList[nIndex++] = pMap.second->ID();
-            }else{
+            }
+            else{
                 throw fflerror("Need larger map list size in AMMapList");
             }
         }
@@ -94,10 +95,12 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     if(amQCOC.mapID){
         if(m_mapList.find(amQCOC.mapID) == m_mapList.end()){
             nCheckCount = 0;
-        }else{
+        }
+        else{
             nCheckCount = 1;
         }
-    }else{
+    }
+    else{
         nCheckCount = to_d(m_mapList.size());
     }
 
@@ -127,7 +130,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                         }
                     });
                     return;
-                }else{
+                }
+                else{
                     m_mapList.erase(amQCOC.mapID);
                     m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
                     return;
@@ -168,7 +172,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                                     // we get response but shared state shows ``done"
                                     // means more than one error has alreay happened before
                                     // do nothing
-                                }else{
+                                }
+                                else{
                                     // get one more valid response
                                     // need to check if we need to response to sender
                                     AMCOCount amCOC;
@@ -177,7 +182,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                                     if(pSharedState->CheckCount == 1){
                                         amCOC.Count += pSharedState->COCount;
                                         m_actorPod->forward(rstMPK.from(), {AM_COCOUNT, amCOC}, rstMPK.seqID());
-                                    }else{
+                                    }
+                                    else{
                                         pSharedState->CheckCount--;
                                         pSharedState->COCount += to_d(amCOC.Count);
                                     }
@@ -191,7 +197,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                                     // we get response but shared state shows ``done"
                                     // means more than one error has alreay happened before
                                     // do nothing
-                                }else{
+                                }
+                                else{
                                     // get first error
                                     m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
                                 }

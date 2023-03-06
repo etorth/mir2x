@@ -577,7 +577,8 @@ std::vector<int> MonoServer::getMapList()
                 for(size_t nIndex = 0; nIndex < std::extent<decltype(amML.MapList)>::value; ++nIndex){
                     if(amML.MapList[nIndex]){
                         stMapList.push_back(to_d(amML.MapList[nIndex]));
-                    }else{
+                    }
+                    else{
                         break;
                     }
                 }
@@ -907,7 +908,8 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
                             && stArgList[0].is<int>()
                             && stArgList[1].is<int>()){
                         return addMonster(to_u32(nMonsterID), to_u32(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), false);
-                    }else{
+                    }
+                    else{
                         fnPrintUsage();
                         return false;
                     }
@@ -919,7 +921,8 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
                             && stArgList[1].is<int >()
                             && stArgList[2].is<bool>()){
                         return addMonster(to_u32(nMonsterID), to_u32(nMapID), stArgList[0].as<int>(), stArgList[1].as<int>(), stArgList[2].as<bool>());
-                    }else{
+                    }
+                    else{
                         fnPrintUsage();
                         return false;
                     }
