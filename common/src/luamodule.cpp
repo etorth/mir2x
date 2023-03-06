@@ -112,6 +112,8 @@ LuaModule::LuaModule()
     execString("SYS_NPCDONE  = \'%s\'", SYS_NPCDONE );
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
     execString("SYS_EXECDONE = \'%s\'", SYS_EXECDONE);
+
+    execString("SYS_CHECKACTIVE = \'%s\'", SYS_CHECKACTIVE);
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 
     bindFunction("addLogString", [this](sol::object logType, sol::object logInfo)

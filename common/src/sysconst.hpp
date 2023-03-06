@@ -84,6 +84,8 @@ constexpr char SYS_NPCDONE [] = "RSVD_NAME_NPC_DONE__14208236065";
 constexpr char SYS_NPCERROR[] = "RSVD_NAME_NPC_ERROR_45421406723";
 constexpr char SYS_EXECDONE[] = "RSVD_NAME_EXEC_DONE_68553768451";
 
+constexpr char SYS_CHECKACTIVE[] = "RSVD_NAME_CHECK_ACTIVE_4054544333";
+
 constexpr inline size_t SYS_SUMEXP(uint32_t level)
 {
     const size_t a =  100;
