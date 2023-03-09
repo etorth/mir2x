@@ -7,7 +7,7 @@ class ActorPod;
 class ServerLuaCoroutineRunner
 {
     private:
-        struct CoroutineRunner
+        struct _CoroutineRunner
         {
             const uint64_t seqID;
             const uint64_t fromUID;
@@ -19,21 +19,22 @@ class ServerLuaCoroutineRunner
             sol::thread runner;
             sol::coroutine callback;
 
-            void clearEvent()
-            {
-                this->event.clear();
-                this->value.clear();
-            }
-
-            CoroutineRunner(LuaModule &luaModule, uint64_t argSeqID, uint64_t argFromUID, uint64_t argMsgSeqID)
+            _CoroutineRunner(LuaModule &luaModule, uint64_t argSeqID, uint64_t argFromUID, uint64_t argMsgSeqID)
                 : seqID(argSeqID)
                 , fromUID(argFromUID)
                 , msgSeqID(argMsgSeqID)
                 , runner(luaModule.getLuaState().lua_state())
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
+                fflassert(seqID);
                 fflassert(fromUID);
                 fflassert(msgSeqID);
+            }
+
+            void clearEvent()
+            {
+                this->event.clear();
+                this->value.clear();
             }
         };
 
@@ -45,7 +46,7 @@ class ServerLuaCoroutineRunner
 
     private:
         uint64_t m_seqID = 1;
-        std::unordered_map<uint64_t, std::unique_ptr<CoroutineRunner>> m_runnerList;
+        std::unordered_map<uint64_t, std::unique_ptr<_CoroutineRunner>> m_runnerList;
 
     public:
         ServerLuaCoroutineRunner(ActorPod *, std::function<void(LuaModule *)> = nullptr);
@@ -65,10 +66,10 @@ class ServerLuaCoroutineRunner
                 resumeRunner(p->second.get());
             }
             else{
-                throw fflerror("resume a non-existing coroutine: seqID = %llu", to_llu(seqID));
+                throw fflerror("resume non-existing coroutine: seqID = %llu", to_llu(seqID));
             }
         }
 
     private:
-        void resumeRunner(CoroutineRunner *);
+        void resumeRunner(_CoroutineRunner *);
 };

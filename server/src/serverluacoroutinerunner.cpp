@@ -55,6 +55,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
                 throw fflerror("coroutine is not callable");
             }
 
+            p->second->clearEvent();
+
             switch(mpk.type()){
                 case AM_SDBUFFER:
                     {
@@ -146,7 +148,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t fromUID, uint64_t msgSeqID, co
     fflassert(msgSeqID);
     fflassert(code);
 
-    auto [p, added] = m_runnerList.insert_or_assign(m_seqID, std::make_unique<ServerLuaCoroutineRunner::CoroutineRunner>(m_luaModule, m_seqID, fromUID, msgSeqID));
+    auto [p, added] = m_runnerList.insert_or_assign(m_seqID, std::make_unique<_CoroutineRunner>(m_luaModule, m_seqID, fromUID, msgSeqID));
     const auto pfr = p->second->callback(str_printf(
         R"###( getTLSTable().seqID = %llu )###""\n"
         R"###( do                         )###""\n"
@@ -157,7 +159,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t fromUID, uint64_t msgSeqID, co
     return m_seqID++;
 }
 
-void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::CoroutineRunner *runnerPtr)
+void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_CoroutineRunner *runnerPtr)
 {
     std::vector<std::string> error;
     const auto fnDrainError = [&error](const std::string &s)
