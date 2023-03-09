@@ -1,6 +1,11 @@
 --, u8R"###(
 --
 
+function _RSVD_NAME_luaCoroutineRunner_main(code)
+    assertType(code, 'string')
+    return (load(code))()
+end
+
 local function _RSVD_NAME_waitRemoteCallResult()
     local seqID = getTLSTable().seqID
     while true do
@@ -21,12 +26,12 @@ end
 
 -- send lua code to uid to execute
 -- used to support complicated logic through actor message
-function uidExecuteString(uid, code)
+local function uidExecuteString(uid, code)
     assertType(uid, 'integer')
     assertType(code, 'string')
     _RSVD_NAME_sendRemoteCall(getTLSTable().uid, uid, code, false)
 
-    local resList = {_RSVD_NAME_waitRemoteCallResult(uid)}
+    local resList = {_RSVD_NAME_waitRemoteCallResult()}
     if resList[1] ~= uid then
         fatalPrintf('Send lua code to uid %s but get response from %d', uid, resList[1])
     end
