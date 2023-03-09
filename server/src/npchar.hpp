@@ -35,7 +35,7 @@ class NPChar final: public CharObject
 
                     LuaCallStack(LuaNPCModule *luaModulePtr)
                         : seqID(luaModulePtr->peekSeqID())
-                        , runner(luaModulePtr->getLuaState(), "__RSVD_NAME_coth_main")
+                        , runner(luaModulePtr->getLuaState(), "_RSVD_NAME_coth_main")
                     {}
 
                     void clearEvent()

@@ -22,7 +22,7 @@ function call_RSVD_NAME_funcCoop(funcName, ...)
         -- more importantly, don't do runner-resume in the onOK/onError callback
         -- which causes crash, because if we resume in onOK/onError, then when the callback gets triggeerred, stack is:
         --
-        --   --C-->onOK/onError-->resumeCORunner(getTLSTable().runSeqID)-->code in this runner after __RSVD_NAME_requestSpaceMove/coroutine.yield()
+        --   --C-->onOK/onError-->resumeCORunner(getTLSTable().runSeqID)-->code in this runner after _RSVD_NAME_requestSpaceMove/coroutine.yield()
         --     ^       ^                ^                                   ^
         --     |       |                |                                   |
         --     |       |                |                                   +------ lua
@@ -45,9 +45,9 @@ function call_RSVD_NAME_funcCoop(funcName, ...)
     table.insert(args, onError)
     table.insert(args, getTLSTable().runSeqID)
 
-    _G[string.format('__RSVD_NAME_%sCoop', funcName)](table.unpack(args))
+    _G[string.format('_RSVD_NAME_%sCoop', funcName)](table.unpack(args))
 
-    -- onOK/onError can get ran immedately in __RSVD_NAME_funcCoop
+    -- onOK/onError can get ran immedately in _RSVD_NAME_funcCoop
     -- in this situation we shall not yield
 
     if done == nil then
@@ -62,7 +62,7 @@ function pause(ms)
     assert(ms >= 0)
 
     local oldTime = getTime()
-    __RSVD_NAME_pauseYielding(ms, getTLSTable().runSeqID)
+    _RSVD_NAME_pauseYielding(ms, getTLSTable().runSeqID)
     return getTime() - oldTime
 end
 
@@ -74,7 +74,7 @@ function spaceMove(mapID, x, y)
     return call_RSVD_NAME_funcCoop('spaceMove', mapID, x, y)
 end
 
-function __RSVD_NAME_coth_runner(code)
+function _RSVD_NAME_coth_runner(code)
     assertType(code, 'string')
     return (load(code))()
 end

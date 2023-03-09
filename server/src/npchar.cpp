@@ -312,12 +312,12 @@ NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName
         m_npc->postXMLLayout(uid, std::move(xmlString));
     });
 
-    bindFunction("__RSVD_NAME_sendCallStackRemoteCall", [this](uint64_t callStackUID, uint64_t uid, std::string code)
+    bindFunction("_RSVD_NAME_sendCallStackRemoteCall", [this](uint64_t callStackUID, uint64_t uid, std::string code)
     {
         m_npc->sendRemoteCall(callStackUID, uid, code);
     });
 
-    bindFunction("__RSVD_NAME_pollCallStackEvent", [this](uint64_t uid, sol::this_state s)
+    bindFunction("_RSVD_NAME_pollCallStackEvent", [this](uint64_t uid, sol::this_state s)
     {
         sol::state_view sv(s);
         return sol::as_returns([uid, &sv, this]() -> std::vector<sol::object>
@@ -404,14 +404,14 @@ void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::s
     }
 
     // setup the event
-    // event may get consumed if coroutine yields in __RSVD_NAME_pollCallStackEvent()
+    // event may get consumed if coroutine yields in _RSVD_NAME_pollCallStackEvent()
 
     p->second.from  = from;
     p->second.event = std::move(event);
     p->second.value = std::move(value);
 
     // comsume the event
-    // call the coroutine to make it fail or stuck at next __RSVD_NAME_pollCallStackEvent()
+    // call the coroutine to make it fail or stuck at next _RSVD_NAME_pollCallStackEvent()
 
     if(!pfrCheck(p->second.runner.callback())){
         throw fflerror("lua coroutine run failed");

@@ -14,6 +14,7 @@
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
 #include "batchluamodule.hpp"
+#include "serverluacoroutinerunner.hpp"
 #include "lochashtable.hpp"
 #include "parallel_hashmap/phmap.h"
 
@@ -119,6 +120,9 @@ class ServerMap final: public ServerObject
         std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
 
     private:
+        std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunnerPtr;
+
+    private:
         void operateAM(const ActorMsgPack &);
 
     public:
@@ -178,6 +182,7 @@ class ServerMap final: public ServerObject
         {
             ServerObject::onActivate();
             m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
+            m_luaRunnerPtr = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod);
             loadNPChar();
         }
 
@@ -372,23 +377,24 @@ class ServerMap final: public ServerObject
         bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
-        void on_AM_ACTION(const ActorMsgPack &);
-        void on_AM_PICKUP(const ActorMsgPack &);
-        void on_AM_OFFLINE(const ActorMsgPack &);
-        void on_AM_TRYJUMP(const ActorMsgPack &);
-        void on_AM_TRYMOVE(const ActorMsgPack &);
-        void on_AM_TRYLEAVE(const ActorMsgPack &);
-        void on_AM_PATHFIND(const ActorMsgPack &);
-        void on_AM_UPDATEHP(const ActorMsgPack &);
-        void on_AM_METRONOME(const ActorMsgPack &);
-        void on_AM_BADACTORPOD(const ActorMsgPack &);
-        void on_AM_DEADFADEOUT(const ActorMsgPack &);
-        void on_AM_DROPITEM(const ActorMsgPack &);
-        void on_AM_TRYMAPSWITCH(const ActorMsgPack &);
-        void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
-        void on_AM_TRYSPACEMOVE(const ActorMsgPack &);
-        void on_AM_CASTFIREWALL(const ActorMsgPack &);
-        void on_AM_ADDCO(const ActorMsgPack &);
+        void on_AM_ACTION              (const ActorMsgPack &);
+        void on_AM_PICKUP              (const ActorMsgPack &);
+        void on_AM_OFFLINE             (const ActorMsgPack &);
+        void on_AM_TRYJUMP             (const ActorMsgPack &);
+        void on_AM_TRYMOVE             (const ActorMsgPack &);
+        void on_AM_TRYLEAVE            (const ActorMsgPack &);
+        void on_AM_PATHFIND            (const ActorMsgPack &);
+        void on_AM_UPDATEHP            (const ActorMsgPack &);
+        void on_AM_METRONOME           (const ActorMsgPack &);
+        void on_AM_BADACTORPOD         (const ActorMsgPack &);
+        void on_AM_DEADFADEOUT         (const ActorMsgPack &);
+        void on_AM_DROPITEM            (const ActorMsgPack &);
+        void on_AM_TRYMAPSWITCH        (const ActorMsgPack &);
+        void on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
+        void on_AM_TRYSPACEMOVE        (const ActorMsgPack &);
+        void on_AM_CASTFIREWALL        (const ActorMsgPack &);
+        void on_AM_ADDCO               (const ActorMsgPack &);
+        void on_AM_REMOTECALL          (const ActorMsgPack &);
         void on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
 
     private:

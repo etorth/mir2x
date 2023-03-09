@@ -157,7 +157,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
-    m_luaModulePtr->bindFunction("__RSVD_NAME_spaceMoveCoop", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runSeqID)
+    m_luaModulePtr->bindFunction("_RSVD_NAME_spaceMoveCoop", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runSeqID)
     {
         const auto &mr = DBCOM_MAPRECORD(argMapID);
         fflassert(mr, argMapID);
@@ -205,7 +205,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
-    m_luaModulePtr->bindFunction("__RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runSeqID)
+    m_luaModulePtr->bindFunction("_RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runSeqID)
     {
         const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
         {
@@ -257,7 +257,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
         }
     });
 
-    m_luaModulePtr->bindYielding("__RSVD_NAME_pauseYielding", [this](int ms, uint64_t runSeqID)
+    m_luaModulePtr->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t runSeqID)
     {
         fflassert(ms >= 0, ms);
         fflassert(runSeqID > 0, runSeqID);

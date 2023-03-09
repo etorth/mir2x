@@ -1,6 +1,6 @@
 local dq = {}
 
-local __RSVD_NAME_questList = rotable(
+local _RSVD_NAME_questList = rotable(
 {
     function(uid, value)
         uidPostXML(uid,
@@ -1861,14 +1861,14 @@ function dq.setQuest(questID, uid, value)
         fatalPrintf('Invalid quest id: %d', questID)
 
     elseif questID == 0 then
-        -- questID = math.random(1, #__RSVD_NAME_questList)
+        -- questID = math.random(1, #_RSVD_NAME_questList)
         questID = 7
 
     else
-        questID = 1 + (questID % #__RSVD_NAME_questList)
+        questID = 1 + (questID % #_RSVD_NAME_questList)
     end
 
-    __RSVD_NAME_questList[questID](uid, value)
+    _RSVD_NAME_questList[questID](uid, value)
 end
 
 return dq

@@ -30,7 +30,7 @@ class Player final: public BattleObject
             uint64_t seqID;
 
             PlayerLuaCORunner(sol::state &s, uint64_t argFrom, uint64_t argSeqID)
-                : LuaCORunner(s, "__RSVD_NAME_coth_runner")
+                : LuaCORunner(s, "_RSVD_NAME_coth_runner")
                 , from(argFrom)
                 , seqID(argSeqID)
             {

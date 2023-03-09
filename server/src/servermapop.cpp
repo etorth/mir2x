@@ -1146,3 +1146,9 @@ void ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
         postGridFireWallList(amCFW.x, amCFW.y);
     }
 }
+
+void ServerMap::on_AM_REMOTECALL(const ActorMsgPack &mpk)
+{
+    const auto sdRC = mpk.deserialize<SDRemoteCall>();
+    m_luaRunnerPtr->spawn(mpk.from(), mpk.seqID(), sdRC.code.c_str());
+}

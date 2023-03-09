@@ -79,12 +79,14 @@ constexpr uint64_t SYS_U64NIL = 0XFFFFFFFFFFFFFFFFULL;
 constexpr int SYS_MAXNPCDISTANCE = 10;
 constexpr char SYS_GOLDNAME[] = "金币（小）"; // always use 金币（小）to represent the gold item
 
-constexpr char SYS_NPCINIT [] = "__RSVD_NAME_NPC_INIT__90360178872";
-constexpr char SYS_NPCDONE [] = "__RSVD_NAME_NPC_DONE__14208236065";
-constexpr char SYS_NPCERROR[] = "__RSVD_NAME_NPC_ERROR_45421406723";
-constexpr char SYS_EXECDONE[] = "__RSVD_NAME_EXEC_DONE_68553768451";
+constexpr char SYS_NPCINIT [] = "_RSVD_NAME_NPC_INIT__90360178872";
+constexpr char SYS_NPCDONE [] = "_RSVD_NAME_NPC_DONE__14208236065";
+constexpr char SYS_NPCERROR[] = "_RSVD_NAME_NPC_ERROR_45421406723";
 
-constexpr char SYS_CHECKACTIVE[] = "__RSVD_NAME_CHECK_ACTIVE_4054544333";
+constexpr char SYS_BADUID  [] = "_RSVD_NAME_BAD_UID___67259708252";
+constexpr char SYS_EXECDONE[] = "_RSVD_NAME_EXEC_DONE_68553768451";
+
+constexpr char SYS_CHECKACTIVE[] = "_RSVD_NAME_CHECK_ACTIVE_4054544333";
 
 constexpr inline size_t SYS_SUMEXP(uint32_t level)
 {

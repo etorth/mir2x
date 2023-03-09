@@ -514,6 +514,11 @@ void ServerMap::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_OFFLINE(rstMPK);
                 break;
             }
+        case AM_REMOTECALL:
+            {
+                on_AM_REMOTECALL(rstMPK);
+                break;
+            }
         case AM_STRIKEFIXEDLOCDAMAGE:
             {
                 on_AM_STRIKEFIXEDLOCDAMAGE(rstMPK);
