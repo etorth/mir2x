@@ -13,7 +13,6 @@
 #include "serdesmsg.hpp"
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
-#include "batchluamodule.hpp"
 #include "serverluacoroutinerunner.hpp"
 #include "lochashtable.hpp"
 #include "parallel_hashmap/phmap.h"
