@@ -27,8 +27,9 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
                 fflassert(key);
-                fflassert(fromUID);
-                fflassert(msgSeqID);
+
+                if(fromUID) fflassert( msgSeqID, fromUID, msgSeqID);
+                else        fflassert(!msgSeqID, fromUID, msgSeqID);
             }
 
             void clearEvent()

@@ -28,25 +28,6 @@ class ServerObject;
 class ServerMap final: public ServerObject
 {
     private:
-        class ServerMapLuaModule: public ServerLuaModule
-        {
-            private:
-                sol::coroutine m_coHandler;
-
-            public:
-                ServerMapLuaModule(ServerMap *);
-
-            public:
-                void resumeLoop()
-                {
-                    if(!m_coHandler){
-                        throw fflerror("ServerMap coroutine is not callable");
-                    }
-                    pfrCheck(m_coHandler());
-                }
-        };
-
-    private:
         class ServerPathFinder: public pathf::AStarPathFinder
         {
             private:
@@ -117,10 +98,10 @@ class ServerMap final: public ServerObject
         phmap::flat_hash_set<std::tuple<int, int>, LocHashHelper> m_gridItemLocList;
 
     private:
-        std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
+        const uint64_t m_mainScriptThreadKey = 1;
+        /* */ uint64_t m_runnerSeqID = m_mainScriptThreadKey + 1;
 
     private:
-        uint64_t m_runnerSeqID = 1;
         std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunner;
 
     private:
@@ -179,13 +160,7 @@ class ServerMap final: public ServerObject
         }
 
     public:
-        void onActivate() override
-        {
-            ServerObject::onActivate();
-            m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
-            m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod);
-            loadNPChar();
-        }
+        void onActivate() override;
 
     private:
         void loadNPChar();
@@ -397,7 +372,4 @@ class ServerMap final: public ServerObject
         void on_AM_ADDCO               (const ActorMsgPack &);
         void on_AM_REMOTECALL          (const ActorMsgPack &);
         void on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
-
-    private:
-        bool regLuaExport(ServerMapLuaModule *);
 };

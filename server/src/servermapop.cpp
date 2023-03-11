@@ -19,8 +19,8 @@ extern ServerArgParser *g_serverArgParser;
 void ServerMap::on_AM_METRONOME(const ActorMsgPack &)
 {
     updateMapGrid();
-    if(m_luaModulePtr && !g_serverArgParser->disableMapScript){
-        m_luaModulePtr->resumeLoop();
+    if(!g_serverArgParser->disableMapScript){
+        m_luaRunner->resume(m_mainScriptThreadKey);
     }
 }
 

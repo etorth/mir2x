@@ -145,9 +145,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
 void ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t fromUID, uint64_t msgSeqID, const char *code)
 {
     fflassert(key);
-    fflassert(fromUID);
-    fflassert(msgSeqID);
     fflassert(code);
+
+    if(fromUID) fflassert( msgSeqID, fromUID, msgSeqID);
+    else        fflassert(!msgSeqID, fromUID, msgSeqID);
 
     auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, fromUID, msgSeqID));
     resumeRunner(p->second.get(), str_printf(
@@ -172,11 +173,13 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
             fflassert(serVarList.empty(), error, serVarList);
         }
 
-        m_actorPod->forward(runnerPtr->fromUID, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
-        {
-            .error = std::move(error),
-            .serVarList = std::move(serVarList),
-        })}, runnerPtr->msgSeqID);
+        if(runnerPtr->fromUID){
+            m_actorPod->forward(runnerPtr->fromUID, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+            {
+                .error = std::move(error),
+                .serVarList = std::move(serVarList),
+            })}, runnerPtr->msgSeqID);
+        }
     };
 
     if(const auto pfr = codeOpt.has_value() ? runnerPtr->callback(codeOpt.value()) : runnerPtr->callback(); pfrCheck(pfr, fnDrainError)){
