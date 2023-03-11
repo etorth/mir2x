@@ -7,7 +7,7 @@ function _RSVD_NAME_luaCoroutineRunner_main(code)
 end
 
 local function _RSVD_NAME_waitRemoteCallResult()
-    local seqID = getTLSTable().seqID
+    local seqID = getTLSTable().threadKey
     while true do
         local resList = {_RSVD_NAME_pollRemoteCallResult(seqID)}
         if next(resList) == nil then

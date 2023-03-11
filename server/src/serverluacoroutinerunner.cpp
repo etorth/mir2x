@@ -151,10 +151,10 @@ void ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t fromUID, uint64_t ms
 
     auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(m_luaModule, key, fromUID, msgSeqID));
     const auto pfr = p->second->callback(str_printf(
-        R"###( getTLSTable().key = %llu )###""\n"
-        R"###( do                       )###""\n"
-        R"###(    %s                    )###""\n"
-        R"###( end                      )###""\n", to_llu(key), code));
+        R"###( getTLSTable().threadKey = %llu )###""\n"
+        R"###( do                             )###""\n"
+        R"###(    %s                          )###""\n"
+        R"###( end                            )###""\n", to_llu(key), code));
 
     resumeRunner(p->second.get());
 }
