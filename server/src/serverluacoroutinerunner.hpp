@@ -9,7 +9,7 @@ class ServerLuaCoroutineRunner
     private:
         struct _CoroutineRunner
         {
-            const uint64_t seqID;
+            const uint64_t key;
             const uint64_t fromUID;
             const uint64_t msgSeqID;
 
@@ -19,14 +19,14 @@ class ServerLuaCoroutineRunner
             sol::thread runner;
             sol::coroutine callback;
 
-            _CoroutineRunner(LuaModule &luaModule, uint64_t argSeqID, uint64_t argFromUID, uint64_t argMsgSeqID)
-                : seqID(argSeqID)
+            _CoroutineRunner(LuaModule &luaModule, uint64_t argKey, uint64_t argFromUID, uint64_t argMsgSeqID)
+                : key(argKey)
                 , fromUID(argFromUID)
                 , msgSeqID(argMsgSeqID)
                 , runner(luaModule.getLuaState().lua_state())
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
-                fflassert(seqID);
+                fflassert(key);
                 fflassert(fromUID);
                 fflassert(msgSeqID);
             }
@@ -52,21 +52,21 @@ class ServerLuaCoroutineRunner
         ServerLuaCoroutineRunner(ActorPod *, std::function<void(LuaModule *)> = nullptr);
 
     public:
-        uint64_t spawn(uint64_t, uint64_t, const char *);
+        void spawn(uint64_t, uint64_t, uint64_t, const char *);
 
     public:
-        void clear(uint64_t seqID)
+        void clear(uint64_t key)
         {
-            m_runnerList.erase(seqID);
+            m_runnerList.erase(key);
         }
 
-        void resume(uint64_t seqID)
+        void resume(uint64_t key)
         {
-            if(auto p = m_runnerList.find(seqID); p != m_runnerList.end()){
+            if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
                 resumeRunner(p->second.get());
             }
             else{
-                throw fflerror("resume non-existing coroutine: seqID = %llu", to_llu(seqID));
+                throw fflerror("resume non-existing coroutine: key = %llu", to_llu(key));
             }
         }
 

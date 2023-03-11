@@ -20,10 +20,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
         fnBindExtraFuncs(&m_luaModule);
     }
 
-    m_luaModule.bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t fromSeqID, uint64_t uid, std::string code)
+    m_luaModule.bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t fromKey, uint64_t uid, std::string code)
     {
-        if(!m_runnerList.contains(fromSeqID)){
-            throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(fromSeqID), to_llu(uid), to_cstr(code));
+        if(!m_runnerList.contains(fromKey)){
+            throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(fromKey), to_llu(uid), to_cstr(code));
         }
 
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
@@ -31,7 +31,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
             .code = code,
         })},
 
-        [fromSeqID, uid, code /* not ref */, this](const ActorMsgPack &mpk)
+        [fromKey, uid, code /* not ref */, this](const ActorMsgPack &mpk)
         {
             if(uid != mpk.from()){
                 throw fflerror("lua code sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
@@ -41,13 +41,13 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
                 throw fflerror("remote call responder expects response");
             }
 
-            auto p = m_runnerList.find(fromSeqID);
+            auto p = m_runnerList.find(fromKey);
             if(p == m_runnerList.end()){
                 // can not find runner
                 // runner can be cancelled already, or just an error
 
                 // but hard to tell if this is an error
-                // because fromSeqID is surely an used/using seqID, but we didn't record seqID of cancelled runners
+                // because we didn't record keys of cancelled runners
                 return;
             }
 
@@ -84,12 +84,12 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
         });
     });
 
-    m_luaModule.bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t fromSeqID, sol::this_state s)
+    m_luaModule.bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t fromKey, sol::this_state s)
     {
         sol::state_view sv(s);
-        return sol::as_returns([fromSeqID, &sv, this]() -> std::vector<sol::object>
+        return sol::as_returns([fromKey, &sv, this]() -> std::vector<sol::object>
         {
-            if(auto p = m_runnerList.find(fromSeqID); p != m_runnerList.end()){
+            if(auto p = m_runnerList.find(fromKey); p != m_runnerList.end()){
                 const auto from  = p->second->fromUID;
                 const auto event = std::move(p->second->event);
                 const auto value = std::move(p->second->value);
@@ -133,7 +133,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
                 }
                 return eventStack;
             }
-            throw fflerror("can't find seqID: %llu", to_llu(fromSeqID));
+            throw fflerror("can't find key: %llu", to_llu(fromKey));
         }());
     });
 
@@ -142,21 +142,21 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
     END_LUAINC()));
 }
 
-uint64_t ServerLuaCoroutineRunner::spawn(uint64_t fromUID, uint64_t msgSeqID, const char *code)
+void ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t fromUID, uint64_t msgSeqID, const char *code)
 {
+    fflassert(key);
     fflassert(fromUID);
     fflassert(msgSeqID);
     fflassert(code);
 
-    auto [p, added] = m_runnerList.insert_or_assign(m_seqID, std::make_unique<_CoroutineRunner>(m_luaModule, m_seqID, fromUID, msgSeqID));
+    auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(m_luaModule, key, fromUID, msgSeqID));
     const auto pfr = p->second->callback(str_printf(
-        R"###( getTLSTable().seqID = %llu )###""\n"
-        R"###( do                         )###""\n"
-        R"###(    %s                      )###""\n"
-        R"###( end                        )###""\n", to_llu(m_seqID), code));
+        R"###( getTLSTable().key = %llu )###""\n"
+        R"###( do                       )###""\n"
+        R"###(    %s                    )###""\n"
+        R"###( end                      )###""\n", to_llu(key), code));
 
     resumeRunner(p->second.get());
-    return m_seqID++;
 }
 
 void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_CoroutineRunner *runnerPtr)
@@ -224,7 +224,7 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
     }
     else{
         if(error.empty()){
-            error.push_back(str_printf("unknown error for runner: seqID = %llu", to_llu(runnerPtr->seqID)));
+            error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(runnerPtr->key)));
         }
         fnSendSerVarList(std::move(error), {});
     }

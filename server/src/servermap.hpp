@@ -120,6 +120,7 @@ class ServerMap final: public ServerObject
         std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
 
     private:
+        uint64_t m_runnerKey = 1;
         std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunnerPtr;
 
     private:

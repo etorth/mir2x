@@ -1150,5 +1150,5 @@ void ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
 void ServerMap::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    m_luaRunnerPtr->spawn(mpk.from(), mpk.seqID(), sdRC.code.c_str());
+    m_luaRunnerPtr->spawn(m_runnerKey++, mpk.from(), mpk.seqID(), sdRC.code.c_str());
 }
