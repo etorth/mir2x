@@ -26,7 +26,7 @@ end
 
 -- send lua code to uid to execute
 -- used to support complicated logic through actor message
-local function uidExecuteString(uid, code)
+local function _RSVD_NAME_uidExecute(uid, code)
     assertType(uid, 'integer')
     assertType(code, 'string')
     _RSVD_NAME_sendRemoteCall(getTLSTable().uid, uid, code, false)
@@ -44,7 +44,7 @@ local function uidExecuteString(uid, code)
 end
 
 function uidExecute(uid, code, ...)
-    return uidExecuteString(uid, code:format(...))
+    return _RSVD_NAME_uidExecute(uid, code:format(...))
 end
 
 --

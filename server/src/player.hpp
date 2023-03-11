@@ -23,22 +23,6 @@ class Player final: public BattleObject
             ON_END,
         };
 
-    private:
-        struct PlayerLuaCORunner: public LuaCORunner
-        {
-            uint64_t from;
-            uint64_t seqID;
-
-            PlayerLuaCORunner(sol::state &s, uint64_t argFrom, uint64_t argSeqID)
-                : LuaCORunner(s, "_RSVD_NAME_coth_runner")
-                , from(argFrom)
-                , seqID(argSeqID)
-            {
-                fflassert(from);
-                fflassert(seqID);
-            }
-        };
-
         class CallDoneFlag final
         {
             private:
@@ -116,11 +100,8 @@ class Player final: public BattleObject
         std::unordered_map<int, std::function<void()>> m_onWLOff;
 
     private:
-        std::unique_ptr<ServerLuaModule> m_luaModulePtr;
-
-    private:
-        uint64_t m_runSeqID = 1;
-        std::unordered_map<uint64_t, PlayerLuaCORunner> m_runnerList;
+        uint64_t m_runnerSeqID = 1;
+        std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunner;
 
     private:
         std::unordered_map<int, std::vector<sol::function>> m_scriptEventTriggerList;
@@ -130,6 +111,9 @@ class Player final: public BattleObject
 
     public:
         ~Player() = default;
+
+    public:
+        void onActivate() override;
 
     protected:
         uint32_t exp() const
@@ -463,7 +447,7 @@ class Player final: public BattleObject
 
             if(const auto p = m_scriptEventTriggerList.find(eventType); p != m_scriptEventTriggerList.end()){
                 for(auto q = p->second.begin(); q != p->second.end();){
-                    if(const auto pfr = (*q)(std::forward<Args>(args)...); m_luaModulePtr->pfrCheck(pfr)){
+                    if(const auto pfr = (*q)(std::forward<Args>(args)...); m_luaRunner->pfrCheck(pfr)){
                         const auto done = [&pfr]() -> bool
                         {
                             if(pfr.return_count() == 0){

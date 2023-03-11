@@ -120,8 +120,8 @@ class ServerMap final: public ServerObject
         std::unique_ptr<ServerMapLuaModule> m_luaModulePtr;
 
     private:
-        uint64_t m_runnerKey = 1;
-        std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunnerPtr;
+        uint64_t m_runnerSeqID = 1;
+        std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunner;
 
     private:
         void operateAM(const ActorMsgPack &);
@@ -183,7 +183,7 @@ class ServerMap final: public ServerObject
         {
             ServerObject::onActivate();
             m_luaModulePtr = std::make_unique<ServerMap::ServerMapLuaModule>(this);
-            m_luaRunnerPtr = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod);
+            m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod);
             loadNPChar();
         }
 

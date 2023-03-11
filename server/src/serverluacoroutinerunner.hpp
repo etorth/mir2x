@@ -4,7 +4,7 @@
 #include "serverluamodule.hpp"
 
 class ActorPod;
-class ServerLuaCoroutineRunner
+class ServerLuaCoroutineRunner: public ServerLuaModule
 {
     private:
         struct _CoroutineRunner
@@ -19,11 +19,11 @@ class ServerLuaCoroutineRunner
             sol::thread runner;
             sol::coroutine callback;
 
-            _CoroutineRunner(LuaModule &luaModule, uint64_t argKey, uint64_t argFromUID, uint64_t argMsgSeqID)
+            _CoroutineRunner(ServerLuaModule &luaModule, uint64_t argKey, uint64_t argFromUID, uint64_t argMsgSeqID)
                 : key(argKey)
                 , fromUID(argFromUID)
                 , msgSeqID(argMsgSeqID)
-                , runner(luaModule.getLuaState().lua_state())
+                , runner(sol::thread::create(luaModule.getLuaState().lua_state()))
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
                 fflassert(key);
@@ -39,9 +39,6 @@ class ServerLuaCoroutineRunner
         };
 
     private:
-        ServerLuaModule m_luaModule;
-
-    private:
         ActorPod * const m_actorPod;
 
     private:
@@ -49,7 +46,7 @@ class ServerLuaCoroutineRunner
         std::unordered_map<uint64_t, std::unique_ptr<_CoroutineRunner>> m_runnerList;
 
     public:
-        ServerLuaCoroutineRunner(ActorPod *, std::function<void(LuaModule *)> = nullptr);
+        ServerLuaCoroutineRunner(ActorPod *, std::function<void(ServerLuaModule *)> = nullptr);
 
     public:
         void spawn(uint64_t, uint64_t, uint64_t, const char *);
@@ -71,5 +68,5 @@ class ServerLuaCoroutineRunner
         }
 
     private:
-        void resumeRunner(_CoroutineRunner *);
+        void resumeRunner(_CoroutineRunner *, std::optional<std::string> = {});
 };

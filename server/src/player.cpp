@@ -43,235 +43,240 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     dbLoadInventory();
     dbLoadLearnedMagic();
     dbLoadRuntimeConfig();
+}
 
-    m_luaModulePtr = std::make_unique<ServerLuaModule>();
-
-    m_luaModulePtr->execString("ON_NONE    = %d", ON_NONE   );
-    m_luaModulePtr->execString("ON_BEGIN   = %d", ON_BEGIN  );
-    m_luaModulePtr->execString("ON_KILL    = %d", ON_KILL   );
-    m_luaModulePtr->execString("ON_LEVELUP = %d", ON_LEVELUP);
-    m_luaModulePtr->execString("ON_END     = %d", ON_END    );
-
-    m_luaModulePtr->bindFunction("getUID", [this]() -> uint64_t
+void Player::onActivate()
+{
+    BattleObject::onActivate();
+    m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod, [this](ServerLuaModule *luaModule)
     {
-        return UID();
-    });
+        luaModule->execString("ON_NONE    = %d", ON_NONE   );
+        luaModule->execString("ON_BEGIN   = %d", ON_BEGIN  );
+        luaModule->execString("ON_KILL    = %d", ON_KILL   );
+        luaModule->execString("ON_LEVELUP = %d", ON_LEVELUP);
+        luaModule->execString("ON_END     = %d", ON_END    );
 
-    m_luaModulePtr->bindFunction("getLevel", [this]() -> uint64_t
-    {
-        return level();
-    });
-
-    m_luaModulePtr->bindFunction("getGold", [this]() -> uint64_t
-    {
-        return gold();
-    });
-
-    m_luaModulePtr->bindFunction("getName", [this]() -> std::string
-    {
-        return name();
-    });
-
-    m_luaModulePtr->bindFunction("addTrigger", [this](int eventType, sol::function eventHandler)
-    {
-        fflassert(eventType >= ON_BEGIN, eventType);
-        fflassert(eventType <  ON_END  , eventType);
-
-        m_scriptEventTriggerList[eventType].push_back(eventHandler);
-    });
-
-    m_luaModulePtr->bindFunction("postRawString", [this](std::string msg)
-    {
-        postNetMessage(SM_TEXT, msg);
-    });
-
-    m_luaModulePtr->bindFunction("secureItem", [this](uint32_t itemID, uint32_t seqID)
-    {
-        secureItem(itemID, seqID);
-    });
-
-    m_luaModulePtr->bindFunction("reportSecuredItemList", [this]()
-    {
-        reportSecuredItemList();
-    });
-
-    m_luaModulePtr->bindFunction("addItem", [this](int itemID, int itemCount)
-    {
-        const auto &ir = DBCOM_ITEMRECORD(itemID);
-        fflassert(ir);
-        fflassert(itemCount > 0);
-
-        if(ir.isGold()){
-            setGold(getGold() + itemCount);
-        }
-        else{
-            int added = 0;
-            while(added < itemCount){
-                const auto &addedItem = addInventoryItem(SDItem
-                {
-                    .itemID = to_u32(itemID),
-                    .seqID  = 1,
-                    .count = std::min<size_t>(ir.packable() ? SYS_INVGRIDMAXHOLD : 1, itemCount - added),
-                }, false);
-                added += addedItem.count;
-            }
-        }
-    });
-
-    m_luaModulePtr->bindFunction("removeItem", [this](int itemID, int seqID, int count) -> bool
-    {
-        fflassert(itemID >  0, itemID);
-        fflassert( seqID >= 0,  seqID);
-        fflassert( count >  0,  count);
-
-        const auto argItemID = to_u32(itemID);
-        const auto argSeqID  = to_u32( seqID);
-        const auto argCount  = to_uz ( count);
-
-        const auto &ir = DBCOM_ITEMRECORD(argItemID);
-        fflassert(ir);
-
-        if(ir.isGold()){
-            fflassert(argSeqID == 0, argSeqID);
-            if(m_sdItemStorage.gold >= argCount){
-                setGold(m_sdItemStorage.gold - argCount);
-                return true;
-            }
-            else{
-                return false;
-            }
-        }
-        else if(argSeqID > 0){
-            fflassert(argCount == 1, argCount);
-            return removeInventoryItem(argItemID, argSeqID) > 0;
-        }
-        else{
-            fflassert(argCount > 0);
-            if(hasInventoryItem(argItemID, argSeqID, argCount)){
-                removeInventoryItem(argItemID, 0, argCount);
-                return true;
-            }
-            else{
-                return false;
-            }
-        }
-    });
-
-    m_luaModulePtr->bindFunction("_RSVD_NAME_spaceMoveCoop", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runSeqID)
-    {
-        const auto &mr = DBCOM_MAPRECORD(argMapID);
-        fflassert(mr, argMapID);
-
-        fflassert(argX >= 0, argX);
-        fflassert(argY >= 0, argY);
-
-        fflassert(runSeqID > 0, runSeqID);
+        luaModule->bindFunction("getUID", [this]() -> uint64_t
         {
-            const CallDoneFlag doneFlag;
-            if(to_u32(argMapID) == mapID()){
-                requestSpaceMove(argX, argY, false, [doneFlag, onOK, runSeqID, this]()
-                {
-                    onOK();
-                    if(doneFlag){
-                        resumeCORunner(runSeqID);
-                    }
-                },
+            return UID();
+        });
 
-                [doneFlag, onError, runSeqID, this]()
-                {
-                    onError();
-                    if(doneFlag){
-                        resumeCORunner(runSeqID);
-                    }
-                });
+        luaModule->bindFunction("getLevel", [this]() -> uint64_t
+        {
+            return level();
+        });
+
+        luaModule->bindFunction("getGold", [this]() -> uint64_t
+        {
+            return gold();
+        });
+
+        luaModule->bindFunction("getName", [this]() -> std::string
+        {
+            return name();
+        });
+
+        luaModule->bindFunction("addTrigger", [this](int eventType, sol::function eventHandler)
+        {
+            fflassert(eventType >= ON_BEGIN, eventType);
+            fflassert(eventType <  ON_END  , eventType);
+
+            m_scriptEventTriggerList[eventType].push_back(eventHandler);
+        });
+
+        luaModule->bindFunction("postRawString", [this](std::string msg)
+        {
+            postNetMessage(SM_TEXT, msg);
+        });
+
+        luaModule->bindFunction("secureItem", [this](uint32_t itemID, uint32_t seqID)
+        {
+            secureItem(itemID, seqID);
+        });
+
+        luaModule->bindFunction("reportSecuredItemList", [this]()
+        {
+            reportSecuredItemList();
+        });
+
+        luaModule->bindFunction("addItem", [this](int itemID, int itemCount)
+        {
+            const auto &ir = DBCOM_ITEMRECORD(itemID);
+            fflassert(ir);
+            fflassert(itemCount > 0);
+
+            if(ir.isGold()){
+                setGold(getGold() + itemCount);
             }
             else{
-                requestMapSwitch(argMapID, argX, argY, false, [doneFlag, onOK, runSeqID, this]()
-                {
-                    onOK();
-                    if(doneFlag){
-                        resumeCORunner(runSeqID);
-                    }
-                },
-
-                [doneFlag, onError, runSeqID, this]()
-                {
-                    onError();
-                    if(doneFlag){
-                        resumeCORunner(runSeqID);
-                    }
-                });
-            }
-        }
-    });
-
-    m_luaModulePtr->bindFunction("_RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runSeqID)
-    {
-        const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
-        {
-            const int startDir = pathf::getRandDir();
-            for(int i = 0; i < 8; ++i){
-                if(const auto [newX, newY] = pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(startDir, i)); m_map->groundValid(newX, newY)){
-                    return {{newX, newY}};
+                int added = 0;
+                while(added < itemCount){
+                    const auto &addedItem = addInventoryItem(SDItem
+                    {
+                        .itemID = to_u32(itemID),
+                        .seqID  = 1,
+                        .count = std::min<size_t>(ir.packable() ? SYS_INVGRIDMAXHOLD : 1, itemCount - added),
+                    }, false);
+                    added += addedItem.count;
                 }
             }
-            return {};
-        }();
+        });
 
-        if(newGLoc.has_value()){
-            const auto [newX, newY] = newGLoc.value();
+        luaModule->bindFunction("removeItem", [this](int itemID, int seqID, int count) -> bool
+        {
+            fflassert(itemID >  0, itemID);
+            fflassert( seqID >= 0,  seqID);
+            fflassert( count >  0,  count);
+
+            const auto argItemID = to_u32(itemID);
+            const auto argSeqID  = to_u32( seqID);
+            const auto argCount  = to_uz ( count);
+
+            const auto &ir = DBCOM_ITEMRECORD(argItemID);
+            fflassert(ir);
+
+            if(ir.isGold()){
+                fflassert(argSeqID == 0, argSeqID);
+                if(m_sdItemStorage.gold >= argCount){
+                    setGold(m_sdItemStorage.gold - argCount);
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+            else if(argSeqID > 0){
+                fflassert(argCount == 1, argCount);
+                return removeInventoryItem(argItemID, argSeqID) > 0;
+            }
+            else{
+                fflassert(argCount > 0);
+                if(hasInventoryItem(argItemID, argSeqID, argCount)){
+                    removeInventoryItem(argItemID, 0, argCount);
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+        });
+
+        luaModule->bindFunction("_RSVD_NAME_spaceMoveCoop", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+        {
+            const auto &mr = DBCOM_MAPRECORD(argMapID);
+            fflassert(mr, argMapID);
+
+            fflassert(argX >= 0, argX);
+            fflassert(argY >= 0, argY);
+
+            fflassert(runnerSeqID > 0, runnerSeqID);
             {
                 const CallDoneFlag doneFlag;
-                requestMove(newX, newY, SYS_DEFSPEED, false, false, [doneFlag, onOK, runSeqID, this]()
-                {
-                    // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
-                    // but here need to sendback the forced move since it's driven by server
-
-                    const auto [oldX, oldY] = pathf::getBackGLoc(X(), Y(), Direction());
-                    reportAction(UID(), mapID(), ActionMove
+                if(to_u32(argMapID) == mapID()){
+                    requestSpaceMove(argX, argY, false, [doneFlag, onOK, runnerSeqID, this]()
                     {
-                        .speed = SYS_DEFSPEED,
-                        .x = oldX,
-                        .y = oldY,
-                        .aimX = X(),
-                        .aimY = Y(),
+                        onOK();
+                        if(doneFlag){
+                            m_luaRunner->resume(runnerSeqID);
+                        }
+                    },
+
+                    [doneFlag, onError, runnerSeqID, this]()
+                    {
+                        onError();
+                        if(doneFlag){
+                            m_luaRunner->resume(runnerSeqID);
+                        }
                     });
+                }
+                else{
+                    requestMapSwitch(argMapID, argX, argY, false, [doneFlag, onOK, runnerSeqID, this]()
+                    {
+                        onOK();
+                        if(doneFlag){
+                            m_luaRunner->resume(runnerSeqID);
+                        }
+                    },
 
-                    onOK();
-                    if(doneFlag){
-                        resumeCORunner(runSeqID);
+                    [doneFlag, onError, runnerSeqID, this]()
+                    {
+                        onError();
+                        if(doneFlag){
+                            m_luaRunner->resume(runnerSeqID);
+                        }
+                    });
+                }
+            }
+        });
+
+        luaModule->bindFunction("_RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+        {
+            const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
+            {
+                const int startDir = pathf::getRandDir();
+                for(int i = 0; i < 8; ++i){
+                    if(const auto [newX, newY] = pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(startDir, i)); m_map->groundValid(newX, newY)){
+                        return {{newX, newY}};
                     }
-                },
+                }
+                return {};
+            }();
 
-                [doneFlag, onError, runSeqID, this]()
+            if(newGLoc.has_value()){
+                const auto [newX, newY] = newGLoc.value();
                 {
-                    onError();
-                    if(doneFlag){
-                        resumeCORunner(runSeqID);
-                    }
+                    const CallDoneFlag doneFlag;
+                    requestMove(newX, newY, SYS_DEFSPEED, false, false, [doneFlag, onOK, runnerSeqID, this]()
+                    {
+                        // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
+                        // but here need to sendback the forced move since it's driven by server
+
+                        const auto [oldX, oldY] = pathf::getBackGLoc(X(), Y(), Direction());
+                        reportAction(UID(), mapID(), ActionMove
+                        {
+                            .speed = SYS_DEFSPEED,
+                            .x = oldX,
+                            .y = oldY,
+                            .aimX = X(),
+                            .aimY = Y(),
+                        });
+
+                        onOK();
+                        if(doneFlag){
+                            m_luaRunner->resume(runnerSeqID);
+                        }
+                    },
+
+                    [doneFlag, onError, runnerSeqID, this]()
+                    {
+                        onError();
+                        if(doneFlag){
+                            m_luaRunner->resume(runnerSeqID);
+                        }
+                    });
+                }
+            }
+            else{
+                onError();
+            }
+        });
+
+        luaModule->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t runnerSeqID)
+        {
+            fflassert(ms >= 0, ms);
+            fflassert(runnerSeqID > 0, runnerSeqID);
+            {
+                addDelay(ms, [runnerSeqID, this]()
+                {
+                    m_luaRunner->resume(runnerSeqID);
                 });
             }
-        }
-        else{
-            onError();
-        }
-    });
+        });
 
-    m_luaModulePtr->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t runSeqID)
-    {
-        fflassert(ms >= 0, ms);
-        fflassert(runSeqID > 0, runSeqID);
-        {
-            addDelay(ms, [runSeqID, this]()
-            {
-                resumeCORunner(runSeqID);
-            });
-        }
-    });
-
-    m_luaModulePtr->pfrCheck(m_luaModulePtr->execRawString(BEGIN_LUAINC(char)
+        luaModule->pfrCheck(luaModule->execRawString(BEGIN_LUAINC(char)
 #include "player.lua"
-    END_LUAINC()));
+        END_LUAINC()));
+    });
 }
 
 void Player::operateAM(const ActorMsgPack &rstMPK)
@@ -1718,52 +1723,6 @@ int Player::maxMP(uint64_t uid, uint32_t level)
     if(uidf::hasPlayerJob(uid, JOB_TAOIST )) result = std::max<int>(result, maxMPTaoist );
     if(uidf::hasPlayerJob(uid, JOB_WIZARD )) result = std::max<int>(result, maxMPWizard );
     return result;
-}
-
-void Player::resumeCORunner(uint64_t runSeqID)
-{
-    std::vector<std::string> error;
-    const auto fnDrainError = [&error](const std::string &s)
-    {
-        error.push_back(s);
-    };
-
-    if(auto p = m_runnerList.find(runSeqID); p != m_runnerList.end()){
-        fflassert(p->second.callback, runSeqID);
-        const auto fnSendSerVarList = [from = p->second.from, seqID = p->second.seqID, this](std::vector<std::string> error, std::vector<std::string> serVarList)
-        {
-            if(!error.empty()){
-                fflassert(serVarList.empty(), error, serVarList.size());
-            }
-
-            m_actorPod->forward(from, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
-            {
-                .error = std::move(error),
-                .serVarList = std::move(serVarList),
-            })}, seqID);
-        };
-
-        if(const auto pfr = p->second.callback(); m_luaModulePtr->pfrCheck(pfr, fnDrainError)){
-            // trigger the coroutine only *one* time
-            // in principle the script runs in synchronized model, so here we can trigger aribitary time
-            if(p->second.callback){
-                // still not done yet, wait for next trigger
-                // script is ill-formed if there is no scheduled trigger for next
-            }
-            else{
-                fnSendSerVarList(std::move(error), luaf::pfrBuildBlobList(pfr));
-            }
-        }
-        else{
-            if(error.empty()){
-                error.push_back(str_printf("unknown error for runner: runSeqID = %llu", to_llu(runSeqID)));
-            }
-            fnSendSerVarList(std::move(error), {});
-        }
-    }
-    else{
-        throw fflerror("try to resume a coroutine which doesn't exist in the runner list: runSeqID = %llu", to_llu(runSeqID));
-    }
 }
 
 bool Player::consumeBook(uint32_t itemID)

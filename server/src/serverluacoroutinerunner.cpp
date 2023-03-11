@@ -9,18 +9,18 @@
 #include "serverluacoroutinerunner.hpp"
 
 extern MonoServer *g_monoServer;
-ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::function<void(LuaModule *)> fnBindExtraFuncs)
-    : m_actorPod([podPtr]()
+ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::function<void(ServerLuaModule *)> fnBindExtraFuncs)
+    : ServerLuaModule()
+    , m_actorPod([podPtr]()
       {
-          fflassert(podPtr);
-          return podPtr;
+          fflassert(podPtr); return podPtr;
       }())
 {
     if(fnBindExtraFuncs){
-        fnBindExtraFuncs(&m_luaModule);
+        fnBindExtraFuncs(this);
     }
 
-    m_luaModule.bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t fromKey, uint64_t uid, std::string code)
+    bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t fromKey, uint64_t uid, std::string code)
     {
         if(!m_runnerList.contains(fromKey)){
             throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(fromKey), to_llu(uid), to_cstr(code));
@@ -84,7 +84,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
         });
     });
 
-    m_luaModule.bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t fromKey, sol::this_state s)
+    bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t fromKey, sol::this_state s)
     {
         sol::state_view sv(s);
         return sol::as_returns([fromKey, &sv, this]() -> std::vector<sol::object>
@@ -137,8 +137,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
         }());
     });
 
-    m_luaModule.pfrCheck(m_luaModule.execRawString(BEGIN_LUAINC(char)
-#include "npchar.lua"
+    pfrCheck(execRawString(BEGIN_LUAINC(char)
+#include "serverluacoroutinerunner.lua"
     END_LUAINC()));
 }
 
@@ -149,17 +149,15 @@ void ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t fromUID, uint64_t ms
     fflassert(msgSeqID);
     fflassert(code);
 
-    auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(m_luaModule, key, fromUID, msgSeqID));
-    const auto pfr = p->second->callback(str_printf(
+    auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, fromUID, msgSeqID));
+    resumeRunner(p->second.get(), str_printf(
         R"###( getTLSTable().threadKey = %llu )###""\n"
         R"###( do                             )###""\n"
         R"###(    %s                          )###""\n"
         R"###( end                            )###""\n", to_llu(key), code));
-
-    resumeRunner(p->second.get());
 }
 
-void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_CoroutineRunner *runnerPtr)
+void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_CoroutineRunner *runnerPtr, std::optional<std::string> codeOpt)
 {
     std::vector<std::string> error;
     const auto fnDrainError = [&error](const std::string &s)
@@ -181,7 +179,7 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
         })}, runnerPtr->msgSeqID);
     };
 
-    if(const auto pfr = runnerPtr->callback(); m_luaModule.pfrCheck(pfr, fnDrainError)){
+    if(const auto pfr = codeOpt.has_value() ? runnerPtr->callback(codeOpt.value()) : runnerPtr->callback(); pfrCheck(pfr, fnDrainError)){
         // trigger the coroutine only *one* time
         // in principle the script runs in synchronized model, so here we can trigger aribitary time
         if(runnerPtr->callback){

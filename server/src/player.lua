@@ -10,8 +10,8 @@ function call_RSVD_NAME_funcCoop(funcName, ...)
     local function onOK()
         done = true
         -- after this line
-        -- C level will call resumeCORunner(runSeqID) cooperatively
-        -- this is black magic, we can not put resumeCORunner(runSeqID) explicitly here in lua, see comments below:
+        -- C level will call resumeCORunner(threadKey) cooperatively
+        -- this is black magic, we can not put resumeCORunner(threadKey) explicitly here in lua, see comments below:
 
         -- for callback function onOK and onError
         -- they should keep simple as above, only setup marks/flags
@@ -22,7 +22,7 @@ function call_RSVD_NAME_funcCoop(funcName, ...)
         -- more importantly, don't do runner-resume in the onOK/onError callback
         -- which causes crash, because if we resume in onOK/onError, then when the callback gets triggeerred, stack is:
         --
-        --   --C-->onOK/onError-->resumeCORunner(getTLSTable().runSeqID)-->code in this runner after _RSVD_NAME_requestSpaceMove/coroutine.yield()
+        --   --C-->onOK/onError-->resumeCORunner(getTLSTable().threadKey)-->code in this runner after _RSVD_NAME_requestSpaceMove/coroutine.yield()
         --     ^       ^                ^                                   ^
         --     |       |                |                                   |
         --     |       |                |                                   +------ lua
@@ -43,7 +43,7 @@ function call_RSVD_NAME_funcCoop(funcName, ...)
 
     table.insert(args, onOK)
     table.insert(args, onError)
-    table.insert(args, getTLSTable().runSeqID)
+    table.insert(args, getTLSTable().threadKey)
 
     _G[string.format('_RSVD_NAME_%sCoop', funcName)](table.unpack(args))
 
@@ -62,7 +62,7 @@ function pause(ms)
     assert(ms >= 0)
 
     local oldTime = getTime()
-    _RSVD_NAME_pauseYielding(ms, getTLSTable().runSeqID)
+    _RSVD_NAME_pauseYielding(ms, getTLSTable().threadKey)
     return getTime() - oldTime
 end
 
