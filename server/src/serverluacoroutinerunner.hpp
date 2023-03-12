@@ -10,6 +10,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         struct _CoroutineRunner
         {
             const uint64_t key;
+            const uint64_t seqID;
             const uint64_t fromUID;
             const uint64_t msgSeqID;
 
@@ -19,14 +20,16 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             sol::thread runner;
             sol::coroutine callback;
 
-            _CoroutineRunner(ServerLuaModule &luaModule, uint64_t argKey, uint64_t argFromUID, uint64_t argMsgSeqID)
+            _CoroutineRunner(ServerLuaModule &luaModule, uint64_t argKey, uint64_t argSeqID, uint64_t argFromUID, uint64_t argMsgSeqID)
                 : key(argKey)
+                , seqID(argSeqID)
                 , fromUID(argFromUID)
                 , msgSeqID(argMsgSeqID)
                 , runner(sol::thread::create(luaModule.getLuaState().lua_state()))
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
                 fflassert(key);
+                fflassert(seqID);
 
                 if(fromUID) fflassert( msgSeqID, fromUID, msgSeqID);
                 else        fflassert(!msgSeqID, fromUID, msgSeqID);
@@ -65,6 +68,16 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             }
             else{
                 throw fflerror("resume non-existing coroutine: key = %llu", to_llu(key));
+            }
+        }
+
+        uint64_t runnerSeqID(uint64_t key) const
+        {
+            if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
+                return p->second->seqID;
+            }
+            else{
+                return 0;
             }
         }
 

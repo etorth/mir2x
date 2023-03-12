@@ -150,7 +150,7 @@ void ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t fromUID, uint64_t ms
     if(fromUID) fflassert( msgSeqID, fromUID, msgSeqID);
     else        fflassert(!msgSeqID, fromUID, msgSeqID);
 
-    auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, fromUID, msgSeqID));
+    auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, fromUID, msgSeqID));
     resumeRunner(p->second.get(), str_printf(
         R"###( getTLSTable().threadKey = %llu )###""\n"
         R"###( do                             )###""\n"
