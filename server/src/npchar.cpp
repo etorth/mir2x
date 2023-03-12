@@ -643,6 +643,11 @@ void NPChar::operateAM(const ActorMsgPack &mpk)
                 on_AM_QUERYSELLITEMLIST(mpk);
                 break;
             }
+        case AM_REMOTECALL:
+            {
+                on_AM_REMOTECALL(mpk);
+                break;
+            }
         case AM_BADACTORPOD:
             {
                 on_AM_BADACTORPOD(mpk);

@@ -135,6 +135,7 @@ class NPChar final: public CharObject
         void on_AM_BADACTORPOD(const ActorMsgPack &);
         void on_AM_QUERYCORECORD(const ActorMsgPack &);
         void on_AM_QUERYLOCATION(const ActorMsgPack &);
+        void on_AM_REMOTECALL(const ActorMsgPack &);
         void on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
 
     private:

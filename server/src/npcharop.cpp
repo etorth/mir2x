@@ -124,6 +124,12 @@ void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
     forwardNetPackage(mpk.from(), SM_SELLITEMLIST, cerealf::serialize(sdSIL, true));
 }
 
+void NPChar::on_AM_REMOTECALL(const ActorMsgPack &mpk)
+{
+    const auto sdRC = mpk.deserialize<SDRemoteCall>();
+    // m_luaRunner->spawn(m_runnerSeqID++, mpk.from(), mpk.seqID(), sdRC.code.c_str());
+}
+
 void NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)
 {
     const auto amBAP = mpk.conv<AMBadActorPod>();
