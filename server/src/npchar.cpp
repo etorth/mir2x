@@ -51,11 +51,15 @@ void NPChar::onActivate()
         luaModule->bindFunction("setNPCSell", [this](sol::as_table_t<std::vector<std::string>> itemNameList)
         {
             m_npcSell.clear();
+            m_sellItemList.clear();
+
             for(const auto &itemName: itemNameList.value()){
                 if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
                     m_npcSell.insert(itemID);
                 }
             }
+
+            fillSellItemList();
         });
 
         luaModule->bindFunction("addNPCSell", [this](std::string itemName)
