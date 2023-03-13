@@ -37,8 +37,8 @@ class NPChar final: public CharObject
     public:
         void reportCO(uint64_t) override;
 
-    public:
-        const std::set<uint32_t> getSellList() const
+    protected:
+        const std::set<uint32_t> &getSellList() const
         {
             return m_npcSell;
         }
