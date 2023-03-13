@@ -155,11 +155,12 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t reqUID, uint64_t
     const auto currSeqID = p->second->seqID;
 
     resumeRunner(p->second.get(), str_printf(
-        R"###( getTLSTable().threadKey = %llu            )###""\n"
-        R"###( getTLSTable().startTime = getNanoTstamp() )###""\n"
-        R"###( do                                        )###""\n"
-        R"###(    %s                                     )###""\n"
-        R"###( end                                       )###""\n", to_llu(key), code));
+        R"###( getTLSTable().threadKey = %llu                           )###""\n"
+        R"###( getTLSTable().startTime = getNanoTstamp()                )###""\n"
+        R"###( local _RSVD_NAME_autoTLSTableClear = autoClearTLSTable() )###""\n"
+        R"###( do                                                       )###""\n"
+        R"###(    %s                                                    )###""\n"
+        R"###( end                                                      )###""\n", to_llu(key), code));
 
     return currSeqID;
 }

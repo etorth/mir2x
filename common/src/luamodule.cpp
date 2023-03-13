@@ -44,6 +44,15 @@ LuaModule::LuaModule()
             end
         end
 
+        local _RSVD_NAME_clearTLSTable = {}
+        setmetatable(_RSVD_NAME_clearTLSTable, {__close = function()
+            clearTLSTable()
+        end})
+
+        function autoClearTLSTable()
+            return _RSVD_NAME_clearTLSTable
+        end
+
         _RSVD_NAME_replaceEnvMetaTable = {
             __index = function(_, key)
                 local threadId, inMainThread = coroutine.running()
