@@ -113,46 +113,6 @@ local _RSVD_NAME_passiveQuestEventHandlers = nil
 --    so when server reboot, all these tables of handlers need to be re-generated, this is done by quest system enter function
 local _RSVD_NAME_uidActivedEventHandlers = nil
 
-local function _RSVD_NAME_waitEvent()
-    while true do
-        local resList = {_RSVD_NAME_pollCallStackEvent(getTLSTable().uid)}
-        if next(resList) == nil then
-            coroutine.yield()
-        else
-            local from  = resList[1]
-            local event = resList[2]
-
-            assertType(from, 'integer')
-            assertType(event, 'string')
-
-            return table.unpack(resList)
-        end
-    end
-end
-
--- send lua code to uid to execute
--- used to support complicated logic through actor message
-function uidExecuteString(uid, code)
-    assertType(uid, 'integer')
-    assertType(code, 'string')
-    _RSVD_NAME_sendCallStackRemoteCall(getTLSTable().uid, uid, code, false)
-
-    local resList = {_RSVD_NAME_waitEvent()}
-    if resList[1] ~= uid then
-        fatalPrintf('Send lua code to uid %s but get response from %d', uid, resList[1])
-    end
-
-    if resList[2] ~= SYS_EXECDONE then
-        fatalPrintf('Wait event as SYS_EXECDONE but get %s', resList[2])
-    end
-
-    return table.unpack(resList, 3)
-end
-
-function uidExecute(uid, code, ...)
-    return uidExecuteString(uid, code:format(...))
-end
-
 function uidSpaceMove(uid, map, x, y)
     local mapID = nil
     if type(map) == 'string' then
@@ -264,15 +224,9 @@ end
 -- entry coroutine for event handling
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
-function _RSVD_NAME_coth_main(uid)
-    -- setup current call stack uid
-    -- all functions in current call stack can use this implicit argument as *this*
-    getTLSTable().uid = uid
+function _RSVD_NAME_npc_main(from, event, value)
+    getTLSTable().uid = from
     getTLSTable().startTime = getNanoTstamp()
-
-    -- poll the event sink
-    -- current call stack only process 1 event and then clean itself
-    local from, event, value = _RSVD_NAME_waitEvent()
 
     assertType(from, 'integer')
     assertType(event, 'string')
@@ -281,7 +235,7 @@ function _RSVD_NAME_coth_main(uid)
         if hasEventHandler(event) then
             _RSVD_NAME_defaultChatEventHandlers[event](from, value)
         else
-            uidPostXML(uid,
+            uidPostXML(from,
             [[
                 <layout>
                     <par>我听不懂你在说什么。。。</par>

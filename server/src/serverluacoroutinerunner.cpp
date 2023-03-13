@@ -20,10 +20,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
         fnBindExtraFuncs(this);
     }
 
-    bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t fromKey, uint64_t uid, std::string code)
+    bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t threadKey, uint64_t uid, std::string code)
     {
-        if(!m_runnerList.contains(fromKey)){
-            throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(fromKey), to_llu(uid), to_cstr(code));
+        if(!m_runnerList.contains(threadKey)){
+            throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(threadKey), to_llu(uid), to_cstr(code));
         }
 
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
@@ -31,7 +31,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
             .code = code,
         })},
 
-        [fromKey, uid, code /* not ref */, this](const ActorMsgPack &mpk)
+        [threadKey, uid, code /* not ref */, this](const ActorMsgPack &mpk)
         {
             if(uid != mpk.from()){
                 throw fflerror("lua code sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
@@ -41,7 +41,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
                 throw fflerror("remote call responder expects response");
             }
 
-            auto p = m_runnerList.find(fromKey);
+            auto p = m_runnerList.find(threadKey);
             if(p == m_runnerList.end()){
                 // can not find runner
                 // runner can be cancelled already, or just an error
@@ -56,6 +56,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
             }
 
             p->second->clearEvent();
+            p->second->from = mpk.from();
 
             switch(mpk.type()){
                 case AM_SDBUFFER:
@@ -84,13 +85,13 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
         });
     });
 
-    bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t fromKey, sol::this_state s)
+    bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t threadKey, sol::this_state s)
     {
         sol::state_view sv(s);
-        return sol::as_returns([fromKey, &sv, this]() -> std::vector<sol::object>
+        return sol::as_returns([threadKey, &sv, this]() -> std::vector<sol::object>
         {
-            if(auto p = m_runnerList.find(fromKey); p != m_runnerList.end()){
-                const auto from  = p->second->fromUID;
+            if(auto p = m_runnerList.find(threadKey); p != m_runnerList.end()){
+                const auto from  = p->second->from;
                 const auto event = std::move(p->second->event);
                 const auto value = std::move(p->second->value);
 
@@ -133,7 +134,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
                 }
                 return eventStack;
             }
-            throw fflerror("can't find key: %llu", to_llu(fromKey));
+            throw fflerror("can't find key: %llu", to_llu(threadKey));
         }());
     });
 
@@ -142,24 +143,32 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
     END_LUAINC()));
 }
 
-void ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t fromUID, uint64_t msgSeqID, const char *code)
+uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t reqUID, uint64_t msgSeqID, const char *code)
 {
     fflassert(key);
     fflassert(code);
 
-    if(fromUID) fflassert( msgSeqID, fromUID, msgSeqID);
-    else        fflassert(!msgSeqID, fromUID, msgSeqID);
+    if(reqUID) fflassert( msgSeqID, reqUID, msgSeqID);
+    else       fflassert(!msgSeqID, reqUID, msgSeqID);
 
-    auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, fromUID, msgSeqID));
+    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, reqUID, msgSeqID));
+    const auto currSeqID = p->second->seqID;
+
     resumeRunner(p->second.get(), str_printf(
-        R"###( getTLSTable().threadKey = %llu )###""\n"
-        R"###( do                             )###""\n"
-        R"###(    %s                          )###""\n"
-        R"###( end                            )###""\n", to_llu(key), code));
+        R"###( getTLSTable().threadKey = %llu            )###""\n"
+        R"###( getTLSTable().startTime = getNanoTstamp() )###""\n"
+        R"###( do                                        )###""\n"
+        R"###(    %s                                     )###""\n"
+        R"###( end                                       )###""\n", to_llu(key), code));
+
+    return currSeqID;
 }
 
 void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_CoroutineRunner *runnerPtr, std::optional<std::string> codeOpt)
 {
+    // resume current runnerPtr
+    // this function can invalidate runnerPtr if it's done
+
     std::vector<std::string> error;
     const auto fnDrainError = [&error](const std::string &s)
     {
@@ -167,19 +176,33 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
     };
 
     fflassert(runnerPtr->callback);
-    const auto fnSendSerVarList = [runnerPtr, this](std::vector<std::string> error, std::vector<std::string> serVarList)
+    const auto fnOnThreadDone = [runnerPtr, this](std::vector<std::string> error, std::vector<std::string> serVarList)
     {
         if(!error.empty()){
             fflassert(serVarList.empty(), error, serVarList);
         }
 
-        if(runnerPtr->fromUID){
-            m_actorPod->forward(runnerPtr->fromUID, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+        if(runnerPtr->reqUID){
+            m_actorPod->forward(runnerPtr->reqUID, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
                 .error = std::move(error),
                 .serVarList = std::move(serVarList),
-            })}, runnerPtr->msgSeqID);
+            })},
+
+            runnerPtr->msgSeqID);
         }
+        else{
+            // script issued by self
+            // like ServerMap use it to run its peroiodic update script
+            for(const auto &line: error){
+                g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+            }
+
+            // drop result
+            // no good way to dump result for now, should I warning that result is dropped?
+        }
+
+        close(runnerPtr->key);
     };
 
     if(const auto pfr = codeOpt.has_value() ? runnerPtr->callback(codeOpt.value()) : runnerPtr->callback(); pfrCheck(pfr, fnDrainError)){
@@ -220,13 +243,13 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
             //
             // light cases, no yield in script
             // directly return the result with save the runner
-            fnSendSerVarList(std::move(error), luaf::pfrBuildBlobList(pfr));
+            fnOnThreadDone(std::move(error), luaf::pfrBuildBlobList(pfr));
         }
     }
     else{
         if(error.empty()){
             error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(runnerPtr->key)));
         }
-        fnSendSerVarList(std::move(error), {});
+        fnOnThreadDone(std::move(error), {});
     }
 }

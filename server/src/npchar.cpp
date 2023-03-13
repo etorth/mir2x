@@ -19,409 +19,6 @@ extern DBPod *g_dbPod;
 extern MonoServer *g_monoServer;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
-NPChar::LuaNPCModule::LuaNPCModule(NPChar *npcPtr, const std::string &scriptName)
-    : ServerLuaModule()
-    , m_npc(npcPtr)
-{
-    fflassert(npcPtr);
-    fflassert(str_haschar(scriptName));
-
-    // NOTE I didn't understand the different between sol::as_table_t and sol:nested
-    bindFunction("setNPCSell", [this](sol::as_table_t<std::vector<std::string>> itemNameList)
-    {
-        m_npcSell.clear();
-        for(const auto &itemName: itemNameList.value()){
-            if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
-                m_npcSell.insert(itemID);
-            }
-        }
-    });
-
-    bindFunction("addNPCSell", [this](std::string itemName)
-    {
-        if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
-            m_npcSell.insert(itemID);
-        }
-    });
-
-    bindFunction("clearNPCSell", [this]()
-    {
-        m_npcSell.clear();
-    });
-
-    bindFunction("getUID", [this]() -> std::string
-    {
-        return std::to_string(m_npc->rawUID());
-    });
-
-    bindFunction("getUIDString", [](uint64_t uid) -> std::string
-    {
-        return uidf::getUIDString(uid);
-    });
-
-    bindFunction("getNPCName", [this](sol::variadic_args args) -> std::string
-    {
-        const auto skip = [&args]() -> bool
-        {
-            switch(args.size()){
-                case 0:
-                    {
-                        return true;
-                    }
-                case 1:
-                    {
-                        const sol::object obj(args[0]);
-                        if(obj.is<bool>()){
-                            return obj.as<bool>();
-                        }
-                        else{
-                            throw fflerror("invalid argument type");
-                        }
-                    }
-                default:
-                    {
-                        throw fflerror("invalid argument count: %zu", args.size());
-                    }
-            }
-        }();
-
-        if(skip){
-            return m_npc->getNPCName().substr(0, m_npc->getNPCName().find('_'));
-        }
-        else{
-            return m_npc->getNPCName();
-        }
-    });
-
-    bindFunction("getNPCFullName", [this]() -> std::string
-    {
-        return std::string(to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name)) + "." + m_npc->getNPCName();
-    });
-
-    bindFunction("getNPCMapName", [this](sol::variadic_args args) -> std::string
-    {
-        const auto skip = [&args]() -> bool
-        {
-            switch(args.size()){
-                case 0:
-                    {
-                        return true;
-                    }
-                case 1:
-                    {
-                        const sol::object obj(args[0]);
-                        if(obj.is<bool>()){
-                            return obj.as<bool>();
-                        }
-                        else{
-                            throw fflerror("invalid argument type");
-                        }
-                    }
-                default:
-                    {
-                        throw fflerror("invalid argument count: %zu", args.size());
-                    }
-            }
-        }();
-
-        const std::string mapName = to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name);
-        if(skip){
-            return mapName.substr(0, mapName.find('_'));
-        }
-        else{
-            return mapName;
-        }
-    });
-
-    bindFunction("getSubukGuildName", [this]() -> std::string
-    {
-        return "占领沙巴克行会的名字";
-    });
-
-    bindFunction("addMonster", [this](std::string monsterName)
-    {
-        const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
-
-        fflassert(monsterID);
-        m_npc->postAddMonster(monsterID);
-    });
-
-    bindFunction("dbSetGKey", [this](std::string key, sol::object obj)
-    {
-        const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
-        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
-            g_dbPod->exec(
-                    u8R"###( create table %s(                         )###"
-                    u8R"###(     fld_key   text not null primary key, )###"
-                    u8R"###(     fld_value blob not null              )###"
-                    u8R"###( );                                       )###", npcDBName.c_str());
-        }
-
-        auto query = g_dbPod->createQuery(u8R"###(replace into %s(fld_key, fld_value) values('%s', ?))###", npcDBName.c_str(), key.c_str());
-        query.bind(1, luaf::buildBlob(obj));
-        query.exec();
-    });
-
-    bindFunction("dbGetGKey", [this](std::string key, sol::this_state s) -> sol::object
-    {
-        fflassert(!key.empty());
-        const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
-
-        sol::state_view sv(s);
-        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
-            return sol::make_object(sv, sol::nil);
-        }
-
-        auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_value from %s where fld_key='%s')###", npcDBName.c_str(), key.c_str());
-        if(!queryStatement.executeStep()){
-            return sol::make_object(sv, sol::nil);
-        }
-        return luaf::buildLuaObj(sv, queryStatement.getColumn(0).getString());
-    });
-
-    bindFunction("uidDBSetKey", [this](uint64_t uid, std::string key, sol::object obj)
-    {
-        const auto dbid = uidf::getPlayerDBID(uid);
-        const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
-
-        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
-            g_dbPod->exec(u8R"###(create table %s(fld_dbid integer not null primary key))###", npcDBName.c_str());
-        }
-
-        const auto colType = [&npcDBName, &key]() -> std::string
-        {
-            auto queryTableInfo= g_dbPod->createQuery(u8R"###(pragma table_info(%s))###", npcDBName.c_str());
-            while(queryTableInfo.executeStep()){
-                if(queryTableInfo.getColumn("name").getText() == key){
-                    return queryTableInfo.getColumn("type").getText();
-                }
-            }
-            return {};
-        }();
-
-        const auto objType = [&key, &obj]() -> std::string
-        {
-            if(obj.is<int>()){
-                return "INTEGER";
-            }
-            else if(obj.is<double>()){
-                return "REAL";
-            }
-            else if(obj.is<std::string>()){
-                return "TEXT";
-            }
-            else{
-                throw fflerror("invalid object type: name = %s", to_cstr(key));
-            }
-        }();
-
-        if(colType.empty()){
-            g_dbPod->exec(u8R"###(alter table %s add column %s %s)###", npcDBName.c_str(), key.c_str(), objType.c_str());
-        }
-        else if(colType != objType){
-            throw fflerror("column %s:%s type mismatch, expected %s, get type %s", npcDBName.c_str(), key.c_str(), colType.c_str(), objType.c_str());
-        }
-
-        if(objType == "INTEGER"){
-            g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, %d) on conflict(fld_dbid) do update set %s=%d)###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<int>(), key.c_str(), obj.as<int>());
-        }
-        else if(objType == "REAL"){
-            g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, %f) on conflict(fld_dbid) do update set %s=%f)###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<double>(), key.c_str(), obj.as<double>());
-        }
-        else{
-            g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, '%s') on conflict(fld_dbid) do update set %s='%s')###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<std::string>().c_str(), key.c_str(), obj.as<std::string>().c_str());
-        }
-    });
-
-    bindFunction("uidDBGetKey", [this](uint64_t uid, std::string key, sol::this_state s) -> sol::object
-    {
-        fflassert(!key.empty());
-        const auto dbid = uidf::getPlayerDBID(uid);
-        const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(m_npc->mapID()).name), m_npc->getNPCName().c_str());
-
-        sol::state_view sv(s);
-        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
-            return sol::make_object(sv, sol::nil);
-        }
-
-        auto queryStatement = g_dbPod->createQuery(u8R"###(select %s from %s where fld_dbid=%llu)###", key.c_str(), npcDBName.c_str(), to_llu(dbid));
-        if(!queryStatement.executeStep()){
-            return sol::make_object(sv, sol::nil);
-        }
-
-        switch(const auto column = queryStatement.getColumn(0); column.getType()){
-            case SQLITE_INTEGER:
-                {
-                    return sol::object(sv, sol::in_place_type<int>, column.getInt());
-                }
-            case SQLITE_FLOAT:
-                {
-                    return sol::object(sv, sol::in_place_type<double>, column.getDouble());
-                }
-            case SQLITE_TEXT:
-                {
-                    return sol::object(sv, sol::in_place_type<std::string>, column.getText());
-                }
-            case SQLITE_NULL:
-                {
-                    return sol::make_object(sv, sol::nil);
-                }
-            default:
-                {
-                    throw fflerror("column type not supported: %d", column.getType());
-                }
-        }
-    });
-
-    bindFunction("uidPostSell", [this](uint64_t uid)
-    {
-        m_npc->postSell(uid);
-    });
-
-    bindFunction("uidPostStartInvOp", [this](uint64_t uid, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
-    {
-        fflassert(invOp >= INVOP_BEGIN);
-        fflassert(invOp <  INVOP_END);
-
-        std::set<std::u8string> typeList;
-        for(const auto &type: typeTable.value()){
-            typeList.insert(to_u8cstr(type));
-        }
-        m_npc->postStartInvOp(uid, invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
-    });
-
-    bindFunction("uidPostInvOpCost", [this](uint64_t uid, int invOp, int itemID, int seqID, int cost)
-    {
-        fflassert(invOp >= INVOP_BEGIN);
-        fflassert(invOp <  INVOP_END);
-
-        m_npc->postInvOpCost(uid, invOp, itemID, seqID, cost);
-    });
-
-    bindFunction("uidPostStartInput", [this](uint64_t uid, std::string title, std::string commitTag, bool show)
-    {
-        fflassert(!title.empty());
-        fflassert(!commitTag.empty());
-        m_npc->postStartInput(uid, title, commitTag, show);
-    });
-
-    bindFunction("uidPostXMLString", [this](uint64_t uid, std::string xmlString)
-    {
-        fflassert(uid);
-        fflassert(uidf::isPlayer(uid), uid, uidf::getUIDString(uid));
-        m_npc->postXMLLayout(uid, std::move(xmlString));
-    });
-
-    bindFunction("_RSVD_NAME_sendCallStackRemoteCall", [this](uint64_t callStackUID, uint64_t uid, std::string code)
-    {
-        m_npc->sendRemoteCall(callStackUID, uid, code);
-    });
-
-    bindFunction("_RSVD_NAME_pollCallStackEvent", [this](uint64_t uid, sol::this_state s)
-    {
-        sol::state_view sv(s);
-        return sol::as_returns([uid, &sv, this]() -> std::vector<sol::object>
-        {
-            if(auto p = m_callStackList.find(uid); p != m_callStackList.end()){
-                const auto from = p->second.from;
-                const auto event = std::move(p->second.event);
-                const auto value = std::move(p->second.value);
-
-                p->second.clearEvent();
-                if(!from){
-                    return {};
-                }
-
-                fflassert(str_haschar(event));
-                std::vector<sol::object> eventStack
-                {
-                    sol::object(sv, sol::in_place_type<uint64_t>, from),
-                    sol::object(sv, sol::in_place_type<std::string>, event),
-                };
-
-                if(event == SYS_EXECDONE){
-                    fflassert(value.has_value());
-                    const auto sdLCR = cerealf::deserialize<SDRemoteCallResult>(value.value());
-                    if(sdLCR.error.empty()){
-                        for(const auto &s: sdLCR.serVarList){
-                            eventStack.push_back(luaf::buildLuaObj(sv, s));
-                        }
-                    }
-                    else{
-                        fflassert(sdLCR.serVarList.empty(), sdLCR.error, sdLCR.serVarList);
-                        for(const auto &line: sdLCR.error){
-                            g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
-                        }
-                        throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(from)));
-                    }
-                }
-                else if(value.has_value()){
-                    eventStack.push_back(sol::object(sv, sol::in_place_type<std::string>, value.value()));
-                }
-                return eventStack;
-            }
-            throw fflerror("can't find call stack UID = %llu", to_llu(uid));
-        }());
-    });
-
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "npchar.lua"
-    END_LUAINC()));
-
-    pfrCheck(execFile(scriptName.c_str()));
-    pfrCheck(execRawString(R"###(
-        -- sanity check
-        -- print warning message for NPCs that have not script installed
-
-        if not hasEventHandler() then
-            addLog(LOGTYPE_WARNING, 'No event handler installed: %s', getNPCFullName())
-        end
-    )###"));
-}
-
-void NPChar::LuaNPCModule::setEvent(uint64_t callStackUID, uint64_t from, std::string event, std::optional<std::string> value)
-{
-    if(!(callStackUID && from && !event.empty())){
-        throw fflerror("invalid argument: callStackUID = %llu, from = %llu, event = %s, value = %s", to_llu(callStackUID), to_llu(from), to_cstr(event), to_cstr(value.value_or("(nil)")));
-    }
-
-    if(event == SYS_NPCDONE){
-        m_callStackList.erase(callStackUID);
-        return;
-    }
-
-    auto p = m_callStackList.find(callStackUID);
-    if(p == m_callStackList.end()){
-        p = m_callStackList.insert({callStackUID, LuaNPCModule::LuaCallStack(this)}).first;
-
-        // initial call to make main reaches its event polling point
-        // need to assign event to let it advance
-        pfrCheck(p->second.runner.callback(callStackUID));
-    }
-
-    if(!p->second.runner.callback){
-        throw fflerror("lua coroutine is not callable");
-    }
-
-    // setup the event
-    // event may get consumed if coroutine yields in _RSVD_NAME_pollCallStackEvent()
-
-    p->second.from  = from;
-    p->second.event = std::move(event);
-    p->second.value = std::move(value);
-
-    // comsume the event
-    // call the coroutine to make it fail or stuck at next _RSVD_NAME_pollCallStackEvent()
-
-    if(!pfrCheck(p->second.runner.callback())){
-        throw fflerror("lua coroutine run failed");
-    }
-
-    if(!p->second.runner.callback){
-        m_callStackList.erase(p);
-    }
-}
-
 NPChar::NPChar(const ServerMap *mapCPtr, const SDInitNPChar &initNPChar)
     : CharObject
       {
@@ -433,12 +30,8 @@ NPChar::NPChar(const ServerMap *mapCPtr, const SDInitNPChar &initNPChar)
           initNPChar.gfxDir + DIR_BEGIN, // NPC gfx dir, may not be the 8-dir, but should be in DIR_BEGIN + [0, 8)
       }
     , m_npcName(initNPChar.npcName)
-{
-    m_luaModulePtr = std::make_unique<LuaNPCModule>(this, initNPChar.fullScriptName);
-    if(!m_luaModulePtr->getNPCSell().empty()){
-        fillSellItemList();
-    }
-}
+    , m_initScriptName(initNPChar.fullScriptName)
+{}
 
 bool NPChar::update()
 {
@@ -447,6 +40,313 @@ bool NPChar::update()
 
 void NPChar::reportCO(uint64_t)
 {
+}
+
+void NPChar::onActivate()
+{
+    CharObject::onActivate();
+    m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod, [this](ServerLuaModule *luaModule)
+    {
+        // NOTE I didn't understand the different between sol::as_table_t and sol:nested
+        luaModule->bindFunction("setNPCSell", [this](sol::as_table_t<std::vector<std::string>> itemNameList)
+        {
+            m_npcSell.clear();
+            for(const auto &itemName: itemNameList.value()){
+                if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
+                    m_npcSell.insert(itemID);
+                }
+            }
+        });
+
+        luaModule->bindFunction("addNPCSell", [this](std::string itemName)
+        {
+            if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
+                m_npcSell.insert(itemID);
+            }
+        });
+
+        luaModule->bindFunction("clearNPCSell", [this]()
+        {
+            m_npcSell.clear();
+        });
+
+        luaModule->bindFunction("getUID", [this]() -> uint64_t
+        {
+            return rawUID();
+        });
+
+        luaModule->bindFunction("getUIDString", [](uint64_t uid) -> std::string
+        {
+            return uidf::getUIDString(uid);
+        });
+
+        luaModule->bindFunction("getNPCName", [this](sol::variadic_args args) -> std::string
+        {
+            const auto skip = [&args]() -> bool
+            {
+                switch(args.size()){
+                    case 0:
+                        {
+                            return true;
+                        }
+                    case 1:
+                        {
+                            const sol::object obj(args[0]);
+                            if(obj.is<bool>()){
+                                return obj.as<bool>();
+                            }
+                            else{
+                                throw fflerror("invalid argument type");
+                            }
+                        }
+                    default:
+                        {
+                            throw fflerror("invalid argument count: %zu", args.size());
+                        }
+                }
+            }();
+
+            if(skip){
+                return getNPCName().substr(0, getNPCName().find('_'));
+            }
+            else{
+                return getNPCName();
+            }
+        });
+
+        luaModule->bindFunction("getNPCFullName", [this]() -> std::string
+        {
+            return std::string(to_cstr(DBCOM_MAPRECORD(mapID()).name)) + "." + getNPCName();
+        });
+
+        luaModule->bindFunction("getNPCMapName", [this](sol::variadic_args args) -> std::string
+        {
+            const auto skip = [&args]() -> bool
+            {
+                switch(args.size()){
+                    case 0:
+                        {
+                            return true;
+                        }
+                    case 1:
+                        {
+                            const sol::object obj(args[0]);
+                            if(obj.is<bool>()){
+                                return obj.as<bool>();
+                            }
+                            else{
+                                throw fflerror("invalid argument type");
+                            }
+                        }
+                    default:
+                        {
+                            throw fflerror("invalid argument count: %zu", args.size());
+                        }
+                }
+            }();
+
+            const std::string mapName = to_cstr(DBCOM_MAPRECORD(mapID()).name);
+            if(skip){
+                return mapName.substr(0, mapName.find('_'));
+            }
+            else{
+                return mapName;
+            }
+        });
+
+        luaModule->bindFunction("getSubukGuildName", [this]() -> std::string
+        {
+            return "占领沙巴克行会的名字";
+        });
+
+        luaModule->bindFunction("addMonster", [this](std::string monsterName)
+        {
+            const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
+
+            fflassert(monsterID);
+            postAddMonster(monsterID);
+        });
+
+        luaModule->bindFunction("dbSetGKey", [this](std::string key, sol::object obj)
+        {
+            const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID()).name), getNPCName().c_str());
+            if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
+                g_dbPod->exec(
+                        u8R"###( create table %s(                         )###"
+                        u8R"###(     fld_key   text not null primary key, )###"
+                        u8R"###(     fld_value blob not null              )###"
+                        u8R"###( );                                       )###", npcDBName.c_str());
+            }
+
+            auto query = g_dbPod->createQuery(u8R"###(replace into %s(fld_key, fld_value) values('%s', ?))###", npcDBName.c_str(), key.c_str());
+            query.bind(1, luaf::buildBlob(obj));
+            query.exec();
+        });
+
+        luaModule->bindFunction("dbGetGKey", [this](std::string key, sol::this_state s) -> sol::object
+        {
+            fflassert(!key.empty());
+            const auto npcDBName = str_printf("tbl_global_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID()).name), getNPCName().c_str());
+
+            sol::state_view sv(s);
+            if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
+                return sol::make_object(sv, sol::nil);
+            }
+
+            auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_value from %s where fld_key='%s')###", npcDBName.c_str(), key.c_str());
+            if(!queryStatement.executeStep()){
+                return sol::make_object(sv, sol::nil);
+            }
+            return luaf::buildLuaObj(sv, queryStatement.getColumn(0).getString());
+        });
+
+        luaModule->bindFunction("uidDBSetKey", [this](uint64_t uid, std::string key, sol::object obj)
+        {
+            const auto dbid = uidf::getPlayerDBID(uid);
+            const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID()).name), getNPCName().c_str());
+
+            if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
+                g_dbPod->exec(u8R"###(create table %s(fld_dbid integer not null primary key))###", npcDBName.c_str());
+            }
+
+            const auto colType = [&npcDBName, &key]() -> std::string
+            {
+                auto queryTableInfo= g_dbPod->createQuery(u8R"###(pragma table_info(%s))###", npcDBName.c_str());
+                while(queryTableInfo.executeStep()){
+                    if(queryTableInfo.getColumn("name").getText() == key){
+                        return queryTableInfo.getColumn("type").getText();
+                    }
+                }
+                return {};
+            }();
+
+            const auto objType = [&key, &obj]() -> std::string
+            {
+                if(obj.is<int>()){
+                    return "INTEGER";
+                }
+                else if(obj.is<double>()){
+                    return "REAL";
+                }
+                else if(obj.is<std::string>()){
+                    return "TEXT";
+                }
+                else{
+                    throw fflerror("invalid object type: name = %s", to_cstr(key));
+                }
+            }();
+
+            if(colType.empty()){
+                g_dbPod->exec(u8R"###(alter table %s add column %s %s)###", npcDBName.c_str(), key.c_str(), objType.c_str());
+            }
+            else if(colType != objType){
+                throw fflerror("column %s:%s type mismatch, expected %s, get type %s", npcDBName.c_str(), key.c_str(), colType.c_str(), objType.c_str());
+            }
+
+            if(objType == "INTEGER"){
+                g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, %d) on conflict(fld_dbid) do update set %s=%d)###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<int>(), key.c_str(), obj.as<int>());
+            }
+            else if(objType == "REAL"){
+                g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, %f) on conflict(fld_dbid) do update set %s=%f)###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<double>(), key.c_str(), obj.as<double>());
+            }
+            else{
+                g_dbPod->exec(u8R"###(insert into %s(fld_dbid, %s) values(%llu, '%s') on conflict(fld_dbid) do update set %s='%s')###", npcDBName.c_str(), key.c_str(), to_llu(dbid), obj.as<std::string>().c_str(), key.c_str(), obj.as<std::string>().c_str());
+            }
+        });
+
+        luaModule->bindFunction("uidDBGetKey", [this](uint64_t uid, std::string key, sol::this_state s) -> sol::object
+        {
+            fflassert(!key.empty());
+            const auto dbid = uidf::getPlayerDBID(uid);
+            const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(mapID()).name), getNPCName().c_str());
+
+            sol::state_view sv(s);
+            if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
+                return sol::make_object(sv, sol::nil);
+            }
+
+            auto queryStatement = g_dbPod->createQuery(u8R"###(select %s from %s where fld_dbid=%llu)###", key.c_str(), npcDBName.c_str(), to_llu(dbid));
+            if(!queryStatement.executeStep()){
+                return sol::make_object(sv, sol::nil);
+            }
+
+            switch(const auto column = queryStatement.getColumn(0); column.getType()){
+                case SQLITE_INTEGER:
+                    {
+                        return sol::object(sv, sol::in_place_type<int>, column.getInt());
+                    }
+                case SQLITE_FLOAT:
+                    {
+                        return sol::object(sv, sol::in_place_type<double>, column.getDouble());
+                    }
+                case SQLITE_TEXT:
+                    {
+                        return sol::object(sv, sol::in_place_type<std::string>, column.getText());
+                    }
+                case SQLITE_NULL:
+                    {
+                        return sol::make_object(sv, sol::nil);
+                    }
+                default:
+                    {
+                        throw fflerror("column type not supported: %d", column.getType());
+                    }
+            }
+        });
+
+        luaModule->bindFunction("uidPostSell", [this](uint64_t uid)
+        {
+            postSell(uid);
+        });
+
+        luaModule->bindFunction("uidPostStartInvOp", [this](uint64_t uid, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
+        {
+            fflassert(invOp >= INVOP_BEGIN);
+            fflassert(invOp <  INVOP_END);
+
+            std::set<std::u8string> typeList;
+            for(const auto &type: typeTable.value()){
+                typeList.insert(to_u8cstr(type));
+            }
+            postStartInvOp(uid, invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
+        });
+
+        luaModule->bindFunction("uidPostInvOpCost", [this](uint64_t uid, int invOp, int itemID, int seqID, int cost)
+        {
+            fflassert(invOp >= INVOP_BEGIN);
+            fflassert(invOp <  INVOP_END);
+
+            postInvOpCost(uid, invOp, itemID, seqID, cost);
+        });
+
+        luaModule->bindFunction("uidPostStartInput", [this](uint64_t uid, std::string title, std::string commitTag, bool show)
+        {
+            fflassert(!title.empty());
+            fflassert(!commitTag.empty());
+            postStartInput(uid, title, commitTag, show);
+        });
+
+        luaModule->bindFunction("uidPostXMLString", [this](uint64_t uid, std::string xmlString)
+        {
+            fflassert(uid);
+            fflassert(uidf::isPlayer(uid), uid, uidf::getUIDString(uid));
+            postXMLLayout(uid, std::move(xmlString));
+        });
+
+        luaModule->pfrCheck(luaModule->execRawString(BEGIN_LUAINC(char)
+#include "npchar.lua"
+        END_LUAINC()));
+
+        luaModule->pfrCheck(luaModule->execFile(m_initScriptName.c_str()));
+        luaModule->pfrCheck(luaModule->execRawString(R"###(
+            -- sanity check
+            -- print warning message for NPCs that have not script installed
+
+            if not hasEventHandler() then
+                addLog(LOGTYPE_WARNING, 'No event handler installed: %s', getNPCFullName())
+            end
+        )###"));
+    });
 }
 
 bool NPChar::goDie()
@@ -464,7 +364,7 @@ void NPChar::postSell(uint64_t uid)
     forwardNetPackage(uid, SM_NPCSELL, cerealf::serialize(SDNPCSell
     {
         .npcUID = UID(),
-        .itemList = std::vector<uint32_t>(m_luaModulePtr->getNPCSell().begin(), m_luaModulePtr->getNPCSell().end()),
+        .itemList = std::vector<uint32_t>(getSellList().begin(), getSellList().end()),
     }));
 }
 
@@ -508,47 +408,6 @@ void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitT
         .commitTag = commitTag,
         .show = show,
     }));
-}
-
-void NPChar::sendRemoteCall(uint64_t callStackUID, uint64_t uid, const std::string &code)
-{
-    const auto seqID = m_luaModulePtr->getCallStackSeqID(callStackUID);
-    if(!seqID){
-        throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of LuaCallStack", to_llu(callStackUID), to_llu(uid), to_cstr(code));
-    }
-
-    m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
-    {
-        .code = code,
-    })},
-
-    [callStackUID, uid, seqID, code /* not ref */, this](const ActorMsgPack &mpk)
-    {
-        if(uid != mpk.from()){
-            throw fflerror("lua code sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
-        }
-
-        if(mpk.seqID()){
-            throw fflerror("call of lua code expects response");
-        }
-
-        if(m_luaModulePtr->getCallStackSeqID(callStackUID) != seqID){
-            return;
-        }
-
-        switch(mpk.type()){
-            case AM_SDBUFFER:
-                {
-                    m_luaModulePtr->setEvent(callStackUID, uid, SYS_EXECDONE, std::string(reinterpret_cast<const char *>(mpk.data()), mpk.size()));
-                    return;
-                }
-            default:
-                {
-                    m_luaModulePtr->close(callStackUID);
-                    return;
-                }
-        }
-    });
 }
 
 void NPChar::postXMLLayout(uint64_t uid, std::string xmlString)
@@ -685,7 +544,7 @@ std::set<uint32_t> NPChar::getDefaultSellItemIDList() const
 
 void NPChar::fillSellItemList()
 {
-    for(const uint32_t itemID: m_luaModulePtr->getNPCSell()){
+    for(const uint32_t itemID: getSellList()){
         const auto &ir = DBCOM_ITEMRECORD(itemID);
         if(!ir){
             throw fflerror("selling invalid item: itemID = %llu", to_llu(itemID));

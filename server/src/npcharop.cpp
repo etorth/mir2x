@@ -37,7 +37,7 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     if(false
             || sdNPCE.event == SYS_NPCDONE
             || sdNPCE.event == SYS_NPCERROR){
-        m_luaModulePtr->close(mpk.from());
+        m_luaRunner->close(mpk.from());
         return;
     }
 
@@ -51,18 +51,19 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         amNPCE.errorID = NPCE_TOOFAR;
         m_actorPod->forward(mpk.from(), {AM_NPCERROR, amNPCE});
 
-        m_luaModulePtr->close(mpk.from());
+        m_luaRunner->close(mpk.from());
         return;
     }
 
     // last call stack may have not been done yet
     // but player initializes new call stack, have to abandon last call stack and start a new one
 
-    if(m_luaModulePtr->getCallStackSeqID(mpk.from())){
-        m_luaModulePtr->close(mpk.from());
+    if(m_luaRunner->getSeqID(mpk.from())){
+        m_luaRunner->close(mpk.from());
     }
 
-    m_luaModulePtr->setEvent(mpk.from(), mpk.from(), sdNPCE.event, sdNPCE.value);
+    const auto valueOptStr = sdNPCE.value.has_value() ? str_printf("\'%s\'", sdNPCE.value.value().c_str()) : std::string("nil");
+    m_luaRunner->spawn(mpk.from(), 0, 0, str_printf("return _RSVD_NAME_npc_main(%llu, \'%s\', %s)", to_llu(mpk.from()), sdNPCE.event.c_str(), valueOptStr.c_str()).c_str());
 }
 
 void NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
@@ -127,13 +128,13 @@ void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
 void NPChar::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    // m_luaRunner->spawn(m_runnerSeqID++, mpk.from(), mpk.seqID(), sdRC.code.c_str());
+    m_luaRunner->spawn(mpk.from(), mpk.from(), mpk.seqID(), sdRC.code.c_str());
 }
 
 void NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)
 {
     const auto amBAP = mpk.conv<AMBadActorPod>();
-    m_luaModulePtr->close(amBAP.UID);
+    m_luaRunner->close(amBAP.UID);
 }
 
 void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
