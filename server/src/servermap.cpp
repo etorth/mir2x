@@ -1555,7 +1555,7 @@ void ServerMap::onActivate()
         END_LUAINC()));
     });
 
-    m_luaRunner->spawn(m_mainScriptThreadKey, 0, 0, "return main()");
+    m_luaRunner->spawn(m_mainScriptThreadKey, {}, "return main()");
 }
 
 void ServerMap::loadNPChar()

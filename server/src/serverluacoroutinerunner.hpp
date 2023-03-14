@@ -23,8 +23,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
             const uint64_t key;
             const uint64_t seqID;
-            const uint64_t reqUID;      // who requested to call spawn(), zero means self
-            const uint64_t msgSeqID;    // respond to which actor callback in reqUID
+
+            // optional pair <reqUID, reqMsgSeqID>:
+            // where to send the lua result when the coroutine is done, empty means issued by self and drop any result
+            const std::optional<std::pair<uint64_t, uint64_t>> reqAddr;
 
             // mutable area for event polling
             // UID_A send code to UID_B, and creates this coroutine in UID_B
@@ -37,19 +39,20 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             sol::thread runner;
             sol::coroutine callback;
 
-            _CoroutineRunner(ServerLuaModule &luaModule, uint64_t argKey, uint64_t argSeqID, uint64_t argReqUID, uint64_t argMsgSeqID)
+            _CoroutineRunner(ServerLuaModule &luaModule, uint64_t argKey, uint64_t argSeqID, std::optional<std::pair<uint64_t, uint64_t>> argReqAddr)
                 : key(argKey)
                 , seqID(argSeqID)
-                , reqUID(argReqUID)
-                , msgSeqID(argMsgSeqID)
+                , reqAddr(std::move(argReqAddr))
                 , runner(sol::thread::create(luaModule.getLuaState().lua_state()))
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
                 fflassert(key);
                 fflassert(seqID);
 
-                if(reqUID) fflassert( msgSeqID, reqUID, msgSeqID);
-                else       fflassert(!msgSeqID, reqUID, msgSeqID);
+                if(reqAddr.has_value()){
+                    fflassert(reqAddr.value().first , reqAddr);
+                    fflassert(reqAddr.value().second, reqAddr);
+                }
             }
 
             void clearEvent()
@@ -70,7 +73,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         ServerLuaCoroutineRunner(ActorPod *, std::function<void(ServerLuaModule *)> = nullptr);
 
     public:
-        uint64_t spawn(uint64_t, uint64_t, uint64_t, const char *);
+        uint64_t spawn(uint64_t, std::optional<std::pair<uint64_t, uint64_t>>, const char *);
 
     public:
         void close(uint64_t key)

@@ -82,6 +82,7 @@
 #include <cstdarg>
 #include <concepts>
 #include <sstream>
+#include <optional>
 #include <iomanip>
 #include <algorithm>
 #include <filesystem>
@@ -287,6 +288,16 @@ template<std::size_t I, typename... T> inline typename std::enable_if<I <  sizeo
 template<typename... T> std::string str_any(const std::tuple<T...> &t)
 {
     return "{" + _str_any_tuple_helper<0>(t) + "}";
+}
+
+template<typename T> std::string str_any(const std::optional<T> &opt)
+{
+    if(opt.has_value()){
+        return str_any(opt.value());
+    }
+    else{
+        return "(nullopt)";
+    }
 }
 
 // copy from boost

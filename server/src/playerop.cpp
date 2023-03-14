@@ -452,5 +452,5 @@ void Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    m_luaRunner->spawn(m_runnerSeqID++, mpk.from(), mpk.seqID(), sdRC.code.c_str());
+    m_luaRunner->spawn(m_runnerSeqID++, {{mpk.from(), mpk.seqID()}}, sdRC.code.c_str());
 }

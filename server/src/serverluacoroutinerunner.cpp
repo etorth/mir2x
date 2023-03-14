@@ -143,15 +143,17 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
     END_LUAINC()));
 }
 
-uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, uint64_t reqUID, uint64_t msgSeqID, const char *code)
+uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::optional<std::pair<uint64_t, uint64_t>> reqAddr, const char *code)
 {
     fflassert(key);
     fflassert(code);
 
-    if(reqUID) fflassert( msgSeqID, reqUID, msgSeqID);
-    else       fflassert(!msgSeqID, reqUID, msgSeqID);
+    if(reqAddr.has_value()){
+        fflassert(reqAddr.value().first , reqAddr);
+        fflassert(reqAddr.value().second, reqAddr);
+    }
 
-    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, reqUID, msgSeqID));
+    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, std::move(reqAddr)));
     const auto currSeqID = p->second->seqID;
 
     resumeRunner(p->second.get(), str_printf(
@@ -183,14 +185,14 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
             fflassert(serVarList.empty(), error, serVarList);
         }
 
-        if(runnerPtr->reqUID){
-            m_actorPod->forward(runnerPtr->reqUID, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+        if(runnerPtr->reqAddr.has_value()){
+            m_actorPod->forward(runnerPtr->reqAddr.value().first, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
                 .error = std::move(error),
                 .serVarList = std::move(serVarList),
             })},
 
-            runnerPtr->msgSeqID);
+            runnerPtr->reqAddr.value().second);
         }
         else{
             // script issued by self
