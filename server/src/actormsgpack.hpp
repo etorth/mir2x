@@ -177,6 +177,11 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
            return m_from;
        }
 
+       std::pair<uint64_t, uint32_t> fromAddr() const
+       {
+           return {m_from, m_seqID};
+       }
+
        uint32_t seqID() const
        {
            return m_seqID;

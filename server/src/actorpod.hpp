@@ -111,6 +111,17 @@ class ActorPod final
         bool forward(uint64_t, const ActorMsgBuf &, uint32_t, std::function<void(const ActorMsgPack &)>);
 
     public:
+        bool forward(const std::pair<uint64_t, uint32_t> &respAddr, const ActorMsgBuf &mbuf)
+        {
+            return forward(respAddr.first, mbuf, respAddr.second);
+        }
+
+        bool forward(const std::pair<uint64_t, uint32_t> &respAddr, const ActorMsgBuf &mbuf, std::function<void(const ActorMsgPack &)> fnOPR)
+        {
+            return forward(respAddr.first, mbuf, respAddr.second, std::move(fnOPR));
+        }
+
+    public:
         uint64_t UID() const
         {
             return m_UID;
