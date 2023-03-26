@@ -1072,6 +1072,7 @@ NPChar *ServerMap::addNPChar(const SDInitNPChar &initParam)
 
     try{
         auto npcPtr = new NPChar(this, initParam);
+        m_npcList[npcPtr->UID()] = npcPtr;
         npcPtr->activate();
         return npcPtr;
     }
@@ -1429,6 +1430,16 @@ void ServerMap::onActivate()
             else{
                 throw fflerror("no valid grid in region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(this->ID()).name), regionX, regionY, regionW, regionH);
             }
+        });
+
+        luaModule->bindFunction("getNPCharUID", [this](std::string npcName) -> uint64_t
+        {
+            for(const auto [uid, npcPtr]: m_npcList){
+                if(npcPtr->getNPCName() == npcName){
+                    return uid;
+                }
+            }
+            return 0;
         });
 
         luaModule->bindFunction("getMonsterCount", [this](sol::variadic_args args) -> int

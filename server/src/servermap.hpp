@@ -92,6 +92,9 @@ class ServerMap final: public ServerObject
         const Mir2xMapData m_mir2xMapData;
 
     private:
+        std::unordered_map<uint64_t, const NPChar *> m_npcList;
+
+    private:
         std::vector<MapGrid> m_gridList;
         phmap::flat_hash_set<std::tuple<int, int>, LocHashHelper> m_fireWallLocList;
         phmap::flat_hash_set<std::tuple<int, int>, LocHashHelper> m_gridItemLocList;

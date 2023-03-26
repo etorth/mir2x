@@ -18,8 +18,8 @@ class NPChar final: public CharObject
         };
 
     private:
-        std::string m_npcName;
-        std::string m_initScriptName;
+        const std::string m_npcName;
+        const std::string m_initScriptName;
 
     private:
         std::set<uint32_t> m_npcSell;
