@@ -200,6 +200,11 @@ function rotable(tbl, recursive)
     end
 end
 
+function tableEmpty(t)
+    assertType(t, 'table')
+    return next(t) == nil
+end
+
 function getBackTraceLine()
     local info = debug.getinfo(3, "Sl")
 
