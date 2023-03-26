@@ -141,9 +141,7 @@ void ServiceCore::loadMap(uint32_t mapID)
         return;
     }
 
-    auto mapPtr = new ServerMap(mapID);
-    mapPtr->activate();
-    m_mapList[mapID] = mapPtr;
+    m_mapList.insert_or_assign(mapID, new ServerMap(mapID)).first->second->activate();
 }
 
 const ServerMap *ServiceCore::retrieveMap(uint32_t mapID)
