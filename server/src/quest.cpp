@@ -22,7 +22,7 @@ void Quest::onActivate()
             amLM.activateMap = true;
 
             const CallDoneFlag doneFlag;
-            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [s, doneFlag, mapID = amLM.mapID, onOK, onError, runnerSeqID, this](const ActorMsgPack &mpk)
+            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [doneFlag, mapID = amLM.mapID, onOK, onError, runnerSeqID, s, this](const ActorMsgPack &mpk)
             {
                 switch(mpk.type()){
                     case AM_LOADMAPOK:

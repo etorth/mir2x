@@ -14,7 +14,6 @@ extern ServerArgParser *g_serverArgParser;
 
 ServiceCore::ServiceCore()
     : ServerObject(uidf::getServiceCoreUID())
-    , m_mapList()
 {}
 
 void ServiceCore::operateAM(const ActorMsgPack &rstMPK)
@@ -133,11 +132,11 @@ void ServiceCore::loadMap(uint32_t mapID)
         return;
     }
 
-    if(m_mapList.count(mapID)){
+    if(!g_mapBinDB->retrieve(mapID)){
         return;
     }
 
-    if(!g_mapBinDB->retrieve(mapID)){
+    if(m_mapList.contains(mapID)){
         return;
     }
 
@@ -150,7 +149,7 @@ const ServerMap *ServiceCore::retrieveMap(uint32_t mapID)
         return nullptr;
     }
 
-    if(!m_mapList.count(mapID)){
+    if(!m_mapList.contains(mapID)){
         loadMap(mapID);
     }
 

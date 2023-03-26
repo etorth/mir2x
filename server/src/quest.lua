@@ -1,6 +1,10 @@
 --, u8R"###(
 --
 
+function loadMap(map)
+    return _RSVD_NAME_callFuncCoop('loadMap', map)
+end
+
 function getNPCharUID(mapName, npcName)
     local mapUID = loadMap(mapName)
     assertType(mapUID, 'integer')
