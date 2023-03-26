@@ -79,10 +79,14 @@ void ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
     const auto mapPtr = retrieveMap(amLM.mapID);
 
     if(mapPtr){
-        m_actorPod->forward(mpk.from(), AM_LOADMAPOK, mpk.seqID());
+        AMLoadMapOK amLMOK;
+        std::memset(&amLMOK, 0, sizeof(amLMOK));
+
+        amLMOK.uid = mapPtr->UID();
+        m_actorPod->forward(mpk.fromAddr(), {AM_LOADMAPOK, amLMOK});
     }
     else{
-        m_actorPod->forward(mpk.from(), AM_LOADMAPERROR, mpk.seqID());
+        m_actorPod->forward(mpk.fromAddr(), AM_LOADMAPERROR);
     }
 }
 

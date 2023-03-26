@@ -353,6 +353,12 @@ struct AMMapSwitchOK
 struct AMLoadMap
 {
     uint32_t mapID;
+    bool     activateMap;
+};
+
+struct AMLoadMapOK
+{
+    uint64_t uid;
 };
 
 struct AMUID
