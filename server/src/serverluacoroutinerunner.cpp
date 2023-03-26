@@ -16,10 +16,6 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
           fflassert(podPtr); return podPtr;
       }())
 {
-    if(fnBindExtraFuncs){
-        fnBindExtraFuncs(this);
-    }
-
     bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t threadKey, uint64_t uid, std::string code)
     {
         if(!m_runnerList.contains(threadKey)){
@@ -141,6 +137,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "serverluacoroutinerunner.lua"
     END_LUAINC()));
+
+    if(fnBindExtraFuncs){
+        fnBindExtraFuncs(this);
+    }
 }
 
 uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::optional<std::pair<uint64_t, uint64_t>> reqAddr, const char *code)

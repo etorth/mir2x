@@ -112,7 +112,7 @@ uint64_t uidf::getServiceCoreUID()
 
 uint64_t uidf::getQuestUID(uint32_t questID)
 {
-    return to_u64(UID_QST) + questID;
+    return (to_u64(UID_QST) << 59) + questID;
 }
 
 uint64_t uidf::getMapBaseUID(uint32_t mapID)

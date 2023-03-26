@@ -55,3 +55,18 @@ void Quest::onActivate()
         luaModule->pfrCheck(luaModule->execFile(m_scriptName.c_str()));
     });
 }
+
+void Quest::operateAM(const ActorMsgPack &mpk)
+{
+    switch(mpk.type()){
+        case AM_METRONOME:
+            {
+                on_AM_METRONOME(mpk);
+                break;
+            }
+        default:
+            {
+                throw fflerror("unsupported message: %s", mpkName(mpk.type()));
+            }
+    }
+}

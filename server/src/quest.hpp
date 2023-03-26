@@ -17,4 +17,10 @@ class Quest final: public ServerObject
 
     protected:
         void onActivate() override;
+
+    protected:
+        void operateAM(const ActorMsgPack &) override;
+
+    protected:
+        void on_AM_METRONOME(const ActorMsgPack &);
 };

@@ -1,16 +1,21 @@
 #include <string>
 #include <cstring>
+#include "quest.hpp"
 #include "player.hpp"
 #include "totype.hpp"
+#include "filesys.hpp"
 #include "actorpod.hpp"
 #include "mapbindb.hpp"
+#include "serdesmsg.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 #include "serverargparser.hpp"
+#include "serverconfigurewindow.hpp"
 
 extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
+extern ServerConfigureWindow *g_serverConfigureWindow;
 
 ServiceCore::ServiceCore()
     : ServerObject(uidf::getServiceCoreUID())
@@ -122,6 +127,19 @@ void ServiceCore::onActivate()
                 break;
             }
             g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
+        }
+    }
+
+    const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+    const auto scriptPath = cfgScriptPath.empty() ? std::string("script/quest") : (cfgScriptPath + "/quest");
+
+    for(uint32_t questID = 1; const auto &fileName: filesys::getFileList(scriptPath.c_str(), false, R"#(.*\.lua)#")){
+        if(auto questPtr = new Quest(SDInitQuest
+        {
+            .questID = questID++,
+            .fullScriptName = scriptPath + "/" + fileName,
+        })){
+            questPtr->activate();
         }
     }
 }
