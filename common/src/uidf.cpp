@@ -44,6 +44,10 @@ std::string uidf::getUIDString(uint64_t uid)
             {
                 return str_printf("RCV_%llu", to_llu(uidf::getReceiverSeq(uid)));
             }
+	case UID_QST:
+	    {
+		return str_printf("QST_%llu", to_llu(uidf::getQuestID(uid)));
+	    }
         default:
             {
                 return str_printf("ERR_%llu", to_llu(uid));
@@ -63,6 +67,7 @@ const char *uidf::getUIDTypeCStr(uint64_t uid)
         case UID_MON: return "MON";
         case UID_PLY: return "PLY";
         case UID_RCV: return "RCV";
+        case UID_QST: return "QST";
         default     : return "ERR";
     }
 }
@@ -103,6 +108,11 @@ uint64_t uidf::buildReceiverUID()
 uint64_t uidf::getServiceCoreUID()
 {
     return to_u64(UID_COR) << 59;
+}
+
+uint64_t uidf::getQuestUID(uint32_t questID)
+{
+    return to_u64(UID_QST) + questID;
 }
 
 uint64_t uidf::getMapBaseUID(uint32_t mapID)
@@ -196,6 +206,11 @@ _def_get_UID_seq_helper(uidf::getMonsterSeq, UID_MON)
 uint64_t uidf::getReceiverSeq(uint64_t uid)
 {
     return uid & 0X07FFFFFFFFFFFFFFULL;
+}
+
+uint32_t uidf::getQuestID(uint64_t uid)
+{
+    return uid & UINT64_C(0X07FFFFFFFFFFFFFF);
 }
 
 bool uidf::isGM(uint64_t uid)

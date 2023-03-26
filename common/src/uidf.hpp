@@ -24,6 +24,7 @@ enum UIDType: int
     UID_MON,
     UID_PLY,
     UID_RCV,
+    UID_QST,
 
     UID_END,
 };
@@ -44,6 +45,7 @@ namespace uidf
     uint64_t buildReceiverUID();
 
     uint64_t getServiceCoreUID();
+    uint64_t getQuestUID(uint32_t);
     uint64_t getMapBaseUID(uint32_t);
     uint64_t getPlayerUID(uint32_t, bool, const std::vector<int> &);
 }
@@ -52,6 +54,7 @@ namespace uidf
 {
     uint32_t getMapID(uint64_t);
     uint32_t getNPCID(uint64_t);
+    uint32_t getQuestID(uint64_t);
     uint32_t getMonsterID(uint64_t);
 
     uint32_t getMapSeq(uint64_t);
