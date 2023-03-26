@@ -90,7 +90,7 @@ end
 local function _RSVD_NAME_uidExecute(uid, code)
     assertType(uid, 'integer')
     assertType(code, 'string')
-    _RSVD_NAME_sendRemoteCall(getTLSTable().uid, uid, code, false)
+    _RSVD_NAME_sendRemoteCall(getTLSTable().threadKey, uid, code)
 
     local resList = {_RSVD_NAME_waitRemoteCallResult()}
     if resList[1] ~= uid then

@@ -53,7 +53,11 @@ void Quest::onActivate()
         END_LUAINC()));
     });
 
-    m_luaRunner->spawn(m_mainScriptThreadKey, {}, str_printf(R"#(return dofile('%s'))#", m_scriptName.c_str()).c_str());
+    m_luaRunner->spawn(m_mainScriptThreadKey, {}, str_printf(
+        R"#( do                           )#""\n"
+        R"#(     getTLSTable().uid = %llu )#""\n"
+        R"#(     return dofile('%s')      )#""\n"
+        R"#( end                          )#""\n", to_llu(UID()), m_scriptName.c_str()).c_str());
 }
 
 void Quest::operateAM(const ActorMsgPack &mpk)

@@ -10,7 +10,7 @@
 #include "fflerror.hpp"
 
 // c++ internal types <----> blob <----> lua types as sol::object
-//    int                std::string       sol::object
+//    lua_Integer        std::string       sol::object
 //    bool                                 sol::as_table_t<...>
 //    double
 //    std::string
@@ -28,7 +28,7 @@ namespace luaf
         if constexpr(std::is_same_v<T, sol::nil_t>){
             return 'n';
         }
-        else if constexpr(std::is_same_v<T, int>){
+        else if constexpr(std::is_same_v<T, lua_Integer>){
             return 'i';
         }
         if constexpr(std::is_same_v<T, bool>){
@@ -65,8 +65,8 @@ namespace luaf
         if(obj == sol::nil){
             return buildBlob<sol::nil_t>(sol::nil);
         }
-        else if(obj.is<int>()){
-            return buildBlob<int>(obj.as<int>());
+        else if(obj.is<lua_Integer>()){
+            return buildBlob<lua_Integer>(obj.as<lua_Integer>());
         }
         else if(obj.is<bool>()){
             return buildBlob<bool>(obj.as<bool>());
@@ -125,9 +125,9 @@ namespace luaf
                 {
                     return sol::make_object(sv, sol::nil);
                 }
-            case getBlobType<int>():
+            case getBlobType<lua_Integer>():
                 {
-                    return sol::object(sv, sol::in_place_type<int>, cerealf::deserialize<int>(std::move(s)));
+                    return sol::object(sv, sol::in_place_type<lua_Integer>, cerealf::deserialize<lua_Integer>(std::move(s)));
                 }
             case getBlobType<bool>():
                 {
