@@ -1,4 +1,5 @@
 #include "quest.hpp"
+#include "filesys.hpp"
 
 Quest::Quest(const SDInitQuest &initQuest)
     : ServerObject(uidf::getQuestUID(initQuest.questID))
@@ -10,6 +11,11 @@ void Quest::onActivate()
     ServerObject::onActivate();
     m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod, [this](ServerLuaModule *luaModule)
     {
+        luaModule->bindFunction("getQuestName", [this]() -> std::string
+        {
+            return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
+        });
+
         luaModule->bindFunction("_RSVD_NAME_loadMapCoop", [this](std::string mapName, sol::function onOK, sol::function onError, uint64_t runnerSeqID, sol::this_state s)
         {
             fflassert(str_haschar(mapName));

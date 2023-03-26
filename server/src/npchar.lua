@@ -183,7 +183,11 @@ function uidPostXML(uid, xmlFormat, ...)
     uidPostXMLString(uid, xmlFormat:format(...))
 end
 
-function setQuestHandler(questHandler)
+function setQuestHandler(questName, questHandler)
+    if _RSVD_NAME_passiveQuestEventHandlers == nil then
+        _RSVD_NAME_passiveQuestEventHandlers = {}
+    end
+    _RSVD_NAME_passiveQuestEventHandlers[questName] = questHandler
 end
 
 function setEventHandler(eventHandler)
