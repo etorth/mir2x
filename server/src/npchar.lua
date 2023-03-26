@@ -177,9 +177,8 @@ function uidGrantGold(uid, count)
 end
 
 function uidPostXML(uid, xmlFormat, ...)
-    if type(uid) ~= 'number' or type(xmlFormat) ~= 'string' then
-        fatalPrintf("invalid argument type: uid: %s, xmlFormat: %s", type(uid), type(xmlFormat))
-    end
+    assertType(uid, 'integer')
+    assertType(xmlFormat, 'string')
     uidPostXMLString(uid, xmlFormat:format(...))
 end
 
