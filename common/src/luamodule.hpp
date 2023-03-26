@@ -5,6 +5,7 @@
 #include <sol/sol.hpp>
 #include "strf.hpp"
 #include "filesys.hpp"
+#include "fflerror.hpp"
 
 class LuaModule
 {
