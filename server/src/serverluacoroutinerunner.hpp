@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <sol/sol.hpp>
+#include "totype.hpp"
 #include "serverluamodule.hpp"
 
 class ActorPod;

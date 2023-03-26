@@ -1,11 +1,11 @@
 #pragma once
 #include <memory>
+#include "serverobject.hpp"
 #include "serverluacoroutinerunner.hpp"
 
 class ServerQuest final: public ServerObject
 {
     private:
-        const uint32_t m_id;
         const std::string m_scriptName;
 
     private:
