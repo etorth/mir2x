@@ -56,7 +56,7 @@ class ActorPod final
     private:
         // used by rollSeqID()
         // to create unique proper ID for an message expcecting response
-        uint32_t m_nextSeqID = 1;
+        uint64_t m_nextSeqID = 1;
 
         // for expire time check in nanoseconds
         // zero expire time means we never expire any handler for current pod
@@ -73,7 +73,7 @@ class ActorPod final
         // 2. std::map keeps entries in order by Resp number
         //    Resp number gives strict order of expire time, excellent feature by std::map
         //    then when checking expired ones, we start from std::map::begin() and stop at the fist non-expired one
-        std::map<uint32_t, RespondCallback> m_respondCBList;
+        std::map<uint64_t, RespondCallback> m_respondCBList;
 
     private:
         ActorPodMonitor m_podMonitor;
@@ -89,7 +89,7 @@ class ActorPod final
         ~ActorPod();
 
     private:
-        uint32_t rollSeqID();
+        uint64_t rollSeqID();
 
     private:
         void innHandler(const ActorMsgPack &);
@@ -107,16 +107,16 @@ class ActorPod final
         }
 
     public:
-        bool forward(uint64_t, const ActorMsgBuf &, uint32_t);
-        bool forward(uint64_t, const ActorMsgBuf &, uint32_t, std::function<void(const ActorMsgPack &)>);
+        bool forward(uint64_t, const ActorMsgBuf &, uint64_t);
+        bool forward(uint64_t, const ActorMsgBuf &, uint64_t, std::function<void(const ActorMsgPack &)>);
 
     public:
-        bool forward(const std::pair<uint64_t, uint32_t> &respAddr, const ActorMsgBuf &mbuf)
+        bool forward(const std::pair<uint64_t, uint64_t> &respAddr, const ActorMsgBuf &mbuf)
         {
             return forward(respAddr.first, mbuf, respAddr.second);
         }
 
-        bool forward(const std::pair<uint64_t, uint32_t> &respAddr, const ActorMsgBuf &mbuf, std::function<void(const ActorMsgPack &)> fnOPR)
+        bool forward(const std::pair<uint64_t, uint64_t> &respAddr, const ActorMsgBuf &mbuf, std::function<void(const ActorMsgPack &)> fnOPR)
         {
             return forward(respAddr.first, mbuf, respAddr.second, std::move(fnOPR));
         }

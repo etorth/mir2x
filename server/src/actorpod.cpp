@@ -127,7 +127,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
     }
 }
 
-uint32_t ActorPod::rollSeqID()
+uint64_t ActorPod::rollSeqID()
 {
     // NOTE we have to use increasing seqID for one pod to support timeout
     // previously we reset m_nextSeqID when m_respondCBList is empty, as following:
@@ -145,7 +145,7 @@ uint32_t ActorPod::rollSeqID()
     // then m_respondCBList can be empty if we reset m_nextSeqID, however the responding actor message can come after the m_nextSeqID reset
 
     if(g_serverArgParser->enableUniqueActorMessageID){
-        static std::atomic<uint32_t> s_nextSeqID {1}; // shared by all ActorPod
+        static std::atomic<uint64_t> s_nextSeqID {1}; // shared by all ActorPod
         return s_nextSeqID.fetch_add(1);
     }
     else{
@@ -153,7 +153,7 @@ uint32_t ActorPod::rollSeqID()
     }
 }
 
-bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint32_t respID)
+bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID)
 {
     if(!uid){
         throw fflerror("%s -> NONE: (type: %s, seqID: 0, respID: %llu): Try to send message to an empty address", to_cstr(uidf::getUIDString(UID())), mpkName(mbuf.type()), to_llu(respID));
@@ -175,7 +175,7 @@ bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint32_t respID)
     return g_actorPool->postMessage(uid, {mbuf, UID(), 0, respID});
 }
 
-bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint32_t respID, std::function<void(const ActorMsgPack &)> opr)
+bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID, std::function<void(const ActorMsgPack &)> opr)
 {
     if(!uid){
         throw fflerror("%s -> NONE: (type: %s, seqID: 0, respID: %llu): Try to send message to an empty address", to_cstr(uidf::getUIDString(UID())), mpkName(mbuf.type()), to_llu(respID));
@@ -257,8 +257,8 @@ void ActorPod::PrintMonitor() const
 {
     for(size_t nIndex = 0; nIndex < m_podMonitor.amProcMonitorList.size(); ++nIndex){
         const uint64_t nProcTick  = m_podMonitor.amProcMonitorList[nIndex].procTick / 1000000;
-        const uint32_t nSendCount = m_podMonitor.amProcMonitorList[nIndex].sendCount;
-        const uint32_t nRecvCount = m_podMonitor.amProcMonitorList[nIndex].recvCount;
+        const uint64_t nSendCount = m_podMonitor.amProcMonitorList[nIndex].sendCount;
+        const uint64_t nRecvCount = m_podMonitor.amProcMonitorList[nIndex].recvCount;
         if(nSendCount || nRecvCount){
             g_monoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
         }

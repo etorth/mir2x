@@ -17,8 +17,8 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
         uint64_t m_from;
 
     private:
-        uint32_t m_seqID;
-        uint32_t m_respID;
+        uint64_t m_seqID;
+        uint64_t m_respID;
 
     private:
         uint8_t m_sbuf[SBUFSIZE];
@@ -29,7 +29,7 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
         size_t   m_dbufSize;
 
     public:
-        InnActorMsgPack(int argType = AM_NONE, const uint8_t *argData = nullptr, size_t argSize = 0, uint64_t argFrom = 0, uint32_t argSeqID = 0, uint32_t argRespID = 0)
+        InnActorMsgPack(int argType = AM_NONE, const uint8_t *argData = nullptr, size_t argSize = 0, uint64_t argFrom = 0, uint64_t argSeqID = 0, uint64_t argRespID = 0)
             : m_type(argType)
             , m_from(argFrom)
             , m_seqID(argSeqID)
@@ -56,7 +56,7 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
             }
         }
 
-        InnActorMsgPack(const ActorMsgBuf &mbuf, uint64_t argFrom = 0, uint32_t argSeqID = 0, uint32_t argRespID = 0)
+        InnActorMsgPack(const ActorMsgBuf &mbuf, uint64_t argFrom = 0, uint64_t argSeqID = 0, uint64_t argRespID = 0)
             : InnActorMsgPack(mbuf.type(), mbuf.data(), mbuf.size(), argFrom, argSeqID, argRespID)
         {}
 
@@ -177,17 +177,17 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
            return m_from;
        }
 
-       std::pair<uint64_t, uint32_t> fromAddr() const
+       std::pair<uint64_t, uint64_t> fromAddr() const
        {
            return {m_from, m_seqID};
        }
 
-       uint32_t seqID() const
+       uint64_t seqID() const
        {
            return m_seqID;
        }
 
-       uint32_t respID() const
+       uint64_t respID() const
        {
            return m_respID;
        }
