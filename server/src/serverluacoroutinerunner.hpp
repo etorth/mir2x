@@ -58,6 +58,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
             void clearEvent()
             {
+                this->from = 0;
                 this->event.clear();
                 this->value.clear();
             }

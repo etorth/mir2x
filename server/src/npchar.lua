@@ -183,6 +183,9 @@ function uidPostXML(uid, xmlFormat, ...)
     uidPostXMLString(uid, xmlFormat:format(...))
 end
 
+function setQuestHandler(questHandler)
+end
+
 function setEventHandler(eventHandler)
     if _RSVD_NAME_defaultChatEventHandlers ~= nil then
         fatalPrintf('Call setEventHandler() twice')
