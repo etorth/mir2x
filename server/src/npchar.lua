@@ -239,8 +239,30 @@ function _RSVD_NAME_npc_main(from, event, value)
     assertType(event, 'string')
 
     if event ~= SYS_NPCDONE then
-        if hasEventHandler(event) then
+        if event == SYS_NPCINIT then
+            if _RSVD_NAME_passiveQuestEventHandlers ~= nil then
+                local xmlStrs = {}
+                table.insert(xmlStrs, string.format([[
+                    <layout>
+                        <par>你好我是%s，你想询问我什么事？</par>
+                        <par></par>
+                ]], getNPCName()))
+
+                for k, _ in pairs(_RSVD_NAME_passiveQuestEventHandlers) do
+                    table.insert(xmlStrs, string.format([[ <par>%s</par> ]], k))
+                end
+
+                table.insert(xmlStrs, [[
+                        <par></par>
+                        <par>退出</par>
+                    </layout>
+                ]])
+                uidPostXML(from, table.concat(xmlStrs))
+            end
+
+        elseif hasEventHandler(event) then
             _RSVD_NAME_defaultChatEventHandlers[event](from, value)
+
         else
             uidPostXML(from,
             [[
