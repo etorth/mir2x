@@ -45,7 +45,8 @@ setEventHandler(
         uidExecute(uid, [[
             local i = 1
             while i < 100 do
-                if randomMove() then
+                local mapID, x, y = randomMove()
+                if mapID ~= nil then
                     i = i + 1
                     pause(1000)
                 end

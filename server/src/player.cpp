@@ -161,7 +161,7 @@ void Player::onActivate()
             }
         });
 
-        luaModule->bindFunction("_RSVD_NAME_spaceMoveCoop", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+        luaModule->bindFunction("_RSVD_NAME_spaceMoveCoop", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runnerSeqID, sol::this_state s)
         {
             const auto &mr = DBCOM_MAPRECORD(argMapID);
             fflassert(mr, argMapID);
@@ -173,9 +173,11 @@ void Player::onActivate()
             {
                 const CallDoneFlag doneFlag;
                 if(to_u32(argMapID) == mapID()){
-                    requestSpaceMove(argX, argY, false, [doneFlag, onOK, runnerSeqID, this]()
+                    requestSpaceMove(argX, argY, false, [s, doneFlag, onOK, runnerSeqID, this]()
                     {
-                        onOK();
+                        sol::state_view sv(s);
+                        onOK(sol::object(sv, sol::in_place_type<uint32_t>, mapID()), sol::object(sv, sol::in_place_type<int>, X()), sol::object(sv, sol::in_place_type<int>, Y()));
+
                         if(doneFlag){
                             m_luaRunner->resume(runnerSeqID);
                         }
@@ -190,9 +192,11 @@ void Player::onActivate()
                     });
                 }
                 else{
-                    requestMapSwitch(argMapID, argX, argY, false, [doneFlag, onOK, runnerSeqID, this]()
+                    requestMapSwitch(argMapID, argX, argY, false, [s, doneFlag, onOK, runnerSeqID, this]()
                     {
-                        onOK();
+                        sol::state_view sv(s);
+                        onOK(sol::object(sv, sol::in_place_type<uint32_t>, mapID()), sol::object(sv, sol::in_place_type<int>, X()), sol::object(sv, sol::in_place_type<int>, Y()));
+
                         if(doneFlag){
                             m_luaRunner->resume(runnerSeqID);
                         }
@@ -209,7 +213,7 @@ void Player::onActivate()
             }
         });
 
-        luaModule->bindFunction("_RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+        luaModule->bindFunction("_RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runnerSeqID, sol::this_state s)
         {
             const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
             {
@@ -226,7 +230,7 @@ void Player::onActivate()
                 const auto [newX, newY] = newGLoc.value();
                 {
                     const CallDoneFlag doneFlag;
-                    requestMove(newX, newY, SYS_DEFSPEED, false, false, [doneFlag, onOK, runnerSeqID, this]()
+                    requestMove(newX, newY, SYS_DEFSPEED, false, false, [s, doneFlag, onOK, runnerSeqID, this]()
                     {
                         // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
                         // but here need to sendback the forced move since it's driven by server
@@ -241,7 +245,9 @@ void Player::onActivate()
                             .aimY = Y(),
                         });
 
-                        onOK();
+                        sol::state_view sv(s);
+                        onOK(sol::object(sv, sol::in_place_type<uint32_t>, mapID()), sol::object(sv, sol::in_place_type<int>, X()), sol::object(sv, sol::in_place_type<int>, Y()));
+
                         if(doneFlag){
                             m_luaRunner->resume(runnerSeqID);
                         }
