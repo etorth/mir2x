@@ -51,9 +51,9 @@ void Quest::onActivate()
         luaModule->pfrCheck(luaModule->execRawString(BEGIN_LUAINC(char)
 #include "quest.lua"
         END_LUAINC()));
-
-        luaModule->pfrCheck(luaModule->execFile(m_scriptName.c_str()));
     });
+
+    m_luaRunner->spawn(m_mainScriptThreadKey, {}, str_printf(R"#(return dofile('%s'))#", m_scriptName.c_str()).c_str());
 }
 
 void Quest::operateAM(const ActorMsgPack &mpk)

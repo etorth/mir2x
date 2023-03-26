@@ -10,6 +10,10 @@ class Quest final: public ServerObject
         const std::string m_scriptName;
 
     private:
+        const uint64_t m_mainScriptThreadKey = 1;
+        /* */ uint64_t m_runnerSeqID = m_mainScriptThreadKey + 1;
+
+    private:
         std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunner;
 
     public:
