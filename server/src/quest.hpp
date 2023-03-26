@@ -1,9 +1,10 @@
 #pragma once
 #include <memory>
+#include "serdesmsg.hpp"
 #include "serverobject.hpp"
 #include "serverluacoroutinerunner.hpp"
 
-class ServerQuest final: public ServerObject
+class Quest final: public ServerObject
 {
     private:
         const std::string m_scriptName;
@@ -12,5 +13,8 @@ class ServerQuest final: public ServerObject
         std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunner;
 
     public:
-        ServerQuest(uint32_t, std::string);
+        Quest(const SDInitQuest &);
+
+    protected:
+        void onActivate() override;
 };

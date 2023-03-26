@@ -13,6 +13,17 @@
 #include "protocoldef.hpp"
 #include "dbcomid.hpp"
 
+struct SDInitQuest
+{
+    uint32_t questID = 0;
+    std::string fullScriptName {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(questID, fullScriptName);
+    }
+};
+
 struct SDInitPlayer
 {
     uint32_t dbid = 0;
