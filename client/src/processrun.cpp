@@ -539,7 +539,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         }
                                     case UID_NPC:
                                         {
-                                            sendNPCEvent(uid, SYS_NPCINIT);
+                                            sendNPCEvent(uid, {}, SYS_NPCINIT);
                                         }
                                     default:
                                         {
@@ -1671,7 +1671,7 @@ void ProcessRun::onActionSpawn(uint64_t uid, const ActionNode &action)
     }
 }
 
-void ProcessRun::sendNPCEvent(uint64_t uid, std::string event, std::optional<std::string> value)
+void ProcessRun::sendNPCEvent(uint64_t uid, std::string path, std::string event, std::optional<std::string> value)
 {
     fflassert(uidf::getUIDType(uid) == UID_NPC);
 
@@ -1679,6 +1679,9 @@ void ProcessRun::sendNPCEvent(uint64_t uid, std::string event, std::optional<std
     std::memset(&cmNPCE, 0, sizeof(cmNPCE));
 
     cmNPCE.uid = uid;
+
+    fflassert(path.size() < sizeof(cmNPCE.path));
+    std::strcpy(cmNPCE.path, path.c_str());
 
     fflassert(!event.empty());
     fflassert(event.size() < sizeof(cmNPCE.event));

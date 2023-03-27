@@ -183,6 +183,7 @@ void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen)
         .y = Y(),
         .mapID = mapID(),
 
+        .path = cmNPCE.path,
         .event = cmNPCE.event,
         .value = [&cmNPCE]() -> std::optional<std::string>
         {

@@ -570,7 +570,7 @@ void ProcessRun::net_NPCXMLLAYOUT(const uint8_t *buf, size_t bufSize)
     auto npcChatBoardPtr  = dynamic_cast<NPCChatBoard  *>(getGUIManager()->getWidget("NPCChatBoard"));
     auto purchaseBoardPtr = dynamic_cast<PurchaseBoard *>(getGUIManager()->getWidget("PurchaseBoard"));
 
-    npcChatBoardPtr->loadXML(sdNPCXMLL.npcUID, sdNPCXMLL.xmlLayout.c_str());
+    npcChatBoardPtr->loadXML(sdNPCXMLL.npcUID, sdNPCXMLL.eventPath.c_str(), sdNPCXMLL.xmlLayout.c_str());
     npcChatBoardPtr->setShow(true);
     purchaseBoardPtr->setShow(false);
 }
@@ -812,7 +812,7 @@ void ProcessRun::net_STARTINPUT(const uint8_t *buf, size_t bufSize)
     inputBoardPtr->setSecurity(true);
     inputBoardPtr->waitInput(to_u8cstr(sdSI.title), [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
     {
-        sendNPCEvent(uid, commitTag, to_cstr(input));
+        sendNPCEvent(uid, {}, commitTag, to_cstr(input));
     });
 }
 

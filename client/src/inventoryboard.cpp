@@ -344,7 +344,7 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
                                         const auto &selectedItem = invPackRef.getPackBinList().at(selectedPackIndex);
 
                                         if(m_sdInvOp.hasType(DBCOM_ITEMRECORD(selectedItem.item.itemID).type)){
-                                            m_processRun->sendNPCEvent(m_sdInvOp.uid, m_sdInvOp.queryTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item. seqID)).c_str());
+                                            m_processRun->sendNPCEvent(m_sdInvOp.uid, {}, m_sdInvOp.queryTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item. seqID)).c_str());
                                         }
                                         else{
                                             m_processRun->addCBLog(CBLOG_ERR, u8"只能维修%s", to_cstr(typeListString(m_sdInvOp.typeList)));
@@ -690,7 +690,7 @@ void InventoryBoard::commitInvOp()
         return;
     }
 
-    m_processRun->sendNPCEvent(m_sdInvOp.uid, m_sdInvOp.commitTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item.seqID)).c_str());
+    m_processRun->sendNPCEvent(m_sdInvOp.uid, {}, m_sdInvOp.commitTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item.seqID)).c_str());
 }
 
 void InventoryBoard::removeItem(uint32_t itemID, uint32_t seqID, size_t count)

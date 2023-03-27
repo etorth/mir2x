@@ -176,10 +176,32 @@ function uidGrantGold(uid, count)
     uidGrant(uid, '金币（小）', count)
 end
 
-function uidPostXML(uid, xmlFormat, ...)
+function uidPostXML(uid, arg2, arg3, ...)
     assertType(uid, 'integer')
-    assertType(xmlFormat, 'string')
-    uidPostXMLString(uid, xmlFormat:format(...))
+
+    local eventPath = nil
+    local xmlString = nil
+
+    if type(arg2) == 'table' then
+        assertType(arg3, 'string')
+        eventPath = arg2
+        xmlString = string.format(arg3, ...)
+    else
+        assertType(arg2, 'string')
+        eventPath = {SYS_EPDEF}
+        xmlString = string.format(arg2, arg3, ...)
+    end
+
+    local eventPathStr = nil
+
+        if eventPath[1] == SYS_EPDEF then eventPathStr = SYS_EPDEF
+    elseif eventPath[1] == SYS_EPUID then eventPathStr = SYS_EPUID .. '/' .. eventPath[2]
+    elseif eventPath[1] == SYS_EPQST then eventPathStr = SYS_EPQST .. '/' .. eventPath[2]
+    else
+        fatalPrintf('Invalid event path prefix: %s', eventPath[1])
+    end
+
+    uidPostXMLString(uid, eventPathStr, xmlString)
 end
 
 function setQuestHandler(questName, questHandler)
@@ -231,12 +253,14 @@ end
 -- entry coroutine for event handling
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
-function _RSVD_NAME_npc_main(from, event, value)
+function _RSVD_NAME_npc_main(from, path, event, value)
     getTLSTable().uid = from
     getTLSTable().startTime = getNanoTstamp()
 
     assertType(from, 'integer')
+    assertType(path, 'string')
     assertType(event, 'string')
+    assertType(value, 'string', 'nil')
 
     if event ~= SYS_NPCDONE then
         if event == SYS_NPCINIT then

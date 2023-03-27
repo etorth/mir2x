@@ -61,7 +61,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           [this]()
           {
               setShow(false);
-              m_process->sendNPCEvent(m_NPCUID, SYS_NPCDONE);
+              m_process->sendNPCEvent(m_npcUID, m_eventPath, SYS_NPCDONE);
           },
 
           0,
@@ -145,13 +145,14 @@ void NPCChatBoard::drawEx(int, int, int, int, int, int) const
     }
 }
 
-void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
+void NPCChatBoard::loadXML(uint64_t uid, const char *eventPath, const char *xmlString)
 {
-    if(uidf::getUIDType(uid) != UID_NPC){
-        throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(uid));
-    }
+    fflassert(uidf::isNPChar(uid), uidf::getUIDString(uid));
+    fflassert(str_haschar(eventPath));
+    fflassert(str_haschar(xmlString));
 
-    m_NPCUID = uid;
+    m_npcUID = uid;
+    m_eventPath = eventPath;
     m_chatBoard.clear();
 
     if(auto texPtr = g_progUseDB->retrieve(getNPCFaceKey())){
@@ -176,14 +177,14 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *xmlString)
 
 void NPCChatBoard::onClickEvent(const char *id, const char *arg)
 {
-    m_process->addCBLog(CBLOG_SYS, u8"clickEvent: id = %s, arg = %s", to_cstr(id), to_cstr(arg));
+    m_process->addCBLog(CBLOG_SYS, u8"clickEvent: eventPath = %s, id = %s, arg = %s", to_cstr(m_eventPath), to_cstr(id), to_cstr(arg));
 
     fflassert(str_haschar(id));
     if(arg){
-        m_process->sendNPCEvent(m_NPCUID, id, arg);
+        m_process->sendNPCEvent(m_npcUID, m_eventPath, id, arg);
     }
     else{
-        m_process->sendNPCEvent(m_NPCUID, id);
+        m_process->sendNPCEvent(m_npcUID, m_eventPath, id);
     }
 
     if(std::string_view(id).ends_with(SYS_NPCDONE)){

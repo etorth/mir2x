@@ -16,7 +16,8 @@ class NPCChatBoard: public Widget
         TritexButton m_buttonClose;
 
     private:
-        uint64_t m_NPCUID;
+        uint64_t m_npcUID;
+        std::string m_eventPath;
 
     public:
         NPCChatBoard(ProcessRun *, Widget *pwidget = nullptr, bool autoDelete = false);
@@ -32,7 +33,7 @@ class NPCChatBoard: public Widget
         void drawWithNPCFace() const;
 
     public:
-        void loadXML(uint64_t, const char *);
+        void loadXML(uint64_t, const char *, const char *);
 
     private:
         void onClickEvent(const char *, const char *);
@@ -43,6 +44,6 @@ class NPCChatBoard: public Widget
     private:
         uint32_t getNPCFaceKey() const
         {
-            return 0X50000000 | uidf::getNPCID(m_NPCUID);
+            return 0X50000000 | uidf::getNPCID(m_npcUID);
         }
 };

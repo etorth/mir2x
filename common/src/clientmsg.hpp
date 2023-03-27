@@ -145,8 +145,10 @@ struct CMChangePassword
 struct CMNPCEvent
 {
     uint64_t uid;
-    char event[128];
-    char value[256];
+
+    char path [100];
+    char event[100];
+    char value[200];
 
     int16_t valueSize;
 };

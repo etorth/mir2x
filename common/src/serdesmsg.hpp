@@ -73,11 +73,12 @@ struct SDInitNPChar
 struct SDNPCXMLLayout
 {
     uint64_t npcUID = 0;
+    std::string eventPath {};
     std::string xmlLayout {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(npcUID, xmlLayout);
+        ar(npcUID, eventPath, xmlLayout);
     }
 };
 
@@ -698,6 +699,7 @@ struct SDNPCEvent
     int y = 0;
     uint32_t mapID = 0;
 
+    std::string path {};
     std::string event {};
     std::optional<std::string> value {};
 

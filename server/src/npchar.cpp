@@ -330,11 +330,11 @@ void NPChar::onActivate()
             postStartInput(uid, title, commitTag, show);
         });
 
-        luaModule->bindFunction("uidPostXMLString", [this](uint64_t uid, std::string xmlString)
+        luaModule->bindFunction("uidPostXMLString", [this](uint64_t uid, std::string path, std::string xmlString)
         {
             fflassert(uid);
             fflassert(uidf::isPlayer(uid), uid, uidf::getUIDString(uid));
-            postXMLLayout(uid, std::move(xmlString));
+            postXMLLayout(uid, std::move(path), std::move(xmlString));
         });
 
         luaModule->pfrCheck(luaModule->execRawString(BEGIN_LUAINC(char)
@@ -414,11 +414,12 @@ void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitT
     }));
 }
 
-void NPChar::postXMLLayout(uint64_t uid, std::string xmlString)
+void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString)
 {
     forwardNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
     {
         .npcUID = UID(),
+        .eventPath = std::move(path),
         .xmlLayout = std::move(xmlString),
     }));
 }

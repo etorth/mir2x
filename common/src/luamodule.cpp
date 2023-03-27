@@ -122,6 +122,10 @@ LuaModule::LuaModule()
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
     execString("SYS_EXECDONE = \'%s\'", SYS_EXECDONE);
 
+    execString("SYS_EPDEF = \'%s\'", SYS_EPDEF);
+    execString("SYS_EPUID = \'%s\'", SYS_EPUID);
+    execString("SYS_EPQST = \'%s\'", SYS_EPQST);
+
     execString("SYS_CHECKACTIVE = \'%s\'", SYS_CHECKACTIVE);
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 

@@ -342,7 +342,7 @@ class ProcessRun: public Process
         }
 
     public:
-        void sendNPCEvent(uint64_t, std::string, std::optional<std::string> = {});
+        void sendNPCEvent(uint64_t, std::string, std::string, std::optional<std::string> = {});
 
     private:
         void drawFPS() const;
