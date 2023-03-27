@@ -705,7 +705,7 @@ struct SDNPCEvent
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(x, y, mapID, event, value);
+        ar(x, y, mapID, path, event, value);
     }
 };
 

@@ -262,7 +262,7 @@ function hasQuestHandler(quest, event)
         return false
     end
 
-    if tableEmtpy(_RSVD_NAME_passiveQuestEventHandlers[quest], true) then
+    if tableEmpty(_RSVD_NAME_passiveQuestEventHandlers[quest], true) then
         return false
     end
 
@@ -338,8 +338,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
     getTLSTable().startTime = getNanoTstamp()
 
     assertType(from, 'integer')
-    assertValue(path, {'', SYS_EPDEF, SYS_EPUID, SYS_EPQST})
-
+    assertType(path, 'string', 'nil')
     assertType(event, 'string')
     assertType(value, 'string', 'nil')
 
@@ -354,7 +353,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         ]], SYS_NPCDONE)
     end
 
-    if path == '' and event == SYS_NPCINIT then
+    if path == nil and event == SYS_NPCINIT then
         -- click to NPC
         -- need to check all possible event handlers
 
@@ -419,29 +418,24 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         -- not initial click to NPC
         -- needs to parse event path to find correct event handler
 
-        if path == '' then
-            path = SYS_EPDEF
-        end
-
-        pathTokenList = splitString(path, '/')
-
-        if pathTokenList[1] == SYS_EPDEF then
+        pathTokens = splitString(path, '/')
+        if pathTokens[1] == SYS_EPDEF then
             if hasEventHandler(event) then
                 _RSVD_NAME_defaultChatEventHandlers[event](from, value)
             else
                 fnPostInvalidChat()
             end
 
-        elseif pathTokenList[1] == SYS_EPQST then
-            if hasQuestHandler(pathTokenList[1], pathTokenList[2]) then
-                _RSVD_NAME_passiveQuestEventHandlers[pathTokenList[2]][event](from, value)
+        elseif pathTokens[1] == SYS_EPQST then
+            if hasQuestHandler(pathTokens[1], pathTokens[2]) then
+                _RSVD_NAME_passiveQuestEventHandlers[pathTokens[2]][event](from, value)
             else
                 fnPostInvalidChat()
             end
 
-        elseif pathTokenList[1] == SYS_EPUID then
-            if hasUIDQuestHandler(from, pathTokenList[1], pathTokenList[2]) then
-                _RSVD_NAME_uidActivedEventHandlers[from][pathTokenList[2]][event](from, value)
+        elseif pathTokens[1] == SYS_EPUID then
+            if hasUIDQuestHandler(from, pathTokens[1], pathTokens[2]) then
+                _RSVD_NAME_uidActivedEventHandlers[from][pathTokens[2]][event](from, value)
             else
                 fnPostInvalidChat()
             end
