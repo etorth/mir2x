@@ -427,14 +427,14 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             end
 
         elseif pathTokens[1] == SYS_EPQST then
-            if hasQuestHandler(pathTokens[1], pathTokens[2]) then
+            if hasQuestHandler(pathTokens[2], event) then
                 _RSVD_NAME_passiveQuestEventHandlers[pathTokens[2]][event](from, value)
             else
                 fnPostInvalidChat()
             end
 
         elseif pathTokens[1] == SYS_EPUID then
-            if hasUIDQuestHandler(from, pathTokens[1], pathTokens[2]) then
+            if hasUIDQuestHandler(from, pathTokens[2], event) then
                 _RSVD_NAME_uidActivedEventHandlers[from][pathTokens[2]][event](from, value)
             else
                 fnPostInvalidChat()
