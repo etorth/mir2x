@@ -77,7 +77,12 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
             if(tagName == "event"){
                 std::unordered_map<std::string, std::string> attrList;
                 for(auto attrPtr = par->ToElement()->FirstAttribute(); attrPtr; attrPtr = attrPtr->Next()){
-                    attrList.emplace(attrPtr->Name(), attrPtr->Value());
+                    std::string attrName = attrPtr->Name();
+                    std::transform(attrName.begin(), attrName.end(), attrName.begin(), [](unsigned char c)
+                    {
+                        return std::tolower(c);
+                    });
+                    attrList.emplace(std::move(attrName), attrPtr->Value());
                 }
                 m_attrListOpt = std::move(attrList);
             }

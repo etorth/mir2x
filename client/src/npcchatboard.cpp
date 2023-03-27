@@ -39,20 +39,16 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           [this](const std::unordered_map<std::string, std::string> &attrList, int oldEvent, int newEvent)
           {
               if(oldEvent == BEVENT_DOWN && newEvent == BEVENT_ON){
-                  const auto fnFind = [&attrList](std::initializer_list<const char *> keyList) -> std::pair<const char *, const char *>
+                  const auto fnFindAttrValue = [&attrList](const char *key, const char *valDefault) -> const char *
                   {
-                      for(const auto k: keyList){
-                          if(auto p = attrList.find(k); p != attrList.end()){
-                              return {p->first.c_str(), p->second.c_str()};
-                          }
+                      if(auto p = attrList.find(key); p != attrList.end() && str_haschar(p->second)){
+                          return p->second.c_str();
                       }
-                      return {nullptr, nullptr};
+                      return valDefault;
                   };
 
-                  if(const auto [key, id] = fnFind({"id", "Id", "ID"}); str_haschar(id)){
-                      const auto path = fnFind({"path", "Path", "PATH"}).second;
-                      const auto arg  = fnFind({"arg",  "Arg",  "ARG" }).second;
-                      onClickEvent(str_haschar(path) ? path : m_eventPath.c_str(), id, arg);
+                  if(const auto id = fnFindAttrValue("id", nullptr)){
+                      onClickEvent(fnFindAttrValue("path", m_eventPath.c_str()), id, fnFindAttrValue("arg", nullptr));
                   }
               }
           },
