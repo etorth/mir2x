@@ -3,7 +3,7 @@ function main()
     [[
         return setQuestHandler('%s', {
             ['%s'] = function(uid, value)
-                uidPostXML(uid, {%s, %s}, [=[
+                uidPostXML(uid, {'%s', '%s'}, [=[
                     <layout>
                         <par>这是一个测试</par>
                         <par><event id="%s">退出</event></par>
