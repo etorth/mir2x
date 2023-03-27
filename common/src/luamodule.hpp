@@ -147,3 +147,5 @@ struct LuaCORunner
     }; \
     return (const _INCLUA_BYTE_TYPE *)(_use_second_cstr[1]); \
 }()
+
+static_assert(sizeof(lua_Integer) >= sizeof(uint64_t)); // make sure lua_Integer can hold any UID

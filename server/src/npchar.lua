@@ -188,11 +188,7 @@ function uidPostXML(uid, arg2, arg3, ...)
         xmlString = string.format(arg3, ...)
     else
         assertType(arg2, 'string')
-        if not tableEmpty(getTLSTable().eventPath, true) then
-            eventPath = getTLSTable().eventPath
-        else
-            eventPath = {SYS_EPDEF}
-        end
+        eventPath = {SYS_EPDEF}
         xmlString = string.format(arg2, arg3, ...)
     end
 

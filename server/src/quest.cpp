@@ -57,13 +57,17 @@ void Quest::onActivate()
         luaModule->pfrCheck(luaModule->execRawString(BEGIN_LUAINC(char)
 #include "quest.lua"
         END_LUAINC()));
+
+        // define all functions needed for the quest
+        // but don't execute them here since they may require coroutine environment
+        luaModule->pfrCheck(luaModule->execFile(m_scriptName.c_str()));
     });
 
     m_luaRunner->spawn(m_mainScriptThreadKey, {}, str_printf(
         R"#( do                           )#""\n"
         R"#(     getTLSTable().uid = %llu )#""\n"
-        R"#(     return dofile('%s')      )#""\n"
-        R"#( end                          )#""\n", to_llu(UID()), m_scriptName.c_str()).c_str());
+        R"#(     return main()            )#""\n"
+        R"#( end                          )#""\n", to_llu(UID())).c_str());
 }
 
 void Quest::operateAM(const ActorMsgPack &mpk)
