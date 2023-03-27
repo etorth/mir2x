@@ -330,8 +330,8 @@ bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
                     const auto leafID = node->tpset->getToken(tokenX, tokenY)->leaf;
 
                     const auto oldEvent = node->tpset->markLeafEvent(leafID, newEvent);
-                    if(const auto [id, arg] = node->tpset->leafEvent(leafID); id && m_eventCB){
-                        m_eventCB(id, arg, oldEvent, newEvent);
+                    if(const auto attrListPtr = node->tpset->leafEvent(leafID); attrListPtr && m_eventCB){
+                        m_eventCB(*attrListPtr, oldEvent, newEvent);
                     }
                     node->tpset->clearEvent(leafID);
                     return true;
@@ -352,8 +352,8 @@ bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
                     const auto leafID = node->tpset->getToken(tokenX, tokenY)->leaf;
 
                     const auto oldEvent = node->tpset->markLeafEvent(leafID, newEvent);
-                    if(const auto [id, arg] = node->tpset->leafEvent(leafID); id && m_eventCB){
-                        m_eventCB(id, arg, oldEvent, newEvent);
+                    if(const auto attrListPtr = node->tpset->leafEvent(leafID); attrListPtr && m_eventCB){
+                        m_eventCB(*attrListPtr, oldEvent, newEvent);
                     }
                     node->tpset->clearEvent(leafID);
                     return true;

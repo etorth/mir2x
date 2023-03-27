@@ -36,7 +36,7 @@ class NPCChatBoard: public Widget
         void loadXML(uint64_t, const char *, const char *);
 
     private:
-        void onClickEvent(const char *, const char *);
+        void onClickEvent(const char *, const char *, const char *);
 
     private:
         int getMiddleCount() const;

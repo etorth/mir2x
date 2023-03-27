@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+#include <unordered_map>
 #include "widget.hpp"
 #include "xmltypeset.hpp"
 
@@ -52,7 +53,7 @@ class LayoutBoard: public Widget
         bool m_canSelect;
 
     private:
-        const std::function<void(const char *, const char *, int, int)> m_eventCB;
+        const std::function<void(const std::unordered_map<std::string, std::string> &, int, int)> m_eventCB;
 
     public:
         LayoutBoard(
@@ -76,7 +77,7 @@ class LayoutBoard: public Widget
                 int lineSpace = 0,
                 int wordSpace = 0,
 
-                const std::function<void(const char *, const char *, int, int)> &eventCB = nullptr,
+                const std::function<void(const std::unordered_map<std::string, std::string> &, int, int)> &eventCB = nullptr,
 
                 Widget *parent     =  nullptr,
                 bool    autoDelete =  false)

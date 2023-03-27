@@ -188,7 +188,11 @@ function uidPostXML(uid, arg2, arg3, ...)
         xmlString = string.format(arg3, ...)
     else
         assertType(arg2, 'string')
-        eventPath = {SYS_EPDEF}
+        if not tableEmpty(getTLSTable().eventPath, true) then
+            eventPath = getTLSTable().eventPath
+        else
+            eventPath = {SYS_EPDEF}
+        end
         xmlString = string.format(arg2, arg3, ...)
     end
 
@@ -202,14 +206,6 @@ function uidPostXML(uid, arg2, arg3, ...)
     end
 
     uidPostXMLString(uid, eventPathStr, xmlString)
-end
-
-function setQuestHandler(questName, questHandler)
-    _RSVD_NAME_passiveQuestEventHandlers[questName] = questHandler
-end
-
-function deleteQuestHandler(questName)
-    _RSVD_NAME_passiveQuestEventHandlers[questName] = nil
 end
 
 function setEventHandler(eventHandler)
@@ -227,6 +223,10 @@ function setEventHandler(eventHandler)
     end
 
     _RSVD_NAME_defaultChatEventHandlers = eventHandler
+end
+
+function deleteEventHandler()
+    _RSVD_NAME_defaultChatEventHandlers = nil
 end
 
 function hasEventHandler(event)
@@ -250,6 +250,90 @@ function hasEventHandler(event)
     return true
 end
 
+function setQuestHandler(questName, questHandler)
+    _RSVD_NAME_passiveQuestEventHandlers[questName] = questHandler
+end
+
+function deleteQuestHandler(questName)
+    _RSVD_NAME_passiveQuestEventHandlers[questName] = nil
+end
+
+function hasQuestHandler(quest, event)
+    assertType(quest, 'string')
+    assertType(event, 'string')
+
+    if tableEmpty(_RSVD_NAME_passiveQuestEventHandlers, false) then
+        return false
+    end
+
+    if tableEmtpy(_RSVD_NAME_passiveQuestEventHandlers[quest], true) then
+        return false
+    end
+
+    if _RSVD_NAME_passiveQuestEventHandlers[quest][event] == nil then
+        return false
+    end
+
+    assertType(_RSVD_NAME_passiveQuestEventHandlers[quest][event], 'function')
+    return true
+end
+
+function setUIDQuestHandler(uid, quest, questHandler)
+    assertType(uid, 'integer')
+    assertType(quest, 'string')
+    assertType(questHandler, 'table')
+    assertType(questHandler[SYS_NPCINIT], 'function')
+
+    if _RSVD_NAME_activeQuestEventHandlers[uid] == nil then
+        _RSVD_NAME_activeQuestEventHandlers[uid] = {}
+    end
+
+    _RSVD_NAME_activeQuestEventHandlers[uid][quest] = questHandler
+end
+
+function deleteUIDQuestHandler(uid, quest)
+    assertType(uid, 'integer')
+    assertType(quest, 'string')
+
+    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers, false) then
+        return
+    end
+
+    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers[uid], false) then
+        return
+    end
+
+    _RSVD_NAME_activeQuestEventHandlers[uid][quest] = nil
+    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers[uid], false) then
+        _RSVD_NAME_activeQuestEventHandlers[uid] = nil
+    end
+end
+
+function hasUIDQuestHandler(uid, quest, event)
+    assertType(uid, 'integer')
+    assertType(quest, 'string')
+    assertType(event, 'string')
+
+    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers, false) then
+        return false
+    end
+
+    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers[uid], true) then
+        return false
+    end
+
+    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers[uid][quest], true) then
+        return false
+    end
+
+    if _RSVD_NAME_activeQuestEventHandlers[uid][quest][event] == nil then
+        return false
+    end
+
+    assertType(_RSVD_NAME_activeQuestEventHandlers[uid][quest][event], 'function')
+    return true
+end
+
 -- entry coroutine for event handling
 -- it's event driven, i.e. if the event sink has no event, this coroutine won't get scheduled
 
@@ -258,46 +342,116 @@ function _RSVD_NAME_npc_main(from, path, event, value)
     getTLSTable().startTime = getNanoTstamp()
 
     assertType(from, 'integer')
-    assertType(path, 'string')
+    assertValue(path, {'', SYS_EPDEF, SYS_EPUID, SYS_EPQST})
+
     assertType(event, 'string')
     assertType(value, 'string', 'nil')
 
-    if event ~= SYS_NPCDONE then
-        if event == SYS_NPCINIT then
-            if not tableEmpty(_RSVD_NAME_passiveQuestEventHandlers) then
-                local xmlStrs = {}
-                table.insert(xmlStrs, string.format([[
-                    <layout>
-                        <par>你好我是%s，你想询问我什么事？</par>
-                        <par></par>
-                ]], getNPCName()))
+    local fnPostInvalidChat = function()
+        uidPostXML(from,
+        [[
+            <layout>
+                <par>我听不懂你在说什么。。。</par>
+                <par></par>
+                <par><event id="%s">关闭</event></par>
+            </layout>
+        ]], SYS_NPCDONE)
+    end
 
-                local eventCounter = 1
-                for k, _ in pairs(_RSVD_NAME_passiveQuestEventHandlers) do
-                    table.insert(xmlStrs, string.format([[ <par><event id="main_goto_%d">%s</event></par> ]], eventCounter, k))
-                    eventCount = eventCounter + 1
+    if path == '' and event == SYS_NPCINIT then
+        -- click to NPC
+        -- need to check all possible event handlers
+
+        local qstEntryList = {}
+        if not tableEmpty(_RSVD_NAME_passiveQuestEventHandlers) then
+            for k, v in pairs(_RSVD_NAME_passiveQuestEventHandlers) do
+                if (not tableEmpty(v)) and (v[SYS_CHECKACTIVE] == nil or v[SYS_CHECKACTIVE](from) == true) then
+                    table.insert(qstEntryList, k)
                 end
+            end
+        end
 
+        local uidEntryList = {}
+        if not tableEmpty(_RSVD_NAME_uidActivedEventHandlers) and not tableEmpty(_RSVD_NAME_uidActivedEventHandlers[from], true) then
+            for k, _ in pairs(_RSVD_NAME_uidActivedEventHandlers[from]) do
+                table.insert(uidEntryList, k)
+            end
+        end
+
+        if not tableEmpty(qstEntryList) or not tableEmpty(uidEntryList) then
+            local xmlStrs = {}
+            table.insert(xmlStrs, string.format([[
+                <layout>
+                    <par>你好我是%s，你想询问我什么事？</par>
+                    <par></par>
+            ]], getNPCName()))
+
+            for _, v in ipairs(qstEntryList) do
                 table.insert(xmlStrs, string.format([[
-                        <par></par>
-                        <par><event id="%s">退出</event></par>
-                    </layout>
-                ]], SYS_NPCDONE))
-                uidPostXML(from, table.concat(xmlStrs))
+                    <par><event id="%s" path="%s/%s">%s</event></par>
+                ]], SYS_NPCINIT, SYS_EPQST, v, v))
             end
 
-        elseif hasEventHandler(event) then
+            for _, v in ipairs(uidEntryList) do
+                table.insert(xmlStrs, string.format([[
+                    <par><event id="%s" path="%s/%s">%s</event></par>
+                ]], SYS_NPCINIT, SYS_EPQST, v, v))
+            end
+
+            if hasEventHandler(SYS_NPCINIT) then
+                table.insert(xmlStrs, string.format([[
+                    <par><event id="%s">随便聊聊</event></par>
+                ]], SYS_NPCINIT))
+            end
+
+            table.insert(xmlStrs, string.format([[
+                    <par></par>
+                    <par><event id="%s">退出</event></par>
+                </layout>
+            ]], SYS_NPCDONE))
+
+            uidPostXML(from, table.concat(xmlStrs))
+
+        elseif hasEventHandler(SYS_NPCINIT) then
             _RSVD_NAME_defaultChatEventHandlers[event](from, value)
 
         else
-            uidPostXML(from,
-            [[
-                <layout>
-                    <par>我听不懂你在说什么。。。</par>
-                    <par></par>
-                    <par><event id="%s">关闭</event></par>
-                </layout>
-            ]], SYS_NPCDONE)
+            fnPostInvalidChat()
+        end
+
+    elseif event ~= SYS_NPCDONE then
+        -- not initial click to NPC
+        -- needs to parse event path to find correct event handler
+
+        if path == '' then
+            path = SYS_EPDEF
+        end
+
+        pathTokenList = splitString(path, '/')
+
+        if pathTokenList[1] == SYS_EPDEF then
+            if hasEventHandler(event) then
+                _RSVD_NAME_defaultChatEventHandlers[event](from, value)
+            else
+                fnPostInvalidChat()
+            end
+
+        elseif pathTokenList[1] == SYS_EPQST then
+            if hasQuestHandler(pathTokenList[1], pathTokenList[2]) then
+                _RSVD_NAME_passiveQuestEventHandlers[pathTokenList[2]][event](from, value)
+            else
+                fnPostInvalidChat()
+            end
+
+        elseif pathTokenList[1] == SYS_EPUID then
+            if hasUIDQuestHandler(from, pathTokenList[1], pathTokenList[2]) then
+                _RSVD_NAME_uidActivedEventHandlers[from][pathTokenList[2]][event](from, value)
+            else
+                fnPostInvalidChat()
+            end
+
+        else
+            fnPostInvalidChat()
         end
     end
 

@@ -36,10 +36,24 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           0,
           0,
 
-          [this](const char *id, const char *arg, int oldEvent, int newEvent)
+          [this](const std::unordered_map<std::string, std::string> &attrList, int oldEvent, int newEvent)
           {
               if(oldEvent == BEVENT_DOWN && newEvent == BEVENT_ON){
-                  onClickEvent(id, arg);
+                  const auto fnFind = [&attrList](std::initializer_list<const char *> keyList) -> std::pair<const char *, const char *>
+                  {
+                      for(const auto k: keyList){
+                          if(auto p = attrList.find(k); p != attrList.end()){
+                              return {p->first.c_str(), p->second.c_str()};
+                          }
+                      }
+                      return {nullptr, nullptr};
+                  };
+
+                  if(const auto [key, id] = fnFind({"id", "Id", "ID"}); str_haschar(id)){
+                      const auto path = fnFind({"path", "Path", "PATH"}).second;
+                      const auto arg  = fnFind({"arg",  "Arg",  "ARG" }).second;
+                      onClickEvent(str_haschar(path) ? path : m_eventPath.c_str(), id, arg);
+                  }
               }
           },
           this,
@@ -175,17 +189,12 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *eventPath, const char *xmlS
     }
 }
 
-void NPCChatBoard::onClickEvent(const char *id, const char *arg)
+void NPCChatBoard::onClickEvent(const char *path, const char *id, const char *arg)
 {
-    m_process->addCBLog(CBLOG_SYS, u8"clickEvent: eventPath = %s, id = %s, arg = %s", to_cstr(m_eventPath), to_cstr(id), to_cstr(arg));
+    m_process->addCBLog(CBLOG_SYS, u8"clickEvent: path = %s, id = %s, arg = %s", to_cstr(path), to_cstr(id), to_cstr(arg));
 
     fflassert(str_haschar(id));
-    if(arg){
-        m_process->sendNPCEvent(m_npcUID, m_eventPath, id, arg);
-    }
-    else{
-        m_process->sendNPCEvent(m_npcUID, m_eventPath, id);
-    }
+    m_process->sendNPCEvent(m_npcUID, path, id, arg ? std::make_optional<std::string>(arg) : std::nullopt);
 
     if(std::string_view(id).ends_with(SYS_NPCDONE)){
         setShow(false);

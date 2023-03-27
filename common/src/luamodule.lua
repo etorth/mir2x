@@ -66,10 +66,19 @@ function assertType(var, ...)
 end
 
 function assertValue(var, value)
-    if var ~= value then
-        fatalPrintf('assertion failed: expect [%s](%s), get [%s](%s)', type(var), tostring(value), type(value), tostring(var))
+    if type(value) == 'table' then
+        for _, v in ipairs(value) do
+            if var == v then
+                return var
+            end
+        end
+        fatalPrintf('assertion failed: expect %s, get %s', table.concat(value, ', '), tostring(var))
+    else
+        if var == value then
+            return var
+        end
+        fatalPrintf('assertion failed: expect %s, get %s', tostring(value), tostring(var))
     end
-    return var
 end
 
 function isArray(tbl)
@@ -200,9 +209,14 @@ function rotable(tbl, recursive)
     end
 end
 
-function tableEmpty(t)
-    assertType(t, 'table')
-    return next(t) == nil
+function tableEmpty(t, allowNil)
+    if t == nil and argDefault(allowNil, true) then
+        return true
+    elseif type(t) == 'table' then
+        return next(t) == nil
+    else
+        fatalPrintf('invalid argument: tableEmpty(%s)', type(t))
+    end
 end
 
 function getBackTraceLine()
