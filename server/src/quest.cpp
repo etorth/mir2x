@@ -16,7 +16,7 @@ void Quest::onActivate()
             return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
         });
 
-        luaModule->bindFunction("_RSVD_NAME_loadMapCoop", [this](std::string mapName, sol::function onOK, sol::function onError, uint64_t runnerSeqID, sol::this_state s)
+        luaModule->bindFunction("_RSVD_NAME_loadMapCoop", [this](std::string mapName, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
         {
             fflassert(str_haschar(mapName));
             fflassert(runnerSeqID > 0, runnerSeqID);
@@ -28,15 +28,14 @@ void Quest::onActivate()
             amLM.activateMap = true;
 
             const CallDoneFlag doneFlag;
-            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [doneFlag, mapID = amLM.mapID, onOK, onError, runnerSeqID, s, this](const ActorMsgPack &mpk)
+            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [doneFlag, mapID = amLM.mapID, onOK, onError, runnerSeqID, this](const ActorMsgPack &mpk)
             {
                 switch(mpk.type()){
                     case AM_LOADMAPOK:
                         {
-                            sol::state_view sv(s);
                             const auto amLMOK = mpk.conv<AMLoadMapOK>();
+                            onOK(amLMOK.uid);
 
-                            onOK(sol::object(sv, sol::in_place_type<uint64_t>, amLMOK.uid));
                             if(doneFlag){
                                 m_luaRunner->resume(runnerSeqID);
                             }
