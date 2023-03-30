@@ -1,3 +1,4 @@
+#include "uidf.hpp"
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
 #include "mapbindb.hpp"
@@ -45,6 +46,11 @@ ServerLuaModule::ServerLuaModule()
     bindFunction("uidAlive", [](uint64_t uid)
     {
         return g_actorPool->checkUIDValid(uid);
+    });
+
+    bindFunction("getServiceCoreUID", []() -> uint64_t
+    {
+        return uidf::getServiceCoreUID();
     });
 
     bindFunction("randMapGLoc", [](std::string mapName)
