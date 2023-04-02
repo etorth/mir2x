@@ -37,72 +37,75 @@ function addQuestTrigger(triggerType, callback)
     table.insert(_RSVD_NAME_triggers[triggerType], callback)
 end
 
+local _RSVD_NAME_triggerConfigs = {
+    -- trigger parameter config
+    -- [1] : trigger type in string
+    -- [2] : trigger parameter types
+    -- [3] : trigger parameter extra checking, optional
+
+    [SYS_ON_LEVELUP] = {
+        'SYS_ON_LEVEL',
+        {'integer', 'integer'},
+
+        function(args)
+            assert(args[1] < args[2])
+        end
+    },
+
+    [SYS_ON_KILL] = {
+        'SYS_ON_KILL',
+        {'integer'},
+    }
+}
+
 function _RSVD_NAME_trigger(triggerType, uid, ...)
     assertType(triggerType, 'integer')
-    assertType(uid, 'integer')
+    assertType(uid        , 'integer')
 
     assert(triggerType >= SYS_ON_BEGIN, triggerType)
     assert(triggerType <  SYS_ON_END  , triggerType)
 
     local args = {...}
-    if triggerType == SYS_ON_LEVELUP then
-        assertType(args[1], 'integer')
-        assertType(args[2], 'integer')
-        assertType(args[3], 'nil')
+    local config = _RSVD_NAME_triggerConfigs[triggerType]
 
-        assert(args[1] < args[2])
-        if _RSVD_NAME_triggers[SYS_ON_LEVELUP] then
-            local doneKeyList = {}
-            for triggerKey, triggerFunc in pairs(_RSVD_NAME_triggers[SYS_ON_LEVELUP]) do
-                local result = triggerFunc(uid, args[1], args[2])
-                if type(result) == 'boolean' then
-                    if result then
-                        table.insert(doneKeyList, triggerKey)
-                    end
-                elseif type(result) ~= 'nil' then
-                    table.insert(doneKeyList, triggerKey)
-                    addLog(LOGTYPE_WARNING, 'Trigger %s returns invalid type %s, trigger removed.', tostring(triggerKey), type(result))
-                end
-            end
+    if not config then
+        fatalPrintf('Can not process trigger type %d', triggerType)
+    end
 
-            for _, key in ipairs(doneKeyList) do
-                _RSVD_NAME_triggers[SYS_ON_LEVELUP][key] = nil
-            end
+    if #args > #config[2] then
+        addLog(LOGTYPE_WARNING, 'Trigger type %s expected %d parameters, got %d', config[1], #config[2] + 1, #args + 1)
+    end
+
+    for i = 1, #config[2] do
+        if type(args[i]) ~= config[2][i] and math.type(args[i]) ~= config[2][i] then
+            fatalPrintf('The %d-th parmeter of trigger type %s expected %s, got %s', i + 1, config[1], config[2][i], type(args[i]))
         end
+    end
 
-        if tableEmpty(_RSVD_NAME_triggers[SYS_ON_LEVELUP]) then
-            _RSVD_NAME_triggers[SYS_ON_LEVELUP] = nil
-            _RSVD_NAME_callFuncCoop('modifyQuestTriggerType', SYS_ON_LEVELUP, false)
-        end
-    elseif triggerType == SYS_ON_KILL then
-        assertType(args[1], 'integer')
-        assertType(args[2], 'nil')
+    if config[3] then
+        config[3](args)
+    end
 
-        if _RSVD_NAME_triggers[SYS_ON_KILL] then
-            local doneKeyList = {}
-            for triggerKey, triggerFunc in pairs(_RSVD_NAME_triggers[SYS_ON_KILL]) do
-                local result = triggerFunc(uid, args[1])
-                if type(result) == 'boolean' then
-                    if result then
-                        table.insert(doneKeyList, triggerKey)
-                    end
-                elseif type(result) ~= 'nil' then
-                    table.insert(doneKeyList, triggerKey)
-                    addLog(LOGTYPE_WARNING, 'Trigger %s returns invalid type %s, trigger removed.', tostring(triggerKey), type(result))
-                end
+    local doneKeyList = {}
+    for triggerKey, triggerFunc in pairs(_RSVD_NAME_triggers[triggerType]) do
+        local result = triggerFunc(uid, table.unpack(args, 1, #config[2]))
+        if type(result) == 'boolean' then
+            if result then
+                table.insert(doneKeyList, triggerKey)
             end
-
-            for _, key in ipairs(doneKeyList) do
-                _RSVD_NAME_triggers[SYS_ON_KILL][key] = nil
-            end
+        elseif type(result) ~= 'nil' then
+            table.insert(doneKeyList, triggerKey)
+            addLog(LOGTYPE_WARNING, 'Trigger %s callback returns invalid type %s, key %s removed.', config[1], type(result), tostring(triggerKey))
         end
+    end
 
-        if tableEmpty(_RSVD_NAME_triggers[SYS_ON_KILL]) then
-            _RSVD_NAME_triggers[SYS_ON_KILL] = nil
-            _RSVD_NAME_callFuncCoop('modifyQuestTriggerType', SYS_ON_KILL, false)
-        end
-    else
-        fatalPrintf('Invalid trigger type: %d', triggerType)
+    for _, key in ipairs(doneKeyList) do
+        _RSVD_NAME_triggers[triggerType][key] = nil
+    end
+
+    if tableEmpty(_RSVD_NAME_triggers[triggerType]) then
+        _RSVD_NAME_triggers[triggerType] = nil
+        _RSVD_NAME_callFuncCoop('modifyQuestTriggerType', SYS_ON_KILL, false)
     end
 end
 
