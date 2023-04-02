@@ -70,7 +70,7 @@ void Player::onActivate()
             return name();
         });
 
-        luaModule->bindFunction("runQuestTrigger", [this](uint64_t questUID, int triggerType, sol::variadic_args args)
+        luaModule->bindFunction("_RSVD_NAME_runQuestTrigger", [this](uint64_t questUID, int triggerType, sol::variadic_args args)
         {
             fflassert(uidf::isQuest(questUID), uidf::getUIDString(questUID));
 

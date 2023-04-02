@@ -11,7 +11,7 @@ void Quest::on_AM_RUNQUESTTRIGGER(const ActorMsgPack &mpk)
     {
         [&mpk, this](const SDQuestTriggerLevelUp &sdQTLU)
         {
-            m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_callTriggers(SYS_ON_LEVELUP, %llu, %d, %d)", to_llu(mpk.from()), sdQTLU.oldLevel, sdQTLU.newLevel).c_str());
+            m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, %llu, %d, %d)", to_llu(mpk.from()), sdQTLU.oldLevel, sdQTLU.newLevel).c_str());
         },
 
         [](auto)
