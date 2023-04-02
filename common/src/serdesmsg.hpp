@@ -70,6 +70,33 @@ struct SDInitNPChar
     }
 };
 
+struct SDQuestTriggerLevelUp
+{
+    int oldLevel = 0;
+    int newLevel = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(oldLevel, newLevel);
+    }
+};
+
+struct SDQuestTriggerKill
+{
+    uint32_t monsterID = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(monsterID);
+    }
+};
+
+using SDQuestTriggerVar = std::variant<SDQuestTriggerLevelUp, SDQuestTriggerKill>;
+template<typename... Ts> struct SDQuestTriggerDispatcher: Ts...
+{
+    using Ts::operator()...;
+};
+
 struct SDNPCXMLLayout
 {
     uint64_t npcUID = 0;

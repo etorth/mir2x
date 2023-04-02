@@ -76,12 +76,57 @@ void Player::onActivate()
             return name();
         });
 
-        luaModule->bindFunction("addTrigger", [this](int eventType, sol::function eventHandler)
+        luaModule->bindFunction("runQuestTrigger", [this](uint64_t questUID, int triggerType, sol::variadic_args args)
         {
-            fflassert(eventType >= ON_BEGIN, eventType);
-            fflassert(eventType <  ON_END  , eventType);
+            fflassert(uidf::isQuest(questUID), uidf::getUIDString(questUID));
 
-            m_scriptEventTriggerList[eventType].push_back(eventHandler);
+            fflassert(triggerType >= ON_BEGIN, triggerType);
+            fflassert(triggerType <  ON_END  , triggerType);
+
+            switch(triggerType){
+                case SYS_ON_LEVELUP:
+                    {
+                        const auto [oldLevel, newLevel] = [&args, this]() -> std::tuple<int, int>
+                        {
+                            switch(args.size()){
+                                case 1:
+                                    {
+                                        fflassert(args[0].is<lua_Integer>());
+                                        return {args[0].as<lua_Integer>(), level()};
+                                    }
+                                case 2:
+                                    {
+                                        fflassert(args[0].is<lua_Integer>());
+                                        fflassert(args[1].is<lua_Integer>());
+                                        return {args[0].as<lua_Integer>(), args[1].as<lua_Integer>()};
+                                    }
+                                default:
+                                    {
+                                        throw fflvalue(args.size());
+                                    }
+                            }
+                        }();
+
+                        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerLevelUp
+                        {
+                            .oldLevel = oldLevel,
+                            .newLevel = newLevel,
+                        })});
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        });
+
+        luaModule->bindFunction("addTrigger", [this](int triggerType, sol::function eventHandler)
+        {
+            fflassert(triggerType >= ON_BEGIN, triggerType);
+            fflassert(triggerType <  ON_END  , triggerType);
+
+            m_scriptEventTriggerList[triggerType].push_back(eventHandler);
         });
 
         luaModule->bindFunction("postRawString", [this](std::string msg)
@@ -259,6 +304,40 @@ void Player::onActivate()
             else{
                 onError();
             }
+        });
+
+        luaModule->bindFunction("_RSVD_NAME_queryQuestTriggerListCoop", [this](int triggerType, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+        {
+            fflassert(triggerType >= ON_BEGIN, triggerType);
+            fflassert(triggerType <  ON_END  , triggerType);
+
+            AMQueryQuestTriggerList amQQTL;
+            std::memset(&amQQTL, 0, sizeof(amQQTL));
+
+            amQQTL.type = triggerType;
+
+            const CallDoneFlag doneFlag;
+            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [doneFlag, onOK, onError, runnerSeqID, this](const ActorMsgPack &rmpk)
+            {
+                switch(rmpk.type()){
+                    case AM_OK:
+                        {
+                            onOK(rmpk.deserialize<std::vector<uint64_t>>());
+                            if(doneFlag){
+                                m_luaRunner->resume(runnerSeqID);
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            onError();
+                            if(doneFlag){
+                                m_luaRunner->resume(runnerSeqID);
+                            }
+                            break;
+                        }
+                }
+            });
         });
 
         luaModule->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t runnerSeqID)

@@ -105,6 +105,9 @@ enum ActorMsgPackType: int
     AM_BUY,
     AM_BUYCOST,
     AM_BUYERROR,
+    AM_MODIFYQUESTTRIGGERTYPE,
+    AM_QUERYQUESTTRIGGERLIST,
+    AM_RUNQUESTTRIGGER,
     AM_END,
 };
 
@@ -637,4 +640,15 @@ struct AMBuy
 struct AMBuyError
 {
     int error;
+};
+
+struct AMModifyQuestTriggerType
+{
+    int  type;
+    bool enable;
+};
+
+struct AMQueryQuestTriggerList
+{
+    int type;
 };

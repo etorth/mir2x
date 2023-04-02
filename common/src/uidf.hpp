@@ -75,6 +75,7 @@ namespace uidf
 {
     bool isGM(uint64_t);
     bool isPlayer(uint64_t);
+    bool isQuest(uint64_t);
     bool isNPChar(uint64_t);
     bool isReceiver(uint64_t);
 

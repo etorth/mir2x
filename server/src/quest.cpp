@@ -16,6 +16,44 @@ void Quest::onActivate()
             return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
         });
 
+        luaModule->bindFunction("_RSVD_NAME_modifyQuestTriggerType", [this](int triggerType, bool enable, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+        {
+            fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
+            fflassert(triggerType <  SYS_ON_END  , triggerType);
+
+            AMModifyQuestTriggerType amMQTT;
+            std::memset(&amMQTT, 0, sizeof(amMQTT));
+
+            amMQTT.type = triggerType;
+            amMQTT.enable = enable;
+
+            const CallDoneFlag doneFlag;
+            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [doneFlag, onOK, onError, runnerSeqID, this](const ActorMsgPack &rmpk)
+            {
+                // expected an reply
+                // this makes sure when modifyQuestTriggerType() returns, the trigger has already been enabled/disabled
+
+                switch(rmpk.type()){
+                    case AM_OK:
+                        {
+                            onOK(true);
+                            if(doneFlag){
+                                m_luaRunner->resume(runnerSeqID);
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            onError();
+                            if(doneFlag){
+                                m_luaRunner->resume(runnerSeqID);
+                            }
+                            return;
+                        }
+                }
+            });
+        });
+
         luaModule->bindFunction("_RSVD_NAME_loadMapCoop", [this](std::string mapName, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
         {
             fflassert(str_haschar(mapName));
@@ -75,6 +113,11 @@ void Quest::operateAM(const ActorMsgPack &mpk)
         case AM_METRONOME:
             {
                 on_AM_METRONOME(mpk);
+                break;
+            }
+        case AM_RUNQUESTTRIGGER:
+            {
+                on_AM_RUNQUESTTRIGGER(mpk);
                 break;
             }
         default:

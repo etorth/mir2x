@@ -26,5 +26,6 @@ class Quest final: public ServerObject
         void operateAM(const ActorMsgPack &) override;
 
     protected:
-        void on_AM_METRONOME(const ActorMsgPack &);
+        void on_AM_METRONOME      (const ActorMsgPack &);
+        void on_AM_RUNQUESTTRIGGER(const ActorMsgPack &);
 };

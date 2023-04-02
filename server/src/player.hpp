@@ -405,49 +405,49 @@ class Player final: public BattleObject
             };
         }
 
-    protected:
-        template<typename... Args> void runScriptEventTrigger(int eventType, Args && ... args)
-        {
-            fflassert(eventType >= ON_BEGIN, eventType);
-            fflassert(eventType <  ON_END  , eventType);
-
-            if(const auto p = m_scriptEventTriggerList.find(eventType); p != m_scriptEventTriggerList.end()){
-                for(auto q = p->second.begin(); q != p->second.end();){
-                    if(const auto pfr = (*q)(std::forward<Args>(args)...); m_luaRunner->pfrCheck(pfr)){
-                        const auto done = [&pfr]() -> bool
-                        {
-                            if(pfr.return_count() == 0){
-                                return false;
-                            }
-
-                            // if multiple results returned
-                            // we only check the first one, ignore all rest as lua does
-
-                            if(const auto obj = (sol::object)(*(pfr.cbegin())); obj.is<bool>()){
-                                return obj.as<bool>();
-                            }
-                            else if(obj == sol::nil){
-                                return false;
-                            }
-                            else{
-                                throw fflerror("trigger returns invalid type(s): count = %d, [0]: %s", to_d(pfr.return_count()), to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
-                            }
-                        }();
-
-                        if(done){
-                            std::swap(*q, *(p->second.rbegin()));
-                            p->second.pop_back();
-                        }
-                        else{
-                            ++q;
-                        }
-                    }
-                    else{
-                        throw fflerror("event trigger error: event = %d", to_d(eventType));
-                    }
-                }
-            }
-        }
+    // protected:
+    //     template<typename... Args> void runScriptEventTrigger(int triggerType, Args && ... args)
+    //     {
+    //         fflassert(triggerType >= ON_BEGIN, triggerType);
+    //         fflassert(triggerType <  ON_END  , triggerType);
+    //
+    //         if(const auto p = m_scriptEventTriggerList.find(triggerType); p != m_scriptEventTriggerList.end()){
+    //             for(auto q = p->second.begin(); q != p->second.end();){
+    //                 if(const auto pfr = (*q)(std::forward<Args>(args)...); m_luaRunner->pfrCheck(pfr)){
+    //                     const auto done = [&pfr]() -> bool
+    //                     {
+    //                         if(pfr.return_count() == 0){
+    //                             return false;
+    //                         }
+    //
+    //                         // if multiple results returned
+    //                         // we only check the first one, ignore all rest as lua does
+    //
+    //                         if(const auto obj = (sol::object)(*(pfr.cbegin())); obj.is<bool>()){
+    //                             return obj.as<bool>();
+    //                         }
+    //                         else if(obj == sol::nil){
+    //                             return false;
+    //                         }
+    //                         else{
+    //                             throw fflerror("trigger returns invalid type(s): count = %d, [0]: %s", to_d(pfr.return_count()), to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
+    //                         }
+    //                     }();
+    //
+    //                     if(done){
+    //                         std::swap(*q, *(p->second.rbegin()));
+    //                         p->second.pop_back();
+    //                     }
+    //                     else{
+    //                         ++q;
+    //                     }
+    //                 }
+    //                 else{
+    //                     throw fflerror("event trigger error: event = %d", to_d(triggerType));
+    //                 }
+    //             }
+    //         }
+    //     }
 
     protected:
         void resumeCORunner(uint64_t);

@@ -13,6 +13,9 @@ class ServiceCore final: public ServerObject
     private:
         std::unordered_map<uint32_t, std::pair<uint32_t, bool>> m_dbidList; // channID -> {dbid, online}
 
+    private:
+        std::unordered_map<int, std::unordered_set<uint64_t>> m_questTriggerList;
+
     public:
         ServiceCore();
         ~ServiceCore() = default;
@@ -32,14 +35,16 @@ class ServiceCore final: public ServerObject
         std::optional<std::pair<uint32_t, bool>> findDBID(uint32_t channID) const;
 
     private:
-        void on_AM_LOGIN(const ActorMsgPack &);
-        void on_AM_METRONOME(const ActorMsgPack &);
-        void on_AM_BADCHANNEL(const ActorMsgPack &);
-        void on_AM_RECVPACKAGE(const ActorMsgPack &);
-        void on_AM_LOADMAP(const ActorMsgPack &);
-        void on_AM_QUERYMAPLIST(const ActorMsgPack &);
-        void on_AM_QUERYCOCOUNT(const ActorMsgPack &);
-        void on_AM_ADDCO(const ActorMsgPack &);
+        void on_AM_LOGIN                 (const ActorMsgPack &);
+        void on_AM_METRONOME             (const ActorMsgPack &);
+        void on_AM_BADCHANNEL            (const ActorMsgPack &);
+        void on_AM_RECVPACKAGE           (const ActorMsgPack &);
+        void on_AM_LOADMAP               (const ActorMsgPack &);
+        void on_AM_QUERYMAPLIST          (const ActorMsgPack &);
+        void on_AM_QUERYCOCOUNT          (const ActorMsgPack &);
+        void on_AM_ADDCO                 (const ActorMsgPack &);
+        void on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &);
+        void on_AM_QUERYQUESTTRIGGERLIST (const ActorMsgPack &);
 
     private:
         void net_CM_LOGIN         (uint32_t, uint8_t, const uint8_t *, size_t);

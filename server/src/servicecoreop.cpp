@@ -219,6 +219,36 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     }
 }
 
+void ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &mpk)
+{
+    const auto amMQTT = mpk.conv<AMModifyQuestTriggerType>();
+
+    fflassert(amMQTT.type >= SYS_ON_BEGIN, amMQTT.type);
+    fflassert(amMQTT.type <  SYS_ON_END  , amMQTT.type);
+
+    if(amMQTT.enable){
+        m_questTriggerList[amMQTT.type].insert(mpk.from());
+    }
+    else{
+        m_questTriggerList[amMQTT.type].erase(mpk.from());
+    }
+}
+
+void ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
+{
+    const auto amQQTL = mpk.conv<AMQueryQuestTriggerList>();
+
+    fflassert(amQQTL.type >= SYS_ON_BEGIN, amQQTL.type);
+    fflassert(amQQTL.type <  SYS_ON_END  , amQQTL.type);
+
+    std::vector<uint64_t> uidList;
+    if(const auto p = m_questTriggerList.find(amQQTL.type); p != m_questTriggerList.end()){
+        uidList.assign(p->second.begin(), p->second.end());
+    }
+
+    m_actorPod->forward(mpk.fromAddr(), {AM_OK, cerealf::serialize(uidList)});
+}
+
 void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();

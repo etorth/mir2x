@@ -223,6 +223,11 @@ bool uidf::isPlayer(uint64_t uid)
     return uidf::getUIDType(uid) == UID_PLY;
 }
 
+bool uidf::isQuest(uint64_t uid)
+{
+    return uidf::getUIDType(uid) == UID_QST;
+}
+
 bool uidf::isNPChar(uint64_t uid)
 {
     return uidf::getUIDType(uid) == UID_NPC;

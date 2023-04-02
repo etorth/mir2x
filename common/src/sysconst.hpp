@@ -10,6 +10,20 @@
     constexpr bool SYS_DEBUG = false;
 #endif
 
+enum SysTriggerType: int
+{
+    SYS_ON_BEGIN = 0,
+
+    SYS_ON_GAINEXP = SYS_ON_BEGIN,
+    SYS_ON_GAINITEM,
+    SYS_ON_GAINGOLD,
+
+    SYS_ON_LEVELUP,
+    SYS_ON_KILL,
+
+    SYS_ON_END,
+};
+
 // In code of mirx, the MAX_Y_COUNT_FOR_OBJ_H is 44, means we need to check 44 * 32 in
 // height when drawing map because of the long object slice. Do some math the screen
 // height is 600, then for object slice it's (44 * 32 - 600) / 32 = 25.25, means there
