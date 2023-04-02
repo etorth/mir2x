@@ -63,7 +63,7 @@ setEventHandler(
                 local killedCount = 0
                 local killedMaxCount = %d
 
-                addTrigger(ON_KILL, function(monsterID)
+                addTrigger(SYS_ON_KILL, function(monsterID)
                     killedCount = killedCount + 1
                     postString('测试任务触发器：【%s】：%%s杀死了%%s，当前共杀死了%%d只怪物。', getName(), getMonsterName(monsterID), killedCount)
 

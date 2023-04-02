@@ -108,6 +108,18 @@ void Player::onActivate()
                         })});
                         break;
                     }
+                case SYS_ON_KILL:
+                    {
+                        fflassert(args.size() == 1, args.size());
+                        fflassert(args[0].is<lua_Integer>());
+
+                        const auto monsterID = to_u32(args[0].as<lua_Integer>());
+                        m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerKill
+                        {
+                            .monsterID = monsterID,
+                        })});
+                        break;
+                    }
                 default:
                     {
                         break;

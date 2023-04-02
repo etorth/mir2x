@@ -75,6 +75,32 @@ function _RSVD_NAME_trigger(triggerType, uid, ...)
             _RSVD_NAME_callFuncCoop('modifyQuestTriggerType', SYS_ON_LEVELUP, false)
         end
     elseif triggerType == SYS_ON_KILL then
+        assertType(args[1], 'integer')
+        assertType(args[2], 'nil')
+
+        if _RSVD_NAME_triggers[SYS_ON_KILL] then
+            local doneKeyList = {}
+            for triggerKey, triggerFunc in pairs(_RSVD_NAME_triggers[SYS_ON_KILL]) do
+                local result = triggerFunc(uid, args[1])
+                if type(result) == 'boolean' then
+                    if result then
+                        table.insert(doneKeyList, triggerKey)
+                    end
+                elseif type(result) ~= 'nil' then
+                    table.insert(doneKeyList, triggerKey)
+                    addLog(LOGTYPE_WARNING, 'Trigger %s returns invalid type %s, trigger removed.', tostring(triggerKey), type(result))
+                end
+            end
+
+            for _, key in ipairs(doneKeyList) do
+                _RSVD_NAME_triggers[SYS_ON_KILL][key] = nil
+            end
+        end
+
+        if tableEmpty(_RSVD_NAME_triggers[SYS_ON_KILL]) then
+            _RSVD_NAME_triggers[SYS_ON_KILL] = nil
+            _RSVD_NAME_callFuncCoop('modifyQuestTriggerType', SYS_ON_KILL, false)
+        end
     else
         fatalPrintf('Invalid trigger type: %d', triggerType)
     end
