@@ -1408,8 +1408,9 @@ void Player::gainExp(int addedExp)
         return;
     }
 
-    const auto oldMaxHP = Player::maxHP(UID(), level());
-    const auto oldMaxMP = Player::maxMP(UID(), level());
+    const auto oldLevel = level();
+    const auto oldMaxHP = Player::maxHP(UID(), oldLevel);
+    const auto oldMaxMP = Player::maxMP(UID(), oldLevel);
 
     m_exp += addedExp;
 
@@ -1419,7 +1420,9 @@ void Player::gainExp(int addedExp)
     dbUpdateExp();
     postExp();
 
-    m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, 1, 2)").c_str());
+    if(level() > oldLevel){
+        m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, %d, %d)", to_d(oldLevel), to_d(level())).c_str());
+    }
 
     if(addedMaxHP > 0 || addedMaxMP > 0){
         updateHealth(0, 0, addedMaxHP, addedMaxMP);
