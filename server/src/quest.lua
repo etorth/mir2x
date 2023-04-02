@@ -37,27 +37,6 @@ function addQuestTrigger(triggerType, callback)
     table.insert(_RSVD_NAME_triggers[triggerType], callback)
 end
 
-local _RSVD_NAME_triggerConfigs = {
-    -- trigger parameter config
-    -- [1] : trigger type in string
-    -- [2] : trigger parameter types
-    -- [3] : trigger parameter extra checking, optional
-
-    [SYS_ON_LEVELUP] = {
-        'SYS_ON_LEVEL',
-        {'integer', 'integer'},
-
-        function(args)
-            assert(args[1] < args[2])
-        end
-    },
-
-    [SYS_ON_KILL] = {
-        'SYS_ON_KILL',
-        {'integer'},
-    }
-}
-
 function _RSVD_NAME_trigger(triggerType, uid, ...)
     assertType(triggerType, 'integer')
     assertType(uid        , 'integer')
@@ -66,7 +45,7 @@ function _RSVD_NAME_trigger(triggerType, uid, ...)
     assert(triggerType <  SYS_ON_END  , triggerType)
 
     local args = {...}
-    local config = _RSVD_NAME_triggerConfigs[triggerType]
+    local config = _RSVD_NAME_triggerConfig(triggerType)
 
     if not config then
         fatalPrintf('Can not process trigger type %d', triggerType)

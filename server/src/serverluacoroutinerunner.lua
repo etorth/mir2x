@@ -108,5 +108,35 @@ function uidExecute(uid, code, ...)
     return _RSVD_NAME_uidExecute(uid, code:format(...))
 end
 
+local _RSVD_NAME_triggerConfigList = {
+    -- trigger parameter config
+    -- [1] : trigger type in string
+    -- [2] : trigger parameter types
+    -- [3] : trigger parameter extra checking, optional
+
+    [SYS_ON_LEVELUP] = {
+        'SYS_ON_LEVEL',
+        {
+            'integer',  -- oldLevel
+            'integer'   -- newLevel
+        },
+
+        function(args)
+            assert(args[1] < args[2])
+        end
+    },
+
+    [SYS_ON_KILL] = {
+        'SYS_ON_KILL',
+        {
+            'integer'   -- monsterID
+        },
+    }
+}
+
+function _RSVD_NAME_triggerConfig(triggerType)
+    return _RSVD_NAME_triggerConfigList[triggerType]
+end
+
 --
 -- )###"
