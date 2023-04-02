@@ -11,18 +11,6 @@
 
 class Player final: public BattleObject
 {
-    private:
-        enum ScriptEvent: int
-        {
-            ON_NONE  = 0,
-            ON_BEGIN = 1,
-
-            ON_KILL = ON_BEGIN,
-            ON_LEVELUP,
-
-            ON_END,
-        };
-
     public:
         friend class ServerObject;
         friend class   CharObject;

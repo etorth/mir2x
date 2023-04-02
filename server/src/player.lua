@@ -29,7 +29,7 @@ end
 
 local _RSVD_NAME_eventTriggers = {}
 function addTrigger(triggerType, callback)
-    assertType(triggerType, 'string')
+    assertType(triggerType, 'integer')
     assertType(callback, 'function')
 
     if not _RSVD_NAME_eventTriggers[triggerType] then

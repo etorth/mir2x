@@ -50,12 +50,6 @@ void Player::onActivate()
     BattleObject::onActivate();
     m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod, [this](ServerLuaModule *luaModule)
     {
-        luaModule->execString("ON_NONE    = %d", ON_NONE   );
-        luaModule->execString("ON_BEGIN   = %d", ON_BEGIN  );
-        luaModule->execString("ON_KILL    = %d", ON_KILL   );
-        luaModule->execString("ON_LEVELUP = %d", ON_LEVELUP);
-        luaModule->execString("ON_END     = %d", ON_END    );
-
         luaModule->bindFunction("getUID", [this]() -> uint64_t
         {
             return UID();
@@ -80,8 +74,8 @@ void Player::onActivate()
         {
             fflassert(uidf::isQuest(questUID), uidf::getUIDString(questUID));
 
-            fflassert(triggerType >= ON_BEGIN, triggerType);
-            fflassert(triggerType <  ON_END  , triggerType);
+            fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
+            fflassert(triggerType <  SYS_ON_END  , triggerType);
 
             switch(triggerType){
                 case SYS_ON_LEVELUP:
@@ -119,14 +113,6 @@ void Player::onActivate()
                         break;
                     }
             }
-        });
-
-        luaModule->bindFunction("addTrigger", [this](int triggerType, sol::function eventHandler)
-        {
-            fflassert(triggerType >= ON_BEGIN, triggerType);
-            fflassert(triggerType <  ON_END  , triggerType);
-
-            m_scriptEventTriggerList[triggerType].push_back(eventHandler);
         });
 
         luaModule->bindFunction("postRawString", [this](std::string msg)
@@ -308,8 +294,8 @@ void Player::onActivate()
 
         luaModule->bindFunction("_RSVD_NAME_queryQuestTriggerListCoop", [this](int triggerType, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
         {
-            fflassert(triggerType >= ON_BEGIN, triggerType);
-            fflassert(triggerType <  ON_END  , triggerType);
+            fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
+            fflassert(triggerType <  SYS_ON_END  , triggerType);
 
             AMQueryQuestTriggerList amQQTL;
             std::memset(&amQQTL, 0, sizeof(amQQTL));
