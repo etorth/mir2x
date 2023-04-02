@@ -53,7 +53,7 @@ function _RSVD_NAME_trigger(triggerType, ...)
         if _RSVD_NAME_triggers[SYS_ON_LEVELUP] then
             local doneKeyList = {}
             for triggerKey, triggerFunc in pairs(_RSVD_NAME_triggers[SYS_ON_LEVELUP]) do
-                local result = triggerFunc(uid, args[1], args[2])
+                local result = triggerFunc(args[1], args[2])
                 if type(result) == 'boolean' then
                     if result then
                         table.insert(doneKeyList, triggerKey)

@@ -101,7 +101,7 @@ void Player::onActivate()
                             }
                         }();
 
-                        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerLevelUp
+                        m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerLevelUp
                         {
                             .oldLevel = oldLevel,
                             .newLevel = newLevel,
@@ -1418,6 +1418,8 @@ void Player::gainExp(int addedExp)
 
     dbUpdateExp();
     postExp();
+
+    m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, 1, 2)").c_str());
 
     if(addedMaxHP > 0 || addedMaxMP > 0){
         updateHealth(0, 0, addedMaxHP, addedMaxMP);
