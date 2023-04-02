@@ -26,9 +26,8 @@ function addQuestTrigger(triggerType, callback)
     assertType(triggerType, 'integer')
     assertType(callback, 'function')
 
-    if triggerType < SYS_ON_BEGIN or event >= SYS_ON_END then
-        fatalPrintf('Invalid trigger type: %d', triggerType)
-    end
+    assert(triggerType >= SYS_ON_BEGIN, triggerType)
+    assert(triggerType <  SYS_ON_END  , triggerType)
 
     if not _RSVD_NAME_questTriggers[triggerType] then
         _RSVD_NAME_questTriggers[triggerType] = {}
@@ -42,9 +41,8 @@ function _RSVD_NAME_callTriggers(triggerType, uid, ...)
     assertType(triggerType, 'integer')
     assertType(uid, 'integer')
 
-    if triggerType < SYS_ON_BEGIN or event >= SYS_ON_END then
-        fatalPrintf('Invalid trigger type: %d', triggerType)
-    end
+    assert(triggerType >= SYS_ON_BEGIN, triggerType)
+    assert(triggerType <  SYS_ON_END  , triggerType)
 
     local args = {...}
     if triggerType == SYS_ON_LEVELUP then
@@ -65,16 +63,16 @@ function _RSVD_NAME_callTriggers(triggerType, uid, ...)
                     table.insert(doneKeyList, triggerKey)
                     addLog(LOGTYPE_WARNING, 'Trigger %s returns invalid type %s, trigger removed.', tostring(triggerKey), type(result))
                 end
-
-                for _, key in ipairs(doneKeyList) do
-                    _RSVD_NAME_callTriggers[SYS_ON_LEVELUP][key] = nil
-                end
-
-                if tableEmpty(_RSVD_NAME_callTriggers[SYS_ON_LEVELUP]) then
-                    _RSVD_NAME_callTriggers[SYS_ON_LEVELUP] = nil
-                    deleteQuestTriggerEvent(SYS_ON_LEVELUP)
-                end
             end
+
+            for _, key in ipairs(doneKeyList) do
+                _RSVD_NAME_callTriggers[SYS_ON_LEVELUP][key] = nil
+            end
+        end
+
+        if tableEmpty(_RSVD_NAME_callTriggers[SYS_ON_LEVELUP]) then
+            _RSVD_NAME_callTriggers[SYS_ON_LEVELUP] = nil
+            _RSVD_NAME_callFuncCoop('modifyQuestTriggerType', SYS_ON_LEVELUP, false)
         end
     elseif triggerType == SYS_ON_KILL then
     else

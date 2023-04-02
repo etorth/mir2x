@@ -126,6 +126,14 @@ LuaModule::LuaModule()
     execString("SYS_EPUID = \'%s\'", SYS_EPUID);
     execString("SYS_EPQST = \'%s\'", SYS_EPQST);
 
+    execString("SYS_ON_BEGIN    = %d", SYS_ON_BEGIN);
+    execString("SYS_ON_GAINEXP  = %d", SYS_ON_GAINEXP);
+    execString("SYS_ON_GAINITEM = %d", SYS_ON_GAINITEM);
+    execString("SYS_ON_GAINGOLD = %d", SYS_ON_GAINGOLD);
+    execString("SYS_ON_LEVELUP  = %d", SYS_ON_LEVELUP);
+    execString("SYS_ON_KILL     = %d", SYS_ON_KILL);
+    execString("SYS_ON_END      = %d", SYS_ON_END);
+
     execString("SYS_CHECKACTIVE = \'%s\'", SYS_CHECKACTIVE);
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 

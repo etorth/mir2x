@@ -16,7 +16,7 @@ void Quest::onActivate()
             return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
         });
 
-        luaModule->bindFunction("_RSVD_NAME_modifyQuestTriggerType", [this](int triggerType, bool enable, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+        luaModule->bindFunction("_RSVD_NAME_modifyQuestTriggerTypeCoop", [this](int triggerType, bool enable, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
         {
             fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
             fflassert(triggerType <  SYS_ON_END  , triggerType);

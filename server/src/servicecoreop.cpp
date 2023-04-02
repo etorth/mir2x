@@ -232,6 +232,10 @@ void ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &mpk)
     else{
         m_questTriggerList[amMQTT.type].erase(mpk.from());
     }
+
+    // give an response
+    // helps quest side to confirm that enable/disable is done
+    m_actorPod->forward(mpk.fromAddr(), AM_OK);
 }
 
 void ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
