@@ -75,7 +75,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         ServerLuaCoroutineRunner(ActorPod *, std::function<void(ServerLuaModule *)> = nullptr);
 
     public:
-        uint64_t spawn(uint64_t, std::optional<std::pair<uint64_t, uint64_t>>, const char *);
+        uint64_t spawn(uint64_t, std::optional<std::pair<uint64_t, uint64_t>>, const std::string &);
 
     public:
         void close(uint64_t key)

@@ -143,10 +143,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
     }
 }
 
-uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::optional<std::pair<uint64_t, uint64_t>> reqAddr, const char *code)
+uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::optional<std::pair<uint64_t, uint64_t>> reqAddr, const std::string &code)
 {
     fflassert(key);
-    fflassert(code);
+    fflassert(str_haschar(code));
 
     if(reqAddr.has_value()){
         fflassert(reqAddr.value().first , reqAddr);
@@ -162,7 +162,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::optional<std::pair<u
         R"###( local _RSVD_NAME_autoTLSTableClear = autoClearTLSTable() )###""\n"
         R"###( do                                                       )###""\n"
         R"###(    %s                                                    )###""\n"
-        R"###( end                                                      )###""\n", to_llu(key), code));
+        R"###( end                                                      )###""\n", to_llu(key), code.c_str()));
 
     return currSeqID;
 }

@@ -1433,7 +1433,7 @@ void Player::gainExp(int addedExp)
     postExp();
 
     if(level() > oldLevel){
-        m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, %d, %d)", to_d(oldLevel), to_d(level())).c_str());
+        m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, %d, %d)", to_d(oldLevel), to_d(level())));
     }
 
     if(addedMaxHP > 0 || addedMaxMP > 0){

@@ -64,7 +64,7 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
 
     const auto  pathOptStr = str_haschar(sdNPCE.path) ? str_printf("\'%s\'", sdNPCE.path         .c_str()) : std::string("nil");
     const auto valueOptStr = sdNPCE.value.has_value() ? str_printf("\'%s\'", sdNPCE.value.value().c_str()) : std::string("nil");
-    m_luaRunner->spawn(mpk.from(), {}, str_printf("return _RSVD_NAME_npc_main(%llu, %s, \'%s\', %s)", to_llu(mpk.from()), pathOptStr.c_str(), sdNPCE.event.c_str(), valueOptStr.c_str()).c_str());
+    m_luaRunner->spawn(mpk.from(), {}, str_printf("return _RSVD_NAME_npc_main(%llu, %s, \'%s\', %s)", to_llu(mpk.from()), pathOptStr.c_str(), sdNPCE.event.c_str(), valueOptStr.c_str()));
 }
 
 void NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
@@ -129,7 +129,7 @@ void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
 void NPChar::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    m_luaRunner->spawn(mpk.from(), mpk.fromAddr(), sdRC.code.c_str());
+    m_luaRunner->spawn(mpk.from(), mpk.fromAddr(), sdRC.code);
 }
 
 void NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)

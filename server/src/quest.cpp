@@ -104,7 +104,7 @@ void Quest::onActivate()
         R"#( do                           )#""\n"
         R"#(     getTLSTable().uid = %llu )#""\n"
         R"#(     return main()            )#""\n"
-        R"#( end                          )#""\n", to_llu(UID())).c_str());
+        R"#( end                          )#""\n", to_llu(UID())));
 }
 
 void Quest::operateAM(const ActorMsgPack &mpk)
