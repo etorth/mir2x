@@ -131,7 +131,28 @@ local _RSVD_NAME_triggerConfigList = {
         {
             'integer'   -- monsterID
         },
-    }
+    },
+
+    [SYS_ON_GAINEXP] = {
+        'SYS_ON_GAINEXP',
+        {
+            'integer'   -- exp
+        },
+    },
+
+    [SYS_ON_GAINGOLD] = {
+        'SYS_ON_GAINGOLD',
+        {
+            'integer'   -- gold
+        },
+    },
+
+    [SYS_ON_GAINITEM] = {
+        'SYS_ON_GAINITEM',
+        {
+            'integer'   -- itemID
+        },
+    },
 }
 
 function _RSVD_NAME_triggerConfig(triggerType)

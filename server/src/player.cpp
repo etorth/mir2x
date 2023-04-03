@@ -120,6 +120,42 @@ void Player::onActivate()
                         })});
                         break;
                     }
+                case SYS_ON_GAINEXP:
+                    {
+                        fflassert(args.size() == 1, args.size());
+                        fflassert(args[0].is<lua_Integer>());
+
+                        const auto addedExp = to_d(args[0].as<lua_Integer>());
+                        m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainExp
+                        {
+                            .addedExp = addedExp,
+                        })});
+                        break;
+                    }
+                case SYS_ON_GAINGOLD:
+                    {
+                        fflassert(args.size() == 1, args.size());
+                        fflassert(args[0].is<lua_Integer>());
+
+                        const auto addedGold = to_d(args[0].as<lua_Integer>());
+                        m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainGold
+                        {
+                            .addedGold = addedGold,
+                        })});
+                        break;
+                    }
+                case SYS_ON_GAINITEM:
+                    {
+                        fflassert(args.size() == 1, args.size());
+                        fflassert(args[0].is<lua_Integer>());
+
+                        const auto itemID = to_u32(args[0].as<lua_Integer>());
+                        m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainItem
+                        {
+                            .itemID = itemID,
+                        })});
+                        break;
+                    }
                 default:
                     {
                         break;
@@ -1425,6 +1461,7 @@ void Player::gainExp(int addedExp)
     const auto oldMaxMP = Player::maxMP(UID(), oldLevel);
 
     m_exp += addedExp;
+    m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINEXP, %d)", addedExp));
 
     const auto addedMaxHP = std::max<int>(Player::maxHP(UID(), level()) - oldMaxHP, 0);
     const auto addedMaxMP = std::max<int>(Player::maxMP(UID(), level()) - oldMaxMP, 0);
@@ -1605,6 +1642,9 @@ const SDItem &Player::addInventoryItem(SDItem item, bool keepSeqID)
 {
     const auto &addedItem = m_sdItemStorage.inventory.add(std::move(item), keepSeqID);
     dbUpdateInventoryItem(addedItem);
+
+    m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(item.itemID)));
+
     postNetMessage(SM_UPDATEITEM, cerealf::serialize(SDUpdateItem
     {
         .item = addedItem,

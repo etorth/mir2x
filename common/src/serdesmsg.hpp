@@ -91,7 +91,41 @@ struct SDQuestTriggerKill
     }
 };
 
-using SDQuestTriggerVar = std::variant<SDQuestTriggerLevelUp, SDQuestTriggerKill>;
+struct SDQuestTriggerGainExp
+{
+    int addedExp = 0;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(addedExp);
+    }
+};
+
+struct SDQuestTriggerGainGold
+{
+    int addedGold = 0;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(addedGold);
+    }
+};
+
+struct SDQuestTriggerGainItem
+{
+    uint32_t itemID = 0;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(itemID);
+    }
+};
+
+using SDQuestTriggerVar = std::variant<
+    SDQuestTriggerLevelUp,
+    SDQuestTriggerKill,
+    SDQuestTriggerGainExp,
+    SDQuestTriggerGainGold,
+    SDQuestTriggerGainItem
+>;
+
 template<typename... Ts> struct SDQuestTriggerDispatcher: Ts...
 {
     using Ts::operator()...;
