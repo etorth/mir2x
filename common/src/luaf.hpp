@@ -12,8 +12,8 @@
 #include "cerealf.hpp"
 #include "fflerror.hpp"
 
-// c++ internal types <----> blob <----> lua types as sol::object
-//    lua_Integer        std::string       sol::object
+// c++ internal types <----> luaVar <----> lua types as sol::object
+//    lua_Integer         std::variant     sol::object
 //    bool                                 sol::as_table_t<...>
 //    double
 //    std::string
