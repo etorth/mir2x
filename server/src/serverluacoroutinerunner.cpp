@@ -111,8 +111,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
                 else if(event == SYS_EXECDONE){
                     const auto sdLCR = cerealf::deserialize<SDRemoteCallResult>(value);
                     if(sdLCR.error.empty()){
-                        for(const auto &s: sdLCR.serVarList){
-                            eventStack.push_back(luaf::buildLuaObj(sv, s));
+                        for(const auto &v: cerealf::deserialize<std::vector<luaf::luaVar>>(sdLCR.serVarList)){
+                            eventStack.push_back(luaf::buildLuaObj(sv, v));
                         }
                     }
                     else{
@@ -153,10 +153,10 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
 
     return spawn(key, code, [key, reqAddr, this](const sol::protected_function_result &pfr)
     {
-        const auto fnOnThreadDone = [reqAddr, this](std::vector<std::string> error, std::vector<std::string> serVarList)
+        const auto fnOnThreadDone = [reqAddr, this](std::vector<std::string> error, std::string serVarList)
         {
             if(!error.empty()){
-                fflassert(serVarList.empty(), error, serVarList);
+                fflassert(serVarList.empty(), error, serVarList.size());
             }
 
             m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
@@ -198,7 +198,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
             //
             // light cases, no yield in script
             // directly return the result with save the runner
-            fnOnThreadDone(std::move(error), luaf::pfrBuildBlobList(pfr));
+            fnOnThreadDone(std::move(error), cerealf::serialize(luaf::pfrBuildLuaVarList(pfr), false));
         }
         else{
             if(error.empty()){
@@ -255,7 +255,7 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
         std::vector<std::string> error;
         if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
             if(pfr.return_count() > 0){
-                g_monoServer->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildVarList(pfr))));
+                g_monoServer->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
             }
         }
         else{

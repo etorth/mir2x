@@ -183,7 +183,7 @@ void NPChar::onActivate()
             }
 
             auto query = g_dbPod->createQuery(u8R"###(replace into %s(fld_key, fld_value) values('%s', ?))###", npcDBName.c_str(), key.c_str());
-            query.bind(1, luaf::buildBlob(obj));
+            query.bind(1, cerealf::serialize(luaf::buildLuaVar(obj)));
             query.exec();
         });
 
@@ -201,7 +201,7 @@ void NPChar::onActivate()
             if(!queryStatement.executeStep()){
                 return sol::make_object(sv, sol::nil);
             }
-            return luaf::buildLuaObj(sv, queryStatement.getColumn(0).getString());
+            return luaf::buildLuaObj(sv, cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0).getString()));
         });
 
         luaModule->bindFunction("uidDBSetKey", [this](uint64_t uid, std::string key, sol::object obj)

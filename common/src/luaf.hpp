@@ -77,6 +77,12 @@ namespace luaf
             {}
 
         public:
+            operator luaVar () const
+            {
+                return *m_ptr;
+            }
+
+        public:
             bool operator == (const luaVarWrapper &parm) const
             {
                 if(m_ptr && parm.m_ptr){
@@ -131,137 +137,39 @@ namespace luaf
         }, *wrapper.m_ptr);
     }
 
-    template<typename T> constexpr char getBlobType()
+    template<typename T> sol::object buildLuaObj(sol::state_view &sv, T t)
     {
-        if constexpr(std::is_same_v<T, sol::nil_t>){
-            return 'n';
-        }
-        else if constexpr(std::is_same_v<T, lua_Integer>){
-            return 'i';
-        }
-        if constexpr(std::is_same_v<T, bool>){
-            return 'b';
-        }
-        else if constexpr(std::is_same_v<T, double>){
-            return 'f';
-        }
-        else if constexpr(std::is_same_v<T, std::string>){
-            return 's';
-        }
-        else if constexpr(std::is_same_v<T, sol::table>){
-            return 't';
-        }
-        else{
-            throw fflerror("unsupported type");
-        }
+        return sol::object(sv, sol::in_place_type<std::remove_cvref_t<decltype(t)>>, std::move(t));
     }
 
-    template<typename T> std::string buildBlob(const T &t)
+    inline sol::object buildLuaObj(sol::state_view &sv, luaNil)
     {
-        auto s = cerealf::serialize<T>(t);
-        s.push_back(getBlobType<T>());
-        return s;
+        return sol::make_object(sv, sol::nil);
     }
 
-    template<> inline std::string buildBlob<sol::nil_t>(const sol::nil_t &)
+    inline sol::object buildLuaObj(sol::state_view &sv, luaVar v)
     {
-        return std::string("nn");
-    }
+        return std::visit(luaVarDispatcher
+        {
+            [&sv](const luaTable &t) -> sol::object
+            {
+                sol::table tbl(sv.lua_state(), sol::create);
+                for(const auto &[k, v]: t){
+                    tbl[buildLuaObj(sv, k)] = buildLuaObj(sv, v);
+                }
+                return tbl; // sol::table can be used as sol::object
+            },
 
-    template<> inline std::string buildBlob<sol::object>(const sol::object &obj)
-    {
-        if(obj == sol::nil){
-            return buildBlob<sol::nil_t>(sol::nil);
-        }
-        else if(obj.is<lua_Integer>()){
-            return buildBlob<lua_Integer>(obj.as<lua_Integer>());
-        }
-        else if(obj.is<bool>()){
-            return buildBlob<bool>(obj.as<bool>());
-        }
-        else if(obj.is<double>()){
-            return buildBlob<double>(obj.as<double>());
-        }
-        else if(obj.is<std::string>()){
-            return buildBlob<std::string>(obj.as<std::string>());
-        }
-        else if(obj.is<sol::table>()){
-            std::unordered_map<std::string, std::string> convtbl;
-            for(const auto &[k, v]: obj.as<sol::table>()){
-                convtbl[buildBlob<sol::object>(k)] = buildBlob<sol::object>(v);
+            [&sv](const auto &v) -> sol::object
+            {
+                return buildLuaObj(sv, v);
             }
-
-            auto s = cerealf::serialize(convtbl);
-            s.push_back(getBlobType<sol::table>());
-            return s;
-        }
-        else{
-            throw fflerror("unsupported type: %s", to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
-        }
+        }, v);
     }
 
-    // pfr is not a table nor any lua type object
-    // it's a list contains several type object to support multiple-return syntax
-    inline std::vector<std::string> pfrBuildBlobList(const sol::protected_function_result &pfr)
+    template<typename T> luaVar buildLuaVar(T t)
     {
-        fflassert(pfr.valid());
-        if(pfr.return_count() == 0){
-            return {};
-        }
-
-        std::vector<std::string> result;
-        result.reserve(pfr.return_count());
-
-        for(const auto &r: pfr){
-            result.push_back(buildBlob<sol::object>(r));
-        }
-        return result;
-    }
-
-    inline sol::object buildLuaObj(sol::state_view &sv, std::string s)
-    {
-        // string created by cerealf::serialize()
-        // [0, n-2] data
-        // [   n-1] compression
-        // [   n  ] type information
-        fflassert(s.length() >= 2, s, s.length());
-        const char ch = s.back();
-        s.pop_back();
-
-        switch(ch){
-            case getBlobType<sol::nil_t>():
-                {
-                    return sol::make_object(sv, sol::nil);
-                }
-            case getBlobType<lua_Integer>():
-                {
-                    return sol::object(sv, sol::in_place_type<lua_Integer>, cerealf::deserialize<lua_Integer>(std::move(s)));
-                }
-            case getBlobType<bool>():
-                {
-                    return sol::object(sv, sol::in_place_type<bool>, cerealf::deserialize<bool>(std::move(s)));
-                }
-            case getBlobType<double>():
-                {
-                    return sol::object(sv, sol::in_place_type<double>, cerealf::deserialize<double>(std::move(s)));
-                }
-            case getBlobType<std::string>():
-                {
-                    return sol::object(sv, sol::in_place_type<std::string>, cerealf::deserialize<std::string>(std::move(s)));
-                }
-            case getBlobType<sol::table>():
-                {
-                    sol::table tbl(sv.lua_state(), sol::create);
-                    for(auto &[kstr, vstr]: cerealf::deserialize<std::unordered_map<std::string, std::string>>(s)){
-                        tbl[buildLuaObj(sv, std::move(kstr))] = buildLuaObj(sv, std::move(vstr));
-                    }
-                    return tbl; // sol::table can be used as sol::object
-                }
-            default:
-                {
-                    throw fflerror("unsupported blob type: %c", ch);
-                }
-        }
+        return luaVar(std::move(t));
     }
 
     inline luaVar buildLuaVar(const sol::object &obj)
@@ -293,7 +201,7 @@ namespace luaf
         }
     }
 
-    inline std::vector<luaVar> pfrBuildVarList(const sol::protected_function_result &pfr)
+    inline std::vector<luaVar> pfrBuildLuaVarList(const sol::protected_function_result &pfr)
     {
         fflassert(pfr.valid());
         if(pfr.return_count() == 0){

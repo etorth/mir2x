@@ -912,7 +912,7 @@ struct SDRemoteCall
 struct SDRemoteCallResult
 {
     std::vector<std::string> error {}; // a multiline error
-    std::vector<std::string> serVarList {}; // multiple *serialized* results, lua supports return-multiple-results syntax
+    std::string serVarList {}; // serialization of multiple results, lua supports return-multiple-results syntax
 
     template<typename Archive> void serialize(Archive & ar)
     {
