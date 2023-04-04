@@ -6,6 +6,7 @@
 #include <cereal/types/set.hpp>
 #include <cereal/types/tuple.hpp>
 #include <cereal/types/array.hpp>
+#include <cereal/types/memory.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
 #include <cereal/types/variant.hpp>

@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <ostream>
 #include <cstddef>
@@ -49,15 +50,16 @@ namespace luaf
     using luaTable = std::unordered_map<luaVarWrapper, luaVarWrapper, _luaVarWrapperHash>;
 
     using luaVar = std::variant<
-        lua_Integer,
+        luaNil, // default initialized as nil
+        luaTable,
 
         bool,
         double,
-        std::string,
+        lua_Integer,
+        std::string>;
 
-        luaNil,
-        luaTable
-    >;
+    // luaVarWrapper should behave exactly same as luaVar
+    // but it helps to get rid of type dependency, C++ can not recursively define types
 
     class luaVarWrapper
     {
@@ -65,31 +67,83 @@ namespace luaf
             friend struct _luaVarWrapperHash;
 
         private:
-            std::shared_ptr<luaVar> m_ptr;
+            std::unique_ptr<luaVar> m_ptr; // underlaying variable never share
 
         public:
             template<typename T> luaVarWrapper(T t)
-                : m_ptr(std::make_shared<luaVar>(std::move(t)))
+                : m_ptr(std::make_unique<luaVar>(std::move(t)))
             {}
 
-            luaVarWrapper()
-                : luaVarWrapper(luaNil())
+        public:
+            luaVarWrapper() = default;  // default initialized as luaNil
+
+        public:
+            luaVarWrapper(luaNil)       // no need to allocate memory if holding luaNil
+                : luaVarWrapper()
             {}
+
+        public:
+            luaVarWrapper(luaVar v): m_ptr(std::visit(luaVarDispatcher
+            {
+                [](luaNil) -> std::unique_ptr<luaVar>
+                {
+                    return nullptr;
+                },
+
+                [](auto &&arg) -> std::unique_ptr<luaVar>
+                {
+                    return std::make_unique<luaVar>(std::move(arg));
+                },
+            }, std::move(v))){}
+
+        public:
+            luaVarWrapper(const luaVarWrapper &w)
+                : m_ptr(w.m_ptr ? std::make_unique<luaVar>(*w.m_ptr) : nullptr)
+                {}
+
+            luaVarWrapper(luaVarWrapper &&w)
+                : m_ptr(std::move(w.m_ptr))
+            {}
+
+            luaVarWrapper &operator = (luaVarWrapper w)
+            {
+                std::swap(m_ptr, w.m_ptr);
+                return *this;
+            }
 
         public:
             operator luaVar () const
             {
-                return *m_ptr;
+                if(m_ptr){
+                    return *m_ptr;
+                }
+                else{
+                    return luaNil{};
+                }
             }
+
+        public:
+            /* */ luaVar &get()       { return *m_ptr; }
+            const luaVar &get() const { return *m_ptr; }
 
         public:
             bool operator == (const luaVarWrapper &parm) const
             {
-                if(m_ptr && parm.m_ptr){
-                    return *m_ptr == *parm.m_ptr;
+                if(m_ptr){
+                    return get() == parm.get();
                 }
                 else{
-                    return !m_ptr && !parm.m_ptr;
+                    return parm.m_ptr == nullptr; // luaNil
+                }
+            }
+
+            bool operator == (const luaVar &parm) const
+            {
+                if(m_ptr){
+                    return get() == parm;
+                }
+                else{
+                    return parm.index() == 0; // luaNil
                 }
             }
 
@@ -102,7 +156,7 @@ namespace luaf
         public:
             template<typename Archive> void serialize(Archive & ar)
             {
-                ar(*m_ptr);
+                ar(m_ptr);
             }
     };
 
