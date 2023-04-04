@@ -244,8 +244,8 @@ template<typename... Ts> std::string str_any(const std::variant<Ts...> &v)
 template<typename T> std::string str_any(const std::set<T> &);
 template<typename T> std::string str_any(const std::unordered_set<T> &);
 
-template<typename K, typename V> std::string str_any(const std::map<K, V> &);
-template<typename K, typename V> std::string str_any(const std::unordered_map<K, V> &);
+template<typename... Ts> std::string str_any(const std::          map<Ts...> &);
+template<typename... Ts> std::string str_any(const std::unordered_map<Ts...> &);
 
 template<typename T> std::string str_any(const std::list<T> &);
 template<typename T> std::string str_any(const std::deque<T> &);

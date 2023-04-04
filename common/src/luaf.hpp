@@ -304,8 +304,3 @@ inline std::ostream & operator << (std::ostream &os, const luaf::luaNil &)
 {
     return os << "(luanil)";
 }
-
-inline std::ostream & operator << (std::ostream &os, const luaf::luaVar &var)
-{
-    return os << std::visit([](const auto &v) -> std::string { return str_any(v); }, var);
-}
