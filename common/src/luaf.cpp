@@ -124,7 +124,7 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
     else if(obj.is<sol::table>()){
         luaf::luaTable table;
         for(const auto &[k, v]: obj.as<sol::table>()){
-            table.insert_or_assign(luaf::buildLuaVar(k), luaf::buildLuaVar(v));
+            table.insert_or_assign(luaf::buildLuaVar(sol::object(k)), luaf::buildLuaVar(sol::object(v)));
         }
         return table;
     }
@@ -144,7 +144,7 @@ std::vector<luaf::luaVar> luaf::pfrBuildLuaVarList(const sol::protected_function
     result.reserve(pfr.return_count());
 
     for(const auto &r: pfr){
-        result.push_back(luaf::buildLuaVar(r));
+        result.push_back(luaf::buildLuaVar(sol::object(r)));
     }
     return result;
 }
