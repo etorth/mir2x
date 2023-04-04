@@ -72,6 +72,10 @@ namespace luaf
                 : m_ptr(std::make_shared<luaVar>(std::move(t)))
             {}
 
+            luaVarWrapper()
+                : luaVarWrapper(luaNil())
+            {}
+
         public:
             bool operator == (const luaVarWrapper &parm) const
             {
