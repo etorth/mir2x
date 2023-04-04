@@ -40,14 +40,24 @@ namespace luaf
             ar(placeholder);
         }
     };
+}
 
+namespace luaf
+{
     class luaVarWrapper;
-    struct _luaVarWrapperHash
+    namespace _details
     {
-        inline size_t operator() (const luaVarWrapper &) const noexcept;
-    };
+        struct _luaVarWrapperHash
+        {
+            size_t operator() (const luaVarWrapper &) const noexcept;
+        };
+    }
+}
 
-    using luaTable = std::unordered_map<luaVarWrapper, luaVarWrapper, _luaVarWrapperHash>;
+namespace luaf
+{
+    class luaVarWrapper;
+    using luaTable = std::unordered_map<luaVarWrapper, luaVarWrapper, _details::_luaVarWrapperHash>; // TODO using incomplete type, is it UB ?
 
     using luaVar = std::variant<
         luaNil, // default initialized as nil
@@ -60,22 +70,26 @@ namespace luaf
 
     // luaVarWrapper should behave exactly same as luaVar
     // but it helps to get rid of type dependency, C++ can not recursively define types
+}
 
+namespace luaf
+{
     class luaVarWrapper
     {
         private:
-            friend struct _luaVarWrapperHash;
+            friend struct _details::_luaVarWrapperHash;
 
         private:
-            std::unique_ptr<luaVar> m_ptr; // underlaying variable never share
+            std::unique_ptr<luaVar> m_ptr; // don't share underlaying variable
+
+        public:
+            /**/  luaVarWrapper() = default;  // default initialized as luaNil
+            /**/ ~luaVarWrapper() = default;
 
         public:
             template<typename T> luaVarWrapper(T t)
                 : m_ptr(std::make_unique<luaVar>(std::move(t)))
             {}
-
-        public:
-            luaVarWrapper() = default;  // default initialized as luaNil
 
         public:
             luaVarWrapper(luaNil)       // no need to allocate memory if holding luaNil
@@ -97,25 +111,15 @@ namespace luaf
             }, std::move(v))){}
 
         public:
-            luaVarWrapper(const luaVarWrapper &w)
-                : m_ptr(w.m_ptr ? std::make_unique<luaVar>(*w.m_ptr) : nullptr)
-                {}
-
-            luaVarWrapper(luaVarWrapper &&w)
-                : m_ptr(std::move(w.m_ptr))
-            {}
-
-            luaVarWrapper &operator = (luaVarWrapper w)
-            {
-                std::swap(m_ptr, w.m_ptr);
-                return *this;
-            }
+            luaVarWrapper              (const luaVarWrapper & );
+            luaVarWrapper              (      luaVarWrapper &&);
+            luaVarWrapper & operator = (      luaVarWrapper   );
 
         public:
             operator luaVar () const
             {
                 if(m_ptr){
-                    return *m_ptr;
+                    return *m_ptr; // coping
                 }
                 else{
                     return luaNil{};
@@ -127,25 +131,9 @@ namespace luaf
             const luaVar &get() const { return *m_ptr; }
 
         public:
-            bool operator == (const luaVarWrapper &parm) const
-            {
-                if(m_ptr){
-                    return get() == parm.get();
-                }
-                else{
-                    return parm.m_ptr == nullptr; // luaNil
-                }
-            }
-
-            bool operator == (const luaVar &parm) const
-            {
-                if(m_ptr){
-                    return get() == parm;
-                }
-                else{
-                    return parm.index() == 0; // luaNil
-                }
-            }
+            bool operator == (const luaVarWrapper &) const;
+            bool operator == (const luaVar        &) const;
+            bool operator == (const luaNil        &) const;
 
         public:
             std::string str() const
@@ -159,117 +147,28 @@ namespace luaf
                 ar(m_ptr);
             }
     };
+}
 
-    size_t _luaVarWrapperHash::operator() (const luaVarWrapper &wrapper) const noexcept
-    {
-        return std::visit(luaVarDispatcher
-        {
-            [](const luaNil &) -> size_t
-            {
-                return 291835;
-            },
-
-            [](const luaTable &table) -> size_t
-            {
-                if(table.empty()){
-                    return 0;
-                }
-                else{
-                    size_t h = 0;
-                    for(const auto &[k, v]: table){
-                        h ^= _luaVarWrapperHash{}(k);
-                        h ^= _luaVarWrapperHash{}(v);
-                    }
-                    return h;
-                }
-            },
-
-            [](const auto &t) -> size_t
-            {
-                return std::hash<std::remove_cvref_t<decltype(t)>>{}(t);
-            },
-        }, *wrapper.m_ptr);
-    }
-
+namespace luaf
+{
     template<typename T> sol::object buildLuaObj(sol::state_view &sv, T t)
     {
         return sol::object(sv, sol::in_place_type<std::remove_cvref_t<decltype(t)>>, std::move(t));
     }
 
-    inline sol::object buildLuaObj(sol::state_view &sv, luaNil)
-    {
-        return sol::make_object(sv, sol::nil);
-    }
+    sol::object buildLuaObj(sol::state_view &, luaNil);
+    sol::object buildLuaObj(sol::state_view &, luaVar);
 
-    inline sol::object buildLuaObj(sol::state_view &sv, luaVar v)
-    {
-        return std::visit(luaVarDispatcher
-        {
-            [&sv](const luaTable &t) -> sol::object
-            {
-                sol::table tbl(sv.lua_state(), sol::create);
-                for(const auto &[k, v]: t){
-                    tbl[buildLuaObj(sv, k)] = buildLuaObj(sv, v);
-                }
-                return tbl; // sol::table can be used as sol::object
-            },
-
-            [&sv](const auto &v) -> sol::object
-            {
-                return buildLuaObj(sv, v);
-            }
-        }, v);
-    }
 
     template<typename T> luaVar buildLuaVar(T t)
     {
         return luaVar(std::move(t));
     }
 
-    inline luaVar buildLuaVar(const sol::object &obj)
-    {
-        if(obj == sol::nil){
-            return luaNil();
-        }
-        else if(obj.is<lua_Integer>()){
-            return obj.as<lua_Integer>();
-        }
-        else if(obj.is<bool>()){
-            return obj.as<bool>();
-        }
-        else if(obj.is<double>()){
-            return obj.as<double>();
-        }
-        else if(obj.is<std::string>()){
-            return obj.as<std::string>();
-        }
-        else if(obj.is<sol::table>()){
-            luaTable table;
-            for(const auto &[k, v]: obj.as<sol::table>()){
-                table.insert_or_assign(buildLuaVar(k), buildLuaVar(v));
-            }
-            return table;
-        }
-        else{
-            throw fflerror("unsupported type: %s", to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
-        }
-    }
+    luaVar buildLuaVar(luaVarWrapper);
+    luaVar buildLuaVar(const sol::object &);
 
-    inline std::vector<luaVar> pfrBuildLuaVarList(const sol::protected_function_result &pfr)
-    {
-        fflassert(pfr.valid());
-        if(pfr.return_count() == 0){
-            return {};
-        }
-
-        std::vector<luaVar> result;
-        result.reserve(pfr.return_count());
-
-        for(const auto &r: pfr){
-            result.push_back(buildLuaVar(r));
-        }
-        return result;
-    }
+    std::vector<luaVar> pfrBuildLuaVarList(const sol::protected_function_result &pfr);
 }
 
 inline std::ostream & operator << (std::ostream &os, const luaf::luaVarWrapper &wrapper)
