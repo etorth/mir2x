@@ -60,20 +60,22 @@ namespace luaf
     using luaTable = std::unordered_map<luaVarWrapper, luaVarWrapper, _details::_luaVarWrapperHash>; // TODO using incomplete type, is it UB ?
 
     using luaVar = std::variant<
-        luaNil, // default initialized as nil
+        // default initialized as nil
+        luaNil,
         luaTable,
 
-        bool,
-        double,
+        // try integer then decimal
+        // lua integer is always a number
         lua_Integer,
+        double,
+        bool,
         std::string>;
-
-    // luaVarWrapper should behave exactly same as luaVar
-    // but it helps to get rid of type dependency, C++ can not recursively define types
 }
 
 namespace luaf
 {
+    // luaVarWrapper should behave exactly same as luaVar
+    // but it helps to get rid of type dependency, C++ can not recursively define types
     class luaVarWrapper
     {
         private:
