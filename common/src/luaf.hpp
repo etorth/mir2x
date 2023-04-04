@@ -42,9 +42,10 @@ namespace luaf
     using luaTable = std::unordered_map<luaVarWrapper, luaVarWrapper, _luaVarWrapperHash>;
 
     using luaVar = std::variant<
+        lua_Integer,
+
         bool,
         double,
-        lua_Integer,
         std::string,
 
         luaNil,
