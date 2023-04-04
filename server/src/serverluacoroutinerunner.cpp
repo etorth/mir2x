@@ -254,7 +254,9 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
     else{
         std::vector<std::string> error;
         if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
-            g_monoServer->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildVarList(pfr))));
+            if(pfr.return_count() > 0){
+                g_monoServer->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildVarList(pfr))));
+            }
         }
         else{
             if(error.empty()){
