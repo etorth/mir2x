@@ -11,7 +11,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         struct _CoroutineRunner
         {
             // for this class
-            // the terms: coroutine, runner, thread means same
+            // the terms coroutine, runner, thread means same
 
             // scenario why adding seqID:
             // 1. received an event which triggers processNPCEvent(event)
@@ -25,9 +25,9 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             const uint64_t key;
             const uint64_t seqID;
 
-            // optional pair <reqUID, reqMsgSeqID>:
-            // where to send the lua result when the coroutine is done, empty means issued by self and drop any result
-            const std::optional<std::pair<uint64_t, uint64_t>> reqAddr;
+            // consume coroutine result
+            // forward pfr to issuer as a special case
+            std::function<void(const sol::protected_function_result &)> onDone;
 
             // mutable area for event polling
             // UID_A send code to UID_B, and creates this coroutine in UID_B
@@ -40,20 +40,15 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             sol::thread runner;
             sol::coroutine callback;
 
-            _CoroutineRunner(ServerLuaModule &luaModule, uint64_t argKey, uint64_t argSeqID, std::optional<std::pair<uint64_t, uint64_t>> argReqAddr)
+            _CoroutineRunner(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone)
                 : key(argKey)
                 , seqID(argSeqID)
-                , reqAddr(std::move(argReqAddr))
-                , runner(sol::thread::create(luaModule.getLuaState().lua_state()))
+                , onDone(std::move(argOnDone))
+                , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
                 fflassert(key);
                 fflassert(seqID);
-
-                if(reqAddr.has_value()){
-                    fflassert(reqAddr.value().first , reqAddr);
-                    fflassert(reqAddr.value().second, reqAddr);
-                }
             }
 
             void clearEvent()
@@ -75,7 +70,8 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         ServerLuaCoroutineRunner(ActorPod *, std::function<void(ServerLuaModule *)> = nullptr);
 
     public:
-        uint64_t spawn(uint64_t, std::optional<std::pair<uint64_t, uint64_t>>, const std::string &);
+        uint64_t spawn(uint64_t, std::pair<uint64_t, uint64_t>, const std::string &);
+        uint64_t spawn(uint64_t,                                const std::string &, std::function<void(const sol::protected_function_result &)> = nullptr);
 
     public:
         void close(uint64_t key)
@@ -105,4 +101,24 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
     private:
         void resumeRunner(_CoroutineRunner *, std::optional<std::string> = {});
+
+    private:
+        static std::string concatCode(const std::string &code)
+        {
+            // exception thrown eventually feeds to FLTK
+            // FLTK error message window doesn't accept multiline string
+
+            std::string line;
+            std::string codeStr;
+            std::stringstream ss(code);
+
+            while(std::getline(ss, line, '\n')){
+                if(!codeStr.empty()){
+                    codeStr += "\\n";
+                }
+                codeStr += line;
+            }
+
+            return codeStr;
+        }
 };

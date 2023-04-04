@@ -100,7 +100,7 @@ void Quest::onActivate()
         luaModule->pfrCheck(luaModule->execFile(m_scriptName.c_str()));
     });
 
-    m_luaRunner->spawn(m_mainScriptThreadKey, {}, str_printf(
+    m_luaRunner->spawn(m_mainScriptThreadKey, str_printf(
         R"#( do                           )#""\n"
         R"#(     getTLSTable().uid = %llu )#""\n"
         R"#(     return main()            )#""\n"

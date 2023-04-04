@@ -1461,7 +1461,7 @@ void Player::gainExp(int addedExp)
     const auto oldMaxMP = Player::maxMP(UID(), oldLevel);
 
     m_exp += addedExp;
-    m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINEXP, %d)", addedExp));
+    m_luaRunner->spawn(m_runnerSeqID++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINEXP, %d)", addedExp));
 
     const auto addedMaxHP = std::max<int>(Player::maxHP(UID(), level()) - oldMaxHP, 0);
     const auto addedMaxMP = std::max<int>(Player::maxMP(UID(), level()) - oldMaxMP, 0);
@@ -1470,7 +1470,7 @@ void Player::gainExp(int addedExp)
     postExp();
 
     if(level() > oldLevel){
-        m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, %d, %d)", to_d(oldLevel), to_d(level())));
+        m_luaRunner->spawn(m_runnerSeqID++, str_printf("_RSVD_NAME_trigger(SYS_ON_LEVELUP, %d, %d)", to_d(oldLevel), to_d(level())));
     }
 
     if(addedMaxHP > 0 || addedMaxMP > 0){
@@ -1643,7 +1643,7 @@ const SDItem &Player::addInventoryItem(SDItem item, bool keepSeqID)
     const auto &addedItem = m_sdItemStorage.inventory.add(std::move(item), keepSeqID);
     dbUpdateInventoryItem(addedItem);
 
-    m_luaRunner->spawn(m_runnerSeqID++, {}, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(item.itemID)));
+    m_luaRunner->spawn(m_runnerSeqID++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(item.itemID)));
 
     postNetMessage(SM_UPDATEITEM, cerealf::serialize(SDUpdateItem
     {

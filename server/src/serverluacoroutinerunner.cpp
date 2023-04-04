@@ -19,7 +19,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
     bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t threadKey, uint64_t uid, std::string code)
     {
         if(!m_runnerList.contains(threadKey)){
-            throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(threadKey), to_llu(uid), to_cstr(code));
+            throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(threadKey), to_llu(uid), to_cstr(concatCode(code)));
         }
 
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
@@ -143,79 +143,31 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
     }
 }
 
-uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::optional<std::pair<uint64_t, uint64_t>> reqAddr, const std::string &code)
+uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint64_t> reqAddr, const std::string &code)
 {
     fflassert(key);
     fflassert(str_haschar(code));
 
-    if(reqAddr.has_value()){
-        fflassert(reqAddr.value().first , reqAddr);
-        fflassert(reqAddr.value().second, reqAddr);
-    }
+    fflassert(reqAddr.first , reqAddr);
+    fflassert(reqAddr.second, reqAddr);
 
-    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, std::move(reqAddr)));
-    const auto currSeqID = p->second->seqID;
-
-    resumeRunner(p->second.get(), str_printf(
-        R"###( getTLSTable().threadKey = %llu                           )###""\n"
-        R"###( getTLSTable().startTime = getNanoTstamp()                )###""\n"
-        R"###( local _RSVD_NAME_autoTLSTableClear = autoClearTLSTable() )###""\n"
-        R"###( do                                                       )###""\n"
-        R"###(    %s                                                    )###""\n"
-        R"###( end                                                      )###""\n", to_llu(key), code.c_str()));
-
-    return currSeqID;
-}
-
-void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_CoroutineRunner *runnerPtr, std::optional<std::string> codeOpt)
-{
-    // resume current runnerPtr
-    // this function can invalidate runnerPtr if it's done
-
-    std::vector<std::string> error;
-    const auto fnDrainError = [&error](const std::string &s)
+    return spawn(key, code, [key, reqAddr, this](const sol::protected_function_result &pfr)
     {
-        error.push_back(s);
-    };
+        const auto fnOnThreadDone = [reqAddr, this](std::vector<std::string> error, std::vector<std::string> serVarList)
+        {
+            if(!error.empty()){
+                fflassert(serVarList.empty(), error, serVarList);
+            }
 
-    fflassert(runnerPtr->callback);
-    const auto fnOnThreadDone = [runnerPtr, this](std::vector<std::string> error, std::vector<std::string> serVarList)
-    {
-        if(!error.empty()){
-            fflassert(serVarList.empty(), error, serVarList);
-        }
-
-        if(runnerPtr->reqAddr.has_value()){
-            m_actorPod->forward(runnerPtr->reqAddr.value().first, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+            m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
                 .error = std::move(error),
                 .serVarList = std::move(serVarList),
-            })},
+            })});
+        };
 
-            runnerPtr->reqAddr.value().second);
-        }
-        else{
-            // script issued by self
-            // like ServerMap use it to run its peroiodic update script
-            for(const auto &line: error){
-                g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
-            }
-
-            // drop result
-            // no good way to dump result for now, should I warning that result is dropped?
-        }
-
-        close(runnerPtr->key);
-    };
-
-    if(const auto pfr = codeOpt.has_value() ? runnerPtr->callback(codeOpt.value()) : runnerPtr->callback(); pfrCheck(pfr, fnDrainError)){
-        // trigger the coroutine only *one* time
-        // in principle the script runs in synchronized model, so here we can trigger aribitary time
-        if(runnerPtr->callback){
-            // still not done yet, wait for next trigger
-            // script is ill-formed if there is no scheduled trigger for next
-        }
-        else{
+        std::vector<std::string> error;
+        if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
             // initial run succeeds and coroutine finished
             // simple cases like: uidExecute(uid, [[ return getName() ]])
             //
@@ -248,11 +200,73 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
             // directly return the result with save the runner
             fnOnThreadDone(std::move(error), luaf::pfrBuildBlobList(pfr));
         }
+        else{
+            if(error.empty()){
+                error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(key)));
+            }
+            fnOnThreadDone(std::move(error), {});
+        }
+    });
+}
+
+uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, std::function<void(const sol::protected_function_result &)> onDone)
+{
+    fflassert(key);
+    fflassert(str_haschar(code));
+
+    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, std::move(onDone)));
+    const auto currSeqID = p->second->seqID;
+
+    resumeRunner(p->second.get(), str_printf(
+        R"###( getTLSTable().threadKey = %llu                           )###""\n"
+        R"###( getTLSTable().startTime = getNanoTstamp()                )###""\n"
+        R"###( local _RSVD_NAME_autoTLSTableClear = autoClearTLSTable() )###""\n"
+        R"###( do                                                       )###""\n"
+        R"###(    %s                                                    )###""\n"
+        R"###( end                                                      )###""\n", to_llu(key), code.c_str()));
+
+    return currSeqID; // don't use p resumeRunner() can invalidate p
+}
+
+void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_CoroutineRunner *runnerPtr, std::optional<std::string> codeOpt)
+{
+    // resume current runnerPtr
+    // this function can invalidate runnerPtr if it's done
+
+    fflassert(runnerPtr);
+    fflassert(runnerPtr->callback);
+
+    const auto pfr = codeOpt.has_value() ? runnerPtr->callback(codeOpt.value()) : runnerPtr->callback();
+
+    if(runnerPtr->callback){
+        return;
+    }
+
+    // backup key and comletion handler
+    // runnerPtr->onDone can invalidate runnerPtr, althrough this is no encouraged
+
+    const auto threadKey = runnerPtr->key;
+    const auto onDoneFunc = std::move(runnerPtr->onDone);
+
+    if(onDoneFunc){
+        onDoneFunc(pfr);
     }
     else{
-        if(error.empty()){
-            error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(runnerPtr->key)));
+        std::vector<std::string> error;
+        if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+            // drop result
+            // no good way to dump result for now, should I warning that result is dropped?
         }
-        fnOnThreadDone(std::move(error), {});
+        else{
+            if(error.empty()){
+                error.push_back(str_printf("unknown error for runner: key = %llu", to_llu(runnerPtr->key)));
+            }
+
+            for(const auto &line: error){
+                g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+            }
+        }
     }
+
+    close(threadKey);
 }
