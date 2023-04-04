@@ -236,11 +236,6 @@ inline std::string str_any(const std::monostate &)
     return "(monostate)";
 }
 
-template<typename... Ts> std::string str_any(const std::variant<Ts...> &v)
-{
-    return std::visit([](const auto &x){ return str_any(x); }, v);
-}
-
 template<typename T> std::string str_any(const std::set<T> &);
 template<typename T> std::string str_any(const std::unordered_set<T> &);
 
@@ -309,6 +304,11 @@ template<typename T> std::string str_any(const std::optional<T> &opt)
     else{
         return "(nullopt)";
     }
+}
+
+template<typename... Ts> std::string str_any(const std::variant<Ts...> &v)
+{
+    return std::visit([](const auto &x)-> std::string { return str_any(x); }, v);
 }
 
 // copy from boost
