@@ -33,9 +33,16 @@ namespace luaf
 
     struct luaNil
     {
+        char placeholder = 0;
+
         bool operator == (const luaNil &) const
         {
             return true;
+        }
+
+        template<typename Archive> void serialize(Archive & ar)
+        {
+            ar(placeholder);
         }
     };
 
@@ -80,6 +87,12 @@ namespace luaf
             std::string str() const
             {
                 return std::visit([](const auto &v) -> std::string { return str_any(v); }, *m_ptr);
+            }
+
+        public:
+            template<typename Archive> void serialize(Archive & ar)
+            {
+                ar(*m_ptr);
             }
     };
 
