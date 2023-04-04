@@ -26,12 +26,6 @@ namespace luaf
         using Ts::operator()...;
     };
 
-    class luaVarWrapper;
-    struct _luaVarWrapperHash
-    {
-        inline size_t operator() (const luaVarWrapper &) const noexcept;
-    };
-
     struct luaNil
     {
         char placeholder = 0;
@@ -45,6 +39,12 @@ namespace luaf
         {
             ar(placeholder);
         }
+    };
+
+    class luaVarWrapper;
+    struct _luaVarWrapperHash
+    {
+        inline size_t operator() (const luaVarWrapper &) const noexcept;
     };
 
     using luaTable = std::unordered_map<luaVarWrapper, luaVarWrapper, _luaVarWrapperHash>;
