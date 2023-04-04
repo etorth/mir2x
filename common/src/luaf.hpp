@@ -81,10 +81,7 @@ namespace luaf
         public:
             std::string str() const
             {
-                return std::visit([](const auto &v) -> std::string
-                {
-                    return str_any(v);
-                }, *m_ptr);
+                return std::visit([](const auto &v) -> std::string { return str_any(v); }, *m_ptr);
             }
     };
 
