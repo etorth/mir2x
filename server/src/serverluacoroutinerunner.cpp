@@ -254,6 +254,8 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
     else{
         std::vector<std::string> error;
         if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+            const auto varList = luaf::pfrBuildVarList(pfr);
+            g_monoServer->addLog(LOGTYPE_WARNING, "%zu", varList);
             // drop result
             // no good way to dump result for now, should I warning that result is dropped?
         }

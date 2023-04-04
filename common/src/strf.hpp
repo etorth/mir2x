@@ -83,6 +83,7 @@
 #include <concepts>
 #include <sstream>
 #include <optional>
+#include <variant>
 #include <iomanip>
 #include <algorithm>
 #include <filesystem>
@@ -230,6 +231,16 @@ inline std::string str_any(bool b)
     return b ? "true" : "false";
 }
 
+inline std::string str_any(const std::monostate &)
+{
+    return "(monostate)";
+}
+
+template<typename... Ts> std::string str_any(const std::variant<Ts...> &v)
+{
+    return std::visit([](const auto &x){ return str_any(x); }, v);
+}
+
 template<typename T> std::string str_any(const std::set<T> &);
 template<typename T> std::string str_any(const std::unordered_set<T> &);
 
@@ -262,8 +273,8 @@ template<typename T> std::string str_any(const T &t)
 template<typename T> std::string str_any(const std::set<T> &s)           _str_any_container_helper(s)
 template<typename T> std::string str_any(const std::unordered_set<T> &s) _str_any_container_helper(s)
 
-template<typename K, typename V> std::string str_any(const std::map<K, V> &m)           _str_any_container_helper(m)
-template<typename K, typename V> std::string str_any(const std::unordered_map<K, V> &m) _str_any_container_helper(m)
+template<typename... Ts> std::string str_any(const std::          map<Ts...> &m) _str_any_container_helper(m)
+template<typename... Ts> std::string str_any(const std::unordered_map<Ts...> &m) _str_any_container_helper(m)
 
 template<typename T> std::string str_any(const std::list<T> &l)   _str_any_container_helper(l)
 template<typename T> std::string str_any(const std::deque<T> &q)  _str_any_container_helper(q)

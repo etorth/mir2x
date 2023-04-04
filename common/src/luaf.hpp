@@ -1,10 +1,12 @@
 #pragma once
 #include <string>
+#include <ostream>
 #include <cstddef>
 #include <variant>
 #include <unordered_map>
 #include <type_traits>
 #include <sol/sol.hpp>
+#include "strf.hpp"
 #include "totype.hpp"
 #include "cerealf.hpp"
 #include "fflerror.hpp"
@@ -18,9 +20,103 @@
 
 namespace luaf
 {
-    namespace _details
+    template<typename... Ts> struct luaVarDispatcher: Ts...
     {
-        using conv_table = std::unordered_map<std::string, std::string>;
+        using Ts::operator()...;
+    };
+
+    class luaVarWrapper;
+    struct _luaVarWrapperHash
+    {
+        inline size_t operator() (const luaVarWrapper &) const noexcept;
+    };
+
+    struct luaNil
+    {
+        bool operator == (const luaNil &) const
+        {
+            return true;
+        }
+    };
+
+    using luaTable = std::unordered_map<luaVarWrapper, luaVarWrapper, _luaVarWrapperHash>;
+
+    using luaVar = std::variant<
+        bool,
+        double,
+        lua_Integer,
+        std::string,
+
+        luaNil,
+        luaTable
+    >;
+
+    class luaVarWrapper
+    {
+        private:
+            friend struct _luaVarWrapperHash;
+
+        private:
+            std::shared_ptr<luaVar> m_ptr;
+
+        public:
+            luaVarWrapper() = default;
+
+        public:
+            template<typename T> luaVarWrapper(T t)
+                : m_ptr(std::make_shared<luaVar>(std::move(t)))
+            {}
+
+        public:
+            bool operator == (const luaVarWrapper &parm) const
+            {
+                if(m_ptr && parm.m_ptr){
+                    return *m_ptr == *parm.m_ptr;
+                }
+                else{
+                    return !m_ptr && !parm.m_ptr;
+                }
+            }
+
+        public:
+            std::string str() const
+            {
+                return std::visit([](const auto &v) -> std::string
+                {
+                    return str_any(v);
+                }, *m_ptr);
+            }
+    };
+
+    size_t _luaVarWrapperHash::operator() (const luaVarWrapper &wrapper) const noexcept
+    {
+        return std::visit(luaVarDispatcher
+        {
+            [](const luaNil &) -> size_t
+            {
+                return 291835;
+            },
+
+            [](const luaTable &table) -> size_t
+            {
+                if(table.empty()){
+                    return 0;
+                }
+                else{
+                    size_t h = 0;
+                    for(const auto &[k, v]: table){
+                        h ^= _luaVarWrapperHash{}(k);
+                        h ^= _luaVarWrapperHash{}(v);
+                    }
+                    return h;
+                }
+            },
+
+            [](const auto &t) -> size_t
+            {
+                return std::hash<std::remove_cvref_t<decltype(t)>>{}(t);
+            },
+        }, *wrapper.m_ptr);
     }
 
     template<typename T> constexpr char getBlobType()
@@ -78,7 +174,7 @@ namespace luaf
             return buildBlob<std::string>(obj.as<std::string>());
         }
         else if(obj.is<sol::table>()){
-            _details::conv_table convtbl;
+            std::unordered_map<std::string, std::string> convtbl;
             for(const auto &[k, v]: obj.as<sol::table>()){
                 convtbl[buildBlob<sol::object>(k)] = buildBlob<sol::object>(v);
             }
@@ -144,7 +240,7 @@ namespace luaf
             case getBlobType<sol::table>():
                 {
                     sol::table tbl(sv.lua_state(), sol::create);
-                    for(auto &[kstr, vstr]: cerealf::deserialize<_details::conv_table>(s)){
+                    for(auto &[kstr, vstr]: cerealf::deserialize<std::unordered_map<std::string, std::string>>(s)){
                         tbl[buildLuaObj(sv, std::move(kstr))] = buildLuaObj(sv, std::move(vstr));
                     }
                     return tbl; // sol::table can be used as sol::object
@@ -155,4 +251,64 @@ namespace luaf
                 }
         }
     }
+
+    inline luaVar buildLuaVar(const sol::object &obj)
+    {
+        if(obj == sol::nil){
+            return luaNil();
+        }
+        else if(obj.is<lua_Integer>()){
+            return obj.as<lua_Integer>();
+        }
+        else if(obj.is<bool>()){
+            return obj.as<bool>();
+        }
+        else if(obj.is<double>()){
+            return obj.as<double>();
+        }
+        else if(obj.is<std::string>()){
+            return obj.as<std::string>();
+        }
+        else if(obj.is<sol::table>()){
+            luaTable table;
+            for(const auto &[k, v]: obj.as<sol::table>()){
+                table[buildLuaVar(k)] = buildLuaVar(v);
+            }
+            return table;
+        }
+        else{
+            throw fflerror("unsupported type: %s", to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
+        }
+    }
+
+    inline std::vector<luaVar> pfrBuildVarList(const sol::protected_function_result &pfr)
+    {
+        fflassert(pfr.valid());
+        if(pfr.return_count() == 0){
+            return {};
+        }
+
+        std::vector<luaVar> result;
+        result.reserve(pfr.return_count());
+
+        for(const auto &r: pfr){
+            result.push_back(buildLuaVar(r));
+        }
+        return result;
+    }
+}
+
+inline std::ostream & operator << (std::ostream &os, const luaf::luaVarWrapper &wrapper)
+{
+    return os << wrapper.str();
+}
+
+inline std::ostream & operator << (std::ostream &os, const luaf::luaNil &)
+{
+    return os << "(luanil)";
+}
+
+inline std::ostream & operator << (std::ostream &os, const luaf::luaVar &var)
+{
+    return os << std::visit([](const auto &v) -> std::string { return str_any(v); }, var);
 }
