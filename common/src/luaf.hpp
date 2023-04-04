@@ -60,9 +60,6 @@ namespace luaf
             std::shared_ptr<luaVar> m_ptr;
 
         public:
-            luaVarWrapper() = default;
-
-        public:
             template<typename T> luaVarWrapper(T t)
                 : m_ptr(std::make_shared<luaVar>(std::move(t)))
             {}
@@ -269,7 +266,7 @@ namespace luaf
         else if(obj.is<sol::table>()){
             luaTable table;
             for(const auto &[k, v]: obj.as<sol::table>()){
-                table[buildLuaVar(k)] = buildLuaVar(v);
+                table.insert_or_assign(buildLuaVar(k), buildLuaVar(v));
             }
             return table;
         }
