@@ -9,7 +9,7 @@ size_t luaf::_details::_luaVarWrapperHash::operator () (const luaVarWrapper &wra
             return 2918357;
         },
 
-        [](const luaTable &table) -> size_t
+        [](const luaTable &table) -> size_t // requires order-invariant
         {
             size_t h = 3679231;
             for(const auto &[k, v]: table){
