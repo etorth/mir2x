@@ -11,17 +11,12 @@ size_t luaf::_details::_luaVarWrapperHash::operator () (const luaVarWrapper &wra
 
         [](const luaTable &table) -> size_t
         {
-            if(table.empty()){
-                return 3679231;
+            size_t h = 3679231;
+            for(const auto &[k, v]: table){
+                h ^= _details::_luaVarWrapperHash{}(k);
+                h ^= _details::_luaVarWrapperHash{}(v);
             }
-            else{
-                size_t h = 0;
-                for(const auto &[k, v]: table){
-                    h ^= _details::_luaVarWrapperHash{}(k);
-                    h ^= _details::_luaVarWrapperHash{}(v);
-                }
-                return h;
-            }
+            return h;
         },
 
         [](const auto &t) -> size_t
