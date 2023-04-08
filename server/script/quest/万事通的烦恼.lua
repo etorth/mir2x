@@ -2,6 +2,10 @@ function main()
     uidExecute(getNPCharUID('道馆_1', '万事通_1'),
     [[
         return setQuestHandler('%s', {
+            ['%s'] = function(uid)
+                return uidExecute(uid, [=[ return getLevel() ]=]) >= 7
+            end,
+
             ['%s'] = function(uid, value)
                 uidPostXML(uid, {'%s', '%s'}, [=[
                     <layout>
@@ -11,5 +15,5 @@ function main()
                 ]=])
             end
         })
-    ]], getQuestName(), SYS_NPCINIT, SYS_EPQST, getQuestName(), SYS_NPCDONE)
+    ]], getQuestName(), SYS_CHECKACTIVE, SYS_NPCINIT, SYS_EPQST, getQuestName(), SYS_NPCDONE)
 end
