@@ -246,12 +246,17 @@ function hasEventHandler(event)
     return true
 end
 
-function setQuestHandler(questName, questHandler)
-    _RSVD_NAME_EPQST_eventHandlers[questName] = questHandler
+function setQuestHandler(quest, questHandler)
+    assertType(quest, 'string')
+    assertType(questHandler, 'table')
+    assertType(questHandler[SYS_NPCINIT], 'function')
+    assertType(questHandler[SYS_CHECKACTIVE], 'function', 'nil')
+    _RSVD_NAME_EPQST_eventHandlers[quest] = questHandler
 end
 
-function deleteQuestHandler(questName)
-    _RSVD_NAME_EPQST_eventHandlers[questName] = nil
+function deleteQuestHandler(quest)
+    assertType(quest, 'string')
+    _RSVD_NAME_EPQST_eventHandlers[quest] = nil
 end
 
 function hasQuestHandler(quest, event)
@@ -373,7 +378,29 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             end
         end
 
-        if not tableEmpty(qstEntryList) or not tableEmpty(uidEntryList) then
+        local entryCount = #qstEntryList + #uidEntryList
+        if hasEventHandler(SYS_NPCINIT) then
+            entryCount = entryCount + 1
+        end
+
+        if entryCount == 0 then
+            fnPostInvalidChat()
+
+        elseif entryCount == 1 then
+            -- only one entry
+            -- no need to create menu, just redirect to corresponding entry function
+            if not tableEmpty(qstEntryList) then
+                _RSVD_NAME_EPQST_eventHandlers[qstEntryList[1]][SYS_NPCINIT](from, value)
+            elseif not tableEmpty(uidEntryList) then
+                _RSVD_NAME_EPUID_eventHandlers[from][uidEntryList[1]][SYS_NPCINIT](from, value)
+            else
+                _RSVD_NAME_EPDEF_eventHandlers[SYS_NPCINIT](from, value)
+            end
+
+        else
+            -- more than one entry
+            -- create menu for user to choose
+            -- this menu comes from neither default script nor quest script
             local xmlStrs = {}
             table.insert(xmlStrs, string.format([[
                 <layout>
@@ -406,12 +433,6 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             ]], SYS_NPCDONE))
 
             uidPostXML(from, table.concat(xmlStrs))
-
-        elseif hasEventHandler(SYS_NPCINIT) then
-            _RSVD_NAME_EPDEF_eventHandlers[event](from, value)
-
-        else
-            fnPostInvalidChat()
         end
 
     elseif event ~= SYS_NPCDONE then
