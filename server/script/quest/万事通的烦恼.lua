@@ -10,6 +10,9 @@ function main()
                 uidPostXML(uid, {'%s', '%s'}, [=[
                     <layout>
                         <par>我万拍子近日愁眉苦脸，都是被那城门外的钉耙猫害的啊！少侠你已经%%d级了，愿意帮助老夫吗？</par>
+                        <par><event id="npc_goto_1">同意</event></par>
+                        <par><event id="npc_goto_2">拒绝</event></par>
+                        <par></par>
                         <par><event id="%s">退出</event></par>
                     </layout>
                 ]=], uidExecute(uid, [=[ return getLevel() ]=]))
