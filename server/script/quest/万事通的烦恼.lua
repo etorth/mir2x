@@ -9,10 +9,10 @@ function main()
             ['%s'] = function(uid, value)
                 uidPostXML(uid, {'%s', '%s'}, [=[
                     <layout>
-                        <par>这是一个任务系统的测试，这个脚本可以覆盖默认对话脚本。</par>
+                        <par>我万拍子近日愁眉苦脸，都是被那城门外的钉耙猫害的啊！少侠你已经%%d级了，愿意帮助老夫吗？</par>
                         <par><event id="%s">退出</event></par>
                     </layout>
-                ]=])
+                ]=], uidExecute(uid, [=[ return getLevel() ]=]))
             end
         })
     ]], getQuestName(), SYS_CHECKACTIVE, SYS_NPCINIT, SYS_EPQST, getQuestName(), SYS_NPCDONE)
