@@ -1246,222 +1246,283 @@ void ServerMap::onActivate()
 {
     ServerObject::onActivate();
     loadNPChar();
-    m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod, [this](ServerLuaModule *luaModule)
+    m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod);
+
+    m_luaRunner->bindFunction("getMapID", [this]() -> int
     {
-        luaModule->bindFunction("getMapID", [this]() -> int
-        {
-            return to_d(this->ID());
-        });
+        return to_d(this->ID());
+    });
 
-        luaModule->bindFunction("getMapName", [this]() -> std::string
-        {
-            return std::string(to_cstr(DBCOM_MAPRECORD(this->ID()).name));
-        });
+    m_luaRunner->bindFunction("getMapName", [this]() -> std::string
+    {
+        return std::string(to_cstr(DBCOM_MAPRECORD(this->ID()).name));
+    });
 
-        luaModule->bindFunction("getMapSize", [this]()
-        {
-            return sol::as_returns(std::vector<int>{this->W(), this->H()});
-        });
+    m_luaRunner->bindFunction("getMapSize", [this]()
+    {
+        return sol::as_returns(std::vector<int>{this->W(), this->H()});
+    });
 
-        luaModule->bindFunction("getCanThroughGridCount", [this, gridCount = to_d(-1)]() mutable -> int
-        {
-            if(gridCount >= 0){
-                return gridCount;
-            }
-
-            gridCount = 0;
-            for(int x = 0; x < this->W(); ++x){
-                for(int y = 0; y < this->H(); ++y){
-                    if(this->groundValid(x, y)){
-                        gridCount++;
-                    }
-                }
-            }
+    m_luaRunner->bindFunction("getCanThroughGridCount", [this, gridCount = to_d(-1)]() mutable -> int
+    {
+        if(gridCount >= 0){
             return gridCount;
-        });
+        }
 
-        luaModule->bindFunction("getRandLoc", [this]()
-        {
-            std::array<int, 2> loc;
-            while(true){
-                const int x = std::rand() % this->W();
-                const int y = std::rand() % this->H();
-
+        gridCount = 0;
+        for(int x = 0; x < this->W(); ++x){
+            for(int y = 0; y < this->H(); ++y){
                 if(this->groundValid(x, y)){
-                    loc[0] = x;
-                    loc[1] = y;
-                    break;
+                    gridCount++;
                 }
             }
-            return sol::as_returns(loc);
-        });
+        }
+        return gridCount;
+    });
 
-        luaModule->bindFunction("countGLoc", [fullCount = -1, this](sol::variadic_args args) mutable
+    m_luaRunner->bindFunction("getRandLoc", [this]()
+    {
+        std::array<int, 2> loc;
+        while(true){
+            const int x = std::rand() % this->W();
+            const int y = std::rand() % this->H();
+
+            if(this->groundValid(x, y)){
+                loc[0] = x;
+                loc[1] = y;
+                break;
+            }
+        }
+        return sol::as_returns(loc);
+    });
+
+    m_luaRunner->bindFunction("countGLoc", [fullCount = -1, this](sol::variadic_args args) mutable
+    {
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, this]() -> std::tuple<bool, int, int, int, int>
         {
-            const std::vector<sol::object> argList(args.begin(), args.end());
-            const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, this]() -> std::tuple<bool, int, int, int, int>
-            {
-                switch(argList.size()){
-                    case 0:
-                        {
-                            return
-                            {
-                                true,
-                                0,
-                                0,
-                                this->W(),
-                                this->H(),
-                            };
-                        }
-                    case 4:
-                        {
-                            return
-                            {
-                                false,
-                                argList[0].as<int>(),
-                                argList[1].as<int>(),
-                                argList[2].as<int>(),
-                                argList[3].as<int>(),
-                            };
-                        }
-                    default:
-                        {
-                            throw fflerror("invalid argument count: %zu", argList.size());
-                        }
-                }
-            }();
-
-            fflassert(regionW > 0);
-            fflassert(regionH > 0);
-
-            int roiX = regionX;
-            int roiY = regionY;
-            int roiW = regionW;
-            int roiH = regionH;
-
-            if(!mathf::rectangleOverlapRegion<int>(0, 0, this->W(), this->H(), roiX, roiY, roiW, roiH)){
-                throw fflerror("invalid region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(this->ID()).name), regionX, regionY, regionW, regionH);
-            }
-
-            int count = 0;
-            for(int yi = roiY; yi < roiY + roiH; ++yi){
-                for(int xi = roiX; xi < roiX + roiW; ++xi){
-                    if(this->groundValid(xi, yi)){
-                        count++;
-                    }
-                }
-            }
-
-            if(useFullMap){
-                fullCount = count; // cache
-            }
-            return count;
-        });
-
-        luaModule->bindFunction("randGLoc", [this](sol::variadic_args args)
-        {
-            const std::vector<sol::object> argList(args.begin(), args.end());
-            const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, this]() -> std::tuple<bool, int, int, int, int>
-            {
-                switch(argList.size()){
-                    case 0:
-                        {
-                            return
-                            {
-                                true,
-                                0,
-                                0,
-                                this->W(),
-                                this->H(),
-                            };
-                        }
-                    case 4:
-                        {
-                            return
-                            {
-                                false,
-                                argList[0].as<int>(),
-                                argList[1].as<int>(),
-                                argList[2].as<int>(),
-                                argList[3].as<int>(),
-                            };
-                        }
-                    default:
-                        {
-                            throw fflerror("invalid argument count: %zu", argList.size());
-                        }
-                }
-            }();
-
-            // randGLoc doesn't check CO's on map, only check groundValid()
-            // given region should have been checked by countGLoc to make sure it has valid grid
-
-            // give a maximal loop count
-            // script may give bad region without checking
-
-            constexpr int maxTryCount = 1024;
-            for(int i = 0; i < maxTryCount; ++i){
-                if(const auto locopt = this->getRCValidGrid(false, false, 1, regionX, regionY, regionW, regionH); locopt.has_value()){
-                    return sol::as_returns(std::array<int, 2>
+            switch(argList.size()){
+                case 0:
                     {
-                        std::get<0>(locopt.value()),
-                        std::get<1>(locopt.value()),
-                    });
+                        return
+                        {
+                            true,
+                            0,
+                            0,
+                            this->W(),
+                            this->H(),
+                        };
+                    }
+                case 4:
+                    {
+                        return
+                        {
+                            false,
+                            argList[0].as<int>(),
+                            argList[1].as<int>(),
+                            argList[2].as<int>(),
+                            argList[3].as<int>(),
+                        };
+                    }
+                default:
+                    {
+                        throw fflerror("invalid argument count: %zu", argList.size());
+                    }
+            }
+        }();
+
+        fflassert(regionW > 0);
+        fflassert(regionH > 0);
+
+        int roiX = regionX;
+        int roiY = regionY;
+        int roiW = regionW;
+        int roiH = regionH;
+
+        if(!mathf::rectangleOverlapRegion<int>(0, 0, this->W(), this->H(), roiX, roiY, roiW, roiH)){
+            throw fflerror("invalid region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(this->ID()).name), regionX, regionY, regionW, regionH);
+        }
+
+        int count = 0;
+        for(int yi = roiY; yi < roiY + roiH; ++yi){
+            for(int xi = roiX; xi < roiX + roiW; ++xi){
+                if(this->groundValid(xi, yi)){
+                    count++;
                 }
             }
+        }
 
-            // failed to pick a random location
-            // try brutle force to get a location, shall always succeeds if given region has valid grid(s)
+        if(useFullMap){
+            fullCount = count; // cache
+        }
+        return count;
+    });
 
-            if(const auto locopt = this->getRCValidGrid(false, false, -1, regionX, regionY, regionW, regionH); locopt.has_value()){
+    m_luaRunner->bindFunction("randGLoc", [this](sol::variadic_args args)
+    {
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        const auto [useFullMap, regionX, regionY, regionW, regionH] = [&argList, this]() -> std::tuple<bool, int, int, int, int>
+        {
+            switch(argList.size()){
+                case 0:
+                    {
+                        return
+                        {
+                            true,
+                            0,
+                            0,
+                            this->W(),
+                            this->H(),
+                        };
+                    }
+                case 4:
+                    {
+                        return
+                        {
+                            false,
+                            argList[0].as<int>(),
+                            argList[1].as<int>(),
+                            argList[2].as<int>(),
+                            argList[3].as<int>(),
+                        };
+                    }
+                default:
+                    {
+                        throw fflerror("invalid argument count: %zu", argList.size());
+                    }
+            }
+        }();
+
+        // randGLoc doesn't check CO's on map, only check groundValid()
+        // given region should have been checked by countGLoc to make sure it has valid grid
+
+        // give a maximal loop count
+        // script may give bad region without checking
+
+        constexpr int maxTryCount = 1024;
+        for(int i = 0; i < maxTryCount; ++i){
+            if(const auto locopt = this->getRCValidGrid(false, false, 1, regionX, regionY, regionW, regionH); locopt.has_value()){
                 return sol::as_returns(std::array<int, 2>
                 {
                     std::get<0>(locopt.value()),
                     std::get<1>(locopt.value()),
                 });
             }
+        }
 
-            // give detailed failure message
-            // need it to validate map monster gen coroutine, otherwise this can throw
+        // failed to pick a random location
+        // try brutle force to get a location, shall always succeeds if given region has valid grid(s)
 
-            if(useFullMap){
-                throw fflerror("no valid grid on map: map = %s", to_cstr(DBCOM_MAPRECORD(this->ID()).name));
+        if(const auto locopt = this->getRCValidGrid(false, false, -1, regionX, regionY, regionW, regionH); locopt.has_value()){
+            return sol::as_returns(std::array<int, 2>
+            {
+                std::get<0>(locopt.value()),
+                std::get<1>(locopt.value()),
+            });
+        }
+
+        // give detailed failure message
+        // need it to validate map monster gen coroutine, otherwise this can throw
+
+        if(useFullMap){
+            throw fflerror("no valid grid on map: map = %s", to_cstr(DBCOM_MAPRECORD(this->ID()).name));
+        }
+        else{
+            throw fflerror("no valid grid in region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(this->ID()).name), regionX, regionY, regionW, regionH);
+        }
+    });
+
+    m_luaRunner->bindFunction("getNPCharUID", [this](std::string npcName) -> uint64_t
+    {
+        for(const auto [uid, npcPtr]: m_npcList){
+            if(npcPtr->getNPCName() == npcName){
+                return uid;
             }
-            else{
-                throw fflerror("no valid grid in region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(this->ID()).name), regionX, regionY, regionW, regionH);
-            }
-        });
+        }
+        return 0;
+    });
 
-        luaModule->bindFunction("getNPCharUID", [this](std::string npcName) -> uint64_t
-        {
-            for(const auto [uid, npcPtr]: m_npcList){
-                if(npcPtr->getNPCName() == npcName){
-                    return uid;
+    m_luaRunner->bindFunction("getMonsterCount", [this](sol::variadic_args args) -> int
+    {
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        switch(argList.size()){
+            case 0:
+                {
+                    return this->getMonsterCount(0);
                 }
-            }
-            return 0;
-        });
+            case 1:
+                {
+                    if(argList[0].is<int>()){
+                        if(const int monID = argList[0].as<int>(); monID >= 0){
+                            return this->getMonsterCount(monID);
+                        }
+                    }
 
-        luaModule->bindFunction("getMonsterCount", [this](sol::variadic_args args) -> int
+                    else if(argList[0].is<std::string>()){
+                        if(const int monID = DBCOM_MONSTERID(to_u8cstr(argList[0].as<std::string>().c_str())); monID >= 0){
+                            return this->getMonsterCount(monID);
+                        }
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+        return -1;
+    });
+
+    m_luaRunner->bindFunction("addMonster", [this](sol::object monInfo, sol::variadic_args args) -> uint64_t
+    {
+        const auto fnGetMonsterUID = [](const Monster *monPtr) -> uint64_t
         {
+            return monPtr ? monPtr->UID() : 0;
+        };
+
+        const uint32_t monID = [&monInfo]() -> uint32_t
+        {
+            if(monInfo.is<int>()){
+                return monInfo.as<int>();
+            }
+
+            if(monInfo.is<std::string>()){
+                return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
+            }
+
+            return 0;
+        }();
+
+        if(monID){
             const std::vector<sol::object> argList(args.begin(), args.end());
             switch(argList.size()){
                 case 0:
                     {
-                        return this->getMonsterCount(0);
+                        return fnGetMonsterUID(this->addMonster(monID, 0, -1, -1, false));
                     }
-                case 1:
+                case 2:
                     {
-                        if(argList[0].is<int>()){
-                            if(const int monID = argList[0].as<int>(); monID >= 0){
-                                return this->getMonsterCount(monID);
-                            }
-                        }
+                        if(true
+                                && argList[0].is<int>()
+                                && argList[1].is<int>()){
 
-                        else if(argList[0].is<std::string>()){
-                            if(const int monID = DBCOM_MONSTERID(to_u8cstr(argList[0].as<std::string>().c_str())); monID >= 0){
-                                return this->getMonsterCount(monID);
-                            }
+                            const auto nX = argList[0].as<int>();
+                            const auto nY = argList[1].as<int>();
+                            return fnGetMonsterUID(this->addMonster(monID, 0, nX, nY, false));
+                        }
+                        break;
+                    }
+                case 3:
+                    {
+                        if(true
+                                && argList[0].is<int >()
+                                && argList[1].is<int >()
+                                && argList[2].is<bool>()){
+
+                            const auto nX = argList[0].as<int >();
+                            const auto nY = argList[1].as<int >();
+                            const auto bStrictLoc = argList[2].as<bool>();
+                            return fnGetMonsterUID(this->addMonster(monID, 0, nX, nY, bStrictLoc));
                         }
                         break;
                     }
@@ -1470,101 +1531,39 @@ void ServerMap::onActivate()
                         break;
                     }
             }
-            return -1;
-        });
-
-        luaModule->bindFunction("addMonster", [this](sol::object monInfo, sol::variadic_args args) -> uint64_t
-        {
-            const auto fnGetMonsterUID = [](const Monster *monPtr) -> uint64_t
-            {
-                return monPtr ? monPtr->UID() : 0;
-            };
-
-            const uint32_t monID = [&monInfo]() -> uint32_t
-            {
-                if(monInfo.is<int>()){
-                    return monInfo.as<int>();
-                }
-
-                if(monInfo.is<std::string>()){
-                    return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
-                }
-
-                return 0;
-            }();
-
-            if(monID){
-                const std::vector<sol::object> argList(args.begin(), args.end());
-                switch(argList.size()){
-                    case 0:
-                        {
-                            return fnGetMonsterUID(this->addMonster(monID, 0, -1, -1, false));
-                        }
-                    case 2:
-                        {
-                            if(true
-                                    && argList[0].is<int>()
-                                    && argList[1].is<int>()){
-
-                                const auto nX = argList[0].as<int>();
-                                const auto nY = argList[1].as<int>();
-                                return fnGetMonsterUID(this->addMonster(monID, 0, nX, nY, false));
-                            }
-                            break;
-                        }
-                    case 3:
-                        {
-                            if(true
-                                    && argList[0].is<int >()
-                                    && argList[1].is<int >()
-                                    && argList[2].is<bool>()){
-
-                                const auto nX = argList[0].as<int >();
-                                const auto nY = argList[1].as<int >();
-                                const auto bStrictLoc = argList[2].as<bool>();
-                                return fnGetMonsterUID(this->addMonster(monID, 0, nX, nY, bStrictLoc));
-                            }
-                            break;
-                        }
-                    default:
-                        {
-                            break;
-                        }
-                }
-            }
-            return fnGetMonsterUID(nullptr);
-        });
-
-        luaModule->bindFunction("addGuard", [this](std::string type, int x, int y, int direction) -> bool
-        {
-            const uint32_t monID = DBCOM_MONSTERID(to_u8cstr(type));
-            if(!monID){
-                return false;
-            }
-            return this->addGuard(monID, x, y, direction);
-        });
-
-        luaModule->pfrCheck(luaModule->execFile([this]() -> std::string
-        {
-            const auto configScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
-            const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
-
-            const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(this->ID()).name));
-            if(filesys::hasFile(scriptName.c_str())){
-                return scriptName;
-            }
-
-            const auto defaultScriptName = scriptPath + "/default.lua";
-            if(filesys::hasFile(defaultScriptName.c_str())){
-                return defaultScriptName;
-            }
-            throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(this->ID()).name));
-        }().c_str()));
-
-        luaModule->pfrCheck(luaModule->execRawString(BEGIN_LUAINC(char)
-#include "servermap.lua"
-        END_LUAINC()));
+        }
+        return fnGetMonsterUID(nullptr);
     });
+
+    m_luaRunner->bindFunction("addGuard", [this](std::string type, int x, int y, int direction) -> bool
+    {
+        const uint32_t monID = DBCOM_MONSTERID(to_u8cstr(type));
+        if(!monID){
+            return false;
+        }
+        return this->addGuard(monID, x, y, direction);
+    });
+
+    m_luaRunner->pfrCheck(m_luaRunner->execFile([this]() -> std::string
+    {
+        const auto configScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+        const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
+
+        const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(this->ID()).name));
+        if(filesys::hasFile(scriptName.c_str())){
+            return scriptName;
+        }
+
+        const auto defaultScriptName = scriptPath + "/default.lua";
+        if(filesys::hasFile(defaultScriptName.c_str())){
+            return defaultScriptName;
+        }
+        throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(this->ID()).name));
+    }().c_str()));
+
+    m_luaRunner->pfrCheck(m_luaRunner->execRawString(BEGIN_LUAINC(char)
+#include "servermap.lua"
+    END_LUAINC()));
 
     m_luaRunner->spawn(m_mainScriptThreadKey, "return main()");
 }

@@ -9,7 +9,7 @@
 #include "serverluacoroutinerunner.hpp"
 
 extern MonoServer *g_monoServer;
-ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::function<void(ServerLuaModule *)> fnBindExtraFuncs)
+ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     : ServerLuaModule()
     , m_actorPod([podPtr]()
       {
@@ -137,10 +137,6 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr, std::functi
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "serverluacoroutinerunner.lua"
     END_LUAINC()));
-
-    if(fnBindExtraFuncs){
-        fnBindExtraFuncs(this);
-    }
 }
 
 uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint64_t> reqAddr, const std::string &code)
