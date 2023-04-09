@@ -123,7 +123,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         }
 
     public:
-        template<typename R, typename... Args> void bindCoop(const std::string &funcName, std::function<R(Args..., std::function<void()>, std::function<void()>)> func, std::function<void(sol::function)> onOK = nullptr, std::function<void(sol::function)> onError = nullptr)
+        template<typename R, typename... Args> void bindFunctionCoop(const std::string &funcName, std::function<R(Args..., std::function<void()>, std::function<void()>)> func, std::function<void(sol::function)> onOK = nullptr, std::function<void(sol::function)> onError = nullptr)
         {
             fflassert(str_haschar(funcName));
             fflassert(func);
