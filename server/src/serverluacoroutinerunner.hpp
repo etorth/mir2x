@@ -121,4 +121,46 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
             return codeStr;
         }
+
+    public:
+        template<typename R, typename... Args> void bindCoop(const std::string &funcName, std::function<R(Args..., std::function<void()>, std::function<void()>)> func, std::function<void(sol::function)> onOK = nullptr, std::function<void(sol::function)> onError = nullptr)
+        {
+            fflassert(str_haschar(funcName));
+            fflassert(func);
+
+            bindFunction(funcName + "Coop", [func = std::move(func), onOK = std::move(onOK), onError = std::move(onError), this]()
+            {
+                return [func = std::move(func), onOK = std::move(onOK), onError = std::move(onError), this](Args... args, sol::function onLuaOK, sol::function onLuaError, uint64_t runnerSeqID)
+                {
+                    const CallDoneFlag doneFlag;
+                    func(std::forward<Args>(args)..., [doneFlag, onOK = std::move(onOK), onLuaOK = std::move(onLuaOK), runnerSeqID, this]()
+                    {
+                        if(onOK){
+                            onOK(onLuaOK);
+                        }
+                        else{
+                            onLuaOK();
+                        }
+
+                        if(doneFlag){
+                            resume(runnerSeqID);
+                        }
+                    },
+
+                    [doneFlag, onError = std::move(onError), onLuaError = std::move(onLuaError), runnerSeqID, this]()
+                    {
+                        if(onError){
+                            onError(onLuaError);
+                        }
+                        else{
+                            onLuaError();
+                        }
+
+                        if(doneFlag){
+                            resume(runnerSeqID);
+                        }
+                    });
+                };
+            }());
+        }
 };
