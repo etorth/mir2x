@@ -64,7 +64,7 @@ void Quest::onActivate()
         amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
         amLM.activateMap = true;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [mapID = amLM.mapID, onOK, onError, this](const ActorMsgPack &mpk) mutable
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [mapID = amLM.mapID, onOK, onError, this](const ActorMsgPack &mpk)
         {
             switch(mpk.type()){
                 case AM_LOADMAPOK:

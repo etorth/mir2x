@@ -29,7 +29,7 @@ class LuaCoopCallback
         {}
 
     public:
-        template<typename... Args> void operator () (Args && ... args)
+        template<typename... Args> void operator () (Args && ... args) const
         {
             m_callback(std::forward<Args>(args)...);
             if(m_doneFlag){
