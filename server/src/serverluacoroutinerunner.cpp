@@ -9,6 +9,12 @@
 #include "serverluacoroutinerunner.hpp"
 
 extern MonoServer *g_monoServer;
+
+void LuaCoopCallback::resumeRunner(ServerLuaCoroutineRunner *luaRunner, uint64_t runnerSeqID)
+{
+    luaRunner->resume(runnerSeqID);
+}
+
 ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     : ServerLuaModule()
     , m_actorPod([podPtr]()

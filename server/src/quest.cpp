@@ -54,6 +54,34 @@ void Quest::onActivate()
         });
     });
 
+    m_luaRunner->bindFunctionCoop<std::string>("_RSVD_NAME_loadMap", [this](std::string mapName, LuaCoopCallback onOK, LuaCoopCallback onError)
+    {
+        fflassert(str_haschar(mapName));
+
+        AMLoadMap amLM;
+        std::memset(&amLM, 0, sizeof(AMLoadMap));
+
+        amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
+        amLM.activateMap = true;
+
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [mapID = amLM.mapID, onOK, onError, this](const ActorMsgPack &mpk) mutable
+        {
+            switch(mpk.type()){
+                case AM_LOADMAPOK:
+                    {
+                        const auto amLMOK = mpk.conv<AMLoadMapOK>();
+                        onOK(amLMOK.uid);
+                        break;
+                    }
+                default:
+                    {
+                        onError();
+                        break;
+                    }
+            }
+        });
+    });
+
     m_luaRunner->bindFunction("_RSVD_NAME_loadMapCoop", [this](std::string mapName, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
     {
         fflassert(str_haschar(mapName));

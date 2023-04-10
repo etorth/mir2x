@@ -5,6 +5,42 @@
 #include "totype.hpp"
 #include "serverluamodule.hpp"
 
+class ServerLuaCoroutineRunner;
+class LuaCoopCallback
+{
+    private:
+        ServerLuaCoroutineRunner * m_luaRunner;
+
+    private:
+        sol::function m_callback;
+
+    private:
+        uint64_t m_runnerSeqID;
+
+    private:
+        CallDoneFlag m_doneFlag;
+
+    public:
+        LuaCoopCallback(ServerLuaCoroutineRunner *luaRunner, sol::function callback, uint64_t runnerSeqID, CallDoneFlag doneFlag)
+            : m_luaRunner(luaRunner)
+            , m_callback(callback)
+            , m_runnerSeqID(runnerSeqID)
+            , m_doneFlag(doneFlag)
+        {}
+
+    public:
+        template<typename... Args> void operator () (Args && ... args)
+        {
+            m_callback(std::forward<Args>(args)...);
+            if(m_doneFlag){
+                resumeRunner(m_luaRunner, m_runnerSeqID);
+            }
+        }
+
+    private:
+        static void resumeRunner(ServerLuaCoroutineRunner *, uint64_t);
+};
+
 class ActorPod;
 class ServerLuaCoroutineRunner: public ServerLuaModule
 {
@@ -121,5 +157,19 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             }
 
             return codeStr;
+        }
+
+    public:
+        template<typename... Args, std::invocable<Args..., LuaCoopCallback, LuaCoopCallback> Func> void bindFunctionCoop(std::string funcName, Func func)
+        {
+            fflassert(str_haschar(funcName));
+            this->bindFunction(funcName + "Coop", [func, this]()
+            {
+                return [func, this](Args... args, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+                {
+                    const CallDoneFlag doneFlag;
+                    func(args..., LuaCoopCallback(this, onOK, runnerSeqID, doneFlag), LuaCoopCallback(this, onError, runnerSeqID, doneFlag));
+                };
+            }());
         }
 };

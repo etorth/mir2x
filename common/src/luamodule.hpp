@@ -75,13 +75,13 @@ class LuaModule
         }
 
     public:
-        template<typename Callable> void bindFunction(const char *func, Callable && callable)
+        template<typename Callable> void bindFunction(const std::string &func, Callable && callable)
         {
             fflassert(str_haschar(func), func);
             m_luaState.set_function(func, std::forward<Callable>(callable));
         }
 
-        template<typename Callable> void bindYielding(const char *func, Callable && callable)
+        template<typename Callable> void bindYielding(const std::string &func, Callable && callable)
         {
             fflassert(str_haschar(func), func);
             m_luaState[func] = sol::yielding(std::forward<Callable>(callable));
