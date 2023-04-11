@@ -134,7 +134,9 @@ LuaModule::LuaModule()
     execString("SYS_ON_KILL     = %d", SYS_ON_KILL);
     execString("SYS_ON_END      = %d", SYS_ON_END);
 
+    execString("SYS_COOP        = \'%s\'", SYS_COOP);
     execString("SYS_CHECKACTIVE = \'%s\'", SYS_CHECKACTIVE);
+
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 
     bindFunction("addLogString", [this](sol::object logType, sol::object logInfo)

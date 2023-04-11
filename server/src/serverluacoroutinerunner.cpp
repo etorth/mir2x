@@ -10,7 +10,7 @@
 
 extern MonoServer *g_monoServer;
 
-void LuaCoopCallback::resumeRunner(ServerLuaCoroutineRunner *luaRunner, uint64_t runnerSeqID)
+void LuaCoopResumer::resumeRunner(ServerLuaCoroutineRunner *luaRunner, uint64_t runnerSeqID)
 {
     luaRunner->resume(runnerSeqID);
 }

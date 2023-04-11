@@ -106,6 +106,8 @@ constexpr char SYS_EPDEF[] = "_RSVD_NAME_EVENT_PATH_DEF_2965316381";
 constexpr char SYS_EPUID[] = "_RSVD_NAME_EVENT_PATH_UID_3623042653";
 constexpr char SYS_EPQST[] = "_RSVD_NAME_EVENT_PATH_QST_6329204623";
 
+constexpr char SYS_COOP[] = "_RSVD_NAME_COOP_293173013";
+
 constexpr inline size_t SYS_SUMEXP(uint32_t level)
 {
     const size_t a =  100;

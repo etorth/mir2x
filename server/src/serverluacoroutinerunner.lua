@@ -39,8 +39,9 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
         -- this crashes
     end
 
-    local function onError()
+    local function onError(...)
         done = false
+        result = {...}
         -- transparent logic same as onOK
     end
 
@@ -50,7 +51,7 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     table.insert(args, onError)
     table.insert(args, getTLSTable().threadKey)
 
-    _G[string.format('_RSVD_NAME_%sCoop', funcName)](table.unpack(args))
+    _G[string.format('_RSVD_NAME_%s%s', funcName, SYS_COOP)](table.unpack(args))
 
     -- onOK/onError can get ran immedately in _RSVD_NAME_funcCoop
     -- in this situation we shall not yield
@@ -58,6 +59,9 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     if done == nil then
         coroutine.yield()
     end
+
+    -- result can come from either onOK or onError
+    -- caller need to make sure in C side the return differs
 
     if result == nil then
         return nil

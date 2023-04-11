@@ -5,28 +5,78 @@
 #include "totype.hpp"
 #include "serverluamodule.hpp"
 
-class ServerLuaCoroutineRunner;
-class LuaCoopCallback
+class LuaCoopCallDoneFlag final
 {
     private:
-        ServerLuaCoroutineRunner * m_luaRunner;
+        std::shared_ptr<bool> m_flag;
+
+    public:
+        LuaCoopCallDoneFlag()
+            : m_flag(std::make_shared<bool>(false))
+        {}
+
+        LuaCoopCallDoneFlag(const LuaCoopCallDoneFlag &arg)
+            : m_flag(arg.m_flag)
+        {}
+
+    public:
+        ~LuaCoopCallDoneFlag()
+        {
+            *m_flag = true;
+        }
+
+    public:
+        LuaCoopCallDoneFlag(LuaCoopCallDoneFlag &&) = delete;
+
+    public:
+        LuaCoopCallDoneFlag & operator = (const LuaCoopCallDoneFlag & ) = delete;
+        LuaCoopCallDoneFlag & operator = (      LuaCoopCallDoneFlag &&) = delete;
+
+    public:
+        operator bool () const
+        {
+            return *m_flag;
+        }
+};
+
+class ServerLuaCoroutineRunner;
+class LuaCoopResumer
+{
+    private:
+        ServerLuaCoroutineRunner * const m_luaRunner;
 
     private:
         sol::function m_callback;
 
     private:
-        uint64_t m_runnerSeqID;
+        const uint64_t m_runnerSeqID;
 
     private:
-        CallDoneFlag m_doneFlag;
+        const LuaCoopCallDoneFlag m_doneFlag;
 
     public:
-        LuaCoopCallback(ServerLuaCoroutineRunner *luaRunner, sol::function callback, uint64_t runnerSeqID, CallDoneFlag doneFlag)
+        LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, sol::function callback, uint64_t runnerSeqID, const LuaCoopCallDoneFlag &doneFlag)
             : m_luaRunner(luaRunner)
-            , m_callback(callback)
+            , m_callback(std::move(callback))
             , m_runnerSeqID(runnerSeqID)
             , m_doneFlag(doneFlag)
         {}
+
+    public:
+        LuaCoopResumer(const LuaCoopResumer & resumer)
+            : LuaCoopResumer(resumer.m_luaRunner, resumer.m_callback, resumer.m_runnerSeqID, resumer.m_doneFlag)
+        {}
+
+        LuaCoopResumer(LuaCoopResumer && resumer)
+            : LuaCoopResumer(resumer.m_luaRunner, std::move(resumer.m_callback), resumer.m_runnerSeqID, resumer.m_doneFlag /* always copy doneFlag */)
+        {}
+
+    public:
+        ~LuaCoopResumer() = default;
+
+    public:
+        LuaCoopResumer & operator = (const LuaCoopResumer & ) = delete;
+        LuaCoopResumer & operator = (      LuaCoopResumer &&) = delete;
 
     public:
         template<typename... Args> void operator () (Args && ... args) const
@@ -38,7 +88,7 @@ class LuaCoopCallback
         }
 
     private:
-        static void resumeRunner(ServerLuaCoroutineRunner *, uint64_t);
+        static void resumeRunner(ServerLuaCoroutineRunner *, uint64_t); // resolve dependency
 };
 
 class ActorPod;
@@ -160,16 +210,16 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         }
 
     public:
-        template<typename... Args, std::invocable<Args..., LuaCoopCallback, LuaCoopCallback> Func> void bindFunctionCoop(std::string funcName, Func func)
+        template<typename... Args, std::invocable<Args..., LuaCoopResumer, LuaCoopResumer> Func> void bindFunctionCoop(std::string funcName, Func && func)
         {
             fflassert(str_haschar(funcName));
-            this->bindFunction(funcName + "Coop", [func, this]()
+            bindFunction(funcName + SYS_COOP, [this](auto && func)
             {
-                return [func, this](Args... args, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+                return [func = std::function(std::forward<Func>(func)), this](Args... args, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
                 {
-                    const CallDoneFlag doneFlag;
-                    func(args..., LuaCoopCallback(this, onOK, runnerSeqID, doneFlag), LuaCoopCallback(this, onError, runnerSeqID, doneFlag));
+                    const LuaCoopCallDoneFlag doneFlag;
+                    func(std::forward<Args>(args)..., LuaCoopResumer(this, onOK, runnerSeqID, doneFlag), LuaCoopResumer(this, onError, runnerSeqID, doneFlag));
                 };
-            }());
+            }(std::forward<Func>(func)));
         }
 };

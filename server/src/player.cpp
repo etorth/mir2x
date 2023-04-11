@@ -240,7 +240,7 @@ void Player::onActivate()
         }
     });
 
-    m_luaRunner->bindFunction("_RSVD_NAME_spaceMoveCoop", [this](uint32_t argMapID, int argX, int argY, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+    m_luaRunner->bindFunctionCoop<uint32_t, int, int>("_RSVD_NAME_spaceMove", [this](uint32_t argMapID, int argX, int argY, LuaCoopResumer onOK, LuaCoopResumer onError)
     {
         const auto &mr = DBCOM_MAPRECORD(argMapID);
         fflassert(mr, argMapID);
@@ -248,47 +248,31 @@ void Player::onActivate()
         fflassert(argX >= 0, argX);
         fflassert(argY >= 0, argY);
 
-        fflassert(runnerSeqID > 0, runnerSeqID);
-        {
-            const CallDoneFlag doneFlag;
-            if(to_u32(argMapID) == mapID()){
-                requestSpaceMove(argX, argY, false, [doneFlag, onOK, runnerSeqID, this]()
-                {
-                    onOK(mapID(), X(), Y());
-                    if(doneFlag){
-                        m_luaRunner->resume(runnerSeqID);
-                    }
-                },
+        if(to_u32(argMapID) == mapID()){
+            requestSpaceMove(argX, argY, false, [onOK, this]()
+            {
+                onOK(mapID(), X(), Y());
+            },
 
-                [doneFlag, onError, runnerSeqID, this]()
-                {
-                    onError();
-                    if(doneFlag){
-                        m_luaRunner->resume(runnerSeqID);
-                    }
-                });
-            }
-            else{
-                requestMapSwitch(argMapID, argX, argY, false, [doneFlag, onOK, runnerSeqID, this]()
-                {
-                    onOK(mapID(), X(), Y());
-                    if(doneFlag){
-                        m_luaRunner->resume(runnerSeqID);
-                    }
-                },
+            [onError]()
+            {
+                onError();
+            });
+        }
+        else{
+            requestMapSwitch(argMapID, argX, argY, false, [onOK, this]()
+            {
+                onOK(mapID(), X(), Y());
+            },
 
-                [doneFlag, onError, runnerSeqID, this]()
-                {
-                    onError();
-                    if(doneFlag){
-                        m_luaRunner->resume(runnerSeqID);
-                    }
-                });
-            }
+            [onError]()
+            {
+                onError();
+            });
         }
     });
 
-    m_luaRunner->bindFunction("_RSVD_NAME_randomMoveCoop", [this](sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+    m_luaRunner->bindFunctionCoop<>("_RSVD_NAME_randomMove", [this](LuaCoopResumer onOK, LuaCoopResumer onError)
     {
         const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
         {
@@ -303,44 +287,34 @@ void Player::onActivate()
 
         if(newGLoc.has_value()){
             const auto [newX, newY] = newGLoc.value();
+            requestMove(newX, newY, SYS_DEFSPEED, false, false, [oldX = X(), oldY = Y(), onOK, this]()
             {
-                const CallDoneFlag doneFlag;
-                requestMove(newX, newY, SYS_DEFSPEED, false, false, [doneFlag, onOK, runnerSeqID, this]()
+                // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
+                // but here need to sendback the forced move since it's driven by server
+
+                reportAction(UID(), mapID(), ActionMove
                 {
-                    // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
-                    // but here need to sendback the forced move since it's driven by server
-
-                    const auto [oldX, oldY] = pathf::getBackGLoc(X(), Y(), Direction());
-                    reportAction(UID(), mapID(), ActionMove
-                    {
-                        .speed = SYS_DEFSPEED,
-                        .x = oldX,
-                        .y = oldY,
-                        .aimX = X(),
-                        .aimY = Y(),
-                    });
-
-                    onOK(mapID(), X(), Y());
-                    if(doneFlag){
-                        m_luaRunner->resume(runnerSeqID);
-                    }
-                },
-
-                [doneFlag, onError, runnerSeqID, this]()
-                {
-                    onError();
-                    if(doneFlag){
-                        m_luaRunner->resume(runnerSeqID);
-                    }
+                    .speed = SYS_DEFSPEED,
+                    .x = oldX,
+                    .y = oldY,
+                    .aimX = X(),
+                    .aimY = Y(),
                 });
-            }
+
+                onOK(mapID(), X(), Y());
+            },
+
+            [onError]()
+            {
+                onError();
+            });
         }
         else{
             onError();
         }
     });
 
-    m_luaRunner->bindFunction("_RSVD_NAME_queryQuestTriggerListCoop", [this](int triggerType, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+    m_luaRunner->bindFunctionCoop<int>("_RSVD_NAME_queryQuestTriggerList", [this](int triggerType, LuaCoopResumer onOK, LuaCoopResumer onError)
     {
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
         fflassert(triggerType <  SYS_ON_END  , triggerType);
@@ -350,24 +324,17 @@ void Player::onActivate()
 
         amQQTL.type = triggerType;
 
-        const CallDoneFlag doneFlag;
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [doneFlag, onOK, onError, runnerSeqID, this](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [onOK, onError, this](const ActorMsgPack &rmpk)
         {
             switch(rmpk.type()){
                 case AM_OK:
                     {
                         onOK(rmpk.deserialize<std::vector<uint64_t>>());
-                        if(doneFlag){
-                            m_luaRunner->resume(runnerSeqID);
-                        }
                         break;
                     }
                 default:
                     {
                         onError();
-                        if(doneFlag){
-                            m_luaRunner->resume(runnerSeqID);
-                        }
                         break;
                     }
             }
