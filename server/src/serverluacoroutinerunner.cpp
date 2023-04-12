@@ -37,8 +37,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
         [threadKey, threadSeqID, uid, code /* not ref */, this](const ActorMsgPack &mpk)
         {
-            if(uid != mpk.from()){
-                throw fflerror("lua code sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
+            if(uid != mpk.from() && mpk.type() != AM_BADACTORPOD){
+                throw fflerror("lua code sent to uid %llu but get response %s from %llu", to_llu(uid),  mpkName(mpk.type()), to_llu(mpk.from()));
             }
 
             if(mpk.seqID()){
