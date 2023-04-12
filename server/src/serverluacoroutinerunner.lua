@@ -7,11 +7,14 @@ function _RSVD_NAME_luaCoroutineRunner_main(code)
 end
 
 function _RSVD_NAME_callFuncCoop(funcName, ...)
-    local done = nil
     local result = nil
-
     local function onDone(...)
-        done = true
+        -- onDone()     -> {}
+        -- onDone(nil)  -> {}
+        -- onDone(1, 2) -> {1, 2}
+
+        -- check if result is nil to determine if onDone is called
+        -- because result shall not be nil in any case after onDone is called
         result = {...}
 
         -- after this line
@@ -49,18 +52,18 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     -- onDone can get ran immedately in _RSVD_NAME_funcCoop
     -- in this situation we shall not yield
 
-    if done == nil then
+    -- TODO
+    -- shall we use while-loop or single if-condition
+    -- buggy code may call ServerLuaCoroutineRunner::resume() without call onDone
+
+    while not result do
         coroutine.yield()
     end
 
-    -- result can come from either onDone
+    -- result gets assigned in onDone
     -- caller need to make sure in C side the return differs
-
-    if result == nil then
-        return nil
-    else
-        return table.unpack(result)
-    end
+    assertType(result, 'table')
+    return table.unpack(result)
 end
 
 local function _RSVD_NAME_waitRemoteCallResult()

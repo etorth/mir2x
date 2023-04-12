@@ -42,16 +42,17 @@ setEventHandler(
     end,
 
     ["npc_goto_random_move:" .. SYS_NPCDONE] = function(uid, value)
-        uidExecute(uid, [[
-            local i = 1
-            while i < 100 do
-                local mapID, x, y = randomMove()
-                if mapID ~= nil then
-                    i = i + 1
-                    pause(1000)
-                end
+        -- don't send a loop of randMove to player
+        -- randMove() can fail without yielding, which makes a dead loop in player script runner
+
+        local i = 1
+        while i < 100 do
+            local mapID, x, y = uidExecute(uid, [[ randomMove() ]])
+            if mapID ~= nil then
+                i = i + 1
+                pause(1000)
             end
-        ]])
+        end
     end,
 
     ["npc_goto_test_player_trigger"] = function(uid, value)
