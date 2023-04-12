@@ -166,12 +166,12 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             m_runnerList.erase(key);
         }
 
-        void resume(uint64_t key, uint64_t seqID = 0)
+        void resume(uint64_t key, uint64_t seqID = 0, bool ignoreUnfound = false)
         {
             if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
                 resumeRunner(p->second.get());
             }
-            else{
+            else if(!ignoreUnfound){
                 throw fflerror("resume non-existing coroutine: key = %llu, seqID = %llu", to_llu(key), to_llu(seqID));
             }
         }
