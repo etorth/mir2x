@@ -140,7 +140,7 @@ void ServiceCore::onActivate()
         }
     }
 
-    if(g_serverArgParser->disableQuestScript){
+    if(!g_serverArgParser->disableQuestScript){
         const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
         const auto scriptPath = cfgScriptPath.empty() ? std::string("script/quest") : (cfgScriptPath + "/quest");
 
