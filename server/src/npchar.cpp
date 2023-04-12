@@ -337,6 +337,18 @@ void NPChar::onActivate()
         postXMLLayout(uid, std::move(path), std::move(xmlString));
     });
 
+    m_luaRunner->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t runnerSeqID)
+    {
+        fflassert(ms >= 0, ms);
+        fflassert(runnerSeqID > 0, runnerSeqID);
+        {
+            addDelay(ms, [runnerSeqID, this]()
+            {
+                m_luaRunner->resume(runnerSeqID);
+            });
+        }
+    });
+
     m_luaRunner->pfrCheck(m_luaRunner->execRawString(BEGIN_LUAINC(char)
 #include "npchar.lua"
     END_LUAINC()));

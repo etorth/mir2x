@@ -1,6 +1,17 @@
 --, u8R"###(
 --
 
+-- TODO
+-- move pause() function to ServerLuaCoroutineRunner
+function pause(ms)
+    assertType(ms, 'integer')
+    assert(ms >= 0)
+
+    local oldTime = getTime()
+    _RSVD_NAME_pauseYielding(ms, getTLSTable().threadKey)
+    return getTime() - oldTime
+end
+
 -- event handlers
 -- to support all kinds of quests, merchant scripts, etc
 
