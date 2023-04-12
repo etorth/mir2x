@@ -218,7 +218,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             using type = decltype(_extractLambdaArgsHelper(&Lambda::operator()));
         };
 
-        template<typename Ret, typename... Args> struct _extractLambdaArgsAsTuple<Ret(LuaCoopResumer, Args...)>
+        template<typename Ret, typename... Args> struct _extractLambdaArgsAsTuple<Ret(*)(LuaCoopResumer, Args...)>
         {
             using type = std::tuple<Args...>;
         };
