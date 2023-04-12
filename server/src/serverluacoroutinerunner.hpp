@@ -166,13 +166,14 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             m_runnerList.erase(key);
         }
 
-        void resume(uint64_t key, uint64_t seqID = 0, bool ignoreUnfound = false)
+        void resume(uint64_t key, uint64_t seqID = 0)
         {
             if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
                 resumeRunner(p->second.get());
             }
-            else if(!ignoreUnfound){
-                throw fflerror("resume non-existing coroutine: key = %llu, seqID = %llu", to_llu(key), to_llu(seqID));
+            else{
+                // won't throw here
+                // if needs to confirm the coroutine exists, use hasKey() first
             }
         }
 
@@ -183,6 +184,16 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             }
             else{
                 return 0;
+            }
+        }
+
+        bool hasKey(uint64_t key, uint64_t seqID = 0) const
+        {
+            if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
+                return seqID == 0 || p->second->seqID == seqID;
+            }
+            else{
+                return false;
             }
         }
 
