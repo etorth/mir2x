@@ -54,7 +54,7 @@ class Player final: public BattleObject
         std::unordered_map<int, std::function<void()>> m_onWLOff;
 
     private:
-        uint64_t m_runnerSeqID = 1;
+        uint64_t m_threadKey = 1;
         std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunner;
 
     private:

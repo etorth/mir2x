@@ -49,26 +49,26 @@ class LuaCoopResumer
         sol::function m_callback;
 
     private:
-        const uint64_t m_runnerSeqID;
+        const uint64_t m_threadKey;
 
     private:
         const LuaCoopCallDoneFlag m_doneFlag;
 
     public:
-        LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, sol::function callback, uint64_t runnerSeqID, const LuaCoopCallDoneFlag &doneFlag)
+        LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, sol::function callback, uint64_t threadKey, const LuaCoopCallDoneFlag &doneFlag)
             : m_luaRunner(luaRunner)
             , m_callback(std::move(callback))
-            , m_runnerSeqID(runnerSeqID)
+            , m_threadKey(threadKey)
             , m_doneFlag(doneFlag)
         {}
 
     public:
         LuaCoopResumer(const LuaCoopResumer & resumer)
-            : LuaCoopResumer(resumer.m_luaRunner, resumer.m_callback, resumer.m_runnerSeqID, resumer.m_doneFlag)
+            : LuaCoopResumer(resumer.m_luaRunner, resumer.m_callback, resumer.m_threadKey, resumer.m_doneFlag)
         {}
 
         LuaCoopResumer(LuaCoopResumer && resumer)
-            : LuaCoopResumer(resumer.m_luaRunner, std::move(resumer.m_callback), resumer.m_runnerSeqID, resumer.m_doneFlag /* always copy doneFlag */)
+            : LuaCoopResumer(resumer.m_luaRunner, std::move(resumer.m_callback), resumer.m_threadKey, resumer.m_doneFlag /* always copy doneFlag */)
         {}
 
     public:
@@ -83,7 +83,7 @@ class LuaCoopResumer
         {
             m_callback(std::forward<Args>(args)...);
             if(m_doneFlag){
-                resumeRunner(m_luaRunner, m_runnerSeqID);
+                resumeRunner(m_luaRunner, m_threadKey);
             }
         }
 
@@ -166,13 +166,13 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             m_runnerList.erase(key);
         }
 
-        void resume(uint64_t key)
+        void resume(uint64_t key, uint64_t seqID = 0)
         {
-            if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
+            if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
                 resumeRunner(p->second.get());
             }
             else{
-                throw fflerror("resume non-existing coroutine: key = %llu", to_llu(key));
+                throw fflerror("resume non-existing coroutine: key = %llu, seqID = %llu", to_llu(key), to_llu(seqID));
             }
         }
 
@@ -229,10 +229,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             fflassert(str_haschar(funcName));
             bindFunction(funcName + SYS_COOP, [this](auto && func)
             {
-                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaArgsAsTuple<Func>::type args, sol::function cb, uint64_t runnerSeqID)
+                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaArgsAsTuple<Func>::type args, sol::function cb, uint64_t threadKey)
                 {
                     const LuaCoopCallDoneFlag doneFlag;
-                    std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, runnerSeqID, doneFlag)), std::move(args)));
+                    std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, doneFlag)), std::move(args)));
                 };
             }(std::forward<Func>(func)));
         }

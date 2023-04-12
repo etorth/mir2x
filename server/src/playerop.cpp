@@ -289,7 +289,7 @@ void Player::on_AM_EXP(const ActorMsgPack &mpk)
 {
     const auto amE = mpk.conv<AMExp>();
     if(!m_slaveList.contains(mpk.from()) && uidf::isMonster(mpk.from())){
-        m_luaRunner->spawn(m_runnerSeqID++, str_printf("_RSVD_NAME_trigger(SYS_ON_KILL, %llu)", to_llu(uidf::getMonsterID(mpk.from()))));
+        m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_KILL, %llu)", to_llu(uidf::getMonsterID(mpk.from()))));
     }
     gainExp(amE.exp);
 }
@@ -452,5 +452,5 @@ void Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    m_luaRunner->spawn(m_runnerSeqID++, mpk.fromAddr(), sdRC.code);
+    m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), sdRC.code);
 }

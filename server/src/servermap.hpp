@@ -101,7 +101,7 @@ class ServerMap final: public ServerObject
 
     private:
         const uint64_t m_mainScriptThreadKey = 1;
-        /* */ uint64_t m_runnerSeqID = m_mainScriptThreadKey + 1;
+        /* */ uint64_t m_threadKey = m_mainScriptThreadKey + 1;
 
     private:
         std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunner;

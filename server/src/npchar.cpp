@@ -337,14 +337,14 @@ void NPChar::onActivate()
         postXMLLayout(uid, std::move(path), std::move(xmlString));
     });
 
-    m_luaRunner->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t runnerSeqID)
+    m_luaRunner->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t threadKey, uint64_t threadSeqID)
     {
         fflassert(ms >= 0, ms);
-        fflassert(runnerSeqID > 0, runnerSeqID);
+        fflassert(threadKey > 0, threadKey);
         {
-            addDelay(ms, [runnerSeqID, this]()
+            addDelay(ms, [threadKey, threadSeqID, this]()
             {
-                m_luaRunner->resume(runnerSeqID);
+                m_luaRunner->resume(threadKey, threadSeqID);
             });
         }
     });

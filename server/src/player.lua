@@ -10,7 +10,7 @@ function pause(ms)
     assert(ms >= 0)
 
     local oldTime = getTime()
-    _RSVD_NAME_pauseYielding(ms, getTLSTable().threadKey)
+    _RSVD_NAME_pauseYielding(ms, getTLSTable().threadKey, getTLSTable().threadSeqID)
     return getTime() - oldTime
 end
 

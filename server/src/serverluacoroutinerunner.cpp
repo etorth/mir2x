@@ -10,9 +10,9 @@
 
 extern MonoServer *g_monoServer;
 
-void LuaCoopResumer::resumeRunner(ServerLuaCoroutineRunner *luaRunner, uint64_t runnerSeqID)
+void LuaCoopResumer::resumeRunner(ServerLuaCoroutineRunner *luaRunner, uint64_t threadKey)
 {
-    luaRunner->resume(runnerSeqID);
+    luaRunner->resume(threadKey);
 }
 
 ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
@@ -221,11 +221,12 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
 
     resumeRunner(p->second.get(), str_printf(
         R"###( getTLSTable().threadKey = %llu                           )###""\n"
+        R"###( getTLSTable().threadSeqID = %llu                         )###""\n"
         R"###( getTLSTable().startTime = getNanoTstamp()                )###""\n"
         R"###( local _RSVD_NAME_autoTLSTableClear = autoClearTLSTable() )###""\n"
         R"###( do                                                       )###""\n"
         R"###(    %s                                                    )###""\n"
-        R"###( end                                                      )###""\n", to_llu(key), code.c_str()));
+        R"###( end                                                      )###""\n", to_llu(key), to_llu(currSeqID), code.c_str()));
 
     return currSeqID; // don't use p resumeRunner() can invalidate p
 }
