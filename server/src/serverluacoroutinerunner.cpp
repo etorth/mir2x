@@ -30,12 +30,13 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             throw fflerror("calling sendRemoteCall(%llu, %llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(threadKey), to_llu(threadSeqID), to_llu(uid), to_cstr(concatCode(code)));
         }
 
+        const LuaCoopCallDoneFlag doneFlag;
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
         {
             .code = code,
         })},
 
-        [threadKey, threadSeqID, uid, code /* not ref */, this](const ActorMsgPack &mpk)
+        [doneFlag, threadKey, threadSeqID, uid, code /* not ref */, this](const ActorMsgPack &mpk)
         {
             if(uid != mpk.from() && mpk.type() != AM_BADACTORPOD){
                 throw fflerror("lua code sent to uid %llu but get response %s from %llu", to_llu(uid),  mpkName(mpk.type()), to_llu(mpk.from()));
@@ -85,7 +86,9 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
             // comsume the event
             // call the coroutine to make it fail or stuck at next _RSVD_NAME_pollRemoteCallResult()
-            resumeRunner(p->second.get());
+            if(doneFlag){
+                resumeRunner(p->second.get());
+            }
         });
     });
 
