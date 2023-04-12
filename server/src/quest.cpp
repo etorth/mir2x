@@ -16,7 +16,7 @@ void Quest::onActivate()
         return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
     });
 
-    m_luaRunner->bindFunctionCoop<int, bool>("_RSVD_NAME_modifyQuestTriggerType", [this](int triggerType, bool enable, LuaCoopResumer onOK, LuaCoopResumer onError)
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
     {
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
         fflassert(triggerType <  SYS_ON_END  , triggerType);
@@ -27,7 +27,7 @@ void Quest::onActivate()
         amMQTT.type = triggerType;
         amMQTT.enable = enable;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [onOK, onError, this](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [onDone, this](const ActorMsgPack &rmpk)
         {
             // expected an reply
             // this makes sure when modifyQuestTriggerType() returns, the trigger has already been enabled/disabled
@@ -35,19 +35,19 @@ void Quest::onActivate()
             switch(rmpk.type()){
                 case AM_OK:
                     {
-                        onOK(true);
+                        onDone(true);
                         break;
                     }
                 default:
                     {
-                        onError();
+                        onDone();
                         break;
                     }
             }
         });
     });
 
-    m_luaRunner->bindFunctionCoop<std::string>("_RSVD_NAME_loadMap", [this](std::string mapName, LuaCoopResumer onOK, LuaCoopResumer onError)
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_loadMap", [this](LuaCoopResumer onDone, std::string mapName)
     {
         fflassert(str_haschar(mapName));
 
@@ -57,18 +57,18 @@ void Quest::onActivate()
         amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
         amLM.activateMap = true;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [mapID = amLM.mapID, onOK = std::move(onOK), onError = std::move(onError), this](const ActorMsgPack &mpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [mapID = amLM.mapID, onDone, this](const ActorMsgPack &mpk)
         {
             switch(mpk.type()){
                 case AM_LOADMAPOK:
                     {
                         const auto amLMOK = mpk.conv<AMLoadMapOK>();
-                        onOK(amLMOK.uid);
+                        onDone(amLMOK.uid);
                         break;
                     }
                 default:
                     {
-                        onError();
+                        onDone();
                         break;
                     }
             }

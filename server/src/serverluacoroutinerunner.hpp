@@ -209,16 +209,30 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             return codeStr;
         }
 
+    private:
+        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...));
+        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...) const );
+
+        template<typename Lambda> struct _extractLambdaArgsAsTuple
+        {
+            using type = decltype(_extractLambdaArgsHelper(&Lambda::operator()));
+        };
+
+        template<typename Ret, typename... Args> struct _extractLambdaArgsAsTuple<Ret(LuaCoopResumer, Args...)>
+        {
+            using type = std::tuple<Args...>;
+        };
+
     public:
-        template<typename... Args, std::invocable<Args..., LuaCoopResumer, LuaCoopResumer> Func> void bindFunctionCoop(std::string funcName, Func && func)
+        template<typename Func> void bindFunctionCoop(std::string funcName, Func && func)
         {
             fflassert(str_haschar(funcName));
             bindFunction(funcName + SYS_COOP, [this](auto && func)
             {
-                return [func = std::function(std::forward<Func>(func)), this](Args... args, sol::function onOK, sol::function onError, uint64_t runnerSeqID)
+                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaArgsAsTuple<Func>::type args, sol::function cb, uint64_t runnerSeqID)
                 {
                     const LuaCoopCallDoneFlag doneFlag;
-                    func(std::forward<Args>(args)..., LuaCoopResumer(this, onOK, runnerSeqID, doneFlag), LuaCoopResumer(this, onError, runnerSeqID, doneFlag));
+                    std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, runnerSeqID, doneFlag)), std::move(args)));
                 };
             }(std::forward<Func>(func)));
         }

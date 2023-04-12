@@ -240,7 +240,7 @@ void Player::onActivate()
         }
     });
 
-    m_luaRunner->bindFunctionCoop<uint32_t, int, int>("_RSVD_NAME_spaceMove", [this](uint32_t argMapID, int argX, int argY, LuaCoopResumer onOK, LuaCoopResumer onError)
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_spaceMove", [this](LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY)
     {
         const auto &mr = DBCOM_MAPRECORD(argMapID);
         fflassert(mr, argMapID);
@@ -249,30 +249,30 @@ void Player::onActivate()
         fflassert(argY >= 0, argY);
 
         if(to_u32(argMapID) == mapID()){
-            requestSpaceMove(argX, argY, false, [onOK, this]()
+            requestSpaceMove(argX, argY, false, [onDone, this]()
             {
-                onOK(mapID(), X(), Y());
+                onDone(mapID(), X(), Y());
             },
 
-            [onError]()
+            [onDone]()
             {
-                onError();
+                onDone();
             });
         }
         else{
-            requestMapSwitch(argMapID, argX, argY, false, [onOK, this]()
+            requestMapSwitch(argMapID, argX, argY, false, [onDone, this]()
             {
-                onOK(mapID(), X(), Y());
+                onDone(mapID(), X(), Y());
             },
 
-            [onError]()
+            [onDone]()
             {
-                onError();
+                onDone();
             });
         }
     });
 
-    m_luaRunner->bindFunctionCoop<>("_RSVD_NAME_randomMove", [this](LuaCoopResumer onOK, LuaCoopResumer onError)
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_randomMove", [this](LuaCoopResumer onDone)
     {
         const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
         {
@@ -287,7 +287,7 @@ void Player::onActivate()
 
         if(newGLoc.has_value()){
             const auto [newX, newY] = newGLoc.value();
-            requestMove(newX, newY, SYS_DEFSPEED, false, false, [oldX = X(), oldY = Y(), onOK, this]()
+            requestMove(newX, newY, SYS_DEFSPEED, false, false, [oldX = X(), oldY = Y(), onDone, this]()
             {
                 // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
                 // but here need to sendback the forced move since it's driven by server
@@ -301,20 +301,20 @@ void Player::onActivate()
                     .aimY = Y(),
                 });
 
-                onOK(mapID(), X(), Y());
+                onDone(mapID(), X(), Y());
             },
 
-            [onError]()
+            [onDone]()
             {
-                onError();
+                onDone();
             });
         }
         else{
-            onError();
+            onDone();
         }
     });
 
-    m_luaRunner->bindFunctionCoop<int>("_RSVD_NAME_queryQuestTriggerList", [this](int triggerType, LuaCoopResumer onOK, LuaCoopResumer onError)
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_queryQuestTriggerList", [this](LuaCoopResumer onDone, int triggerType)
     {
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
         fflassert(triggerType <  SYS_ON_END  , triggerType);
@@ -324,17 +324,17 @@ void Player::onActivate()
 
         amQQTL.type = triggerType;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [onOK, onError, this](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [onDone, this](const ActorMsgPack &rmpk)
         {
             switch(rmpk.type()){
                 case AM_OK:
                     {
-                        onOK(rmpk.deserialize<std::vector<uint64_t>>());
+                        onDone(rmpk.deserialize<std::vector<uint64_t>>());
                         break;
                     }
                 default:
                     {
-                        onError();
+                        onDone();
                         break;
                     }
             }

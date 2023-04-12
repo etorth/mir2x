@@ -10,7 +10,7 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     local done = nil
     local result = nil
 
-    local function onOK(...)
+    local function onDone(...)
         done = true
         result = {...}
 
@@ -18,49 +18,42 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
         -- C level will call resumeCORunner(threadKey) cooperatively
         -- this is black magic, we can not put resumeCORunner(threadKey) explicitly here in lua, see comments below:
 
-        -- for callback function onOK and onError
-        -- they should keep simple as above, only setup marks/flags
+        -- for callback function onDone
+        -- it should keep simple as above, only setup marks/flags
 
         -- don't call other complext functions which gives callback hell
         -- I design the player runner in sequential manner
 
-        -- more importantly, don't do runner-resume in the onOK/onError callback
-        -- which causes crash, because if we resume in onOK/onError, then when the callback gets triggeerred, stack is:
+        -- more importantly, don't do runner-resume in the onDone callback
+        -- which causes crash, because if we resume in onDone, then when the callback gets triggeerred, stack is:
         --
-        --   --C-->onOK/onError-->resumeCORunner(getTLSTable().threadKey)-->code in this runner after _RSVD_NAME_requestSpaceMove/coroutine.yield()
-        --     ^       ^                ^                                   ^
-        --     |       |                |                                   |
-        --     |       |                |                                   +------ lua
-        --     |       |                +------------------------------------------ C
-        --     |       +----------------------------------------------------------- lua
-        --     +------------------------------------------------------------------- C
+        --   --C-->onDone-->resumeCORunner(getTLSTable().threadKey)-->code in this runner after _RSVD_NAME_requestSpaceMove/coroutine.yield()
+        --     ^     ^            ^                                   ^
+        --     |     |            |                                   |
+        --     |     |            |                                   +------ lua
+        --     |     |            +------------------------------------------ C
+        --     |     +------------------------------------------------------- lua
+        --     +------------------------------------------------------------- C
         --
         -- see here C->lua->C->lua with yield/resume
         -- this crashes
     end
 
-    local function onError(...)
-        done = false
-        result = {...}
-        -- transparent logic same as onOK
-    end
-
     local args = {...}
 
-    table.insert(args, onOK)
-    table.insert(args, onError)
+    table.insert(args, onDone)
     table.insert(args, getTLSTable().threadKey)
 
     _G[string.format('_RSVD_NAME_%s%s', funcName, SYS_COOP)](table.unpack(args))
 
-    -- onOK/onError can get ran immedately in _RSVD_NAME_funcCoop
+    -- onDone can get ran immedately in _RSVD_NAME_funcCoop
     -- in this situation we shall not yield
 
     if done == nil then
         coroutine.yield()
     end
 
-    -- result can come from either onOK or onError
+    -- result can come from either onDone
     -- caller need to make sure in C side the return differs
 
     if result == nil then
@@ -69,7 +62,6 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
         return table.unpack(result)
     end
 end
-
 
 local function _RSVD_NAME_waitRemoteCallResult()
     local seqID = getTLSTable().threadKey
