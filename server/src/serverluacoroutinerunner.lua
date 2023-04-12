@@ -46,6 +46,7 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
 
     table.insert(args, onDone)
     table.insert(args, getTLSTable().threadKey)
+    table.insert(args, getTLSTable().threadSeqID)
 
     _G[string.format('_RSVD_NAME_%s%s', funcName, SYS_COOP)](table.unpack(args))
 
@@ -67,9 +68,12 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
 end
 
 local function _RSVD_NAME_waitRemoteCallResult()
-    local seqID = getTLSTable().threadKey
+    local tls = getTLSTable()
+    local threadKey = tls.threadKey
+    local threadSeqID = tls.threadSeqID
+
     while true do
-        local resList = {_RSVD_NAME_pollRemoteCallResult(seqID)}
+        local resList = {_RSVD_NAME_pollRemoteCallResult(threadKey, threadSeqID)}
         if next(resList) == nil then
             coroutine.yield()
         else
@@ -89,7 +93,15 @@ end
 local function _RSVD_NAME_uidExecute(uid, code)
     assertType(uid, 'integer')
     assertType(code, 'string')
-    _RSVD_NAME_sendRemoteCall(getTLSTable().threadKey, uid, code)
+
+    -- access tls table
+    -- this helps to confirm we call this function in a coroutine
+
+    local tls = getTLSTable()
+    local threadKey = tls.threadKey
+    local threadSeqID = tls.threadSeqID
+
+    _RSVD_NAME_sendRemoteCall(threadKey, threadSeqID, uid, code)
 
     local resList = {_RSVD_NAME_waitRemoteCallResult()}
     if resList[1] ~= uid then

@@ -50,25 +50,27 @@ class LuaCoopResumer
 
     private:
         const uint64_t m_threadKey;
+        const uint64_t m_threadSeqID;
 
     private:
         const LuaCoopCallDoneFlag m_doneFlag;
 
     public:
-        LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, sol::function callback, uint64_t threadKey, const LuaCoopCallDoneFlag &doneFlag)
+        LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, sol::function callback, uint64_t threadKey, uint64_t threadSeqID, const LuaCoopCallDoneFlag &doneFlag)
             : m_luaRunner(luaRunner)
             , m_callback(std::move(callback))
             , m_threadKey(threadKey)
+            , m_threadSeqID(threadSeqID)
             , m_doneFlag(doneFlag)
         {}
 
     public:
         LuaCoopResumer(const LuaCoopResumer & resumer)
-            : LuaCoopResumer(resumer.m_luaRunner, resumer.m_callback, resumer.m_threadKey, resumer.m_doneFlag)
+            : LuaCoopResumer(resumer.m_luaRunner, resumer.m_callback, resumer.m_threadKey, resumer.m_threadSeqID, resumer.m_doneFlag)
         {}
 
         LuaCoopResumer(LuaCoopResumer && resumer)
-            : LuaCoopResumer(resumer.m_luaRunner, std::move(resumer.m_callback), resumer.m_threadKey, resumer.m_doneFlag /* always copy doneFlag */)
+            : LuaCoopResumer(resumer.m_luaRunner, std::move(resumer.m_callback), resumer.m_threadKey, resumer.m_threadSeqID, resumer.m_doneFlag /* always copy doneFlag */)
         {}
 
     public:
@@ -83,12 +85,12 @@ class LuaCoopResumer
         {
             m_callback(std::forward<Args>(args)...);
             if(m_doneFlag){
-                resumeRunner(m_luaRunner, m_threadKey);
+                resumeRunner(m_luaRunner, m_threadKey, m_threadSeqID);
             }
         }
 
     private:
-        static void resumeRunner(ServerLuaCoroutineRunner *, uint64_t); // resolve dependency
+        static void resumeRunner(ServerLuaCoroutineRunner *, uint64_t, uint64_t); // resolve dependency
 };
 
 class ActorPod;
@@ -161,9 +163,22 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         uint64_t spawn(uint64_t,                                const std::string &, std::function<void(const sol::protected_function_result &)> = nullptr);
 
     public:
-        void close(uint64_t key)
+        uint64_t getSeqID(uint64_t key) const
         {
-            m_runnerList.erase(key);
+            if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
+                return p->second->seqID;
+            }
+            else{
+                return 0;
+            }
+        }
+
+    public:
+        void close(uint64_t key, uint64_t seqID = 0)
+        {
+            if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+                m_runnerList.erase(p);
+            }
         }
 
         void resume(uint64_t key, uint64_t seqID = 0)
@@ -177,24 +192,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             }
         }
 
-        uint64_t getSeqID(uint64_t key) const
-        {
-            if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
-                return p->second->seqID;
-            }
-            else{
-                return 0;
-            }
-        }
-
         bool hasKey(uint64_t key, uint64_t seqID = 0) const
         {
-            if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
-                return seqID == 0 || p->second->seqID == seqID;
-            }
-            else{
-                return false;
-            }
+            const auto p = m_runnerList.find(key);
+            return (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID);
         }
 
     private:
@@ -240,10 +241,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             fflassert(str_haschar(funcName));
             bindFunction(funcName + SYS_COOP, [this](auto && func)
             {
-                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaArgsAsTuple<Func>::type args, sol::function cb, uint64_t threadKey)
+                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaArgsAsTuple<Func>::type args, sol::function cb, uint64_t threadKey, uint64_t threadSeqID)
                 {
                     const LuaCoopCallDoneFlag doneFlag;
-                    std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, doneFlag)), std::move(args)));
+                    std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, threadSeqID, doneFlag)), std::move(args)));
                 };
             }(std::forward<Func>(func)));
         }

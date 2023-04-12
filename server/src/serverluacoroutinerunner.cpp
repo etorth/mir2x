@@ -9,10 +9,9 @@
 #include "serverluacoroutinerunner.hpp"
 
 extern MonoServer *g_monoServer;
-
-void LuaCoopResumer::resumeRunner(ServerLuaCoroutineRunner *luaRunner, uint64_t threadKey)
+void LuaCoopResumer::resumeRunner(ServerLuaCoroutineRunner *luaRunner, uint64_t threadKey, uint64_t threadSeqID)
 {
-    luaRunner->resume(threadKey);
+    luaRunner->resume(threadKey, threadSeqID);
 }
 
 ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
@@ -22,10 +21,13 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
-    bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t threadKey, uint64_t uid, std::string code)
+    bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t threadKey, uint64_t threadSeqID, uint64_t uid, std::string code)
     {
-        if(!m_runnerList.contains(threadKey)){
-            throw fflerror("calling sendRemoteCall(%llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(threadKey), to_llu(uid), to_cstr(concatCode(code)));
+        fflassert(threadKey);
+        fflassert(threadSeqID); // don't allow 0 internally
+
+        if(!hasKey(threadKey, threadSeqID)){
+            throw fflerror("calling sendRemoteCall(%llu, %llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(threadKey), to_llu(threadSeqID), to_llu(uid), to_cstr(concatCode(code)));
         }
 
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
@@ -33,7 +35,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             .code = code,
         })},
 
-        [threadKey, uid, code /* not ref */, this](const ActorMsgPack &mpk)
+        [threadKey, threadSeqID, uid, code /* not ref */, this](const ActorMsgPack &mpk)
         {
             if(uid != mpk.from()){
                 throw fflerror("lua code sent to uid %llu but get response from %llu", to_llu(uid), to_llu(mpk.from()));
@@ -43,8 +45,8 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 throw fflerror("remote call responder expects response");
             }
 
-            auto p = m_runnerList.find(threadKey);
-            if(p == m_runnerList.end()){
+            const auto p = m_runnerList.find(threadKey);
+            if(p == m_runnerList.end() || p->second->seqID != threadSeqID){
                 // can not find runner
                 // runner can be cancelled already, or just an error
 
@@ -87,12 +89,15 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
-    bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t threadKey, sol::this_state s)
+    bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
     {
+        fflassert(threadKey);
+        fflassert(threadSeqID); // don't allow 0 internally
+
         sol::state_view sv(s);
-        return sol::as_returns([threadKey, &sv, this]() -> std::vector<sol::object>
+        return sol::as_returns([threadKey, threadSeqID, &sv, this]() -> std::vector<sol::object>
         {
-            if(auto p = m_runnerList.find(threadKey); p != m_runnerList.end()){
+            if(auto p = m_runnerList.find(threadKey); p != m_runnerList.end() && p->second->seqID == threadSeqID){
                 const auto from  = p->second->from;
                 const auto event = std::move(p->second->event);
                 const auto value = std::move(p->second->value);
@@ -136,7 +141,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 }
                 return eventStack;
             }
-            throw fflerror("can't find key: %llu", to_llu(threadKey));
+            throw fflerror("can't find coroutine: key = %llu, seqID = %llu", to_llu(threadKey), to_llu(threadSeqID));
         }());
     });
 
@@ -249,6 +254,7 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
     // runnerPtr->onDone can invalidate runnerPtr, althrough this is no encouraged
 
     const auto threadKey = runnerPtr->key;
+    const auto threadSeqID = runnerPtr->seqID;
     const auto onDoneFunc = std::move(runnerPtr->onDone);
 
     if(onDoneFunc){
@@ -272,5 +278,5 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
         }
     }
 
-    close(threadKey);
+    close(threadKey, threadSeqID);
 }
