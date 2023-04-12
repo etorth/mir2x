@@ -10,6 +10,7 @@ struct ServerArgParser
 {
     const bool disableProfiler;             // "--disable-profiler"
     const bool disableMapScript;            // "--disable-map-script"
+    const bool disableQuestScript;          // "--disable-quest-script"
 
     const bool disableLearnMagicCheckJob;   // "--disable-learn-magic-check-job"
     const bool disableLearnMagicCheckLevel; // "--disable-learn-magic-check-level"
@@ -36,6 +37,7 @@ struct ServerArgParser
     ServerArgParser(const argh::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
         , disableMapScript(cmdParser["disable-map-script"])
+        , disableQuestScript(cmdParser["disable-quest-script"])
         , disableLearnMagicCheckJob(cmdParser["disable-learn-magic-check-job"])
         , disableLearnMagicCheckLevel(cmdParser["disable-learn-magic-check-level"])
         , disableLearnMagicCheckPrior(cmdParser["disable-learn-magic-check-prior"])

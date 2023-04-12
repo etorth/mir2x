@@ -140,16 +140,18 @@ void ServiceCore::onActivate()
         }
     }
 
-    const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
-    const auto scriptPath = cfgScriptPath.empty() ? std::string("script/quest") : (cfgScriptPath + "/quest");
+    if(g_serverArgParser->disableQuestScript){
+        const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+        const auto scriptPath = cfgScriptPath.empty() ? std::string("script/quest") : (cfgScriptPath + "/quest");
 
-    for(uint32_t questID = 1; const auto &fileName: filesys::getFileList(scriptPath.c_str(), false, R"#(.*\.lua)#")){
-        if(auto questPtr = new Quest(SDInitQuest
-        {
-            .questID = questID++,
-            .fullScriptName = scriptPath + "/" + fileName,
-        })){
-            questPtr->activate();
+        for(uint32_t questID = 1; const auto &fileName: filesys::getFileList(scriptPath.c_str(), false, R"#(.*\.lua)#")){
+            if(auto questPtr = new Quest(SDInitQuest
+            {
+                .questID = questID++,
+                .fullScriptName = scriptPath + "/" + fileName,
+            })){
+                questPtr->activate();
+            }
         }
     }
 }
