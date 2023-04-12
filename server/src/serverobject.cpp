@@ -19,7 +19,7 @@ ServerObject::ServerObject(uint64_t uid)
         return false;
     });
 
-    if(g_serverArgParser->traceActorMessage){
+    if(g_serverArgParser->traceActorMessageCount){
         m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
         {
             if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 1000 < currTick){
