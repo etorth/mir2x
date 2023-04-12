@@ -1,6 +1,6 @@
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         uidPostXML(uid, string.format(
         [[
             <layout>
@@ -12,7 +12,7 @@ setEventHandler(
                 <par><event id="npc_goto_test_player_trigger">测试任务触发器</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE, SYS_NPCDONE))
+        ]], uidQueryName(uid), getNPCName(), SYS_EXIT, SYS_EXIT))
     end,
 
     ["npc_goto_1"] = function(uid, value)
@@ -31,7 +31,7 @@ setEventHandler(
                     <par><event id="%s">返回</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCINIT, SYS_NPCDONE)
+            ]], SYS_ENTER, SYS_EXIT)
         end
     end,
 
@@ -41,7 +41,7 @@ setEventHandler(
         uidGrant(uid, '井中月', 1)
     end,
 
-    ["npc_goto_random_move:" .. SYS_NPCDONE] = function(uid, value)
+    ["npc_goto_random_move:" .. SYS_EXIT] = function(uid, value)
         -- don't send a loop of randMove to player
         -- randMove() can fail without yielding, which makes a dead loop in player script runner
 
@@ -91,7 +91,7 @@ setEventHandler(
                     <par><event id="%s">返回</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], maxTriggerTime, SYS_NPCINIT, SYS_NPCDONE)
+            ]], maxTriggerTime, SYS_ENTER, SYS_EXIT)
         else
             uidPostXML(uid,
             [[
@@ -101,7 +101,7 @@ setEventHandler(
                     <par><event id="%s">返回</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCINIT, SYS_NPCDONE)
+            ]], SYS_ENTER, SYS_EXIT)
         end
     end,
 })

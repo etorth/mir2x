@@ -1,6 +1,6 @@
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
@@ -30,7 +30,7 @@ setEventHandler(
                 <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], getNPCName(), SYS_NPCDONE)
+        ]], getNPCName(), SYS_EXIT)
     end,
 
     ["npc_goto_1"] = function(uid, value)

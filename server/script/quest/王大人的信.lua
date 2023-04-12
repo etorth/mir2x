@@ -11,5 +11,5 @@ function main()
                 ]=])
             end
         })
-    ]], getQuestName(), SYS_NPCINIT, SYS_EPQST, getQuestName(), SYS_NPCDONE)
+    ]], getQuestName(), SYS_ENTER, SYS_EPQST, getQuestName(), SYS_EXIT)
 end

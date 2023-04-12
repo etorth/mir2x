@@ -10,7 +10,7 @@ setNPCSell({
 local invop = require('npc.include.invop')
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
             uidPostXML(uid,
             [[
@@ -20,7 +20,7 @@ setEventHandler(
 
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCDONE)
+            ]], SYS_EXIT)
         else
             uidPostXML(uid,
             [[
@@ -36,7 +36,7 @@ setEventHandler(
                     <par><event id="npc_goto_daily_quest">对今日的任务进行了解</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], getSubukGuildName(), SYS_NPCDONE)
+            ]], getSubukGuildName(), SYS_EXIT)
         end
     end,
 
@@ -50,7 +50,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
         uidPostSell(uid)
     end,
 
@@ -64,7 +64,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
         invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", {'武器'})
     end,
 
@@ -77,7 +77,7 @@ setEventHandler(
 
                 <par><event id="npc_goto_6">修理</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
         invop.uidStartRepair(uid, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
     end,
 
@@ -92,7 +92,7 @@ setEventHandler(
                 <par><event id="npc_goto_commit_special_repair">修理</event></par>
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], 0, SYS_NPCINIT)
+        ]], 0, SYS_ENTER)
     end,
 
     ["npc_goto_daily_quest"] = function(uid, value)
@@ -104,7 +104,7 @@ setEventHandler(
 
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     ["npc_goto_query_trade"] = function(uid, value)
@@ -120,7 +120,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], getItemName(itemID), price, SYS_NPCINIT)
+        ]], getItemName(itemID), price, SYS_ENTER)
         invop.postTradePrice(uid, itemID, seqID, price)
     end,
 
@@ -134,7 +134,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], 200, SYS_NPCINIT)
+        ]], 200, SYS_ENTER)
 
         uidRemove(uid, {itemID = itemID, seqID = seqID})
         uidGrantGold(uid, 200)
@@ -152,7 +152,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], getItemName(itemID), repairCost, SYS_NPCINIT)
+        ]], getItemName(itemID), repairCost, SYS_ENTER)
         invop.postRepairCost(uid, itemID, seqID, repairCost)
     end,
 
@@ -166,7 +166,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], getItemName(itemID), SYS_NPCINIT)
+        ]], getItemName(itemID), SYS_ENTER)
     end,
 
     ["npc_goto_commit_special_repair"] = function(uid, value)
@@ -179,6 +179,6 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], 0, SYS_NPCINIT)
+        ]], 0, SYS_ENTER)
     end,
 })

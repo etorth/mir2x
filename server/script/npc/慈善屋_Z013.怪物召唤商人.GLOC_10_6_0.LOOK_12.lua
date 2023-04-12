@@ -22,7 +22,7 @@ while true do
     monsterID = monsterID + 1
 end
 
-eventHandlerTable[SYS_NPCINIT] = function(uid, value)
+eventHandlerTable[SYS_ENTER] = function(uid, value)
     uidPostXML(uid,
     [[
         <layout>
@@ -32,7 +32,7 @@ eventHandlerTable[SYS_NPCINIT] = function(uid, value)
             <par></par>
             <par><event id="%s">关闭</event></par>
         </layout>
-    ]], uidQueryName(uid), getNPCName(), table.concat(monsterNameList), SYS_NPCDONE)
+    ]], uidQueryName(uid), getNPCName(), table.concat(monsterNameList), SYS_EXIT)
 end
 
 setEventHandler(eventHandlerTable)

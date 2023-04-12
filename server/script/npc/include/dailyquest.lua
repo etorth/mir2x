@@ -11,7 +11,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -23,7 +23,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -36,7 +36,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -49,7 +49,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -62,7 +62,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -75,7 +75,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -88,7 +88,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -101,7 +101,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -114,7 +114,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -127,7 +127,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -140,7 +140,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -153,7 +153,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -166,7 +166,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -179,7 +179,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -192,7 +192,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -205,7 +205,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -218,7 +218,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -231,7 +231,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -244,7 +244,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -257,7 +257,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -270,7 +270,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -283,7 +283,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -296,7 +296,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -309,7 +309,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -322,7 +322,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -335,7 +335,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -348,7 +348,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -362,7 +362,7 @@ local _RSVD_NAME_questList = rotable(
                 <par><event id="%s">结束</event></par>
 
         </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -375,7 +375,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -388,7 +388,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -401,7 +401,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -414,7 +414,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -427,7 +427,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -440,7 +440,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -453,7 +453,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -466,7 +466,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -479,7 +479,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -492,7 +492,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -505,7 +505,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -519,7 +519,7 @@ local _RSVD_NAME_questList = rotable(
                 <par><event id="%s">结束</event></par>
 
         </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -532,7 +532,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -545,7 +545,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -558,7 +558,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -571,7 +571,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -584,7 +584,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -597,7 +597,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -611,7 +611,7 @@ local _RSVD_NAME_questList = rotable(
                 <par><event id="%s">结束</event></par>
 
         </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -624,7 +624,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -637,7 +637,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -650,7 +650,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -663,7 +663,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -676,7 +676,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -689,7 +689,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -702,7 +702,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -715,7 +715,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -728,7 +728,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -741,7 +741,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -754,7 +754,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -767,7 +767,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -780,7 +780,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -793,7 +793,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -806,7 +806,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -819,7 +819,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
     function(uid, value)
         uidPostXML(uid,
@@ -831,7 +831,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -844,7 +844,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -857,7 +857,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -870,7 +870,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -883,7 +883,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -896,7 +896,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -909,7 +909,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -922,7 +922,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -935,7 +935,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -948,7 +948,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -961,7 +961,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -974,7 +974,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -988,7 +988,7 @@ local _RSVD_NAME_questList = rotable(
                 <par><event id="%s">结束</event></par>
 
         </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1001,7 +1001,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1014,7 +1014,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1027,7 +1027,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1040,7 +1040,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1054,7 +1054,7 @@ local _RSVD_NAME_questList = rotable(
                 <par><event id="%s">结束</event></par>
 
         </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1067,7 +1067,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1080,7 +1080,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1093,7 +1093,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1106,7 +1106,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1119,7 +1119,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1132,7 +1132,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1145,7 +1145,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1158,7 +1158,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1171,7 +1171,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1184,7 +1184,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1197,7 +1197,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1210,7 +1210,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1223,7 +1223,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1236,7 +1236,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1249,7 +1249,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1262,7 +1262,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1275,7 +1275,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1289,7 +1289,7 @@ local _RSVD_NAME_questList = rotable(
                 <par><event id="%s">结束</event></par>
 
         </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1302,7 +1302,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1315,7 +1315,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1328,7 +1328,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1341,7 +1341,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1354,7 +1354,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1367,7 +1367,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1380,7 +1380,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1393,7 +1393,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1406,7 +1406,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1419,7 +1419,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1433,7 +1433,7 @@ local _RSVD_NAME_questList = rotable(
                 <par><event id="%s">结束</event></par>
 
         </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1446,7 +1446,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1459,7 +1459,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1472,7 +1472,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1485,7 +1485,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1498,7 +1498,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1511,7 +1511,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1524,7 +1524,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1537,7 +1537,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1550,7 +1550,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1563,7 +1563,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1576,7 +1576,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1589,7 +1589,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1602,7 +1602,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1615,7 +1615,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1628,7 +1628,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1641,7 +1641,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1654,7 +1654,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1667,7 +1667,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1680,7 +1680,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1693,7 +1693,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1706,7 +1706,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1719,7 +1719,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1732,7 +1732,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1745,7 +1745,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1758,7 +1758,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1771,7 +1771,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1784,7 +1784,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1797,7 +1797,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1810,7 +1810,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1823,7 +1823,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1836,7 +1836,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     function(uid, value)
@@ -1849,7 +1849,7 @@ local _RSVD_NAME_questList = rotable(
                 <par></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end
 })
 

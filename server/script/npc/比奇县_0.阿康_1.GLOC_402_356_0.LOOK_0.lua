@@ -1,6 +1,6 @@
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
             uidPostXML(uid,
             [[
@@ -10,7 +10,7 @@ setEventHandler(
 
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCDONE)
+            ]], SYS_EXIT)
 
         else
             uidPostXML(uid,
@@ -22,7 +22,7 @@ setEventHandler(
                     <par><event id="npc_goto_unequip_weapon">请求把剑从手分离开</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCDONE)
+            ]], SYS_EXIT)
         end
     end,
 
@@ -35,7 +35,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
     end,
 
     ["npc_goto_unequip_weapon"] = function(uid, value)
@@ -47,7 +47,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
     end,
 
     ["npc_goto_daily_quest"] = function(uid, value)
@@ -59,6 +59,6 @@ setEventHandler(
 
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 })

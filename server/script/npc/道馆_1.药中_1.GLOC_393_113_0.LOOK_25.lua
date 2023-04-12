@@ -12,7 +12,7 @@ setNPCSell({
 
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
             uidPostXML(uid,
             [[
@@ -22,7 +22,7 @@ setEventHandler(
 
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCDONE)
+            ]], SYS_EXIT)
         else
             uidPostXML(uid,
             [[
@@ -36,7 +36,7 @@ setEventHandler(
                     <par><event id="npc_goto_3">对今日的任务进行了解</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], getSubukGuildName(), SYS_NPCDONE)
+            ]], getSubukGuildName(), SYS_EXIT)
         end
     end,
 
@@ -49,7 +49,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
         uidPostSell(uid)
     end,
 
@@ -62,7 +62,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
     end,
 
     ["npc_goto_3"] = function(uid, value)
@@ -74,6 +74,6 @@ setEventHandler(
 
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 })

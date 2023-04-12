@@ -35,13 +35,13 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     // when NPC querys CO attributes the response should be handled in actor response handler, not here
 
     if(false
-            || sdNPCE.event == SYS_NPCDONE
+            || sdNPCE.event == SYS_EXIT
             || sdNPCE.event == SYS_NPCERROR){
         m_luaRunner->close(mpk.from());
         return;
     }
 
-    // can be SYS_NPCINIT or scritp event
+    // can be SYS_ENTER or scritp event
     // script event defines like text button pressed etc
 
     if(sdNPCE.mapID != mapID() || mathf::LDistance2(sdNPCE.x, sdNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){

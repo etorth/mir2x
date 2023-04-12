@@ -1,6 +1,6 @@
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         uidPostXML(uid, string.format(
         [[
             <layout>
@@ -9,7 +9,7 @@ setEventHandler(
                 <par><event id="npc_goto_1">展示</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE))
+        ]], uidQueryName(uid), getNPCName(), SYS_EXIT))
     end,
 
     ["npc_goto_1"] = function(uid, value)
@@ -45,7 +45,7 @@ setEventHandler(
         argDefault(uidDBGetKey(uid, 'fld_integer'), 0),
         argDefault(uidDBGetKey(uid, 'fld_text'), '(nil)'),
         clickCount,
-        SYS_NPCDONE)
+        SYS_EXIT)
 
         dbSetGKey('click_count', clickCount + 1)
         uidDBSetKey(uid, 'fld_float', 23.74589)

@@ -117,8 +117,8 @@ LuaModule::LuaModule()
     execString("SYS_DEBUG = %s", to_boolcstr(SYS_DEBUG));
     execString("SYS_GOLDNAME = \'%s\'", SYS_GOLDNAME);
 
-    execString("SYS_NPCINIT  = \'%s\'", SYS_NPCINIT );
-    execString("SYS_NPCDONE  = \'%s\'", SYS_NPCDONE );
+    execString("SYS_ENTER  = \'%s\'", SYS_ENTER );
+    execString("SYS_EXIT  = \'%s\'", SYS_EXIT );
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
     execString("SYS_EXECDONE = \'%s\'", SYS_EXECDONE);
 

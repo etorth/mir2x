@@ -539,7 +539,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                         }
                                     case UID_NPC:
                                         {
-                                            sendNPCEvent(uid, {}, SYS_NPCINIT);
+                                            sendNPCEvent(uid, {}, SYS_ENTER);
                                         }
                                     default:
                                         {

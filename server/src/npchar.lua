@@ -17,7 +17,7 @@ end
 
 -- merchant event handler, optional, structured as
 -- {
---     [SYS_NPCINIT] = function(uid, value)
+--     [SYS_ENTER] = function(uid, value)
 --     end
 --
 --     ['npc_tag_1'] = function(uid, value)
@@ -34,7 +34,7 @@ local _RSVD_NAME_EPDEF_eventHandlers = nil
 --             -- return true if this quest can be activated for given uid
 --         end
 --
---         [SYS_NPCINIT] = function(uid, value)
+--         [SYS_ENTER] = function(uid, value)
 --         end
 --
 --         ['npc_tag_1'] = function(uid, value)
@@ -47,7 +47,7 @@ local _RSVD_NAME_EPDEF_eventHandlers = nil
 --             -- return true if this quest can be activated for given uid
 --         end
 --
---         [SYS_NPCINIT] = function(uid, value)
+--         [SYS_ENTER] = function(uid, value)
 --         end
 --
 --         ['npc_tag_1'] = function(uid, value)
@@ -78,7 +78,7 @@ local _RSVD_NAME_EPQST_eventHandlers = {}
 -- {
 --     [1234567] = {
 --         ['商人的灵魂'] = {
---             [SYS_NPCINIT] = function(uid, value)
+--             [SYS_ENTER] = function(uid, value)
 --             end
 --
 --             ['npc_tag_1'] = function(uid, value)
@@ -86,7 +86,7 @@ local _RSVD_NAME_EPQST_eventHandlers = {}
 --         },
 --
 --         ['王寡妇的剪刀'] = {
---             [SYS_NPCINIT] = function(uid, value)
+--             [SYS_ENTER] = function(uid, value)
 --             end
 --
 --             ['npc_tag_1'] = function(uid, value)
@@ -96,7 +96,7 @@ local _RSVD_NAME_EPQST_eventHandlers = {}
 --
 --     [1034297] = {
 --         ['半兽人的传闻'] = {
---             [SYS_NPCINIT] = function(uid, value)
+--             [SYS_ENTER] = function(uid, value)
 --             end
 --
 --             ['npc_tag_1'] = function(uid, value)
@@ -221,12 +221,12 @@ function setEventHandler(eventHandler)
     end
 
     assertType(eventHandler, 'table')
-    if eventHandler[SYS_NPCINIT] == nil then
-        fatalPrintf('Event handler does not support SYS_NPCINIT')
+    if eventHandler[SYS_ENTER] == nil then
+        fatalPrintf('Event handler does not support SYS_ENTER')
     end
 
-    if type(eventHandler[SYS_NPCINIT]) ~= 'function' then
-        fatalPrintf('Event handler for SYS_NPCINIT is not callable')
+    if type(eventHandler[SYS_ENTER]) ~= 'function' then
+        fatalPrintf('Event handler for SYS_ENTER is not callable')
     end
 
     _RSVD_NAME_EPDEF_eventHandlers = eventHandler
@@ -260,7 +260,7 @@ end
 function setQuestHandler(quest, questHandler)
     assertType(quest, 'string')
     assertType(questHandler, 'table')
-    assertType(questHandler[SYS_NPCINIT], 'function')
+    assertType(questHandler[SYS_ENTER], 'function')
     assertType(questHandler[SYS_CHECKACTIVE], 'function', 'nil')
     _RSVD_NAME_EPQST_eventHandlers[quest] = questHandler
 end
@@ -294,7 +294,7 @@ function setUIDQuestHandler(uid, quest, questHandler)
     assertType(uid, 'integer')
     assertType(quest, 'string')
     assertType(questHandler, 'table')
-    assertType(questHandler[SYS_NPCINIT], 'function')
+    assertType(questHandler[SYS_ENTER], 'function')
 
     if _RSVD_NAME_activeQuestEventHandlers[uid] == nil then
         _RSVD_NAME_activeQuestEventHandlers[uid] = {}
@@ -366,10 +366,10 @@ function _RSVD_NAME_npc_main(from, path, event, value)
                 <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end
 
-    if path == nil and event == SYS_NPCINIT then
+    if path == nil and event == SYS_ENTER then
         -- click to NPC
         -- need to check all possible event handlers
 
@@ -390,7 +390,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         end
 
         local entryCount = #qstEntryList + #uidEntryList
-        if hasEventHandler(SYS_NPCINIT) then
+        if hasEventHandler(SYS_ENTER) then
             entryCount = entryCount + 1
         end
 
@@ -401,11 +401,11 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             -- only one entry
             -- no need to create menu, just redirect to corresponding entry function
             if not tableEmpty(qstEntryList) then
-                _RSVD_NAME_EPQST_eventHandlers[qstEntryList[1]][SYS_NPCINIT](from, value)
+                _RSVD_NAME_EPQST_eventHandlers[qstEntryList[1]][SYS_ENTER](from, value)
             elseif not tableEmpty(uidEntryList) then
-                _RSVD_NAME_EPUID_eventHandlers[from][uidEntryList[1]][SYS_NPCINIT](from, value)
+                _RSVD_NAME_EPUID_eventHandlers[from][uidEntryList[1]][SYS_ENTER](from, value)
             else
-                _RSVD_NAME_EPDEF_eventHandlers[SYS_NPCINIT](from, value)
+                _RSVD_NAME_EPDEF_eventHandlers[SYS_ENTER](from, value)
             end
 
         else
@@ -422,31 +422,31 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             for _, v in ipairs(qstEntryList) do
                 table.insert(xmlStrs, string.format([[
                     <par><event id="%s" path="%s/%s">%s</event></par>
-                ]], SYS_NPCINIT, SYS_EPQST, v, v))
+                ]], SYS_ENTER, SYS_EPQST, v, v))
             end
 
             for _, v in ipairs(uidEntryList) do
                 table.insert(xmlStrs, string.format([[
                     <par><event id="%s" path="%s/%s">%s</event></par>
-                ]], SYS_NPCINIT, SYS_EPQST, v, v))
+                ]], SYS_ENTER, SYS_EPQST, v, v))
             end
 
-            if hasEventHandler(SYS_NPCINIT) then
+            if hasEventHandler(SYS_ENTER) then
                 table.insert(xmlStrs, string.format([[
                     <par><event id="%s">随便聊聊</event></par>
-                ]], SYS_NPCINIT))
+                ]], SYS_ENTER))
             end
 
             table.insert(xmlStrs, string.format([[
                     <par></par>
                     <par><event id="%s">退出</event></par>
                 </layout>
-            ]], SYS_NPCDONE))
+            ]], SYS_EXIT))
 
             uidPostXML(from, table.concat(xmlStrs))
         end
 
-    elseif event ~= SYS_NPCDONE then
+    elseif event ~= SYS_EXIT then
         -- not initial click to NPC
         -- needs to parse event path to find correct event handler
 

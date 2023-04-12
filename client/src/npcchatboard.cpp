@@ -71,7 +71,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           [this]()
           {
               setShow(false);
-              m_process->sendNPCEvent(m_npcUID, m_eventPath, SYS_NPCDONE);
+              m_process->sendNPCEvent(m_npcUID, m_eventPath, SYS_EXIT);
           },
 
           0,
@@ -192,7 +192,7 @@ void NPCChatBoard::onClickEvent(const char *path, const char *id, const char *ar
     fflassert(str_haschar(id));
     m_process->sendNPCEvent(m_npcUID, path, id, arg ? std::make_optional<std::string>(arg) : std::nullopt);
 
-    if(std::string_view(id).ends_with(SYS_NPCDONE)){
+    if(std::string_view(id).ends_with(SYS_EXIT)){
         setShow(false);
     }
 }

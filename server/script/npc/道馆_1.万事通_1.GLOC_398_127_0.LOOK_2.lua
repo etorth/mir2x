@@ -1,7 +1,7 @@
 local dq = require('npc.include.dailyquest')
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
@@ -11,7 +11,7 @@ setEventHandler(
                 <par><event id="npc_goto_2">对今日的任务进行了解</event></par>
                 <par><event id="%s">结束</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 
     ["npc_goto_1"] = function(uid, value)
@@ -41,7 +41,7 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], SYS_NPCINIT, SYS_NPCDONE)
+        ]], SYS_ENTER, SYS_EXIT)
     end,
 
     ["npc_goto_2"] = function(uid, value)
@@ -53,7 +53,7 @@ setEventHandler(
                     <par></par>
                     <par><event id="%s">结束</event></par>
                 </layout>
-            ]], SYS_NPCDONE)
+            ]], SYS_EXIT)
         else
             dq.setQuest(0, uid, value)
         end

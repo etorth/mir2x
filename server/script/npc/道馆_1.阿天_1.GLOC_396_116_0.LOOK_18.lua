@@ -1,7 +1,7 @@
 local invop = require('npc.include.invop')
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         uidPostXML(uid,
         [[
             <layout>
@@ -15,7 +15,7 @@ setEventHandler(
                 <par><event id="npc_goto_daily_quest">对今日的任务进行了解</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], getSubukGuildName(), SYS_NPCDONE)
+        ]], getSubukGuildName(), SYS_EXIT)
     end,
 
     ["npc_goto_secure"] = function(uid, value)
@@ -27,7 +27,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
         invop.uidStartSecure(uid, "npc_goto_secure_query", "npc_goto_secure_commit", {'恢复药水', '武器', '药粉', '传送卷轴', '技能书', '护身符', '头盔', '戒指', '手镯', '项链', '衣服', '鞋'})
     end,
 
@@ -40,7 +40,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
     end,
 
     ["npc_goto_secure_commit"] = function(uid, value)
@@ -55,7 +55,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
     end,
 
     ["npc_goto_get_back"] = function(uid, value)
@@ -67,7 +67,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
         uidShowSecuredItemList(uid)
     end,
 
@@ -80,7 +80,7 @@ setEventHandler(
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_NPCINIT)
+        ]], SYS_ENTER)
         invop.postStartInput(uid, '<layout><par>请输入密码</par></layout>', 'npc_goto_get_set_password_1', true)
     end,
 
@@ -94,7 +94,7 @@ setEventHandler(
 
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], value, SYS_NPCDONE)
+        ]], value, SYS_EXIT)
         invop.postStartInput(uid, '<layout><par>请确认密码</par></layout>', 'npc_goto_get_set_password_2', true)
     end,
 
@@ -109,7 +109,7 @@ setEventHandler(
                     <par><event id="%s">前一步</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCINIT, SYS_NPCDONE)
+            ]], SYS_ENTER, SYS_EXIT)
         else
             uidPostXML(uid,
             [[
@@ -120,7 +120,7 @@ setEventHandler(
                     <par><event id="%s">设置密码</event></par>
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], "npc_goto_set_password", SYS_NPCDONE)
+            ]], "npc_goto_set_password", SYS_EXIT)
         end
 
         uidExecute(uid, [[ _G.RSVD_NAME_%s_firstPasswordInput = nil ]], hexString(getNPCFullName()))
@@ -135,6 +135,6 @@ setEventHandler(
 
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], SYS_NPCDONE)
+        ]], SYS_EXIT)
     end,
 })

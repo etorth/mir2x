@@ -20,7 +20,7 @@ end
 
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         uidPostXML(uid, string.format(
         [[
             <layout>
@@ -29,7 +29,7 @@ setEventHandler(
                 <par><event id="event_post_sell">购买</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], uidQueryName(uid), getNPCName(), SYS_NPCDONE))
+        ]], uidQueryName(uid), getNPCName(), SYS_EXIT))
     end,
 
     ["event_post_sell"] = function(uid, value)

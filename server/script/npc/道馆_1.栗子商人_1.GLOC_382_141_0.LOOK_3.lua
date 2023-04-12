@@ -22,7 +22,7 @@ local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
                 <par><event id="%s">前一步</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], priceTable[chestnutName], currTagName, chestnutName, chestnutName, lastTagName, SYS_NPCDONE)
+        ]], priceTable[chestnutName], currTagName, chestnutName, chestnutName, lastTagName, SYS_EXIT)
     else
         uidPostXML(uid,
         [[
@@ -32,13 +32,13 @@ local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
 
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], chestnutName, SYS_NPCDONE)
+        ]], chestnutName, SYS_EXIT)
     end
 end
 
 setEventHandler(
 {
-    [SYS_NPCINIT] = function(uid, value)
+    [SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
             uidPostXML(uid,
             [[
@@ -48,7 +48,7 @@ setEventHandler(
 
                     <par><event id="%s">关闭</event></par>
                 </layout>
-            ]], SYS_NPCDONE)
+            ]], SYS_EXIT)
         else
             uidPostXML(uid,
             [[
@@ -63,11 +63,11 @@ setEventHandler(
                     <par><event id="npc_goto_trade" arg="褐色栗子">带来了褐色栗子，你要卖吗？</event></par>
                     <par><event id="%s">马上去给你找</event></par>
                 </layout>
-            ]], SYS_NPCDONE)
+            ]], SYS_EXIT)
         end
     end,
 
     ["npc_goto_trade"] = function(uid, value)
-        onSellChestnut(uid, value, "npc_goto_trade", SYS_NPCINIT)
+        onSellChestnut(uid, value, "npc_goto_trade", SYS_ENTER)
     end,
 })
