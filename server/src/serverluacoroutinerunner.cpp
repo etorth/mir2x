@@ -35,11 +35,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                     {
                         const auto sdRCR = mpk.deserialize<SDRemoteCallResult>();
                         if(sdRCR.error.empty()){
-                            std::vector<sol::object> resList;
-                            for(const auto &v: cerealf::deserialize<std::vector<luaf::luaVar>>(sdRCR.serVarList)){
-                                resList.push_back(luaf::buildLuaObj(onDone.getStateView(), v));
-                            }
-                            onDone(SYS_EXECDONE, sol::as_args(resList));
+                            onDone(SYS_EXECDONE, sol::as_args(cerealf::deserialize<std::vector<luaf::luaVar>>(sdRCR.serVarList)));
                         }
                         else{
                             // don't need to handle remote call error, peer side has reported the error

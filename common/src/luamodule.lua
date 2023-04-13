@@ -35,6 +35,12 @@ function assertType(var, ...)
             fatalPrintf('invalid type string, expect string, get %s', type(typestr))
         end
 
+        if typestr == 'table' then
+            if isTable(var) then
+                return var
+            end
+        end
+
         if type(var) == 'number' then
             if math.type(var) == typestr then
                 return var
@@ -48,8 +54,10 @@ function assertType(var, ...)
 
     if #typestrs == 0 then
         fatalPrintf('invalid argument: no type string provided')
+
     elseif #typestrs == 1 then
         fatalPrintf('assertion failed: expect %s, get %s', typestrs[1], type(var))
+
     else
         local i = 1
         local errStrs = {}
@@ -81,8 +89,33 @@ function assertValue(var, value)
     end
 end
 
+function isTable(t)
+    if type(t) == 'table' then
+        return true
+    elseif type(t) == 'userdata' then
+        local mt = getmetatable(t)
+        if not mt then
+            return false
+        elseif not mt.__len then
+            return false
+        elseif not mt.__index then
+            return false
+        elseif not mt.__newindex then
+            return false
+        elseif not mt.__pairs then
+            return false
+        elseif not mt.__ipairs then
+            return false
+        else
+            return true
+        end
+    else
+        return false
+    end
+end
+
 function isArray(tbl)
-    if type(tbl) ~= 'table' then
+    if not isTable(tbl) then
         return false
     end
 
@@ -214,6 +247,8 @@ function tableEmpty(t, allowNil)
         return true
     elseif type(t) == 'table' then
         return next(t) == nil
+    elseif isTable(t) then
+        return #t == 0
     else
         fatalPrintf('invalid argument: tableEmpty(%s)', type(t))
     end

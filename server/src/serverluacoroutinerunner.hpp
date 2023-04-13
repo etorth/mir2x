@@ -47,7 +47,6 @@ class LuaCoopResumer
 
     private:
         sol::function m_callback;
-        sol::this_state m_luaState;
 
     private:
         const uint64_t m_threadKey;
@@ -57,10 +56,9 @@ class LuaCoopResumer
         const LuaCoopCallDoneFlag m_doneFlag;
 
     public:
-        LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, sol::function callback, sol::this_state luaState, uint64_t threadKey, uint64_t threadSeqID, const LuaCoopCallDoneFlag &doneFlag)
+        LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, sol::function callback, uint64_t threadKey, uint64_t threadSeqID, const LuaCoopCallDoneFlag &doneFlag)
             : m_luaRunner(luaRunner)
             , m_callback(std::move(callback))
-            , m_luaState(luaState)
             , m_threadKey(threadKey)
             , m_threadSeqID(threadSeqID)
             , m_doneFlag(doneFlag)
@@ -68,11 +66,11 @@ class LuaCoopResumer
 
     public:
         LuaCoopResumer(const LuaCoopResumer & resumer)
-            : LuaCoopResumer(resumer.m_luaRunner, resumer.m_callback, resumer.m_luaState, resumer.m_threadKey, resumer.m_threadSeqID, resumer.m_doneFlag)
+            : LuaCoopResumer(resumer.m_luaRunner, resumer.m_callback, resumer.m_threadKey, resumer.m_threadSeqID, resumer.m_doneFlag)
         {}
 
         LuaCoopResumer(LuaCoopResumer && resumer)
-            : LuaCoopResumer(resumer.m_luaRunner, std::move(resumer.m_callback), resumer.m_luaState, resumer.m_threadKey, resumer.m_threadSeqID, resumer.m_doneFlag /* always copy doneFlag */)
+            : LuaCoopResumer(resumer.m_luaRunner, std::move(resumer.m_callback), resumer.m_threadKey, resumer.m_threadSeqID, resumer.m_doneFlag /* always copy doneFlag */)
         {}
 
     public:
@@ -89,11 +87,6 @@ class LuaCoopResumer
             if(m_doneFlag){
                 resumeRunner(m_luaRunner, m_threadKey, m_threadSeqID);
             }
-        }
-
-        sol::state_view getStateView() const
-        {
-            return sol::state_view(m_luaState);
         }
 
     private:
@@ -233,14 +226,14 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             fflassert(str_haschar(funcName));
             bindFunction(funcName + SYS_COOP, [this](auto && func)
             {
-                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaArgsAsTuple<Func>::type args, sol::function cb, uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
+                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaArgsAsTuple<Func>::type args, sol::function cb, uint64_t threadKey, uint64_t threadSeqID)
                 {
                     fflassert(threadKey);
                     fflassert(threadSeqID); // don't allow 0 internally
                     fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID); // called from lua coroutine, must be valid
 
                     const LuaCoopCallDoneFlag doneFlag;
-                    std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, s, threadKey, threadSeqID, doneFlag)), std::move(args)));
+                    std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, threadSeqID, doneFlag)), std::move(args)));
                 };
             }(std::forward<Func>(func)));
         }
