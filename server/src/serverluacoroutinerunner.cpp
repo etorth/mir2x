@@ -21,21 +21,28 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
-    bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, uint64_t uid, std::string code)
+    bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, sol::this_state s, uint64_t uid, std::string code)
     {
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
         {
             .code = code,
         })},
 
-        [uid, onDone](const ActorMsgPack &mpk)
+        [s, uid, onDone](const ActorMsgPack &mpk)
         {
             switch(mpk.type()){
                 case AM_SDBUFFER:
                     {
+                        // TODO shall we check if s still valid ?
+                        // coroutine can be closed when the remote call is still in progress
+
                         const auto sdRCR = mpk.deserialize<SDRemoteCallResult>();
                         if(sdRCR.error.empty()){
-                            onDone(SYS_EXECDONE, sol::as_args(cerealf::deserialize<std::vector<luaf::luaVar>>(sdRCR.serVarList)));
+                            std::vector<sol::object> resList;
+                            for(auto && var: cerealf::deserialize<std::vector<luaf::luaVar>>(sdRCR.serVarList)){
+                                resList.emplace_back(luaf::buildLuaObj(sol::state_view(s), std::move(var)));
+                            }
+                            onDone(SYS_EXECDONE, sol::as_args(resList));
                         }
                         else{
                             // don't need to handle remote call error, peer side has reported the error

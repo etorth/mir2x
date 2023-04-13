@@ -1,6 +1,7 @@
 #pragma once
 #include <concepts>
 #include <functional>
+#include <type_traits>
 #include <sol/sol.hpp>
 #include "totype.hpp"
 #include "serverluamodule.hpp"
@@ -207,17 +208,44 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         }
 
     private:
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...));
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...) const );
+        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...));
+        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...) const );
+        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, sol::this_state, Args...));
+        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, sol::this_state, Args...) const );
 
-        template<typename Lambda> struct _extractLambdaArgsAsTuple
+        template<typename Lambda, typename Ret                                 > static void _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer));
+        template<typename Lambda, typename Ret                                 > static void _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer) const);
+        template<typename Lambda, typename Ret, typename Arg2, typename... Args> static Arg2 _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer, Arg2, Args...));
+        template<typename Lambda, typename Ret, typename Arg2, typename... Args> static Arg2 _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer, Arg2, Args...) const );
+
+        template<typename Lambda> struct _extractLambdaUserArgsAsTuple
         {
-            using type = decltype(_extractLambdaArgsHelper(&Lambda::operator()));
+            using type = decltype(_extractLambdaUserArgsHelper(&Lambda::operator()));
         };
 
-        template<typename Ret, typename... Args> struct _extractLambdaArgsAsTuple<Ret(*)(LuaCoopResumer, Args...)>
+        template<typename Ret, typename... Args> struct _extractLambdaUserArgsAsTuple<Ret(*)(LuaCoopResumer, Args...)>
         {
             using type = std::tuple<Args...>;
+        };
+
+        template<typename Ret, typename... Args> struct _extractLambdaUserArgsAsTuple<Ret(*)(LuaCoopResumer, sol::this_state, Args...)>
+        {
+            using type = std::tuple<Args...>;
+        };
+
+        template<typename Lambda> struct _extractLambdaSecondArg
+        {
+            using type = decltype(_extractLambdaSecondArgHelper(&Lambda::operator()));
+        };
+
+        template<typename Ret> struct _extractLambdaSecondArg<Ret(*)(LuaCoopResumer)>
+        {
+            using type = void;
+        };
+
+        template<typename Ret, typename Arg2, typename... Args> struct _extractLambdaSecondArg<Ret(*)(LuaCoopResumer, Arg2, Args...)>
+        {
+            using type = Arg2;
         };
 
     public:
@@ -226,14 +254,21 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             fflassert(str_haschar(funcName));
             bindFunction(funcName + SYS_COOP, [this](auto && func)
             {
-                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaArgsAsTuple<Func>::type args, sol::function cb, uint64_t threadKey, uint64_t threadSeqID)
+                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaUserArgsAsTuple<Func>::type args, sol::function cb, uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
                 {
+                    fflassert(s.lua_state());
+
                     fflassert(threadKey);
                     fflassert(threadSeqID); // don't allow 0 internally
                     fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID); // called from lua coroutine, must be valid
 
                     const LuaCoopCallDoneFlag doneFlag;
-                    std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, threadSeqID, doneFlag)), std::move(args)));
+                    if constexpr (std::is_same_v<sol::this_state, typename _extractLambdaSecondArg<Func>::type>){
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, threadSeqID, doneFlag), s), std::move(args)));
+                    }
+                    else{
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, threadSeqID, doneFlag)), std::move(args)));
+                    }
                 };
             }(std::forward<Func>(func)));
         }

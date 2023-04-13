@@ -89,6 +89,31 @@ sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaVar v)
     }, v);
 }
 
+sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaVarWrapper w)
+{
+    return luaf::buildLuaObj(sv, luaf::luaVar(std::move(w)));
+}
+
+sol::object luaf::buildLuaObj(sol::state_view sv, lua_Integer v)
+{
+    return sol::object(sv, sol::in_place_type<lua_Integer>, v);
+}
+
+sol::object luaf::buildLuaObj(sol::state_view sv, double v)
+{
+    return sol::object(sv, sol::in_place_type<double>, v);
+}
+
+sol::object luaf::buildLuaObj(sol::state_view sv, bool v)
+{
+    return sol::object(sv, sol::in_place_type<bool>, v);
+}
+
+sol::object luaf::buildLuaObj(sol::state_view sv, std::string v)
+{
+    return sol::object(sv, sol::in_place_type<std::string>, std::move(v));
+}
+
 luaf::luaVar luaf::buildLuaVar(luaf::luaVarWrapper w)
 {
     if(w == luaf::luaNil()){

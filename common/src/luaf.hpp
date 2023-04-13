@@ -74,9 +74,9 @@ namespace luaf
 
 namespace luaf
 {
-    // luaVarWrapper should behave exactly same as luaVar
-    // but it helps to get rid of type dependency, C++ can not recursively define types
-    class luaVarWrapper
+    // luaVarWrapper behaves exactly same as luaVar
+    // use it to avoid type dependency, C++ can not recursively define types
+    class luaVarWrapper final
     {
         private:
             friend struct _details::_luaVarWrapperHash;
@@ -85,7 +85,7 @@ namespace luaf
             std::unique_ptr<luaVar> m_ptr; // don't share underlaying variable
 
         public:
-            /**/  luaVarWrapper() = default;  // default initialized as luaNil
+            /**/  luaVarWrapper() = default; // default initialized as luaNil
             /**/ ~luaVarWrapper() = default;
 
         public:
@@ -94,7 +94,7 @@ namespace luaf
             {}
 
         public:
-            luaVarWrapper(luaNil)       // no need to allocate memory if holding luaNil
+            luaVarWrapper(luaNil) // no need to allocate memory if holding luaNil
                 : luaVarWrapper()
             {}
 
@@ -153,13 +153,22 @@ namespace luaf
 
 namespace luaf
 {
-    template<typename T> sol::object buildLuaObj(sol::state_view sv, T t)
-    {
-        return sol::object(sv, sol::in_place_type<std::remove_cvref_t<decltype(t)>>, std::move(t));
-    }
+    // sol is overly flexible to create sol::object
+    // don't use generic template
+    //
+    //   template<typename T> sol::object buildLuaObj(sol::state_view, T)
+    //
+    // implement all possible types explicitly instead
 
     sol::object buildLuaObj(sol::state_view, luaNil);
     sol::object buildLuaObj(sol::state_view, luaVar);
+    sol::object buildLuaObj(sol::state_view, luaVarWrapper);
+
+    sol::object buildLuaObj(sol::state_view sv, lua_Integer);
+    sol::object buildLuaObj(sol::state_view sv, double);
+    sol::object buildLuaObj(sol::state_view sv, bool);
+    sol::object buildLuaObj(sol::state_view sv, std::string);
+
 
     template<typename T> luaVar buildLuaVar(T t)
     {
