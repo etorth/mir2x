@@ -47,10 +47,15 @@ setEventHandler(
 
         local i = 1
         while i < 100 do
-            local mapID, x, y = uidExecute(uid, [[ return randomMove() ]])
-            if mapID ~= nil then
-                i = i + 1
-                pause(1000)
+            local done, firstRes = pcall(uidExecute, uid, [[ return randomMove() ]])
+            if done then
+                if firstRes ~= nil then
+                    i = i + 1
+                    pause(1000)
+                end
+            else
+                addLog(LOGTYPE_WARNING, 'randomMove(%d) failed: %s', uid, firstRes)
+                break
             end
         end
     end,

@@ -71,13 +71,12 @@ function uidExecute(uid, code, ...)
     local resList = {_RSVD_NAME_callFuncCoop('uidExecute', uid, code:format(...))}
     local resType = resList[1]
 
-    assertType(resType, 'string')
     if resType == SYS_EXECDONE then
         return table.unpack(resList, 2)
     elseif resType == SYS_BADUID then
-        fatalPrintf('Invalid uid %d', uid)
+        fatalPrintf('Invalid uid: %d', uid)
     else
-        fatalPrintf('Unknown error %s', resType)
+        fatalPrintf('Unknown error')
     end
 end
 
