@@ -120,6 +120,8 @@ LuaModule::LuaModule()
     execString("SYS_ENTER  = \'%s\'", SYS_ENTER );
     execString("SYS_EXIT  = \'%s\'", SYS_EXIT );
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
+
+    execString("SYS_BADUID   = \'%s\'", SYS_BADUID);
     execString("SYS_EXECDONE = \'%s\'", SYS_EXECDONE);
 
     execString("SYS_EPDEF = \'%s\'", SYS_EPDEF);

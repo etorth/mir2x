@@ -67,56 +67,18 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     return table.unpack(result)
 end
 
-local function _RSVD_NAME_waitRemoteCallResult()
-    local tls = getTLSTable()
-    local threadKey = tls.threadKey
-    local threadSeqID = tls.threadSeqID
-
-    while true do
-        local resList = {_RSVD_NAME_pollRemoteCallResult(threadKey, threadSeqID)}
-        if next(resList) == nil then
-            coroutine.yield()
-        else
-            local from  = resList[1]
-            local event = resList[2]
-
-            assertType(from, 'integer')
-            assertType(event, 'string')
-
-            return table.unpack(resList)
-        end
-    end
-end
-
--- send lua code to uid to execute
--- used to support complicated logic through actor message
-local function _RSVD_NAME_uidExecute(uid, code)
-    assertType(uid, 'integer')
-    assertType(code, 'string')
-
-    -- access tls table
-    -- this helps to confirm we call this function in a coroutine
-
-    local tls = getTLSTable()
-    local threadKey = tls.threadKey
-    local threadSeqID = tls.threadSeqID
-
-    _RSVD_NAME_sendRemoteCall(threadKey, threadSeqID, uid, code)
-
-    local resList = {_RSVD_NAME_waitRemoteCallResult()}
-    if resList[1] ~= uid then
-        fatalPrintf('Send lua code to uid %s but get response from %d', uid, resList[1])
-    end
-
-    if resList[2] ~= SYS_EXECDONE then
-        fatalPrintf('Wait event as SYS_EXECDONE but get %s', resList[2])
-    end
-
-    return table.unpack(resList, 3)
-end
-
 function uidExecute(uid, code, ...)
-    return _RSVD_NAME_uidExecute(uid, code:format(...))
+    local resList = {_RSVD_NAME_callFuncCoop('uidExecute', uid, code:format(...))}
+    local resType = resList[1]
+
+    assertType(resType, 'string')
+    if resType == SYS_EXECDONE then
+        return table.unpack(resList, 2)
+    elseif resType == SYS_BADUID then
+        fatalPrintf('Invalid uid %d', uid)
+    else
+        fatalPrintf('Unknown error %s', resType)
+    end
 end
 
 local _RSVD_NAME_triggerConfigList = {

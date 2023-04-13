@@ -21,131 +21,48 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
-    bindFunction("_RSVD_NAME_sendRemoteCall", [this](uint64_t threadKey, uint64_t threadSeqID, uint64_t uid, std::string code)
+    bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, uint64_t uid, std::string code)
     {
-        fflassert(threadKey);
-        fflassert(threadSeqID); // don't allow 0 internally
-
-        if(!hasKey(threadKey, threadSeqID)){
-            throw fflerror("calling sendRemoteCall(%llu, %llu, %llu, %s) outside of ServerLuaCoroutineRunner", to_llu(threadKey), to_llu(threadSeqID), to_llu(uid), to_cstr(concatCode(code)));
-        }
-
-        const LuaCoopCallDoneFlag doneFlag;
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
         {
             .code = code,
         })},
 
-        [doneFlag, threadKey, threadSeqID, uid, code /* not ref */, this](const ActorMsgPack &mpk)
+        [uid, onDone](const ActorMsgPack &mpk)
         {
-            if(uid != mpk.from() && mpk.type() != AM_BADACTORPOD){
-                throw fflerror("lua code sent to uid %llu but get response %s from %llu", to_llu(uid),  mpkName(mpk.type()), to_llu(mpk.from()));
-            }
-
-            if(mpk.seqID()){
-                throw fflerror("remote call responder expects response");
-            }
-
-            const auto p = m_runnerList.find(threadKey);
-            if(p == m_runnerList.end() || p->second->seqID != threadSeqID){
-                // can not find runner
-                // runner can be cancelled already, or just an error
-
-                // but hard to tell if this is an error
-                // because we didn't record keys of cancelled runners
-                return;
-            }
-
-            if(!p->second->callback){
-                throw fflerror("coroutine is not callable");
-            }
-
-            p->second->clearEvent();
-            p->second->from = mpk.from();
-
             switch(mpk.type()){
                 case AM_SDBUFFER:
                     {
-                        // setup the call event/value as result
-                        // event/value get consumed in _RSVD_NAME_pollRemoteCallResult()
-
-                        p->second->event = SYS_EXECDONE;
-                        p->second->value = std::string(reinterpret_cast<const char *>(mpk.data()), mpk.size());
+                        const auto sdRCR = mpk.deserialize<SDRemoteCallResult>();
+                        if(sdRCR.error.empty()){
+                            std::vector<sol::object> resList;
+                            for(const auto &v: cerealf::deserialize<std::vector<luaf::luaVar>>(sdRCR.serVarList)){
+                                resList.push_back(luaf::buildLuaObj(onDone.getStateView(), v));
+                            }
+                            onDone(SYS_EXECDONE, sol::as_args(resList));
+                        }
+                        else{
+                            // don't need to handle remote call error, peer side has reported the error
+                            // _RSVD_NAME_uidExecute always returns valid result from remote peer to lua layer if not throw
+                            fflassert(sdRCR.serVarList.empty(), sdRCR.error, sdRCR.serVarList);
+                            for(const auto &line: sdRCR.error){
+                                g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                            }
+                            throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(uid)));
+                        }
+                        break;
+                    }
+                case AM_BADACTORPOD:
+                    {
+                        onDone(SYS_BADUID);
                         break;
                     }
                 default:
                     {
-                        // any message other than AM_SDBUFFER means bad uid
-                        // still need to inform current runner
-
-                        p->second->event = SYS_BADUID;
-                        p->second->value.clear();
-                        break;
+                        throw fflerror("lua call failed in %s: %s", to_cstr(uidf::getUIDString(uid)), mpkName(mpk.type()));
                     }
-            }
-
-            // comsume the event
-            // call the coroutine to make it fail or stuck at next _RSVD_NAME_pollRemoteCallResult()
-            if(doneFlag){
-                resumeRunner(p->second.get());
             }
         });
-    });
-
-    bindFunction("_RSVD_NAME_pollRemoteCallResult", [this](uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
-    {
-        fflassert(threadKey);
-        fflassert(threadSeqID); // don't allow 0 internally
-
-        sol::state_view sv(s);
-        return sol::as_returns([threadKey, threadSeqID, &sv, this]() -> std::vector<sol::object>
-        {
-            if(auto p = m_runnerList.find(threadKey); p != m_runnerList.end() && p->second->seqID == threadSeqID){
-                const auto from  = p->second->from;
-                const auto event = std::move(p->second->event);
-                const auto value = std::move(p->second->value);
-
-                p->second->clearEvent();
-                if(!from){
-                    return {};
-                }
-
-                fflassert(str_haschar(event));
-                std::vector<sol::object> eventStack
-                {
-                    sol::object(sv, sol::in_place_type<uint64_t>, from),
-                    sol::object(sv, sol::in_place_type<std::string>, event),
-                };
-
-                if(event == SYS_BADUID){
-                    // shouldn't throw here, only assert value's zero-length
-                    // because uid can turn invalid after validation, lua script need to handle this
-                    fflassert(value.empty(), value);
-                }
-                else if(event == SYS_EXECDONE){
-                    const auto sdLCR = cerealf::deserialize<SDRemoteCallResult>(value);
-                    if(sdLCR.error.empty()){
-                        for(const auto &v: cerealf::deserialize<std::vector<luaf::luaVar>>(sdLCR.serVarList)){
-                            eventStack.push_back(luaf::buildLuaObj(sv, v));
-                        }
-                    }
-                    else{
-                        // lua script doesn't need to handle remote call error
-                        // _RSVD_NAME_pollRemoteCallResult always return valid result from remote peer if not throw
-                        fflassert(sdLCR.serVarList.empty(), sdLCR.error, sdLCR.serVarList);
-                        for(const auto &line: sdLCR.error){
-                            g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
-                        }
-                        throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(from)));
-                    }
-                }
-                else{
-                    throw fflerror("invalid remote call event: %s", to_cstr(event));
-                }
-                return eventStack;
-            }
-            throw fflerror("can't find coroutine: key = %llu, seqID = %llu", to_llu(threadKey), to_llu(threadSeqID));
-        }());
     });
 
     pfrCheck(execRawString(BEGIN_LUAINC(char)

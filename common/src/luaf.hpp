@@ -153,14 +153,13 @@ namespace luaf
 
 namespace luaf
 {
-    template<typename T> sol::object buildLuaObj(sol::state_view &sv, T t)
+    template<typename T> sol::object buildLuaObj(sol::state_view sv, T t)
     {
         return sol::object(sv, sol::in_place_type<std::remove_cvref_t<decltype(t)>>, std::move(t));
     }
 
-    sol::object buildLuaObj(sol::state_view &, luaNil);
-    sol::object buildLuaObj(sol::state_view &, luaVar);
-
+    sol::object buildLuaObj(sol::state_view, luaNil);
+    sol::object buildLuaObj(sol::state_view, luaVar);
 
     template<typename T> luaVar buildLuaVar(T t)
     {

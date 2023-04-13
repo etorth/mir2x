@@ -64,12 +64,12 @@ bool luaf::luaVarWrapper::operator == (const luaf::luaNil &) const
     return m_ptr == nullptr || m_ptr->index() == 0;
 }
 
-sol::object luaf::buildLuaObj(sol::state_view &sv, luaf::luaNil)
+sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaNil)
 {
     return sol::make_object(sv, sol::nil);
 }
 
-sol::object luaf::buildLuaObj(sol::state_view &sv, luaf::luaVar v)
+sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaVar v)
 {
     return std::visit(luaf::luaVarDispatcher
     {
