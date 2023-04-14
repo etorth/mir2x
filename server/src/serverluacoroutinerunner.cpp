@@ -85,14 +85,12 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         })});
     });
 
-    bindFunctionCoop("_RSVD_NAME_sendNotify", [this](LuaCoopResumer onDone, uint64_t uid, uint64_t threadKey, uint64_t threadSeqID, sol::variadic_args args)
+    bindFunctionCoop("_RSVD_NAME_sendNotify", [this](LuaCoopResumer onDone, uint64_t uid, uint64_t threadKey, uint64_t threadSeqID, sol::object notifyArg) //TODO support sol::variadic_args
     {
         std::vector<luaf::luaVar> argList;
-        argList.reserve(args.size());
+        argList.reserve(1);
 
-        for(const auto &arg: args){
-            argList.emplace_back(luaf::buildLuaVar(sol::object(arg)));
-        }
+        argList.emplace_back(luaf::buildLuaVar(notifyArg));
 
         m_actorPod->forward(uid, {AM_QUESTNOTIFY, cerealf::serialize(SDQuestNotify
         {
