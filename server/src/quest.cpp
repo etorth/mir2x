@@ -16,6 +16,11 @@ void Quest::onActivate()
         return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
     });
 
+    m_luaRunner->bindFunction("getUID", [this]() -> uint64_t
+    {
+        return UID();
+    });
+
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
     {
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
