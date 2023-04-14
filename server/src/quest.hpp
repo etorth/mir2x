@@ -27,5 +27,6 @@ class Quest final: public ServerObject
 
     protected:
         void on_AM_METRONOME      (const ActorMsgPack &);
+        void on_AM_QUESTNOTIFY    (const ActorMsgPack &);
         void on_AM_RUNQUESTTRIGGER(const ActorMsgPack &);
 };

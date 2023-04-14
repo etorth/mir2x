@@ -68,6 +68,66 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
+    bindFunction("postNotify", [this](uint64_t uid, uint64_t threadKey, uint64_t threadSeqID, sol::variadic_args args)
+    {
+        std::vector<luaf::luaVar> argList;
+        argList.reserve(args.size());
+
+        for(const auto &arg: args){
+            argList.emplace_back(luaf::buildLuaVar(sol::object(arg)));
+        }
+
+        m_actorPod->forward(uid, {AM_QUESTNOTIFY, cerealf::serialize(SDQuestNotify
+        {
+            .key = threadKey,
+            .seqID = threadSeqID,
+            .varList = std::move(argList),
+        })});
+    });
+
+    bindFunctionCoop("_RSVD_NAME_sendNotify", [this](LuaCoopResumer onDone, uint64_t uid, uint64_t threadKey, uint64_t threadSeqID, sol::variadic_args args)
+    {
+        std::vector<luaf::luaVar> argList;
+        argList.reserve(args.size());
+
+        for(const auto &arg: args){
+            argList.emplace_back(luaf::buildLuaVar(sol::object(arg)));
+        }
+
+        m_actorPod->forward(uid, {AM_QUESTNOTIFY, cerealf::serialize(SDQuestNotify
+        {
+            .key = threadKey,
+            .seqID = threadSeqID,
+            .varList = std::move(argList),
+        })},
+
+        [onDone](const ActorMsgPack &mpk)
+        {
+            switch(mpk.type()){
+                case AM_OK:
+                    {
+                        onDone(SYS_EXECDONE);
+                        break;
+                    }
+                default:
+                    {
+                        onDone();
+                        break;
+                    }
+            }
+        });
+    });
+
+    bindFunction("_RSVD_NAME_waitNotify", [this](uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
+    {
+        fflassert(threadKey);
+        fflassert(threadSeqID);
+        fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
+
+        auto runnerPtr = m_runnerList.find(threadKey)->second.get();
+        return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::move(runnerPtr->notifyList)));
+    });
+
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "serverluacoroutinerunner.lua"
     END_LUAINC()));

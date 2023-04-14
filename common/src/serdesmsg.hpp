@@ -12,6 +12,7 @@
 #include "fflerror.hpp"
 #include "protocoldef.hpp"
 #include "dbcomid.hpp"
+#include "luaf.hpp"
 
 struct SDInitQuest
 {
@@ -917,5 +918,17 @@ struct SDRemoteCallResult
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(error, serVarList);
+    }
+};
+
+struct SDQuestNotify
+{
+    uint64_t key = 0;
+    uint64_t seqID = 0;
+    std::vector<luaf::luaVar> varList {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(key, seqID, varList);
     }
 };

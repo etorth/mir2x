@@ -6,6 +6,36 @@ function _RSVD_NAME_luaCoroutineRunner_main(code)
     return (load(code))()
 end
 
+function sendNotify(...)
+    return _RSVD_NAME_callFuncCoop('sendNotify', ...)
+end
+
+function waitNotify(count)
+    assertType(count, 'integer', 'nil')
+
+    count = argDefault(count, 0)
+    assert(count >= 0, 'count must be non-negative')
+
+    local resList = _RSVD_NAME_waitNotify(getTLSTable().threadKey, getTLSTable().threadSeqID)
+    assertType(resList, 'table')
+
+    if count == 0 then
+        return resList
+    end
+
+    while #resList < count do
+        coroutine.yield()
+        local newResList = _RSVD_NAME_waitNotify(getTLSTable().threadKey, getTLSTable().threadSeqID)
+
+        assertType(newResList, 'table')
+        for k, v in pairs(newResList) do
+            table.insert(resList, v)
+        end
+    end
+
+    return resList
+end
+
 function _RSVD_NAME_callFuncCoop(funcName, ...)
     local result = nil
     local function onDone(...)

@@ -3,6 +3,7 @@
 #include <functional>
 #include <type_traits>
 #include <sol/sol.hpp>
+#include "luaf.hpp"
 #include "totype.hpp"
 #include "serverluamodule.hpp"
 
@@ -121,6 +122,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
             sol::thread runner;
             sol::coroutine callback;
+            std::vector<luaf::luaVar> notifyList;
 
             _CoroutineRunner(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone)
                 : key(argKey)
@@ -182,6 +184,14 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         {
             const auto p = m_runnerList.find(key);
             return (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID);
+        }
+
+    public:
+        void addNotify(uint64_t key, uint64_t seqID, std::vector<luaf::luaVar> notify)
+        {
+            if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+                p->second->notifyList.push_back(luaf::buildLuaVar(std::move(notify)));
+            }
         }
 
     private:

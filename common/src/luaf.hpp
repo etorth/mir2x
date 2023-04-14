@@ -169,10 +169,18 @@ namespace luaf
     sol::object buildLuaObj(sol::state_view sv, bool);
     sol::object buildLuaObj(sol::state_view sv, std::string);
 
-
     template<typename T> luaVar buildLuaVar(T t)
     {
         return luaVar(std::move(t));
+    }
+
+    template<template<typename> typename C, typename T, typename... Args> luaVar buildLuaVar(C<T, Args...> varList)
+    {
+        luaTable table;
+        for(lua_Integer i = 1; auto &v: varList){
+            table.emplace(luaVarWrapper(i++), std::move(v));
+        }
+        return table;
     }
 
     luaVar buildLuaVar(luaVarWrapper);

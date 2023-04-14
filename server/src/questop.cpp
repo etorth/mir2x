@@ -40,3 +40,14 @@ void Quest::on_AM_RUNQUESTTRIGGER(const ActorMsgPack &mpk)
         },
     }, mpk.deserialize<SDQuestTriggerVar>());
 }
+
+void Quest::on_AM_QUESTNOTIFY(const ActorMsgPack &mpk)
+{
+    auto sdQN = mpk.deserialize<SDQuestNotify>();
+    m_luaRunner->addNotify(sdQN.key, sdQN.seqID, std::move(sdQN.varList));
+    m_luaRunner->resume(sdQN.key, sdQN.seqID);
+
+    if(mpk.seqID()){
+        m_actorPod->forward(mpk.fromAddr(), AM_OK);
+    }
+}

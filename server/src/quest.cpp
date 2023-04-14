@@ -98,6 +98,11 @@ void Quest::operateAM(const ActorMsgPack &mpk)
                 on_AM_METRONOME(mpk);
                 break;
             }
+        case AM_QUESTNOTIFY:
+            {
+                on_AM_QUESTNOTIFY(mpk);
+                break;
+            }
         case AM_RUNQUESTTRIGGER:
             {
                 on_AM_RUNQUESTTRIGGER(mpk);
