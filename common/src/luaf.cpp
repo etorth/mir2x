@@ -153,6 +153,22 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
     }
 }
 
+std::vector<luaf::luaVar> luaf::vargBuildLuaVarList(const sol::variadic_args &args)
+{
+    fflassert(args.lua_state());
+    if(args.size() == 0){
+        return {};
+    }
+
+    std::vector<luaf::luaVar> result;
+    result.reserve(args.size());
+
+    for(const auto &arg: args){
+        result.push_back(luaf::buildLuaVar(sol::object(arg)));
+    }
+    return result;
+}
+
 std::vector<luaf::luaVar> luaf::pfrBuildLuaVarList(const sol::protected_function_result &pfr)
 {
     fflassert(pfr.valid());
@@ -167,4 +183,29 @@ std::vector<luaf::luaVar> luaf::pfrBuildLuaVarList(const sol::protected_function
         result.push_back(luaf::buildLuaVar(sol::object(r)));
     }
     return result;
+}
+
+std::ostream & operator << (std::ostream &os, const sol::object &obj)
+{
+    return os << str_any(luaf::buildLuaVar(obj));
+}
+
+std::ostream & operator << (std::ostream &os, const sol::variadic_args &args)
+{
+    return os << str_any(luaf::vargBuildLuaVarList(args));
+}
+
+std::ostream & operator << (std::ostream &os, const sol::protected_function_result &args)
+{
+    return os << str_any(luaf::pfrBuildLuaVarList(args));
+}
+
+std::ostream & operator << (std::ostream &os, const luaf::luaNil &)
+{
+    return os << "(luanil)";
+}
+
+std::ostream & operator << (std::ostream &os, const luaf::luaVarWrapper &wrapper)
+{
+    return os << str_any(luaf::luaVar(wrapper));
 }

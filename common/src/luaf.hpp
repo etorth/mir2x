@@ -138,12 +138,6 @@ namespace luaf
             bool operator == (const luaNil        &) const;
 
         public:
-            std::string str() const
-            {
-                return std::visit([](const auto &v) -> std::string { return str_any(v); }, *m_ptr);
-            }
-
-        public:
             template<typename Archive> void serialize(Archive & ar)
             {
                 ar(m_ptr);
@@ -186,15 +180,12 @@ namespace luaf
     luaVar buildLuaVar(luaVarWrapper);
     luaVar buildLuaVar(const sol::object &);
 
-    std::vector<luaVar> pfrBuildLuaVarList(const sol::protected_function_result &pfr);
+    std::vector<luaVar> vargBuildLuaVarList(const sol::variadic_args &);
+    std::vector<luaVar>  pfrBuildLuaVarList(const sol::protected_function_result &);
 }
 
-inline std::ostream & operator << (std::ostream &os, const luaf::luaVarWrapper &wrapper)
-{
-    return os << wrapper.str();
-}
-
-inline std::ostream & operator << (std::ostream &os, const luaf::luaNil &)
-{
-    return os << "(luanil)";
-}
+std::ostream & operator << (std::ostream &, const sol::object &);
+std::ostream & operator << (std::ostream &, const sol::variadic_args &);
+std::ostream & operator << (std::ostream &, const sol::protected_function_result &);
+std::ostream & operator << (std::ostream &, const luaf::luaNil &);
+std::ostream & operator << (std::ostream &, const luaf::luaVarWrapper &);
