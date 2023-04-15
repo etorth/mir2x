@@ -39,6 +39,8 @@ function setQuestState(uid, state)
     if not hasQuestState(state) then
         fatalPrintf('Invalid quest state: %s', state)
     end
+
+    dbSetUIDQuestState(uid, state)
     _RSVD_NAME_questFSMTable[state](uid)
 end
 
