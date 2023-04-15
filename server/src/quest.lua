@@ -21,6 +21,28 @@ function getNPCharUID(mapName, npcName)
     return npcUID
 end
 
+local _RSVD_NAME_questFSMTable = nil
+function setQuestFSMTable(fsm)
+    assertType(fsm, 'table')
+    assertType(fsm[SYS_ENTER], 'function')
+    assertType(fsm[SYS_EXIT ], 'function')
+    _RSVD_NAME_questFSMTable = fsm
+end
+
+function hasQuestState(state)
+    if not _RSVD_NAME_questFSMTable        then return false end
+    if not _RSVD_NAME_questFSMTable[state] then return false end
+    return true
+end
+
+function setQuestState(uid, state)
+    assertType(uid, 'integer')
+    if not hasQuestState(state) then
+        fatalPrintf('Invalid quest state: %s', state)
+    end
+    _RSVD_NAME_questFSMTable[state](uid)
+end
+
 local _RSVD_NAME_triggers = {}
 function addQuestTrigger(triggerType, callback)
     assertType(triggerType, 'integer')
