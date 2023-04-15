@@ -18,7 +18,7 @@ void Quest::onActivate()
 
     m_luaRunner->bindFunction("getQuestName", [this]() -> std::string
     {
-        return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
+        return getQuestName();
     });
 
     m_luaRunner->bindFunction("getUID", [this]() -> uint64_t

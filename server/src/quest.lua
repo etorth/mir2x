@@ -44,6 +44,10 @@ function setQuestState(uid, state)
     _RSVD_NAME_questFSMTable[state](uid)
 end
 
+function dbRestoreQuestState(uid)
+    setQuestState(uid, dbGetUIDQuestState(uid))
+end
+
 local _RSVD_NAME_triggers = {}
 function addQuestTrigger(triggerType, callback)
     assertType(triggerType, 'integer')

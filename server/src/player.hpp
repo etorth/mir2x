@@ -291,6 +291,9 @@ class Player final: public BattleObject
         void dbLearnMagic(uint32_t);
         void dbAddMagicExp(uint32_t, size_t);
 
+    private:
+        std::vector<std::string> dbLoadQuestNameList() const;
+
     protected:
         void checkFriend(uint64_t, std::function<void(int)>) override;
 
