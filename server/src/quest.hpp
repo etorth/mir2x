@@ -22,6 +22,12 @@ class Quest final: public ServerObject
     protected:
         void onActivate() override;
 
+    public:
+        std::string getQuestName() const
+        {
+            return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
+        }
+
     protected:
         void operateAM(const ActorMsgPack &) override;
 
