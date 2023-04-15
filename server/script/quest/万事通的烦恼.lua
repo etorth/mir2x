@@ -35,7 +35,7 @@ function main()
                 [=[
                     local playerUID = %d
                     -- dbSetUIDQuestState(playerUID, SYS_ENTER)
-                    -- setQuestState(playerUID, SYS_ENTER)
+                    --      setQuestState(playerUID, SYS_ENTER)
                 ]=], uid)
             end,
         })
