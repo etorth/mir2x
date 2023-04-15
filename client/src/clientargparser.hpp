@@ -26,6 +26,7 @@ struct ClientArgParser
     const bool debugDrawInputLine;      // "--debug-draw-input-line"
     const bool debugPlayerStateBoard;   // "--debug-player-state-board"
     const bool debugSlider;             // "--debug-slider"
+    const bool debugClickEvent;         // "--debug-click-event"
     const bool drawFPS;                 // "--draw-fps"
 
     const std::string serverIP;         // "--server-ip"
@@ -56,6 +57,7 @@ struct ClientArgParser
         , debugDrawInputLine(cmdParser["debug-draw-input-line"])
         , debugPlayerStateBoard(cmdParser["debug-player-state-board"])
         , debugSlider(cmdParser["debug-slider"])
+        , debugClickEvent(cmdParser["debug-click-event"])
         , drawFPS(cmdParser["draw-fps"])
         , serverIP(cmdParser("server-ip").str())
         , serverPort(cmdParser("server-port").str())

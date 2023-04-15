@@ -6,9 +6,11 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "npcchatboard.hpp"
+#include "clientargparser.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
+extern ClientArgParser *g_clientArgParser;
 
 NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
     : Widget(DIR_UPLEFT, 0, 0, 386, 204, pwidget, autoDelete)
@@ -187,7 +189,9 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *eventPath, const char *xmlS
 
 void NPCChatBoard::onClickEvent(const char *path, const char *id, const char *arg)
 {
-    m_process->addCBLog(CBLOG_SYS, u8"clickEvent: path = %s, id = %s, arg = %s", to_cstr(path), to_cstr(id), to_cstr(arg));
+    if(g_clientArgParser->debugClickEvent){
+        m_process->addCBLog(CBLOG_SYS, u8"clickEvent: path = %s, id = %s, arg = %s", to_cstr(path), to_cstr(id), to_cstr(arg));
+    }
 
     fflassert(str_haschar(id));
     m_process->sendNPCEvent(m_npcUID, path, id, arg ? std::make_optional<std::string>(arg) : std::nullopt);

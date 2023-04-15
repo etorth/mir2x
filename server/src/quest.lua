@@ -25,7 +25,6 @@ local _RSVD_NAME_questFSMTable = nil
 function setQuestFSMTable(fsm)
     assertType(fsm, 'table')
     assertType(fsm[SYS_ENTER], 'function')
-    assertType(fsm[SYS_EXIT ], 'function')
     _RSVD_NAME_questFSMTable = fsm
 end
 

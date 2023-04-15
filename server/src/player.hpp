@@ -133,7 +133,7 @@ class Player final: public BattleObject
         void on_AM_REMOVEGROUNDITEM (const ActorMsgPack &);
         void on_AM_QUERYUIDBUFF     (const ActorMsgPack &);
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
-        void on_AM_REMOTECALL          (const ActorMsgPack &);
+        void on_AM_REMOTECALL       (const ActorMsgPack &);
 
     private:
         void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t);

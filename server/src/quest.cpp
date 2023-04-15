@@ -108,6 +108,11 @@ void Quest::operateAM(const ActorMsgPack &mpk)
                 on_AM_QUESTNOTIFY(mpk);
                 break;
             }
+        case AM_REMOTECALL:
+            {
+                on_AM_REMOTECALL(mpk);
+                break;
+            }
         case AM_RUNQUESTTRIGGER:
             {
                 on_AM_RUNQUESTTRIGGER(mpk);
