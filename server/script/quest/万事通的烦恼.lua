@@ -56,8 +56,9 @@ function main()
                     </layout>
                 ]=], SYS_EXIT)
 
-                setQuestState(playerUID, 'quest_setup_kill_trigger')
             ]], uid, getQuestName())
+
+            setQuestState(uid, 'quest_setup_kill_trigger')
         end,
 
         ['quest_setup_kill_trigger'] = function(uid)
