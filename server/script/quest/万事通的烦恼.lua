@@ -8,7 +8,15 @@ function main()
         return setQuestHandler(questName,
         {
             [SYS_CHECKACTIVE] = function(uid)
-                return uidExecute(uid, [=[ return getLevel() ]=]) >= 7
+                if uidExecute(uid, [=[ return getLevel() ]=]) < 7 then
+                    return false
+                end
+
+                if uidExecute(questUID, [=[ return dbGetUIDQuestState(%%d) ]=], uid) ~= nil then
+                    return false
+                end
+
+                return true
             end,
 
             [SYS_ENTER] = function(uid, value)
@@ -25,8 +33,10 @@ function main()
             ['npc_accept_quest'] = function(uid, value)
                 uidExecute(questUID,
                 [=[
-                    -- setQuestState(uid, SYS_ENTER)
-                ]=])
+                    local playerUID = %d
+                    -- dbSetUIDQuestState(playerUID, SYS_ENTER)
+                    -- setQuestState(playerUID, SYS_ENTER)
+                ]=], uid)
             end,
         })
     ]], getUID(), getQuestName())
