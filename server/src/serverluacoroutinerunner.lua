@@ -49,8 +49,11 @@ function waitNotify(count)
     count = argDefault(count, 0)
     assert(count >= 0, 'count must be non-negative')
 
-    local resList = _RSVD_NAME_waitNotify(getTLSTable().threadKey, getTLSTable().threadSeqID)
-    assertType(resList, 'table')
+    local threadKey = getTLSTable().threadKey
+    local threadSeqID = getTLSTable().threadSeqID
+
+    local resList = _RSVD_NAME_waitNotify(threadKey, threadSeqID)
+    assert(isArray(resList))
 
     if count == 0 then
         return resList
@@ -58,10 +61,11 @@ function waitNotify(count)
 
     while #resList < count do
         coroutine.yield()
-        local newResList = _RSVD_NAME_waitNotify(getTLSTable().threadKey, getTLSTable().threadSeqID)
 
-        assertType(newResList, 'table')
-        for k, v in pairs(newResList) do
+        local newResList = _RSVD_NAME_waitNotify(threadKey, threadSeqID)
+        assert(isArray(newResList))
+
+        for _, v in ipairs(newResList) do
             table.insert(resList, v)
         end
     end
