@@ -43,11 +43,15 @@ function sendNotify(arg, ...)
     end
 end
 
-function waitNotify(count)
-    assertType(count, 'integer', 'nil')
+function waitNotify(count, timeout)
+    assertType(count  , 'integer', 'nil')
+    assertType(timeout, 'integer', 'nil')
 
-    count = argDefault(count, 0)
-    assert(count >= 0, 'count must be non-negative')
+    count   = argDefault(count  , 0)
+    timeout = argDefault(timeout, 0)
+
+    assert(  count >= 0,   'count must be non-negative')
+    assert(timeout >= 0, 'timeout must be non-negative')
 
     local threadKey = getTLSTable().threadKey
     local threadSeqID = getTLSTable().threadSeqID
@@ -58,6 +62,9 @@ function waitNotify(count)
     if count == 0 then
         return resList
     end
+
+    -- TODO
+    -- timeout support not implemented yet
 
     while #resList < count do
         coroutine.yield()
