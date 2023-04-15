@@ -6,8 +6,41 @@ function _RSVD_NAME_luaCoroutineRunner_main(code)
     return (load(code))()
 end
 
-function sendNotify(...)
-    return _RSVD_NAME_callFuncCoop('sendNotify', ...)
+function sendNotify(arg, ...)
+    assertType(arg, 'table', 'integer')
+
+    local uid = nil
+    local key = nil
+    local seq = nil
+
+    if type(arg) == 'table' then
+        uid = arg[1]
+        key = arg[2]
+        seq = argDefault(arg[3], 0)
+    else
+        local argtbl = {...}
+        uid = arg
+        key = argtbl[1]
+        if #argtbl >= 2 then
+            seq = argtbl[2] -- must be there as place holder, even zero
+        else
+            seq = 0         -- notify without argument
+        end
+    end
+
+    assertType(uid, 'integer')
+    assertType(key, 'integer')
+    assertType(seq, 'integer')
+
+    assert(uid >  0)
+    assert(key >  0)
+    assert(seq >= 0)
+
+    if type(arg) == 'table' then
+        return _RSVD_NAME_callFuncCoop('sendNotify', uid, key, seq, ...)
+    else
+        return _RSVD_NAME_callFuncCoop('sendNotify', arg, ...)
+    end
 end
 
 function waitNotify(count)
