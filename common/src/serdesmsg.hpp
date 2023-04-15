@@ -927,8 +927,10 @@ struct SDQuestNotify
     uint64_t seqID = 0;
     std::vector<luaf::luaVar> varList {};
 
+    bool waitConsume = false; // if send response after notification has been consumed
+
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(key, seqID, varList);
+        ar(key, seqID, varList, waitConsume);
     }
 };

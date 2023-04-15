@@ -82,6 +82,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             .key = threadKey,
             .seqID = threadSeqID,
             .varList = std::move(argList),
+            .waitConsume = false,
         })});
     });
 
@@ -97,6 +98,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             .key = threadKey,
             .seqID = threadSeqID,
             .varList = std::move(argList),
+            .waitConsume = false,
         })},
 
         [onDone](const ActorMsgPack &mpk)
