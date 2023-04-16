@@ -96,6 +96,7 @@ function main()
             uidExecute(getNPCharUID('道馆_1', '万事通_1'),
             [[
                 local playerUID = %d
+                local questUID  = %d
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
@@ -117,10 +118,10 @@ function main()
                         ]=])
 
                         deleteUIDQuestHandler(playerUID, questName)
-                        dbSetUIDQuestState(playerUID, SYS_EXIT)
+                        uidExecute(questUID, [=[ dbSetUIDQuestState(%%d, SYS_EXIT) ]=], playerUID)
                     end,
                 })
-            ]], uid, getQuestName())
+            ]], uid, getUID(), getQuestName())
         end,
     })
 end
