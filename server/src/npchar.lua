@@ -295,29 +295,24 @@ function setUIDQuestHandler(uid, quest, questHandler)
     assertType(quest, 'string')
     assertType(questHandler, 'table')
     assertType(questHandler[SYS_ENTER], 'function')
-
-    if _RSVD_NAME_activeQuestEventHandlers[uid] == nil then
-        _RSVD_NAME_activeQuestEventHandlers[uid] = {}
-    end
-
-    _RSVD_NAME_activeQuestEventHandlers[uid][quest] = questHandler
+    _RSVD_NAME_EPUID_eventHandlers[uid][quest] = questHandler
 end
 
 function deleteUIDQuestHandler(uid, quest)
     assertType(uid, 'integer')
     assertType(quest, 'string')
 
-    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers, false) then
+    if tableEmpty(_RSVD_NAME_EPUID_eventHandlers, false) then
         return
     end
 
-    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers[uid], false) then
+    if tableEmpty(_RSVD_NAME_EPUID_eventHandlers[uid], false) then
         return
     end
 
-    _RSVD_NAME_activeQuestEventHandlers[uid][quest] = nil
-    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers[uid], false) then
-        _RSVD_NAME_activeQuestEventHandlers[uid] = nil
+    _RSVD_NAME_EPUID_eventHandlers[uid][quest] = nil
+    if tableEmpty(_RSVD_NAME_EPUID_eventHandlers[uid], false) then
+        _RSVD_NAME_EPUID_eventHandlers[uid] = nil
     end
 end
 
@@ -326,23 +321,23 @@ function hasUIDQuestHandler(uid, quest, event)
     assertType(quest, 'string')
     assertType(event, 'string')
 
-    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers, false) then
+    if tableEmpty(_RSVD_NAME_EPUID_eventHandlers, false) then
         return false
     end
 
-    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers[uid], true) then
+    if tableEmpty(_RSVD_NAME_EPUID_eventHandlers[uid], true) then
         return false
     end
 
-    if tableEmpty(_RSVD_NAME_activeQuestEventHandlers[uid][quest], true) then
+    if tableEmpty(_RSVD_NAME_EPUID_eventHandlers[uid][quest], true) then
         return false
     end
 
-    if _RSVD_NAME_activeQuestEventHandlers[uid][quest][event] == nil then
+    if _RSVD_NAME_EPUID_eventHandlers[uid][quest][event] == nil then
         return false
     end
 
-    assertType(_RSVD_NAME_activeQuestEventHandlers[uid][quest][event], 'function')
+    assertType(_RSVD_NAME_EPUID_eventHandlers[uid][quest][event], 'function')
     return true
 end
 
