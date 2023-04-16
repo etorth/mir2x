@@ -1,14 +1,25 @@
 function main()
+    local minQuestLevel = 7
+    addQuestTrigger(SYS_ON_LEVELUP, function(playerUID, oldLevel, newLevel)
+        if oldLevel < minQuestLevel and newLevel >= minQuestLevel then
+            uidExecute(playerUID,
+            [[
+                postString([=[ 恭喜你升到%d级，快去找万拍子看看，他好像正需要人帮忙。 ]=], newLevel)
+            ]])
+        end
+    end)
+
     uidExecute(getNPCharUID('道馆_1', '万事通_1'),
     [[
         local questUID  = %d
         local questName = '%s'
         local questPath = {SYS_EPQST, questName}
+        local minQuestLevel = %d
 
         return setQuestHandler(questName,
         {
             [SYS_CHECKACTIVE] = function(uid)
-                if uidExecute(uid, [=[ return getLevel() ]=]) < 7 then
+                if uidExecute(uid, [=[ return getLevel() ]=]) < minQuestLevel then
                     return false
                 end
 
@@ -37,7 +48,7 @@ function main()
                 ]=], uid)
             end,
         })
-    ]], getUID(), getQuestName())
+    ]], getUID(), getQuestName(), minQuestLevel)
 
     setQuestFSMTable(
     {
