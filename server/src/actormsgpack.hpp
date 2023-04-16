@@ -295,9 +295,11 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_BUYCOST)
         _add_mpk_type_case(AM_BUYERROR)
         _add_mpk_type_case(AM_MODIFYQUESTTRIGGERTYPE)
+        _add_mpk_type_case(AM_QUERYQUESTUID)
         _add_mpk_type_case(AM_QUERYQUESTTRIGGERLIST)
         _add_mpk_type_case(AM_RUNQUESTTRIGGER)
         _add_mpk_type_case(AM_QUESTNOTIFY)
+        _add_mpk_type_case(AM_REGISTERQUEST)
         default: return "AM_UNKNOWN";
     }
 #undef _add_mpk_type_case

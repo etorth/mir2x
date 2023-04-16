@@ -259,6 +259,25 @@ void ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
     m_actorPod->forward(mpk.fromAddr(), {AM_OK, cerealf::serialize(uidList)});
 }
 
+void ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
+{
+    const auto sdQQUID = mpk.deserialize<SDQueryQuestUID>();
+
+    uint64_t questUID = 0;
+    for(const auto &[uid, sdRQ]: m_questList){
+        if(sdQQUID.name == sdRQ.name){
+            questUID = uid;
+            break;
+        }
+    }
+
+    AMUID amUID;
+    std::memset(&amUID, 0, sizeof(amUID));
+
+    amUID.UID = questUID;
+    m_actorPod->forward(mpk.fromAddr(), {AM_UID, amUID});
+}
+
 void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();

@@ -943,3 +943,12 @@ struct SDRegisterQuest
         ar(name);
     }
 };
+
+struct SDQueryQuestUID
+{
+    std::string name {};
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(name);
+    }
+};

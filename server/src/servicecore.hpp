@@ -47,6 +47,7 @@ class ServiceCore final: public ServerObject
         void on_AM_ADDCO                 (const ActorMsgPack &);
         void on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &);
         void on_AM_QUERYQUESTTRIGGERLIST (const ActorMsgPack &);
+        void on_AM_QUERYQUESTUID         (const ActorMsgPack &);
 
     private:
         void net_CM_LOGIN         (uint32_t, uint8_t, const uint8_t *, size_t);

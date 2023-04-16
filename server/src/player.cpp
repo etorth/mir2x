@@ -240,6 +240,36 @@ void Player::onActivate()
         }
     });
 
+    m_luaRunner->bindFunction("dbLoadQuestNameList", [this]() -> std::vector<std::string>
+    {
+        return dbLoadQuestNameList();
+    });
+
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_queryQuestUID", [this](LuaCoopResumer onDone, std::string questName)
+    {
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
+        {
+            .name = std::move(questName),
+        })},
+
+        [onDone](const ActorMsgPack &rmpk)
+        {
+            switch(rmpk.type()){
+                case AM_UID:
+                    {
+                        const auto amUID = rmpk.conv<AMUID>();
+                        onDone(amUID.UID);
+                        break;
+                    }
+                default:
+                    {
+                        onDone(0);
+                        break;
+                    }
+            }
+        });
+    });
+
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_spaceMove", [this](LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY)
     {
         const auto &mr = DBCOM_MAPRECORD(argMapID);
