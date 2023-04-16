@@ -295,6 +295,11 @@ function setUIDQuestHandler(uid, quest, questHandler)
     assertType(quest, 'string')
     assertType(questHandler, 'table')
     assertType(questHandler[SYS_ENTER], 'function')
+
+    if _RSVD_NAME_EPUID_eventHandlers[uid] == nil then
+        _RSVD_NAME_EPUID_eventHandlers[uid] = {}
+    end
+
     _RSVD_NAME_EPUID_eventHandlers[uid][quest] = questHandler
 end
 
