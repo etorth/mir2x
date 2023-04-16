@@ -44,10 +44,7 @@ function main()
         [SYS_ENTER] = function(uid)
             uidExecute(getNPCharUID('道馆_1', '万事通_1'),
             [[
-                local playerUID = %d
-                local questPath = {SYS_EPUID, '%s'}
-
-                uidPostXML(playerUID, questPath,
+                uidPostXML(%d,
                 [=[
                     <layout>
                         <par>多谢少侠出手相助！最近城外钉耙猫肆虐，请少侠出城斩杀一只<t color="red">钉耙猫</t>，事后我万拍子有礼物奉上！</par>
@@ -56,7 +53,7 @@ function main()
                     </layout>
                 ]=], SYS_EXIT)
 
-            ]], uid, getQuestName())
+            ]], uid)
 
             setQuestState(uid, 'quest_setup_kill_trigger')
         end,
