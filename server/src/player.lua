@@ -100,15 +100,5 @@ do
     end)
 end
 
-for _, questName in ipairs(dbLoadQuestNameList())
-do
-    local questUID = _RSVD_NAME_callFuncCoop("queryQuestUID", questName)
-    assertType(questUID, 'integer')
-
-    if questUID ~= 0 then
-        uidExecute(questUID, [[ dbRestoreQuestState() ]])
-    end
-end
-
 --
 -- )###"

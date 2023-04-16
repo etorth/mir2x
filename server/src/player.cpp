@@ -386,6 +386,17 @@ void Player::onActivate()
     m_luaRunner->pfrCheck(m_luaRunner->execRawString(BEGIN_LUAINC(char)
 #include "player.lua"
     END_LUAINC()));
+
+    m_luaRunner->spawn(m_threadKey++, str_printf(
+    R"###( for _, questName in ipairs(dbLoadQuestNameList())                        )###""\n"
+    R"###( do                                                                       )###""\n"
+    R"###(     local questUID = _RSVD_NAME_callFuncCoop("queryQuestUID", questName) )###""\n"
+    R"###(     assertType(questUID, 'integer')                                      )###""\n"
+    R"###(                                                                          )###""\n"
+    R"###(     if questUID ~= 0 then                                                )###""\n"
+    R"###(         uidExecute(questUID, [[ dbRestoreQuestState(%llu) ]])            )###""\n"
+    R"###(     end                                                                  )###""\n"
+    R"###( end                                                                      )###""\n", to_llu(UID())));
 }
 
 void Player::operateAM(const ActorMsgPack &rstMPK)
