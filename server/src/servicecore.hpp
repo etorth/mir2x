@@ -2,6 +2,7 @@
 #include <string>
 #include <utility>
 #include <unordered_map>
+#include "serdesmsg.hpp"
 #include "serverobject.hpp"
 
 class ServerMap;
@@ -14,6 +15,7 @@ class ServiceCore final: public ServerObject
         std::unordered_map<uint32_t, std::pair<uint32_t, bool>> m_dbidList; // channID -> {dbid, online}
 
     private:
+        std::unordered_map<uint64_t, SDRegisterQuest> m_questList;
         std::unordered_map<int, std::unordered_set<uint64_t>> m_questTriggerList;
 
     public:
@@ -35,7 +37,7 @@ class ServiceCore final: public ServerObject
         std::optional<std::pair<uint32_t, bool>> findDBID(uint32_t channID) const;
 
     private:
-        void on_AM_LOGIN                 (const ActorMsgPack &);
+        void on_AM_REGISTERQUEST         (const ActorMsgPack &);
         void on_AM_METRONOME             (const ActorMsgPack &);
         void on_AM_BADCHANNEL            (const ActorMsgPack &);
         void on_AM_RECVPACKAGE           (const ActorMsgPack &);

@@ -934,3 +934,12 @@ struct SDQuestNotify
         ar(key, seqID, varList, waitConsume);
     }
 };
+
+struct SDRegisterQuest
+{
+    std::string name {};
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(name);
+    }
+};

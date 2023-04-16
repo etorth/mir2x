@@ -28,6 +28,12 @@ void ServiceCore::on_AM_METRONOME(const ActorMsgPack &)
 {
 }
 
+void ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
+{
+    const auto sdRQ = mpk.deserialize<SDRegisterQuest>();
+    m_questList[mpk.from()] = sdRQ;
+}
+
 void ServiceCore::on_AM_ADDCO(const ActorMsgPack &rstMPK)
 {
     const auto amACO = rstMPK.conv<AMAddCharObject>();

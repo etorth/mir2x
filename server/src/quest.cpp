@@ -14,6 +14,11 @@ Quest::Quest(const SDInitQuest &initQuest)
 void Quest::onActivate()
 {
     ServerObject::onActivate();
+    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_REGISTERQUEST, cerealf::serialize(SDRegisterQuest
+    {
+        .name = getQuestName(),
+    })});
+
     m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod);
 
     m_luaRunner->bindFunction("getQuestName", [this]() -> std::string
