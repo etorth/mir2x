@@ -118,7 +118,7 @@ function main()
                         ]=])
 
                         deleteUIDQuestHandler(playerUID, questName)
-                        uidExecute(questUID, [=[ dbSetUIDQuestState(%%d, SYS_EXIT) ]=], playerUID)
+                        uidExecute(questUID, [=[ setQuestState(%%d, SYS_EXIT) ]=], playerUID)
                     end,
                 })
             ]], uid, getUID(), getQuestName())

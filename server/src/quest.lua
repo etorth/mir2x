@@ -36,12 +36,14 @@ end
 
 function setQuestState(uid, state)
     assertType(uid, 'integer')
-    if not hasQuestState(state) then
+    if (not hasQuestState(state)) and (state ~= SYS_EXIT) then
         fatalPrintf('Invalid quest state: %s', state)
     end
 
     dbSetUIDQuestState(uid, state)
-    _RSVD_NAME_questFSMTable[state](uid)
+    if hasQuestState(state) then
+        _RSVD_NAME_questFSMTable[state](uid)
+    end
 end
 
 function dbRestoreQuestState(uid)
