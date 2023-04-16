@@ -428,7 +428,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             for _, v in ipairs(uidEntryList) do
                 table.insert(xmlStrs, string.format([[
                     <par><event id="%s" path="%s/%s">%s</event></par>
-                ]], SYS_ENTER, SYS_EPQST, v, v))
+                ]], SYS_ENTER, SYS_EPUID, v, v))
             end
 
             if hasEventHandler(SYS_ENTER) then

@@ -82,7 +82,8 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>那钉耙猫原本是温顺的小猫，近年不知为何开始变得像猩猩一般强健，并偷走附近农户的钉耙向行人发起攻击。少侠你可要千万当心！</par>
+                                <par>那<t color="red">钉耙猫</t>原本是温顺的小猫，近年不知为何开始变得像猩猩一般强健，还偷走附近农户的钉耙向行人胡乱攻击。</par>
+                                <par>少侠你可要千万当心！</par>
                                 <par><event id="%%s">好的</event></par>
                             </layout>
                         ]=], SYS_EXIT)
