@@ -4,8 +4,8 @@ function main()
         if oldLevel < minQuestLevel and newLevel >= minQuestLevel then
             uidExecute(playerUID,
             [[
-                postString([=[ 恭喜你升到%d级，快去找万拍子看看，他好像正需要人帮忙。 ]=], newLevel)
-            ]])
+                postString([=[ 恭喜你升到%d级，快去找万拍子看看，他好像正需要人帮忙。 ]=])
+            ]], newLevel)
         end
     end)
 
