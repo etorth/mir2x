@@ -21,7 +21,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
-    bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, sol::this_state s, uint64_t uid, std::string code)
+    bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code)
     {
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
         {
@@ -40,7 +40,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                         if(sdRCR.error.empty()){
                             std::vector<sol::object> resList;
                             for(auto && var: cerealf::deserialize<std::vector<luaf::luaVar>>(sdRCR.serVarList)){
-                                resList.emplace_back(luaf::buildLuaObj(sol::state_view(s), std::move(var)));
+                                resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
                             }
                             onDone(SYS_EXECDONE, sol::as_args(resList));
                         }

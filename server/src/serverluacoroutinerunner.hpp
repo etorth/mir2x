@@ -42,7 +42,7 @@ class LuaCoopCallDoneFlag final
 };
 
 class ServerLuaCoroutineRunner;
-class LuaCoopResumer
+class LuaCoopResumer final
 {
     private:
         ServerLuaCoroutineRunner * const m_luaRunner;
@@ -93,6 +93,23 @@ class LuaCoopResumer
 
     private:
         static void resumeRunner(ServerLuaCoroutineRunner *, uint64_t, uint64_t); // resolve dependency
+};
+
+class LuaCoopState final
+{
+    private:
+        sol::this_state m_state;
+
+    public:
+        explicit LuaCoopState(sol::this_state state)
+            : m_state(state)
+        {}
+
+    public:
+        sol::state_view getView() const
+        {
+            return sol::state_view(m_state);
+        }
 };
 
 class ActorPod;
@@ -220,8 +237,8 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
     private:
         template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...));
         template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...) const );
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, sol::this_state, Args...));
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, sol::this_state, Args...) const );
+        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, LuaCoopState, Args...));
+        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, LuaCoopState, Args...) const );
 
         template<typename Lambda, typename Ret                                 > static void _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer));
         template<typename Lambda, typename Ret                                 > static void _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer) const);
@@ -238,7 +255,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             using type = std::tuple<Args...>;
         };
 
-        template<typename Ret, typename... Args> struct _extractLambdaUserArgsAsTuple<Ret(*)(LuaCoopResumer, sol::this_state, Args...)>
+        template<typename Ret, typename... Args> struct _extractLambdaUserArgsAsTuple<Ret(*)(LuaCoopResumer, LuaCoopState, Args...)>
         {
             using type = std::tuple<Args...>;
         };
@@ -273,8 +290,8 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                     fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID); // called from lua coroutine, must be valid
 
                     const LuaCoopCallDoneFlag doneFlag;
-                    if constexpr (std::is_same_v<sol::this_state, typename _extractLambdaSecondArg<Func>::type>){
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, threadSeqID, doneFlag), s), std::move(args)));
+                    if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaSecondArg<Func>::type>){
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, threadSeqID, doneFlag), LuaCoopState(s)), std::move(args)));
                     }
                     else{
                         std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, cb, threadKey, threadSeqID, doneFlag)), std::move(args)));
