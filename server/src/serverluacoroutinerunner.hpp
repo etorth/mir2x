@@ -112,6 +112,10 @@ class LuaCoopState final
         }
 };
 
+class LuaCoopVargs final
+{
+};
+
 class ActorPod;
 class ServerLuaCoroutineRunner: public ServerLuaModule
 {
