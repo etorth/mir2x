@@ -95,6 +95,7 @@ constexpr char SYS_GOLDNAME[] = "金币（小）"; // always use 金币（小）
 
 constexpr char SYS_NPCERROR[] = "_RSVD_NAME_NPC_ERROR_45421406723";
 
+constexpr char SYS_LABEL [] = "_RSVD_NAME_LABEL_78921733019";
 constexpr char SYS_ENTER [] = "_RSVD_NAME_ENTER_90360178872";
 constexpr char SYS_EXIT  [] = "_RSVD_NAME_EXIT__14208236065";
 constexpr char SYS_ABORT [] = "_RSVD_NAME_ABORT_72061294738";
@@ -102,7 +103,6 @@ constexpr char SYS_ABORT [] = "_RSVD_NAME_ABORT_72061294738";
 constexpr char SYS_BADUID  [] = "_RSVD_NAME_BAD_UID___67259708252";
 constexpr char SYS_EXECDONE[] = "_RSVD_NAME_EXEC_DONE_68553768451";
 
-constexpr char SYS_QUESTLABEL [] = "_RSVD_NAME_QUEST_LABEL__8921733019";
 constexpr char SYS_CHECKACTIVE[] = "_RSVD_NAME_CHECK_ACTIVE_4054544333";
 
 constexpr char SYS_EPDEF[] = "_RSVD_NAME_EVENT_PATH_DEF_2965316381";

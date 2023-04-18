@@ -80,11 +80,11 @@ local _RSVD_NAME_EPQST_eventHandlers = {}
 --         ['商人的灵魂'] = {
 --             -- setup label for quest entry
 --             -- can be a function or a string, or the quest name will be used as label if not assigned
---             [SYS_QUESTLABEL] = function(uid)
+--             [SYS_LABEL] = function(uid)
 --                 return '回道馆向王大人复命'
 --             end
 --
---             [SYS_QUESTLABEL] = '回道馆向王大人复命'
+--             [SYS_LABEL] = '回道馆向王大人复命'
 --
 --             [SYS_ENTER] = function(uid, value)
 --             end
@@ -384,14 +384,14 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         local uidEntryList = {}
         if not tableEmpty(_RSVD_NAME_EPUID_eventHandlers) and not tableEmpty(_RSVD_NAME_EPUID_eventHandlers[from], true) then
             for questName, questHandler in pairs(_RSVD_NAME_EPUID_eventHandlers[from]) do
-                if type(questHandler[SYS_QUESTLABEL]) == 'string' then
-                    uidEntryList[questName] = questHandler[SYS_QUESTLABEL]
-                elseif type(questHandler[SYS_QUESTLABEL]) == 'function' then
-                    uidEntryList[questName] = questHandler[SYS_QUESTLABEL](from)
-                elseif questHandler[SYS_QUESTLABEL] == nil then
+                if type(questHandler[SYS_LABEL]) == 'string' then
+                    uidEntryList[questName] = questHandler[SYS_LABEL]
+                elseif type(questHandler[SYS_LABEL]) == 'function' then
+                    uidEntryList[questName] = questHandler[SYS_LABEL](from)
+                elseif questHandler[SYS_LABEL] == nil then
                     uidEntryList[questName] = questName
                 else
-                    fatalPrintf([[Invalid quest '%s' handler[SYS_QUESTLABEL] type: %s]], questName, type(questHandler[SYS_QUESTLABEL]))
+                    fatalPrintf([[Invalid quest '%s' handler[SYS_LABEL] type: %s]], questName, type(questHandler[SYS_LABEL]))
                 end
             end
         end

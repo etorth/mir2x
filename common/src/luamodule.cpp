@@ -117,6 +117,7 @@ LuaModule::LuaModule()
     execString("SYS_DEBUG = %s", to_boolcstr(SYS_DEBUG));
     execString("SYS_GOLDNAME = \'%s\'", SYS_GOLDNAME);
 
+    execString("SYS_LABEL = \'%s\'", SYS_LABEL);
     execString("SYS_ENTER = \'%s\'", SYS_ENTER);
     execString("SYS_EXIT  = \'%s\'", SYS_EXIT );
     execString("SYS_ABORT = \'%s\'", SYS_ABORT);
@@ -139,7 +140,6 @@ LuaModule::LuaModule()
     execString("SYS_ON_END      = %d", SYS_ON_END);
 
     execString("SYS_COOP        = \'%s\'", SYS_COOP);
-    execString("SYS_QUESTLABEL  = \'%s\'", SYS_QUESTLABEL);
     execString("SYS_CHECKACTIVE = \'%s\'", SYS_CHECKACTIVE);
 
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));

@@ -89,6 +89,7 @@ function main()
 
                 setUIDQuestHandler(playerUID, questName,
                 {
+                    [SYS_LABEL] = '关于钉耙猫',
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
@@ -113,6 +114,7 @@ function main()
 
                 setUIDQuestHandler(playerUID, questName,
                 {
+                    [SYS_LABEL] = '领取奖励',
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
