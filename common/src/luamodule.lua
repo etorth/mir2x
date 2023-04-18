@@ -221,6 +221,24 @@ function tableEmpty(t, allowNil)
     end
 end
 
+function tableSize(t, allowNil)
+    if type(t) == 'table' then
+        local size = 0
+        for k, v in pairs(t) do
+            size = size + 1
+        end
+        return size
+    end
+
+    if type(t) == 'nil' and argDefault(allowNil, true) then
+        return 0
+    end
+
+    fatalPrintf('invalid argument type: %s', type(t))
+end
+
+tableLength = tableSize
+
 function getBackTraceLine()
     local info = debug.getinfo(3, "Sl")
 

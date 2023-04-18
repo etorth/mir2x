@@ -78,6 +78,14 @@ local _RSVD_NAME_EPQST_eventHandlers = {}
 -- {
 --     [1234567] = {
 --         ['商人的灵魂'] = {
+--             -- setup label for quest entry
+--             -- can be a function or a string, or the quest name will be used as label if not assigned
+--             [SYS_QUESTLABEL] = function(uid)
+--                 return '回道馆向王大人复命'
+--             end
+--
+--             [SYS_QUESTLABEL] = '回道馆向王大人复命'
+--
 --             [SYS_ENTER] = function(uid, value)
 --             end
 --
@@ -373,23 +381,35 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         -- click to NPC
         -- need to check all possible event handlers
 
+        local uidEntryList = {}
+        if not tableEmpty(_RSVD_NAME_EPUID_eventHandlers) and not tableEmpty(_RSVD_NAME_EPUID_eventHandlers[from], true) then
+            for questName, questHandler in pairs(_RSVD_NAME_EPUID_eventHandlers[from]) do
+                if type(questHandler[SYS_QUESTLABEL]) == 'string' then
+                    uidEntryList[questName] = questHandler[SYS_QUESTLABEL]
+                elseif type(questHandler[SYS_QUESTLABEL]) == 'function' then
+                    uidEntryList[questName] = questHandler[SYS_QUESTLABEL](from)
+                elseif questHandler[SYS_QUESTLABEL] == nil then
+                    uidEntryList[questName] = questName
+                else
+                    fatalPrintf([[Invalid quest '%s' handler[SYS_QUESTLABEL] type: %s]], questName, type(questHandler[SYS_QUESTLABEL]))
+                end
+            end
+        end
+
+        -- uid quest handler overwrites quest handler
+        -- usually quest handler is used for uid quest entry point
+
         local qstEntryList = {}
         if not tableEmpty(_RSVD_NAME_EPQST_eventHandlers) then
             for k, v in pairs(_RSVD_NAME_EPQST_eventHandlers) do
-                if (not tableEmpty(v)) and (v[SYS_CHECKACTIVE] == nil or v[SYS_CHECKACTIVE](from) == true) then
+                if (not tableEmpty(v)) and (v[SYS_CHECKACTIVE] == nil or v[SYS_CHECKACTIVE](from) == true) and (uidEntryList[k] == nil) then
                     table.insert(qstEntryList, k)
                 end
             end
         end
 
-        local uidEntryList = {}
-        if not tableEmpty(_RSVD_NAME_EPUID_eventHandlers) and not tableEmpty(_RSVD_NAME_EPUID_eventHandlers[from], true) then
-            for k, _ in pairs(_RSVD_NAME_EPUID_eventHandlers[from]) do
-                table.insert(uidEntryList, k)
-            end
-        end
+        local entryCount = tableSize(qstEntryList) + tableSize(uidEntryList)
 
-        local entryCount = #qstEntryList + #uidEntryList
         if hasEventHandler(SYS_ENTER) then
             entryCount = entryCount + 1
         end
@@ -403,7 +423,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             if not tableEmpty(qstEntryList) then
                 _RSVD_NAME_EPQST_eventHandlers[qstEntryList[1]][SYS_ENTER](from, value)
             elseif not tableEmpty(uidEntryList) then
-                _RSVD_NAME_EPUID_eventHandlers[from][uidEntryList[1]][SYS_ENTER](from, value)
+                _RSVD_NAME_EPUID_eventHandlers[from][next(uidEntryList)][SYS_ENTER](from, value)
             else
                 _RSVD_NAME_EPDEF_eventHandlers[SYS_ENTER](from, value)
             end
@@ -425,10 +445,10 @@ function _RSVD_NAME_npc_main(from, path, event, value)
                 ]], SYS_ENTER, SYS_EPQST, v, v))
             end
 
-            for _, v in ipairs(uidEntryList) do
+            for k, v in pairs(uidEntryList) do
                 table.insert(xmlStrs, string.format([[
                     <par><event id="%s" path="%s/%s">%s</event></par>
-                ]], SYS_ENTER, SYS_EPUID, v, v))
+                ]], SYS_ENTER, SYS_EPUID, k, v))
             end
 
             if hasEventHandler(SYS_ENTER) then
