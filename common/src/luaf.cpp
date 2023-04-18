@@ -155,17 +155,17 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
 
 template<typename T> static std::vector<luaf::luaVar> _buildLuaVarFromLuaObjContainer(const T &args, size_t varSize, size_t begin, const std::optional<size_t> &endOpt)
 {
-    fflassert(begin < varSize, begin, varSize);
+    fflassert(begin <= varSize, begin, varSize);
     if(endOpt.has_value()){
         fflassert(endOpt.value() <= varSize, endOpt.value(), varSize);
     }
 
-    if(varSize == 0){
+    if(begin == varSize){
         return {};
     }
 
     std::vector<luaf::luaVar> result;
-    result.reserve(varSize);
+    result.reserve(endOpt.value_or(varSize) - begin);
 
     for(auto i = begin; i < endOpt.value_or(varSize); ++i){
         result.push_back(luaf::buildLuaVar(sol::object(args[i])));
