@@ -114,6 +114,19 @@ class LuaCoopState final
 
 class LuaCoopVargs final
 {
+    private:
+        sol::variadic_args m_vargs;
+
+    public:
+        LuaCoopVargs(sol::variadic_args args)
+            : m_vargs(args)
+        {}
+
+    public:
+        std::vector<luaf::luaVar> asLuaVarList() const
+        {
+            return {};
+        }
 };
 
 class ActorPod;
