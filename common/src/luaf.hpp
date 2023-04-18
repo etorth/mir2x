@@ -180,8 +180,8 @@ namespace luaf
     luaVar buildLuaVar(luaVarWrapper);
     luaVar buildLuaVar(const sol::object &);
 
-    std::vector<luaVar> vargBuildLuaVarList(const sol::variadic_args &);
-    std::vector<luaVar>  pfrBuildLuaVarList(const sol::protected_function_result &);
+    std::vector<luaVar> vargBuildLuaVarList(const sol::variadic_args             &, size_t = 0, std::optional<size_t> = std::nullopt);
+    std::vector<luaVar>  pfrBuildLuaVarList(const sol::protected_function_result &, size_t = 0, std::optional<size_t> = std::nullopt);
 }
 
 std::ostream & operator << (std::ostream &, const sol::object &);

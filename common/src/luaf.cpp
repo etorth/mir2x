@@ -153,36 +153,36 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
     }
 }
 
-std::vector<luaf::luaVar> luaf::vargBuildLuaVarList(const sol::variadic_args &args)
+template<typename T> static std::vector<luaf::luaVar> _buildLuaVarFromLuaObjContainer(const T &args, size_t varSize, size_t begin, const std::optional<size_t> &endOpt)
 {
-    fflassert(args.lua_state());
-    if(args.size() == 0){
+    fflassert(begin < varSize, begin, varSize);
+    if(endOpt.has_value()){
+        fflassert(endOpt.value() <= varSize, endOpt.value(), varSize);
+    }
+
+    if(varSize == 0){
         return {};
     }
 
     std::vector<luaf::luaVar> result;
-    result.reserve(args.size());
+    result.reserve(varSize);
 
-    for(const auto &arg: args){
-        result.push_back(luaf::buildLuaVar(sol::object(arg)));
+    for(auto i = begin; i < endOpt.value_or(varSize); ++i){
+        result.push_back(luaf::buildLuaVar(sol::object(args[i])));
     }
     return result;
 }
 
-std::vector<luaf::luaVar> luaf::pfrBuildLuaVarList(const sol::protected_function_result &pfr)
+std::vector<luaf::luaVar> luaf::vargBuildLuaVarList(const sol::variadic_args &args, size_t begin, std::optional<size_t> end)
+{
+    fflassert(args.lua_state());
+    return _buildLuaVarFromLuaObjContainer(args, args.size(), begin, end);
+}
+
+std::vector<luaf::luaVar> luaf::pfrBuildLuaVarList(const sol::protected_function_result &pfr, size_t begin, std::optional<size_t> end)
 {
     fflassert(pfr.valid());
-    if(pfr.return_count() == 0){
-        return {};
-    }
-
-    std::vector<luaf::luaVar> result;
-    result.reserve(pfr.return_count());
-
-    for(const auto &r: pfr){
-        result.push_back(luaf::buildLuaVar(sol::object(r)));
-    }
-    return result;
+    return _buildLuaVarFromLuaObjContainer(pfr, pfr.return_count(), begin, end);
 }
 
 std::ostream & operator << (std::ostream &os, const sol::object &obj)
