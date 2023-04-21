@@ -380,5 +380,8 @@ void RuntimeConfigBoard::reportRuntimeConfig()
     cmSRC.soundEff = getConfig().soundEff;
     cmSRC.soundEffValue = getConfig().soundEffValue;
 
+    cmSRC.ime = getConfig().ime;
+    cmSRC.attackMode = getConfig().attackMode;
+
     g_client->send(CM_SETRUNTIMECONFIG, cmSRC);
 }
