@@ -11,8 +11,14 @@ class ProcessRun;
 class RuntimeConfigBoard: public Widget
 {
     private:
-        class SwitchIntegerButton: public TritexButton
+        class BindIntegerRefButton: public TritexButton
         {
+            // each button binds to an integer reference in SDRuntimeConfig
+            // reference value get udpated when the button is clicked
+
+            // the reference value can be updated outside without let the button know
+            // need to call triggerCallback() notify this change
+
             private:
                 std::tuple<int &, const int, const int> m_valueState;
 
@@ -20,7 +26,7 @@ class RuntimeConfigBoard: public Widget
                 std::function<void(int)> m_onSwitch;
 
             public:
-                SwitchIntegerButton(dir8_t argDir, int argX, int argY, const uint32_t (& texIDList)[3], int &valueRef, int valueOffset, int valueCount, std::function<void(int)> onSwitch, Widget *widgetPtr = nullptr, bool autoDelete = false)
+                BindIntegerRefButton(dir8_t argDir, int argX, int argY, const uint32_t (& texIDList)[3], int &valueRef, int valueOffset, int valueCount, std::function<void(int)> onSwitch, Widget *widgetPtr = nullptr, bool autoDelete = false)
                     : TritexButton
                       {
                           argDir,
@@ -99,11 +105,11 @@ class RuntimeConfigBoard: public Widget
                 }
         };
 
-        class SwitchNextButton: public SwitchIntegerButton
+        class SwitchNextButton: public BindIntegerRefButton
         {
             public:
                 SwitchNextButton(dir8_t argDir, int argX, int argY, int &valueRef, int valueOffset, int valueCount, std::function<void(int)> onSwitch, Widget *widgetPtr = nullptr, bool autoDelete = false)
-                    : SwitchIntegerButton
+                    : BindIntegerRefButton
                       {
                           argDir,
                           argX,
@@ -126,11 +132,11 @@ class RuntimeConfigBoard: public Widget
                 {}
         };
 
-        class OnOffButton: public SwitchIntegerButton
+        class OnOffButton: public BindIntegerRefButton
         {
             public:
                 OnOffButton(dir8_t argDir, int argX, int argY, int &valueRef, int valueOffset, int valueCount, std::function<void(int)> onSwitch, Widget *widgetPtr = nullptr, bool autoDelete = false)
-                    : SwitchIntegerButton
+                    : BindIntegerRefButton
                       {
                           argDir,
                           argX,
@@ -184,7 +190,7 @@ class RuntimeConfigBoard: public Widget
         const std::vector<std::tuple<std::vector<std::u8string>, std::reference_wrapper<int>, int, std::function<void(int)>>> m_entryProtoList;
 
     private:
-        std::vector<SwitchIntegerButton *> m_switchList;
+        std::vector<BindIntegerRefButton *> m_switchList;
 
     private:
         ProcessRun *m_processRun;
