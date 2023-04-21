@@ -748,7 +748,6 @@ struct SDRuntimeConfig
     int  soundEffValue = 50;
 
     bool ime = true;
-
     int attackMode = ATKMODE_BEGIN;
 
     template<typename Archive> void serialize(Archive & ar)
