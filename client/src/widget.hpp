@@ -221,6 +221,16 @@ class Widget
             return m_h;
         }
 
+        Widget * parent()
+        {
+            return m_parent;
+        }
+
+        const Widget * parent() const
+        {
+            return m_parent;
+        }
+
     public:
         int dx() const
         {

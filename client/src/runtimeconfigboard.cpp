@@ -1,12 +1,44 @@
 #include "luaf.hpp"
+#include "client.hpp"
+#include "imeboard.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "soundeffectdb.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
 
+extern Client *g_client;
+extern IMEBoard *g_imeBoard;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
+
+bool RuntimeConfigBoard::SwitchIntegerButton::setValue(int value, bool triggerSwitchCallback)
+{
+    fflassert(value >= 0, value);
+    fflassert(value < getValueCount(), value, getValueCount());
+
+    if(value == getValue()){
+        return false;
+    }
+
+    const auto oldValue = getValue();
+    m_valueState.first = value;
+
+    if(triggerSwitchCallback){
+        if(m_onSwitch){
+            m_onSwitch(oldValue, getValue());
+        }
+
+        for(auto parentPtr = parent(); parentPtr; parentPtr = parentPtr->parent()){
+            if(auto p = dynamic_cast<RuntimeConfigBoard *>(parentPtr)){
+                p->reportRuntimeConfig();
+                break;
+            }
+        }
+    }
+
+    return true;
+}
 
 RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Widget *widgetPtr, bool autoDelete)
     : Widget(DIR_UPLEFT, argX, argY, 0, 0, widgetPtr, autoDelete)
@@ -39,43 +71,16 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           this,
       }
 
-    , m_attackModeSwitch
+    , m_musicSwitch
       {
           DIR_UPLEFT,
           431,
-          55,
-          {
-              0X0000130,
-              0X0000131,
-              0X0000130,
-          },
-
-          {
-              SYS_U32NIL,
-              SYS_U32NIL,
-              0X01020000 + 105,
-          },
-
-          nullptr,
-          nullptr,
-          nullptr,
-
-          0,
-          0,
-          0,
-          0,
-
-          false,
-          false,
-          this,
-      }
-
-    , m_musicSwitch
-      {
-          431,
           85,
-          true,
-          [this](bool)
+
+          1,
+          2,
+
+          [this](int, int)
           {
               g_sdlDevice->setBGMVolume(getMusicVolume().value_or(0.0f));
           },
@@ -84,10 +89,14 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
 
     , m_soundEffectSwitch
       {
+          DIR_UPLEFT,
           431,
           145,
-          true,
-          [this](bool)
+
+          1,
+          2,
+
+          [this](int, int)
           {
               g_sdlDevice->setSoundEffectVolume(getSoundEffectVolume().value_or(0.0f));
           },
@@ -128,6 +137,37 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           this,
       }
 
+    , m_entryProtoList
+      {
+          {{u8"游戏设置选项"}, 0, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+          {{u8"游戏设置选项"}, 1, [](int, int){}},
+
+          {{u8"和平攻击", u8"组队攻击", u8"行会攻击", u8"全体攻击"}, 0, [this](int, int mode)
+          {
+              m_sdRuntimeConfig.attackMode = ATKMODE_BEGIN + mode;
+          }},
+
+          {{u8"拼音输入法"}, 1, [this](int, int state)
+          {
+              g_imeBoard->setActive(state);
+              m_sdRuntimeConfig.ime = state;
+          }},
+      }
+
     , m_processRun([proc]()
       {
           fflassert(proc);
@@ -146,36 +186,34 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
     fflassert(texPtr);
     std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 
-    const std::array<std::tuple<const char8_t *, bool, std::function<void(bool)>>, 19> entryList // there is only 19 free slots
-    {{
-        {u8"游戏设置选项", false, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-        {u8"游戏设置选项",  true, [](bool){},},
-    }};
+    m_switchList.reserve(m_entryProtoList.size());
+    for(const auto &[titleList, initValue, onSwitch]: m_entryProtoList){
+        // can not skip invalid entry
+        // m_entryProtoList and m_switch shares indices
+        fflassert(!titleList.empty());
+        const auto [infoX, infoY, buttonX, buttonY] = getEntryPLoc(m_switchList.size());
 
-    for(const auto &[info, initValue, onSwitch]: entryList){
-        if(info){
-            const auto [infoX, infoY, buttonX, buttonY] = getEntryPLoc(m_switchList.size());
-            m_switchList.emplace_back(info, new OnOffTexButton
+        if(titleList.size() == 1){
+            m_switchList.push_back(new OnOffButton
             {
+                DIR_UPLEFT,
                 buttonX,
                 buttonY,
                 initValue,
+                2,
+                onSwitch,
+                this,
+                true,
+            });
+        }
+        else{
+            m_switchList.push_back(new SwitchNextButton
+            {
+                DIR_UPLEFT,
+                buttonX,
+                buttonY,
+                initValue,
+                to_d(titleList.size()),
                 onSwitch,
                 this,
                 true,
@@ -189,9 +227,6 @@ void RuntimeConfigBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X00000100), dstX, dstY);
     drawEntryTitle(u8"【游戏设置】", 255, 35);
     m_closeButton.draw();
-
-    drawEntryTitle(u8"攻击模式", 345, 67);
-    m_attackModeSwitch.draw();
 
     drawEntryTitle(u8"背景音乐", 345,  97);
     drawEntryTitle(u8"音效",     345, 157);
@@ -207,9 +242,9 @@ void RuntimeConfigBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         m_soundEffectSlider.draw();
     }
 
-    for(int i = 0; const auto &[infoText, buttonPtr]: m_switchList){
+    for(int i = 0; const auto buttonPtr: m_switchList){
         const auto [infoX, infoY, buttonX, buttonY] = getEntryPLoc(i++);
-        drawEntryTitle(infoText, infoX, infoY);
+        drawEntryTitle(std::get<0>(m_entryProtoList.at(i)).at(buttonPtr->getValue()).c_str(), infoX, infoY);
         buttonPtr->draw();
     }
 }
@@ -227,7 +262,6 @@ bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
     for(auto widgetPtr:
     {
         static_cast<Widget *>(&m_closeButton),
-        static_cast<Widget *>(&m_attackModeSwitch),
         static_cast<Widget *>(&m_musicSwitch),
         static_cast<Widget *>(&m_soundEffectSwitch),
     }){
@@ -244,7 +278,7 @@ bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
         return consumeFocus(true);
     }
 
-    for(const auto &[infoText, buttonPtr]: m_switchList){
+    for(const auto buttonPtr: m_switchList){
         if(buttonPtr->processEvent(event, valid)){
             return consumeFocus(true);
         }
@@ -314,4 +348,29 @@ std::tuple<int, int, int, int> RuntimeConfigBoard::getEntryPLoc(size_t entry)
     else{
         throw fflvalue(entry);
     }
+}
+
+void RuntimeConfigBoard::setConfig(SDRuntimeConfig config)
+{
+    m_sdRuntimeConfig = std::move(config);
+
+    m_musicSwitch.setValue(m_sdRuntimeConfig.bgm, false);
+    m_musicSlider.setValue(m_sdRuntimeConfig.bgmValue / 100.0, false);
+
+    m_soundEffectSwitch.setValue(m_sdRuntimeConfig.soundEff, false);
+    m_soundEffectSlider.setValue(m_sdRuntimeConfig.soundEffValue / 100.0, false);
+}
+
+void RuntimeConfigBoard::reportRuntimeConfig()
+{
+    CMSetRuntimeConfig cmSRC;
+    std::memset(&cmSRC, 0, sizeof(cmSRC));
+
+    cmSRC.bgm = getConfig().bgm;
+    cmSRC.bgmValue = getConfig().bgmValue;
+
+    cmSRC.soundEff = getConfig().soundEff;
+    cmSRC.soundEffValue = getConfig().soundEffValue;
+
+    g_client->send(CM_SETRUNTIMECONFIG, cmSRC);
 }

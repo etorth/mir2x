@@ -22,6 +22,7 @@ enum CMType: uint8_t
     CM_ONLINE,
     CM_ACTION,
     CM_SETMAGICKEY,
+    CM_SETRUNTIMECONFIG,
     CM_QUERYCORECORD,
     CM_REQUESTADDEXP,
     CM_REQUESTKILLPETS,
@@ -142,6 +143,18 @@ struct CMChangePassword
     FixedBuf<SYS_PWDSIZE> passwordNew;
 };
 
+struct CMSetRuntimeConfig
+{
+    uint8_t bgm;
+    uint8_t bgmValue;
+
+    uint8_t soundEff;
+    uint8_t soundEffValue;
+
+    uint8_t ime;
+    uint8_t attackMode;
+};
+
 struct CMNPCEvent
 {
     uint64_t uid;
@@ -210,6 +223,7 @@ struct CMRequestGrabBelt
 {
     uint16_t slot;
 };
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -254,6 +268,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_QUERYPLAYERWLDESP,          1, sizeof(CMQueryPlayerWLDesp)         )
                 _add_client_msg_type_case(CM_CREATEACCOUNT,              1, sizeof(CMCreateAccount)             )
                 _add_client_msg_type_case(CM_CHANGEPASSWORD,             1, sizeof(CMChangePassword)            )
+                _add_client_msg_type_case(CM_SETRUNTIMECONFIG,           1, sizeof(CMSetRuntimeConfig)             )
                 _add_client_msg_type_case(CM_NPCEVENT,                   1, sizeof(CMNPCEvent)                  )
                 _add_client_msg_type_case(CM_QUERYSELLITEMLIST,          1, sizeof(CMQuerySellItemList)         )
                 _add_client_msg_type_case(CM_DROPITEM,                   1, sizeof(CMDropItem)                  )
@@ -292,6 +307,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMQueryUIDBuff>
                     || std::is_same_v<T, CMQueryPlayerWLDesp>
                     || std::is_same_v<T, CMChangePassword>
+                    || std::is_same_v<T, CMSetRuntimeConfig>
                     || std::is_same_v<T, CMCreateAccount>
                     || std::is_same_v<T, CMNPCEvent>
                     || std::is_same_v<T, CMQuerySellItemList>

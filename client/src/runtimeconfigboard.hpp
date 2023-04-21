@@ -10,28 +10,23 @@ class ProcessRun;
 class RuntimeConfigBoard: public Widget
 {
     private:
-        class OnOffTexButton: public TritexButton
+        class SwitchIntegerButton: public TritexButton
         {
             private:
-                bool m_value = false;
+                std::pair<int, const int> m_valueState;
 
             private:
-                const std::function<void(bool)> m_onSwitch;
+                std::function<void(int, int)> m_onSwitch;
 
             public:
-                OnOffTexButton(int argX, int argY, bool initValue, std::function<void(bool)> onSwitch, Widget *widgetPtr = nullptr, bool autoDelete = false)
+                SwitchIntegerButton(dir8_t argDir, int argX, int argY, const uint32_t (& texIDList)[3], int initValue, int valueCount, std::function<void(int, int)> onSwitch, Widget *widgetPtr = nullptr, bool autoDelete = false)
                     : TritexButton
                       {
-                          DIR_UPLEFT,
+                          argDir,
                           argX,
                           argY,
 
-                          {
-                              to_u32(initValue ? 0X00000110 : 0X00000120),
-                              to_u32(initValue ? 0X00000111 : 0X00000121),
-                              to_u32(initValue ? 0X00000111 : 0X00000121), // click triggers tex switch
-                          },
-
+                          texIDList,
                           {
                               SYS_U32NIL,
                               SYS_U32NIL,
@@ -42,7 +37,7 @@ class RuntimeConfigBoard: public Widget
                           nullptr,
                           [this]()
                           {
-                              setValue(!getValue(), true);
+                              setValue((getValue() + 1) % getValueCount(), true);
                           },
 
                           0,
@@ -56,33 +51,96 @@ class RuntimeConfigBoard: public Widget
                           autoDelete,
                       }
 
-                    , m_value(initValue)
+                    , m_valueState([initValue, valueCount]() -> std::pair<int, const int>
+                      {
+                          fflassert(initValue >= 0, initValue);
+                          fflassert(valueCount > 0, valueCount);
+                          fflassert(initValue < valueCount, initValue, valueCount);
+                          return {initValue, valueCount};
+                      }())
+
                     , m_onSwitch(std::move(onSwitch))
                 {}
 
             public:
-                bool getValue() const
+                int getValue() const
                 {
-                    return m_value;
+                    return m_valueState.first;
                 }
 
-                void setValue(bool value, bool triggerSwitchCallback)
+                int getValueCount() const
                 {
-                    if(value == getValue()){
-                        return;
-                    }
+                    return m_valueState.second;
+                }
 
-                    m_value = value;
-                    setTexID(
-                    {
-                        to_u32(getValue() ? 0X00000110 : 0X00000120),
-                        to_u32(getValue() ? 0X00000111 : 0X00000121),
-                        to_u32(getValue() ? 0X00000111 : 0X00000121), // click triggers tex switch
-                    });
+            public:
+                virtual bool setValue(int, bool);
+        };
 
-                    if(triggerSwitchCallback && m_onSwitch){
-                        m_onSwitch(getValue());
+        class SwitchNextButton: public SwitchIntegerButton
+        {
+            public:
+                SwitchNextButton(dir8_t argDir, int argX, int argY, int initValue, int valueCount, std::function<void(int, int)> onSwitch, Widget *widgetPtr = nullptr, bool autoDelete = false)
+                    : SwitchIntegerButton
+                      {
+                          argDir,
+                          argX,
+                          argY,
+
+                          {
+                              0X0000130,
+                              0X0000131,
+                              0X0000130,
+                          },
+
+                          initValue,
+                          valueCount,
+                          std::move(onSwitch),
+
+                          widgetPtr,
+                          autoDelete,
+                      }
+                {}
+        };
+
+        class OnOffButton: public SwitchIntegerButton
+        {
+            public:
+                OnOffButton(dir8_t argDir, int argX, int argY, int initValue, int valueCount, std::function<void(int, int)> onSwitch, Widget *widgetPtr = nullptr, bool autoDelete = false)
+                    : SwitchIntegerButton
+                      {
+                          argDir,
+                          argX,
+                          argY,
+
+                          {
+                              to_u32(initValue ? 0X00000110 : 0X00000120),
+                              to_u32(initValue ? 0X00000111 : 0X00000121),
+                              to_u32(initValue ? 0X00000111 : 0X00000121), // click triggers tex switch
+                          },
+
+                          initValue,
+                          valueCount,
+                          std::move(onSwitch),
+
+                          widgetPtr,
+                          autoDelete,
+                      }
+                {}
+
+            public:
+                bool setValue(int value, bool triggerSwitchCallback) override
+                {
+                    if(SwitchIntegerButton::setValue(value, triggerSwitchCallback)){
+                        setTexID(
+                        {
+                            to_u32(getValue() ? 0X00000110 : 0X00000120),
+                            to_u32(getValue() ? 0X00000111 : 0X00000121),
+                            to_u32(getValue() ? 0X00000111 : 0X00000121), // click triggers tex switch
+                        });
+                        return true;
                     }
+                    return false;
                 }
         };
 
@@ -90,18 +148,21 @@ class RuntimeConfigBoard: public Widget
         TritexButton m_closeButton;
 
     private:
-        TritexButton m_attackModeSwitch;
-
-    private:
-        OnOffTexButton m_musicSwitch;
-        OnOffTexButton m_soundEffectSwitch;
+        OnOffButton m_musicSwitch;
+        OnOffButton m_soundEffectSwitch;
 
     private:
         TexSlider m_musicSlider;
         TexSlider m_soundEffectSlider;
 
     private:
-        std::vector<std::tuple<const char8_t *, OnOffTexButton *>> m_switchList;
+        const std::vector<std::tuple<std::vector<std::u8string>, int, std::function<void(int, int)>>> m_entryProtoList;
+
+    private:
+        std::vector<SwitchIntegerButton *> m_switchList;
+
+    private:
+        SDRuntimeConfig m_sdRuntimeConfig;
 
     private:
         ProcessRun *m_processRun;
@@ -137,4 +198,16 @@ class RuntimeConfigBoard: public Widget
             }
             return {};
         }
+
+    private:
+        void reportRuntimeConfig();
+
+    public:
+        const SDRuntimeConfig &getConfig() const
+        {
+            return m_sdRuntimeConfig;
+        }
+
+    public:
+        void setConfig(SDRuntimeConfig);
 };

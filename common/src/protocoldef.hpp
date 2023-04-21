@@ -345,3 +345,15 @@ enum InvOpType: int
     INVOP_REPAIR,
     INVOP_END,
 };
+
+enum AttackModeType: int
+{
+    ATKMODE_NONE  = 0,
+    ATKMODE_BEGIN = 1,
+
+    ATKMODE_PEACE = ATKMODE_BEGIN,
+    ATKMODE_GROUP,
+    ATKMODE_GUILD,
+    ATKMODE_ALL,
+    ATKMODE_END,
+};

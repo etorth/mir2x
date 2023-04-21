@@ -172,19 +172,20 @@ std::vector<SDItem> Player::dbLoadSecuredItemList() const
     return itemList;
 }
 
-void Player::dbLoadRuntimeConfig()
+void Player::dbLoadPlayerConfig()
 {
-    // tbl_runtimeconfig:
-    // +----------+----------+--------------+
-    // | fld_dbid | fld_mute | fld_magickey |
-    // +----------+----------+--------------+
+    // tbl_playerconfig:
+    // +----------+------------------+-------------------+
+    // | fld_dbid | fld_magickeylist | fld_runtimeconfig |
+    // +----------+------------------+-------------------+
 
-    m_sdRuntimeConfig.clear();
-    auto query = g_dbPod->createQuery("select * from tbl_runtimeconfig where fld_dbid = %llu", to_llu(dbid()));
+    m_sdPlayerConfig.magicKeyList.clear();
+
+    auto query = g_dbPod->createQuery("select * from tbl_playerconfig where fld_dbid = %llu", to_llu(dbid()));
 
     if(query.executeStep()){
-        m_sdRuntimeConfig.mute = query.getColumn("fld_mute");
-        m_sdRuntimeConfig.magicKeyList = cerealf::deserialize<SDMagicKeyList>(query.getColumn("fld_magickeylist"));
+        m_sdPlayerConfig.magicKeyList  = cerealf::deserialize<SDMagicKeyList >(query.getColumn("fld_magickeylist"));
+        m_sdPlayerConfig.runtimeConfig = cerealf::deserialize<SDRuntimeConfig>(query.getColumn("fld_runtimeconfig"));
     }
 }
 
@@ -193,19 +194,33 @@ void Player::dbUpdateMagicKey(uint32_t magicID, char key)
     fflassert(m_sdLearnedMagicList.has(magicID));
     fflassert((key >= 'a' && key <= 'z') || (key >= '0' && key <= '9'));
 
-    if(!m_sdRuntimeConfig.magicKeyList.setMagicKey(magicID, key)){
+    if(!m_sdPlayerConfig.magicKeyList.setMagicKey(magicID, key)){
         return;
     }
 
-    const auto keyBuf = cerealf::serialize(m_sdRuntimeConfig.magicKeyList);
+    const auto keyBuf = cerealf::serialize(m_sdPlayerConfig.magicKeyList);
     auto query = g_dbPod->createQuery(
-            u8R"###( replace into tbl_runtimeconfig(fld_dbid, fld_magickeylist) )###"
+            u8R"###( replace into tbl_playerconfig(fld_dbid, fld_magickeylist) )###"
+            u8R"###( values                                                    )###"
+            u8R"###(     (%llu, ?)                                             )###",
+
+            to_llu(dbid()));
+
+    query.bind(1, keyBuf.data(), keyBuf.length());
+    query.exec();
+}
+
+void Player::dbUpdateRuntimeConfig()
+{
+    const auto configBuf = cerealf::serialize(m_sdPlayerConfig.runtimeConfig);
+    auto query = g_dbPod->createQuery(
+            u8R"###( replace into tbl_playerconfig(fld_dbid, fld_runtimeconfig) )###"
             u8R"###( values                                                     )###"
             u8R"###(     (%llu, ?)                                              )###",
 
             to_llu(dbid()));
 
-    query.bind(1, keyBuf.data(), keyBuf.length());
+    query.bind(1, configBuf.data(), configBuf.length());
     query.exec();
 }
 

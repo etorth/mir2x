@@ -741,17 +741,30 @@ struct SDMagicKeyList
 
 struct SDRuntimeConfig
 {
-    int mute = 0;
-    SDMagicKeyList magicKeyList;
+    bool bgm = true;
+    int  bgmValue = 50;
+
+    bool soundEff = true;
+    int  soundEffValue = 50;
+
+    bool ime = true;
+
+    int attackMode = ATKMODE_BEGIN;
+
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(mute, magicKeyList);
+        ar(bgm, bgmValue, soundEff, soundEffValue, ime, attackMode);
     }
+};
 
-    void clear()
+struct SDPlayerConfig
+{
+    SDMagicKeyList magicKeyList;
+    SDRuntimeConfig runtimeConfig;
+
+    template<typename Archive> void serialize(Archive & ar)
     {
-        mute = 0;
-        magicKeyList.clear();
+        ar(magicKeyList, runtimeConfig);
     }
 };
 

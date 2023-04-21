@@ -16,10 +16,13 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "cerealf.hpp"
+#include "imeboard.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
+extern IMEBoard *g_imeBoard;
 extern SDLDevice *g_sdlDevice;
+
 void ProcessRun::net_STARTGAMESCENE(const uint8_t *buf, size_t bufSize)
 {
     const auto sdSGS = cerealf::deserialize<SDStartGameScene>(buf, bufSize);
@@ -44,10 +47,12 @@ void ProcessRun::net_STARTGAMESCENE(const uint8_t *buf, size_t bufSize)
     getMyHero()->pullGold();
 }
 
-void ProcessRun::net_RUNTIMECONFIG(const uint8_t *buf, size_t bufSize)
+void ProcessRun::net_PLAYERCONFIG(const uint8_t *buf, size_t bufSize)
 {
-    const auto sdRC = cerealf::deserialize<SDRuntimeConfig>(buf, bufSize);
-    for(const auto &[magicID, key]: sdRC.magicKeyList.keyList){
+    const auto sdPC = cerealf::deserialize<SDPlayerConfig>(buf, bufSize);
+    dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->setConfig(sdPC.runtimeConfig);
+
+    for(const auto &[magicID, key]: sdPC.magicKeyList.keyList){
         dynamic_cast<SkillBoard *>(getWidget("SkillBoard"))->getConfig().setMagicKey(magicID, key);
     }
 }

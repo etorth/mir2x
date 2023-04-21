@@ -42,7 +42,7 @@ Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
     dbLoadBelt();
     dbLoadInventory();
     dbLoadLearnedMagic();
-    dbLoadRuntimeConfig();
+    dbLoadPlayerConfig();
 }
 
 void Player::onActivate()
@@ -576,6 +576,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         _support_cm(CM_REQUESTGRABBELT           );
         _support_cm(CM_DROPITEM                  );
         _support_cm(CM_SETMAGICKEY               );
+        _support_cm(CM_SETRUNTIMECONFIG          );
         default: break;
 #undef _support_cm
     }
@@ -1624,7 +1625,7 @@ void Player::postOnlineOK()
     postNetMessage(SM_INVENTORY,        cerealf::serialize(m_sdItemStorage.inventory));
     postNetMessage(SM_BELT,             cerealf::serialize(m_sdItemStorage.belt));
     postNetMessage(SM_LEARNEDMAGICLIST, cerealf::serialize(m_sdLearnedMagicList));
-    postNetMessage(SM_RUNTIMECONFIG,    cerealf::serialize(m_sdRuntimeConfig));
+    postNetMessage(SM_PLAYERCONFIG,     cerealf::serialize(m_sdPlayerConfig));
 
     for(int wltype = WLG_BEGIN; wltype < WLG_END; ++wltype){
         if(const auto &item = m_sdItemStorage.wear.getWLItem(wltype)){

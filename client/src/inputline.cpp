@@ -74,7 +74,7 @@ bool InputLine::processEvent(const SDL_Event &event, bool valid)
                     default:
                         {
                             const char keyChar = SDLDeviceHelper::getKeyChar(event, true);
-                            if(m_imeEnabled && (keyChar >= 'a' && keyChar <= 'z')){
+                            if(m_imeEnabled && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [this](std::string s)
                                 {
                                     m_tpset.insertUTF8String(m_cursor, 0, s.c_str());

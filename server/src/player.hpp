@@ -46,8 +46,8 @@ class Player final: public BattleObject
 
     private:
         SDItemStorage      m_sdItemStorage;
+        SDPlayerConfig     m_sdPlayerConfig;
         SDLearnedMagicList m_sdLearnedMagicList;
-        SDRuntimeConfig    m_sdRuntimeConfig;
 
     private:
         std::unordered_map<int, std::function<void()>> m_onBeltOff;
@@ -159,6 +159,7 @@ class Player final: public BattleObject
         void net_CM_REQUESTGRABBELT           (uint8_t, const uint8_t *, size_t);
         void net_CM_DROPITEM                  (uint8_t, const uint8_t *, size_t);
         void net_CM_SETMAGICKEY               (uint8_t, const uint8_t *, size_t);
+        void net_CM_SETRUNTIMECONFIG          (uint8_t, const uint8_t *, size_t);
 
     protected:
         void reportGold();
@@ -281,11 +282,14 @@ class Player final: public BattleObject
         void dbRemoveWearItem(int);
 
     private:
-        void dbLoadRuntimeConfig();
+        void dbLoadPlayerConfig();
 
     private:
         void dbLoadLearnedMagic();
         void dbUpdateMagicKey(uint32_t, char);
+
+    private:
+        void dbUpdateRuntimeConfig();
 
     private:
         void dbLearnMagic(uint32_t);

@@ -10,6 +10,7 @@ class IMEBoard: public Widget
 {
     private:
         IME m_ime;
+        bool m_active = true; // needs this because IME is used not only in ProcessRun
 
     private:
         const uint8_t m_font;
@@ -81,4 +82,20 @@ class IMEBoard: public Widget
 
     private:
         size_t totalLabelWidth() const;
+
+    public:
+        bool active() const
+        {
+            return m_active;
+        }
+
+        void setActive(bool active)
+        {
+            m_active = active;
+        }
+
+        bool switchActive()
+        {
+            return m_active = !m_active;
+        }
 };

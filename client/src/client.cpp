@@ -473,10 +473,10 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
-        case SM_RUNTIMECONFIG:
+        case SM_PLAYERCONFIG:
             {
                 if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
-                    proc->net_RUNTIMECONFIG(buf, bufSize);
+                    proc->net_PLAYERCONFIG(buf, bufSize);
                 }
                 break;
             }

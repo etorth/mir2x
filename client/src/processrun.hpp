@@ -196,7 +196,7 @@ class ProcessRun: public Process
         void net_OFFLINE(const uint8_t *, size_t);
         void net_NPCSELL(const uint8_t *, size_t);
         void net_STARTGAMESCENE(const uint8_t *, size_t);
-        void net_RUNTIMECONFIG(const uint8_t *, size_t);
+        void net_PLAYERCONFIG(const uint8_t *, size_t);
         void net_LEARNEDMAGICLIST(const uint8_t *, size_t);
         void net_CORECORD(const uint8_t *, size_t);
         void net_HEALTH(const uint8_t *, size_t);

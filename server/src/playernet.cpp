@@ -659,6 +659,32 @@ void Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t)
 
 void Player::net_CM_SETMAGICKEY(uint8_t, const uint8_t *buf, size_t)
 {
-    const auto cmRC = ClientMsg::conv<CMSetMagicKey>(buf);
-    dbUpdateMagicKey(cmRC.magicID, cmRC.key);
+    const auto cmSMK = ClientMsg::conv<CMSetMagicKey>(buf);
+    dbUpdateMagicKey(cmSMK.magicID, cmSMK.key);
+}
+
+void Player::net_CM_SETRUNTIMECONFIG(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmSRC = ClientMsg::conv<CMSetRuntimeConfig>(buf);
+    bool needUpdate = false;
+
+    const auto fnCheckUpdate = [&needUpdate](auto &oldVal, auto &newVal)
+    {
+        if(const auto val = check_cast<std::remove_cvref_t<decltype(oldVal)>>(newVal); val != oldVal){
+            oldVal = val;
+            needUpdate = true;
+        }
+    };
+
+    fnCheckUpdate(m_sdPlayerConfig.runtimeConfig.bgm, cmSRC.bgm);
+    fnCheckUpdate(m_sdPlayerConfig.runtimeConfig.bgmValue, cmSRC.bgmValue);
+
+    fnCheckUpdate(m_sdPlayerConfig.runtimeConfig.soundEff, cmSRC.soundEff);
+    fnCheckUpdate(m_sdPlayerConfig.runtimeConfig.soundEffValue, cmSRC.soundEffValue);
+
+    fnCheckUpdate(m_sdPlayerConfig.runtimeConfig.ime, cmSRC.ime);
+
+    if(needUpdate){
+        dbUpdateRuntimeConfig();
+    }
 }

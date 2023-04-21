@@ -312,10 +312,10 @@ void MonoServer::createDefaultDatabase()
         u8R"###(     primary key (fld_dbid, fld_magicid)                             )###"
         u8R"###( );                                                                  )###",
 
-        u8R"###( create table tbl_runtimeconfig(                                     )###"
+        u8R"###( create table tbl_playerconfig(                                      )###"
         u8R"###(     fld_dbid           int unsigned not null,                       )###"
-        u8R"###(     fld_mute           int unsigned default 0,                      )###"
         u8R"###(     fld_magickeylist   blob null default (x''),                     )###"
+        u8R"###(     fld_runtimeconfig  blob null default (x''),                     )###"
         u8R"###(                                                                     )###"
         u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid),           )###"
         u8R"###(     primary key (fld_dbid)                                          )###"
