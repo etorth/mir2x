@@ -741,14 +741,17 @@ struct SDMagicKeyList
 
 struct SDRuntimeConfig
 {
-    bool bgm = true;
-    int  bgmValue = 50;
+    // keep all variables the same type
+    // variables in this class get bound to RuntimeConfigBoard switches
 
-    bool soundEff = true;
-    int  soundEffValue = 50;
+    int bgm = 1;                        // bool 0/1
+    int bgmValue = 50;                  // value 0 ~ 100
 
-    bool ime = true;
-    int attackMode = ATKMODE_BEGIN;
+    int soundEff = 1;                   // bool 0/1
+    int soundEffValue = 50;             // value 0 ~ 100
+
+    int ime = 1;                        // bool 0/1
+    int attackMode = ATKMODE_BEGIN;     // value ATKMODE_BEGIN ~ ATKMODE_END - 1
 
     template<typename Archive> void serialize(Archive & ar)
     {

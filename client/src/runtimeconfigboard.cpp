@@ -12,32 +12,14 @@ extern IMEBoard *g_imeBoard;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-bool RuntimeConfigBoard::SwitchIntegerButton::setValue(int value, bool triggerSwitchCallback)
+void RuntimeConfigBoard::SwitchIntegerButton::reportRuntimeConfig()
 {
-    fflassert(value >= 0, value);
-    fflassert(value < getValueCount(), value, getValueCount());
-
-    if(value == getValue()){
-        return false;
-    }
-
-    const auto oldValue = getValue();
-    m_valueState.first = value;
-
-    if(triggerSwitchCallback){
-        if(m_onSwitch){
-            m_onSwitch(oldValue, getValue());
-        }
-
-        for(auto parentPtr = parent(); parentPtr; parentPtr = parentPtr->parent()){
-            if(auto p = dynamic_cast<RuntimeConfigBoard *>(parentPtr)){
-                p->reportRuntimeConfig();
-                break;
-            }
+    for(auto parentPtr = parent(); parentPtr; parentPtr = parentPtr->parent()){
+        if(auto p = dynamic_cast<RuntimeConfigBoard *>(parentPtr)){
+            p->reportRuntimeConfig();
+            break;
         }
     }
-
-    return true;
 }
 
 RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Widget *widgetPtr, bool autoDelete)
@@ -77,12 +59,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           431,
           85,
 
-          to_d(SDRuntimeConfig().bgm),
+          m_sdRuntimeConfig.bgm,
+          0,
           2,
 
-          [this](int, int state)
+          [this](int)
           {
-              m_sdRuntimeConfig.bgm = state;
               g_sdlDevice->setBGMVolume(getMusicVolume().value_or(0.0f));
           },
           this
@@ -94,12 +76,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           431,
           145,
 
-          to_d(SDRuntimeConfig().soundEff),
+          m_sdRuntimeConfig.soundEff,
+          0,
           2,
 
-          [this](int, int state)
+          [this](int)
           {
-              m_sdRuntimeConfig.soundEff = state;
               g_sdlDevice->setSoundEffectVolume(getSoundEffectVolume().value_or(0.0f));
           },
           this
@@ -143,39 +125,19 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
 
     , m_entryProtoList
       {
-          {{u8"游戏设置选项"}, 0, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-          {{u8"游戏设置选项"}, 1, [](int, int){}},
-
-          {{u8"和平攻击", u8"组队攻击", u8"行会攻击", u8"全体攻击"}, to_d(SDRuntimeConfig().attackMode - ATKMODE_BEGIN), [this](int, int mode)
+          {{u8"和平攻击", u8"组队攻击", u8"行会攻击", u8"全体攻击"}, std::ref(m_sdRuntimeConfig.attackMode), ATKMODE_BEGIN, [this](int)
           {
-              m_sdRuntimeConfig.attackMode = ATKMODE_BEGIN + mode;
           }},
 
-          {{u8"拼音输入法"}, to_d(SDRuntimeConfig().ime), [this](int, int state)
+          {{u8"拼音输入法"}, std::ref(m_sdRuntimeConfig.ime), 0, [this](int state)
           {
               g_imeBoard->setActive(state);
-              m_sdRuntimeConfig.ime = state;
           }},
       }
 
     , m_processRun([proc]()
       {
-          fflassert(proc);
-          return proc;
+          fflassert(proc); return proc;
       }())
 {
     // 1.0f -> SDL_MIX_MAXVOLUME
@@ -191,7 +153,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
     std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
 
     m_switchList.reserve(m_entryProtoList.size());
-    for(const auto &[titleList, initValue, onSwitch]: m_entryProtoList){
+    for(auto &[titleList, valueRef, valueOffset, onSwitch]: m_entryProtoList){
         // can not skip invalid entry
         // m_entryProtoList and m_switch shares indices
         fflassert(!titleList.empty());
@@ -203,7 +165,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
                 DIR_UPLEFT,
                 buttonX,
                 buttonY,
-                initValue,
+                valueRef,
+                valueOffset,
                 2,
                 onSwitch,
                 this,
@@ -216,7 +179,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
                 DIR_UPLEFT,
                 buttonX,
                 buttonY,
-                initValue,
+                valueRef,
+                valueOffset,
                 to_d(titleList.size()),
                 onSwitch,
                 this,
@@ -255,7 +219,7 @@ void RuntimeConfigBoard::drawEx(int dstX, int dstY, int, int, int, int) const
             drawEntryTitle(titleList.front().c_str(), infoX, infoY);
         }
         else{
-            drawEntryTitle(titleList.at(buttonPtr->getValue()).c_str(), infoX, infoY);
+            drawEntryTitle(titleList.at(buttonPtr->getValue() - buttonPtr->getValueOffset()).c_str(), infoX, infoY);
         }
         buttonPtr->draw();
     }
@@ -366,11 +330,19 @@ void RuntimeConfigBoard::setConfig(SDRuntimeConfig config)
 {
     m_sdRuntimeConfig = std::move(config);
 
-    m_musicSwitch.setValue(m_sdRuntimeConfig.bgm, false);
     m_musicSlider.setValue(m_sdRuntimeConfig.bgmValue / 100.0, false);
+    g_sdlDevice->setBGMVolume(getMusicVolume().value_or(0.0f));
 
-    m_soundEffectSwitch.setValue(m_sdRuntimeConfig.soundEff, false);
     m_soundEffectSlider.setValue(m_sdRuntimeConfig.soundEffValue / 100.0, false);
+    g_sdlDevice->setSoundEffectVolume(getSoundEffectVolume().value_or(0.0f));
+
+    for(auto buttonPtr: m_switchList){
+        buttonPtr->triggerCallback();
+    }
+
+    for(auto buttonPtr: {&m_musicSwitch, &m_soundEffectSwitch}){
+        buttonPtr->triggerCallback();
+    }
 }
 
 void RuntimeConfigBoard::reportRuntimeConfig()
