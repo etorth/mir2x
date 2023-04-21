@@ -242,9 +242,17 @@ void RuntimeConfigBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         m_soundEffectSlider.draw();
     }
 
-    for(int i = 0; const auto buttonPtr: m_switchList){
-        const auto [infoX, infoY, buttonX, buttonY] = getEntryPLoc(i++);
-        drawEntryTitle(std::get<0>(m_entryProtoList.at(i)).at(buttonPtr->getValue()).c_str(), infoX, infoY);
+    for(size_t i = 0; i < m_switchList.size(); ++i){
+        const auto buttonPtr = m_switchList.at(i);
+        const auto &titleList = std::get<0>(m_entryProtoList.at(i));
+        const auto &[infoX, infoY, buttonX, buttonY] = getEntryPLoc(i);
+
+        if(titleList.size() == 1){
+            drawEntryTitle(titleList.front().c_str(), infoX, infoY);
+        }
+        else{
+            drawEntryTitle(titleList.at(buttonPtr->getValue()).c_str(), infoX, infoY);
+        }
         buttonPtr->draw();
     }
 }
