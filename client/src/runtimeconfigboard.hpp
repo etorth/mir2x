@@ -39,8 +39,14 @@ class RuntimeConfigBoard: public Widget
                           [this]()
                           {
                               std::get<0>(m_valueState) = ((getValue() - getValueOffset() + 1) % getValueCount()) + getValueOffset();
-                              reportRuntimeConfig();
                               triggerCallback();
+
+                              for(auto parentPtr = parent(); parentPtr; parentPtr = parentPtr->parent()){
+                                  if(auto configBoardPtr = dynamic_cast<RuntimeConfigBoard *>(parentPtr)){
+                                      configBoardPtr->reportRuntimeConfig();
+                                      break;
+                                  }
+                              }
                           },
 
                           0,
@@ -83,9 +89,6 @@ class RuntimeConfigBoard: public Widget
                 {
                     return std::get<2>(m_valueState);
                 }
-
-            public:
-                void reportRuntimeConfig();
 
             public:
                 void triggerCallback()

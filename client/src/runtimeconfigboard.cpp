@@ -12,16 +12,6 @@ extern IMEBoard *g_imeBoard;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-void RuntimeConfigBoard::SwitchIntegerButton::reportRuntimeConfig()
-{
-    for(auto parentPtr = parent(); parentPtr; parentPtr = parentPtr->parent()){
-        if(auto p = dynamic_cast<RuntimeConfigBoard *>(parentPtr)){
-            p->reportRuntimeConfig();
-            break;
-        }
-    }
-}
-
 RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Widget *widgetPtr, bool autoDelete)
     : Widget(DIR_UPLEFT, argX, argY, 0, 0, widgetPtr, autoDelete)
     , m_closeButton
