@@ -184,8 +184,13 @@ void Player::dbLoadPlayerConfig()
     auto query = g_dbPod->createQuery("select * from tbl_playerconfig where fld_dbid = %llu", to_llu(dbid()));
 
     if(query.executeStep()){
-        m_sdPlayerConfig.magicKeyList  = cerealf::deserialize<SDMagicKeyList >(query.getColumn("fld_magickeylist"));
-        m_sdPlayerConfig.runtimeConfig = cerealf::deserialize<SDRuntimeConfig>(query.getColumn("fld_runtimeconfig"));
+        if(const std::string buf = query.getColumn("fld_magickeylist"); !buf.empty()){
+            m_sdPlayerConfig.magicKeyList  = cerealf::deserialize<SDMagicKeyList>(buf);
+        }
+
+        if(const std::string buf = query.getColumn("fld_runtimeconfig"); !buf.empty()){
+            m_sdPlayerConfig.runtimeConfig = cerealf::deserialize<SDRuntimeConfig>(buf);
+        }
     }
 }
 
