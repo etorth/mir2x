@@ -77,11 +77,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           431,
           85,
 
-          1,
+          to_d(SDRuntimeConfig().bgm),
           2,
 
-          [this](int, int)
+          [this](int, int state)
           {
+              m_sdRuntimeConfig.bgm = state;
               g_sdlDevice->setBGMVolume(getMusicVolume().value_or(0.0f));
           },
           this
@@ -93,11 +94,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           431,
           145,
 
-          1,
+          to_d(SDRuntimeConfig().soundEff),
           2,
 
-          [this](int, int)
+          [this](int, int state)
           {
+              m_sdRuntimeConfig.soundEff = state;
               g_sdlDevice->setSoundEffectVolume(getSoundEffectVolume().value_or(0.0f));
           },
           this
@@ -156,12 +158,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           {{u8"游戏设置选项"}, 1, [](int, int){}},
           {{u8"游戏设置选项"}, 1, [](int, int){}},
 
-          {{u8"和平攻击", u8"组队攻击", u8"行会攻击", u8"全体攻击"}, 0, [this](int, int mode)
+          {{u8"和平攻击", u8"组队攻击", u8"行会攻击", u8"全体攻击"}, to_d(SDRuntimeConfig().attackMode - ATKMODE_BEGIN), [this](int, int mode)
           {
               m_sdRuntimeConfig.attackMode = ATKMODE_BEGIN + mode;
           }},
 
-          {{u8"拼音输入法"}, 1, [this](int, int state)
+          {{u8"拼音输入法"}, to_d(SDRuntimeConfig().ime), [this](int, int state)
           {
               g_imeBoard->setActive(state);
               m_sdRuntimeConfig.ime = state;
@@ -177,8 +179,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
     // 1.0f -> SDL_MIX_MAXVOLUME
     // SDL_mixer initial sound/music volume is SDL_MIX_MAXVOLUME
 
-    m_musicSlider.setValue(1.0f, false);
-    m_soundEffectSlider.setValue(1.0f, false);
+    m_musicSlider.setValue(to_f(SDRuntimeConfig().bgmValue) / 100.0, false);
+    m_soundEffectSlider.setValue(to_f(SDRuntimeConfig().soundEffValue) / 100.0, false);
 
     setShow(false);
     auto texPtr = g_progUseDB->retrieve(0X0000001B);
