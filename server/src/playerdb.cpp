@@ -185,7 +185,7 @@ void Player::dbLoadPlayerConfig()
 
     if(query.executeStep()){
         if(const std::string buf = query.getColumn("fld_magickeylist"); !buf.empty()){
-            m_sdPlayerConfig.magicKeyList  = cerealf::deserialize<SDMagicKeyList>(buf);
+            m_sdPlayerConfig.magicKeyList = cerealf::deserialize<SDMagicKeyList>(buf);
         }
 
         if(const std::string buf = query.getColumn("fld_runtimeconfig"); !buf.empty()){

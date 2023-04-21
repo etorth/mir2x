@@ -131,16 +131,14 @@ class RuntimeConfigBoard: public Widget
             public:
                 bool setValue(int value, bool triggerSwitchCallback) override
                 {
-                    if(SwitchIntegerButton::setValue(value, triggerSwitchCallback)){
-                        setTexID(
-                        {
-                            to_u32(getValue() ? 0X00000110 : 0X00000120),
-                            to_u32(getValue() ? 0X00000111 : 0X00000121),
-                            to_u32(getValue() ? 0X00000111 : 0X00000121), // click triggers tex switch
-                        });
-                        return true;
-                    }
-                    return false;
+                    const auto valChanged = SwitchIntegerButton::setValue(value, triggerSwitchCallback);
+                    setTexID(
+                    {
+                        to_u32(getValue() ? 0X00000110 : 0X00000120),
+                        to_u32(getValue() ? 0X00000111 : 0X00000121),
+                        to_u32(getValue() ? 0X00000111 : 0X00000121), // click triggers tex switch
+                    });
+                    return valChanged;
                 }
         };
 
