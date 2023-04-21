@@ -683,6 +683,7 @@ void Player::net_CM_SETRUNTIMECONFIG(uint8_t, const uint8_t *buf, size_t)
     fnCheckUpdate(m_sdPlayerConfig.runtimeConfig.soundEffValue, cmSRC.soundEffValue);
 
     fnCheckUpdate(m_sdPlayerConfig.runtimeConfig.ime, cmSRC.ime);
+    fnCheckUpdate(m_sdPlayerConfig.runtimeConfig.attackMode, cmSRC.attackMode);
 
     if(needUpdate){
         dbUpdateRuntimeConfig();

@@ -91,6 +91,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           {
               m_sdRuntimeConfig.bgmValue = std::lround(val * 100.0);
               g_sdlDevice->setBGMVolume(getMusicVolume().value_or(0.0f));
+              reportRuntimeConfig();
           },
           this,
       }
@@ -109,6 +110,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, ProcessRun *proc, Wid
           {
               m_sdRuntimeConfig.soundEffValue = std::lround(val * 100.0);
               g_sdlDevice->setSoundEffectVolume(getSoundEffectVolume().value_or(0.0f));
+              reportRuntimeConfig();
           },
           this,
       }
