@@ -210,7 +210,7 @@ void Player::dbUpdateMagicKey(uint32_t magicID, char key)
             u8R"###(     (%llu, ?)                                            )###"
             u8R"###(                                                          )###"
             u8R"###( on conflict(fld_dbid) do update set                      )###"
-            u8R"###(     fld_magickeylist = excluded.fld_magickeylist;        )###",
+            u8R"###(     fld_magickeylist = excluded.fld_magickeylist         )###",
 
             to_llu(dbid()));
 
@@ -227,7 +227,7 @@ void Player::dbUpdateRuntimeConfig()
             u8R"###(     (%llu, ?)                                             )###"
             u8R"###(                                                           )###"
             u8R"###( on conflict(fld_dbid) do update set                       )###"
-            u8R"###(     fld_runtimeconfig = excluded.fld_runtimeconfig;       )###",
+            u8R"###(     fld_runtimeconfig = excluded.fld_runtimeconfig        )###",
 
             to_llu(dbid()));
 
