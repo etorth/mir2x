@@ -5,6 +5,7 @@
 #include "npcchatboard.hpp"
 #include "controlboard.hpp"
 #include "purchaseboard.hpp"
+#include "teamstateboard.hpp"
 #include "inventoryboard.hpp"
 #include "quickaccessboard.hpp"
 #include "playerstateboard.hpp"
@@ -26,6 +27,7 @@ class GUIManager: public WidgetContainer
         SkillBoard m_skillBoard;
         MiniMapBoard m_miniMapBoard;
         PurchaseBoard m_purchaseBoard;
+        TeamStateBoard m_teamStateBoard;
         InventoryBoard m_inventoryBoard;
         QuickAccessBoard m_quickAccessBoard;
         PlayerStateBoard m_playerStateBoard;

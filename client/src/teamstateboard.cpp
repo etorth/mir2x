@@ -17,7 +17,7 @@ extern SoundEffectDB *g_seffDB;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
-PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
+TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
           DIR_UPLEFT,
@@ -216,18 +216,18 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
     }
 }
 
-void PlayerStateBoard::update(double)
+void TeamStateBoard::update(double)
 {
 }
 
-void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
+void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 {
     if(auto texPtr = g_progUseDB->retrieve(0X00000150)){
         g_sdlDevice->drawTexture(texPtr, x(), y());
     }
 }
 
-bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
+bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -240,4 +240,6 @@ bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
     if(m_close.processEvent(event, valid)){
         return true;
     }
+
+    return consumeFocus(false);
 }
