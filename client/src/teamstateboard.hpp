@@ -27,9 +27,6 @@ class TeamStateBoard: public Widget
         TeamStateBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
-        void update(double) override;
-
-    public:
         void drawEx(int, int, int, int, int, int) const override;
 
     public:

@@ -33,8 +33,8 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     , m_enableTeam
       {
           DIR_UPLEFT,
-          37,
-          59,
+          24,
+          47,
           {SYS_U32NIL, 0X00000200, 0X00000201},
           {
               SYS_U32NIL,
@@ -62,8 +62,8 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     , m_createTeam
       {
           DIR_UPLEFT,
-          22,
-          193,
+          19,
+          192,
           {SYS_U32NIL, 0X00000160, 0X00000161},
           {
               SYS_U32NIL,
@@ -91,8 +91,8 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     , m_addMember
       {
           DIR_UPLEFT,
-          77,
-          193,
+          72,
+          192,
           {SYS_U32NIL, 0X00000170, 0X00000171},
           {
               SYS_U32NIL,
@@ -121,7 +121,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
       {
           DIR_UPLEFT,
           125,
-          193,
+          192,
           {SYS_U32NIL, 0X00000180, 0X00000181},
           {
               SYS_U32NIL,
@@ -149,9 +149,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     , m_refresh
       {
           DIR_UPLEFT,
-          179,
-          193,
-          {SYS_U32NIL, 0X00000180, 0X00000181},
+          177,
+          192,
+          {SYS_U32NIL, 0X00000190, 0X00000191},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -178,8 +178,8 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     , m_close
       {
           DIR_UPLEFT,
-          220,
-          208,
+          217,
+          200,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               SYS_U32NIL,
@@ -216,15 +216,18 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     }
 }
 
-void TeamStateBoard::update(double)
-{
-}
-
 void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 {
     if(auto texPtr = g_progUseDB->retrieve(0X00000150)){
         g_sdlDevice->drawTexture(texPtr, x(), y());
     }
+
+    m_enableTeam.draw();
+    m_createTeam.draw();
+    m_addMember.draw();
+    m_deleteMember.draw();
+    m_refresh.draw();
+    m_close.draw();
 }
 
 bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
@@ -237,9 +240,48 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
+    if(m_enableTeam.processEvent(event, valid)){
+        return true;
+    }
+
+    if(m_createTeam.processEvent(event, valid)){
+        return true;
+    }
+
+    if(m_addMember.processEvent(event, valid)){
+        return true;
+    }
+
+    if(m_deleteMember.processEvent(event, valid)){
+        return true;
+    }
+
+    if(m_refresh.processEvent(event, valid)){
+        return true;
+    }
+
     if(m_close.processEvent(event, valid)){
         return true;
     }
 
-    return consumeFocus(false);
+    switch(event.type){
+        case SDL_MOUSEMOTION:
+            {
+                if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
+                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+                    const int maxX = rendererW - w();
+                    const int maxY = rendererH - h();
+
+                    const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
+                    const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
+                    moveBy(newX - x(), newY - y());
+                    return consumeFocus(true);
+                }
+                return consumeFocus(false);
+            }
+        default:
+            {
+                return consumeFocus(false);
+            }
+    }
 }
