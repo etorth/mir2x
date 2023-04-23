@@ -16,8 +16,8 @@ class TeamStateBoard: public Widget
         const int m_lineSpace  = 10;
         const int m_uidRegionW = 220;
 
-        const int m_uidMinCount = 1;
-        const int m_uidMaxCount = 1;
+        const int m_uidMinCount = 5;
+        const int m_uidMaxCount = 10;
 
         const int m_texRepeatStartY = 84;
         const int m_texRepeatH      = 87;
@@ -31,6 +31,7 @@ class TeamStateBoard: public Widget
         const uint32_t m_selectedBGColor = colorf::RED   + colorf::A_SHF(100);
 
     private:
+        int m_startIndex = 0;
         int m_selectedIndex = -1;
         std::vector<uint64_t> m_uidList;
 

@@ -246,7 +246,9 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
     std::string nameText;
     XMLTypeset line(m_uidRegionW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
 
-    for(size_t i = 0; const auto uid: m_uidList){
+    for(int i = 0; (i < lineCount()) && (i + m_startIndex < to_d(m_uidList.size())); ++i){
+        const auto uid = m_uidList.at(i + m_startIndex);
+
         nameText.clear();
         if(uidf::isPlayer(uid)){
             if(const auto heroPtr = dynamic_cast<Hero *>(m_processRun->findUID(uid, true))){
@@ -263,7 +265,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 
         line.clear();
         line.loadXML(str_printf("<par>%s</par>", nameText.c_str()).c_str());
-        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + (i++) * lineHeight(), 0, 0, line.pw(), line.ph());
+        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + i * lineHeight(), 0, 0, line.pw(), line.ph());
     }
 
     m_enableTeam  .draw();
@@ -334,7 +336,9 @@ void TeamStateBoard::refresh()
 {
     const auto selectedUID = (m_selectedIndex >= 0) ? m_uidList.at(m_selectedIndex) : 0;
 
+    m_startIndex = 0;
     m_uidList.clear();
+
     for(const auto &[uid, coPtr]: m_processRun->getCOList()){
         if(uid == m_processRun->getMyHeroUID()){
             continue;
