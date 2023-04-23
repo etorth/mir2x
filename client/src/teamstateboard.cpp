@@ -162,16 +162,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           nullptr,
           [this]()
           {
-              m_uidList.clear();
-              for(const auto &[uid, coPtr]: m_processRun->getCOList()){
-                  if(uid == m_processRun->getMyHeroUID()){
-                      continue;
-                  }
-
-                  if(uidf::isPlayer(uid)){
-                      m_uidList.push_back(uid);
-                  }
-              }
+              refresh();
           },
 
           0,
@@ -316,5 +307,33 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
             {
                 return consumeFocus(false);
             }
+    }
+}
+
+void TeamStateBoard::refresh()
+{
+    const auto selectedUID = (m_selectedIndex >= 0) ? m_uidList.at(m_selectedIndex) : 0;
+
+    m_uidList.clear();
+    for(const auto &[uid, coPtr]: m_processRun->getCOList()){
+        if(uid == m_processRun->getMyHeroUID()){
+            continue;
+        }
+
+        if(uidf::isPlayer(uid)){
+            m_uidList.push_back(uid);
+        }
+    }
+
+    std::sort(m_uidList.begin(), m_uidList.end());
+
+    m_selectedIndex = -1;
+    if(selectedUID){
+        for(size_t i = 0; i < m_uidList.size(); ++i){
+            if(m_uidList[i] == selectedUID){
+                m_selectedIndex = to_d(i);
+                break;
+            }
+        }
     }
 }

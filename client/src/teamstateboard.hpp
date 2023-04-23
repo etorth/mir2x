@@ -24,6 +24,7 @@ class TeamStateBoard: public Widget
         const uint32_t m_selectedBGColor = colorf::RED   + colorf::A_SHF(100);
 
     private:
+        int m_selectedIndex = -1;
         std::vector<uint64_t> m_uidList;
 
     private:
@@ -55,4 +56,7 @@ class TeamStateBoard: public Widget
         {
             return XMLTypeset(m_uidRegionW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle).getDefaultFontHeight() + m_lineSpace;
         }
+
+    public:
+        void refresh();
 };

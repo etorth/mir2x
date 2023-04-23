@@ -12,6 +12,7 @@
 #include "processrun.hpp"
 #include "controlboard.hpp"
 #include "clientmonster.hpp"
+#include "teamstateboard.hpp"
 
 // for texture 0X00000012 and 0X00000013
 // I split it into many parts to fix different screen size
@@ -398,8 +399,11 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              if(auto p = m_processRun->getWidget("TeamStateBoard")){
+              if(auto p = dynamic_cast<TeamStateBoard *>(m_processRun->getWidget("TeamStateBoard"))){
                   p->flipShow();
+                  if(p->show()){
+                      p->refresh();
+                  }
               }
           },
 
