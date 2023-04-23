@@ -162,6 +162,16 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           nullptr,
           [this]()
           {
+              m_uidList.clear();
+              for(const auto &[uid, coPtr]: m_processRun->getCOList()){
+                  if(uid == m_processRun->getMyHeroUID()){
+                      continue;
+                  }
+
+                  if(uidf::isPlayer(uid)){
+                      m_uidList.push_back(uid);
+                  }
+              }
           },
 
           0,
@@ -220,6 +230,12 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 {
     if(auto texPtr = g_progUseDB->retrieve(0X00000150)){
         g_sdlDevice->drawTexture(texPtr, x(), y());
+    }
+
+    for(size_t i = 0; const auto uid: m_uidList){
+        XMLTypeset line(m_uidRegionW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
+        line.loadXML(str_printf("<par>%llu</par>", to_llu(uid)).c_str());
+        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + i * lineHeight(), 0, 0, line.pw(), line.ph());
     }
 
     m_enableTeam.draw();
