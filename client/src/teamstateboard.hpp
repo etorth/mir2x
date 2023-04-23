@@ -91,9 +91,9 @@ class TeamStateBoard: public Widget
             return XMLTypeset(-1, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle).getDefaultFontHeight() + m_lineSpace;
         }
 
-        int lineCount() const
+        size_t lineCount() const
         {
-            return mathf::bound<int>(m_uidList.size(), m_uidMinCount, m_uidMaxCount);
+            return mathf::bound<size_t>(m_uidList.size(), m_uidMinCount, m_uidMaxCount);
         }
 
     public:

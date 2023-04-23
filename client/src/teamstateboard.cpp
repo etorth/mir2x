@@ -239,7 +239,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
         const auto repeatCount = neededRepeatTexH / m_texRepeatH;
         const auto repeatRest  = neededRepeatTexH % m_texRepeatH;
 
-        for(int i = 0; i < repeatCount; ++i){
+        for(size_t i = 0; i < repeatCount; ++i){
             g_sdlDevice->drawTexture(texPtr, x(), y() + texRepeatStartY + i * m_texRepeatH, 0, texRepeatStartY, texW, m_texRepeatH);
         }
 
@@ -256,8 +256,8 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
     std::string nameText;
     XMLTypeset line(-1, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
 
-    for(int i = 0; (i < lineCount()) && (i + m_startIndex < to_d(m_uidList.size())); ++i){
-        if((m_selectedIndex >= 0) && (i + m_startIndex == m_selectedIndex)){
+    for(size_t i = 0; (i < lineCount()) && (i + m_startIndex < m_uidList.size()); ++i){
+        if((m_selectedIndex >= 0) && (to_d(i) + m_startIndex == m_selectedIndex)){
             g_sdlDevice->fillRectangle(m_selectedBGColor, x() + m_uidRegionX, y() + m_uidRegionY + i * lineHeight(), m_uidRegionW, lineHeight());
         }
 
@@ -331,7 +331,7 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                for(int i = 0; i < lineCount(); ++i){
+                for(size_t i = 0; i < lineCount(); ++i){
                     const auto lineX = x() + m_uidRegionX;
                     const auto lineY = y() + m_uidRegionY + i * lineHeight();
 
@@ -348,7 +348,10 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
             {
                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
                 if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_uidRegionX, y() + m_uidRegionY, m_uidRegionW, lineHeight() * lineCount())){
-                    if(event.wheel.y < 0){
+                    if(m_uidList.size() <= lineCount()){
+                        m_startIndex = 0;
+                    }
+                    else if(event.wheel.y < 0){
                         m_startIndex = std::min<int>(m_startIndex + 1, m_uidList.size() - lineCount());
                     }
                     else{
