@@ -10,7 +10,7 @@ class ProcessRun;
 class TeamStateBoard: public Widget
 {
     private:
-        const int m_startX = 19;
+        const int m_startX = 19; // start coordindate of uid region
         const int m_startY = 79;
 
         const int m_lineSpace  = 10;
@@ -19,7 +19,7 @@ class TeamStateBoard: public Widget
         const int m_uidMinCount = 5;
         const int m_uidMaxCount = 10;
 
-        const int m_texRepeatStartY = 84;
+        const int m_texRepeatStartY = 84; // start coordindate-y of texture region
         const int m_texRepeatH      = 87;
 
     private:
@@ -28,6 +28,7 @@ class TeamStateBoard: public Widget
         const uint8_t  m_fontStyle = 0;
 
         const uint32_t m_fontColor       = colorf::WHITE + colorf::A_SHF(255);
+        const uint32_t m_hoveredColor    = colorf::BLUE  + colorf::A_SHF(100);
         const uint32_t m_selectedBGColor = colorf::RED   + colorf::A_SHF(100);
 
     private:

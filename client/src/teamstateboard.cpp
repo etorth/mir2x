@@ -243,10 +243,20 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + neededTexRegionH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
     }
 
+    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+
     std::string nameText;
-    XMLTypeset line(m_uidRegionW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
+    XMLTypeset line(-1, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
 
     for(int i = 0; (i < lineCount()) && (i + m_startIndex < to_d(m_uidList.size())); ++i){
+        if((m_selectedIndex >= 0) && (i + m_startIndex == m_selectedIndex)){
+            g_sdlDevice->fillRectangle(m_selectedBGColor, x() + m_startX, y() + m_startY + i * lineHeight(), m_uidRegionW, lineHeight());
+        }
+
+        if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_startX, y() + m_startY + i * lineHeight(), m_uidRegionW, lineHeight())){
+            g_sdlDevice->fillRectangle(m_hoveredColor, x() + m_startX, y() + m_startY + i * lineHeight(), m_uidRegionW, lineHeight());
+        }
+
         const auto uid = m_uidList.at(i + m_startIndex);
 
         nameText.clear();
@@ -265,7 +275,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 
         line.clear();
         line.loadXML(str_printf("<par>%s</par>", nameText.c_str()).c_str());
-        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + i * lineHeight(), 0, 0, line.pw(), line.ph());
+        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + i * lineHeight(), 0, 0, std::min<int>(line.pw(), m_uidRegionW), line.ph());
     }
 
     m_enableTeam  .draw();
@@ -311,6 +321,34 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     switch(event.type){
+        case SDL_MOUSEBUTTONDOWN:
+            {
+                for(int i = 0; i < lineCount(); ++i){
+                    const auto lineX = x() + m_startX;
+                    const auto lineY = y() + m_startY + i * lineHeight();
+
+                    if(mathf::pointInRectangle<int>(event.button.x - lineX, event.button.y - lineY, 0, 0, m_uidRegionW, lineHeight())){
+                        m_selectedIndex = i + m_startIndex;
+                        if(event.button.clicks >= 2){
+                            // can show hero state board here
+                        }
+                    }
+                }
+                return consumeFocus(true);
+            }
+        case SDL_MOUSEWHEEL:
+            {
+                const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_startX, y() + m_startY, m_uidRegionW,  lineHeight() * lineCount())){
+                    if(event.wheel.y < 0){
+                        m_startIndex = std::min<int>(m_startIndex + 1, m_uidList.size() - lineCount());
+                    }
+                    else{
+                        m_startIndex = std::max<int>(m_startIndex - 1, 0);
+                    }
+                }
+                return consumeFocus(true);
+            }
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
