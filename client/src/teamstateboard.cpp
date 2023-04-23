@@ -63,7 +63,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
       {
           DIR_UPLEFT,
           19,
-          192,
+          0, // reset by adjustButtonPos()
           {SYS_U32NIL, 0X00000160, 0X00000161},
           {
               SYS_U32NIL,
@@ -92,7 +92,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
       {
           DIR_UPLEFT,
           72,
-          192,
+          0, // reset by adjustButtonPos()
           {SYS_U32NIL, 0X00000170, 0X00000171},
           {
               SYS_U32NIL,
@@ -121,7 +121,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
       {
           DIR_UPLEFT,
           125,
-          192,
+          0, // reset by adjustButtonPos()
           {SYS_U32NIL, 0X00000180, 0X00000181},
           {
               SYS_U32NIL,
@@ -150,7 +150,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
       {
           DIR_UPLEFT,
           177,
-          192,
+          0, // reset by adjustButtonPos()
           {SYS_U32NIL, 0X00000190, 0X00000191},
           {
               SYS_U32NIL,
@@ -180,7 +180,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
       {
           DIR_UPLEFT,
           217,
-          200,
+          0, // reset by adjustButtonPos()
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               SYS_U32NIL,
@@ -215,6 +215,8 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     else{
         throw fflerror("no valid team status board frame texture");
     }
+
+    adjustButtonPos();
 }
 
 void TeamStateBoard::drawEx(int, int, int, int, int, int) const
@@ -227,12 +229,18 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, x(), y(), 0, 0, texW, m_texRepeatStartY);
 
         const auto repeatCount = neededTexRegionH / m_texRepeatH;
+        const auto repeatRest  = neededTexRegionH % m_texRepeatH;
+
         for(int i = 0; i < repeatCount; ++i){
             g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + i * m_texRepeatH, 0, m_texRepeatStartY, texW, m_texRepeatH);
         }
 
+        if(repeatRest > 0){
+            g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + repeatCount * m_texRepeatH, 0, m_texRepeatStartY, texW, repeatRest);
+        }
+
         const int texRepeatEndY = m_texRepeatStartY + m_texRepeatH;
-        g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + repeatCount * m_texRepeatH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
+        g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + neededTexRegionH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
     }
 
     std::string nameText;
@@ -258,12 +266,12 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
         line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + (i++) * lineHeight(), 0, 0, line.pw(), line.ph());
     }
 
-    m_enableTeam.draw();
-    m_createTeam.draw();
-    m_addMember.draw();
+    m_enableTeam  .draw();
+    m_createTeam  .draw();
+    m_addMember   .draw();
     m_deleteMember.draw();
-    m_refresh.draw();
-    m_close.draw();
+    m_refresh     .draw();
+    m_close       .draw();
 }
 
 bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
@@ -348,4 +356,17 @@ void TeamStateBoard::refresh()
             }
         }
     }
+
+    adjustButtonPos();
+}
+
+void TeamStateBoard::adjustButtonPos()
+{
+    const auto buttonY = m_texRepeatStartY + lineCount() * lineHeight() + 21;
+
+    m_createTeam  .moveTo({}, buttonY);
+    m_addMember   .moveTo({}, buttonY);
+    m_deleteMember.moveTo({}, buttonY);
+    m_refresh     .moveTo({}, buttonY);
+    m_close       .moveTo({}, buttonY + 8);
 }

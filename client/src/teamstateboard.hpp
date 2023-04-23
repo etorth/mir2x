@@ -71,4 +71,7 @@ class TeamStateBoard: public Widget
 
     public:
         void refresh();
+
+    private:
+        void adjustButtonPos();
 };
