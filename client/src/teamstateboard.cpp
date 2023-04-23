@@ -341,12 +341,24 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
                     }
                 }
 
-                if(selectedLine >= 0 && selectedLine + m_startIndex < to_d(m_uidList.size())){
-                    m_selectedIndex = selectedLine + m_startIndex;
-                    if(event.button.clicks >= 2){
-                        // can show hero state board here
+                if(selectedLine >= 0){
+                    if(selectedLine + m_startIndex < to_d(m_uidList.size())){
+                        m_selectedIndex = selectedLine + m_startIndex;
+                        if(event.button.clicks >= 2){
+                            // can show hero state board here
+                        }
+                    }
+                    else{
+                        // clicked in uidRegion, but on invalid line
+                        // reset selection
+                        m_selectedIndex = -1;
                     }
                 }
+                else{
+                    // clicked outside uidRegion
+                    // ignore event
+                }
+
                 return consumeFocus(true);
             }
         case SDL_MOUSEWHEEL:
