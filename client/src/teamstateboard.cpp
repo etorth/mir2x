@@ -331,7 +331,8 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                for(size_t i = 0; i < lineCount(); ++i){
+                m_selectedIndex = -1; // reset if click on invalid line
+                for(size_t i = 0; (i < lineCount()) && (i + m_startIndex < m_uidList.size()); ++i){
                     const auto lineX = x() + m_uidRegionX;
                     const auto lineY = y() + m_uidRegionY + i * lineHeight();
 
@@ -340,6 +341,7 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
                         if(event.button.clicks >= 2){
                             // can show hero state board here
                         }
+                        break;
                     }
                 }
                 return consumeFocus(true);
