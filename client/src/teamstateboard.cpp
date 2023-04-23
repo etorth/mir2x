@@ -283,7 +283,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 
         line.clear();
         line.loadXML(str_printf("<par>%s</par>", nameText.c_str()).c_str());
-        line.drawEx(x() + (m_uidRegionW - m_uidTextRegionW) / 2, y() + m_uidRegionY + m_lineSpace / 2 + i * lineHeight(), 0, 0, std::min<int>(line.pw(), m_uidTextRegionW), line.ph());
+        line.drawEx(x() + m_uidRegionX + (m_uidRegionW - m_uidTextRegionW) / 2, y() + m_uidRegionY + m_lineSpace / 2 + i * lineHeight(), 0, 0, std::min<int>(line.pw(), m_uidTextRegionW), line.ph());
     }
 
     m_enableTeam  .draw();
@@ -412,7 +412,7 @@ void TeamStateBoard::refresh()
 
 void TeamStateBoard::adjustButtonPos()
 {
-    const auto buttonY = m_uidRegionY + lineCount() * lineHeight() + 21;
+    const auto buttonY = m_uidRegionY + lineCount() * lineHeight() + 14;
 
     m_createTeam  .moveTo({}, buttonY);
     m_addMember   .moveTo({}, buttonY);

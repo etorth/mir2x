@@ -37,12 +37,11 @@ class TeamStateBoard: public Widget
     private:
         const int m_uidRegionX = 13;
         const int m_uidRegionY = 80;
-        const int m_uidRegionW = 245 - 13;
-        const int m_uidRegionH = 178 - 80;
-
+        const int m_uidRegionW = 231;
+        const int m_uidRegionH = 98;
         const int m_texRepeatH = 70;
 
-        const int m_lineSpace      = 10;  // space between two XMLTypeset
+        const int m_lineSpace = 4;        // space between two XMLTypeset
         const int m_uidTextRegionW = 220; // XMLTypeset max width, margin excluded
 
         const int m_uidMinCount = 5;
