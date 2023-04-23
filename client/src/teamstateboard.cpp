@@ -252,7 +252,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 
         line.clear();
         line.loadXML(str_printf("<par>%s</par>", nameText.c_str()).c_str());
-        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + i * lineHeight(), 0, 0, line.pw(), line.ph());
+        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + (i++) * lineHeight(), 0, 0, line.pw(), line.ph());
     }
 
     m_enableTeam.draw();
