@@ -232,10 +232,18 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, x(), y());
     }
 
+    XMLTypeset line(m_uidRegionW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
     for(size_t i = 0; const auto uid: m_uidList){
-        XMLTypeset line(m_uidRegionW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
-        line.loadXML(str_printf("<par>%llu</par>", to_llu(uid)).c_str());
-        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + i * lineHeight(), 0, 0, line.pw(), line.ph());
+        if(uidf::isPlayer(uid)){
+            if(const auto heroPtr = dynamic_cast<Hero *>(m_processRun->findUID(uid, true))){
+                const auto name = heroPtr->getName();
+                const auto nameText = name.empty() ? std::string("...") : name;
+
+                line.clear();
+                line.loadXML(str_printf("<par>%s</par>", nameText.c_str()).c_str());
+                line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + i * lineHeight(), 0, 0, line.pw(), line.ph());
+            }
+        }
     }
 
     m_enableTeam.draw();

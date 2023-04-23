@@ -22,8 +22,9 @@ class Hero: public CreatureMovable
         bool    m_onHorse;
 
     protected:
-        std::string m_name;
-        uint32_t    m_nameColor;
+        mutable bool m_nameQueried = false;
+        std::string  m_name;
+        uint32_t     m_nameColor;
 
     protected:
         SDWLDesp m_sdWLDesp;
@@ -119,7 +120,7 @@ class Hero: public CreatureMovable
 
         void setName(const char *name, uint32_t nameColor)
         {
-            m_name = to_cstr(name);
+            m_name = str_haschar(name) ? name : "";
             m_nameColor = (colorf::maskRGB(nameColor) ? nameColor : colorf::WHITE) + colorf::A_SHF(0XFF);
         }
 
@@ -131,13 +132,24 @@ class Hero: public CreatureMovable
     public:
         std::string getName() const
         {
+            if(m_name.empty() && !m_nameQueried){
+                queryName();
+                m_nameQueried = true;
+            }
             return m_name;
         }
 
         uint32_t getNameColor() const
         {
+            if(m_name.empty() && !m_nameQueried){
+                queryName();
+                m_nameQueried = true;
+            }
             return m_nameColor;
         }
+
+    private:
+        void queryName() const;
 
     public:
         const SDItem &getWLItem(int) const;

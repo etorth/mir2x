@@ -252,13 +252,6 @@ struct SMStrikeGrid
     uint32_t y;
 };
 
-struct SMPlayerName
-{
-    uint64_t uid;
-    char name[128];
-    uint32_t nameColor;
-};
-
 struct SMBuildVersion
 {
     FixedBuf<128> version;
@@ -377,7 +370,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_STRIKEGRID,          1, sizeof(SMStrikeGrid)         )
                 _add_server_msg_type_case(SM_SELLITEMLIST,        3, 0                            )
                 _add_server_msg_type_case(SM_TEXT,                3, 0                            )
-                _add_server_msg_type_case(SM_PLAYERNAME,          1, sizeof(SMPlayerName)         )
+                _add_server_msg_type_case(SM_PLAYERNAME,          3, 0                            )
                 _add_server_msg_type_case(SM_BUILDVERSION,        1, sizeof(SMBuildVersion)       )
                 _add_server_msg_type_case(SM_INVENTORY,           3, 0                            )
                 _add_server_msg_type_case(SM_BELT,                3, 0                            )
@@ -431,7 +424,6 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMOffline>
                     || std::is_same_v<T, SMRemoveGroundItem>
                     || std::is_same_v<T, SMInvOpCost>
-                    || std::is_same_v<T, SMPlayerName>
                     || std::is_same_v<T, SMBuildVersion>
                     || std::is_same_v<T, SMRemoveItem>
                     || std::is_same_v<T, SMRemoveSecuredItem>

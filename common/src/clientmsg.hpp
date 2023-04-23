@@ -32,6 +32,7 @@ enum CMType: uint8_t
     CM_PICKUP,
     CM_QUERYGOLD,
     CM_QUERYUIDBUFF,
+    CM_QUERYPLAYERNAME,
     CM_QUERYPLAYERWLDESP,
     CM_CREATEACCOUNT,
     CM_NPCEVENT,
@@ -121,6 +122,11 @@ struct CMPickUp
 };
 
 struct CMQueryUIDBuff
+{
+    uint64_t uid;
+};
+
+struct CMQueryPlayerName
 {
     uint64_t uid;
 };
@@ -265,6 +271,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_PICKUP,                     1, sizeof(CMPickUp)                    )
                 _add_client_msg_type_case(CM_QUERYGOLD,                  0, 0                                   )
                 _add_client_msg_type_case(CM_QUERYUIDBUFF,               1, sizeof(CMQueryUIDBuff)              )
+                _add_client_msg_type_case(CM_QUERYPLAYERNAME,            1, sizeof(CMQueryPlayerName)         )
                 _add_client_msg_type_case(CM_QUERYPLAYERWLDESP,          1, sizeof(CMQueryPlayerWLDesp)         )
                 _add_client_msg_type_case(CM_CREATEACCOUNT,              1, sizeof(CMCreateAccount)             )
                 _add_client_msg_type_case(CM_CHANGEPASSWORD,             1, sizeof(CMChangePassword)            )
@@ -305,6 +312,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMPickUp>
                     || std::is_same_v<T, CMSetMagicKey>
                     || std::is_same_v<T, CMQueryUIDBuff>
+                    || std::is_same_v<T, CMQueryPlayerName>
                     || std::is_same_v<T, CMQueryPlayerWLDesp>
                     || std::is_same_v<T, CMChangePassword>
                     || std::is_same_v<T, CMSetRuntimeConfig>

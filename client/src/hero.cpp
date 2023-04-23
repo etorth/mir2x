@@ -2,6 +2,7 @@
 #include "log.hpp"
 #include "hero.hpp"
 #include "pathf.hpp"
+#include "client.hpp"
 #include "dbcomid.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
@@ -15,6 +16,7 @@
 #include "clientargparser.hpp"
 
 extern Log *g_log;
+extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_heroDB;
@@ -1605,4 +1607,13 @@ void Hero::toggleSwingMagic(uint32_t magicID, std::optional<bool> enable)
             m_swingMagicList.insert(magicID);
         }
     }
+}
+
+void Hero::queryName() const
+{
+    CMQueryPlayerName cmQPN;
+    std::memset(&cmQPN, 0, sizeof(cmQPN));
+
+    cmQPN.uid = UID();
+    g_client->send(CM_QUERYPLAYERNAME, cmQPN);
 }

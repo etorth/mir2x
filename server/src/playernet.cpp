@@ -231,6 +231,22 @@ void Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size_t)
     }
 }
 
+void Player::net_CM_QUERYPLAYERNAME(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmQPN = ClientMsg::conv<CMQueryPlayerName>(buf);
+    if(cmQPN.uid == UID()){
+        postNetMessage(SM_PLAYERNAME, cerealf::serialize(SDPlayerName
+        {
+            .uid = UID(),
+            .name = name(),
+            .nameColor = nameColor(),
+        }));
+    }
+    else if(uidf::isPlayer(cmQPN.uid)){
+        m_actorPod->forward(cmQPN.uid, AM_QUERYPLAYERNAME);
+    }
+}
+
 void Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmQPWLD = ClientMsg::conv<CMQueryPlayerWLDesp>(buf);

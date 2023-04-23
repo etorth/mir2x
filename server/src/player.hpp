@@ -90,6 +90,11 @@ class Player final: public BattleObject
             return m_name;
         }
 
+        uint32_t nameColor() const
+        {
+            return m_nameColor;
+        }
+
     public:
         int Speed(int) const override
         {
@@ -132,6 +137,7 @@ class Player final: public BattleObject
         void on_AM_QUERYFRIENDTYPE  (const ActorMsgPack &);
         void on_AM_REMOVEGROUNDITEM (const ActorMsgPack &);
         void on_AM_QUERYUIDBUFF     (const ActorMsgPack &);
+        void on_AM_QUERYPLAYERNAME  (const ActorMsgPack &);
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
         void on_AM_REMOTECALL       (const ActorMsgPack &);
 
@@ -144,6 +150,7 @@ class Player final: public BattleObject
         void net_CM_QUERYCORECORD             (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYSELLITEMLIST         (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYUIDBUFF              (uint8_t, const uint8_t *, size_t);
+        void net_CM_QUERYPLAYERNAME           (uint8_t, const uint8_t *, size_t);
         void net_CM_QUERYPLAYERWLDESP         (uint8_t, const uint8_t *, size_t);
         void net_CM_ACTION                    (uint8_t, const uint8_t *, size_t);
         void net_CM_PICKUP                    (uint8_t, const uint8_t *, size_t);

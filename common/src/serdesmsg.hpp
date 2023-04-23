@@ -501,6 +501,18 @@ class SDInventory final
         std::unordered_set<uint64_t> getItemSeqIDSet() const;
 };
 
+struct SDPlayerName
+{
+    uint64_t uid = 0;
+    std::string name {};
+    uint32_t nameColor {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, name, nameColor);
+    }
+};
+
 struct SDWLDesp
 {
     SDWear wear;

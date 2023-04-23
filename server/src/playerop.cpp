@@ -348,6 +348,16 @@ void Player::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
     }));
 }
 
+void Player::on_AM_QUERYPLAYERNAME(const ActorMsgPack &mpk)
+{
+    forwardNetPackage(mpk.from(), SM_PLAYERNAME, cerealf::serialize(SDPlayerName
+    {
+        .uid = UID(),
+        .name = name(),
+        .nameColor = nameColor(),
+    }));
+}
+
 void Player::on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &mpk)
 {
     forwardNetPackage(mpk.from(), SM_PLAYERWLDESP, cerealf::serialize(SDUIDWLDesp

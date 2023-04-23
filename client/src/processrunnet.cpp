@@ -614,12 +614,12 @@ void ProcessRun::net_PLAYERWLDESP(const uint8_t *buf, size_t bufSize)
     }
 }
 
-void ProcessRun::net_PLAYERNAME(const uint8_t *buf, size_t)
+void ProcessRun::net_PLAYERNAME(const uint8_t *buf, size_t bufSize)
 {
-    const auto smPN = ServerMsg::conv<SMPlayerName>(buf);
-    if(uidf::getUIDType(smPN.uid) == UID_PLY){
-        if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPN.uid)); playerPtr){
-            playerPtr->setName(smPN.name, smPN.nameColor);
+    const auto sdPN = cerealf::deserialize<SDPlayerName>(buf, bufSize);
+    if(uidf::isPlayer(sdPN.uid)){
+        if(auto playerPtr = dynamic_cast<Hero *>(findUID(sdPN.uid)); playerPtr){
+            playerPtr->setName(sdPN.name.c_str(), sdPN.nameColor);
         }
     }
 }

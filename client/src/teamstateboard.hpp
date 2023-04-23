@@ -16,8 +16,8 @@ class TeamStateBoard: public Widget
         const int m_uidRegionW = 220;
 
     private:
-        const uint8_t  m_font      = 2;
-        const uint8_t  m_fontSize  = 20;
+        const uint8_t  m_font      = 1;
+        const uint8_t  m_fontSize  = 14;
         const uint8_t  m_fontStyle = 0;
 
         const uint32_t m_fontColor       = colorf::WHITE + colorf::A_SHF(255);
