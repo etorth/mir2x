@@ -9,18 +9,44 @@
 class ProcessRun;
 class TeamStateBoard: public Widget
 {
-    private:
-        const int m_startX = 19; // start coordindate of uid region
-        const int m_startY = 79;
+    // following is the original texture
+    // to create full board, middle part needs to repeat
+    //
+    // +----------------------------------+
+    // |                                  |
+    // | x---o----------------------+---+ |
+    // | |   |                      |   | |
+    // | |   |                      |   | |<------+
+    // | |   |                      |   | |       |
+    // | |   |                      |   | |  texRepeatH: as texture resource to repeat
+    // | |   |                      |   | |       |
+    // | |   |                      |   | |<------+
+    // | |   |                      |   | |
+    // | +---+----------------------o---x |             +
+    // |                                  |             |
+    // +----------------------------------+             +-+: original texture rectangle
+    //       ^                      ^
+    //       |                      |                   X
+    //       +----uidTextRegionW----+                   |
+    //                                                  +-X: uidRegion
+    //
+    //                                                  o
+    //                                                  |
+    //                                                  +-o: uidTextRegion
 
-        const int m_lineSpace  = 10;
-        const int m_uidRegionW = 220;
+    private:
+        const int m_uidRegionX = 13;
+        const int m_uidRegionY = 80;
+        const int m_uidRegionW = 245 - 13;
+        const int m_uidRegionH = 178 - 80;
+
+        const int m_texRepeatH = 70;
+
+        const int m_lineSpace      = 10;  // space between two XMLTypeset
+        const int m_uidTextRegionW = 220; // XMLTypeset max width, margin excluded
 
         const int m_uidMinCount = 5;
         const int m_uidMaxCount = 10;
-
-        const int m_texRepeatStartY = 84; // start coordindate-y of texture region
-        const int m_texRepeatH      = 87;
 
     private:
         const uint8_t  m_font      = 1;
@@ -63,7 +89,7 @@ class TeamStateBoard: public Widget
     public:
         int lineHeight() const
         {
-            return XMLTypeset(m_uidRegionW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle).getDefaultFontHeight() + m_lineSpace;
+            return XMLTypeset(-1, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle).getDefaultFontHeight() + m_lineSpace;
         }
 
         int lineCount() const

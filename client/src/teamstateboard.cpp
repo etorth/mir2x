@@ -209,38 +209,46 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     , m_processRun(runPtr)
 {
     setShow(false);
-    if(auto texPtr = g_progUseDB->retrieve(0X00000150)){
-        std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
-    }
-    else{
-        throw fflerror("no valid team status board frame texture");
-    }
+    const auto [texW, texH] = []() -> std::tuple<int, int>
+    {
+        if(auto texPtr = g_progUseDB->retrieve(0X00000150)){
+            return SDLDeviceHelper::getTextureSize(texPtr);
+        }
+        else{
+            return {258, 244};
+        }
+    }();
+
+    m_w = texW;
+    m_h = texH - m_uidRegionH + lineCount() * lineHeight();
 
     adjustButtonPos();
 }
 
 void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 {
-    const auto drawLineCount = lineCount();
-    const auto neededTexRegionH = drawLineCount * lineHeight();
-
     if(auto texPtr = g_progUseDB->retrieve(0X00000150)){
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-        g_sdlDevice->drawTexture(texPtr, x(), y(), 0, 0, texW, m_texRepeatStartY);
+        const auto texRepeatStartY = m_uidRegionY + (m_uidRegionH - m_texRepeatH) / 2;
 
-        const auto repeatCount = neededTexRegionH / m_texRepeatH;
-        const auto repeatRest  = neededTexRegionH % m_texRepeatH;
+        g_sdlDevice->drawTexture(texPtr, x(), y(), 0, 0, texW, texRepeatStartY);
+
+        const auto neededUIDRegionH = lineCount() * lineHeight();
+        const auto neededRepeatTexH = neededUIDRegionH - (m_uidRegionH - m_texRepeatH);
+
+        const auto repeatCount = neededRepeatTexH / m_texRepeatH;
+        const auto repeatRest  = neededRepeatTexH % m_texRepeatH;
 
         for(int i = 0; i < repeatCount; ++i){
-            g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + i * m_texRepeatH, 0, m_texRepeatStartY, texW, m_texRepeatH);
+            g_sdlDevice->drawTexture(texPtr, x(), y() + texRepeatStartY + i * m_texRepeatH, 0, texRepeatStartY, texW, m_texRepeatH);
         }
 
         if(repeatRest > 0){
-            g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + repeatCount * m_texRepeatH, 0, m_texRepeatStartY, texW, repeatRest);
+            g_sdlDevice->drawTexture(texPtr, x(), y() + texRepeatStartY + repeatCount * m_texRepeatH, 0, texRepeatStartY, texW, repeatRest);
         }
 
-        const int texRepeatEndY = m_texRepeatStartY + m_texRepeatH;
-        g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + neededTexRegionH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
+        const int texRepeatEndY = texRepeatStartY + m_texRepeatH;
+        g_sdlDevice->drawTexture(texPtr, x(), y() + texRepeatStartY + neededRepeatTexH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
     }
 
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
@@ -250,11 +258,11 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 
     for(int i = 0; (i < lineCount()) && (i + m_startIndex < to_d(m_uidList.size())); ++i){
         if((m_selectedIndex >= 0) && (i + m_startIndex == m_selectedIndex)){
-            g_sdlDevice->fillRectangle(m_selectedBGColor, x() + m_startX, y() + m_startY + i * lineHeight(), m_uidRegionW, lineHeight());
+            g_sdlDevice->fillRectangle(m_selectedBGColor, x() + m_uidRegionX, y() + m_uidRegionY + i * lineHeight(), m_uidRegionW, lineHeight());
         }
 
-        if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_startX, y() + m_startY + i * lineHeight(), m_uidRegionW, lineHeight())){
-            g_sdlDevice->fillRectangle(m_hoveredColor, x() + m_startX, y() + m_startY + i * lineHeight(), m_uidRegionW, lineHeight());
+        if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_uidRegionX, y() + m_uidRegionY + i * lineHeight(), m_uidRegionW, lineHeight())){
+            g_sdlDevice->fillRectangle(m_hoveredColor, x() + m_uidRegionX, y() + m_uidRegionY + i * lineHeight(), m_uidRegionW, lineHeight());
         }
 
         const auto uid = m_uidList.at(i + m_startIndex);
@@ -275,7 +283,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 
         line.clear();
         line.loadXML(str_printf("<par>%s</par>", nameText.c_str()).c_str());
-        line.drawEx(x() + m_startX, y() + m_startY + m_lineSpace / 2 + i * lineHeight(), 0, 0, std::min<int>(line.pw(), m_uidRegionW), line.ph());
+        line.drawEx(x() + (m_uidRegionW - m_uidTextRegionW) / 2, y() + m_uidRegionY + m_lineSpace / 2 + i * lineHeight(), 0, 0, std::min<int>(line.pw(), m_uidTextRegionW), line.ph());
     }
 
     m_enableTeam  .draw();
@@ -324,8 +332,8 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONDOWN:
             {
                 for(int i = 0; i < lineCount(); ++i){
-                    const auto lineX = x() + m_startX;
-                    const auto lineY = y() + m_startY + i * lineHeight();
+                    const auto lineX = x() + m_uidRegionX;
+                    const auto lineY = y() + m_uidRegionY + i * lineHeight();
 
                     if(mathf::pointInRectangle<int>(event.button.x - lineX, event.button.y - lineY, 0, 0, m_uidRegionW, lineHeight())){
                         m_selectedIndex = i + m_startIndex;
@@ -339,7 +347,7 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEWHEEL:
             {
                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_startX, y() + m_startY, m_uidRegionW,  lineHeight() * lineCount())){
+                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_uidRegionX, y() + m_uidRegionY, m_uidRegionW, lineHeight() * lineCount())){
                     if(event.wheel.y < 0){
                         m_startIndex = std::min<int>(m_startIndex + 1, m_uidList.size() - lineCount());
                     }
@@ -404,7 +412,7 @@ void TeamStateBoard::refresh()
 
 void TeamStateBoard::adjustButtonPos()
 {
-    const auto buttonY = m_texRepeatStartY + lineCount() * lineHeight() + 21;
+    const auto buttonY = m_uidRegionY + lineCount() * lineHeight() + 21;
 
     m_createTeam  .moveTo({}, buttonY);
     m_addMember   .moveTo({}, buttonY);
