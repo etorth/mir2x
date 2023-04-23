@@ -49,7 +49,7 @@ class TeamStateBoard: public Widget
 
     private:
         const uint8_t  m_font      = 1;
-        const uint8_t  m_fontSize  = 14;
+        const uint8_t  m_fontSize  = 12;
         const uint8_t  m_fontStyle = 0;
 
         const uint32_t m_fontColor       = colorf::WHITE + colorf::A_SHF(255);
