@@ -219,8 +219,20 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
 
 void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 {
+    const auto drawLineCount = lineCount();
+    const auto neededTexRegionH = drawLineCount * lineHeight();
+
     if(auto texPtr = g_progUseDB->retrieve(0X00000150)){
-        g_sdlDevice->drawTexture(texPtr, x(), y());
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+        g_sdlDevice->drawTexture(texPtr, x(), y(), 0, 0, texW, m_texRepeatStartY);
+
+        const auto repeatCount = neededTexRegionH / m_texRepeatH;
+        for(int i = 0; i < repeatCount; ++i){
+            g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + i * m_texRepeatH, 0, m_texRepeatStartY, texW, m_texRepeatH);
+        }
+
+        const int texRepeatEndY = m_texRepeatStartY + m_texRepeatH;
+        g_sdlDevice->drawTexture(texPtr, x(), y() + m_texRepeatStartY + repeatCount * m_texRepeatH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
     }
 
     std::string nameText;

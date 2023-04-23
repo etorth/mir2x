@@ -1,4 +1,5 @@
 #pragma once
+#include "mathf.hpp"
 #include "widget.hpp"
 #include "sysconst.hpp"
 #include "labelboard.hpp"
@@ -14,6 +15,12 @@ class TeamStateBoard: public Widget
 
         const int m_lineSpace  = 10;
         const int m_uidRegionW = 220;
+
+        const int m_uidMinCount = 1;
+        const int m_uidMaxCount = 1;
+
+        const int m_texRepeatStartY = 84;
+        const int m_texRepeatH      = 87;
 
     private:
         const uint8_t  m_font      = 1;
@@ -55,6 +62,11 @@ class TeamStateBoard: public Widget
         int lineHeight() const
         {
             return XMLTypeset(m_uidRegionW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle).getDefaultFontHeight() + m_lineSpace;
+        }
+
+        int lineCount() const
+        {
+            return mathf::bound<int>(m_uidList.size(), m_uidMinCount, m_uidMaxCount);
         }
 
     public:
