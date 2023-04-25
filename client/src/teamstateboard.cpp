@@ -104,6 +104,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           nullptr,
           [this]()
           {
+              if(m_selectedIndex >= 0){
+                  m_processRun->requestJoinTeam(m_uidList.at(m_selectedIndex));
+              }
           },
 
           0,
@@ -439,4 +442,22 @@ void TeamStateBoard::adjustButtonPos()
     m_deleteMember.moveTo({}, buttonY);
     m_refresh     .moveTo({}, buttonY);
     m_close       .moveTo({}, buttonY + 8);
+}
+
+void TeamStateBoard::addTeamCandidate(SDTeamCandidate sdTC)
+{
+    for(auto p = m_teamCandidateList.begin(); p != m_teamCandidateList.end();){
+        if(p->uid == sdTC.uid){
+            p = m_teamCandidateList.erase(p);
+            break;
+        }
+        else{
+            ++p;
+        }
+    }
+
+    m_teamCandidateList.push_front(std::move(sdTC));
+    if(!show()){
+
+    }
 }

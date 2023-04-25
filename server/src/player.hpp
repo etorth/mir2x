@@ -34,6 +34,7 @@ class Player final: public BattleObject
 
     protected:
         std::set<uint64_t> m_slaveList;
+        std::set<uint64_t> m_teamCandidateList;
 
     private:
         bool m_pickUpLock = false;
@@ -140,6 +141,7 @@ class Player final: public BattleObject
         void on_AM_QUERYPLAYERNAME  (const ActorMsgPack &);
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
         void on_AM_REMOTECALL       (const ActorMsgPack &);
+        void on_AM_REQUESTJOINTEAM  (const ActorMsgPack &);
 
     private:
         void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t);
@@ -164,6 +166,7 @@ class Player final: public BattleObject
         void net_CM_REQUESTGRABWEAR           (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTEQUIPBELT          (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTGRABBELT           (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTJOINTEAM           (uint8_t, const uint8_t *, size_t);
         void net_CM_DROPITEM                  (uint8_t, const uint8_t *, size_t);
         void net_CM_SETMAGICKEY               (uint8_t, const uint8_t *, size_t);
         void net_CM_SETRUNTIMECONFIG          (uint8_t, const uint8_t *, size_t);
@@ -406,50 +409,6 @@ class Player final: public BattleObject
                 }
             };
         }
-
-    // protected:
-    //     template<typename... Args> void runScriptEventTrigger(int triggerType, Args && ... args)
-    //     {
-    //         fflassert(triggerType >= ON_BEGIN, triggerType);
-    //         fflassert(triggerType <  ON_END  , triggerType);
-    //
-    //         if(const auto p = m_scriptEventTriggerList.find(triggerType); p != m_scriptEventTriggerList.end()){
-    //             for(auto q = p->second.begin(); q != p->second.end();){
-    //                 if(const auto pfr = (*q)(std::forward<Args>(args)...); m_luaRunner->pfrCheck(pfr)){
-    //                     const auto done = [&pfr]() -> bool
-    //                     {
-    //                         if(pfr.return_count() == 0){
-    //                             return false;
-    //                         }
-    //
-    //                         // if multiple results returned
-    //                         // we only check the first one, ignore all rest as lua does
-    //
-    //                         if(const auto obj = (sol::object)(*(pfr.cbegin())); obj.is<bool>()){
-    //                             return obj.as<bool>();
-    //                         }
-    //                         else if(obj == sol::nil){
-    //                             return false;
-    //                         }
-    //                         else{
-    //                             throw fflerror("trigger returns invalid type(s): count = %d, [0]: %s", to_d(pfr.return_count()), to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
-    //                         }
-    //                     }();
-    //
-    //                     if(done){
-    //                         std::swap(*q, *(p->second.rbegin()));
-    //                         p->second.pop_back();
-    //                     }
-    //                     else{
-    //                         ++q;
-    //                     }
-    //                 }
-    //                 else{
-    //                     throw fflerror("event trigger error: event = %d", to_d(triggerType));
-    //                 }
-    //             }
-    //         }
-    //     }
 
     protected:
         void resumeCORunner(uint64_t);

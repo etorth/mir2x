@@ -1,4 +1,5 @@
 #pragma once
+#include <deque>
 #include "mathf.hpp"
 #include "widget.hpp"
 #include "sysconst.hpp"
@@ -60,6 +61,7 @@ class TeamStateBoard: public Widget
         int m_startIndex = 0;
         int m_selectedIndex = -1;
         std::vector<uint64_t> m_uidList;
+        std::deque<SDTeamCandidate> m_teamCandidateList;
 
     private:
         TritexButton m_enableTeam;
@@ -98,6 +100,7 @@ class TeamStateBoard: public Widget
 
     public:
         void refresh();
+        void addTeamCandidate(SDTeamCandidate);
 
     private:
         void adjustButtonPos();

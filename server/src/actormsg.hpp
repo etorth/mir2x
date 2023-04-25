@@ -112,6 +112,7 @@ enum ActorMsgPackType: int
     AM_RUNQUESTTRIGGER,
     AM_QUESTNOTIFY,
     AM_REGISTERQUEST,
+    AM_REQUESTJOINTEAM,
     AM_END,
 };
 

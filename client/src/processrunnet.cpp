@@ -840,3 +840,8 @@ void ProcessRun::net_SHOWSECUREDITEMLIST(const uint8_t *buf, size_t bufSize)
     invBoardPtr->setShow(true);
     invBoardPtr->moveAt(DIR_UPRIGHT, g_sdlDevice->getRendererWidth() - 1, 0);
 }
+
+void ProcessRun::net_TEAMCANDIDATE(const uint8_t *buf, size_t bufSize)
+{
+    dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->addTeamCandidate(cerealf::deserialize<SDTeamCandidate>(buf, bufSize));
+}

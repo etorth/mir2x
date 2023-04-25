@@ -45,6 +45,7 @@ enum CMType: uint8_t
     CM_REQUESTGRABWEAR,
     CM_REQUESTEQUIPBELT,
     CM_REQUESTGRABBELT,
+    CM_REQUESTJOINTEAM,
     CM_END,
 };
 
@@ -230,6 +231,11 @@ struct CMRequestGrabBelt
     uint16_t slot;
 };
 
+struct CMRequestJoinTeam
+{
+    uint64_t uid;
+};
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -286,6 +292,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_REQUESTGRABWEAR,            1, sizeof(CMRequestGrabWear)           )
                 _add_client_msg_type_case(CM_REQUESTEQUIPBELT,           1, sizeof(CMRequestEquipBelt)          )
                 _add_client_msg_type_case(CM_REQUESTGRABBELT,            1, sizeof(CMRequestGrabBelt)           )
+                _add_client_msg_type_case(CM_REQUESTJOINTEAM,            1, sizeof(CMRequestJoinTeam)           )
 #undef _add_client_msg_type_case
             };
 
@@ -326,6 +333,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMRequestEquipWear>
                     || std::is_same_v<T, CMRequestGrabWear>
                     || std::is_same_v<T, CMRequestEquipBelt>
+                    || std::is_same_v<T, CMRequestJoinTeam>
                     || std::is_same_v<T, CMRequestGrabBelt>);
 
             if(bufLen && bufLen != sizeof(T)){

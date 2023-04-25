@@ -979,3 +979,26 @@ struct SDQueryQuestUID
         ar(name);
     }
 };
+
+struct SDRequestJoinTeam
+{
+    std::string name {};
+    uint32_t level = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(name, level);
+    }
+};
+
+struct SDTeamCandidate
+{
+    uint64_t uid = 0;
+    std::string name {};
+    uint32_t level = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, name, level);
+    }
+};

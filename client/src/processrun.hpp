@@ -231,6 +231,7 @@ class ProcessRun: public Process
         void net_STARTINVOP(const uint8_t *, size_t);
         void net_STARTINPUT(const uint8_t *, size_t);
         void net_SHOWSECUREDITEMLIST(const uint8_t *, size_t);
+        void net_TEAMCANDIDATE(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);
@@ -413,6 +414,7 @@ class ProcessRun: public Process
         void requestDropItem(uint32_t, uint32_t, size_t);
         void requestSetMagicKey(uint32_t, char);
         void requestRemoveSecuredItem(uint32_t, uint32_t);
+        void requestJoinTeam(uint64_t);
 
     public:
         std::tuple<uint32_t, int, int> getMap() const

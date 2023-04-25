@@ -464,3 +464,16 @@ void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
     const auto sdRC = mpk.deserialize<SDRemoteCall>();
     m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), sdRC.code);
 }
+
+void Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
+{
+    m_teamCandidateList.insert(mpk.from());
+
+    const auto sdRJT = mpk.deserialize<SDRequestJoinTeam>();
+    postNetMessage(SM_TEAMCANDIDATE, cerealf::serialize(SDTeamCandidate
+    {
+        .uid = mpk.from(),
+        .name = sdRJT.name,
+        .level = sdRJT.level,
+    }));
+}

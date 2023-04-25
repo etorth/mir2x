@@ -438,6 +438,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
+        case SM_TEAMCANDIDATE:
+            {
+                if(auto p = processRun(); p){
+                    p->net_TEAMCANDIDATE(buf, bufSize);
+                }
+                break;
+            }
         case SM_GROUNDITEMIDLIST:
             {
                 if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){

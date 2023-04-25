@@ -589,6 +589,24 @@ void Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t)
     }));
 }
 
+void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t)
+{
+    const auto cmRJT = ClientMsg::conv<CMRequestJoinTeam>(buf);
+    if(!uidf::isPlayer(cmRJT.uid)){
+        return;
+    }
+
+    if(cmRJT.uid == UID()){
+        return;
+    }
+
+    m_actorPod->forward(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
+    {
+        .name = name(),
+        .level = level(),
+    })});
+}
+
 void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)
 {
     const auto cmDI = ClientMsg::conv<CMDropItem>(buf);
