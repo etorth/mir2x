@@ -391,6 +391,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_GRABBELT,            3, 0                            )
                 _add_server_msg_type_case(SM_GRABBELTERROR,       1, sizeof(SMGrabBeltError)      )
                 _add_server_msg_type_case(SM_SHOWSECUREDITEMLIST, 3, 0                            )
+                _add_server_msg_type_case(SM_TEAMCANDIDATE,       3, 0                            )
 #undef _add_server_msg_type_case
             };
 
