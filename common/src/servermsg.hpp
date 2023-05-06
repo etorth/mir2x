@@ -72,6 +72,9 @@ enum SMType: uint8_t
     SM_GRABBELTERROR,
     SM_SHOWSECUREDITEMLIST,
     SM_TEAMCANDIDATE,
+    SM_TEAMMEMBERLEFT,
+    SM_TEAMDISMISSED,
+    SM_TEAMERROR,
     SM_END,
 };
 
@@ -309,6 +312,17 @@ struct SMGrabBeltError
 {
     uint16_t error;
 };
+
+struct SMTeamMemberLeft
+{
+    uint64_t uid;
+};
+
+struct SMTeamError
+{
+    uint8_t error;
+};
+
 #pragma pack(pop)
 
 class ServerMsg final: public MsgBase
@@ -392,6 +406,9 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_GRABBELTERROR,       1, sizeof(SMGrabBeltError)      )
                 _add_server_msg_type_case(SM_SHOWSECUREDITEMLIST, 3, 0                            )
                 _add_server_msg_type_case(SM_TEAMCANDIDATE,       3, 0                            )
+                _add_server_msg_type_case(SM_TEAMERROR,           1, sizeof(SMTeamError)          )
+                _add_server_msg_type_case(SM_TEAMMEMBERLEFT,      1, sizeof(SMTeamMemberLeft)     )
+                _add_server_msg_type_case(SM_TEAMDISMISSED,       0, 0                            )
 #undef _add_server_msg_type_case
             };
 
@@ -437,7 +454,10 @@ class ServerMsg final: public MsgBase
                     || std::is_same_v<T, SMEquipWearError>
                     || std::is_same_v<T, SMGrabWearError>
                     || std::is_same_v<T, SMEquipBeltError>
-                    || std::is_same_v<T, SMGrabBeltError>);
+                    || std::is_same_v<T, SMGrabBeltError>
+                    || std::is_same_v<T, SMTeamError>
+                    || std::is_same_v<T, SMTeamMemberLeft>
+                    );
 
             if(bufLen && bufLen != sizeof(T)){
                 throw fflerror("invalid buffer length");

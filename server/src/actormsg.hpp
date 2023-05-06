@@ -113,6 +113,7 @@ enum ActorMsgPackType: int
     AM_QUESTNOTIFY,
     AM_REGISTERQUEST,
     AM_REQUESTJOINTEAM,
+    AM_REQUESTLEAVETEAM,
     AM_END,
 };
 

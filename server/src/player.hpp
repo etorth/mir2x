@@ -34,7 +34,11 @@ class Player final: public BattleObject
 
     protected:
         std::set<uint64_t> m_slaveList;
+
+    protected:
+        uint64_t m_teamLeader = 0;
         std::set<uint64_t> m_teamCandidateList;
+        std::optional<std::vector<uint64_t>> m_teamMemberList;
 
     private:
         bool m_pickUpLock = false;
@@ -142,6 +146,7 @@ class Player final: public BattleObject
         void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
         void on_AM_REMOTECALL       (const ActorMsgPack &);
         void on_AM_REQUESTJOINTEAM  (const ActorMsgPack &);
+        void on_AM_REQUESTLEAVETEAM (const ActorMsgPack &);
 
     private:
         void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t);
@@ -167,6 +172,7 @@ class Player final: public BattleObject
         void net_CM_REQUESTEQUIPBELT          (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTGRABBELT           (uint8_t, const uint8_t *, size_t);
         void net_CM_REQUESTJOINTEAM           (uint8_t, const uint8_t *, size_t);
+        void net_CM_REQUESTLEAVETEAM          (uint8_t, const uint8_t *, size_t);
         void net_CM_DROPITEM                  (uint8_t, const uint8_t *, size_t);
         void net_CM_SETMAGICKEY               (uint8_t, const uint8_t *, size_t);
         void net_CM_SETRUNTIMECONFIG          (uint8_t, const uint8_t *, size_t);

@@ -477,3 +477,21 @@ void Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
         .level = sdRJT.level,
     }));
 }
+
+void Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
+{
+    if(m_teamMemberList.has_value()){
+        for(const auto member: m_teamMemberList.value()){
+            SMTeamMemberLeft smTML;
+            std::memset(&smTML, 0, sizeof(smTML));
+
+            smTML.uid = mpk.from();
+            forwardNetPackage(member, SM_TEAMMEMBERLEFT, smTML);
+        }
+        std::erase(m_teamMemberList.value(), mpk.from());
+    }
+    else if(m_teamLeader && mpk.from() == m_teamLeader){
+        m_teamLeader = 0;
+        postNetMessage(SM_TEAMDISMISSED);
+    }
+}

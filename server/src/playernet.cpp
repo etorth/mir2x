@@ -597,14 +597,40 @@ void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t)
     }
 
     if(cmRJT.uid == UID()){
-        return;
+        if(m_teamLeader){
+            SMTeamError smTE;
+            std::memset(&smTE, 0, sizeof(smTE));
+            smTE.error = TEAMERR_INTEAM;
+            postNetMessage(SM_TEAMERROR, smTE);
+        }
+        else{
+            m_teamLeader = UID();
+            m_teamMemberList = std::vector<uint64_t>{UID()};
+        }
     }
+    else{
+        m_actorPod->forward(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
+        {
+            .name = name(),
+            .level = level(),
+        })});
+    }
+}
 
-    m_actorPod->forward(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
-    {
-        .name = name(),
-        .level = level(),
-    })});
+void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *, size_t)
+{
+    if(m_teamMemberList.has_value()){
+        for(const auto member: m_teamMemberList.value()){
+            if(member != UID()){
+                m_actorPod->forward(member, AM_REQUESTLEAVETEAM);
+            }
+        }
+        m_teamMemberList.reset();
+    }
+    else if(m_teamLeader){
+        m_actorPod->forward(m_teamLeader, AM_REQUESTLEAVETEAM);
+        m_teamLeader = 0;
+    }
 }
 
 void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t)

@@ -357,3 +357,11 @@ enum AttackModeType: int
     ATKMODE_ALL,
     ATKMODE_END,
 };
+
+enum TeamErrorType: int
+{
+    TEAMERR_NONE  = 0,
+    TEAMERR_BEGIN = 1,
+    TEAMERR_INTEAM,
+    TEAMERR_END,
+};

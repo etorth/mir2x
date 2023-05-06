@@ -552,6 +552,11 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_REQUESTJOINTEAM(rstMPK);
                 break;
             }
+        case AM_REQUESTLEAVETEAM:
+            {
+                on_AM_REQUESTLEAVETEAM(rstMPK);
+                break;
+            }
         default:
             {
                 g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
@@ -586,6 +591,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen)
         _support_cm(CM_REQUESTEQUIPBELT          );
         _support_cm(CM_REQUESTGRABBELT           );
         _support_cm(CM_REQUESTJOINTEAM           );
+        _support_cm(CM_REQUESTLEAVETEAM          );
         _support_cm(CM_DROPITEM                  );
         _support_cm(CM_SETMAGICKEY               );
         _support_cm(CM_SETRUNTIMECONFIG          );

@@ -1562,6 +1562,11 @@ void ProcessRun::requestJoinTeam(uint64_t teamLeaderUID)
     g_client->send(CM_REQUESTJOINTEAM, cmRJT);
 }
 
+void ProcessRun::requestLeaveTeam()
+{
+    g_client->send(CM_REQUESTLEAVETEAM);
+}
+
 void ProcessRun::RequestKillPets()
 {
     g_client->send(CM_REQUESTKILLPETS);
