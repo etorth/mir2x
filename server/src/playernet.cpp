@@ -619,13 +619,13 @@ void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t)
 
 void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *, size_t)
 {
-    if(m_teamMemberList.has_value()){
-        for(const auto member: m_teamMemberList.value()){
+    if(!m_teamMemberList.empty()){
+        for(const auto member: m_teamMemberList){
             if(member != UID()){
                 m_actorPod->forward(member, AM_REQUESTLEAVETEAM);
             }
         }
-        m_teamMemberList.reset();
+        m_teamMemberList.clear();
     }
     else if(m_teamLeader){
         m_actorPod->forward(m_teamLeader, AM_REQUESTLEAVETEAM);

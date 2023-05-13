@@ -480,15 +480,15 @@ void Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
 
 void Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
 {
-    if(m_teamMemberList.has_value()){
-        for(const auto member: m_teamMemberList.value()){
+    if(!m_teamMemberList.empty()){
+        for(const auto member: m_teamMemberList){
             SMTeamMemberLeft smTML;
             std::memset(&smTML, 0, sizeof(smTML));
 
             smTML.uid = mpk.from();
             forwardNetPackage(member, SM_TEAMMEMBERLEFT, smTML);
         }
-        std::erase(m_teamMemberList.value(), mpk.from());
+        std::erase(m_teamMemberList, mpk.from());
     }
     else if(m_teamLeader && mpk.from() == m_teamLeader){
         m_teamLeader = 0;
