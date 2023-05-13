@@ -1,5 +1,6 @@
 #pragma once
 #include <set>
+#include <deque>
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
@@ -37,8 +38,8 @@ class Player final: public BattleObject
 
     protected:
         uint64_t m_teamLeader = 0;
-        std::set<uint64_t> m_teamCandidateList;
         std::vector<uint64_t> m_teamMemberList;
+        std::deque<std::pair<hres_timer, uint64_t>> m_teamCandidateList;
 
     private:
         bool m_pickUpLock = false;

@@ -467,7 +467,12 @@ void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 
 void Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
 {
-    m_teamCandidateList.insert(mpk.from());
+    std::erase_if(m_teamCandidateList, [&mpk](const auto &elem)
+    {
+        return elem.second == mpk.from();
+    });
+
+    m_teamCandidateList.emplace_front(hres_timer(), mpk.from());
 
     const auto sdRJT = mpk.deserialize<SDRequestJoinTeam>();
     postNetMessage(SM_TEAMCANDIDATE, cerealf::serialize(SDTeamCandidate
@@ -480,7 +485,7 @@ void Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
 
 void Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
 {
-    if(!m_teamMemberList.empty()){
+    if(m_teamLeader == UID()){
         for(const auto member: m_teamMemberList){
             SMTeamMemberLeft smTML;
             std::memset(&smTML, 0, sizeof(smTML));
@@ -490,7 +495,7 @@ void Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
         }
         std::erase(m_teamMemberList, mpk.from());
     }
-    else if(m_teamLeader && mpk.from() == m_teamLeader){
+    else if(m_teamLeader == mpk.from()){
         m_teamLeader = 0;
         postNetMessage(SM_TEAMDISMISSED);
     }
