@@ -79,6 +79,7 @@
 #include <vector>
 #include <deque>
 #include <string>
+#include <cstring>
 #include <cstdarg>
 #include <concepts>
 #include <sstream>
@@ -93,6 +94,99 @@
 #else
     #define STR_PRINTF_CHECK_FORMAT(n)
 #endif
+
+template<typename T, typename S> std::string str_join(const T &t, const S &sep)
+{
+    std::ostringstream oss;
+    auto iter = std::cbegin(t);
+
+    if(iter != std::cend(t)){
+        oss << *iter++;
+    }
+
+    while(iter != std::cend(t)){
+        oss << sep << *iter++;
+    }
+
+    return oss.str();
+}
+
+template<typename T> std::string str_join(const T &t)
+{
+    return str_join(t, "");
+}
+
+inline std::vector<std::string> str_split(const std::string &s, char sep)
+{
+    std::istringstream iss(s);
+    std::vector<std::string> result;
+
+    for(std::string token; std::getline(iss, token, sep);){
+        result.push_back(token);
+    }
+    return result;
+}
+
+template<typename Iter1, typename Iter2> std::string str_toupper(Iter1 i1, Iter2 i2)
+{
+    std::string result;
+    result.reserve(static_cast<std::string::size_type>(std::distance(i1, i2)));
+
+    auto iter = i1;
+    while(iter != i2){
+        result.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(*iter))));
+        ++iter;
+    }
+    return result;
+}
+
+template<typename Iter1, typename Iter2> std::string str_tolower(Iter1 i1, Iter2 i2)
+{
+    std::string result;
+    result.reserve(static_cast<std::string::size_type>(std::distance(i1, i2)));
+
+    auto iter = i1;
+    while(iter != i2){
+        result.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(*iter))));
+        ++iter;
+    }
+    return result;
+}
+
+inline std::string str_toupper(const char *s) // undefined if s is null
+{
+    return str_toupper(s, s + std::strlen(s));
+}
+
+inline std::string str_toupper(const std::string &s)
+{
+    return str_toupper(s.begin(), s.end());
+}
+
+inline std::string str_tolower(const char *s) // undefined if s is null
+{
+    return str_tolower(s, s + std::strlen(s));
+}
+
+inline std::string str_tolower(const std::string &s)
+{
+    return str_tolower(s.begin(), s.end());
+}
+
+inline std::string str_trim(std::string s)
+{
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch)
+    {
+        return !std::isspace(ch);
+    }));
+
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch)
+    {
+        return !std::isspace(ch);
+    }).base(), s.end());
+
+    return s;
+}
 
 constexpr bool str_haschar(const char *s)
 {
@@ -236,15 +330,16 @@ inline std::string str_any(const std::monostate &)
     return "(monostate)";
 }
 
-template<typename T> std::string str_any(const std::set<T> &);
-template<typename T> std::string str_any(const std::unordered_set<T> &);
+template<typename T, typename... Args> std::string str_any(const std::          set<T, Args...> &);
+template<typename T, typename... Args> std::string str_any(const std::unordered_set<T, Args...> &);
 
-template<typename... Ts> std::string str_any(const std::          map<Ts...> &);
-template<typename... Ts> std::string str_any(const std::unordered_map<Ts...> &);
+template<typename K, typename V, typename... Args> std::string str_any(const std::          map<K, V, Args...> &);
+template<typename K, typename V, typename... Args> std::string str_any(const std::unordered_map<K, V, Args...> &);
 
-template<typename T> std::string str_any(const std::list<T> &);
-template<typename T> std::string str_any(const std::deque<T> &);
-template<typename T> std::string str_any(const std::vector<T> &);
+template<typename T, typename... Args> std::string str_any(const std::list  <T, Args...> &);
+template<typename T, typename... Args> std::string str_any(const std::deque <T, Args...> &);
+template<typename T, typename... Args> std::string str_any(const std::vector<T, Args...> &);
+
 template<typename U, typename V> std::string str_any(const std::pair<U, V> &);
 
 template<typename T> std::string str_any(const T &t)
@@ -265,15 +360,16 @@ template<typename T> std::string str_any(const T &t)
     return result + "}"; \
 }
 
-template<typename T> std::string str_any(const std::set<T> &s)           _str_any_container_helper(s)
-template<typename T> std::string str_any(const std::unordered_set<T> &s) _str_any_container_helper(s)
+template<typename T, typename... Args> std::string str_any(const std::          set<T, Args...> &s) _str_any_container_helper(s)
+template<typename T, typename... Args> std::string str_any(const std::unordered_set<T, Args...> &s) _str_any_container_helper(s)
 
-template<typename... Ts> std::string str_any(const std::          map<Ts...> &m) _str_any_container_helper(m)
-template<typename... Ts> std::string str_any(const std::unordered_map<Ts...> &m) _str_any_container_helper(m)
+template<typename K, typename V, typename... Args> std::string str_any(const std::          map<K, V, Args...> &m) _str_any_container_helper(m)
+template<typename K, typename V, typename... Args> std::string str_any(const std::unordered_map<K, V, Args...> &m) _str_any_container_helper(m)
 
-template<typename T> std::string str_any(const std::list<T> &l)   _str_any_container_helper(l)
-template<typename T> std::string str_any(const std::deque<T> &q)  _str_any_container_helper(q)
-template<typename T> std::string str_any(const std::vector<T> &v) _str_any_container_helper(v)
+template<typename T, typename... Args> std::string str_any(const std::list  <T, Args...> &l) _str_any_container_helper(l)
+template<typename T, typename... Args> std::string str_any(const std::deque <T, Args...> &q) _str_any_container_helper(q)
+template<typename T, typename... Args> std::string str_any(const std::vector<T, Args...> &v) _str_any_container_helper(v)
+
 #undef _str_any_container_helper
 
 template<typename K, typename V> std::string str_any(const std::pair<K, V> &p)
