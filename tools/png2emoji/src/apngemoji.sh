@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# needs apngasm from: https://github.com/apngasm/apngasm
+# the legacy apngasm looks buggy and can not setup correct frame delay
+#
+# install
+#
+#       sudo add-apt-repository ppa:zero-tsuki/ppa
+#       sudo apt-get update
+#       sudo apt-get install apngasm
+
 if [ $# -eq 0 ]
 then
     echo "Usage: $0 <mhxy-icons-dir>"
@@ -18,7 +27,6 @@ for i in 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 
 do
     if [ -f ${i}_1.png ]
     then
-        echo "out_${i}.png"
-        apngasm out_${i}.png ${i}_*.png -z2
+        apngasm -o out_${i}.png ${i}_*.png -F -d 150
     fi
 done
