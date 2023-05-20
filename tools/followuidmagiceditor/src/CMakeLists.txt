@@ -14,6 +14,6 @@ TARGET_LINK_LIBRARIES(followuidmagiceditor ${FLTK_LIBRARIES})
 TARGET_LINK_LIBRARIES(followuidmagiceditor ${OPENGL_LIBRARIES})
 TARGET_LINK_LIBRARIES(followuidmagiceditor ${CMAKE_DL_LIBS})
 TARGET_LINK_LIBRARIES(followuidmagiceditor common)
-TARGET_LINK_LIBRARIES(followuidmagiceditor PNG::PNG)
+TARGET_LINK_LIBRARIES(followuidmagiceditor ${PNG_LIBRARIES})
 
 INSTALL(TARGETS followuidmagiceditor DESTINATION tools/followuidmagiceditor)

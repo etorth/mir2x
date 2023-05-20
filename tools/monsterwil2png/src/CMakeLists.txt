@@ -8,7 +8,7 @@ TARGET_INCLUDE_DIRECTORIES(monsterwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
 TARGET_LINK_LIBRARIES(monsterwil2png ${CMAKE_DL_LIBS}   )
 TARGET_LINK_LIBRARIES(monsterwil2png common             )
-TARGET_LINK_LIBRARIES(monsterwil2png PNG::PNG           )
+TARGET_LINK_LIBRARIES(monsterwil2png ${PNG_LIBRARIES}   )
 
 INSTALL(TARGETS monsterwil2png DESTINATION tools/monsterwil2png)
 INSTALL(PROGRAMS monsterwil2png.sh DESTINATION tools/monsterwil2png)

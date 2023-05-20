@@ -165,8 +165,8 @@ ENDIF()
 # include external cmake packages
 FIND_PACKAGE(PkgConfig REQUIRED)
 FIND_PACKAGE(OpenGL    REQUIRED)
-FIND_PACKAGE(PNG       REQUIRED)
 FIND_PACKAGE(FLTK      REQUIRED)
+FIND_PACKAGE(ZLIB      REQUIRED)
 
 # TODO
 # appveyor says "can find make command"

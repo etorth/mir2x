@@ -9,7 +9,8 @@ ExternalProject_Add(
     GIT_REPOSITORY "https://github.com/KjellKod/g3log"
     # use my fork to try support windows
     # GIT_REPOSITORY "https://github.com/etorth/g3log"
-    GIT_TAG        "master"
+    # GIT_TAG        "master"
+    GIT_TAG        "2.3"
   
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/g3log"
     INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/g3log/build"

@@ -70,8 +70,7 @@ libsdl2-image-dev
 libsdl2-mixer-dev
 libsdl2-ttf-dev
 libsdl2-gfx-dev
-libpng-dev
-liblua5.3-dev
+liblua5.4-dev
 libfltk1.3-dev
 ```
 
@@ -136,6 +135,6 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
 * [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
-* [libpng](http://www.libpng.org/pub/png/libpng.html) - The official PNG reference library.
+* [libpng](https://github.com/etorth/libpng-apng-support) - The official PNG reference library patched with APNG support.
 * [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation.
 * [SQLiteCpp](https://github.com/SRombauts/SQLiteCpp) - SQLiteC++ (SQLiteCpp) is a smart and easy to use C++ SQLite3 wrapper.
