@@ -61,6 +61,7 @@ class TeamStateBoard: public Widget
         int m_startIndex = 0;
         int m_selectedIndex = -1;
         std::vector<uint64_t> m_uidList;
+        std::vector<uint64_t> m_teamUIDList;
         std::deque<SDTeamCandidate> m_teamCandidateList;
 
     private:
@@ -104,4 +105,10 @@ class TeamStateBoard: public Widget
 
     private:
         void adjustButtonPos();
+
+    public:
+        bool hasTeam() const
+        {
+            return !m_teamUIDList.empty();
+        }
 };

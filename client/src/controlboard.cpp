@@ -400,9 +400,14 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           [this]()
           {
               if(auto p = dynamic_cast<TeamStateBoard *>(m_processRun->getWidget("TeamStateBoard"))){
-                  p->flipShow();
-                  if(p->show()){
-                      p->refresh();
+                  if(p->hasTeam()){
+                      p->flipShow();
+                      if(p->show()){
+                          p->refresh();
+                      }
+                  }
+                  else{
+                      m_processRun->setCursor(ProcessRun::CURSOR_TEAMFLAG);
                   }
               }
           },

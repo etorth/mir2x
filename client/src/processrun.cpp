@@ -497,10 +497,20 @@ void ProcessRun::draw() const
         }
     }
 
-    const auto teamFlagIndex = m_teamFlag.seqFrame() % 13;
-    if(auto flagTex = g_progUseDB->retrieve(0X00000210 + teamFlagIndex)){
-        const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
-        g_sdlDevice->drawTexture(flagTex, mouseX, mouseY);
+    switch(m_cursorState){
+        case CURSOR_TEAMFLAG:
+            {
+                const auto teamFlagIndex = m_teamFlag.seqFrame() % 13;
+                if(auto flagTex = g_progUseDB->retrieve(0X00000210 + teamFlagIndex)){
+                    const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
+                    g_sdlDevice->drawTexture(flagTex, DIR_NONE, mouseX, mouseY);
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
     }
 
     // draw NotifyBoard
@@ -578,36 +588,51 @@ void ProcessRun::processEvent(const SDL_Event &event)
                         }
                     case SDL_BUTTON_RIGHT:
                         {
-                            // in mir2ei how human moves
-                            // 1. client send motion request to server
-                            // 2. client put motion lock to human
-                            // 3. server response with "+GOOD" or "+FAIL" to client
-                            // 4. if "+GOOD" client will release the motion lock
-                            // 5. if "+FAIL" client will use the backup position and direction
+                            switch(m_cursorState){
+                                case CURSOR_NONE:
+                                    {
+                                        break;
+                                    }
+                                case CURSOR_DEFAULT:
+                                    {
+                                        // in mir2ei how human moves
+                                        // 1. client send motion request to server
+                                        // 2. client put motion lock to human
+                                        // 3. server response with "+GOOD" or "+FAIL" to client
+                                        // 4. if "+GOOD" client will release the motion lock
+                                        // 5. if "+FAIL" client will use the backup position and direction
 
-                            setFocusUID(FOCUS_ATTACK, 0);
-                            setFocusUID(FOCUS_FOLLOW, 0);
+                                        setFocusUID(FOCUS_ATTACK, 0);
+                                        setFocusUID(FOCUS_FOLLOW, 0);
 
-                            if(auto nUID = getFocusUID(FOCUS_MOUSE)){
-                                setFocusUID(FOCUS_FOLLOW, nUID);
-                            }
+                                        if(auto nUID = getFocusUID(FOCUS_MOUSE)){
+                                            setFocusUID(FOCUS_FOLLOW, nUID);
+                                        }
 
-                            else if(mathf::LDistance2(getMyHero()->currMotion()->endX, getMyHero()->currMotion()->endY, mouseGridX, mouseGridY)){
-                                // we get a valid dst to go
-                                // provide myHero with new move action command
+                                        else if(mathf::LDistance2(getMyHero()->currMotion()->endX, getMyHero()->currMotion()->endY, mouseGridX, mouseGridY)){
+                                            // we get a valid dst to go
+                                            // provide myHero with new move action command
 
-                                // when post move action don't use X() and Y()
-                                // since if clicks during hero moving then X() may not equal to EndX
+                                            // when post move action don't use X() and Y()
+                                            // since if clicks during hero moving then X() may not equal to EndX
 
-                                getMyHero()->emplaceAction(ActionMove
-                                {
-                                    .speed = SYS_DEFSPEED,
-                                    .x = getMyHero()->currMotion()->endX,
-                                    .y = getMyHero()->currMotion()->endY,
-                                    .aimX = mouseGridX,
-                                    .aimY = mouseGridY,
-                                    .onHorse = getMyHero()->onHorse(),
-                                });
+                                            getMyHero()->emplaceAction(ActionMove
+                                            {
+                                                .speed = SYS_DEFSPEED,
+                                                .x = getMyHero()->currMotion()->endX,
+                                                .y = getMyHero()->currMotion()->endY,
+                                                .aimX = mouseGridX,
+                                                .aimY = mouseGridY,
+                                                .onHorse = getMyHero()->onHorse(),
+                                            });
+                                        }
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        setCursor(CURSOR_DEFAULT);
+                                        break;
+                                    }
                             }
                             break;
                         }
@@ -2412,4 +2437,29 @@ std::shared_ptr<SDLSoundEffectChannel> ProcessRun::playSoundEffectAt(uint32_t se
     }();
 
     return g_sdlDevice->playSoundEffect(g_seffDB->retrieve(seffID), distance, angle, repeats);
+}
+
+void ProcessRun::setCursor(int cursorState)
+{
+    switch(m_cursorState = cursorState){
+        case CURSOR_NONE:
+            {
+                SDL_ShowCursor(SDL_DISABLE);
+                break;
+            }
+        case CURSOR_DEFAULT:
+            {
+                SDL_ShowCursor(SDL_ENABLE);
+                break;
+            }
+        case CURSOR_TEAMFLAG:
+            {
+                SDL_ShowCursor(SDL_DISABLE);
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
 }

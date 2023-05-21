@@ -26,6 +26,16 @@
 class ClientPathFinder;
 class ProcessRun: public Process
 {
+    public:
+        enum
+        {
+            CURSOR_NONE  = 0,
+            CURSOR_BEGIN = 1,
+            CURSOR_DEFAULT = CURSOR_BEGIN,
+            CURSOR_TEAMFLAG,
+            CURSOR_END,
+        };
+
     private:
         struct UserCommand
         {
@@ -128,6 +138,9 @@ class ProcessRun: public Process
 
     private:
         FrameCounter m_teamFlag;
+
+    private:
+        int m_cursorState = CURSOR_DEFAULT;
 
     private:
         void scrollMap();
@@ -443,4 +456,7 @@ class ProcessRun: public Process
 
     public:
         std::shared_ptr<SDLSoundEffectChannel> playSoundEffectAt(uint32_t, int, int, size_t repeats = 1) const;
+
+    public:
+        void setCursor(int);
 };
