@@ -49,6 +49,7 @@ ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
     , m_guiManager(this)
     , m_mousePixlLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_mouseGridLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
+    , m_teamFlag(5)
 {
     loadMap(smOOK.mapID, smOOK.action.x, smOOK.action.y);
     m_coList.insert_or_assign(m_myHeroUID, std::unique_ptr<ClientCreature>(new MyHero
@@ -101,6 +102,7 @@ void ProcessRun::scrollMap()
 void ProcessRun::update(double fUpdateTime)
 {
     updateMouseFocus();
+    m_teamFlag.update(fUpdateTime * 1000);
     m_aniTimer.update(std::lround(fUpdateTime));
 
     scrollMap();
@@ -493,6 +495,12 @@ void ProcessRun::draw() const
                 g_sdlDevice->drawTexture(texPtr, ptrX - texW / 2, ptrY - texH / 2);
             }
         }
+    }
+
+    const auto teamFlagIndex = m_teamFlag.seqFrame() % 13;
+    if(auto flagTex = g_progUseDB->retrieve(0X00000210 + teamFlagIndex)){
+        const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
+        g_sdlDevice->drawTexture(flagTex, mouseX, mouseY);
     }
 
     // draw NotifyBoard

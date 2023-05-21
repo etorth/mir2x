@@ -14,6 +14,7 @@
 #include "ascendstr.hpp"
 #include "guimanager.hpp"
 #include "wilanitimer.hpp"
+#include "framecounter.hpp"
 #include "delaycommand.hpp"
 #include "lochashtable.hpp"
 #include "mir2xmapdata.hpp"
@@ -124,6 +125,9 @@ class ProcessRun: public Process
     private:
         double m_starRatio = 0.0;
         double m_iconRatio = 0.0;
+
+    private:
+        FrameCounter m_teamFlag;
 
     private:
         void scrollMap();
