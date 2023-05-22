@@ -255,7 +255,7 @@ class ProcessRun: public Process
         bool canMove(bool, int, int, int, int, int);
 
     public:
-        uint64_t getFocusUID(int) const;
+        uint64_t getFocusUID(int, bool /* allowMyHero */ = false) const;
         void setFocusUID(int, uint64_t);
 
     public:

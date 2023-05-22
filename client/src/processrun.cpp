@@ -195,7 +195,7 @@ void ProcessRun::update(double fUpdateTime)
     }
 }
 
-uint64_t ProcessRun::getFocusUID(int focusType) const
+uint64_t ProcessRun::getFocusUID(int focusType, bool allowMyHero) const
 {
     switch(focusType){
         case FOCUS_MOUSE:
@@ -210,7 +210,7 @@ uint64_t ProcessRun::getFocusUID(int focusType) const
 
                 ClientCreature *focusCOPtr = nullptr;
                 for(const auto &[uid, coPtr]: m_coList){
-                    if(uid == getMyHeroUID()){
+                    if((uid == getMyHeroUID()) && !allowMyHero){
                         continue;
                     }
 
@@ -547,17 +547,34 @@ void ProcessRun::processEvent(const SDL_Event &event)
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            if(const auto uid = getFocusUID(FOCUS_MOUSE)){
-                                switch(uidf::getUIDType(uid)){
-                                    case UID_MON:
+                            if(const auto uid = getFocusUID(FOCUS_MOUSE, true)){
+                                switch(m_cursorState){
+                                    case CURSOR_DEFAULT:
                                         {
-                                            setFocusUID(FOCUS_ATTACK, uid);
-                                            trackAttack(true, uid);
+                                            switch(uidf::getUIDType(uid)){
+                                                case UID_MON:
+                                                    {
+                                                        setFocusUID(FOCUS_ATTACK, uid);
+                                                        trackAttack(true, uid);
+                                                        break;
+                                                    }
+                                                case UID_NPC:
+                                                    {
+                                                        sendNPCEvent(uid, {}, SYS_ENTER);
+                                                    }
+                                                default:
+                                                    {
+                                                        break;
+                                                    }
+                                            }
                                             break;
                                         }
-                                    case UID_NPC:
+                                    case CURSOR_TEAMFLAG:
                                         {
-                                            sendNPCEvent(uid, {}, SYS_ENTER);
+                                            if(uidf::isPlayer(uid)){
+                                                requestJoinTeam(uid);
+                                            }
+                                            break;
                                         }
                                     default:
                                         {
