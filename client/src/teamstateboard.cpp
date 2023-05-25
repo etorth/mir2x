@@ -59,7 +59,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           false,
       }
 
-    , m_createTeam
+    , m_switchShow
       {
           DIR_UPLEFT,
           19,
@@ -75,6 +75,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           nullptr,
           [this]()
           {
+              m_showCandiateList = !m_showCandiateList;
           },
 
           0,
@@ -290,7 +291,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
     }
 
     m_enableTeam  .draw();
-    m_createTeam  .draw();
+    m_switchShow  .draw();
     m_addMember   .draw();
     m_deleteMember.draw();
     m_refresh     .draw();
@@ -311,7 +312,7 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
         return true;
     }
 
-    if(m_createTeam.processEvent(event, valid)){
+    if(m_switchShow.processEvent(event, valid)){
         return true;
     }
 
@@ -437,7 +438,7 @@ void TeamStateBoard::adjustButtonPos()
 {
     const auto buttonY = m_uidRegionY + lineCount() * lineHeight() + 14;
 
-    m_createTeam  .moveTo({}, buttonY);
+    m_switchShow  .moveTo({}, buttonY);
     m_addMember   .moveTo({}, buttonY);
     m_deleteMember.moveTo({}, buttonY);
     m_refresh     .moveTo({}, buttonY);

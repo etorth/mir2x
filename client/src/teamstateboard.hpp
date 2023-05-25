@@ -58,6 +58,9 @@ class TeamStateBoard: public Widget
         const uint32_t m_selectedBGColor = colorf::RED   + colorf::A_SHF(100);
 
     private:
+        bool m_showCandiateList = true;
+
+    private:
         int m_startIndex = 0;
         int m_selectedIndex = -1;
         std::vector<uint64_t> m_uidList;
@@ -70,7 +73,7 @@ class TeamStateBoard: public Widget
         TritexButton m_enableTeam;
 
     private:
-        TritexButton m_createTeam;
+        TritexButton m_switchShow;
         TritexButton m_addMember;
         TritexButton m_deleteMember;
         TritexButton m_refresh;
