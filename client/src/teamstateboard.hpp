@@ -58,7 +58,7 @@ class TeamStateBoard: public Widget
         const uint32_t m_selectedBGColor = colorf::RED   + colorf::A_SHF(100);
 
     private:
-        bool m_showCandidateList = true;
+        bool m_showCandidateList = false;
 
     private:
         int m_startIndex[2] {0, 0};

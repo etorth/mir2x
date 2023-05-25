@@ -253,6 +253,9 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 
         const int texRepeatEndY = texRepeatStartY + m_texRepeatH;
         g_sdlDevice->drawTexture(texPtr, x(), y() + texRepeatStartY + neededRepeatTexH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
+
+        LabelBoard header(DIR_NONE, 0, 0, m_showCandidateList ? u8"申请加入" : u8"当前队伍", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
+        header.drawAt(DIR_NONE, x() + w() / 2, y() + 50);
     }
 
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
