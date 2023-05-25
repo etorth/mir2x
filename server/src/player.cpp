@@ -605,18 +605,6 @@ bool Player::update()
     if(m_buffList.update()){
         dispatchBuffIDList();
     }
-
-    if(m_teamLeader == UID()){
-        while(!m_teamCandidateList.empty()){
-            if(m_teamCandidateList.back().first.diff_sec() <= 180){
-                break;
-            }
-            else{
-                m_teamCandidateList.pop_back();
-            }
-        }
-    }
-
     return true;
 }
 

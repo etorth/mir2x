@@ -39,7 +39,6 @@ class Player final: public BattleObject
     protected:
         uint64_t m_teamLeader = 0;
         std::vector<uint64_t> m_teamMemberList;
-        std::deque<std::pair<hres_timer, uint64_t>> m_teamCandidateList;
 
     private:
         bool m_pickUpLock = false;

@@ -467,13 +467,6 @@ void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 
 void Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
 {
-    std::erase_if(m_teamCandidateList, [&mpk](const auto &elem)
-    {
-        return elem.second == mpk.from();
-    });
-
-    m_teamCandidateList.emplace_front(hres_timer(), mpk.from());
-
     const auto sdRJT = mpk.deserialize<SDRequestJoinTeam>();
     postNetMessage(SM_TEAMCANDIDATE, cerealf::serialize(SDTeamCandidate
     {
