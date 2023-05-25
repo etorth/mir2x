@@ -470,12 +470,7 @@ void Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
     const auto sdRJT = mpk.deserialize<SDRequestJoinTeam>();
     postNetMessage(SM_TEAMCANDIDATE, cerealf::serialize(SDTeamCandidate
     {
-        .player
-        {
-            .uid = mpk.from(),
-            .level = sdRJT.level,
-            .name = sdRJT.name,
-        },
+        .player = sdRJT.player, // can forward player's friend to the team leader
     }));
 }
 

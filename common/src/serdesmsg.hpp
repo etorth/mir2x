@@ -980,17 +980,6 @@ struct SDQueryQuestUID
     }
 };
 
-struct SDRequestJoinTeam
-{
-    std::string name {};
-    uint32_t level = 0;
-
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(name, level);
-    }
-};
-
 struct SDTeamPlayer
 {
     uint64_t uid = 0;
@@ -1000,6 +989,24 @@ struct SDTeamPlayer
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(uid, level, name);
+    }
+};
+
+struct SDTeamCandidate
+{
+    SDTeamPlayer player {};
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(player);
+    }
+};
+
+struct SDRequestJoinTeam
+{
+    SDTeamPlayer player {};
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(player);
     }
 };
 
@@ -1017,14 +1024,5 @@ struct SDTeamMemberList
     {
         teamLeader = 0;
         memberList.clear();
-    }
-};
-
-struct SDTeamCandidate
-{
-    SDTeamPlayer player {};
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(player);
     }
 };

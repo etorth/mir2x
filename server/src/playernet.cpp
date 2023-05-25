@@ -616,8 +616,12 @@ void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t)
     else{
         m_actorPod->forward(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
         {
-            .name = name(),
-            .level = level(),
+            .player
+            {
+                .uid = UID(),
+                .level = level(),
+                .name = name(),
+            },
         })});
     }
 }
