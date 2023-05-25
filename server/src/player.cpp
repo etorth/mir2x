@@ -557,6 +557,11 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_REQUESTLEAVETEAM(rstMPK);
                 break;
             }
+        case AM_QUERYTEAMPLAYER:
+            {
+                on_AM_QUERYTEAMPLAYER(rstMPK);
+                break;
+            }
         default:
             {
                 g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
@@ -1536,6 +1541,55 @@ void Player::reportSecuredItemList()
     }));
 }
 
+void Player::reportTeamMemberList()
+{
+    if(!m_teamLeader){
+        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList()));
+        return;
+    }
+
+    auto counter = std::make_shared<size_t>(0);
+    auto sdTML = std::make_shared<SDTeamMemberList>();
+
+    sdTML->teamLeader = m_teamLeader;
+    sdTML->memberList.resize(m_teamMemberList.size());
+
+    for(size_t i = 0; i < m_teamMemberList.size(); ++i){
+        if(m_teamMemberList.at(i) == UID()){
+            sdTML->memberList[i] = SDTeamPlayer
+            {
+                .uid = UID(),
+                .level = level(),
+                .name = name(),
+            };
+
+            if(++(*counter) == m_teamMemberList.size()){
+                postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(*sdTML));
+            }
+        }
+        else{
+            m_actorPod->forward(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER, [i, counter, sdTML, memberCount = m_teamMemberList.size(), this](const ActorMsgPack &mpk)
+            {
+                switch(mpk.type()){
+                    case AM_TEAMPLAYER:
+                        {
+                            sdTML->memberList.at(i) = mpk.deserialize<SDTeamPlayer>();
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+
+                if(++(*counter) == memberCount){
+                    postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(*sdTML));
+                }
+            });
+        }
+    }
+}
+
 void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
 {
     // this function means:
@@ -1944,18 +1998,4 @@ bool Player::consumePotion(uint32_t itemID)
         return true;
     }
     return false;
-}
-
-std::vector<SDTeamPlayer> Player::getTeamMemberList() const
-{
-    std::vector<SDTeamPlayer> result;
-    for(const auto uid: m_teamMemberList){
-        result.push_back(SDTeamPlayer
-        {
-            .uid = uid,
-            .level = 0,
-            .name = "test",
-        });
-    }
-    return result;
 }

@@ -491,3 +491,13 @@ void Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
         postNetMessage(SM_TEAMDISMISSED);
     }
 }
+
+void Player::on_AM_QUERYTEAMPLAYER(const ActorMsgPack &mpk)
+{
+    m_actorPod->forward(mpk.fromAddr(), {AM_TEAMPLAYER, cerealf::serialize(SDTeamPlayer
+    {
+        .uid = UID(),
+        .level = level(),
+        .name = name(),
+    })});
+}

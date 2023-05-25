@@ -606,11 +606,7 @@ void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t)
         else{
             m_teamLeader = UID();
             m_teamMemberList = std::vector<uint64_t>{UID()};
-            postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList
-            {
-                .teamLeader = UID(),
-                .memberList = getTeamMemberList(),
-            }));
+            reportTeamMemberList();
         }
     }
     else{

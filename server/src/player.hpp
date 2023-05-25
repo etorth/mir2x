@@ -147,6 +147,7 @@ class Player final: public BattleObject
         void on_AM_REMOTECALL       (const ActorMsgPack &);
         void on_AM_REQUESTJOINTEAM  (const ActorMsgPack &);
         void on_AM_REQUESTLEAVETEAM (const ActorMsgPack &);
+        void on_AM_QUERYTEAMPLAYER  (const ActorMsgPack &);
 
     private:
         void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t);
@@ -182,6 +183,7 @@ class Player final: public BattleObject
         void reportStand();
         void reportHealth();
         void reportNextStrike();
+        void reportTeamMemberList();
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t) override;
         void reportOffline(uint64_t, uint32_t);
@@ -422,7 +424,4 @@ class Player final: public BattleObject
     protected:
         bool consumeBook(uint32_t);
         bool consumePotion(uint32_t);
-
-    protected:
-        std::vector<SDTeamPlayer> getTeamMemberList() const;
 };
