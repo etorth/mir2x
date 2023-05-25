@@ -712,3 +712,17 @@ int MyHero::getMagicCoolDownAngle(uint32_t magicID) const
     }
     return mathf::bound<int>(std::lround(360.0 * to_df(castTimeDiff) / coolDown), 0, 360);
 }
+
+bool MyHero::hasTeam() const
+{
+    const auto &memberList = dynamic_cast<TeamStateBoard *>(m_processRun->getWidget("TeamStateBoard"))->getTeamMemberList().memberList;
+    return std::find_if(memberList.begin(), memberList.end(), [this](const auto &member) -> bool
+    {
+        return member.uid == UID();
+    }) != memberList.end();
+}
+
+bool MyHero::isTeamLeader() const
+{
+    return hasTeam() && dynamic_cast<TeamStateBoard *>(m_processRun->getWidget("TeamStateBoard"))->getTeamMemberList().teamLeader == UID();
+}

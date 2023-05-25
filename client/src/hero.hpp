@@ -179,4 +179,15 @@ class Hero: public CreatureMovable
     public:
         bool hasSwingMagic(uint32_t) const;
         void toggleSwingMagic(uint32_t, std::optional<bool> = {});
+
+    public:
+        virtual bool hasTeam() const
+        {
+            return false;
+        }
+
+        virtual bool isTeamLeader() const
+        {
+            return false;
+        }
 };

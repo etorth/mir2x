@@ -61,8 +61,10 @@ class TeamStateBoard: public Widget
         int m_startIndex = 0;
         int m_selectedIndex = -1;
         std::vector<uint64_t> m_uidList;
-        std::vector<uint64_t> m_teamUIDList;
         std::deque<SDTeamCandidate> m_teamCandidateList;
+
+    private:
+        SDTeamMemberList m_teamMemberList;
 
     private:
         TritexButton m_enableTeam;
@@ -102,13 +104,14 @@ class TeamStateBoard: public Widget
     public:
         void refresh();
         void addTeamCandidate(SDTeamCandidate);
+        void setTeamMemberList(SDTeamMemberList);
 
     private:
         void adjustButtonPos();
 
     public:
-        bool hasTeam() const
+        const auto &getTeamMemberList() const
         {
-            return !m_teamUIDList.empty();
+            return m_teamMemberList;
         }
 };

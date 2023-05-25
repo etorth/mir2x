@@ -991,6 +991,35 @@ struct SDRequestJoinTeam
     }
 };
 
+struct SDTeamPlayer
+{
+    uint64_t uid = 0;
+    uint32_t level = 0;
+    std::string name {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, level, name);
+    }
+};
+
+struct SDTeamMemberList
+{
+    uint64_t teamLeader = 0;
+    std::vector<SDTeamPlayer> memberList {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(teamLeader, memberList);
+    }
+
+    void clear()
+    {
+        teamLeader = 0;
+        memberList.clear();
+    }
+};
+
 struct SDTeamCandidate
 {
     uint64_t uid = 0;

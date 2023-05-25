@@ -166,4 +166,8 @@ class MyHero: public Hero
         {
             m_nextStrike = nextStrike;
         }
+
+    public:
+        bool hasTeam() const override;
+        bool isTeamLeader() const override;
 };

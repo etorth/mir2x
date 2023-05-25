@@ -399,16 +399,17 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              if(auto p = dynamic_cast<TeamStateBoard *>(m_processRun->getWidget("TeamStateBoard"))){
-                  if(p->hasTeam()){
-                      p->flipShow();
-                      if(p->show()){
-                          p->refresh();
-                      }
+              auto boardPtr = dynamic_cast<TeamStateBoard *>(m_processRun->getWidget("TeamStateBoard"));
+              auto  heroPtr = m_processRun->getMyHero();
+
+              if(heroPtr->hasTeam()){
+                  boardPtr->flipShow();
+                  if(boardPtr->show()){
+                      boardPtr->refresh();
                   }
-                  else{
-                      m_processRun->setCursor(ProcessRun::CURSOR_TEAMFLAG);
-                  }
+              }
+              else{
+                  m_processRun->setCursor(ProcessRun::CURSOR_TEAMFLAG);
               }
           },
 

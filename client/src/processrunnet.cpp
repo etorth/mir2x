@@ -845,3 +845,8 @@ void ProcessRun::net_TEAMCANDIDATE(const uint8_t *buf, size_t bufSize)
 {
     dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->addTeamCandidate(cerealf::deserialize<SDTeamCandidate>(buf, bufSize));
 }
+
+void ProcessRun::net_TEAMMEMBERLIST(const uint8_t *buf, size_t bufSize)
+{
+    dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->setTeamMemberList(cerealf::deserialize<SDTeamMemberList>(buf, bufSize));
+}

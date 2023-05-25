@@ -423,4 +423,7 @@ class Player final: public BattleObject
     protected:
         bool consumeBook(uint32_t);
         bool consumePotion(uint32_t);
+
+    protected:
+        std::vector<SDTeamPlayer> getTeamMemberList() const;
 };

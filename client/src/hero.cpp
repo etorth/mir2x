@@ -270,6 +270,11 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
             }
         }
     }
+
+    if(isTeamLeader()){
+        LabelBoard amLeader(DIR_NONE, 0, 0, u8"我是队长", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
+        amLeader.drawEx(startX, startY, 0, 0, amLeader.w(), amLeader.h());
+    }
 }
 
 bool Hero::update(double ms)

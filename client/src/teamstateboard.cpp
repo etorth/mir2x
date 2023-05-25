@@ -461,3 +461,8 @@ void TeamStateBoard::addTeamCandidate(SDTeamCandidate sdTC)
 
     }
 }
+
+void TeamStateBoard::setTeamMemberList(SDTeamMemberList sdTML)
+{
+    m_teamMemberList = std::move(sdTML);
+}

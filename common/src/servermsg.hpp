@@ -71,6 +71,7 @@ enum SMType: uint8_t
     SM_GRABBELT,
     SM_GRABBELTERROR,
     SM_SHOWSECUREDITEMLIST,
+    SM_TEAMMEMBERLIST,
     SM_TEAMCANDIDATE,
     SM_TEAMMEMBERLEFT,
     SM_TEAMDISMISSED,
@@ -405,6 +406,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_GRABBELT,            3, 0                            )
                 _add_server_msg_type_case(SM_GRABBELTERROR,       1, sizeof(SMGrabBeltError)      )
                 _add_server_msg_type_case(SM_SHOWSECUREDITEMLIST, 3, 0                            )
+                _add_server_msg_type_case(SM_TEAMMEMBERLIST,      3, 0                            )
                 _add_server_msg_type_case(SM_TEAMCANDIDATE,       3, 0                            )
                 _add_server_msg_type_case(SM_TEAMERROR,           1, sizeof(SMTeamError)          )
                 _add_server_msg_type_case(SM_TEAMMEMBERLEFT,      1, sizeof(SMTeamMemberLeft)     )

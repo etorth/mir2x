@@ -1957,3 +1957,17 @@ bool Player::consumePotion(uint32_t itemID)
     }
     return false;
 }
+
+std::vector<SDTeamPlayer> Player::getTeamMemberList() const
+{
+    std::vector<SDTeamPlayer> result;
+    for(const auto uid: m_teamMemberList){
+        result.push_back(SDTeamPlayer
+        {
+            .uid = uid,
+            .level = 0,
+            .name = "test",
+        });
+    }
+    return result;
+}
