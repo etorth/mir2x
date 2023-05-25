@@ -417,6 +417,13 @@ void TeamStateBoard::adjustButtonPos()
 
 void TeamStateBoard::addTeamCandidate(SDTeamCandidate sdTC)
 {
+    if(std::find_if(m_teamMemberList.memberList.begin(), m_teamMemberList.memberList.end(), [&sdTC](const auto &player)
+    {
+        return player.uid == sdTC.player.uid;
+    }) != m_teamMemberList.memberList.end()){
+        return;
+    }
+
     for(auto p = m_teamCandidateList.begin(); p != m_teamCandidateList.end();){
         if(p->first.player.uid == sdTC.player.uid){
             p = m_teamCandidateList.erase(p);
