@@ -1022,12 +1022,9 @@ struct SDTeamMemberList
 
 struct SDTeamCandidate
 {
-    uint64_t uid = 0;
-    std::string name {};
-    uint32_t level = 0;
-
+    SDTeamPlayer player {};
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, name, level);
+        ar(player);
     }
 };

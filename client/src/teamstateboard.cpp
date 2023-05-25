@@ -75,7 +75,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           nullptr,
           [this]()
           {
-              m_showCandiateList = !m_showCandiateList;
+              m_showCandidateList = !m_showCandidateList;
           },
 
           0,
@@ -105,8 +105,8 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           nullptr,
           [this]()
           {
-              if(m_selectedIndex >= 0){
-                  m_processRun->requestJoinTeam(m_uidList.at(m_selectedIndex));
+              if(m_showCandidateList && (m_selectedIndex[m_showCandidateList] >= 0)){
+                  m_processRun->requestJoinTeam(getSDTeamPlayer(m_selectedIndex[m_showCandidateList]).uid);
               }
           },
 
@@ -224,7 +224,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     }();
 
     m_w = texW;
-    m_h = texH - m_uidRegionH + lineCount() * lineHeight();
+    m_h = texH - m_uidRegionH + lineShowCount() * lineHeight();
 
     adjustButtonPos();
 }
@@ -237,7 +237,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
 
         g_sdlDevice->drawTexture(texPtr, x(), y(), 0, 0, texW, texRepeatStartY);
 
-        const auto neededUIDRegionH = lineCount() * lineHeight();
+        const auto neededUIDRegionH = lineShowCount() * lineHeight();
         const auto neededRepeatTexH = neededUIDRegionH - (m_uidRegionH - m_texRepeatH);
 
         const auto repeatCount = neededRepeatTexH / m_texRepeatH;
@@ -260,8 +260,8 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
     std::string nameText;
     XMLTypeset line(-1, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
 
-    for(size_t i = 0; (i < lineCount()) && (i + m_startIndex < m_uidList.size()); ++i){
-        if((m_selectedIndex >= 0) && (to_d(i) + m_startIndex == m_selectedIndex)){
+    for(size_t i = 0; (i < lineShowCount()) && (i + m_startIndex[m_showCandidateList] < lineCount()); ++i){
+        if((m_selectedIndex[m_showCandidateList] >= 0) && (to_d(i) + m_startIndex[m_showCandidateList] == m_selectedIndex[m_showCandidateList])){
             g_sdlDevice->fillRectangle(m_selectedBGColor, x() + m_uidRegionX, y() + m_uidRegionY + i * lineHeight(), m_uidRegionW, lineHeight());
         }
 
@@ -269,20 +269,14 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
             g_sdlDevice->fillRectangle(m_hoveredColor, x() + m_uidRegionX, y() + m_uidRegionY + i * lineHeight(), m_uidRegionW, lineHeight());
         }
 
-        const auto uid = m_uidList.at(i + m_startIndex);
-
-        nameText.clear();
-        if(uidf::isPlayer(uid)){
-            if(const auto heroPtr = dynamic_cast<Hero *>(m_processRun->findUID(uid, true))){
-                nameText = heroPtr->getName();
-            }
-        }
+        const auto &sdTP = getSDTeamPlayer(i + m_startIndex[m_showCandidateList]);
+        nameText = sdTP.name;
 
         // make every uid a line
         // need line number to select uid
 
         if(nameText.empty()){
-            nameText = uidf::getUIDString(uid);
+            nameText = uidf::getUIDString(sdTP.uid);
         }
 
         line.clear();
@@ -336,7 +330,7 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONDOWN:
             {
                 int selectedLine = -1;
-                for(size_t i = 0; i < lineCount(); ++i){
+                for(size_t i = 0; i < lineShowCount(); ++i){
                     const auto lineX = x() + m_uidRegionX;
                     const auto lineY = y() + m_uidRegionY + i * lineHeight();
                     if(mathf::pointInRectangle<int>(event.button.x, event.button.y, lineX, lineY, m_uidRegionW, lineHeight())){
@@ -346,8 +340,8 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
                 }
 
                 if(selectedLine >= 0){
-                    if(selectedLine + m_startIndex < to_d(m_uidList.size())){
-                        m_selectedIndex = selectedLine + m_startIndex;
+                    if(selectedLine + m_startIndex[m_showCandidateList] < to_d(lineCount())){
+                        m_selectedIndex[m_showCandidateList] = selectedLine + m_startIndex[m_showCandidateList];
                         if(event.button.clicks >= 2){
                             // can show hero state board here
                         }
@@ -355,7 +349,7 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
                     else{
                         // clicked in uidRegion, but on invalid line
                         // reset selection
-                        m_selectedIndex = -1;
+                        m_selectedIndex[m_showCandidateList] = -1;
                     }
                 }
                 else{
@@ -368,15 +362,15 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEWHEEL:
             {
                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
-                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_uidRegionX, y() + m_uidRegionY, m_uidRegionW, lineHeight() * lineCount())){
-                    if(m_uidList.size() <= lineCount()){
-                        m_startIndex = 0;
+                if(mathf::pointInRectangle<int>(mousePX, mousePY, x() + m_uidRegionX, y() + m_uidRegionY, m_uidRegionW, lineHeight() * lineShowCount())){
+                    if(lineCount() <= lineShowCount()){
+                        m_startIndex[m_showCandidateList] = 0;
                     }
                     else if(event.wheel.y < 0){
-                        m_startIndex = std::min<int>(m_startIndex + 1, m_uidList.size() - lineCount());
+                        m_startIndex[m_showCandidateList] = std::min<int>(m_startIndex[m_showCandidateList] + 1, lineCount() - lineShowCount());
                     }
                     else{
-                        m_startIndex = std::max<int>(m_startIndex - 1, 0);
+                        m_startIndex[m_showCandidateList] = std::max<int>(m_startIndex[m_showCandidateList] - 1, 0);
                     }
                 }
                 return consumeFocus(true);
@@ -404,39 +398,12 @@ bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
 
 void TeamStateBoard::refresh()
 {
-    const auto selectedUID = (m_selectedIndex >= 0) ? m_uidList.at(m_selectedIndex) : 0;
-
-    m_startIndex = 0;
-    m_uidList.clear();
-
-    for(const auto &[uid, coPtr]: m_processRun->getCOList()){
-        if(uid == m_processRun->getMyHeroUID()){
-            continue;
-        }
-
-        if(uidf::isPlayer(uid)){
-            m_uidList.push_back(uid);
-        }
-    }
-
-    std::sort(m_uidList.begin(), m_uidList.end());
-
-    m_selectedIndex = -1;
-    if(selectedUID){
-        for(size_t i = 0; i < m_uidList.size(); ++i){
-            if(m_uidList[i] == selectedUID){
-                m_selectedIndex = to_d(i);
-                break;
-            }
-        }
-    }
-
     adjustButtonPos();
 }
 
 void TeamStateBoard::adjustButtonPos()
 {
-    const auto buttonY = m_uidRegionY + lineCount() * lineHeight() + 14;
+    const auto buttonY = m_uidRegionY + lineShowCount() * lineHeight() + 14;
 
     m_switchShow  .moveTo({}, buttonY);
     m_addMember   .moveTo({}, buttonY);
@@ -448,16 +415,15 @@ void TeamStateBoard::adjustButtonPos()
 void TeamStateBoard::addTeamCandidate(SDTeamCandidate sdTC)
 {
     for(auto p = m_teamCandidateList.begin(); p != m_teamCandidateList.end();){
-        if(p->uid == sdTC.uid){
+        if(p->first.player.uid == sdTC.player.uid){
             p = m_teamCandidateList.erase(p);
-            break;
         }
         else{
             ++p;
         }
     }
 
-    m_teamCandidateList.push_front(std::move(sdTC));
+    m_teamCandidateList.push_front(std::make_pair(std::move(sdTC), hres_timer()));
     if(!show()){
 
     }

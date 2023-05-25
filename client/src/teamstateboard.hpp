@@ -58,13 +58,14 @@ class TeamStateBoard: public Widget
         const uint32_t m_selectedBGColor = colorf::RED   + colorf::A_SHF(100);
 
     private:
-        bool m_showCandiateList = true;
+        bool m_showCandidateList = true;
 
     private:
-        int m_startIndex = 0;
-        int m_selectedIndex = -1;
-        std::vector<uint64_t> m_uidList;
-        std::deque<SDTeamCandidate> m_teamCandidateList;
+        int m_startIndex[2] {0, 0};
+        int m_selectedIndex[2] {-1, -1};
+
+    private:
+        std::deque<std::pair<SDTeamCandidate, hres_timer>> m_teamCandidateList;
 
     private:
         SDTeamMemberList m_teamMemberList;
@@ -99,9 +100,14 @@ class TeamStateBoard: public Widget
             return XMLTypeset(-1, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle).getDefaultFontHeight() + m_lineSpace;
         }
 
+        size_t lineShowCount() const
+        {
+            return mathf::bound<size_t>(lineCount(), m_uidMinCount, m_uidMaxCount);
+        }
+
         size_t lineCount() const
         {
-            return mathf::bound<size_t>(m_uidList.size(), m_uidMinCount, m_uidMaxCount);
+            return m_showCandidateList ? m_teamCandidateList.size() : m_teamMemberList.memberList.size();
         }
 
     public:
@@ -116,5 +122,16 @@ class TeamStateBoard: public Widget
         const auto &getTeamMemberList() const
         {
             return m_teamMemberList;
+        }
+
+    private:
+        const SDTeamPlayer &getSDTeamPlayer(int index) const
+        {
+            if(m_showCandidateList){
+                return m_teamCandidateList.at(index).first.player;
+            }
+            else{
+                return m_teamMemberList.memberList.at(index);
+            }
         }
 };
