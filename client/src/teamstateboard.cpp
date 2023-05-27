@@ -235,6 +235,15 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
     m_h = texH - m_uidRegionH + lineShowCount() * lineHeight();
 
     adjustButtonPos();
+
+    if(m_showCandidateList){
+        m_addMember.setActive(true);
+        m_deleteMember.setActive(false);
+    }
+    else{
+        m_addMember.setActive(false);
+        m_deleteMember.setActive(true);
+    }
 }
 
 void TeamStateBoard::drawEx(int, int, int, int, int, int) const
