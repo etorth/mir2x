@@ -76,6 +76,14 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           [this]()
           {
               m_showCandidateList = !m_showCandidateList;
+              if(m_showCandidateList){
+                  m_addMember.setActive(true);
+                  m_deleteMember.setActive(false);
+              }
+              else{
+                  m_addMember.setActive(false);
+                  m_deleteMember.setActive(true);
+              }
           },
 
           0,
