@@ -1548,7 +1548,7 @@ void Player::reportTeamMemberList()
         return;
     }
 
-    auto counter = std::make_shared<size_t>(0);
+    auto cnter = std::make_shared<size_t>(0);
     auto sdTML = std::make_shared<SDTeamMemberList>();
 
     sdTML->teamLeader = m_teamLeader;
@@ -1563,12 +1563,12 @@ void Player::reportTeamMemberList()
                 .name = name(),
             };
 
-            if(++(*counter) == m_teamMemberList.size()){
+            if(++(*cnter) == m_teamMemberList.size()){
                 postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(*sdTML));
             }
         }
         else{
-            m_actorPod->forward(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER, [i, counter, sdTML, memberCount = m_teamMemberList.size(), this](const ActorMsgPack &mpk)
+            m_actorPod->forward(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER, [i, cnter, sdTML, memberCount = m_teamMemberList.size(), this](const ActorMsgPack &mpk)
             {
                 switch(mpk.type()){
                     case AM_TEAMPLAYER:
@@ -1582,7 +1582,7 @@ void Player::reportTeamMemberList()
                         }
                 }
 
-                if(++(*counter) == memberCount){
+                if(++(*cnter) == memberCount){
                     postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(*sdTML));
                 }
             });

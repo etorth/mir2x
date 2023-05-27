@@ -609,6 +609,10 @@ void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t)
             reportTeamMemberList();
         }
     }
+    else if(m_teamLeader == UID()){
+        m_teamMemberList.push_back(cmRJT.uid);
+        reportTeamMemberList();
+    }
     else{
         m_actorPod->forward(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
         {

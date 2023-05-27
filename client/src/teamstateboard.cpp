@@ -255,7 +255,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, x(), y() + texRepeatStartY + neededRepeatTexH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
 
         LabelBoard header(DIR_NONE, 0, 0, m_showCandidateList ? u8"申请加入" : u8"当前队伍", 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
-        header.drawAt(DIR_NONE, x() + w() / 2, y() + 50);
+        header.drawAt(DIR_NONE, x() + w() / 2, y() + 57);
     }
 
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
@@ -283,7 +283,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
         }
 
         line.clear();
-        line.loadXML(str_printf("<par>%s</par>", nameText.c_str()).c_str());
+        line.loadXML(str_printf("<par>%d %s</par>", to_d(i) + m_startIndex[m_showCandidateList], nameText.c_str()).c_str());
         line.drawEx(x() + m_uidRegionX + (m_uidRegionW - m_uidTextRegionW) / 2, y() + m_uidRegionY + m_lineSpace / 2 + i * lineHeight(), 0, 0, std::min<int>(line.pw(), m_uidTextRegionW), line.ph());
     }
 
@@ -442,4 +442,20 @@ void TeamStateBoard::addTeamCandidate(SDTeamCandidate sdTC)
 void TeamStateBoard::setTeamMemberList(SDTeamMemberList sdTML)
 {
     m_teamMemberList = std::move(sdTML);
+    const auto fnIsTeamMember = [this](uint64_t uid)
+    {
+        return std::find_if(m_teamMemberList.memberList.begin(), m_teamMemberList.memberList.end(), [uid](const auto &member) -> bool
+        {
+            return member.uid == uid;
+        }) != m_teamMemberList.memberList.end();
+    };
+
+    for(auto p = m_teamCandidateList.begin(); p != m_teamCandidateList.end();){
+        if(fnIsTeamMember(p->first.player.uid)){
+            p = m_teamCandidateList.erase(p);
+        }
+        else{
+            p++;
+        }
+    }
 }
