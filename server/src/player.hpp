@@ -115,39 +115,41 @@ class Player final: public BattleObject
         void operateAM(const ActorMsgPack &);
 
     private:
-        void on_AM_EXP              (const ActorMsgPack &);
-        void on_AM_ADDBUFF          (const ActorMsgPack &);
-        void on_AM_REMOVEBUFF       (const ActorMsgPack &);
-        void on_AM_MISS             (const ActorMsgPack &);
-        void on_AM_HEAL             (const ActorMsgPack &);
-        void on_AM_GIFT             (const ActorMsgPack &);
-        void on_AM_ACTION           (const ActorMsgPack &);
-        void on_AM_ATTACK           (const ActorMsgPack &);
-        void on_AM_OFFLINE          (const ActorMsgPack &);
-        void on_AM_CORECORD         (const ActorMsgPack &);
-        void on_AM_METRONOME        (const ActorMsgPack &);
-        void on_AM_MAPSWITCHTRIGGER (const ActorMsgPack &);
-        void on_AM_SENDPACKAGE      (const ActorMsgPack &);
-        void on_AM_RECVPACKAGE      (const ActorMsgPack &);
-        void on_AM_BADCHANNEL       (const ActorMsgPack &);
-        void on_AM_NOTIFYDEAD       (const ActorMsgPack &);
-        void on_AM_NOTIFYNEWCO      (const ActorMsgPack &);
-        void on_AM_QUERYHEALTH      (const ActorMsgPack &);
-        void on_AM_DEADFADEOUT      (const ActorMsgPack &);
-        void on_AM_BADACTORPOD      (const ActorMsgPack &);
-        void on_AM_BINDCHANNEL      (const ActorMsgPack &);
-        void on_AM_CHECKMASTER      (const ActorMsgPack &);
-        void on_AM_QUERYCORECORD    (const ActorMsgPack &);
-        void on_AM_QUERYLOCATION    (const ActorMsgPack &);
-        void on_AM_QUERYFRIENDTYPE  (const ActorMsgPack &);
-        void on_AM_REMOVEGROUNDITEM (const ActorMsgPack &);
-        void on_AM_QUERYUIDBUFF     (const ActorMsgPack &);
-        void on_AM_QUERYPLAYERNAME  (const ActorMsgPack &);
-        void on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &);
-        void on_AM_REMOTECALL       (const ActorMsgPack &);
-        void on_AM_REQUESTJOINTEAM  (const ActorMsgPack &);
-        void on_AM_REQUESTLEAVETEAM (const ActorMsgPack &);
-        void on_AM_QUERYTEAMPLAYER  (const ActorMsgPack &);
+        void on_AM_EXP                (const ActorMsgPack &);
+        void on_AM_ADDBUFF            (const ActorMsgPack &);
+        void on_AM_REMOVEBUFF         (const ActorMsgPack &);
+        void on_AM_MISS               (const ActorMsgPack &);
+        void on_AM_HEAL               (const ActorMsgPack &);
+        void on_AM_GIFT               (const ActorMsgPack &);
+        void on_AM_ACTION             (const ActorMsgPack &);
+        void on_AM_ATTACK             (const ActorMsgPack &);
+        void on_AM_OFFLINE            (const ActorMsgPack &);
+        void on_AM_CORECORD           (const ActorMsgPack &);
+        void on_AM_METRONOME          (const ActorMsgPack &);
+        void on_AM_MAPSWITCHTRIGGER   (const ActorMsgPack &);
+        void on_AM_SENDPACKAGE        (const ActorMsgPack &);
+        void on_AM_RECVPACKAGE        (const ActorMsgPack &);
+        void on_AM_BADCHANNEL         (const ActorMsgPack &);
+        void on_AM_NOTIFYDEAD         (const ActorMsgPack &);
+        void on_AM_NOTIFYNEWCO        (const ActorMsgPack &);
+        void on_AM_QUERYHEALTH        (const ActorMsgPack &);
+        void on_AM_DEADFADEOUT        (const ActorMsgPack &);
+        void on_AM_BADACTORPOD        (const ActorMsgPack &);
+        void on_AM_BINDCHANNEL        (const ActorMsgPack &);
+        void on_AM_CHECKMASTER        (const ActorMsgPack &);
+        void on_AM_QUERYCORECORD      (const ActorMsgPack &);
+        void on_AM_QUERYLOCATION      (const ActorMsgPack &);
+        void on_AM_QUERYFRIENDTYPE    (const ActorMsgPack &);
+        void on_AM_REMOVEGROUNDITEM   (const ActorMsgPack &);
+        void on_AM_QUERYUIDBUFF       (const ActorMsgPack &);
+        void on_AM_QUERYPLAYERNAME    (const ActorMsgPack &);
+        void on_AM_QUERYPLAYERWLDESP  (const ActorMsgPack &);
+        void on_AM_REMOTECALL         (const ActorMsgPack &);
+        void on_AM_REQUESTJOINTEAM    (const ActorMsgPack &);
+        void on_AM_REQUESTLEAVETEAM   (const ActorMsgPack &);
+        void on_AM_QUERYTEAMPLAYER    (const ActorMsgPack &);
+        void on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &);
+        void on_AM_TEAMUPDATE         (const ActorMsgPack &);
 
     private:
         void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t);
@@ -192,6 +194,9 @@ class Player final: public BattleObject
 
     protected:
         virtual void reportAction(uint64_t, uint32_t, const ActionNode &);
+
+    protected:
+        void pullTeamMemberList(std::function<void(std::optional<SDTeamMemberList>)>);
 
     protected:
         void dispatchOffline();

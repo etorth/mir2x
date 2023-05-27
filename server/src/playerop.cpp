@@ -501,3 +501,18 @@ void Player::on_AM_QUERYTEAMPLAYER(const ActorMsgPack &mpk)
         .name = name(),
     })});
 }
+
+void Player::on_AM_TEAMUPDATE(const ActorMsgPack &mpk)
+{
+    m_teamLeader = mpk.from();
+    m_teamMemberList.clear();
+    reportTeamMemberList();
+}
+
+void Player::on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &mpk)
+{
+    pullTeamMemberList([mpk, this](std::optional<SDTeamMemberList> sdTML)
+    {
+        m_actorPod->forward(mpk.fromAddr(), {AM_TEAMMEMBERLIST, cerealf::serialize(sdTML.value())});
+    });
+}

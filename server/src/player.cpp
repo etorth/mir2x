@@ -562,6 +562,16 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_QUERYTEAMPLAYER(rstMPK);
                 break;
             }
+        case AM_QUERYTEAMMEMBERLIST:
+            {
+                on_AM_QUERYTEAMMEMBERLIST(rstMPK);
+                break;
+            }
+        case AM_TEAMUPDATE:
+            {
+                on_AM_TEAMUPDATE(rstMPK);
+                break;
+            }
         default:
             {
                 g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
@@ -1543,51 +1553,12 @@ void Player::reportSecuredItemList()
 
 void Player::reportTeamMemberList()
 {
-    if(!m_teamLeader){
-        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList()));
-        return;
-    }
-
-    auto cnter = std::make_shared<size_t>(0);
-    auto sdTML = std::make_shared<SDTeamMemberList>();
-
-    sdTML->teamLeader = m_teamLeader;
-    sdTML->memberList.resize(m_teamMemberList.size());
-
-    for(size_t i = 0; i < m_teamMemberList.size(); ++i){
-        if(m_teamMemberList.at(i) == UID()){
-            sdTML->memberList[i] = SDTeamPlayer
-            {
-                .uid = UID(),
-                .level = level(),
-                .name = name(),
-            };
-
-            if(++(*cnter) == m_teamMemberList.size()){
-                postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(*sdTML));
-            }
+    pullTeamMemberList([this](std::optional<SDTeamMemberList> sdTML)
+    {
+        if(sdTML.has_value()){
+            postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTML.value()));
         }
-        else{
-            m_actorPod->forward(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER, [i, cnter, sdTML, memberCount = m_teamMemberList.size(), this](const ActorMsgPack &mpk)
-            {
-                switch(mpk.type()){
-                    case AM_TEAMPLAYER:
-                        {
-                            sdTML->memberList.at(i) = mpk.deserialize<SDTeamPlayer>();
-                            break;
-                        }
-                    default:
-                        {
-                            break;
-                        }
-                }
-
-                if(++(*cnter) == memberCount){
-                    postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(*sdTML));
-                }
-            });
-        }
-    }
+    });
 }
 
 void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
@@ -1998,4 +1969,76 @@ bool Player::consumePotion(uint32_t itemID)
         return true;
     }
     return false;
+}
+
+void Player::pullTeamMemberList(std::function<void(std::optional<SDTeamMemberList>)> fnHandle)
+{
+    if(!fnHandle){
+        return;
+    }
+
+    if(!m_teamLeader){
+        fnHandle(SDTeamMemberList{});
+        return;
+    }
+
+    if(m_teamLeader != UID()){
+        m_actorPod->forward(m_teamLeader, AM_QUERYTEAMMEMBERLIST, [fnHandle](const ActorMsgPack &mpk)
+        {
+            switch(mpk.type()){
+                case AM_TEAMMEMBERLIST:
+                    {
+                        fnHandle(mpk.deserialize<SDTeamMemberList>());
+                        break;
+                    }
+                default:
+                    {
+                        fnHandle({});
+                        break;
+                    }
+            }
+        });
+        return;
+    }
+
+    auto cnter = std::make_shared<size_t>(0);
+    auto sdTML = std::make_shared<SDTeamMemberList>();
+
+    sdTML->teamLeader = m_teamLeader;
+    sdTML->memberList.resize(m_teamMemberList.size());
+
+    for(size_t i = 0; i < m_teamMemberList.size(); ++i){
+        if(m_teamMemberList.at(i) == UID()){
+            sdTML->memberList[i] = SDTeamPlayer
+            {
+                .uid = UID(),
+                .level = level(),
+                .name = name(),
+            };
+
+            if(++(*cnter) == m_teamMemberList.size()){
+                fnHandle(*sdTML);
+            }
+        }
+        else{
+            m_actorPod->forward(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER, [i, cnter, sdTML, memberCount = m_teamMemberList.size(), fnHandle, this](const ActorMsgPack &mpk)
+            {
+                switch(mpk.type()){
+                    case AM_TEAMPLAYER:
+                        {
+                            sdTML->memberList.at(i) = mpk.deserialize<SDTeamPlayer>();
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+
+                if(++(*cnter) == memberCount){
+                    fnHandle(*sdTML);
+                }
+            });
+        }
+    }
 }

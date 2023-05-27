@@ -1025,4 +1025,15 @@ struct SDTeamMemberList
         teamLeader = 0;
         memberList.clear();
     }
+
+    bool hasTeamMember(uint64_t uid) const
+    {
+        if(teamLeader){
+            return std::find_if(memberList.begin(), memberList.end(), [uid](const auto &member) -> bool
+            {
+                return member.uid == uid;
+            }) != memberList.end();
+        }
+        return false;
+    }
 };
