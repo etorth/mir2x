@@ -237,6 +237,11 @@ struct CMRequestJoinTeam
     uint64_t uid;
 };
 
+struct CMRequestLeaveTeam
+{
+    uint64_t uid;
+};
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -335,6 +340,7 @@ class ClientMsg final: public MsgBase
                     || std::is_same_v<T, CMRequestGrabWear>
                     || std::is_same_v<T, CMRequestEquipBelt>
                     || std::is_same_v<T, CMRequestJoinTeam>
+                    || std::is_same_v<T, CMRequestLeaveTeam>
                     || std::is_same_v<T, CMRequestGrabBelt>);
 
             if(bufLen && bufLen != sizeof(T)){

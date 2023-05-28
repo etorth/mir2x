@@ -145,6 +145,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           nullptr,
           [this]()
           {
+              if(!m_showCandidateList && (m_selectedIndex[m_showCandidateList] >= 0)){
+                  m_processRun->requestLeaveTeam(getSDTeamPlayer(m_selectedIndex[m_showCandidateList]).uid);
+              }
           },
 
           0,

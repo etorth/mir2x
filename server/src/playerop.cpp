@@ -478,17 +478,12 @@ void Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
 {
     if(m_teamLeader == UID()){
         for(const auto member: m_teamMemberList){
-            SMTeamMemberLeft smTML;
-            std::memset(&smTML, 0, sizeof(smTML));
-
-            smTML.uid = mpk.from();
-            forwardNetPackage(member, SM_TEAMMEMBERLEFT, smTML);
+            if(member != UID()){
+                m_actorPod->forward(member, AM_TEAMUPDATE);
+            }
         }
-        std::erase(m_teamMemberList, mpk.from());
-    }
-    else if(m_teamLeader == mpk.from()){
-        m_teamLeader = 0;
-        postNetMessage(SM_TEAMDISMISSED);
+
+        m_teamMemberList.erase(std::remove(m_teamMemberList.begin(), m_teamMemberList.end(), mpk.from()), m_teamMemberList.end());
     }
 }
 

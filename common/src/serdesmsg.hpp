@@ -1026,7 +1026,7 @@ struct SDTeamMemberList
         memberList.clear();
     }
 
-    bool hasTeamMember(uint64_t uid) const
+    bool hasMember(uint64_t uid) const
     {
         if(teamLeader){
             return std::find_if(memberList.begin(), memberList.end(), [uid](const auto &member) -> bool

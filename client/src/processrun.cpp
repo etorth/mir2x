@@ -1601,20 +1601,26 @@ void ProcessRun::requestRemoveSecuredItem(uint32_t itemID, uint32_t seqID)
     g_client->send(CM_REQUESTRETRIEVESECUREDITEM, cmRRSI);
 }
 
-void ProcessRun::requestJoinTeam(uint64_t teamLeaderUID)
+void ProcessRun::requestJoinTeam(uint64_t uid)
 {
-    fflassert(uidf::isPlayer(teamLeaderUID));
+    fflassert(uidf::isPlayer(uid));
 
     CMRequestJoinTeam cmRJT;
     std::memset(&cmRJT, 0, sizeof(cmRJT));
 
-    cmRJT.uid = teamLeaderUID;
+    cmRJT.uid = uid;
     g_client->send(CM_REQUESTJOINTEAM, cmRJT);
 }
 
-void ProcessRun::requestLeaveTeam()
+void ProcessRun::requestLeaveTeam(uint64_t uid)
 {
-    g_client->send(CM_REQUESTLEAVETEAM);
+    fflassert(uidf::isPlayer(uid));
+
+    CMRequestLeaveTeam cmRLT;
+    std::memset(&cmRLT, 0, sizeof(cmRLT));
+
+    cmRLT.uid = uid;
+    g_client->send(CM_REQUESTLEAVETEAM, cmRLT);
 }
 
 void ProcessRun::RequestKillPets()

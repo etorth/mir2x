@@ -73,8 +73,6 @@ enum SMType: uint8_t
     SM_SHOWSECUREDITEMLIST,
     SM_TEAMMEMBERLIST,
     SM_TEAMCANDIDATE,
-    SM_TEAMMEMBERLEFT,
-    SM_TEAMDISMISSED,
     SM_TEAMERROR,
     SM_END,
 };
@@ -409,8 +407,6 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_TEAMMEMBERLIST,      3, 0                            )
                 _add_server_msg_type_case(SM_TEAMCANDIDATE,       3, 0                            )
                 _add_server_msg_type_case(SM_TEAMERROR,           1, sizeof(SMTeamError)          )
-                _add_server_msg_type_case(SM_TEAMMEMBERLEFT,      1, sizeof(SMTeamMemberLeft)     )
-                _add_server_msg_type_case(SM_TEAMDISMISSED,       0, 0                            )
 #undef _add_server_msg_type_case
             };
 

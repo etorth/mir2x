@@ -627,19 +627,34 @@ void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t)
     }
 }
 
-void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *, size_t)
+void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, size_t)
 {
+    const auto cmRLT = ClientMsg::conv<CMRequestLeaveTeam>(buf);
+    if(!uidf::isPlayer(cmRLT.uid)){
+        return;
+    }
+
+    if(!m_teamLeader){
+        return;
+    }
+
     if(m_teamLeader == UID()){
         for(const auto member: m_teamMemberList){
             if(member != UID()){
-                m_actorPod->forward(member, AM_REQUESTLEAVETEAM);
+                m_actorPod->forward(member, AM_TEAMUPDATE);
             }
         }
-        m_teamMemberList.clear();
+
+        if(cmRLT.uid == UID()){
+            m_teamLeader = 0;
+            m_teamMemberList.clear();
+        }
+        else{
+            m_teamMemberList.erase(std::remove(m_teamMemberList.begin(), m_teamMemberList.end(), cmRLT.uid), m_teamMemberList.end());
+        }
     }
-    else if(m_teamLeader){
+    else if(cmRLT.uid == UID()){
         m_actorPod->forward(m_teamLeader, AM_REQUESTLEAVETEAM);
-        m_teamLeader = 0;
     }
 }
 

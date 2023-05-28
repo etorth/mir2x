@@ -433,7 +433,7 @@ class ProcessRun: public Process
         void requestSetMagicKey(uint32_t, char);
         void requestRemoveSecuredItem(uint32_t, uint32_t);
         void requestJoinTeam(uint64_t);
-        void requestLeaveTeam();
+        void requestLeaveTeam(uint64_t);
 
     public:
         std::tuple<uint32_t, int, int> getMap() const

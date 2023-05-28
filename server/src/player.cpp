@@ -1983,12 +1983,18 @@ void Player::pullTeamMemberList(std::function<void(std::optional<SDTeamMemberLis
     }
 
     if(m_teamLeader != UID()){
-        m_actorPod->forward(m_teamLeader, AM_QUERYTEAMMEMBERLIST, [fnHandle](const ActorMsgPack &mpk)
+        m_actorPod->forward(m_teamLeader, AM_QUERYTEAMMEMBERLIST, [fnHandle, this](const ActorMsgPack &mpk)
         {
             switch(mpk.type()){
                 case AM_TEAMMEMBERLIST:
                     {
-                        fnHandle(mpk.deserialize<SDTeamMemberList>());
+                        auto sdTML = mpk.deserialize<SDTeamMemberList>();
+                        if(sdTML.hasMember(UID())){
+                            fnHandle(sdTML);
+                        }
+                        else{
+                            fnHandle(SDTeamMemberList{});
+                        }
                         break;
                     }
                 default:
