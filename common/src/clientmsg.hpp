@@ -299,6 +299,7 @@ class ClientMsg final: public MsgBase
                 _add_client_msg_type_case(CM_REQUESTEQUIPBELT,           1, sizeof(CMRequestEquipBelt)          )
                 _add_client_msg_type_case(CM_REQUESTGRABBELT,            1, sizeof(CMRequestGrabBelt)           )
                 _add_client_msg_type_case(CM_REQUESTJOINTEAM,            1, sizeof(CMRequestJoinTeam)           )
+                _add_client_msg_type_case(CM_REQUESTLEAVETEAM,           1, sizeof(CMRequestLeaveTeam)          )
 #undef _add_client_msg_type_case
             };
 

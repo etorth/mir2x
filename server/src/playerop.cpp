@@ -484,6 +484,7 @@ void Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
         }
 
         m_teamMemberList.erase(std::remove(m_teamMemberList.begin(), m_teamMemberList.end(), mpk.from()), m_teamMemberList.end());
+        reportTeamMemberList();
     }
 }
 

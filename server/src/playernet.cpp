@@ -652,6 +652,8 @@ void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, size_t)
         else{
             m_teamMemberList.erase(std::remove(m_teamMemberList.begin(), m_teamMemberList.end(), cmRLT.uid), m_teamMemberList.end());
         }
+
+        reportTeamMemberList();
     }
     else if(cmRLT.uid == UID()){
         m_actorPod->forward(m_teamLeader, AM_REQUESTLEAVETEAM);
