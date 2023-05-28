@@ -507,24 +507,30 @@ void Player::on_AM_TEAMUPDATE(const ActorMsgPack &mpk)
                 {
                     const auto sdTML = rmpk.deserialize<SDTeamMemberList>();
                     if(sdTML.hasMember(UID())){
+                        fflassert(sdTML.teamLeader == rmpk.from());
+                    }
+
+                    if(sdTML.hasMember(UID())){
                         m_teamLeader = rmpk.from();
+                        m_teamMemberList.clear();
+                        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTML));
                     }
                     else{
                         m_teamLeader = 0;
+                        m_teamMemberList.clear();
+                        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
                     }
 
-                    m_teamMemberList.clear();
                     break;
                 }
             default:
                 {
                     m_teamLeader = 0;
                     m_teamMemberList.clear();
+                    postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
                     break;
                 }
         }
-
-        reportTeamMemberList();
     });
 }
 

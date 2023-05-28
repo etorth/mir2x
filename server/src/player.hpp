@@ -38,7 +38,7 @@ class Player final: public BattleObject
 
     protected:
         uint64_t m_teamLeader = 0;
-        std::vector<uint64_t> m_teamMemberList;
+        std::vector<uint64_t> m_teamMemberList; // ignored if not team leader
 
     private:
         bool m_pickUpLock = false;

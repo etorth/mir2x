@@ -1988,13 +1988,9 @@ void Player::pullTeamMemberList(std::function<void(std::optional<SDTeamMemberLis
             switch(mpk.type()){
                 case AM_TEAMMEMBERLIST:
                     {
-                        auto sdTML = mpk.deserialize<SDTeamMemberList>();
-                        if(sdTML.hasMember(UID())){
-                            fnHandle(sdTML);
-                        }
-                        else{
-                            fnHandle(SDTeamMemberList{}); // should I update m_teamLeader here ?
-                        }
+                        const auto sdTML = mpk.deserialize<SDTeamMemberList>();
+                        fflassert(sdTML.hasMember(UID())); // keep this function read only
+                        fnHandle(sdTML);
                         break;
                     }
                 default:
