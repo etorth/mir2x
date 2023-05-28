@@ -1993,7 +1993,7 @@ void Player::pullTeamMemberList(std::function<void(std::optional<SDTeamMemberLis
                             fnHandle(sdTML);
                         }
                         else{
-                            fnHandle(SDTeamMemberList{});
+                            fnHandle(SDTeamMemberList{}); // should I update m_teamLeader here ?
                         }
                         break;
                     }

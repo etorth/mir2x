@@ -500,9 +500,32 @@ void Player::on_AM_QUERYTEAMPLAYER(const ActorMsgPack &mpk)
 
 void Player::on_AM_TEAMUPDATE(const ActorMsgPack &mpk)
 {
-    m_teamLeader = mpk.from();
-    m_teamMemberList.clear();
-    reportTeamMemberList();
+    m_actorPod->forward(mpk.from(), AM_QUERYTEAMMEMBERLIST, [this](const ActorMsgPack &rmpk)
+    {
+        switch(rmpk.type()){
+            case AM_TEAMMEMBERLIST:
+                {
+                    const auto sdTML = rmpk.deserialize<SDTeamMemberList>();
+                    if(sdTML.hasMember(UID())){
+                        m_teamLeader = rmpk.from();
+                    }
+                    else{
+                        m_teamLeader = 0;
+                    }
+
+                    m_teamMemberList.clear();
+                    break;
+                }
+            default:
+                {
+                    m_teamLeader = 0;
+                    m_teamMemberList.clear();
+                    break;
+                }
+        }
+
+        reportTeamMemberList();
+    });
 }
 
 void Player::on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &mpk)
