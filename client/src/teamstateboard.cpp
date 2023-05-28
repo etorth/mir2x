@@ -102,7 +102,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           DIR_UPLEFT,
           72,
           0, // reset by adjustButtonPos()
-          {SYS_U32NIL, 0X00000170, 0X00000171},
+          {0X00000170, 0X00000170, 0X00000171},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -134,7 +134,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           DIR_UPLEFT,
           125,
           0, // reset by adjustButtonPos()
-          {SYS_U32NIL, 0X00000180, 0X00000181},
+          {0X00000180, 0X00000180, 0X00000181},
           {
               SYS_U32NIL,
               SYS_U32NIL,
