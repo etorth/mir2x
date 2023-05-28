@@ -478,4 +478,8 @@ void TeamStateBoard::setTeamMemberList(SDTeamMemberList sdTML)
             p++;
         }
     }
+
+    if(m_selectedIndex[false] >= to_d(m_teamMemberList.memberList.size())){
+        m_selectedIndex[false] = -1;
+    }
 }
