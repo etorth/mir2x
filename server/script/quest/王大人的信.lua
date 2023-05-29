@@ -2,8 +2,8 @@ function main()
     uidExecute(getNPCharUID('比奇县_0', '王大人_1'),
     [[
         return setQuestHandler('%s', {
-            ['%s'] = function(uid, value)
-                uidPostXML(uid, {'%s', '%s'}, [=[
+            [SYS_ENTER] = function(uid, value)
+                uidPostXML(uid, {SYS_EPQST, '%s'}, [=[
                     <layout>
                         <par>这是一个测试</par>
                         <par><event id="%s">退出</event></par>
@@ -11,5 +11,5 @@ function main()
                 ]=])
             end
         })
-    ]], getQuestName(), SYS_ENTER, SYS_EPQST, getQuestName(), SYS_EXIT)
+    ]], getQuestName(), getQuestName(), SYS_EXIT)
 end
