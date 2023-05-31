@@ -127,7 +127,7 @@ inline std::vector<std::string> str_split(const std::string &s, char sep)
     return result;
 }
 
-template<typename Iter1, typename Iter2> std::string str_toupper(Iter1 i1, Iter2 i2)
+template<typename Iter> std::string str_toupper(Iter i1, Iter i2)
 {
     std::string result;
     result.reserve(static_cast<std::string::size_type>(std::distance(i1, i2)));
@@ -140,7 +140,7 @@ template<typename Iter1, typename Iter2> std::string str_toupper(Iter1 i1, Iter2
     return result;
 }
 
-template<typename Iter1, typename Iter2> std::string str_tolower(Iter1 i1, Iter2 i2)
+template<typename Iter> std::string str_tolower(Iter i1, Iter i2)
 {
     std::string result;
     result.reserve(static_cast<std::string::size_type>(std::distance(i1, i2)));
