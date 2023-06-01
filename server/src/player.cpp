@@ -70,12 +70,18 @@ void Player::onActivate()
         return name();
     });
 
-    m_luaRunner->bindFunction("getTeamLeader", [this]() -> uint64_t
+    m_luaRunner->bindFunction("getTeamLeader", [this](sol::this_state s) -> sol::object
     {
-        return m_teamLeader;
+        sol::state_view sv(s);
+        if(m_teamLeader){
+            return sol::object(sv, sol::in_place_type<lua_Integer>, m_teamLeader);
+        }
+        else{
+            return sol::make_object(sv, sol::nil);
+        }
     });
 
-    m_luaRunner->bindFunctionCoop("_RSVD_NAME_getMemberList", [this](LuaCoopResumer onDone)
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_getTeamMemberList", [this](LuaCoopResumer onDone)
     {
         pullTeamMemberList([onDone](std::optional<SDTeamMemberList> sdTML)
         {
