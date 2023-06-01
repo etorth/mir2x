@@ -89,7 +89,8 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
 
         -- check if result is nil to determine if onDone is called
         -- because result shall not be nil in any case after onDone is called
-        result = {...}
+        -- use pack(...) instead of {...} because returned sequence may contain nil's, especially tailing nil's
+        result = table.pack(...)
 
         -- after this line
         -- C level will call resumeCORunner(threadKey) cooperatively
@@ -138,15 +139,15 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     -- result gets assigned in onDone
     -- caller need to make sure in C side the return differs
     assertType(result, 'table')
-    return table.unpack(result)
+    return table.unpack(result, 1, result.n)
 end
 
 function uidExecute(uid, code, ...)
-    local resList = {_RSVD_NAME_callFuncCoop('uidExecute', uid, code:format(...))}
+    local resList = table.pack(_RSVD_NAME_callFuncCoop('uidExecute', uid, code:format(...)))
     local resType = resList[1]
 
     if resType == SYS_EXECDONE then
-        return table.unpack(resList, 2)
+        return table.unpack(resList, 2, resList.n)
     elseif resType == SYS_BADUID then
         fatalPrintf('Invalid uid: %d', uid)
     else
