@@ -14,7 +14,7 @@
 #include <cereal/types/optional.hpp>
 #include <cereal/types/unordered_set.hpp>
 #include <cereal/types/unordered_map.hpp>
-// #include <cereal/archives/json.hpp>
+#include <cereal/archives/json.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/portable_binary.hpp>
 #include "zcompf.hpp"
