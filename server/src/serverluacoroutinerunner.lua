@@ -117,13 +117,13 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
         -- this crashes
     end
 
-    local args = {...}
+    local args = table.pack(...)
 
-    table.insert(args, onDone)
-    table.insert(args, getTLSTable().threadKey)
-    table.insert(args, getTLSTable().threadSeqID)
+    args[args.n + 1] = onDone
+    args[args.n + 2] = getTLSTable().threadKey
+    args[args.n + 3] = getTLSTable().threadSeqID
 
-    _G[string.format('_RSVD_NAME_%s%s', funcName, SYS_COOP)](table.unpack(args))
+    _G[string.format('_RSVD_NAME_%s%s', funcName, SYS_COOP)](table.unpack(args, 1, args.n + 3))
 
     -- onDone can get ran immedately in _RSVD_NAME_funcCoop
     -- in this situation we shall not yield

@@ -43,15 +43,15 @@ function _RSVD_NAME_trigger(triggerType, ...)
     assert(triggerType >= SYS_ON_BEGIN, triggerType)
     assert(triggerType <  SYS_ON_END  , triggerType)
 
-    local args = {...}
+    local args = table.pack(...)
     local config = _RSVD_NAME_triggerConfig(triggerType)
 
     if not config then
         fatalPrintf('Can not process trigger type %d', triggerType)
     end
 
-    if #args > #config[2] then
-        addLog(LOGTYPE_WARNING, 'Trigger type %s expected %d parameters, got %d', config[1], #config[2], #args)
+    if args.n > #config[2] then
+        addLog(LOGTYPE_WARNING, 'Trigger type %s expected %d parameters, got %d', config[1], #config[2], args.n)
     end
 
     for i = 1, #config[2] do
