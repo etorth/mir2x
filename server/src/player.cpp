@@ -70,6 +70,24 @@ void Player::onActivate()
         return name();
     });
 
+    m_luaRunner->bindFunction("getTeamLeader", [this]() -> uint64_t
+    {
+        return m_teamLeader;
+    });
+
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_getMemberList", [this](LuaCoopResumer onDone)
+    {
+        pullTeamMemberList([onDone](std::optional<SDTeamMemberList> sdTML)
+        {
+            if(sdTML.has_value()){
+                onDone(sdTML.value().getUIDList());
+            }
+            else{
+                onDone();
+            }
+        });
+    });
+
     m_luaRunner->bindFunction("_RSVD_NAME_runQuestTrigger", [this](uint64_t questUID, int triggerType, sol::variadic_args args)
     {
         fflassert(uidf::isQuest(questUID), uidf::getUIDString(questUID));

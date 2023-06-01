@@ -1036,4 +1036,19 @@ struct SDTeamMemberList
         }
         return false;
     }
+
+    std::vector<uint64_t> getUIDList() const
+    {
+        if(teamLeader){
+            std::vector<uint64_t> uidList;
+            uidList.reserve(memberList.size());
+
+            for(const auto &member: memberList){
+                uidList.push_back(member.uid);
+            }
+
+            return uidList;
+        }
+        return {};
+    }
 };
