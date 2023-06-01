@@ -117,11 +117,23 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
         -- this crashes
     end
 
+    -- NOTE
+    -- when adding extra parameters to varidic arguments, it works if putting in front
+    --
+    --     f(extra_1, extra_2, ...)
+    --
+    -- but appending at end is bad, as following
+    --
+    --     f(..., extra_1, extra_2)
+    --
+    -- this way f() only gets the first argument in variadic argumeents
+
     local args = table.pack(...)
 
     args[args.n + 1] = onDone
     args[args.n + 2] = getTLSTable().threadKey
     args[args.n + 3] = getTLSTable().threadSeqID
+
 
     _G[string.format('_RSVD_NAME_%s%s', funcName, SYS_COOP)](table.unpack(args, 1, args.n + 3))
 
