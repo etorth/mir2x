@@ -227,6 +227,19 @@ void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_Coroutine
     fflassert(runnerPtr);
     fflassert(runnerPtr->callback);
 
+    // here sol2 can tell if coroutine return nothing vs return nil
+    //
+    //    uidExecute(uid, [[        func_return_nil() ]]) -- pfr in c++ is {   }, empty
+    //    uidExecute(uid, [[ return func_return_nil() ]]) -- pfr in c++ is {nil}, size-1-list
+    //
+    // but if in script we don't check
+    //
+    //    local result = uidExecute(uid, [[        func_return_nil() ]]) -- result in lua is nil
+    //    local result = uidExecute(uid, [[ return func_return_nil() ]]) -- result in lua is nil, too
+    //
+    // this difference has been propogated to remote caller side by pfr serialization
+    // this difference should be handled by caller side
+
     const auto pfr = codeOpt.has_value() ? runnerPtr->callback(codeOpt.value()) : runnerPtr->callback();
 
     if(runnerPtr->callback){
