@@ -86,7 +86,7 @@ void Player::onActivate()
         pullTeamMemberList([onDone](std::optional<SDTeamMemberList> sdTML)
         {
             if(sdTML.has_value()){
-                onDone(sdTML.value().getUIDList());
+                onDone(sol::as_table(sdTML.value().getUIDList()));
             }
             else{
                 onDone();
