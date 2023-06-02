@@ -25,9 +25,9 @@ local _RSVD_NAME_questFSMTable = nil
 function setQuestFSMTable(fsm)
     assertType(fsm, 'table')
     assertType(fsm[SYS_ENTER], 'function')
-    -- if getTLSTable().threadKey ~= getMainScriptThreadKey() then
-    --     fatalPrintf('Can not modify quest FSM table other than in main script thread')
-    -- end
+    if getTLSTable().threadKey ~= getMainScriptThreadKey() then
+        fatalPrintf('Can not modify quest FSM table other than in main script thread')
+    end
     _RSVD_NAME_questFSMTable = fsm
 end
 
