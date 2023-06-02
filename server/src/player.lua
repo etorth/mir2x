@@ -22,6 +22,10 @@ function spaceMove(mapID, x, y)
     return _RSVD_NAME_callFuncCoop('spaceMove', mapID, x, y)
 end
 
+function getTeamMemberList()
+    return _RSVD_NAME_callFuncCoop('getTeamMemberList')
+end
+
 function _RSVD_NAME_coth_runner(code)
     assertType(code, 'string')
     return (load(code))()
