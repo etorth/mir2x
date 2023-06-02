@@ -28,6 +28,11 @@ class Quest final: public ServerObject
             return std::get<1>(filesys::decompFileName(m_scriptName.c_str(), true));
         }
 
+        std::string getQuestDBName() const
+        {
+            return "tbl_questdb_" + getQuestName();
+        }
+
     protected:
         void operateAM(const ActorMsgPack &) override;
 

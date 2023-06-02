@@ -9,7 +9,19 @@ extern DBPod *g_dbPod;
 Quest::Quest(const SDInitQuest &initQuest)
     : ServerObject(uidf::getQuestUID(initQuest.questID))
     , m_scriptName(initQuest.fullScriptName)
-{}
+{
+    if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", getQuestDBName().c_str()).executeStep()){
+        g_dbPod->exec(
+            u8R"###( create table %s(                                          )###"
+            u8R"###(     fld_dbid           int unsigned not null,             )###"
+            u8R"###(     fld_timestamp      int unsigned not null,             )###"
+            u8R"###(     fld_state          blob         not null,             )###"
+            u8R"###(                                                           )###"
+            u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid), )###"
+            u8R"###(     primary key (fld_dbid)                                )###"
+            u8R"###( );                                                        )###", getQuestDBName().c_str());
+    }
+}
 
 void Quest::onActivate()
 {
@@ -39,12 +51,8 @@ void Quest::onActivate()
     m_luaRunner->bindFunction("dbGetUIDQuestState", [this](uint64_t uid, sol::this_state s) -> sol::object
     {
         sol::state_view sv(s);
+        const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
-        const auto dbName = str_printf("tbl_questdb_%s", getQuestName().c_str());
-
-        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", dbName.c_str()).executeStep()){
-            return sol::make_object(sv, sol::nil);
-        }
 
         auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_state from %s where fld_dbid=%llu)###", dbName.c_str(), to_llu(dbid));
         if(!queryStatement.executeStep()){
@@ -56,20 +64,9 @@ void Quest::onActivate()
 
     m_luaRunner->bindFunction("dbSetUIDQuestState", [this](uint64_t uid, sol::object obj)
     {
+        const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
-        const auto dbName = str_printf("tbl_questdb_%s", getQuestName().c_str());
 
-        if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", dbName.c_str()).executeStep()){
-            g_dbPod->exec(
-                u8R"###( create table %s(                                          )###"
-                u8R"###(     fld_dbid           int unsigned not null,             )###"
-                u8R"###(     fld_timestamp      int unsigned not null,             )###"
-                u8R"###(     fld_state          blob         not null,             )###"
-                u8R"###(                                                           )###"
-                u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid), )###"
-                u8R"###(     primary key (fld_dbid)                                )###"
-                u8R"###( );                                                        )###", dbName.c_str());
-        }
 
         auto query = g_dbPod->createQuery(
             u8R"###( replace into %s(fld_dbid, fld_timestamp, fld_state) )###"
