@@ -113,7 +113,7 @@ function _RSVD_NAME_trigger(triggerType, uid, ...)
 
     if tableEmpty(_RSVD_NAME_triggers[triggerType]) then
         _RSVD_NAME_triggers[triggerType] = nil
-        _RSVD_NAME_callFuncCoop('modifyQuestTriggerType', SYS_ON_KILL, false)
+        _RSVD_NAME_callFuncCoop('modifyQuestTriggerType', triggerType, false)
     end
 end
 
