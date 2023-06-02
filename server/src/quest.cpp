@@ -31,6 +31,11 @@ void Quest::onActivate()
         return UID();
     });
 
+    m_luaRunner->bindFunction("getMainScriptThreadKey", [this]() -> uint64_t
+    {
+        return m_mainScriptThreadKey;
+    });
+
     m_luaRunner->bindFunction("dbGetUIDQuestState", [this](uint64_t uid, sol::this_state s) -> sol::object
     {
         sol::state_view sv(s);
