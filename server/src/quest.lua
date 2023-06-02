@@ -8,7 +8,7 @@ function getUIDQuestAutoSaveVars(uid)
 
     return setmetatable({}, {
         __index = function(_, k)
-            if __RSVD_NAME_deletes[k] then
+            if _RSVD_NAME_deletes[k] then
                 return nil
             end
 
@@ -127,7 +127,14 @@ function setQuestState(uid, state)
         fatalPrintf('Invalid quest state: %s', state)
     end
 
-    dbSetUIDQuestState(uid, state)
+    do
+        local questVars<close> = getUIDQuestAutoSaveVars(uid)
+        questVars[SYS_QUESTVAR_STATE] = state
+        if (state == SYS_ENTER) and (not questVars[SYS_QUESTVAR_TEAMMEMBERLIST]) then
+            questVars[SYS_QUESTVAR_TEAMMEMBERLIST] = uidExecute(uid, [[ return getTeamMemberList() ]])
+        end
+    end
+
     if hasQuestState(state) then
         _RSVD_NAME_questFSMTable[state](uid)
     end
