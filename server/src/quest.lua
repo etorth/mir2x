@@ -75,10 +75,12 @@ function getUIDQuestAutoSaveVars(uid)
 end
 
 function dbGetUIDQuestState(uid)
+    assertType(uid, 'integer')
     return (dbGetUIDQuestVars(uid) or {})[SYS_QUESTVAR_STATE]
 end
 
 function dbSetUIDQuestState(uid, state)
+    assertType(uid, 'integer')
     local questVars<close> = getUIDQuestAutoSaveVars(uid)
     questVars[SYS_QUESTVAR_STATE] = state
 end
