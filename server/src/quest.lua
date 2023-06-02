@@ -110,6 +110,10 @@ function getNPCharUID(mapName, npcName)
     return npcUID
 end
 
+function getUIDQuestTeamLeader(uid)
+    -- TODO
+end
+
 function getUIDQuestTeamMemberList(uid)
     assertType(uid, 'integer')
     local teamMemberList = nil
