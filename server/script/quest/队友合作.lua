@@ -74,6 +74,19 @@ function main()
                 ]=], SYS_EXIT)
 
             ]], uid)
+
+            setQuestState(uid, 'quest_setup_kill_trigger')
+        end,
+
+        quest_setup_kill_trigger = function(uid)
+            uidExecute(uid,
+            [[
+                addTrigger(SYS_ON_KILL, function(monsterID)
+                    if getMonsterName(monsterID) == '钉耙猫' then
+                        postString([=[挑战正在进行中，消灭一只%%s。]=], getMonsterName(monsterID))
+                    end
+                end)
+            ]])
         end,
     })
 end
