@@ -122,6 +122,10 @@ LuaModule::LuaModule()
     execString("SYS_EXIT  = \'%s\'", SYS_EXIT );
     execString("SYS_ABORT = \'%s\'", SYS_ABORT);
 
+    execString("SYS_QUESTVAR_STATE = \'%s\'", SYS_QUESTVAR_STATE);
+    execString("SYS_QUESTVAR_TEAMMEMBERLIST = \'%s\'", SYS_QUESTVAR_TEAMMEMBERLIST);
+    execString("SYS_QUESTVAR_TASKASSIGNLIST = \'%s\'", SYS_QUESTVAR_TASKASSIGNLIST);
+
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
 
     execString("SYS_BADUID   = \'%s\'", SYS_BADUID);

@@ -30,7 +30,7 @@ class Quest final: public ServerObject
 
         std::string getQuestDBName() const
         {
-            return "tbl_questdb_" + getQuestName();
+            return SYS_QUEST_TBL_PREFIX + getQuestName();
         }
 
     protected:

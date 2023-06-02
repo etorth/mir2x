@@ -75,12 +75,12 @@ function getUIDQuestAutoSaveVars(uid)
 end
 
 function dbGetUIDQuestState(uid)
-    return (dbGetUIDQuestVars(uid) or {}).questState
+    return (dbGetUIDQuestVars(uid) or {})[SYS_QUESTVAR_STATE]
 end
 
 function dbSetUIDQuestState(uid, state)
     local questVars<close> = getUIDQuestAutoSaveVars(uid)
-    questVars.questState = state
+    questVars[SYS_QUESTVAR_STATE] = state
 end
 
 function loadMap(map)

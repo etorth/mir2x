@@ -92,6 +92,13 @@ constexpr uint64_t SYS_U64NIL = 0XFFFFFFFFFFFFFFFFULL;
 
 constexpr int SYS_MAXNPCDISTANCE = 10;
 constexpr char SYS_GOLDNAME[] = "金币（小）"; // always use 金币（小）to represent the gold item
+constexpr char SYS_QUEST_TBL_PREFIX[] = "tbl_questdb_";
+
+// commonly used quest variable name in fld_vars
+// use key in luaTable instead of key in database table to avoid change table structure
+constexpr char SYS_QUESTVAR_STATE[]          = "_RSVD_NAME_QUESTVAR_STATE";
+constexpr char SYS_QUESTVAR_TEAMMEMBERLIST[] = "_RSVD_NAME_QUESTVAR_TEAMMEMBERLIST";
+constexpr char SYS_QUESTVAR_TASKASSIGNLIST[] = "_RSVD_NAME_QUESTVAR_TASKASSIGNLIST";
 
 constexpr char SYS_NPCERROR[] = "_RSVD_NAME_NPC_ERROR_45421406723";
 
