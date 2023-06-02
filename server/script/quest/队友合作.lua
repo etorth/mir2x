@@ -62,20 +62,22 @@ function main()
     setQuestFSMTable(
     {
         [SYS_ENTER] = function(uid)
-            uidExecute(getNPCharUID('道馆_1', '士官_1'),
-            [[
-                uidPostXML(%d,
-                [=[
-                    <layout>
-                        <par>和队友开始挑战珐玛大陆的怪物吧！</par>
-                        <par></par>
-                        <par><event id="%%s">好的</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+            local npcUID = getNPCharUID('道馆_1', '士官_1')
+            for _, teamMember in ipairs(getUIDQuestTeamMemberList(uid)) do
+                uidExecute(npcUID,
+                [[
+                    uidPostXML(%d,
+                    [=[
+                        <layout>
+                            <par>和队友开始挑战珐玛大陆的怪物吧！</par>
+                            <par></par>
+                            <par><event id="%%s">好的</event></par>
+                        </layout>
+                    ]=], SYS_EXIT)
 
-            ]], uid)
-
-            setQuestState(uid, 'quest_setup_kill_trigger')
+                ]], teamMember)
+                setQuestState(teamMember, 'quest_setup_kill_trigger')
+            end
         end,
 
         quest_setup_kill_trigger = function(uid)

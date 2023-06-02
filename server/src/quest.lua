@@ -74,6 +74,12 @@ function getUIDQuestAutoSaveVars(uid)
     })
 end
 
+function dbUpdateUIDQuestVar(uid, key, value)
+    assertType(uid, 'integer')
+    local questVars<close> = getUIDQuestAutoSaveVars(uid)
+    questVars[key] = value
+end
+
 function dbGetUIDQuestState(uid)
     assertType(uid, 'integer')
     return (dbGetUIDQuestVars(uid) or {})[SYS_QUESTVAR_STATE]
@@ -81,8 +87,7 @@ end
 
 function dbSetUIDQuestState(uid, state)
     assertType(uid, 'integer')
-    local questVars<close> = getUIDQuestAutoSaveVars(uid)
-    questVars[SYS_QUESTVAR_STATE] = state
+    dbUpdateUIDQuestVar(uid, SYS_QUESTVAR_STATE, state)
 end
 
 function loadMap(map)
@@ -103,6 +108,27 @@ function getNPCharUID(mapName, npcName)
 
     assertType(npcUID, 'integer')
     return npcUID
+end
+
+function getUIDQuestTeamMemberList(uid)
+    assertType(uid, 'integer')
+    local teamMemberList = nil
+    do
+        local questVars<close> = getUIDQuestAutoSaveVars(uid)
+        if questVars[SYS_QUESTVAR_TEAMMEMBERLIST] then
+            teamMemberList = questVars[SYS_QUESTVAR_TEAMMEMBERLIST]
+        else
+            teamMemberList = uidExecute(uid, [[ return getTeamMemberList() ]])
+            questVars[SYS_QUESTVAR_TEAMMEMBERLIST] = teamMemberList
+
+            for _, teamMember in ipairs(teamMemberList) do
+                if teamMember ~= uid then
+                    dbUpdateUIDQuestVar(teamMember, SYS_QUESTVAR_TEAMMEMBERLIST, teamMemberList)
+                end
+            end
+        end
+    end
+    return teamMemberList
 end
 
 local _RSVD_NAME_questFSMTable = nil
@@ -127,14 +153,10 @@ function setQuestState(uid, state)
         fatalPrintf('Invalid quest state: %s', state)
     end
 
-    do
-        local questVars<close> = getUIDQuestAutoSaveVars(uid)
-        questVars[SYS_QUESTVAR_STATE] = state
-        if (state == SYS_ENTER) and (not questVars[SYS_QUESTVAR_TEAMMEMBERLIST]) then
-            questVars[SYS_QUESTVAR_TEAMMEMBERLIST] = uidExecute(uid, [[ return getTeamMemberList() ]])
-        end
-    end
+    -- don't save team member list here
+    -- a player can be in a team but still start a single-role quest alone
 
+    dbSetUIDQuestState(uid, state)
     if hasQuestState(state) then
         _RSVD_NAME_questFSMTable[state](uid)
     end
