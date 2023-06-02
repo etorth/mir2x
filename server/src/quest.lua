@@ -1,6 +1,88 @@
 --, u8R"###(
 --
 
+function getUIDQuestAutoSaveVars(uid)
+    local _RSVD_NAME_oldvals = dbGetUIDQuestVars(uid) or {}
+    local _RSVD_NAME_newvals = {}
+    local _RSVD_NAME_deletes = {}
+
+    return setmetatable({}, {
+        __index = function(_, k)
+            if __RSVD_NAME_deletes[k] then
+                return nil
+            end
+
+            if _RSVD_NAME_newvals[k] ~= nil then
+                return _RSVD_NAME_newvals[k]
+            end
+
+            return _RSVD_NAME_oldvals[k]
+        end,
+
+        __newindex = function(_, k, v)
+            if v == nil then
+                if _RSVD_NAME_oldvals[k] ~= nil then
+                    _RSVD_NAME_deletes[k] = true
+                end
+                _RSVD_NAME_newvals[k] = nil
+            else
+                if _RSVD_NAME_oldvals[k] ~= v then
+                    _RSVD_NAME_newvals[k] = v
+                end
+                _RSVD_NAME_deletes[k] = nil
+            end
+        end,
+
+        __close = function()
+            if tableEmpty(_RSVD_NAME_newvals) and tableEmpty(_RSVD_NAME_deletes) then
+                return
+            end
+
+            for k, _ in pairs(_RSVD_NAME_deletes) do
+                _RSVD_NAME_oldvals[k] = nil
+            end
+
+            for k, v in pairs(_RSVD_NAME_newvals) do
+                _RSVD_NAME_oldvals[k] = v
+            end
+
+            if tableEmpty(_RSVD_NAME_oldvals) then
+                dbSetUIDQuestVars(uid, nil)
+            else
+                dbSetUIDQuestVars(uid, _RSVD_NAME_oldvals)
+            end
+        end,
+
+        -- __pairs = function()
+        --     return next, _RSVD_NAME_oldvals, nil
+        -- end,
+        --
+        -- __ipairs = function()
+        --     local function iter(t, i)
+        --         local j = i + 1
+        --         local v = t[j]
+        --         if v ~= nil then
+        --             return j, v
+        --         end
+        --     end
+        --     return iter, _RSVD_NAME_oldvals, 0
+        -- end,
+        --
+        -- __len = function()
+        --     return #tb
+        -- end
+    })
+end
+
+function dbGetUIDQuestState(uid)
+    return (dbGetUIDQuestVars(uid) or {}).questState
+end
+
+function dbSetUIDQuestState(uid, state)
+    local questVars<close> = getUIDQuestAutoSaveVars(uid)
+    questVars.questState = state
+end
+
 function loadMap(map)
     return _RSVD_NAME_callFuncCoop('loadMap', map)
 end

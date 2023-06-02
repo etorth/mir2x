@@ -13,9 +13,9 @@ Quest::Quest(const SDInitQuest &initQuest)
     if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", getQuestDBName().c_str()).executeStep()){
         g_dbPod->exec(
             u8R"###( create table %s(                                          )###"
-            u8R"###(     fld_dbid           int unsigned not null,             )###"
-            u8R"###(     fld_timestamp      int unsigned not null,             )###"
-            u8R"###(     fld_state          blob         not null,             )###"
+            u8R"###(     fld_dbid       int unsigned not null,                 )###"
+            u8R"###(     fld_timestamp  int unsigned not null,                 )###"
+            u8R"###(     fld_vars       blob         not null,                 )###"
             u8R"###(                                                           )###"
             u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid), )###"
             u8R"###(     primary key (fld_dbid)                                )###"
@@ -48,37 +48,45 @@ void Quest::onActivate()
         return m_mainScriptThreadKey;
     });
 
-    m_luaRunner->bindFunction("dbGetUIDQuestState", [this](uint64_t uid, sol::this_state s) -> sol::object
+    m_luaRunner->bindFunction("dbGetUIDQuestVars", [this](uint64_t uid, sol::this_state s) -> sol::object
     {
         sol::state_view sv(s);
         const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
 
-        auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_state from %s where fld_dbid=%llu)###", dbName.c_str(), to_llu(dbid));
+        auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_vars from %s where fld_dbid=%llu)###", dbName.c_str(), to_llu(dbid));
         if(!queryStatement.executeStep()){
             return sol::make_object(sv, sol::nil);
         }
 
-        return luaf::buildLuaObj(sol::state_view(s), cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0)));
+        auto vars = cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0));
+        fflassert(std::get_if<luaf::luaTable>(&vars), vars.index());
+
+        return luaf::buildLuaObj(sol::state_view(s), std::move(vars));
     });
 
-    m_luaRunner->bindFunction("dbSetUIDQuestState", [this](uint64_t uid, sol::object obj)
+    m_luaRunner->bindFunction("dbSetUIDQuestVars", [this](uint64_t uid, sol::object obj)
     {
         const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
 
+        if(obj == sol::nil){
+            g_dbPod->createQuery(u8R"###( delete from %s where fld_dbid = %llu )###", dbName.c_str(), to_llu(dbid)).exec();
+        }
+        else{
+            fflassert(obj.is<sol::table>());
+            auto query = g_dbPod->createQuery(
+                u8R"###( replace into %s(fld_dbid, fld_timestamp, fld_vars) )###"
+                u8R"###( values                                             )###"
+                u8R"###(     (%llu, %llu, ?)                                )###",
 
-        auto query = g_dbPod->createQuery(
-            u8R"###( replace into %s(fld_dbid, fld_timestamp, fld_state) )###"
-            u8R"###( values                                              )###"
-            u8R"###(     (%llu, %llu, ?)                                 )###",
+                dbName.c_str(),
+                to_llu(dbid),
+                to_llu(std::time(nullptr)));
 
-            dbName.c_str(),
-            to_llu(dbid),
-            to_llu(std::time(nullptr)));
-
-        query.bind(1, cerealf::serialize(luaf::buildLuaVar(obj)));
-        query.exec();
+            query.bind(1, cerealf::serialize(luaf::buildLuaVar(obj)));
+            query.exec();
+        }
     });
 
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
