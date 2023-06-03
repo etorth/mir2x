@@ -11,8 +11,8 @@ function getUIDQuestAutoSaveVars(uid)
     end
 
     local newInstance = {
-        oldvars = dbGetUIDQuestVars(uid) or {},
-        newvars = {},
+        oldvals = dbGetUIDQuestVars(uid) or {},
+        newvals = {},
         deletes = {},
 
         -- need to support recursive calls
