@@ -61,7 +61,7 @@ function getUIDQuestAutoSaveVars(uid)
         end,
 
         __close = function()
-            if newInstance.recursive > 1 then
+            if newInstance.recursive > 0 then
                 newInstance.recursive = newInstance.recursive - 1
                 return
             end
