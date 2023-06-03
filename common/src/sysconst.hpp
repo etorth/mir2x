@@ -94,6 +94,9 @@ constexpr int SYS_MAXNPCDISTANCE = 10;
 constexpr char SYS_GOLDNAME[] = "金币（小）"; // always use 金币（小）to represent the gold item
 constexpr char SYS_QUEST_TBL_PREFIX[] = "tbl_questdb_";
 
+constexpr char SYS_RANDOM[] = "_RSVD_NAME_RANDOM_71802204"; // quest role assign method: random
+constexpr char SYS_TEAM  [] = "_RSVD_NAME_TEAM___84649120"; // quest role assign method: team
+
 // commonly used quest variable name in fld_vars
 // use key in luaTable instead of key in database table to avoid change table structure
 constexpr char SYS_QUESTVAR_STATE[] = "_RSVD_NAME_QUESTVAR_STATE_837517653";
