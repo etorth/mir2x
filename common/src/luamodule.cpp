@@ -123,9 +123,11 @@ LuaModule::LuaModule()
     execString("SYS_ABORT = \'%s\'", SYS_ABORT);
 
     execString("SYS_QUESTVAR_STATE = \'%s\'", SYS_QUESTVAR_STATE);
+
+    execString("SYS_QUESTVAR_TEAM = \'%s\'", SYS_QUESTVAR_TEAM);
     execString("SYS_QUESTVAR_TEAMLEADER = \'%s\'", SYS_QUESTVAR_TEAMLEADER);
+    execString("SYS_QUESTVAR_TEAMROLELIST = \'%s\'", SYS_QUESTVAR_TEAMROLELIST);
     execString("SYS_QUESTVAR_TEAMMEMBERLIST = \'%s\'", SYS_QUESTVAR_TEAMMEMBERLIST);
-    execString("SYS_QUESTVAR_TASKASSIGNLIST = \'%s\'", SYS_QUESTVAR_TASKASSIGNLIST);
 
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
 

@@ -138,29 +138,35 @@ function getNPCharUID(mapName, npcName)
     return npcUID
 end
 
+function _RSVD_NAME_getUIDQuestTeam(uid)
+    assertType(uid, 'integer')
+    local team = nil
+    do
+        local questVars<close> = getUIDQuestAutoSaveVars(uid)
+        if questVars[SYS_QUESTVAR_TEAM] then
+            team = questVars[SYS_QUESTVAR_TEAM]
+        else
+            team = uidExecute(uid,
+            [[
+                return {
+                    [SYS_QUESTVAR_TEAMLEADER] = getTeamLeader(),
+                    [SYS_QUESTVAR_TEAMMEMBERLIST] = getTeamMemberList(),
+                }
+            ]])
+            questVars[SYS_QUESTVAR_TEAM] = team
+        end
+    end
+    return team
+end
+
 function getUIDQuestTeamLeader(uid)
-    -- TODO
+    assertType(uid, 'integer')
+    return _RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMLEADER]
 end
 
 function getUIDQuestTeamMemberList(uid)
     assertType(uid, 'integer')
-    local teamMemberList = nil
-    do
-        local questVars<close> = getUIDQuestAutoSaveVars(uid)
-        if questVars[SYS_QUESTVAR_TEAMMEMBERLIST] then
-            teamMemberList = questVars[SYS_QUESTVAR_TEAMMEMBERLIST]
-        else
-            teamMemberList = uidExecute(uid, [[ return getTeamMemberList() ]])
-            questVars[SYS_QUESTVAR_TEAMMEMBERLIST] = teamMemberList
-
-            for _, teamMember in ipairs(teamMemberList) do
-                if teamMember ~= uid then
-                    dbUpdateUIDQuestVar(teamMember, SYS_QUESTVAR_TEAMMEMBERLIST, teamMemberList)
-                end
-            end
-        end
-    end
-    return teamMemberList
+    return _RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMMEMBERLIST]
 end
 
 local _RSVD_NAME_questFSMTable = nil

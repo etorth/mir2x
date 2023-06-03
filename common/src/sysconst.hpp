@@ -96,10 +96,12 @@ constexpr char SYS_QUEST_TBL_PREFIX[] = "tbl_questdb_";
 
 // commonly used quest variable name in fld_vars
 // use key in luaTable instead of key in database table to avoid change table structure
-constexpr char SYS_QUESTVAR_STATE[]          = "_RSVD_NAME_QUESTVAR_STATE";
-constexpr char SYS_QUESTVAR_TEAMLEADER[]     = "_RSVD_NAME_QUESTVAR_TEAMLEADER";
-constexpr char SYS_QUESTVAR_TEAMMEMBERLIST[] = "_RSVD_NAME_QUESTVAR_TEAMMEMBERLIST";
-constexpr char SYS_QUESTVAR_TASKASSIGNLIST[] = "_RSVD_NAME_QUESTVAR_TASKASSIGNLIST";
+constexpr char SYS_QUESTVAR_STATE[] = "_RSVD_NAME_QUESTVAR_STATE_837517653";
+
+constexpr char SYS_QUESTVAR_TEAM[]           = "_RSVD_NAME_QUESTVAR_TEAM_628693877";
+constexpr char SYS_QUESTVAR_TEAMLEADER[]     = "_RSVD_NAME_QUESTVAR_TEAMLEADER_622091631";
+constexpr char SYS_QUESTVAR_TEAMROLELIST[]   = "_RSVD_NAME_QUESTVAR_TEAMROLELIST_556867549";
+constexpr char SYS_QUESTVAR_TEAMMEMBERLIST[] = "_RSVD_NAME_QUESTVAR_TEAMMEMBERLIST_694437683";
 
 constexpr char SYS_NPCERROR[] = "_RSVD_NAME_NPC_ERROR_45421406723";
 
