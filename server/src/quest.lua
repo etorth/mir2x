@@ -1,58 +1,96 @@
 --, u8R"###(
 --
 
+local _RSVD_NAME_autoSaveHelpers = {}
 function getUIDQuestAutoSaveVars(uid)
-    local _RSVD_NAME_oldvals = dbGetUIDQuestVars(uid) or {}
-    local _RSVD_NAME_newvals = {}
-    local _RSVD_NAME_deletes = {}
+    assertType(uid, 'integer')
+    local autoSaveInstance = _RSVD_NAME_autoSaveHelpers[uid]
+    if autoSaveInstance then
+        autoSaveInstance.recursive = autoSaveInstance.recursive + 1
+        return autoSaveInstance.metatable
+    end
 
-    return setmetatable({}, {
+    local newInstance = {
+        oldvars = dbGetUIDQuestVars(uid) or {},
+        newvars = {},
+        deletes = {},
+
+        -- need to support recursive calls
+        -- otherwise inside change can get overwritten by outside copy, as following
+        --
+        --     do
+        --         local outside<close> = getUIDQuestAutoSaveVars(uid)
+        --         outside.a = 12 -- change value only
+        --
+        --         do
+        --              local inside<local> = getUIDQuestAutoSaveVars(uid)
+        --              inside.b = nil -- erase key
+        --         end
+        --     end
+        --
+        -- internal scope erases key b, but outside has an independent copy
+        -- then when leaving outside scope, a gets restored
+        recursive = 0,
+    }
+
+    local metatable = setmetatable({}, {
         __index = function(_, k)
-            if _RSVD_NAME_deletes[k] then
+            if newInstance.deletes[k] then
                 return nil
             end
 
-            if _RSVD_NAME_newvals[k] ~= nil then
-                return _RSVD_NAME_newvals[k]
+            if newInstance.newvals[k] ~= nil then
+                return newInstance.newvals[k]
             end
 
-            return _RSVD_NAME_oldvals[k]
+            return newInstance.oldvals[k]
         end,
 
         __newindex = function(_, k, v)
             if v == nil then
-                if _RSVD_NAME_oldvals[k] ~= nil then
-                    _RSVD_NAME_deletes[k] = true
+                if newInstance.oldvals[k] ~= nil then
+                    newInstance.deletes[k] = true
                 end
-                _RSVD_NAME_newvals[k] = nil
+                newInstance.newvals[k] = nil
             else
-                if _RSVD_NAME_oldvals[k] ~= v then
-                    _RSVD_NAME_newvals[k] = v
+                if newInstance.oldvals[k] ~= v then
+                    newInstance.newvals[k] = v
                 end
-                _RSVD_NAME_deletes[k] = nil
+                newInstance.deletes[k] = nil
             end
         end,
 
         __close = function()
-            if tableEmpty(_RSVD_NAME_newvals) and tableEmpty(_RSVD_NAME_deletes) then
+            if newInstance.recursive > 1 then
+                newInstance.recursive = newInstance.recursive - 1
                 return
             end
 
-            for k, _ in pairs(_RSVD_NAME_deletes) do
-                _RSVD_NAME_oldvals[k] = nil
+            if tableEmpty(newInstance.newvals) and tableEmpty(newInstance.deletes) then
+                return
             end
 
-            for k, v in pairs(_RSVD_NAME_newvals) do
-                _RSVD_NAME_oldvals[k] = v
+            for k, _ in pairs(newInstance.deletes) do
+                newInstance.oldvals[k] = nil
             end
 
-            if tableEmpty(_RSVD_NAME_oldvals) then
+            for k, v in pairs(newInstance.newvals) do
+                newInstance.oldvals[k] = v
+            end
+
+            if tableEmpty(newInstance.oldvals) then
                 dbSetUIDQuestVars(uid, nil)
             else
-                dbSetUIDQuestVars(uid, _RSVD_NAME_oldvals)
+                dbSetUIDQuestVars(uid, newInstance.oldvals)
             end
+
+            _RSVD_NAME_autoSaveHelpers[uid] = nil
         end,
     })
+
+    newInstance.metatable = metatable
+    _RSVD_NAME_autoSaveHelpers[uid] = newInstance
+    return metatable
 end
 
 function dbUpdateUIDQuestVar(uid, key, value)
