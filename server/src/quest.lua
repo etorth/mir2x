@@ -84,7 +84,16 @@ function getUIDQuestAutoSaveVars(uid)
                 dbSetUIDQuestVars(uid, newInstance.oldvals)
             end
 
+            newInstance.deletes = {}
+            newInstance.newvals = {}
+
             _RSVD_NAME_autoSaveHelpers[uid] = nil
+        end,
+
+        __gc = function()
+            if _RSVD_NAME_autoSaveHelpers[uid] then
+                fatalPrintf('Quest auto save helper is not closed properly')
+            end
         end,
     })
 
