@@ -52,25 +52,6 @@ function getUIDQuestAutoSaveVars(uid)
                 dbSetUIDQuestVars(uid, _RSVD_NAME_oldvals)
             end
         end,
-
-        -- __pairs = function()
-        --     return next, _RSVD_NAME_oldvals, nil
-        -- end,
-        --
-        -- __ipairs = function()
-        --     local function iter(t, i)
-        --         local j = i + 1
-        --         local v = t[j]
-        --         if v ~= nil then
-        --             return j, v
-        --         end
-        --     end
-        --     return iter, _RSVD_NAME_oldvals, 0
-        -- end,
-        --
-        -- __len = function()
-        --     return #tb
-        -- end
     })
 end
 
