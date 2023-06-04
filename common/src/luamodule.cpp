@@ -122,9 +122,6 @@ LuaModule::LuaModule()
     execString("SYS_EXIT  = \'%s\'", SYS_EXIT );
     execString("SYS_ABORT = \'%s\'", SYS_ABORT);
 
-    execString("SYS_TEAM   = %s", str_quoted(SYS_TEAM  ).c_str());
-    execString("SYS_RANDOM = %s", str_quoted(SYS_RANDOM).c_str());
-
     execString("SYS_QUESTVAR_STATE = \'%s\'", SYS_QUESTVAR_STATE);
 
     execString("SYS_QUESTVAR_TEAM = \'%s\'", SYS_QUESTVAR_TEAM);

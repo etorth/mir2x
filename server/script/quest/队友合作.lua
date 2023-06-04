@@ -53,8 +53,9 @@ function main()
             npc_accept_quest = function(uid, value)
                 uidExecute(questUID,
                 [=[
+                    setUIDQuestTeam{uid=%%d, randRoleAssign=true, propagate=true}
                     setQuestState(%%d, SYS_ENTER)
-                ]=], uid)
+                ]=], uid, uid)
             end,
         })
     ]], getUID(), getQuestName())

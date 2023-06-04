@@ -83,6 +83,15 @@ function assertValue(var, value)
     end
 end
 
+function shuffleArray(arr)
+    assert(isArray(arr))
+    local shuffled = {}
+    for _, v in ipairs(arr) do
+        table.insert(shuffled, math.random(1, #shuffled + 1), v)
+    end
+    return shuffled
+end
+
 function isArray(tbl)
     if type(tbl) ~= 'table' then
         return false

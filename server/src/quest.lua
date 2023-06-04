@@ -140,23 +140,42 @@ end
 
 function _RSVD_NAME_getUIDQuestTeam(uid)
     assertType(uid, 'integer')
-    local team = nil
     do
         local questVars<close> = getUIDQuestAutoSaveVars(uid)
         if questVars[SYS_QUESTVAR_TEAM] then
-            team = questVars[SYS_QUESTVAR_TEAM]
+            return questVars[SYS_QUESTVAR_TEAM]
         else
-            team = uidExecute(uid,
-            [[
-                return {
-                    [SYS_QUESTVAR_TEAMLEADER] = getTeamLeader(),
-                    [SYS_QUESTVAR_TEAMMEMBERLIST] = getTeamMemberList(),
-                }
-            ]])
+            fatalPrintf('Call setUIDQuestTeam(...) first')
+        end
+    end
+end
+
+function setUIDQuestTeam(args)
+    assertType(args, 'table')
+    assertType(args.uid, 'integer')
+    assertType(args.propagate, 'boolean', 'nil')
+    assertType(args.randAssignRole, 'boolean', 'nil')
+
+    local team = uidExecute(args.uid,
+    [[
+        return {
+            [SYS_QUESTVAR_TEAMLEADER] = getTeamLeader(),
+            [SYS_QUESTVAR_TEAMMEMBERLIST] = getTeamMemberList(),
+        }
+    ]])
+
+    if args.randAssignRole then
+        team[SYS_QUESTVAR_TEAMROLELIST] = shuffleArray(team[SYS_QUESTVAR_TEAMMEMBERLIST])
+    else
+        team[SYS_QUESTVAR_TEAMROLELIST] = team[SYS_QUESTVAR_TEAMMEMBERLIST]
+    end
+
+    for _, teamMember in ipairs(team[SYS_QUESTVAR_TEAMMEMBERLIST]) do
+        if args.propagate or (teamMember == uid) then
+            local questVars<close> = getUIDQuestAutoSaveVars(teamMember)
             questVars[SYS_QUESTVAR_TEAM] = team
         end
     end
-    return team
 end
 
 function getUIDQuestTeamLeader(uid)
