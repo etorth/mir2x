@@ -21,6 +21,9 @@ enum SysTriggerType: int
     SYS_ON_LEVELUP,
     SYS_ON_KILL,
 
+    SYS_ON_TEAMUP,
+    SYS_ON_TEAMDOWN,
+
     SYS_ON_END,
 };
 
