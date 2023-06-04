@@ -153,8 +153,8 @@ end
 function setUIDQuestTeam(args)
     assertType(args, 'table')
     assertType(args.uid, 'integer')
+    assertType(args.randRole, 'boolean', 'nil')
     assertType(args.propagate, 'boolean', 'nil')
-    assertType(args.randAssignRole, 'boolean', 'nil')
 
     local team = uidExecute(args.uid,
     [[
@@ -164,7 +164,7 @@ function setUIDQuestTeam(args)
         }
     ]])
 
-    if args.randAssignRole then
+    if args.randRole then
         team[SYS_QUESTVAR_TEAMROLELIST] = shuffleArray(team[SYS_QUESTVAR_TEAMMEMBERLIST])
     else
         team[SYS_QUESTVAR_TEAMROLELIST] = team[SYS_QUESTVAR_TEAMMEMBERLIST]
