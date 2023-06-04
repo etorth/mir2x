@@ -44,7 +44,7 @@ function main()
             ['npc_accept_quest'] = function(uid, value)
                 uidExecute(questUID,
                 [=[
-                    setQuestState(%%d, SYS_ENTER)
+                    setUIDQuestState(%%d, SYS_ENTER)
                 ]=], uid)
             end,
         })
@@ -66,7 +66,7 @@ function main()
 
             ]], uid)
 
-            setQuestState(uid, 'quest_setup_kill_trigger')
+            setUIDQuestState(uid, 'quest_setup_kill_trigger')
         end,
 
         ['quest_setup_kill_trigger'] = function(uid)
@@ -75,7 +75,7 @@ function main()
                 addTrigger(SYS_ON_KILL, function(monsterID)
                     if getMonsterName(monsterID) == '钉耙猫' then
                         postString('已经消灭一只钉耙猫，去找万拍子交谈获取礼物。')
-                        uidExecute(%d, [=[ setQuestState(%d, 'quest_killed_monster') ]=])
+                        uidExecute(%d, [=[ setUIDQuestState(%d, 'quest_killed_monster') ]=])
                         return true
                     end
                 end)
@@ -131,7 +131,7 @@ function main()
                         ]=])
 
                         deleteUIDQuestHandler(playerUID, questName)
-                        uidExecute(questUID, [=[ setQuestState(%%d, SYS_EXIT) ]=], playerUID)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_EXIT) ]=], playerUID)
                     end,
                 })
             ]], uid, getUID(), getQuestName())

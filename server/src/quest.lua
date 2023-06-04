@@ -204,7 +204,7 @@ function hasQuestState(state)
     return true
 end
 
-function setQuestState(uid, state)
+function setUIDQuestState(uid, state)
     assertType(uid, 'integer')
     if (not hasQuestState(state)) and (state ~= SYS_EXIT) then
         fatalPrintf('Invalid quest state: %s', state)
@@ -219,8 +219,8 @@ function setQuestState(uid, state)
     end
 end
 
-function dbRestoreQuestState(uid)
-    setQuestState(uid, dbGetUIDQuestState(uid))
+function restoreUIDQuestState(uid)
+    setUIDQuestState(uid, dbGetUIDQuestState(uid))
 end
 
 local _RSVD_NAME_triggers = {}

@@ -54,7 +54,7 @@ function main()
                 uidExecute(questUID,
                 [=[
                     setUIDQuestTeam{uid=%%d, randRole=true, propagate=true}
-                    setQuestState(%%d, SYS_ENTER)
+                    setUIDQuestState(%%d, SYS_ENTER)
                 ]=], uid, uid)
             end,
         })
@@ -77,7 +77,7 @@ function main()
                     ]=], SYS_EXIT)
 
                 ]], teamMember)
-                setQuestState(teamMember, 'quest_setup_kill_trigger')
+                setUIDQuestState(teamMember, 'quest_setup_kill_trigger')
             end
         end,
 
