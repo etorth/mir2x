@@ -418,7 +418,7 @@ void Player::onActivate()
     R"###(     assertType(questUID, 'integer')                                      )###""\n"
     R"###(                                                                          )###""\n"
     R"###(     if questUID ~= 0 then                                                )###""\n"
-    R"###(         uidExecute(questUID, [[ restoreUIDQuestState(%llu) ]])            )###""\n"
+    R"###(         uidExecute(questUID, [[ restoreUIDQuestState(%llu) ]])           )###""\n"
     R"###(     end                                                                  )###""\n"
     R"###( end                                                                      )###""\n", to_llu(UID())));
 }
