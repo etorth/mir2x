@@ -32,6 +32,7 @@ function _RSVD_NAME_coth_runner(code)
 end
 
 local _RSVD_NAME_triggers = {}
+local _RSVD_NAME_triggerSeqID = 0
 function addTrigger(triggerType, callback)
     assertType(triggerType, 'integer')
     assertType(callback, 'function')
@@ -39,7 +40,26 @@ function addTrigger(triggerType, callback)
     if not _RSVD_NAME_triggers[triggerType] then
         _RSVD_NAME_triggers[triggerType] = {}
     end
-    table.insert(_RSVD_NAME_triggers[triggerType], callback)
+
+    _RSVD_NAME_triggerSeqID = _RSVD_NAME_triggerSeqID + 1
+    _RSVD_NAME_triggers[triggerType][_RSVD_NAME_triggerSeqID] = callback
+    return {triggerType, _RSVD_NAME_triggerSeqID}
+end
+
+function deleteTrigger(triggerPath)
+    assert(isArray(triggerPath))
+    local triggerType  = triggerPath[1]
+    local triggerSeqID = triggerPath[2]
+
+    if not _RSVD_NAME_triggers[triggerType] then
+        return
+    end
+
+    _RSVD_NAME_triggers[triggerType][_RSVD_NAME_triggerSeqID] = nil
+
+    if tableEmpty(_RSVD_NAME_triggers[triggerType]) then
+        _RSVD_NAME_triggers[triggerType] = nil
+    end
 end
 
 function _RSVD_NAME_trigger(triggerType, ...)
