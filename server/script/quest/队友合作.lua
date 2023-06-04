@@ -8,44 +8,66 @@ function main()
         return setQuestHandler(questName,
         {
             [SYS_ENTER] = function(uid, value)
-                local teamLeader = uidExecute(uid, [=[ return getTeamLeader() ]=])
-                if not teamLeader then
+                local currState = uidExecute(questUID, [=[ return dbGetUIDQuestState(%%d) ]=], uid)
+                if currState == SYS_EXIT then
                     uidPostXML(uid, questPath,
                     [=[
                         <layout>
-                            <par>请先组建一个队伍</par>
+                            <par>你已经完成挑战任务。</par>
                             <par><event id="%%s">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
-                elseif teamLeader ~= uid then
+                elseif currState ~= nil then
                     uidPostXML(uid, questPath,
                     [=[
                         <layout>
-                            <par>你不是队长</par>
+                            <par>请继续你的挑战任务。</par>
                             <par><event id="%%s">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
                 else
-                    local teamMemberList = uidExecute(uid, [=[ return getTeamMemberList() ]=])
-                    if #teamMemberList >= 2 then
+                    local teamLeader = uidExecute(uid, [=[ return getTeamLeader() ]=])
+                    if not teamLeader then
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>你拥有一个队伍，愿意接受任务吗？</par>
-                                <par><event id="npc_accept_quest">同意</event></par>
-                                <par><event id="%%s"             >退出</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
-                    else
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你的队伍中只有你自己，请至少添加一名队友。</par>
+                                <par>请先组建一个队伍</par>
                                 <par><event id="%%s">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
+
+                    elseif teamLeader ~= uid then
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>你不是队长</par>
+                                <par><event id="%%s">退出</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+
+                    else
+                        local teamMemberList = uidExecute(uid, [=[ return getTeamMemberList() ]=])
+                        if #teamMemberList >= 2 then
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>你拥有一个队伍，愿意接受任务吗？</par>
+                                    <par><event id="npc_accept_quest">同意</event></par>
+                                    <par><event id="%%s"             >退出</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+
+                        else
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>你的队伍中只有你自己，请至少添加一名队友。</par>
+                                    <par><event id="%%s">退出</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+                        end
                     end
                 end
             end,
