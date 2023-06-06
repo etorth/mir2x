@@ -153,15 +153,17 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             // consume coroutine result
             // forward pfr to issuer as a special case
             std::function<void(const sol::protected_function_result &)> onDone;
+            std::function<void(/* always feeds SYS_EXECCLOSE */      )> onClose;
 
             sol::thread runner;
             sol::coroutine callback;
             std::vector<luaf::luaVar> notifyList;
 
-            _CoroutineRunner(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone)
+            _CoroutineRunner(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
                 : key(argKey)
                 , seqID(argSeqID)
                 , onDone(std::move(argOnDone))
+                , onClose(std::move(argOnClose))
                 , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
@@ -182,7 +184,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
     public:
         uint64_t spawn(uint64_t, std::pair<uint64_t, uint64_t>, const std::string &);
-        uint64_t spawn(uint64_t,                                const std::string &, std::function<void(const sol::protected_function_result &)> = nullptr);
+        uint64_t spawn(uint64_t,                                const std::string &, std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
 
     public:
         uint64_t getSeqID(uint64_t key) const
@@ -199,6 +201,9 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         void close(uint64_t key, uint64_t seqID = 0)
         {
             if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+                if(p->second->onClose){
+                    p->second->onClose();
+                }
                 m_runnerList.erase(p);
             }
         }

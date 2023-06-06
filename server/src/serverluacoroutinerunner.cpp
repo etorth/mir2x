@@ -196,15 +196,26 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
             }
             fnOnThreadDone(std::move(error), {});
         }
+    },
+
+    [reqAddr, this]()
+    {
+        m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+        {
+            .serVarList = cerealf::serialize(std::vector<luaf::luaVar>
+            {
+                luaf::luaVar(SYS_EXECCLOSE),
+            }),
+        })});
     });
 }
 
-uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, std::function<void(const sol::protected_function_result &)> onDone)
+uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, std::function<void(const sol::protected_function_result &)> onDone, std::function<void()> onClose)
 {
     fflassert(key);
     fflassert(str_haschar(code));
 
-    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, std::move(onDone)));
+    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, std::move(onDone), std::move(onClose)));
     const auto currSeqID = p->second->seqID;
 
     resumeRunner(p->second.get(), str_printf(
