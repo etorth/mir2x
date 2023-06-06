@@ -59,12 +59,22 @@ function main()
                                 </layout>
                             ]=], SYS_EXIT)
 
+                        elseif uidExecute(uid, [=[ return getLevel() ]=]) < 7 then
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>你的等级太低，请至少添加一名队友结队冒险。</par>
+                                    <par><event id="%%s">退出</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+
                         else
                             uidPostXML(uid, questPath,
                             [=[
                                 <layout>
-                                    <par>你的队伍中只有你自己，请至少添加一名队友。</par>
-                                    <par><event id="%%s">退出</event></par>
+                                    <par>你确定独自冒险吗？</par>
+                                    <par><event id="npc_accept_quest">同意</event></par>
+                                    <par><event id="%%s"             >退出</event></par>
                                 </layout>
                             ]=], SYS_EXIT)
                         end
