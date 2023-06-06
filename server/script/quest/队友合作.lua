@@ -107,7 +107,7 @@ function main()
             uidExecute(uid,
             [[
                 addTrigger(SYS_ON_KILL, function(monsterID)
-                    if getMonsterName(monsterID) == '钉耙猫' then
+                    if getMonsterName(monsterID) then
                         postString([=[挑战正在进行中，消灭一只%%s。]=], getMonsterName(monsterID))
                     end
                 end)
