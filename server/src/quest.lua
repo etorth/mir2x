@@ -91,6 +91,16 @@ function getUIDQuestTeamMemberList(uid)
     return _RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMMEMBERLIST]
 end
 
+function getUIDQuestTeamRoleIndex(uid)
+    assertType(uid, 'integer')
+    for i, teamMember in ipairs(_RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMROLELIST]) do
+        if teamMember == uid then
+            return i
+        end
+    end
+    fatalPrintf('Can not find uid %d in team role list', uid)
+end
+
 local _RSVD_NAME_questFSMTable = nil
 function setQuestFSMTable(fsm)
     assertType(fsm, 'table')
