@@ -1,111 +1,16 @@
 --, u8R"###(
 --
 
-local _RSVD_NAME_autoSaveHelpers = {}
-function getUIDQuestAutoSaveVars(uid)
-    assertType(uid, 'integer')
-    local autoSaveInstance = _RSVD_NAME_autoSaveHelpers[uid]
-    if autoSaveInstance then
-        autoSaveInstance.recursive = autoSaveInstance.recursive + 1
-        return autoSaveInstance.metatable
-    end
-
-    local newInstance = {
-        oldvals = dbGetUIDQuestVars(uid) or {},
-        newvals = {},
-        deletes = {},
-
-        -- need to support recursive calls
-        -- otherwise inside change can get overwritten by outside copy, as following
-        --
-        --     do
-        --         local outside<close> = getUIDQuestAutoSaveVars(uid)
-        --         outside.a = 12 -- change value only
-        --
-        --         do
-        --              local inside<local> = getUIDQuestAutoSaveVars(uid)
-        --              inside.b = nil -- erase key
-        --         end
-        --     end
-        --
-        -- internal scope erases key b, but outside has an independent copy
-        -- then when leaving outside scope, a gets restored
-        recursive = 0,
-    }
-
-    local metatable = setmetatable({}, {
-        __index = function(_, k)
-            if newInstance.deletes[k] then
-                return nil
-            end
-
-            if newInstance.newvals[k] ~= nil then
-                return newInstance.newvals[k]
-            end
-
-            return newInstance.oldvals[k]
-        end,
-
-        __newindex = function(_, k, v)
-            if v == nil then
-                if newInstance.oldvals[k] ~= nil then
-                    newInstance.deletes[k] = true
-                end
-                newInstance.newvals[k] = nil
-            else
-                if newInstance.oldvals[k] ~= v then
-                    newInstance.newvals[k] = v
-                end
-                newInstance.deletes[k] = nil
-            end
-        end,
-
-        __close = function()
-            if newInstance.recursive > 0 then
-                newInstance.recursive = newInstance.recursive - 1
-                return
-            end
-
-            if tableEmpty(newInstance.newvals) and tableEmpty(newInstance.deletes) then
-                return
-            end
-
-            for k, _ in pairs(newInstance.deletes) do
-                newInstance.oldvals[k] = nil
-            end
-
-            for k, v in pairs(newInstance.newvals) do
-                newInstance.oldvals[k] = v
-            end
-
-            if tableEmpty(newInstance.oldvals) then
-                dbSetUIDQuestVars(uid, nil)
-            else
-                dbSetUIDQuestVars(uid, newInstance.oldvals)
-            end
-
-            newInstance.deletes = {}
-            newInstance.newvals = {}
-
-            _RSVD_NAME_autoSaveHelpers[uid] = nil
-        end,
-
-        __gc = function()
-            if _RSVD_NAME_autoSaveHelpers[uid] then
-                fatalPrintf('Quest auto save helper is not closed properly')
-            end
-        end,
-    })
-
-    newInstance.metatable = metatable
-    _RSVD_NAME_autoSaveHelpers[uid] = newInstance
-    return metatable
-end
-
 function dbUpdateUIDQuestVar(uid, key, value)
     assertType(uid, 'integer')
-    local questVars<close> = getUIDQuestAutoSaveVars(uid)
-    questVars[key] = value
+    local vars = dbGetUIDQuestVars(uid) or {}
+    vars[key] = value
+
+    if tableEmpty(vars) then
+        dbSetUIDQuestVars(uid, nil)
+    else
+        dbSetUIDQuestVars(uid, vars)
+    end
 end
 
 function dbGetUIDQuestState(uid)
@@ -130,7 +35,8 @@ function getNPCharUID(mapName, npcName)
         return 0
     end
 
-    local npcUID = uidExecute(mapUID, [[
+    local npcUID = uidExecute(mapUID,
+    [[
         return getNPCharUID('%s')
     ]], npcName)
 
@@ -140,13 +46,11 @@ end
 
 function _RSVD_NAME_getUIDQuestTeam(uid)
     assertType(uid, 'integer')
-    do
-        local questVars<close> = getUIDQuestAutoSaveVars(uid)
-        if questVars[SYS_QUESTVAR_TEAM] then
-            return questVars[SYS_QUESTVAR_TEAM]
-        else
-            fatalPrintf('Call setUIDQuestTeam(...) first')
-        end
+    local vars = dbGetUIDQuestVars(uid) or {}
+    if vars[SYS_QUESTVAR_TEAM] then
+        return vars[SYS_QUESTVAR_TEAM]
+    else
+        fatalPrintf('Call setUIDQuestTeam(...) first')
     end
 end
 
@@ -172,8 +76,7 @@ function setUIDQuestTeam(args)
 
     for _, teamMember in ipairs(team[SYS_QUESTVAR_TEAMMEMBERLIST]) do
         if args.propagate or (teamMember == uid) then
-            local questVars<close> = getUIDQuestAutoSaveVars(teamMember)
-            questVars[SYS_QUESTVAR_TEAM] = team
+            dbUpdateUIDQuestVar(teamMember, SYS_QUESTVAR_TEAM, team)
         end
     end
 end
