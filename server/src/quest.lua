@@ -127,9 +127,29 @@ function setUIDQuestState(uid, state)
     -- a player can be in a team but still start a single-role quest alone
 
     dbSetUIDQuestState(uid, state)
+
     if hasQuestState(state) then
-        _RSVD_NAME_questFSMTable[state](uid)
+        _RSVD_NAME_switchUIDQuestState(uid, state, getTLSTable().threadKey)
+    else
+        _RSVD_NAME_switchUIDQuestState(uid,   nil, getTLSTable().threadKey)
     end
+
+    -- drop current thread in C layer
+    -- next state will be executed in a new thread
+
+    while true do
+        coroutine.yield()
+    end
+end
+
+function _RSVD_NAME_enterUIDQuestState(uid, state)
+    assertType(uid, 'integer')
+    assertType(state, 'string')
+
+    if not hasQuestState(state) then
+        fatalPrintf('Invalid quest state: %s', state)
+    end
+    _RSVD_NAME_questFSMTable[state](uid)
 end
 
 function restoreUIDQuestState(uid)

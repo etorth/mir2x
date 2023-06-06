@@ -120,6 +120,29 @@ void Quest::onActivate()
         });
     });
 
+    m_luaRunner->bindFunction("_RSVD_NAME_switchUIDQuestState", [this](uint64_t uid, sol::object state, uint64_t threadKey)
+    {
+        addDelay(0, [threadKey, this]()
+        {
+            m_luaRunner->close(threadKey);
+        });
+
+        // immediately switch to new state
+        // current state has been put into idle state:
+        //
+        //     while true do
+        //         coroutine.yield()
+        //     end
+        //
+        // and it will be closed by addDelay()
+        // don't close immediately since current call still uses its stack
+
+        if(state != sol::nil){
+            fflassert(state.is<std::string>());
+            m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_enterUIDQuestState(%llu, %s)", to_llu(uid), to_cstr(str_quoted(state.as<std::string>()))));
+        }
+    });
+
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_loadMap", [this](LuaCoopResumer onDone, std::string mapName)
     {
         fflassert(str_haschar(mapName));
