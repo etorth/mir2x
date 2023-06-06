@@ -73,11 +73,18 @@ function main()
             end,
 
             npc_accept_quest = function(uid, value)
-                uidExecute(questUID,
+                local teamRoleList = uidExecute(questUID,
                 [=[
                     setUIDQuestTeam{uid=%%d, randRole=true, propagate=true}
-                    setUIDQuestState(%%d, SYS_ENTER)
+                    return getUIDQuestTeamRoleList(%%d)
                 ]=], uid, uid)
+
+                for _, teamRole in ipairs(teamRoleList) do
+                    uidExecute(questUID,
+                    [=[
+                        setUIDQuestState(%%d, SYS_ENTER)
+                    ]=], teamRole)
+                end
             end,
         })
     ]], getUID(), getQuestName())
@@ -85,22 +92,18 @@ function main()
     setQuestFSMTable(
     {
         [SYS_ENTER] = function(uid)
-            local npcUID = getNPCharUID('道馆_1', '士官_1')
-            for _, teamMember in ipairs(getUIDQuestTeamMemberList(uid)) do
-                uidExecute(npcUID,
-                [[
-                    uidPostXML(%d,
-                    [=[
-                        <layout>
-                            <par>和队友开始挑战珐玛大陆的怪物吧！</par>
-                            <par></par>
-                            <par><event id="%%s">好的</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
-
-                ]], teamMember)
-                setUIDQuestState(teamMember, 'quest_setup_kill_trigger')
-            end
+            uidExecute(getNPCharUID('道馆_1', '士官_1'),
+            [[
+                uidPostXML(%d,
+                [=[
+                    <layout>
+                        <par>和队友开始挑战珐玛大陆的怪物吧！</par>
+                        <par></par>
+                        <par><event id="%%s">好的</event></par>
+                    </layout>
+                ]=], SYS_EXIT)
+            ]], uid)
+            setUIDQuestState(uid, 'quest_setup_kill_trigger')
         end,
 
         quest_setup_kill_trigger = function(uid)

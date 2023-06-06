@@ -91,9 +91,14 @@ function getUIDQuestTeamMemberList(uid)
     return _RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMMEMBERLIST]
 end
 
+function getUIDQuestTeamRoleList(uid)
+    assertType(uid, 'integer')
+    return _RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMROLELIST]
+end
+
 function getUIDQuestTeamRoleIndex(uid)
     assertType(uid, 'integer')
-    for i, teamMember in ipairs(_RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMROLELIST]) do
+    for i, teamMember in ipairs(getUIDQuestTeamRoleList(uid)) do
         if teamMember == uid then
             return i
         end
