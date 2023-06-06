@@ -131,8 +131,9 @@ LuaModule::LuaModule()
 
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
 
-    execString("SYS_BADUID   = \'%s\'", SYS_BADUID);
-    execString("SYS_EXECDONE = \'%s\'", SYS_EXECDONE);
+    execString("SYS_EXECDONE   = %s", str_quoted(SYS_EXECDONE  ).c_str());
+    execString("SYS_EXECCLOSE  = %s", str_quoted(SYS_EXECCLOSE ).c_str());
+    execString("SYS_EXECBADUID = %s", str_quoted(SYS_EXECBADUID).c_str());
 
     execString("SYS_EPDEF = \'%s\'", SYS_EPDEF);
     execString("SYS_EPUID = \'%s\'", SYS_EPUID);

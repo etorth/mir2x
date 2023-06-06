@@ -143,7 +143,7 @@ function setUIDQuestState(uid, state)
     -- next state will be executed in a new thread
 
     while true do
-        coroutine.yield()
+        coroutine.yield(SYS_EXECCLOSE)
     end
 end
 

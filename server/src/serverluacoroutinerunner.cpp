@@ -57,7 +57,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                     }
                 case AM_BADACTORPOD:
                     {
-                        onDone(SYS_BADUID);
+                        onDone(SYS_EXECBADUID);
                         break;
                     }
                 default:

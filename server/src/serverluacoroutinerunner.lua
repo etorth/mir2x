@@ -160,7 +160,7 @@ function uidExecute(uid, code, ...)
 
     if resType == SYS_EXECDONE then
         return table.unpack(resList, 2, resList.n)
-    elseif resType == SYS_BADUID then
+    elseif resType == SYS_EXECBADUID then
         fatalPrintf('Invalid uid: %d', uid)
     else
         fatalPrintf('Unknown error')
