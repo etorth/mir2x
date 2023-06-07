@@ -14,6 +14,11 @@ class Quest final: public ServerObject
         /* */ uint64_t m_threadKey = m_mainScriptThreadKey + 1;
 
     private:
+        // one player can only have one state runner
+        // one player runs multiple FSM state simultaneously doesn't make sense
+        std::unordered_map<uint64_t, uint64_t> m_uidStateRunner;
+
+    private:
         std::unique_ptr<ServerLuaCoroutineRunner> m_luaRunner;
 
     public:

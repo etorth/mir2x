@@ -3,8 +3,10 @@
 #include "quest.hpp"
 #include "dbpod.hpp"
 #include "filesys.hpp"
+#include "monoserver.hpp"
 
 extern DBPod *g_dbPod;
+extern MonoServer *g_monoServer;
 
 Quest::Quest(const SDInitQuest &initQuest)
     : ServerObject(uidf::getQuestUID(initQuest.questID))
@@ -122,6 +124,60 @@ void Quest::onActivate()
 
     m_luaRunner->bindFunction("_RSVD_NAME_switchUIDQuestState", [this](uint64_t uid, sol::object state, uint64_t threadKey, uint64_t threadSeqID)
     {
+        if(const auto p = m_uidStateRunner.find(uid); p != m_uidStateRunner.end()){
+            if(p->second != threadKey){
+                // there is already a thread running quest state function for this uid
+                // and it's not current thread, i.e.
+                //
+                //     quest_op_1 = function(uid)
+                //         ...
+                //         ...
+                //
+                //         uidExecute(uid,
+                //         [[
+                //             addTrigger(SYS_ON_KILL, function(monsterID)
+                //                 if ... then
+                //                     uidExecute(questUID, [=[ setUIDQuestState(uid, "quest_op_2") ]=])
+                //                 end
+                //             end)
+                //         ]])
+                //
+                //         pause(9999999) -- or any function that can yield
+                //     end
+                //
+                // previous state pauses in idle state, waiting timeout
+                // now another thread terminates it and switch to new quest state quest_op_2
+
+                // TODO should I erase before close ?
+                //      close() shall only do clean work and shall not trigger setUIDQuestState() again
+                //
+                // no threadSeqID saved/provided
+                // shall be good enough since quest luaRunner has unique threadKey
+                m_luaRunner->close(p->second);
+            }
+            m_uidStateRunner.erase(p);
+        }
+        else{
+            // first time setup state
+            // state may not be SYS_ENTER if called by restoreUIDQuestState()
+        }
+
+        // always terminate current thread when calling _RSVD_NAME_switchUIDQuestState
+        // it can be cases that state starts to switch itself to another state
+        //
+        //     quest_op_1 = function(uid)
+        //         ...
+        //         ...
+        //         setUIDQuestState(uid, "quest_op_2")
+        //     end
+        //
+        // or an simple uidExecute() remote call to switch state
+        //
+        //     addTrigger(SYS_ON_LEVELUP, function(uid)
+        //         uidExecute(questUID, [=[ setUIDQuestState(uid, SYS_ENTER) ]=])
+        //     end)
+        //
+        // can not close thread directly since current call still uses its stack
         addDelay(0, [threadKey, threadSeqID, this]()
         {
             m_luaRunner->close(threadKey, threadSeqID);
@@ -139,7 +195,27 @@ void Quest::onActivate()
 
         if(state != sol::nil){
             fflassert(state.is<std::string>());
-            m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_enterUIDQuestState(%llu, %s)", to_llu(uid), to_cstr(str_quoted(state.as<std::string>()))));
+            const auto stateStr = state.as<std::string>();
+            m_luaRunner->spawn(m_uidStateRunner[uid] = m_threadKey++, str_printf("_RSVD_NAME_enterUIDQuestState(%llu, %s)", to_llu(uid), str_quoted(stateStr).c_str()), [uid, stateStr, this](const sol::protected_function_result &pfr)
+            {
+                m_uidStateRunner.erase(uid);
+                std::vector<std::string> error;
+
+                if(m_luaRunner->pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+                    if(pfr.return_count() > 0){
+                        // drop quest state function result
+                    }
+                }
+                else{
+                    if(error.empty()){
+                        error.push_back(str_printf("unknown error for quest state: %s", to_cstr(str_quoted(stateStr))));
+                    }
+
+                    for(const auto &line: error){
+                        g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                    }
+                }
+            });
         }
     });
 
