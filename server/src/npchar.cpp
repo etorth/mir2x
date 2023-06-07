@@ -344,8 +344,8 @@ void NPChar::onActivate()
 
         const auto delayKey = addDelay(ms, [threadKey, threadSeqID, this]()
         {
-            m_luaRunner->resume(threadKey, threadSeqID);
             m_luaRunner->popOnClose(threadKey, threadSeqID);
+            m_luaRunner->resume    (threadKey, threadSeqID);
         });
 
         m_luaRunner->pushOnClose(threadKey, threadSeqID, [delayKey, this]()

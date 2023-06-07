@@ -402,8 +402,11 @@ void Player::onActivate()
 
         const auto delayKey = addDelay(ms, [threadKey, threadSeqID, this]()
         {
-            m_luaRunner->resume(threadKey, threadSeqID);
+            // first pop the onclose function
+            // otherwise the resume() will call it if the resume reaches end of code
+
             m_luaRunner->popOnClose(threadKey, threadSeqID);
+            m_luaRunner->resume    (threadKey, threadSeqID);
         });
 
         m_luaRunner->pushOnClose(threadKey, threadSeqID, [delayKey, this]()
