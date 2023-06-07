@@ -153,7 +153,53 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             // consume coroutine result
             // forward pfr to issuer as a special case
             std::function<void(const sol::protected_function_result &)> onDone;
-            std::function<void(/* always feeds SYS_EXECCLOSE */      )> onClose;
+
+            // thread can be closed when
+            //
+            //     1. it yields in C layer
+            //     2. its control has been dropped and wait some callback to resume
+            //
+            // then if the thread is closed without calling the registered callback
+            // we need some clear-functionality
+
+            // thread can call back and forth in C/lua
+            //
+            // C -> lua -> C -> lua -> C -> lua
+            //                         ^
+            //                         |
+            //                         +-- code of this layer is:
+            //
+            //                         bindYielding("_RSVD_NAME_pauseYielding", [](uint64_t time, uint64_t threadKey)
+            //                         {
+            //                             addDelay(time, [threadKey]()
+            //                             {
+            //                                 resume(threadKey);
+            //                             });
+            //                         });
+            //
+            // then even all C layer before this layer are not yield-able, still we know this chain may eventually get yielded
+            // and each C layer may require to register a callback if closed before done, which requires a stack as
+            //
+            // C -> lua -> C -> lua -> C -> lua
+            //                         ^
+            //                         |
+            //                         +-- code of this layer is:
+            //
+            //                         bindYielding("_RSVD_NAME_pauseYielding", [](uint64_t time, uint64_t threadKey)
+            //                         {
+            //                             const auto key = m_delayQueue.addDelay(time, [threadKey]()
+            //                             {
+            //                                 resume(threadKey);
+            //                                 m_delayQueue.pop(); // no need to trigger if delayed command gets executed
+            //                             });
+            //
+            //                             onClose.push([key]()
+            //                             {
+            //                                 m_delayQueue.erase(key);
+            //                             })
+            //                         });
+
+            std::stack<std::function<void()>> onClose;
 
             sol::thread runner;
             sol::coroutine callback;
@@ -163,12 +209,15 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 : key(argKey)
                 , seqID(argSeqID)
                 , onDone(std::move(argOnDone))
-                , onClose(std::move(argOnClose))
                 , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
                 fflassert(key);
                 fflassert(seqID);
+
+                if(argOnClose){
+                    onClose.push(std::move(argOnClose));
+                }
             }
         };
 
@@ -201,8 +250,11 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         void close(uint64_t key, uint64_t seqID = 0)
         {
             if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
-                if(p->second->onClose){
-                    p->second->onClose();
+                while(!p->second->onClose.empty()){
+                    if(p->second->onClose.top()){
+                        p->second->onClose.top()(); // only do clean work, don't modify onClose stack inside
+                    }
+                    p->second->onClose.pop();
                 }
                 m_runnerList.erase(p);
             }
