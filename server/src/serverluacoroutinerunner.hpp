@@ -285,6 +285,26 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             }
         }
 
+    public:
+        void pushOnClose(uint64_t key, uint64_t seqID, std::function<void()> onClose)
+        {
+            fflassert(hasKey(key, seqID));
+            fflassert(onClose);
+
+            if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+                p->second->onClose.push(std::move(onClose));
+            }
+        }
+
+        void popOnClose(uint64_t key, uint64_t seqID)
+        {
+            fflassert(hasKey(key, seqID));
+            if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+                fflassert(!p->second->onClose.empty());
+                p->second->onClose.pop();
+            }
+        }
+
     private:
         void resumeRunner(_CoroutineRunner *, std::optional<std::string> = {});
 

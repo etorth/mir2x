@@ -57,9 +57,14 @@ class ServerObject
         virtual void operateAM(const ActorMsgPack &) = 0;
 
     public:
-        void addDelay(uint32_t delayTick, std::function<void()> cmd)
+        auto addDelay(uint32_t delayTick, std::function<void()> cmd)
         {
-            m_delayCmdQ.addDelay(delayTick, std::move(cmd));
+            return m_delayCmdQ.addDelay(delayTick, std::move(cmd));
+        }
+
+        void removeDelay(const std::pair<uint32_t, uint64_t> &key)
+        {
+            m_delayCmdQ.removeDelay(key);
         }
 
     protected:

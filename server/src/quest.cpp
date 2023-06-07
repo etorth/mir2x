@@ -120,11 +120,11 @@ void Quest::onActivate()
         });
     });
 
-    m_luaRunner->bindFunction("_RSVD_NAME_switchUIDQuestState", [this](uint64_t uid, sol::object state, uint64_t threadKey)
+    m_luaRunner->bindFunction("_RSVD_NAME_switchUIDQuestState", [this](uint64_t uid, sol::object state, uint64_t threadKey, uint64_t threadSeqID)
     {
-        addDelay(0, [threadKey, this]()
+        addDelay(0, [threadKey, threadSeqID, this]()
         {
-            m_luaRunner->close(threadKey);
+            m_luaRunner->close(threadKey, threadSeqID);
         });
 
         // immediately switch to new state

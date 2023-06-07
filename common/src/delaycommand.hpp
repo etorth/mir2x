@@ -25,6 +25,11 @@ class DelayCommandQueue final
             return {0, 0};
         }
 
+        void removeDelay(const std::pair<uint32_t, uint64_t> &key)
+        {
+            m_delayCmdQ.erase(key);
+        }
+
     public:
         void exec()
         {
@@ -49,10 +54,5 @@ class DelayCommandQueue final
                 topiter->second();
                 m_delayCmdQ.erase(topiter);
             }
-        }
-
-        void erase(const std::pair<uint32_t, uint64_t> &key)
-        {
-            m_delayCmdQ.erase(key);
         }
 };

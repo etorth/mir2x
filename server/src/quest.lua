@@ -134,9 +134,9 @@ function setUIDQuestState(uid, state)
     dbSetUIDQuestState(uid, state)
 
     if hasQuestState(state) then
-        _RSVD_NAME_switchUIDQuestState(uid, state, getTLSTable().threadKey)
+        _RSVD_NAME_switchUIDQuestState(uid, state, getTLSTable().threadKey, getTLSTable().threadSeqID)
     else
-        _RSVD_NAME_switchUIDQuestState(uid,   nil, getTLSTable().threadKey)
+        _RSVD_NAME_switchUIDQuestState(uid,   nil, getTLSTable().threadKey, getTLSTable().threadSeqID)
     end
 
     -- drop current thread in C layer
