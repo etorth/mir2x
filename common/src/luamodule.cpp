@@ -146,8 +146,12 @@ LuaModule::LuaModule()
     execString("SYS_ON_GAINEXP  = %d", SYS_ON_GAINEXP);
     execString("SYS_ON_GAINITEM = %d", SYS_ON_GAINITEM);
     execString("SYS_ON_GAINGOLD = %d", SYS_ON_GAINGOLD);
+    execString("SYS_ON_LOGIN    = %d", SYS_ON_LOGIN);
+    execString("SYS_ON_OFFLINE  = %d", SYS_ON_OFFLINE);
     execString("SYS_ON_LEVELUP  = %d", SYS_ON_LEVELUP);
     execString("SYS_ON_KILL     = %d", SYS_ON_KILL);
+    execString("SYS_ON_TEAMUP   = %d", SYS_ON_TEAMUP);
+    execString("SYS_ON_TEAMDOWN = %d", SYS_ON_TEAMDOWN);
     execString("SYS_ON_END      = %d", SYS_ON_END);
 
     execString("SYS_COOP        = \'%s\'", SYS_COOP);
