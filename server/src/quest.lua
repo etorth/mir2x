@@ -1,6 +1,17 @@
 --, u8R"###(
 --
 
+-- TODO
+-- move pause() function to ServerLuaCoroutineRunner
+function pause(ms)
+    assertType(ms, 'integer')
+    assert(ms >= 0)
+
+    local oldTime = getTime()
+    _RSVD_NAME_pauseYielding(ms, getTLSTable().threadKey, getTLSTable().threadSeqID)
+    return getTime() - oldTime
+end
+
 function dbUpdateUIDQuestVar(uid, key, value)
     assertType(uid, 'integer')
     local vars = dbGetUIDQuestVars(uid) or {}

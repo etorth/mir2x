@@ -50,6 +50,23 @@ void Quest::onActivate()
         return m_mainScriptThreadKey;
     });
 
+    m_luaRunner->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t threadKey, uint64_t threadSeqID)
+    {
+        fflassert(ms >= 0, ms);
+        fflassert(threadKey > 0, threadKey);
+
+        const auto delayKey = addDelay(ms, [threadKey, threadSeqID, this]()
+        {
+            m_luaRunner->resume(threadKey, threadSeqID);
+            m_luaRunner->popOnClose(threadKey, threadSeqID);
+        });
+
+        m_luaRunner->pushOnClose(threadKey, threadSeqID, [delayKey, this]()
+        {
+            removeDelay(delayKey);
+        });
+    });
+
     m_luaRunner->bindFunction("dbGetUIDQuestVars", [this](uint64_t uid, sol::this_state s) -> sol::object
     {
         sol::state_view sv(s);
