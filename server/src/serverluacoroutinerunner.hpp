@@ -91,6 +91,10 @@ class LuaCoopResumer final
             }
         }
 
+    public:
+        void pushOnClose(std::function<void()>) const;
+        void  popOnClose()                      const;
+
     private:
         static void resumeRunner(ServerLuaCoroutineRunner *, uint64_t, uint64_t); // resolve dependency
 };

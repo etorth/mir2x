@@ -9,6 +9,16 @@
 #include "serverluacoroutinerunner.hpp"
 
 extern MonoServer *g_monoServer;
+void LuaCoopResumer::pushOnClose(std::function<void()> fnOnClose) const
+{
+    m_luaRunner->pushOnClose(m_threadKey, m_threadSeqID, std::move(fnOnClose));
+}
+
+void LuaCoopResumer::popOnClose() const
+{
+    m_luaRunner->popOnClose(m_threadKey, m_threadSeqID);
+}
+
 void LuaCoopResumer::resumeRunner(ServerLuaCoroutineRunner *luaRunner, uint64_t threadKey, uint64_t threadSeqID)
 {
     luaRunner->resume(threadKey, threadSeqID);
@@ -23,13 +33,26 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 {
     bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code)
     {
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
+        {
+            *closed = true;
+        });
+
         m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
         {
             .code = code,
         })},
 
-        [s, uid, onDone](const ActorMsgPack &mpk)
+        [closed, s, uid, onDone](const ActorMsgPack &mpk)
         {
+            // even thread is closed, we still exam the remote call result to detect error
+            // but will not resume the thread anymore since it's already closed
+
+            if(!(*closed)){
+                onDone.popOnClose();
+            }
+
             switch(mpk.type()){
                 case AM_SDBUFFER:
                     {
@@ -42,7 +65,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                             for(auto && var: cerealf::deserialize<std::vector<luaf::luaVar>>(sdRCR.serVarList)){
                                 resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
                             }
-                            onDone(SYS_EXECDONE, sol::as_args(resList));
+
+                            if(!(*closed)){
+                                onDone(SYS_EXECDONE, sol::as_args(resList));
+                            }
                         }
                         else{
                             // don't need to handle remote call error, peer side has reported the error
@@ -57,7 +83,9 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                     }
                 case AM_BADACTORPOD:
                     {
-                        onDone(SYS_EXECBADUID);
+                        if(!(*closed)){
+                            onDone(SYS_EXECBADUID);
+                        }
                         break;
                     }
                 default:
