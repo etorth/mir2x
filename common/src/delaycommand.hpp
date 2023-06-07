@@ -11,13 +11,13 @@ class DelayCommandQueue final
         uint64_t m_delayCmdIndex = 1; // 0 used as invalid key
 
     private:
-        std::map<std::pair<uint32_t, uint64_t>, std::function<void()>> m_delayCmdQ;
+        std::map<std::pair<uint64_t, uint64_t>, std::function<void()>> m_delayCmdQ;
 
     public:
         DelayCommandQueue() = default;
 
     public:
-        std::pair<uint32_t, uint64_t> addDelay(uint32_t delayTick, std::function<void()> fnCmd)
+        std::pair<uint64_t, uint64_t> addDelay(uint32_t delayTick, std::function<void()> fnCmd)
         {
             if(fnCmd){
                 return m_delayCmdQ.insert(std::make_pair(std::make_pair(delayTick + hres_tstamp().to_msec(), m_delayCmdIndex++), std::move(fnCmd))).first->first;
@@ -25,7 +25,7 @@ class DelayCommandQueue final
             return {0, 0};
         }
 
-        void removeDelay(const std::pair<uint32_t, uint64_t> &key)
+        void removeDelay(const std::pair<uint64_t, uint64_t> &key)
         {
             m_delayCmdQ.erase(key);
         }
