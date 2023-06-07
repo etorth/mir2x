@@ -17,7 +17,7 @@ class DelayCommandQueue final
         DelayCommandQueue() = default;
 
     public:
-        std::pair<uint64_t, uint64_t> addDelay(uint32_t delayTick, std::function<void()> fnCmd)
+        std::pair<uint64_t, uint64_t> addDelay(uint64_t delayTick, std::function<void()> fnCmd)
         {
             if(fnCmd){
                 return m_delayCmdQ.insert(std::make_pair(std::make_pair(delayTick + hres_tstamp().to_msec(), m_delayCmdIndex++), std::move(fnCmd))).first->first;

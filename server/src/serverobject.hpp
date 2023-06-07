@@ -57,7 +57,7 @@ class ServerObject
         virtual void operateAM(const ActorMsgPack &) = 0;
 
     public:
-        auto addDelay(uint32_t delayTick, std::function<void()> cmd)
+        auto addDelay(uint64_t delayTick, std::function<void()> cmd)
         {
             return m_delayCmdQ.addDelay(delayTick, std::move(cmd));
         }
