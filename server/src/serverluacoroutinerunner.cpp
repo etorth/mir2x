@@ -121,6 +121,12 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
         argList.emplace_back(luaf::buildLuaVar(notifyArg));
 
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
+        {
+            *closed = true;
+        });
+
         m_actorPod->forward(uid, {AM_QUESTNOTIFY, cerealf::serialize(SDQuestNotify
         {
             .key = threadKey,
@@ -129,8 +135,15 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             .waitConsume = false,
         })},
 
-        [onDone](const ActorMsgPack &mpk)
+        [closed, onDone](const ActorMsgPack &mpk)
         {
+            if(*closed){
+                return;
+            }
+            else{
+                onDone.popOnClose();
+            }
+
             switch(mpk.type()){
                 case AM_OK:
                     {

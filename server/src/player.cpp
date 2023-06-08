@@ -83,8 +83,21 @@ void Player::onActivate()
 
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_getTeamMemberList", [this](LuaCoopResumer onDone)
     {
-        pullTeamMemberList([onDone](std::optional<SDTeamMemberList> sdTML)
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
         {
+            *closed = true;
+        });
+
+        pullTeamMemberList([closed, onDone](std::optional<SDTeamMemberList> sdTML)
+        {
+            if(*closed){
+                return;
+            }
+            else{
+                onDone.popOnClose();
+            }
+
             if(sdTML.has_value()){
                 onDone(sol::as_table(sdTML.value().getUIDList()));
             }
@@ -271,13 +284,26 @@ void Player::onActivate()
 
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_queryQuestUID", [this](LuaCoopResumer onDone, std::string questName)
     {
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
+        {
+            *closed = true;
+        });
+
         m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
         {
             .name = std::move(questName),
         })},
 
-        [onDone](const ActorMsgPack &rmpk)
+        [closed, onDone](const ActorMsgPack &rmpk)
         {
+            if(*closed){
+                return;
+            }
+            else{
+                onDone.popOnClose();
+            }
+
             switch(rmpk.type()){
                 case AM_UID:
                     {
@@ -296,6 +322,12 @@ void Player::onActivate()
 
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_spaceMove", [this](LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY)
     {
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
+        {
+            *closed = true;
+        });
+
         const auto &mr = DBCOM_MAPRECORD(argMapID);
         fflassert(mr, argMapID);
 
@@ -303,24 +335,48 @@ void Player::onActivate()
         fflassert(argY >= 0, argY);
 
         if(to_u32(argMapID) == mapID()){
-            requestSpaceMove(argX, argY, false, [onDone, this]()
+            requestSpaceMove(argX, argY, false, [closed, onDone, this]()
             {
+                if(*closed){
+                    return;
+                }
+                else{
+                    onDone.popOnClose();
+                }
                 onDone(mapID(), X(), Y());
             },
 
-            [onDone]()
+            [closed, onDone]()
             {
+                if(*closed){
+                    return;
+                }
+                else{
+                    onDone.popOnClose();
+                }
                 onDone();
             });
         }
         else{
-            requestMapSwitch(argMapID, argX, argY, false, [onDone, this]()
+            requestMapSwitch(argMapID, argX, argY, false, [closed, onDone, this]()
             {
+                if(*closed){
+                    return;
+                }
+                else{
+                    onDone.popOnClose();
+                }
                 onDone(mapID(), X(), Y());
             },
 
-            [onDone]()
+            [closed, onDone]()
             {
+                if(*closed){
+                    return;
+                }
+                else{
+                    onDone.popOnClose();
+                }
                 onDone();
             });
         }
@@ -340,9 +396,22 @@ void Player::onActivate()
         }();
 
         if(newGLoc.has_value()){
-            const auto [newX, newY] = newGLoc.value();
-            requestMove(newX, newY, SYS_DEFSPEED, false, false, [oldX = X(), oldY = Y(), onDone, this]()
+            auto closed = std::make_shared<bool>(false);
+            onDone.pushOnClose([closed]()
             {
+                *closed = true;
+            });
+
+            const auto [newX, newY] = newGLoc.value();
+            requestMove(newX, newY, SYS_DEFSPEED, false, false, [closed, oldX = X(), oldY = Y(), onDone, this]()
+            {
+                if(*closed){
+                    return;
+                }
+                else{
+                    onDone.popOnClose();
+                }
+
                 // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
                 // but here need to sendback the forced move since it's driven by server
 
@@ -358,8 +427,14 @@ void Player::onActivate()
                 onDone(mapID(), X(), Y());
             },
 
-            [onDone]()
+            [closed, onDone]()
             {
+                if(*closed){
+                    return;
+                }
+                else{
+                    onDone.popOnClose();
+                }
                 onDone();
             });
         }
@@ -373,13 +448,26 @@ void Player::onActivate()
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
         fflassert(triggerType <  SYS_ON_END  , triggerType);
 
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
+        {
+            *closed = true;
+        });
+
         AMQueryQuestTriggerList amQQTL;
         std::memset(&amQQTL, 0, sizeof(amQQTL));
 
         amQQTL.type = triggerType;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [onDone, this](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [closed, onDone, this](const ActorMsgPack &rmpk)
         {
+            if(*closed){
+                return;
+            }
+            else{
+                onDone.popOnClose();
+            }
+
             switch(rmpk.type()){
                 case AM_OK:
                     {

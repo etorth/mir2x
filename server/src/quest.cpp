@@ -113,14 +113,27 @@ void Quest::onActivate()
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
         fflassert(triggerType <  SYS_ON_END  , triggerType);
 
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
+        {
+            *closed = true;
+        });
+
         AMModifyQuestTriggerType amMQTT;
         std::memset(&amMQTT, 0, sizeof(amMQTT));
 
         amMQTT.type = triggerType;
         amMQTT.enable = enable;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [onDone, this](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [closed, onDone, this](const ActorMsgPack &rmpk)
         {
+            if(*closed){
+                return;
+            }
+            else{
+                onDone.popOnClose();
+            }
+
             // expected an reply
             // this makes sure when modifyQuestTriggerType() returns, the trigger has already been enabled/disabled
 
@@ -240,14 +253,27 @@ void Quest::onActivate()
     {
         fflassert(str_haschar(mapName));
 
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed, this]()
+        {
+            *closed = true;
+        });
+
         AMLoadMap amLM;
         std::memset(&amLM, 0, sizeof(AMLoadMap));
 
         amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
         amLM.activateMap = true;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [mapID = amLM.mapID, onDone, this](const ActorMsgPack &mpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, mapID = amLM.mapID, onDone, this](const ActorMsgPack &mpk)
         {
+            if(*closed){
+                return;
+            }
+            else{
+                onDone.popOnClose();
+            }
+
             switch(mpk.type()){
                 case AM_LOADMAPOK:
                     {
