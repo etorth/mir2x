@@ -195,6 +195,15 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::move(runnerPtr->notifyList)));
     });
 
+    bindFunction("_RSVD_NAME_clearNotify", [this](uint64_t threadKey, uint64_t threadSeqID)
+    {
+        fflassert(threadKey);
+        fflassert(threadSeqID);
+        fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
+
+        m_runnerList.find(threadKey)->second->notifyList.clear();
+    });
+
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "serverluacoroutinerunner.lua"
     END_LUAINC()));

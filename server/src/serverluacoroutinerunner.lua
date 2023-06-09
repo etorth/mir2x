@@ -94,6 +94,10 @@ function waitNotify(count, timeout)
     return resList
 end
 
+function clearNotify()
+    _RSVD_NAME_clearNotify(getTLSTable().threadKey, getTLSTable().threadSeqID)
+end
+
 function _RSVD_NAME_callFuncCoop(funcName, ...)
     local result = nil
     local function onDone(...)

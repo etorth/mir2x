@@ -1,4 +1,5 @@
 #pragma once
+#include <deque>
 #include <concepts>
 #include <functional>
 #include <type_traits>
@@ -207,7 +208,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
             sol::thread runner;
             sol::coroutine callback;
-            std::vector<luaf::luaVar> notifyList;
+            std::deque<luaf::luaVar> notifyList;
 
             _CoroutineRunner(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
                 : key(argKey)
