@@ -74,16 +74,6 @@ void NPChar::onActivate()
         m_npcSell.clear();
     });
 
-    m_luaRunner->bindFunction("getUID", [this]() -> uint64_t
-    {
-        return rawUID();
-    });
-
-    m_luaRunner->bindFunction("getUIDString", [](uint64_t uid) -> std::string
-    {
-        return uidf::getUIDString(uid);
-    });
-
     m_luaRunner->bindFunction("getNPCName", [this](sol::variadic_args args) -> std::string
     {
         const auto skip = [&args]() -> bool

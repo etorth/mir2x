@@ -40,11 +40,6 @@ void Quest::onActivate()
         return getQuestName();
     });
 
-    m_luaRunner->bindFunction("getUID", [this]() -> uint64_t
-    {
-        return UID();
-    });
-
     m_luaRunner->bindFunction("getMainScriptThreadKey", [this]() -> uint64_t
     {
         return m_mainScriptThreadKey;

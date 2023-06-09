@@ -31,6 +31,16 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
+    bindFunction("getUID", [this]() -> uint64_t
+    {
+        return m_actorPod->UID();
+    });
+
+    bindFunction("getUIDString", [this]() -> std::string
+    {
+        return uidf::getUIDString(m_actorPod->UID());
+    });
+
     bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code)
     {
         auto closed = std::make_shared<bool>(false);

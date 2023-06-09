@@ -119,12 +119,22 @@ function main()
         quest_setup_kill_trigger = function(uid)
             uidExecute(uid,
             [[
+                local killCount = 0
                 addTrigger(SYS_ON_KILL, function(monsterID)
                     if getMonsterName(monsterID) then
-                        postString([=[挑战正在进行中，消灭一只%%s。]=], getMonsterName(monsterID))
+                        killCount = killCount + 1
+                        postString([=[挑战正在进行中，消灭一只%%s，你已经消灭%%d只怪物。]=], getMonsterName(monsterID), killCount)
+
+                        if killCount >= 5 then
+                            sendNotify(%s, 1)
+                            return true
+                        end
                     end
                 end)
-            ]])
+            ]], getThreadAddress())
+
+            waitNotify(1)
+            setUIDQuestState(uid, SYS_EXIT)
         end,
     })
 end

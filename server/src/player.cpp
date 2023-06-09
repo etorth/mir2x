@@ -50,11 +50,6 @@ void Player::onActivate()
     BattleObject::onActivate();
     m_luaRunner = std::make_unique<ServerLuaCoroutineRunner>(m_actorPod);
 
-    m_luaRunner->bindFunction("getUID", [this]() -> uint64_t
-    {
-        return UID();
-    });
-
     m_luaRunner->bindFunction("getLevel", [this]() -> uint64_t
     {
         return level();

@@ -6,6 +6,20 @@ function _RSVD_NAME_luaCoroutineRunner_main(code)
     return (load(code))()
 end
 
+function getThreadAddress()
+    return setmetatable({
+        getUID(),
+        getTLSTable().threadKey,
+        getTLSTable().threadSeqID,
+    },
+
+    {
+        __tostring = function(tbl)
+            return string.format('{%d, %d, %d}', tbl[1], tbl[2], tbl[3])
+        end,
+    })
+end
+
 function sendNotify(arg, ...)
     assertType(arg, 'table', 'integer')
 
