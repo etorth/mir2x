@@ -57,7 +57,7 @@ function sendNotify(arg, ...)
     end
 end
 
-function waitNotify(count, timeout)
+function pickNotify(count, timeout)
     assertType(count  , 'integer', 'nil')
     assertType(timeout, 'integer', 'nil')
 
@@ -70,7 +70,7 @@ function waitNotify(count, timeout)
     local threadKey = getTLSTable().threadKey
     local threadSeqID = getTLSTable().threadSeqID
 
-    local resList = _RSVD_NAME_waitNotify(threadKey, threadSeqID)
+    local resList = _RSVD_NAME_pickNotify(threadKey, threadSeqID)
     assert(isArray(resList))
 
     if count == 0 then
@@ -83,7 +83,7 @@ function waitNotify(count, timeout)
     while #resList < count do
         coroutine.yield()
 
-        local newResList = _RSVD_NAME_waitNotify(threadKey, threadSeqID)
+        local newResList = _RSVD_NAME_pickNotify(threadKey, threadSeqID)
         assert(isArray(newResList))
 
         for _, v in ipairs(newResList) do

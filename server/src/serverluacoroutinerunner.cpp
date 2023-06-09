@@ -185,7 +185,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
-    bindFunction("_RSVD_NAME_waitNotify", [this](uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
+    bindFunction("_RSVD_NAME_pickNotify", [this](uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
     {
         fflassert(threadKey);
         fflassert(threadSeqID);
