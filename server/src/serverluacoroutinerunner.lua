@@ -94,6 +94,27 @@ function pickNotify(count, timeout)
     return resList
 end
 
+function waitNotify(timeout)
+    assertType(timeout, 'integer', 'nil')
+    timeout = argDefault(timeout, 0)
+    assert(timeout >= 0, 'timeout must be non-negative')
+
+    local threadKey = getTLSTable().threadKey
+    local threadSeqID = getTLSTable().threadSeqID
+
+    while true do
+        local result = _RSVD_NAME_waitNotify(threadKey, threadSeqID)
+        if result then
+            return table.unpack(result, 1, result.n)
+        end
+
+        -- TODO
+        -- timeout support not implemented yet
+
+        coroutine.yield()
+    end
+end
+
 function clearNotify()
     _RSVD_NAME_clearNotify(getTLSTable().threadKey, getTLSTable().threadSeqID)
 end

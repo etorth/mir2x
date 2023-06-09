@@ -195,6 +195,23 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::move(runnerPtr->notifyList)));
     });
 
+    bindFunction("_RSVD_NAME_waitNotify", [this](uint64_t threadKey, uint64_t threadSeqID, sol::this_state s) -> sol::object
+    {
+        fflassert(threadKey);
+        fflassert(threadSeqID);
+        fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
+
+        auto runnerPtr = m_runnerList.find(threadKey)->second.get();
+        if(runnerPtr->notifyList.empty()){
+            return sol::make_object(sol::state_view(s), sol::nil);
+        }
+        else{
+            auto firstVar = std::move(runnerPtr->notifyList.front());
+            runnerPtr->notifyList.pop_front();
+            return luaf::buildLuaObj(sol::state_view(s), std::move(firstVar));
+        }
+    });
+
     bindFunction("_RSVD_NAME_clearNotify", [this](uint64_t threadKey, uint64_t threadSeqID)
     {
         fflassert(threadKey);
