@@ -54,6 +54,8 @@ uint64_t ServerObject::activate(double metronomeFreq, uint64_t expireTime)
     m_actorPod = new ActorPod
     {
         m_UID,
+        this,
+
         [this]()
         {
             m_stateTrigger.run();

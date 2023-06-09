@@ -208,6 +208,8 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
             sol::thread runner;
             sol::coroutine callback;
+
+            bool notifyNeeded = false;
             std::deque<luaf::luaVar> notifyList;
 
             _CoroutineRunner(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
@@ -295,6 +297,14 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 tblptr->emplace(luaf::luaVarWrapper("n"), lua_Integer(notify.size()));
                 p->second->notifyList.push_back(std::move(tblvar));
             }
+        }
+
+        std::optional<bool> needNotify(uint64_t key, uint64_t seqID) const
+        {
+            if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+                return p->second->notifyNeeded;
+            }
+            return {};
         }
 
     public:

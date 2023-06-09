@@ -1,4 +1,5 @@
 #include <memory>
+#include <iterator>
 #include "luaf.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"
@@ -6,6 +7,7 @@
 #include "actorpod.hpp"
 #include "serdesmsg.hpp"
 #include "monoserver.hpp"
+#include "serverobject.hpp"
 #include "serverluacoroutinerunner.hpp"
 
 extern MonoServer *g_monoServer;
@@ -185,31 +187,59 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
-    bindFunction("_RSVD_NAME_pickNotify", [this](uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
+    bindFunction("_RSVD_NAME_pickNotify", [this](uint64_t maxCount, uint64_t threadKey, uint64_t threadSeqID, sol::this_state s)
     {
         fflassert(threadKey);
         fflassert(threadSeqID);
         fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
 
         auto runnerPtr = m_runnerList.find(threadKey)->second.get();
-        return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::move(runnerPtr->notifyList)));
-    });
-
-    bindFunction("_RSVD_NAME_waitNotify", [this](uint64_t threadKey, uint64_t threadSeqID, sol::this_state s) -> sol::object
-    {
-        fflassert(threadKey);
-        fflassert(threadSeqID);
-        fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
-
-        auto runnerPtr = m_runnerList.find(threadKey)->second.get();
-        if(runnerPtr->notifyList.empty()){
-            return sol::make_object(sol::state_view(s), sol::nil);
+        if(maxCount == 0 || maxCount >= runnerPtr->notifyList.size()){
+            return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::move(runnerPtr->notifyList)));
         }
         else{
+            auto begin = runnerPtr->notifyList.begin();
+            auto end   = runnerPtr->notifyList.begin() + maxCount;
+
+            std::deque<luaf::luaVar> vers(std::make_move_iterator(begin), std::make_move_iterator(end));
+            runnerPtr->notifyList.erase(begin, end);
+
+            return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::move(vers)));
+        }
+    });
+
+    bindFunction("_RSVD_NAME_waitNotify", [this](uint64_t timeout, uint64_t threadKey, uint64_t threadSeqID, sol::this_state s) -> sol::object
+    {
+        fflassert(threadKey);
+        fflassert(threadSeqID);
+        fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
+
+        auto runnerPtr = m_runnerList.find(threadKey)->second.get();
+        if(!runnerPtr->notifyList.empty()){
             auto firstVar = std::move(runnerPtr->notifyList.front());
             runnerPtr->notifyList.pop_front();
+
+            runnerPtr->notifyNeeded = false;
             return luaf::buildLuaObj(sol::state_view(s), std::move(firstVar));
         }
+
+        runnerPtr->notifyNeeded = true;
+        if(timeout > 0){
+            const auto delayKey = m_actorPod->getSO()->addDelay(timeout, [threadKey, threadSeqID, this]()
+            {
+                if(auto p = m_runnerList.find(threadKey); (p != m_runnerList.end()) && (threadSeqID == 0 || p->second->seqID == threadSeqID)){
+                    p->second->onClose.pop();
+                    p->second->notifyNeeded = false;
+                    resumeRunner(p->second.get());
+                }
+            });
+
+            runnerPtr->onClose.push([delayKey, this]()
+            {
+                m_actorPod->getSO()->removeDelay(delayKey);
+            });
+        }
+        return sol::make_object(sol::state_view(s), sol::nil);
     });
 
     bindFunction("_RSVD_NAME_clearNotify", [this](uint64_t threadKey, uint64_t threadSeqID)

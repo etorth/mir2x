@@ -9,6 +9,7 @@
 #include "actormsgpack.hpp"
 #include "actormonitor.hpp"
 
+class ServerObject;
 class ActorPod final
 {
     private:
@@ -28,6 +29,9 @@ class ActorPod final
 
     private:
         const uint64_t m_UID;
+
+    private:
+        ServerObject * const m_SO;
 
     private:
         // trigger is only for state update, so it won't accept any parameters w.r.t
@@ -79,7 +83,9 @@ class ActorPod final
         ActorPodMonitor m_podMonitor;
 
     public:
-        explicit ActorPod(uint64_t,                         // UID
+        explicit ActorPod(
+                uint64_t,                                   // UID
+                ServerObject *,                             // SO
                 std::function<void()>,                      // trigger
                 std::function<void(const ActorMsgPack &)>,  // msgHandler
                 double,                                     // metronome frequency in HZ
@@ -168,5 +174,11 @@ class ActorPod final
             else{
                 return freq;
             }
+        }
+
+    public:
+        ServerObject *getSO() const
+        {
+            return m_SO;
         }
 };

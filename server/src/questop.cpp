@@ -49,17 +49,23 @@ void Quest::on_AM_RUNQUESTTRIGGER(const ActorMsgPack &mpk)
 
 void Quest::on_AM_QUESTNOTIFY(const ActorMsgPack &mpk)
 {
-    auto sdQN = mpk.deserialize<SDQuestNotify>();
+    /* */ auto sdQN = mpk.deserialize<SDQuestNotify>();
+    const auto notifyNeeded = m_luaRunner->needNotify(sdQN.key, sdQN.seqID);
+
     m_luaRunner->addNotify(sdQN.key, sdQN.seqID, std::move(sdQN.varList));
 
     if(mpk.seqID()){
         if(sdQN.waitConsume){
-            m_luaRunner->resume(sdQN.key, sdQN.seqID);
+            if(notifyNeeded.value_or(false)){
+                m_luaRunner->resume(sdQN.key, sdQN.seqID);
+            }
             m_actorPod->forward(mpk.fromAddr(), AM_OK);
         }
         else{
             m_actorPod->forward(mpk.fromAddr(), AM_OK);
-            m_luaRunner->resume(sdQN.key, sdQN.seqID);
+            if(notifyNeeded.value_or(false)){
+                m_luaRunner->resume(sdQN.key, sdQN.seqID);
+            }
         }
     }
     else{

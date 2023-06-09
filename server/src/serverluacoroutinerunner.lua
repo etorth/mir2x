@@ -57,41 +57,14 @@ function sendNotify(arg, ...)
     end
 end
 
-function pickNotify(count, timeout)
-    assertType(count  , 'integer', 'nil')
-    assertType(timeout, 'integer', 'nil')
-
-    count   = argDefault(count  , 0)
-    timeout = argDefault(timeout, 0)
-
-    assert(  count >= 0,   'count must be non-negative')
-    assert(timeout >= 0, 'timeout must be non-negative')
-
-    local threadKey = getTLSTable().threadKey
-    local threadSeqID = getTLSTable().threadSeqID
-
-    local resList = _RSVD_NAME_pickNotify(threadKey, threadSeqID)
-    assert(isArray(resList))
-
-    if count == 0 then
-        return resList
+function pickNotify(count)
+    if count == nil or count == SYS_POSINF then
+        count = 0
+    else
+        assertType(count, 'integer')
+        assert(count >= 0, 'count must be non-negative')
     end
-
-    -- TODO
-    -- timeout support not implemented yet
-
-    while #resList < count do
-        coroutine.yield()
-
-        local newResList = _RSVD_NAME_pickNotify(threadKey, threadSeqID)
-        assert(isArray(newResList))
-
-        for _, v in ipairs(newResList) do
-            table.insert(resList, v)
-        end
-    end
-
-    return resList
+    return _RSVD_NAME_pickNotify(count, getTLSTable().threadKey, getTLSTable().threadSeqID)
 end
 
 function waitNotify(timeout)
@@ -99,20 +72,28 @@ function waitNotify(timeout)
     timeout = argDefault(timeout, 0)
     assert(timeout >= 0, 'timeout must be non-negative')
 
-    local threadKey = getTLSTable().threadKey
+    local threadKey   = getTLSTable().threadKey
     local threadSeqID = getTLSTable().threadSeqID
 
-    while true do
-        local result = _RSVD_NAME_waitNotify(threadKey, threadSeqID)
-        if result then
-            return table.unpack(result, 1, result.n)
-        end
-
-        -- TODO
-        -- timeout support not implemented yet
-
-        coroutine.yield()
+    local result = _RSVD_NAME_waitNotify(timeout, threadKey, threadSeqID)
+    if result then
+        return table.unpack(result, 1, result.n)
     end
+
+    coroutine.yield()
+
+    local resList = pickNotify(1)
+    if #resList == 1 then
+        return table.unpack(resList[1], 1, resList[1].n)
+    end
+
+    -- timeout and not closed
+    -- do not return nil since we support send nil
+    --
+    --      sendNotify(threadAddr, nil)
+    --
+    -- the tailing nil is also forwarded to waitNotify()
+    return
 end
 
 function clearNotify()

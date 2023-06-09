@@ -15,6 +15,7 @@ extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
 ActorPod::ActorPod(uint64_t uid,
+        ServerObject *serverObject,
         std::function<void()> fnTrigger,
         std::function<void(const ActorMsgPack &)> fnOperation,
         double updateFreq,
@@ -27,6 +28,7 @@ ActorPod::ActorPod(uint64_t uid,
           fflassert(uidf::getUIDType(uid) <  UID_END  , uid, uidf::getUIDString(uid));
           return uid;
       }())
+    , m_SO(serverObject)
     , m_trigger(std::move(fnTrigger))
     , m_operation(std::move(fnOperation))
     , m_updateFreq(regMetronomeFreq(updateFreq))

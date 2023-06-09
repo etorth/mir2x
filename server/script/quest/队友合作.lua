@@ -126,14 +126,18 @@ function main()
                         postString([=[挑战正在进行中，消灭一只%%s，你已经消灭%%d只怪物。]=], getMonsterName(monsterID), killCount)
 
                         if killCount >= 5 then
-                            sendNotify(%s)
+                            sendNotify(%s, true)
                             return true
                         end
                     end
                 end)
             ]], getThreadAddress())
 
-            waitNotify()
+            if waitNotify(10 * 1000) then
+                uidExecute(uid, [[ postString([=[挑战成功！]=]) ]])
+            else
+                uidExecute(uid, [[ postString([=[挑战失败，你超时了。]=]) ]])
+            end
             setUIDQuestState(uid, SYS_EXIT)
         end,
     })
