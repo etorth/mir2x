@@ -6,6 +6,12 @@ function postString(msg, ...)
 end
 
 function pause(ms)
+    if ms == SYS_POSINF then
+        while true do
+            coroutine.yield()
+        end
+    end
+
     assertType(ms, 'integer')
     assert(ms >= 0)
 
