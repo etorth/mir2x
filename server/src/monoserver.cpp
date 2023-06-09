@@ -178,12 +178,16 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
     uint32_t seqID = 1;
     const auto fnAddInitItem = [dbid, &seqID](const char8_t *itemName, size_t count = 1)
     {
-        const SDItem item
+        SDItem item
         {
             .itemID = DBCOM_ITEMID(itemName),
             .seqID  = seqID++,
             .count  = count,
         };
+
+        if(DBCOM_ITEMRECORD(item.itemID).isWeapon()){
+            item.extAttrList.insert(SDItem::build_EA_DC(100));
+        }
 
         fflassert(item);
         const auto attrBuf = cerealf::serialize(item.extAttrList);
