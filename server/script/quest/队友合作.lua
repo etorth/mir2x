@@ -126,7 +126,7 @@ function main()
                         postString([=[挑战正在进行中，消灭一只%%s，你已经消灭%%d只怪物。]=], getMonsterName(monsterID), killCount)
 
                         if killCount >= 5 then
-                            sendNotify(%s, 1)
+                            sendNotify(%s)
                             return true
                         end
                     end

@@ -32,10 +32,10 @@ function sendNotify(arg, ...)
         key = arg[2]
         seq = argDefault(arg[3], 0)
     else
-        local argtbl = {...}
+        local argtbl = table.pack(...)
         uid = arg
         key = argtbl[1]
-        if #argtbl >= 2 then
+        if argtbl.n >= 2 then
             seq = argtbl[2] -- must be there as place holder, even zero
         else
             seq = 0         -- notify without argument
