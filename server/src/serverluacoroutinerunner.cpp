@@ -124,34 +124,46 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         })});
     });
 
-    bindFunctionCoop("_RSVD_NAME_sendNotify", [this](LuaCoopResumer onDone, uint64_t uid, uint64_t threadKey, uint64_t threadSeqID, sol::object notifyArg) //TODO support sol::variadic_args
+    bindFunction(std::string("_RSVD_NAME_sendNotify") + SYS_COOP, [this](uint64_t questUID, uint64_t dstThreadKey, uint64_t dstThreadSeqID, sol::variadic_args args)
     {
-        std::vector<luaf::luaVar> argList;
-        argList.reserve(1);
+        fflassert(uidf::isQuest(questUID), uidf::getUIDString(questUID));
+        fflassert(dstThreadKey > 0);
+        fflassert(args.size() >= 3, args.size());
 
-        argList.emplace_back(luaf::buildLuaVar(notifyArg));
+        fflassert(args.begin()[args.size() - 3].is<sol::function>());
+        fflassert(args.begin()[args.size() - 2].is<lua_Integer>());
+        fflassert(args.begin()[args.size() - 1].is<lua_Integer>());
+
+        const auto onDone      = args.begin()[args.size() - 3].as<sol::function>();
+        const auto threadKey   = args.begin()[args.size() - 2].as<uint64_t>();
+        const auto threadSeqID = args.begin()[args.size() - 1].as<uint64_t>();
+
+        fflassert(onDone);
+        fflassert(threadKey > 0);
+        fflassert(threadSeqID > 0);
 
         auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
+        pushOnClose(threadKey, threadSeqID, [closed]()
         {
             *closed = true;
         });
 
-        m_actorPod->forward(uid, {AM_QUESTNOTIFY, cerealf::serialize(SDQuestNotify
+        const LuaCoopCallDoneFlag callDoneFlag;
+        m_actorPod->forward(questUID, {AM_QUESTNOTIFY, cerealf::serialize(SDQuestNotify
         {
-            .key = threadKey,
-            .seqID = threadSeqID,
-            .varList = std::move(argList),
+            .key = dstThreadKey,
+            .seqID = dstThreadSeqID,
+            .varList = luaf::vargBuildLuaVarList(args, 0, args.size() - 3),
             .waitConsume = false,
         })},
 
-        [closed, onDone](const ActorMsgPack &mpk)
+        [closed, callDoneFlag, onDone, threadKey, threadSeqID, this](const ActorMsgPack &mpk)
         {
             if(*closed){
                 return;
             }
             else{
-                onDone.popOnClose();
+                popOnClose(threadKey, threadSeqID);
             }
 
             switch(mpk.type()){
@@ -165,6 +177,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                         onDone();
                         break;
                     }
+            }
+
+            if(callDoneFlag){
+                resume(threadKey, threadSeqID);
             }
         });
     });
