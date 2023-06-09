@@ -285,7 +285,15 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         void addNotify(uint64_t key, uint64_t seqID, std::vector<luaf::luaVar> notify)
         {
             if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
-                p->second->notifyList.push_back(luaf::buildLuaVar(std::move(notify)));
+                // notify is from variadic_args, which may contain tailing nil
+                // create a table that micmics format returned by table.pack() to preserve tailing nil
+                luaf::luaTable table;
+                for(lua_Integer i = 1; auto &v: notify){
+                    table.emplace(luaf::luaVarWrapper(i++), std::move(v));
+                }
+
+                table.emplace(luaf::luaVarWrapper("n"), lua_Integer(table.size()));
+                p->second->notifyList.push_back(luaf::buildLuaVar(std::move(table)));
             }
         }
 
