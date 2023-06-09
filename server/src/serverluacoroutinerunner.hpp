@@ -287,13 +287,12 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
                 // notify is from variadic_args, which may contain tailing nil
                 // create a table that micmics format returned by table.pack() to preserve tailing nil
-                luaf::luaTable table;
-                for(lua_Integer i = 1; auto &v: notify){
-                    table.emplace(luaf::luaVarWrapper(i++), std::move(v));
-                }
+                auto tblvar = luaf::buildLuaVar(std::move(notify));
+                auto tblptr = std::get_if<luaf::luaTable>(&tblvar);
 
-                table.emplace(luaf::luaVarWrapper("n"), lua_Integer(table.size()));
-                p->second->notifyList.push_back(luaf::buildLuaVar(std::move(table)));
+                fflassert(tblptr);
+                tblptr->emplace(luaf::luaVarWrapper("n"), lua_Integer(notify.size()));
+                p->second->notifyList.push_back(std::move(tblvar));
             }
         }
 
