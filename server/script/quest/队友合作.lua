@@ -133,7 +133,7 @@ function main()
                 end)
             ]], getThreadAddress())
 
-            waitNotify(1)
+            waitNotify()
             setUIDQuestState(uid, SYS_EXIT)
         end,
     })
