@@ -5,21 +5,6 @@ function postString(msg, ...)
     postRawString(msg:format(...))
 end
 
-function pause(ms)
-    if ms == SYS_POSINF then
-        while true do
-            coroutine.yield()
-        end
-    end
-
-    assertType(ms, 'integer')
-    assert(ms >= 0)
-
-    local oldTime = getTime()
-    _RSVD_NAME_pauseYielding(ms, getTLSTable().threadKey, getTLSTable().threadSeqID)
-    return getTime() - oldTime
-end
-
 function randomMove()
     return _RSVD_NAME_callFuncCoop('randomMove')
 end

@@ -478,26 +478,6 @@ void Player::onActivate()
         });
     });
 
-    m_luaRunner->bindYielding("_RSVD_NAME_pauseYielding", [this](int ms, uint64_t threadKey, uint64_t threadSeqID)
-    {
-        fflassert(ms >= 0, ms);
-        fflassert(threadKey > 0, threadKey);
-
-        const auto delayKey = addDelay(ms, [threadKey, threadSeqID, this]()
-        {
-            // first pop the onclose function
-            // otherwise the resume() will call it if the resume reaches end of code
-
-            m_luaRunner->popOnClose(threadKey, threadSeqID);
-            m_luaRunner->resume    (threadKey, threadSeqID);
-        });
-
-        m_luaRunner->pushOnClose(threadKey, threadSeqID, [delayKey, this]()
-        {
-            removeDelay(delayKey);
-        });
-    });
-
     m_luaRunner->pfrCheck(m_luaRunner->execRawString(BEGIN_LUAINC(char)
 #include "player.lua"
     END_LUAINC()));

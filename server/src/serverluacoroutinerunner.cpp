@@ -342,6 +342,28 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         m_runnerList.find(threadKey)->second->notifyList.clear();
     });
 
+    bindYielding("_RSVD_NAME_pauseYielding", [this](uint64_t msec, uint64_t threadKey, uint64_t threadSeqID)
+    {
+        fflassert(threadKey > 0, threadKey);
+        fflassert(threadSeqID > 0, threadSeqID);
+
+        const auto delayKey = m_actorPod->getSO()->addDelay(msec, [threadKey, threadSeqID, this]()
+        {
+            if(auto runnerPtr = hasKey(threadKey, threadSeqID)){
+                // first pop the onclose function
+                // otherwise the resume() will call it if the resume reaches end of code
+                fflassert(!runnerPtr->onClose.empty());
+                runnerPtr->onClose.pop();
+                resumeRunner(runnerPtr);
+            }
+        });
+
+        pushOnClose(threadKey, threadSeqID, [delayKey, this]()
+        {
+            m_actorPod->getSO()->removeDelay(delayKey);
+        });
+    });
+
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "serverluacoroutinerunner.lua"
     END_LUAINC()));

@@ -6,6 +6,21 @@ function _RSVD_NAME_luaCoroutineRunner_main(code)
     return (load(code))()
 end
 
+function pause(msec)
+    if msec == SYS_POSINF then
+        while true do
+            coroutine.yield()
+        end
+    end
+
+    assertType(msec, 'integer')
+    assert(msec >= 0)
+
+    local oldTime = getTime()
+    _RSVD_NAME_pauseYielding(msec, getTLSTable().threadKey, getTLSTable().threadSeqID)
+    return getTime() - oldTime
+end
+
 function getThreadAddress()
     return {getUID(), getTLSTable().threadKey, getTLSTable().threadSeqID}
 end

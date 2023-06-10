@@ -1,23 +1,6 @@
 --, u8R"###(
 --
 
--- TODO
--- move pause() function to ServerLuaCoroutineRunner
-function pause(ms)
-    if ms == SYS_POSINF then
-        while true do
-            coroutine.yield()
-        end
-    end
-
-    assertType(ms, 'integer')
-    assert(ms >= 0)
-
-    local oldTime = getTime()
-    _RSVD_NAME_pauseYielding(ms, getTLSTable().threadKey, getTLSTable().threadSeqID)
-    return getTime() - oldTime
-end
-
 -- event handlers
 -- to support all kinds of quests, merchant scripts, etc
 
