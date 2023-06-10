@@ -318,10 +318,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         if(timeout > 0){
             const auto delayKey = m_actorPod->getSO()->addDelay(timeout, [threadKey, threadSeqID, this]()
             {
-                if(auto p = m_runnerList.find(threadKey); (p != m_runnerList.end()) && (threadSeqID == 0 || p->second->seqID == threadSeqID)){
-                    p->second->onClose.pop();
-                    p->second->notifyNeeded = false;
-                    resumeRunner(p->second.get());
+                if(auto p = hasKey(threadKey, threadSeqID)){
+                    p->onClose.pop();
+                    p->notifyNeeded = false;
+                    resumeRunner(p);
                 }
             });
 
