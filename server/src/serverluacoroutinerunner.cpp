@@ -11,6 +11,97 @@
 #include "serverluacoroutinerunner.hpp"
 
 extern MonoServer *g_monoServer;
+
+struct LuaCoroutineRunner
+{
+    // for this class
+    // the terms coroutine, runner, thread means same
+
+    // scenario why adding seqID:
+    // 1. received an event which triggers processNPCEvent(event)
+    // 2. inside processNPCEvent(event) the script emits query to other actor
+    // 3. when waiting for the response of the query, user clicked the close button or click init button to end up the current call stack
+    // 4. receives the query response, we should ignore it
+    //
+    // to fix this we have to give every call stack an uniq seqID
+    // and the query response needs to match the seqID
+
+    const uint64_t key;
+    const uint64_t seqID;
+
+    // consume coroutine result
+    // forward pfr to issuer as a special case
+    std::function<void(const sol::protected_function_result &)> onDone;
+
+    // thread can be closed when
+    //
+    //     1. it yields in C layer
+    //     2. its control has been dropped and wait some callback to resume
+    //
+    // then if the thread is closed without calling the registered callback
+    // we need some clear-functionality
+
+    // thread can call back and forth in C/lua
+    //
+    // C -> lua -> C -> lua -> C -> lua
+    //                         ^
+    //                         |
+    //                         +-- code of this layer is:
+    //
+    //                         bindYielding("_RSVD_NAME_pauseYielding", [](uint64_t time, uint64_t threadKey)
+    //                         {
+    //                             addDelay(time, [threadKey]()
+    //                             {
+    //                                 resume(threadKey);
+    //                             });
+    //                         });
+    //
+    // then even all C layer before this layer are not yield-able, still we know this chain may eventually get yielded
+    // and each C layer may require to register a callback if closed before done, which requires a stack as
+    //
+    // C -> lua -> C -> lua -> C -> lua
+    //                         ^
+    //                         |
+    //                         +-- code of this layer is:
+    //
+    //                         bindYielding("_RSVD_NAME_pauseYielding", [](uint64_t time, uint64_t threadKey)
+    //                         {
+    //                             const auto key = m_delayQueue.addDelay(time, [threadKey]()
+    //                             {
+    //                                 resume(threadKey);
+    //                                 m_delayQueue.pop(); // no need to trigger if delayed command gets executed
+    //                             });
+    //
+    //                             onClose.push([key]()
+    //                             {
+    //                                 m_delayQueue.erase(key);
+    //                             })
+    //                         });
+
+    std::stack<std::function<void()>> onClose;
+
+    sol::thread runner;
+    sol::coroutine callback;
+
+    bool notifyNeeded = false;
+    std::deque<luaf::luaVar> notifyList;
+
+    LuaCoroutineRunner(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
+        : key(argKey)
+        , seqID(argSeqID)
+        , onDone(std::move(argOnDone))
+        , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
+        , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
+    {
+        fflassert(key);
+        fflassert(seqID);
+
+        if(argOnClose){
+            onClose.push(std::move(argOnClose));
+        }
+    }
+};
+
 void LuaCoopResumer::pushOnClose(std::function<void()> fnOnClose) const
 {
     m_luaRunner->pushOnClose(m_threadKey, m_threadSeqID, std::move(fnOnClose));
@@ -256,6 +347,90 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     END_LUAINC()));
 }
 
+ServerLuaCoroutineRunner::~ServerLuaCoroutineRunner()
+{}
+
+uint64_t ServerLuaCoroutineRunner::getSeqID(uint64_t key) const
+{
+    if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
+        return p->second->seqID;
+    }
+    else{
+        return 0;
+    }
+}
+
+void ServerLuaCoroutineRunner::resume(uint64_t key, uint64_t seqID)
+{
+    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+        resumeRunner(p->second.get());
+    }
+    else{
+        // won't throw here
+        // if needs to confirm the coroutine exists, use hasKey() first
+    }
+}
+
+bool ServerLuaCoroutineRunner::hasKey(uint64_t key, uint64_t seqID) const
+{
+    const auto p = m_runnerList.find(key);
+    return (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID);
+}
+
+void ServerLuaCoroutineRunner::addNotify(uint64_t key, uint64_t seqID, std::vector<luaf::luaVar> notify)
+{
+    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+        // notify is from variadic_args, which may contain tailing nil
+        // create a table that micmics format returned by table.pack() to preserve tailing nil
+        auto tblvar = luaf::buildLuaVar(std::move(notify));
+        auto tblptr = std::get_if<luaf::luaTable>(&tblvar);
+
+        fflassert(tblptr);
+        tblptr->emplace(luaf::luaVarWrapper("n"), lua_Integer(notify.size()));
+        p->second->notifyList.push_back(std::move(tblvar));
+    }
+}
+
+std::optional<bool> ServerLuaCoroutineRunner::needNotify(uint64_t key, uint64_t seqID) const
+{
+    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+        return p->second->notifyNeeded;
+    }
+    return {};
+}
+
+void ServerLuaCoroutineRunner::pushOnClose(uint64_t key, uint64_t seqID, std::function<void()> onClose)
+{
+    fflassert(hasKey(key, seqID));
+    fflassert(onClose);
+
+    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+        p->second->onClose.push(std::move(onClose));
+    }
+}
+
+void ServerLuaCoroutineRunner::popOnClose(uint64_t key, uint64_t seqID)
+{
+    fflassert(hasKey(key, seqID));
+    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+        fflassert(!p->second->onClose.empty());
+        p->second->onClose.pop();
+    }
+}
+
+void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
+{
+    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
+        while(!p->second->onClose.empty()){
+            if(p->second->onClose.top()){
+                p->second->onClose.top()(); // only do clean work, don't modify onClose stack inside
+            }
+            p->second->onClose.pop();
+        }
+        m_runnerList.erase(p);
+    }
+}
+
 uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint64_t> reqAddr, const std::string &code)
 {
     fflassert(key);
@@ -338,7 +513,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
     fflassert(key);
     fflassert(str_haschar(code));
 
-    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<_CoroutineRunner>(*this, key, m_seqID++, std::move(onDone), std::move(onClose)));
+    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<LuaCoroutineRunner>(*this, key, m_seqID++, std::move(onDone), std::move(onClose)));
     const auto currSeqID = p->second->seqID;
 
     resumeRunner(p->second.get(), str_printf(
@@ -353,7 +528,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
     return currSeqID; // don't use p resumeRunner() can invalidate p
 }
 
-void ServerLuaCoroutineRunner::resumeRunner(ServerLuaCoroutineRunner::_CoroutineRunner *runnerPtr, std::optional<std::string> codeOpt)
+void ServerLuaCoroutineRunner::resumeRunner(LuaCoroutineRunner *runnerPtr, std::optional<std::string> codeOpt)
 {
     // resume current runnerPtr
     // this function can invalidate runnerPtr if it's done
