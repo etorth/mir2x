@@ -12,7 +12,7 @@
 
 extern MonoServer *g_monoServer;
 
-struct LuaCoroutineRunner
+struct LuaThreadHandle
 {
     // for this class
     // the terms coroutine, runner, thread means same
@@ -86,7 +86,7 @@ struct LuaCoroutineRunner
     bool notifyNeeded = false;
     std::deque<luaf::luaVar> notifyList;
 
-    LuaCoroutineRunner(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
+    LuaThreadHandle(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
         : key(argKey)
         , seqID(argSeqID)
         , onDone(std::move(argOnDone))
@@ -371,10 +371,10 @@ void ServerLuaCoroutineRunner::resume(uint64_t key, uint64_t seqID)
     }
 }
 
-bool ServerLuaCoroutineRunner::hasKey(uint64_t key, uint64_t seqID) const
+LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint64_t key, uint64_t seqID) const
 {
     const auto p = m_runnerList.find(key);
-    return (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID);
+    return (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID) ? p->second.get() : nullptr;
 }
 
 void ServerLuaCoroutineRunner::addNotify(uint64_t key, uint64_t seqID, std::vector<luaf::luaVar> notify)
@@ -513,7 +513,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
     fflassert(key);
     fflassert(str_haschar(code));
 
-    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<LuaCoroutineRunner>(*this, key, m_seqID++, std::move(onDone), std::move(onClose)));
+    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<LuaThreadHandle>(*this, key, m_seqID++, std::move(onDone), std::move(onClose)));
     const auto currSeqID = p->second->seqID;
 
     resumeRunner(p->second.get(), str_printf(
@@ -528,7 +528,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
     return currSeqID; // don't use p resumeRunner() can invalidate p
 }
 
-void ServerLuaCoroutineRunner::resumeRunner(LuaCoroutineRunner *runnerPtr, std::optional<std::string> codeOpt)
+void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::optional<std::string> codeOpt)
 {
     // resume current runnerPtr
     // this function can invalidate runnerPtr if it's done

@@ -135,7 +135,7 @@ class LuaCoopVargs final
 };
 
 class ActorPod;
-class LuaCoroutineRunner;
+class LuaThreadHandle;
 class ServerLuaCoroutineRunner: public ServerLuaModule
 {
     private:
@@ -145,7 +145,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
     private:
         uint64_t m_seqID = 1;
-        std::unordered_map<uint64_t, std::unique_ptr<LuaCoroutineRunner>> m_runnerList;
+        std::unordered_map<uint64_t, std::unique_ptr<LuaThreadHandle>> m_runnerList;
 
     public:
         ServerLuaCoroutineRunner(ActorPod *);
@@ -163,7 +163,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
     public:
         void close(uint64_t, uint64_t = 0);
         void resume(uint64_t, uint64_t = 0);
-        bool hasKey(uint64_t, uint64_t = 0) const;
+        LuaThreadHandle *hasKey(uint64_t, uint64_t = 0) const;
 
     public:
         void addNotify(uint64_t, uint64_t, std::vector<luaf::luaVar>);
@@ -174,7 +174,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         void popOnClose(uint64_t, uint64_t);
 
     private:
-        void resumeRunner(LuaCoroutineRunner *, std::optional<std::string> = {});
+        void resumeRunner(LuaThreadHandle *, std::optional<std::string> = {});
 
     private:
         static std::string concatCode(const std::string &code)
