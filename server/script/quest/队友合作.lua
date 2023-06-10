@@ -117,10 +117,10 @@ function main()
         end,
 
         quest_setup_kill_trigger = function(uid)
-            uidExecute(uid,
+            local triggerKey = uidExecute(uid,
             [[
                 local killCount = 0
-                addTrigger(SYS_ON_KILL, function(monsterID)
+                return addTrigger(SYS_ON_KILL, function(monsterID)
                     if getMonsterName(monsterID) then
                         killCount = killCount + 1
                         postString([=[挑战正在进行中，消灭一只%%s，你已经消灭%%d只怪物。]=], getMonsterName(monsterID), killCount)
@@ -135,10 +135,14 @@ function main()
 
             if waitNotify(10 * 1000) then
                 uidExecute(uid, [[ postString([=[挑战成功！]=]) ]])
+                setUIDQuestState(uid, SYS_EXIT)
             else
-                uidExecute(uid, [[ postString([=[挑战失败，你超时了。]=]) ]])
+                uidExecute(uid,
+                [[
+                    postString([=[挑战失败，你超时了。]=])
+                    deleteTrigger({%d,%d})
+                ]],triggerKey[1], triggerKey[2])
             end
-            setUIDQuestState(uid, SYS_EXIT)
         end,
     })
 end
