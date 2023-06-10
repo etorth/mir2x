@@ -7,17 +7,7 @@ function _RSVD_NAME_luaCoroutineRunner_main(code)
 end
 
 function getThreadAddress()
-    return setmetatable({
-        getUID(),
-        getTLSTable().threadKey,
-        getTLSTable().threadSeqID,
-    },
-
-    {
-        __tostring = function(tbl)
-            return string.format('{%d, %d, %d}', tbl[1], tbl[2], tbl[3])
-        end,
-    })
+    return {getUID(), getTLSTable().threadKey, getTLSTable().threadSeqID}
 end
 
 function sendNotify(arg, ...)

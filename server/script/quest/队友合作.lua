@@ -131,7 +131,7 @@ function main()
                         end
                     end
                 end)
-            ]], getThreadAddress())
+            ]], strAddress(getThreadAddress()))
 
             if waitNotify(10 * 1000) then
                 uidExecute(uid, [[ postString([=[挑战成功！]=]) ]])
@@ -140,8 +140,8 @@ function main()
                 uidExecute(uid,
                 [[
                     postString([=[挑战失败，你超时了。]=])
-                    deleteTrigger({%d,%d})
-                ]],triggerKey[1], triggerKey[2])
+                    deleteTrigger(%s)
+                ]], strAddress(triggerKey))
             end
         end,
     })
