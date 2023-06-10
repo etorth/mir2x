@@ -107,6 +107,25 @@ function isArray(tbl)
     return true
 end
 
+function strAddress(var)
+    if type(var) == 'string' then
+        return [[']] .. var .. [[']]
+
+    elseif math.type(var) == 'integer' then
+        return tostring(var)
+
+    elseif isArray(var) then
+        local strs = {}
+        for _, v in ipairs(var) do
+            table.insert(strs, strAddress(v))
+        end
+        return '{' .. table.concat(strs, ',') .. '}'
+
+    else
+        fatalPrintf('Invalid type: %s', type(var))
+    end
+end
+
 function hasChar(s)
     if s == nil then
         return false
