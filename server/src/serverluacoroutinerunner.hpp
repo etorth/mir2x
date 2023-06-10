@@ -139,9 +139,10 @@ class LuaThreadHandle;
 class ServerLuaCoroutineRunner: public ServerLuaModule
 {
     private:
+        ActorPod * const m_actorPod;
 
     private:
-        ActorPod * const m_actorPod;
+        LuaThreadHandle *m_currRunner = nullptr;
 
     private:
         uint64_t m_seqID = 1;

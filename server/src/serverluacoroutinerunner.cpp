@@ -549,6 +549,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     // this difference has been propogated to remote caller side by pfr serialization
     // this difference should be handled by caller side
 
+    m_currRunner = runnerPtr;
     const auto pfr = codeOpt.has_value() ? runnerPtr->callback(codeOpt.value()) : runnerPtr->callback();
 
     if(runnerPtr->callback){
