@@ -107,7 +107,7 @@ function isArray(tbl)
     return true
 end
 
-function strAddress(var)
+function asInitString(var)
     if type(var) == 'boolean' then
         return tostring(var)
 
@@ -120,7 +120,7 @@ function strAddress(var)
     elseif isArray(var) then
         local strs = {}
         for _, v in ipairs(var) do
-            table.insert(strs, strAddress(v))
+            table.insert(strs, asInitString(v))
         end
         return '{' .. table.concat(strs, ',') .. '}'
 
