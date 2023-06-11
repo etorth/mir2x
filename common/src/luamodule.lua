@@ -108,7 +108,10 @@ function isArray(tbl)
 end
 
 function strAddress(var)
-    if type(var) == 'string' then
+    if type(var) == 'boolean' then
+        return tostring(var)
+
+    elseif type(var) == 'string' then
         return [[']] .. var .. [[']]
 
     elseif math.type(var) == 'integer' then
