@@ -124,6 +124,32 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
+    m_actorPod->registerOp(AM_SENDNOTIFY, [this](const ActorMsgPack &mpk)
+    {
+        /* */ auto sdSN = mpk.deserialize<SDSendNotify>();
+        const auto notifyNeeded = needNotify(sdSN.key, sdSN.seqID);
+
+        addNotify(sdSN.key, sdSN.seqID, std::move(sdSN.varList));
+
+        if(mpk.seqID()){
+            if(sdSN.waitConsume){
+                if(notifyNeeded.value_or(false)){
+                    resume(sdSN.key, sdSN.seqID);
+                }
+                m_actorPod->forward(mpk.fromAddr(), AM_OK);
+            }
+            else{
+                m_actorPod->forward(mpk.fromAddr(), AM_OK);
+                if(notifyNeeded.value_or(false)){
+                    resume(sdSN.key, sdSN.seqID);
+                }
+            }
+        }
+        else{
+            resume(sdSN.key, sdSN.seqID);
+        }
+    });
+
     bindFunction("getUID", [this]() -> uint64_t
     {
         return m_actorPod->UID();

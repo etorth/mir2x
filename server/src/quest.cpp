@@ -291,11 +291,6 @@ void Quest::operateAM(const ActorMsgPack &mpk)
                 on_AM_METRONOME(mpk);
                 break;
             }
-        case AM_SENDNOTIFY:
-            {
-                on_AM_SENDNOTIFY(mpk);
-                break;
-            }
         case AM_REMOTECALL:
             {
                 on_AM_REMOTECALL(mpk);

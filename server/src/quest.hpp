@@ -44,6 +44,5 @@ class Quest final: public ServerObject
     protected:
         void on_AM_METRONOME      (const ActorMsgPack &);
         void on_AM_REMOTECALL     (const ActorMsgPack &);
-        void on_AM_SENDNOTIFY    (const ActorMsgPack &);
         void on_AM_RUNQUESTTRIGGER(const ActorMsgPack &);
 };
