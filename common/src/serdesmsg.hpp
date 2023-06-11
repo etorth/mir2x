@@ -948,7 +948,7 @@ struct SDRemoteCallResult
     }
 };
 
-struct SDQuestNotify
+struct SDSendNotify
 {
     uint64_t key = 0;
     uint64_t seqID = 0;

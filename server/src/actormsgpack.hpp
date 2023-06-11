@@ -298,7 +298,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_QUERYQUESTUID)
         _add_mpk_type_case(AM_QUERYQUESTTRIGGERLIST)
         _add_mpk_type_case(AM_RUNQUESTTRIGGER)
-        _add_mpk_type_case(AM_QUESTNOTIFY)
+        _add_mpk_type_case(AM_SENDNOTIFY)
         _add_mpk_type_case(AM_REGISTERQUEST)
         default: return "AM_UNKNOWN";
     }

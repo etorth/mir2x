@@ -208,7 +208,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             argList.emplace_back(luaf::buildLuaVar(sol::object(arg)));
         }
 
-        m_actorPod->forward(uid, {AM_QUESTNOTIFY, cerealf::serialize(SDQuestNotify
+        m_actorPod->forward(uid, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
         {
             .key = threadKey,
             .seqID = threadSeqID,
@@ -242,7 +242,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
 
         const LuaCoopCallDoneFlag callDoneFlag;
-        m_actorPod->forward(questUID, {AM_QUESTNOTIFY, cerealf::serialize(SDQuestNotify
+        m_actorPod->forward(questUID, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
         {
             .key = dstThreadKey,
             .seqID = dstThreadSeqID,
