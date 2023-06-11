@@ -167,10 +167,6 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         LuaThreadHandle *hasKey(uint64_t, uint64_t = 0) const;
 
     public:
-        void addNotify(uint64_t, uint64_t, std::vector<luaf::luaVar>);
-        std::optional<bool> needNotify(uint64_t, uint64_t) const;
-
-    public:
         void pushOnClose(uint64_t, uint64_t, std::function<void()>);
         void popOnClose(uint64_t, uint64_t);
 

@@ -83,7 +83,7 @@ struct LuaThreadHandle
     sol::thread runner;
     sol::coroutine callback;
 
-    bool notifyNeeded = false;
+    bool needNotify = false;
     std::deque<luaf::luaVar> notifyList;
 
     LuaThreadHandle(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
@@ -126,27 +126,41 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 {
     m_actorPod->registerOp(AM_SENDNOTIFY, [this](const ActorMsgPack &mpk)
     {
-        /* */ auto sdSN = mpk.deserialize<SDSendNotify>();
-        const auto notifyNeeded = needNotify(sdSN.key, sdSN.seqID);
+        auto sdSN = mpk.deserialize<SDSendNotify>();
+        auto runnerPtr = hasKey(sdSN.key, sdSN.seqID);
 
-        addNotify(sdSN.key, sdSN.seqID, std::move(sdSN.varList));
+        if(runnerPtr){
+            // notify is from variadic_args, which may contain tailing nil
+            // create a table that micmics format returned by table.pack() to preserve tailing nil
+
+            auto tblVar = luaf::buildLuaVar(std::move(sdSN.varList));
+            auto tblPtr = std::get_if<luaf::luaTable>(&tblVar);
+
+            tblPtr->emplace(luaf::luaVarWrapper("n"), lua_Integer(tblPtr->size()));
+            runnerPtr->notifyList.push_back(std::move(tblVar));
+        }
 
         if(mpk.seqID()){
             if(sdSN.waitConsume){
-                if(notifyNeeded.value_or(false)){
-                    resume(sdSN.key, sdSN.seqID);
+                if(runnerPtr && runnerPtr->needNotify){
+                    runnerPtr->needNotify = false;
+                    resumeRunner(runnerPtr);
                 }
                 m_actorPod->forward(mpk.fromAddr(), AM_OK);
             }
             else{
                 m_actorPod->forward(mpk.fromAddr(), AM_OK);
-                if(notifyNeeded.value_or(false)){
-                    resume(sdSN.key, sdSN.seqID);
+                if(runnerPtr && runnerPtr->needNotify){
+                    runnerPtr->needNotify = false;
+                    resumeRunner(runnerPtr);
                 }
             }
         }
         else{
-            resume(sdSN.key, sdSN.seqID);
+            if(runnerPtr && runnerPtr->needNotify){
+                runnerPtr->needNotify = false;
+                resumeRunner(runnerPtr);
+            }
         }
     });
 
@@ -336,18 +350,18 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             auto firstVar = std::move(runnerPtr->notifyList.front());
             runnerPtr->notifyList.pop_front();
 
-            runnerPtr->notifyNeeded = false;
+            runnerPtr->needNotify = false;
             return luaf::buildLuaObj(sol::state_view(s), std::move(firstVar));
         }
 
-        runnerPtr->notifyNeeded = true;
+        runnerPtr->needNotify = true;
         if(timeout > 0){
             const auto delayKey = m_actorPod->getSO()->addDelay(timeout, [threadKey, threadSeqID, this]()
             {
-                if(auto p = hasKey(threadKey, threadSeqID)){
-                    p->onClose.pop();
-                    p->notifyNeeded = false;
-                    resumeRunner(p);
+                if(auto runnerPtr = hasKey(threadKey, threadSeqID)){
+                    runnerPtr->onClose.pop();
+                    runnerPtr->needNotify = false;
+                    resumeRunner(runnerPtr);
                 }
             });
 
@@ -423,28 +437,6 @@ LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint64_t key, uint64_t seqID) 
 {
     const auto p = m_runnerList.find(key);
     return (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID) ? p->second.get() : nullptr;
-}
-
-void ServerLuaCoroutineRunner::addNotify(uint64_t key, uint64_t seqID, std::vector<luaf::luaVar> notify)
-{
-    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
-        // notify is from variadic_args, which may contain tailing nil
-        // create a table that micmics format returned by table.pack() to preserve tailing nil
-        auto tblvar = luaf::buildLuaVar(std::move(notify));
-        auto tblptr = std::get_if<luaf::luaTable>(&tblvar);
-
-        fflassert(tblptr);
-        tblptr->emplace(luaf::luaVarWrapper("n"), lua_Integer(notify.size()));
-        p->second->notifyList.push_back(std::move(tblvar));
-    }
-}
-
-std::optional<bool> ServerLuaCoroutineRunner::needNotify(uint64_t key, uint64_t seqID) const
-{
-    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
-        return p->second->notifyNeeded;
-    }
-    return {};
 }
 
 void ServerLuaCoroutineRunner::pushOnClose(uint64_t key, uint64_t seqID, std::function<void()> onClose)
