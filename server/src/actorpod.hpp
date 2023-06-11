@@ -51,6 +51,7 @@ class ActorPod final
         // informing messges means we didn't register an handler for it
         // this handler is provided at the initialization time and never change
         const std::function<void(const ActorMsgPack &)> m_operation;
+        std::array<std::function<void(const ActorMsgPack &)>, AM_END> m_msgOpList;
 
     private:
         // actorpool automatically send METRONOME to actor
@@ -180,5 +181,13 @@ class ActorPod final
         ServerObject *getSO() const
         {
             return m_SO;
+        }
+
+    public:
+        void registerOp(int type, std::function<void(const ActorMsgPack &)> op)
+        {
+            if(op){
+                m_msgOpList.at(type) = std::move(op);
+            }
         }
 };

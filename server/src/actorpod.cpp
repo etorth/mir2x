@@ -106,11 +106,11 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
     else{
         // this is not a responding message
         // use default message handling operation
-        if(m_operation){
+        if(const auto &mpkFunc = m_msgOpList.at(mpk.type()) ? m_msgOpList.at(mpk.type()) : m_operation){
             m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
             {
                 raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
-                m_operation(mpk);
+                mpkFunc(mpk);
             }
         }
         else{
