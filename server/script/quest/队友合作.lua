@@ -101,7 +101,7 @@ function main()
 
     setQuestFSMTable(
     {
-        [SYS_ENTER] = function(uid)
+        [SYS_ENTER] = function(uid, value)
             uidExecute(getNPCharUID('道馆_1', '士官_1'),
             [[
                 uidPostXML(%d,
@@ -116,7 +116,7 @@ function main()
             setUIDQuestState(uid, 'quest_setup_kill_trigger')
         end,
 
-        quest_setup_kill_trigger = function(uid)
+        quest_setup_kill_trigger = function(uid, value)
             local triggerKey = uidExecute(uid,
             [[
                 local killCount = 0

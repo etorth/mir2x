@@ -52,7 +52,7 @@ function main()
 
     setQuestFSMTable(
     {
-        [SYS_ENTER] = function(uid)
+        [SYS_ENTER] = function(uid, value)
             uidExecute(getNPCharUID('道馆_1', '万事通_1'),
             [[
                 uidPostXML(%d,
@@ -69,7 +69,7 @@ function main()
             setUIDQuestState(uid, 'quest_setup_kill_trigger')
         end,
 
-        ['quest_setup_kill_trigger'] = function(uid)
+        ['quest_setup_kill_trigger'] = function(uid, value)
             uidExecute(uid,
             [[
                 addTrigger(SYS_ON_KILL, function(monsterID)
@@ -104,7 +104,7 @@ function main()
             ]], uid, getQuestName())
         end,
 
-        ['quest_killed_monster'] = function(uid)
+        ['quest_killed_monster'] = function(uid, value)
             uidExecute(getNPCharUID('道馆_1', '万事通_1'),
             [[
                 local playerUID = %d
