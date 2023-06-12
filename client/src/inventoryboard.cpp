@@ -599,6 +599,41 @@ void InventoryBoard::packBinConsume(const PackBin &bin)
         InvPack::playItemSoundEffect(bin.item.itemID, true);
         m_processRun->requestConsumeItem(bin.item.itemID, bin.item.seqID, 1);
     }
+
+    else if(to_u8sv(ir.type) == u8"头盔"){
+        InvPack::playItemSoundEffect(bin.item.itemID, true);
+        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_HELMET);
+    }
+
+    else if(to_u8sv(ir.type) == u8"武器"){
+        InvPack::playItemSoundEffect(bin.item.itemID, true);
+        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_WEAPON);
+    }
+
+    else if(to_u8sv(ir.type) == u8"衣服"){
+        InvPack::playItemSoundEffect(bin.item.itemID, true);
+        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_DRESS);
+    }
+
+    else if(to_u8sv(ir.type) == u8"鞋"){
+        InvPack::playItemSoundEffect(bin.item.itemID, true);
+        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_SHOES);
+    }
+
+    else if(to_u8sv(ir.type) == u8"项链"){
+        InvPack::playItemSoundEffect(bin.item.itemID, true);
+        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_NECKLACE);
+    }
+
+    else if(to_u8sv(ir.type) == u8"手镯"){
+        InvPack::playItemSoundEffect(bin.item.itemID, true);
+        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_ARMRING0);
+    }
+
+    else if(to_u8sv(ir.type) == u8"戒指"){
+        InvPack::playItemSoundEffect(bin.item.itemID, true);
+        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_RING0);
+    }
 }
 
 void InventoryBoard::clearInvOp()
