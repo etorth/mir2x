@@ -18,7 +18,7 @@ enum SysTriggerType: int
     SYS_ON_GAINITEM,
     SYS_ON_GAINGOLD,
 
-    SYS_ON_LOGIN,
+    SYS_ON_ONLINE,
     SYS_ON_OFFLINE,
 
     SYS_ON_LEVELUP,
