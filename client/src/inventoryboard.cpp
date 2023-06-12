@@ -294,6 +294,21 @@ bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     switch(event.type){
+        case SDL_KEYDOWN:
+            {
+                switch(event.key.keysym.sym){
+                    case SDLK_ESCAPE:
+                        {
+                            setShow(false);
+                            setFocus(false);
+                            return true;
+                        }
+                    default:
+                        {
+                            return consumeFocus(false);
+                        }
+                }
+            }
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
