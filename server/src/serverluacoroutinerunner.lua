@@ -25,6 +25,20 @@ function getThreadAddress()
     return {getUID(), getTLSTable().threadKey, getTLSTable().threadSeqID}
 end
 
+function runExclusive(exclusiveKey, func)
+    _RSVD_NAME_switchExclusiveFunc(exclusiveKey, getTLSTable().threadKey, getTLSTable().threadSeqID)
+    local _RSVD_NAME_autoRemoveExclusiveFunc = setmetatable(
+    {
+        key = exclusiveKey,
+    },
+    {
+        __close = function(self)
+            _RSVD_NAME_switchExclusiveFunc(self.key, 0, 0)
+        end,
+    })
+    return func()
+end
+
 function sendNotify(arg, ...)
     assertType(arg, 'table', 'integer')
 

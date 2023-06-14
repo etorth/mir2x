@@ -148,6 +148,9 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         uint64_t m_seqID = 1;
         std::unordered_map<uint64_t, std::unique_ptr<LuaThreadHandle>> m_runnerList;
 
+    private:
+        std::unordered_map<uint64_t, std::pair<uint64_t, uint64_t>> m_exclusiveFuncList;
+
     public:
         ServerLuaCoroutineRunner(ActorPod *);
 

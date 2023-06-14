@@ -404,6 +404,32 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
+    bindFunction("_RSVD_NAME_switchExclusiveFunc", [this](uint64_t exclusiveKey, uint64_t threadKey, uint64_t threadSeqID)
+    {
+        if(threadKey){
+            fflassert(threadSeqID > 0, threadKey, threadSeqID);
+        }
+        else{
+            fflassert(threadSeqID == 0, threadKey, threadSeqID);
+        }
+
+        if(const auto p = m_exclusiveFuncList.find(exclusiveKey); p != m_exclusiveFuncList.end()){
+            if(p->second != decltype(p->second)(threadKey, threadSeqID)){
+                close(p->second.first, p->second.second);
+            }
+
+            if(threadKey){
+                p->second = decltype(p->second)(threadKey, threadSeqID);
+            }
+            else{
+                m_exclusiveFuncList.erase(p);
+            }
+        }
+        else if(threadKey){
+            m_exclusiveFuncList.emplace(exclusiveKey, std::pair<uint64_t, uint64_t>(threadKey, threadSeqID));
+        }
+    });
+
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "serverluacoroutinerunner.lua"
     END_LUAINC()));
