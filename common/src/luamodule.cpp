@@ -156,6 +156,7 @@ LuaModule::LuaModule()
 
     execString("SYS_COOP        = \'%s\'", SYS_COOP);
     execString("SYS_CHECKACTIVE = \'%s\'", SYS_CHECKACTIVE);
+    execString("SYS_ALLOWREDNAME = \'%s\'", SYS_ALLOWREDNAME);
 
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 

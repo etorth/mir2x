@@ -409,12 +409,41 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         elseif entryCount == 1 then
             -- only one entry
             -- no need to create menu, just redirect to corresponding entry function
+            local funcTable = nil
             if not tableEmpty(qstEntryList) then
-                _RSVD_NAME_EPQST_eventHandlers[qstEntryList[1]][SYS_ENTER](from, value)
+                funcTable = _RSVD_NAME_EPQST_eventHandlers[qstEntryList[1]]
             elseif not tableEmpty(uidEntryList) then
-                _RSVD_NAME_EPUID_eventHandlers[from][next(uidEntryList)][SYS_ENTER](from, value)
+                funcTable = _RSVD_NAME_EPUID_eventHandlers[from][next(uidEntryList)]
             else
-                _RSVD_NAME_EPDEF_eventHandlers[SYS_ENTER](from, value)
+                funcTable = _RSVD_NAME_EPDEF_eventHandlers
+            end
+
+            if uidQueryRedName(from) then
+                local allowRedName = false
+                if funcTable[SYS_ALLOWREDNAME] then
+                    if type(funcTable[SYS_ALLOWREDNAME]) == 'boolean' then
+                        allowRedName = funcTable[SYS_ALLOWREDNAME]
+                    elseif type(funcTable[SYS_ALLOWREDNAME]) == 'function' then
+                        allowRedName = funcTable[SYS_ALLOWREDNAME](from)
+                    else
+                        fatalPrintf("Invalid SYS_ALLOWREDNAME type: %s", type(funcTable[SYS_ALLOWREDNAME]))
+                    end
+                end
+
+                if allowRedName then
+                    funcTable[SYS_ENTER](from, value)
+                else
+                    uidPostXML(from,
+                    [[
+                        <layout>
+                            <par>和你这样的人我无话可说。</par>
+                            <par></par>
+                            <par><event id="%s">关闭</event></par>
+                        </layout>
+                    ]], SYS_EXIT)
+                end
+            else
+                funcTable[SYS_ENTER](from, value)
             end
 
         else
