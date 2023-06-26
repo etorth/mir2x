@@ -8,7 +8,8 @@ function main()
         return setQuestHandler(questName,
         {
             [SYS_ENTER] = function(uid, value)
-                if uidExecute(uid, [=[ return getLevel() ]=]) < 4 then
+                local level = uidExecute(uid, [=[ return getLevel() ]=])
+                if level < 4 then
                     uidPostXML(uid, questPath,
                     [=[
                         <layout>
@@ -31,6 +32,7 @@ function main()
                             <par><event id="quest_what_is_taoist">什么是道士？</event></par>
                             <par><event id="quest_what_is_dogwan">这道馆是什么地方？</event></par>
                             <par><event id="quest_who_are_you">士官是做什么事的人？</event></par>
+                            <par><event id="quest_what_is_my_quest">什么是我要做的事情？</event></par>
                             <par><event id="%%s">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
@@ -70,6 +72,32 @@ function main()
                         <par><event id="%%s">返回</event></par>
                     </layout>
                 ]=], SYS_ENTER)
+            end,
+
+            quest_what_is_my_quest = function(uid, value)
+                local level = uidExecute(uid, [=[ return getLevel() ]=])
+                if level < 6 then
+                    uidPostXML(uid, questPath,
+                    [=[
+                        <layout>
+                            <par>现在没有什么合适的任务交给施主做呀！</par>
+                            <par>请级别高一点，修练到6级以上再来吧！</par>
+                            <par>祝你好运噢！</par>
+                            <par></par>
+                            <par><event id="%%s">退出</event></par>
+                        </layout>
+                    ]=], SYS_EXIT)
+                else
+                    uidPostXML(uid, questPath,
+                    [=[
+                        <layout>
+                            <par>这个，嗯，详细的情况请到收罗杂货的<t color="red">大老板道友</t>那儿打听吧。</par>
+                            <par>大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在<t color="green">(394,169)</t>，请参考一下吧！</par>
+                            <par></par>
+                            <par><event id="%%s">好的</event></par>
+                        </layout>
+                    ]=], SYS_EXIT)
+                end
             end,
         })
     ]], getUID(), getQuestName())
