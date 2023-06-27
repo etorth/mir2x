@@ -122,6 +122,28 @@ function main()
     setQuestFSMTable(
     {
         [SYS_ENTER] = function(uid, value)
+            uidExecute(getNPCharUID('仓库_1_007', '大老板_1'),
+            [[
+                local playerUID = %d
+                local questUID  = %d
+                local questName = '%s'
+                local questPath = {SYS_EPUID, questName}
+
+                return setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>是士官派你来的？</par>
+                                <par>嗯，那么先吩咐你做件简单的事儿吧！你能去把这个护身符交给武器库的<t color="red">阿潘</t>道友吗？</par>
+                                <par></par>
+                                <par><event id="%%s">好的！</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end
+                })
+            ]], uid, getUID(), getQuestName())
         end,
     })
 end
