@@ -138,10 +138,32 @@ function main()
                                 <par>是士官派你来的？</par>
                                 <par>嗯，那么先吩咐你做件简单的事儿吧！你能去把这个护身符交给武器库的<t color="red">阿潘</t>道友吗？</par>
                                 <par></par>
+                                <par><event id="quest_accept_quest" close="1">好的！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    quest_accept_quest = function(uid, value)
+                        uidGrant(uid, '道力护身符', 1)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>阿潘道友还在等着呢！尽快把这个护身符给他带过去吧！</par>
+                                <par>从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在<event id="quest_fly_to_loc" arg="{429,120}" close="1">(429,120)</event>。</par>
+                                <par></par>
                                 <par><event id="%%s">好的！</event></par>
                             </layout>
                         ]=], SYS_EXIT)
-                    end
+                    end,
+
+                    quest_fly_to_loc = function(uid, value)
+                        uidExecute(uid,
+                        [=[
+                            local loc = %%s
+                            local map = '%%s'
+                            spaceMove(map, loc[1], loc[2])
+                        ]=], value, getNPCMapName(false))
+                    end,
                 })
             ]], uid, getUID(), getQuestName())
         end,
