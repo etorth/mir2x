@@ -215,7 +215,7 @@ function main()
                             <layout>
                                 <par>嗯，这就是以前我要的护身符啊！要是你不送来的话我就要去催大老板道友了，做得不错啊！</par>
                                 <par>送你一把我们店里卖的匕首就当是报答你了，希望能好好使用它哦！</par>
-                                <par>在再去找找大老板道友吧，或许又有什么事情要派施主去做呢！</par>
+                                <par>再去找找大老板道友吧，或许又有什么事情要派施主去做呢！</par>
                                 <par><event id="%%s">结束</event></par>
                             </layout>
                         ]=], SYS_EXIT)
@@ -228,6 +228,56 @@ function main()
         end,
 
         quest_done_apan = function(uid, value)
+            uidExecute(getNPCharUID('武器仓库_1_001', '阿潘_1'),
+            [[
+                local playerUID = %d
+                local questName = '%s'
+                local questPath = {SYS_EPUID, questName}
+
+                return setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>大老板道友呆的杂货店在<event id="quest_fly_to_loc" arg="{394,169}" close="1">(394,169)</event>那儿。快回去看看吧！</par>
+                                <par><event id="%%s">结束</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    quest_fly_to_loc = function(uid, value)
+                        uidExecute(uid,
+                        [=[
+                            local loc = %%s
+                            spaceMove('道馆_1', loc[1], loc[2])
+                        ]=], value)
+                    end,
+                })
+            ]], uid, getQuestName())
+
+            uidExecute(getNPCharUID('仓库_1_007', '大老板_1'),
+            [[
+                local playerUID = %d
+                local questUID  = %d
+                local questName = '%s'
+                local questPath = {SYS_EPUID, questName}
+
+                return setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>把护身符交给啊潘道友了吧? 那么我会信任施主并且再拜托施主办另外的事儿的！</par>
+                                <par>倒没什么特别的，只是在道馆北部的灌木林中最近总有怪物出没，跑出来骚扰百姓，所以需要许多护身符。但是我又有其他的急事要办没时间去弄制护身符所需的鸡血，所以希望你替我收集<t color="green">2</t>瓶<t color="red">鸡血</t>来！</par>
+                                <par>嗯, 只要去猎到鸡自然就会有鸡血了，所以不用特别担心！</par>
+                                <par><event id="%%s">结束</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+                })
+            ]], uid, getUID(), getQuestName())
         end,
     })
 end
