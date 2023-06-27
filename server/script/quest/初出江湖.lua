@@ -92,7 +92,7 @@ function main()
                     [=[
                         <layout>
                             <par>这个，嗯，详细的情况请到收罗杂货的<t color="red">大老板</t>道友那儿打听吧。</par>
-                            <par>大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在<event id="quest_fly_to_loc" arg="{394,169}" close="1">(394,169)</event>，请参考一下吧！</par>
+                            <par>大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在<event id="quest_fly_to_loc" arg="{'道馆_1',394,169}" close="1">(394,169)</event>，请参考一下吧！</par>
                             <par></par>
                             <par><event id="quest_accept_quest" close="1">好的！</event></par>
                             <par><event id="%%s">还是算了。</event></par>
@@ -102,12 +102,7 @@ function main()
             end,
 
             quest_fly_to_loc = function(uid, value)
-                uidExecute(uid,
-                [=[
-                    local loc = %%s
-                    local map = '%%s'
-                    spaceMove(map, loc[1], loc[2])
-                ]=], value, getNPCMapName(false))
+                uidExecute(uid, [=[ spaceMove(%%s) ]=], value)
             end,
 
             quest_accept_quest = function(uid, value)
@@ -145,7 +140,7 @@ function main()
                         [=[
                             <layout>
                                 <par>阿潘道友还在等着呢！尽快把这个护身符给他带过去吧！</par>
-                                <par>从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在<event id="quest_fly_to_loc" arg="{429,120}" close="1">(429,120)</event>。</par>
+                                <par>从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在<event id="quest_fly_to_loc" arg="{'道馆_1',429,120}" close="1">(429,120)</event>。</par>
                                 <par></par>
                                 <par><event id="%%s">好的！</event></par>
                             </layout>
@@ -156,11 +151,7 @@ function main()
                     end,
 
                     quest_fly_to_loc = function(uid, value)
-                        uidExecute(uid,
-                        [=[
-                            local loc = %%s
-                            spaceMove('道馆_1', loc[1], loc[2])
-                        ]=], value)
+                        uidExecute(uid, [=[ spaceMove(%%s) ]=], value)
                     end,
                 })
             ]], uid, getUID(), getQuestName())
@@ -183,7 +174,7 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>出去后向右上方一直走就是武器库的入口。位置在<event id="quest_fly_to_loc" arg="{429,120}" close="1">(429,120)</event>，到阿潘道友后把道力护身符交给他。</par>
+                                <par>出去后向右上方一直走就是武器库的入口。位置在<event id="quest_fly_to_loc" arg="{'道馆_1',429,120}" close="1">(429,120)</event>，到阿潘道友后把道力护身符交给他。</par>
                                 <par></par>
                                 <par><event id="%%s">好的！</event></par>
                             </layout>
@@ -191,11 +182,7 @@ function main()
                     end,
 
                     quest_fly_to_loc = function(uid, value)
-                        uidExecute(uid,
-                        [=[
-                            local loc = %%s
-                            spaceMove('道馆_1', loc[1], loc[2])
-                        ]=], value)
+                        uidExecute(uid, [=[ spaceMove(%%s) ]=], value)
                     end,
                 })
             ]], uid, getUID(), getQuestName())
@@ -240,18 +227,14 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>大老板道友呆的杂货店在<event id="quest_fly_to_loc" arg="{394,169}" close="1">(394,169)</event>那儿。快回去看看吧！</par>
+                                <par>大老板道友呆的杂货店在<event id="quest_fly_to_loc" arg="{'道馆_1',394,169}" close="1">(394,169)</event>那儿。快回去看看吧！</par>
                                 <par><event id="%%s">结束</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
 
                     quest_fly_to_loc = function(uid, value)
-                        uidExecute(uid,
-                        [=[
-                            local loc = %%s
-                            spaceMove('道馆_1', loc[1], loc[2])
-                        ]=], value)
+                        uidExecute(uid, [=[ spaceMove(%%s) ]=], value)
                     end,
                 })
             ]], uid, getQuestName())

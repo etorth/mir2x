@@ -9,18 +9,51 @@ function randomMove()
     return _RSVD_NAME_callFuncCoop('randomMove')
 end
 
-function spaceMove(map, x, y)
-    assertType(map, 'string', 'integer')
-    assertType(x, 'integer')
-    assertType(y, 'integer')
-
+function spaceMove(arg1, arg2, arg3)
     local mapID = nil
-    if type(map) == 'string' then
-        mapID = getMapID(map)
-    elseif math.type(map) == 'integer' and map >= 0 then
-        mapID = map
+    local x     = nil
+    local y     = nil
+
+    if type(arg1) == 'table' then
+        -- ignore arg2 and arg3
+        -- arg1 is an array with format: {mapName|mapID, x, y}
+
+        assert(isArray(arg1))
+        assert(tableSize(arg1) >= 3)
+
+        if type(arg1[1]) == 'string' then
+            mapID = getMapID(arg1[1])
+
+        elseif math.type(arg1[1]) == 'integer' and arg1[1] >= 0 then
+            mapID = arg1[1]
+
+        else
+            fatalPrintf("Invalid map: %s", type(arg1[1]))
+        end
+
+        assertType(arg1[2], 'integer')
+        assertType(arg1[3], 'integer')
+
+        x = arg1[2]
+        y = arg1[3]
+
     else
-        fatalPrintf("Invalid argument: map = %s, x = %s, y = %s", map, x, y)
+        assertType(arg1, 'integer', 'string')
+        assertType(arg2, 'integer')
+        assertType(arg3, 'integer')
+
+        if type(arg1) == 'string' then
+            mapID = getMapID(arg1)
+
+        elseif arg1 >= 0 then
+            mapID = arg1
+
+        else
+            fatalPrintf("Invalid map: %s", arg1)
+        end
+
+        x = arg2
+        y = arg3
     end
 
     return _RSVD_NAME_callFuncCoop('spaceMove', mapID, x, y)
