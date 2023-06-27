@@ -138,7 +138,7 @@ function main()
                                 <par>是士官派你来的？</par>
                                 <par>嗯，那么先吩咐你做件简单的事儿吧！你能去把这个护身符交给武器库的<t color="red">阿潘</t>道友吗？</par>
                                 <par></par>
-                                <par><event id="quest_accept_quest" close="1">好的！</event></par>
+                                <par><event id="quest_accept_quest">好的！</event></par>
                             </layout>
                         ]=])
                     end,
