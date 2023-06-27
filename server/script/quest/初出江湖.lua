@@ -92,9 +92,9 @@ function main()
                     [=[
                         <layout>
                             <par>这个，嗯，详细的情况请到收罗杂货的<t color="red">大老板</t>道友那儿打听吧。</par>
-                            <par>大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在<event id="quest_fly_to_loc" arg="{394,169}">(394,169)</event>，请参考一下吧！</par>
+                            <par>大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在<event id="quest_fly_to_loc" arg="{394,169}" close="1">(394,169)</event>，请参考一下吧！</par>
                             <par></par>
-                            <par><event id="quest_accept_quest">好的！</event></par>
+                            <par><event id="quest_accept_quest" close="1">好的！</event></par>
                             <par><event id="%%s">还是算了。</event></par>
                         </layout>
                     ]=], SYS_EXIT)

@@ -49,8 +49,15 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
                       return valDefault;
                   };
 
+                  const auto autoClose = [attrVal = str_toupper(fnFindAttrValue("close", "false"))]() -> bool
+                  {
+                      for(const auto  trueStr: {"1", "TRUE" }){ if(attrVal ==  trueStr){ return true ; }}
+                      for(const auto falseStr: {"0", "FALSE"}){ if(attrVal == falseStr){ return false; }}
+                      throw fflerror("invalid close attribute: %s", attrVal.c_str());
+                  }();
+
                   if(const auto id = fnFindAttrValue("id", nullptr)){
-                      onClickEvent(fnFindAttrValue("path", m_eventPath.c_str()), id, fnFindAttrValue("arg", nullptr));
+                      onClickEvent(fnFindAttrValue("path", m_eventPath.c_str()), id, fnFindAttrValue("arg", nullptr), autoClose || to_sv(id) == SYS_EXIT);
                   }
               }
           },
@@ -187,7 +194,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *eventPath, const char *xmlS
     }
 }
 
-void NPCChatBoard::onClickEvent(const char *path, const char *id, const char *arg)
+void NPCChatBoard::onClickEvent(const char *path, const char *id, const char *arg, bool autoClose)
 {
     if(g_clientArgParser->debugClickEvent){
         m_process->addCBLog(CBLOG_SYS, u8"clickEvent: path = %s, id = %s, arg = %s", to_cstr(path), to_cstr(id), to_cstr(arg));
@@ -196,7 +203,7 @@ void NPCChatBoard::onClickEvent(const char *path, const char *id, const char *ar
     fflassert(str_haschar(id));
     m_process->sendNPCEvent(m_npcUID, path, id, arg ? std::make_optional<std::string>(arg) : std::nullopt);
 
-    if(std::string_view(id).ends_with(SYS_EXIT)){
+    if(autoClose){
         setShow(false);
     }
 }
