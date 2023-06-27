@@ -49,15 +49,19 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
                       return valDefault;
                   };
 
-                  const auto autoClose = [attrVal = str_toupper(fnFindAttrValue("close", "false"))]() -> bool
-                  {
-                      for(const auto  trueStr: {"1", "TRUE" }){ if(attrVal ==  trueStr){ return true ; }}
-                      for(const auto falseStr: {"0", "FALSE"}){ if(attrVal == falseStr){ return false; }}
-                      throw fflerror("invalid close attribute: %s", attrVal.c_str());
-                  }();
-
                   if(const auto id = fnFindAttrValue("id", nullptr)){
-                      onClickEvent(fnFindAttrValue("path", m_eventPath.c_str()), id, fnFindAttrValue("arg", nullptr), autoClose || to_sv(id) == SYS_EXIT);
+                      const auto autoClose = [id, closeAttr = fnFindAttrValue("close", nullptr)]() -> bool
+                      {
+                          if(closeAttr){
+                              for(const auto  trueStr: {"1", "TRUE" }){ if(str_toupper(closeAttr) ==  trueStr){ return true ; }}
+                              for(const auto falseStr: {"0", "FALSE"}){ if(str_toupper(closeAttr) == falseStr){ return false; }}
+                              throw fflerror("invalid close attribute: %s", to_cstr(closeAttr));
+                          }
+                          else{
+                              return to_sv(id) == SYS_EXIT;
+                          }
+                      }();
+                      onClickEvent(fnFindAttrValue("path", m_eventPath.c_str()), id, fnFindAttrValue("arg", nullptr), autoClose);
                   }
               }
           },

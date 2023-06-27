@@ -160,9 +160,8 @@ function main()
                         uidExecute(uid,
                         [=[
                             local loc = %%s
-                            local map = '%%s'
-                            spaceMove(map, loc[1], loc[2])
-                        ]=], value, getNPCMapName(false))
+                            spaceMove('道馆_1', loc[1], loc[2])
+                        ]=], value)
                     end,
                 })
             ]], uid, getUID(), getQuestName())
