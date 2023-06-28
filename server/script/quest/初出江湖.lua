@@ -300,7 +300,7 @@ function main()
                             </layout>
                         ]=], SYS_EXIT)
 
-                       uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_prepare_to_wang') ]=], playerUID)
+                       uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_prepare_to_wang') ]=], uid)
                     end,
                 })
             ]], uid, getUID(), getQuestName())
