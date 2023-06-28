@@ -374,9 +374,9 @@ function main()
 
                             uidGrant(uid, '古籍'  , 1)
                             uidGrant(uid, '治愈术', 1)
-                            uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_wang')]=], uid)
+                            uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_wang') ]=], uid)
                         end,
-                    }
+                    })
                 ]], uid, getUID(), getQuestName())
             end
         end,
