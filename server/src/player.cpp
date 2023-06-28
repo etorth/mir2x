@@ -272,6 +272,15 @@ void Player::onActivate()
         }
     });
 
+    m_luaRunner->bindFunction("hasItem", [this](int itemID, int seqID, size_t count) -> bool
+    {
+        fflassert(itemID >  0, itemID);
+        fflassert( seqID >= 0,  seqID);
+        fflassert( count >  0,  count);
+
+        return hasInventoryItem(to_u32(itemID), to_u32(seqID), count);
+    });
+
     m_luaRunner->bindFunction("dbLoadQuestNameList", [this]() -> std::vector<std::string>
     {
         return dbLoadQuestNameList();

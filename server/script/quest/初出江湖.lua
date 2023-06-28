@@ -260,6 +260,143 @@ function main()
                     end,
                 })
             ]], uid, getUID(), getQuestName())
+
+            setUIDQuestState(uid, 'quest_find_chicken_blood')
+        end,
+
+        quest_find_chicken_blood = function(uid, value)
+            uidExecute(uid,
+            [[
+                addTrigger(SYS_ON_GAINITEM, function(itemID, seqID)
+                    if hasItem(getItemID('鸡血'), 0, 2) then
+                        postString('已经收集到2瓶鸡血了，快回去找大老板吧！')
+                        uidExecute(%d, [=[ setUIDQuestState(%d, 'quest_done_chicken_blood') ]=])
+                        return true
+                    end
+                end)
+            ]], getUID(), uid)
+        end,
+
+        quest_done_chicken_blood = function(uid, value)
+            uidExecute(getNPCharUID('仓库_1_007', '大老板_1'),
+            [[
+                local playerUID = %d
+                local questName = '%s'
+                local questPath = {SYS_EPUID, questName}
+
+                return setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>多亏了你，我才能及时画完所有的护身符啊！这是辛苦费请你收下！</par>
+                                <par>再回去找找士官吧，或许还有别的事情要你做呢！</par>
+                                <par><event id="%%s">结束</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+                })
+            ]], uid, getQuestName())
+
+            setUIDQuestState(uid, 'quest_prepare_to_wang')
+        end,
+
+        quest_prepare_to_wang = function(uid, value)
+            if uidExecute(uid, [[ return getLevel() ]]) < 6 then
+                uidExecute(getNPCharUID('道馆_1', '士官_1'),
+                [[
+                    local playerUID = %d
+                    local questName = '%s'
+                    local questPath = {SYS_EPUID, questName}
+
+                    return setUIDQuestHandler(playerUID, questName,
+                    {
+                        [SYS_ENTER] = function(uid, value)
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>施主的实力真是大有所增啊！下次交给你做的事可能有点难，等你修炼到了6级再来吧！</par>
+                                    <par><event id="%%s">结束</event></par>
+                                </layout>
+                            ]=])
+                        end,
+                    })
+                ]], uid, getQuestName())
+
+                uidExecute(uid,
+                [[
+                    local playerUID = %d
+                    local  questUID = %d
+
+                    addTrigger(SYS_ON_LEVELUP, function(oldLevel, newLevel)
+                        if newLevel >= 6 then
+                            postString('你已经升到6级，去找道馆士官咨询新的任务。')
+                            uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_prepare_to_wang') ]=], playerUID)
+                            return true
+                        end
+                    end)
+                ]], uid, getUID())
+
+            else
+                uidExecute(getNPCharUID('道馆_1', '士官_1'),
+                [[
+                    local playerUID = %d
+                    local questUID  = %d
+                    local questName = '%s'
+                    local questPath = {SYS_EPUID, questName}
+
+                    return setUIDQuestHandler(playerUID, questName,
+                    {
+                        [SYS_ENTER] = function(uid, value)
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>施主的实力真是大有所增啊！现在你需要摆脱道馆的周围，将视野放到更宽广的地方去才行。从这里通过东南方的通路(516:580)到达比奇县后就可以到达首都比奇省。那个地方是政治、经济、文化的中心地。想修炼成为道士，一定要了解人间苦暖才行，所正好贫道有一样东西要送到比奇省，这件事情就拜托给你吧！</par>
+                                    <par><event id="npc_accept_wang">好的</event></par>
+                                </layout>
+                            ]=])
+                        end,
+
+                        npc_accept_wang = function(uid, value)
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>往比奇省西南方走，就能找到王大人了。详细的位置在比奇县(389:396)。找到他，然后把这本书转交给他，他自然会支付给你报酬。通过比奇省的东南部通路(516,580)到达比奇县后，就可以找到比奇省了。</par>
+                                    <par>对了，别忘了把这本武功秘笈给道士高手清明子。这位高手能给像施主这样的道士入门者传授一些基本的魔法，施主一定会有所收获的。清明子就在本馆内。从本馆左边往上走就可以找到了。准确位置在(429,96)。</par>
+                                    <par><event id="%%s">结束</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+
+                            uidGrant(uid, '古籍'  , 1)
+                            uidGrant(uid, '治愈术', 1)
+                            uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_wang')]=], uid)
+                        end,
+                    }
+                ]], uid, getUID(), getQuestName())
+            end
+        end,
+
+        quest_accept_wang = function(uid, value)
+            uidExecute(getNPCharUID('道馆_1', '士官_1'),
+            [[
+                local playerUID = %d
+                local questName = '%s'
+                local questPath = {SYS_EPUID, questName}
+
+                return setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>去见完比奇省的王大人，还要请您去拜访本馆的清明子！王大人在比奇省的西南部就可以找到.准确位置是比奇县(389,396)。通过比奇省的东南通路(516,580)到达比奇县后，便可以找到比奇省了。清明子就在本馆内。从本馆左边往上走就可以找到了。准确位置在(429,96)。</par>
+                                <par><event id="%%s">结束</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+                })
+            ]], uid, getQuestName())
         end,
     })
 end
