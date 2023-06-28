@@ -401,6 +401,66 @@ function main()
                     end,
                 })
             ]], uid, getQuestName())
+
+            uidExecute(getNPCharUID('比奇县_0', '王大人_1'),
+            [[
+                local playerUID = %d
+                local questUID  = %d
+                local questName = '%s'
+                local questPath = {SYS_EPUID, questName}
+
+                return setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>来此有何贵干啊？</par>
+                                <par><event id="npc_ask_who_are_you">请问阁下是王大人吗？</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_ask_who_are_you = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>难道你是受道馆的士官之托而来的人？</par>
+                                <par><event id="npc_grant_bonus">正是在下！</event></par>
+                                <par><event id="npc_deny">认错人了。</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_grant_bonus = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>我就是你要找的王某人，咳嗯。</par>
+                                <par>哦？带来了道馆的士官送给我的东西吗？啊哈，这就是我以前想要的古书。远道而来，辛苦你啦！</par>
+                                <par>这是给你的辛苦费，请收下吧！对了，或许以后还需要你的帮助呢，下次再来吧！</par>
+                                <par><event id="%%s">结束</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+
+                        uidGrantGold(uid, 1000)
+                        uidGrant(uid, '青铜头盔', 1)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_EXIT) ]=], uid)
+                    end,
+
+                    npc_deny = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>喔...</par>
+                                <par>出发有一会儿了，也该到了啊？</par>
+                                <par>不知是不是在路上哪儿遇到了什么麻烦？</par>
+                                <par><event id="%%s">结束</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+                })
+            ]], uid, getUID(), getQuestName())
         end,
     })
 end
