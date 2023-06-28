@@ -267,14 +267,17 @@ function main()
         quest_find_chicken_blood = function(uid, value)
             uidExecute(uid,
             [[
+                local playerUID = %d
+                local  questUID = %d
+
                 addTrigger(SYS_ON_GAINITEM, function(itemID, seqID)
                     if hasItem(getItemID('鸡血'), 0, 2) then
                         postString('已经收集到2瓶鸡血了，快回去找大老板吧！')
-                        uidExecute(%d, [=[ setUIDQuestState(%d, 'quest_done_chicken_blood') ]=])
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_done_chicken_blood') ]=], playerUID)
                         return true
                     end
                 end)
-            ]], getUID(), uid)
+            ]], uid, getUID())
         end,
 
         quest_done_chicken_blood = function(uid, value)
