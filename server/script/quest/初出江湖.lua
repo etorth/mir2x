@@ -5,7 +5,7 @@ function main()
         local questName = '%s'
         local questPath = {SYS_EPQST, questName}
 
-        return setQuestHandler(questName,
+        setQuestHandler(questName,
         {
             [SYS_ENTER] = function(uid, value)
                 local level = uidExecute(uid, [=[ return getLevel() ]=])
@@ -124,7 +124,7 @@ function main()
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
-                return setUIDQuestHandler(playerUID, questName,
+                setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -171,7 +171,7 @@ function main()
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
-                return setUIDQuestHandler(playerUID, questName,
+                setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -197,7 +197,7 @@ function main()
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
-                return setUIDQuestHandler(playerUID, questName,
+                setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -225,7 +225,7 @@ function main()
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
-                return setUIDQuestHandler(playerUID, questName,
+                setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -251,7 +251,7 @@ function main()
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
-                return setUIDQuestHandler(playerUID, questName,
+                setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -294,7 +294,7 @@ function main()
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
-                return setUIDQuestHandler(playerUID, questName,
+                setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -321,7 +321,7 @@ function main()
                     local questName = '%s'
                     local questPath = {SYS_EPUID, questName}
 
-                    return setUIDQuestHandler(playerUID, questName,
+                    setUIDQuestHandler(playerUID, questName,
                     {
                         [SYS_ENTER] = function(uid, value)
                             uidPostXML(uid, questPath,
@@ -358,7 +358,7 @@ function main()
                     local questName = '%s'
                     local questPath = {SYS_EPUID, questName}
 
-                    return setUIDQuestHandler(playerUID, questName,
+                    setUIDQuestHandler(playerUID, questName,
                     {
                         [SYS_ENTER] = function(uid, value)
                             uidPostXML(uid, questPath,
@@ -398,7 +398,7 @@ function main()
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
-                return setUIDQuestHandler(playerUID, questName,
+                setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -420,7 +420,7 @@ function main()
                 local questName = '%s'
                 local questPath = {SYS_EPUID, questName}
 
-                return setUIDQuestHandler(playerUID, questName,
+                setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
