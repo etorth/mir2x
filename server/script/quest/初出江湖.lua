@@ -384,14 +384,14 @@ function main()
 
                             uidGrant(uid, '古籍'  , 1)
                             uidGrant(uid, '治愈术', 1)
-                            uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_wang') ]=], uid)
+                            uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_wang_book') ]=], uid)
                         end,
                     })
                 ]], uid, getUID(), getQuestName())
             end
         end,
 
-        quest_accept_wang = function(uid, value)
+        quest_accept_wang_book = function(uid, value)
             uidExecute(getNPCharUID('道馆_1', '士官_1'),
             [[
                 local playerUID = %d
@@ -459,7 +459,7 @@ function main()
 
                         uidGrantGold(uid, 1000)
                         uidGrant(uid, '青铜头盔', 1)
-                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_EXIT) ]=], uid)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_done_wang_book') ]=], uid)
                     end,
 
                     npc_deny = function(uid, value)
@@ -476,6 +476,29 @@ function main()
                     end,
                 })
             ]], uid, getUID(), getQuestName())
+        end,
+
+        quest_done_wang_book = function(uid, value)
+            uidExecute(getNPCharUID('比奇县_0', '王大人_1'),
+            [[
+                local playerUID = %d
+                local questName = '%s'
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>暂时没有什么需要你帮忙的。</par>
+                                <par></par>
+                                <par><event id="%%s">退出</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+                })
+            ]], uid, getQuestName())
         end,
     })
 end
