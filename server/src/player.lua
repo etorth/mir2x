@@ -63,6 +63,16 @@ function getTeamMemberList()
     return _RSVD_NAME_callFuncCoop('getTeamMemberList')
 end
 
+function getQuestState(questName)
+    assertType(questName, 'string')
+    local questUID = _RSVD_NAME_callFuncCoop('queryQuestUID', questName)
+
+    assertType(questUID, 'integer')
+    if questUID ~= 0 then
+        return uidExecute(questUID, [[ return dbGetUIDQuestState(%d) ]], getUID())
+    end
+end
+
 function _RSVD_NAME_coth_runner(code)
     assertType(code, 'string')
     return (load(code))()

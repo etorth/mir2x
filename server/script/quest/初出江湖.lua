@@ -499,6 +499,7 @@ function main()
                     end,
                 })
             ]], uid, getQuestName())
+            setUIDQuestState(uid, SYS_EXIT)
         end,
     })
 end
