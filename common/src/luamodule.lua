@@ -108,11 +108,16 @@ function isArray(tbl)
 end
 
 function asInitString(var)
+    -- can not support functions
+    -- can not support metatables
+    -- can not support cyclic reference
+    -- can not support decimal because of precision issue
+
     if type(var) == 'boolean' then
         return tostring(var)
 
     elseif type(var) == 'string' then
-        return [[']] .. var .. [[']]
+        return quotedLuaString(var)
 
     elseif math.type(var) == 'integer' then
         return tostring(var)
@@ -121,6 +126,13 @@ function asInitString(var)
         local strs = {}
         for _, v in ipairs(var) do
             table.insert(strs, asInitString(v))
+        end
+        return '{' .. table.concat(strs, ',') .. '}'
+
+    elseif type(var) == 'table' then
+        local strs = {}
+        for k, v in pairs(var) do
+            table.insert(strs, '[' .. asInitString(k) .. ']=' .. asInitString(v))
         end
         return '{' .. table.concat(strs, ',') .. '}'
 
