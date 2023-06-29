@@ -352,7 +352,7 @@ LuaModule::LuaModule()
         return luaf::buildLuaObj(sol::state_view(s), cerealf::base64_deserialize<luaf::luaVar>(data));
     });
 
-    bindFunction("quotedLuaString", [](std::string s) -> sol::string
+    bindFunction("quotedLuaString", [](std::string s) -> std::string
     {
         // make follow two print identical results:
         //
