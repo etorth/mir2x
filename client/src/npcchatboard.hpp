@@ -39,7 +39,7 @@ class NPCChatBoard: public Widget
         void onClickEvent(const char *, const char *, const char *, bool);
 
     private:
-        int getMiddleCount() const;
+        int getMiddlePixels() const;
 
     private:
         uint32_t getNPCFaceKey() const

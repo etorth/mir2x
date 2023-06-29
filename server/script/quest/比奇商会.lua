@@ -23,6 +23,13 @@ function main()
             end,
 
             npc_accept_quest = function(uid, value)
+                uidPostXML(uid, questPath,
+                [=[
+                    <layout>
+                        <par>妈耶！你来辣！</par>
+                        <par><event id="%%d">结束</event></par>
+                    </layout>
+                ]=], SYS_EXIT)
             end,
 
             npc_refuse_quest = function(uid, value)

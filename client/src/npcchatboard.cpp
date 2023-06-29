@@ -113,7 +113,6 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
 
     fnAssertImage(0X00000050, 386, 160);
     fnAssertImage(0X00000051, 386, 160);
-    fnAssertImage(0X00000052, 386,  20);
     fnAssertImage(0X00000053, 386,  44);
     fnAssertImage(0X00000054, 386,  44);
     setShow(false);
@@ -125,7 +124,7 @@ void NPCChatBoard::drawWithNPCFace() const
     // +-----------------------------+ ---
     // | +----+ +------------------+ |  ^
     // | |    | |                  | |  |
-    // | |    | |                  | |  160 + k * 20 + 44
+    // | |    | |                  | |  160 + middlePixels + 44
     // | |    | |                  | |  |
     // | +----+ +------------------+ |  v
     // +-----------------------------+ ---
@@ -148,7 +147,7 @@ void NPCChatBoard::drawPlain() const
     // +-----------------------------+ ---
     // | +-------------------------+ |  ^
     // | |                         | |  |
-    // | |                         | |  160 + k * 20 + 44
+    // | |                         | |  160 + middlePixels + 44
     // | |                         | |  |
     // | +-------------------------+ |  v
     // +-----------------------------+ ---
@@ -187,7 +186,7 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *eventPath, const char *xmlS
     m_chatBoard.loadXML(xmlString);
 
     m_w = 386;
-    m_h = 160 + 20 * getMiddleCount() + 44;
+    m_h = 160 + getMiddlePixels() + 44;
 
     m_buttonClose.moveTo(w() - 40, h() - 43);
     if(auto texPtr = g_progUseDB->retrieve(getNPCFaceKey())){
@@ -212,8 +211,11 @@ void NPCChatBoard::onClickEvent(const char *path, const char *id, const char *ar
     }
 }
 
-int NPCChatBoard::getMiddleCount() const
+int NPCChatBoard::getMiddlePixels() const
 {
+    // repeat bottom 100 pixels of texture 0X00000051
+    // but still round to at least 20 pixels, to prevent too thin stripe
+
     if(auto texPtr = g_progUseDB->retrieve(getNPCFaceKey())){
         const auto [faceW, faceH] = SDLDeviceHelper::getTextureSize(texPtr);
         if(faceW + m_margin * 3 + m_chatBoard.w() >= 386){
@@ -226,7 +228,7 @@ int NPCChatBoard::getMiddleCount() const
         if(maxHeight < minBoardHeight){
             return 0;
         }
-        return (maxHeight - minBoardHeight + 19) / 20;
+        return ((maxHeight - minBoardHeight + 19) / 20) * 20;
     }
 
     // not using NPC face key
@@ -236,19 +238,25 @@ int NPCChatBoard::getMiddleCount() const
     if(m_chatBoard.h() < minPlainHeight){
         return 0;
     }
-    return (m_chatBoard.h() - minPlainHeight + 19) / 20;
+    return ((m_chatBoard.h() - minPlainHeight + 19) / 20) * 20;
 }
 
 void NPCChatBoard::drawFrame() const
 {
-    const auto k = getMiddleCount();
-    auto frameUp = g_progUseDB->retrieve(0X00000051);
-    auto frameMid = g_progUseDB->retrieve(0X00000052);
+    const auto middlePixels = getMiddlePixels();
+    auto frameUp   = g_progUseDB->retrieve(0X00000051);
     auto frameDown = g_progUseDB->retrieve(0X00000053);
 
     g_sdlDevice->drawTexture(frameUp, 0, 0);
-    for(int i = 0; i < k; ++i){
-        g_sdlDevice->drawTexture(frameMid, 0, 160 + i * 20);
+
+    constexpr int bottomPixels = 100;
+    int donePixels = 0;
+
+    while(donePixels < middlePixels){
+        const auto currPixels = std::min<int>(bottomPixels, middlePixels - donePixels);
+        g_sdlDevice->drawTexture(frameUp, 0, 160 + donePixels, 0, 160 - bottomPixels, 386, currPixels);
+        donePixels += currPixels;
     }
-    g_sdlDevice->drawTexture(frameDown, 0, 160 + k * 20);
+
+    g_sdlDevice->drawTexture(frameDown, 0, 160 + middlePixels);
 }
