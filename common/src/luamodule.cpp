@@ -12,6 +12,7 @@
 #include "raiitimer.hpp"
 #include "dbcomid.hpp"
 #include "cerealf.hpp"
+#include "luaf.hpp"
 
 LuaModule::LuaModule()
     : m_luaState()
@@ -125,6 +126,21 @@ LuaModule::LuaModule()
 
     execString("SYS_POSINF = %s", str_quoted(SYS_POSINF).c_str());
     execString("SYS_NEGINF = %s", str_quoted(SYS_NEGINF).c_str());
+
+    execString(R"###(
+        -- lua system quest variables
+        -- access as table
+
+        SYS_QUESTVAR = {
+            STATE = {
+                NAME = %s,
+                ARGS = %s,
+            }
+        }
+    )###",
+
+    luaf::quotedLuaString(SYS_QUESTVAR::STATE::NAME).c_str(),
+    luaf::quotedLuaString(SYS_QUESTVAR::STATE::ARGS).c_str());
 
     execString("SYS_QUESTVAR_STATE = \'%s\'", SYS_QUESTVAR_STATE);
     execString("SYS_QUESTVAR_STATEARGS = \'%s\'", SYS_QUESTVAR_STATEARGS);
