@@ -11,6 +11,7 @@
 #include "luamodule.hpp"
 #include "raiitimer.hpp"
 #include "dbcomid.hpp"
+#include "cerealf.hpp"
 
 LuaModule::LuaModule()
     : m_luaState()
@@ -126,6 +127,7 @@ LuaModule::LuaModule()
     execString("SYS_NEGINF = %s", str_quoted(SYS_NEGINF).c_str());
 
     execString("SYS_QUESTVAR_STATE = \'%s\'", SYS_QUESTVAR_STATE);
+    execString("SYS_QUESTVAR_STATEARGS = \'%s\'", SYS_QUESTVAR_STATEARGS);
 
     execString("SYS_QUESTVAR_TEAM = \'%s\'", SYS_QUESTVAR_TEAM);
     execString("SYS_QUESTVAR_TEAMLEADER = \'%s\'", SYS_QUESTVAR_TEAMLEADER);
@@ -322,6 +324,16 @@ LuaModule::LuaModule()
             result.push_back(alphabet[std::rand() % alphabet.length()]);
         }
         return result;
+    });
+
+    bindFunction("base64Encode", [this](sol::object obj) -> std::string
+    {
+        return cerealf::base64_serialize(luaf::buildLuaVar(obj));
+    });
+
+    bindFunction("base64Decode", [](std::string data, sol::this_state s) -> sol::object
+    {
+        return luaf::buildLuaObj(sol::state_view(s), cerealf::base64_deserialize<luaf::luaVar>(data));
     });
 }
 

@@ -102,7 +102,8 @@ constexpr char SYS_QUEST_TBL_PREFIX[] = "tbl_questdb_";
 
 // commonly used quest variable name in fld_vars
 // use key in luaTable instead of key in database table to avoid change table structure
-constexpr char SYS_QUESTVAR_STATE[] = "_RSVD_NAME_QUESTVAR_STATE_837517653";
+constexpr char SYS_QUESTVAR_STATE    [] = "_RSVD_NAME_QUESTVAR_STATE_837517653";
+constexpr char SYS_QUESTVAR_STATEARGS[] = "_RSVD_NAME_QUESTVAR_STATEARGS_335307593";
 
 constexpr char SYS_QUESTVAR_TEAM[]           = "_RSVD_NAME_QUESTVAR_TEAM_628693877";
 constexpr char SYS_QUESTVAR_TEAMLEADER[]     = "_RSVD_NAME_QUESTVAR_TEAMLEADER_622091631";

@@ -18,6 +18,7 @@
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/portable_binary.hpp>
 #include "zcompf.hpp"
+#include "base64f.hpp"
 #include "fflerror.hpp"
 
 namespace cerealf
@@ -137,6 +138,21 @@ namespace cerealf
     {
         fflassert(buf.size() >= 1, buf.size()); // don't dump buf itself since it may be binary
         return buf.back() & (CF_ZSTD | CF_XOR);
+    }
+
+    template<typename T> std::string base64_serialize(const T &t, int tryComp = -1)
+    {
+        return base64f::encode(serialize(t, tryComp));
+    }
+
+    template<typename T> T base64_deserialize(const void *data, size_t size)
+    {
+        return deserialize<T>(base64f::decode(data, size));
+    }
+
+    template<typename T> T base64_deserialize(const std::string &data)
+    {
+        return base64_deserialize<T>(data.data(), data.size());
     }
 
     // template<typename T> std::string json_serialize(const T &t)

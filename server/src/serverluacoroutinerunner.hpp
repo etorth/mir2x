@@ -158,6 +158,22 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         ~ServerLuaCoroutineRunner();
 
     public:
+        // start a thread to run lua code
+        // if need to pass compound lua struture as args, use cerealf::base64_serialize() in c++ world and decode by base64Decode in lua world, i.e.:
+        //
+        // in c++:
+        //
+        //    luaf::luaVar var = create_complicated_lua_var();
+        //    spawn(threadKey, str_printf("lua_func(%s)", luaf::quotedLuaString(cerealf::base64_serialize(var).c_str())), ...);
+        //
+        // in lua:
+        //
+        //    function lua_func(base64_var)
+        //        local var = base64Decode(var)
+        //        ...
+        //    end
+        //
+        // use luaf::quotedLuaString() to quote a string to be a lua string literal
         uint64_t spawn(uint64_t, std::pair<uint64_t, uint64_t>, const std::string &);
         uint64_t spawn(uint64_t,                                const std::string &, std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
 

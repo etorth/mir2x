@@ -64,6 +64,35 @@ bool luaf::luaVarWrapper::operator == (const luaf::luaNil &) const
     return m_ptr == nullptr || m_ptr->index() == 0;
 }
 
+std::string luaf::quotedLuaString(const std::string &s)
+{
+    // following two shall print identical result:
+    //
+    //    in c++: std::puts(s)
+    //    in lua: print(luaf::quotedLuaString(s))
+    //
+    // use this to pass compound structures as string to lua
+
+    if(s.find('[') == std::string::npos && s.find(']') == std::string::npos){
+        return str_printf("[[%s]]", s.c_str());
+    }
+
+    std::string result;
+    result.reserve(s.size() + 32);
+
+    result += "\'";
+    for(const auto si: s){
+        switch(si){
+            case '\'': result += "\\\'"    ; break;
+            case '\\': result += "\\\\"    ; break;
+            default  : result.push_back(si); break;
+        }
+    }
+
+    result += "\'";
+    return result;
+}
+
 sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaNil)
 {
     return sol::make_object(sv, sol::nil);

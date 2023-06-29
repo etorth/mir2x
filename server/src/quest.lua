@@ -18,9 +18,16 @@ function dbGetUIDQuestState(uid)
     return (dbGetUIDQuestVars(uid) or {})[SYS_QUESTVAR_STATE]
 end
 
-function dbSetUIDQuestState(uid, state)
+function dbGetUIDQuestStateArgs(uid)
     assertType(uid, 'integer')
+    return (dbGetUIDQuestVars(uid) or {})[SYS_QUESTVAR_STATEARGS]
+end
+
+function dbSetUIDQuestState(uid, state, args)
+    assertType(uid, 'integer')
+    assertType(state, 'string')
     dbUpdateUIDQuestVar(uid, SYS_QUESTVAR_STATE, state)
+    dbUpdateUIDQuestVar(uid, SYS_QUESTVAR_STATEARGS, args)
 end
 
 function loadMap(map)
@@ -122,7 +129,7 @@ function hasQuestState(state)
     return true
 end
 
-function setUIDQuestState(uid, state)
+function setUIDQuestState(uid, state, args)
     assertType(uid, 'integer')
     if (not hasQuestState(state)) and (state ~= SYS_EXIT) then
         fatalPrintf('Invalid quest state: %s', state)
@@ -131,12 +138,12 @@ function setUIDQuestState(uid, state)
     -- don't save team member list here
     -- a player can be in a team but still start a single-role quest alone
 
-    dbSetUIDQuestState(uid, state)
+    dbSetUIDQuestState(uid, state, args)
 
     if hasQuestState(state) then
-        _RSVD_NAME_switchUIDQuestState(uid, state, getTLSTable().threadKey, getTLSTable().threadSeqID)
+        _RSVD_NAME_switchUIDQuestState(uid, state, args, getTLSTable().threadKey, getTLSTable().threadSeqID)
     else
-        _RSVD_NAME_switchUIDQuestState(uid,   nil, getTLSTable().threadKey, getTLSTable().threadSeqID)
+        _RSVD_NAME_switchUIDQuestState(uid,   nil,  nil, getTLSTable().threadKey, getTLSTable().threadSeqID)
     end
 
     -- drop current thread in C layer
@@ -147,18 +154,24 @@ function setUIDQuestState(uid, state)
     end
 end
 
-function _RSVD_NAME_enterUIDQuestState(uid, state)
+function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
     assertType(uid, 'integer')
     assertType(state, 'string')
+    assertType(base64Args, 'string', 'nil')
 
     if not hasQuestState(state) then
         fatalPrintf('Invalid quest state: %s', state)
     end
-    _RSVD_NAME_questFSMTable[state](uid)
+
+    if base64Args then
+        _RSVD_NAME_questFSMTable[state](uid, base64Decode(base64Args))
+    else
+        _RSVD_NAME_questFSMTable[state](uid, nil)
+    end
 end
 
 function restoreUIDQuestState(uid)
-    setUIDQuestState(uid, dbGetUIDQuestState(uid))
+    setUIDQuestState(uid, dbGetUIDQuestState(uid), dbGetUIDQuestStateArgs(uid))
 end
 
 local _RSVD_NAME_triggers = {}
