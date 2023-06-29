@@ -14,7 +14,7 @@ extern ClientArgParser *g_clientArgParser;
 
 NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
     : Widget(DIR_UPLEFT, 0, 0, 386, 204, pwidget, autoDelete)
-    , m_margin(20)
+    , m_margin(35)
     , m_process(proc)
     , m_chatBoard
       {
