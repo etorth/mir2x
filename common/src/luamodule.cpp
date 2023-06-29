@@ -351,6 +351,17 @@ LuaModule::LuaModule()
     {
         return luaf::buildLuaObj(sol::state_view(s), cerealf::base64_deserialize<luaf::luaVar>(data));
     });
+
+    bindFunction("quotedLuaString", [](std::string s) -> sol::string
+    {
+        // make follow two print identical results:
+        //
+        // local s = 'string_literal_xxxx'
+        // print(s)
+        // print(string.format([[%s]], quotedLuaString(s)))
+
+        return luaf::quotedLuaString(s);
+    });
 }
 
 bool LuaModule::pfrCheck(const sol::protected_function_result &pfr, const std::function<void(const std::string &)> &errDrainFunc)
