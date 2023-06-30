@@ -269,7 +269,7 @@ if SYS_DEBUG then
     u = nil
     v = nil
 
-    u = randString(10000, '\'"{}[]()')
+    u = randString(10000, [[='"{}[]()]])
     load(string.format([[v=%s]],asInitString(u)))()
 
     assert(u == v)
