@@ -49,20 +49,21 @@ function main()
             [[
                 local playerUID = %d
                 local accepted  = %s
-                local questName = '%s'
-                local questPath = {SYS_EPQST, questName}
+                local questUID  = %d
 
                 if accepted then
-                    uidPostXML(playerUID, questPath,
+                    uidPostXML(playerUID,
                     [=[
                         <layout>
-                            <par>妈耶！你来辣！</par>
+                            <par>真的太感谢了！我期待着你能带来好消息！</par>
+                            <par>传奇商会所属的其它商人仍然还有很多，但是现在凭我自己的力量很难一一说服。虽然从好几个方面同时下手。不管怎样？难道不该先避免沦为乞丐吗？所以拜托啦！</par>
                             <par></par>
-                            <par><event id="%%s">结束</event></par>
+                            <par><event id="%%s">好的</event></par>
                         </layout>
                     ]=], SYS_EXIT)
+                    uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_quest') ]=], playerUID)
                 else
-                    uidPostXML(playerUID, questPath,
+                    uidPostXML(playerUID,
                     [=[
                         <layout>
                             <par>不行？</par>
@@ -71,8 +72,74 @@ function main()
                             <par><event id="%%s">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
+                    uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_refuse_quest') ]=], playerUID)
                 end
-            ]], uid, value, getQuestName())
+            ]], uid, value, getUID())
+        end,
+
+        quest_accept_quest = function(uid, value)
+            uidExecute(getNPCharUID('比奇县_0', '王大人_1'),
+            [[
+                local playerUID = %d
+                local questName = '%s'
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>真的太感谢了！我期待着你能带来好消息！</par>
+                                <par>传奇商会所属的其它商人仍然还有很多，但是现在凭我自己的力量很难一一说服。虽然从好几个方面同时下手。不管怎样？难道不该先避免沦为乞丐吗？所以拜托啦！</par>
+                                <par></par>
+                                <par><event id="%%s">好的</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+                })
+            ]], uid, getQuestName())
+        end,
+
+        quest_refuse_quest = function(uid, value)
+            uidExecute(getNPCharUID('比奇县_0', '王大人_1'),
+            [[
+                local playerUID = %d
+                local questUID  = %d
+                local questName = %s
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>那么现在可以帮助我了吗？情况紧急啊！</par>
+                                <par></par>
+                                <par><event id="npc_accept" close="1">好的</event></par>
+                                <par><event id="npc_deny">我没有多余的精力</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_accept = function(uid, value)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_quest') ]=], uid)
+                    end,
+
+                    npc_deny = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>唉！</par>
+                                <par>老天爷啊！真的丢下我不管了吗！？</par>
+                                <par></par>
+                                <par><event id="%%s">结束</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+                })
+            ]], uid, getUID(), asInitString(getQuestName()))
         end,
     })
 end
