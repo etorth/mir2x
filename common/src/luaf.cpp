@@ -73,9 +73,17 @@ std::string luaf::quotedLuaString(const std::string &s)
     //
     // use this to pass compound structures as string to lua
 
-    if(s.find('[') == std::string::npos && s.find(']') == std::string::npos){
-        return str_printf("[[%s]]", s.c_str());
-    }
+    // don't use double square bracket
+    // because this function is used for asInitString() which supports table
+    //
+    //     local u = any_func()
+    //     local s = string.format("[%s]=%s", asInitString(u))
+    //
+    // this messes up because the key-value pair also uses square bracket
+
+    // if(s.find('[') == std::string::npos && s.find(']') == std::string::npos){
+    //     return str_printf("[[%s]]", s.c_str());
+    // }
 
     std::string result;
     result.reserve(s.size() + 32);

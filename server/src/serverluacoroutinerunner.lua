@@ -257,5 +257,25 @@ function _RSVD_NAME_triggerConfig(triggerType)
     return _RSVD_NAME_triggerConfigList[triggerType]
 end
 
+if SYS_DEBUG then
+    -- test asInitString
+
+    local ins = require '3rdparty.inspect'
+
+    u = {["2"]=2,[3]=3,["4\"4[[44]]''"]={4,['55\'5']={[6]=7}}}
+    load(string.format([[v=%s]],asInitString(u)))()
+
+    assert(ins.inspect(u) == ins.inspect(v))
+    u = nil
+    v = nil
+
+    u = randString(10000, '\'"{}[]()')
+    load(string.format([[v=%s]],asInitString(u)))()
+
+    assert(u == v)
+    u = nil
+    v = nil
+end
+
 --
 -- )###"

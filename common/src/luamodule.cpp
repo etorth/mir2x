@@ -213,10 +213,6 @@ LuaModule::LuaModule()
         return to_d(std::time(nullptr));
     });
 
-    m_luaState.script(BEGIN_LUAINC(char)
-#include "luamodule.lua"
-    END_LUAINC());
-
     bindFunction("getUIDType", [](uint64_t uid)
     {
         return uidf::getUIDType(uid);
@@ -362,6 +358,10 @@ LuaModule::LuaModule()
 
         return luaf::quotedLuaString(s);
     });
+
+    m_luaState.script(BEGIN_LUAINC(char)
+#include "luamodule.lua"
+    END_LUAINC());
 }
 
 bool LuaModule::pfrCheck(const sol::protected_function_result &pfr, const std::function<void(const std::string &)> &errDrainFunc)

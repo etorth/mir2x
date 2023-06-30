@@ -139,7 +139,7 @@ function asInitString(var)
     elseif type(var) == 'table' then
         local strs = {}
         for k, v in pairs(var) do
-            table.insert(strs, string.format('[%s]=%s', quotedLuaString(asInitString(k)), quotedLuaString(asInitString(v))))
+            table.insert(strs, string.format('[%s]=%s', asInitString(k), asInitString(v)))
         end
         return '{' .. table.concat(strs, ',') .. '}'
 
