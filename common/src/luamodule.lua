@@ -108,6 +108,13 @@ function isArray(tbl)
 end
 
 function asInitString(var)
+    -- for following code:
+    --
+    --    u = any_func()
+    --    load(string.format([[v = %s]], asInitString(u)))()
+    --
+    -- then u and v should be conceptually identical
+
     -- can not support functions
     -- can not support metatables
     -- can not support cyclic reference
