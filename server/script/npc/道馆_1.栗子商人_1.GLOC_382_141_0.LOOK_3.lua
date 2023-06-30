@@ -18,7 +18,7 @@ local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
                 <par>请收下<t color="red">%d</t>金币</par>
                 <par></par>
 
-                <par><event id="%s" arg="%s">还卖其它的%s</event></par>
+                <par><event id="%s" args="%s">还卖其它的%s</event></par>
                 <par><event id="%s">前一步</event></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
@@ -57,10 +57,10 @@ setEventHandler(
                     <par>你有栗子吗？</par>
                     <par></par>
 
-                    <par><event id="npc_goto_trade" arg="金色栗子">带来了金色栗子，你要卖吗？</event></par>
-                    <par><event id="npc_goto_trade" arg="银色栗子">带来了银色栗子，你要卖吗？</event></par>
-                    <par><event id="npc_goto_trade" arg="铜色栗子">带来了铜色栗子，你要卖吗？</event></par>
-                    <par><event id="npc_goto_trade" arg="褐色栗子">带来了褐色栗子，你要卖吗？</event></par>
+                    <par><event id="npc_goto_trade" args="金色栗子">带来了金色栗子，你要卖吗？</event></par>
+                    <par><event id="npc_goto_trade" args="银色栗子">带来了银色栗子，你要卖吗？</event></par>
+                    <par><event id="npc_goto_trade" args="铜色栗子">带来了铜色栗子，你要卖吗？</event></par>
+                    <par><event id="npc_goto_trade" args="褐色栗子">带来了褐色栗子，你要卖吗？</event></par>
                     <par><event id="%s">马上去给你找</event></par>
                 </layout>
             ]], SYS_EXIT)
