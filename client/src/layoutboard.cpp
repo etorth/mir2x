@@ -94,7 +94,7 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
         throw fflerror("not a paragraph node");
     }
 
-    const int lineWidth = [elemNode, &parMargin, this]()
+    const int lineWidth = [elemNode, this]()
     {
         // even we use default size
         // we won't let it create one-line mode by default
