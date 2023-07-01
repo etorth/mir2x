@@ -420,9 +420,28 @@ function _RSVD_NAME_npc_main(from, path, event, value)
 
         local qstEntryList = {}
         if not tableEmpty(_RSVD_NAME_EPQST_eventHandlers) then
-            for k, v in pairs(_RSVD_NAME_EPQST_eventHandlers) do
-                if (not tableEmpty(v)) and (v[SYS_CHECKACTIVE] == nil or v[SYS_CHECKACTIVE](from) == true) and (uidEntryList[k] == nil) then
-                    table.insert(qstEntryList, k)
+            for questName, questHandler in pairs(_RSVD_NAME_EPQST_eventHandlers) do
+                if (not tableEmpty(questHandler)) and (uidEntryList[questName] == nil) then
+                    -- check there is no EPUID handler present
+                    -- NPC EPUID handler has precedence over EPQST handler
+
+                    -- EPUID and EPDEF are always active
+                    -- only EPQST needs to check SYS_CHECKACTIVE
+
+                    local qstActive = false
+                    if questHandler[SYS_CHECKACTIVE] == nil then
+                        qstActive = true
+                    elseif type(questHandler[SYS_CHECKACTIVE]) == 'boolean' then
+                        qstActive = questHandler[SYS_CHECKACTIVE]
+                    elseif type(questHandler[SYS_CHECKACTIVE]) == 'function' then
+                        qstActive = questHandler[SYS_CHECKACTIVE](from)
+                    else
+                        fatalPrintf([[Invalid [SYS_CHECKACTIVE] type: %s]], type(questHandler[SYS_CHECKACTIVE]))
+                    end
+
+                    if qstActive then
+                        qstEntryList[questName] = {fnGetChatLabel(questHandler, questName), questHandler}
+                    end
                 end
             end
         end
