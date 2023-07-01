@@ -29,8 +29,9 @@ function argDefault(arg, def)
 end
 
 function assertType(var, ...)
-    local typestrs = {...}
-    for _, typestr in ipairs(typestrs) do
+    local typestrs = table.pack(...)
+    for i = 1, typestrs.n do
+        local typestr = typestrs[i]
         if type(typestr) ~= 'string' then
             fatalPrintf('Invalid type string, expect string, get %s', type(typestr))
         end
@@ -39,6 +40,12 @@ function assertType(var, ...)
             if math.type(var) == typestr then
                 return var
             end
+
+        elseif typestr == 'array' then
+            if isArray(var) then
+                return var
+            end
+
         else
             if type(var) == typestr then
                 return var
@@ -46,10 +53,10 @@ function assertType(var, ...)
         end
     end
 
-    if #typestrs == 0 then
+    if typestrs.n == 0 then
         fatalPrintf('Invalid argument: no type string provided')
 
-    elseif #typestrs == 1 then
+    elseif typestrs.n == 1 then
         fatalPrintf('Assertion failed: expect %s, get %s', typestrs[1], type(var))
 
     else
@@ -57,12 +64,12 @@ function assertType(var, ...)
         local errStrs = {}
 
         table.insert(errStrs, 'Assertion failed: expect')
-        while i <= #typestrs - 2 do
+        while i <= typestrs.n - 2 do
             table.insert(errStrs, string.format(' %s,', typestrs[i]))
             i = i + 1
         end
 
-        table.insert(errStrs, ' %s or %s, get %s', typestrs[#typestrs - 1], typestrs[#typestrs], type(var))
+        table.insert(errStrs, ' %s or %s, get %s', typestrs[typestrs.n - 1], typestrs[typestrs.n], type(var))
         fatalPrintf(table.concat(errStrs))
     end
 end
