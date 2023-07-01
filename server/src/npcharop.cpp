@@ -62,36 +62,13 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
         m_luaRunner->close(mpk.from());
     }
 
-    const auto fnConvLuaStr = [](const char *s, const char *nullDef, const char *emptyDef) -> std::string
-    {
-        if(!s   ){ return  nullDef; }
-        if(!s[0]){ return emptyDef; }
-
-        if(!std::strchr(s, '[') && !std::strchr(s, ']')){
-            return str_printf("[[%s]]", s);
-        }
-
-        std::string result;
-        result.reserve(std::strlen(s) + 32);
-
-        result += "\'";
-        for(auto si = s; *si; ++si){
-            switch(*si){
-                case '\'': result += "\\\'"     ; break;
-                case '\\': result += "\\\\"     ; break;
-                default  : result.push_back(*si); break;
-            }
-        }
-
-        result += "\'";
-        return result;
-    };
-
     m_luaRunner->spawn(mpk.from(), str_printf("return _RSVD_NAME_npc_main(%llu, %s, %s, %s)",
                 to_llu(mpk.from()),
-                fnConvLuaStr(sdNPCE.path              .c_str(),  "nil", "nil").c_str(),
-                fnConvLuaStr(sdNPCE.event             .c_str(),  "nil", "nil").c_str(),
-                fnConvLuaStr(sdNPCE.value.value_or("").c_str(), "[[]]", "nil").c_str()));
+
+                sdNPCE.path .empty() ? "nil" : luaf::quotedLuaString(sdNPCE.path ).c_str(),
+                sdNPCE.event.empty() ? "nil" : luaf::quotedLuaString(sdNPCE.event).c_str(),
+
+                sdNPCE.value.has_value() ? luaf::quotedLuaString(sdNPCE.value.value()).c_str() : "nil"));
 }
 
 void NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
