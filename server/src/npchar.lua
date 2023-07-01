@@ -392,6 +392,18 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         end
     end
 
+    local fnAllowRedName = function(funcTable)
+        if funcTable[SYS_ALLOWREDNAME] == nil then
+            return false
+        elseif type(funcTable[SYS_ALLOWREDNAME]) == 'boolean' then
+            return funcTable[SYS_ALLOWREDNAME]
+        elseif type(funcTable[SYS_ALLOWREDNAME]) == 'function' then
+            return funcTable[SYS_ALLOWREDNAME](from)
+        else
+            fatalPrintf([[Invalid [SYS_ALLOWREDNAME] type: %s]], type(funcTable[SYS_ALLOWREDNAME]))
+        end
+    end
+
     if path == nil and event == SYS_ENTER then
         -- click to NPC
         -- need to check all possible event handlers
