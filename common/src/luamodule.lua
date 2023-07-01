@@ -7,14 +7,14 @@
 --
 function addLog(logType, logString, ...)
     if type(logType) ~= 'number' or type(logString) ~= 'string' then
-        error(string.format('invalid argument type: addLog(%s, %s, ...)', type(logType), type(logString)))
+        error(string.format('Invalid argument type: addLog(%s, %s, ...)', type(logType), type(logString)))
     end
     addLogString(logType, logString:format(...))
 end
 
 function fatalPrintf(s, ...)
     if type(s) ~= 'string' then
-        error(string.format('invalid argument type: fatalPrintf(%s, ...)', type(s)))
+        error(string.format('Invalid argument type: fatalPrintf(%s, ...)', type(s)))
     end
     error(s:format(...))
 end
@@ -32,7 +32,7 @@ function assertType(var, ...)
     local typestrs = {...}
     for _, typestr in ipairs(typestrs) do
         if type(typestr) ~= 'string' then
-            fatalPrintf('invalid type string, expect string, get %s', type(typestr))
+            fatalPrintf('Invalid type string, expect string, get %s', type(typestr))
         end
 
         if type(var) == 'number' then
@@ -47,10 +47,10 @@ function assertType(var, ...)
     end
 
     if #typestrs == 0 then
-        fatalPrintf('invalid argument: no type string provided')
+        fatalPrintf('Invalid argument: no type string provided')
 
     elseif #typestrs == 1 then
-        fatalPrintf('assertion failed: expect %s, get %s', typestrs[1], type(var))
+        fatalPrintf('Assertion failed: expect %s, get %s', typestrs[1], type(var))
 
     else
         local i = 1
@@ -74,12 +74,12 @@ function assertValue(var, value)
                 return var
             end
         end
-        fatalPrintf('assertion failed: expect %s, get %s', table.concat(value, ', '), tostring(var))
+        fatalPrintf('Assertion failed: expect %s, get %s', table.concat(value, ', '), tostring(var))
     else
         if var == value then
             return var
         end
-        fatalPrintf('assertion failed: expect %s, get %s', tostring(value), tostring(var))
+        fatalPrintf('Assertion failed: expect %s, get %s', tostring(value), tostring(var))
     end
 end
 
@@ -267,7 +267,7 @@ function tableEmpty(t, allowNil)
     elseif type(t) == 'table' then
         return next(t) == nil
     else
-        fatalPrintf('invalid argument: tableEmpty(%s)', type(t))
+        fatalPrintf('Invalid argument: tableEmpty(%s)', type(t))
     end
 end
 
@@ -284,7 +284,7 @@ function tableSize(t, allowNil)
         return 0
     end
 
-    fatalPrintf('invalid argument type: %s', type(t))
+    fatalPrintf('Invalid argument type: %s', type(t))
 end
 
 tableLength = tableSize
