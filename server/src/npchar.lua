@@ -566,9 +566,16 @@ function runNPCEventHandler(uid, ...)
     local value = nil
 
     if args.n == 2 then
-        path  = {SYS_EPDEF}
-        event = args[1]
-        value = args[2]
+        if isArray(args[1]) then
+            path  = args[1]
+            event = args[2]
+            value = nil
+
+        else
+            path  = {SYS_EPDEF}
+            event = args[1]
+            value = args[2]
+        end
 
     elseif args.n == 3 then
         path  = args[1]
