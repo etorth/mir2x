@@ -470,23 +470,8 @@ function _RSVD_NAME_npc_main(from, path, event, value)
                 funcTable = _RSVD_NAME_EPDEF_eventHandlers
             end
 
-            if uidQueryRedName(from) then
-                local allowRedName = false
-                if funcTable[SYS_ALLOWREDNAME] then
-                    if type(funcTable[SYS_ALLOWREDNAME]) == 'boolean' then
-                        allowRedName = funcTable[SYS_ALLOWREDNAME]
-                    elseif type(funcTable[SYS_ALLOWREDNAME]) == 'function' then
-                        allowRedName = funcTable[SYS_ALLOWREDNAME](from)
-                    else
-                        fatalPrintf("Invalid SYS_ALLOWREDNAME type: %s", type(funcTable[SYS_ALLOWREDNAME]))
-                    end
-                end
-
-                if allowRedName then
-                    funcTable[SYS_ENTER](from, value)
-                else
-                    fnPostRedNameChat()
-                end
+            if uidQueryRedName(from) and (not fnAllowRedName(funcTable)) then
+                fnPostRedNameChat()
             else
                 funcTable[SYS_ENTER](from, value)
             end
