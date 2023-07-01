@@ -56,7 +56,7 @@ function assertType(var, ...)
         local i = 1
         local errStrs = {}
 
-        table.insert(errStrs, 'assertion failed: expect')
+        table.insert(errStrs, 'Assertion failed: expect')
         while i <= #typestrs - 2 do
             table.insert(errStrs, string.format(' %s,', typestrs[i]))
             i = i + 1
@@ -221,7 +221,7 @@ function rotable(tbl, recursive)
         return setmetatable({}, {
             __index = tb,
             __newindex = function()
-                error("attempt to update a read-only table")
+                error("Attempt to update a read-only table")
             end,
 
             __pairs = function()
