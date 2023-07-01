@@ -359,7 +359,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         uidPostXML(from,
         [[
             <layout>
-                <par>我听不懂你在说什么。。。</par>
+                <par>我听不懂你在说什么。</par>
                 <par></par>
                 <par><event id="%s">关闭</event></par>
             </layout>
