@@ -458,11 +458,14 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         elseif entryCount == 1 then
             -- only one entry
             -- no need to create menu, just redirect to corresponding entry function
-            local funcTable = nil
+
+            local funcTable  = nil
             if not tableEmpty(qstEntryList) then
-                funcTable = _RSVD_NAME_EPQST_eventHandlers[qstEntryList[1]]
+                local k, v = next(qstEntryList)
+                funcTable = v[2]
             elseif not tableEmpty(uidEntryList) then
-                funcTable = _RSVD_NAME_EPUID_eventHandlers[from][next(uidEntryList)]
+                local k, v = next(uidEntryList)
+                funcTable = v[2]
             else
                 funcTable = _RSVD_NAME_EPDEF_eventHandlers
             end
