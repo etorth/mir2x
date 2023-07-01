@@ -377,6 +377,21 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         ]], SYS_EXIT)
     end
 
+    local fnGetEntryLabel = function(funcTable, labelDefault)
+        assertType(funcTable, 'table')
+        assertType(labelDefault, 'string')
+
+        if funcTable[SYS_LABEL] == nil then
+            return labelDefault
+        elseif type(funcTable[SYS_LABEL]) == 'string' then
+            return funcTable[SYS_LABEL]
+        elseif type(funcTable[SYS_LABEL]) == 'function' then
+            return funcTable[SYS_LABEL](from)
+        else
+            fatalPrintf([[Invalid [SYS_LABEL] type: %s]], type(funcTable[SYS_LABEL]))
+        end
+    end
+
     if path == nil and event == SYS_ENTER then
         -- click to NPC
         -- need to check all possible event handlers
