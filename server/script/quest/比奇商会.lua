@@ -52,15 +52,6 @@ function main()
                 local questUID  = %d
 
                 if accepted then
-                    uidPostXML(playerUID,
-                    [=[
-                        <layout>
-                            <par>真的太感谢了！我期待着你能带来好消息！</par>
-                            <par>传奇商会所属的其它商人仍然还有很多，但是现在凭我自己的力量很难一一说服。虽然从好几个方面同时下手。不管怎样？难道不该先避免沦为乞丐吗？所以拜托啦！</par>
-                            <par></par>
-                            <par><event id="%%s">好的</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
                     uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_quest') ]=], playerUID)
                 else
                     uidPostXML(playerUID,
@@ -74,14 +65,14 @@ function main()
                     ]=], SYS_EXIT)
                     uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_refuse_quest') ]=], playerUID)
                 end
-            ]], uid, value, getUID())
+            ]], uid, asInitString(value), getUID())
         end,
 
         quest_accept_quest = function(uid, value)
             uidExecute(getNPCharUID('比奇县_0', '王大人_1'),
             [[
                 local playerUID = %d
-                local questName = '%s'
+                local questName = %s
                 local questPath = {SYS_EPUID, questName}
 
                 setUIDQuestHandler(playerUID, questName,
@@ -98,7 +89,9 @@ function main()
                         ]=], SYS_EXIT)
                     end,
                 })
-            ]], uid, getQuestName())
+
+                runNPCEventHandler(playerUID, questPath, SYS_ENTER)
+            ]], uid, asInitString(getQuestName()))
         end,
 
         quest_refuse_quest = function(uid, value)
