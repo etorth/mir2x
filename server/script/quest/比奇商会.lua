@@ -90,7 +90,7 @@ function main()
                     end,
                 })
 
-                runNPCEventHandler(playerUID, questPath, SYS_ENTER)
+                callEventHandler(playerUID, questPath, SYS_ENTER)
             ]], uid, asInitString(getQuestName()))
         end,
 
