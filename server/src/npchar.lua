@@ -557,5 +557,50 @@ function _RSVD_NAME_npc_main(from, path, event, value)
     clearTLSTable()
 end
 
+function runNPCEventHandler(uid, ...)
+    assertType(uid, 'integer')
+
+    local args  = table.pack(...)
+    local path  = nil
+    local event = nil
+    local value = nil
+
+    if args.n == 2 then
+        path  = {SYS_EPDEF}
+        event = args[1]
+        value = args[2]
+
+    elseif args.n == 3 then
+        path  = args[1]
+        event = args[2]
+        value = args[3]
+
+    else
+        fatalPrintf([[Invalid arguments number: %d]], args.n)
+    end
+
+    assertType(event, 'string')
+    assertType(value, 'string', 'nil') -- value from <args="xxx"> in XML
+
+    assertType(path, 'array')
+    assertType(path[2], 'string', 'nil')
+    assertValue(path[1], SYS_EPDEF, SYS_EPQST, SYS_EPUID)
+
+    local pathStr = nil
+    local pathSize = tableSize(path)
+
+    if pathSize == 1 then
+        pathStr = path[1]
+
+    elseif pathSize == 2 then
+        pathStr = table.concat(path, '/')
+
+    else
+        fatalPrintf([[Invalid path size: %d]], pathSize)
+    end
+
+    _RSVD_NAME_npc_main(uid, pathStr, event, value)
+end
+
 --
 -- )###"
