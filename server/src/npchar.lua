@@ -440,7 +440,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
                     end
 
                     if qstActive then
-                        qstEntryList[questName] = {fnGetChatLabel(questHandler, questName), questHandler}
+                        qstEntryList[questName] = {fnGetEntryLabel(questHandler, questName), questHandler}
                     end
                 end
             end
