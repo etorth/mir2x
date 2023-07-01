@@ -411,7 +411,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         local uidEntryList = {}
         if not tableEmpty(_RSVD_NAME_EPUID_eventHandlers) and not tableEmpty(_RSVD_NAME_EPUID_eventHandlers[from], true) then
             for questName, questHandler in pairs(_RSVD_NAME_EPUID_eventHandlers[from]) do
-                table.insert(uidEntryList, {questName, fnGetEntryLabel(questHandler, questName), questHandler})
+                uidEntryList[questName] = {fnGetEntryLabel(questHandler, questName), questHandler}
             end
         end
 
