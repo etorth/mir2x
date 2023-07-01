@@ -411,15 +411,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         local uidEntryList = {}
         if not tableEmpty(_RSVD_NAME_EPUID_eventHandlers) and not tableEmpty(_RSVD_NAME_EPUID_eventHandlers[from], true) then
             for questName, questHandler in pairs(_RSVD_NAME_EPUID_eventHandlers[from]) do
-                if type(questHandler[SYS_LABEL]) == 'string' then
-                    uidEntryList[questName] = questHandler[SYS_LABEL]
-                elseif type(questHandler[SYS_LABEL]) == 'function' then
-                    uidEntryList[questName] = questHandler[SYS_LABEL](from)
-                elseif questHandler[SYS_LABEL] == nil then
-                    uidEntryList[questName] = questName
-                else
-                    fatalPrintf([[Invalid quest '%s' handler[SYS_LABEL] type: %s]], questName, type(questHandler[SYS_LABEL]))
-                end
+                table.insert(uidEntryList, {questName, fnGetEntryLabel(questHandler, questName), questHandler})
             end
         end
 
