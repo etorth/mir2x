@@ -366,6 +366,17 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         ]], SYS_EXIT)
     end
 
+    local fnPostRedNameChat = function()
+        uidPostXML(from,
+        [[
+            <layout>
+                <par>和你这样的人我无话可说。</par>
+                <par></par>
+                <par><event id="%s">关闭</event></par>
+            </layout>
+        ]], SYS_EXIT)
+    end
+
     if path == nil and event == SYS_ENTER then
         -- click to NPC
         -- need to check all possible event handlers
@@ -433,14 +444,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
                 if allowRedName then
                     funcTable[SYS_ENTER](from, value)
                 else
-                    uidPostXML(from,
-                    [[
-                        <layout>
-                            <par>和你这样的人我无话可说。</par>
-                            <par></par>
-                            <par><event id="%s">关闭</event></par>
-                        </layout>
-                    ]], SYS_EXIT)
+                    fnPostRedNameChat()
                 end
             else
                 funcTable[SYS_ENTER](from, value)
