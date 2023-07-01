@@ -74,20 +74,18 @@ function assertType(var, ...)
     end
 end
 
-function assertValue(var, value)
-    if type(value) == 'table' then
-        for _, v in ipairs(value) do
-            if var == v then
-                return var
-            end
-        end
-        fatalPrintf('Assertion failed: expect %s, get %s', table.concat(value, ', '), tostring(var))
-    else
-        if var == value then
+function assertValue(var, ...)
+    local args = table.pack(...)
+    if args.n == 0 then
+        fatalPrintf('Invalid argument: no value provided')
+    end
+
+    for i = 1, args.n do
+        if var == args[i] then
             return var
         end
-        fatalPrintf('Assertion failed: expect %s, get %s', tostring(value), tostring(var))
     end
+    fatalPrintf('Assertion failed: expect %s, get %s', table.concat(args, ', ', 1, args.n), tostring(var))
 end
 
 function shuffleArray(arr)
