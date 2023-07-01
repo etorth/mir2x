@@ -480,6 +480,10 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             -- more than one entry
             -- create menu for user to choose
             -- this menu comes from neither default script nor quest script
+
+            -- don't check red name here
+            -- red name check triggers when entering function
+
             local xmlStrs = {}
             table.insert(xmlStrs, string.format([[
                 <layout>
@@ -487,22 +491,22 @@ function _RSVD_NAME_npc_main(from, path, event, value)
                     <par></par>
             ]], getNPCName()))
 
-            for _, v in ipairs(qstEntryList) do
+            for k, v in pairs(qstEntryList) do
                 table.insert(xmlStrs, string.format([[
                     <par><event id="%s" path="%s/%s">%s</event></par>
-                ]], SYS_ENTER, SYS_EPQST, v, v))
+                ]], SYS_ENTER, SYS_EPQST, k, v[1]))
             end
 
             for k, v in pairs(uidEntryList) do
                 table.insert(xmlStrs, string.format([[
                     <par><event id="%s" path="%s/%s">%s</event></par>
-                ]], SYS_ENTER, SYS_EPUID, k, v))
+                ]], SYS_ENTER, SYS_EPUID, k, v[1]))
             end
 
             if hasEventHandler(SYS_ENTER) then
                 table.insert(xmlStrs, string.format([[
-                    <par><event id="%s">随便聊聊</event></par>
-                ]], SYS_ENTER))
+                    <par><event id="%s">%s</event></par>
+                ]], SYS_ENTER, fnGetEntryLabel(_RSVD_NAME_EPDEF_eventHandlers, '随便聊聊')))
             end
 
             table.insert(xmlStrs, string.format([[
@@ -518,30 +522,33 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         -- not initial click to NPC
         -- needs to parse event path to find correct event handler
 
-        pathTokens = splitString(path, '/')
+        local funcTable = nil
+        local pathTokens = splitString(path, '/')
+
         if pathTokens[1] == SYS_EPDEF then
             if hasEventHandler(event) then
-                _RSVD_NAME_EPDEF_eventHandlers[event](from, value)
-            else
-                fnPostInvalidChat()
+                funcTable = _RSVD_NAME_EPDEF_eventHandlers
             end
 
         elseif pathTokens[1] == SYS_EPQST then
             if hasQuestHandler(pathTokens[2], event) then
-                _RSVD_NAME_EPQST_eventHandlers[pathTokens[2]][event](from, value)
-            else
-                fnPostInvalidChat()
+                funcTable = _RSVD_NAME_EPQST_eventHandlers[pathTokens[2]]
             end
 
         elseif pathTokens[1] == SYS_EPUID then
             if hasUIDQuestHandler(from, pathTokens[2], event) then
-                _RSVD_NAME_EPUID_eventHandlers[from][pathTokens[2]][event](from, value)
-            else
-                fnPostInvalidChat()
+                funcTable = _RSVD_NAME_EPUID_eventHandlers[from][pathTokens[2]]
             end
+        end
+
+        if funcTable == nil then
+            fnPostInvalidChat()
+
+        elseif uidQueryRedName(from) and (not fnAllowRedName(funcTable)) then
+            fnPostRedNameChat()
 
         else
-            fnPostInvalidChat()
+            funcTable[event](from, value)
         end
     end
 
