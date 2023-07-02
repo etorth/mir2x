@@ -583,13 +583,16 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
     const auto currSeqID = p->second->seqID;
 
     resumeRunner(p->second.get(), str_printf(
-        R"###( getTLSTable().threadKey = %llu                                  )###""\n"
-        R"###( getTLSTable().threadSeqID = %llu                                )###""\n"
-        R"###( getTLSTable().startTime = getNanoTstamp()                       )###""\n"
-        R"###( local _RSVD_NAME_autoTLSTableClear<close> = autoClearTLSTable() )###""\n"
-        R"###( do                                                              )###""\n"
-        R"###(    %s                                                           )###""\n"
-        R"###( end                                                             )###""\n", to_llu(key), to_llu(currSeqID), code.c_str()));
+        R"###( do                                                          )###""\n"
+        R"###(     getTLSTable().threadKey   = %llu                        )###""\n"
+        R"###(     getTLSTable().threadSeqID = %llu                        )###""\n"
+        R"###(     getTLSTable().startTime   = getNanoTstamp()             )###""\n"
+        R"###(                                                             )###""\n"
+        R"###(     local _RSVD_NAME_autoClear<close> = autoClearTLSTable() )###""\n"
+        R"###(     do                                                      )###""\n"
+        R"###(        %s                                                   )###""\n"
+        R"###(     end                                                     )###""\n"
+        R"###( end                                                         )###""\n", to_llu(key), to_llu(currSeqID), code.c_str()));
 
     return currSeqID; // don't use p resumeRunner() can invalidate p
 }

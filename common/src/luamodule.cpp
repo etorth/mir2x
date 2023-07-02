@@ -37,18 +37,14 @@ LuaModule::LuaModule()
             end
         end
 
-        function clearTLSTable()
+        local _RSVD_NAME_clearTLSTable = {}
+        setmetatable(_RSVD_NAME_clearTLSTable, {__close = function()
             local threadId, inMainThread = coroutine.running()
             if inMainThread then
                 error('call clearTLSTable() in main thread')
             else
                 _RSVD_NAME_G_sandbox[threadId] = nil
             end
-        end
-
-        local _RSVD_NAME_clearTLSTable = {}
-        setmetatable(_RSVD_NAME_clearTLSTable, {__close = function()
-            clearTLSTable()
         end})
 
         function autoClearTLSTable()

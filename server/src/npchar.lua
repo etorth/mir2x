@@ -551,10 +551,6 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             funcTable[event](from, value)
         end
     end
-
-    -- event process done
-    -- clean the call stack itself, next event needs another call stack
-    clearTLSTable()
 end
 
 function runEventHandler(uid, ...)
