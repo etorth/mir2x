@@ -557,7 +557,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
     clearTLSTable()
 end
 
-function callEventHandler(uid, ...)
+function runEventHandler(uid, ...)
     assertType(uid, 'integer')
 
     local args  = table.pack(...)
