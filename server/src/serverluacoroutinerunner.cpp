@@ -561,7 +561,8 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
     fflassert(reqAddr.first , reqAddr);
     fflassert(reqAddr.second, reqAddr);
 
-    return spawn(key, code, [key, reqAddr, this](const sol::protected_function_result &pfr)
+    auto closed = std::make_shared<bool>(true);
+    return spawn(key, code, [closed, key, reqAddr, this](const sol::protected_function_result &pfr)
     {
         const auto fnOnThreadDone = [reqAddr, this](std::vector<std::string> error, std::vector<luaf::luaVar> varList)
         {
@@ -576,6 +577,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
             })});
         };
 
+        *closed = false;
         std::vector<std::string> error;
         if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
             // initial run succeeds and coroutine finished
@@ -618,15 +620,17 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
         }
     },
 
-    [reqAddr, this]()
+    [closed, reqAddr, this]()
     {
-        m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
-        {
-            .varList
+        if(*closed){
+            m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
-                luaf::luaVar(SYS_EXECCLOSE),
-            },
-        })});
+                .varList
+                {
+                    luaf::luaVar(SYS_EXECCLOSE),
+                },
+            })});
+        }
     });
 }
 
