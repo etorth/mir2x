@@ -255,7 +255,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                             const auto sdRCR = mpk.deserialize<SDRemoteCallResult>();
                             if(sdRCR.error.empty()){
                                 std::vector<sol::object> resList;
-                                for(auto && var: cerealf::deserialize<std::vector<luaf::luaVar>>(sdRCR.serVarList)){
+                                for(auto && var: sdRCR.varList){
                                     resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
                                 }
 
@@ -266,7 +266,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                             else{
                                 // don't need to handle remote call error, peer side has reported the error
                                 // _RSVD_NAME_uidExecute always returns valid result from remote peer to lua layer if not throw
-                                fflassert(sdRCR.serVarList.empty(), sdRCR.error, sdRCR.serVarList);
+                                fflassert(sdRCR.varList.empty(), sdRCR.error, sdRCR.varList);
                                 for(const auto &line: sdRCR.error){
                                     g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                                 }
@@ -558,16 +558,16 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
 
     return spawn(key, code, [key, reqAddr, this](const sol::protected_function_result &pfr)
     {
-        const auto fnOnThreadDone = [reqAddr, this](std::vector<std::string> error, std::string serVarList)
+        const auto fnOnThreadDone = [reqAddr, this](std::vector<std::string> error, std::vector<luaf::luaVar> varList)
         {
             if(!error.empty()){
-                fflassert(serVarList.empty(), error, serVarList.size());
+                fflassert(varList.empty(), error, varList);
             }
 
             m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
                 .error = std::move(error),
-                .serVarList = std::move(serVarList),
+                .varList = std::move(varList),
             })});
         };
 
@@ -603,7 +603,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
             //
             // light cases, no yield in script
             // directly return the result with save the runner
-            fnOnThreadDone(std::move(error), cerealf::serialize(luaf::pfrBuildLuaVarList(pfr), false));
+            fnOnThreadDone(std::move(error), luaf::pfrBuildLuaVarList(pfr));
         }
         else{
             if(error.empty()){
@@ -617,10 +617,10 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
     {
         m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
         {
-            .serVarList = cerealf::serialize(std::vector<luaf::luaVar>
+            .varList
             {
                 luaf::luaVar(SYS_EXECCLOSE),
-            }),
+            },
         })});
     });
 }
