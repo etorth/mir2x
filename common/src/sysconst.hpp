@@ -110,6 +110,15 @@ struct SYS_QUESTVAR
         constexpr static char NAME[] = "_RSVD_NAME_QUESTVAR::STATE::NAME_837517653";
         constexpr static char ARGS[] = "_RSVD_NAME_QUESTVAR::STATE::ARGS_335307593";
     };
+
+    struct TEAM
+    {
+        constexpr static char     LEADER[] = "_RSVD_NAME_QUESTVAR::TEAM::LEADER_622091631";
+        constexpr static char   ROLELIST[] = "_RSVD_NAME_QUESTVAR::TEAM::ROLELIST_556867549";
+        constexpr static char MEMBERLIST[] = "_RSVD_NAME_QUESTVAR::TEAM::MEMBERLIST_694437683";
+    };
+
+    constexpr static char FLAGS[] = "_RSVD_NAME_QUESTVAR::FLAGS_837517653";
 };
 
 constexpr char SYS_QUESTVAR_STATE    [] = "_RSVD_NAME_QUESTVAR_STATE_837517653";
