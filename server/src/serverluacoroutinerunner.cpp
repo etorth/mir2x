@@ -191,9 +191,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             // this introduces dependecy between threads
             // this guarantees any gloval changes in qust handler [SYS_ENTER] won't affect runEventHandler(), because it's running in sandbox
 
-            spawn(uid, code, [onDone, this](const sol::protected_function_result &pfr)
+            auto closed = std::make_shared<bool>(true);
+            spawn(uid, code, [closed, onDone, this](const sol::protected_function_result &pfr)
             {
-                onDone.popOnClose();
+                *closed = false;
                 std::vector<std::string> error;
 
                 if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
@@ -218,9 +219,11 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 }
             },
 
-            [onDone]()
+            [closed, onDone]()
             {
-                onDone(SYS_EXECDONE, SYS_EXECCLOSE);
+                if(*closed){
+                    onDone(SYS_EXECDONE, SYS_EXECCLOSE);
+                }
             });
         }
 
