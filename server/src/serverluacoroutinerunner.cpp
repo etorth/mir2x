@@ -176,12 +176,6 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
     bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code)
     {
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
-        {
-            *closed = true;
-        });
-
         if(uid == m_actorPod->UID()){
             // run code locally in sandbox
             //
@@ -197,13 +191,11 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             // this introduces dependecy between threads
             // this guarantees any gloval changes in qust handler [SYS_ENTER] won't affect runEventHandler(), because it's running in sandbox
 
-            spawn(uid, code, [closed, onDone, this](const sol::protected_function_result &pfr)
+            spawn(uid, code, [onDone, this](const sol::protected_function_result &pfr)
             {
-                if(!(*closed)){
-                    onDone.popOnClose();
-                }
-
+                onDone.popOnClose();
                 std::vector<std::string> error;
+
                 if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
                     std::vector<sol::object> resList;
                     resList.reserve(pfr.return_count());
@@ -231,7 +223,14 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 onDone(SYS_EXECDONE, SYS_EXECCLOSE);
             });
         }
+
         else{
+            auto closed = std::make_shared<bool>(false);
+            onDone.pushOnClose([closed]()
+            {
+                *closed = true;
+            });
+
             m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
             {
                 .code = code,
@@ -241,6 +240,9 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             {
                 // even thread is closed, we still exam the remote call result to detect error
                 // but will not resume the thread anymore since it's already closed
+
+                // pretty differnt than other close ops
+                // normally onClose does real clean work, but here onClose only setup flags
 
                 if(!(*closed)){
                     onDone.popOnClose();
