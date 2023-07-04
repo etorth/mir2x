@@ -218,9 +218,7 @@ end
 
 function rotable(tbl, recursive)
     assertType(tbl, 'table')
-    if recursive ~= nil then
-        assertType(recursive, 'boolean')
-    end
+    assertType(recursive, 'boolean', 'nil')
 
     local function plain_rotable(tb)
         return setmetatable({}, {

@@ -1,20 +1,27 @@
 --, u8R"###(
 --
 
-function dbUpdateUIDQuestVar(uid, key, value)
+local function _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, field, key, value)
     assertType(uid, 'integer')
-    local vars = dbGetUIDQuestField(uid, 'fld_vars') or {}
+    assertType(field, 'string')
 
-    if vars[key] == value then
+    local fieldTable = dbGetUIDQuestField(uid, field)
+    assertType(fieldTable, 'nil', 'table')
+
+    if fieldTable == nil then
+        fieldTable = {}
+    end
+
+    if fieldTable[key] == value then
         return
     end
 
-    vars[key] = value
+    fieldTable[key] = value
 
-    if tableEmpty(vars) then
-        vars = nil
+    if tableEmpty(fieldTable) then
+        fieldTable = nil
     end
-    dbSetUIDQuestField(uid, 'fld_vars', vars)
+    dbSetUIDQuestField(uid, field, fieldTable)
 end
 
 function dbGetUIDQuestVar(uid, key)
@@ -24,7 +31,7 @@ end
 
 function dbSetUIDQuestVar(uid, key, value)
     assertType(uid, 'integer')
-    dbUpdateUIDQuestVar(uid, key, value)
+    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_vars', key, value)
 end
 
 function dbGetUIDQuestState(uid)
@@ -48,33 +55,12 @@ end
 
 function addUIDQuestFlag(uid, flagName)
     assertType(uid, 'integer')
-    assertType(flagName, 'string')
-
-    local flags = dbGetUIDQuestField(uid, 'fld_flags') or {}
-    if flags[flagName] == true then
-        return
-    end
-
-    flags[flagName] = true
-    dbSetUIDQuestField(uid, 'fld_flags', flags)
+    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_flags', flagName, true)
 end
 
 function deleteUIDQuestFlag(uid, flagName)
     assertType(uid, 'integer')
-    assertType(flagName, 'string')
-
-    local flags = dbGetUIDQuestField(uid, 'fld_flags') or {}
-
-    if flags[flagName] == nil then
-        return
-    end
-
-    flags[flagName] = nil
-
-    if tableEmpty(flags) then
-        flags = nil
-    end
-    dbSetUIDQuestField(uid, 'fld_flags', flags)
+    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_flags', flagName, nil)
 end
 
 function loadMap(map)
@@ -98,16 +84,6 @@ function getNPCharUID(mapName, npcName)
     return npcUID
 end
 
-function _RSVD_NAME_getUIDQuestTeam(uid)
-    assertType(uid, 'integer')
-    local vars = dbGetUIDQuestVars(uid) or {}
-    if vars[SYS_QUESTVAR_TEAM] then
-        return vars[SYS_QUESTVAR_TEAM]
-    else
-        fatalPrintf('Call setUIDQuestTeam(...) first')
-    end
-end
-
 function setUIDQuestTeam(args)
     assertType(args, 'table')
     assertType(args.uid, 'integer')
@@ -117,47 +93,40 @@ function setUIDQuestTeam(args)
     local team = uidExecute(args.uid,
     [[
         return {
-            [SYS_QUESTVAR_TEAMLEADER] = getTeamLeader(),
-            [SYS_QUESTVAR_TEAMMEMBERLIST] = getTeamMemberList(),
+            [SYS_TEAM.LEADER] = getTeamLeader(),
+            [SYS_TEAM.MEMBER] = getTeamMemberList(),
         }
     ]])
 
     if args.randRole then
-        team[SYS_QUESTVAR_TEAMROLELIST] = shuffleArray(team[SYS_QUESTVAR_TEAMMEMBERLIST])
+        team[SYS_TEAM.ROLE] = shuffleArray(team[SYS_TEAM.MEMBER])
     else
-        team[SYS_QUESTVAR_TEAMROLELIST] = team[SYS_QUESTVAR_TEAMMEMBERLIST]
+        team[SYS_TEAM.ROLE] = team[SYS_TEAM.MEMBER]
     end
 
-    for _, teamMember in ipairs(team[SYS_QUESTVAR_TEAMMEMBERLIST]) do
-        if args.propagate or (teamMember == uid) then
-            dbUpdateUIDQuestVar(teamMember, SYS_QUESTVAR_TEAM, team)
+    for _, member in ipairs(team[SYS_TEAM.MEMBER]) do
+        if args.propagate or (member == uid) then
+            dbSetUIDQuestField(member, 'fld_team', team)
         end
     end
 end
 
-function getUIDQuestTeamLeader(uid)
+function getUIDQuestTeam(uid)
     assertType(uid, 'integer')
-    return _RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMLEADER]
-end
+    local team = dbGetUIDQuestField(uid, 'fld_team')
 
-function getUIDQuestTeamMemberList(uid)
-    assertType(uid, 'integer')
-    return _RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMMEMBERLIST]
-end
+    team.getRoleIndex = function(self, uid)
+        assertType(self, 'table')
+        assertType(uid, 'integer')
 
-function getUIDQuestTeamRoleList(uid)
-    assertType(uid, 'integer')
-    return _RSVD_NAME_getUIDQuestTeam(uid)[SYS_QUESTVAR_TEAMROLELIST]
-end
-
-function getUIDQuestTeamRoleIndex(uid)
-    assertType(uid, 'integer')
-    for i, teamMember in ipairs(getUIDQuestTeamRoleList(uid)) do
-        if teamMember == uid then
-            return i
+        for i, teamMember in ipairs(self[SYS_TEAM.ROLE]) do
+            if teamMember == uid then
+                return i
+            end
         end
+        fatalPrintf('Can not find uid %d in team role list', uid)
     end
-    fatalPrintf('Can not find uid %d in team role list', uid)
+    return rotable(team)
 end
 
 local _RSVD_NAME_questFSMTable = nil
