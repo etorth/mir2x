@@ -88,12 +88,26 @@
 #include <iomanip>
 #include <algorithm>
 #include <filesystem>
+#include <chrono>
+#include <ctime>
 
 #ifdef __GNUC__
     #define STR_PRINTF_CHECK_FORMAT(n) __attribute__ ((format (printf, (n), ((n)+1))))
 #else
     #define STR_PRINTF_CHECK_FORMAT(n)
 #endif
+
+inline std::string str_now(const char *format = nullptr)
+{
+    const auto sys_now = std::chrono::system_clock::now();
+    const auto in_time = std::chrono::system_clock::to_time_t(sys_now);
+
+    struct tm now_time;
+    std::stringstream ss;
+
+    ss << std::put_time(localtime_r(&in_time, &now_time), format ? format : "%Y-%m-%d %X");
+    return ss.str();
+}
 
 template<typename T, typename S> std::string str_join(const T &t, const S &sep)
 {
