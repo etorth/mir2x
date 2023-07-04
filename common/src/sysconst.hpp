@@ -103,31 +103,19 @@ constexpr char SYS_QUEST_TBL_PREFIX[] = "tbl_questdb_";
 // commonly used quest variable name in fld_vars
 // use key in luaTable instead of key in database table to avoid change table structure
 
-struct SYS_QUESTVAR
+struct SYS_QUESTFIELD
 {
-    struct STATE
-    {
-        constexpr static char NAME[] = "_RSVD_NAME_QUESTVAR::STATE::NAME_837517653";
-        constexpr static char ARGS[] = "_RSVD_NAME_QUESTVAR::STATE::ARGS_335307593";
-    };
+    constexpr static char  VARS[] = "_RSVD_NAME_QUESTFIELD::VARS__837517653";
+    constexpr static char FLAGS[] = "_RSVD_NAME_QUESTFIELD::FLAGS_837517653";
+    constexpr static char STATE[] = "_RSVD_NAME_QUESTFIELD::STATE_837517653";
 
     struct TEAM
     {
-        constexpr static char     LEADER[] = "_RSVD_NAME_QUESTVAR::TEAM::LEADER_622091631";
-        constexpr static char   ROLELIST[] = "_RSVD_NAME_QUESTVAR::TEAM::ROLELIST_556867549";
-        constexpr static char MEMBERLIST[] = "_RSVD_NAME_QUESTVAR::TEAM::MEMBERLIST_694437683";
+        constexpr static char     LEADER[] = "_RSVD_NAME_QUESTFIELD::TEAM::LEADER_____622091631";
+        constexpr static char MEMBERLIST[] = "_RSVD_NAME_QUESTFIELD::TEAM::MEMBERLIST_694437683";
+        constexpr static char   ROLELIST[] = "_RSVD_NAME_QUESTFIELD::TEAM::ROLELIST___556867549";
     };
-
-    constexpr static char FLAGS[] = "_RSVD_NAME_QUESTVAR::FLAGS_837517653";
 };
-
-constexpr char SYS_QUESTVAR_STATE    [] = "_RSVD_NAME_QUESTVAR_STATE_837517653";
-constexpr char SYS_QUESTVAR_STATEARGS[] = "_RSVD_NAME_QUESTVAR_STATEARGS_335307593";
-
-constexpr char SYS_QUESTVAR_TEAM[]           = "_RSVD_NAME_QUESTVAR_TEAM_628693877";
-constexpr char SYS_QUESTVAR_TEAMLEADER[]     = "_RSVD_NAME_QUESTVAR_TEAMLEADER_622091631";
-constexpr char SYS_QUESTVAR_TEAMROLELIST[]   = "_RSVD_NAME_QUESTVAR_TEAMROLELIST_556867549";
-constexpr char SYS_QUESTVAR_TEAMMEMBERLIST[] = "_RSVD_NAME_QUESTVAR_TEAMMEMBERLIST_694437683";
 
 constexpr char SYS_NPCERROR[] = "_RSVD_NAME_NPC_ERROR_45421406723";
 

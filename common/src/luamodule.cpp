@@ -127,24 +127,27 @@ LuaModule::LuaModule()
         -- lua system quest variables
         -- access as table
 
-        SYS_QUESTVAR = {
-            STATE = {
-                NAME = %s,
-                ARGS = %s,
-            }
+        SYS_QUESTFIELD = {
+
+             VARS = %s,
+            FLAGS = %s,
+            STATE = %s,
+
+            TEAM = {
+                LEADER     = %s,
+                MEMBERLIST = %s,
+                ROLELIST   = %s,
+            },
         }
     )###",
 
-    luaf::quotedLuaString(SYS_QUESTVAR::STATE::NAME).c_str(),
-    luaf::quotedLuaString(SYS_QUESTVAR::STATE::ARGS).c_str());
+    luaf::quotedLuaString(SYS_QUESTFIELD::VARS            ).c_str(),
+    luaf::quotedLuaString(SYS_QUESTFIELD::FLAGS           ).c_str(),
+    luaf::quotedLuaString(SYS_QUESTFIELD::STATE           ).c_str(),
+    luaf::quotedLuaString(SYS_QUESTFIELD::TEAM::LEADER    ).c_str(),
+    luaf::quotedLuaString(SYS_QUESTFIELD::TEAM::MEMBERLIST).c_str(),
+    luaf::quotedLuaString(SYS_QUESTFIELD::TEAM::ROLELIST  ).c_str());
 
-    execString("SYS_QUESTVAR_STATE = \'%s\'", SYS_QUESTVAR_STATE);
-    execString("SYS_QUESTVAR_STATEARGS = \'%s\'", SYS_QUESTVAR_STATEARGS);
-
-    execString("SYS_QUESTVAR_TEAM = \'%s\'", SYS_QUESTVAR_TEAM);
-    execString("SYS_QUESTVAR_TEAMLEADER = \'%s\'", SYS_QUESTVAR_TEAMLEADER);
-    execString("SYS_QUESTVAR_TEAMROLELIST = \'%s\'", SYS_QUESTVAR_TEAMROLELIST);
-    execString("SYS_QUESTVAR_TEAMMEMBERLIST = \'%s\'", SYS_QUESTVAR_TEAMMEMBERLIST);
 
     execString("SYS_NPCERROR = \'%s\'", SYS_NPCERROR);
 
