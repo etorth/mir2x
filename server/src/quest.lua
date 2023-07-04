@@ -126,7 +126,7 @@ function getUIDQuestTeam(uid)
         end
         fatalPrintf('Can not find uid %d in team role list', uid)
     end
-    return rotable(team)
+    return team
 end
 
 local _RSVD_NAME_questFSMTable = nil
