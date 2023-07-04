@@ -344,8 +344,8 @@ template<typename U, typename V> std::string str_any(const std::pair<U, V> &);
 
 template<typename T> std::string str_any(const T &t)
 {
-    std::stringstream ss;
-    return dynamic_cast<std::stringstream &>(ss << t).str();
+    std::ostringstream oss;
+    return dynamic_cast<std::ostringstream &>(oss << t).str();
 }
 
 #define _str_any_container_helper(c) \
