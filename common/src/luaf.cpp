@@ -1,4 +1,9 @@
 #include "luaf.hpp"
+// put strf.h after luaf.h
+// this guarantees all defs of operator << () functions seen before str_any(const T &)
+#include "strf.hpp"
+#include "totype.hpp"
+#include "fflerror.hpp"
 
 size_t luaf::_details::_luaVarWrapperHash::operator () (const luaVarWrapper &wrapper) const noexcept
 {

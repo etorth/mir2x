@@ -7,10 +7,6 @@
 #include <unordered_map>
 #include <type_traits>
 #include <sol/sol.hpp>
-#include "strf.hpp"
-#include "totype.hpp"
-#include "cerealf.hpp"
-#include "fflerror.hpp"
 
 // c++ internal types <----> luaVar <----> lua types as sol::object
 //    lua_Integer         std::variant     sol::object

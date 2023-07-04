@@ -375,6 +375,11 @@ namespace _str_any_details
 }
 
 template<typename U, typename V> std::string str_any(const std::pair<U, V> &);
+template<typename T> std::string str_any(const std::optional<T> &);
+
+template<typename... Ts> std::string str_any(const std::tuple  <Ts...> &);
+template<typename... Ts> std::string str_any(const std::variant<Ts...> &);
+
 template<typename T> std::string str_any(const T &t)
 {
     if constexpr(_str_any_details::has_cbegin_cend<T>::value){
@@ -424,17 +429,17 @@ template<typename K, typename V> std::string str_any(const std::pair<K, V> &p)
     return std::string("{") + str_any(p.first) + "," + str_any(p.second) + "}";
 }
 
-template<std::size_t I, typename... T> inline typename std::enable_if<I == sizeof...(T), std::string>::type _str_any_tuple_helper(const std::tuple<T...> &)
+template<std::size_t I, typename... Ts> inline typename std::enable_if<I == sizeof...(Ts), std::string>::type _str_any_tuple_helper(const std::tuple<Ts...> &)
 {
     return {};
 }
 
-template<std::size_t I, typename... T> inline typename std::enable_if<I <  sizeof...(T), std::string>::type _str_any_tuple_helper(const std::tuple<T...> &t)
+template<std::size_t I, typename... Ts> inline typename std::enable_if<I <  sizeof...(Ts), std::string>::type _str_any_tuple_helper(const std::tuple<Ts...> &t)
 {
     return std::string((I == 0) ? "" : ",") + str_any(std::get<I>(t)) + _str_any_tuple_helper<I + 1>(t);
 }
 
-template<typename... T> std::string str_any(const std::tuple<T...> &t)
+template<typename... Ts> std::string str_any(const std::tuple<Ts...> &t)
 {
     return "{" + _str_any_tuple_helper<0>(t) + "}";
 }
