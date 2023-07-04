@@ -3,36 +3,78 @@
 
 function dbUpdateUIDQuestVar(uid, key, value)
     assertType(uid, 'integer')
-    local vars = dbGetUIDQuestVars(uid) or {}
+    local vars = dbGetUIDQuestField(uid, 'fld_vars') or {}
+
+    if vars[key] == value then
+        return
+    end
+
     vars[key] = value
 
     if tableEmpty(vars) then
-        dbSetUIDQuestVars(uid, nil)
-    else
-        dbSetUIDQuestVars(uid, vars)
+        vars = nil
     end
+    dbSetUIDQuestField(uid, 'fld_vars', vars)
+end
+
+function dbGetUIDQuestVar(uid, key)
+    assertType(uid, 'integer')
+    return (dbGetUIDQuestField(uid, 'fld_vars') or {})[key]
+end
+
+function dbSetUIDQuestVar(uid, key, value)
+    assertType(uid, 'integer')
+    dbUpdateUIDQuestVar(uid, key, value)
 end
 
 function dbGetUIDQuestState(uid)
     assertType(uid, 'integer')
-    return (dbGetUIDQuestVars(uid) or {})[SYS_QUESTVAR_STATE]
-end
-
-function dbGetUIDQuestStateArgs(uid)
-    assertType(uid, 'integer')
-    return (dbGetUIDQuestVars(uid) or {})[SYS_QUESTVAR_STATEARGS]
+    return table.unpack(dbGetUIDQuestField(uid, 'fld_state') or {}, 1, 2)
 end
 
 function dbSetUIDQuestState(uid, state, args)
     assertType(uid, 'integer')
     assertType(state, 'string')
-    dbUpdateUIDQuestVar(uid, SYS_QUESTVAR_STATE, state)
-    dbUpdateUIDQuestVar(uid, SYS_QUESTVAR_STATEARGS, args)
+    dbSetUIDQuestField(uid, 'fld_state', {state, args})
 end
 
 function hasUIDQuestFlag(uid, flagName)
     assertType(uid, 'integer')
     assertType(flagName, 'string')
+
+    local flags = dbGetUIDQuestFlag(uid, 'fld_flags') or {}
+    return flags[flagName] or false
+end
+
+function addUIDQuestFlag(uid, flagName)
+    assertType(uid, 'integer')
+    assertType(flagName, 'string')
+
+    local flags = dbGetUIDQuestField(uid, 'fld_flags') or {}
+    if flags[flagName] == true then
+        return
+    end
+
+    flags[flagName] = true
+    dbSetUIDQuestField(uid, 'fld_flags', flags)
+end
+
+function deleteUIDQuestFlag(uid, flagName)
+    assertType(uid, 'integer')
+    assertType(flagName, 'string')
+
+    local flags = dbGetUIDQuestField(uid, 'fld_flags') or {}
+
+    if flags[flagName] == nil then
+        return
+    end
+
+    flags[flagName] = nil
+
+    if tableEmpty(flags) then
+        flags = nil
+    end
+    dbSetUIDQuestField(uid, 'fld_flags', flags)
 end
 
 function loadMap(map)
@@ -176,7 +218,7 @@ function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
 end
 
 function restoreUIDQuestState(uid)
-    setUIDQuestState(uid, dbGetUIDQuestState(uid), dbGetUIDQuestStateArgs(uid))
+    setUIDQuestState(uid, dbGetUIDQuestState(uid))
 end
 
 local _RSVD_NAME_triggers = {}

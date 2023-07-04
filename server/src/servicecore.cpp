@@ -79,6 +79,11 @@ void ServiceCore::operateAM(const ActorMsgPack &rstMPK)
                 on_AM_QUERYQUESTUID(rstMPK);
                 break;
             }
+        case AM_QUERYQUESTUIDLIST:
+            {
+                on_AM_QUERYQUESTUIDLIST(rstMPK);
+                break;
+            }
         default:
             {
                 g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));

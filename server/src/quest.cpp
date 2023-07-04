@@ -17,8 +17,9 @@ Quest::Quest(const SDInitQuest &initQuest)
             u8R"###( create table %s(                                          )###"
             u8R"###(     fld_dbid      int unsigned not null,                  )###"
             u8R"###(     fld_timestamp int unsigned not null,                  )###"
-            u8R"###(     fld_vars      blob             null,                  )###"
+            u8R"###(     fld_state     blob             null,                  )###"
             u8R"###(     fld_flags     blob             null,                  )###"
+            u8R"###(     fld_vars      blob             null,                  )###"
             u8R"###(                                                           )###"
             u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid), )###"
             u8R"###(     primary key (fld_dbid)                                )###"
@@ -46,39 +47,51 @@ void Quest::onActivate()
         return m_mainScriptThreadKey;
     });
 
-    m_luaRunner->bindFunction("dbGetUIDQuestVars", [this](uint64_t uid, sol::this_state s) -> sol::object
+    m_luaRunner->bindFunction("dbGetUIDQuestField", [this](uint64_t uid, std::string fieldName, sol::this_state s) -> sol::object
     {
         sol::state_view sv(s);
         const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
 
-        auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_vars from %s where fld_dbid=%llu)###", dbName.c_str(), to_llu(dbid));
+        fflassert(str_haschar(fieldName));
+        fflassert(fieldName.starts_with("fld_"));
+
+        auto queryStatement = g_dbPod->createQuery(u8R"###(select %s from %s where fld_dbid=%llu and %s is not null)###", fieldName.c_str(), dbName.c_str(), to_llu(dbid), fieldName.c_str());
         if(!queryStatement.executeStep()){
             return sol::make_object(sv, sol::nil);
         }
-
-        auto vars = cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0));
-        fflassert(std::get_if<luaf::luaTable>(&vars), vars.index());
-
-        return luaf::buildLuaObj(sol::state_view(s), std::move(vars));
+        return luaf::buildLuaObj(sol::state_view(s), std::move(cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0))));
     });
 
-    m_luaRunner->bindFunction("dbSetUIDQuestVars", [this](uint64_t uid, sol::object obj)
+    m_luaRunner->bindFunction("dbSetUIDQuestField", [this](uint64_t uid, std::string fieldName, sol::object obj)
     {
         const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
 
+        fflassert(str_haschar(fieldName));
+        fflassert(fieldName.starts_with("fld_"));
+
         if(obj == sol::nil){
-            g_dbPod->createQuery(u8R"###( delete from %s where fld_dbid = %llu )###", dbName.c_str(), to_llu(dbid)).exec();
-        }
-        else{
-            fflassert(obj.is<sol::table>());
-            auto query = g_dbPod->createQuery(
-                u8R"###( replace into %s(fld_dbid, fld_timestamp, fld_vars) )###"
-                u8R"###( values                                             )###"
-                u8R"###(     (%llu, %llu, ?)                                )###",
+            g_dbPod->exec(
+                u8R"###( replace into %s(fld_dbid, fld_timestamp, %s) )###"
+                u8R"###( values                                       )###"
+                u8R"###(     (%llu, %llu, null)                       )###",
 
                 dbName.c_str(),
+                fieldName.c_str(),
+
+                to_llu(dbid),
+                to_llu(std::time(nullptr)));
+        }
+        else{
+            auto query = g_dbPod->createQuery(
+                u8R"###( replace into %s(fld_dbid, fld_timestamp, %s) )###"
+                u8R"###( values                                       )###"
+                u8R"###(     (%llu, %llu, ?)                          )###",
+
+                dbName.c_str(),
+                fieldName.c_str(),
+
                 to_llu(dbid),
                 to_llu(std::time(nullptr)));
 

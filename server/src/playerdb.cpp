@@ -423,28 +423,3 @@ void Player::dbLoadLearnedMagic()
         });
     }
 }
-
-std::vector<std::string> Player::dbLoadQuestNameList() const
-{
-    std::vector<std::string> questNameList;
-    for(auto queryQuests = g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table')###"); queryQuests.executeStep();){
-        if(const std::string tableName = queryQuests.getColumn("name"); tableName.starts_with(SYS_QUEST_TBL_PREFIX)){
-            if(auto queryVars = g_dbPod->createQuery(u8R"###(select fld_vars from %s where fld_dbid = %llu)###", tableName.c_str(), to_llu(dbid())); queryVars.executeStep()){
-                const auto vars = cerealf::deserialize<luaf::luaVar>(queryVars.getColumn(0));
-                if(const auto tblVarPtr = std::get_if<luaf::luaTable>(&vars)){
-                    for(const auto &[k, v]: *tblVarPtr){
-                        const auto luaKey = luaf::luaVar(k);
-                        const auto luaVal = luaf::luaVar(v);
-                        if(luaKey == luaf::luaVar(SYS_QUESTVAR_STATE) && luaVal != luaf::luaVar(SYS_EXIT)){
-                            const auto questName = tableName.substr(std::strlen(SYS_QUEST_TBL_PREFIX));
-                            fflassert(!questName.empty(), tableName);
-                            questNameList.push_back(questName);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return questNameList;
-}

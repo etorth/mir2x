@@ -532,6 +532,8 @@ struct SDWLDesp
     }
 };
 
+using SDUIDList = std::vector<uint64_t>;
+
 struct SDUIDWLDesp
 {
     uint64_t uid = 0;

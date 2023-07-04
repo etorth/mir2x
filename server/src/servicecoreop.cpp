@@ -278,6 +278,18 @@ void ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
     m_actorPod->forward(mpk.fromAddr(), {AM_UID, amUID});
 }
 
+void ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
+{
+    SDUIDList uidList;
+    uidList.reserve(m_questList.size());
+
+    for(const auto &[uid, sdRQ]: m_questList){
+        uidList.push_back(uid);
+    }
+
+    m_actorPod->forward(mpk.fromAddr(), {AM_UIDLIST, cerealf::serialize(uidList)});
+}
+
 void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();

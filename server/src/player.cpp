@@ -281,11 +281,6 @@ void Player::onActivate()
         return hasInventoryItem(to_u32(itemID), to_u32(seqID), count);
     });
 
-    m_luaRunner->bindFunction("dbLoadQuestNameList", [this]() -> std::vector<std::string>
-    {
-        return dbLoadQuestNameList();
-    });
-
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_queryQuestUID", [this](LuaCoopResumer onDone, std::string questName)
     {
         auto closed = std::make_shared<bool>(false);
@@ -313,6 +308,39 @@ void Player::onActivate()
                     {
                         const auto amUID = rmpk.conv<AMUID>();
                         onDone(amUID.UID);
+                        break;
+                    }
+                default:
+                    {
+                        onDone(0);
+                        break;
+                    }
+            }
+        });
+    });
+
+    m_luaRunner->bindFunctionCoop("_RSVD_NAME_queryQuestUIDList", [this](LuaCoopResumer onDone)
+    {
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
+        {
+            *closed = true;
+        });
+
+        m_actorPod->forward(uidf::getServiceCoreUID(), AM_QUERYQUESTUIDLIST, [closed, onDone](const ActorMsgPack &rmpk)
+        {
+            if(*closed){
+                return;
+            }
+            else{
+                onDone.popOnClose();
+            }
+
+            switch(rmpk.type()){
+                case AM_UIDLIST:
+                    {
+                        const auto uidList = rmpk.deserialize<SDUIDList>();
+                        onDone(sol::as_table(uidList));
                         break;
                     }
                 default:
@@ -492,15 +520,18 @@ void Player::onActivate()
     END_LUAINC()));
 
     m_luaRunner->spawn(m_threadKey++, str_printf(
-    R"###( for _, questName in ipairs(dbLoadQuestNameList())                        )###""\n"
-    R"###( do                                                                       )###""\n"
-    R"###(     local questUID = _RSVD_NAME_callFuncCoop("queryQuestUID", questName) )###""\n"
-    R"###(     assertType(questUID, 'integer')                                      )###""\n"
-    R"###(                                                                          )###""\n"
-    R"###(     if questUID ~= 0 then                                                )###""\n"
-    R"###(         uidExecute(questUID, [[ restoreUIDQuestState(%llu) ]])           )###""\n"
-    R"###(     end                                                                  )###""\n"
-    R"###( end                                                                      )###""\n", to_llu(UID())));
+    R"###( for _, questUID in ipairs(_RSVD_NAME_callFuncCoop('queryQuestUIDList')) )###""\n"
+    R"###( do                                                                      )###""\n"
+    R"###(     uidExecute(questUID,                                                )###""\n"
+    R"###(     [[                                                                  )###""\n"
+    R"###(         local state, args = dbGetUIDQuestState(%llu)                    )###""\n"
+    R"###(         assertType(state, 'nil', 'string')                              )###""\n"
+    R"###(                                                                         )###""\n"
+    R"###(         if (state ~= nil) and (state ~= SYS_EXIT) then                  )###""\n"
+    R"###(             setUIDQuestState(%llu, state, args)                         )###""\n"
+    R"###(         end                                                             )###""\n"
+    R"###(     ]])                                                                 )###""\n"
+    R"###( end                                                                     )###""\n", to_llu(UID()), to_llu(UID())));
 }
 
 void Player::operateAM(const ActorMsgPack &rstMPK)
