@@ -93,18 +93,18 @@ function setUIDQuestTeam(args)
     local team = uidExecute(args.uid,
     [[
         return {
-            [SYS_TEAM.LEADER] = getTeamLeader(),
-            [SYS_TEAM.MEMBER] = getTeamMemberList(),
+            [SYS_QUESTFIELD.TEAM.LEADER] = getTeamLeader(),
+            [SYS_QUESTFIELD.TEAM.MEMBERLIST] = getTeamMemberList(),
         }
     ]])
 
     if args.randRole then
-        team[SYS_TEAM.ROLE] = shuffleArray(team[SYS_TEAM.MEMBER])
+        team[SYS_QUESTFIELD.TEAM.ROLELIST] = shuffleArray(team[SYS_QUESTFIELD.TEAM.MEMBERLIST])
     else
-        team[SYS_TEAM.ROLE] = team[SYS_TEAM.MEMBER]
+        team[SYS_QUESTFIELD.TEAM.ROLELIST] = team[SYS_QUESTFIELD.TEAM.MEMBERLIST]
     end
 
-    for _, member in ipairs(team[SYS_TEAM.MEMBER]) do
+    for _, member in ipairs(team[SYS_QUESTFIELD.TEAM.MEMBERLIST]) do
         if args.propagate or (member == uid) then
             dbSetUIDQuestField(member, 'fld_team', team)
         end
@@ -119,7 +119,7 @@ function getUIDQuestTeam(uid)
         assertType(self, 'table')
         assertType(uid, 'integer')
 
-        for i, teamMember in ipairs(self[SYS_TEAM.ROLE]) do
+        for i, teamMember in ipairs(self[SYS_QUESTFIELD.TEAM.ROLELIST]) do
             if teamMember == uid then
                 return i
             end

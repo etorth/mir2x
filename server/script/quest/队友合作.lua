@@ -86,7 +86,7 @@ function main()
                 local teamRoleList = uidExecute(questUID,
                 [=[
                     setUIDQuestTeam{uid=%%d, randRole=true, propagate=true}
-                    return getUIDQuestTeamRoleList(%%d)
+                    return getUIDQuestTeam(uid)[SYS_QUESTFIELD.TEAM.ROLELIST]
                 ]=], uid, uid)
 
                 for _, teamRole in ipairs(teamRoleList) do
