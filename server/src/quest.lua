@@ -30,6 +30,11 @@ function dbSetUIDQuestState(uid, state, args)
     dbUpdateUIDQuestVar(uid, SYS_QUESTVAR_STATEARGS, args)
 end
 
+function hasUIDQuestFlag(uid, flagName)
+    assertType(uid, 'integer')
+    assertType(flagName, 'string')
+end
+
 function loadMap(map)
     return _RSVD_NAME_callFuncCoop('loadMap', map)
 end
