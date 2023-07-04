@@ -179,6 +179,10 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
         return obj.as<std::string>();
     }
     else if(obj.is<sol::table>()){
+        if(obj.as<sol::table>()[sol::metatable_key] != sol::nil){
+            throw fflerror("can't build from table with metatable");
+        }
+
         luaf::luaTable table;
         for(const auto &[k, v]: obj.as<sol::table>()){
             table.insert_or_assign(luaf::buildLuaVar(sol::object(k)), luaf::buildLuaVar(sol::object(v)));
