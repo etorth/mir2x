@@ -216,52 +216,44 @@ function getFileName()
     return debug.getinfo(2, 'S').source
 end
 
-function rotable(tbl, recursive)
-    assertType(tbl, 'table')
-    assertType(recursive, 'boolean', 'nil')
+local _RSVD_NAME_cachedROTable = setmetatable({}, { __mode = "k" })
+function rotable(arg)
+    if type(arg) ~= "table" then
+        return arg
+    end
 
-    local function plain_rotable(tb)
-        return setmetatable({}, {
-            __index = tb,
+    local cached = _RSVD_NAME_cachedROTable[arg]
+    if not cached then
+        cached = setmetatable({},
+        {
+            __index = function(_, k)
+                return rotable(arg[k])
+            end,
+
             __newindex = function()
-                error("Attempt to update a read-only table")
+                error("Attempt to modify a read-only table", 2)
             end,
 
             __pairs = function()
-                return next, tb, nil
+                return function(_, i)
+                    local k, v = next(arg, i)
+                    return k, rotable(v)
+                end, nil, nil
             end,
 
             __ipairs = function()
-                local function iter(t, i)
-                    local j = i + 1
-                    local v = t[j]
-                    if v ~= nil then
-                        return j, v
-                    end
-                end
-                return iter, tbl, 0
+                return function(_, i)
+                    return i + 1, rotable(arg[i + 1])
+                end, nil, 0
             end,
 
             __len = function()
-                return #tb
-            end
+                return #arg
+            end,
         })
+        _RSVD_NAME_cachedROTable[arg] = cached
     end
-
-    local function dfs_rotable(tb)
-        for k, v in pairs(tb) do
-            if type(v) == 'table' then
-                tb[k] = plain_rotable(dfs_rotable(v))
-            end
-        end
-        return plain_rotable(tb)
-    end
-
-    if (recursive == nil or recursive) then
-        return dfs_rotable(tbl)
-    else
-        return plain_rotable(tbl)
-    end
+    return cached
 end
 
 function tableEmpty(t, allowNil)
