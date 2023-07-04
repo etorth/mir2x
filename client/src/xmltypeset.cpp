@@ -276,6 +276,16 @@ void XMLTypeset::LineJustifyPadding(int nLine)
         return;
     }
 
+    // final round
+    // for lines have only emoji/image, all previous padding cannot help
+
+    if(fnLeafPadding([this](int, int) -> bool
+    {
+        return true;
+    }) == MaxLineWidth()){
+        return;
+    }
+
     throw fflerror("can't do padding to width: %d", MaxLineWidth());
 }
 
