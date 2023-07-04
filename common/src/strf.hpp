@@ -87,6 +87,7 @@
 #include <variant>
 #include <iomanip>
 #include <algorithm>
+#include <numeric>
 #include <filesystem>
 #include <chrono>
 #include <ctime>
@@ -344,47 +345,79 @@ inline std::string str_any(const std::monostate &)
     return "(monostate)";
 }
 
-template<typename T, typename... Args> std::string str_any(const std::          set<T, Args...> &);
-template<typename T, typename... Args> std::string str_any(const std::unordered_set<T, Args...> &);
+namespace _str_any_details
+{
+    template<typename T> class has_cbegin_cend
+    {
+        private:
+            typedef struct{ char x[1]; } one;
+            typedef struct{ char x[2]; } two;
 
-template<typename K, typename V, typename... Args> std::string str_any(const std::          map<K, V, Args...> &);
-template<typename K, typename V, typename... Args> std::string str_any(const std::unordered_map<K, V, Args...> &);
+            template<typename C> static one test(decltype(std::cbegin(std::declval<C>())) *, decltype(std::cend(std::declval<C>())) *);
+            template<typename C> static two test(...);
 
-template<typename T, typename... Args> std::string str_any(const std::list  <T, Args...> &);
-template<typename T, typename... Args> std::string str_any(const std::deque <T, Args...> &);
-template<typename T, typename... Args> std::string str_any(const std::vector<T, Args...> &);
+        public:
+            enum{value = sizeof(test<T>(nullptr, nullptr)) == sizeof(one)};
+    };
+
+    template<typename T> class has_size
+    {
+        private:
+            typedef struct{ char x[1]; } one;
+            typedef struct{ char x[2]; } two;
+
+            template<typename C> static one test(decltype(std::size(std::declval<C>())) *);
+            template<typename C> static two test(...);
+
+        public:
+            enum{value = sizeof(test<T>(nullptr)) == sizeof(one)};
+    };
+}
 
 template<typename U, typename V> std::string str_any(const std::pair<U, V> &);
-
 template<typename T> std::string str_any(const T &t)
 {
-    std::ostringstream oss;
-    return dynamic_cast<std::ostringstream &>(oss << t).str();
+    if constexpr(_str_any_details::has_cbegin_cend<T>::value){
+        std::vector<std::string> resv;
+        if constexpr(_str_any_details::has_size<T>::value){
+            resv.reserve(std::size(t));
+        }
+        else{
+            resv.reserve(static_cast<size_t>(std::distance(std::cbegin(t), std::cend(t))));
+        }
+
+        for(const auto &elem: t){
+            resv.push_back(str_any(elem));
+        }
+
+        if(resv.empty()){
+            return "{}";
+        }
+
+        const auto reslen = std::accumulate(resv.cbegin(), resv.cend(), 0ULL, [](auto sum, const auto &s)
+        {
+            return sum + s.size();
+        });
+
+        std::string result;
+        result.reserve(reslen + 2 + (resv.size() - 1));
+
+        result.append("{");
+        for(auto it = resv.cbegin(); it != resv.cend(); ++it){
+            if(it != resv.cbegin()){
+                result.append(",");
+            }
+            result.append(*it);
+        }
+
+        result.append("}");
+        return result;
+    }
+    else{
+        std::ostringstream oss;
+        return dynamic_cast<std::ostringstream &>(oss << t).str();
+    }
 }
-
-#define _str_any_container_helper(c) \
-{ \
-    std::string result = "{"; \
-    for(const auto &item_in_c: c){ \
-        if(result.size() > 1){ \
-            result += ","; \
-        } \
-        result += str_any(item_in_c); \
-    } \
-    return result + "}"; \
-}
-
-template<typename T, typename... Args> std::string str_any(const std::          set<T, Args...> &s) _str_any_container_helper(s)
-template<typename T, typename... Args> std::string str_any(const std::unordered_set<T, Args...> &s) _str_any_container_helper(s)
-
-template<typename K, typename V, typename... Args> std::string str_any(const std::          map<K, V, Args...> &m) _str_any_container_helper(m)
-template<typename K, typename V, typename... Args> std::string str_any(const std::unordered_map<K, V, Args...> &m) _str_any_container_helper(m)
-
-template<typename T, typename... Args> std::string str_any(const std::list  <T, Args...> &l) _str_any_container_helper(l)
-template<typename T, typename... Args> std::string str_any(const std::deque <T, Args...> &q) _str_any_container_helper(q)
-template<typename T, typename... Args> std::string str_any(const std::vector<T, Args...> &v) _str_any_container_helper(v)
-
-#undef _str_any_container_helper
 
 template<typename K, typename V> std::string str_any(const std::pair<K, V> &p)
 {
