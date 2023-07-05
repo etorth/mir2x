@@ -52,6 +52,15 @@ function main()
                 local questUID  = %d
 
                 if accepted then
+                    uidPostXML(playerUID,
+                    [=[
+                        <layout>
+                            <par>真的太感谢了！我期待着你能带来好消息！</par>
+                            <par>传奇商会所属的其它商人仍然还有很多，但是现在凭我自己的力量很难一一说服。虽然从好几个方面同时下手。不管怎样？难道不该先避免沦为乞丐吗？所以拜托啦！</par>
+                            <par></par>
+                            <par><event id="%%s">好的</event></par>
+                        </layout>
+                    ]=], SYS_EXIT)
                     uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_accept_quest') ]=], playerUID)
                 else
                     uidPostXML(playerUID,
@@ -81,16 +90,14 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>真的太感谢了！我期待着你能带来好消息！</par>
-                                <par>传奇商会所属的其它商人仍然还有很多，但是现在凭我自己的力量很难一一说服。虽然从好几个方面同时下手。不管怎样？难道不该先避免沦为乞丐吗？所以拜托啦！</par>
+                                <par>我期待着你能带来好消息！</par>
+                                <par>只要<t color="red">图书管理人</t>和<t color="red">药剂师</t>加入我们这一方的话就是一次值得的斗争！</par>
                                 <par></par>
                                 <par><event id="%%s">好的</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
                 })
-
-                runEventHandler(playerUID, questPath, SYS_ENTER)
             ]], uid, asInitString(getQuestName()))
         end,
 
