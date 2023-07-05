@@ -132,24 +132,76 @@ function main()
             uidExecute(getNPCharUID('比奇县_0', '王大人_1'),
             [[
                 local playerUID = %d
+                local questUID  = %d
                 local questName = %s
                 local questPath = {SYS_EPUID, questName}
 
                 setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
+                        local donePharmacist = uidExecute(uid, [=[ return getQuestState('劝说药剂师加入比奇商会'    ) == SYS_EXIT ]=])
+                        local doneLibrarian  = uidExecute(uid, [=[ return getQuestState('劝说图书管理人加入比奇商会') == SYS_EXIT ]=])
+
+                        if (not donePharmacist) and (not doneLibrarian) then
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>我期待着你能带来好消息！</par>
+                                    <par>只要<t color="red">图书管理人</t>和<t color="red">药剂师</t>加入我们这一方的话就是一次值得的斗争！</par>
+                                    <par></par>
+                                    <par><event id="%%s">好的</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+
+                        elseif not doneLibrarian then
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>还没能拉拢<t color="red">图书管理人</t>啊？再加把劲儿！</par>
+                                    <par>只要<t color="red">图书管理人</t>和<t color="red">药剂师</t>加入我们这一方的话就是一次值得的斗争！</par>
+                                    <par></par>
+                                    <par><event id="%%s">好的</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+
+                        elseif not donePharmacist then
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>还没能拉拢<t color="red">药剂师</t>啊？再加把劲儿！</par>
+                                    <par>只要<t color="red">图书管理人</t>和<t color="red">药剂师</t>加入我们这一方的话就是一次值得的斗争！</par>
+                                    <par></par>
+                                    <par><event id="%%s">好的</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+
+                        else
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>噢！我们终于让<t color="red">图书管理人</t>和<t color="red">药剂师</t>从传奇商会退出了！</par>
+                                    <par>他们真的说同意加入比奇商会啦？做得好！做得实在是太棒啦！哈哈哈！</par>
+                                    <par></par>
+                                    <par><event id="npc_give_bonus">你过奖了！</event></par>
+                                </layout>
+                            ]=])
+                        end
+                    end,
+
+                    npc_give_bonus = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>我期待着你能带来好消息！</par>
-                                <par>只要<t color="red">图书管理人</t>和<t color="red">药剂师</t>加入我们这一方的话就是一次值得的斗争！</par>
+                                <par>真没想到啊！不知不觉中就把传奇商会的商家拉拢到我们这一方啦！真是手腕精明啊！由于你的活动终于使我们比奇商会统一了比奇地区商权。这是为了报答你的功劳准备的一点小小礼物，请不要谦让务必收下。</par>
                                 <par></par>
-                                <par><event id="%%s">好的</event></par>
+                                <par><event id="%%s">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
+
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_EXIT) ]=], uid)
                     end,
                 })
-            ]], uid, asInitString(getQuestName()))
+            ]], uid, getUID(), asInitString(getQuestName()))
         end,
     })
 end
