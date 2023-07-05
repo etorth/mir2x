@@ -93,7 +93,18 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>请快去快回！</par>
+                                <par>患者越来越多，快去<event id="npc_path_details">毒蛇山谷</event>买<t color="red">毒蛇牙齿</t>吧！</par>
+                                <par></par>
+                                <par><event id="%%s">好的</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    npc_path_details = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>从这儿向东北部去就能到达毒蛇山谷，去(643,15)附近就能够找得到。穿过毒蛇山谷一直向东走就会达到那个村庄，在那儿找药商<t color="red">金中医</t>(334,224)向他购买<t color="red">毒蛇牙齿</t>。</par>
                                 <par></par>
                                 <par><event id="%%s">好的</event></par>
                             </layout>
