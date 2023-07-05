@@ -150,10 +150,34 @@ function main()
                             <layout>
                                 <par>比奇省发生传染病? 你说的是真的吗？那我现在就卖给你一包吧！</par>
                                 <par>现在只有这些，如果需要的话再来吧！价格是100钱一颗，给我1000钱就行。</par>
-                                <par><event id="npc_sell_tooth">全额付款</event></par>
-                                <par><event id="npc_sell_tooth">讨价还价</event></par>
+                                <par><event id="npc_full_price">全额付款</event></par>
+                                <par><event id="npc_discount">讨价还价</event></par>
                             </layout>
                         ]=])
+                    end,
+
+                    npc_full_price = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>很着急的样子啊！</par>
+                                <par>给你，快去比奇省看看吧！</par>
+                                <par></par>
+                                <par><event id="%%s">好的</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    npc_discount = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>城内的情况这么紧急的话我就赔本卖给你吧！</par>
+                                <par>每颗10钱，只付100钱就行。连加工费都去掉就按成本给你啦！</par>
+                                <par></par>
+                                <par><event id="%%s">好的</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
                     end,
                 })
             ]], uid, asInitString(getQuestName()))
