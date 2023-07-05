@@ -99,6 +99,54 @@ function main()
                     end,
                 })
             ]], uid, asInitString(getQuestName()))
+
+            uidExecute(getNPCharUID('比奇县_0', '药剂师_1'),
+            [[
+                local playerUID = %d
+                local questName = %s
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>我现在特别忙，你有什么事儿吗？</par>
+                                <par></par>
+                                <par><event id="npc_discuss_1">我来劝说你加入比奇商会！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_discuss_1 = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>让我加入王大人的比奇商会？</par>
+                                <par>你不知道我已经加入传奇商会了吗？呵呵，不过听说王大人那个人也不错，而且比起传奇商会来说条件也要更好。</par>
+                                <par>但是不管怎么说都要讲点道义啊，怎么能像手心手背那样说翻就翻呢？</par>
+                                <par></par>
+                                <par><event id="npc_discuss_2">那就没有别的办法了吗？</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    npc_discuss_2 = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>嗯！？既然你都这么说了，我倒是有一个建议。</par>
+                                <par>最近比奇省里流行传染病，配制治疗这种病的药所需的原料毒蛇牙齿非常的紧缺。这种毒蛇牙齿在毒蛇山谷村就有卖的，但是我现在马上要给源源不断而来的病人治病，没有去买药材的时间。</par>
+                                <par>传奇商会那帮人唯利是图，人命关天的事却无人愿意搭把手帮助我。如果你能够买来足够我们所需的毒蛇牙齿，我就会抛开商人的身份来以医生的角度听从您的劝说。</par>
+                                <par></par>
+                                <par><event id="%%s">没问题！</event></par>
+                                <par><event id="%%s">给我点儿考虑的时间。</event></par>
+                            </layout>
+                        ]=], SYS_EXIT, SYS_EXIT)
+                    end,
+                })
+            ]], uid, asInitString(getQuestName()))
         end,
 
         quest_refuse_quest = function(uid, value)
