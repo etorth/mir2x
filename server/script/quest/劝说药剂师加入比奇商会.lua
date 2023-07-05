@@ -112,6 +112,51 @@ function main()
                     end,
                 })
             ]], uid, asInitString(getQuestName()))
+
+            uidExecute(getNPCharUID('毒蛇山谷_2', '金中医_1'),
+            [[
+                local playerUID = %d
+                local questName = %s
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>噢！是来买毒蛇牙齿的啊！</par>
+                                <par></par>
+                                <par><event id="npc_buy_tooth">是的！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_buy_tooth = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>唔？看起来你不是要药材商或者从医的人吧！</par>
+                                <par>这倒无所谓！不过作为药用的毒蛇牙齿的产量是固定的，每天充其量能供给几包而已。难道你不知道吗？</par>
+                                <par></par>
+                                <par><event id="npc_seller_call_price">我是受比奇省药剂师之托而来的</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_seller_call_price = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>比奇省发生传染病? 你说的是真的吗？那我现在就卖给你一包吧！</par>
+                                <par>现在只有这些，如果需要的话再来吧！价格是100钱一颗，给我1000钱就行。</par>
+                                <par><event id="npc_sell_tooth">全额付款</event></par>
+                                <par><event id="npc_sell_tooth">讨价还价</event></par>
+                            </layout>
+                        ]=])
+                    end,
+                })
+            ]], uid, asInitString(getQuestName()))
         end,
     })
 end
