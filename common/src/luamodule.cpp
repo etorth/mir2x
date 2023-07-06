@@ -177,6 +177,11 @@ LuaModule::LuaModule()
 
     execString("math.randomseed(%d)", to_d(hres_tstamp().to_nsec() % 1000000ULL));
 
+    bindFunction("debugAttach", [this]()
+    {
+        addLogString(1, to_u8cstr(str_printf("Waiting for debugger to attach pid %llu", to_llu(getpid()))));
+    });
+
     bindFunction("addLogString", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){
