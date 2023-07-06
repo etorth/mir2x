@@ -102,6 +102,13 @@ struct LuaCORunner
     sol::thread runner;
     sol::coroutine callback;
 
+    LuaCORunner(sol::state &s, sol::function &func)
+        : runner(sol::thread::create(s.lua_state()))
+        , callback(func)
+    {
+        fflassert(callback);
+    }
+
     LuaCORunner(sol::state &s, const std::string &func)
         : runner(sol::thread::create(s.lua_state()))
         , callback(sol::state_view(runner.state())[func])

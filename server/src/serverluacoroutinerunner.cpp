@@ -100,6 +100,16 @@ struct LuaThreadHandle
             onClose.push(std::move(argOnClose));
         }
     }
+
+    ~LuaThreadHandle()
+    {
+        while(!onClose.empty()){
+            if(onClose.top()){
+                onClose.top()(); // only do clean work, don't modify onClose stack inside
+            }
+            onClose.pop();
+        }
+    }
 };
 
 void LuaCoopResumer::pushOnClose(std::function<void()> fnOnClose) const
@@ -378,9 +388,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     {
         fflassert(threadKey);
         fflassert(threadSeqID);
-        fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
 
-        auto runnerPtr = m_runnerList.find(threadKey)->second.get();
+        auto runnerPtr = hasKey(threadKey, threadSeqID);
+        fflassert(runnerPtr, threadKey, threadSeqID);
+
         if(maxCount == 0 || maxCount >= runnerPtr->notifyList.size()){
             return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::move(runnerPtr->notifyList)));
         }
@@ -399,9 +410,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     {
         fflassert(threadKey);
         fflassert(threadSeqID);
-        fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
 
-        auto runnerPtr = m_runnerList.find(threadKey)->second.get();
+        auto runnerPtr = hasKey(threadKey, threadSeqID);
+        fflassert(runnerPtr, threadKey, threadSeqID);
+
         if(!runnerPtr->notifyList.empty()){
             auto firstVar = std::move(runnerPtr->notifyList.front());
             runnerPtr->notifyList.pop_front();
@@ -433,9 +445,11 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
     {
         fflassert(threadKey);
         fflassert(threadSeqID);
-        fflassert(hasKey(threadKey, threadSeqID), threadKey, threadSeqID);
 
-        m_runnerList.find(threadKey)->second->notifyList.clear();
+        auto runnerPtr = hasKey(threadKey, threadSeqID);
+        fflassert(runnerPtr, threadKey, threadSeqID);
+
+        runnerPtr->notifyList.clear();
     });
 
     bindYielding("_RSVD_NAME_pauseYielding", [this](uint64_t msec, uint64_t threadKey, uint64_t threadSeqID)
@@ -460,31 +474,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
-    bindFunction("_RSVD_NAME_switchExclusiveFunc", [this](uint64_t exclusiveKey, uint64_t threadKey, uint64_t threadSeqID)
-    {
-        if(threadKey){
-            fflassert(threadSeqID > 0, threadKey, threadSeqID);
-        }
-        else{
-            fflassert(threadSeqID == 0, threadKey, threadSeqID);
-        }
-
-        if(const auto p = m_exclusiveFuncList.find(exclusiveKey); p != m_exclusiveFuncList.end()){
-            if(p->second != decltype(p->second)(threadKey, threadSeqID)){
-                close(p->second.first, p->second.second);
-            }
-
-            if(threadKey){
-                p->second = decltype(p->second)(threadKey, threadSeqID);
-            }
-            else{
-                m_exclusiveFuncList.erase(p);
-            }
-        }
-        else if(threadKey){
-            m_exclusiveFuncList.emplace(exclusiveKey, std::pair<uint64_t, uint64_t>(threadKey, threadSeqID));
-        }
-    });
+    // bindFunction("_RSVD_NAME_switchExclusiveFunc", [this](uint64_t exclusiveKey, uint64_t threadKey, uint64_t threadSeqID)
+    // {
+    //     // TODO
+    // });
 
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "serverluacoroutinerunner.lua"
@@ -494,20 +487,27 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 ServerLuaCoroutineRunner::~ServerLuaCoroutineRunner()
 {}
 
-uint64_t ServerLuaCoroutineRunner::getSeqID(uint64_t key) const
+std::vector<uint64_t> ServerLuaCoroutineRunner::getSeqID(uint64_t key, std::vector<uint64_t> *seqIDListBuf) const
 {
     if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
-        return p->second->seqID;
+        std::vector<uint64_t> buf;
+        std::vector<uint64_t> *result = seqIDListBuf ? seqIDListBuf : &buf;
+
+        result->clear();
+        result->reserve(p->second.list.size());
+
+        for(const auto &[seqID, runnerPtr]: p->second.list){
+            result->push_back(seqID);
+        }
+        return std::move(*result);
     }
-    else{
-        return 0;
-    }
+    return {};
 }
 
 void ServerLuaCoroutineRunner::resume(uint64_t key, uint64_t seqID)
 {
-    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
-        resumeRunner(p->second.get());
+    if(auto p = hasKey(key, seqID)){
+        resumeRunner(p);
     }
     else{
         // won't throw here
@@ -517,39 +517,43 @@ void ServerLuaCoroutineRunner::resume(uint64_t key, uint64_t seqID)
 
 LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint64_t key, uint64_t seqID) const
 {
-    const auto p = m_runnerList.find(key);
-    return (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID) ? p->second.get() : nullptr;
+    if(const auto p = m_runnerList.find(key); p != m_runnerList.end()){
+        if(seqID == 0){
+            return p->second.list.empty() ? nullptr : p->second.list.begin()->second.get();
+        }
+
+        if(const auto q = p->second.list.find(seqID); q != p->second.list.end()){
+            return q->second.get();
+        }
+    }
+    return nullptr;
 }
 
 void ServerLuaCoroutineRunner::pushOnClose(uint64_t key, uint64_t seqID, std::function<void()> onClose)
 {
-    fflassert(hasKey(key, seqID));
     fflassert(onClose);
+    auto p = hasKey(key, seqID);
 
-    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
-        p->second->onClose.push(std::move(onClose));
-    }
+    fflassert(p, key, seqID);
+    p->onClose.push(std::move(onClose));
 }
 
 void ServerLuaCoroutineRunner::popOnClose(uint64_t key, uint64_t seqID)
 {
-    fflassert(hasKey(key, seqID));
-    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
-        fflassert(!p->second->onClose.empty());
-        p->second->onClose.pop();
-    }
+    auto p = hasKey(key, seqID);
+
+    fflassert(p, key, seqID);
+    fflassert(!p->onClose.empty());
+    p->onClose.pop();
 }
 
 void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
 {
-    if(auto p = m_runnerList.find(key); (p != m_runnerList.end()) && (seqID == 0 || p->second->seqID == seqID)){
-        while(!p->second->onClose.empty()){
-            if(p->second->onClose.top()){
-                p->second->onClose.top()(); // only do clean work, don't modify onClose stack inside
-            }
-            p->second->onClose.pop();
+    if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
+        p->second.list.erase(seqID);
+        if(p->second.list.empty()){
+            m_runnerList.erase(p);
         }
-        m_runnerList.erase(p);
     }
 }
 
@@ -639,8 +643,8 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
     fflassert(key);
     fflassert(str_haschar(code));
 
-    const auto [p, added] = m_runnerList.insert_or_assign(key, std::make_unique<LuaThreadHandle>(*this, key, m_seqID++, std::move(onDone), std::move(onClose)));
-    const auto currSeqID = p->second->seqID;
+    const auto currSeqID = m_seqID++;
+    const auto [p, added] = m_runnerList[key].list.insert_or_assign(currSeqID, std::make_unique<LuaThreadHandle>(*this, key, currSeqID, std::move(onDone), std::move(onClose)));
 
     resumeRunner(p->second.get(), str_printf(
         R"###( do                                                          )###""\n"

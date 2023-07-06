@@ -139,6 +139,16 @@ class LuaThreadHandle;
 class ServerLuaCoroutineRunner: public ServerLuaModule
 {
     private:
+        struct SeqThreadGroup
+        {
+            // threads share same key but different seqIDs
+            // it has one exclusive thread pointer, and a list of threads
+
+            uint64_t exclusive = 0;
+            std::unordered_map<uint64_t, std::unique_ptr<LuaThreadHandle>> list;
+        };
+
+    private:
         ActorPod * const m_actorPod;
 
     private:
@@ -146,10 +156,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
     private:
         uint64_t m_seqID = 1;
-        std::unordered_map<uint64_t, std::unique_ptr<LuaThreadHandle>> m_runnerList;
-
-    private:
-        std::unordered_map<uint64_t, std::pair<uint64_t, uint64_t>> m_exclusiveFuncList;
+        std::unordered_map<uint64_t, SeqThreadGroup> m_runnerList;
 
     public:
         ServerLuaCoroutineRunner(ActorPod *);
@@ -178,7 +185,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         uint64_t spawn(uint64_t,                                const std::string &, std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
 
     public:
-        uint64_t getSeqID(uint64_t) const;
+        std::vector<uint64_t> getSeqID(uint64_t, std::vector<uint64_t> * = nullptr) const;
 
     public:
         void close(uint64_t, uint64_t = 0);

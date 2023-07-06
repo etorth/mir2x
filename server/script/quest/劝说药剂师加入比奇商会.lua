@@ -290,6 +290,7 @@ function main()
             uidExecute(getNPCharUID('毒蛇山谷_2', '金中医_1'),
             [[
                 local playerUID = %d
+                local questUID  = %d
                 local questName = %s
                 local questPath = {SYS_EPUID, questName}
 
@@ -317,7 +318,7 @@ function main()
                         uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchased_tooth') ]=], uid)
                     end,
                 })
-            ]], uid, asInitString(getQuestName()))
+            ]], uid, getUID(), asInitString(getQuestName()))
         end,
 
         quest_purchased_tooth = function(uid, value)

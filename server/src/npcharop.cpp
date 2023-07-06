@@ -58,8 +58,8 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     // last call stack may have not been done yet
     // but player initializes new call stack, have to abandon last call stack and start a new one
 
-    if(m_luaRunner->getSeqID(mpk.from())){
-        m_luaRunner->close(mpk.from());
+    for(const auto seqID: m_luaRunner->getSeqID(mpk.from())){
+        m_luaRunner->close(mpk.from(), seqID);
     }
 
     m_luaRunner->spawn(mpk.from(), str_printf("return _RSVD_NAME_npc_main(%llu, %s, %s, %s)",
