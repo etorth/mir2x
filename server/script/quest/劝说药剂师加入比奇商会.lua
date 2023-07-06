@@ -228,6 +228,10 @@ function main()
                     local rand = math.random(0, 100)
                     if rand <= 0 then
                         uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchase_with_free_price') ]=], playerUID)
+                        -- TODO interesting part here
+                        -- needs to wait for quest state change which reset the handler
+                        -- otherwise next runEventHandler() triggers old handlr
+                        pause(500)
                         uidExecute(getUID(), [=[ runEventHandler(%%d, %%s, SYS_ENTER) ]=], playerUID, asInitString(questPath))
 
                     elseif rand <= 50 then
