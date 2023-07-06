@@ -218,7 +218,7 @@ function main()
 
                     uidExecute(playerUID,
                     [=[
-                        removeItem(SYS_GOLDNAME, %%d)
+                        removeItem(getItemID(SYS_GOLDNAME), 0, %%d)
                         addItem(getItemID('毒蛇牙齿'), 10)
                     ]=], askedGold)
 
