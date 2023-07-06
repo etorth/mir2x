@@ -226,7 +226,7 @@ function main()
 
                 else
                     local rand = math.random(0, 100)
-                    if rand <= 0
+                    if rand <= 0 then
                         uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchase_with_free_price') ]=], playerUID)
 
                     elseif rand <= 50 then
