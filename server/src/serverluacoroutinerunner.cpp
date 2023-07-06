@@ -551,6 +551,10 @@ void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
 {
     if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
         p->second.list.erase(seqID);
+        if(p->second.exclusive == seqID){
+            p->second.exclusive = 0;
+        }
+
         if(p->second.list.empty()){
             m_runnerList.erase(p);
         }
