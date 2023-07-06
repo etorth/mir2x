@@ -116,6 +116,7 @@ function main()
             uidExecute(getNPCharUID('毒蛇山谷_2', '金中医_1'),
             [[
                 local playerUID = %d
+                local questUID  = %d
                 local questName = %s
                 local questPath = {SYS_EPUID, questName}
 
@@ -150,13 +151,13 @@ function main()
                             <layout>
                                 <par>比奇省发生传染病? 你说的是真的吗？那我现在就卖给你一包吧！</par>
                                 <par>现在只有这些，如果需要的话再来吧！价格是100钱一颗，给我1000钱就行。</par>
-                                <par><event id="npc_full_price">全额付款</event></par>
-                                <par><event id="npc_discount">讨价还价</event></par>
+                                <par><event id="npc_pay_full_price">全额付款</event></par>
+                                <par><event id="npc_ask_for_discount">讨价还价</event></par>
                             </layout>
                         ]=])
                     end,
 
-                    npc_full_price = function(uid, value)
+                    npc_pay_full_price = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
@@ -166,16 +167,175 @@ function main()
                                 <par><event id="%%s">好的</event></par>
                             </layout>
                         ]=], SYS_EXIT)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchased_tooth') ]=], uid)
                     end,
 
-                    npc_discount = function(uid, value)
+                    npc_ask_for_discount = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
                                 <par>城内的情况这么紧急的话我就赔本卖给你吧！</par>
                                 <par>每颗10钱，只付100钱就行。连加工费都去掉就按成本给你啦！</par>
                                 <par></par>
+                                <par><event id="npc_setup_purchase_quest">好的</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_setup_purchase_quest = function(uid, value)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchase_with_agreed_price', 100) ]=], uid)
+                    end,
+                })
+            ]], uid, getUID(), asInitString(getQuestName()))
+        end,
+
+        quest_purchase_with_agreed_price = function(uid, value)
+
+            -- purchase with agreed price
+            -- this state won't pop up dialog if player has enough money
+
+            assertType(value, 'integer')
+            assert(value > 0)
+
+            uidExecute(getNPCharUID('毒蛇山谷_2', '金中医_1'),
+            [[
+                local playerUID = %d
+                local askedGold = %d
+                local questUID  = %d
+                local questName = %s
+
+                local questPath = {SYS_EPUID, questName}
+                local currGold  = uidExecute(playerUID, [=[ return getGold() ]=])
+
+                if currGold >= askedGold then
+                    uidPostXML(playerUID,
+                    [=[
+                        <layout>
+                            <par>东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！</par>
+                            <par><event id="%%s">好的</event></par>
+                        </layout>
+                    ]=], SYS_EXIT)
+
+                    uidExecute(playerUID,
+                    [=[
+                        removeItem(SYS_GOLDNAME, %%d)
+                        addItem(getItemID('毒蛇牙齿'), 10)
+                    ]=], askedGold)
+
+                    uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchased_tooth') ]=], playerUID)
+
+                else
+                    local rand = math.random(0, 100)
+                    if rand <= 0
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchase_with_free_price') ]=], playerUID)
+
+                    else if rand <= 50 then
+                        uidPostXML(playerUID,
+                        [=[
+                            <layout>
+                                <par>你是在开玩笑吗？你没有<t color="red">%%d</t>金币啊？！</par>
+                                <par>你这个不老实的家伙，不要再浪费我的时间了！先凑够<t color="red">%%d</t>金币再来找我吧！</par>
+                                <par><event id="%%s">退出</event></par>
+                            </layout>
+                        ]=], askedGold, askedGold, SYS_EXIT)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_wait_purchase', %%d) ]=], playerUID, askedGold)
+
+                    else
+                        local newAskedGold = math.ceil(askedGold * 1.5)
+                        uidPostXML(uid,
+                        [=[
+                            <layout>
+                                <par>你是在开玩笑吗？你没有<t color="red">%%d</t>金币啊？！</par>
+                                <par>你这个家伙实在浪费我的一片好心，不要再说了！我决定涨价<t color="red">50%</t>，先凑够<t color="red">%%d</t>金币再来找我吧！</par>
+                                <par><event id="%%s">退出</event></par>
+                            </layout>
+                        ]=], askedGold, newAskedGold, SYS_EXIT)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_wait_purchase', %%d) ]=], playerUID, newAskedGold)
+                    end
+                end
+            ]], uid, value, getUID(), asInitString(getQuestName()))
+        end,
+
+        quest_wait_purchase = function(uid, value)
+            uidExecute(getNPCharUID('毒蛇山谷_2', '金中医_1'),
+            [[
+                local playerUID = %d
+                local askedGold = %d
+                local questUID  = %d
+                local questName = %s
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>你带来<t color="red">%%d</t>金币了吗？</par>
+                                <par></par>
+                                <par><event id="npc_purchase">带来了！</event></par>
+                                <par><event id="%%s">我还没凑齐！</event></par>
+                            </layout>
+                        ]=], askedGold, SYS_EXIT)
+                    end,
+
+                    npc_purchase = function(uid, value)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchase_with_agreed_price', %%d) ]=], uid, askedGold)
+                    end,
+                })
+            ]], uid, value, getUID(), asInitString(getQuestName()))
+        end,
+
+        quest_purchase_with_free_price = function(uid, value)
+            uidExecute(getNPCharUID('毒蛇山谷_2', '金中医_1'),
+            [[
+                local playerUID = %d
+                local questName = %s
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>真是个难缠的家伙！拿你没办法，先免费给你快拿去给病人们治病用吧！</par>
+                                <par></par>
+                                <par><event id="npc_say_thanks">谢谢你的慷慨！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_say_thanks = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>谢什么啊！医者仁心，这是我本来就该做的。东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！</par>
                                 <par><event id="%%s">好的</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchased_tooth') ]=], uid)
+                    end,
+                })
+            ]], uid, asInitString(getQuestName()))
+        end,
+
+        quest_purchased_tooth = function(uid, value)
+            uidExecute(getNPCharUID('毒蛇山谷_2', '金中医_1'),
+            [[
+                local playerUID = %d
+                local questName = %s
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>干嘛呢？还不快把药材带给<t color="yellow">比奇省</t><t color="red">药剂师</t>。</par>
+                                <par></par>
+                                <par><event id="%%s">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
