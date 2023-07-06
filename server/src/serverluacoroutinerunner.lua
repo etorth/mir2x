@@ -173,7 +173,6 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     args[args.n + 2] = getTLSTable().threadKey
     args[args.n + 3] = getTLSTable().threadSeqID
 
-
     _G[string.format('_RSVD_NAME_%s%s', funcName, SYS_COOP)](table.unpack(args, 1, args.n + 3))
 
     -- onDone can get ran immedately in _RSVD_NAME_funcCoop

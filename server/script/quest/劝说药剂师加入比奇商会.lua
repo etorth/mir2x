@@ -229,7 +229,7 @@ function main()
                     if rand <= 0
                         uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchase_with_free_price') ]=], playerUID)
 
-                    else if rand <= 50 then
+                    elseif rand <= 50 then
                         uidPostXML(playerUID,
                         [=[
                             <layout>
@@ -246,7 +246,7 @@ function main()
                         [=[
                             <layout>
                                 <par>你是在开玩笑吗？你没有<t color="red">%%d</t>金币啊？！</par>
-                                <par>你这个家伙实在浪费我的一片好心，不要再说了！我决定涨价<t color="red">50%</t>，先凑够<t color="red">%%d</t>金币再来找我吧！</par>
+                                <par>你这个家伙实在浪费我的一片好心，不要再说了！我决定涨价<t color="red">50%%%%</t>，先凑够<t color="red">%%d</t>金币再来找我吧！</par>
                                 <par><event id="%%s">退出</event></par>
                             </layout>
                         ]=], askedGold, newAskedGold, SYS_EXIT)
