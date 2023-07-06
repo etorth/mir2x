@@ -242,7 +242,7 @@ function main()
 
                     else
                         local newAskedGold = math.ceil(askedGold * 1.5)
-                        uidPostXML(uid,
+                        uidPostXML(playerUID,
                         [=[
                             <layout>
                                 <par>你是在开玩笑吗？你没有<t color="red">%%d</t>金币啊？！</par>
