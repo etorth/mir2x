@@ -228,6 +228,7 @@ function main()
                     local rand = math.random(0, 100)
                     if rand <= 0 then
                         uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchase_with_free_price') ]=], playerUID)
+                        uidExecute(getUID(), [=[ runEventHandler(%%d, %%s, SYS_ENTER) ]=], playerUID, asInitString(questPath))
 
                     elseif rand <= 50 then
                         uidPostXML(playerUID,
@@ -311,10 +312,12 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>谢什么啊！医者仁心，这是我本来就该做的。东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！</par>
+                                <par>我是看药剂师的面子才免费的！东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！</par>
                                 <par><event id="%%s">好的</event></par>
                             </layout>
                         ]=], SYS_EXIT)
+
+                        uidExecute(uid, [=[ addItem(getItemID('毒蛇牙齿'), 10) ]=])
                         uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_purchased_tooth') ]=], uid)
                     end,
                 })
