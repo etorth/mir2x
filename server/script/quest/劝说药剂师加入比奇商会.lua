@@ -349,6 +349,32 @@ function main()
                     end,
                 })
             ]], uid, asInitString(getQuestName()))
+
+            uidExecute(getNPCharUID('比奇县_0', '药剂师_1'),
+            [[
+                local playerUID = %d
+                local questUID  = %d
+                local questName = %s
+                local questPath = {SYS_EPQST, questName}
+
+                return setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>您为病人们做了一件大好事！所以我会听从你的劝说加入王大人的比奇商会的，只好对不起崔大夫了！</par>
+                                <par>啊！对了，这是金创药，收下这个吧！急匆匆地走了这么远的路累坏了吧！喝了这个可以补充一下元气。</par>
+                                <par></par>
+                                <par><event id="%%s">谢谢！</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+
+                        uidExecute(uid, [=[ addItem(getItemID('金创药（特）'), 8) ]=])
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_EXIT) ]=], uid)
+                    end,
+                })
+            ]], uid, getUID(), asInitString(getQuestName()))
         end,
     })
 end
