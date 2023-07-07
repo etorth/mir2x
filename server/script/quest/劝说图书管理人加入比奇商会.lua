@@ -73,4 +73,30 @@ function main()
             end,
         })
     ]], getUID(), asInitString(getQuestName()))
+
+    setQuestFSMTable(
+    {
+        [SYS_ENTER] = function(uid, value)
+            uidExecute(getNPCharUID('比奇县_0', '图书管理员_1'),
+            [[
+                local playerUID = %d
+                local questName = %s
+                local questPath = {SYS_EPUID, questName}
+
+                setUIDQuestHandler(playerUID, questName,
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>你看起来还没有听到休班卫士的全部故事啊？可以在比奇省内转转就可以找到休班卫士！</par>
+                                <par></par>
+                                <par><event id="%%s">好的</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+                })
+            ]], uid, asInitString(getQuestName()))
+        end,
+    })
 end
