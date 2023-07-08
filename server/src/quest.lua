@@ -170,7 +170,20 @@ function setUIDQuestState(uid, state, args)
     end
 end
 
-function setupNPCQuestBehavior(mapName, npcName, uid, args, code)
+function setupNPCQuestBehavior(mapName, npcName, uid, argstr, code)
+    assertType(mapName, 'string')
+    assertType(npcName, 'string')
+
+    assertType(uid, 'integer')
+    assert(uid > 0)
+
+    assertType(argstr, 'string', 'nil')
+    assertType(code, 'string')
+
+    local args = table.pack(load(argstr)())
+    args[args.n + 1] = string.format([[ setUIDQuestHandler(%d, %s, load(%s)(...)) ]], uid, asInitString(getQuestName()), asInitString(code))
+
+    uidRemoteCall(getNPCharUID(mapName, npcName), table.unpack(args, 1, args.n + 1))
 end
 
 function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
