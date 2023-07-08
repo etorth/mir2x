@@ -112,6 +112,12 @@ function isArray(tbl)
     return true
 end
 
+local _RSVD_NAME_asInitStringSimpleTypes = {
+    ['nil'    ] = true,
+    ['number' ] = true,
+    ['string' ] = true,
+    ['boolean'] = true,
+}
 function asInitString(var)
     -- for following code:
     --
@@ -123,16 +129,9 @@ function asInitString(var)
     -- can not support functions
     -- can not support metatables
     -- can not support cyclic reference
-    -- can not support decimal because of precision issue
 
-    if type(var) == 'boolean' then
-        return tostring(var)
-
-    elseif type(var) == 'string' then
-        return quotedLuaString(var)
-
-    elseif math.type(var) == 'integer' then
-        return tostring(var)
+    if _RSVD_NAME_asInitStringSimpleTypes[type(var)] then
+        return string.format('%q', var)
 
     elseif isArray(var) then
         local strs = {}
