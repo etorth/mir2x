@@ -117,14 +117,16 @@ function main()
     setQuestFSMTable(
     {
         [SYS_ENTER] = function(uid, value)
-            uidExecute(getNPCharUID('仓库_1_007', '大老板_1'),
+            setupNPCQuestBehavior('仓库_1_007', '大老板_1', uid,
             [[
-                local playerUID = %d
-                local questUID  = %d
-                local questName = '%s'
+                return getUID(), getQuestName()
+            ]],
+
+            [[
+                local questUID, questName = ...
                 local questPath = {SYS_EPUID, questName}
 
-                setUIDQuestHandler(playerUID, questName,
+                return
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -145,19 +147,19 @@ function main()
                                 <par>阿潘道友还在等着呢！尽快把这个护身符给他带过去吧！</par>
                                 <par>从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在<event id="npc_fly_to_loc" args="{'道馆_1',429,120}" close="1">(429,120)</event>。</par>
                                 <par></par>
-                                <par><event id="%%s">好的！</event></par>
+                                <par><event id="%s">好的！</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
                         uidGrant(uid, '道力护身符', 1)
-                        uidExecute(questUID, [=[ setUIDQuestState(%%d, 'quest_setup_apan') ]=], uid)
+                        uidExecute(questUID, [=[ setUIDQuestState(%d, 'quest_setup_apan') ]=], uid)
                     end,
 
                     npc_fly_to_loc = function(uid, value)
-                        uidExecute(uid, [=[ spaceMove(%%s) ]=], value)
+                        uidExecute(uid, [=[ spaceMove(%s) ]=], value)
                     end,
-                })
-            ]], uid, getUID(), getQuestName())
+                }
+            ]])
         end,
 
         quest_setup_apan = function(uid, value)
