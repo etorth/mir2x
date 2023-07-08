@@ -1,3 +1,4 @@
+#include "luaf.hpp"
 #include "uidf.hpp"
 #include "strf.hpp"
 #include "quest.hpp"
