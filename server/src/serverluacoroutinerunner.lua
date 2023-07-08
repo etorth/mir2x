@@ -196,6 +196,25 @@ function _RSVD_NAME_callFuncCoop(funcName, ...)
     return table.unpack(result, 1, result.n)
 end
 
+function uidRemoteCall(uid, ...)
+    local args = table.pack(...)
+
+    assert(args.n >= 1)
+    assertType(args[args.n], 'string')
+
+    local resList = table.pack(_RSVD_NAME_callFuncCoop('remoteCall', uid, args[args.n], table.pack(table.unpack(args, 1, args.n - 1))))
+    local resType = resList[1]
+
+    if resType == SYS_EXECDONE then
+        return table.unpack(resList, 2, resList.n)
+    elseif resType == SYS_EXECBADUID then
+        fatalPrintf('Invalid uid: %d', uid)
+    else
+        fatalPrintf('Unknown error')
+    end
+end
+
+
 function uidExecute(uid, code, ...)
     -- this is intuitive but inefficient, string.format() takes time and
     -- 1. this makes internal code are not real lua code, i.e.
@@ -221,16 +240,7 @@ function uidExecute(uid, code, ...)
     --
     --      arg1, arg2)
     --
-    local resList = table.pack(_RSVD_NAME_callFuncCoop('remoteCall', uid, code:format(...), nil))
-    local resType = resList[1]
-
-    if resType == SYS_EXECDONE then
-        return table.unpack(resList, 2, resList.n)
-    elseif resType == SYS_EXECBADUID then
-        fatalPrintf('Invalid uid: %d', uid)
-    else
-        fatalPrintf('Unknown error')
-    end
+    return uidRemoteCall(uid, nil, code:format(...))
 end
 
 local _RSVD_NAME_triggerConfigList = {
