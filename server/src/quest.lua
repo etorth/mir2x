@@ -170,6 +170,9 @@ function setUIDQuestState(uid, state, args)
     end
 end
 
+function setupNPCQuestBehavior(mapName, npcName, uid, code, args)
+end
+
 function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
     assertType(uid, 'integer')
     assertType(state, 'string')
