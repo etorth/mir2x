@@ -207,6 +207,15 @@ function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
         fatalPrintf('Invalid quest state: %s', state)
     end
 
+    local npcBehaviors = dbGetUIDQuestField(uid, 'fld_npcbehaviors')
+    assertType(npcBehaviors, 'nil', 'table')
+
+    if npcBehaviors then
+        for k, v in pairs(npcBehaviors) do
+            setupNPCQuestBehavior(k[1], k[2], uid, v[1], v[2])
+        end
+    end
+
     if base64Args then
         _RSVD_NAME_questFSMTable[state](uid, base64Decode(base64Args))
     else
