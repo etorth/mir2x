@@ -181,8 +181,8 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         //    end
         //
         // use luaf::quotedLuaString() to quote a string to be a lua string literal
-        uint64_t spawn(uint64_t, std::pair<uint64_t, uint64_t>, const std::string &);
-        uint64_t spawn(uint64_t,                                const std::string &, std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
+        uint64_t spawn(uint64_t, std::pair<uint64_t, uint64_t>, const std::string &, luaf::luaVar = {});
+        uint64_t spawn(uint64_t,                                const std::string &, luaf::luaVar = {}, std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
 
     public:
         std::vector<uint64_t> getSeqID(uint64_t, std::vector<uint64_t> * = nullptr) const;
@@ -197,7 +197,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         void popOnClose(uint64_t, uint64_t);
 
     private:
-        void resumeRunner(LuaThreadHandle *, std::optional<std::string> = {});
+        void resumeRunner(LuaThreadHandle *, std::optional<std::pair<std::string, luaf::luaVar>> = {});
 
     private:
         static std::string concatCode(const std::string &code)

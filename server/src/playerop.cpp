@@ -461,8 +461,8 @@ void Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 
 void Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
-    const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), sdRC.code);
+    auto sdRC = mpk.deserialize<SDRemoteCall>();
+    m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
 }
 
 void Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)

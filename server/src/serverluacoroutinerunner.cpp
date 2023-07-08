@@ -184,7 +184,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         return uidf::getUIDString(m_actorPod->UID());
     });
 
-    bindFunctionCoop("_RSVD_NAME_uidExecute", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code)
+    bindFunctionCoop("_RSVD_NAME_remoteCall", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args)
     {
         if(uid == m_actorPod->UID()){
             // run code locally in sandbox
@@ -202,7 +202,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             // this guarantees any gloval changes in qust handler [SYS_ENTER] won't affect runEventHandler(), because it's running in sandbox
 
             auto closed = std::make_shared<bool>(true);
-            spawn(uid, code, [closed, onDone, this](const sol::protected_function_result &pfr)
+            spawn(uid, code, luaf::buildLuaVar(args), [closed, onDone, this](const sol::protected_function_result &pfr)
             {
                 *closed = false;
                 std::vector<std::string> error;
@@ -247,6 +247,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
             {
                 .code = code,
+                .args = luaf::buildLuaVar(args),
             })},
 
             [closed, s, uid, onDone](const ActorMsgPack &mpk)
@@ -561,7 +562,7 @@ void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
     }
 }
 
-uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint64_t> reqAddr, const std::string &code)
+uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint64_t> reqAddr, const std::string &code, luaf::luaVar args)
 {
     fflassert(key);
     fflassert(str_haschar(code));
@@ -570,7 +571,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
     fflassert(reqAddr.second, reqAddr);
 
     auto closed = std::make_shared<bool>(true);
-    return spawn(key, code, [closed, key, reqAddr, this](const sol::protected_function_result &pfr)
+    return spawn(key, code, std::move(args), [closed, key, reqAddr, this](const sol::protected_function_result &pfr)
     {
         const auto fnOnThreadDone = [reqAddr, this](std::vector<std::string> error, std::vector<luaf::luaVar> varList)
         {
@@ -642,7 +643,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, std::pair<uint64_t, uint6
     });
 }
 
-uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, std::function<void(const sol::protected_function_result &)> onDone, std::function<void()> onClose)
+uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, luaf::luaVar args, std::function<void(const sol::protected_function_result &)> onDone, std::function<void()> onClose)
 {
     fflassert(key);
     fflassert(str_haschar(code));
@@ -650,7 +651,7 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
     const auto currSeqID = m_seqID++;
     const auto [p, added] = m_runnerList[key].list.insert_or_assign(currSeqID, std::make_unique<LuaThreadHandle>(*this, key, currSeqID, std::move(onDone), std::move(onClose)));
 
-    resumeRunner(p->second.get(), str_printf(
+    resumeRunner(p->second.get(), std::make_pair(str_printf(
         R"###( do                                                          )###""\n"
         R"###(     getTLSTable().threadKey   = %llu                        )###""\n"
         R"###(     getTLSTable().threadSeqID = %llu                        )###""\n"
@@ -660,12 +661,12 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
         R"###(     do                                                      )###""\n"
         R"###(        %s                                                   )###""\n"
         R"###(     end                                                     )###""\n"
-        R"###( end                                                         )###""\n", to_llu(key), to_llu(currSeqID), code.c_str()));
+        R"###( end                                                         )###""\n", to_llu(key), to_llu(currSeqID), code.c_str()), std::move(args)));
 
     return currSeqID; // don't use p resumeRunner() can invalidate p
 }
 
-void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::optional<std::string> codeOpt)
+void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::optional<std::pair<std::string, luaf::luaVar>> codeOpt)
 {
     // resume current runnerPtr
     // this function can invalidate runnerPtr if it's done
@@ -707,7 +708,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     const auto pfr = [&]()
     {
         const KeepRunner keep(m_currRunner, runnerPtr);
-        return codeOpt.has_value() ? runnerPtr->callback(codeOpt.value()) : runnerPtr->callback();
+        return codeOpt.has_value() ? runnerPtr->callback(codeOpt.value().first, luaf::buildLuaObj(sol::state_view(runnerPtr->runner.state()), codeOpt.value().second)) : runnerPtr->callback();
     }();
 
     if(runnerPtr->callback){

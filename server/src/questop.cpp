@@ -7,8 +7,8 @@ void Quest::on_AM_METRONOME(const ActorMsgPack &)
 
 void Quest::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
-    const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), sdRC.code);
+    auto sdRC = mpk.deserialize<SDRemoteCall>();
+    m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
 }
 
 void Quest::on_AM_RUNQUESTTRIGGER(const ActorMsgPack &mpk)

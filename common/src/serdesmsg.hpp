@@ -933,9 +933,11 @@ struct SDBuffIDList
 struct SDRemoteCall
 {
     std::string code {};
+    luaf::luaVar args {}; // use table.unpack() to restore all args
+
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(code);
+        ar(code, args);
     }
 };
 

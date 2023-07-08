@@ -221,7 +221,7 @@ void Quest::onActivate()
             const auto stateStr = state.as<std::string>();
             const auto stateLuaStr = luaf::quotedLuaString(stateStr);
             const auto sdbArgsLuaStr = (args == sol::nil) ? std::string("nil") : luaf::quotedLuaString(cerealf::base64_serialize(luaf::buildLuaVar(args)).c_str());
-            m_luaRunner->spawn(m_uidStateRunner[uid] = m_threadKey++, str_printf("_RSVD_NAME_enterUIDQuestState(%llu, %s, %s)", to_llu(uid), stateLuaStr.c_str(), sdbArgsLuaStr.c_str()), [uid, stateStr, this](const sol::protected_function_result &pfr)
+            m_luaRunner->spawn(m_uidStateRunner[uid] = m_threadKey++, str_printf("_RSVD_NAME_enterUIDQuestState(%llu, %s, %s)", to_llu(uid), stateLuaStr.c_str(), sdbArgsLuaStr.c_str()), {}, [uid, stateStr, this](const sol::protected_function_result &pfr)
             {
                 m_uidStateRunner.erase(uid);
                 std::vector<std::string> error;

@@ -1,9 +1,13 @@
 --, u8R"###(
 --
 
-function _RSVD_NAME_luaCoroutineRunner_main(code)
+function _RSVD_NAME_luaCoroutineRunner_main(code, args)
     assertType(code, 'string')
-    return (load(code))()
+    if args == nil then
+        return (load(code))()
+    else
+        return (load(code))(table.unpack(args, 1, args.n))
+    end
 end
 
 function pause(msec)
@@ -217,7 +221,7 @@ function uidExecute(uid, code, ...)
     --
     --      arg1, arg2)
     --
-    local resList = table.pack(_RSVD_NAME_callFuncCoop('uidExecute', uid, code:format(...)))
+    local resList = table.pack(_RSVD_NAME_callFuncCoop('remoteCall', uid, code:format(...), nil))
     local resType = resList[1]
 
     if resType == SYS_EXECDONE then

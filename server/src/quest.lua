@@ -170,7 +170,7 @@ function setUIDQuestState(uid, state, args)
     end
 end
 
-function setupNPCQuestBehavior(mapName, npcName, uid, code, args)
+function setupNPCQuestBehavior(mapName, npcName, uid, args, code)
 end
 
 function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)

@@ -132,8 +132,8 @@ void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
 
 void NPChar::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
-    const auto sdRC = mpk.deserialize<SDRemoteCall>();
-    m_luaRunner->spawn(mpk.from(), mpk.fromAddr(), sdRC.code);
+    auto sdRC = mpk.deserialize<SDRemoteCall>();
+    m_luaRunner->spawn(mpk.from(), mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
 }
 
 void NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)
