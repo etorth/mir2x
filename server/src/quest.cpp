@@ -70,33 +70,53 @@ void Quest::onActivate()
     {
         const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
+        const auto timestamp = hres_tstamp().to_nsec();
 
         fflassert(str_haschar(fieldName));
         fflassert(fieldName.starts_with("fld_"));
 
         if(obj == sol::nil){
             g_dbPod->exec(
-                u8R"###( replace into %s(fld_dbid, fld_timestamp, %s) )###"
-                u8R"###( values                                       )###"
-                u8R"###(     (%llu, %llu, null)                       )###",
+                u8R"###( insert into %s(fld_dbid, fld_timestamp, %s) )###"
+                u8R"###( values                                      )###"
+                u8R"###(     (%llu, %llu, null)                      )###"
+                u8R"###(                                             )###"
+                u8R"###( on conflict(fld_dbid) do                    )###"
+                u8R"###( update set                                  )###"
+                u8R"###(                                             )###"
+                u8R"###(     fld_timestamp=%llu,                     )###"
+                u8R"###(     %s=null                                 )###",
 
                 dbName.c_str(),
                 fieldName.c_str(),
 
                 to_llu(dbid),
-                to_llu(std::time(nullptr)));
+                to_llu(timestamp),
+
+                to_llu(timestamp),
+                fieldName.c_str());
         }
         else{
             auto query = g_dbPod->createQuery(
-                u8R"###( replace into %s(fld_dbid, fld_timestamp, %s) )###"
-                u8R"###( values                                       )###"
-                u8R"###(     (%llu, %llu, ?)                          )###",
+                u8R"###( insert into %s(fld_dbid, fld_timestamp, %s) )###"
+                u8R"###( values                                      )###"
+                u8R"###(     (%llu, %llu, ?)                         )###"
+                u8R"###(                                             )###"
+                u8R"###( on conflict(fld_dbid) do                    )###"
+                u8R"###( update set                                  )###"
+                u8R"###(                                             )###"
+                u8R"###(     fld_timestamp=%llu,                     )###"
+                u8R"###(     %s=excluded.%s                          )###",
 
                 dbName.c_str(),
                 fieldName.c_str(),
 
                 to_llu(dbid),
-                to_llu(std::time(nullptr)));
+                to_llu(timestamp),
+
+                to_llu(timestamp),
+                fieldName.c_str(),
+                fieldName.c_str());
 
             query.bind(1, cerealf::serialize(luaf::buildLuaVar(obj)));
             query.exec();
@@ -324,5 +344,22 @@ void Quest::operateAM(const ActorMsgPack &mpk)
             {
                 throw fflerror("unsupported message: %s", mpkName(mpk.type()));
             }
+    }
+}
+
+void Quest::dumpUIDQuestField(uint64_t uid, const std::string &fieldName) const
+{
+    const auto dbName = getQuestDBName();
+    const auto dbid = uidf::getPlayerDBID(uid);
+
+    fflassert(str_haschar(fieldName));
+    fflassert(fieldName.starts_with("fld_"));
+
+    auto queryStatement = g_dbPod->createQuery(u8R"###(select %s from %s where fld_dbid=%llu and %s is not null)###", fieldName.c_str(), dbName.c_str(), to_llu(dbid), fieldName.c_str());
+    if(queryStatement.executeStep()){
+        std::cout << str_printf("table %s, uid %llu, dbid %llu, field %s: %s", dbName.c_str(), to_llu(uid), to_llu(dbid), fieldName.c_str(), str_any(cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0))).c_str()) << std::endl;
+    }
+    else{
+        std::cout << str_printf("table %s, uid %llu, dbid %llu, field %s: no result", dbName.c_str(), to_llu(uid), to_llu(dbid), fieldName.c_str()) << std::endl;
     }
 }

@@ -38,6 +38,9 @@ class Quest final: public ServerObject
             return SYS_QUEST_TBL_PREFIX + getQuestName();
         }
 
+    public:
+        void dumpUIDQuestField(uint64_t, const std::string &) const;
+
     protected:
         void operateAM(const ActorMsgPack &) override;
 
