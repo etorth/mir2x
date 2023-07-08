@@ -223,10 +223,6 @@ function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
     end
 end
 
-function restoreUIDQuestState(uid)
-    setUIDQuestState(uid, dbGetUIDQuestState(uid))
-end
-
 local _RSVD_NAME_triggers = {}
 function addQuestTrigger(triggerType, callback)
     assertType(triggerType, 'integer')

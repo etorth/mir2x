@@ -183,7 +183,7 @@ void Quest::onActivate()
         }
         else{
             // first time setup state
-            // state may not be SYS_ENTER if called by restoreUIDQuestState()
+            // state may not be SYS_ENTER if called by restoring state
         }
 
         // always terminate current thread when calling _RSVD_NAME_switchUIDQuestState
