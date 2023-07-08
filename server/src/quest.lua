@@ -170,6 +170,35 @@ function setUIDQuestState(uid, state, args)
     end
 end
 
+-- setup NPC chat logics
+-- also save to database for next time loading, usage:
+--
+--     setupNPCQuestBehavior('仓库_1_007', '大老板_1', uid,
+--     [[
+--         return getUID(), getQuestName()
+--     ]],
+--
+--     [[
+--         local questUID, questName = ...
+--         local questPath = {SYS_EPUID, questName}
+--
+--         return
+--         {
+--             [SYS_ENTER] = function(uid, value)
+--                 uidPostXML(uid, questPath,
+--                 [=[
+--                     <layout>
+--                         <par>是士官派你来的？</par>
+--                         <par>嗯，那么先吩咐你做件简单的事儿吧！你能去把这个护身符交给武器库的<t color="red">阿潘</t>道友吗？</par>
+--                         <par></par>
+--                         <par><event id="npc_accept_quest">好的！</event></par>
+--                     </layout>
+--                 ]=])
+--             end,
+--
+-- argstr shouldn't capture current environ's values
+-- argstr get evalulated everytime when when setup the NPC behavior
+--
 function setupNPCQuestBehavior(mapName, npcName, uid, argstr, code)
     assertType(mapName, 'string')
     assertType(npcName, 'string')
@@ -179,6 +208,9 @@ function setupNPCQuestBehavior(mapName, npcName, uid, argstr, code)
 
     assertType(argstr, 'string', 'nil')
     assertType(code, 'string')
+
+    -- re-evalulate argstr to capture current environ's values
+    -- don't save the environ's specific value to database, which may causes error for next time loading
 
     local args = table.pack(load(argstr)())
     args[args.n + 1] = string.format([[ setUIDQuestHandler(%d, %s, load(%s)(...)) ]], uid, asInitString(getQuestName()), asInitString(code))
