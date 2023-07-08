@@ -186,6 +186,16 @@ function setupNPCQuestBehavior(mapName, npcName, uid, argstr, code)
     uidRemoteCall(getNPCharUID(mapName, npcName), table.unpack(args, 1, args.n + 1))
 end
 
+function clearNPCQuestBehavior(mapName, npcName, uid)
+    assertType(mapName, 'string')
+    assertType(npcName, 'string')
+
+    assertType(uid, 'integer')
+    assert(uid > 0)
+
+    uidRemoteCall(getNPCharUID(mapName, npcName), uid, getQuestName(), [[ deleteUIDQuestHandler(...) ]])
+end
+
 function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
     assertType(uid, 'integer')
     assertType(state, 'string')
