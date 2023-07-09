@@ -135,7 +135,7 @@ function main()
 
             if waitNotify(10 * 1000) then
                 uidExecute(uid, [[ postString([=[挑战成功！]=]) ]])
-                setUIDQuestState(uid, SYS_EXIT)
+                setUIDQuestState(uid, SYS_DONE)
             else
                 uidExecute(uid,
                 [[

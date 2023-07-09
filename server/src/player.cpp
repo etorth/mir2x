@@ -532,7 +532,7 @@ void Player::onActivate()
     R"###(         local state, args = dbGetUIDQuestState(%llu)                    )###""\n"
     R"###(         assertType(state, 'nil', 'string')                              )###""\n"
     R"###(                                                                         )###""\n"
-    R"###(         if (state ~= nil) and (state ~= SYS_EXIT) then                  )###""\n"
+    R"###(         if (state ~= nil) and (state ~= SYS_DONE) then                  )###""\n"
     R"###(             setUIDQuestState(%llu, state, args)                         )###""\n"
     R"###(         end                                                             )###""\n"
     R"###(     ]])                                                                 )###""\n"

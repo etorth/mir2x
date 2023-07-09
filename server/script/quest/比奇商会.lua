@@ -8,7 +8,7 @@ function main()
         return setQuestHandler(questName,
         {
             [SYS_CHECKACTIVE] = function(uid)
-                return uidExecute(uid, [=[ return getQuestState('初出江湖') ]=]) == SYS_EXIT
+                return uidExecute(uid, [=[ return getQuestState('初出江湖') ]=]) == SYS_DONE
             end,
 
             [SYS_ENTER] = function(uid, value)
@@ -139,8 +139,8 @@ function main()
                 setUIDQuestHandler(playerUID, questName,
                 {
                     [SYS_ENTER] = function(uid, value)
-                        local donePharmacist = uidExecute(uid, [=[ return getQuestState('劝说药剂师加入比奇商会'    ) == SYS_EXIT ]=])
-                        local doneLibrarian  = uidExecute(uid, [=[ return getQuestState('劝说图书管理人加入比奇商会') == SYS_EXIT ]=])
+                        local donePharmacist = uidExecute(uid, [=[ return getQuestState('劝说药剂师加入比奇商会'    ) == SYS_DONE ]=])
+                        local doneLibrarian  = uidExecute(uid, [=[ return getQuestState('劝说图书管理人加入比奇商会') == SYS_DONE ]=])
 
                         if (not donePharmacist) and (not doneLibrarian) then
                             uidPostXML(uid, questPath,
@@ -198,7 +198,7 @@ function main()
                             </layout>
                         ]=], SYS_EXIT)
 
-                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_EXIT) ]=], uid)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_DONE) ]=], uid)
                     end,
                 })
             ]], uid, getUID(), asInitString(getQuestName()))

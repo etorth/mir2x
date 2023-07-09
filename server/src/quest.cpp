@@ -123,6 +123,26 @@ void Quest::onActivate()
         }
     });
 
+    m_luaRunner->bindFunction("dbSetUIDQuestStateDone", [this](uint64_t uid)
+    {
+        const auto dbName = getQuestDBName();
+        const auto dbid = uidf::getPlayerDBID(uid);
+        const auto timestamp = hres_tstamp().to_nsec();
+
+        auto query = g_dbPod->createQuery(
+            u8R"###( replace into %s(fld_dbid, fld_timestamp, fld_state) )###"
+            u8R"###( values                                              )###"
+            u8R"###(     (%llu, %llu, ?)                                 )###",
+
+            dbName.c_str(),
+
+            to_llu(dbid),
+            to_llu(timestamp));
+
+        query.bind(1, cerealf::serialize(luaf::buildLuaVar(std::vector<std::string>{SYS_DONE})));
+        query.exec();
+    });
+
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
     {
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);

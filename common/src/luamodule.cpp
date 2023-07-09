@@ -113,12 +113,13 @@ LuaModule::LuaModule()
     execString("DIR_UPLEFT    = %d", DIR_UPLEFT   );
 
     execString("SYS_DEBUG = %s", to_boolcstr(SYS_DEBUG));
-    execString("SYS_GOLDNAME = \'%s\'", SYS_GOLDNAME);
+    execString("SYS_GOLDNAME = %s", luaf::quotedLuaString(SYS_GOLDNAME).c_str());
 
-    execString("SYS_LABEL = \'%s\'", SYS_LABEL);
-    execString("SYS_ENTER = \'%s\'", SYS_ENTER);
-    execString("SYS_EXIT  = \'%s\'", SYS_EXIT );
-    execString("SYS_ABORT = \'%s\'", SYS_ABORT);
+    execString("SYS_LABEL = %s", luaf::quotedLuaString(SYS_LABEL).c_str());
+    execString("SYS_ENTER = %s", luaf::quotedLuaString(SYS_ENTER).c_str());
+    execString("SYS_DONE  = %s", luaf::quotedLuaString(SYS_DONE ).c_str());
+    execString("SYS_EXIT  = %s", luaf::quotedLuaString(SYS_EXIT ).c_str());
+    execString("SYS_ABORT = %s", luaf::quotedLuaString(SYS_ABORT).c_str());
 
     execString("SYS_POSINF = %s", str_quoted(SYS_POSINF).c_str());
     execString("SYS_NEGINF = %s", str_quoted(SYS_NEGINF).c_str());

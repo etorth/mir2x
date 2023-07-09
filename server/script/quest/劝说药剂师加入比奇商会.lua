@@ -371,7 +371,7 @@ function main()
                         ]=], SYS_EXIT)
 
                         uidExecute(uid, [=[ addItem(getItemID('金创药（特）'), 8) ]=])
-                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_EXIT) ]=], uid)
+                        uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_DONE) ]=], uid)
                     end,
                 })
             ]], uid, getUID(), asInitString(getQuestName()))

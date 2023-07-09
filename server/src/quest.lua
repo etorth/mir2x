@@ -147,7 +147,7 @@ end
 
 function setUIDQuestState(uid, state, args)
     assertType(uid, 'integer')
-    if (not hasQuestState(state)) and (state ~= SYS_EXIT) then
+    if (not hasQuestState(state)) and (state ~= SYS_DONE) then
         fatalPrintf('Invalid quest state: %s', state)
     end
 
