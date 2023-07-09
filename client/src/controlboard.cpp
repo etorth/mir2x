@@ -423,7 +423,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           &m_right,
       }
 
-    , m_buttonTask
+    , m_buttonQuest
       {
           DIR_UPLEFT,
           108,
@@ -439,7 +439,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this]()
           {
-              if(auto p = m_processRun->getWidget("InventoryBoard")){
+              if(auto p = m_processRun->getWidget("QuestStateBoard")){
                   p->flipShow();
               }
           },
@@ -879,7 +879,7 @@ void ControlBoard::drawRight() const
 
     m_buttonGuild.draw();
     m_buttonTeam.draw();
-    m_buttonTask.draw();
+    m_buttonQuest.draw();
     m_buttonHorse.draw();
     m_buttonRuntimeConfig.draw();
     m_buttonSysMessage.draw();
@@ -1088,7 +1088,7 @@ bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
     takeEvent |= m_buttonMagicKey     .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonGuild        .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonTeam         .processEvent(event, valid && !takeEvent);
-    takeEvent |= m_buttonTask         .processEvent(event, valid && !takeEvent);
+    takeEvent |= m_buttonQuest        .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonHorse        .processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonRuntimeConfig.processEvent(event, valid && !takeEvent);
     takeEvent |= m_buttonSysMessage   .processEvent(event, valid && !takeEvent);

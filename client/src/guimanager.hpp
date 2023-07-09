@@ -7,6 +7,7 @@
 #include "purchaseboard.hpp"
 #include "teamstateboard.hpp"
 #include "inventoryboard.hpp"
+#include "queststateboard.hpp"
 #include "quickaccessboard.hpp"
 #include "playerstateboard.hpp"
 #include "inputstringboard.hpp"
@@ -29,6 +30,7 @@ class GUIManager: public WidgetContainer
         PurchaseBoard m_purchaseBoard;
         TeamStateBoard m_teamStateBoard;
         InventoryBoard m_inventoryBoard;
+        QuestStateBoard m_questStateBoard;
         QuickAccessBoard m_quickAccessBoard;
         PlayerStateBoard m_playerStateBoard;
         InputStringBoard m_inputStringBoard;

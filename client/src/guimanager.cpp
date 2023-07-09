@@ -65,6 +65,14 @@ GUIManager::GUIManager(ProcessRun *proc)
           this,
       }
 
+    , m_questStateBoard
+      {
+          g_sdlDevice->getRendererWidth()  / 2 - 145,
+          g_sdlDevice->getRendererHeight() / 2 - 223,
+          proc,
+          this,
+      }
+
     , m_quickAccessBoard
       {
           0,
@@ -197,6 +205,10 @@ Widget *GUIManager::getWidget(const std::string &name)
 
     else if(name == "PlayerStateBoard"){
         return &m_playerStateBoard;
+    }
+
+    else if(name == "QuestStateBoard"){
+        return &m_questStateBoard;
     }
 
     else if(name == "PurchaseBoard"){

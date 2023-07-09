@@ -81,7 +81,7 @@ class ControlBoard: public Widget
     private:
         TritexButton m_buttonGuild;
         TritexButton m_buttonTeam;
-        TritexButton m_buttonTask;
+        TritexButton m_buttonQuest;
         TritexButton m_buttonHorse;
         TritexButton m_buttonRuntimeConfig;
         TritexButton m_buttonSysMessage;
