@@ -60,6 +60,11 @@ void Player::onActivate()
         return gold();
     });
 
+    m_luaRunner->bindFunction("getGender", [this]() -> bool
+    {
+        return gender();
+    });
+
     m_luaRunner->bindFunction("getName", [this]() -> std::string
     {
         return name();
