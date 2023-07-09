@@ -100,6 +100,9 @@ void QuestStateBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     if(auto texPtr = g_progUseDB->retrieve(0X00000350)){
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
+
+    m_lrButton.draw();
+    m_closeButton.draw();
 }
 
 bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
@@ -110,6 +113,10 @@ bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
 
     if(!show()){
         return consumeFocus(false);
+    }
+
+    if(m_lrButton.processEvent(event, valid)){
+        return true;
     }
 
     if(m_closeButton.processEvent(event, valid)){
