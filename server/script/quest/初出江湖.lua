@@ -121,11 +121,9 @@ function main()
             [[
                 return getUID(), getQuestName()
             ]],
-
             [[
                 local questUID, questName = ...
                 local questPath = {SYS_EPUID, questName}
-
                 return
                 {
                     [SYS_ENTER] = function(uid, value)

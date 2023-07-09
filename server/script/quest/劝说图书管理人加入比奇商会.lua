@@ -77,13 +77,14 @@ function main()
     setQuestFSMTable(
     {
         [SYS_ENTER] = function(uid, value)
-            uidExecute(getNPCharUID('比奇县_0', '图书管理员_1'),
+            setupNPCQuestBehavior('比奇县_0', '图书管理员_1', uid,
             [[
-                local playerUID = %d
-                local questName = %s
+                return getQuestName()
+            ]],
+            [[
+                local questName = ...
                 local questPath = {SYS_EPUID, questName}
-
-                setUIDQuestHandler(playerUID, questName,
+                return
                 {
                     [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
@@ -95,8 +96,8 @@ function main()
                             </layout>
                         ]=], SYS_EXIT)
                     end,
-                })
-            ]], uid, asInitString(getQuestName()))
+                }
+            ]])
         end,
     })
 end
