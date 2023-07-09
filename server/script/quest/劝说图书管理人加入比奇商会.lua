@@ -345,11 +345,11 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>你还狡辩什么啊？这个混小子！</par>
+                                <par>你还狡辩什么啊？你这个%s！</par>
                                 <par></par>
                                 <par><event id="npc_angry_2">你千万不要误会呀！</event></par>
                             </layout>
-                        ]=])
+                        ]=], uidRemoteCall(uid, [=[ return getGender() ]=]) and '混小子' or '混丫头')
                     end,
 
                     npc_angry_2 = function(uid, value)
