@@ -154,12 +154,12 @@ function main()
                             [=[
                                 <layout>
                                     <par>啊！又是你，你能不能离我远...等等！这是烧酒的味道，好香啊！</par>
-                                    <par>这位公子，能不能给我喝口酒啊！</par>
+                                    <par>这位%s，能不能给我喝口酒啊！</par>
                                     <par></par>
                                     <par><event id="npc_give_soju">拿去吧！</event></par>
                                     <par><event id="npc_deny_soju">不愿意。</event></par>
                                 </layout>
-                            ]=])
+                            ]=], uidRemoteCall(uid, [=[ return getGender() ]=]) and '少侠' or '姑娘')
                         else
                             uidPostXML(uid, questPath,
                             [=[
