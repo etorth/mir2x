@@ -182,6 +182,18 @@ function main()
                                 <par></par>
                                 <par><event id="npc_ask_info">不知道你能否告知比奇省的历史？</event></par>
                             </layout>
+                        ]=])
+                    end,
+
+                    npc_deny_soju = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>你是不愿意给我喝呢，还是酒已经被喝光了？</par>
+                                <par>真扫兴！</par>
+                                <par></par>
+                                <par><event id="%s">退出</event></par>
+                            </layout>
                         ]=], SYS_EXIT)
                     end,
 
@@ -196,7 +208,7 @@ function main()
                                 <par></par>
                                 <par><event id="npc_ask_more_info">你还知道更多的信息吗？</event></par>
                             </layout>
-                        ]=], SYS_EXIT)
+                        ]=])
                     end,
 
                     npc_ask_more_info = function(uid, value)
