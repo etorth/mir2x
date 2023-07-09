@@ -56,7 +56,7 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
           DIR_UPLEFT,
           255,
           135,
-          {0X00000310, 0X00000310, 0X00000312},
+          {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               SYS_U32NIL,
               SYS_U32NIL,
