@@ -395,5 +395,75 @@ function main()
                 }
             ]])
         end,
+
+        quest_give_guard_3_soju = function(uid, value)
+            setupNPCQuestBehavior('比奇县_0', '休班卫士_3', uid,
+            [[
+                return getUID(), getQuestName()
+            ]],
+            [[
+                local questUID, questName = ...
+                local questPath = {SYS_EPUID, questName}
+                return
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        local hasSoju    = uidRemoteCall(uid, [=[ hasItem(getItemID('烧酒'), 0, 1) ]=])
+                        local hasSoju_x5 = uidRemoteCall(uid, [=[ hasItem(getItemID('烧酒'), 0, 5) ]=])
+
+                        if not hasSoju then
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>快去买啊！1个金币不够吗？</par>
+                                    <par></par>
+                                    <par><event id="%s">退出</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+
+                        elseif not hasSoju_x5 then
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>臭小子，我是说五瓶，快去再买点！</par>
+                                    <par>竟敢不听我的！</par>
+                                    <par></par>
+                                    <par><event id="%s">退出</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+
+                        else
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>呵！你还真买来了。</par>
+                                    <par>咕噜，咕噜，啊！真是好酒，现在舒服多了。</par>
+                                    <par>对了，你是找我来问什么的来着？</par>
+                                    <par></par>
+                                    <par><event id="npc_give_info">我想知道关于比奇省历史的事。</event></par>
+                                </layout>
+                            ]=], SYS_EXIT)
+                        end
+                    end,
+
+                    npc_give_info = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。</par>
+                                <par>随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！</par>
+                                <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
+                                <par>唔...这已经是我所知道的全部故事啦！就说到这里吧，酒喝得很爽啊！</par>
+                                <par></par>
+                                <par><event id="npc_done_query_guard_3">谢谢！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_done_query_guard_3 = function(uid, value)
+                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'flag_done_query_guard_3') ]=])
+                    end,
+                }
+            ]])
+        end,
     })
 end
