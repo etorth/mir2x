@@ -154,7 +154,11 @@ function setUIDQuestState(uid, state, args)
     -- don't save team member list here
     -- a player can be in a team but still start a single-role quest alone
 
-    dbSetUIDQuestState(uid, state, args)
+    if state == SYS_DONE then
+        dbSetUIDQuestStateDone(uid)
+    else
+        dbSetUIDQuestState(uid, state, args)
+    end
 
     if hasQuestState(state) then
         _RSVD_NAME_switchUIDQuestState(uid, state, args, getTLSTable().threadKey, getTLSTable().threadSeqID)

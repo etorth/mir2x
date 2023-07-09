@@ -125,6 +125,9 @@ void Quest::onActivate()
 
     m_luaRunner->bindFunction("dbSetUIDQuestStateDone", [this](uint64_t uid)
     {
+        // finialize quest
+        // all quest vars get removed except fld_state
+
         const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
         const auto timestamp = hres_tstamp().to_nsec();
