@@ -1,14 +1,13 @@
 function main()
-    uidExecute(getNPCharUID('比奇县_0', '图书管理员_1'),
+    uidRemoteCall(getNPCharUID('比奇县_0', '图书管理员_1'), getUID(), getQuestName(),
     [[
-        local questUID  = %d
-        local questName = %s
+        local questUID, questName = ...
         local questPath = {SYS_EPQST, questName}
 
         return setQuestHandler(questName,
         {
             [SYS_CHECKACTIVE] = function(uid)
-                return uidExecute(uid, [=[ return getQuestState('比奇商会') ]=]) == 'quest_persuade_pharmacist_and_librarian'
+                return uidRemoteCall(uid, [=[ return getQuestState('比奇商会') ]=]) == 'quest_persuade_pharmacist_and_librarian'
             end,
 
             [SYS_ENTER] = function(uid, value)
@@ -66,13 +65,13 @@ function main()
                         <par>哦？你答应我的请求了？</par>
                         <par>那太好了，我等着你的好消息！</par>
                         <par></par>
-                        <par><event id="%%s">好的！</event></par>
+                        <par><event id="%s">好的！</event></par>
                     </layout>
                 ]=], SYS_EXIT)
-                uidExecute(questUID, [=[ setUIDQuestState(%%d, SYS_ENTER) ]=], uid)
+                uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., SYS_ENTER) ]=])
             end,
         })
-    ]], getUID(), asInitString(getQuestName()))
+    ]])
 
     setQuestFSMTable(
     {
@@ -92,7 +91,7 @@ function main()
                             <layout>
                                 <par>你看起来还没有听到休班卫士的全部故事啊？可以在比奇省内转转就可以找到休班卫士！</par>
                                 <par></par>
-                                <par><event id="%%s">好的</event></par>
+                                <par><event id="%s">好的</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
