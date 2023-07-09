@@ -155,7 +155,7 @@ function setUIDQuestState(uid, state, args)
     -- a player can be in a team but still start a single-role quest alone
 
     if state == SYS_DONE then
-        dbSetUIDQuestStateDone(uid)
+        _RSVD_NAME_dbSetUIDQuestStateDone(uid)
     else
         dbSetUIDQuestState(uid, state, args)
     end

@@ -123,7 +123,7 @@ void Quest::onActivate()
         }
     });
 
-    m_luaRunner->bindFunction("dbSetUIDQuestStateDone", [this](uint64_t uid)
+    m_luaRunner->bindFunction("_RSVD_NAME_dbSetUIDQuestStateDone", [this](uint64_t uid)
     {
         // finialize quest
         // all quest vars get removed except fld_state
