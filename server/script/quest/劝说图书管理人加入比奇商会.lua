@@ -478,5 +478,146 @@ function main()
                 }
             ]])
         end,
+
+        quest_answer_questions = function(uid, value)
+            setupNPCQuestBehavior('比奇县_0', '图书管理员_1', uid,
+            [[
+                return getUID(), getQuestName()
+            ]],
+            [[
+                local questUID, questName = ...
+                local questPath = {SYS_EPUID, questName}
+                return
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>听说你已经收集到了所有关于比奇省的历史了？真是太好了！</par>
+                                <par></par>
+                                <par><event id="npc_question_1">是的</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    npc_question_1 = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>我有个问题不确定很久了，正好问你！</par>
+                                <par>听说在比奇产生之前，西方的国家为了讨伐某种怪物派种族遣出过远征队，那种怪物是什么种族的呢？</par>
+                                <par></par>
+                                <par><event id="npc_question_2" args="1">诺玛和内日</event></par>
+                                <par><event id="npc_question_2" args="2">沃玛和祖玛</event></par>
+                                <par><event id="npc_question_2" args="3">半兽人和内日</event></par>
+                                <par><event id="npc_question_2" args="4">半兽人和诺玛</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    npc_question_2 = function(uid, value)
+                        if value == '3' then
+                            local selections = shuffleArray(
+                            {
+                                [=[ <par><event id="npc_question_3" args="1">祖玛教主的宫殿</event></par> ]=],
+                                [=[ <par><event id="npc_question_3" args="2">蛇的集体栖息地</event></par> ]=],
+                                [=[ <par><event id="npc_question_3" args="3">半兽人的根据地</event></par> ]=],
+                                [=[ <par><event id="npc_question_3" args="4">内日族的根据地</event></par> ]=],
+                            })
+
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>哦！原来还是那些家伙啊...</par>
+                                    <par>那么在人类来此生活之前的比奇县什么样的地方呢？</par>
+                                    <par></par>
+                                    %s
+                                    %s
+                                    %s
+                                    %s
+                                </layout>
+                            ]=], selections[1], selections[2], selections[3], selections[4])
+                        else
+                            uidRemoteCall(uid, uid, {SYS_EPUID, questName}, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                        end
+                    end,
+
+                    npc_question_3 = function(uid, value)
+                        if value == '3' then
+                            local selections = shuffleArray(
+                            {
+                                [=[ <par><event id="npc_question_3" args="1">因为发生了大地震</event></par> ]=],
+                                [=[ <par><event id="npc_question_3" args="2">因为发生了大洪水</event></par> ]=],
+                                [=[ <par><event id="npc_question_3" args="3">因为发生了大饥荒</event></par> ]=],
+                                [=[ <par><event id="npc_question_3" args="4">因为发生了大瘟疫</event></par> ]=],
+                            })
+
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>果然！难怪半兽人那么顽固地反扑...</par>
+                                    <par>那么我们的祖先们回不了故乡，在这个地方落脚定居的原因是什么呢？</par>
+                                    <par></par>
+                                    %s
+                                    %s
+                                    %s
+                                    %s
+                                </layout>
+                            ]=], selections[1], selections[2], selections[3], selections[4])
+                        else
+                            uidRemoteCall(uid, uid, {SYS_EPUID, questName}, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                        end
+                    end,
+
+                    npc_done_question = function(uid, value)
+                        if value == "1" then
+                            uidPostXML(uid, questPath,
+                            [=[
+                                <layout>
+                                    <par>怪不得呢！所以越过山脉的路就被隔断了啊！</par>
+                                    <par>你真的是认真努力的调查过啦！托您的福，史书的撰写进度加快了！等这本书全部完成之后一定会在末尾写上你的大名的。</par>
+                                    <par>那么请你去把我要加入比奇商会的意思转告给王大人吧！</par>
+                                    <par></par>
+                                    <par>真是太谢谢了！</par>
+                                </layout>
+                            ]=])
+                        else
+                            uidRemoteCall(uid, uid, {SYS_EPUID, questName}, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                        end
+                    end,
+
+                    npc_wrong_answer = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>奇怪！根据我的调查好像不是这么回事儿啊！你确定没有听错吗？</par>
+                                <par>请再去打听一下吧！</par>
+                                <par></par>
+                                <par><event id="%s">退出</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    npc_give_info = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>哦？是嘛，好吧，我来讲给你听。</par>
+                                <par>祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。</par>
+                                <par>随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！</par>
+                                <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
+                                <par>唔...这已经是我所知道的全部故事啦！就说到这里吧，酒喝得很爽啊！</par>
+                                <par></par>
+                                <par><event id="npc_done_query_guard_3">谢谢！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_done_query_guard_3 = function(uid, value)
+                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'flag_done_query_guard_3') ]=])
+                    end,
+                }
+            ]])
+        end,
     })
 end
