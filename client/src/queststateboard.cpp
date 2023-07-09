@@ -24,8 +24,8 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
     , m_lrButton
       {
           DIR_UPLEFT,
-          255,
-          85,
+          242,
+          76,
           {0X00000300, 0X00000300, 0X00000302},
           {
               SYS_U32NIL,
@@ -54,8 +54,8 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
     , m_closeButton
       {
           DIR_UPLEFT,
-          255,
-          135,
+          243,
+          108,
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               SYS_U32NIL,
