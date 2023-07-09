@@ -124,13 +124,38 @@ bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
     }
 
     switch(event.type){
+        case SDL_KEYDOWN:
+            {
+                switch(event.key.keysym.sym){
+                    case SDLK_ESCAPE:
+                        {
+                            setShow(false);
+                            setFocus(false);
+                            return true;
+                        }
+                    default:
+                        {
+                            return consumeFocus(false);
+                        }
+                }
+            }
         case SDL_MOUSEMOTION:
             {
+                if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
+                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+                    const int maxX = rendererW - w();
+                    const int maxY = rendererH - h();
+
+                    const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
+                    const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
+                    moveBy(newX - x(), newY - y());
+                    return consumeFocus(true);
+                }
                 return consumeFocus(false);
             }
         case SDL_MOUSEBUTTONDOWN:
             {
-                return consumeFocus(false);
+                return consumeFocus(true);
             }
         default:
             {
