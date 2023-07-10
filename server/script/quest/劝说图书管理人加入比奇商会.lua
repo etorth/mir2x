@@ -143,7 +143,7 @@ function main()
                 return
                 {
                     [SYS_ENTER] = function(uid, value)
-                        if uidRemoteCall(questUID, uid, [=[ hasUIDQuestFlag(..., 'flag_done_query_guard_2') ]=]) then
+                        if uidRemoteCall(questUID, uid, [=[ return hasUIDQuestFlag(..., 'flag_done_query_guard_2') ]=]) then
                             runEventHandler(uid, questPath, 'npc_guard_2_deny')
                         else
                             runEventHandler(uid, questPath, 'npc_guard_2_accept')
@@ -257,7 +257,7 @@ function main()
                 return
                 {
                     [SYS_ENTER] = function(uid, value)
-                        if uidRemoteCall(uid, [=[ hasItem(getItemID('烧酒'), 0, 1) ]=]) then
+                        if uidRemoteCall(uid, [=[ return hasItem(getItemID('烧酒'), 0, 1) ]=]) then
                             uidPostXML(uid, questPath,
                             [=[
                                 <layout>
@@ -581,8 +581,8 @@ function main()
                 return
                 {
                     [SYS_ENTER] = function(uid, value)
-                        local hasSoju    = uidRemoteCall(uid, [=[ hasItem(getItemID('烧酒'), 0, 1) ]=])
-                        local hasSoju_x5 = uidRemoteCall(uid, [=[ hasItem(getItemID('烧酒'), 0, 5) ]=])
+                        local hasSoju    = uidRemoteCall(uid, [=[ return hasItem(getItemID('烧酒'), 0, 1) ]=])
+                        local hasSoju_x5 = uidRemoteCall(uid, [=[ return hasItem(getItemID('烧酒'), 0, 5) ]=])
 
                         if not hasSoju then
                             uidPostXML(uid, questPath,
