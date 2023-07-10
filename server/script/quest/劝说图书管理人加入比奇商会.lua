@@ -184,9 +184,9 @@ function main()
                                 <par>但是一位优秀的将领重新振作精神，开始在这个地区寻找求生之路。他指挥着他的部下们在赶走半兽人族的地区找到了一片肥沃的土地建立了新的城市。这就是现在的比奇省。</par>
                                 <par>好了，我已经把知道的基本上全都告诉你啦...我也要走啦！</par>
                                 <par></par>
-                                <par><event id="npc_done_query_guard_2">谢谢！</event></par>
+                                <par><event id="npc_done_query_guard_2" close="1">谢谢！</event></par>
                             </layout>
-                        ]=], SYS_EXIT)
+                        ]=])
                     end,
 
                     npc_done_query_guard_2 = function(uid, value)
