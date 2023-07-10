@@ -53,9 +53,10 @@ function main()
                         <par>其实最近我正在编撰记录比奇省地理和历史的书籍。如果想要写好这本书的话必然要从各种各样的人那里收集关于比奇省的资料和信息，可是唯独比奇省的卫士们那里不与我合作啊！</par>
                         <par>不管怎么样你也是武林人士，可能和他们能够有通融的地方，所以这就是我要拜托你的事情！值班卫士反正也不能和别人说话，所以希望你能替我去那儿找那些休班卫士从他们那里收集关于比奇省历史的故事。如果你能做到的话，我会听你的劝告加入比奇商会的。</par>
                         <par></par>
-                        <par><event id="npc_accept">也许我可以试试？</event></par>
+                        <par><event id="npc_accept">也许我可以去试试？</event></par>
+                        <par><event id="%s">我和他们也不熟啊！</event></par>
                     </layout>
-                ]=])
+                ]=], SYS_EXIT)
             end,
 
             npc_accept = function(uid, value)
