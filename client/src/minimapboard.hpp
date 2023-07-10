@@ -32,7 +32,6 @@ class MiniMapBoard: public Widget
         SDL_Texture *getMiniMapTexture() const;
 
     private:
-        void drawFrame() const;
         void drawMiniMapTexture() const;
 
     private:
