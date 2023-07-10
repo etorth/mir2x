@@ -493,7 +493,7 @@ function main()
                                 <par>唉！没办法，谁让我年纪大来着呢，原谅一次你吧！这里有1金币！</par>
                                 <par>快去买<t color="red">5瓶烧酒</t>来，喝了酒才能消了我的肚子里的火气。别忘了把找还的零钱带回来！</par>
                                 <par></par>
-                                <par><event id="npc_guard_3_angry_4">好吧...</event></par>
+                                <par><event id="npc_guard_3_angry_4" close="1">好吧...</event></par>
                             </layout>
                         ]=])
                     end,
@@ -570,21 +570,26 @@ function main()
         end,
 
         quest_guard_3_give_info = function(uid, value)
-            local text1 = value[1] or ''
-            local text2 = value[2] or ''
-
-            uidPostXML(uid, questPath,
+            uidRemoteCall(getNPCharUID('比奇县_0', '休班卫士_3'), uid, value,
             [[
-                <layout>
-                    %s
-                    <par>祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。</par>
-                    <par>随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！</par>
-                    <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
-                    %s
-                    <par></par>
-                    <par><event id="%s">谢谢你！</event></par>
-                </layout>
-            ]], text1, SYS_EXIT, text2)
+                local playerUID, texts = ...
+
+                local text1 = texts[1] or ''
+                local text2 = texts[2] or ''
+
+                uidPostXML(playerUID,
+                [=[
+                    <layout>
+                        %s
+                        <par>祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。</par>
+                        <par>随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！</par>
+                        <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
+                        %s
+                        <par></par>
+                        <par><event id="%s">谢谢你！</event></par>
+                    </layout>
+                ]=], text1, text2, SYS_EXIT)
+            ]])
 
             setUIDQuestState(uid, 'quest_answer_librarian_questions')
         end,
