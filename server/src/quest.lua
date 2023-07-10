@@ -155,6 +155,12 @@ function setUIDQuestState(uid, state, args)
     -- a player can be in a team but still start a single-role quest alone
 
     if state == SYS_DONE then
+        local npcBehaviors = dbGetUIDQuestField(uid, 'fld_npcbehaviors')
+        if npcBehaviors then
+            for k, v in pairs(npcBehaviors) do
+                clearNPCQuestBehavior(k[1], k[2], uid)
+            end
+        end
         _RSVD_NAME_dbSetUIDQuestStateDone(uid)
     else
         dbSetUIDQuestState(uid, state, args)

@@ -490,7 +490,7 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>唉！没办法，谁让我年纪大来着呢，原谅一次你吧！这里有1金币！</par>
+                                <par>唉！没办法，谁让我年纪大来着呢，原谅一次你吧！这里有1个金币！</par>
                                 <par>快去买<t color="red">5瓶烧酒</t>来，喝了酒才能消了我的肚子里的火气。别忘了把找还的零钱带回来！</par>
                                 <par></par>
                                 <par><event id="npc_guard_3_angry_4" close="1">好吧...</event></par>
