@@ -232,7 +232,7 @@ function main()
                     end,
 
                     npc_guard_3_deny = function(uid, value)
-                        uidPostXML(uid, questPath
+                        uidPostXML(uid, questPath,
                         [=[
                             <layout>
                                 <par>喂！我可是卫士中资历最深的！你先去跟其他的人打听之后再来找我吧！</par>
@@ -325,7 +325,7 @@ function main()
                             <layout>
                                 <par>看在烧酒的面子上，我知道的就这些啦！想知道的更多，你也可以去问问其他的卫士。</par>
                                 <par></par>
-                                <par><event id="npc_done_query_guard_1">好的！</event></par>
+                                <par><event id="npc_done_query_guard_1" close="1">好的！</event></par>
                             </layout>
                         ]=])
                     end,
@@ -459,7 +459,7 @@ function main()
                                 <par>唉！没办法，谁让我年纪大来着呢，原谅一次你吧！这里有1金币！</par>
                                 <par>快去买<t color="red">5瓶烧酒</t>来，喝了酒才能消了我的肚子里的火气。别忘了把找还的零钱带回来！</par>
                                 <par></par>
-                                <par><event id="npc_guard_3_give_info">好吧...</event></par>
+                                <par><event id="npc_guard_3_give_info" close="1">好吧...</event></par>
                             </layout>
                         ]=])
                     end,
@@ -564,7 +564,7 @@ function main()
                     end,
 
                     npc_guard_3_angry_4 = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'quest_give_guard_3_soju') ]=])
+                        uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_give_guard_3_soju') ]=])
                     end,
                 }
             ]])
@@ -635,8 +635,8 @@ function main()
         end,
 
         quest_guard_3_give_info = function(uid, value)
-            local text1 = value[0] or ''
-            local text2 = value[1] or ''
+            local text1 = value[1] or ''
+            local text2 = value[2] or ''
 
             uidPostXML(uid, questPath,
             [[
