@@ -128,10 +128,13 @@ function main()
                     end,
 
                     npc_want_soju = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_give_soju') ]=])
+                        uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_wait_guard_1_and_guard_2_done') ]=])
                     end,
                 }
             ]])
+        end,
+
+        quest_wait_guard_1_and_guard_2_done = function(uid, value)
         end,
 
         quest_give_soju = function(uid, value)
