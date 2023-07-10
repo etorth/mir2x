@@ -230,6 +230,7 @@ void MiniMapBoard::drawMiniMapTexture() const
 
         const auto locStr = str_printf(u8"[%ld,%ld]", onMapPX, onMapPY);
         LabelBoard locBoard(DIR_DOWNRIGHT, mousePX, mousePY, locStr.c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
+        g_sdlDevice->fillRectangle(colorf::BLACK + colorf::A_SHF(200), locBoard.x(), locBoard.y(), locBoard.w(), locBoard.h());
         locBoard.draw();
     }
 }
