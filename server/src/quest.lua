@@ -235,8 +235,11 @@ function setupNPCQuestBehavior(mapName, npcName, uid, arg1, arg2)
     local args = argstr and table.pack(load(argstr)()) or table.pack()
     args[args.n + 1] = string.format([[ setUIDQuestHandler(%d, %s, load(%s)(...)) ]], uid, asInitString(getQuestName()), asInitString(code))
 
+    -- use array as {code, argstr}
+    -- argstr can be nil, put ahead may cause trouble
+
     uidRemoteCall(getNPCharUID(mapName, npcName), table.unpack(args, 1, args.n + 1))
-    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_npcbehaviors', {mapName, npcName}, {argstr, code})
+    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_npcbehaviors', {mapName, npcName}, {code, argstr})
 end
 
 function clearNPCQuestBehavior(mapName, npcName, uid)
@@ -264,7 +267,7 @@ function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
 
     if npcBehaviors then
         for k, v in pairs(npcBehaviors) do
-            setupNPCQuestBehavior(k[1], k[2], uid, v[1], v[2])
+            setupNPCQuestBehavior(k[1], k[2], uid, v[2], v[1])
         end
     end
 
