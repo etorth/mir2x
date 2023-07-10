@@ -49,7 +49,7 @@ function hasUIDQuestFlag(uid, flagName)
     assertType(uid, 'integer')
     assertType(flagName, 'string')
 
-    local flags = dbGetUIDQuestFlag(uid, 'fld_flags') or {}
+    local flags = dbGetUIDQuestField(uid, 'fld_flags') or {}
     return flags[flagName] or false
 end
 

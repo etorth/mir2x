@@ -112,7 +112,7 @@ function main()
                                 <par></par>
                                 <par><event id="npc_ask_guard_1_info">你是否知道比奇省的历史？</event></par>
                             </layout>
-                        ]=], SYS_EXIT)
+                        ]=])
                     end,
 
                     npc_ask_guard_1_info = function(uid, value)
@@ -122,12 +122,12 @@ function main()
                                 <par>嗨！你这个没教养的家伙!求别人办事情至少要应该有点诚意吧？真是不明事理啊！</par>
                                 <par>唔, 嗓子有点干，想去酒店喝杯酒啊！咦？这个月的薪水已经全都喝酒花干净了！钱可真不经花啊！</par>
                                 <par></par>
-                                <par><event id="npc_wait_soju">退出</event></par>
+                                <par><event id="npc_guard_1_wait_soju" close="1">退出</event></par>
                             </layout>
-                        ]=], SYS_EXIT)
+                        ]=])
                     end,
 
-                    npc_wait_soju = function(uid, value)
+                    npc_guard_1_wait_soju = function(uid, value)
                         uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_give_guard_1_soju') ]=])
                     end,
                 }
@@ -257,7 +257,7 @@ function main()
                 return
                 {
                     [SYS_ENTER] = function(uid, value)
-                        if uidRemoteCall(uid, [=[ hasItem(getItemID('烧酒', 0, 1)) ]=]) then
+                        if uidRemoteCall(uid, [=[ hasItem(getItemID('烧酒'), 0, 1) ]=]) then
                             uidPostXML(uid, questPath,
                             [=[
                                 <layout>
