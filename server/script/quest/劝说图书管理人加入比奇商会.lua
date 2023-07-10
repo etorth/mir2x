@@ -107,10 +107,10 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>这鬼天气真，是让人心烦气躁，要是能来口酒润润嗓子多好啊！</par>
-                                <par>随便打扰别人真是没礼貌，你有什么事情吗？</par>
+                                <par>这鬼天气！真是让人心烦气躁，要是能来口酒润润嗓子该多好啊！</par>
+                                <par>随便打扰别人真是没礼貌，有什么事情？</par>
                                 <par></par>
-                                <par><event id="">你是否知道比奇省的历史？</event></par>
+                                <par><event id="npc_discuss_1">你是否知道比奇省的历史？</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
@@ -119,15 +119,15 @@ function main()
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>嗨！你这家伙!求别人办事情至少要应该有点诚意吧？真是个不明事理的家伙啊！</par>
+                                <par>嗨！你这个没教养的家伙!求别人办事情至少要应该有点诚意吧？真是不明事理啊！</par>
                                 <par>唔, 嗓子有点干，想去酒店喝杯酒啊！咦？这个月的薪水已经全都喝酒花干净了！钱可真不经花啊！</par>
                                 <par></par>
-                                <par><event id="npc_decide_to_buy_soju">退出</event></par>
+                                <par><event id="npc_want_soju">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
 
-                    npc_decide_to_buy_soju = function(uid, value)
+                    npc_want_soju = function(uid, value)
                         uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_give_soju') ]=])
                     end,
                 }
