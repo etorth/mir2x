@@ -110,34 +110,143 @@ function main()
                                 <par>这鬼天气！真是让人心烦气躁，要是能来口酒润润嗓子该多好啊！</par>
                                 <par>随便打扰别人真是没礼貌，有什么事情？</par>
                                 <par></par>
-                                <par><event id="npc_discuss_1">你是否知道比奇省的历史？</event></par>
+                                <par><event id="npc_ask_guard_1_info">你是否知道比奇省的历史？</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
 
-                    npc_discuss_1 = function(uid, value)
+                    npc_ask_guard_1_info = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
                                 <par>嗨！你这个没教养的家伙!求别人办事情至少要应该有点诚意吧？真是不明事理啊！</par>
                                 <par>唔, 嗓子有点干，想去酒店喝杯酒啊！咦？这个月的薪水已经全都喝酒花干净了！钱可真不经花啊！</par>
                                 <par></par>
-                                <par><event id="npc_want_soju">退出</event></par>
+                                <par><event id="npc_wait_soju">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
 
-                    npc_want_soju = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_wait_guard_1_and_guard_2_done') ]=])
+                    npc_wait_soju = function(uid, value)
+                        uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_give_guard_1_soju') ]=])
+                    end,
+                }
+            ]])
+
+            setupNPCQuestBehavior('比奇县_0', '休班卫士_2', uid,
+            [[
+                return getUID(), getQuestName()
+            ]],
+            [[
+                local questUID, questName = ...
+                local questPath = {SYS_EPUID, questName}
+                return
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        if uidRemoteCall(questUID, uid, [=[ hasUIDQuestFlag(..., 'flag_done_query_guard_2') ]=]) then
+                            runEventHandler(uid, questPath, 'npc_guard_2_deny')
+                        else
+                            runEventHandler(uid, questPath, 'npc_guard_2_accept')
+                        end
+                    end,
+
+                    npc_guard_2_accept = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>听说有人找我，是你吗？</par>
+                                <par>鄙人就是崔某，有什么事儿吗？</par>
+                                <par></par>
+                                <par><event id="npc_guard_2_give_info">我想知道有关比奇省的历史。</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_guard_2_deny = function(uid, value)
+                        uidPostXML(uid,
+                        [=[
+                            <layout>
+                                <par>为什么还要再来？</par>
+                                <par>我已经把我知道的都告诉你了！</par>
+                                <par></par>
+                                <par><event id="%s">退出</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    npc_guard_2_give_info = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>说起比奇省的历史...</par>
+                                <par>知道吗？我们的祖先就是讨伐半兽人族地区而派遣出的远征队啊！我们的祖先经过残酷的战斗终于击溃了怪物们。一想到只要再继续坚持战斗一下就可以把怪物们斩草除根，然后可以回到故乡，就都非常高兴。</par>
+                                <par>可是没想到这时突然发生了始料未及的灾难。这里发生了大地震。原本可以翻过山脉回到家乡的路由于这次大地震导致地壳变动，完全的被隔断了！有的人痛哭流涕，有的人茫然失措。所有人都慌了手脚。</par>
+                                <par>但是一位优秀的将领重新振作精神，开始在这个地区寻找求生之路。他指挥着他的部下们在赶走半兽人族的地区找到了一片肥沃的土地建立了新的城市。这就是现在的比奇省。</par>
+                                <par>好了，我已经把知道的基本上全都告诉你啦...我也要走啦！</par>
+                                <par></par>
+                                <par><event id="npc_done_query_guard_2">谢谢！</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                    end,
+
+                    npc_done_query_guard_2 = function(uid, value)
+                        uidRemoteCall(questUID, uid,
+                        [=[
+                            local playerUID = ...
+                            addUIDQuestFlag (playerUID, 'flag_done_query_guard_2')
+                            setUIDQuestState(playerUID, 'quest_wait_guard_1_and_guard_2_done')
+                        ]=])
+                    end,
+                }
+            ]])
+
+            setupNPCQuestBehavior('比奇县_0', '休班卫士_3', uid,
+            [[
+                return getUID(), getQuestName()
+            ]],
+            [[
+                local questUID, questName = ...
+                local questPath = {SYS_EPUID, questName}
+                return
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>是你啊？四处打听比奇省历史的人？</par>
+                                <par></par>
+                                <par><event id="npc_ask_guard_3_info">是的啊！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_ask_guard_3_info = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>哦！你也是来问我关于比奇省历史的吗？</par>
+                                <par></par>
+                                <par><event id="npc_guard_3_deny">是的, 请您讲讲比奇省历史的故事吧！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_guard_3_deny = function(uid, value)
+                        uidPostXML(uid, questPath
+                        [=[
+                            <layout>
+                                <par>喂！我可是卫士中资历最深的！你先去跟其他的人打听之后再来找我吧！</par>
+                                <par>不能让人小瞧了我...</par>
+                                <par></par>
+                                <par><event id="%s">退出</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
                     end,
                 }
             ]])
         end,
 
-        quest_wait_guard_1_and_guard_2_done = function(uid, value)
-        end,
-
-        quest_give_soju = function(uid, value)
+        quest_give_guard_1_soju = function(uid, value)
             setupNPCQuestBehavior('比奇县_0', '休班卫士_1', uid,
             [[
                 return getUID(), getQuestName()
@@ -222,52 +331,24 @@ function main()
                     end,
 
                     npc_done_query_guard_1 = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'flag_done_query_guard_1') ]=])
-                    end,
-                }
-            ]])
-
-            setupNPCQuestBehavior('比奇县_0', '休班卫士_2', uid,
-            [[
-                return getUID(), getQuestName()
-            ]],
-            [[
-                local questUID, questName = ...
-                local questPath = {SYS_EPUID, questName}
-                return
-                {
-                    [SYS_ENTER] = function(uid, value)
-                        uidPostXML(uid, questPath,
+                        uidRemoteCall(questUID, uid,
                         [=[
-                            <layout>
-                                <par>听说有人找我，是你吗？</par>
-                                <par>鄙人就是崔某，有什么事儿吗？</par>
-                                <par></par>
-                                <par><event id="npc_ask_info">我想知道有关比奇省的历史。</event></par>
-                            </layout>
+                            local playerUID = ...
+                            addUIDQuestFlag (playerUID, 'flag_done_query_guard_1')
+                            setUIDQuestState(playerUID, 'quest_wait_guard_1_and_guard_2_done')
                         ]=])
                     end,
-
-                    npc_ask_info = function(uid, value)
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>说起比奇省的历史...</par>
-                                <par>知道吗？我们的祖先就是讨伐半兽人族地区而派遣出的远征队啊！我们的祖先经过残酷的战斗终于击溃了怪物们。一想到只要再继续坚持战斗一下就可以把怪物们斩草除根，然后可以回到故乡，就都非常高兴。</par>
-                                <par>可是没想到这时突然发生了始料未及的灾难。这里发生了大地震。原本可以翻过山脉回到家乡的路由于这次大地震导致地壳变动，完全的被隔断了！有的人痛哭流涕，有的人茫然失措。所有人都慌了手脚。</par>
-                                <par>但是一位优秀的将领重新振作精神，开始在这个地区寻找求生之路。他指挥着他的部下们在赶走半兽人族的地区找到了一片肥沃的土地建立了新的城市。这就是现在的比奇省。</par>
-                                <par>好了，我已经把知道的基本上全都告诉你啦...我也要走啦！</par>
-                                <par></par>
-                                <par><event id="npc_done_query_guard_2">谢谢！</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
-                    end,
-
-                    npc_done_query_guard_2 = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'flag_done_query_guard_2') ]=])
-                    end,
                 }
             ]])
+        end,
+
+        quest_wait_guard_1_and_guard_2_done = function(uid, value)
+            local done_guard_1 = hasUIDQuestFlag(uid, 'flag_done_query_guard_1')
+            local done_guard_2 = hasUIDQuestFlag(uid, 'flag_done_query_guard_2')
+
+            if not (done_guard_1 and done_guard_2) then
+                return
+            end
 
             setupNPCQuestBehavior('比奇县_0', '休班卫士_3', uid,
             [[
@@ -284,124 +365,206 @@ function main()
                             <layout>
                                 <par>是你啊？四处打听比奇省历史的人？</par>
                                 <par></par>
-                                <par><event id="npc_check_flags">是的啊！</event></par>
+                                <par><event id="npc_ask_guard_3_info">是的啊！</event></par>
                             </layout>
                         ]=])
                     end,
 
-                    npc_check_flags = function(uid, value)
-                        local done_guard_1 = uidRemoteCall(questUID, uid, [=[ hasUIDQuestFlag(..., 'flag_done_query_guard_1') ]=])
-                        local done_guard_2 = uidRemoteCall(questUID, uid, [=[ hasUIDQuestFlag(..., 'flag_done_query_guard_2') ]=])
-
-                        if done_guard_1 and done_guard_2 then
-                            uidPostXML(uid, questPath,
-                            [=[
-                                <layout>
-                                    <par>哦！你也是来问我关于比奇省历史的吗？</par>
-                                    <par></par>
-                                    <par><event id="npc_ask_info">是的, 请您讲讲比奇省历史的故事吧！</event></par>
-                                </layout>
-                            ]=])
-                        else
-                            uidPostXML(uid, questPath,
-                            [=[
-                                <layout>
-                                    <par>喂！我可是卫士中资历最深的！你先去跟其他的人打听之后再来找我吧！</par>
-                                    <par>不能让人小瞧了我...</par>
-                                    <par></par>
-                                    <par><event id="%s">退出</event></par>
-                                </layout>
-                            ]=], SYS_EXIT)
-                        end
-                    end,
-
-                    npc_ask_info = function(uid, value)
+                    npc_ask_guard_3_info = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>我什么都不知道，你还是去问别人吧！</par>
+                                <par>哦！你也是来问我关于比奇省历史的吗？</par>
                                 <par></par>
-                                <par><event id="npc_give_100_gold">给他100金币</event></par>
-                                <par><event id="npc_give_1000_gold">给他1000金币</event></par>
+                                <par><event id="npc_guard_3_answer">是的, 请您讲讲比奇省历史的故事吧！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_guard_3_answer = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>这事儿可就说来话长了...</par>
+                                <par>噢！我可是什么都不知道！呵呵，你还是去问别人吧！</par>
+                                <par></par>
+                                <par><event id="npc_give_guard_3_100_gold">给他100金币</event></par>
+                                <par><event id="npc_give_guard_3_1000_gold">给他1000金币</event></par>
                                 <par><event id="%s">不询问他</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
 
-                    npc_give_100_gold = function(uid, value)
+                    npc_give_guard_3_100_gold = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
                                 <par>嗨哎！？这是干吗？</par>
                                 <par></par>
-                                <par><event id="npc_give_100_gold">请以后买点酒喝什么的吧！</event></par>
+                                <par><event id="npc_guard_3_give_info">请以后买点酒喝什么的吧！</event></par>
                             </layout>
                         ]=])
                     end,
 
-                    npc_give_1000_gold = function(uid, value)
+                    npc_guard_3_give_info = function(uid, value)
+                        uidRemoteCall(questUID, uid,
+                        {
+                            [=[<par>哦？是嘛，哈哈哈！好吧，我来讲给你听。</par>]=],
+                            [=[<par>唔...这已经是我所知道的全部故事啦！</par>]=],
+                        },
+                        [=[
+                            local playerUID, texts = ...
+                            setUIDQuestState(playerUID, 'quest_guard_3_give_info', texts)
+                        ]=])
+                    end,
+
+                    npc_give_guard_3_1000_gold = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
                                 <par>你...你这是做什么？竟敢和保护比奇省治安的我开这种玩笑？</par>
-                                <par>看来和你是做不了朋友了！要和我比试比试吗？</par>
-                                <par>我长这么大还是头一次受到这种污辱！</par>
+                                <par>看来和你是做不了朋友了！要和我比试比试吗？我长这么大还是头一次受到这种污辱！</par>
                                 <par></par>
-                                <par><event id="npc_angry_1">你千万别误会啊！不是这个意思！</event></par>
+                                <par><event id="npc_guard_3_angry_1">你千万别误会啊！不是这个意思！</event></par>
                             </layout>
                         ]=])
                     end,
 
-                    npc_angry_1 = function(uid, value)
+                    npc_guard_3_angry_1 = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
                                 <par>你还狡辩什么啊？你这个%s！</par>
                                 <par></par>
-                                <par><event id="npc_angry_2">你千万不要误会呀！</event></par>
+                                <par><event id="npc_guard_3_angry_2">你千万不要误会呀！</event></par>
                             </layout>
                         ]=], uidRemoteCall(uid, [=[ return getGender() ]=]) and '混小子' or '混丫头')
                     end,
 
-                    npc_angry_2 = function(uid, value)
+                    npc_guard_3_angry_2 = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
                                 <par>哼！呵呵...没有别的意思！真的吗？</par>
                                 <par></par>
-                                <par><event id="npc_angry_3">对不起是我错了，请原谅！</event></par>
+                                <par><event id="npc_guard_3_angry_3">对不起是我错了，请原谅！</event></par>
                             </layout>
                         ]=])
                     end,
 
-                    npc_angry_3 = function(uid, value)
+                    npc_guard_3_angry_3 = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>唉！没办法，谁让我年纪大来着呢，原谅一下你吧！这里有1钱！</par>
-                                <par>快去买5瓶烧酒来，喝了酒才能消了我的肚子里的火气。别忘了把找还的零钱带回来！</par>
+                                <par>唉！没办法，谁让我年纪大来着呢，原谅一次你吧！这里有1金币！</par>
+                                <par>快去买<t color="red">5瓶烧酒</t>来，喝了酒才能消了我的肚子里的火气。别忘了把找还的零钱带回来！</par>
                                 <par></par>
-                                <par><event id="npc_angry_4">对不起是我错了，请原谅！</event></par>
+                                <par><event id="npc_guard_3_give_info">好吧...</event></par>
                             </layout>
                         ]=])
                     end,
 
-                    npc_give_info = function(uid, value)
+                    npc_guard_3_give_info = function(uid, value)
+                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'quest_give_guard_3_soju') ]=])
+                    end,
+                }
+            ]])
+        end,
+
+        quest_give_guard_3_100_gold = function(uid, value)
+            setupNPCQuestBehavior('比奇县_0', '休班卫士_3', uid,
+            [[
+                return getUID(), getQuestName()
+            ]],
+            [[
+                local questUID, questName = ...
+                local questPath = {SYS_EPUID, questName}
+                return
+                {
+                    [SYS_ENTER] = function(uid, value)
                         uidPostXML(uid, questPath,
                         [=[
                             <layout>
-                                <par>祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。</par>
-                                <par>随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！</par>
-                                <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
-                                <par>唔…这已经是我所知道的全部故事啦！</par>
+                                <par>嗨哎！？这是干吗？</par>
                                 <par></par>
-                                <par><event id="npc_done_query_guard_3">谢谢！</event></par>
+                                <par><event id="npc_guard_3_give_info">请以后买点酒喝什么的吧！</event></par>
                             </layout>
                         ]=])
                     end,
 
-                    npc_done_query_guard_3 = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'flag_done_query_guard_3') ]=])
+                    npc_guard_3_give_info = function(uid, value)
+                        uidRemoteCall(questUID, uid,
+                        {
+                            [=[<par>哦？是嘛，哈哈哈！好吧，我来讲给你听。</par>]=],
+                            [=[<par>唔...这已经是我所知道的全部故事啦！</par>]=],
+                        },
+                        [=[
+                            local playerUID, texts = ...
+                            setUIDQuestState(playerUID, 'quest_guard_3_give_info', texts)
+                        ]=])
+                    end,
+                }
+            ]])
+        end,
+
+        quest_give_guard_3_1000_gold = function(uid, value)
+            setupNPCQuestBehavior('比奇县_0', '休班卫士_3', uid,
+            [[
+                return getUID(), getQuestName()
+            ]],
+            [[
+                local questUID, questName = ...
+                local questPath = {SYS_EPUID, questName}
+                return
+                {
+                    [SYS_ENTER] = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>你...你这是做什么？竟敢和保护比奇省治安的我开这种玩笑？</par>
+                                <par>看来和你是做不了朋友了！要和我比试比试吗？我长这么大还是头一次受到这种污辱！</par>
+                                <par></par>
+                                <par><event id="npc_guard_3_angry_1">你千万别误会啊！不是这个意思！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_guard_3_angry_1 = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>你还狡辩什么啊？你这个%s！</par>
+                                <par></par>
+                                <par><event id="npc_guard_3_angry_2">你千万不要误会呀！</event></par>
+                            </layout>
+                        ]=], uidRemoteCall(uid, [=[ return getGender() ]=]) and '混小子' or '混丫头')
+                    end,
+
+                    npc_guard_3_angry_2 = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>哼！呵呵...没有别的意思！真的吗？</par>
+                                <par></par>
+                                <par><event id="npc_guard_3_angry_3">对不起是我错了，请原谅！</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_guard_3_angry_3 = function(uid, value)
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>唉！没办法，谁让我年纪大来着呢，原谅一次你吧！这里有1金币！</par>
+                                <par>快去买<t color="red">5瓶烧酒</t>来，喝了酒才能消了我的肚子里的火气。别忘了把找还的零钱带回来！</par>
+                                <par></par>
+                                <par><event id="npc_guard_3_angry_4">好吧...</event></par>
+                            </layout>
+                        ]=])
+                    end,
+
+                    npc_guard_3_angry_4 = function(uid, value)
+                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'quest_give_guard_3_soju') ]=])
                     end,
                 }
             ]])
@@ -425,7 +588,7 @@ function main()
                             uidPostXML(uid, questPath,
                             [=[
                                 <layout>
-                                    <par>快去买啊！1个金币不够吗？</par>
+                                    <par>快去买啊！1个金币还不够吗？</par>
                                     <par></par>
                                     <par><event id="%s">退出</event></par>
                                 </layout>
@@ -450,35 +613,48 @@ function main()
                                     <par>咕噜，咕噜，啊！真是好酒，现在舒服多了。</par>
                                     <par>对了，你是找我来问什么的来着？</par>
                                     <par></par>
-                                    <par><event id="npc_give_info">我想知道关于比奇省历史的事。</event></par>
+                                    <par><event id="npc_guard_3_give_info">我想知道关于比奇省历史的事。</event></par>
                                 </layout>
                             ]=], SYS_EXIT)
                         end
                     end,
 
-                    npc_give_info = function(uid, value)
-                        uidPostXML(uid, questPath,
+                    npc_guard_3_give_info = function(uid, value)
+                        uidRemoteCall(questUID, uid,
+                        {
+                            [=[<par>好吧，我来讲给你听。</par>]=],
+                            [=[<par>唔...这已经是我所知道的全部故事啦！就说到这里吧，酒喝得很爽啊！</par>]=],
+                        },
                         [=[
-                            <layout>
-                                <par>哦？是嘛，好吧，我来讲给你听。</par>
-                                <par>祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。</par>
-                                <par>随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！</par>
-                                <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
-                                <par>唔...这已经是我所知道的全部故事啦！就说到这里吧，酒喝得很爽啊！</par>
-                                <par></par>
-                                <par><event id="npc_done_query_guard_3">谢谢！</event></par>
-                            </layout>
+                            local playerUID, texts = ...
+                            setUIDQuestState(playerUID, 'quest_guard_3_give_info', texts)
                         ]=])
-                    end,
-
-                    npc_done_query_guard_3 = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'flag_done_query_guard_3') ]=])
                     end,
                 }
             ]])
         end,
 
-        quest_answer_questions = function(uid, value)
+        quest_guard_3_give_info = function(uid, value)
+            local text1 = value[0] or ''
+            local text2 = value[1] or ''
+
+            uidPostXML(uid, questPath,
+            [[
+                <layout>
+                    %s
+                    <par>祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。</par>
+                    <par>随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！</par>
+                    <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
+                    %s
+                    <par></par>
+                    <par><event id="%s">谢谢你！</event></par>
+                </layout>
+            ]], text1, SYS_EXIT, text2)
+
+            setUIDQuestState(uid, 'quest_answer_librarian_questions')
+        end,
+
+        quest_answer_librarian_questions = function(uid, value)
             setupNPCQuestBehavior('比奇县_0', '图书管理员_1', uid,
             [[
                 return getUID(), getQuestName()
@@ -496,7 +672,7 @@ function main()
                                 <par></par>
                                 <par><event id="npc_question_1">是的</event></par>
                             </layout>
-                        ]=], SYS_EXIT)
+                        ]=])
                     end,
 
                     npc_question_1 = function(uid, value)
@@ -537,7 +713,7 @@ function main()
                                 </layout>
                             ]=], selections[1], selections[2], selections[3], selections[4])
                         else
-                            uidRemoteCall(uid, uid, {SYS_EPUID, questName}, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                            uidRemoteCall(uid, uid, questPath, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
                         end
                     end,
 
@@ -545,10 +721,10 @@ function main()
                         if value == '3' then
                             local selections = shuffleArray(
                             {
-                                [=[ <par><event id="npc_question_3" args="1">因为发生了大地震</event></par> ]=],
-                                [=[ <par><event id="npc_question_3" args="2">因为发生了大洪水</event></par> ]=],
-                                [=[ <par><event id="npc_question_3" args="3">因为发生了大饥荒</event></par> ]=],
-                                [=[ <par><event id="npc_question_3" args="4">因为发生了大瘟疫</event></par> ]=],
+                                [=[ <par><event id="npc_done_question" args="1">因为发生了大地震</event></par> ]=],
+                                [=[ <par><event id="npc_done_question" args="2">因为发生了大洪水</event></par> ]=],
+                                [=[ <par><event id="npc_done_question" args="3">因为发生了大饥荒</event></par> ]=],
+                                [=[ <par><event id="npc_done_question" args="4">因为发生了大瘟疫</event></par> ]=],
                             })
 
                             uidPostXML(uid, questPath,
@@ -564,7 +740,7 @@ function main()
                                 </layout>
                             ]=], selections[1], selections[2], selections[3], selections[4])
                         else
-                            uidRemoteCall(uid, uid, {SYS_EPUID, questName}, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                            uidRemoteCall(uid, uid, questPath, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
                         end
                     end,
 
@@ -580,8 +756,9 @@ function main()
                                     <par>真是太谢谢了！</par>
                                 </layout>
                             ]=])
+                            uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., SYS_DONE) ]=])
                         else
-                            uidRemoteCall(uid, uid, {SYS_EPUID, questName}, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                            uidRemoteCall(uid, uid, questPath, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
                         end
                     end,
 
@@ -595,25 +772,6 @@ function main()
                                 <par><event id="%s">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
-                    end,
-
-                    npc_give_info = function(uid, value)
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>哦？是嘛，好吧，我来讲给你听。</par>
-                                <par>祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。</par>
-                                <par>随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！</par>
-                                <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
-                                <par>唔...这已经是我所知道的全部故事啦！就说到这里吧，酒喝得很爽啊！</par>
-                                <par></par>
-                                <par><event id="npc_done_query_guard_3">谢谢！</event></par>
-                            </layout>
-                        ]=])
-                    end,
-
-                    npc_done_query_guard_3 = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'flag_done_query_guard_3') ]=])
                     end,
                 }
             ]])
