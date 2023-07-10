@@ -222,6 +222,16 @@ void MiniMapBoard::drawMiniMapTexture() const
             g_sdlDevice->fillRectangle(color, x() + (coMPX - srcX) - r, y() + (coMPY - srcY) - r, 2 * r + 1, 2 * r + 1);
         }
     }
+
+    const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
+    if(in(mousePX, mousePY)){
+        const auto onMapPX = std::lround((mousePX - x() + srcX) * 1.0 * mapW / texW);
+        const auto onMapPY = std::lround((mousePY - y() + srcY) * 1.0 * mapH / texH);
+
+        const auto locStr = str_printf(u8"[%ld,%ld]", onMapPX, onMapPY);
+        LabelBoard locBoard(DIR_DOWNRIGHT, mousePX, mousePY, locStr.c_str(), 1, 12, 0, colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF));
+        locBoard.draw();
+    }
 }
 
 void MiniMapBoard::drawFrame() const
