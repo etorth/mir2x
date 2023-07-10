@@ -396,76 +396,11 @@ function main()
                     end,
 
                     npc_give_guard_3_100_gold = function(uid, value)
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>嗨哎！？这是干吗？</par>
-                                <par></par>
-                                <par><event id="npc_guard_3_give_info">请以后买点酒喝什么的吧！</event></par>
-                            </layout>
-                        ]=])
-                    end,
-
-                    npc_guard_3_give_info = function(uid, value)
-                        uidRemoteCall(questUID, uid,
-                        {
-                            [=[<par>哦？是嘛，哈哈哈！好吧，我来讲给你听。</par>]=],
-                            [=[<par>唔...这已经是我所知道的全部故事啦！</par>]=],
-                        },
-                        [=[
-                            local playerUID, texts = ...
-                            setUIDQuestState(playerUID, 'quest_guard_3_give_info', texts)
-                        ]=])
+                        uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_give_guard_3_100_gold') ]=])
                     end,
 
                     npc_give_guard_3_1000_gold = function(uid, value)
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你...你这是做什么？竟敢和保护比奇省治安的我开这种玩笑？</par>
-                                <par>看来和你是做不了朋友了！要和我比试比试吗？我长这么大还是头一次受到这种污辱！</par>
-                                <par></par>
-                                <par><event id="npc_guard_3_angry_1">你千万别误会啊！不是这个意思！</event></par>
-                            </layout>
-                        ]=])
-                    end,
-
-                    npc_guard_3_angry_1 = function(uid, value)
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你还狡辩什么啊？你这个%s！</par>
-                                <par></par>
-                                <par><event id="npc_guard_3_angry_2">你千万不要误会呀！</event></par>
-                            </layout>
-                        ]=], uidRemoteCall(uid, [=[ return getGender() ]=]) and '混小子' or '混丫头')
-                    end,
-
-                    npc_guard_3_angry_2 = function(uid, value)
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>哼！呵呵...没有别的意思！真的吗？</par>
-                                <par></par>
-                                <par><event id="npc_guard_3_angry_3">对不起是我错了，请原谅！</event></par>
-                            </layout>
-                        ]=])
-                    end,
-
-                    npc_guard_3_angry_3 = function(uid, value)
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>唉！没办法，谁让我年纪大来着呢，原谅一次你吧！这里有1金币！</par>
-                                <par>快去买<t color="red">5瓶烧酒</t>来，喝了酒才能消了我的肚子里的火气。别忘了把找还的零钱带回来！</par>
-                                <par></par>
-                                <par><event id="npc_guard_3_give_info" close="1">好吧...</event></par>
-                            </layout>
-                        ]=])
-                    end,
-
-                    npc_guard_3_give_info = function(uid, value)
-                        uidRemoteCall(questUID, uid, [=[ addUIDQuestFlag(..., 'quest_give_guard_3_soju') ]=])
+                        uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., 'quest_give_guard_3_1000_gold') ]=])
                     end,
                 }
             ]])
