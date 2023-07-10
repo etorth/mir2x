@@ -79,15 +79,10 @@ function main()
         [SYS_ENTER] = function(uid, value)
             setupNPCQuestBehavior('比奇县_0', '图书管理员_1', uid,
             [[
-                return getQuestName()
-            ]],
-            [[
-                local questName = ...
-                local questPath = {SYS_EPUID, questName}
                 return
                 {
                     [SYS_ENTER] = function(uid, value)
-                        uidPostXML(uid, questPath,
+                        uidPostXML(uid,
                         [=[
                             <layout>
                                 <par>你看起来还没有听到休班卫士的全部故事啊？可以在比奇省内转转就可以找到休班卫士！</par>
