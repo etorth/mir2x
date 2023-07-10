@@ -388,25 +388,15 @@ function main()
                                 <par>这事儿可就说来话长了...</par>
                                 <par>噢！我可是什么都不知道！呵呵，你还是去问别人吧！</par>
                                 <par></par>
-                                <par><event id="npc_give_guard_3_gold" args="100">给他100金币</event></par>
-                                <par><event id="npc_give_guard_3_gold" args="1000">给他1000金币</event></par>
+                                <par><event id="npc_give_guard_3_gold" args="100"  close="1">给他100金币</event></par>
+                                <par><event id="npc_give_guard_3_gold" args="1000" close="1">给他1000金币</event></par>
                                 <par><event id="%s">不询问他</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
 
                     npc_give_guard_3_gold = function(uid, value)
-                        local nextQuestTagName = string.format('quest_give_guard_3_%s_gold', value)
-                        uidRemoteCall(questUID, uid, nextQuestTagName, [=[ setUIDQuestState(...) ]=])
-                        uidRemoteCall(questUID, uid, getUID(), questPath,
-                        [=[
-                            local playerUID, npcUID, questPath = ...
-                            uidRemoteCall(npcUID, playerUID, questPath,
-                            [==[
-                                local playerUID, questPath = ...
-                                runEventHandler(playerUID, questPath, SYS_ENTER)
-                            ]==])
-                        ]=])
+                        uidRemoteCall(questUID, uid, string.format('quest_give_guard_3_%s_gold', value), [=[ setUIDQuestState(...) ]=])
                     end,
                 }
             ]])
