@@ -1,5 +1,6 @@
 #pragma once
 #include "widget.hpp"
+#include "texslider.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -7,6 +8,9 @@ class QuestStateBoard: public Widget
 {
     private:
         bool m_left = true;
+
+    private:
+        TexSlider m_slider;
 
     private:
         TritexButton m_lrButton;

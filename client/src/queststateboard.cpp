@@ -21,6 +21,22 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
           autoDelete
       }
 
+    , m_slider
+      {
+          DIR_UPLEFT,
+          253,
+          160,
+          9,
+          214,
+
+          false,
+          3,
+          nullptr,
+
+          this,
+          false,
+      }
+
     , m_lrButton
       {
           DIR_UPLEFT,
@@ -101,6 +117,7 @@ void QuestStateBoard::drawEx(int dstX, int dstY, int, int, int, int) const
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
 
+    m_slider.draw();
     m_lrButton.draw();
     m_closeButton.draw();
 }
@@ -113,6 +130,10 @@ bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
 
     if(!show()){
         return consumeFocus(false);
+    }
+
+    if(m_slider.processEvent(event, valid)){
+        return true;
     }
 
     if(m_lrButton.processEvent(event, valid)){
