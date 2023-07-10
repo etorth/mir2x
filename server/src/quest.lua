@@ -203,20 +203,36 @@ end
 -- argstr shouldn't capture current environ's values
 -- argstr get evalulated everytime when when setup the NPC behavior
 --
-function setupNPCQuestBehavior(mapName, npcName, uid, argstr, code)
+function setupNPCQuestBehavior(mapName, npcName, uid, arg1, arg2)
     assertType(mapName, 'string')
     assertType(npcName, 'string')
 
     assertType(uid, 'integer')
     assert(uid > 0)
 
-    assertType(argstr, 'string', 'nil')
-    assertType(code, 'string')
+    local argstr = nil
+    local code   = nil
+
+    if type(arg1) == 'string' and type(arg2) == 'string' then
+        argstr = arg1
+        code   = arg2
+
+    elseif type(arg1) == 'string' and arg2 == nil then
+        argstr = nil
+        code   = arg1
+
+    elseif arg1 == nil and type(arg2) == 'string' then
+        argstr = nil
+        code   = arg2
+
+    else
+        fatalPrintf('Invalid arguments to setupNPCQuestBehavior(%s, %s, %d, ...)', asInitString(mapName), asInitString(npcName), uid)
+    end
 
     -- re-evalulate argstr to capture current environ's values
     -- don't save the environ's specific value to database, which may causes error for next time loading
 
-    local args = table.pack(load(argstr)())
+    local args = argstr and table.pack(load(argstr)()) or table.pack()
     args[args.n + 1] = string.format([[ setUIDQuestHandler(%d, %s, load(%s)(...)) ]], uid, asInitString(getQuestName()), asInitString(code))
 
     uidRemoteCall(getNPCharUID(mapName, npcName), table.unpack(args, 1, args.n + 1))
