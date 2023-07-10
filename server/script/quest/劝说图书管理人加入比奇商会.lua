@@ -7,7 +7,7 @@ function main()
         return setQuestHandler(questName,
         {
             [SYS_CHECKACTIVE] = function(uid)
-                return uidRemoteCall(uid, [=[ return getQuestState('比奇商会') ]=]) == 'quest_persuade_pharmacist_and_librarian'
+                return SYS_DEBUG or uidRemoteCall(uid, [=[ return getQuestState('比奇商会') ]=]) == 'quest_persuade_pharmacist_and_librarian'
             end,
 
             [SYS_ENTER] = function(uid, value)
@@ -388,8 +388,8 @@ function main()
                                 <par>这事儿可就说来话长了...</par>
                                 <par>噢！我可是什么都不知道！呵呵，你还是去问别人吧！</par>
                                 <par></par>
-                                <par><event id="npc_give_guard_3_100_gold">给他100金币</event></par>
-                                <par><event id="npc_give_guard_3_1000_gold">给他1000金币</event></par>
+                                <par><event id="npc_give_guard_3_100_gold" close="1">给他100金币</event></par>
+                                <par><event id="npc_give_guard_3_1000_gold" close="1">给他1000金币</event></par>
                                 <par><event id="%s">不询问他</event></par>
                             </layout>
                         ]=], SYS_EXIT)
@@ -653,7 +653,7 @@ function main()
                                 </layout>
                             ]=], selections[1], selections[2], selections[3], selections[4])
                         else
-                            uidRemoteCall(uid, uid, questPath, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                            runEventHandler(uid, questPath, 'npc_wrong_answer')
                         end
                     end,
 
@@ -680,7 +680,7 @@ function main()
                                 </layout>
                             ]=], selections[1], selections[2], selections[3], selections[4])
                         else
-                            uidRemoteCall(uid, uid, questPath, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                            runEventHandler(uid, questPath, 'npc_wrong_answer')
                         end
                     end,
 
@@ -698,7 +698,7 @@ function main()
                             ]=])
                             uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., SYS_DONE) ]=])
                         else
-                            uidRemoteCall(uid, uid, questPath, 'npc_wrong_answer', [=[ runEventHandler(...) ]=])
+                            runEventHandler(uid, questPath, 'npc_wrong_answer')
                         end
                     end,
 
