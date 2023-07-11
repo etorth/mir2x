@@ -190,7 +190,19 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
 
         luaf::luaTable table;
         for(const auto &[k, v]: obj.as<sol::table>()){
-            table.insert_or_assign(luaf::buildLuaVar(sol::object(k)), luaf::buildLuaVar(sol::object(v)));
+            if(const auto [p, added] = table.insert_or_assign(luaf::buildLuaVar(sol::object(k)), luaf::buildLuaVar(sol::object(v))); !added){
+                // this is possible, lua table doesn't have equal-by-value defined
+                // following table is legal in lua:
+                //
+                //     local t = {
+                //         [{}] = 1,
+                //         [{}] = 1,
+                //     }
+                //
+                // which creates table t with two table-keys with same value, but different address
+                // I can use sol::table::pointer() to differ them by adding an extra key to LuaTable to store the address, but looks doesn't make much sense
+                throw fflerror("duplicated key detected: %s", str_any(luaf::buildLuaVar(sol::object(k))).c_str());
+            }
         }
         return table;
     }
