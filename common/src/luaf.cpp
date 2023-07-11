@@ -15,9 +15,18 @@ size_t luaf::_details::_luaVarWrapperHash::operator () (const luaVarWrapper &wra
             return 2918357;
         },
 
+        [](const luaArray &array) -> size_t // has order dependency
+        {
+            size_t h = array.size();
+            for(const auto &v: array) {
+                h ^= _details::_luaVarWrapperHash{}(v) + 0x9e3779b9 + (h << 6) + (h >> 2);
+            }
+            return h;
+        },
+
         [](const luaTable &table) -> size_t // requires order-invariant
         {
-            size_t h = 3679231;
+            size_t h = table.size();
             for(const auto &[k, v]: table){
                 h ^= _details::_luaVarWrapperHash{}(k);
                 h ^= _details::_luaVarWrapperHash{}(v);
@@ -30,6 +39,26 @@ size_t luaf::_details::_luaVarWrapperHash::operator () (const luaVarWrapper &wra
             return std::hash<std::remove_cvref_t<decltype(t)>>{}(t);
         },
     }, *wrapper.m_ptr);
+}
+
+bool luaf::_details::isArray(const sol::table &table)
+{
+    lua_Integer cnt = 0;
+    lua_Integer min = std::numeric_limits<lua_Integer>::max();
+    lua_Integer max = std::numeric_limits<lua_Integer>::min();
+
+    for(const auto &[k, v]: table){
+        if(k.is<lua_Integer>()){
+            min = std::min(min, k.as<lua_Integer>());
+            max = std::max(max, k.as<lua_Integer>());
+        }
+        else{
+            return false;
+        }
+        cnt++;
+    }
+
+    return (min == 1) && (max == cnt);
 }
 
 bool luaf::_details::isArray(const luaf::luaTable &table)
@@ -143,6 +172,15 @@ sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaVar v)
 {
     return std::visit(luaf::luaVarDispatcher
     {
+        [&sv](const luaf::luaArray &a) -> sol::object
+        {
+            sol::table tbl(sv.lua_state(), sol::create);
+            for(lua_Integer i = 1; const auto &v: a){
+                tbl[i++] = luaf::buildLuaObj(sv, v);
+            }
+            return tbl; // sol::table can be used as sol::object
+        },
+
         [&sv](const luaf::luaTable &t) -> sol::object
         {
             sol::table tbl(sv.lua_state(), sol::create);
@@ -216,23 +254,36 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
             throw fflerror("can't build from table with metatable");
         }
 
-        luaf::luaTable table;
-        for(const auto &[k, v]: obj.as<sol::table>()){
-            if(const auto [p, added] = table.insert_or_assign(luaf::buildLuaVar(sol::object(k)), luaf::buildLuaVar(sol::object(v))); !added){
-                // this is possible, lua table doesn't have equal-by-value defined
-                // following table is legal in lua:
-                //
-                //     local t = {
-                //         [{}] = 1,
-                //         [{}] = 1,
-                //     }
-                //
-                // which creates table t with two table-keys with same value, but different address
-                // I can use sol::table::pointer() to differ them by adding an extra key to LuaTable to store the address, but looks doesn't make much sense
-                throw fflerror("duplicated key detected: %s", str_any(luaf::buildLuaVar(sol::object(k))).c_str());
+        if(_details::isArray(obj.as<sol::table>())){
+            luaf::luaArray array;
+            for(const auto &[k, v]: obj.as<sol::table>()){
+                const auto i = to_uz(k.as<lua_Integer>());
+                if(array.size() < i){
+                    array.resize(i);
+                }
+                array[i - 1] = luaf::buildLuaVar(sol::object(v));
             }
+            return array;
         }
-        return table;
+        else{
+            luaf::luaTable table;
+            for(const auto &[k, v]: obj.as<sol::table>()){
+                if(const auto [p, added] = table.insert_or_assign(luaf::buildLuaVar(sol::object(k)), luaf::buildLuaVar(sol::object(v))); !added){
+                    // this is possible, lua table doesn't have equal-by-value defined
+                    // following table is legal in lua:
+                    //
+                    //     local t = {
+                    //         [{}] = 1,
+                    //         [{}] = 1,
+                    //     }
+                    //
+                    // which creates table t with two table-keys with same value, but different address
+                    // I can use sol::table::pointer() to differ them by adding an extra key to LuaTable to store the address, but looks doesn't make much sense
+                    throw fflerror("duplicated key detected: %s", str_any(luaf::buildLuaVar(sol::object(k))).c_str());
+                }
+            }
+            return table;
+        }
     }
     else{
         throw fflerror("unsupported type: %s", to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));

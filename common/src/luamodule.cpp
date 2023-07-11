@@ -1,9 +1,9 @@
 #include <ctime>
 #include <chrono>
 #include <thread>
+#include "luaf.hpp"
 #include "log.hpp"
 #include "uidf.hpp"
-#include "luaf.hpp"
 #include "totype.hpp"
 #include "hexstr.hpp"
 #include "sysconst.hpp"
@@ -341,6 +341,11 @@ LuaModule::LuaModule()
             result.push_back(alphabet[std::rand() % alphabet.length()]);
         }
         return result;
+    });
+
+    bindFunction("strAny", [this](sol::object obj) -> std::string
+    {
+        return str_any(luaf::buildLuaVar(obj));
     });
 
     bindFunction("base64Encode", [this](sol::object obj) -> std::string

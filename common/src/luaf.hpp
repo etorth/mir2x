@@ -53,11 +53,14 @@ namespace luaf
 namespace luaf
 {
     class luaVarWrapper;
+    using luaArray = std::vector<luaVarWrapper>;
     using luaTable = std::unordered_map<luaVarWrapper, luaVarWrapper, _details::_luaVarWrapperHash>; // TODO using incomplete type, is it UB ?
 
     using luaVar = std::variant<
         // default initialized as nil
         luaNil,
+
+        luaArray, // optional
         luaTable,
 
         // try integer then decimal
@@ -72,6 +75,7 @@ namespace luaf
 {
     namespace _details
     {
+        bool isArray(const  sol::table    &);
         bool isArray(const luaf::luaTable &);
     }
 }
@@ -176,11 +180,11 @@ namespace luaf
 
     template<template<typename> typename C, typename T, typename... Args> luaVar buildLuaVar(C<T, Args...> varList)
     {
-        luaTable table;
-        for(lua_Integer i = 1; auto &v: varList){
-            table.emplace(luaVarWrapper(i++), std::move(v));
+        luaArray array;
+        for(auto &v: varList){
+            array.push_back(std::move(v));
         }
-        return table;
+        return array;
     }
 
     luaVar buildLuaVar(luaVarWrapper);
