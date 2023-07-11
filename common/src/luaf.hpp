@@ -70,6 +70,14 @@ namespace luaf
 
 namespace luaf
 {
+    namespace _details
+    {
+        bool isArray(const luaf::luaTable &);
+    }
+}
+
+namespace luaf
+{
     // luaVarWrapper behaves exactly same as luaVar
     // use it to avoid type dependency, C++ can not recursively define types
     class luaVarWrapper final

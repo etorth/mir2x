@@ -1,3 +1,4 @@
+#include <limits>
 #include "luaf.hpp"
 // put strf.h after luaf.h
 // this guarantees all defs of operator << () functions seen before str_any(const T &)
@@ -29,6 +30,33 @@ size_t luaf::_details::_luaVarWrapperHash::operator () (const luaVarWrapper &wra
             return std::hash<std::remove_cvref_t<decltype(t)>>{}(t);
         },
     }, *wrapper.m_ptr);
+}
+
+bool luaf::_details::isArray(const luaf::luaTable &table)
+{
+    if(table.empty()){
+        return true;
+    }
+
+    lua_Integer min = std::numeric_limits<lua_Integer>::max();
+    lua_Integer max = std::numeric_limits<lua_Integer>::min();
+
+    for(const auto &[k, v]: table){
+        if(k == luaf::luaNil()){
+            throw fflerror("invalid luaTable key: nil");
+        }
+
+        else if(const auto p = std::get_if<lua_Integer>(std::addressof(k.get()))){
+            min = std::min(min, *p);
+            max = std::max(max, *p);
+        }
+
+        else{
+            return false;
+        }
+    }
+
+    return (min == 1) && (to_uz(max) == table.size());
 }
 
 luaf::luaVarWrapper::luaVarWrapper(const luaf::luaVarWrapper &w)
