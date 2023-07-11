@@ -245,7 +245,7 @@ function setupNPCQuestBehavior(mapName, npcName, uid, arg1, arg2)
     -- argstr can be nil, put ahead may cause trouble
 
     uidRemoteCall(getNPCharUID(mapName, npcName), table.unpack(args, 1, args.n + 1))
-    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_npcbehaviors', string.format('%s@%s', npcName, mapName), {mapName, npcName, code, argstr})
+    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), {mapName, npcName, code, argstr})
 end
 
 function clearNPCQuestBehavior(mapName, npcName, uid)
@@ -256,7 +256,7 @@ function clearNPCQuestBehavior(mapName, npcName, uid)
     assert(uid > 0)
 
     uidRemoteCall(getNPCharUID(mapName, npcName), uid, getQuestName(), [[ deleteUIDQuestHandler(...) ]])
-    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_npcbehaviors', string.format('%s@%s', npcName, mapName), nil)
+    _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), nil)
 end
 
 function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
