@@ -57,20 +57,15 @@ function tp.setTeleport(titlePar, dst)
         fatalPrintf('invalid argument: dst:%s', type(dst))
     end
 
-    local dstParList = ''
+    local dstParList = {}
     local processHandle = {}
 
     for i, d in ipairs(dst) do
         if type(d) ~= 'table' then
             fatalPrintf('expect table entry, get %s', type(d))
         else
-            local tableSize = 0
-            for _k, _v in pairs(d) do
-                tableSize = tableSize + 1
-            end
-
-            if tableSize == 0 then
-                dstParList = dstParList .. '<par></par>'
+            if tableSize(d) == 0 then
+                table.insert(dstParList, '<par></par>')
             else
                 if type(d.map) ~= 'string' then
                     addLog(LOGTYPE_WARNING, 'ignore invalid map: npc = %s', getNPCName())
@@ -98,13 +93,13 @@ function tp.setTeleport(titlePar, dst)
                     end
 
                     if gold > 0 and level > 0 then
-                        dstParList = dstParList .. string.format('<par><event id = "%s">%s（金币%d，等级%d）</event></par>', gotoTag, mapName, gold, level)
+                        table.insert(dstParList, string.format('<par><event id="%s" close="1">%s（金币%d，等级%d）</event></par>', gotoTag, mapName, gold, level))
                     elseif gold > 0 then
-                        dstParList = dstParList .. string.format('<par><event id = "%s">%s（金币%d）</event></par>', gotoTag, mapName, gold)
+                        table.insert(dstParList, string.format('<par><event id="%s" close="1">%s（金币%d）</event></par>', gotoTag, mapName, gold))
                     elseif level > 0 then
-                        dstParList = dstParList .. string.format('<par><event id = "%s">%s（等级%d）</event></par>', gotoTag, mapName, level)
+                        table.insert(dstParList, string.format('<par><event id="%s" close="1">%s（等级%d）</event></par>', gotoTag, mapName, level))
                     else
-                        dstParList = dstParList .. string.format('<par><event id = "%s">%s</event></par>', gotoTag, mapName)
+                        table.insert(dstParList, string.format('<par><event id="%s" close="1">%s</event></par>', gotoTag, mapName))
                     end
 
                     processHandle[gotoTag] = function(uid, value)
@@ -115,7 +110,7 @@ function tp.setTeleport(titlePar, dst)
         end
     end
 
-    if dstParList == '' then
+    if tableSize(dstParList) == 0 then
         fatalPrintf('no valid destination specified in the argument list')
     end
 
@@ -128,7 +123,7 @@ function tp.setTeleport(titlePar, dst)
                 %s
                 <par><event id="%s">关闭</event></par>
             </layout>
-        ]], titlePar, dstParList, SYS_EXIT)
+        ]], titlePar, table.concat(dstParList), SYS_EXIT)
     end
     setEventHandler(processHandle)
 end
