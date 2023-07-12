@@ -139,13 +139,104 @@ class LuaThreadHandle;
 class ServerLuaCoroutineRunner: public ServerLuaModule
 {
     private:
-        struct SeqThreadGroup
+        struct LuaThreadHandle
         {
-            // threads share same key but different seqIDs
-            // it has one exclusive thread pointer, and a list of threads
+            // for this class
+            // the terms coroutine, runner, thread means same
 
-            uint64_t exclusive = 0;
-            std::unordered_map<uint64_t, std::unique_ptr<LuaThreadHandle>> list;
+            // scenario why adding seqID:
+            // 1. received an event which triggers processNPCEvent(event)
+            // 2. inside processNPCEvent(event) the script emits query to other actor
+            // 3. when waiting for the response of the query, user clicked the close button or click init button to end up the current call stack
+            // 4. receives the query response, we should ignore it
+            //
+            // to fix this we have to give every call stack an uniq seqID
+            // and the query response needs to match the seqID
+
+            const uint64_t key;
+            const uint64_t seqID;
+
+            // consume coroutine result
+            // forward pfr to issuer as a special case
+            std::function<void(const sol::protected_function_result &)> onDone;
+
+            // thread can be closed when
+            //
+            //     1. it yields in C layer
+            //     2. its control has been dropped and wait some callback to resume
+            //
+            // then if the thread is closed without calling the registered callback
+            // we need some clear-functionality
+
+            // thread can call back and forth in C/lua
+            //
+            // C -> lua -> C -> lua -> C -> lua
+            //                         ^
+            //                         |
+            //                         +-- code of this layer is:
+            //
+            //                         bindYielding("_RSVD_NAME_pauseYielding", [](uint64_t time, uint64_t threadKey)
+            //                         {
+            //                             addDelay(time, [threadKey]()
+            //                             {
+            //                                 resume(threadKey);
+            //                             });
+            //                         });
+            //
+            // then even all C layer before this layer are not yield-able, still we know this chain may eventually get yielded
+            // and each C layer may require to register a callback if closed before done, which requires a stack as
+            //
+            // C -> lua -> C -> lua -> C -> lua
+            //                         ^
+            //                         |
+            //                         +-- code of this layer is:
+            //
+            //                         bindYielding("_RSVD_NAME_pauseYielding", [](uint64_t time, uint64_t threadKey)
+            //                         {
+            //                             const auto key = m_delayQueue.addDelay(time, [threadKey]()
+            //                             {
+            //                                 resume(threadKey);
+            //                                 m_delayQueue.pop(); // no need to trigger if delayed command gets executed
+            //                             });
+            //
+            //                             onClose.push([key]()
+            //                             {
+            //                                 m_delayQueue.erase(key);
+            //                             })
+            //                         });
+
+            std::stack<std::function<void()>> onClose;
+
+            sol::thread runner;
+            sol::coroutine callback;
+
+            bool needNotify = false;
+            std::deque<luaf::luaVar> notifyList;
+
+            LuaThreadHandle(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
+                : key(argKey)
+                , seqID(argSeqID)
+                , onDone(std::move(argOnDone))
+                , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
+                , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
+            {
+                fflassert(key);
+                fflassert(seqID);
+
+                if(argOnClose){
+                    onClose.push(std::move(argOnClose));
+                }
+            }
+
+            ~LuaThreadHandle()
+            {
+                while(!onClose.empty()){
+                    if(onClose.top()){
+                        onClose.top()(); // only do clean work, don't modify onClose stack inside
+                    }
+                    onClose.pop();
+                }
+            }
         };
 
     private:
@@ -156,7 +247,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
     private:
         uint64_t m_seqID = 1;
-        std::unordered_map<uint64_t, SeqThreadGroup> m_runnerList;
+        std::unordered_multimap<uint64_t, LuaThreadHandle> m_runnerList;
 
     public:
         ServerLuaCoroutineRunner(ActorPod *);
@@ -190,7 +281,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
     public:
         void close(uint64_t, uint64_t = 0);
         void resume(uint64_t, uint64_t = 0);
-        LuaThreadHandle *hasKey(uint64_t, uint64_t = 0) const;
+        LuaThreadHandle *hasKey(uint64_t, uint64_t = 0);
 
     public:
         void pushOnClose(uint64_t, uint64_t, std::function<void()>);

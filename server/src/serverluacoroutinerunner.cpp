@@ -12,106 +12,6 @@
 
 extern MonoServer *g_monoServer;
 
-struct LuaThreadHandle
-{
-    // for this class
-    // the terms coroutine, runner, thread means same
-
-    // scenario why adding seqID:
-    // 1. received an event which triggers processNPCEvent(event)
-    // 2. inside processNPCEvent(event) the script emits query to other actor
-    // 3. when waiting for the response of the query, user clicked the close button or click init button to end up the current call stack
-    // 4. receives the query response, we should ignore it
-    //
-    // to fix this we have to give every call stack an uniq seqID
-    // and the query response needs to match the seqID
-
-    const uint64_t key;
-    const uint64_t seqID;
-
-    // consume coroutine result
-    // forward pfr to issuer as a special case
-    std::function<void(const sol::protected_function_result &)> onDone;
-
-    // thread can be closed when
-    //
-    //     1. it yields in C layer
-    //     2. its control has been dropped and wait some callback to resume
-    //
-    // then if the thread is closed without calling the registered callback
-    // we need some clear-functionality
-
-    // thread can call back and forth in C/lua
-    //
-    // C -> lua -> C -> lua -> C -> lua
-    //                         ^
-    //                         |
-    //                         +-- code of this layer is:
-    //
-    //                         bindYielding("_RSVD_NAME_pauseYielding", [](uint64_t time, uint64_t threadKey)
-    //                         {
-    //                             addDelay(time, [threadKey]()
-    //                             {
-    //                                 resume(threadKey);
-    //                             });
-    //                         });
-    //
-    // then even all C layer before this layer are not yield-able, still we know this chain may eventually get yielded
-    // and each C layer may require to register a callback if closed before done, which requires a stack as
-    //
-    // C -> lua -> C -> lua -> C -> lua
-    //                         ^
-    //                         |
-    //                         +-- code of this layer is:
-    //
-    //                         bindYielding("_RSVD_NAME_pauseYielding", [](uint64_t time, uint64_t threadKey)
-    //                         {
-    //                             const auto key = m_delayQueue.addDelay(time, [threadKey]()
-    //                             {
-    //                                 resume(threadKey);
-    //                                 m_delayQueue.pop(); // no need to trigger if delayed command gets executed
-    //                             });
-    //
-    //                             onClose.push([key]()
-    //                             {
-    //                                 m_delayQueue.erase(key);
-    //                             })
-    //                         });
-
-    std::stack<std::function<void()>> onClose;
-
-    sol::thread runner;
-    sol::coroutine callback;
-
-    bool needNotify = false;
-    std::deque<luaf::luaVar> notifyList;
-
-    LuaThreadHandle(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
-        : key(argKey)
-        , seqID(argSeqID)
-        , onDone(std::move(argOnDone))
-        , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
-        , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
-    {
-        fflassert(key);
-        fflassert(seqID);
-
-        if(argOnClose){
-            onClose.push(std::move(argOnClose));
-        }
-    }
-
-    ~LuaThreadHandle()
-    {
-        while(!onClose.empty()){
-            if(onClose.top()){
-                onClose.top()(); // only do clean work, don't modify onClose stack inside
-            }
-            onClose.pop();
-        }
-    }
-};
-
 void LuaCoopResumer::pushOnClose(std::function<void()> fnOnClose) const
 {
     m_luaRunner->pushOnClose(m_threadKey, m_threadSeqID, std::move(fnOnClose));
@@ -490,15 +390,15 @@ ServerLuaCoroutineRunner::~ServerLuaCoroutineRunner()
 
 std::vector<uint64_t> ServerLuaCoroutineRunner::getSeqID(uint64_t key, std::vector<uint64_t> *seqIDListBuf) const
 {
-    if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
+    if(auto eqp = m_runnerList.equal_range(key); eqp.first != eqp.second){
         std::vector<uint64_t> buf;
         std::vector<uint64_t> *result = seqIDListBuf ? seqIDListBuf : &buf;
 
         result->clear();
-        result->reserve(p->second.list.size());
+        result->reserve(std::distance(eqp.first, eqp.second));
 
-        for(const auto &[seqID, runnerPtr]: p->second.list){
-            result->push_back(seqID);
+        for(auto p = eqp.first; p != eqp.second; ++p){
+            result->push_back(p->second.seqID);
         }
         return std::move(*result);
     }
@@ -516,15 +416,13 @@ void ServerLuaCoroutineRunner::resume(uint64_t key, uint64_t seqID)
     }
 }
 
-LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint64_t key, uint64_t seqID) const
+ServerLuaCoroutineRunner::LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint64_t key, uint64_t seqID)
 {
-    if(const auto p = m_runnerList.find(key); p != m_runnerList.end()){
-        if(seqID == 0){
-            return p->second.list.empty() ? nullptr : p->second.list.begin()->second.get();
-        }
-
-        if(const auto q = p->second.list.find(seqID); q != p->second.list.end()){
-            return q->second.get();
+    if(auto eqp = m_runnerList.equal_range(key); eqp.first != eqp.second){
+        for(auto p = eqp.first; p != eqp.second; ++p){
+            if(seqID == 0 || seqID == p->second.seqID){
+                return std::addressof(p->second);
+            }
         }
     }
     return nullptr;
@@ -550,14 +448,18 @@ void ServerLuaCoroutineRunner::popOnClose(uint64_t key, uint64_t seqID)
 
 void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
 {
-    if(auto p = m_runnerList.find(key); p != m_runnerList.end()){
-        p->second.list.erase(seqID);
-        if(p->second.exclusive == seqID){
-            p->second.exclusive = 0;
-        }
-
-        if(p->second.list.empty()){
-            m_runnerList.erase(p);
+    if(auto eqp = m_runnerList.equal_range(key); eqp.first != eqp.second){
+        for(auto p = eqp.first;; ++p){
+            if(seqID == 0){
+                p = m_runnerList.erase(p);
+            }
+            else if(seqID == p->second.seqID){
+                m_runnerList.erase(p);
+                return;
+            }
+            else{
+                ++p;
+            }
         }
     }
 }
@@ -649,9 +551,9 @@ uint64_t ServerLuaCoroutineRunner::spawn(uint64_t key, const std::string &code, 
     fflassert(str_haschar(code));
 
     const auto currSeqID = m_seqID++;
-    const auto [p, added] = m_runnerList[key].list.insert_or_assign(currSeqID, std::make_unique<LuaThreadHandle>(*this, key, currSeqID, std::move(onDone), std::move(onClose)));
+    const auto p = m_runnerList.emplace(std::piecewise_construct, std::forward_as_tuple(key), std::forward_as_tuple(*this, key, currSeqID, std::move(onDone), std::move(onClose)));
 
-    resumeRunner(p->second.get(), std::make_pair(str_printf(
+    resumeRunner(std::addressof(p->second), std::make_pair(str_printf(
         R"###( do                                                          )###""\n"
         R"###(     getTLSTable().threadKey   = %llu                        )###""\n"
         R"###(     getTLSTable().threadSeqID = %llu                        )###""\n"
