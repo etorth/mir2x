@@ -390,14 +390,14 @@ ServerLuaCoroutineRunner::~ServerLuaCoroutineRunner()
 
 std::vector<uint64_t> ServerLuaCoroutineRunner::getSeqID(uint64_t key, std::vector<uint64_t> *seqIDListBuf) const
 {
-    if(auto eqp = m_runnerList.equal_range(key); eqp.first != eqp.second){
+    if(auto eqr = m_runnerList.equal_range(key); eqr.first != eqr.second){
         std::vector<uint64_t> buf;
         std::vector<uint64_t> *result = seqIDListBuf ? seqIDListBuf : &buf;
 
         result->clear();
-        result->reserve(std::distance(eqp.first, eqp.second));
+        result->reserve(std::distance(eqr.first, eqr.second));
 
-        for(auto p = eqp.first; p != eqp.second; ++p){
+        for(auto p = eqr.first; p != eqr.second; ++p){
             result->push_back(p->second.seqID);
         }
         return std::move(*result);
@@ -418,8 +418,8 @@ void ServerLuaCoroutineRunner::resume(uint64_t key, uint64_t seqID)
 
 ServerLuaCoroutineRunner::LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint64_t key, uint64_t seqID)
 {
-    if(auto eqp = m_runnerList.equal_range(key); eqp.first != eqp.second){
-        for(auto p = eqp.first; p != eqp.second; ++p){
+    if(auto eqr = m_runnerList.equal_range(key); eqr.first != eqr.second){
+        for(auto p = eqr.first; p != eqr.second; ++p){
             if(seqID == 0 || seqID == p->second.seqID){
                 return std::addressof(p->second);
             }
@@ -448,8 +448,8 @@ void ServerLuaCoroutineRunner::popOnClose(uint64_t key, uint64_t seqID)
 
 void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
 {
-    if(auto eqp = m_runnerList.equal_range(key); eqp.first != eqp.second){
-        for(auto p = eqp.first;; ++p){
+    if(auto eqr = m_runnerList.equal_range(key); eqr.first != eqr.second){
+        for(auto p = eqr.first;; ++p){
             if(seqID == 0){
                 p = m_runnerList.erase(p);
             }
