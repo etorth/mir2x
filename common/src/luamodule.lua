@@ -112,7 +112,7 @@ function isArray(tbl)
     return true
 end
 
-local _RSVD_NAME_asInitStringSimpleTypes = {
+local _RSVD_NAME_canSerializeSimpleTypes = {
     ['nil'    ] = true,
     ['number' ] = true,
     ['string' ] = true,
@@ -130,7 +130,7 @@ function asInitString(var)
     -- can not support metatables
     -- can not support cyclic reference
 
-    if _RSVD_NAME_asInitStringSimpleTypes[type(var)] then
+    if _RSVD_NAME_canSerializeSimpleTypes[type(var)] then
         return string.format('%q', var)
 
     elseif isArray(var) then
@@ -149,6 +149,39 @@ function asInitString(var)
 
     else
         fatalPrintf('Invalid type: %s', type(var))
+    end
+end
+
+function canSerialize(var)
+    if _RSVD_NAME_canSerializeSimpleTypes[type(var)] then
+        return true
+
+    elseif isArray(var) then
+        if getmetatable(var) then
+            return false
+        end
+
+        for _, v in ipairs(var) do
+            if not canSerialize(v) then
+                return false
+            end
+        end
+        return true
+
+    elseif type(var) == 'table' then
+        if getmetatable(var) then
+            return false
+        end
+
+        for k, v in pairs(var) do
+            if not canSerialize(k) or not canSerialize(v) then
+                return false
+            end
+        end
+        return true
+
+    else
+        return false
     end
 end
 

@@ -147,6 +147,11 @@ end
 
 function setUIDQuestState(uid, state, args, func)
     assertType(uid, 'integer')
+    assertType(state, 'string')
+
+    assert(canSerialize(args))
+    assertType(func, 'function', 'nil')
+
     if (not hasQuestState(state)) and (state ~= SYS_DONE) then
         fatalPrintf('Invalid quest state: %s', state)
     end
