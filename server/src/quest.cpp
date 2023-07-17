@@ -190,28 +190,6 @@ void Quest::onActivate()
         });
     });
 
-    m_luaRunner->bindFunction("runThread", [this](sol::function func)
-    {
-        m_luaRunner->spawn(m_threadKey++, func, [this](const sol::protected_function_result &pfr)
-        {
-            std::vector<std::string> error;
-            if(m_luaRunner->pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
-                if(pfr.return_count() > 0){
-                    // drop quest state function result
-                }
-            }
-            else{
-                if(error.empty()){
-                    error.push_back(str_printf("unknown error for runThread"));
-                }
-
-                for(const auto &line: error){
-                    g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
-                }
-            }
-        });
-    });
-
     m_luaRunner->bindFunction("_RSVD_NAME_switchUIDQuestState", [this](uint64_t uid, sol::object state, sol::object args, uint64_t threadKey, uint64_t threadSeqID)
     {
         if(const auto p = m_uidStateRunner.find(uid); p != m_uidStateRunner.end()){
