@@ -228,6 +228,21 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 }
             }
 
+            LuaThreadHandle(ServerLuaModule &argLuaModule, uint64_t argKey, uint64_t argSeqID, sol::function func, std::function<void(const sol::protected_function_result &)> argOnDone, std::function<void()> argOnClose)
+                : key(argKey)
+                , seqID(argSeqID)
+                , onDone(std::move(argOnDone))
+                , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
+                , callback(runner.state(), sol::ref_index(func.registry_index()))
+            {
+                fflassert(key);
+                fflassert(seqID);
+
+                if(argOnClose){
+                    onClose.push(std::move(argOnClose));
+                }
+            }
+
             ~LuaThreadHandle()
             {
                 while(!onClose.empty()){
@@ -272,8 +287,9 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         //    end
         //
         // use luaf::quotedLuaString() to quote a string to be a lua string literal
-        uint64_t spawn(uint64_t, std::pair<uint64_t, uint64_t>, const std::string &, luaf::luaVar = {});
-        uint64_t spawn(uint64_t,                                const std::string &, luaf::luaVar = {}, std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
+        uint64_t spawn(uint64_t, std::pair<uint64_t, uint64_t>, const std::string   &, luaf::luaVar = {});
+        uint64_t spawn(uint64_t,                                const std::string   &, luaf::luaVar = {}, std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
+        uint64_t spawn(uint64_t,                                const sol::function &,                    std::function<void(const sol::protected_function_result &)> = nullptr, std::function<void()> = nullptr);
 
     public:
         std::vector<uint64_t> getSeqID(uint64_t, std::vector<uint64_t> * = nullptr) const;
