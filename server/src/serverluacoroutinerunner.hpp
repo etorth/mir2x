@@ -233,7 +233,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 , seqID(argSeqID)
                 , onDone(std::move(argOnDone))
                 , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
-                , callback(runner.state(), sol::ref_index(func.registry_index()))
+                , callback(runner.state(), sol::ref_index(func.registry_index())) // callback initialized as: https://github.com/ThePhD/sol2/issues/836
             {
                 fflassert(key);
                 fflassert(seqID);
