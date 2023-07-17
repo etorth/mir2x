@@ -94,6 +94,28 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         return m_currRunner->seqID;
     });
 
+    bindFunction("runThread", [this](uint64_t key, sol::function func)
+    {
+        spawn(key, func, [key, this](const sol::protected_function_result &pfr)
+        {
+            std::vector<std::string> error;
+            if(m_luaRunner->pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+                if(pfr.return_count() > 0){
+                    // drop quest state function result
+                }
+            }
+            else{
+                if(error.empty()){
+                    error.push_back(str_printf("unknown error for runThread: key = %llu", to_llu(key)));
+                }
+
+                for(const auto &line: error){
+                    g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                }
+            }
+        });
+    });
+
     bindFunctionCoop("_RSVD_NAME_remoteCall", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args)
     {
         if(uid == m_actorPod->UID()){
