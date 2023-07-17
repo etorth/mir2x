@@ -145,7 +145,7 @@ function hasQuestState(state)
     return true
 end
 
-function setUIDQuestState(uid, state, args)
+function setUIDQuestState(uid, state, args, func)
     assertType(uid, 'integer')
     if (not hasQuestState(state)) and (state ~= SYS_DONE) then
         fatalPrintf('Invalid quest state: %s', state)
@@ -167,9 +167,9 @@ function setUIDQuestState(uid, state, args)
     end
 
     if hasQuestState(state) then
-        _RSVD_NAME_switchUIDQuestState(uid, state, args, getTLSTable().threadKey, getTLSTable().threadSeqID)
+        _RSVD_NAME_switchUIDQuestState(uid, state, args, func, getTLSTable().threadKey, getTLSTable().threadSeqID)
     else
-        _RSVD_NAME_switchUIDQuestState(uid,   nil,  nil, getTLSTable().threadKey, getTLSTable().threadSeqID)
+        _RSVD_NAME_switchUIDQuestState(uid,   nil,  nil,  nil, getTLSTable().threadKey, getTLSTable().threadSeqID)
     end
 
     -- drop current thread in C layer

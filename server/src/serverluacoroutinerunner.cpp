@@ -99,7 +99,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         spawn(key, func, [key, this](const sol::protected_function_result &pfr)
         {
             std::vector<std::string> error;
-            if(m_luaRunner->pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
+            if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
                 if(pfr.return_count() > 0){
                     // drop quest state function result
                 }

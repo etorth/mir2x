@@ -20,7 +20,20 @@ function main()
             end,
 
             npc_test_script = function(uid, value)
-                uidRemoteCall(questUID, uid, [=[ setUIDQuestState(..., SYS_ENTER)]=])
+                uidRemoteCall(questUID, uid, questName,
+                [=[
+                    local playerUID, questName = ...
+                    setUIDQuestState(playerUID, SYS_ENTER, nil, function()
+                        getTLSTable().threadKey = getThreadKey()
+                        getTLSTable().threadSeqID = getThreadSeqID()
+
+                        uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), playerUID, questName,
+                        [==[
+                            local playerUID, questName = ...
+                            runEventHandler(playerUID, {SYS_EPUID, questName}, SYS_ENTER)
+                        ]==])
+                    end)
+                ]=])
             end
         })
     ]])
