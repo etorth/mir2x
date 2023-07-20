@@ -264,6 +264,17 @@ function clearNPCQuestBehavior(mapName, npcName, uid)
     _RSVD_NAME_dbUpdateUIDQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), nil)
 end
 
+function runNPCEventHandler(npcUID, playerUID, eventPath, event, value)
+    getTLSTable().threadKey = getThreadKey()
+    getTLSTable().threadSeqID = getThreadSeqID()
+
+    uidRemoteCall(npcUID, playerUID, eventPath, event, value,
+    [[
+        local playerUID, eventPath, event, value = ...
+        runEventHandler(playerUID, eventPath, event, value)
+    ]])
+end
+
 function _RSVD_NAME_enterUIDQuestState(uid, state, base64Args)
     assertType(uid, 'integer')
     assertType(state, 'string')

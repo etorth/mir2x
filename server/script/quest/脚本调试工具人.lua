@@ -26,12 +26,7 @@ function main()
                     setUIDQuestState(playerUID, SYS_ENTER, nil, function()
                         getTLSTable().threadKey = getThreadKey()
                         getTLSTable().threadSeqID = getThreadSeqID()
-
-                        uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), playerUID, questName,
-                        [==[
-                            local playerUID, questName = ...
-                            runEventHandler(playerUID, {SYS_EPUID, questName}, SYS_ENTER)
-                        ]==])
+                        runNPCEventHandler(getNPCharUID('道馆_1', '物品展示商人'), playerUID, {SYS_EPUID, questName}, SYS_ENTER)
                     end)
                 ]=])
             end
