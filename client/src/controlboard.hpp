@@ -170,13 +170,5 @@ class ControlBoard: public Widget
         int logBoardStartY() const;
 
     public:
-        TritexButton *getButton(const std::string &buttonName)
-        {
-            if(buttonName == "Inventory"){
-                return &m_buttonInventory;
-            }
-            else{
-                return nullptr;
-            }
-        }
+        TritexButton *getButton(const std::string_view &);
 };

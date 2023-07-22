@@ -1514,3 +1514,17 @@ void ControlBoard::drawFocusFace() const
         }
     }
 }
+
+TritexButton *ControlBoard::getButton(const std::string_view &buttonName)
+{
+    if     (buttonName == "Inventory"    ){ return &m_buttonInventory    ; }
+    else if(buttonName == "HeroState"    ){ return &m_buttonHeroState    ; }
+    else if(buttonName == "HeroMagic"    ){ return &m_buttonHeroMagic    ; }
+    else if(buttonName == "Guild"        ){ return &m_buttonGuild        ; }
+    else if(buttonName == "Team"         ){ return &m_buttonTeam         ; }
+    else if(buttonName == "Quest"        ){ return &m_buttonQuest        ; }
+    else if(buttonName == "Horse"        ){ return &m_buttonHorse        ; }
+    else if(buttonName == "RuntimeConfig"){ return &m_buttonRuntimeConfig; }
+    else if(buttonName == "SysMessage"   ){ return &m_buttonSysMessage   ; }
+    else                                  { return nullptr               ; }
+}
