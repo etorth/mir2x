@@ -29,7 +29,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
           DIR_UPLEFT,
           263,
           32,
-          {SYS_U32NIL, 0X00000061, 0X00000062},
+          {0X00000061, 0X00000061, 0X00000062},
           {
               SYS_U32NIL,
               SYS_U32NIL,
