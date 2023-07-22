@@ -9,6 +9,10 @@ class TritexButton: public ButtonBase
         uint32_t m_texIDList[3];
 
     private:
+        double m_accuBlinkTime = 0.0;
+        std::optional<std::tuple<unsigned, unsigned, unsigned>> m_blinkTime = {}; // {off, on} in ms
+
+    private:
         const bool m_alterColor;
 
     public:
@@ -87,6 +91,29 @@ class TritexButton: public ButtonBase
         {
             for(int i: {0, 1, 2}){
                 m_texIDList[i] = texIDList[i];
+            }
+        }
+
+        void setBlinkTime(unsigned offTime, unsigned onTime, unsigned activeTotalTime = 0)
+        {
+            m_blinkTime = std::make_tuple(offTime, onTime, activeTotalTime);
+            m_accuBlinkTime = 0.0;
+        }
+
+        void disableBlink()
+        {
+            m_blinkTime.reset();
+            m_accuBlinkTime = 0.0;
+        }
+
+    public:
+        void update(double fUpdateTime) override
+        {
+            if(m_blinkTime.has_value()){
+                m_accuBlinkTime += fUpdateTime;
+                if(const auto activeTotalTime = std::get<2>(m_blinkTime.value()); activeTotalTime > 0 && m_accuBlinkTime > activeTotalTime){
+                    m_blinkTime.reset();
+                }
             }
         }
 };

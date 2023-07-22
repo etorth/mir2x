@@ -17,6 +17,7 @@
 #include "processrun.hpp"
 #include "cerealf.hpp"
 #include "imeboard.hpp"
+#include "controlboard.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
@@ -646,6 +647,10 @@ void ProcessRun::net_UPDATEITEM(const uint8_t *buf, size_t bufSize)
         else{
             addCBLog(CBLOG_SYS, u8"你%s了%s", to_cstr((changed > 0) ? u8"获得" : u8"失去"), to_cstr(ir.name));
         }
+    }
+
+    if(changed > 0){
+        dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->getButton("Inventory")->setBlinkTime(1000, 1000, 5000);
     }
 }
 

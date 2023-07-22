@@ -26,6 +26,31 @@ void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int 
         }();
 
         SDLDeviceHelper::EnableTextureModColor enableColor(texPtr, modColor);
+        SDLDeviceHelper::EnableTextureBlendMode enableBlendMode(texPtr, [this]()
+        {
+            if(m_blinkTime.has_value()){
+                const auto offTime = std::get<0>(m_blinkTime.value());
+                const auto  onTime = std::get<1>(m_blinkTime.value());
+
+                if(offTime == 0){
+                    return SDL_BLENDMODE_ADD;
+                }
+                else if(onTime == 0){
+                    return SDL_BLENDMODE_BLEND;
+                }
+                else{
+                    if(std::fmod(m_accuBlinkTime, offTime + onTime) < offTime){
+                        return SDL_BLENDMODE_BLEND;
+                    }
+                    else{
+                        return SDL_BLENDMODE_ADD;
+                    }
+                }
+            }
+            else{
+                return SDL_BLENDMODE_BLEND;
+            }
+        }());
         g_sdlDevice->drawTexture(texPtr, dstX + offX, dstY + offY, srcX, srcY, srcW, srcH); // TODO: need to crop src region for offset
     }
 }
