@@ -650,7 +650,7 @@ void ProcessRun::net_UPDATEITEM(const uint8_t *buf, size_t bufSize)
     }
 
     if(changed > 0){
-        dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->getButton("Inventory")->setBlinkTime(1000, 1000, 5000);
+        dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->getButton("Inventory")->setBlinkTime(100, 100, 5000);
     }
 }
 

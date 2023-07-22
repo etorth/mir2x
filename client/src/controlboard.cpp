@@ -264,7 +264,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           48,
           33,
-          {SYS_U32NIL, 0X00000030, 0X00000031},
+          {0X00000030, 0X00000030, 0X00000031},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -812,6 +812,16 @@ void ControlBoard::update(double fUpdateTime)
     m_cmdLine.update(fUpdateTime);
     m_logBoard.update(fUpdateTime);
     m_arcAniBoard.update(fUpdateTime);
+
+    m_buttonInventory    .update(fUpdateTime);
+    m_buttonHeroState    .update(fUpdateTime);
+    m_buttonHeroMagic    .update(fUpdateTime);
+    m_buttonGuild        .update(fUpdateTime);
+    m_buttonTeam         .update(fUpdateTime);
+    m_buttonQuest        .update(fUpdateTime);
+    m_buttonHorse        .update(fUpdateTime);
+    m_buttonRuntimeConfig.update(fUpdateTime);
+    m_buttonSysMessage   .update(fUpdateTime);
 }
 
 void ControlBoard::drawLeft() const
