@@ -295,7 +295,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           77,
           31,
-          {SYS_U32NIL, 0X00000033, 0X00000032},
+          {0X00000033, 0X00000033, 0X00000032},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -326,7 +326,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           105,
           33,
-          {SYS_U32NIL, 0X00000035, 0X00000034},
+          {0X00000035, 0X00000035, 0X00000034},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -357,7 +357,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           40,
           11,
-          {SYS_U32NIL, 0X00000036, 0X00000037},
+          {0X00000036, 0X00000036, 0X00000037},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -388,7 +388,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           72,
           8,
-          {SYS_U32NIL, 0X00000038, 0X00000039},
+          {0X00000038, 0X00000038, 0X00000039},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -428,7 +428,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           108,
           11,
-          {SYS_U32NIL, 0X0000003A, 0X0000003B},
+          {0X0000003A, 0X0000003A, 0X0000003B},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -459,7 +459,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           40,
           61,
-          {SYS_U32NIL, 0X0000003C, 0X0000003D},
+          {0X0000003C, 0X0000003C, 0X0000003D},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -490,7 +490,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           72,
           72,
-          {SYS_U32NIL, 0X0000003E, 0X0000003F},
+          {0X0000003E, 0X0000003E, 0X0000003F},
           {
               SYS_U32NIL,
               SYS_U32NIL,
@@ -521,7 +521,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           DIR_UPLEFT,
           108,
           61,
-          {SYS_U32NIL, 0X00000040, 0X00000041},
+          {0X00000040, 0X00000040, 0X00000041},
           {
               SYS_U32NIL,
               SYS_U32NIL,
