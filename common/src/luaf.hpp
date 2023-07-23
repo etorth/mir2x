@@ -156,6 +156,7 @@ namespace luaf
 namespace luaf
 {
     std::string quotedLuaString(const std::string &);
+    std::string luaObjTypeString(const sol::object &);
 
     // sol is overly flexible to create sol::object
     // don't use generic template

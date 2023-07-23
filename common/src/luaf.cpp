@@ -163,6 +163,11 @@ std::string luaf::quotedLuaString(const std::string &s)
     return result;
 }
 
+std::string luaf::luaObjTypeString(const sol::object &obj)
+{
+    return sol::type_name(obj.lua_state(), obj.get_type());
+}
+
 sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaNil)
 {
     return sol::make_object(sv, sol::nil);

@@ -251,6 +251,7 @@ class ProcessRun: public Process
         void net_TEAMCANDIDATE(const uint8_t *, size_t);
         void net_TEAMMEMBERLIST(const uint8_t *, size_t);
         void net_QUESTDESP(const uint8_t *, size_t);
+        void net_QUESTDESPLIST(const uint8_t *, size_t);
 
     public:
         bool canMove(bool, int, int, int);

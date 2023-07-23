@@ -46,4 +46,8 @@ class QuestStateBoard: public Widget
 
     public:
         void updateQuestDesp(SDQuestDesp);
+        void    setQuestDesp(SDQuestDespList);
+
+    private:
+        void loadQuestDesp();
 };

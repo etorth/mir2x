@@ -286,6 +286,25 @@ void Player::onActivate()
         return hasInventoryItem(to_u32(itemID), to_u32(seqID), count);
     });
 
+    m_luaRunner->bindFunction("_RSVD_NAME_reportQuestDespList", [this](sol::object obj)
+    {
+        fflassert(obj.is<sol::table>());
+        SDQuestDespList sdQDL;
+
+        for(const auto &[k, v]: obj.as<sol::table>()){
+            fflassert(k.is<std::string>());
+            fflassert(v.is<std::string>() || v.is<bool>());
+
+            sdQDL.list.push_back(SDQuestDesp
+            {
+                .name = k.as<std::string>(),
+                .desp = v.is<std::string>() ? std::make_optional<std::string>(v.as<std::string>()) : std::nullopt,
+            });
+        }
+
+        postNetMessage(SM_QUESTDESPLIST, cerealf::serialize(sdQDL));
+    });
+
     m_luaRunner->bindFunctionCoop("_RSVD_NAME_queryQuestUID", [this](LuaCoopResumer onDone, std::string questName)
     {
         auto closed = std::make_shared<bool>(false);
@@ -525,18 +544,37 @@ void Player::onActivate()
     END_LUAINC()));
 
     m_luaRunner->spawn(m_threadKey++, str_printf(
-    R"###( for _, questUID in ipairs(_RSVD_NAME_callFuncCoop('queryQuestUIDList')) )###""\n"
-    R"###( do                                                                      )###""\n"
-    R"###(     uidExecute(questUID,                                                )###""\n"
-    R"###(     [[                                                                  )###""\n"
-    R"###(         local state, args = dbGetUIDQuestState(%llu)                    )###""\n"
-    R"###(         assertType(state, 'nil', 'string')                              )###""\n"
-    R"###(                                                                         )###""\n"
-    R"###(         if (state ~= nil) and (state ~= SYS_DONE) then                  )###""\n"
-    R"###(             setUIDQuestState(%llu, state, args)                         )###""\n"
-    R"###(         end                                                             )###""\n"
-    R"###(     ]])                                                                 )###""\n"
-    R"###( end                                                                     )###""\n", to_llu(UID()), to_llu(UID())));
+    R"###(                                                                                            )###""\n"
+    R"###( local questDespList = {}                                                                   )###""\n"
+    R"###( for _, questUID in ipairs(_RSVD_NAME_callFuncCoop('queryQuestUIDList'))                    )###""\n"
+    R"###( do                                                                                         )###""\n"
+    R"###(     uidRemoteCall(questUID, getUID(),                                                      )###""\n"
+    R"###(     [[                                                                                     )###""\n"
+    R"###(         local playerUID = ...                                                              )###""\n"
+    R"###(         local state, args = dbGetUIDQuestState(playerUID)                                  )###""\n"
+    R"###(         assertType(state, 'string', 'nil')                                                 )###""\n"
+    R"###(                                                                                            )###""\n"
+    R"###(         if (state ~= nil) and (state ~= SYS_DONE) then                                     )###""\n"
+    R"###(             setUIDQuestState(playerUID, state, args)                                       )###""\n"
+    R"###(         end                                                                                )###""\n"
+    R"###(     ]])                                                                                    )###""\n"
+    R"###(                                                                                            )###""\n"
+    R"###(     local questName, questState, questDesp = uidRemoteCall(questUID, getUID(),             )###""\n"
+    R"###(     [[                                                                                     )###""\n"
+    R"###(         local playerUID = ...                                                              )###""\n"
+    R"###(         return getQuestName(), dbGetUIDQuestState(playerUID), dbGetUIDQuestDesp(playerUID) )###""\n"
+    R"###(     ]])                                                                                    )###""\n"
+    R"###(                                                                                            )###""\n"
+    R"###(     assertType(questName,  'string')                                                       )###""\n"
+    R"###(     assertType(questState, 'string')                                                       )###""\n"
+    R"###(     assertType(questDesp,  'string', 'nil')                                                )###""\n"
+    R"###(                                                                                            )###""\n"
+    R"###(     if questState then                                                                     )###""\n"
+    R"###(         questDespList[questName] = questDesp or false                                      )###""\n"
+    R"###(     end                                                                                    )###""\n"
+    R"###( end                                                                                        )###""\n"
+    R"###(                                                                                            )###""\n"
+    R"###( _RSVD_NAME_reportQuestDespList(questDespList)                                              )###""\n"));
 }
 
 void Player::operateAM(const ActorMsgPack &rstMPK)

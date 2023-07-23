@@ -860,3 +860,8 @@ void ProcessRun::net_QUESTDESP(const uint8_t *buf, size_t bufSize)
 {
     dynamic_cast<QuestStateBoard *>(getWidget("QuestStateBoard"))->updateQuestDesp(cerealf::deserialize<SDQuestDesp>(buf, bufSize));
 }
+
+void ProcessRun::net_QUESTDESPLIST(const uint8_t *buf, size_t bufSize)
+{
+    dynamic_cast<QuestStateBoard *>(getWidget("QuestStateBoard"))->setQuestDesp(cerealf::deserialize<SDQuestDespList>(buf, bufSize));
+}

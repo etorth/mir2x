@@ -1067,3 +1067,13 @@ struct SDQuestDesp
         ar(name, desp);
     }
 };
+
+struct SDQuestDespList
+{
+    std::vector<SDQuestDesp> list {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(list);
+    }
+};

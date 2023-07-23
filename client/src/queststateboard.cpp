@@ -222,17 +222,38 @@ bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
 
 void QuestStateBoard::updateQuestDesp(SDQuestDesp sdQD)
 {
-    m_questDesp[std::move(sdQD.name)] = std::move(sdQD.desp);
+    if(sdQD.desp.has_value()){
+        m_questDesp[sdQD.name] = sdQD.desp.value();
+    }
+    else{
+        m_questDesp.erase(sdQD.name);
+    }
+
     if(!show()){
         dynamic_cast<ControlBoard *>(m_processRun->getWidget("ControlBoard"))->getButton("Quest")->setBlinkTime(100, 100);
     }
 
+    loadQuestDesp();
+}
+
+void QuestStateBoard::setQuestDesp(SDQuestDespList sdQDL)
+{
+    m_questDesp.clear();
+    for(const auto &sdQD: sdQDL.list){
+        m_questDesp[sdQD.name] = sdQD.desp;
+    }
+
+    loadQuestDesp();
+}
+
+void QuestStateBoard::loadQuestDesp()
+{
     std::vector<std::string> xmlStrs;
     xmlStrs.push_back("<layout>");
 
     for(const auto &[questName, questDesp]: m_questDesp){
         xmlStrs.push_back(str_printf("<par>%s</par>", questName.c_str()));
-        xmlStrs.push_back(str_printf("<par>    %s</par>", questDesp.value_or("暂无描述").c_str()));
+        xmlStrs.push_back(str_printf("<par>    %s</par>", questDesp.value_or("").empty() ? "暂无任务描述" : questDesp.value().c_str()));
     }
 
     xmlStrs.push_back("</layout>");

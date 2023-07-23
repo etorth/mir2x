@@ -629,6 +629,13 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
                 }
                 break;
             }
+        case SM_QUESTDESPLIST:
+            {
+                if(auto proc = (ProcessRun *)(ProcessValid(PROCESSID_RUN))){
+                    proc->net_QUESTDESPLIST(buf, bufSize);
+                }
+                break;
+            }
         default:
             {
                 break;

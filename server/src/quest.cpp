@@ -51,6 +51,19 @@ void Quest::onActivate()
         return m_mainScriptThreadKey;
     });
 
+    m_luaRunner->bindFunction("dbGetUIDQuestDesp", [this](uint64_t uid, sol::this_state s) -> sol::object
+    {
+        sol::state_view sv(s);
+        const auto dbName = getQuestDBName();
+        const auto dbid = uidf::getPlayerDBID(uid);
+
+        auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_desp from %s where fld_dbid=%llu and fld_desp is not null)###", dbName.c_str(), to_llu(dbid));
+        if(!queryStatement.executeStep()){
+            return sol::make_object(sv, sol::nil);
+        }
+        return luaf::buildLuaObj(sol::state_view(s), std::move(cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0))));
+    });
+
     m_luaRunner->bindFunction("_RSVD_NAME_setUIDQuestDesp", [this](uint64_t uid, sol::object obj)
     {
         const auto dbName = getQuestDBName();
@@ -79,6 +92,8 @@ void Quest::onActivate()
                 to_llu(dbid),
                 to_llu(timestamp),
                 to_llu(timestamp));
+
+            sdQD.desp.reset();
         }
         else if(obj.is<std::string>()){
             auto query = g_dbPod->createQuery(
