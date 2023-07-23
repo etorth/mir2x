@@ -22,6 +22,7 @@ Quest::Quest(const SDInitQuest &initQuest)
             u8R"###(     fld_flags        blob             null,               )###"
             u8R"###(     fld_team         blob             null,               )###"
             u8R"###(     fld_vars         blob             null,               )###"
+            u8R"###(     fld_desp         blob             null,               )###"
             u8R"###(     fld_npcbehaviors blob             null,               )###"
             u8R"###(                                                           )###"
             u8R"###(     foreign key (fld_dbid) references tbl_char(fld_dbid), )###"
@@ -48,6 +49,56 @@ void Quest::onActivate()
     m_luaRunner->bindFunction("getMainScriptThreadKey", [this]() -> uint64_t
     {
         return m_mainScriptThreadKey;
+    });
+
+    m_luaRunner->bindFunction("dbSetUIDQuestDesp", [this](uint64_t uid, sol::object obj)
+    {
+        const auto dbName = getQuestDBName();
+        const auto dbid = uidf::getPlayerDBID(uid);
+        const auto timestamp = hres_tstamp().to_nsec();
+
+        if(obj == sol::nil){
+            g_dbPod->exec(
+                u8R"###( insert into %s(fld_dbid, fld_timestamp, fld_desp) )###"
+                u8R"###( values                                            )###"
+                u8R"###(     (%llu, %llu, null)                            )###"
+                u8R"###(                                                   )###"
+                u8R"###( on conflict(fld_dbid) do                          )###"
+                u8R"###( update set                                        )###"
+                u8R"###(                                                   )###"
+                u8R"###(     fld_timestamp=%llu,                           )###"
+                u8R"###(     fld_desp=null                                 )###",
+
+                dbName.c_str(),
+
+                to_llu(dbid),
+                to_llu(timestamp),
+                to_llu(timestamp));
+        }
+        else if(obj.is<std::string>()){
+            auto query = g_dbPod->createQuery(
+                u8R"###( insert into %s(fld_dbid, fld_timestamp, fld_desp) )###"
+                u8R"###( values                                            )###"
+                u8R"###(     (%llu, %llu, ?)                               )###"
+                u8R"###(                                                   )###"
+                u8R"###( on conflict(fld_dbid) do                          )###"
+                u8R"###( update set                                        )###"
+                u8R"###(                                                   )###"
+                u8R"###(     fld_timestamp=%llu,                           )###"
+                u8R"###(     fld_desp=excluded.fld_desp                    )###",
+
+                dbName.c_str(),
+
+                to_llu(dbid),
+                to_llu(timestamp),
+                to_llu(timestamp));
+
+            query.bind(1, cerealf::serialize(luaf::buildLuaVar(obj)));
+            query.exec();
+        }
+        else{
+            throw fflerror("invalid type: %s", to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
+        }
     });
 
     m_luaRunner->bindFunction("dbGetUIDQuestField", [this](uint64_t uid, std::string fieldName, sol::this_state s) -> sol::object
