@@ -51,7 +51,7 @@ void Quest::onActivate()
         return m_mainScriptThreadKey;
     });
 
-    m_luaRunner->bindFunction("setUIDQuestDesp", [this](uint64_t uid, sol::object obj)
+    m_luaRunner->bindFunction("_RSVD_NAME_setUIDQuestDesp", [this](uint64_t uid, sol::object obj)
     {
         const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);

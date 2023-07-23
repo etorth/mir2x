@@ -185,6 +185,18 @@ function setUIDQuestState(uid, state, args, func)
     end
 end
 
+function setUIDQuestDesp(uid, format, ...)
+    assertType(uid, 'integer')
+    if type(format) == 'string' then
+        _RSVD_NAME_setUIDQuestDesp(uid, string.format(format, ...))
+    elseif type(format) == 'nil' then
+        assert(select('#', ...) == 0)
+        _RSVD_NAME_setUIDQuestDesp(uid, nil)
+    else
+        fatalPrintf('Invalid quest description format: %s', tostring(format))
+    end
+end
+
 -- setup NPC chat logics
 -- also save to database for next time loading, usage:
 --
