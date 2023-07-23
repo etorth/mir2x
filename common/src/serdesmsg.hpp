@@ -1056,3 +1056,14 @@ struct SDTeamMemberList
         return {};
     }
 };
+
+struct SDQuestDesp
+{
+    std::string name {};
+    std::optional<std::string> desp {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(name, desp);
+    }
+};

@@ -1,5 +1,6 @@
 #pragma once
 #include "widget.hpp"
+#include "serdesmsg.hpp"
 #include "texslider.hpp"
 #include "tritexbutton.hpp"
 
@@ -19,6 +20,9 @@ class QuestStateBoard: public Widget
     private:
         ProcessRun *m_processRun;
 
+    private:
+        std::unordered_map<std::string, std::optional<std::string>> m_questDesp;
+
     public:
         QuestStateBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
 
@@ -30,4 +34,7 @@ class QuestStateBoard: public Widget
 
     public:
         bool processEvent(const SDL_Event &, bool) override;
+
+    public:
+        void updateQuestDesp(SDQuestDesp);
 };

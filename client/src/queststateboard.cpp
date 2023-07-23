@@ -3,6 +3,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "controlboard.hpp"
 #include "queststateboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
@@ -182,5 +183,13 @@ bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
             {
                 return consumeFocus(false);
             }
+    }
+}
+
+void QuestStateBoard::updateQuestDesp(SDQuestDesp sdQD)
+{
+    m_questDesp[std::move(sdQD.name)] = std::move(sdQD.desp);
+    if(!show()){
+        dynamic_cast<ControlBoard *>(m_processRun->getWidget("QuestStateBoard"))->getButton("Quest")->setBlinkTime(100, 100);
     }
 }

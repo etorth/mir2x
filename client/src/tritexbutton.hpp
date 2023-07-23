@@ -100,7 +100,7 @@ class TritexButton: public ButtonBase
             m_accuBlinkTime = 0.0;
         }
 
-        void disableBlink()
+        void stopBlink()
         {
             m_blinkTime.reset();
             m_accuBlinkTime = 0.0;

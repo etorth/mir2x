@@ -51,11 +51,16 @@ void Quest::onActivate()
         return m_mainScriptThreadKey;
     });
 
-    m_luaRunner->bindFunction("dbSetUIDQuestDesp", [this](uint64_t uid, sol::object obj)
+    m_luaRunner->bindFunction("setUIDQuestDesp", [this](uint64_t uid, sol::object obj)
     {
         const auto dbName = getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
         const auto timestamp = hres_tstamp().to_nsec();
+
+        SDQuestDesp sdQD
+        {
+            .name = getQuestName(),
+        };
 
         if(obj == sol::nil){
             g_dbPod->exec(
@@ -95,10 +100,14 @@ void Quest::onActivate()
 
             query.bind(1, cerealf::serialize(luaf::buildLuaVar(obj)));
             query.exec();
+
+            sdQD.desp = obj.as<std::string>();
         }
         else{
             throw fflerror("invalid type: %s", to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
         }
+
+        forwardNetPackage(uid, SM_QUESTDESP, cerealf::serialize(sdQD));
     });
 
     m_luaRunner->bindFunction("dbGetUIDQuestField", [this](uint64_t uid, std::string fieldName, sol::this_state s) -> sol::object

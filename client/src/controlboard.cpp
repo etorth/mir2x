@@ -442,6 +442,8 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               if(auto p = m_processRun->getWidget("QuestStateBoard")){
                   p->flipShow();
               }
+
+              m_buttonQuest.stopBlink();
           },
 
           0,

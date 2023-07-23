@@ -74,6 +74,7 @@ enum SMType: uint8_t
     SM_TEAMMEMBERLIST,
     SM_TEAMCANDIDATE,
     SM_TEAMERROR,
+    SM_QUESTDESP,
     SM_END,
 };
 
@@ -407,6 +408,7 @@ class ServerMsg final: public MsgBase
                 _add_server_msg_type_case(SM_TEAMMEMBERLIST,      3, 0                            )
                 _add_server_msg_type_case(SM_TEAMCANDIDATE,       3, 0                            )
                 _add_server_msg_type_case(SM_TEAMERROR,           1, sizeof(SMTeamError)          )
+                _add_server_msg_type_case(SM_QUESTDESP,           3, 0                            )
 #undef _add_server_msg_type_case
             };
 

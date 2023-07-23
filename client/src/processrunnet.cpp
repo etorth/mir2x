@@ -855,3 +855,8 @@ void ProcessRun::net_TEAMMEMBERLIST(const uint8_t *buf, size_t bufSize)
 {
     dynamic_cast<TeamStateBoard *>(getWidget("TeamStateBoard"))->setTeamMemberList(cerealf::deserialize<SDTeamMemberList>(buf, bufSize));
 }
+
+void ProcessRun::net_QUESTDESP(const uint8_t *buf, size_t bufSize)
+{
+    dynamic_cast<QuestStateBoard *>(getWidget("QuestStateBoard"))->updateQuestDesp(cerealf::deserialize<SDQuestDesp>(buf, bufSize));
+}
