@@ -22,6 +22,37 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
           autoDelete
       }
 
+    , m_despBoard
+      {
+          DIR_UPLEFT,
+
+          m_despX,
+          m_despY,
+          m_despW,
+
+          false,
+          {0, 5, 0, 0},
+          false,
+
+          1,
+          12,
+          0,
+
+          colorf::WHITE + colorf::A_SHF(255),
+          0,
+
+          LALIGN_JUSTIFY,
+          0,
+          0,
+
+          [this](const std::unordered_map<std::string, std::string> &, int, int)
+          {
+              // TODO
+              // update quest description
+          },
+          this,
+      }
+
     , m_slider
       {
           DIR_UPLEFT,
@@ -108,8 +139,9 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
     }
 }
 
-void QuestStateBoard::update(double)
+void QuestStateBoard::update(double fUpdateTime)
 {
+    m_despBoard.update(fUpdateTime);
 }
 
 void QuestStateBoard::drawEx(int dstX, int dstY, int, int, int, int) const
@@ -117,6 +149,8 @@ void QuestStateBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     if(auto texPtr = g_progUseDB->retrieve(0X00000350)){
         g_sdlDevice->drawTexture(texPtr, dstX, dstY);
     }
+
+    m_despBoard.draw();
 
     m_slider.draw();
     m_lrButton.draw();
@@ -192,4 +226,17 @@ void QuestStateBoard::updateQuestDesp(SDQuestDesp sdQD)
     if(!show()){
         dynamic_cast<ControlBoard *>(m_processRun->getWidget("ControlBoard"))->getButton("Quest")->setBlinkTime(100, 100);
     }
+
+    std::vector<std::string> xmlStrs;
+    xmlStrs.push_back("<layout>");
+
+    for(const auto &[questName, questDesp]: m_questDesp){
+        xmlStrs.push_back(str_printf("<par>%s</par>", questName.c_str()));
+        xmlStrs.push_back(str_printf("<par>    %s</par>", questDesp.value_or("暂无描述").c_str()));
+    }
+
+    xmlStrs.push_back("</layout>");
+
+    m_despBoard.clear();
+    m_despBoard.loadXML(str_join(xmlStrs, '\n').c_str());
 }

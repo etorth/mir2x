@@ -11,6 +11,15 @@ class QuestStateBoard: public Widget
         bool m_left = true;
 
     private:
+        const int m_despX =  40;
+        const int m_despY = 100;
+        const int m_despW = 270;
+        const int m_despH = 300;
+
+    private:
+        LayoutBoard m_despBoard;
+
+    private:
         TexSlider m_slider;
 
     private:
