@@ -45,10 +45,21 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
           0,
           0,
 
-          [this](const std::unordered_map<std::string, std::string> &, int, int)
+          [this](const std::unordered_map<std::string, std::string> &attrList, int oldEvent, int newEvent)
           {
-              // TODO
-              // update quest description
+              if(oldEvent == BEVENT_DOWN && newEvent == BEVENT_ON){
+                  const auto fnFindAttrValue = [&attrList](const char *key, const char *valDefault) -> const char *
+                  {
+                      if(auto p = attrList.find(key); p != attrList.end() && str_haschar(p->second)){
+                          return p->second.c_str();
+                      }
+                      return valDefault;
+                  };
+
+                  if(const auto id = fnFindAttrValue("id", nullptr)){
+                      m_questDesp.at(id).folded = !m_questDesp.at(id).folded;
+                  }
+              }
           },
           this,
       }
@@ -167,6 +178,10 @@ bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
+    if(m_despBoard.processEvent(event, valid)){
+        return true;
+    }
+
     if(m_slider.processEvent(event, valid)){
         return true;
     }
@@ -223,7 +238,7 @@ bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
 void QuestStateBoard::updateQuestDesp(SDQuestDesp sdQD)
 {
     if(sdQD.desp.has_value()){
-        m_questDesp[sdQD.name] = sdQD.desp.value();
+        m_questDesp[sdQD.name].desp = sdQD.desp.value();
     }
     else{
         m_questDesp.erase(sdQD.name);
@@ -240,7 +255,7 @@ void QuestStateBoard::setQuestDesp(SDQuestDespList sdQDL)
 {
     m_questDesp.clear();
     for(const auto &sdQD: sdQDL.list){
-        m_questDesp[sdQD.name] = sdQD.desp;
+        m_questDesp[sdQD.name].desp = sdQD.desp;
     }
 
     loadQuestDesp();
@@ -251,9 +266,11 @@ void QuestStateBoard::loadQuestDesp()
     std::vector<std::string> xmlStrs;
     xmlStrs.push_back("<layout>");
 
-    for(const auto &[questName, questDesp]: m_questDesp){
-        xmlStrs.push_back(str_printf("<par>%s</par>", questName.c_str()));
-        xmlStrs.push_back(str_printf("<par>    %s</par>", questDesp.value_or("").empty() ? "暂无任务描述" : questDesp.value().c_str()));
+    for(const auto &[questName, despState]: m_questDesp){
+        xmlStrs.push_back(str_printf(R"###(<par><event id="%s">%s</event></par>)###", questName.c_str(), questName.c_str()));
+        if(!despState.folded){
+            xmlStrs.push_back(str_printf("<par>    %s</par>", despState.desp.value_or("").empty() ? "暂无任务描述" : despState.desp.value().c_str()));
+        }
     }
 
     xmlStrs.push_back("</layout>");

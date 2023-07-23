@@ -8,6 +8,13 @@ class ProcessRun;
 class QuestStateBoard: public Widget
 {
     private:
+        struct QuestDespState
+        {
+            bool folded = true;
+            std::optional<std::string> desp {};
+        };
+
+    private:
         bool m_left = true;
 
     private:
@@ -30,7 +37,7 @@ class QuestStateBoard: public Widget
         ProcessRun *m_processRun;
 
     private:
-        std::unordered_map<std::string, std::optional<std::string>> m_questDesp;
+        std::unordered_map<std::string, QuestDespState> m_questDesp;
 
     public:
         QuestStateBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
