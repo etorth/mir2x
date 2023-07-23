@@ -16,6 +16,7 @@ class QuestStateBoard: public Widget
 
     private:
         bool m_left = true;
+        bool m_loadRequested = false;
 
     private:
         const int m_despX =  40;

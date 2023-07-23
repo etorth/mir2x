@@ -58,6 +58,7 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
 
                   if(const auto id = fnFindAttrValue("id", nullptr)){
                       m_questDesp.at(id).folded = !m_questDesp.at(id).folded;
+                      m_loadRequested = true;
                   }
               }
           },
@@ -152,6 +153,11 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
 
 void QuestStateBoard::update(double fUpdateTime)
 {
+    if(m_loadRequested){
+        m_loadRequested = false;
+        loadQuestDesp();
+    }
+
     m_despBoard.update(fUpdateTime);
 }
 
