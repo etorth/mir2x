@@ -190,6 +190,6 @@ void QuestStateBoard::updateQuestDesp(SDQuestDesp sdQD)
 {
     m_questDesp[std::move(sdQD.name)] = std::move(sdQD.desp);
     if(!show()){
-        dynamic_cast<ControlBoard *>(m_processRun->getWidget("QuestStateBoard"))->getButton("Quest")->setBlinkTime(100, 100);
+        dynamic_cast<ControlBoard *>(m_processRun->getWidget("ControlBoard"))->getButton("Quest")->setBlinkTime(100, 100);
     }
 }
