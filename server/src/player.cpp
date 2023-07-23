@@ -566,7 +566,7 @@ void Player::onActivate()
     R"###(     ]])                                                                                    )###""\n"
     R"###(                                                                                            )###""\n"
     R"###(     assertType(questName,  'string')                                                       )###""\n"
-    R"###(     assertType(questState, 'string')                                                       )###""\n"
+    R"###(     assertType(questState, 'string', 'nil')                                                )###""\n"
     R"###(     assertType(questDesp,  'string', 'nil')                                                )###""\n"
     R"###(                                                                                            )###""\n"
     R"###(     if questState then                                                                     )###""\n"
