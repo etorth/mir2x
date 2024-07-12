@@ -1,0 +1,170 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <cstdint>} {public local
+} 
+
+decl {\#include "mir2xmapdata.hpp"} {private local
+} 
+
+decl {\#include "mainwindow.hpp"} {private local
+} 
+
+class AttributeSelectWindow {open
+} {
+  Function {AttributeSelectWindow()} {open
+  } {
+    Fl_Window m_window {open selected
+      xywh {626 470 565 315} type Double modal visible
+    } {
+      Fl_Check_Button m_selectWalkable {
+        label CanWalk
+        callback {{
+	if(false
+            || m_selectWalkable->value()
+            || m_selectFlyable ->value()){
+		m_group->deactivate();
+	}else{
+		m_group->activate();
+	}
+
+	extern MainWindow *g_mainWindow;
+	g_mainWindow->redrawAll();
+}}
+        xywh {38 22 177 33} down_box DOWN_BOX value 1 labelfont 4
+      }
+      Fl_Check_Button m_selectFlyable {
+        label CanFly
+        callback {{
+	if(false
+            || m_selectWalkable->value()
+            || m_selectFlyable ->value()){
+		m_group->deactivate();
+	}else{
+		m_group->activate();
+	}
+
+	extern MainWindow *g_mainWindow;
+	g_mainWindow->redrawAll();
+}}
+        xywh {38 57 177 33} down_box DOWN_BOX value 1 labelfont 4
+      }
+      Fl_Group m_group {open
+        xywh {20 83 620 180} deactivate
+      } {
+        Fl_Check_Button m_selectGrass {
+          label { Grass}
+          callback {{
+    extern MainWindow *g_mainWindow;
+    g_mainWindow->redrawAll();
+}}
+          xywh {38 92 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_selectStone {
+          label { Stone}
+          callback {{
+    extern MainWindow *g_mainWindow;
+    g_mainWindow->redrawAll();
+}}
+          xywh {38 124 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_selectPond {
+          label { Pond}
+          callback {{
+    extern MainWindow *g_mainWindow;
+    g_mainWindow->redrawAll();
+}}
+          xywh {38 156 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_selectSand {
+          label { Sand}
+          callback {{
+    extern MainWindow *g_mainWindow;
+    g_mainWindow->redrawAll();
+}}
+          xywh {38 188 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button m_selectOcean {
+          label { Ocean}
+          callback {{
+    extern MainWindow *g_mainWindow;
+    g_mainWindow->redrawAll();
+}}
+          xywh {38 220 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 92 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 124 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 156 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 188 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {235 220 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 92 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 124 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 156 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 188 177 33} down_box DOWN_BOX labelfont 4
+        }
+        Fl_Check_Button {} {
+          label { Unused}
+          xywh {440 220 177 33} down_box DOWN_BOX labelfont 4
+        }
+      }
+      Fl_Button {} {
+        label OK
+        callback {{
+	extern MainWindow *g_mainWindow;
+    	g_mainWindow->redrawAll();
+    	
+    	m_window->hide();
+}}
+        xywh {438 269 80 30} labelfont 4
+        code0 {\#include "mainwindow.hpp"}
+      }
+    }
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {m_window->show();} {}
+  }
+  Function {testLand(const Mir2xMapData::LAND &land)} {open return_type bool
+  } {
+    code {//
+{
+    if(m_selectWalkable->value() || m_selectFlyable ->value()){
+        return land.canWalk || land.canFly;
+    }
+
+    switch(land.type){
+        case LANDTYPE_GRASS: return m_selectGrass->value();
+        case LANDTYPE_STONE: return m_selectStone->value();
+        case LANDTYPE_SAND : return m_selectStone->value();
+        default            : return false;
+    }
+}} {}
+  }
+} 

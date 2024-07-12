@@ -1,0 +1,120 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include <string>} {public global
+}
+
+decl {\#include <FL/fl_ask.H>} {private local
+}
+
+decl {\#include <FL/Fl_Text_Buffer.H>} {private local
+}
+
+class ScriptWindow {} {
+  decl {std::string m_fileName;} {private local
+  }
+  decl {Fl_Text_Buffer *m_buffer;} {private local
+  }
+  Function {ScriptWindow()} {} {
+    Fl_Window m_window {
+      xywh {9 72 830 505} type Double labelfont 4 resizable visible
+    } {
+      Fl_Menu_Bar {} {
+        xywh {0 0 830 25} box FLAT_BOX labelfont 4
+      } {
+        Submenu {} {
+          label File
+          xywh {0 0 100 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Load        }
+            xywh {0 0 100 20} shortcut 0x4006c labelfont 4 divider
+          }
+          MenuItem {} {
+            label Update
+            callback {{
+    if(m_fileName != ""){
+        LoadFile(m_fileName.c_str());
+    }
+}}
+            xywh {0 0 100 20} shortcut 0x40075 labelfont 4 divider
+          }
+          MenuItem {} {
+            label Exit
+            callback {{
+	m_window->hide();
+}}
+            xywh {0 0 100 20} labelfont 4
+          }
+        }
+        Submenu {} {
+          label Execute
+          xywh {0 0 100 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Configure     }
+            xywh {0 0 100 20} shortcut 0x40063 labelfont 4 divider
+          }
+          MenuItem {} {
+            label {Run   }
+            callback {{ // source the current buffer
+    extern MainWindow *g_mainWindow;
+    const int cwid = 1;
+    auto runWin = g_mainWindow->getCommandWindow(cwid);
+    if(runWin){
+        runWin->runScriptFile(m_fileName.c_str());
+    }
+    else{
+        fl_alert("Command window %d is not active", cwid);
+    }
+}}
+            xywh {0 0 100 20} shortcut 0x40072 labelfont 4
+            code0 {\#include "mainwindow.hpp"}
+          }
+        }
+      }
+      Fl_Text_Display m_display {
+        xywh {0 25 830 480} labelfont 4 textfont 4 resizable
+      }
+    }
+    code {{
+	// install the text buffer into text display
+	m_buffer = new Fl_Text_Buffer();
+	m_display->buffer(m_buffer);
+}} {}
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {{
+	m_window->show();
+}} {}
+  }
+  Function {LoadFile(const char *szFileName)} {return_type void
+  } {
+    code {{
+	// Load file
+    switch(m_buffer->loadfile(szFileName)){
+        case 0:
+        case 2:
+            {
+                m_fileName = szFileName;
+                showAll();
+                break;
+            }
+        default:
+            {
+                fl_alert("Failed to load file:  %s", szFileName ? szFileName : "");
+                break;
+            }
+    }
+}} {}
+  }
+  Function {setGUIFont(int nFont)} {return_type void
+  } {
+    code {{
+    m_display->textfont((Fl_Font)(nFont));
+    m_window->redraw();
+}} {}
+  }
+}

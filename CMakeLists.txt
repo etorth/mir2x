@@ -1,0 +1,215 @@
+#=======================================================================================
+#
+#        Filename: CMakeLists.txt
+#         Created: 05/03/2016 13:19:07
+#     Description:
+#
+#         Version: 1.0
+#        Revision: none
+#        Compiler: cmake
+#
+#          Author: ANHONG
+#           Email: anhonghe@gmail.com
+#    Organization: USTC
+#
+#=======================================================================================
+
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
+PROJECT(mir2x)
+
+SET(CMAKE_CXX_STANDARD 23)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+ADD_COMPILE_DEFINITIONS(SOL_ALL_SAFETIES_ON=1)
+IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    ADD_COMPILE_DEFINITIONS(MIR2X_DEBUG_MODE)
+ENDIF()
+
+IF(WIN32 AND MSVC)
+    # won't use the /WX
+    # have a lot secure warnings
+    ADD_COMPILE_OPTIONS(/W4)
+    ADD_COMPILE_DEFINITIONS(WIN32_LEAN_AND_MEAN)
+    ADD_COMPILE_DEFINITIONS(_HAS_STD_BYTE=0)
+ELSE()
+    ADD_COMPILE_OPTIONS(-fcoroutines)
+    ADD_COMPILE_OPTIONS(-fno-strict-aliasing)
+    ADD_COMPILE_OPTIONS(-Wall -Wfatal-errors -Wextra -Wunused -Werror -Wno-missing-field-initializers)
+
+    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " $ENV{CXXFLAGS}")
+    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -O0")
+    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -g3 -ggdb3 -pedantic")
+
+    # add flags to release mode
+    # by default won't use release mode
+    STRING(APPEND CMAKE_CXX_FLAGS_RELEASE " $ENV{CXXFLAGS}")
+    STRING(APPEND CMAKE_CXX_FLAGS_RELEASE " -O3")
+ENDIF()
+
+OPTION(MIR2X_ENABLE_ASAN "Enable ASAN" OFF)
+OPTION(MIR2X_ENABLE_USAN "Enable USAN" OFF)
+OPTION(MIR2X_ENABLE_TSAN "Enable TSAN" OFF)
+
+OPTION(MIR2X_BUILD_LIBPINYIN "Build static libpinyin" OFF)
+
+IF(MIR2X_ENABLE_ASAN)
+    IF(WIN32 AND MSVC)
+        MESSAGE(STATUS "ASAN not enabled on windows platform")
+    ELSE()
+        MESSAGE(STATUS "ASAN enabled")
+        STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=address")
+    ENDIF()
+ENDIF()
+
+IF(MIR2X_ENABLE_USAN)
+    IF(WIN32 AND MSVC)
+        MESSAGE(STATUS "USAN not enabled on windows platform")
+    ELSE()
+        MESSAGE(STATUS "USAN enabled")
+        STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=undefined")
+    ENDIF()
+ENDIF()
+
+IF(MIR2X_ENABLE_TSAN)
+    IF(WIN32 AND MSVC)
+        MESSAGE(STATUS "TSAN not enabled on windows platform")
+    ELSE()
+        MESSAGE(STATUS "TSAN enabled")
+        STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -fsanitize=thread")
+    ENDIF()
+ENDIF()
+
+SET(MIR2X_3RD_PARTY_DIR "${CMAKE_BINARY_DIR}/3rdparty")
+SET(MIR2X_COMMON_SOURCE_DIR ${CMAKE_SOURCE_DIR}/common/src)
+
+# configure file
+# if not version defined, use version enginerring signagure
+IF(NOT DEFINED MIR2X_BUILD_SIGNATURE)
+    STRING(TIMESTAMP NOW_TIMESTAMP "%Y%m%d%H%M%S")
+    SET(MIR2X_BUILD_SIGNATURE "VENGINEERING-${NOW_TIMESTAMP}")
+ENDIF()
+MESSAGE(STATUS "Build signature: ${MIR2X_BUILD_SIGNATURE}")
+
+# file list to support logProfiler()
+# generate the full file list automatically
+IF(DEFINED MIR2X_LOG_FILELIST)
+    MESSAGE(FATAL_ERROR "Don't define MIR2X_LOG_FILELIST, cmake automatically collect the file list")
+ELSE()
+    FILE(GLOB MIR2X_LOG_SRC_FILELIST
+        ${CMAKE_SOURCE_DIR}/common/src/*.[hc]pp
+        ${CMAKE_SOURCE_DIR}/client/src/*.[hc]pp
+        ${CMAKE_SOURCE_DIR}/server/src/*.[hc]pp
+    )
+
+    FOREACH(LOG_SRC ${MIR2X_LOG_SRC_FILELIST})
+        STRING(REGEX REPLACE "^${CMAKE_SOURCE_DIR}/" "" LOG_SRC_BODY ${LOG_SRC})
+        STRING(APPEND MIR2X_LOG_FILELIST "R\"DELIM(${LOG_SRC_BODY})DELIM\",\n")
+    ENDFOREACH()
+
+    FILE(GLOB MIR2X_LOG_FL_FILELIST ${CMAKE_SOURCE_DIR}/server/src/*.[fF][lL])
+    FOREACH(LOG_FL_SRC ${MIR2X_LOG_FL_FILELIST})
+        GET_FILENAME_COMPONENT(FL_SRC_BASENAME ${LOG_FL_SRC} NAME_WE)
+        STRING(APPEND MIR2X_LOG_FILELIST "R\"DELIM(server/src/${FL_SRC_BASENAME}.hpp)DELIM\",\n")
+        STRING(APPEND MIR2X_LOG_FILELIST "R\"DELIM(server/src/${FL_SRC_BASENAME}.cpp)DELIM\",\n")
+    ENDFOREACH()
+ENDIF()
+
+IF(WIN32 AND MSVC)
+    STRING(REPLACE "/" "\\" MIR2X_LOG_FILELIST ${MIR2X_LOG_FILELIST})
+ENDIF()
+
+INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_BINARY_DIR}/config_file)
+CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/buildconfig.hpp.in ${CMAKE_BINARY_DIR}/config_file/buildconfig.hpp)
+CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/logprof.hpp.in     ${CMAKE_BINARY_DIR}/config_file/logprof.hpp    )
+
+FUNCTION(FLTK_PARSE_FL_FILE ARG_HPP ARG_CPP)
+    FILE(GLOB T_ALL_FL "*.[fF][lL]")
+
+    SET(RES_HPP "")
+    SET(RES_CPP "")
+
+    FOREACH(T_FL ${T_ALL_FL})
+        GET_FILENAME_COMPONENT(T_BASE ${T_FL} NAME_WE)
+
+        SET(T_OUT_HPP ${T_BASE}.hpp)
+        SET(T_OUT_CPP ${T_BASE}.cpp)
+
+        SET(RES_HPP ${RES_HPP} ${T_OUT_HPP})
+        SET(RES_CPP ${RES_CPP} ${T_OUT_CPP})
+
+        ADD_CUSTOM_COMMAND(OUTPUT ${T_OUT_HPP} ${T_OUT_CPP}
+            DEPENDS ${T_FL}
+            COMMAND fluid -c -o ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_CPP} -h ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_HPP} ${T_FL}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    ENDFOREACH()
+
+    SET(${ARG_HPP} "${RES_HPP}" PARENT_SCOPE)
+    SET(${ARG_CPP} "${RES_CPP}" PARENT_SCOPE)
+ENDFUNCTION()
+
+ADD_CUSTOM_TARGET(mir2x_3rds)
+FILE(GLOB MIR2X_DEPS_DIR "${CMAKE_SOURCE_DIR}/cmake/deps/*.cmake")
+FOREACH(MIR2X_DEP ${MIR2X_DEPS_DIR})
+    INCLUDE(${MIR2X_DEP})
+ENDFOREACH()
+
+FILE(GLOB MIR2X_DOWNLOAD_DIR "${CMAKE_SOURCE_DIR}/cmake/download/*.cmake")
+FOREACH(MIR2X_DOWNLOAD ${MIR2X_DOWNLOAD_DIR})
+    INCLUDE(${MIR2X_DOWNLOAD})
+ENDFOREACH()
+
+IF(WIN32)
+    CMAKE_POLICY(SET CMP0003 OLD)
+ENDIF()
+
+# include external cmake packages
+FIND_PACKAGE(PkgConfig REQUIRED)
+FIND_PACKAGE(OpenGL    REQUIRED)
+FIND_PACKAGE(FLTK      REQUIRED)
+
+# TODO
+# appveyor says "can find make command"
+# use vcpkg to get lz4, but for linux still use github to get lz4
+IF(WIN32 AND MSVC)
+    FIND_PACKAGE(LZ4 REQUIRED)
+ENDIF()
+
+# report sdl2 status
+# seems it won't report in find_package
+IF(WIN32)
+    FIND_PACKAGE(SDL2 CONFIG REQUIRED)
+    FIND_PACKAGE(FreeType REQUIRED)
+ELSE()
+    FIND_PACKAGE(SDL2 REQUIRED)
+ENDIF()
+
+MESSAGE(STATUS "SDL2 found: SDL2_INCLUDE_DIRS: ${SDL2_INCLUDE_DIRS}, SDL2_LIBRARIES: ${SDL2_LIBRARIES}")
+
+IF(WIN32)
+    FIND_PACKAGE(JPEG REQUIRED)
+ENDIF()
+
+IF(NOT WIN32)
+    SET(CMAKE_THREAD_PREFER_PTHREAD ON)
+ENDIF()
+FIND_PACKAGE(Threads REQUIRED)
+
+SET(CMAKE_SKIP_RPATH TRUE)
+
+ADD_SUBDIRECTORY(common)
+ADD_SUBDIRECTORY(server)
+ADD_SUBDIRECTORY(client)
+ADD_SUBDIRECTORY(tools )
+
+SET(COMMAND_GIT_TAG git describe --tag)
+EXECUTE_PROCESS(
+    COMMAND           ${COMMAND_GIT_TAG}
+    OUTPUT_VARIABLE   COMMAND_GIT_TAG_OUTPUT
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+)
+STRING(REGEX REPLACE "\n$" "" PROJ_GIT_TAG_STR "${COMMAND_GIT_TAG_OUTPUT}")
+
+INCLUDE(InstallRequiredSystemLibraries)
+SET(CPACK_GENERATOR "ZIP")
+SET(CPACK_PACKAGE_VERSION ${PROJ_GIT_TAG_STR})
+INCLUDE(CPack)

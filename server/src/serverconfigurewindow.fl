@@ -1,0 +1,244 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include <cmath>} {public global
+}
+
+decl {\#include <mutex>} {public global
+}
+
+decl {\#include <string>} {public global
+}
+
+decl {\#include <algorithm>} {public global
+}
+
+decl {\#include "totype.hpp"} {private local
+}
+
+decl {\#include "strf.hpp"} {private local
+}
+
+decl {\#include "filesys.hpp"} {private local
+}
+
+class ServerConfig {} {
+  decl {std::string mapPath = "map/mapbin.zsdb";} {public local
+  }
+  decl {std::string scriptPath = "script";} {public local
+  }
+  decl {int maxMonster = 5000;} {public local
+  }
+  decl {int maxPlayer = 5000;} {public local
+  }
+  decl {double experienceRate = 1.0;} {public local
+  }
+  decl {double dropRate = 1.0;} {public local
+  }
+  decl {double goldRate = 1.0;} {public local
+  }
+  decl {int listenPort = 5000;} {public local
+  }
+}
+
+class ServerConfigureWindow {} {
+  decl {mutable std::mutex m_configLock;} {private local
+  }
+  decl {ServerConfig m_config;} {private local
+  }
+  Function {ServerConfigureWindow()} {} {
+    Fl_Window m_window {
+      label ConfigureWindow
+      xywh {48 119 625 360} type Double labelfont 4 modal visible
+    } {
+      Fl_Value_Input m_maxPlayerCount {
+        label {Maximal Player: }
+        xywh {172 146 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+      }
+      Fl_Input m_mapFullName {
+        label {Map Path: }
+        xywh {172 20 273 24} labelfont 4 textfont 4
+      }
+      Fl_Input m_scriptFullName {
+        label {Script Path: }
+        xywh {172 61 273 24} labelfont 4 textfont 4
+      }
+      Fl_Value_Input m_equipmentRate {
+        label {Drop Rate: }
+        xywh {172 221 60 24} labelfont 4 minimum 1024 maximum 10000 value 1 textfont 4
+      }
+      Fl_Value_Input m_m_experienceRate {
+        label {Exprience Rate: }
+        xywh {172 183 60 24} labelfont 4 minimum 1024 maximum 10000 value 1 textfont 4
+      }
+      Fl_Value_Input m_goldRate {
+        label {Gold Rate: }
+        xywh {172 259 60 24} labelfont 4 minimum 1024 maximum 10000 value 1 textfont 4
+      }
+      Fl_Button {} {
+        label {@fileopen}
+        callback {{
+    Fl_Native_File_Chooser stFileChooser;
+    stFileChooser.title("Load Map Database File...");
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+
+    char szMatchedFileNames[] =
+        "MAPDBN\\t*.ZIP\\n"
+        ;
+
+    stFileChooser.filter(szMatchedFileNames);
+    stFileChooser.directory(".");
+
+    switch(stFileChooser.show()){
+        case -1:
+            {
+                fl_alert("%s", stFileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
+        default:
+            {
+                std::string szPath = stFileChooser.filename();
+                std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
+
+                m_mapFullName->value(szPath.c_str());
+            }
+    }
+}}
+        xywh {451 20 26 23}
+        code0 {\#include <string>}
+        code1 {\#include <FL/Fl_Native_File_Chooser.H>}
+        code2 {\#include <FL/fl_ask.H>}
+      }
+      Fl_Value_Input m_maxMonsterCount {
+        label {Maximal Monster: }
+        xywh {172 108 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+      }
+      Fl_Button {} {
+        label OK
+        callback {applyConfig();
+m_window->hide();}
+        xywh {523 315 70 25}
+      }
+      Fl_Value_Input m_port {
+        label {Listen Port: }
+        xywh {171 298 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+      }
+      Fl_Button {} {
+        label {@fileopen}
+        callback {{
+    Fl_Native_File_Chooser stFileChooser;
+    stFileChooser.title("Load Map Script Path...");
+    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
+
+    stFileChooser.directory(".");
+
+    switch(stFileChooser.show()){
+        case -1:
+            {
+                fl_alert("%s", stFileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
+        default:
+            {
+                std::string szPath = stFileChooser.filename();
+                std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
+
+                m_scriptFullName->value(szPath.c_str());
+            }
+    }
+}}
+        xywh {451 61 26 23}
+        code0 {\#include <string>}
+        code1 {\#include <FL/Fl_Native_File_Chooser.H>}
+        code2 {\#include <FL/fl_ask.H>}
+      }
+      Fl_Button {} {
+        label Apply
+        callback {applyConfig();}
+        xywh {447 315 70 25}
+      }
+      Fl_Button {} {
+        label Cancel
+        callback {m_window->hide();}
+        xywh {371 315 70 25}
+      }
+    }
+    code {// set up the default map path
+{
+    m_mapFullName->value("map/mapbin.zsdb");
+    m_scriptFullName->value("script");
+}} {}
+  }
+  Function {showAll()} {} {
+    code {{
+    m_window->show();
+}} {}
+  }
+  Function {applyConfig()} {return_type void
+  } {
+    code {// setup all entries, validate before assigning
+{
+        std::lock_guard<std::mutex> lockGuard(m_configLock);
+        const auto fnAssignPath = [](const char *val, const char *usage, std::string &dst)
+        {
+            if(str_haschar(val)){
+                if(filesys::hasFile(val)){
+                    dst = val;
+                }
+                else{
+                    fl_alert("invalid %s: %s", to_cstr(usage), to_cstr(val));
+                }
+            }
+            else{
+                dst.clear();
+            }
+        };
+
+        fnAssignPath(m_mapFullName->value(), "map path", m_config.mapPath);
+        fnAssignPath(m_scriptFullName->value(), "script path", m_config.scriptPath);
+
+        const auto fnAssignPositiveInteger = [](double f, const char *usage, int &dst)
+        {
+            if(f >= 0.0){
+                dst = std::lround(std::floor(f));
+            }
+            else{
+                fl_alert("invalid %s: %f", to_cstr(usage), f);
+            }
+        };
+
+        fnAssignPositiveInteger(m_maxMonsterCount->value(), "maximal monster", m_config.maxMonster);
+        fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayer);
+        fnAssignPositiveInteger(m_port->value(), "listen port", m_config.listenPort);
+
+        const auto fnAssignPositiveDouble = [](double f, const char *usage, double &dst)
+        {
+            if(f >= 0.0){
+                dst = f;
+            }
+            else{
+                fl_alert("invalid %s: %f", to_cstr(usage), f);
+            }
+        };
+
+        fnAssignPositiveDouble(m_m_experienceRate->value(), "experience rate", m_config.experienceRate);
+        fnAssignPositiveDouble(m_equipmentRate->value(), "drop rate", m_config.dropRate);
+        fnAssignPositiveDouble(m_goldRate->value(), "gold rate", m_config.goldRate);
+}} {}
+  }
+  Function {getConfig() const} {return_type ServerConfig
+  } {
+    code {std::lock_guard<std::mutex> lockGuard(m_configLock);
+return m_config;} {}
+  }
+}

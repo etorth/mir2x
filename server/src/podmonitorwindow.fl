@@ -1,0 +1,94 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include "strf.hpp"} {private global
+}
+
+decl {\#include "uidf.hpp"} {private global
+}
+
+decl {\#include "podmonitortable.hpp"} {private global
+}
+
+class PodMonitorWindow {} {
+  Function {PodMonitorWindow()} {} {
+    Fl_Window m_window {
+      label PodMointorWindow
+      xywh {1021 530 900 445} type Double labelfont 4 resizable visible
+    } {
+      Fl_Table m_podMonitorTable {
+        xywh {0 25 900 400} labelfont 4 resizable
+        code0 {\#include "podmonitortable.hpp"}
+        class PodMonitorTable
+      } {}
+      Fl_Menu_Bar {} {
+        xywh {0 0 900 25} box THIN_UP_BOX labelfont 4
+      } {
+        Submenu {} {
+          label Monitor
+          xywh {0 0 70 21} labelfont 4
+        } {
+          MenuItem {} {
+            label {Exit    }
+            callback {{
+    m_window->hide();
+}}
+            xywh {0 0 36 21} shortcut 0x40071 labelfont 4
+          }
+        }
+      }
+      Fl_Box m_logBar {
+        xywh {0 425 900 20} box UP_BOX labelfont 4 align 20
+      }
+    }
+    code {// register the timer here
+m_window->hide();
+Fl::add_timeout(1.370, PodMonitorWindow_Timer_CB, this);} {}
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {m_window->show();} {}
+  }
+  Function {setPodUID(uint64_t uid)} {return_type void
+  } {
+    code {m_podMonitorTable->setPodUID(uid);
+m_window->copy_label(str_printf("PodMonitorWindow (UID: %016llx UIDName: %s)", to_llu(uid), to_cstr(uidf::getUIDString(uid))).c_str());} {}
+  }
+  Function {redrawAll()} {return_type void
+  } {
+    code {m_window->redraw();} {}
+  }
+  Function {updateTable()} {return_type void
+  } {
+    code {dynamic_cast<PodMonitorTable *>(m_podMonitorTable)->updateTable();
+char buf[64];
+std::sprintf(buf, "MSG_TYPE: %d", m_podMonitorTable->getRowCount());
+addLog(buf);} {}
+  }
+  Function {addLog(const char *log)} {return_type void
+  } {
+    code {if(log){
+    m_logBar->copy_label(log);
+}
+else{
+    m_logBar->copy_label("version: 0.0.1");
+}
+
+m_logBar->redraw();
+m_window->redraw();} {}
+  }
+}
+
+Function {PodMonitorWindow_Timer_CB(void *dataPtr)} {return_type void
+} {
+  code {// used to flush the pod mointor table
+{
+    auto winPtr = (PodMonitorWindow *)(dataPtr);
+    if(winPtr->m_window->visible()){
+        winPtr->updateTable();
+        winPtr->redrawAll();
+    }
+    Fl::repeat_timeout(1.370, PodMonitorWindow_Timer_CB, winPtr);
+}} {}
+}

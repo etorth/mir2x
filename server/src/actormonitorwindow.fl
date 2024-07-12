@@ -1,0 +1,86 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include "uidf.hpp"} {private global
+}
+
+decl {\#include "actormonitortable.hpp"} {private global
+}
+
+class ActorMonitorWindow {} {
+  Function {ActorMonitorWindow()} {} {
+    Fl_Window m_window {
+      label ActorMointorWindow
+      xywh {2215 203 1030 445} type Double labelfont 4 resizable visible
+    } {
+      Fl_Table m_actorMonitorTable {
+        xywh {0 25 1030 400} labelfont 4 resizable
+        code0 {\#include "actormonitortable.hpp"}
+        class ActorMonitorTable
+      } {}
+      Fl_Menu_Bar {} {
+        xywh {0 0 1030 25} box THIN_UP_BOX labelfont 4
+      } {
+        Submenu {} {
+          label Monitor
+          xywh {0 0 70 21} labelfont 4
+        } {
+          MenuItem {} {
+            label {Exit    }
+            callback {{
+    m_window->hide();
+}}
+            xywh {0 0 36 21} shortcut 0x40071 labelfont 4
+          }
+        }
+      }
+      Fl_Box m_logBar {
+        xywh {0 425 1030 20} box UP_BOX labelfont 4 align 20
+      }
+    }
+    code {// register the timer here
+m_window->hide();
+Fl::add_timeout(1.370, ActorMonitorWindow_Timer_CB, this);} {}
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {m_window->show();} {}
+  }
+  Function {redrawAll()} {return_type void
+  } {
+    code {m_window->redraw();} {}
+  }
+  Function {updateTable()} {return_type void
+  } {
+    code {dynamic_cast<ActorMonitorTable *>(m_actorMonitorTable)->updateTable();
+char buf[64];
+std::sprintf(buf, "ACTORS: %d, UID_MAP: %d, UID_PLY: %d, UID_MON: %d", m_actorMonitorTable->uidCount(), m_actorMonitorTable->uidTypeCount(UID_MAP), m_actorMonitorTable->uidTypeCount(UID_PLY), m_actorMonitorTable->uidTypeCount(UID_MON));
+addLog(buf);} {}
+  }
+  Function {addLog(const char *log)} {return_type void
+  } {
+    code {if(log){
+    m_logBar->copy_label(log);
+}
+else{
+    m_logBar->copy_label("version: 0.0.1");
+}
+
+m_logBar->redraw();
+m_window->redraw();} {}
+  }
+}
+
+Function {ActorMonitorWindow_Timer_CB(void *dataPtr)} {return_type void
+} {
+  code {// used to flush the actor mointor table
+{
+    auto winPtr = (ActorMonitorWindow *)(dataPtr);
+    if(winPtr->m_window->visible()){
+        winPtr->updateTable();
+        winPtr->redrawAll();
+    }
+    Fl::repeat_timeout(1.370, ActorMonitorWindow_Timer_CB, winPtr);
+}} {}
+}

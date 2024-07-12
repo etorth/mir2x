@@ -1,0 +1,291 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include "layerviewarea.hpp"} {public global
+}
+
+decl {\#include <functional>} {public global
+}
+
+decl {\#include "mir2xmapdata.hpp"} {public global
+}
+
+class LayerViewWindow {} {
+  Function {LayerViewWindow()} {} {
+    Fl_Window m_window {
+      label LayerViewWindow
+      xywh {75 100 800 600} type Double labelfont 4 resizable visible
+    } {
+      Fl_Menu_Bar {} {
+        xywh {0 0 800 25} box THIN_UP_BOX labelfont 4
+      } {
+        Submenu {} {
+          label Layer
+          xywh {10 10 70 20} labelfont 4
+        } {
+          MenuItem m_menuItemDrawAttribute {
+            label {Attribute              }
+            xywh {10 10 36 20} type Toggle labelfont 4 divider
+          }
+          MenuItem m_menuItemDrawLight {
+            label Light
+            xywh {20 20 36 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemDrawTile {
+            label Tile
+            xywh {30 30 36 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem m_menuItemDrawObjectGround {
+            label {Object Ground}
+            xywh {40 40 36 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemDrawObjectOverGround0 {
+            label {Object Over Ground 0}
+            xywh {60 60 36 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemDrawObjectOverGround1 {
+            label {Object Over Ground 1}
+            xywh {50 50 36 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemDrawObjectSky {
+            label {Object Sky}
+            xywh {50 50 36 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem m_menuItemClearBackground {
+            label {Clear Background}
+            xywh {40 40 36 20} type Toggle value 1 labelfont 4
+          }
+        }
+        Submenu {} {
+          label Lines
+          xywh {20 20 70 20} labelfont 4
+        } {
+          MenuItem m_menuItemdrawGridLine {
+            label {Grid                }
+            xywh {30 30 36 20} type Toggle labelfont 4 divider
+          }
+          MenuItem m_menuItemdrawAttributeLine {
+            label {Attribute              }
+            xywh {20 20 36 20} type Toggle labelfont 4 divider
+          }
+          MenuItem m_menuItemdrawLightLine {
+            label Light
+            xywh {30 30 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemdrawTileLine {
+            label Tile
+            xywh {40 40 36 20} type Toggle labelfont 4 divider
+          }
+          MenuItem m_menuItemDrawLineObjectGround {
+            label {Object Ground}
+            xywh {50 50 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemDrawLineObjectOverGround0 {
+            label {Object Over Ground 0}
+            xywh {60 60 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemDrawLineObjectOverGround1 {
+            label {Object Over Ground 1}
+            xywh {70 70 36 20} type Toggle labelfont 4
+          }
+          MenuItem m_menuItemDrawLineObjectSky {
+            label {Object Sky}
+            xywh {80 80 36 20} type Toggle labelfont 4
+          }
+        }
+      }
+      Fl_Box m_viewArea {
+        xywh {0 25 780 535} labelfont 4 resizable
+        class LayerViewArea
+      }
+      Fl_Box m_logBar {
+        xywh {0 580 800 20} box THIN_UP_BOX labelfont 4 align 20
+      }
+      Fl_Scrollbar m_vsbar {
+        callback {m_window->redraw();}
+        xywh {780 25 20 555} labeltype NO_LABEL labelfont 4
+      }
+      Fl_Scrollbar m_hsbar {
+        callback {m_window->redraw();}
+        xywh {0 560 780 20} type Horizontal labelfont 4
+      }
+    }
+    code {{
+    // setup bottom log
+    setFootLog("version 0.0");
+}} {}
+  }
+  Function {clearBackground()} {return_type bool
+  } {
+    code {{
+    return m_menuItemClearBackground->value();
+}} {}
+  }
+  Function {setFootLog(const char *msg)} {return_type void
+  } {
+    code {{
+    if(str_haschar(msg)){
+        m_logBar->copy_label(str_printf("[STATUS]: %s", msg).c_str());
+    }
+    else{
+        m_logBar->copy_label("[STATUS]");
+    }
+
+    m_logBar->redraw();
+    m_window->redraw();
+}} {}
+  }
+  Function {hideAll()} {return_type void
+  } {
+    code {{
+    m_window->hide();
+}} {}
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {{
+    m_window->show();
+}} {}
+  }
+  Function {redrawAll()} {return_type void
+  } {
+    code {{
+    m_window->redraw();
+}} {}
+  }
+  Function {DrawAttribute()} {return_type bool
+  } {
+    code {{
+    return m_menuItemDrawAttribute->value();
+}} {}
+  }
+  Function {DrawLight()} {return_type bool
+  } {
+    code {{
+    return m_menuItemDrawLight->value();
+}} {}
+  }
+  Function {drawTile()} {return_type bool
+  } {
+    code {{
+    return m_menuItemDrawTile->value();
+}} {}
+  }
+  Function {drawObject(int depthType)} {return_type bool
+  } {
+    code {{
+    switch(depthType){
+        case OBJD_GROUND     : return m_menuItemDrawObjectGround->value();
+        case OBJD_OVERGROUND0: return m_menuItemDrawObjectOverGround0->value();
+        case OBJD_OVERGROUND1: return m_menuItemDrawObjectOverGround1->value();
+        case OBJD_SKY        : return m_menuItemDrawObjectSky->value();
+        default              : return false;
+    }
+}} {}
+  }
+  Function {drawGridLine()} {return_type bool
+  } {
+    code {{
+    return m_menuItemdrawGridLine->value();
+}} {}
+  }
+  Function {drawAttributeLine()} {return_type bool
+  } {
+    code {{
+    return m_menuItemdrawAttributeLine->value();
+}} {}
+  }
+  Function {drawLightLine()} {return_type bool
+  } {
+    code {{
+    return m_menuItemdrawLightLine->value();
+}} {}
+  }
+  Function {drawTileLine()} {return_type bool
+  } {
+    code {{
+    return m_menuItemdrawTileLine->value();
+}} {}
+  }
+  Function {drawObjectLine(int depthType)} {return_type bool
+  } {
+    code {{
+    switch(depthType){
+        case OBJD_GROUND     : return m_menuItemDrawLineObjectGround->value();
+        case OBJD_OVERGROUND0: return m_menuItemDrawLineObjectOverGround0->value();
+        case OBJD_OVERGROUND1: return m_menuItemDrawLineObjectOverGround1->value();
+        case OBJD_SKY        : return m_menuItemDrawLineObjectSky->value();
+        default              : return false;
+    }
+}} {}
+  }
+  Function {checkScrollBar()} {return_type void
+  } {
+    code {{
+    const auto [roiW, roiH] = m_viewArea->getROISize().value_or(std::make_tuple(0, 0));
+    if(to_d(roiW) <= m_viewArea->w()){
+        m_hsbar->deactivate();
+        setScrollBarValue(0.0, {});
+        setScrollBarSize (1.0, {});
+    }
+    else{
+        m_hsbar->activate();
+        ((Fl_Valuator *)(m_hsbar))->step(1, roiW);
+        setScrollBarSize(to_f(m_viewArea->w()) / roiW, {});
+    }
+
+    if(to_d(roiH) <= m_viewArea->h()){
+        m_vsbar->deactivate();
+        setScrollBarValue({}, 0.0);
+        setScrollBarSize ({}, 1.0);
+    }
+    else{
+        m_vsbar->activate();
+        ((Fl_Valuator *)(m_vsbar))->step(1, roiH);
+        setScrollBarSize({}, to_f(m_viewArea->h()) / roiH);
+    }
+}} {}
+  }
+  Function {setScrollBarSize(std::optional<float> xsize, std::optional<float> ysize)} {return_type void
+  } {
+    code {{
+    if(xsize.has_value()){
+        ((Fl_Slider *)(m_hsbar))->slider_size(std::max<float>(std::min<float>(xsize.value(), 1.0), 0.0));
+    }
+
+    if(ysize.has_value()){
+        ((Fl_Slider *)(m_vsbar))->slider_size(std::max<float>(std::min<float>(ysize.value(), 1.0), 0.0));
+    }
+}} {}
+  }
+  Function {getScrollBarValue()} {return_type {std::tuple<float, float>}
+  } {
+    code {{
+    return
+    {
+        ((Fl_Valuator *)(m_hsbar))->value(),
+        ((Fl_Valuator *)(m_vsbar))->value(),
+    };
+}} {}
+  }
+  Function {addScrollBarValue(float xratio, float yratio)} {return_type void
+  } {
+    code {{
+    const auto [xval, yval] = getScrollBarValue();
+    setScrollBarValue(xval + xratio, yval + yratio);
+}} {}
+  }
+  Function {setScrollBarValue(std::optional<float> xratio, std::optional<float> yratio)} {return_type void
+  } {
+    code {{
+    if(xratio.has_value()){
+        ((Fl_Valuator *)(m_hsbar))->value(std::max<float>(std::min<float>(xratio.value(), 1.0), 0.0));
+    }
+
+    if(yratio.has_value()){
+        ((Fl_Valuator *)(m_vsbar))->value(std::max<float>(std::min<float>(yratio.value(), 1.0), 0.0));
+    }
+}} {}
+  }
+}

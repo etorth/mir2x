@@ -1,0 +1,11 @@
+#pragma once
+enum LandType: int
+{
+    LANDTYPE_NONE  = 0,
+    LANDTYPE_SAND,
+    LANDTYPE_POND,
+    LANDTYPE_GRASS,
+    LANDTYPE_STONE,
+    LANDTYPE_OCEAN,
+    LANDTYPE_MAX,
+};

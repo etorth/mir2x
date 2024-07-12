@@ -1,0 +1,147 @@
+#pragma once
+#include <array>
+#include <atomic>
+#include <cstdint>
+#include <functional>
+#include <string_view>
+#include <type_traits>
+#include "raiitimer.hpp"
+
+namespace _logProf
+{
+    constexpr const char * logFileList[]
+    {
+        ${MIR2X_LOG_FILELIST}
+    };
+
+    constexpr size_t rc_FOUND_NONE  = SIZE_MAX;
+    constexpr size_t rc_FOUND_TWICE = SIZE_MAX - 1;
+
+    template<size_t N> constexpr size_t fileName2Index(const char (&filename)[N])
+    {
+        static_assert(N >= 1);
+        const auto fnRMatchLogFileList = [filename](size_t i)
+        {
+            const auto filesv = std::string_view(filename);
+            const auto listsv = std::string_view(_logProf::logFileList[i]);
+
+            if(!filesv.ends_with(listsv)){
+                return false;
+            }
+
+            // filesv ends with: "/" + listsv
+            // this prevents false match like: abc/abcdef/abcd.cpp matches def/abcd.cpp
+
+            return (filesv.size() == listsv.size()) || (filesv[filesv.size() - listsv.size() - 1] == '/');
+        };
+
+        size_t found = _logProf::rc_FOUND_NONE;
+        for(size_t i = 0; i < std::extent_v<decltype(_logProf::logFileList)>; ++i){
+            if(fnRMatchLogFileList(i)){
+                found = i;
+                break;
+            }
+        }
+
+        if(found == _logProf::rc_FOUND_NONE){
+            return _logProf::rc_FOUND_NONE;
+        }
+
+        // found the filename
+        // need to find if this filename get include twice in the file list 
+
+        for(size_t i = found + 1; i < std::extent<decltype(_logProf::logFileList)>::value; ++i){
+            if(fnRMatchLogFileList(i)){
+                return _logProf::rc_FOUND_TWICE;
+            }
+        }
+        return found;
+    }
+
+    constexpr size_t maxProfInOneFile = 512;
+    template<size_t fileIndex, int counter> constexpr size_t loc2Hash()
+    {
+        static_assert(fileIndex != _logProf::rc_FOUND_NONE);
+        static_assert(fileIndex != _logProf::rc_FOUND_TWICE);
+
+        static_assert(fileIndex < std::extent_v<decltype(_logProf::logFileList)>);
+        static_assert(counter   < _logProf::maxProfInOneFile);
+
+        return fileIndex * _logProf::maxProfInOneFile + counter;
+    }
+
+    constexpr size_t maxProfilerCount()
+    {
+        return std::extent_v<decltype(_logProf::logFileList)> * _logProf::maxProfInOneFile;
+    }
+
+    inline long long getCurrTick()
+    {
+        return hres_tstamp().to_nsec();
+    }
+
+    struct logProfilerEntry
+    {
+        std::atomic<long long> count   {0};
+        std::atomic<long long> time    {0};
+        std::atomic<long long> maxtime {0};
+        std::atomic<const char *> name {nullptr};
+    };
+
+    extern bool logEnableProfiler;
+    extern std::array<_logProf::logProfilerEntry, _logProf::maxProfilerCount()> logProfilerEntrySink;
+
+    class logProfilerHelper
+    {
+        private:
+            size_t m_loc = 0;
+            const char *m_funcName = nullptr;
+
+        private:
+            long long m_startTime = 0;
+
+        public:
+            logProfilerHelper(size_t loc, const char *funcName)
+            {
+                if(_logProf::logEnableProfiler){
+                    m_loc = loc;
+                    m_funcName = funcName;
+                    m_startTime = _logProf::getCurrTick();
+                }
+            }
+
+            ~logProfilerHelper()
+            {
+                if(!_logProf::logEnableProfiler){
+                    return;
+                }
+
+                auto &sinkRef = _logProf::logProfilerEntrySink.at(m_loc);
+                sinkRef.count.fetch_add(1, std::memory_order_relaxed);
+                sinkRef.name.store(m_funcName, std::memory_order_relaxed);
+
+                const long long nsec = _logProf::getCurrTick() - m_startTime;
+                sinkRef.time.fetch_add(nsec, std::memory_order_relaxed);
+
+                // need stronger memory order
+                // https://herbsutter.com/2012/08/31/reader-qa-how-to-write-a-cas-loop-using-stdatomics/
+
+                long long prev = sinkRef.maxtime.load();
+                while(prev < nsec && !sinkRef.maxtime.compare_exchange_weak(prev, nsec));
+            }
+    };
+}
+
+extern void logDisableProfiler();
+extern void logProfiling(const std::function<void(const std::string &)> &);
+
+#define logProfilerHelper_name(counter) logProfilerHelper_inst_##counter
+#define logProfilerHelper_inst(counter) logProfilerHelper_name(counter)
+#define logProfiler()           _logProf::logProfilerHelper logProfilerHelper_inst(__LINE__) {_logProf::loc2Hash<_logProf::fileName2Index(__FILE__), __COUNTER__>(), __func__}
+#define logScopedProfiler(name) _logProf::logProfilerHelper logProfilerHelper_inst(__LINE__) {_logProf::loc2Hash<_logProf::fileName2Index(__FILE__), __COUNTER__>(), "" name }
+
+#define logNamedProfilerHelper_line(linenum) #linenum
+#define logNamedProfilerHelper_lstr(linenum) logNamedProfilerHelper_line(linenum)
+#define logNamedProfilerHelper_name(counter) logNamedProfilerHelper_inst_##counter
+#define logNamedProfilerHelper_inst(counter) logNamedProfilerHelper_name(counter)
+#define logNamedProfiler(name) _logProf::logProfilerHelper logNamedProfilerHelper_inst(__LINE__) {_logProf::loc2Hash<_logProf::fileName2Index(__FILE__), __COUNTER__>(), "" name "_line_" logNamedProfilerHelper_lstr(__LINE__)}

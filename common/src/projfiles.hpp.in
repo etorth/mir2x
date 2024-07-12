@@ -1,0 +1,8 @@
+#pragma once
+namespace
+{
+    const char * _inn_logFileList []
+    {
+        ${MIR2X_LOG_FILELIST}
+    };
+}

@@ -1,0 +1,83 @@
+version: 'build-{build}'
+
+image: Visual Studio 2022
+
+
+platform: x64
+
+# defines needed envs and some used later as command args
+# cmake also check envs, like:
+#
+#   setenv CMAKE_TOOLCHAIN_FILE "toolchain-file-path"
+#
+# this overrides cmake -DCMAKE_TOOLCHAIN_FILE="toolchain-file-path"
+# so for envs used for command args, put ENVARG_ as prefix, envs without this prefix get implicitly sourced
+
+environment:
+    ENVARG_VCPKG_TARGET_TRIPLET: x64-windows-static
+    ENVARG_CMAKE_GENERATOR: "\"Visual Studio 17 2022\""
+    ENVARG_CMAKE_TOOLCHAIN_FILE: C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
+    ENVARG_VCPKG_INSTALLED_TOOLS_PATH: C:/Tools/vcpkg/installed/x64-windows-static/tools
+    PATH: $(ENVARG_VCPKG_INSTALLED_TOOLS_PATH);$(ENVARG_VCPKG_INSTALLED_TOOLS_PATH)/fltk;$(ENVARG_VCPKG_INSTALLED_TOOLS_PATH)/lua;$(PATH)
+    VCPKG_DEFAULT_TRIPLET: x64-windows
+
+configuration:
+    - Release
+
+cache:
+    - .git/lfs/objects -> appveyor.yml
+    - C:/Tools/vcpkg/installed -> appveyor.yml
+
+clone_script:
+    - echo "Skip appveyor clone"
+
+install:
+    - cmd: |-
+        vcpkg install lua:x64-windows-static
+        vcpkg install sdl2:x64-windows-static
+        vcpkg install sdl2-gfx:x64-windows-static
+        vcpkg install sdl2-ttf:x64-windows-static
+        vcpkg install sdl2-image:x64-windows-static
+        vcpkg install fltk:x64-windows-static
+        vcpkg install opengl:x64-windows-static
+        vcpkg install zlib:x64-windows-static
+        vcpkg install libpng:x64-windows-static
+        vcpkg install lz4:x64-windows-static
+        vcpkg install sqlite3:x64-windows-static
+        git init %APPVEYOR_BUILD_FOLDER%
+        cd %APPVEYOR_BUILD_FOLDER%
+        git remote add origin https://github.com/%APPVEYOR_REPO_NAME%.git
+        git fetch -q origin %APPVEYOR_REPO_COMMIT%
+        git checkout -qf %APPVEYOR_REPO_COMMIT%
+
+before_build:
+    - cmd: |-
+        git lfs prune
+        mkdir build
+        cd build
+        echo %PATH%
+        cmake --version
+        cmake .. -G %ENVARG_CMAKE_GENERATOR% -DCMAKE_TOOLCHAIN_FILE=%ENVARG_CMAKE_TOOLCHAIN_FILE% -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DVCPKG_TARGET_TRIPLET=%ENVARG_VCPKG_TARGET_TRIPLET%
+        cmake --build . --target package --config Release
+
+build_script:
+    - echo "Done"
+
+after_build:
+    - echo "Done"
+
+test_script:
+    - echo "Done"
+
+artifacts:
+   - path: build/*.zip
+
+# on_finish:
+#     - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+
+deploy:
+    provider: GitHub
+    auth_token:
+        secure: HHPH5otHDTeP2iU11PdRWnhpOMycDJ/n+NKC0xvSphvA4NLz41/rASWc1UseTQgU
+    on:
+        APPVEYOR_REPO_TAG: true

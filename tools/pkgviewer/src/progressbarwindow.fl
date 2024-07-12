@@ -1,0 +1,49 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0303 
+header_name {.hpp} 
+code_name {.cpp}
+decl {\#include <string>} {private local
+} 
+
+decl {\#include <algorithm>} {private local
+} 
+
+class ProgressBarWindow {open
+} {
+  Function {ProgressBarWindow()} {open
+  } {
+    Fl_Window m_window {
+      callback {// do nothing} open
+      private xywh {718 356 250 25} type Double labelfont 4 modal noborder visible
+    } {
+      Fl_Progress m_progressBar {
+        label label
+        private xywh {0 0 255 25} selection_color 177 labelfont 4
+      }
+    }
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {m_window->show();} {}
+  }
+  Function {redrawAll()} {return_type void
+  } {
+    code {m_window->redraw();} {}
+  }
+  Function {SetValue(int nValue)} {open return_type void
+  } {
+    code {nValue = (std::min<int>)(nValue, 100);
+nValue = (std::max<int>)(nValue, 0);
+
+std::string szLabel;
+szLabel  = "Progress: ";
+szLabel += std::to_string(nValue);
+szLabel += "%";
+m_progressBar->value(nValue * 1.0);
+m_progressBar->copy_label(szLabel.c_str());} {}
+  }
+  Function {hideAll()} {open return_type void
+  } {
+    code {m_window->hide();} {}
+  }
+} 
