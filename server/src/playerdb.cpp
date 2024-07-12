@@ -757,8 +757,11 @@ SDChatPeer Player::dbCreateChatGroup(const char *name, const std::span<const uin
             },
         };
 
+        bool foundSelf = false;
         std::string valStr;
-        for(const auto memberDBID: dbidList){
+
+        const auto fnAppendStr = [&valStr, &groupCP, tstamp, this](uint32_t memberDBID)
+        {
             if(!valStr.empty()){
                 valStr.append(",");
             }
@@ -768,6 +771,17 @@ SDChatPeer Player::dbCreateChatGroup(const char *name, const std::span<const uin
                 to_llu(memberDBID),
                 to_llu(0), // TODO - define group permission
                 to_llu(tstamp)));
+        };
+
+        for(const auto memberDBID: dbidList){
+            if(memberDBID == dbid()){
+                foundSelf = true;
+            }
+            fnAppendStr(memberDBID);
+        }
+
+        if(!foundSelf){
+            fnAppendStr(dbid());
         }
 
         auto addMemberQuery = g_dbPod->createQuery(
