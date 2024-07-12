@@ -322,21 +322,7 @@ class ProcessRun: public Process
 
         SDChatPeer getMyHeroChatPeer() const
         {
-            if(auto myHeroPtr = dynamic_cast<MyHero *>(findUID(getMyHeroUID()))){
-                return SDChatPeer
-                {
-                    .id     = myHeroPtr->dbid(),
-                    .name   = myHeroPtr->getName(),
-                    .despvar = SDChatPeerPlayerVar
-                    {
-                        .gender = myHeroPtr->gender(),
-                        .job    = myHeroPtr->job(),
-                    },
-                };
-            }
-            else{
-                return m_defaultChatPeer;
-            }
+            return m_defaultChatPeer;
         }
 
     public:
