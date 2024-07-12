@@ -52,6 +52,10 @@ OPTION(MIR2X_ENABLE_TSAN "Enable TSAN" OFF)
 
 OPTION(MIR2X_BUILD_LIBPINYIN "Build static libpinyin" OFF)
 
+IF(NOT DEFINED MIR2X_DATA_PATH)
+    MESSAGE(FATAL_ERROR "No mir2x runtime data path defined")
+ENDIF()
+
 IF(MIR2X_ENABLE_ASAN)
     IF(WIN32 AND MSVC)
         MESSAGE(STATUS "ASAN not enabled on windows platform")
