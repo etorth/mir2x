@@ -52,10 +52,6 @@ OPTION(MIR2X_ENABLE_TSAN "Enable TSAN" OFF)
 
 OPTION(MIR2X_BUILD_LIBPINYIN "Build static libpinyin" OFF)
 
-IF(NOT DEFINED MIR2X_DATA_REPO_PATH)
-    MESSAGE(FATAL_ERROR "No mir2x runtime data repository path defined")
-ENDIF()
-
 IF(MIR2X_ENABLE_ASAN)
     IF(WIN32 AND MSVC)
         MESSAGE(STATUS "ASAN not enabled on windows platform")
@@ -152,6 +148,17 @@ FUNCTION(FLTK_PARSE_FL_FILE ARG_HPP ARG_CPP)
 ENDFUNCTION()
 
 ADD_CUSTOM_TARGET(mir2x_3rds)
+
+IF(DEFINED MIR2X_DATA_REPO_PATH)
+    IF(IS_DIRECTORY ${MIR2X_DATA_REPO_PATH})
+        MESSAGE(STATUS "Customized mir2x data repository path provided: ${MIR2X_DATA_REPO_PATH}")
+    ELSE()
+        MESSAGE(FATAL_ERROR "Invalid MIR2X_DATA_REPO_PATH provided: invalid directory")
+    ENDIF()
+ELSE()
+    INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Mir2xDataRepo.cmake")
+ENDIF()
+
 FILE(GLOB MIR2X_DEPS_DIR "${CMAKE_SOURCE_DIR}/cmake/deps/*.cmake")
 FOREACH(MIR2X_DEP ${MIR2X_DEPS_DIR})
     INCLUDE(${MIR2X_DEP})
