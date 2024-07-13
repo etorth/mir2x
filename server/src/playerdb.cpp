@@ -659,6 +659,10 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
 
     std::vector<std::string> queries;
     for(const auto other: cpidList){
+        if(SDChatPeerID(other).group() && !findFriendChatPeer(SDChatPeerID(other))){
+            continue;
+        }
+
         queries.push_back("select * from ( select * from tbl_chatmessage where ");
         if(includeSend){
             queries.back().append(str_printf("(fld_from = %llu and fld_to = %llu) ", to_llu(cpid().asU64()), to_llu(other)));
@@ -668,7 +672,13 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
             if(includeSend){
                 queries.back().append("or ");
             }
-            queries.back().append(str_printf("(fld_from = %llu and fld_to = %llu) ", to_llu(other), to_llu(cpid().asU64())));
+
+            if(SDChatPeerID(other).group()){
+                queries.back().append(str_printf("(fld_to = %llu) ", to_llu(other)));
+            }
+            else{
+                queries.back().append(str_printf("(fld_from = %llu and fld_to = %llu) ", to_llu(other), to_llu(cpid().asU64())));
+            }
         }
 
         queries.back().append("order by fld_timestamp desc ");
@@ -678,6 +688,10 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
         }
 
         queries.back().append(" )");
+    }
+
+    if(queries.empty()){
+        return {};
     }
 
     SDChatMessageList result;

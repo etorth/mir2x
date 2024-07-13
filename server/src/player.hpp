@@ -488,6 +488,21 @@ class Player final: public BattleObject
         }
 
     protected:
+        const SDChatPeer *findFriendChatPeer(const SDChatPeerID &sdCPID) const
+        {
+            const auto fnOp = [&sdCPID](const SDChatPeer &peer)
+            {
+                return peer.cpid() == sdCPID;
+            };
+
+            if(auto p = std::find_if(m_sdFriendList.begin(), m_sdFriendList.end(), fnOp); p != m_sdFriendList.end()){
+                return std::addressof(*p);
+            }
+
+            return nullptr;
+        }
+
+    protected:
         void resumeCORunner(uint64_t);
 
     protected:
