@@ -111,7 +111,12 @@ class XMLParagraph
         {
             tinyxml2::XMLPrinter printer;
             m_xmlDocument->Accept(&printer);
-            return std::string(printer.CStr());
+
+            std::string result = printer.CStr();
+            while(result.ends_with('\n')){
+                result.pop_back();
+            }
+            return result;
         }
 
     public:
