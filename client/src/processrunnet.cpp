@@ -88,6 +88,7 @@ void ProcessRun::on_SM_CHATMESSAGELIST(const uint8_t *buf, size_t bufSize)
     for(const auto &message: cerealf::deserialize<SDChatMessageList>(buf, bufSize)){
         dynamic_cast<FriendChatBoard *>(getWidget("FriendChatBoard"))->addMessage({}, message);
     }
+    dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->getButton("FriendChat")->setBlinkTime(100, 100, 5000);
 }
 
 void ProcessRun::on_SM_LEARNEDMAGICLIST(const uint8_t *buf, size_t bufSize)
