@@ -1084,6 +1084,9 @@ void FriendChatBoard::addMessage(std::optional<uint64_t> localPendingID, const S
         else if(sdCM.to == m_processRun->getMyHero()->cpid()){
             return sdCM.from;
         }
+        else if(sdCM.to.group() && findFriendChatPeer(sdCM.to)){
+            return sdCM.to;
+        }
         else{
             throw fflerror("received invalid chat message: from %llu, to %llu, self %llu", to_llu(sdCM.from.asU64()), to_llu(sdCM.to.asU64()), to_llu(m_processRun->getMyHero()->cpid().asU64()));
         }
