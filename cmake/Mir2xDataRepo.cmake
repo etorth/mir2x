@@ -16,5 +16,16 @@ ExternalProject_Add(
     TEST_COMMAND ""
 )
 
+ExternalProject_Add_Step(
+    mir2x_data
+    requires_git_lfs_and_long_time_download_warning
+
+    COMMAND ""
+    COMMENT "Repository 'mir2x_data' requires git-lfs installed, and takes pretty long time to download"
+
+    DEPENDEES mkdir
+    DEPENDERS download
+)
+
 SET(MIR2X_DATA_REPO_PATH "${MIR2X_3RD_PARTY_DIR}/mir2x_data")
 ADD_DEPENDENCIES(mir2x_3rds mir2x_data)
