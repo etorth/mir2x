@@ -1212,7 +1212,7 @@ void FriendChatBoard::setUIPage(int uiPage)
 void FriendChatBoard::loadChatPage()
 {
     auto chatPage = dynamic_cast<ChatPage *>(m_uiPageList[UIPage_CHAT].page);
-    chatPage->chat.canvas.clearChild();
+    chatPage->chat.clearChatItem();
 
     for(const auto &elem: m_friendMessageList){
         if(elem.cpid == chatPage->peer.cpid()){
@@ -1228,8 +1228,6 @@ void FriendChatBoard::loadChatPage()
             chatPage->chat.append(sdCM, nullptr);
         }
     }
-
-    chatPage->placeholder.setShow(!chatPage->chat.canvas.hasChild());
 }
 
 void FriendChatBoard::addGroup(const SDChatPeer &sdCP)

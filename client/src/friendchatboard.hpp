@@ -305,12 +305,16 @@ class FriendChatBoard: public Widget
             // then we can align canvas always to buttom when needed
             //
             // when scroll we can only move canvas inside this container
-            // no need to move chat item only by one
+            // no need to move chat item one by one
             //
             // canvas height is flexible
             // ShapeClipBoard can achieve this on drawing, but prefer ShapeClipBoard when drawing primitives
 
             Widget canvas;
+
+            LabelBoard nomsg; // show when there is no chat message
+            LayoutBoard ops;  // block strangers, add friends, etc
+
             ChatItemContainer(dir8_t,
 
                     int,
@@ -321,6 +325,9 @@ class FriendChatBoard: public Widget
                     Widget * = nullptr,
                     bool     = false);
 
+
+            void clearChatItem();
+            const ChatItem *lastChatItem() const;
             void append(const SDChatMessage &, std::function<void(const ChatItem *)>);
         };
 
@@ -379,15 +386,11 @@ class FriendChatBoard: public Widget
             constexpr static int INPUT_MIN_HEIGHT =  10;
             constexpr static int INPUT_MAX_HEIGHT = 200;
 
-            constexpr static int PLACEHOLDER_MARGIN = 10;
-
             SDChatPeer peer;
             ShapeClipBoard background;
 
             ChatInputContainer input;
             ChatItemContainer  chat;
-
-            LabelBoard placeholder; // show when there is no chat message
 
             ChatPage(dir8_t,
 

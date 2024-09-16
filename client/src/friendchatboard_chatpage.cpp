@@ -105,23 +105,6 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
           this,
           false,
       }
-
-    , placeholder
-      {
-          DIR_UP,
-          UIPage_WIDTH / 2,
-          UIPage_MARGIN + ChatPage::PLACEHOLDER_MARGIN,
-
-          u8"没有任何聊天记录，现在就开始聊天吧！",
-
-          1,
-          12,
-          0,
-          colorf::GREY + colorf::A_SHF(200),
-
-          this,
-          false,
-      }
 {}
 
 bool FriendChatBoard::ChatPage::processEvent(const SDL_Event &event, bool valid)

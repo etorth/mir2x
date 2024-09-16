@@ -51,13 +51,108 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
           this,
           false,
       }
-{}
+
+    , nomsg
+      {
+          DIR_UP,
+          canvas.w() / 2,
+          ChatItem::ITEM_SPACE,
+
+          u8"没有任何聊天记录，现在就开始聊天吧！",
+
+          1,
+          12,
+          0,
+          colorf::GREY + colorf::A_SHF(200),
+
+          &canvas,
+          false,
+      }
+
+    , ops
+      {
+          DIR_UPLEFT, // setup later
+          0,
+          0,
+
+          300,
+
+          "<layout><par>test</par></layout>",
+          0,
+
+          {},
+
+          false,
+          false,
+          false,
+          false,
+
+          1,
+          12,
+          0,
+          colorf::WHITE + colorf::A_SHF(255),
+          0,
+
+          LALIGN_LEFT,
+          0,
+          0,
+
+          2,
+          colorf::WHITE + colorf::A_SHF(255),
+
+          nullptr,
+          nullptr,
+          nullptr,
+
+          &canvas,
+          false,
+      }
+{
+    ops.moveAt(DIR_UP, canvas.w() / 2, [this](const Widget *)
+    {
+        if(const auto lastItem = lastChatItem()){
+            return lastItem->dy() + lastItem->h() + ChatItem::ITEM_SPACE;
+        }
+        else if(nomsg.show()){
+            return nomsg.dy() + nomsg.h() + ChatItem::ITEM_SPACE;
+        }
+        else{
+            return ChatItem::ITEM_SPACE;
+        }
+    });
+}
+
+void FriendChatBoard::ChatItemContainer::clearChatItem()
+{
+    canvas.clearChild([this](const Widget *child, bool)
+    {
+        return child != &nomsg && child != &ops;
+    });
+
+    nomsg.setShow(true);
+    ops.setShow(false);
+}
+
+const FriendChatBoard::ChatItem *FriendChatBoard::ChatItemContainer::lastChatItem() const
+{
+    const Widget *lastItem = nullptr;
+    canvas.foreachChild(false, [&lastItem, this](const Widget *widget, bool)
+    {
+        if(widget != &nomsg && widget != &ops){
+            lastItem = widget;
+            return true;
+        }
+        return false;
+    });
+
+    return dynamic_cast<const ChatItem *>(lastItem);
+}
 
 void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(const FriendChatBoard::ChatItem *)> fnOp)
 {
     auto chatItem = new ChatItem
     {
-        DIR_UPLEFT,
+        DIR_UPLEFT, // setup later
         0,
         0,
 
@@ -77,17 +172,33 @@ void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::
         {},
     };
 
-    const auto startY = canvas.hasChild() ? (canvas.h() + ChatItem::ITEM_SPACE) : 0;
+    const auto extraH = ChatItem::ITEM_SPACE + nomsg.h(); // extra height if nomsg box shows
+    const auto startY = [extraH, this]() -> int // start Y if nomsg shows
+    {
+        if(const auto lastItem = lastChatItem()){
+            if(nomsg.show()) return          lastItem->dy() + lastItem->h() + ChatItem::ITEM_SPACE;
+            else             return extraH + lastItem->dy() + lastItem->h() + ChatItem::ITEM_SPACE;
+        }
+        else{
+            return extraH + ChatItem::ITEM_SPACE;
+        }
+    }();
 
     if(chatItem->avatarLeft){
-        chatItem->moveAt(DIR_UPLEFT, 0, startY);
+        chatItem->moveAt(DIR_UPLEFT, 0, [extraH, startY, this](const Widget *)
+        {
+            return startY - (nomsg.show() ? 0 : extraH);
+        });
     }
     else{
-        chatItem->moveAt(DIR_UPRIGHT, canvas.w() - 1, startY);
+        chatItem->moveAt(DIR_UPRIGHT, canvas.w() - 1, [extraH, startY, this](const Widget *)
+        {
+            return startY - (nomsg.show() ? 0 : extraH);
+        });
     }
 
+    nomsg.setShow(false);
     canvas.addChild(chatItem, true);
-    dynamic_cast<ChatPage *>(parent())->placeholder.setShow(false);
 
     FriendChatBoard::getParentBoard(this)->queryChatPeer(sdCM.from, [widgetID = chatItem->id(), sdCM, fnOp = std::move(fnOp), this](const SDChatPeer *peer, bool)
     {
