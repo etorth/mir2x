@@ -136,7 +136,7 @@ void FriendChatBoard::ChatItemContainer::clearChatItem()
 const FriendChatBoard::ChatItem *FriendChatBoard::ChatItemContainer::lastChatItem() const
 {
     const Widget *lastItem = nullptr;
-    canvas.foreachChild(false, [&lastItem, this](const Widget *widget, bool)
+    canvas.foreachChild([&lastItem, this](const Widget *widget, bool)
     {
         if(widget != &nomsg && widget != &ops){
             if(lastItem){
