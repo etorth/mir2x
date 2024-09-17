@@ -77,7 +77,7 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
 
           300,
 
-          "<layout><par>test</par></layout>",
+          "<layout><par>...</par></layout>",
           0,
 
           {},
@@ -164,7 +164,7 @@ void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::
 
         !sdCM.seq.has_value(),
 
-        to_u8cstr("NA"),
+        to_u8cstr("..."),
         to_u8cstr(cerealf::deserialize<std::string>(sdCM.message)),
 
         [](const ImageBoard *)
@@ -202,6 +202,21 @@ void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::
             return startY - (nomsg.show() ? 0 : extraH);
         });
     }
+
+    if(sdCM.from.group()){
+        ops.loadXML(R"###(<layout><par>GROUP</par></layout>)###");
+        ops.setShow(true);
+    }
+    else if(sdCM.from.player()){
+        // if(findFriendChatPeer(sdCM.from)){
+        //     ops.setShow(false);
+        // }
+        // else{
+            ops.loadXML(R"###(<layout><par>对方不是你的好友，你可以<t color="red">添加</t>对方为好友，或者<t color="red">屏蔽</t>对方的来信。</par></layout>)###");
+            ops.setShow(true);
+        // }
+    }
+
 
     nomsg.setShow(false);
     canvas.addChild(chatItem, true);
