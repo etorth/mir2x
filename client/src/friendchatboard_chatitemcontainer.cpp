@@ -139,8 +139,14 @@ const FriendChatBoard::ChatItem *FriendChatBoard::ChatItemContainer::lastChatIte
     canvas.foreachChild(false, [&lastItem, this](const Widget *widget, bool)
     {
         if(widget != &nomsg && widget != &ops){
-            lastItem = widget;
-            return true;
+            if(lastItem){
+                if(lastItem->dy() + lastItem->h() < widget->dy() + widget->h()){
+                    lastItem = widget;
+                }
+            }
+            else{
+                lastItem = widget;
+            }
         }
         return false;
     });
