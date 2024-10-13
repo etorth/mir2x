@@ -392,12 +392,8 @@ class Widget: public WidgetTreeNode
         }
 
     protected:
-        bool m_showFlipped = false;
-        Widget::VarFlag m_show = true;
-
-    protected:
-        bool m_activeFlipped = false;
-        Widget::VarFlag m_active = true;
+        std::pair<Widget::VarFlag, bool> m_show   {true, false};
+        std::pair<Widget::VarFlag, bool> m_active {true, false};
 
     protected:
         bool m_focus  = false;
@@ -811,8 +807,7 @@ class Widget: public WidgetTreeNode
     public:
         void setShow(Widget::VarFlag argShow)
         {
-            m_showFlipped = false;
-            m_show = std::move(argShow);
+            m_show = std::make_pair(std::move(argShow), false);
         }
 
         bool show() const
@@ -820,19 +815,18 @@ class Widget: public WidgetTreeNode
             if(m_parent && !m_parent->show()){
                 return false;
             }
-            return m_showFlipped != Widget::evalFlag(m_show, this);
+            return Widget::evalFlag(m_show.first, this) != m_show.second;
         }
 
         void flipShow()
         {
-            m_showFlipped = !m_showFlipped;
+            m_show.second = !m_show.second;
         }
 
     public:
         void setActive(Widget::VarFlag argActive)
         {
-            m_activeFlipped = false;
-            m_active = std::move(argActive);
+            m_active = std::make_pair(std::move(argActive), false);
         }
 
         bool active() const
@@ -840,12 +834,12 @@ class Widget: public WidgetTreeNode
             if(m_parent && !m_parent->active()){
                 return false;
             }
-            return m_activeFlipped != Widget::evalFlag(m_active, this);
+            return Widget::evalFlag(m_active.first, this) != m_active.second;
         }
 
         void flipActive()
         {
-            m_activeFlipped = !m_activeFlipped;
+            m_active.second = !m_active.second;
         }
 
     public:
