@@ -173,6 +173,7 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
               if(event == BEVENT_RELEASE){
                   if(const auto id = LayoutBoard::findAttrValue(attrList, "id", nullptr)){
                       if(to_sv(id) == "添加"){
+                          FriendChatBoard::getParentBoard(this)->reqAddFriend(getChatPeer());
                       }
                       else if(to_sv(id) == "屏蔽"){
                       }

@@ -183,45 +183,7 @@ void FriendChatBoard::SearchPage::appendFriendItem(const SDChatPeer &candidate)
                 {
                     if(event == BEVENT_PRESS){
                         if(const auto id = LayoutBoard::findAttrValue(attrList, "id"); to_sv(id) == "add"){
-                            CMAddFriend cmAF;
-                            std::memset(&cmAF, 0, sizeof(cmAF));
-
-                            cmAF.dbid = candidate.id;
-                            g_client->send({CM_ADDFRIEND, cmAF}, [candidate, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
-                            {
-                                switch(headCode){
-                                    case SM_OK:
-                                        {
-                                            switch(const auto sdAFN = cerealf::deserialize<SDAddFriendNotif>(buf, bufSize); sdAFN.notif){
-                                                case AF_ACCEPTED:
-                                                    {
-                                                        auto boardPtr = FriendChatBoard::getParentBoard(this);
-                                                        boardPtr->m_sdFriendList.push_back(candidate);
-
-                                                        dynamic_cast<FriendListPage  *>(boardPtr->m_uiPageList[UIPage_FRIENDLIST ].page)->append(candidate);
-                                                        dynamic_cast<ChatPreviewPage *>(boardPtr->m_uiPageList[UIPage_CHATPREVIEW].page)->updateChatPreview(candidate.cpid(), str_printf(R"###(<layout><par><t color="red">%s</t>已经通过你的好友申请，现在可以开始聊天了。</par></layout>)###", to_cstr(candidate.name)));
-
-                                                        boardPtr->setUIPage(UIPage_CHATPREVIEW);
-                                                        break;
-                                                    }
-                                                case AF_EXIST:
-                                                    {
-                                                        FriendChatBoard::getParentBoard(this)->m_processRun->addCBLog(CBLOG_ERR, u8"重复添加好友%s", to_cstr(candidate.name));
-                                                        break;
-                                                    }
-                                                default:
-                                                    {
-                                                        break;
-                                                    }
-                                            }
-                                            break;
-                                        }
-                                    default:
-                                        {
-                                            throw fflerror("failed to add friend: %s", to_cstr(candidate.name));
-                                        }
-                                }
-                            });
+                            FriendChatBoard::getParentBoard(this)->reqAddFriend(candidate);
                         }
                     }
                 },

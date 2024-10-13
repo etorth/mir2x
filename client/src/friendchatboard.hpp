@@ -615,4 +615,7 @@ class FriendChatBoard: public Widget
     public:
         void addGroup(const SDChatPeer &);
         void addFriendListChatPeer(const SDChatPeerID &);
+
+    public:
+        void reqAddFriend(const SDChatPeer &);
 };

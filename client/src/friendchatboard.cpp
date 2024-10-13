@@ -1268,3 +1268,45 @@ const FriendChatBoard *FriendChatBoard::getParentBoard(const Widget *widget)
     }
     throw fflerror("widget is not a decedent of FriendChatBoard");
 }
+
+void FriendChatBoard::reqAddFriend(const SDChatPeer &chatPeer)
+{
+    CMAddFriend cmAF;
+    std::memset(&cmAF, 0, sizeof(cmAF));
+
+    cmAF.dbid = chatPeer.id;
+    g_client->send({CM_ADDFRIEND, cmAF}, [chatPeer, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    {
+        switch(headCode){
+            case SM_OK:
+                {
+                    switch(const auto sdAFN = cerealf::deserialize<SDAddFriendNotif>(buf, bufSize); sdAFN.notif){
+                        case AF_ACCEPTED:
+                            {
+                                m_sdFriendList.push_back(chatPeer);
+
+                                dynamic_cast<FriendListPage  *>(m_uiPageList[UIPage_FRIENDLIST ].page)->append(chatPeer);
+                                dynamic_cast<ChatPreviewPage *>(m_uiPageList[UIPage_CHATPREVIEW].page)->updateChatPreview(chatPeer.cpid(), str_printf(R"###(<layout><par><t color="red">%s</t>已经通过你的好友申请，现在可以开始聊天了。</par></layout>)###", to_cstr(chatPeer.name)));
+
+                                setUIPage(UIPage_CHATPREVIEW);
+                                break;
+                            }
+                        case AF_EXIST:
+                            {
+                                m_processRun->addCBLog(CBLOG_ERR, u8"重复添加好友%s", to_cstr(chatPeer.name));
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
+                    }
+                    break;
+                }
+            default:
+                {
+                    throw fflerror("failed to add friend: %s", to_cstr(chatPeer.name));
+                }
+        }
+    });
+}
