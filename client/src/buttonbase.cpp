@@ -77,7 +77,7 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
-    if(!m_active){
+    if(!active()){
         if(getState() != BEVENT_OFF){
             setState(BEVENT_OFF);
         }

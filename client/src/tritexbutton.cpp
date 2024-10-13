@@ -14,7 +14,7 @@ void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int 
         const int offY = m_offset[getState()][1];
         const auto modColor= [this]() -> uint32_t
         {
-            if(!m_active){
+            if(!active()){
                 return colorf::RGBA(128, 128, 128, 255);
             }
             else if(m_alterColor && (getState() != BEVENT_OFF)){

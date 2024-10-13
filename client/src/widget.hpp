@@ -369,13 +369,13 @@ class Widget: public WidgetTreeNode
             return varFlag.index() == 1;
         }
 
-        static int  asBoolFlag(const Widget::VarFlag &varFlag) { return std::get<int>(varFlag); }
-        static int &asBoolFlag(      Widget::VarFlag &varFlag) { return std::get<int>(varFlag); }
+        static bool  asBoolFlag(const Widget::VarFlag &varFlag) { return std::get<bool>(varFlag); }
+        static bool &asBoolFlag(      Widget::VarFlag &varFlag) { return std::get<bool>(varFlag); }
 
         static const std::function<bool(const Widget *)> &asFuncFlag(const Widget::VarFlag &varFlag) { return std::get<std::function<bool(const Widget *)>>(varFlag); }
         static       std::function<bool(const Widget *)> &asFuncFlag(      Widget::VarFlag &varFlag) { return std::get<std::function<bool(const Widget *)>>(varFlag); }
 
-        static int evalFlag(const Widget::VarFlag &varFlag, const Widget *widgetPtr)
+        static bool evalFlag(const Widget::VarFlag &varFlag, const Widget *widgetPtr)
         {
             return std::visit(VarDispatcher
             {
@@ -392,9 +392,15 @@ class Widget: public WidgetTreeNode
         }
 
     protected:
-        bool m_show   = true;
+        bool m_showFlipped = false;
+        Widget::VarFlag m_show = true;
+
+    protected:
+        bool m_activeFlipped = false;
+        Widget::VarFlag m_active = true;
+
+    protected:
         bool m_focus  = false;
-        bool m_active = true;
 
     protected:
         std::any m_data;
@@ -803,38 +809,43 @@ class Widget: public WidgetTreeNode
         const Widget *focusedChild() const { if(firstChild() && firstChild()->focus()){ return firstChild(); } return nullptr; }
 
     public:
-        virtual void setShow(bool argShow)
+        void setShow(Widget::VarFlag argShow)
         {
-            m_show = argShow;
+            m_showFlipped = false;
+            m_show = std::move(argShow);
         }
 
-        virtual bool show() const
+        bool show() const
         {
-            return m_show;
+            if(m_parent && !m_parent->show()){
+                return false;
+            }
+            return m_showFlipped != Widget::evalFlag(m_show, this);
         }
 
         void flipShow()
         {
-            setShow(!show());
+            m_showFlipped = !m_showFlipped;
         }
 
     public:
-        virtual void setActive(bool argActive)
+        void setActive(Widget::VarFlag argActive)
         {
-            m_active = argActive;
+            m_activeFlipped = false;
+            m_active = std::move(argActive);
         }
 
-        virtual bool active() const
+        bool active() const
         {
             if(m_parent && !m_parent->active()){
                 return false;
             }
-            return m_active;
+            return m_activeFlipped != Widget::evalFlag(m_active, this);
         }
 
         void flipActive()
         {
-            setActive(!active());
+            m_activeFlipped = !m_activeFlipped;
         }
 
     public:
