@@ -268,6 +268,7 @@ class Widget: public WidgetTreeNode
         using VarDir    = std::variant<             dir8_t, std::function<dir8_t(const Widget *)>>;
         using VarOffset = std::variant<                int, std::function<   int(const Widget *)>>;
         using VarSize   = std::variant<std::monostate, int, std::function<   int(const Widget *)>>;
+        using VarFlag   = std::variant<               bool, std::function<  bool(const Widget *)>>;
 
     public:
         static bool hasIntDir(const Widget::VarDir &varDir)
@@ -356,6 +357,39 @@ class Widget: public WidgetTreeNode
 
         static const std::function<int(const Widget *)> &asFuncSize(const Widget::VarSize &varSize) { return std::get<std::function<int(const Widget *)>>(varSize); }
         static       std::function<int(const Widget *)> &asFuncSize(      Widget::VarSize &varSize) { return std::get<std::function<int(const Widget *)>>(varSize); }
+
+    public:
+        static bool hasBoolFlag(const Widget::VarFlag &varFlag)
+        {
+            return varFlag.index() == 0;
+        }
+
+        static bool hasFuncFlag(const Widget::VarFlag &varFlag)
+        {
+            return varFlag.index() == 1;
+        }
+
+        static int  asBoolFlag(const Widget::VarFlag &varFlag) { return std::get<int>(varFlag); }
+        static int &asBoolFlag(      Widget::VarFlag &varFlag) { return std::get<int>(varFlag); }
+
+        static const std::function<bool(const Widget *)> &asFuncFlag(const Widget::VarFlag &varFlag) { return std::get<std::function<bool(const Widget *)>>(varFlag); }
+        static       std::function<bool(const Widget *)> &asFuncFlag(      Widget::VarFlag &varFlag) { return std::get<std::function<bool(const Widget *)>>(varFlag); }
+
+        static int evalFlag(const Widget::VarFlag &varFlag, const Widget *widgetPtr)
+        {
+            return std::visit(VarDispatcher
+            {
+                [](const bool &arg)
+                {
+                    return arg;
+                },
+
+                [widgetPtr](const auto &arg)
+                {
+                    return arg ? arg(widgetPtr) : throw fflerror("invalid argument");
+                },
+            }, varFlag);
+        }
 
     protected:
         bool m_show   = true;
