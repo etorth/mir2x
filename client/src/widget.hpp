@@ -657,7 +657,7 @@ class Widget: public WidgetTreeNode
                     return arg ? arg(this) : throw fflerror("invalid argument");
                 },
 
-                [this](const auto &)
+                [this](const auto &) // auto-scaling mode
                 {
                     int maxW = 0;
                     foreachChild([&maxW](const Widget *widget, bool)
@@ -688,7 +688,7 @@ class Widget: public WidgetTreeNode
                     return arg ? arg(this) : throw fflerror("invalid argument");
                 },
 
-                [this](const auto &)
+                [this](const auto &) // auto-scaling mode
                 {
                     int maxH = 0;
                     foreachChild([&maxH](const Widget *widget, bool)
@@ -815,9 +815,33 @@ class Widget: public WidgetTreeNode
 
         bool show() const
         {
-            if(m_parent && !m_parent->show()){
-                return false;
-            }
+            // unlike active(), don't check if parent shows
+            // i.e. in a item list page, we usually setup the page as auto-scaling mode to automatically updates its width/height
+            //
+            //  +-------------------+ <---- page
+            //  | +---------------+ |
+            //  | |       0       | | <---- item0
+            //  | +---------------+ |
+            //  | |       1       | | <---- item1
+            //  | +---------------+ |
+            //  |        ...        |
+            //
+            // when appending a new item, say item2, auto-scaling mode check current page height and append the new item at proper start:
+            //
+            //     page->addChild(DIR_UPLEFT, 0, page->h(), item2, true);
+            //
+            // if implementation of show() checks if parent shows or not
+            // and if page is not shown, page->h() always return 0, even there is item0 and item1 inside
+            //
+            // this is possible
+            // we may hide a widget before it's ready
+            //
+            // because item0->show() always return false, so does item1->show()
+            // this makes auto-scaling fail
+            //
+            // we still setup m_show for each child widget
+            // but when drawing, widget skips itself and all its child widgets if this->show() returns false
+            //
             return Widget::evalFlag(m_show.first, this) != m_show.second;
         }
 
