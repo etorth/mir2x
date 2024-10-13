@@ -144,6 +144,10 @@ bool FriendChatBoard::ChatPage::processEvent(const SDL_Event &event, bool valid)
                     return input.consumeFocus(true, std::addressof(input.layout));
                 }
 
+                if(chat.processEvent(event, true)){
+                    return true;
+                }
+
                 if(in(event.button.x, event.button.y)){
                     return consumeFocus(true);
                 }
