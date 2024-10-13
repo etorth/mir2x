@@ -230,8 +230,11 @@ class WidgetTreeNode // tree concept, used by class Widget only
 
     public:
         virtual void purge();
-        virtual void addChild(Widget *, bool);
         virtual void removeChild(Widget *, bool);
+
+    public:
+        virtual void addChild(Widget *, bool);
+        virtual void addChild(dir8_t, int, int, Widget *, bool);
 
     public:
         bool hasChild() const;

@@ -45,7 +45,7 @@ FriendChatBoard::FriendListPage::FriendListPage(Widget::VarDir argDir,
 
 void FriendChatBoard::FriendListPage::append(const SDChatPeer &peer, std::function<void(FriendChatBoard::FriendItem *)> argOnClick, std::pair<Widget *, bool> argFuncWidget)
 {
-    auto friendItem = new FriendItem
+    canvas.addChild(DIR_UPLEFT, 0, canvas.h(), new FriendItem
     {
         DIR_UPLEFT,
         0,
@@ -63,8 +63,7 @@ void FriendChatBoard::FriendListPage::append(const SDChatPeer &peer, std::functi
 
         std::move(argOnClick),
         std::move(argFuncWidget),
-    };
+    },
 
-    friendItem->moveAt(DIR_UPLEFT, 0, canvas.h());
-    canvas.addChild(friendItem, true);
+    true);
 }

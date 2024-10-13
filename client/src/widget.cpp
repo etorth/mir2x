@@ -101,6 +101,13 @@ void WidgetTreeNode::addChild(Widget *widget, bool autoDelete)
     m_childList.emplace_back(widget, autoDelete);
 }
 
+void WidgetTreeNode::addChild(dir8_t argDir, int argX, int argY, Widget *argWidget, bool argAutoDelete)
+{
+    fflassert(argWidget);
+    addChild(argWidget, argAutoDelete);
+    argWidget->moveAt(argDir, argX, argY);
+}
+
 void WidgetTreeNode::removeChild(Widget *widget, bool triggerDelete)
 {
     for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
