@@ -405,8 +405,8 @@ class Widget: public WidgetTreeNode
         Widget::VarDir m_dir;
 
     private:
-        Widget::VarOffset m_x;
-        Widget::VarOffset m_y;
+        std::pair<Widget::VarOffset, int> m_x;
+        std::pair<Widget::VarOffset, int> m_y;
 
     protected:
         Widget::VarSize m_w;
@@ -428,19 +428,19 @@ class Widget: public WidgetTreeNode
 
             : WidgetTreeNode(argParent, argAutoDelete)
             , m_dir(std::move(argDir))
-            , m_x  (std::move(argX))
-            , m_y  (std::move(argY))
+            , m_x  (std::make_pair(std::move(argX), 0))
+            , m_y  (std::make_pair(std::move(argY), 0))
             , m_w  (std::move(argW))
             , m_h  (std::move(argH))
         {
             // don't check if w/h is a function
             // because it may refers to sub-widget which has not be initialized yet
 
-            if(Widget::hasFuncDir   (m_dir)){ fflassert(Widget::asFuncDir   (m_dir), m_dir); }
-            if(Widget::hasFuncOffset(m_x  )){ fflassert(Widget::asFuncOffset(m_x  ), m_x  ); }
-            if(Widget::hasFuncOffset(m_y  )){ fflassert(Widget::asFuncOffset(m_y  ), m_y  ); }
-            if(Widget::hasFuncSize  (m_w  )){ fflassert(Widget::asFuncSize  (m_w  ), m_w  ); }
-            if(Widget::hasFuncSize  (m_h  )){ fflassert(Widget::asFuncSize  (m_h  ), m_h  ); }
+            if(Widget::hasFuncDir   (m_dir      )){ fflassert(Widget::asFuncDir   (m_dir      ), m_dir      ); }
+            if(Widget::hasFuncOffset(m_x.first  )){ fflassert(Widget::asFuncOffset(m_x.first  ), m_x.first  ); }
+            if(Widget::hasFuncOffset(m_y.first  )){ fflassert(Widget::asFuncOffset(m_y.first  ), m_y.first  ); }
+            if(Widget::hasFuncSize  (m_w        )){ fflassert(Widget::asFuncSize  (m_w        ), m_w        ); }
+            if(Widget::hasFuncSize  (m_h        )){ fflassert(Widget::asFuncSize  (m_h        ), m_h        ); }
 
             if(Widget::hasIntSize(m_w)){ fflassert(Widget::asIntSize(m_w) >= 0, m_w); }
             if(Widget::hasIntSize(m_h)){ fflassert(Widget::asIntSize(m_h) >= 0, m_h); }
@@ -632,12 +632,12 @@ class Widget: public WidgetTreeNode
 
         virtual int x() const
         {
-            return Widget::evalOffset(m_x, this) + (m_parent ? m_parent->x() : 0) - xSizeOff(dir(), w());
+            return Widget::evalOffset(m_x.first, this) + m_x.second + (m_parent ? m_parent->x() : 0) - xSizeOff(dir(), w());
         }
 
         virtual int y() const
         {
-            return Widget::evalOffset(m_y, this) + (m_parent ? m_parent->y() : 0) - ySizeOff(dir(), h());
+            return Widget::evalOffset(m_y.first, this) + m_y.second + (m_parent ? m_parent->y() : 0) - ySizeOff(dir(), h());
         }
 
         virtual int w() const
@@ -704,8 +704,8 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        virtual int dx() const { return Widget::evalOffset(m_x, this) - xSizeOff(dir(), w()); }
-        virtual int dy() const { return Widget::evalOffset(m_y, this) - ySizeOff(dir(), h()); }
+        virtual int dx() const { return Widget::evalOffset(m_x.first, this) + m_x.second - xSizeOff(dir(), w()); }
+        virtual int dy() const { return Widget::evalOffset(m_y.first, this) + m_y.second - ySizeOff(dir(), h()); }
 
     public:
         std::any &data()
@@ -845,39 +845,43 @@ class Widget: public WidgetTreeNode
     public:
         void moveBy(Widget::VarOffset dx, Widget::VarOffset dy)
         {
-            const auto fnOp = [](Widget::VarOffset u, Widget::VarOffset v) -> Widget::VarOffset
+            const auto fnOp = [](std::pair<Widget::VarOffset, int> &offset, Widget::VarOffset update)
             {
-                if(Widget::hasIntOffset(u) && Widget::hasIntOffset(v)){
-                    return Widget::asIntOffset(u) + Widget::asIntOffset(v);
+                if(Widget::hasIntOffset(update)){
+                    offset.second += Widget::asIntOffset(update);
                 }
-
-                return [u = std::move(u), v = std::move(v)](const Widget *widgetPtr)
-                {
-                    return (Widget::hasFuncOffset(u) ? Widget::asFuncOffset(u)(widgetPtr) : Widget::asIntOffset(u))
-                        +  (Widget::hasFuncOffset(v) ? Widget::asFuncOffset(v)(widgetPtr) : Widget::asIntOffset(v));
-                };
+                else if(Widget::hasIntOffset(offset.first)){
+                    offset.second += Widget::asIntOffset(offset.first);
+                    offset.first   = std::move(update);
+                }
+                else{
+                    offset.first = [u = std::move(offset.first), v = std::move(update)](const Widget *widgetPtr)
+                    {
+                        return Widget::asFuncOffset(u)(widgetPtr) + Widget::asFuncOffset(v)(widgetPtr);
+                    };
+                }
             };
 
-            m_x = fnOp(std::move(m_x), std::move(dx));
-            m_y = fnOp(std::move(m_y), std::move(dy));
+            fnOp(m_x, std::move(dx));
+            fnOp(m_y, std::move(dy));
         }
 
         void moveAt(Widget::VarDir argDir, Widget::VarOffset argX, Widget::VarOffset argY)
         {
             m_dir = std::move(argDir);
-            m_x   = std::move(argX  );
-            m_y   = std::move(argY  );
+            m_x   = std::make_pair(std::move(argX), 0);
+            m_y   = std::make_pair(std::move(argY), 0);
         }
 
     public:
-        void moveXTo(Widget::VarOffset arg) { m_x = std::move(arg); }
-        void moveYTo(Widget::VarOffset arg) { m_y = std::move(arg); }
+        void moveXTo(Widget::VarOffset arg) { m_x   = std::make_pair(std::move(arg), 0); }
+        void moveYTo(Widget::VarOffset arg) { m_y   = std::make_pair(std::move(arg), 0); }
 
     public:
         void moveTo(Widget::VarOffset argX, Widget::VarOffset argY)
         {
-            m_x = std::move(argX);
-            m_y = std::move(argY);
+            moveXTo(std::move(argX));
+            moveYTo(std::move(argY));
         }
 
     public:
