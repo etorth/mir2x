@@ -353,8 +353,11 @@ class FriendChatBoard: public Widget
 
 
             void clearChatItem();
-            const ChatItem *lastChatItem() const;
             void append(const SDChatMessage &, std::function<void(const ChatItem *)>);
+
+            bool hasChatItem() const;
+            const ChatItem *lastChatItem() const;
+            const SDChatPeer &getChatPeer() const;
         };
 
         struct ChatInputContainer: public Widget

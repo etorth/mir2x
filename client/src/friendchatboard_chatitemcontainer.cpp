@@ -223,6 +223,19 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
             return ChatItem::ITEM_SPACE;
         }
     });
+
+    nomsgWrapper.setShow([this](const Widget *)
+    {
+        return !hasChatItem();
+    });
+
+    opsWrapper.setShow([this](const Widget *) -> bool
+    {
+        if(hasChatItem()){
+            return FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
+        }
+        return false;
+    });
 }
 
 void FriendChatBoard::ChatItemContainer::clearChatItem()
@@ -231,9 +244,14 @@ void FriendChatBoard::ChatItemContainer::clearChatItem()
     {
         return child != &nomsgWrapper && child != &opsWrapper;
     });
+}
 
-    nomsgWrapper.setShow(true);
-    opsWrapper.setShow(false);
+bool FriendChatBoard::ChatItemContainer::hasChatItem() const
+{
+    return canvas.foreachChild([this](const Widget *widget, bool)
+    {
+        return widget != &nomsgWrapper && widget != &opsWrapper;
+    });
 }
 
 const FriendChatBoard::ChatItem *FriendChatBoard::ChatItemContainer::lastChatItem() const
@@ -255,6 +273,11 @@ const FriendChatBoard::ChatItem *FriendChatBoard::ChatItemContainer::lastChatIte
     });
 
     return dynamic_cast<const ChatItem *>(lastItem);
+}
+
+const SDChatPeer &FriendChatBoard::ChatItemContainer::getChatPeer() const
+{
+    return dynamic_cast<const FriendChatBoard::ChatPage *>(parent())->peer;
 }
 
 void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(const FriendChatBoard::ChatItem *)> fnOp)
@@ -308,22 +331,12 @@ void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::
 
     if(sdCM.from.group()){
         ops.loadXML(R"###(<layout><par>GROUP</par></layout>)###");
-        opsWrapper.setShow(true);
     }
     else if(sdCM.from.player()){
-        // if(findFriendChatPeer(sdCM.from)){
-        //     opsWrapper.setShow(false);
-        // }
-        // else{
-            ops.loadXML(R"###(<layout><par>对方不是你的好友，你可以<event id="添加">添加</event>对方为好友，或者<event id="屏蔽">屏蔽</event>对方的消息。</par></layout>)###");
-            opsWrapper.setShow(true);
-        // }
+        ops.loadXML(R"###(<layout><par>对方不是你的好友，你可以<event id="添加">添加</event>对方为好友，或者<event id="屏蔽">屏蔽</event>对方的消息。</par></layout>)###");
     }
 
-
-    nomsgWrapper.setShow(false);
     canvas.addChild(chatItem, true);
-
     FriendChatBoard::getParentBoard(this)->queryChatPeer(sdCM.from, [widgetID = chatItem->id(), sdCM, fnOp = std::move(fnOp), this](const SDChatPeer *peer, bool)
     {
         fflassert(peer, sdCM.from.asU64());
