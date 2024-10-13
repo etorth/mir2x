@@ -172,6 +172,10 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
           {
               if(event == BEVENT_RELEASE){
                   if(const auto id = LayoutBoard::findAttrValue(attrList, "id", nullptr)){
+                      if(to_sv(id) == "添加"){
+                      }
+                      else if(to_sv(id) == "屏蔽"){
+                      }
                   }
               }
           },
@@ -311,7 +315,7 @@ void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::
         //     opsWrapper.setShow(false);
         // }
         // else{
-            ops.loadXML(str_printf(R"###(<layout><par>对方不是你的好友，你可以<event id="%s">添加</event>对方为好友，或者<t color="red">屏蔽</t>对方的来信。</par></layout>)###", SYS_CHATOPS_ADD_FRIEND).c_str());
+            ops.loadXML(R"###(<layout><par>对方不是你的好友，你可以<event id="添加">添加</event>对方为好友，或者<event id="屏蔽">屏蔽</event>对方的消息。</par></layout>)###");
             opsWrapper.setShow(true);
         // }
     }
