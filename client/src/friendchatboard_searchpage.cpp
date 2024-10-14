@@ -183,7 +183,7 @@ void FriendChatBoard::SearchPage::appendFriendItem(const SDChatPeer &candidate)
                 {
                     if(event == BEVENT_PRESS){
                         if(const auto id = LayoutBoard::findAttrValue(attrList, "id"); to_sv(id) == "add"){
-                            FriendChatBoard::getParentBoard(this)->requestAddFriend(candidate);
+                            FriendChatBoard::getParentBoard(this)->requestAddFriend(candidate, true);
                         }
                     }
                 },

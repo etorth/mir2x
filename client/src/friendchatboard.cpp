@@ -1269,13 +1269,13 @@ const FriendChatBoard *FriendChatBoard::getParentBoard(const Widget *widget)
     throw fflerror("widget is not a decedent of FriendChatBoard");
 }
 
-void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer)
+void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer, bool switchToChatPreview)
 {
     CMAddFriend cmAF;
     std::memset(&cmAF, 0, sizeof(cmAF));
 
     cmAF.dbid = chatPeer.id;
-    g_client->send({CM_ADDFRIEND, cmAF}, [chatPeer, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    g_client->send({CM_ADDFRIEND, cmAF}, [chatPeer, switchToChatPreview, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
     {
         switch(headCode){
             case SM_OK:
@@ -1288,7 +1288,9 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer)
                                 dynamic_cast<FriendListPage  *>(m_uiPageList[UIPage_FRIENDLIST ].page)->append(chatPeer);
                                 dynamic_cast<ChatPreviewPage *>(m_uiPageList[UIPage_CHATPREVIEW].page)->updateChatPreview(chatPeer.cpid(), str_printf(R"###(<layout><par><t color="red">%s</t>已经通过你的好友申请，现在可以开始聊天了。</par></layout>)###", to_cstr(chatPeer.name)));
 
-                                setUIPage(UIPage_CHATPREVIEW);
+                                if(switchToChatPreview){
+                                    setUIPage(UIPage_CHATPREVIEW);
+                                }
                                 break;
                             }
                         case AF_EXIST:
