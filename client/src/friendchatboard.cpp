@@ -1292,7 +1292,7 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer, bool switchTo
                                     setUIPage(UIPage_CHATPREVIEW);
                                 }
 
-                                m_processRun->addCBLog(CBLOG_SYS, u8"你已经添加好友%s", to_cstr(chatPeer.name));
+                                m_processRun->addCBXMLLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经添加好友<t color="yellow">%s</t></par>)###", to_cstr(chatPeer.name));
                                 break;
                             }
                         case AF_EXIST:

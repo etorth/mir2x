@@ -1452,6 +1452,13 @@ void ProcessRun::addCBLog(int logType, const char8_t *format, ...)
     dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"))->addLog(logType, to_cstr(logStr));
 }
 
+void ProcessRun::addCBXMLLog(const char8_t *format, ...)
+{
+    std::u8string logStr;
+    str_format(format, logStr);
+    dynamic_cast<ControlBoard *>(getGUIManager()->getWidget("ControlBoard"))->addXMLLog(to_cstr(logStr));
+}
+
 ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
 {
     if(!uid){

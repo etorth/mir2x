@@ -1203,6 +1203,13 @@ void ControlBoard::inputLineDone()
     }
 }
 
+void ControlBoard::addXMLLog(const char *log)
+{
+    fflassert(str_haschar(log));
+    m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, log);
+    m_slider.setValue(1.0f, false);
+}
+
 void ControlBoard::addLog(int logType, const char *log)
 {
     if(!log){
