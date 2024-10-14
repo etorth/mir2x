@@ -1292,12 +1292,12 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer, bool switchTo
                                     setUIPage(UIPage_CHATPREVIEW);
                                 }
 
-                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经添加好友<t color="yellow">%s</t></par>)###", to_cstr(chatPeer.name));
+                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经添加好友<t color="red">%s</t></par>)###", to_cstr(chatPeer.name));
                                 break;
                             }
                         case AF_EXIST:
                             {
-                                m_processRun->addCBLog(CBLOG_ERR, u8"重复添加好友%s", to_cstr(chatPeer.name));
+                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">重复添加好友<t color="red">%s</t></par>)###", to_cstr(chatPeer.name));
                                 break;
                             }
                         default:
