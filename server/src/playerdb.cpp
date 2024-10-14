@@ -717,6 +717,8 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
 
 SDAddFriendNotif Player::dbAddFriend(uint32_t argDBID)
 {
+    g_dbPod->exec("delete from tbl_blacklist where fld_dbid = %llu and fld_blocked = %llu", to_llu(dbid()), to_llu(argDBID));
+
     auto query = g_dbPod->createQuery(
         u8R"###( insert or ignore into tbl_friend(fld_dbid, fld_friend) )###"
         u8R"###( values                                                 )###"
@@ -743,6 +745,8 @@ SDAddFriendNotif Player::dbAddFriend(uint32_t argDBID)
 
 SDAddBlockedNotif Player::dbAddBlocked(uint32_t argDBID)
 {
+    g_dbPod->exec("delete from tbl_friend where fld_dbid = %llu and fld_friend = %llu", to_llu(dbid()), to_llu(argDBID));
+
     auto query = g_dbPod->createQuery(
         u8R"###( insert or ignore into tbl_blacklist(fld_dbid, fld_blocked) )###"
         u8R"###( values                                                     )###"
