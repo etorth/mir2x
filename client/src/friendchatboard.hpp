@@ -440,7 +440,7 @@ class FriendChatBoard: public Widget
             constexpr static int ITEM_MARGIN = 5;
             constexpr static int GAP = 10;
 
-            constexpr static int NAME_HEIGHT = 30;
+            constexpr static int NAME_HEIGHT = 24;
             constexpr static int AVATAR_WIDTH = (HEIGHT - ITEM_MARGIN * 2) * 84 / 94; // original avatar size: 84 x 94
 
             // ITEM_MARGIN   GAP
