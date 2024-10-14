@@ -413,6 +413,8 @@ void MonoServer::CreateDBConnection()
     if(!hasDatabase()){
         createDefaultDatabase();
     }
+
+    g_dbPod->exec("PRAGMA foreign_keys = ON");
     addLog(LOGTYPE_INFO, "Connect to database %s successfully", dbName);
 }
 
