@@ -437,25 +437,31 @@ class FriendChatBoard: public Widget
             constexpr static int WIDTH  = UIPage_WIDTH - UIPage_MARGIN * 2;
             constexpr static int HEIGHT = 50;
 
+            constexpr static int ITEM_MARGIN = 5;
             constexpr static int GAP = 10;
+
             constexpr static int NAME_HEIGHT = 30;
-            constexpr static int AVATAR_WIDTH = HEIGHT * 84 / 94; // original avatar size: 84 x 94
+            constexpr static int AVATAR_WIDTH = (HEIGHT - ITEM_MARGIN * 2) * 84 / 94; // original avatar size: 84 x 94
 
-            //        GAP
-            //       |<->|
-            // +-+---+  +------+          -             -
-            // |1|   |  | name |          | NAME_HEIGHT ^
-            // +-+   |  +------+          -             | HEIGHT
-            // | IMG |  +--------------+                |
-            // |     |  |latest message|                v
-            // +-----+  +--------------+                -
+            // ITEM_MARGIN   GAP
+            //   ->|  |<-   |<->|
+            //     +------------------------------+ -                           -
+            //     |                              | | ITEM_MARGIN               |
+            //     |  +-+---+   +------+          | -             -             |
+            //     |  |1|   |   | name |          |               | NAME_HEIGHT |
+            //     |  +-+   |   +------+          |               -             | HEIGHT
+            //     |  | IMG |   +--------------+  |                             |
+            //     |  |     |   |latest message|  |                             |
+            //     |  +-----+   +--------------+  |                             |
+            //     |                              |                             |
+            //     +------------------------------+                             -
             //
-            // |<--->|
-            // AVATAR_WIDTH
+            //        |<--->|
+            //      AVATAR_WIDTH
             //
-            // |<--------------------->|
-            //           WIDTH
-
+            //     |<---------------------------->|
+            //                  WIDTH
+            //
             const SDChatPeerID cpid;
 
             ImageBoard  avatar;

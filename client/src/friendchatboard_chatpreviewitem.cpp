@@ -37,11 +37,11 @@ FriendChatBoard::ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
     , avatar
       {
           DIR_UPLEFT,
-          0,
-          0,
+          ChatPreviewItem::ITEM_MARGIN,
+          ChatPreviewItem::ITEM_MARGIN,
 
           ChatPreviewItem::AVATAR_WIDTH,
-          ChatPreviewItem::HEIGHT,
+          ChatPreviewItem::HEIGHT - ChatPreviewItem::ITEM_MARGIN * 2,
 
           [this](const ImageBoard *) -> SDL_Texture *
           {
@@ -61,8 +61,8 @@ FriendChatBoard::ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
     , name
       {
           DIR_LEFT,
-          ChatPreviewItem::AVATAR_WIDTH + ChatPreviewItem::GAP,
-          ChatPreviewItem::NAME_HEIGHT / 2,
+          ChatPreviewItem::ITEM_MARGIN + ChatPreviewItem::AVATAR_WIDTH + ChatPreviewItem::GAP,
+          ChatPreviewItem::ITEM_MARGIN + ChatPreviewItem::NAME_HEIGHT / 2,
 
           u8"未知用户",
 
@@ -100,11 +100,11 @@ FriendChatBoard::ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
     , preview
       {
           DIR_UPLEFT,
-          ChatPreviewItem::AVATAR_WIDTH + ChatPreviewItem::GAP,
-          ChatPreviewItem::NAME_HEIGHT,
+          ChatPreviewItem::ITEM_MARGIN + ChatPreviewItem::AVATAR_WIDTH + ChatPreviewItem::GAP,
+          ChatPreviewItem::ITEM_MARGIN + ChatPreviewItem::NAME_HEIGHT,
 
-          ChatPreviewItem::WIDTH - ChatPreviewItem::AVATAR_WIDTH - ChatPreviewItem::GAP,
-          ChatPreviewItem::HEIGHT - ChatPreviewItem::NAME_HEIGHT,
+          ChatPreviewItem::WIDTH  - ChatPreviewItem::ITEM_MARGIN * 2 - ChatPreviewItem::AVATAR_WIDTH - ChatPreviewItem::GAP,
+          ChatPreviewItem::HEIGHT - ChatPreviewItem::ITEM_MARGIN * 2 - ChatPreviewItem::NAME_HEIGHT,
 
           [this](const Widget *, int drawDstX, int drawDstY)
           {
