@@ -1291,6 +1291,8 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer, bool switchTo
                                 if(switchToChatPreview){
                                     setUIPage(UIPage_CHATPREVIEW);
                                 }
+
+                                m_processRun->addCBLog(CBLOG_SYS, u8"你已经添加好友%s", to_cstr(chatPeer.name));
                                 break;
                             }
                         case AF_EXIST:
