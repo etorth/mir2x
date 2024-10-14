@@ -1269,7 +1269,7 @@ const FriendChatBoard *FriendChatBoard::getParentBoard(const Widget *widget)
     throw fflerror("widget is not a decedent of FriendChatBoard");
 }
 
-void FriendChatBoard::reqAddFriend(const SDChatPeer &chatPeer)
+void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer)
 {
     CMAddFriend cmAF;
     std::memset(&cmAF, 0, sizeof(cmAF));
