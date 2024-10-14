@@ -233,7 +233,7 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
     opsWrapper.setShow([this](const Widget *) -> bool
     {
         if(hasChatItem()){
-            return FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
+            return !FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
         }
         return false;
     });
