@@ -370,11 +370,22 @@ enum AddFriendResultType: int
 {
     AF_NONE     = 0,
     AF_BEGIN    = 1,
-    AF_ACCEPTED = 1,    // manually/automatically accepted
+    AF_INVALID  = 1,    // invalid dbid
+    AF_ACCEPTED,        // manually/automatically accepted
     AF_REJECTED,        // manually/automatically rejected
     AF_PENDING,         // waiting response
     AF_EXIST,           // has already been your friend
     AF_END,
+};
+
+enum AddBlockedResultType: int
+{
+    AB_NONE    = 0,
+    AB_BEGIN   = 1,
+    AB_INVALID = 1,
+    AB_DONE,
+    AB_EXIST,           // has already been in blacklist
+    AB_END,
 };
 
 enum ChatPeerType: int

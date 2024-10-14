@@ -741,6 +741,32 @@ SDAddFriendNotif Player::dbAddFriend(uint32_t argDBID)
     }
 }
 
+SDAddBlockedNotif Player::dbAddBlocked(uint32_t argDBID)
+{
+    auto query = g_dbPod->createQuery(
+        u8R"###( insert or ignore into tbl_blacklist(fld_dbid, fld_blocked) )###"
+        u8R"###( values                                                     )###"
+        u8R"###(     (%llu, %llu)                                           )###"
+        u8R"###( returning                                                  )###"
+        u8R"###(     fld_dbid;                                              )###",
+
+        to_llu(dbid()),
+        to_llu(argDBID));
+
+    if(query.executeStep()){
+        return SDAddBlockedNotif
+        {
+            .notif = AB_DONE,
+        };
+    }
+    else{
+        return SDAddBlockedNotif
+        {
+            .notif = AB_EXIST,
+        };
+    }
+}
+
 SDChatPeer Player::dbCreateChatGroup(const char *name, const std::span<const uint32_t> &dbidList)
 {
     fflassert(str_haschar(name));

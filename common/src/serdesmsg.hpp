@@ -783,6 +783,15 @@ struct SDAddFriendNotif
     }
 };
 
+struct SDAddBlockedNotif
+{
+    int notif = 0;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(notif);
+    }
+};
+
 struct SDChatMessageDBSeq
 {
     uint64_t id = 0;
