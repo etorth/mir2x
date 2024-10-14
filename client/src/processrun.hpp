@@ -282,7 +282,7 @@ class ProcessRun: public Process
 
     public:
         void addCBLog   (int, const char8_t *, ...);
-        void addCBXMLLog(     const char8_t *, ...);
+        void addCBParLog(     const char8_t *, ...);
 
     public:
         void RegisterUserCommand();

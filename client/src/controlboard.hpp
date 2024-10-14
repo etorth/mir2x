@@ -133,7 +133,7 @@ class ControlBoard: public Widget
         void inputLineDone();
 
     public:
-        void addXMLLog(const char *);
+        void addParLog(const char *);
 
     public:
         void addLog(int, const char *);

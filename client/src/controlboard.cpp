@@ -1203,7 +1203,7 @@ void ControlBoard::inputLineDone()
     }
 }
 
-void ControlBoard::addXMLLog(const char *log)
+void ControlBoard::addParLog(const char *log)
 {
     fflassert(str_haschar(log));
     m_logBoard.addParXML(m_logBoard.parCount(), {0, 0, 0, 0}, log);
