@@ -36,7 +36,7 @@ class FriendChatBoard: public Widget
             //   |<------------------------->| UIPage_WIDTH - UIPage_MARGIN * 2
 
             constexpr static int HEIGHT = 40;
-            constexpr static int ITEM_MARGIN = 3;
+            constexpr static int ITEM_MARGIN = 5;
             constexpr static int AVATAR_WIDTH = (HEIGHT - ITEM_MARGIN * 2) * 84 / 94;
 
             constexpr static int GAP = 5;
