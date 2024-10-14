@@ -232,10 +232,23 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
 
     opsWrapper.setShow([this](const Widget *) -> bool
     {
-        if(hasChatItem()){
-            return !FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
+        if(!hasChatItem()){
+            return false;
         }
-        return false;
+
+        if(getChatPeer().special()){
+            return false;
+        }
+
+        if(getChatPeer().group()){
+            return false;
+        }
+
+        if(getChatPeer().player() && getChatPeer().id == FriendChatBoard::getParentBoard(this)->m_processRun->getMyHeroDBID()){
+            return false;
+        }
+
+        return !FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
     });
 }
 
