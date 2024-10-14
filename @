@@ -464,12 +464,11 @@ class FriendChatBoard: public Widget
             //
             const SDChatPeerID cpid;
 
-            ImageBoard avatar;
-            LabelBoard name;
-
+            ImageBoard  avatar;
+            LabelBoard  name;
             LayoutBoard message;
-            Widget      messageClip;
 
+            Widget messageClip;
             ShapeClipBoard selected;
 
             ChatPreviewItem(dir8_t,

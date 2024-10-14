@@ -97,7 +97,7 @@ FriendChatBoard::ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
           colorf::GREY + colorf::A_SHF(255),
       }
 
-    , preview
+    , messageClip
       {
           DIR_UPLEFT,
           ChatPreviewItem::ITEM_MARGIN + ChatPreviewItem::AVATAR_WIDTH + ChatPreviewItem::GAP,
@@ -106,9 +106,8 @@ FriendChatBoard::ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
           ChatPreviewItem::WIDTH  - ChatPreviewItem::ITEM_MARGIN * 2 - ChatPreviewItem::AVATAR_WIDTH - ChatPreviewItem::GAP,
           ChatPreviewItem::HEIGHT - ChatPreviewItem::ITEM_MARGIN * 2 - ChatPreviewItem::NAME_HEIGHT,
 
-          [this](const Widget *, int drawDstX, int drawDstY)
           {
-              message.drawEx(drawDstX, drawDstY, 0, 0, message.w(), message.h());
+              {&message, DIR_UPLEFT, 0, 0, false},
           },
 
           this,
