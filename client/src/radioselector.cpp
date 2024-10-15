@@ -1,14 +1,19 @@
+#include "pngtexdb.hpp"
+#include "trigfxbutton.hpp"
 #include "radioselector.hpp"
+
+extern PNGTexDB *g_progUseDB;
 
 RadioSelector::RadioSelector(Widget::VarDir argDir,
 
         Widget::VarOffset argX,
         Widget::VarOffset argY,
 
-        std::initializer_list<std::tuple<Widget *, bool>> argWidgetList,
-
         int argGap,
         int argItemSpace,
+
+        std::initializer_list<std::tuple<Widget *, bool>> argWidgetList,
+        std::function<void(Widget *, bool)> argOnChange,
 
         Widget * argParent,
         bool     argAutoDelete)
@@ -29,6 +34,13 @@ RadioSelector::RadioSelector(Widget::VarDir argDir,
 
     , m_gap(std::max<int>(0, argGap))
     , m_itemSpace(std::max<int>(0, argItemSpace))
+
+    , m_onChange(std::move(argOnChange))
+
+    , m_imgOff  {DIR_UPLEFT, 0, 0, 16, 16, [](const ImageBoard *){ return g_progUseDB->retrieve(0X00000370); }, false, false, 0, colorf::WHITE + colorf::A_SHF(0XFF)}
+    , m_imgOn   {DIR_UPLEFT, 0, 0, 16, 16, [](const ImageBoard *){ return g_progUseDB->retrieve(0X00000370); }, false, false, 0, colorf::RED   + colorf::A_SHF(0XFF)}
+    , m_imgDown {DIR_UPLEFT, 0, 0, 16, 16, [](const ImageBoard *){ return g_progUseDB->retrieve(0X00000371); }, false, false, 0, colorf::WHITE + colorf::A_SHF(0XFF)}
+
 {
     for(auto [widget, autoDelete]: argWidgetList){
         append(widget, autoDelete);
@@ -37,21 +49,21 @@ RadioSelector::RadioSelector(Widget::VarDir argDir,
 
 void RadioSelector::append(Widget *widget, bool autoDelete)
 {
-    auto button = new TritexButton
+    auto button = new TrigfxButton
     {
         DIR_UPLEFT, // ignored
         0,
         0,
 
         {
-            0X00000370,
-            0X00000370,
-            0X00000371,
+            &m_imgOff,
+            &m_imgOn,
+            &m_imgDown,
         },
 
         {
-            SYS_U32NIL,
-            SYS_U32NIL,
+            std::nullopt,
+            std::nullopt,
             0X01020000 + 105,
         },
 
@@ -65,7 +77,6 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
         0,
 
         false,
-        true,
 
         this,
         true,

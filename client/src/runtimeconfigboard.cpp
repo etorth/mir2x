@@ -1005,6 +1005,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                               0,
                               0,
 
+                              5,
+                              5,
+
                               {
                                   {new LabelBoard{DIR_UPLEFT, 0, 0, u8"你呀你好！"}, true},
                               },
