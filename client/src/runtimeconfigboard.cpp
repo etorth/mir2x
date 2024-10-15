@@ -1026,7 +1026,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   {new LabelBoard{DIR_UPLEFT, 0, 0, u8"拒绝任何人加我为好友", 1, 12, 0}, true},
                                   {new LabelBoard{DIR_UPLEFT, 0, 0, u8"好友申请验证"        , 1, 12, 0}, true},
                               },
-                          }, DIR_UPLEFT, 0, 25, true},
+                          }, DIR_UPLEFT, 0, 20, true},
                       },
                   },
                   true,

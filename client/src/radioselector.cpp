@@ -71,11 +71,25 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
         nullptr,
         [this](ButtonBase *self)
         {
-            foreachChild([self](Widget *child, bool)
+            foreachChild([self, this](Widget *child, bool)
             {
-                if(auto buttonPtr = dynamic_cast<ButtonBase *>(child)){
-                    if(buttonPtr != self){
-                        buttonPtr->setState(BEVENT_OFF);
+                if(auto buttonPtr = dynamic_cast<TrigfxButton *>(child)){
+                    if(buttonPtr == self){
+                        buttonPtr->setGfxList(
+                        {
+                            &m_imgDown,
+                            &m_imgDown,
+                            &m_imgDown,
+                        });
+                    }
+                    else{
+                        buttonPtr->setGfxList(
+                        {
+                            &m_imgOff,
+                            &m_imgOn,
+                            &m_imgDown,
+                        });
+                        buttonPtr->setOff();
                     }
                 }
             });
