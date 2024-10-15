@@ -1022,10 +1022,24 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                               5,
 
                               {
-                                  {new LabelBoard{DIR_UPLEFT, 0, 0, u8"允许任何人加我微好友", 1, 12, 0}, true},
-                                  {new LabelBoard{DIR_UPLEFT, 0, 0, u8"拒绝任何人加我为好友", 1, 12, 0}, true},
-                                  {new LabelBoard{DIR_UPLEFT, 0, 0, u8"好友申请验证"        , 1, 12, 0}, true},
+                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"允许任何人加我微好友", 1, 12, 0})->setData(0), true},
+                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"拒绝任何人加我为好友", 1, 12, 0})->setData(1), true},
+                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"好友申请验证"        , 1, 12, 0})->setData(2), true},
                               },
+
+                              [this](const Widget *radioSelector)
+                              {
+                                  return radioSelector->hasChild([val = SDRuntimeConfig_getConfig<RTCFG_好友申请>(m_sdRuntimeConfig)](const Widget *child, bool) -> const Widget *
+                                  {
+                                      if(dynamic_cast<const TrigfxButton *>(child)){
+                                          if(std::any_cast<int>(std::any_cast<Widget *>(child->data())->data()) == val){
+                                              return child;
+                                          }
+                                      }
+                                      return nullptr;
+                                  });
+                              },
+
                           }, DIR_UPLEFT, 0, 20, true},
                       },
                   },

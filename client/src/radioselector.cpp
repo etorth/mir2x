@@ -14,9 +14,9 @@ RadioSelector::RadioSelector(Widget::VarDir argDir,
 
         std::initializer_list<std::tuple<Widget *, bool>> argWidgetList,
 
-        std::function<Widget *(const Widget *                )> argValGetter,
-        std::function<void    (      Widget *, Widget *      )> argValSetter,
-        std::function<void    (      Widget *, Widget *, bool)> argValOnChange,
+        std::function<const Widget *(const Widget *                )> argValGetter,
+        std::function<void          (      Widget *, Widget *      )> argValSetter,
+        std::function<void          (      Widget *, Widget *, bool)> argValOnChange,
 
         Widget * argParent,
         bool     argAutoDelete)
@@ -124,7 +124,7 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
     addChild(DIR_LEFT, startX + button->w() + m_gap, startY, widget, autoDelete);
 }
 
-Widget *RadioSelector::getter() const
+const Widget *RadioSelector::getter() const
 {
     if(m_valGetter){
         return m_valGetter(this);

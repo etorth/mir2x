@@ -36,9 +36,9 @@ class RadioSelector: public Widget
         Widget *m_selected = nullptr;
 
     private:
-        std::function<Widget *(const Widget * /* self */                                           )> m_valGetter;
-        std::function<    void(      Widget * /* self */, Widget * /* child */                     )> m_valSetter;
-        std::function<    void(      Widget * /* self */, Widget * /* child */, bool /* selected */)> m_valOnChange;
+        std::function<const Widget *(const Widget * /* self */                                           )> m_valGetter;
+        std::function<void          (      Widget * /* self */, Widget * /* child */                     )> m_valSetter;
+        std::function<void          (      Widget * /* self */, Widget * /* child */, bool /* selected */)> m_valOnChange;
 
     private:
         ImageBoard m_imgOff;
@@ -56,9 +56,9 @@ class RadioSelector: public Widget
 
                 std::initializer_list<std::tuple<Widget *, bool>> = {},
 
-                std::function<Widget *(const Widget *                )> = nullptr,
-                std::function<void    (      Widget *, Widget *      )> = nullptr,
-                std::function<void    (      Widget *, Widget *, bool)> = nullptr,
+                std::function<const Widget *(const Widget *                )> = nullptr,
+                std::function<void          (      Widget *, Widget *      )> = nullptr,
+                std::function<void          (      Widget *, Widget *, bool)> = nullptr,
 
                 Widget * = nullptr,
                 bool     = false);
@@ -67,6 +67,6 @@ class RadioSelector: public Widget
         void append(Widget *, bool);
 
     public:
-        Widget *getter(        ) const;
-        void    setter(Widget *);
+        const Widget *getter(        ) const;
+        void          setter(Widget *);
 };

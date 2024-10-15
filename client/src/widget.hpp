@@ -716,6 +716,11 @@ class Widget: public WidgetTreeNode
             return m_data;
         }
 
+        const std::any &data() const
+        {
+            return m_data;
+        }
+
         Widget *setData(std::any argData)
         {
             m_data = std::move(argData);

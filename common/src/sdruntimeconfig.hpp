@@ -147,6 +147,11 @@ template<int, typename T> bool SDRuntimeConfig_setConfig(      SDRuntimeConfig &
     /**/ using _RSVD_helper_type_RTCFG_WINDOWSIZE_t = std::pair<int, int>;
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_WINDOWSIZE, _RSVD_helper_type_RTCFG_WINDOWSIZE_t, std::make_pair(800, 600))
     /**/
+    /**/ // 0: accept any friend request
+    /**/ // 1: reject any friend request
+    /**/ // 2: accept or reject manually
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_好友申请, int, 2)
+    /**/
     /**/ // end of runtime config types
     /**/ // any config types should be put inside above region
 
