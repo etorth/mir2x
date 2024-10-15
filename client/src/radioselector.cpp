@@ -80,21 +80,10 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
             {
                 if(auto buttonPtr = dynamic_cast<TrigfxButton *>(child)){
                     if(buttonPtr == self){
-                        buttonPtr->setGfxList(
-                        {
-                            &m_imgDown,
-                            &m_imgDown,
-                            &m_imgDown,
-                        });
+                        setButtonDown(buttonPtr);
                     }
                     else{
-                        buttonPtr->setGfxList(
-                        {
-                            &m_imgOff,
-                            &m_imgOn,
-                            &m_imgDown,
-                        });
-                        buttonPtr->setOff();
+                        setButtonOff(buttonPtr);
                     }
 
                     if(m_valOnChange){
@@ -116,6 +105,12 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
     };
 
     button->setData(widget);
+    if(getter() == widget){
+        setButtonDown(button);
+    }
+    else{
+        setButtonOff(button);
+    }
 
     const auto startX = 0;
     const auto startY = (hasChild() ? (h() + m_itemSpace) : 0) + std::max<int>(button->h(), widget->h()) / 2;
@@ -143,4 +138,26 @@ void RadioSelector::setter(Widget *selected)
     if(m_valSetter){
         m_valSetter(this, selected);
     }
+}
+
+void RadioSelector::setButtonOff(TrigfxButton *button)
+{
+    button->setState(BEVENT_OFF);
+    button->setGfxList(
+    {
+        &m_imgOff,
+        &m_imgOn,
+        &m_imgDown,
+    });
+}
+
+void RadioSelector::setButtonDown(TrigfxButton *button)
+{
+    button->setState(BEVENT_DOWN);
+    button->setGfxList(
+    {
+        &m_imgDown,
+        &m_imgDown,
+        &m_imgDown,
+    });
 }

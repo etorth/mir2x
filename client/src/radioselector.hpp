@@ -4,7 +4,7 @@
 #include <initializer_list>
 #include "widget.hpp"
 #include "imageboard.hpp"
-#include "tritexbutton.hpp"
+#include "trigfxbutton.hpp"
 
     // |<------width------->|
     //        gap
@@ -69,4 +69,8 @@ class RadioSelector: public Widget
     public:
         const Widget *getter(        ) const;
         void          setter(Widget *);
+
+    private:
+        void setButtonOff (TrigfxButton *);
+        void setButtonDown(TrigfxButton *);
 };
