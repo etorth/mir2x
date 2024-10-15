@@ -91,6 +91,10 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
                         });
                         buttonPtr->setOff();
                     }
+
+                    if(m_onChange){
+                        m_onChange(std::any_cast<Widget *>(buttonPtr->data()), buttonPtr == self);
+                    }
                 }
             });
         },
@@ -105,6 +109,8 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
         this,
         true,
     };
+
+    button->setData(widget);
 
     const auto startX = 0;
     const auto startY = (hasChild() ? (h() + m_itemSpace) : 0) + std::max<int>(button->h(), widget->h()) / 2;
