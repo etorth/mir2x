@@ -5,6 +5,7 @@
 #include "imeboard.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "radioselector.hpp"
 #include "soundeffectdb.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
@@ -981,6 +982,35 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                           {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许行会杀人提示>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许行会杀人提示>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许行会杀人提示); }, u8"允许行会杀人提示", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)), DIR_UPLEFT, 200, 175, true},
                           {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许拜师        >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许拜师        >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许拜师        ); }, u8"允许拜师"        , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)), DIR_UPLEFT, 200, 200, true},
                           {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许好友上线提示>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许好友上线提示>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许好友上线提示); }, u8"允许好友上线提示", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)), DIR_UPLEFT, 200, 225, true},
+                      },
+                  },
+                  true,
+              },
+
+              {
+                  u8"好友",
+                  new Widget
+                  {
+                      DIR_UPLEFT,
+                      0,
+                      0,
+
+                      {},
+                      {},
+
+                      {
+                          {new RadioSelector
+                          {
+                              DIR_UPLEFT, // ignored
+                              0,
+                              0,
+
+                              {
+                                  {new LabelBoard{DIR_UPLEFT, 0, 0, u8"你呀你好！"}, true},
+                              },
+                          },
+
+                          DIR_UPLEFT, 0, 0, true},
                       },
                   },
                   true,
