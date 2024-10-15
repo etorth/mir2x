@@ -9,9 +9,9 @@ TrigfxButton::TrigfxButton(
         std::array<const Widget *, 3> argGfxList,
         std::array<std::optional<uint32_t>, 3> argSeffIDList,
 
-        std::function<void(ButtonBase *)> argOnOverIn,
-        std::function<void(ButtonBase *)> argOnOverOut,
-        std::function<void(ButtonBase *)> argOnClick,
+        std::function<void(Widget *)> argOnOverIn,
+        std::function<void(Widget *)> argOnOverOut,
+        std::function<void(Widget *)> argOnClick,
 
         int argOffXOnOver,
         int argOffYOnOver,

@@ -44,7 +44,7 @@ MenuButton::MenuButton(dir8_t argDir,
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               m_menuBoard->flipShow();
               updateMenuButtonSize();

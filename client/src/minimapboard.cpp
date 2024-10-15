@@ -43,7 +43,7 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               m_alphaOn = !m_alphaOn;
               if(m_alphaOn){
@@ -85,7 +85,7 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               if(getMiniMapTexture()){
                   flipExtended();

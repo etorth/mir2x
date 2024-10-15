@@ -62,9 +62,9 @@ class ButtonBase: public Widget
         const int m_offset[3][2];
 
     protected:
-        std::function<void(ButtonBase *)> m_onOverIn;
-        std::function<void(ButtonBase *)> m_onOverOut;
-        std::function<void(ButtonBase *)> m_onClick;
+        std::function<void(Widget *)> m_onOverIn;
+        std::function<void(Widget *)> m_onOverOut;
+        std::function<void(Widget *)> m_onClick;
 
     public:
         ButtonBase(dir8_t,
@@ -73,9 +73,9 @@ class ButtonBase: public Widget
                 int,
                 int,
 
-                std::function<void(ButtonBase *)> = nullptr,
-                std::function<void(ButtonBase *)> = nullptr,
-                std::function<void(ButtonBase *)> = nullptr,
+                std::function<void(Widget *)> = nullptr,
+                std::function<void(Widget *)> = nullptr,
+                std::function<void(Widget *)> = nullptr,
 
                 std::optional<uint32_t> = {},
                 std::optional<uint32_t> = {},

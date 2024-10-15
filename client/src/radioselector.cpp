@@ -74,7 +74,7 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
 
         nullptr,
         nullptr,
-        [this](ButtonBase *self)
+        [this](Widget *self)
         {
             foreachChild([self, this](Widget *child, bool)
             {

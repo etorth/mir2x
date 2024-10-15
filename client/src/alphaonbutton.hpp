@@ -33,9 +33,9 @@ class AlphaOnButton: public ButtonBase
                 uint32_t,
                 uint32_t,
 
-                std::function<void(ButtonBase *)> fnOnOverIn  = nullptr,
-                std::function<void(ButtonBase *)> fnOnOverOut = nullptr,
-                std::function<void(ButtonBase *)> fnOnClick   = nullptr,
+                std::function<void(Widget *)> fnOnOverIn  = nullptr,
+                std::function<void(Widget *)> fnOnOverOut = nullptr,
+                std::function<void(Widget *)> fnOnClick   = nullptr,
 
                 bool    triggerOnDone = true,
                 Widget *pwidget       = nullptr,

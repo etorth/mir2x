@@ -127,7 +127,7 @@ ProcessCreateAccount::ProcessCreateAccount()
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               doPostAccount();
           },
@@ -155,7 +155,7 @@ ProcessCreateAccount::ProcessCreateAccount()
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               doExit();
           },

@@ -74,7 +74,7 @@ ResizableFrameBoard::ResizableFrameBoard(
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               this->parent()->setShow(false);
           },

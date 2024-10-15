@@ -34,7 +34,7 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               setShow(false);
           },
@@ -65,7 +65,7 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
           },
 
@@ -95,7 +95,7 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
           },
 
@@ -125,7 +125,7 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
           },
 
@@ -155,7 +155,7 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
           },
 

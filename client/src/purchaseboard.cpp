@@ -39,7 +39,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               setShow(false);
               setExtendedItemID(0);
@@ -72,7 +72,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               setExtendedItemID(selectedItemID());
               m_closeExt1Button.setOff();
@@ -106,7 +106,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               setExtendedItemID(0);
           },
@@ -138,7 +138,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               m_ext1Page = std::max<int>(0, m_ext1Page - 1);
           },
@@ -170,7 +170,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               const auto [itemID, seqID] = getExtSelectedItemSeqID();
               if(itemID){
@@ -205,7 +205,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               if(const auto ext1PageCount = extendedPageCount(); ext1PageCount > 0){
                   m_ext1Page = std::min<int>(ext1PageCount - 1, m_ext1Page + 1);
@@ -242,7 +242,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               setExtendedItemID(0);
           },
@@ -274,7 +274,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               const auto [itemID, seqID] = getExtSelectedItemSeqID();
               if(!itemID){

@@ -14,9 +14,9 @@ ButtonBase::ButtonBase(
         int argW,
         int argH,
 
-        std::function<void(ButtonBase *)> fnOnOverIn,
-        std::function<void(ButtonBase *)> fnOnOverOut,
-        std::function<void(ButtonBase *)> fnOnClick,
+        std::function<void(Widget *)> fnOnOverIn,
+        std::function<void(Widget *)> fnOnOverOut,
+        std::function<void(Widget *)> fnOnClick,
 
         std::optional<uint32_t> seffIDOnOverIn,
         std::optional<uint32_t> seffIDOnOverOut,

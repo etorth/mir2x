@@ -171,7 +171,7 @@ class RuntimeConfigBoard: public Widget
                                 int,
 
                                 const char8_t *,
-                                std::function<void(ButtonBase *)>,
+                                std::function<void(Widget *)>,
 
                                 Widget * = nullptr,
                                 bool     = false);

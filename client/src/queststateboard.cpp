@@ -127,7 +127,7 @@ QuestStateBoard::QuestStateBoard(int argX, int argY, ProcessRun *runPtr, Widget 
 
           nullptr,
           nullptr,
-          [this](ButtonBase *)
+          [this](Widget *)
           {
               setShow(false);
           },
