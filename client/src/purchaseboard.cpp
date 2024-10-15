@@ -51,7 +51,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -83,7 +85,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -113,7 +117,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -143,7 +149,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -176,7 +184,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -211,7 +221,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -241,7 +253,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -298,7 +312,9 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }

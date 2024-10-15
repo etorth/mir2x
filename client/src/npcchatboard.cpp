@@ -95,7 +95,9 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 {

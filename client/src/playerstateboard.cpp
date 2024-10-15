@@ -106,7 +106,9 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }

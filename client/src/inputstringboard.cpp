@@ -78,6 +78,8 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
 
           true,
           false,
+          false,
+
           this,
           false,
       }
@@ -109,6 +111,8 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
 
           true,
           false,
+          false,
+
           this,
           false,
       }

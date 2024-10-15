@@ -45,7 +45,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -73,7 +75,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -101,7 +105,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -129,7 +135,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -157,7 +165,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -185,7 +195,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -213,7 +225,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -241,7 +255,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -269,7 +285,9 @@ GuildBoard::GuildBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 

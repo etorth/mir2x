@@ -99,6 +99,7 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
         0,
 
         false,
+        true,
 
         this,
         true,

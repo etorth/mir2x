@@ -28,6 +28,7 @@ ButtonBase::ButtonBase(
         int offYOnClick,
 
         bool onClickDone,
+        bool radioMode,
 
         Widget *widgetPtr,
         bool    autoFree)
@@ -47,6 +48,7 @@ ButtonBase::ButtonBase(
       }
 
     , m_onClickDone(onClickDone)
+    , m_radioMode(radioMode)
 
     , m_seffID
       {

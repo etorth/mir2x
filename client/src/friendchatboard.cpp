@@ -115,7 +115,9 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 

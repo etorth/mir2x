@@ -53,7 +53,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -91,7 +93,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -123,7 +127,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -155,7 +161,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -185,7 +193,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -215,7 +225,9 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }

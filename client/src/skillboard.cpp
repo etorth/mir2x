@@ -120,7 +120,9 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMag
           0,
 
           false,
+          false,
           true,
+
           this,
           false,
       }
@@ -343,7 +345,9 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
                   0,
 
                   false,
+                  true,
                   false,
+
                   this,
                   true,
               });
@@ -407,7 +411,9 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
     , m_processRun(runPtr)

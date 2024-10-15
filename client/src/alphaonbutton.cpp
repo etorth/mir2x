@@ -49,6 +49,8 @@ AlphaOnButton::AlphaOnButton(
           0,
 
           triggerOnDone,
+          false,
+
           pwidget,
           autoDelete,
       }

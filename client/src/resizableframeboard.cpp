@@ -85,7 +85,9 @@ ResizableFrameBoard::ResizableFrameBoard(
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 {

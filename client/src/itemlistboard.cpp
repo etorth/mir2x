@@ -49,7 +49,9 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -79,7 +81,9 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -109,7 +113,9 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }
@@ -140,7 +146,9 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
           0,
 
           true,
+          false,
           true,
+
           this,
           false,
       }

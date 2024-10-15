@@ -309,6 +309,7 @@ RuntimeConfigBoard::PullMenu::PullMenu(
           0,
 
           true,
+          false,
 
           this,
           false,
@@ -570,6 +571,7 @@ RuntimeConfigBoard::MenuPage::TabHeader::TabHeader(
           1,
 
           true,
+          false,
 
           this,
           false,

@@ -19,6 +19,7 @@ TrigfxButton::TrigfxButton(
         int argOffYOnClick,
 
         bool argOnClickDone,
+        bool argRadioMode,
 
         Widget *argParent,
         bool    argAutoDelete)
@@ -45,6 +46,8 @@ TrigfxButton::TrigfxButton(
           argOffYOnClick,
 
           argOnClickDone,
+          argRadioMode,
+
           argParent,
           argAutoDelete,
       }

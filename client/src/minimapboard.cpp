@@ -60,7 +60,9 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           0,
 
           false,
+          false,
           true,
+
           this,
       }
     , m_buttonExtend
@@ -103,7 +105,9 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
           0,
 
           false,
+          false,
           true,
+
           this,
       }
 {

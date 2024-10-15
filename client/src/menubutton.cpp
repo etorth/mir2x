@@ -60,6 +60,7 @@ MenuButton::MenuButton(dir8_t argDir,
           1,
 
           false,
+          false,
 
           this,
           false,

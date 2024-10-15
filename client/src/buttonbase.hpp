@@ -53,6 +53,7 @@ class ButtonBase: public Widget
 
     protected:
         const bool m_onClickDone;
+        const bool m_radioMode;
 
     protected:
         const std::optional<uint32_t> m_seffID[3];
@@ -86,6 +87,7 @@ class ButtonBase: public Widget
                 int = 0,
 
                 bool = true,
+                bool = false,
 
                 Widget * = nullptr,
                 bool     = false);

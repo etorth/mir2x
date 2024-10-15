@@ -125,7 +125,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_left,
       }
 
@@ -154,7 +156,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_left,
       }
 
@@ -180,7 +184,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_left,
       }
 
@@ -293,7 +299,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -324,7 +332,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -355,7 +365,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -386,7 +398,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -426,7 +440,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -459,7 +475,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -490,7 +508,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -521,7 +541,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -552,7 +574,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_right,
       }
 
@@ -611,7 +635,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_middle,
       }
 
@@ -637,7 +663,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_middle,
       }
 
@@ -663,7 +691,9 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           0,
 
           true,
+          false,
           true,
+
           &m_middle,
       }
 

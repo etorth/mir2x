@@ -28,6 +28,7 @@ class TrigfxButton: public ButtonBase
                 int = 0,
 
                 bool = true,
+                bool = false,
 
                 Widget * = nullptr,
                 bool     = false);

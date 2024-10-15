@@ -59,7 +59,9 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -89,7 +91,9 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -123,7 +127,9 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 

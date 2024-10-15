@@ -34,6 +34,7 @@ class TritexButton: public ButtonBase
                 int offYOnClick = 0,
 
                 bool onClickDone = true,
+                bool radioMode   = false,
                 bool alterColor  = true,
 
                 Widget *widgetPtr  = nullptr,
@@ -60,6 +61,8 @@ class TritexButton: public ButtonBase
                   offYOnClick,
 
                   onClickDone,
+                  radioMode,
+
                   widgetPtr,
                   autoDelete,
               }

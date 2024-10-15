@@ -45,7 +45,9 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -73,7 +75,9 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -101,7 +105,9 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -129,7 +135,9 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 
@@ -157,7 +165,9 @@ HorseBoard::HorseBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
           0,
 
           true,
+          false,
           true,
+
           this,
       }
 {

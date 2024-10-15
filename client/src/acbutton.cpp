@@ -34,6 +34,8 @@ ACButton::ACButton(dir8_t dir, int x, int y, ProcessRun *proc, const std::vector
           0,
 
           false,
+          false,
+
           pwidget,
           autoDelete,
       }
