@@ -69,7 +69,17 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
 
         nullptr,
         nullptr,
-        nullptr,
+        [this](ButtonBase *self)
+        {
+            foreachChild([self](Widget *child, bool)
+            {
+                if(auto buttonPtr = dynamic_cast<ButtonBase *>(child)){
+                    if(buttonPtr != self){
+                        buttonPtr->setState(BEVENT_OFF);
+                    }
+                }
+            });
+        },
 
         0,
         0,
