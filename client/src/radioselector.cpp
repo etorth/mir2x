@@ -13,7 +13,10 @@ RadioSelector::RadioSelector(Widget::VarDir argDir,
         int argItemSpace,
 
         std::initializer_list<std::tuple<Widget *, bool>> argWidgetList,
-        std::function<void(Widget *, bool)> argOnChange,
+
+        std::function<Widget *(const Widget *                )> argValGetter,
+        std::function<void    (      Widget *, Widget *      )> argValSetter,
+        std::function<void    (      Widget *, Widget *, bool)> argValOnChange,
 
         Widget * argParent,
         bool     argAutoDelete)
@@ -35,7 +38,9 @@ RadioSelector::RadioSelector(Widget::VarDir argDir,
     , m_gap(std::max<int>(0, argGap))
     , m_itemSpace(std::max<int>(0, argItemSpace))
 
-    , m_onChange(std::move(argOnChange))
+    , m_valGetter(std::move(argValGetter))
+    , m_valSetter(std::move(argValSetter))
+    , m_valOnChange(std::move(argValOnChange))
 
     , m_imgOff  {DIR_UPLEFT, 0, 0, 16, 16, [](const ImageBoard *){ return g_progUseDB->retrieve(0X00000370); }, false, false, 0, colorf::WHITE + colorf::A_SHF(0XFF)}
     , m_imgOn   {DIR_UPLEFT, 0, 0, 16, 16, [](const ImageBoard *){ return g_progUseDB->retrieve(0X00000370); }, false, false, 0, colorf::RED   + colorf::A_SHF(0XFF)}
@@ -92,8 +97,8 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
                         buttonPtr->setOff();
                     }
 
-                    if(m_onChange){
-                        m_onChange(std::any_cast<Widget *>(buttonPtr->data()), buttonPtr == self);
+                    if(m_valOnChange){
+                        m_valOnChange(this, std::any_cast<Widget *>(buttonPtr->data()), buttonPtr == self);
                     }
                 }
             });
@@ -117,4 +122,25 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
 
     addChild(DIR_LEFT, startX                      , startY, button, true);
     addChild(DIR_LEFT, startX + button->w() + m_gap, startY, widget, autoDelete);
+}
+
+Widget *RadioSelector::getter() const
+{
+    if(m_valGetter){
+        return m_valGetter(this);
+    }
+    else{
+        return m_selected;
+    }
+}
+
+void RadioSelector::setter(Widget *selected)
+{
+    if(!m_valGetter){
+        m_selected = selected;
+    }
+
+    if(m_valSetter){
+        m_valSetter(this, selected);
+    }
 }

@@ -50,8 +50,13 @@ class CheckLabel: public Widget
         void setFocus(bool) override;
 
     public:
-        bool checkedValue() const
+        bool getter() const
         {
-            return m_checkBox.checkedValue();
+            return m_checkBox.getter();
+        }
+
+        void setter(bool val)
+        {
+            m_checkBox.setter(val);
         }
 };

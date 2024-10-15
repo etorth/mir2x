@@ -53,12 +53,6 @@ class CheckBox: public Widget
         void toggle();
 
     public:
-        bool checkedValue() const
-        {
-            return getter();
-        }
-
-    private:
         bool getter(    ) const;
         void setter(bool);
 
