@@ -999,6 +999,19 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                       {},
 
                       {
+                          {new LabelBoard
+                          {
+                              DIR_UPLEFT, // ignored
+                              0,
+                              0,
+
+                              u8"当加我为好友时：",
+
+                              1,
+                              12,
+                              0
+                          }, DIR_UPLEFT, 0, 0, true},
+
                           {new RadioSelector
                           {
                               DIR_UPLEFT, // ignored
@@ -1009,11 +1022,11 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                               5,
 
                               {
-                                  {new LabelBoard{DIR_UPLEFT, 0, 0, u8"你呀你好！"}, true},
+                                  {new LabelBoard{DIR_UPLEFT, 0, 0, u8"允许任何人加我微好友", 1, 12, 0}, true},
+                                  {new LabelBoard{DIR_UPLEFT, 0, 0, u8"拒绝任何人加我为好友", 1, 12, 0}, true},
+                                  {new LabelBoard{DIR_UPLEFT, 0, 0, u8"好友申请验证"        , 1, 12, 0}, true},
                               },
-                          },
-
-                          DIR_UPLEFT, 0, 0, true},
+                          }, DIR_UPLEFT, 0, 25, true},
                       },
                   },
                   true,
