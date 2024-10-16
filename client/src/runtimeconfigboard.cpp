@@ -1046,6 +1046,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   return selectedWidget;
                               },
 
+                              [this](Widget *, Widget *radioWidget)
+                              {
+                                  SDRuntimeConfig_setConfig<RTCFG_好友申请>(m_sdRuntimeConfig, std::any_cast<int>(radioWidget->data()));
+                                  reportRuntimeConfig(RTCFG_好友申请);
+                              },
+
                           }, DIR_UPLEFT, 0, 20, true},
                       },
                   },
