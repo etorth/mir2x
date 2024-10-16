@@ -54,7 +54,7 @@ RadioSelector::RadioSelector(Widget::VarDir argDir,
 
 void RadioSelector::append(Widget *widget, bool autoDelete)
 {
-    auto button = new TrigfxButton
+    auto button = new RadioSelector::InternalRadioButton
     {
         DIR_UPLEFT, // ignored
         0,
@@ -74,21 +74,12 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
 
         nullptr,
         nullptr,
-        [this](Widget *self)
+        [this](Widget *button)
         {
-            foreachChild([self, this](Widget *child, bool)
+            foreachRadioWidget([button, this](Widget *child)
             {
-                if(auto buttonPtr = dynamic_cast<TrigfxButton *>(child)){
-                    if(buttonPtr == self){
-                        setButtonDown(buttonPtr);
-                    }
-                    else{
-                        setButtonOff(buttonPtr);
-                    }
-
-                    if(m_valOnChange){
-                        m_valOnChange(this, std::any_cast<Widget *>(buttonPtr->data()), buttonPtr == self);
-                    }
+                if(m_valOnChange){
+                    m_valOnChange(this, child, child == std::any_cast<Widget *>(button->data()));
                 }
             });
         },
@@ -107,10 +98,10 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
 
     button->setData(widget);
     if(getter() == widget){
-        setButtonDown(button);
+        button->setDown();
     }
     else{
-        setButtonOff(button);
+        button->setOff();
     }
 
     const auto startX = 0;
@@ -139,26 +130,4 @@ void RadioSelector::setter(Widget *selected)
     if(m_valSetter){
         m_valSetter(this, selected);
     }
-}
-
-void RadioSelector::setButtonOff(TrigfxButton *button)
-{
-    button->setState(BEVENT_OFF);
-    button->setGfxList(
-    {
-        &m_imgOff,
-        &m_imgOn,
-        &m_imgDown,
-    });
-}
-
-void RadioSelector::setButtonDown(TrigfxButton *button)
-{
-    button->setState(BEVENT_DOWN);
-    button->setGfxList(
-    {
-        &m_imgDown,
-        &m_imgDown,
-        &m_imgDown,
-    });
 }

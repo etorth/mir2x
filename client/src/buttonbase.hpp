@@ -127,12 +127,9 @@ class ButtonBase: public Widget
         }
 
     public:
-        // we can automatically do this or call this function
-        // sometimes when we invoke the callback it changes the button location
-        void setOff()
-        {
-            setState(BEVENT_OFF);
-        }
+        void setOff () { setState(BEVENT_OFF ); }
+        void setOn  () { setState(BEVENT_ON  ); }
+        void setDown() { setState(BEVENT_DOWN); }
 
     private:
         void onClick();

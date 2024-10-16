@@ -29,6 +29,12 @@
 class RadioSelector: public Widget
 {
     private:
+        class InternalRadioButton: public TrigfxButton
+        {
+            using TrigfxButton::TrigfxButton;
+        };
+
+    private:
         const int m_gap;
         const int m_itemSpace;
 
@@ -70,7 +76,45 @@ class RadioSelector: public Widget
         const Widget *getter(        ) const;
         void          setter(Widget *);
 
-    private:
-        void setButtonOff (TrigfxButton *);
-        void setButtonDown(TrigfxButton *);
+    public:
+        auto foreachRadioButton(std::invocable<Widget *> auto f)
+        {
+            constexpr bool hasBoolResult = std::is_same_v<std::invoke_result_t<decltype(f), Widget *>, bool>;
+            if constexpr (hasBoolResult){
+                return foreachChild([&f](Widget *child, bool)
+                {
+                    if(dynamic_cast<RadioSelector::InternalRadioButton *>(child)){
+                        if(f(child)){
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+            }
+            else{
+                foreachChild([&f](Widget *child, bool)
+                {
+                    if(dynamic_cast<RadioSelector::InternalRadioButton *>(child)){
+                        f(child);
+                    }
+                });
+            }
+        }
+
+        auto foreachRadioWidget(std::invocable<Widget *> auto f)
+        {
+            constexpr bool hasBoolResult = std::is_same_v<std::invoke_result_t<decltype(f), Widget *>, bool>;
+            if constexpr (hasBoolResult){
+                return foreachRadioButton([&f](Widget *button)
+                {
+                    return f(std::any_cast<Widget *>(button->data()));
+                });
+            }
+            else{
+                foreachRadioButton([&f](Widget *button)
+                {
+                    f(std::any_cast<Widget *>(button->data()));
+                });
+            }
+        }
 };
