@@ -72,16 +72,31 @@ ButtonBase::ButtonBase(
 bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
 {
     if(!valid){
-        if(getState() != BEVENT_OFF){
-            setState(BEVENT_OFF);
-            onOverOut();
+        if(m_radioMode){
+            if(getState() == BEVENT_ON){
+                setState(BEVENT_OFF);
+                onOverOut();
+            }
+        }
+        else{
+            if(getState() != BEVENT_OFF){
+                setState(BEVENT_OFF);
+                onOverOut();
+            }
         }
         return consumeFocus(false);
     }
 
     if(!active()){
-        if(getState() != BEVENT_OFF){
-            setState(BEVENT_OFF);
+        if(m_radioMode){
+            if(getState() == BEVENT_ON){
+                setState(BEVENT_OFF);
+            }
+        }
+        else{
+            if(getState() != BEVENT_OFF){
+                setState(BEVENT_OFF);
+            }
         }
         return consumeFocus(false);
     }
@@ -197,6 +212,10 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     return consumeFocus(true);
                 }
                 else if(m_radioMode){
+                    if(getState() == BEVENT_ON){
+                        setState(BEVENT_OFF);
+                        onOverOut();
+                    }
                     return consumeFocus(false);
                 }
                 else{

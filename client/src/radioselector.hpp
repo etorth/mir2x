@@ -107,14 +107,22 @@ class RadioSelector: public Widget
             if constexpr (hasBoolResult){
                 return foreachRadioButton([&f](Widget *button)
                 {
-                    return f(std::any_cast<Widget *>(button->data()));
+                    return f(getRadioWidget(button));
                 });
             }
             else{
                 foreachRadioButton([&f](Widget *button)
                 {
-                    f(std::any_cast<Widget *>(button->data()));
+                    f(getRadioWidget(button));
                 });
             }
+        }
+
+    public:
+        static Widget *getRadioWidget(Widget *button)
+        {
+            fflassert(button);
+            fflassert(dynamic_cast<RadioSelector::InternalRadioButton *>(button));
+            return std::any_cast<Widget *>(button->data());
         }
 };

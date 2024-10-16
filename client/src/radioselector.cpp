@@ -74,12 +74,16 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
 
         nullptr,
         nullptr,
-        [this](Widget *button)
+        [this](Widget *selfButton)
         {
-            foreachRadioWidget([button, this](Widget *child)
+            foreachRadioButton([selfButton, this](Widget *button)
             {
+                if(selfButton != button){
+                    dynamic_cast<TrigfxButton *>(button)->setOff();
+                }
+
                 if(m_valOnChange){
-                    m_valOnChange(this, child, child == std::any_cast<Widget *>(button->data()));
+                    m_valOnChange(this, getRadioWidget(button), selfButton == button);
                 }
             });
         },
