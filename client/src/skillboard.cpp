@@ -315,20 +315,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
                           return;
                       }
 
-                      m_tabButtonList.at(i)->setTexID(
-                      {
-                          0X05000030 + to_u32(i),
-                          0X05000030 + to_u32(i),
-                          0X05000030 + to_u32(i),
-                      });
-
                       m_tabButtonList.at(m_selectedTabIndex)->setOff();
-                      m_tabButtonList.at(m_selectedTabIndex)->setTexID(
-                      {
-                          SYS_U32NIL,
-                          0X05000020 + to_u32(m_selectedTabIndex),
-                          0X05000030 + to_u32(m_selectedTabIndex),
-                      });
 
                       m_selectedTabIndex = i;
                       m_slider.setValue(0, false);
@@ -353,12 +340,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
               });
 
               if(i == m_selectedTabIndex){
-                  m_tabButtonList.at(i)->setTexID(
-                  {
-                      0X05000030 + to_u32(i),
-                      0X05000030 + to_u32(i),
-                      0X05000030 + to_u32(i),
-                  });
+                  m_tabButtonList.at(i)->setOn();
               }
           }
           return tabButtonList;
