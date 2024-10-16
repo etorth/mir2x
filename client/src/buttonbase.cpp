@@ -99,9 +99,14 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                             }
                         case BEVENT_DOWN:
                             {
-                                setState(BEVENT_ON);
-                                if(m_onClickDone){
-                                    onClick();
+                                if(m_radioMode){
+                                    // keep pressed
+                                }
+                                else{
+                                    setState(BEVENT_ON);
+                                    if(m_onClickDone){
+                                        onClick();
+                                    }
                                 }
                                 break;
                             }
@@ -111,6 +116,9 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                             }
                     }
                     return consumeFocus(true);
+                }
+                else if(m_radioMode){
+                    return consumeFocus(false);
                 }
                 else{
                     if(getState() != BEVENT_OFF){
@@ -145,6 +153,9 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                     }
                     return consumeFocus(true);
                 }
+                else if(m_radioMode){
+                    return consumeFocus(false);
+                }
                 else{
                     if(getState() != BEVENT_OFF){
                         setState(BEVENT_OFF);
@@ -169,6 +180,9 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                                     // hold the button and moving
                                     // don't trigger
                                 }
+                                else if(m_radioMode){
+                                    // keep pressed
+                                }
                                 else{
                                     setState(BEVENT_ON);
                                     onBadEvent();
@@ -181,6 +195,9 @@ bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
                             }
                     }
                     return consumeFocus(true);
+                }
+                else if(m_radioMode){
+                    return consumeFocus(false);
                 }
                 else{
                     if(getState() != BEVENT_OFF){
