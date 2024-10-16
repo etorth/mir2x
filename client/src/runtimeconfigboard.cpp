@@ -1031,15 +1031,19 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                               [this](const Widget *radioSelector)
                               {
-                                  return radioSelector->hasChild([val = SDRuntimeConfig_getConfig<RTCFG_好友申请>(m_sdRuntimeConfig)](const Widget *child, bool) -> const Widget *
+                                  const Widget *selectedWidget = nullptr;
+                                  const auto val = SDRuntimeConfig_getConfig<RTCFG_好友申请>(m_sdRuntimeConfig);
+
+                                  dynamic_cast<const RadioSelector *>(radioSelector)->foreachRadioWidget([&selectedWidget, val](const Widget *widget)
                                   {
-                                      if(dynamic_cast<const TrigfxButton *>(child)){
-                                          if(std::any_cast<int>(std::any_cast<Widget *>(child->data())->data()) == val){
-                                              return child;
-                                          }
+                                      if(std::any_cast<int>(widget->data()) == val){
+                                          selectedWidget = widget;
+                                          return true;
                                       }
-                                      return nullptr;
+                                      return false;
                                   });
+
+                                  return selectedWidget;
                               },
 
                           }, DIR_UPLEFT, 0, 20, true},
