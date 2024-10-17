@@ -76,6 +76,7 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
         nullptr,
         [this](Widget *selfButton)
         {
+            setter(getRadioWidget(selfButton));
             foreachRadioButton([selfButton, this](Widget *button)
             {
                 if(selfButton != button){
