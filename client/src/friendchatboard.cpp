@@ -1302,6 +1302,16 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer, bool switchTo
                                 m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">重复添加好友<t color="red">%s</t></par>)###", to_cstr(chatPeer.name));
                                 break;
                             }
+                        case AF_PENDING:
+                            {
+                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">等待<t color="red">%s</t>处理你的好友验证</par>)###", to_cstr(chatPeer.name));
+                                break;
+                            }
+                        case AF_BLOCKED:
+                            {
+                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经被<t color="red">%s</t>加入了黑名单</par>)###", to_cstr(chatPeer.name));
+                                break;
+                            }
                         default:
                             {
                                 break;
