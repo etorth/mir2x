@@ -368,9 +368,10 @@ enum TeamErrorType: int
 
 enum AddFriendResultType: int
 {
-    AF_NONE     = 0,
-    AF_BEGIN    = 1,
-    AF_INVALID  = 1,    // invalid dbid
+    AF_NONE    = -1,
+    AF_BEGIN   =  0,
+    AF_INVALID =  0,    // invalid dbid
+    AF_BLOCKED,         // in blacklist
     AF_ACCEPTED,        // manually/automatically accepted
     AF_REJECTED,        // manually/automatically rejected
     AF_PENDING,         // waiting response

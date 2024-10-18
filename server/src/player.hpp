@@ -370,11 +370,13 @@ class Player final: public BattleObject
         void dbAddMagicExp(uint32_t, size_t);
 
     private:
-        static int dbGetFriendConfig(uint32_t);
+        static bool dbHasPlayer(uint32_t);
+        static bool dbBlocked(uint32_t, uint32_t);
+        static SDRuntimeConfig dbGetRuntimeConfig(uint32_t);
 
     private:
-        SDAddFriendNotif dbAddFriend(uint32_t);
-        SDAddBlockedNotif dbAddBlocked(uint32_t);
+        int dbAddFriend(uint32_t);
+        int dbAddBlocked(uint32_t);
 
     private:
         SDChatPeer dbCreateChatGroup(const char *, const std::span<const uint32_t> &);
