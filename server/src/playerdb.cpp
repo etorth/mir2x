@@ -727,11 +727,8 @@ SDRuntimeConfig Player::dbGetRuntimeConfig(uint32_t argDBID)
         if(const std::string buf = query.getColumn("fld_runtimeconfig"); !buf.empty()){
             return cerealf::deserialize<SDRuntimeConfig>(buf);
         }
-        else{
-            return SDRuntimeConfig {};
-        }
     }
-    throw fflerror("invalid dbid: %llu", to_llu(argDBID));
+    return SDRuntimeConfig {};
 }
 
 bool Player::dbBlocked(uint32_t argDBID, uint32_t argBlockedDBID)
