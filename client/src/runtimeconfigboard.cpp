@@ -1024,9 +1024,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                               5,
 
                               {
-                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"允许任何人加我微好友", 1, 12, 0})->setData(0), true},
-                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"拒绝任何人加我为好友", 1, 12, 0})->setData(1), true},
-                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"好友申请验证"        , 1, 12, 0})->setData(2), true},
+                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"允许任何人加我微好友", 1, 12, 0})->setData(to_d(FR_ACCEPT)), true},
+                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"拒绝任何人加我为好友", 1, 12, 0})->setData(to_d(FR_REJECT)), true},
+                                  {(new LabelBoard{DIR_UPLEFT, 0, 0, u8"好友申请验证"        , 1, 12, 0})->setData(to_d(FR_VERIFY)), true},
                               },
 
                               [this](const Widget *radioSelector)

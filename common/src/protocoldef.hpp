@@ -378,6 +378,16 @@ enum AddFriendResultType: int
     AF_END,
 };
 
+enum FriendRespondType: int
+{
+    FR_NONE   = -1,
+    FR_BEGIN  =  0,
+    FR_ACCEPT =  0,
+    FR_REJECT,
+    FR_VERIFY,
+    FR_END,
+};
+
 enum AddBlockedResultType: int
 {
     AB_NONE    = 0,
