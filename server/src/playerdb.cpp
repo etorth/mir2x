@@ -715,6 +715,19 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
     return result;
 }
 
+int Player::dbGetFriendConfig(uint32_t argDBID)
+{
+    auto query = g_dbPod->createQuery("select * from tbl_playerconfig where fld_dbid = %llu", to_llu(argDBID));
+
+    if(query.executeStep()){
+        if(const std::string buf = query.getColumn("fld_runtimeconfig"); !buf.empty()){
+            return SDRuntimeConfig_getConfig<RTCFG_好友申请>(cerealf::deserialize<SDRuntimeConfig>(buf));
+        }
+    }
+
+    return FR_VERIFY;
+}
+
 SDAddFriendNotif Player::dbAddFriend(uint32_t argDBID)
 {
     SDAddFriendNotif sdAFN;

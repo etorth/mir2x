@@ -370,6 +370,9 @@ class Player final: public BattleObject
         void dbAddMagicExp(uint32_t, size_t);
 
     private:
+        static int dbGetFriendConfig(uint32_t);
+
+    private:
         SDAddFriendNotif dbAddFriend(uint32_t);
         SDAddBlockedNotif dbAddBlocked(uint32_t);
 
