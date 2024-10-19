@@ -410,7 +410,7 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
                 fnPostNetMessage(notif);
 
                 if(notif == AF_ACCEPTED){
-                    fnForwardSystemMessage(str_printf(R"###(<layout><par>%llu已经添加你为好友。</par></layout>)###", to_llu(cmAF.dbid)));
+                    fnForwardSystemMessage(str_printf(R"###(<layout><par>%s已经添加你为好友。</par></layout>)###", to_cstr(m_name)));
                     m_sdFriendList.push_back(dbLoadChatPeer(false, cmAF.dbid).value());
                 }
                 return;
@@ -422,7 +422,7 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
             }
         default:
             {
-                fnForwardSystemMessage(str_printf(R"###(<layout><par>%llu想加你为好友</par></layout>)###", to_llu(cmAF.dbid)));
+                fnForwardSystemMessage(str_printf(R"###(<layout><par>%s申请加你为好友</par></layout>)###", to_cstr(m_name)));
                 fnPostNetMessage(AF_PENDING);
                 return;
             }

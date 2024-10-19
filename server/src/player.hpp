@@ -375,6 +375,9 @@ class Player final: public BattleObject
         static SDRuntimeConfig dbGetRuntimeConfig(uint32_t);
 
     private:
+        static std::string dbGetPlayerName(uint32_t);
+
+    private:
         int dbAddFriend(uint32_t);
         int dbAddBlocked(uint32_t);
 

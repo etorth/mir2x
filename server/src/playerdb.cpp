@@ -731,6 +731,15 @@ SDRuntimeConfig Player::dbGetRuntimeConfig(uint32_t argDBID)
     return SDRuntimeConfig {};
 }
 
+std::string Player::dbGetPlayerName(uint32_t argDBID)
+{
+    auto query = g_dbPod->createQuery("select fld_name from tbl_char where fld_dbid = %llu", to_llu(argDBID));
+    if(query.executeStep()){
+        return query.getColumn("fld_name");
+    }
+    throw fflerror("invalid dbid: %llu", to_llu(argDBID));
+}
+
 bool Player::dbBlocked(uint32_t argDBID, uint32_t argBlockedDBID)
 {
     return g_dbPod->createQuery("select fld_dbid from tbl_blacklist where fld_dbid = %llu and fld_blocked = %llu", to_llu(argDBID), to_llu(argBlockedDBID)).executeStep();
