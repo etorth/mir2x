@@ -628,7 +628,7 @@ void Player::dbLoadFriendList()
     }
 }
 
-std::tuple<uint64_t, uint64_t> Player::dbSaveChatMessage(const SDChatPeerID &toCPID, const std::string_view &sv)
+std::tuple<uint64_t, uint64_t> Player::dbSaveChatMessage(const SDChatPeerID &fromCPID, const SDChatPeerID &toCPID, const std::string_view &sv)
 {
     auto tstamp= hres_tstamp::localtime();
     auto query = g_dbPod->createQuery(
@@ -639,8 +639,8 @@ std::tuple<uint64_t, uint64_t> Player::dbSaveChatMessage(const SDChatPeerID &toC
         u8R"###(     fld_id;                                                               )###",
 
         to_llu(tstamp),
-        to_llu(cpid().asU64()),
-        to_llu(toCPID.asU64()));
+        to_llu(fromCPID.asU64()),
+        to_llu(  toCPID.asU64()));
 
     query.bindBlob(1, sv.data(), sv.size());
     if(query.executeStep()){

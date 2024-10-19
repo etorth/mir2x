@@ -294,7 +294,7 @@ void Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_t bufSize, uin
 
     msgBuf = as_sv(buf + 8, bufSize - 8);
 
-    const auto [msgId, tstamp] = dbSaveChatMessage(toCPID, msgBuf);
+    const auto [msgId, tstamp] = dbSaveChatMessage(cpid(), toCPID, msgBuf);
     const auto fnForwardChatMessage = [toCPID, msgBuf, msgId, tstamp, this](uint32_t playerDBID)
     {
         forwardNetPackage(uidf::getPlayerUID(playerDBID), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
@@ -378,6 +378,31 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
         return;
     }
 
+    const auto fnForwardSystemMessage = [&cmAF, this](const std::string xmlChatMsg)
+    {
+        const auto msgBuf = cerealf::serialize(xmlChatMsg);
+        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM), SDChatPeerID(CP_PLAYER, cmAF.dbid), msgBuf);
+
+        forwardNetPackage(uidf::getPlayerUID(cmAF.dbid), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
+        {
+            SDChatMessage
+            {
+                .seq = SDChatMessageDBSeq
+                {
+                    .id = msgId,
+                    .timestamp = tstamp,
+                },
+
+                .refer = std::nullopt,
+
+                .from {CP_SPECIAL, SYS_CHATDBID_SYSTEM},
+                .to   {CP_PLAYER, cmAF.dbid},
+
+                .message = msgBuf, // keep serialized
+            },
+        }));
+    };
+
     switch(SDRuntimeConfig_getConfig<RTCFG_好友申请>(dbGetRuntimeConfig(cmAF.dbid))){
         case FR_ACCEPT:
             {
@@ -385,6 +410,7 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
                 fnPostNetMessage(notif);
 
                 if(notif == AF_ACCEPTED){
+                    fnForwardSystemMessage(str_printf(R"###(<layout><par>%llu已经添加你为好友。</par></layout>)###", to_llu(cmAF.dbid)));
                     m_sdFriendList.push_back(dbLoadChatPeer(false, cmAF.dbid).value());
                 }
                 return;
@@ -396,6 +422,7 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
             }
         default:
             {
+                fnForwardSystemMessage(str_printf(R"###(<layout><par>%llu想加你为好友</par></layout>)###", to_llu(cmAF.dbid)));
                 fnPostNetMessage(AF_PENDING);
                 return;
             }
