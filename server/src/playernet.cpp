@@ -422,7 +422,15 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
             }
         default:
             {
-                fnForwardSystemMessage(str_printf(R"###(<layout><par>%s申请加你为好友</par></layout>)###", to_cstr(m_name)));
+                fnForwardSystemMessage(str_printf(R"###(
+                <layout>
+                    <par><t color="red">%s</t>申请添加你为好友，你可以选择</par>
+                    <par><event id="1">同意</event></par>
+                    <par><event id="2">同意并添加对方为好友</event></par>
+                    <par><event id="3">拒绝</event></par>
+                    <par><event id="4">拒绝并将对方加入黑名单</event></par>
+                </layout>
+                )###", to_cstr(m_name)));
                 fnPostNetMessage(AF_PENDING);
                 return;
             }
