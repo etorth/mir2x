@@ -414,8 +414,10 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
                 fnPostNetMessage(notif);
 
                 if(notif == AF_ACCEPTED){
+                    if(auto sdCPOpt = dbLoadChatPeer(sdCPID.asU64()); sdCPOpt.has_value() && !findFriendChatPeer(sdCPID)){
+                        m_sdFriendList.push_back(std::move(sdCPOpt.value()));
+                    }
                     fnForwardSystemMessage(str_printf(R"###(<layout><par>%s已经添加你为好友。</par></layout>)###", to_cstr(m_name)));
-                    m_sdFriendList.push_back(dbLoadChatPeer(sdCPID.asU64()).value());
                 }
                 return;
             }
@@ -427,21 +429,38 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
         default:
             {
                 fnPostNetMessage(AF_PENDING);
-                fnForwardSystemMessage(str_printf(R"###(
-                <layout>
-                    <par><t color="red">%s</t>申请添加你为好友，你可以选择</par>
-                    <par><event id="%s" accept="" cpid="%llu"             >同意</event></par>
-                    <par><event id="%s" accept="" cpid="%llu" addfriend="">同意并添加对方为好友</event></par>
-                    <par><event id="%s" reject="" cpid="%llu"             >拒绝</event></par>
-                    <par><event id="%s" reject="" cpid="%llu"     block="">拒绝并将对方加入黑名单</event></par>
-                </layout>
-                )###",
+                if(findFriendChatPeer(sdCPID)){
+                    fnForwardSystemMessage(str_printf(R"###(
+                    <layout>
+                        <par><t color="red">%s</t>申请添加你为好友，你可以选择</par>
+                        <par><event id="%s" accept="" cpid="%llu"             >同意</event></par>
+                        <par><event id="%s" reject="" cpid="%llu"             >拒绝</event></par>
+                        <par><event id="%s" reject="" cpid="%llu"     block="">拒绝并将对方加入黑名单</event></par>
+                    </layout>
+                    )###",
 
-                to_cstr(m_name),
-                SYS_AFRESP, to_llu(cpid().asU64()),
-                SYS_AFRESP, to_llu(cpid().asU64()),
-                SYS_AFRESP, to_llu(cpid().asU64()),
-                SYS_AFRESP, to_llu(cpid().asU64())));
+                    to_cstr(m_name),
+                    SYS_AFRESP, to_llu(cpid().asU64()),
+                    SYS_AFRESP, to_llu(cpid().asU64()),
+                    SYS_AFRESP, to_llu(cpid().asU64())));
+                }
+                else{
+                    fnForwardSystemMessage(str_printf(R"###(
+                    <layout>
+                        <par><t color="red">%s</t>申请添加你为好友，你可以选择</par>
+                        <par><event id="%s" accept="" cpid="%llu"             >同意</event></par>
+                        <par><event id="%s" accept="" cpid="%llu" addfriend="">同意并添加对方为好友</event></par>
+                        <par><event id="%s" reject="" cpid="%llu"             >拒绝</event></par>
+                        <par><event id="%s" reject="" cpid="%llu"     block="">拒绝并将对方加入黑名单</event></par>
+                    </layout>
+                    )###",
+
+                    to_cstr(m_name),
+                    SYS_AFRESP, to_llu(cpid().asU64()),
+                    SYS_AFRESP, to_llu(cpid().asU64()),
+                    SYS_AFRESP, to_llu(cpid().asU64()),
+                    SYS_AFRESP, to_llu(cpid().asU64())));
+                }
                 return;
             }
     }
