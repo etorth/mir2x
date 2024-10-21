@@ -1320,7 +1320,8 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &argCP, bool switchToCha
                 }
             default:
                 {
-                    throw fflerror("failed to add friend: %s", to_cstr(argCP.name));
+                    m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">无效的请求。</par>)###");
+                    break;
                 }
         }
     });
