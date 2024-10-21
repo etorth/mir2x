@@ -1398,12 +1398,13 @@ void FriendChatBoard::requestBlockPlayer(const SDChatPeer &argCP)
 
 void FriendChatBoard::onAddFriendAccepted(const SDChatPeer &argCP)
 {
-    m_sdFriendList.push_back(argCP);
+    if(findFriendChatPeer(argCP.cpid())){
+        m_sdFriendList.push_back(argCP);
+        m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)"><t color="red">%s</t>已经通过了你的好友请求。</par>)###", to_cstr(argCP.name));
 
-    dynamic_cast<FriendListPage  *>(m_uiPageList[UIPage_FRIENDLIST ].page)->append(argCP);
-    dynamic_cast<ChatPreviewPage *>(m_uiPageList[UIPage_CHATPREVIEW].page)->updateChatPreview(argCP.cpid(), str_printf(R"###(<layout><par><t color="red">%s</t>已经通过你的好友申请，现在可以开始聊天了。</par></layout>)###", to_cstr(argCP.name)));
-
-    m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)"><t color="red">%s</t>已经通过了你的好友请求。</par>)###", to_cstr(argCP.name));
+        dynamic_cast<FriendListPage  *>(m_uiPageList[UIPage_FRIENDLIST ].page)->append(argCP);
+        dynamic_cast<ChatPreviewPage *>(m_uiPageList[UIPage_CHATPREVIEW].page)->updateChatPreview(argCP.cpid(), str_printf(R"###(<layout><par><t color="red">%s</t>已经通过你的好友申请，现在可以开始聊天了。</par></layout>)###", to_cstr(argCP.name)));
+    }
 }
 
 void FriendChatBoard::onAddFriendRejected(const SDChatPeer &argCP)
