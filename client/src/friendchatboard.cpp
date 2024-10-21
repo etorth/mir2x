@@ -1398,7 +1398,7 @@ void FriendChatBoard::requestBlockPlayer(const SDChatPeer &argCP)
 
 void FriendChatBoard::onAddFriendAccepted(const SDChatPeer &argCP)
 {
-    if(findFriendChatPeer(argCP.cpid())){
+    if(!findFriendChatPeer(argCP.cpid())){
         m_sdFriendList.push_back(argCP);
         m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)"><t color="red">%s</t>已经通过了你的好友请求。</par>)###", to_cstr(argCP.name));
 
