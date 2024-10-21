@@ -586,7 +586,7 @@ std::string LayoutBoard::getXML() const
 
 const char * LayoutBoard::findAttrValue(const std::unordered_map<std::string, std::string> &attrList, const char *key, const char *valDefault)
 {
-    if(auto p = attrList.find(key); p != attrList.end() && str_haschar(p->second)){
+    if(auto p = attrList.find(key); p != attrList.end()){
         return p->second.c_str();
     }
     return valDefault;
