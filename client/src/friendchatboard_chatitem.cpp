@@ -1,4 +1,5 @@
 #include "sdldevice.hpp"
+#include "processrun.hpp"
 #include "friendchatboard.hpp"
 
 extern SDLDevice *g_sdlDevice;
@@ -114,12 +115,17 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
                       if(LayoutBoard::findAttrValue(attrList, "accept")){
                           FriendChatBoard::getParentBoard(this)->requestAcceptAddFriend(*sdCP);
                           if(LayoutBoard::findAttrValue(attrList, "addfriend")){
-                              FriendChatBoard::getParentBoard(this)->requestAddFriend(*sdCP, false);
+                              if(FriendChatBoard::getParentBoard(this)->findFriendChatPeer(sdCP->cpid())){
+                                  FriendChatBoard::getParentBoard(this)->m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)"><t color="red">%s</t>已经是你的好友。</par>)###", to_cstr(sdCP->name));
+                              }
+                              else{
+                                  FriendChatBoard::getParentBoard(this)->requestAddFriend(*sdCP, false);
+                              }
                           }
                       }
                       else if(LayoutBoard::findAttrValue(attrList, "reject")){
                           FriendChatBoard::getParentBoard(this)->requestRejectAddFriend(*sdCP);
-                          if(LayoutBoard::findAttrValue(attrList, "addfriend")){
+                          if(LayoutBoard::findAttrValue(attrList, "block")){
                               FriendChatBoard::getParentBoard(this)->requestBlockPlayer(*sdCP);
                           }
                       }
