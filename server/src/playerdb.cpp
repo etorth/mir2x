@@ -772,7 +772,12 @@ std::string Player::dbGetPlayerName(uint32_t argDBID)
     throw fflerror("invalid dbid: %llu", to_llu(argDBID));
 }
 
-bool Player::dbBlocked(uint32_t argDBID, uint32_t argBlockedDBID)
+bool Player::dbIsFriend(uint32_t argDBID, uint32_t argFriendDBID)
+{
+    return g_dbPod->createQuery("select fld_dbid from tbl_friend where fld_dbid = %llu and fld_friend = %llu", to_llu(argDBID), to_llu(argFriendDBID)).executeStep();
+}
+
+bool Player::dbIsBlocked(uint32_t argDBID, uint32_t argBlockedDBID)
 {
     return g_dbPod->createQuery("select fld_dbid from tbl_blacklist where fld_dbid = %llu and fld_blocked = %llu", to_llu(argDBID), to_llu(argBlockedDBID)).executeStep();
 }
