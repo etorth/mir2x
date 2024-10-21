@@ -463,7 +463,7 @@ void Player::net_CM_ACCEPTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_
     }
 
     postNetMessage(SM_OK, respID);
-    forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDACCEPTED, cerealf::serialize(dbLoadChatPeer(sdCPID.asU64())));
+    forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDACCEPTED, cerealf::serialize(dbLoadChatPeer(cpid().asU64()).value()));
 }
 
 void Player::net_CM_REJECTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
@@ -482,7 +482,7 @@ void Player::net_CM_REJECTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_
     }
 
     postNetMessage(SM_OK, respID);
-    forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDREJECTED, cerealf::serialize(dbLoadChatPeer(sdCPID.asU64())));
+    forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDREJECTED, cerealf::serialize(dbLoadChatPeer(cpid().asU64()).value()));
 }
 
 void Player::net_CM_BLOCKPLAYER(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
