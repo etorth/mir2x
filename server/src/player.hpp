@@ -384,8 +384,8 @@ class Player final: public BattleObject
         static std::string dbGetPlayerName(uint32_t);
 
     private:
-        int dbAddFriend(uint32_t);
-        int dbBlockPlayer(uint32_t);
+        static int dbAddFriend(uint32_t, uint32_t);
+        static int dbBlockPlayer(uint32_t, uint32_t);
 
     private:
         SDChatPeer dbCreateChatGroup(const char *, const std::span<const uint32_t> &);

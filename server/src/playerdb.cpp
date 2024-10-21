@@ -782,7 +782,7 @@ bool Player::dbIsBlocked(uint32_t argDBID, uint32_t argBlockedDBID)
     return g_dbPod->createQuery("select fld_dbid from tbl_blacklist where fld_dbid = %llu and fld_blocked = %llu", to_llu(argDBID), to_llu(argBlockedDBID)).executeStep();
 }
 
-int Player::dbAddFriend(uint32_t argDBID)
+int Player::dbAddFriend(uint32_t argDBID, uint32_t argFriendDBID)
 {
     auto query = g_dbPod->createQuery(
         u8R"###( insert or ignore into tbl_friend(fld_dbid, fld_friend) )###"
@@ -791,8 +791,8 @@ int Player::dbAddFriend(uint32_t argDBID)
         u8R"###( returning                                              )###"
         u8R"###(     fld_dbid;                                          )###",
 
-        to_llu(dbid()),
-        to_llu(argDBID));
+        to_llu(argDBID),
+        to_llu(argFriendDBID));
 
     if(query.executeStep()){
         return AF_ACCEPTED;
@@ -802,12 +802,12 @@ int Player::dbAddFriend(uint32_t argDBID)
     }
 }
 
-int Player::dbBlockPlayer(uint32_t argDBID)
+int Player::dbBlockPlayer(uint32_t argDBID, uint32_t argPlayerDBID)
 {
     int result = BP_NONE;
     auto dbTrans = g_dbPod->createTransaction();
 
-    g_dbPod->exec("delete from tbl_friend where fld_dbid = %llu and fld_friend = %llu", to_llu(dbid()), to_llu(argDBID));
+    g_dbPod->exec("delete from tbl_friend where fld_dbid = %llu and fld_friend = %llu", to_llu(argDBID), to_llu(argPlayerDBID));
     {
         auto query = g_dbPod->createQuery(
             u8R"###( insert or ignore into tbl_blacklist(fld_dbid, fld_blocked) )###"
@@ -816,8 +816,8 @@ int Player::dbBlockPlayer(uint32_t argDBID)
             u8R"###( returning                                                  )###"
             u8R"###(     fld_dbid;                                              )###",
 
-            to_llu(dbid()),
-            to_llu(argDBID));
+            to_llu(argDBID),
+            to_llu(argPlayerDBID));
 
         if(query.executeStep()){
             result = BP_DONE;

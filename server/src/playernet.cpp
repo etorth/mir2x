@@ -415,7 +415,7 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
     switch(SDRuntimeConfig_getConfig<RTCFG_好友申请>(dbGetRuntimeConfig(sdCPID.id()))){
         case FR_ACCEPT:
             {
-                const auto notif = dbAddFriend(sdCPID.id());
+                const auto notif = dbAddFriend(dbid(), sdCPID.id());
                 fnPostNetMessage(notif);
 
                 if(notif == AF_ACCEPTED){
@@ -486,6 +486,7 @@ void Player::net_CM_ACCEPTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_
         return;
     }
 
+    dbAddFriend(sdCPID.id(), dbid());
     postNetMessage(SM_OK, respID);
     forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDACCEPTED, cerealf::serialize(dbLoadChatPeer(cpid().asU64()).value()));
 }
@@ -524,7 +525,7 @@ void Player::net_CM_BLOCKPLAYER(uint8_t, const uint8_t *buf, size_t, uint64_t re
         return;
     }
 
-    dbBlockPlayer(sdCPID.id());
+    dbBlockPlayer(dbid(), sdCPID.id());
     postNetMessage(SM_OK, respID);
 }
 
