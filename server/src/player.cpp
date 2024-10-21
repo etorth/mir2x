@@ -714,6 +714,9 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, ui
         _support_cm(CM_ACTION                    );
         _support_cm(CM_BUY                       );
         _support_cm(CM_ADDFRIEND                 );
+        _support_cm(CM_ACCEPTADDFRIEND           );
+        _support_cm(CM_REJECTADDFRIEND           );
+        _support_cm(CM_BLOCKPLAYER               );
         _support_cm(CM_CHATMESSAGE               );
         _support_cm(CM_CONSUMEITEM               );
         _support_cm(CM_DROPITEM                  );
@@ -725,7 +728,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, ui
         _support_cm(CM_QUERYGOLD                 );
         _support_cm(CM_QUERYPLAYERNAME           );
         _support_cm(CM_QUERYPLAYERWLDESP         );
-        _support_cm(CM_QUERYCHATPEERLIST            );
+        _support_cm(CM_QUERYCHATPEERLIST         );
         _support_cm(CM_QUERYSELLITEMLIST         );
         _support_cm(CM_QUERYUIDBUFF              );
         _support_cm(CM_REQUESTADDEXP             );

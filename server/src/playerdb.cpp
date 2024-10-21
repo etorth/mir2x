@@ -251,16 +251,14 @@ void Player::dbLoadPlayerConfig()
     }
 }
 
-std::optional<SDChatPeer> Player::dbLoadChatPeer(bool argGroup, uint32_t argDBID)
+std::optional<SDChatPeer> Player::dbLoadChatPeer(uint64_t argCPID)
 {
-    auto query = argGroup ? g_dbPod->createQuery("select * from tbl_chatgroup where fld_id   = %llu", to_llu(argDBID))
-                          : g_dbPod->createQuery("select * from tbl_char      where fld_dbid = %llu", to_llu(argDBID));
-
-    if(query.executeStep()){
-        if(argGroup){
+    const SDChatPeerID sdCPID(argCPID);
+    if(sdCPID.group()){
+        if(auto query = g_dbPod->createQuery("select * from tbl_chatgroup where fld_id = %llu", to_llu(sdCPID.id())); query.executeStep()){
             return SDChatPeer
             {
-                .id = query.getColumn(argGroup ? "fld_id" : "fld_dbid"),
+                .id = query.getColumn("fld_id"),
                 .name = query.getColumn("fld_name").getString(),
                 .avatar = std::nullopt,
 
@@ -272,9 +270,14 @@ std::optional<SDChatPeer> Player::dbLoadChatPeer(bool argGroup, uint32_t argDBID
             };
         }
         else{
+            return std::nullopt;
+        }
+    }
+    else if(sdCPID.player()){
+        if(auto query = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(sdCPID.id())); query.executeStep()){
             return SDChatPeer
             {
-                .id = query.getColumn(argGroup ? "fld_id" : "fld_dbid"),
+                .id = query.getColumn("fld_dbid"),
                 .name = query.getColumn("fld_name").getString(),
                 .avatar = std::nullopt,
 
@@ -285,9 +288,38 @@ std::optional<SDChatPeer> Player::dbLoadChatPeer(bool argGroup, uint32_t argDBID
                 },
             };
         }
+        else{
+            return std::nullopt;
+        }
+    }
+    else if(sdCPID.special()){
+        if(sdCPID.id() == SYS_CHATDBID_SYSTEM){
+            return SDChatPeer
+            {
+                .id = SYS_CHATDBID_SYSTEM,
+                .name = SYS_NAME_CHATDBID_SYSTEM,
+            };
+        }
+        else if(sdCPID.id() == SYS_CHATDBID_GROUP){
+            return SDChatPeer
+            {
+                .id = SYS_CHATDBID_GROUP,
+                .name = SYS_NAME_CHATDBID_GROUP,
+            };
+        }
+        else if(sdCPID.id() == SYS_CHATDBID_AI){
+            return SDChatPeer
+            {
+                .id = SYS_CHATDBID_AI,
+                .name = SYS_NAME_CHATDBID_AI,
+            };
+        }
+        else{
+            return std::nullopt;
+        }
     }
     else{
-        return {};
+        throw fflerror("invalid cpid: 0x%016llx", to_llu(argCPID));
     }
 }
 
@@ -765,9 +797,9 @@ int Player::dbAddFriend(uint32_t argDBID)
     }
 }
 
-int Player::dbAddBlocked(uint32_t argDBID)
+int Player::dbBlockPlayer(uint32_t argDBID)
 {
-    int result = AB_NONE;
+    int result = BP_NONE;
     auto dbTrans = g_dbPod->createTransaction();
 
     g_dbPod->exec("delete from tbl_friend where fld_dbid = %llu and fld_friend = %llu", to_llu(dbid()), to_llu(argDBID));
@@ -783,10 +815,10 @@ int Player::dbAddBlocked(uint32_t argDBID)
             to_llu(argDBID));
 
         if(query.executeStep()){
-            result = AB_DONE;
+            result = BP_DONE;
         }
         else{
-            result = AB_EXIST;
+            result = BP_EXIST;
         }
     }
 

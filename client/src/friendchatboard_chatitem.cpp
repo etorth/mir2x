@@ -82,6 +82,50 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
 
           1,
           12,
+          0,
+          colorf::WHITE + colorf::A_SHF(255),
+          0,
+
+          LALIGN_LEFT,
+          0,
+          0,
+
+          2,
+          colorf::WHITE + colorf::A_SHF(255),
+
+          nullptr,
+          nullptr,
+          [this](const std::unordered_map<std::string, std::string> &attrList, int event)
+          {
+              if(event != BEVENT_RELEASE){
+                  return;
+              }
+
+              const auto idstr = LayoutBoard::findAttrValue(attrList, "id");
+              fflassert(idstr);
+
+              const auto id = to_sv(idstr);
+              if(id == SYS_AFRESP){
+                  const auto cpidstr = LayoutBoard::findAttrValue(attrList, "cpid");
+                  fflassert(cpidstr);
+
+                  getParentBoard(this)->queryChatPeer(SDChatPeerID(std::stoull(cpidstr)), [attrList, this](const SDChatPeer *sdCP, bool)
+                  {
+                      if(LayoutBoard::findAttrValue(attrList, "accept")){
+                          FriendChatBoard::getParentBoard(this)->requestAcceptAddFriend(*sdCP);
+                          if(LayoutBoard::findAttrValue(attrList, "addfriend")){
+                              FriendChatBoard::getParentBoard(this)->requestAddFriend(*sdCP, false);
+                          }
+                      }
+                      else if(LayoutBoard::findAttrValue(attrList, "reject")){
+                          FriendChatBoard::getParentBoard(this)->requestRejectAddFriend(*sdCP);
+                          if(LayoutBoard::findAttrValue(attrList, "addfriend")){
+                              FriendChatBoard::getParentBoard(this)->requestBlockPlayer(*sdCP);
+                          }
+                      }
+                  });
+              }
+          },
       }
 
     , background

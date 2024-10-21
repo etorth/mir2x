@@ -21,6 +21,7 @@
 #include "cerealf.hpp"
 #include "imeboard.hpp"
 #include "controlboard.hpp"
+#include "friendchatboard.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
@@ -903,4 +904,14 @@ void ProcessRun::on_SM_QUESTDESPUPDATE(const uint8_t *buf, size_t bufSize)
 void ProcessRun::on_SM_QUESTDESPLIST(const uint8_t *buf, size_t bufSize)
 {
     dynamic_cast<QuestStateBoard *>(getWidget("QuestStateBoard"))->setQuestDesp(cerealf::deserialize<SDQuestDespList>(buf, bufSize));
+}
+
+void ProcessRun::on_SM_ADDFRIENDACCEPTED(const uint8_t *buf, size_t bufSize)
+{
+    dynamic_cast<FriendChatBoard *>(getWidget("FriendChatBoard"))->onAddFriendAccepted(cerealf::deserialize<SDChatPeer>(buf, bufSize));
+}
+
+void ProcessRun::on_SM_ADDFRIENDREJECTED(const uint8_t *buf, size_t bufSize)
+{
+    dynamic_cast<FriendChatBoard *>(getWidget("FriendChatBoard"))->onAddFriendRejected(cerealf::deserialize<SDChatPeer>(buf, bufSize));
 }

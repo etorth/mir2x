@@ -359,31 +359,35 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
         postNetMessage(SM_OK, cerealf::serialize(SDAddFriendNotif
         {
             .notif = notif,
-        }), respID);
+        }),
+
+        respID);
     };
 
     const auto cmAF = ClientMsg::conv<CMAddFriend>(buf);
-    if(cmAF.dbid == dbid()){
+    const SDChatPeerID sdCPID(cmAF.cpid);
+
+    if(sdCPID == cpid()){
         fnPostNetMessage(AF_INVALID);
         return;
     }
 
-    if(!dbHasPlayer(cmAF.dbid)){
+    if(!dbHasPlayer(sdCPID.id())){
         fnPostNetMessage(AF_INVALID);
         return;
     }
 
-    if(dbBlocked(cmAF.dbid, dbid())){
+    if(dbBlocked(sdCPID.id(), dbid())){
         fnPostNetMessage(AF_BLOCKED);
         return;
     }
 
-    const auto fnForwardSystemMessage = [&cmAF, this](const std::string xmlChatMsg)
+    const auto fnForwardSystemMessage = [&sdCPID, this](const std::string xmlChatMsg)
     {
         const auto msgBuf = cerealf::serialize(xmlChatMsg);
-        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM), SDChatPeerID(CP_PLAYER, cmAF.dbid), msgBuf);
+        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM), sdCPID, msgBuf);
 
-        forwardNetPackage(uidf::getPlayerUID(cmAF.dbid), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
+        forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
         {
             SDChatMessage
             {
@@ -396,22 +400,22 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
                 .refer = std::nullopt,
 
                 .from {CP_SPECIAL, SYS_CHATDBID_SYSTEM},
-                .to   {CP_PLAYER, cmAF.dbid},
+                .to   {CP_PLAYER, sdCPID.id()},
 
                 .message = msgBuf, // keep serialized
             },
         }));
     };
 
-    switch(SDRuntimeConfig_getConfig<RTCFG_好友申请>(dbGetRuntimeConfig(cmAF.dbid))){
+    switch(SDRuntimeConfig_getConfig<RTCFG_好友申请>(dbGetRuntimeConfig(sdCPID.id()))){
         case FR_ACCEPT:
             {
-                const auto notif = dbAddFriend(cmAF.dbid);
+                const auto notif = dbAddFriend(sdCPID.id());
                 fnPostNetMessage(notif);
 
                 if(notif == AF_ACCEPTED){
                     fnForwardSystemMessage(str_printf(R"###(<layout><par>%s已经添加你为好友。</par></layout>)###", to_cstr(m_name)));
-                    m_sdFriendList.push_back(dbLoadChatPeer(false, cmAF.dbid).value());
+                    m_sdFriendList.push_back(dbLoadChatPeer(sdCPID.asU64()).value());
                 }
                 return;
             }
@@ -422,19 +426,82 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
             }
         default:
             {
+                fnPostNetMessage(AF_PENDING);
                 fnForwardSystemMessage(str_printf(R"###(
                 <layout>
                     <par><t color="red">%s</t>申请添加你为好友，你可以选择</par>
-                    <par><event id="1">同意</event></par>
-                    <par><event id="2">同意并添加对方为好友</event></par>
-                    <par><event id="3">拒绝</event></par>
-                    <par><event id="4">拒绝并将对方加入黑名单</event></par>
+                    <par><event id="%s" accept="" cpid="%llu"             >同意</event></par>
+                    <par><event id="%s" accept="" cpid="%llu" addfriend="">同意并添加对方为好友</event></par>
+                    <par><event id="%s" reject="" cpid="%llu"             >拒绝</event></par>
+                    <par><event id="%s" reject="" cpid="%llu"     block="">拒绝并将对方加入黑名单</event></par>
                 </layout>
-                )###", to_cstr(m_name)));
-                fnPostNetMessage(AF_PENDING);
+                )###",
+
+                to_cstr(m_name),
+                SYS_AFRESP, to_llu(cpid().asU64()),
+                SYS_AFRESP, to_llu(cpid().asU64()),
+                SYS_AFRESP, to_llu(cpid().asU64()),
+                SYS_AFRESP, to_llu(cpid().asU64())));
                 return;
             }
     }
+}
+
+void Player::net_CM_ACCEPTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+{
+    const auto cmAAF = ClientMsg::conv<CMAcceptAddFriend>(buf);
+    const SDChatPeerID sdCPID(cmAAF.cpid);
+
+    if(sdCPID == cpid()){
+        postNetMessage(SM_ERROR, respID);
+        return;
+    }
+
+    if(!dbHasPlayer(sdCPID.id())){
+        postNetMessage(SM_ERROR, respID);
+        return;
+    }
+
+    postNetMessage(SM_OK, respID);
+    forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDACCEPTED, cerealf::serialize(dbLoadChatPeer(sdCPID.asU64())));
+}
+
+void Player::net_CM_REJECTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+{
+    const auto cmRAF = ClientMsg::conv<CMRejectAddFriend>(buf);
+    const SDChatPeerID sdCPID(cmRAF.cpid);
+
+    if(sdCPID == cpid()){
+        postNetMessage(SM_ERROR, respID);
+        return;
+    }
+
+    if(!dbHasPlayer(sdCPID.id())){
+        postNetMessage(SM_ERROR, respID);
+        return;
+    }
+
+    postNetMessage(SM_OK, respID);
+    forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDREJECTED, cerealf::serialize(dbLoadChatPeer(sdCPID.asU64())));
+}
+
+void Player::net_CM_BLOCKPLAYER(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+{
+    const auto cmBP = ClientMsg::conv<CMBlockPlayer>(buf);
+    const SDChatPeerID sdCPID(cmBP.cpid);
+
+    if(sdCPID == cpid()){
+        postNetMessage(SM_ERROR, respID);
+        return;
+    }
+
+    if(!dbHasPlayer(sdCPID.id())){
+        postNetMessage(SM_ERROR, respID);
+        return;
+    }
+
+    dbBlockPlayer(sdCPID.id());
+    postNetMessage(SM_OK, respID);
 }
 
 void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint64_t)

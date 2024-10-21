@@ -46,6 +46,9 @@ enum CMType: uint8_t
     CM_MAKEITEM,
     CM_BUY,
     CM_ADDFRIEND,
+    CM_ACCEPTADDFRIEND,
+    CM_REJECTADDFRIEND,
+    CM_BLOCKPLAYER,
     CM_CHATMESSAGE,
     CM_REQUESTEQUIPWEAR,
     CM_REQUESTGRABWEAR,
@@ -224,7 +227,22 @@ struct CMBuy
 
 struct CMAddFriend
 {
-    uint32_t dbid;
+    uint64_t cpid;
+};
+
+struct CMAcceptAddFriend
+{
+    uint64_t cpid;
+};
+
+struct CMRejectAddFriend
+{
+    uint64_t cpid;
+};
+
+struct CMBlockPlayer
+{
+    uint64_t cpid;
 };
 
 struct CMRequestEquipWear
@@ -319,6 +337,9 @@ namespace
         _RSVD_register_clientmsg(CM_MAKEITEM,                   1, sizeof(CMMakeItem)                  );
         _RSVD_register_clientmsg(CM_BUY,                        1, sizeof(CMBuy)                       );
         _RSVD_register_clientmsg(CM_ADDFRIEND,                  1, sizeof(CMAddFriend)                 );
+        _RSVD_register_clientmsg(CM_ACCEPTADDFRIEND,            1, sizeof(CMAcceptAddFriend)           );
+        _RSVD_register_clientmsg(CM_REJECTADDFRIEND,            1, sizeof(CMRejectAddFriend)           );
+        _RSVD_register_clientmsg(CM_BLOCKPLAYER,                1, sizeof(CMBlockPlayer)               );
         _RSVD_register_clientmsg(CM_CHATMESSAGE,                3                                      );
         _RSVD_register_clientmsg(CM_REQUESTEQUIPWEAR,           1, sizeof(CMRequestEquipWear)          );
         _RSVD_register_clientmsg(CM_REQUESTGRABWEAR,            1, sizeof(CMRequestGrabWear)           );

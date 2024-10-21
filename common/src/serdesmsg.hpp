@@ -783,7 +783,7 @@ struct SDAddFriendNotif
     }
 };
 
-struct SDAddBlockedNotif
+struct SDBlockPlayerNotif
 {
     int notif = 0;
     template<typename Archive> void serialize(Archive & ar)

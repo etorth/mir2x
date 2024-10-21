@@ -389,14 +389,14 @@ enum FriendRespondType: int
     FR_END,
 };
 
-enum AddBlockedResultType: int
+enum BlockPlayerResultType: int
 {
-    AB_NONE    = 0,
-    AB_BEGIN   = 1,
-    AB_INVALID = 1,
-    AB_DONE,
-    AB_EXIST,           // has already been in blacklist
-    AB_END,
+    BP_NONE    = 0,
+    BP_BEGIN   = 1,
+    BP_INVALID = 1,
+    BP_DONE,
+    BP_EXIST,   // has already been in blacklist
+    BP_END,
 };
 
 enum ChatPeerType: int

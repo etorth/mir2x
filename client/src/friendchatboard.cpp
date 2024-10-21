@@ -1271,13 +1271,13 @@ const FriendChatBoard *FriendChatBoard::getParentBoard(const Widget *widget)
     throw fflerror("widget is not a decedent of FriendChatBoard");
 }
 
-void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer, bool switchToChatPreview)
+void FriendChatBoard::requestAddFriend(const SDChatPeer &argCP, bool switchToChatPreview)
 {
     CMAddFriend cmAF;
     std::memset(&cmAF, 0, sizeof(cmAF));
 
-    cmAF.dbid = chatPeer.id;
-    g_client->send({CM_ADDFRIEND, cmAF}, [chatPeer, switchToChatPreview, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    cmAF.cpid = argCP.cpid().asU64();
+    g_client->send({CM_ADDFRIEND, cmAF}, [argCP, switchToChatPreview, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
     {
         switch(headCode){
             case SM_OK:
@@ -1285,31 +1285,30 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer, bool switchTo
                     switch(const auto sdAFN = cerealf::deserialize<SDAddFriendNotif>(buf, bufSize); sdAFN.notif){
                         case AF_ACCEPTED:
                             {
-                                m_sdFriendList.push_back(chatPeer);
-
-                                dynamic_cast<FriendListPage  *>(m_uiPageList[UIPage_FRIENDLIST ].page)->append(chatPeer);
-                                dynamic_cast<ChatPreviewPage *>(m_uiPageList[UIPage_CHATPREVIEW].page)->updateChatPreview(chatPeer.cpid(), str_printf(R"###(<layout><par><t color="red">%s</t>已经通过你的好友申请，现在可以开始聊天了。</par></layout>)###", to_cstr(chatPeer.name)));
-
+                                onAddFriendAccepted(argCP);
                                 if(switchToChatPreview){
                                     setUIPage(UIPage_CHATPREVIEW);
                                 }
-
-                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经添加好友<t color="red">%s</t></par>)###", to_cstr(chatPeer.name));
+                                break;
+                            }
+                        case AF_REJECTED:
+                            {
+                                onAddFriendRejected(argCP);
                                 break;
                             }
                         case AF_EXIST:
                             {
-                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">重复添加好友<t color="red">%s</t></par>)###", to_cstr(chatPeer.name));
+                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">重复添加好友<t color="red">%s</t></par>)###", to_cstr(argCP.name));
                                 break;
                             }
                         case AF_PENDING:
                             {
-                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">等待<t color="red">%s</t>处理你的好友验证</par>)###", to_cstr(chatPeer.name));
+                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">等待<t color="red">%s</t>处理你的好友验证</par>)###", to_cstr(argCP.name));
                                 break;
                             }
                         case AF_BLOCKED:
                             {
-                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经被<t color="red">%s</t>加入了黑名单</par>)###", to_cstr(chatPeer.name));
+                                m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经被<t color="red">%s</t>加入了黑名单</par>)###", to_cstr(argCP.name));
                                 break;
                             }
                         default:
@@ -1321,8 +1320,92 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &chatPeer, bool switchTo
                 }
             default:
                 {
-                    throw fflerror("failed to add friend: %s", to_cstr(chatPeer.name));
+                    throw fflerror("failed to add friend: %s", to_cstr(argCP.name));
                 }
         }
     });
+}
+
+void FriendChatBoard::requestAcceptAddFriend(const SDChatPeer &argCP)
+{
+    CMAcceptAddFriend cmAAF;
+    std::memset(&cmAAF, 0, sizeof(cmAAF));
+
+    cmAAF.cpid = argCP.cpid().asU64();
+    g_client->send({CM_ACCEPTADDFRIEND, cmAAF}, [argCP, this](uint8_t headCode, const uint8_t *, size_t)
+    {
+        switch(headCode){
+            case SM_OK:
+                {
+                    m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经通过<t color="red">%s</t>的好友申请</par>)###", to_cstr(argCP.name));
+                    break;
+                }
+            default:
+                {
+                    m_processRun->addCBParLog(u8R"###(<par bgcolor="red">无效的请求。</par>)###");
+                    break;
+                }
+        }
+    });
+}
+
+void FriendChatBoard::requestRejectAddFriend(const SDChatPeer &argCP)
+{
+    CMRejectAddFriend cmRAF;
+    std::memset(&cmRAF, 0, sizeof(cmRAF));
+
+    cmRAF.cpid = argCP.cpid().asU64();
+    g_client->send({CM_REJECTADDFRIEND, cmRAF}, [argCP, this](uint8_t headCode, const uint8_t *, size_t)
+    {
+        switch(headCode){
+            case SM_OK:
+                {
+                    m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经拒绝<t color="red">%s</t>的好友申请。</par>)###", to_cstr(argCP.name));
+                    break;
+                }
+            default:
+                {
+                    m_processRun->addCBParLog(u8R"###(<par bgcolor="red">无效的请求。</par>)###");
+                    break;
+                }
+        }
+    });
+}
+
+void FriendChatBoard::requestBlockPlayer(const SDChatPeer &argCP)
+{
+    CMBlockPlayer cmBP;
+    std::memset(&cmBP, 0, sizeof(cmBP));
+
+    cmBP.cpid = argCP.cpid().asU64();
+    g_client->send({CM_BLOCKPLAYER, cmBP}, [argCP, this](uint8_t headCode, const uint8_t *, size_t)
+    {
+        switch(headCode){
+            case SM_OK:
+                {
+                    m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">你已经拉黑<t color="red">%s</t>。</par>)###", to_cstr(argCP.name));
+                    break;
+                }
+            default:
+                {
+                    m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)">无效的拉黑请求。</par>)###");
+                    break;
+                }
+        }
+    });
+}
+
+void FriendChatBoard::onAddFriendAccepted(const SDChatPeer &argCP)
+{
+    m_sdFriendList.push_back(argCP);
+
+    dynamic_cast<FriendListPage  *>(m_uiPageList[UIPage_FRIENDLIST ].page)->append(argCP);
+    dynamic_cast<ChatPreviewPage *>(m_uiPageList[UIPage_CHATPREVIEW].page)->updateChatPreview(argCP.cpid(), str_printf(R"###(<layout><par><t color="red">%s</t>已经通过你的好友申请，现在可以开始聊天了。</par></layout>)###", to_cstr(argCP.name)));
+
+    m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)"><t color="red">%s</t>已经通过了你的好友请求。</par>)###", to_cstr(argCP.name));
+}
+
+void FriendChatBoard::onAddFriendRejected(const SDChatPeer &argCP)
+{
+    m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)"><t color="red">%s</t>已经拒绝了你的好友请求。</par>)###", to_cstr(argCP.name));
 }

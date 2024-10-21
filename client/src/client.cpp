@@ -275,6 +275,8 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
         _INSTALL_SM_HANDLER(ProcessRun, SM_TEXT)
         _INSTALL_SM_HANDLER(ProcessRun, SM_UPDATEITEM)
         _INSTALL_SM_HANDLER(ProcessRun, SM_CREATECHATGROUP)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_ADDFRIENDACCEPTED)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_ADDFRIENDREJECTED)
 
 #undef _INSTALL_SM_HANDLER
 

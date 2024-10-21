@@ -103,6 +103,10 @@ constexpr uint32_t SYS_CHATDBID_SYSTEM = SYS_MAXDBID + 1;
 constexpr uint32_t SYS_CHATDBID_GROUP  = SYS_MAXDBID + 2;
 constexpr uint32_t SYS_CHATDBID_AI     = SYS_MAXDBID + 3;
 
+constexpr char SYS_NAME_CHATDBID_SYSTEM[] = "系统助手";
+constexpr char SYS_NAME_CHATDBID_GROUP [] =   "群助手";
+constexpr char SYS_NAME_CHATDBID_AI    [] =   "AI助手";
+
 constexpr int SYS_MAXNPCDISTANCE = 10;
 constexpr char SYS_GOLDNAME[] = "金币（小）"; // always use 金币（小）to represent the gold item
 constexpr char SYS_QUEST_TBL_PREFIX[] = "tbl_questdb_";
@@ -152,6 +156,8 @@ constexpr char SYS_COOP[] = "_RSVD_NAME_COOP_293173013";
 constexpr char SYS_QSTFSM[] = "_RSVD_NAME_QST_FSM_4194347313";
 
 constexpr char SYS_FLAGVAL[] = "_RSVD_NAME_FLAG_VAL_8192362390";
+
+constexpr char SYS_AFRESP[] = "_RSVD_NAME_AFRESP_8368138412597";
 
 constexpr inline size_t SYS_SUMEXP(uint32_t level)
 {
