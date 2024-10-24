@@ -38,7 +38,7 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
 
           [](const Widget *self, int dstDrawX, int dstDrawY)
           {
-              g_sdlDevice->fillRectangle(colorf::GREY + colorf::A_SHF(128), dstDrawX, dstDrawY, self->w(), self->h(), ChatItemRef::CORNER);
+              g_sdlDevice->fillRectangle(colorf::GREY + colorf::A_SHF(200), dstDrawX, dstDrawY, self->w(), self->h(), ChatItemRef::CORNER);
           },
 
           this,
@@ -71,8 +71,10 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
 
           [](const Widget *, int drawDstX, int drawDstY)
           {
-              if(auto coverTexPtr = g_sdlDevice->getCover(ChatItemRef::BUTTON_R, 360)){
-                  g_sdlDevice->drawTexture(coverTexPtr, drawDstX, drawDstY);
+              if(auto texPtr = g_sdlDevice->getCover(ChatItemRef::BUTTON_R, 360)){
+                  SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+                  SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::GREY + colorf::A_SHF(255));
+                  g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY);
               }
           },
       }
