@@ -7,6 +7,7 @@ extern SDLDevice *g_sdlDevice;
 FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
         int argX,
         int argY,
+        int argW,
 
         std::string argLayoutXML,
 
@@ -18,13 +19,30 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
           argDir,
           argX,
           argY,
+          argW,
+          0, // setup later
 
-          {},
-          {},
           {},
 
           argParent,
           argAutoDelete,
+      }
+
+    , background
+      {
+          DIR_UPLEFT,
+          0,
+          0,
+          [this](const Widget *){ return w(); },
+          [this](const Widget *){ return h(); },
+
+          [](const Widget *self, int dstDrawX, int dstDrawY)
+          {
+              g_sdlDevice->fillRectangle(colorf::GREY + colorf::A_SHF(128), dstDrawX, dstDrawY, self->w(), self->h(), ChatItemRef::CORNER);
+          },
+
+          this,
+          false,
       }
 
     , cross
@@ -77,8 +95,8 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
     , crossButton
       {
           DIR_RIGHT,
-          [this](const Widget *){ return w() - ChatItemRef::MARGIN; },
-          [this](const Widget *){ return h() / 2;                   },
+          [this](const Widget *){ return w() - ChatItemRef::MARGIN - 1; },
+          [this](const Widget *){ return h() / 2;                       },
 
           {
               &crossButtonGfx,
@@ -122,10 +140,10 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
     , message
       {
           DIR_UPLEFT,
-          0,
-          0,
+          ChatItemRef::MARGIN,
+          ChatItemRef::MARGIN,
 
-          20,
+          std::max<int>(1, argW - ChatItemRef::MARGIN - ChatItemRef::BUTTON_MARGIN * 2 - ChatItemRef::BUTTON_R * 2 - 1),
           argLayoutXML.c_str(),
           0,
 
@@ -156,18 +174,9 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
           this,
           false,
       }
-
-    , background
-      {
-          DIR_UPLEFT,
-          0,
-          0,
-          [this](const Widget *){ return w(); },
-          [this](const Widget *){ return h(); },
-
-          [](const Widget *self, int dstDrawX, int dstDrawY)
-          {
-              g_sdlDevice->fillRectangle(colorf::GREY + colorf::A_SHF(128), dstDrawX, dstDrawY, self->w(), self->h(), ChatItemRef::CORNER);
-          },
-      }
-{}
+{
+    setH([this](const Widget *)
+    {
+        return ChatItemRef::MARGIN * 2 + message.h();
+    });
+}

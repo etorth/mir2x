@@ -218,11 +218,11 @@ class FriendChatBoard: public Widget
             //  ->| |<----------------------------------- MARGIN
             //  ->||<------------------------------------ CORNER
             //    /------------------------------\  -
-            //    | +-------+                    |  |
-            //    | |message|                (x) |  +---- HEIGHT = MARGIN * 2 + message.h()
-            //    | +-------+                    |  |
+            //    | +----------------------+     |  |
+            //    | |        message       | (x) |  +---- HEIGHT = MARGIN * 2 + message.h()
+            //    | +----------------------+     |  |
             //    \------------------------------/  -
-            //
+            //                           ->| |<---------- BUTTON_MARGIN
             //                              ->||<-------- BUTTON_R
             //                               ->| |<------ BUTTON_MARGIN
 
@@ -232,15 +232,17 @@ class FriendChatBoard: public Widget
             constexpr static int BUTTON_R      = 5;
             constexpr static int BUTTON_MARGIN = 5;
 
+            ShapeClipBoard background; // round corner rectangle
+
             LabelBoard     cross;
             ShapeClipBoard crossBg; // round cover under x
             Widget         crossButtonGfx;
             TrigfxButton   crossButton;
 
-            LayoutBoard    message;
-            ShapeClipBoard background; // round corner rectangle
+            LayoutBoard message;
 
             ChatItemRef(dir8_t,
+                    int,
                     int,
                     int,
 
@@ -273,9 +275,9 @@ class FriendChatBoard: public Widget
             //          |             MESSAGE_MARGIN        |  |
             //          +-----------------------------------+  +-- REF_GAP
             //                                                 |
-            //                 /---------\                     -
-            //                 | msg ref |
-            //                 \---------/
+            //             /---------\                         -
+            //             | msg ref |
+            //             \---------/
             //
             //
             //            -->|  |<-- TRIANGLE_WIDTH
