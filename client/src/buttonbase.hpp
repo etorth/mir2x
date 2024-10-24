@@ -67,11 +67,11 @@ class ButtonBase: public Widget
         std::function<void(Widget *)> m_onClick;
 
     public:
-        ButtonBase(dir8_t,
-                int,
-                int,
-                int,
-                int,
+        ButtonBase(Widget::VarDir,
+                Widget::VarOffset,
+                Widget::VarOffset,
+                Widget::VarSize,
+                Widget::VarSize,
 
                 std::function<void(Widget *)> = nullptr,
                 std::function<void(Widget *)> = nullptr,

@@ -195,6 +195,18 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
               }
           },
       }
+
+    , msgref
+      {
+          DIR_UPLEFT,
+          0,
+          0,
+
+          to_cstr(argMessageStr),
+
+          this,
+          false,
+      }
 {
     const auto fnMoveAdd = [this](Widget *widgetPtr, dir8_t dstDir, int dstX, int dstY)
     {
@@ -228,6 +240,10 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
             fnMoveAdd(&message   , DIR_UPRIGHT, realWidth - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN, ChatItem::MESSAGE_MARGIN                              );
         }
     }
+
+    if(avatarLeft) fnMoveAdd(&msgref, DIR_UPLEFT , message.dx()                  , message.dy() + message.h() - 1 + ChatItem::REF_GAP);
+    else           fnMoveAdd(&msgref, DIR_UPRIGHT, message.dx() + message.w() - 1, message.dy() + message.h() - 1 + ChatItem::REF_GAP);
+
 }
 
 void FriendChatBoard::ChatItem::update(double fUpdateTime)

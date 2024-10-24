@@ -11,9 +11,9 @@ class TrigfxButton: public ButtonBase
 
     public:
         TrigfxButton(
-                dir8_t,
-                int,
-                int,
+                Widget::VarDir,
+                Widget::VarOffset,
+                Widget::VarOffset,
 
                 std::array<const Widget *, 3>,
                 std::array<std::optional<uint32_t>, 3>,
