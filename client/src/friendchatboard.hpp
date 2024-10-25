@@ -314,7 +314,7 @@ class FriendChatBoard: public Widget
             constexpr static int MESSAGE_MIN_WIDTH  = 10; // handling small size message
             constexpr static int MESSAGE_MIN_HEIGHT = 10;
 
-            constexpr static int REF_GAP = 20;
+            constexpr static int REF_GAP = 10;
 
             bool pending = true;
             double accuTime = 0.0;
