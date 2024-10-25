@@ -226,8 +226,8 @@ class FriendChatBoard: public Widget
             //                              ->||<-------- BUTTON_R
             //                               ->| |<------ BUTTON_MARGIN
 
-            constexpr static int MARGIN = 5;
-            constexpr static int CORNER = 5;
+            constexpr static int MARGIN = 3;
+            constexpr static int CORNER = 3;
 
             constexpr static int BUTTON_R      = 5;
             constexpr static int BUTTON_MARGIN = 5;
