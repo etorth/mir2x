@@ -193,14 +193,3 @@ bool MenuBoard::processEvent(const SDL_Event &event, bool valid)
             }
     }
 }
-
-Widget *MenuBoard::getSeparator()
-{
-    static Widget separator
-    {
-        DIR_UPLEFT,
-        0,
-        0,
-    };
-    return &separator;
-}
