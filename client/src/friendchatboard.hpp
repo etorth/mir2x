@@ -329,7 +329,7 @@ class FriendChatBoard: public Widget
             LayoutBoard    message;
             ShapeClipBoard background;
 
-            ChatItemRef *msgref = nullptr;
+            ChatItemRef * const msgref = nullptr;
 
             ChatItem(dir8_t,
                     int,
