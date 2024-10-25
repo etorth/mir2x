@@ -161,7 +161,7 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
           false,
 
           0,
-          12,
+          20,
           0,
           colorf::WHITE + colorf::A_SHF(255),
           0,
