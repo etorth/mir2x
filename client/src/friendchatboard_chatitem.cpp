@@ -231,7 +231,7 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
         }
     }
     else{
-        const auto realWidth = ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH + std::max<int>(message.w(), ChatItem::MESSAGE_MIN_WIDTH) + ChatItem::MESSAGE_MARGIN * 2;
+        const auto realWidth = ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH + std::max<int>({name.w(), std::max<int>(message.w(), ChatItem::MESSAGE_MIN_WIDTH) + ChatItem::MESSAGE_MARGIN * 2, msgref.w()});
         fnMoveAdd(&avatar, DIR_UPRIGHT, realWidth - 1, 0);
 
         if(showName){
@@ -247,7 +247,6 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
 
     if(avatarLeft) fnMoveAdd(&msgref, DIR_UPLEFT , message.dx()                   - ChatItem::MESSAGE_MARGIN, message.dy() + message.h() - 1 + ChatItem::REF_GAP);
     else           fnMoveAdd(&msgref, DIR_UPRIGHT, message.dx() + message.w() - 1 + ChatItem::MESSAGE_MARGIN, message.dy() + message.h() - 1 + ChatItem::REF_GAP);
-
 }
 
 void FriendChatBoard::ChatItem::update(double fUpdateTime)
