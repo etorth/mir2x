@@ -201,7 +201,10 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
           DIR_UPLEFT,
           0,
           0,
-          100,
+          300,
+
+          false,
+          false,
 
           to_cstr(argMessageStr),
 

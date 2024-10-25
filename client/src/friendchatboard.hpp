@@ -244,7 +244,10 @@ class FriendChatBoard: public Widget
             ChatItemRef(dir8_t,
                     int,
                     int,
-                    int,
+                    int, // max width
+
+                    bool, // force max width
+                    bool, // show x button
 
                     std::string,
 

@@ -7,7 +7,10 @@ extern SDLDevice *g_sdlDevice;
 FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
         int argX,
         int argY,
-        int argW,
+        int argMaxWidth,
+
+        bool argForceWidth,
+        bool argShowButton,
 
         std::string argLayoutXML,
 
@@ -19,8 +22,8 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
           argDir,
           argX,
           argY,
-          argW,
           0, // setup later
+          0, //
 
           {},
 
@@ -145,7 +148,8 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
           ChatItemRef::MARGIN,
           ChatItemRef::MARGIN,
 
-          std::max<int>(1, argW - ChatItemRef::MARGIN - ChatItemRef::BUTTON_MARGIN * 2 - ChatItemRef::BUTTON_R * 2 - 1),
+          std::max<int>(1, argShowButton ? (argMaxWidth - ChatItemRef::MARGIN - ChatItemRef::BUTTON_MARGIN * 2 - ChatItemRef::BUTTON_R * 2 - 1)
+                                         : (argMaxWidth - ChatItemRef::MARGIN * 2)),
           argLayoutXML.c_str(),
           0,
 
@@ -177,8 +181,25 @@ FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
           false,
       }
 {
+    crossButton.setShow(argShowButton);
+
+    if(argForceWidth){
+        setW(std::max<int>(0, argMaxWidth));
+    }
+    else{
+        setW([argShowButton, this](const Widget *)
+        {
+            if(argShowButton){
+                return ChatItemRef::MARGIN + message.w() + ChatItemRef::BUTTON_MARGIN * 2 + ChatItemRef::BUTTON_R * 2 + 1;
+            }
+            else{
+                return ChatItemRef::MARGIN * 2 + message.w();
+            }
+        });
+    }
+
     setH([this](const Widget *)
     {
-        return ChatItemRef::MARGIN * 2 + message.h();
+        return std::max<int>(ChatItemRef::MARGIN * 2 + message.h(), ChatItemRef::BUTTON_R * 2 + 1);
     });
 }
