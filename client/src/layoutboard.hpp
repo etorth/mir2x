@@ -83,9 +83,9 @@ class LayoutBoard: public Widget
 
     public:
         LayoutBoard(
-                Widget::VarDir    argDir,
-                Widget::VarOffset argX,
-                Widget::VarOffset argY,
+                WidgetVarDir    argDir,
+                WidgetVarOffset argX,
+                WidgetVarOffset argY,
 
                 int argLineWidth,
 

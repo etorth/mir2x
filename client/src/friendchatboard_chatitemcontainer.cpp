@@ -79,7 +79,7 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
         int argX,
         int argY,
 
-        Widget::VarSize argH,
+        WidgetVarSize argH,
 
         Widget *argParent,
         bool    argAutoDelete)
@@ -306,6 +306,7 @@ void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::
 
         to_u8cstr("..."),
         to_u8cstr(cerealf::deserialize<std::string>(sdCM.message)),
+        nullptr,
 
         [](const ImageBoard *)
         {

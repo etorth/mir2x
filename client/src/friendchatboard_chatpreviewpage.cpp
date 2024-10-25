@@ -1,9 +1,9 @@
 #include "friendchatboard.hpp"
 
-FriendChatBoard::ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
+FriendChatBoard::ChatPreviewPage::ChatPreviewPage(WidgetVarDir argDir,
 
-        Widget::VarOffset argX,
-        Widget::VarOffset argY,
+        WidgetVarOffset argX,
+        WidgetVarOffset argY,
 
         Widget *argParent,
         bool    argAutoDelete)

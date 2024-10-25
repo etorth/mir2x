@@ -12,8 +12,8 @@ class ShapeClipBoard: public Widget
         ShapeClipBoard(dir8_t,
                 int,
                 int,
-                Widget::VarSize,
-                Widget::VarSize,
+                WidgetVarSize,
+                WidgetVarSize,
 
                 std::function<void(const Widget *, int, int)>,
 

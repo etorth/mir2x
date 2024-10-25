@@ -4,10 +4,10 @@
 class MarginWrapper: public Widget
 {
     public:
-        MarginWrapper(Widget::VarDir argDir,
+        MarginWrapper(WidgetVarDir argDir,
 
-                Widget::VarOffset argX,
-                Widget::VarOffset argY,
+                WidgetVarOffset argX,
+                WidgetVarOffset argY,
 
                 Widget *argWidget,
                 bool    argWidgetAutoDelete,

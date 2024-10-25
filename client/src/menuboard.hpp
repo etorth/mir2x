@@ -6,7 +6,7 @@
 class MenuBoard: public Widget
 {
     private:
-        const Widget::VarSize m_varW;
+        const WidgetVarSize m_varW;
 
     private:
         const int m_itemSpace;
@@ -23,7 +23,7 @@ class MenuBoard: public Widget
                 int,
                 int,
 
-                Widget::VarSize,
+                WidgetVarSize,
 
                 int,
                 int,

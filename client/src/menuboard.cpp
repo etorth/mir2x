@@ -8,7 +8,7 @@ MenuBoard::MenuBoard(dir8_t argDir,
         int argX,
         int argY,
 
-        Widget::VarSize argVarW,
+        WidgetVarSize argVarW,
 
         int argItemSpace,
         int argSeperatorSpace,
@@ -43,7 +43,7 @@ MenuBoard::MenuBoard(dir8_t argDir,
         fflassert(std::get<int>(m_varW) > 0, m_varW);
     }
 
-    setW([this]() -> Widget::VarSize
+    setW([this]() -> WidgetVarSize
     {
         if(hasIntSize(m_varW)){
             return std::get<int>(m_varW) + m_margin[2] + m_margin[3];

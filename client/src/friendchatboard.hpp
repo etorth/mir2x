@@ -76,9 +76,9 @@ class FriendChatBoard: public Widget
         struct FriendListPage: public Widget
         {
             Widget canvas;
-            FriendListPage(Widget::VarDir,
-                    Widget::VarOffset,
-                    Widget::VarOffset,
+            FriendListPage(WidgetVarDir,
+                    WidgetVarOffset,
+                    WidgetVarOffset,
 
                     Widget * = nullptr,
                     bool     = false);
@@ -119,10 +119,10 @@ class FriendChatBoard: public Widget
             InputLine  input;
             LabelBoard hint;
 
-            SearchInputLine(Widget::VarDir,
+            SearchInputLine(WidgetVarDir,
 
-                    Widget::VarOffset,
-                    Widget::VarOffset,
+                    WidgetVarOffset,
+                    WidgetVarOffset,
 
                     Widget * = nullptr,
                     bool     = false);
@@ -161,10 +161,10 @@ class FriendChatBoard: public Widget
             ImageBoard icon;
             LabelBoard label;
 
-            SearchAutoCompletionItem(Widget::VarDir,
+            SearchAutoCompletionItem(WidgetVarDir,
 
-                    Widget::VarOffset,
-                    Widget::VarOffset,
+                    WidgetVarOffset,
+                    WidgetVarOffset,
 
                     bool,
                     SDChatPeer,
@@ -200,10 +200,10 @@ class FriendChatBoard: public Widget
             Widget autocompletes;
             Widget candidates;
 
-            SearchPage(Widget::VarDir,
+            SearchPage(WidgetVarDir,
 
-                    Widget::VarOffset,
-                    Widget::VarOffset,
+                    WidgetVarOffset,
+                    WidgetVarOffset,
 
                     Widget * = nullptr,
                     bool     = false);
@@ -329,7 +329,7 @@ class FriendChatBoard: public Widget
             LayoutBoard    message;
             ShapeClipBoard background;
 
-            ChatItemRef msgref;
+            ChatItemRef *msgref = nullptr;
 
             ChatItem(dir8_t,
                     int,
@@ -337,6 +337,7 @@ class FriendChatBoard: public Widget
 
                     bool,
 
+                    const char8_t *,
                     const char8_t *,
                     const char8_t *,
 
@@ -399,7 +400,7 @@ class FriendChatBoard: public Widget
                     int,
                     int,
 
-                    Widget::VarSize,
+                    WidgetVarSize,
 
                     Widget * = nullptr,
                     bool     = false);
@@ -541,10 +542,10 @@ class FriendChatBoard: public Widget
         struct ChatPreviewPage: public Widget
         {
             Widget canvas;
-            ChatPreviewPage(Widget::VarDir,
+            ChatPreviewPage(WidgetVarDir,
 
-                    Widget::VarOffset,
-                    Widget::VarOffset,
+                    WidgetVarOffset,
+                    WidgetVarOffset,
 
                     Widget * = nullptr,
                     bool     = false);

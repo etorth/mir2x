@@ -5,10 +5,10 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::SearchAutoCompletionItem::SearchAutoCompletionItem(Widget::VarDir argDir,
+FriendChatBoard::SearchAutoCompletionItem::SearchAutoCompletionItem(WidgetVarDir argDir,
 
-        Widget::VarOffset argX,
-        Widget::VarOffset argY,
+        WidgetVarOffset argX,
+        WidgetVarOffset argY,
 
         bool argByID,
         SDChatPeer argCandidate,

@@ -6,10 +6,10 @@
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 
-FriendChatBoard::SearchInputLine::SearchInputLine(Widget::VarDir argDir,
+FriendChatBoard::SearchInputLine::SearchInputLine(WidgetVarDir argDir,
 
-        Widget::VarOffset argX,
-        Widget::VarOffset argY,
+        WidgetVarOffset argX,
+        WidgetVarOffset argY,
 
         Widget *argParent,
         bool    argAutoDelete)

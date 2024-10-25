@@ -21,6 +21,12 @@
 #include "fflerror.hpp"
 #include "protocoldef.hpp"
 
+class Widget;
+using WidgetVarDir    = std::variant<             dir8_t, std::function<dir8_t(const Widget *)>>;
+using WidgetVarOffset = std::variant<                int, std::function<   int(const Widget *)>>;
+using WidgetVarSize   = std::variant<std::monostate, int, std::function<   int(const Widget *)>>;
+using WidgetVarFlag   = std::variant<               bool, std::function<  bool(const Widget *)>>;
+
 class Widget;        // size concept
 class WidgetTreeNode // tree concept, used by class Widget only
 {
@@ -234,7 +240,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
 
     public:
         virtual void addChild(Widget *, bool);
-        virtual void addChild(dir8_t, int, int, Widget *, bool);
+        virtual void addChild(Widget *, WidgetVarDir, WidgetVarOffset, WidgetVarOffset, bool);
 
     public:
         bool hasChild() const;
@@ -268,29 +274,23 @@ class WidgetTreeNode // tree concept, used by class Widget only
 class Widget: public WidgetTreeNode
 {
     public:
-        using VarDir    = std::variant<             dir8_t, std::function<dir8_t(const Widget *)>>;
-        using VarOffset = std::variant<                int, std::function<   int(const Widget *)>>;
-        using VarSize   = std::variant<std::monostate, int, std::function<   int(const Widget *)>>;
-        using VarFlag   = std::variant<               bool, std::function<  bool(const Widget *)>>;
-
-    public:
-        static bool hasIntDir(const Widget::VarDir &varDir)
+        static bool hasIntDir(const WidgetVarDir &varDir)
         {
             return varDir.index() == 0;
         }
 
-        static bool hasFuncDir(const Widget::VarDir &varDir)
+        static bool hasFuncDir(const WidgetVarDir &varDir)
         {
             return varDir.index() == 1;
         }
 
-        static dir8_t  asIntDir(const Widget::VarDir &varDir) { return std::get<dir8_t>(varDir); }
-        static dir8_t &asIntDir(      Widget::VarDir &varDir) { return std::get<dir8_t>(varDir); }
+        static dir8_t  asIntDir(const WidgetVarDir &varDir) { return std::get<dir8_t>(varDir); }
+        static dir8_t &asIntDir(      WidgetVarDir &varDir) { return std::get<dir8_t>(varDir); }
 
-        static const std::function<dir8_t(const Widget *)> &asFuncDir(const Widget::VarDir &varDir) { return std::get<std::function<dir8_t(const Widget *)>>(varDir); }
-        static       std::function<dir8_t(const Widget *)> &asFuncDir(      Widget::VarDir &varDir) { return std::get<std::function<dir8_t(const Widget *)>>(varDir); }
+        static const std::function<dir8_t(const Widget *)> &asFuncDir(const WidgetVarDir &varDir) { return std::get<std::function<dir8_t(const Widget *)>>(varDir); }
+        static       std::function<dir8_t(const Widget *)> &asFuncDir(      WidgetVarDir &varDir) { return std::get<std::function<dir8_t(const Widget *)>>(varDir); }
 
-        static dir8_t evalDir(const Widget::VarDir &varDir, const Widget *widgetPtr)
+        static dir8_t evalDir(const WidgetVarDir &varDir, const Widget *widgetPtr)
         {
             return std::visit(VarDispatcher
             {
@@ -307,23 +307,23 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        static bool hasIntOffset(const Widget::VarOffset &varOff)
+        static bool hasIntOffset(const WidgetVarOffset &varOff)
         {
             return varOff.index() == 0;
         }
 
-        static bool hasFuncOffset(const Widget::VarOffset &varOff)
+        static bool hasFuncOffset(const WidgetVarOffset &varOff)
         {
             return varOff.index() == 1;
         }
 
-        static int  asIntOffset(const Widget::VarOffset &varOff) { return std::get<int>(varOff); }
-        static int &asIntOffset(      Widget::VarOffset &varOff) { return std::get<int>(varOff); }
+        static int  asIntOffset(const WidgetVarOffset &varOff) { return std::get<int>(varOff); }
+        static int &asIntOffset(      WidgetVarOffset &varOff) { return std::get<int>(varOff); }
 
-        static const std::function<int(const Widget *)> &asFuncOffset(const Widget::VarOffset &varOff) { return std::get<std::function<int(const Widget *)>>(varOff); }
-        static       std::function<int(const Widget *)> &asFuncOffset(      Widget::VarOffset &varOff) { return std::get<std::function<int(const Widget *)>>(varOff); }
+        static const std::function<int(const Widget *)> &asFuncOffset(const WidgetVarOffset &varOff) { return std::get<std::function<int(const Widget *)>>(varOff); }
+        static       std::function<int(const Widget *)> &asFuncOffset(      WidgetVarOffset &varOff) { return std::get<std::function<int(const Widget *)>>(varOff); }
 
-        static int evalOffset(const Widget::VarOffset &varOffset, const Widget *widgetPtr)
+        static int evalOffset(const WidgetVarOffset &varOffset, const Widget *widgetPtr)
         {
             return std::visit(VarDispatcher
             {
@@ -340,45 +340,45 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        static bool hasSize(const Widget::VarSize &varSize)
+        static bool hasSize(const WidgetVarSize &varSize)
         {
             return varSize.index() != 0;
         }
 
-        static bool hasIntSize(const Widget::VarSize &varSize)
+        static bool hasIntSize(const WidgetVarSize &varSize)
         {
             return varSize.index() == 1;
         }
 
-        static bool hasFuncSize(const Widget::VarSize &varSize)
+        static bool hasFuncSize(const WidgetVarSize &varSize)
         {
             return varSize.index() == 2;
         }
 
-        static int  asIntSize(const Widget::VarSize &varSize) { return std::get<int>(varSize); }
-        static int &asIntSize(      Widget::VarSize &varSize) { return std::get<int>(varSize); }
+        static int  asIntSize(const WidgetVarSize &varSize) { return std::get<int>(varSize); }
+        static int &asIntSize(      WidgetVarSize &varSize) { return std::get<int>(varSize); }
 
-        static const std::function<int(const Widget *)> &asFuncSize(const Widget::VarSize &varSize) { return std::get<std::function<int(const Widget *)>>(varSize); }
-        static       std::function<int(const Widget *)> &asFuncSize(      Widget::VarSize &varSize) { return std::get<std::function<int(const Widget *)>>(varSize); }
+        static const std::function<int(const Widget *)> &asFuncSize(const WidgetVarSize &varSize) { return std::get<std::function<int(const Widget *)>>(varSize); }
+        static       std::function<int(const Widget *)> &asFuncSize(      WidgetVarSize &varSize) { return std::get<std::function<int(const Widget *)>>(varSize); }
 
     public:
-        static bool hasBoolFlag(const Widget::VarFlag &varFlag)
+        static bool hasBoolFlag(const WidgetVarFlag &varFlag)
         {
             return varFlag.index() == 0;
         }
 
-        static bool hasFuncFlag(const Widget::VarFlag &varFlag)
+        static bool hasFuncFlag(const WidgetVarFlag &varFlag)
         {
             return varFlag.index() == 1;
         }
 
-        static bool  asBoolFlag(const Widget::VarFlag &varFlag) { return std::get<bool>(varFlag); }
-        static bool &asBoolFlag(      Widget::VarFlag &varFlag) { return std::get<bool>(varFlag); }
+        static bool  asBoolFlag(const WidgetVarFlag &varFlag) { return std::get<bool>(varFlag); }
+        static bool &asBoolFlag(      WidgetVarFlag &varFlag) { return std::get<bool>(varFlag); }
 
-        static const std::function<bool(const Widget *)> &asFuncFlag(const Widget::VarFlag &varFlag) { return std::get<std::function<bool(const Widget *)>>(varFlag); }
-        static       std::function<bool(const Widget *)> &asFuncFlag(      Widget::VarFlag &varFlag) { return std::get<std::function<bool(const Widget *)>>(varFlag); }
+        static const std::function<bool(const Widget *)> &asFuncFlag(const WidgetVarFlag &varFlag) { return std::get<std::function<bool(const Widget *)>>(varFlag); }
+        static       std::function<bool(const Widget *)> &asFuncFlag(      WidgetVarFlag &varFlag) { return std::get<std::function<bool(const Widget *)>>(varFlag); }
 
-        static bool evalFlag(const Widget::VarFlag &varFlag, const Widget *widgetPtr)
+        static bool evalFlag(const WidgetVarFlag &varFlag, const Widget *widgetPtr)
         {
             return std::visit(VarDispatcher
             {
@@ -395,8 +395,8 @@ class Widget: public WidgetTreeNode
         }
 
     protected:
-        std::pair<Widget::VarFlag, bool> m_show   {true, false};
-        std::pair<Widget::VarFlag, bool> m_active {true, false};
+        std::pair<WidgetVarFlag, bool> m_show   {true, false};
+        std::pair<WidgetVarFlag, bool> m_active {true, false};
 
     protected:
         bool m_focus  = false;
@@ -405,26 +405,26 @@ class Widget: public WidgetTreeNode
         std::any m_data;
 
     private:
-        Widget::VarDir m_dir;
+        WidgetVarDir m_dir;
 
     private:
-        std::pair<Widget::VarOffset, int> m_x;
-        std::pair<Widget::VarOffset, int> m_y;
+        std::pair<WidgetVarOffset, int> m_x;
+        std::pair<WidgetVarOffset, int> m_y;
 
     protected:
-        Widget::VarSize m_w;
-        Widget::VarSize m_h;
+        WidgetVarSize m_w;
+        WidgetVarSize m_h;
 
     public:
-        Widget(Widget::VarDir argDir,
+        Widget(WidgetVarDir argDir,
 
-                Widget::VarOffset argX,
-                Widget::VarOffset argY,
+                WidgetVarOffset argX,
+                WidgetVarOffset argY,
 
-                Widget::VarSize argW = {},
-                Widget::VarSize argH = {},
+                WidgetVarSize argW = {},
+                WidgetVarSize argH = {},
 
-                std::initializer_list<std::tuple<Widget *, Widget::VarDir, Widget::VarOffset, Widget::VarOffset, bool>> argChildList = {},
+                std::vector<std::tuple<Widget *, WidgetVarDir, WidgetVarOffset, WidgetVarOffset, bool>> argChildList = {},
 
                 Widget *argParent     = nullptr,
                 bool    argAutoDelete = false)
@@ -448,10 +448,9 @@ class Widget: public WidgetTreeNode
             if(Widget::hasIntSize(m_w)){ fflassert(Widget::asIntSize(m_w) >= 0, m_w); }
             if(Widget::hasIntSize(m_h)){ fflassert(Widget::asIntSize(m_h) >= 0, m_h); }
 
-            for(const auto &[childPtr, offDir, offX, offY, autoDelete]: argChildList){
+            for(auto &[childPtr, offDir, offX, offY, autoDelete]: argChildList){
                 if(childPtr){
-                    addChild(childPtr, autoDelete);
-                    childPtr->moveAt(offDir, offX, offY);
+                    addChild(childPtr, std::move(offDir), std::move(offX), std::move(offY), autoDelete);
                 }
             }
         }
@@ -813,7 +812,7 @@ class Widget: public WidgetTreeNode
         const Widget *focusedChild() const { if(firstChild() && firstChild()->focus()){ return firstChild(); } return nullptr; }
 
     public:
-        void setShow(Widget::VarFlag argShow)
+        void setShow(WidgetVarFlag argShow)
         {
             m_show = std::make_pair(std::move(argShow), false);
         }
@@ -833,7 +832,7 @@ class Widget: public WidgetTreeNode
             //
             // when appending a new item, say item2, auto-scaling mode check current page height and append the new item at proper start:
             //
-            //     page->addChild(DIR_UPLEFT, 0, page->h(), item2, true);
+            //     page->addChild(item2, DIR_UPLEFT, 0, page->h(), true);
             //
             // if implementation of show() checks if parent shows or not
             // and if page is not shown, page->h() always return 0, even there is item0 and item1 inside
@@ -856,7 +855,7 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        void setActive(Widget::VarFlag argActive)
+        void setActive(WidgetVarFlag argActive)
         {
             m_active = std::make_pair(std::move(argActive), false);
         }
@@ -875,9 +874,9 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        void moveBy(Widget::VarOffset dx, Widget::VarOffset dy)
+        void moveBy(WidgetVarOffset dx, WidgetVarOffset dy)
         {
-            const auto fnOp = [](std::pair<Widget::VarOffset, int> &offset, Widget::VarOffset update)
+            const auto fnOp = [](std::pair<WidgetVarOffset, int> &offset, WidgetVarOffset update)
             {
                 if(Widget::hasIntOffset(update)){
                     offset.second += Widget::asIntOffset(update);
@@ -898,7 +897,7 @@ class Widget: public WidgetTreeNode
             fnOp(m_y, std::move(dy));
         }
 
-        void moveAt(Widget::VarDir argDir, Widget::VarOffset argX, Widget::VarOffset argY)
+        void moveAt(WidgetVarDir argDir, WidgetVarOffset argX, WidgetVarOffset argY)
         {
             m_dir = std::move(argDir);
             m_x   = std::make_pair(std::move(argX), 0);
@@ -906,22 +905,22 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        void moveXTo(Widget::VarOffset arg) { m_x   = std::make_pair(std::move(arg), 0); }
-        void moveYTo(Widget::VarOffset arg) { m_y   = std::make_pair(std::move(arg), 0); }
+        void moveXTo(WidgetVarOffset arg) { m_x   = std::make_pair(std::move(arg), 0); }
+        void moveYTo(WidgetVarOffset arg) { m_y   = std::make_pair(std::move(arg), 0); }
 
     public:
-        void moveTo(Widget::VarOffset argX, Widget::VarOffset argY)
+        void moveTo(WidgetVarOffset argX, WidgetVarOffset argY)
         {
             moveXTo(std::move(argX));
             moveYTo(std::move(argY));
         }
 
     public:
-        void setW(Widget::VarSize argSize) { m_w = std::move(argSize); }
-        void setH(Widget::VarSize argSize) { m_h = std::move(argSize); }
+        void setW(WidgetVarSize argSize) { m_w = std::move(argSize); }
+        void setH(WidgetVarSize argSize) { m_h = std::move(argSize); }
 
     public:
-        void setSize(Widget::VarSize argW, Widget::VarSize argH)
+        void setSize(WidgetVarSize argW, WidgetVarSize argH)
         {
             m_w = std::move(argW);
             m_h = std::move(argH);

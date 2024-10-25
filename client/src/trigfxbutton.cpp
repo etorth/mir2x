@@ -1,9 +1,9 @@
 #include "colorf.hpp"
 #include "trigfxbutton.hpp"
 
-TrigfxButton::TrigfxButton(Widget::VarDir argDir,
-        Widget::VarOffset argX,
-        Widget::VarOffset argY,
+TrigfxButton::TrigfxButton(WidgetVarDir argDir,
+        WidgetVarOffset argX,
+        WidgetVarOffset argY,
 
         std::array<const Widget *, 3> argGfxList,
         std::array<std::optional<uint32_t>, 3> argSeffIDList,
