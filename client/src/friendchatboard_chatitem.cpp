@@ -245,8 +245,8 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
         }
     }
 
-    if(avatarLeft) fnMoveAdd(&msgref, DIR_UPLEFT , message.dx()                  , message.dy() + message.h() - 1 + ChatItem::REF_GAP);
-    else           fnMoveAdd(&msgref, DIR_UPRIGHT, message.dx() + message.w() - 1, message.dy() + message.h() - 1 + ChatItem::REF_GAP);
+    if(avatarLeft) fnMoveAdd(&msgref, DIR_UPLEFT , message.dx()                   - ChatItem::MESSAGE_MARGIN, message.dy() + message.h() - 1 + ChatItem::REF_GAP);
+    else           fnMoveAdd(&msgref, DIR_UPRIGHT, message.dx() + message.w() - 1 + ChatItem::MESSAGE_MARGIN, message.dy() + message.h() - 1 + ChatItem::REF_GAP);
 
 }
 
