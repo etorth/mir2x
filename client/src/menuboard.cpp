@@ -119,6 +119,10 @@ MenuBoard::MenuBoard(
           false,
       }
 {
+    moveFront(&m_background);
+    moveFront(&m_frame);
+    moveFront(&m_wrapper);
+
     for(auto [widget, addSeparator, autoDelete]: argMenuItemList){
         appendMenu(widget, addSeparator, autoDelete);
     }
