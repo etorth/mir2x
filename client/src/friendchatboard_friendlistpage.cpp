@@ -5,10 +5,10 @@
 
 extern PNGTexDB *g_progUseDB;
 
-FriendChatBoard::FriendListPage::FriendListPage(WidgetVarDir argDir,
+FriendChatBoard::FriendListPage::FriendListPage(Widget::VarDir argDir,
 
-        WidgetVarOffset argX,
-        WidgetVarOffset argY,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
 
         Widget *argParent,
         bool    argAutoDelete)

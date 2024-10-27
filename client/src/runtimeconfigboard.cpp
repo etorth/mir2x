@@ -160,7 +160,7 @@ RuntimeConfigBoard::PullMenu::PullMenu(
         int argTitleBgWidth,
         int argTitleBgHeight,
 
-        std::initializer_list<std::pair<Widget *, bool>> argMenuList,
+        std::initializer_list<std::tuple<Widget *, bool, bool>> argMenuList,
         std::function<void(Widget *)> argOnClickMenu,
 
         Widget *argParent,
@@ -322,14 +322,13 @@ RuntimeConfigBoard::PullMenu::PullMenu(
           0,
 
           {},
+          {10, 10, 10, 10},
 
           10,
-          0,
+          20,
 
           argMenuList,
           std::move(argOnClickMenu),
-
-          {10, 10, 10, 10},
 
           this,
           false,
@@ -583,7 +582,7 @@ RuntimeConfigBoard::MenuPage::MenuPage(
         int argX,
         int argY,
 
-        WidgetVarSize argSeperatorW,
+        Widget::VarSize argSeperatorW,
         int argGap,
 
         std::initializer_list<std::tuple<const char8_t *, Widget *, bool>> argTabList,
@@ -780,12 +779,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           24,
 
           {
-              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"800×600" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>( 800, 600)), true},
-              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"960×600" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>( 960, 600)), true},
-              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"1024×768", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>(1024, 768)), true},
-              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"1280×720", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>(1280, 720)), true},
-              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"1280×768", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>(1280, 768)), true},
-              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"1280×800", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>(1280, 800)), true},
+              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"800×600" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>( 800, 600)), false, true},
+              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"960×600" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>( 960, 600)), false, true},
+              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"1024×768", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>(1024, 768)), false, true},
+              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"1280×720", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>(1280, 720)), false, true},
+              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"1280×768", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>(1280, 768)), false, true},
+              {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"1280×800", 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::pair<int, int>>(1280, 800)), false, true},
           },
 
           [this](Widget *widgetPtr)

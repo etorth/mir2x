@@ -9,10 +9,10 @@ extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::SearchPage::SearchPage(WidgetVarDir argDir,
+FriendChatBoard::SearchPage::SearchPage(Widget::VarDir argDir,
 
-        WidgetVarOffset argX,
-        WidgetVarOffset argY,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
 
         Widget *argParent,
         bool    argAutoDelete)

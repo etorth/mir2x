@@ -104,7 +104,7 @@ class RuntimeConfigBoard: public Widget
                         int, // title background width
                         int, // title background height
 
-                        std::initializer_list<std::pair<Widget *, bool>>,
+                        std::initializer_list<std::tuple<Widget *, bool, bool>>,
                         std::function<void(Widget *)>,
 
                         Widget * = nullptr,
@@ -188,7 +188,7 @@ class RuntimeConfigBoard: public Widget
                         int,
                         int,
 
-                        WidgetVarSize,
+                        Widget::VarSize,
                         int,
 
                         std::initializer_list<std::tuple<const char8_t *, Widget *, bool>>,

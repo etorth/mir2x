@@ -4,10 +4,10 @@
 class MarginWrapper: public Widget
 {
     public:
-        MarginWrapper(WidgetVarDir argDir,
-
-                WidgetVarOffset argX,
-                WidgetVarOffset argY,
+        MarginWrapper(
+                Widget::VarDir argDir,
+                Widget::VarOff argX,
+                Widget::VarOff argY,
 
                 Widget *argWidget,
                 bool    argWidgetAutoDelete,
@@ -23,8 +23,8 @@ class MarginWrapper: public Widget
                   std::move(argX),
                   std::move(argY),
 
-                  [argWidget](const Widget *){ return argWidget->w() + std::max<int>(argMargin[2], 0) + std::max<int>(argMargin[3], 0); },
-                  [argWidget](const Widget *){ return argWidget->h() + std::max<int>(argMargin[0], 0) + std::max<int>(argMargin[1], 0); },
+                  [argWidget, argMargin](const Widget *){ return argWidget->w() + std::max<int>(argMargin[2], 0) + std::max<int>(argMargin[3], 0); },
+                  [argWidget, argMargin](const Widget *){ return argWidget->h() + std::max<int>(argMargin[0], 0) + std::max<int>(argMargin[1], 0); },
 
                   {
                       {argWidget, DIR_UPLEFT, std::max<int>(argMargin[2], 0), std::max<int>(argMargin[0], 0), argWidgetAutoDelete},

@@ -101,7 +101,7 @@ void WidgetTreeNode::addChild(Widget *widget, bool autoDelete)
     m_childList.emplace_back(widget, autoDelete);
 }
 
-void WidgetTreeNode::addChild(Widget *argWidget, WidgetVarDir argDir, WidgetVarOffset argX, WidgetVarOffset argY, bool argAutoDelete)
+void WidgetTreeNode::addChild(Widget *argWidget, Widget::VarDir argDir, Widget::VarOff argX, Widget::VarOff argY, bool argAutoDelete)
 {
     fflassert(argWidget);
     addChild(argWidget, argAutoDelete);

@@ -52,10 +52,10 @@ class RadioSelector: public Widget
         ImageBoard m_imgDown;
 
     public:
-        RadioSelector(WidgetVarDir,
+        RadioSelector(Widget::VarDir,
 
-                WidgetVarOffset,
-                WidgetVarOffset,
+                Widget::VarOff,
+                Widget::VarOff,
 
                 int = 5, // gap
                 int = 5, // item space

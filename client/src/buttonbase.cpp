@@ -7,11 +7,11 @@
 extern SDLDevice *g_sdlDevice;
 extern SoundEffectDB *g_seffDB;
 
-ButtonBase::ButtonBase(WidgetVarDir argDir,
-        WidgetVarOffset argX,
-        WidgetVarOffset argY,
-        WidgetVarSize   argW,
-        WidgetVarSize   argH,
+ButtonBase::ButtonBase(Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
+        Widget::VarSize   argW,
+        Widget::VarSize   argH,
 
         std::function<void(Widget *)> fnOnOverIn,
         std::function<void(Widget *)> fnOnOverOut,

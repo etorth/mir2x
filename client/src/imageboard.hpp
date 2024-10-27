@@ -36,8 +36,8 @@ class ImageBoard: public Widget
                 int,
                 int,
 
-                WidgetVarSize,
-                WidgetVarSize,
+                Widget::VarSize,
+                Widget::VarSize,
 
                 std::function<SDL_Texture *(const ImageBoard *)>,
 

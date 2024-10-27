@@ -79,7 +79,7 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
         int argX,
         int argY,
 
-        WidgetVarSize argH,
+        Widget::VarSize argH,
 
         Widget *argParent,
         bool    argAutoDelete)
