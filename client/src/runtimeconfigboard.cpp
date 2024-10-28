@@ -322,10 +322,10 @@ RuntimeConfigBoard::PullMenu::PullMenu(
           0,
 
           {},
-          {10, 10, 10, 10},
+          {5, 5, 5, 5},
 
+          6,
           10,
-          20,
 
           argMenuList,
           std::move(argOnClickMenu),
