@@ -165,15 +165,15 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
 
                 [argWidget, argAddSeparator, this](const Widget *)
                 {
-                    const bool firstMenu = !m_itemList.empty() && m_itemList.front() == argWidget;
-                    const bool  lastMenu = !m_itemList.empty() && m_itemList.back () == argWidget;
+                    const bool firstMenu = !m_itemList.empty() && (m_itemList.front() == argWidget);
+                    const bool  lastMenu = !m_itemList.empty() && (m_itemList.back () == argWidget);
 
                     return (firstMenu ? 0 : m_itemSpace / 2) + argWidget->h() + (lastMenu ? 0 : (argAddSeparator ? m_separatorSpace : (m_itemSpace - m_itemSpace / 2)));
                 },
 
                 [argWidget, argAddSeparator, this](const Widget *self, int drawDstX, int drawDstY)
                 {
-                    const bool firstMenu = !m_itemList.empty() && m_itemList.front() == argWidget;
+                    const bool firstMenu = !m_itemList.empty() && (m_itemList.front() == argWidget);
 
                     g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(100), drawDstX, drawDstY + (firstMenu ? 0 : m_itemSpace / 2), self->w(), argWidget->h());
                     if(argAddSeparator){
