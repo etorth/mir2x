@@ -134,8 +134,6 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
         return;
     }
 
-    const bool firstMenu = !hasChild();
-
     m_itemList.push_back(argWidget);
     m_canvas.appendItem(new Widget
     {
@@ -165,13 +163,18 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                     return (*maxWPtr)->w();
                 },
 
-                [argWidget, argAddSeparator, firstMenu, this](const Widget *)
+                [argWidget, argAddSeparator, this](const Widget *)
                 {
-                    return (firstMenu ? 0 : m_itemSpace / 2) + argWidget->h() + (argAddSeparator ? m_separatorSpace : (m_itemSpace - m_itemSpace / 2));
+                    const bool firstMenu = !m_itemList.empty() && m_itemList.front() == argWidget;
+                    const bool  lastMenu = !m_itemList.empty() && m_itemList.back () == argWidget;
+
+                    return (firstMenu ? 0 : m_itemSpace / 2) + argWidget->h() + (lastMenu ? 0 : (argAddSeparator ? m_separatorSpace : (m_itemSpace - m_itemSpace / 2)));
                 },
 
-                [argWidget, argAddSeparator, firstMenu, this](const Widget *self, int drawDstX, int drawDstY)
+                [argWidget, argAddSeparator, this](const Widget *self, int drawDstX, int drawDstY)
                 {
+                    const bool firstMenu = !m_itemList.empty() && m_itemList.front() == argWidget;
+
                     g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(100), drawDstX, drawDstY + (firstMenu ? 0 : m_itemSpace / 2), self->w(), argWidget->h());
                     if(argAddSeparator){
                         const int xOff = 2;
@@ -184,11 +187,13 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                         g_sdlDevice->drawLine(colorf::WHITE + colorf::A_SHF(100), drawXStart, drawY, drawXEnd, drawY);
                     }
                 },
-            },
+            }, DIR_UPLEFT, 0, 0, true},
 
-            DIR_UPLEFT, 0, 0, true},
-
-            {argWidget, DIR_UPLEFT, 0, firstMenu ? 0 : m_itemSpace / 2, argAutoDelete},
+            {argWidget, DIR_UPLEFT, 0, [argWidget, this](const Widget *)
+            {
+                const bool firstMenu = !m_itemList.empty() && m_itemList.front() == argWidget;
+                return firstMenu ? 0 : m_itemSpace / 2;
+            }, argAutoDelete},
         },
     },
 
