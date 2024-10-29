@@ -14,7 +14,7 @@ class MenuBoard: public Widget
         const int m_separatorSpace;
 
     private:
-        std::vector<Widget *> m_itemList;
+        std::vector<std::pair<Widget *, bool>> m_itemList;
 
     private:
         std::function<void(Widget *)> m_onClickMenu;
@@ -44,6 +44,10 @@ class MenuBoard: public Widget
 
                 Widget * = nullptr,
                 bool     = false);
+
+    private:
+        int upperItemSpace(const Widget *) const;
+        int lowerItemSpace(const Widget *) const;
 
     public:
         void appendMenu(Widget *, bool, bool);

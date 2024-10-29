@@ -1,3 +1,4 @@
+#include "totype.hpp"
 #include "colorf.hpp"
 #include "sdldevice.hpp"
 #include "menuboard.hpp"
@@ -128,13 +129,55 @@ MenuBoard::MenuBoard(
     }
 }
 
+int MenuBoard::upperItemSpace(const Widget *argWidget) const
+{
+    const auto p = std::find_if(m_itemList.begin(), m_itemList.end(), [argWidget](const auto &pr)
+    {
+        return pr.first == argWidget;
+    });
+
+    if(p == m_itemList.end()){
+        throw fflerror("can not find child widget: %p", to_cvptr(argWidget));
+    }
+    else if(p == m_itemList.begin()){
+        return 0;
+    }
+    else if(std::prev(p)->second){
+        return 0;
+    }
+    else{
+        return m_itemSpace / 2;
+    }
+}
+
+int MenuBoard::lowerItemSpace(const Widget *argWidget) const
+{
+    const auto p = std::find_if(m_itemList.begin(), m_itemList.end(), [argWidget](const auto &pr)
+    {
+        return pr.first == argWidget;
+    });
+
+    if(p == m_itemList.end()){
+        throw fflerror("can not find child widget: %p", to_cvptr(argWidget));
+    }
+    else if(std::next(p) == m_itemList.end()){
+        return 0;
+    }
+    else if(std::next(p)->second){
+        return 0;
+    }
+    else{
+        return m_itemSpace - m_itemSpace / 2;
+    }
+}
+
 void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAutoDelete)
 {
     if(!argWidget){
         return;
     }
 
-    m_itemList.push_back(argWidget);
+    m_itemList.emplace_back(argWidget, argAddSeparator);
     m_canvas.appendItem(new Widget
     {
         DIR_UPLEFT, // ignore
@@ -155,34 +198,29 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                         return 0;
                     }
 
-                    auto maxWPtr = std::max_element(m_itemList.begin(), m_itemList.end(), [](const auto &item1, const auto &item2)
+                    auto foundIter = std::max_element(m_itemList.begin(), m_itemList.end(), [](const auto &item1, const auto &item2)
                     {
-                        return item1->w() < item2->w();
+                        return item1.first->w() < item2.first->w();
                     });
 
-                    return (*maxWPtr)->w();
+                    return foundIter->first->w();
                 },
 
                 [argWidget, argAddSeparator, this](const Widget *)
                 {
-                    const bool firstMenu = !m_itemList.empty() && (m_itemList.front() == argWidget);
-                    const bool  lastMenu = !m_itemList.empty() && (m_itemList.back () == argWidget);
-
-                    return (firstMenu ? 0 : m_itemSpace / 2) + argWidget->h() + (lastMenu ? 0 : (argAddSeparator ? m_separatorSpace : (m_itemSpace - m_itemSpace / 2)));
+                    return upperItemSpace(argWidget) + argWidget->h() + lowerItemSpace(argWidget);
                 },
 
                 [argWidget, argAddSeparator, this](const Widget *self, int drawDstX, int drawDstY)
                 {
-                    const bool firstMenu = !m_itemList.empty() && (m_itemList.front() == argWidget);
-
-                    g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(100), drawDstX, drawDstY + (firstMenu ? 0 : m_itemSpace / 2), self->w(), argWidget->h());
+                    g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(100), drawDstX, drawDstY + upperItemSpace(argWidget), self->w(), argWidget->h());
                     if(argAddSeparator){
                         const int xOff = 2;
                         const int drawXOff = (self->w() > xOff * 2) ? xOff : 0;
 
                         const int drawXStart = drawDstX + drawXOff;
                         const int drawXEnd   = drawDstX + self->w() - drawXOff;
-                        const int drawY      = drawDstY + (firstMenu ? 0 : m_itemSpace / 2) + argWidget->h() + m_separatorSpace / 2;
+                        const int drawY      = drawDstY + upperItemSpace(argWidget) + argWidget->h() + m_separatorSpace / 2;
 
                         g_sdlDevice->drawLine(colorf::WHITE + colorf::A_SHF(100), drawXStart, drawY, drawXEnd, drawY);
                     }
@@ -191,8 +229,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
 
             {argWidget, DIR_UPLEFT, 0, [argWidget, this](const Widget *)
             {
-                const bool firstMenu = !m_itemList.empty() && m_itemList.front() == argWidget;
-                return firstMenu ? 0 : m_itemSpace / 2;
+                return upperItemSpace(argWidget);
             }, argAutoDelete},
         },
     },
