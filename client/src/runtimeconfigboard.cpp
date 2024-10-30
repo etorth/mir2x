@@ -321,7 +321,11 @@ RuntimeConfigBoard::PullMenu::PullMenu(
           0,
           0,
 
-          {},
+          [this](const Widget *)
+          {
+              return m_menuTitleCrop.w();
+          },
+
           {5, 5, 5, 5},
 
           6,
