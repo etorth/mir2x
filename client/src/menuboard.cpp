@@ -4,9 +4,39 @@
 #include "menuboard.hpp"
 
 extern SDLDevice *g_sdlDevice;
-
-bool MenuBoard::MenuBoardItem::processEvent(const SDL_Event &, bool)
+bool MenuBoard::MenuBoardItem::processEvent(const SDL_Event &event, bool valid)
 {
+    if(!valid){
+        return consumeFocus(false);
+    }
+
+    if(Widget::processEvent(event, valid)){
+        return consumeFocus(true);
+    }
+
+    switch(event.type){
+        case SDL_MOUSEMOTION:
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN:
+            {
+                const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
+                if(in(eventX, eventY)){
+                    if(event.type != SDL_MOUSEMOTION){
+                        return consumeFocus(true);
+                    }
+                    else{
+                        return false;
+                    }
+                }
+                else{
+                    return false;
+                }
+            }
+        default:
+            {
+                return false;
+            }
+    }
     return false;
 }
 
@@ -220,7 +250,10 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
 
                 [argWidget, argAddSeparator, this](const Widget *self, int drawDstX, int drawDstY)
                 {
-                    g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(100), drawDstX, drawDstY + upperItemSpace(argWidget), self->w(), argWidget->h());
+                    if(self->parent()->focus()){
+                        g_sdlDevice->fillRectangle(colorf::WHITE + colorf::A_SHF(100), drawDstX, drawDstY + upperItemSpace(argWidget), self->w(), argWidget->h());
+                    }
+
                     if(argAddSeparator){
                         const int xOff = 2;
                         const int drawXOff = (self->w() > xOff * 2) ? xOff : 0;
@@ -244,78 +277,29 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
     true);
 }
 
-// bool MenuBoard::processEvent(const SDL_Event &event, bool valid)
-// {
-//     if(!valid){
-//         return consumeFocus(false);
-//     }
-//
-//     if(!show()){
-//         return consumeFocus(false);
-//     }
-//
-//     if(Widget::processEvent(event, valid)){
-//         if(event.type == SDL_MOUSEBUTTONDOWN){
-//             if(auto p = focusedChild()){
-//                 if(m_onClickMenu){
-//                     m_onClickMenu(p);
-//                 }
-//
-//                 setShow(false);
-//                 setFocus(false);
-//             }
-//         }
-//         return true;
-//     }
-//
-//     switch(event.type){
-//         case SDL_MOUSEMOTION:
-//         case SDL_MOUSEBUTTONUP:
-//         case SDL_MOUSEBUTTONDOWN:
-//             {
-//                 const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
-//                 if(!in(eventX, eventY)){
-//                     setFocus(false);
-//                     return event.type == SDL_MOUSEMOTION;
-//                 }
-//
-//                 // event drops into margin
-//                 // we should drop focus but still consume the event
-//
-//                 if(!mathf::pointInRectangle<int>(
-//                             eventX,
-//                             eventY,
-//
-//                             x() + m_margin[2],
-//                             y() + m_margin[0],
-//
-//                             w() - m_margin[2] - m_margin[3],
-//                             h() - m_margin[0] - m_margin[1])){
-//                     return !consumeFocus(false);
-//                 }
-//
-//                 return foreachChild([&event, eventX, eventY, this](Widget *widget, bool)
-//                 {
-//                     if(mathf::pointInRectangle(eventX, eventY, widget->x(), widget->y() - m_itemSpace / 2, w() - m_margin[2] - m_margin[3], widget->h() + m_itemSpace)){
-//                         if(event.type == SDL_MOUSEBUTTONDOWN){
-//                             if(m_onClickMenu){
-//                                 m_onClickMenu(widget);
-//                             }
-//
-//                             setShow(false);
-//                             setFocus(false);
-//                         }
-//                         else{
-//                             consumeFocus(true, widget);
-//                         }
-//                         return true;
-//                     }
-//                     return false;
-//                 });
-//             }
-//         default:
-//             {
-//                 return false;
-//             }
-//     }
-// }
+bool MenuBoard::processEvent(const SDL_Event &event, bool valid)
+{
+    if(!valid){
+        return consumeFocus(false);
+    }
+
+    if(!show()){
+        return consumeFocus(false);
+    }
+
+    if(Widget::processEvent(event, valid)){
+        if(event.type == SDL_MOUSEBUTTONDOWN){
+            if(auto p = focusedChild()){
+                if(m_onClickMenu){
+                    m_onClickMenu(p);
+                }
+
+                setShow(false);
+                setFocus(false);
+            }
+        }
+        return true;
+    }
+
+    return false;
+}

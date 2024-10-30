@@ -643,6 +643,10 @@ class Widget: public WidgetTreeNode
                         throw fflerror("widget %s takes invalid event", widget->name());
                     }
 
+                    if(validEvent && takenEvent && !widget->focus()){
+                        throw fflerror("widget %s takes event but doesn't get focus", widget->name());
+                    }
+
                     if(widget->focus()){
                         if(focusedWidgetID){
                             if(auto focusedWidget = hasChild(focusedWidgetID); focusedWidget && focusedWidget->focus()){
