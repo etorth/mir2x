@@ -751,6 +751,10 @@ class Widget: public WidgetTreeNode
         }
 
     public:
+        const auto &varw() const { return m_w; }
+        const auto &varh() const { return m_h; }
+
+    public:
         virtual int dx() const { return Widget::evalOff(m_x.first, this) + m_x.second - xSizeOff(dir(), w()); }
         virtual int dy() const { return Widget::evalOff(m_y.first, this) + m_y.second - ySizeOff(dir(), h()); }
 

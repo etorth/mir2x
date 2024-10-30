@@ -241,6 +241,10 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                 0,
                 [this](const Widget *)
                 {
+                    if(Widget::hasSize(m_canvas.varw())){
+                        return m_canvas.w();
+                    }
+
                     if(m_itemList.empty()){
                         return 0;
                     }
