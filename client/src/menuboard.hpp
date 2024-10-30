@@ -3,7 +3,7 @@
 #include <functional>
 #include <initializer_list>
 #include "widget.hpp"
-#include "itembox.hpp"
+#include "itemflex.hpp"
 #include "marginwrapper.hpp"
 #include "shapeclipboard.hpp"
 
@@ -20,7 +20,7 @@ class MenuBoard: public Widget
         std::function<void(Widget *)> m_onClickMenu;
 
     private:
-        ItemBox m_canvas; // holding all menu items
+        ItemFlex m_canvas; // holding all menu items
         MarginWrapper m_wrapper;
 
     private:

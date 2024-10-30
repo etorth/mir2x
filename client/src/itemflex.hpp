@@ -3,14 +3,14 @@
 #include <initializer_list>
 #include "widget.hpp"
 
-class ItemBox: public Widget
+class ItemFlex: public Widget
 {
     private:
         const bool m_hbox;
         std::vector<Widget *> m_origChildList;
 
     public:
-        ItemBox(
+        ItemFlex(
                 Widget::VarDir argDir,
                 Widget::VarOff argX,
                 Widget::VarOff argY,
