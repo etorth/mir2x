@@ -656,16 +656,6 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        static void handleEvent(const SDL_Event &event, bool &valid, std::initializer_list<Widget *> widgetList)
-        {
-            bool tookEvent = false;
-            for(auto &w: widgetList){
-                tookEvent |= w->processEvent(event, valid && !tookEvent);
-            }
-            valid = valid && !tookEvent;
-        }
-
-    public:
         virtual dir8_t dir() const
         {
             return Widget::evalDir(m_dir, this);
