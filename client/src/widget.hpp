@@ -318,23 +318,23 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        static bool hasIntOffset(const Widget::VarOff &varOff)
+        static bool hasIntOff(const Widget::VarOff &varOff)
         {
             return varOff.index() == 0;
         }
 
-        static bool hasFuncOffset(const Widget::VarOff &varOff)
+        static bool hasFuncOff(const Widget::VarOff &varOff)
         {
             return varOff.index() == 1;
         }
 
-        static int  asIntOffset(const Widget::VarOff &varOff) { return std::get<int>(varOff); }
-        static int &asIntOffset(      Widget::VarOff &varOff) { return std::get<int>(varOff); }
+        static int  asIntOff(const Widget::VarOff &varOff) { return std::get<int>(varOff); }
+        static int &asIntOff(      Widget::VarOff &varOff) { return std::get<int>(varOff); }
 
-        static const std::function<int(const Widget *)> &asFuncOffset(const Widget::VarOff &varOff) { return std::get<std::function<int(const Widget *)>>(varOff); }
-        static       std::function<int(const Widget *)> &asFuncOffset(      Widget::VarOff &varOff) { return std::get<std::function<int(const Widget *)>>(varOff); }
+        static const std::function<int(const Widget *)> &asFuncOff(const Widget::VarOff &varOff) { return std::get<std::function<int(const Widget *)>>(varOff); }
+        static       std::function<int(const Widget *)> &asFuncOff(      Widget::VarOff &varOff) { return std::get<std::function<int(const Widget *)>>(varOff); }
 
-        static int evalOffset(const Widget::VarOff &varOffset, const Widget *widgetPtr)
+        static int evalOff(const Widget::VarOff &varOffset, const Widget *widgetPtr)
         {
             return std::visit(VarDispatcher
             {
@@ -479,8 +479,8 @@ class Widget: public WidgetTreeNode
             // because it may refers to sub-widget which has not be initialized yet
 
             if(Widget::hasFuncDir   (m_dir      )){ fflassert(Widget::asFuncDir   (m_dir      ), m_dir      ); }
-            if(Widget::hasFuncOffset(m_x.first  )){ fflassert(Widget::asFuncOffset(m_x.first  ), m_x.first  ); }
-            if(Widget::hasFuncOffset(m_y.first  )){ fflassert(Widget::asFuncOffset(m_y.first  ), m_y.first  ); }
+            if(Widget::hasFuncOff(m_x.first  )){ fflassert(Widget::asFuncOff(m_x.first  ), m_x.first  ); }
+            if(Widget::hasFuncOff(m_y.first  )){ fflassert(Widget::asFuncOff(m_y.first  ), m_y.first  ); }
             if(Widget::hasFuncSize  (m_w        )){ fflassert(Widget::asFuncSize  (m_w        ), m_w        ); }
             if(Widget::hasFuncSize  (m_h        )){ fflassert(Widget::asFuncSize  (m_h        ), m_h        ); }
 
@@ -677,12 +677,12 @@ class Widget: public WidgetTreeNode
 
         virtual int x() const
         {
-            return Widget::evalOffset(m_x.first, this) + m_x.second + (m_parent ? m_parent->x() : 0) - xSizeOff(dir(), w());
+            return Widget::evalOff(m_x.first, this) + m_x.second + (m_parent ? m_parent->x() : 0) - xSizeOff(dir(), w());
         }
 
         virtual int y() const
         {
-            return Widget::evalOffset(m_y.first, this) + m_y.second + (m_parent ? m_parent->y() : 0) - ySizeOff(dir(), h());
+            return Widget::evalOff(m_y.first, this) + m_y.second + (m_parent ? m_parent->y() : 0) - ySizeOff(dir(), h());
         }
 
         virtual int w() const
@@ -751,8 +751,8 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        virtual int dx() const { return Widget::evalOffset(m_x.first, this) + m_x.second - xSizeOff(dir(), w()); }
-        virtual int dy() const { return Widget::evalOffset(m_y.first, this) + m_y.second - ySizeOff(dir(), h()); }
+        virtual int dx() const { return Widget::evalOff(m_x.first, this) + m_x.second - xSizeOff(dir(), w()); }
+        virtual int dy() const { return Widget::evalOff(m_y.first, this) + m_y.second - ySizeOff(dir(), h()); }
 
     public:
         std::any &data()
@@ -923,17 +923,17 @@ class Widget: public WidgetTreeNode
         {
             const auto fnOp = [](std::pair<Widget::VarOff, int> &offset, Widget::VarOff update)
             {
-                if(Widget::hasIntOffset(update)){
-                    offset.second += Widget::asIntOffset(update);
+                if(Widget::hasIntOff(update)){
+                    offset.second += Widget::asIntOff(update);
                 }
-                else if(Widget::hasIntOffset(offset.first)){
-                    offset.second += Widget::asIntOffset(offset.first);
+                else if(Widget::hasIntOff(offset.first)){
+                    offset.second += Widget::asIntOff(offset.first);
                     offset.first   = std::move(update);
                 }
                 else{
                     offset.first = [u = std::move(offset.first), v = std::move(update)](const Widget *widgetPtr)
                     {
-                        return Widget::asFuncOffset(u)(widgetPtr) + Widget::asFuncOffset(v)(widgetPtr);
+                        return Widget::asFuncOff(u)(widgetPtr) + Widget::asFuncOff(v)(widgetPtr);
                     };
                 }
             };

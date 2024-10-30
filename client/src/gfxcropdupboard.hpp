@@ -57,13 +57,13 @@ class GfxCropDupBoard: public Widget
             , m_cropW(std::move(argCropW))
             , m_cropH(std::move(argCropH))
         {
-            if(Widget::hasFuncOffset(m_cropX)){ fflassert(Widget::asFuncOffset(m_cropX), m_cropX); }
-            if(Widget::hasFuncOffset(m_cropY)){ fflassert(Widget::asFuncOffset(m_cropY), m_cropY); }
-            if(Widget::hasFuncOffset(m_cropW)){ fflassert(Widget::asFuncOffset(m_cropW), m_cropW); }
-            if(Widget::hasFuncOffset(m_cropH)){ fflassert(Widget::asFuncOffset(m_cropH), m_cropH); }
+            if(Widget::hasFuncOff(m_cropX)){ fflassert(Widget::asFuncOff(m_cropX), m_cropX); }
+            if(Widget::hasFuncOff(m_cropY)){ fflassert(Widget::asFuncOff(m_cropY), m_cropY); }
+            if(Widget::hasFuncOff(m_cropW)){ fflassert(Widget::asFuncOff(m_cropW), m_cropW); }
+            if(Widget::hasFuncOff(m_cropH)){ fflassert(Widget::asFuncOff(m_cropH), m_cropH); }
 
-            if(Widget::hasIntOffset(m_cropW)){ fflassert(Widget::asIntOffset(m_cropW) >= 0, m_cropW); }
-            if(Widget::hasIntOffset(m_cropH)){ fflassert(Widget::asIntOffset(m_cropH) >= 0, m_cropH); }
+            if(Widget::hasIntOff(m_cropW)){ fflassert(Widget::asIntOff(m_cropW) >= 0, m_cropW); }
+            if(Widget::hasIntOff(m_cropH)){ fflassert(Widget::asIntOff(m_cropH) >= 0, m_cropH); }
         }
 
     public:
@@ -73,10 +73,10 @@ class GfxCropDupBoard: public Widget
                 return;
             }
 
-            int cropSrcX = Widget::evalOffset(m_cropX, this);
-            int cropSrcY = Widget::evalOffset(m_cropY, this);
-            int cropSrcW = Widget::evalOffset(m_cropW, this);
-            int cropSrcH = Widget::evalOffset(m_cropH, this);
+            int cropSrcX = Widget::evalOff(m_cropX, this);
+            int cropSrcY = Widget::evalOff(m_cropY, this);
+            int cropSrcW = Widget::evalOff(m_cropW, this);
+            int cropSrcH = Widget::evalOff(m_cropH, this);
 
             fflassert(cropSrcW >= 0, cropSrcW);
             fflassert(cropSrcH >= 0, cropSrcH);
