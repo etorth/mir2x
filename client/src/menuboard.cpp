@@ -4,52 +4,56 @@
 #include "menuboard.hpp"
 
 extern SDLDevice *g_sdlDevice;
-bool MenuBoard::MenuBoardItem::processEvent(const SDL_Event &event, bool valid)
+struct MenuBoardItem: public Widget
 {
-    if(!valid){
-        return consumeFocus(false);
-    }
-
-    Widget *menuWidget = nullptr;
-    ShapeClipBoard *background = nullptr;
-
-    foreachChild([&menuWidget, &background](Widget *child, bool)
+    using Widget::Widget;
+    bool processEvent(const SDL_Event &event, bool valid) override
     {
-
-        if(auto p = dynamic_cast<ShapeClipBoard *>(child)){
-            background = p;
+        if(!valid){
+            return consumeFocus(false);
         }
-        else{
-            menuWidget = child;
+
+        Widget *menuWidget = nullptr;
+        ShapeClipBoard *background = nullptr;
+
+        foreachChild([&menuWidget, &background](Widget *child, bool)
+        {
+
+            if(auto p = dynamic_cast<ShapeClipBoard *>(child)){
+                background = p;
+            }
+            else{
+                menuWidget = child;
+            }
+        });
+
+        if(menuWidget->processEvent(event, valid)){
+            return consumeFocus(true, menuWidget);
         }
-    });
 
-    if(menuWidget->processEvent(event, valid)){
-        return consumeFocus(true, menuWidget);
-    }
-
-    switch(event.type){
-        case SDL_MOUSEMOTION:
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
-            {
-                const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
-                if(background->in(eventX, eventY)){
-                    return consumeFocus(true);
+        switch(event.type){
+            case SDL_MOUSEMOTION:
+            case SDL_MOUSEBUTTONUP:
+            case SDL_MOUSEBUTTONDOWN:
+                {
+                    const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
+                    if(background->in(eventX, eventY)){
+                        return consumeFocus(true);
+                    }
+                    else if(event.type == SDL_MOUSEMOTION){
+                        return false;
+                    }
+                    else{
+                        return consumeFocus(false);
+                    }
                 }
-                else if(event.type == SDL_MOUSEMOTION){
+            default:
+                {
                     return false;
                 }
-                else{
-                    return consumeFocus(false);
-                }
-            }
-        default:
-            {
-                return false;
-            }
+        }
     }
-}
+};
 
 MenuBoard::MenuBoard(
         Widget::VarDir argDir,

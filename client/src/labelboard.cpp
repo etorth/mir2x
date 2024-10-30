@@ -23,33 +23,3 @@ void LabelBoard::loadXML(const char *xmlString)
     m_w = m_tpset.px() + m_tpset.pw();
     m_h = m_tpset.py() + m_tpset.ph();
 }
-
-bool LabelBoard::processEvent(const SDL_Event &event, bool valid)
-{
-    if(!valid){
-        return consumeFocus(false);
-    }
-
-    if(!show()){
-        return consumeFocus(false);
-    }
-
-    switch(event.type){
-        case SDL_MOUSEMOTION:
-            {
-                if(focus() && in(event.motion.x, event.motion.y)){
-                    return consumeFocus(true);
-                }
-                return false;
-            }
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
-            {
-                return consumeFocus(in(event.button.x, event.button.y));
-            }
-        default:
-            {
-                return false;
-            }
-    }
-}

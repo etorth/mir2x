@@ -10,13 +10,6 @@
 class MenuBoard: public Widget
 {
     private:
-        struct MenuBoardItem: public Widget
-        {
-            using Widget::Widget;
-            bool processEvent(const SDL_Event &, bool) override;
-        };
-
-    private:
         const int m_itemSpace;
         const int m_separatorSpace;
 
