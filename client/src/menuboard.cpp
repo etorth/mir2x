@@ -10,8 +10,22 @@ bool MenuBoard::MenuBoardItem::processEvent(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
-    if(Widget::processEvent(event, valid)){
-        return consumeFocus(true);
+    Widget *menuWidget = nullptr;
+    ShapeClipBoard *background = nullptr;
+
+    foreachChild([&menuWidget, &background](Widget *child, bool)
+    {
+
+        if(auto p = dynamic_cast<ShapeClipBoard *>(child)){
+            background = p;
+        }
+        else{
+            menuWidget = child;
+        }
+    });
+
+    if(menuWidget->processEvent(event, valid)){
+        return consumeFocus(true, menuWidget);
     }
 
     switch(event.type){
@@ -20,16 +34,14 @@ bool MenuBoard::MenuBoardItem::processEvent(const SDL_Event &event, bool valid)
         case SDL_MOUSEBUTTONDOWN:
             {
                 const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
-                if(in(eventX, eventY)){
-                    if(event.type != SDL_MOUSEMOTION){
-                        return consumeFocus(true);
-                    }
-                    else{
-                        return false;
-                    }
+                if(background->in(eventX, eventY)){
+                    return consumeFocus(true);
+                }
+                else if(event.type == SDL_MOUSEMOTION){
+                    return false;
                 }
                 else{
-                    return false;
+                    return consumeFocus(false);
                 }
             }
         default:
@@ -37,7 +49,6 @@ bool MenuBoard::MenuBoardItem::processEvent(const SDL_Event &event, bool valid)
                 return false;
             }
     }
-    return false;
 }
 
 MenuBoard::MenuBoard(
