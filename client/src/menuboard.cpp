@@ -160,6 +160,9 @@ int MenuBoard::lowerItemSpace(const Widget *argWidget) const
     if(p == m_itemList.end()){
         throw fflerror("can not find child widget: %p", to_cvptr(argWidget));
     }
+    else if(std::next(p) == m_itemList.end()){
+        return 0;
+    }
     else if(p->second){
         return 0; // separator space not included
     }
