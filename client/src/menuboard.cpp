@@ -220,8 +220,6 @@ int MenuBoard::lowerItemSpace(const Widget *argWidget) const
 
 void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAutoDelete)
 {
-
-
     if(!argWidget){
         return;
     }
