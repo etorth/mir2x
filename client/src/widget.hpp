@@ -650,7 +650,9 @@ class Widget: public WidgetTreeNode
                     if(widget->focus()){
                         if(focusedWidgetID){
                             if(auto focusedWidget = hasChild(focusedWidgetID); focusedWidget && focusedWidget->focus()){
-                                throw fflerror("widget %s takes focus that %s has already taken", widget->name(), focusedWidget->name());
+                                // a widget with focus can drop events
+                                // i.e. a focused slider ignores mouse motion if button released
+                                focusedWidget->setFocus(false);
                             }
                         }
                         focusedWidgetID = widget->id();

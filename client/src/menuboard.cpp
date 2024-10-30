@@ -40,9 +40,6 @@ struct MenuBoardItem: public Widget
                     if(background->in(eventX, eventY)){
                         return consumeFocus(true);
                     }
-                    else if(event.type == SDL_MOUSEMOTION){
-                        return false;
-                    }
                     else{
                         return consumeFocus(false);
                     }
