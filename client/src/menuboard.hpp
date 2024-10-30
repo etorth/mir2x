@@ -46,8 +46,8 @@ class MenuBoard: public Widget
                 bool     = false);
 
     private:
-        int upperItemSpace(const Widget *) const;
-        int lowerItemSpace(const Widget *) const;
+        int upperItemSpace(const Widget *) const; // separator space not included
+        int lowerItemSpace(const Widget *) const; // ...
 
     public:
         void appendMenu(Widget *, bool, bool);

@@ -160,11 +160,8 @@ int MenuBoard::lowerItemSpace(const Widget *argWidget) const
     if(p == m_itemList.end()){
         throw fflerror("can not find child widget: %p", to_cvptr(argWidget));
     }
-    else if(std::next(p) == m_itemList.end()){
-        return 0;
-    }
-    else if(std::next(p)->second){
-        return 0;
+    else if(p->second){
+        return 0; // separator space not included
     }
     else{
         return m_itemSpace - m_itemSpace / 2;
@@ -208,7 +205,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
 
                 [argWidget, argAddSeparator, this](const Widget *)
                 {
-                    return upperItemSpace(argWidget) + argWidget->h() + lowerItemSpace(argWidget);
+                    return upperItemSpace(argWidget) + argWidget->h() + lowerItemSpace(argWidget) + (argAddSeparator ? m_separatorSpace : 0);
                 },
 
                 [argWidget, argAddSeparator, this](const Widget *self, int drawDstX, int drawDstY)
