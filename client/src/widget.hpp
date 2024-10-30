@@ -633,18 +633,26 @@ class Widget: public WidgetTreeNode
             bool took = false;
             uint64_t focusedWidgetID = 0;
 
-            foreachChild(false, [&event, valid, &took, &focusedWidgetID](Widget *widget, bool)
+            foreachChild(false, [&event, valid, &took, &focusedWidgetID, this](Widget *widget, bool)
             {
                 if(widget->show()){
-                    took |= widget->processEvent(event, valid && !took);
+                    const bool validEvent = valid && !took;
+                    const bool takenEvent = widget->processEvent(event, validEvent);
+
+                    if(!validEvent && takenEvent){
+                        throw fflerror("widget %s takes invalid event", widget->name());
+                    }
+
                     if(widget->focus()){
                         if(focusedWidgetID){
-                            throw fflerror("multiple widget focused by one event");
+                            if(auto focusedWidget = hasChild(focusedWidgetID); focusedWidget && focusedWidget->focus()){
+                                throw fflerror("widget %s takes focus that %s has already taken", widget->name(), focusedWidget->name());
+                            }
                         }
-                        else{
-                            focusedWidgetID = widget->id();
-                        }
+                        focusedWidgetID = widget->id();
                     }
+
+                    took |= takenEvent;
                 }
             });
 
