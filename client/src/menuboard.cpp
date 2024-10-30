@@ -5,6 +5,11 @@
 
 extern SDLDevice *g_sdlDevice;
 
+bool MenuBoard::MenuBoardItem::processEvent(const SDL_Event &, bool)
+{
+    return false;
+}
+
 MenuBoard::MenuBoard(
         Widget::VarDir argDir,
         Widget::VarOff argX,
@@ -180,7 +185,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
     }
 
     m_itemList.emplace_back(argWidget, argAddSeparator);
-    m_canvas.appendItem(new Widget
+    m_canvas.appendItem(new MenuBoardItem
     {
         DIR_UPLEFT, // ignore
         0,
