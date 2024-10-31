@@ -487,6 +487,14 @@ bool RuntimeConfigBoard::PullMenu::processEventDefault(const SDL_Event &event, b
     }
 
     if(Widget::processEventDefault(event, valid)){
+        if(!focus()){
+            if(!m_menuList.show()){
+                consumeFocus(true, &m_button);
+            }
+            else{
+                setFocus(true);
+            }
+        }
         return true;
     }
 
