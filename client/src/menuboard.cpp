@@ -288,7 +288,7 @@ bool MenuBoard::processEventDefault(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
-    if(Widget::processEventDefault(event, valid)){
+    if(Widget::processEvent(event, valid)){
         if(event.type == SDL_MOUSEBUTTONDOWN){
             if(auto p = focusedChild()){
                 if(m_onClickMenu){

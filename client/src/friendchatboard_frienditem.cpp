@@ -132,7 +132,7 @@ bool FriendChatBoard::FriendItem::processEventDefault(const SDL_Event &event, bo
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                if(Widget::processEventDefault(event, valid)){
+                if(Widget::processEvent(event, valid)){
                     return consumeFocus(true);
                 }
                 else if(in(event.button.x, event.button.y)){
@@ -147,7 +147,7 @@ bool FriendChatBoard::FriendItem::processEventDefault(const SDL_Event &event, bo
             }
         default:
             {
-                return Widget::processEventDefault(event, valid);
+                return Widget::processEvent(event, valid);
             }
     }
 }
