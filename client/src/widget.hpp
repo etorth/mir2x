@@ -657,6 +657,9 @@ class Widget: public WidgetTreeNode
                         throw fflerror("widget %s takes invalid event", widget->name());
                     }
 
+                    // it's possible that a widget takes event but doesn't get focus
+                    // i.e. press a button to pop up a modal window, but still abort here for easier maintenance
+
                     if(validEvent && takenEvent && widget->show() && !widget->focus()){
                         throw fflerror("widget %s takes event but doesn't get focus", widget->name());
                     }
