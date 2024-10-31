@@ -130,7 +130,7 @@ void CheckBox::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH
     fnCropDrawLine(shadowColor,       0, h() - 2, w() - 2, h() - 2); // 6
 }
 
-bool CheckBox::processEvent(const SDL_Event &event, bool valid)
+bool CheckBox::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

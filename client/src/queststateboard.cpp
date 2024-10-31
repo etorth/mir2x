@@ -178,7 +178,7 @@ void QuestStateBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_closeButton.draw();
 }
 
-bool QuestStateBoard::processEvent(const SDL_Event &event, bool valid)
+bool QuestStateBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

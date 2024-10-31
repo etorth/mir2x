@@ -114,7 +114,7 @@ void QuickAccessBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 }
 
-bool QuickAccessBoard::processEvent(const SDL_Event &event, bool valid)
+bool QuickAccessBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

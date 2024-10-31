@@ -126,7 +126,7 @@ void MenuButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
     }
 }
 
-bool MenuButton::processEvent(const SDL_Event &event, bool valid)
+bool MenuButton::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -136,7 +136,7 @@ bool MenuButton::processEvent(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
-    if(Widget::processEvent(event, valid)){
+    if(Widget::processEventDefault(event, valid)){
         return true;
     }
 

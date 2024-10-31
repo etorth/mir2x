@@ -7,7 +7,7 @@ extern SDLDevice *g_sdlDevice;
 struct MenuBoardItem: public Widget
 {
     using Widget::Widget;
-    bool processEvent(const SDL_Event &event, bool valid) override
+    bool processEventDefault(const SDL_Event &event, bool valid) override
     {
         if(!valid){
             return consumeFocus(false);
@@ -291,7 +291,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
     true);
 }
 
-bool MenuBoard::processEvent(const SDL_Event &event, bool valid)
+bool MenuBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -301,7 +301,7 @@ bool MenuBoard::processEvent(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
-    if(Widget::processEvent(event, valid)){
+    if(Widget::processEventDefault(event, valid)){
         if(event.type == SDL_MOUSEBUTTONDOWN){
             if(auto p = focusedChild()){
                 if(m_onClickMenu){

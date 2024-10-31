@@ -127,7 +127,7 @@ class ControlBoard: public Widget
 
     public:
         void update(double) override;
-        bool processEvent(const SDL_Event &, bool) override;
+        bool processEventDefault(const SDL_Event &, bool) override;
 
     public:
         void inputLineDone();

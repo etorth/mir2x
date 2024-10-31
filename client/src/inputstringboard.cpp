@@ -173,7 +173,7 @@ void InputStringBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 }
 
-bool InputStringBoard::processEvent(const SDL_Event &event, bool valid)
+bool InputStringBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

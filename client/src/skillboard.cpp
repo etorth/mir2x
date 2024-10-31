@@ -428,7 +428,7 @@ void SkillBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     pagePtr->drawEx(dstX + r[0], dstY + r[1], r[0] - pagePtr->dx(), r[1] - pagePtr->dy(), r[2], r[3]);
 }
 
-bool SkillBoard::MagicIconButton::processEvent(const SDL_Event &event, bool valid)
+bool SkillBoard::MagicIconButton::processEventDefault(const SDL_Event &event, bool valid)
 {
     const auto result = m_icon.processEvent(event, valid);
     if(event.type == SDL_KEYDOWN && cursorOn()){
@@ -448,7 +448,7 @@ bool SkillBoard::MagicIconButton::processEvent(const SDL_Event &event, bool vali
     return result;
 }
 
-bool SkillBoard::processEvent(const SDL_Event &event, bool valid)
+bool SkillBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

@@ -476,7 +476,7 @@ void RuntimeConfigBoard::PullMenu::drawEx(int dstX, int dstY, int srcX, int srcY
     }
 }
 
-bool RuntimeConfigBoard::PullMenu::processEvent(const SDL_Event &event, bool valid)
+bool RuntimeConfigBoard::PullMenu::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -486,7 +486,7 @@ bool RuntimeConfigBoard::PullMenu::processEvent(const SDL_Event &event, bool val
         return consumeFocus(false);
     }
 
-    if(Widget::processEvent(event, valid)){
+    if(Widget::processEventDefault(event, valid)){
         return true;
     }
 
@@ -1224,7 +1224,7 @@ void RuntimeConfigBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW
     }
 }
 
-bool RuntimeConfigBoard::processEvent(const SDL_Event &event, bool valid)
+bool RuntimeConfigBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

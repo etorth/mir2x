@@ -158,7 +158,7 @@ FriendChatBoard::ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
     });
 }
 
-bool FriendChatBoard::ChatPreviewItem::processEvent(const SDL_Event &event, bool valid)
+bool FriendChatBoard::ChatPreviewItem::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

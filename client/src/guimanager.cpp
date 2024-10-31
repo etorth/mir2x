@@ -166,7 +166,7 @@ void GUIManager::update(double fUpdateTime)
     g_imeBoard->update(fUpdateTime);
 }
 
-bool GUIManager::processEvent(const SDL_Event &event, bool valid)
+bool GUIManager::processEventDefault(const SDL_Event &event, bool valid)
 {
     fflassert(valid);
     switch(event.type){
@@ -193,7 +193,7 @@ bool GUIManager::processEvent(const SDL_Event &event, bool valid)
 
     bool tookEvent = false;
     tookEvent |=    g_imeBoard->processEvent(event, valid && !tookEvent);
-    tookEvent |=        Widget::processEvent(event, valid && !tookEvent);
+    tookEvent |=        Widget::processEventDefault(event, valid && !tookEvent);
     tookEvent |= m_controlBoard.processEvent(event, valid && !tookEvent);
     tookEvent |= m_NPCChatBoard.processEvent(event, valid && !tookEvent);
     tookEvent |= m_miniMapBoard.processEvent(event, valid && !tookEvent);

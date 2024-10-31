@@ -302,7 +302,7 @@ void LayoutBoard::setLineWidth(int lineWidth)
     setupStartY(0);
 }
 
-bool LayoutBoard::processEvent(const SDL_Event &event, bool valid)
+bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(m_parNodeList.empty()){
         return false;

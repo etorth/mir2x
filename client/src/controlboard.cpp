@@ -1134,7 +1134,7 @@ void ControlBoard::drawEx(int, int, int, int, int, int) const
     drawRight();
 }
 
-bool ControlBoard::processEvent(const SDL_Event &event, bool valid)
+bool ControlBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     bool takeEvent = false;
 

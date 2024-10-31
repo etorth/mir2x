@@ -74,7 +74,7 @@ class InitView final
 
     private:
         void draw();
-        void processEvent();
+        void processEventDefault();
 
     private:
         void addIVLog(int, const char *, ...);

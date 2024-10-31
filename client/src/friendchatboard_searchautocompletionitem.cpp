@@ -107,7 +107,7 @@ FriendChatBoard::SearchAutoCompletionItem::SearchAutoCompletionItem(Widget::VarD
     }
 }
 
-bool FriendChatBoard::SearchAutoCompletionItem::processEvent(const SDL_Event &event, bool valid)
+bool FriendChatBoard::SearchAutoCompletionItem::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -130,7 +130,7 @@ bool FriendChatBoard::SearchAutoCompletionItem::processEvent(const SDL_Event &ev
             }
         default:
             {
-                return Widget::processEvent(event, valid);
+                return Widget::processEventDefault(event, valid);
             }
     }
 }

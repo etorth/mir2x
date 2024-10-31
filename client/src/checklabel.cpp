@@ -124,7 +124,7 @@ CheckLabel::CheckLabel(
     }
 }
 
-bool CheckLabel::processEvent(const SDL_Event &event, bool valid)
+bool CheckLabel::processEventDefault(const SDL_Event &event, bool valid)
 {
     const auto fnOnColor = [this](bool on)
     {
@@ -265,10 +265,11 @@ void CheckLabel::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
     }
 }
 
-void CheckLabel::setFocus(bool argFocus)
+Widget *CheckLabel::setFocus(bool argFocus)
 {
     Widget::setFocus(false);
     if(argFocus){
         m_checkBox.setFocus(true);
     }
+    return this;
 }

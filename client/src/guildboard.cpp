@@ -329,7 +329,7 @@ void GuildBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_slider            .draw();
 }
 
-bool GuildBoard::processEvent(const SDL_Event &event, bool valid)
+bool GuildBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

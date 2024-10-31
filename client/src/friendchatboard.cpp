@@ -883,7 +883,7 @@ void FriendChatBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, i
     }
 }
 
-bool FriendChatBoard::processEvent(const SDL_Event &event, bool valid)
+bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

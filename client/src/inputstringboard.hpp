@@ -28,7 +28,7 @@ class InputStringBoard: public Widget
         void drawEx(int, int, int, int, int, int) const override;
 
     public:
-        bool processEvent(const SDL_Event &, bool) override;
+        bool processEventDefault(const SDL_Event &, bool) override;
 
     private:
         void inputLineDone();

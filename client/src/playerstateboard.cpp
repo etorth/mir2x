@@ -347,7 +347,7 @@ void PlayerStateBoard::drawEx(int, int, int, int, int, int) const
     m_closeButton.draw();
 }
 
-bool PlayerStateBoard::processEvent(const SDL_Event &event, bool valid)
+bool PlayerStateBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

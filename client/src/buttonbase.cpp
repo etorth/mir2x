@@ -68,7 +68,7 @@ ButtonBase::ButtonBase(Widget::VarDir argDir,
     , m_onClick  (std::move(fnOnClick))
 {}
 
-bool ButtonBase::processEvent(const SDL_Event &event, bool valid)
+bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         if(m_radioMode){

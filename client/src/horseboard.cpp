@@ -189,7 +189,7 @@ void HorseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     m_show .draw();
 }
 
-bool HorseBoard::processEvent(const SDL_Event &event, bool valid)
+bool HorseBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

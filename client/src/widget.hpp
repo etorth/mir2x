@@ -454,6 +454,9 @@ class Widget: public WidgetTreeNode
         mutable bool m_hCalc = false;
         mutable bool m_wCalc = false;
 
+    private:
+        std::function<bool(Widget *, const SDL_Event &, bool)> m_processEventHandler;
+
     public:
         Widget(Widget::VarDir argDir,
 
@@ -618,10 +621,21 @@ class Widget: public WidgetTreeNode
         }
 
     public:
+        virtual bool processEvent(const SDL_Event &event, bool valid) final
+        {
+            if(m_processEventHandler){
+                return m_processEventHandler(this, event, valid);
+            }
+            else{
+                return processEventDefault(event, valid);
+            }
+        }
+
+    protected:
         //  valid: this event has been consumed by other widget
         // return: does current widget take this event?
         //         always return false if given event has been take by previous widget
-        virtual bool processEvent(const SDL_Event &event, bool valid)
+        virtual bool processEventDefault(const SDL_Event &event, bool valid)
         {
             // this function alters the draw order
             // if a widget has children having overlapping then be careful
@@ -782,7 +796,7 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        virtual void setFocus(bool argFocus)
+        virtual Widget *setFocus(bool argFocus)
         {
             foreachChild([](Widget * widget, bool)
             {
@@ -790,6 +804,7 @@ class Widget: public WidgetTreeNode
             });
 
             m_focus = argFocus;
+            return this;
         }
 
         virtual bool focus() const
@@ -861,9 +876,10 @@ class Widget: public WidgetTreeNode
         const Widget *focusedChild() const { if(firstChild() && firstChild()->focus()){ return firstChild(); } return nullptr; }
 
     public:
-        void setShow(Widget::VarFlag argShow)
+        Widget *setShow(Widget::VarFlag argShow)
         {
             m_show = std::make_pair(std::move(argShow), false);
+            return this;
         }
 
         bool show() const
@@ -904,9 +920,10 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        void setActive(Widget::VarFlag argActive)
+        Widget *setActive(Widget::VarFlag argActive)
         {
             m_active = std::make_pair(std::move(argActive), false);
+            return this;
         }
 
         bool active() const
@@ -965,13 +982,21 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        void setW(Widget::VarSize argSize) { m_w = std::move(argSize); }
-        void setH(Widget::VarSize argSize) { m_h = std::move(argSize); }
+        Widget *setW(Widget::VarSize argSize) { m_w = std::move(argSize); return this; }
+        Widget *setH(Widget::VarSize argSize) { m_h = std::move(argSize); return this; }
 
     public:
-        void setSize(Widget::VarSize argW, Widget::VarSize argH)
+        Widget *setSize(Widget::VarSize argW, Widget::VarSize argH)
         {
             m_w = std::move(argW);
             m_h = std::move(argH);
+            return this;
+        }
+
+    public:
+        Widget *setProcessEvent(std::function<bool(Widget *, const SDL_Event &, bool)> argHandler)
+        {
+            m_processEventHandler = std::move(argHandler);
+            return this;
         }
 };

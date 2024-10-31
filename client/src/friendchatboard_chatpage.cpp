@@ -107,7 +107,7 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
       }
 {}
 
-bool FriendChatBoard::ChatPage::processEvent(const SDL_Event &event, bool valid)
+bool FriendChatBoard::ChatPage::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -124,7 +124,7 @@ bool FriendChatBoard::ChatPage::processEvent(const SDL_Event &event, bool valid)
                     case SDLK_RETURN:
                         {
                             if(input.focus()){
-                                return Widget::processEvent(event, valid);
+                                return Widget::processEventDefault(event, valid);
                             }
                             else{
                                 setFocus(false);
@@ -133,7 +133,7 @@ bool FriendChatBoard::ChatPage::processEvent(const SDL_Event &event, bool valid)
                         }
                     default:
                         {
-                            return Widget::processEvent(event, valid);
+                            return Widget::processEventDefault(event, valid);
                         }
                 }
             }
@@ -156,7 +156,7 @@ bool FriendChatBoard::ChatPage::processEvent(const SDL_Event &event, bool valid)
             }
         default:
             {
-                return Widget::processEvent(event, valid);
+                return Widget::processEventDefault(event, valid);
             }
     }
 }

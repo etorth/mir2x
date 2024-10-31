@@ -270,7 +270,7 @@ void InventoryBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 }
 
-bool InventoryBoard::processEvent(const SDL_Event &event, bool valid)
+bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

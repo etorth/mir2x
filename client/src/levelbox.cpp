@@ -22,7 +22,7 @@ LevelBox::LevelBox(
     , m_onDoubleClick(onDoubleClick)
 {}
 
-bool LevelBox::processEvent(const SDL_Event &event, bool valid)
+bool LevelBox::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return false;

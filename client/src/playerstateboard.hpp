@@ -42,7 +42,7 @@ class PlayerStateBoard: public Widget
         void drawWear();
 
     public:
-        bool processEvent(const SDL_Event &, bool) override;
+        bool processEventDefault(const SDL_Event &, bool) override;
 
     private:
         void drawItemHoverText(int) const;

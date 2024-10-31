@@ -31,7 +31,7 @@ class LevelBox: public Widget
                 bool     = false);  // auto-delete
 
     public:
-        bool processEvent(const SDL_Event &, bool);
+        bool processEventDefault(const SDL_Event &, bool);
 
     public:
         void drawEx(int, int, int, int, int, int) const override;

@@ -326,7 +326,7 @@ void TeamStateBoard::drawEx(int, int, int, int, int, int) const
     m_close       .draw();
 }
 
-bool TeamStateBoard::processEvent(const SDL_Event &event, bool valid)
+bool TeamStateBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

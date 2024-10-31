@@ -393,7 +393,7 @@ void PurchaseBoard::drawEx(int dstX, int dstY, int, int, int, int) const
     }
 }
 
-bool PurchaseBoard::processEvent(const SDL_Event &event, bool valid)
+bool PurchaseBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

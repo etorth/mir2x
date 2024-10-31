@@ -42,7 +42,7 @@ class Slider: public Widget
         {}
 
     public:
-        bool processEvent(const SDL_Event &, bool) override;
+        bool processEventDefault(const SDL_Event &, bool) override;
 
     public:
         virtual void setValue(float value, bool triggerCallback)

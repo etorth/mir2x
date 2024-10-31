@@ -162,7 +162,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *widgetPtr, bool autoDel
     }
 }
 
-bool ItemListBoard::processEvent(const SDL_Event &event, bool valid)
+bool ItemListBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

@@ -12,7 +12,7 @@ extern IMEBoard *g_imeBoard;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
-bool InputLine::processEvent(const SDL_Event &event, bool valid)
+bool InputLine::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return false;

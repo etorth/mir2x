@@ -70,7 +70,7 @@ class FriendChatBoard: public Widget
                     bool     = false);
 
             void setFuncWidget(Widget *, bool);
-            bool processEvent(const SDL_Event &, bool) override;
+            bool processEventDefault(const SDL_Event &, bool) override;
         };
 
         struct FriendListPage: public Widget
@@ -174,7 +174,7 @@ class FriendChatBoard: public Widget
                     Widget * = nullptr,
                     bool     = false);
 
-            bool processEvent(const SDL_Event &, bool) override;
+            bool processEventDefault(const SDL_Event &, bool) override;
         };
 
         struct SearchPage: public Widget
@@ -372,7 +372,7 @@ class FriendChatBoard: public Widget
                         Widget * = nullptr,
                         bool     = false);
 
-                bool processEvent(const SDL_Event &event, bool valid) override
+                bool processEventDefault(const SDL_Event &event, bool valid) override
                 {
                     return gfxWidget->processEvent(event, valid);
                 }
@@ -483,7 +483,7 @@ class FriendChatBoard: public Widget
                     Widget * = nullptr,
                     bool     = false);
 
-            bool processEvent(const SDL_Event &, bool) override;
+            bool processEventDefault(const SDL_Event &, bool) override;
         };
 
         struct ChatPreviewItem: public Widget
@@ -536,7 +536,7 @@ class FriendChatBoard: public Widget
                     Widget * = nullptr,
                     bool     = false);
 
-            bool processEvent(const SDL_Event &, bool) override;
+            bool processEventDefault(const SDL_Event &, bool) override;
         };
 
         struct ChatPreviewPage: public Widget
@@ -643,7 +643,7 @@ class FriendChatBoard: public Widget
         void drawEx(int, int, int, int, int, int) const override;
 
     public:
-        bool processEvent(const SDL_Event &, bool) override;
+        bool processEventDefault(const SDL_Event &, bool) override;
 
     public:
         const SDChatPeer *findChatPeer      (const SDChatPeerID &) const;

@@ -333,7 +333,7 @@ class LayoutBoard: public Widget
         void drawEx(int, int, int, int, int, int) const override;
 
     public:
-        bool processEvent(const SDL_Event &, bool) override;
+        bool processEventDefault(const SDL_Event &, bool) override;
 
     private:
         void addPar(int, const std::array<int, 4> &, const tinyxml2::XMLNode *);
@@ -354,10 +354,11 @@ class LayoutBoard: public Widget
         std::string getXML() const;
 
     public:
-        void setFocus(bool argFocus) override
+        Widget *setFocus(bool argFocus) override
         {
             Widget::setFocus(argFocus);
             m_cursorBlink = 0.0;
+            return this;
         }
 
     public:

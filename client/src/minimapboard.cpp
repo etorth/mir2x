@@ -121,7 +121,7 @@ void MiniMapBoard::drawEx(int, int, int, int, int, int) const
     m_buttonExtend.draw();
 }
 
-bool MiniMapBoard::processEvent(const SDL_Event &event, bool valid)
+bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!show()){
         return false;

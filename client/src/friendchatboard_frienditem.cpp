@@ -119,7 +119,7 @@ void FriendChatBoard::FriendItem::setFuncWidget(Widget *argFuncWidget, bool argA
     addChild(argFuncWidget, argAutoDelete);
 }
 
-bool FriendChatBoard::FriendItem::processEvent(const SDL_Event &event, bool valid)
+bool FriendChatBoard::FriendItem::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -132,7 +132,7 @@ bool FriendChatBoard::FriendItem::processEvent(const SDL_Event &event, bool vali
     switch(event.type){
         case SDL_MOUSEBUTTONDOWN:
             {
-                if(Widget::processEvent(event, valid)){
+                if(Widget::processEventDefault(event, valid)){
                     return consumeFocus(true);
                 }
                 else if(in(event.button.x, event.button.y)){
@@ -147,7 +147,7 @@ bool FriendChatBoard::FriendItem::processEvent(const SDL_Event &event, bool vali
             }
         default:
             {
-                return Widget::processEvent(event, valid);
+                return Widget::processEventDefault(event, valid);
             }
     }
 }

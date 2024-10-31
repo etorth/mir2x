@@ -96,7 +96,7 @@ InitView::InitView(uint8_t fontSize)
     }
 
     while(donePercent() < 100){
-        processEvent(); // can abort internally
+        processEventDefault(); // can abort internally
         draw();
     }
 
@@ -121,7 +121,7 @@ InitView::~InitView()
     }
 }
 
-void InitView::processEvent()
+void InitView::processEventDefault()
 {
     SDL_Event event;
     while(SDL_PollEvent(&event)){

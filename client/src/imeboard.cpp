@@ -63,7 +63,7 @@ IMEBoard::IMEBoard(
 
 void IMEBoard::update(double)
 {
-    // in processEvent we only post request to IME
+    // in processEventDefault we only post request to IME
     // all IME changes need to be polled in update(), or we can do it by callback
 
     // problem of callback is not by IME, it's by SDL
@@ -159,7 +159,7 @@ size_t IMEBoard::totalLabelWidth() const
     return totalWidth;
 }
 
-bool IMEBoard::processEvent(const SDL_Event &event, bool valid)
+bool IMEBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         if(focus()){

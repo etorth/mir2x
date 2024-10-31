@@ -1,7 +1,7 @@
 #include <SDL2/SDL.h>
 #include "slider.hpp"
 
-bool Slider::processEvent(const SDL_Event &e, bool valid)
+bool Slider::processEventDefault(const SDL_Event &e, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

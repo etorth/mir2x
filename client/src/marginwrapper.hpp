@@ -36,7 +36,7 @@ class MarginWrapper: public Widget
         {}
 
     public:
-        bool processEvent(const SDL_Event &event, bool valid) override
+        bool processEventDefault(const SDL_Event &event, bool valid) override
         {
             return wrapped()->processEvent(event, valid);
         }

@@ -96,7 +96,7 @@ class ButtonBase: public Widget
         virtual ~ButtonBase() = default;
 
     public:
-        bool processEvent(const SDL_Event &, bool) override;
+        bool processEventDefault(const SDL_Event &, bool) override;
 
     protected:
         int offX() const
