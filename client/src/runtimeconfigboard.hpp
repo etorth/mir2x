@@ -121,6 +121,15 @@ class RuntimeConfigBoard: public Widget
                 {
                     return &m_menuTitle;
                 }
+
+            public:
+                Widget *setFocus(bool argFocus) override
+                {
+                    if(!argFocus){
+                        m_menuList.setShow(false);
+                    }
+                    return Widget::setFocus(argFocus);
+                }
         };
 
     private:
