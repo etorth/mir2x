@@ -50,7 +50,4 @@ class MenuBoard: public Widget
 
     public:
         void appendMenu(Widget *, bool, bool);
-
-    public:
-        bool processEventDefault(const SDL_Event &, bool) override;
 };

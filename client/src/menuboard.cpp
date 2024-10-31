@@ -277,30 +277,3 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
     }),
     true);
 }
-
-bool MenuBoard::processEventDefault(const SDL_Event &event, bool valid)
-{
-    if(!valid){
-        return consumeFocus(false);
-    }
-
-    if(!show()){
-        return consumeFocus(false);
-    }
-
-    if(Widget::processEventDefault(event, valid)){
-        if(event.type == SDL_MOUSEBUTTONDOWN){
-            if(auto p = focusedChild()){
-                if(m_onClickMenu){
-                    m_onClickMenu(p);
-                }
-
-                setShow(false);
-                setFocus(false);
-            }
-        }
-        return true;
-    }
-
-    return false;
-}
