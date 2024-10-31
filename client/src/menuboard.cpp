@@ -221,7 +221,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                 return upperItemSpace(argWidget);
             }, argAutoDelete},
         },
-    })->setProcessEvent([](Widget *self, const SDL_Event &event, bool valid)
+    })->setProcessEvent([this](Widget *self, const SDL_Event &event, bool valid)
     {
         if(!valid){
             return self->consumeFocus(false);
@@ -252,6 +252,11 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                 {
                     const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
                     if(background->in(eventX, eventY)){
+                        if(event.type == SDL_MOUSEBUTTONDOWN){
+                            if(m_onClickMenu){
+                                m_onClickMenu(menuWidget);
+                            }
+                        }
                         return self->consumeFocus(true);
                     }
                     else{
