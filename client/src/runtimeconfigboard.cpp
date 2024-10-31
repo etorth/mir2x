@@ -348,6 +348,31 @@ RuntimeConfigBoard::PullMenu::PullMenu(
     m_button       .moveAt(DIR_LEFT, m_menuTitleBackground.dx() + m_menuTitleBackground.w(), maxHeight / 2);
 
     m_menuList.moveAt(DIR_UPLEFT, m_menuTitleBackground.dx() + 3, m_menuTitleBackground.dy() + m_menuTitleBackground.h() - 2);
+
+    m_menuTitleCrop.setProcessEvent([this](Widget *self, const SDL_Event &event, bool valid)
+    {
+        if(!valid){
+            return self->consumeFocus(false);
+        }
+
+        switch(event.type){
+            case SDL_MOUSEBUTTONUP:
+                {
+                    const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
+                    if(self->in(eventX, eventY)){
+                        m_menuList.setShow(true);
+                        return self->consumeFocus(true);
+                    }
+                    else{
+                        return false;
+                    }
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    });
 }
 
 RuntimeConfigBoard::LabelSliderBar::LabelSliderBar(
