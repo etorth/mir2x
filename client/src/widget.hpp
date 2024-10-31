@@ -657,7 +657,7 @@ class Widget: public WidgetTreeNode
                         throw fflerror("widget %s takes invalid event", widget->name());
                     }
 
-                    if(validEvent && takenEvent && !widget->focus()){
+                    if(validEvent && takenEvent && widget->show() && !widget->focus()){
                         throw fflerror("widget %s takes event but doesn't get focus", widget->name());
                     }
 
@@ -719,7 +719,7 @@ class Widget: public WidgetTreeNode
                     int maxW = 0;
                     foreachChild([&maxW](const Widget *widget, bool)
                     {
-                        if(widget->show()){
+                        if(widget->localShow()){
                             maxW = std::max<int>(maxW, widget->dx() + widget->w());
                         }
                     });
@@ -751,7 +751,7 @@ class Widget: public WidgetTreeNode
                     int maxH = 0;
                     foreachChild([&maxH](const Widget *widget, bool)
                     {
-                        if(widget->show()){
+                        if(widget->localShow()){
                             maxH = std::max<int>(maxH, widget->dy() + widget->h());
                         }
                     });
@@ -882,6 +882,11 @@ class Widget: public WidgetTreeNode
             return this;
         }
 
+        bool localShow() const
+        {
+            return Widget::evalFlag(m_show.first, this) != m_show.second;
+        }
+
         bool show() const
         {
             // unlike active(), don't check if parent shows
@@ -910,8 +915,11 @@ class Widget: public WidgetTreeNode
             //
             // we still setup m_show for each child widget
             // but when drawing, widget skips itself and all its child widgets if this->show() returns false
-            //
-            return Widget::evalFlag(m_show.first, this) != m_show.second;
+
+            if(m_parent && !m_parent->show()){
+                return false;
+            }
+            return localShow();
         }
 
         void flipShow()
@@ -926,12 +934,17 @@ class Widget: public WidgetTreeNode
             return this;
         }
 
+        bool localActive() const
+        {
+            return Widget::evalFlag(m_active.first, this) != m_active.second;
+        }
+
         bool active() const
         {
             if(m_parent && !m_parent->active()){
                 return false;
             }
-            return Widget::evalFlag(m_active.first, this) != m_active.second;
+            return localActive();
         }
 
         void flipActive()

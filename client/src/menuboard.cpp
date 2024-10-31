@@ -252,12 +252,18 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                 {
                     const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
                     if(background->in(eventX, eventY)){
-                        if(event.type == SDL_MOUSEBUTTONDOWN){
+                        if(event.type == SDL_MOUSEMOTION){
+                            return self->consumeFocus(true);
+                        }
+                        else{
                             if(m_onClickMenu){
                                 m_onClickMenu(menuWidget);
                             }
+
+                            setFocus(false);
+                            setShow(false);
+                            return true;
                         }
-                        return self->consumeFocus(true);
                     }
                     else{
                         return self->consumeFocus(false);
