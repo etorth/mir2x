@@ -4,53 +4,6 @@
 #include "menuboard.hpp"
 
 extern SDLDevice *g_sdlDevice;
-struct MenuBoardItem: public Widget
-{
-    using Widget::Widget;
-    bool processEventDefault(const SDL_Event &event, bool valid) override
-    {
-        if(!valid){
-            return consumeFocus(false);
-        }
-
-        Widget *menuWidget = nullptr;
-        ShapeClipBoard *background = nullptr;
-
-        foreachChild([&menuWidget, &background](Widget *child, bool)
-        {
-
-            if(auto p = dynamic_cast<ShapeClipBoard *>(child)){
-                background = p;
-            }
-            else{
-                menuWidget = child;
-            }
-        });
-
-        if(menuWidget->processEvent(event, valid)){
-            return consumeFocus(true, menuWidget);
-        }
-
-        switch(event.type){
-            case SDL_MOUSEMOTION:
-            case SDL_MOUSEBUTTONUP:
-            case SDL_MOUSEBUTTONDOWN:
-                {
-                    const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
-                    if(background->in(eventX, eventY)){
-                        return consumeFocus(true);
-                    }
-                    else{
-                        return consumeFocus(false);
-                    }
-                }
-            default:
-                {
-                    return false;
-                }
-        }
-    }
-};
 
 MenuBoard::MenuBoard(
         Widget::VarDir argDir,
@@ -207,7 +160,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
     }
 
     m_itemList.emplace_back(argWidget, argAddSeparator);
-    m_canvas.appendItem(new MenuBoardItem
+    m_canvas.appendItem((new Widget
     {
         DIR_UPLEFT, // ignore
         0,
@@ -268,8 +221,49 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                 return upperItemSpace(argWidget);
             }, argAutoDelete},
         },
-    },
+    })->setProcessEvent([](Widget *self, const SDL_Event &event, bool valid)
+    {
+        if(!valid){
+            return self->consumeFocus(false);
+        }
 
+        Widget *menuWidget = nullptr;
+        ShapeClipBoard *background = nullptr;
+
+        self->foreachChild([&menuWidget, &background](Widget *child, bool)
+        {
+
+            if(auto p = dynamic_cast<ShapeClipBoard *>(child)){
+                background = p;
+            }
+            else{
+                menuWidget = child;
+            }
+        });
+
+        if(menuWidget->processEvent(event, valid)){
+            return self->consumeFocus(true, menuWidget);
+        }
+
+        switch(event.type){
+            case SDL_MOUSEMOTION:
+            case SDL_MOUSEBUTTONUP:
+            case SDL_MOUSEBUTTONDOWN:
+                {
+                    const auto [eventX, eventY] = SDLDeviceHelper::getEventPLoc(event).value();
+                    if(background->in(eventX, eventY)){
+                        return self->consumeFocus(true);
+                    }
+                    else{
+                        return self->consumeFocus(false);
+                    }
+                }
+            default:
+                {
+                    return false;
+                }
+        }
+    }),
     true);
 }
 
