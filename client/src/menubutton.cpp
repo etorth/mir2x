@@ -136,7 +136,7 @@ bool MenuButton::processEventDefault(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
-    if(Widget::processEvent(event, valid)){
+    if(Widget::processEventDefault(event, valid)){
         return true;
     }
 

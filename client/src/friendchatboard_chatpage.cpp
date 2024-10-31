@@ -124,7 +124,7 @@ bool FriendChatBoard::ChatPage::processEventDefault(const SDL_Event &event, bool
                     case SDLK_RETURN:
                         {
                             if(input.focus()){
-                                return Widget::processEvent(event, valid);
+                                return Widget::processEventDefault(event, valid);
                             }
                             else{
                                 setFocus(false);
@@ -133,7 +133,7 @@ bool FriendChatBoard::ChatPage::processEventDefault(const SDL_Event &event, bool
                         }
                     default:
                         {
-                            return Widget::processEvent(event, valid);
+                            return Widget::processEventDefault(event, valid);
                         }
                 }
             }
@@ -156,7 +156,7 @@ bool FriendChatBoard::ChatPage::processEventDefault(const SDL_Event &event, bool
             }
         default:
             {
-                return Widget::processEvent(event, valid);
+                return Widget::processEventDefault(event, valid);
             }
     }
 }

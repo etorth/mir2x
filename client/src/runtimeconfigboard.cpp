@@ -486,7 +486,7 @@ bool RuntimeConfigBoard::PullMenu::processEventDefault(const SDL_Event &event, b
         return consumeFocus(false);
     }
 
-    if(Widget::processEvent(event, valid)){
+    if(Widget::processEventDefault(event, valid)){
         return true;
     }
 

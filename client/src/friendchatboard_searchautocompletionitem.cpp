@@ -130,7 +130,7 @@ bool FriendChatBoard::SearchAutoCompletionItem::processEventDefault(const SDL_Ev
             }
         default:
             {
-                return Widget::processEvent(event, valid);
+                return Widget::processEventDefault(event, valid);
             }
     }
 }
