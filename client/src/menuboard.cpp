@@ -143,31 +143,13 @@ MenuBoard::MenuBoard(
           [](const Widget *self, int dstDrawX, int dstDrawY)
           {
               g_sdlDevice->fillRectangle(colorf::BLACK + colorf::A_SHF(255), dstDrawX, dstDrawY, self->w(), self->h());
-          },
-
-          this,
-          false,
-      }
-
-    , m_frame
-      {
-          DIR_UPLEFT,
-          0,
-          0,
-
-          [this](const Widget *){ return m_wrapper.w(); },
-          [this](const Widget *){ return m_wrapper.h(); },
-
-          [](const Widget *self, int dstDrawX, int dstDrawY)
-          {
-              g_sdlDevice->drawRectangle(colorf::GREY + colorf::A_SHF(128), dstDrawX, dstDrawY, self->w(), self->h());
+              g_sdlDevice->drawRectangle(colorf::GREY  + colorf::A_SHF(255), dstDrawX, dstDrawY, self->w(), self->h());
           },
 
           this,
           false,
       }
 {
-    moveFront(&m_frame);
     moveFront(&m_wrapper);
     moveFront(&m_background);
 

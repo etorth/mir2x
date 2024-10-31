@@ -25,7 +25,6 @@ class MenuBoard: public Widget
 
     private:
         ShapeClipBoard m_background;
-        ShapeClipBoard m_frame;
 
     public:
         MenuBoard(
