@@ -268,6 +268,11 @@ bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool
             && background.in(event.button.x, event.button.y)){
 
         if(auto chatPage = dynamic_cast<FriendChatBoard::ChatPage *>(parent(3))){
+            if(chatPage->menu){
+                chatPage->removeChild(chatPage->menu, true);
+                chatPage->menu = nullptr;
+            }
+
             chatPage->addChild((chatPage->menu = new MenuBoard
             {
                 DIR_UPLEFT,
@@ -291,8 +296,13 @@ bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool
             event.button.x - chatPage->x(),
             event.button.y - chatPage->y(),
             true);
+
+            chatPage->menu->setShow(true);
+            chatPage->menu->setFocus(true);
         }
-        return consumeFocus(true);
+
+        setFocus(false);
+        return true;
     }
 
     if(Widget::processEventDefault(event, valid)){
