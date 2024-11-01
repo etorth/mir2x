@@ -506,7 +506,6 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid)
                 }
                 return false;
             }
-
         default:
             {
                 // layout board only handle mouse motion/click events

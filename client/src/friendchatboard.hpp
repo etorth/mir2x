@@ -475,6 +475,8 @@ class FriendChatBoard: public Widget
             ChatInputContainer input;
             ChatItemContainer  chat;
 
+            MenuBoard *menu = nullptr;
+
             ChatPage(dir8_t,
 
                     int,
