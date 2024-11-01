@@ -2,8 +2,9 @@
 #include <array>
 #include <string>
 #include <unordered_map>
-#include "widget.hpp"
 #include "serdesmsg.hpp"
+#include "widget.hpp"
+#include "menuboard.hpp"
 #include "texslider.hpp"
 #include "inputline.hpp"
 #include "labelboard.hpp"
@@ -351,6 +352,7 @@ class FriendChatBoard: public Widget
                     bool     = false);
 
             void update(double) override;
+            bool processEventDefault(const SDL_Event &, bool) override;
         };
 
         struct ChatItemContainer: public Widget

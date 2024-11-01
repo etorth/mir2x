@@ -251,3 +251,51 @@ void FriendChatBoard::ChatItem::update(double fUpdateTime)
 {
     accuTime += fUpdateTime;
 }
+
+bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool valid)
+{
+    if(!valid){
+        return consumeFocus(false);
+    }
+
+    if(!show()){
+        return consumeFocus(false);
+    }
+
+    if(Widget::processEventDefault(event, valid)){
+        if(!focus()){
+            setFocus(true);
+        }
+        return true;
+    }
+
+    if(event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_RIGHT){
+        if(auto chatPage = dynamic_cast<FriendChatBoard::ChatPage *>(parent(3))){
+            chatPage->addChild((chatPage->menu = new MenuBoard
+            {
+                DIR_UPLEFT,
+                0,
+                0,
+                200,
+
+                {5, 5, 5, 5},
+
+                3,
+                5,
+                6,
+
+                {
+                    {new LabelBoard(DIR_UPLEFT, 0, 0, u8"引用" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)), false, true},
+                    {new LabelBoard(DIR_UPLEFT, 0, 0, u8"复制" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)), false, true},
+                },
+            }),
+
+            DIR_UPLEFT,
+            event.button.x - chatPage->x(),
+            event.button.y - chatPage->y(),
+            true);
+        }
+        return consumeFocus(true);
+    }
+    return false;
+}
