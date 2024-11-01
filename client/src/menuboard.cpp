@@ -13,6 +13,7 @@ MenuBoard::MenuBoard(
         Widget::VarSize argVarW,
         std::array<int, 4> argMargin,
 
+        int argCorner,
         int argItemSpace,
         int argSeperatorSpace,
 
@@ -93,10 +94,10 @@ MenuBoard::MenuBoard(
           [this](const Widget *){ return m_wrapper.w(); },
           [this](const Widget *){ return m_wrapper.h(); },
 
-          [](const Widget *self, int dstDrawX, int dstDrawY)
+          [argCorner](const Widget *self, int dstDrawX, int dstDrawY)
           {
-              g_sdlDevice->fillRectangle(colorf::BLACK + colorf::A_SHF(255), dstDrawX, dstDrawY, self->w(), self->h());
-              g_sdlDevice->drawRectangle(colorf::GREY  + colorf::A_SHF(255), dstDrawX, dstDrawY, self->w(), self->h());
+              g_sdlDevice->fillRectangle(colorf::BLACK + colorf::A_SHF(255), dstDrawX, dstDrawY, self->w(), self->h(), std::max<int>(0, argCorner));
+              g_sdlDevice->drawRectangle(colorf::GREY  + colorf::A_SHF(255), dstDrawX, dstDrawY, self->w(), self->h(), std::max<int>(0, argCorner));
           },
 
           this,

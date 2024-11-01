@@ -328,6 +328,7 @@ RuntimeConfigBoard::PullMenu::PullMenu(
 
           {5, 5, 5, 5},
 
+          3,
           6,
           7,
 

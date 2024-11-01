@@ -37,6 +37,7 @@ class MenuBoard: public Widget
 
                 int = 0,
                 int = 0,
+                int = 0,
 
                 std::initializer_list<std::tuple<Widget *, bool, bool>> = {},
                 std::function<void(Widget *)> = nullptr,
