@@ -660,10 +660,6 @@ class Widget: public WidgetTreeNode
                     // it's possible that a widget takes event but doesn't get focus
                     // i.e. press a button to pop up a modal window, but still abort here for easier maintenance
 
-                    if(validEvent && takenEvent && widget->show() && !widget->focus()){
-                        throw fflerror("widget %s takes event but doesn't get focus", widget->name());
-                    }
-
                     if(widget->focus()){
                         if(focusedWidgetID){
                             if(auto focusedWidget = hasChild(focusedWidgetID); focusedWidget && focusedWidget->focus()){
