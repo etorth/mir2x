@@ -262,14 +262,11 @@ bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool
         return consumeFocus(false);
     }
 
-    if(Widget::processEventDefault(event, valid)){
-        if(!focus()){
-            setFocus(true);
-        }
-        return true;
-    }
+    if(true
+            && event.type == SDL_MOUSEBUTTONUP
+            && event.button.button == SDL_BUTTON_RIGHT
+            && background.in(event.button.x, event.button.y)){
 
-    if(event.type == SDL_MOUSEBUTTONUP && event.button.button == SDL_BUTTON_RIGHT){
         if(auto chatPage = dynamic_cast<FriendChatBoard::ChatPage *>(parent(3))){
             chatPage->addChild((chatPage->menu = new MenuBoard
             {
@@ -296,6 +293,13 @@ bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool
             true);
         }
         return consumeFocus(true);
+    }
+
+    if(Widget::processEventDefault(event, valid)){
+        if(!focus()){
+            setFocus(true);
+        }
+        return true;
     }
     return false;
 }
