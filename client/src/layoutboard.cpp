@@ -497,7 +497,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid)
                     takeEvent |= fnHandleEvent(&node, valid && !takeEvent);
                 }
 
-                if(!takeEvent){
+                if(!takeEvent && event.type != SDL_MOUSEMOTION){
                     takeEvent = in(eventPX, eventPY);
                 }
 
