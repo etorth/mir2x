@@ -149,6 +149,10 @@ bool FriendChatBoard::ChatPage::processEventDefault(const SDL_Event &event, bool
                 }
 
                 if(in(event.button.x, event.button.y)){
+                    if(menu){
+                        removeChild(menu, true);
+                        menu = nullptr;
+                    }
                     return consumeFocus(true);
                 }
 
