@@ -54,7 +54,7 @@ class ServerCannibalPlant final: public Monster
         }
 
     protected:
-        bool struckDamage(const DamageNode &damage)
+        bool struckDamage(uint64_t, const DamageNode &damage) override
         {
             if(!m_standMode){
                 switch(damage.magicID){

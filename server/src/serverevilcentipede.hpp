@@ -54,7 +54,7 @@ class ServerEvilCentipede final: public Monster
         }
 
     protected:
-        bool struckDamage(const DamageNode &damage)
+        bool struckDamage(uint64_t, const DamageNode &damage) override
         {
             if(m_standMode){
                 if(damage){
