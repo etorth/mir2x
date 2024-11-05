@@ -635,52 +635,10 @@ class Widget: public WidgetTreeNode
         //  valid: this event has been consumed by other widget
         // return: does current widget take this event?
         //         always return false if given event has been take by previous widget
-        virtual bool processEventDefault(const SDL_Event &event, bool valid)
-        {
-            // this function alters the draw order
-            // if a widget has children having overlapping then be careful
-
-            if(!show()){
-                return false;
-            }
-
-            bool took = false;
-            uint64_t focusedWidgetID = 0;
-
-            foreachChild(false, [&event, valid, &took, &focusedWidgetID, this](Widget *widget, bool)
-            {
-                if(widget->show()){
-                    const bool validEvent = valid && !took;
-                    const bool takenEvent = widget->processEvent(event, validEvent);
-
-                    if(!validEvent && takenEvent){
-                        throw fflerror("widget %s takes invalid event", widget->name());
-                    }
-
-                    // it's possible that a widget takes event but doesn't get focus
-                    // i.e. press a button to pop up a modal window, but still abort here for easier maintenance
-
-                    if(widget->focus()){
-                        if(focusedWidgetID){
-                            if(auto focusedWidget = hasChild(focusedWidgetID); focusedWidget && focusedWidget->focus()){
-                                // a widget with focus can drop events
-                                // i.e. a focused slider ignores mouse motion if button released
-                                focusedWidget->setFocus(false);
-                            }
-                        }
-                        focusedWidgetID = widget->id();
-                    }
-
-                    took |= takenEvent;
-                }
-            });
-
-            if(auto widget = hasChild(focusedWidgetID)){
-                moveBack(widget);
-            }
-
-            return took;
-        }
+        //
+        // this function alters the draw order
+        // if a widget has children having overlapping then be careful
+        virtual bool processEventDefault(const SDL_Event &, bool);
 
     public:
         virtual dir8_t dir() const
