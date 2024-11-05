@@ -309,6 +309,13 @@ bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool
         if(!focus()){
             setFocus(true);
         }
+
+        if(auto chatPage = dynamic_cast<FriendChatBoard::ChatPage *>(parent(3))){
+            if(chatPage->menu){
+                chatPage->removeChild(chatPage->menu, true);
+                chatPage->menu = nullptr;
+            }
+        }
         return true;
     }
     return false;
