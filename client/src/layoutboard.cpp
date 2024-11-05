@@ -454,7 +454,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid)
                 }();
 
                 const auto [eventPX, eventPY] = SDLDeviceHelper::getEventPLoc(event).value();
-                const auto fnHandleEvent = [newEvent, eventPX, eventPY, this](ParNode *node, bool currValid) -> bool
+                const auto fnHandleEvent = [&event, newEvent, eventPX, eventPY, this](ParNode *node, bool currValid) -> bool
                 {
                     if(!currValid){
                         node->tpset->clearEvent(-1);
@@ -483,12 +483,19 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid)
                         {{BEVENT_ON  , BEVENT_ON  }, BEVENT_HOVER  },
                     };
 
-                    if(const auto attrListPtr = node->tpset->leafEvent(leafID); attrListPtr && m_eventCB){
+                    const auto attrListPtr = node->tpset->leafEvent(leafID);
+                    if(attrListPtr && m_eventCB){
                         if(auto eventiter = buttonState2Event.find({oldEvent, newEvent}); eventiter != buttonState2Event.end()){
                             m_eventCB(*attrListPtr, eventiter->second);
                         }
                     }
+
                     node->tpset->clearEvent(leafID);
+                    if(!attrListPtr && event.type == SDL_MOUSEMOTION){
+                        // it's not an event text, and no click happens
+                        // don't take the event
+                        return false;
+                    }
                     return true;
                 };
 
