@@ -2,11 +2,11 @@
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "sysconst.hpp"
-#include "../../pngtexdb.hpp"
-#include "../../sdldevice.hpp"
-#include "../../processrun.hpp"
+#include "pngtexdb.hpp"
+#include "sdldevice.hpp"
+#include "processrun.hpp"
 #include "npcchatboard.hpp"
-#include "../../clientargparser.hpp"
+#include "clientargparser.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
