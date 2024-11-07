@@ -4,7 +4,7 @@
 #include "horseboard.hpp"
 #include "skillboard.hpp"
 #include "guildboard.hpp"
-#include "npcchatboard.hpp"
+#include "gui/npcchatboard/npcchatboard.hpp"
 #include "friendchatboard.hpp"
 #include "controlboard.hpp"
 #include "purchaseboard.hpp"

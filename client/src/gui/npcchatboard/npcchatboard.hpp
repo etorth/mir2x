@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
-#include "widget.hpp"
-#include "layoutboard.hpp"
-#include "tritexbutton.hpp"
+#include "../../widget.hpp"
+#include "../../layoutboard.hpp"
+#include "../../tritexbutton.hpp"
 
 class ProcessRun;
 class NPCChatBoard: public Widget
