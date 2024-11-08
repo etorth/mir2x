@@ -21,7 +21,7 @@
 #include "cerealf.hpp"
 #include "imeboard.hpp"
 #include "controlboard.hpp"
-#include "friendchatboard.hpp"
+#include "gui/friendchatboard/friendchatboard.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
