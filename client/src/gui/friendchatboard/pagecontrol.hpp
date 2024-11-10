@@ -17,4 +17,3 @@ struct PageControl: public Widget
             Widget * = nullptr,
             bool     = false);
 };
-
