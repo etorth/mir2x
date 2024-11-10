@@ -1,12 +1,15 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "chatitem.hpp"
+#include "chatpage.hpp"
 #include "friendchatboard.hpp"
 
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
-        int argX,
-        int argY,
+ChatItem::ChatItem(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
 
         bool argPending,
 
@@ -25,9 +28,9 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
 
     : Widget
       {
-          argDir,
-          argX,
-          argY,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
 
           {},
           {},
@@ -111,7 +114,7 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
                   const auto cpidstr = LayoutBoard::findAttrValue(attrList, "cpid");
                   fflassert(cpidstr);
 
-                  getParentBoard(this)->queryChatPeer(SDChatPeerID(std::stoull(cpidstr)), [attrList, this](const SDChatPeer *sdCP, bool)
+                  FriendChatBoard::getParentBoard(this)->queryChatPeer(SDChatPeerID(std::stoull(cpidstr)), [attrList, this](const SDChatPeer *sdCP, bool)
                   {
                       if(LayoutBoard::findAttrValue(attrList, "accept")){
                           FriendChatBoard::getParentBoard(this)->requestAcceptAddFriend(*sdCP);
@@ -247,12 +250,12 @@ FriendChatBoard::ChatItem::ChatItem(dir8_t argDir,
     }
 }
 
-void FriendChatBoard::ChatItem::update(double fUpdateTime)
+void ChatItem::update(double fUpdateTime)
 {
     accuTime += fUpdateTime;
 }
 
-bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool valid)
+bool ChatItem::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -267,7 +270,7 @@ bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool
             && event.button.button == SDL_BUTTON_RIGHT
             && background.in(event.button.x, event.button.y)){
 
-        if(auto chatPage = dynamic_cast<FriendChatBoard::ChatPage *>(parent(3))){
+        if(auto chatPage = dynamic_cast<ChatPage *>(parent(3))){
             if(chatPage->menu){
                 chatPage->removeChild(chatPage->menu, true);
                 chatPage->menu = nullptr;
@@ -310,7 +313,7 @@ bool FriendChatBoard::ChatItem::processEventDefault(const SDL_Event &event, bool
             setFocus(true);
         }
 
-        if(auto chatPage = dynamic_cast<FriendChatBoard::ChatPage *>(parent(3))){
+        if(auto chatPage = dynamic_cast<ChatPage *>(parent(3))){
             if(chatPage->menu){
                 chatPage->removeChild(chatPage->menu, true);
                 chatPage->menu = nullptr;

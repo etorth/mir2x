@@ -1,9 +1,10 @@
+#include "pagecontrol.hpp"
 #include "friendchatboard.hpp"
 
-FriendChatBoard::PageControl::PageControl(dir8_t argDir,
-
-        int argX,
-        int argY,
+PageControl::PageControl(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
 
         int argSpace,
 
@@ -28,9 +29,7 @@ FriendChatBoard::PageControl::PageControl(dir8_t argDir,
 {
     int offX = 0;
     for(auto &[widgetPtr, autoDelete]: argChildList){
-        addChild(widgetPtr, autoDelete);
-        widgetPtr->moveAt(DIR_UPLEFT, offX, (h() - widgetPtr->h()) / 2);
-
+        addChild(widgetPtr, DIR_UPLEFT, offX, (h() - widgetPtr->h()) / 2, autoDelete);
         offX += widgetPtr->w();
         offX += argSpace;
     }

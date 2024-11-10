@@ -45,7 +45,20 @@ class TexSlider: public Slider
         const SliderTexInfo &m_sliderTexInfo;
 
     public:
-        TexSlider(dir8_t, int, int, int, int, bool, int, std::function<void(float)>, Widget *parent = nullptr, bool autoDelete = false);
+        TexSlider(Widget::VarDir,
+
+                Widget::VarOff,
+                Widget::VarOff,
+                Widget::VarSize,
+                Widget::VarSize,
+
+                bool,
+                int,
+
+                std::function<void(float)>,
+
+                Widget * = nullptr,
+                bool     = false);
 
     public:
         void resizeWidth(int width)

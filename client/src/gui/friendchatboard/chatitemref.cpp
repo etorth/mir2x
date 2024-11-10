@@ -1,10 +1,9 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
-#include "friendchatboard.hpp"
+#include "chatitemref.hpp"
 
 extern SDLDevice *g_sdlDevice;
-
-FriendChatBoard::ChatItemRef::ChatItemRef(dir8_t argDir,
+ChatItemRef::ChatItemRef(dir8_t argDir,
         int argX,
         int argY,
         int argMaxWidth,

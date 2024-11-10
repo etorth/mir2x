@@ -2,13 +2,16 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "chatpage.hpp"
+#include "chatinputcontainer.hpp"
 #include "friendchatboard.hpp"
+#include "friendchatboardconst.hpp"
 
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::ChatInputContainer::ChatInputContainer(dir8_t argDir,
+ChatInputContainer::ChatInputContainer(dir8_t argDir,
 
         int argX,
         int argY,
@@ -22,7 +25,7 @@ FriendChatBoard::ChatInputContainer::ChatInputContainer(dir8_t argDir,
           argX,
           argY,
 
-          UIPage_WIDTH - UIPage_MARGIN * 2 - ChatPage::INPUT_MARGIN * 2,
+          UIPage_MIN_WIDTH - UIPage_MARGIN * 2 - ChatPage::INPUT_MARGIN * 2,
           [this](const Widget *)
           {
               return mathf::bound<int>(layout.h(), ChatPage::INPUT_MIN_HEIGHT, ChatPage::INPUT_MAX_HEIGHT);
@@ -84,7 +87,7 @@ FriendChatBoard::ChatInputContainer::ChatInputContainer(dir8_t argDir,
                   .message = cerealf::serialize(message),
               };
 
-              chatPage->chat.append(chatMessage, [chatMessage, this](const FriendChatBoard::ChatItem *chatItem)
+              chatPage->chat.append(chatMessage, [chatMessage, this](const ChatItem *chatItem)
               {
                   const uint64_t cpidu64 = chatMessage.to.asU64();
 
@@ -95,7 +98,7 @@ FriendChatBoard::ChatInputContainer::ChatInputContainer(dir8_t argDir,
                   msgbuf.append(chatMessage.message.begin(), chatMessage.message.end());
 
                   const auto widgetID = chatItem->id();
-                  const auto chatItemCanvas = std::addressof(dynamic_cast<FriendChatBoard::ChatPage *>(parent())->chat.canvas);
+                  const auto chatItemCanvas = std::addressof(dynamic_cast<ChatPage *>(parent())->chat.canvas);
 
                   FriendChatBoard::getParentBoard(this)->addMessagePending(widgetID, chatMessage);
                   g_client->send({CM_CHATMESSAGE, msgbuf}, [widgetID, chatItemCanvas, chatMessage, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)

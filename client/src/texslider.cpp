@@ -8,11 +8,13 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
-TexSlider::TexSlider(dir8_t argDir,
-        int argX,
-        int argY,
-        int argW,
-        int argH,
+TexSlider::TexSlider(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
+
+        Widget::VarSize argW,
+        Widget::VarSize argH,
 
         bool argHSlider,
         int argSliderIndex,
@@ -23,11 +25,11 @@ TexSlider::TexSlider(dir8_t argDir,
         bool argAutoDelete)
     : Slider
       {
-          argDir,
-          argX,
-          argY,
-          argW,
-          argH,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
+          std::move(argW),
+          std::move(argH),
 
           argHSlider,
           getSliderTexInfo(argSliderIndex).w,

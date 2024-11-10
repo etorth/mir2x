@@ -7,6 +7,88 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
+TritexButton::TritexButton(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
+
+        const uint32_t (& texIDList)[3],
+        const uint32_t (&seffIDList)[3],
+
+        std::function<void(Widget *)> fnOnOverIn,
+        std::function<void(Widget *)> fnOnOverOut,
+        std::function<void(Widget *)> fnOnClick,
+
+        int offXOnOver,
+        int offYOnOver,
+        int offXOnClick,
+        int offYOnClick,
+
+        bool onClickDone,
+        bool radioMode,
+        bool alterColor,
+
+        Widget *widgetPtr,
+        bool    autoDelete)
+
+    : ButtonBase
+      {
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
+          0,
+          0,
+
+          std::move(fnOnOverIn),
+          std::move(fnOnOverOut),
+          std::move(fnOnClick),
+
+          seffIDList[0],
+          seffIDList[1],
+          seffIDList[2],
+
+          offXOnOver,
+          offYOnOver,
+          offXOnClick,
+          offYOnClick,
+
+          onClickDone,
+          radioMode,
+
+          widgetPtr,
+          autoDelete,
+      }
+    , m_texIDList
+      {
+          texIDList[0],
+          texIDList[1],
+          texIDList[2],
+      }
+    , m_alterColor(alterColor)
+{
+    const auto fnGetEdgeSize = [this](auto fn)
+    {
+        return [fn, this](const Widget *)
+        {
+            int result = 0;
+            for(const int state: {0, 1, 2}){
+                if(m_texIDList[state] != SYS_U32NIL){
+                    if(auto texPtr = g_progUseDB->retrieve(m_texIDList[state])){
+                        result = std::max<int>(result, fn(texPtr));
+                    }
+                }
+            }
+
+            // we allow buttons without any valid texture, in that case some extra work
+            // can be done for special drawing
+            return result;
+        };
+    };
+
+    setSize(fnGetEdgeSize([](SDL_Texture *texPtr){ return SDLDeviceHelper::getTextureWidth (texPtr); }),
+            fnGetEdgeSize([](SDL_Texture *texPtr){ return SDLDeviceHelper::getTextureHeight(texPtr); }));
+}
+
 void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
     if(auto texPtr = g_progUseDB->retrieve(m_texIDList[getState()])){
@@ -53,24 +135,4 @@ void TritexButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int 
         }());
         g_sdlDevice->drawTexture(texPtr, dstX + offX, dstY + offY, srcX, srcY, srcW, srcH); // TODO: need to crop src region for offset
     }
-}
-
-void TritexButton::initButtonSize()
-{
-    int maxW = 0;
-    int maxH = 0;
-    for(const int state: {0, 1, 2}){
-        if(m_texIDList[state] != SYS_U32NIL){
-            if(auto texPtr = g_progUseDB->retrieve(m_texIDList[state])){
-                const auto [texCurrW, texCurrH] = SDLDeviceHelper::getTextureSize(texPtr);
-                maxW = std::max<int>(texCurrW, maxW);
-                maxH = std::max<int>(texCurrH, maxH);
-            }
-        }
-    }
-
-    // we allow buttons without any valid texture, in that case some extra work
-    // can be done for special drawing
-    m_w = maxW;
-    m_h = maxH;
 }

@@ -1,11 +1,13 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "searchpage.hpp"
+#include "searchautocompletionitem.hpp"
 #include "friendchatboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::SearchAutoCompletionItem::SearchAutoCompletionItem(Widget::VarDir argDir,
+SearchAutoCompletionItem::SearchAutoCompletionItem(Widget::VarDir argDir,
 
         Widget::VarOff argX,
         Widget::VarOff argY,
@@ -107,7 +109,7 @@ FriendChatBoard::SearchAutoCompletionItem::SearchAutoCompletionItem(Widget::VarD
     }
 }
 
-bool FriendChatBoard::SearchAutoCompletionItem::processEventDefault(const SDL_Event &event, bool valid)
+bool SearchAutoCompletionItem::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

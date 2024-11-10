@@ -369,8 +369,8 @@ void IMEBoard::drawEx(int dstX, int dstY, int, int, int, int) const
 
     LabelBoard(
             DIR_UPLEFT,
-            dstX + m_startX,
-            dstY + m_startY,
+            dstX + to_d(m_startX),
+            dstY + to_d(m_startY),
 
             to_u8cstr(m_ime.result()),
 

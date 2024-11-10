@@ -3,13 +3,16 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "searchpage.hpp"
+#include "frienditem.hpp"
+#include "searchautocompletionitem.hpp"
 #include "friendchatboard.hpp"
 
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::SearchPage::SearchPage(Widget::VarDir argDir,
+SearchPage::SearchPage(Widget::VarDir argDir,
 
         Widget::VarOff argX,
         Widget::VarOff argY,
@@ -23,8 +26,8 @@ FriendChatBoard::SearchPage::SearchPage(Widget::VarDir argDir,
           std::move(argX),
           std::move(argY),
 
-          UIPage_WIDTH  - UIPage_MARGIN * 2,
-          UIPage_HEIGHT - UIPage_MARGIN * 2,
+          UIPage_MIN_WIDTH  - UIPage_MARGIN * 2,
+          UIPage_MIN_HEIGHT - UIPage_MARGIN * 2,
 
           {},
 
@@ -122,7 +125,7 @@ FriendChatBoard::SearchPage::SearchPage(Widget::VarDir argDir,
     candidates.setShow(false);
 }
 
-void FriendChatBoard::SearchPage::appendFriendItem(const SDChatPeer &candidate)
+void SearchPage::appendFriendItem(const SDChatPeer &candidate)
 {
     int maxY = 0;
     candidates.foreachChild([&maxY](const Widget *widget, bool)
@@ -195,7 +198,7 @@ void FriendChatBoard::SearchPage::appendFriendItem(const SDChatPeer &candidate)
     }, true);
 }
 
-void FriendChatBoard::SearchPage::appendAutoCompletionItem(bool byID, const SDChatPeer &candidate, const std::string &xmlStr)
+void SearchPage::appendAutoCompletionItem(bool byID, const SDChatPeer &candidate, const std::string &xmlStr)
 {
     int maxY = 0;
     autocompletes.foreachChild([&maxY](const Widget *widget, bool)

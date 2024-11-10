@@ -506,6 +506,39 @@ class Widget: public WidgetTreeNode
         }
 
     public:
+        virtual void drawChildEx(Widget *child, int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const final
+        {
+            fflassert(child);
+            fflassert(hasChild(child->id()));
+
+            if(!child->show()){
+                return;
+            }
+
+            int drawSrcX = srcX;
+            int drawSrcY = srcY;
+            int drawSrcW = srcW;
+            int drawSrcH = srcH;
+            int drawDstX = dstX;
+            int drawDstY = dstY;
+
+            if(mathf::cropChildROI(
+                        &drawSrcX, &drawSrcY,
+                        &drawSrcW, &drawSrcH,
+                        &drawDstX, &drawDstY,
+
+                        w(),
+                        h(),
+
+                        child->dx(),
+                        child->dy(),
+                        child-> w(),
+                        child-> h())){
+                child->drawEx(drawDstX, drawDstY, drawSrcX, drawSrcY, drawSrcW, drawSrcH);
+            }
+        }
+
+    public:
         virtual void drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
         {
             if(!show()){

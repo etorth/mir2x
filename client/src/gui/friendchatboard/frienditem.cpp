@@ -1,10 +1,10 @@
 #include "sdldevice.hpp"
-#include "processrun.hpp"
+#include "frienditem.hpp"
 #include "friendchatboard.hpp"
 
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::FriendItem::FriendItem(dir8_t argDir,
+FriendItem::FriendItem(dir8_t argDir,
         int argX,
         int argY,
 
@@ -13,7 +13,7 @@ FriendChatBoard::FriendItem::FriendItem(dir8_t argDir,
         const char8_t *argNameStr,
         std::function<SDL_Texture *(const ImageBoard *)> argLoadImageFunc,
 
-        std::function<void(FriendChatBoard::FriendItem *)> argOnClick,
+        std::function<void(FriendItem *)> argOnClick,
         std::pair<Widget *, bool> argFuncWidget,
 
         Widget *argParent,
@@ -25,14 +25,14 @@ FriendChatBoard::FriendItem::FriendItem(dir8_t argDir,
           argX,
           argY,
 
-          UIPage_WIDTH - UIPage_MARGIN * 2,
+          UIPage_MIN_WIDTH - UIPage_MARGIN * 2,
           FriendItem::HEIGHT,
 
           {
               {
                   argFuncWidget.first,
                   DIR_RIGHT,
-                  UIPage_WIDTH - UIPage_MARGIN * 2 - FriendItem::FUNC_MARGIN - 1,
+                  UIPage_MIN_WIDTH - UIPage_MARGIN * 2 - FriendItem::FUNC_MARGIN - 1,
                   FriendItem::HEIGHT / 2,
                   argFuncWidget.second,
               },
@@ -109,7 +109,7 @@ FriendChatBoard::FriendItem::FriendItem(dir8_t argDir,
       }
 {}
 
-void FriendChatBoard::FriendItem::setFuncWidget(Widget *argFuncWidget, bool argAutoDelete)
+void FriendItem::setFuncWidget(Widget *argFuncWidget, bool argAutoDelete)
 {
     clearChild([this](const Widget *widget, bool)
     {
@@ -119,7 +119,7 @@ void FriendChatBoard::FriendItem::setFuncWidget(Widget *argFuncWidget, bool argA
     addChild(argFuncWidget, argAutoDelete);
 }
 
-bool FriendChatBoard::FriendItem::processEventDefault(const SDL_Event &event, bool valid)
+bool FriendItem::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);

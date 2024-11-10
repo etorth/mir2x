@@ -1,6 +1,9 @@
+#include "chatpreviewitem.hpp"
+#include "chatpreviewpage.hpp"
 #include "friendchatboard.hpp"
+#include "friendchatboardconst.hpp"
 
-FriendChatBoard::ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
+ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
 
         Widget::VarOff argX,
         Widget::VarOff argY,
@@ -14,8 +17,8 @@ FriendChatBoard::ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
           std::move(argX),
           std::move(argY),
 
-          UIPage_WIDTH  - UIPage_MARGIN * 2,
-          UIPage_HEIGHT - UIPage_MARGIN * 2,
+          UIPage_MIN_WIDTH  - UIPage_MARGIN * 2,
+          UIPage_MIN_HEIGHT - UIPage_MARGIN * 2,
 
           {},
 
@@ -38,7 +41,7 @@ FriendChatBoard::ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
       }
 {}
 
-void FriendChatBoard::ChatPreviewPage::updateChatPreview(const SDChatPeerID &sdCPID, const std::string &argMsg)
+void ChatPreviewPage::updateChatPreview(const SDChatPeerID &sdCPID, const std::string &argMsg)
 {
     ChatPreviewItem *child = dynamic_cast<ChatPreviewItem *>(canvas.hasChild([sdCPID](const Widget *widgetPtr, bool)
     {

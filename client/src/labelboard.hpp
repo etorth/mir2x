@@ -16,9 +16,9 @@ class LabelBoard: public Widget
 
     public:
         LabelBoard(
-                dir8_t argDir,
-                int    argX,
-                int    argY,
+                Widget::VarDir argDir,
+                Widget::VarOff argX,
+                Widget::VarOff argY,
 
                 const char8_t *argContent    = nullptr,
                 uint8_t        argFont       = 0,
@@ -31,9 +31,9 @@ class LabelBoard: public Widget
 
             : Widget
               {
-                  argDir,
-                  argX,
-                  argY,
+                  std::move(argDir),
+                  std::move(argX),
+                  std::move(argY),
                   0,
                   0,
 

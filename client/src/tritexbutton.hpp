@@ -17,67 +17,28 @@ class TritexButton: public ButtonBase
 
     public:
         TritexButton(
-                dir8_t argDir,
-                int argX,
-                int argY,
+                Widget::VarDir,
+                Widget::VarOff,
+                Widget::VarOff,
 
-                const uint32_t (& texIDList)[3],
-                const uint32_t (&seffIDList)[3],
+                const uint32_t (&)[3],
+                const uint32_t (&)[3],
 
-                std::function<void(Widget *)> fnOnOverIn  = nullptr,
-                std::function<void(Widget *)> fnOnOverOut = nullptr,
-                std::function<void(Widget *)> fnOnClick   = nullptr,
+                std::function<void(Widget *)> = nullptr,
+                std::function<void(Widget *)> = nullptr,
+                std::function<void(Widget *)> = nullptr,
 
-                int offXOnOver  = 0,
-                int offYOnOver  = 0,
-                int offXOnClick = 0,
-                int offYOnClick = 0,
+                int = 0,
+                int = 0,
+                int = 0,
+                int = 0,
 
-                bool onClickDone = true,
-                bool radioMode   = false,
-                bool alterColor  = true,
+                bool = true,
+                bool = false,
+                bool = true,
 
-                Widget *widgetPtr  = nullptr,
-                bool    autoDelete = false)
-            : ButtonBase
-              {
-                  argDir,
-                  argX,
-                  argY,
-                  0,
-                  0,
-
-                  std::move(fnOnOverIn),
-                  std::move(fnOnOverOut),
-                  std::move(fnOnClick),
-
-                  seffIDList[0],
-                  seffIDList[1],
-                  seffIDList[2],
-
-                  offXOnOver,
-                  offYOnOver,
-                  offXOnClick,
-                  offYOnClick,
-
-                  onClickDone,
-                  radioMode,
-
-                  widgetPtr,
-                  autoDelete,
-              }
-            , m_texIDList
-              {
-                  texIDList[0],
-                  texIDList[1],
-                  texIDList[2],
-              }
-            , m_alterColor(alterColor)
-        {
-            // hide PNGTexDB and SDLDevice
-            // query texture size and setup the button size
-            initButtonSize();
-        }
+                Widget * = nullptr,
+                bool     = false);
 
     public:
         void drawEx(int,                 // dst x on the screen coordinate
@@ -86,8 +47,6 @@ class TritexButton: public ButtonBase
                     int,                 // src y on the widget, take top-left as origin
                     int,                 // size to draw
                     int) const override; // size to draw
-    private:
-        void initButtonSize();
 
     public:
         void setTexID(const uint32_t (&texIDList)[3])

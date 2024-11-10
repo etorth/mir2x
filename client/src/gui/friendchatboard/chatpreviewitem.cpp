@@ -2,12 +2,14 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "chatpreviewitem.hpp"
 #include "friendchatboard.hpp"
+#include "friendchatboardconst.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
+ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
         int argX,
         int argY,
 
@@ -158,7 +160,7 @@ FriendChatBoard::ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
     });
 }
 
-bool FriendChatBoard::ChatPreviewItem::processEventDefault(const SDL_Event &event, bool valid)
+bool ChatPreviewItem::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
@@ -186,7 +188,7 @@ bool FriendChatBoard::ChatPreviewItem::processEventDefault(const SDL_Event &even
                         auto boardPtr = FriendChatBoard::getParentBoard(this);
 
                         boardPtr->setChatPeer(*peer, true);
-                        boardPtr->setUIPage(FriendChatBoard::UIPage_CHAT);
+                        boardPtr->setUIPage(UIPage_CHAT);
                     });
                     return consumeFocus(true);
                 }

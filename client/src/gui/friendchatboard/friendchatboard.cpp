@@ -4,21 +4,27 @@
 #include "hero.hpp"
 #include "pngtexdb.hpp"
 #include "processrun.hpp"
+#include "chatpage.hpp"
+#include "pagecontrol.hpp"
+#include "chatpreviewpage.hpp"
+#include "friendlistpage.hpp"
+#include "searchpage.hpp"
 #include "friendchatboard.hpp"
+#include "friendchatboardconst.hpp"
 
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
+FriendChatBoard::FriendChatBoard(Widget::VarOff argX, Widget::VarOff argY, ProcessRun *runPtr, Widget *widgetPtr, bool autoDelete)
     : Widget
       {
           DIR_UPLEFT,
-          argX,
-          argY,
+          std::move(argX),
+          std::move(argY),
 
-          UIPage_BORDER[2] + UIPage_WIDTH  + UIPage_BORDER[3],
-          UIPage_BORDER[0] + UIPage_HEIGHT + UIPage_BORDER[1],
+          UIPage_BORDER[2] + UIPage_MIN_WIDTH  + UIPage_BORDER[3],
+          UIPage_BORDER[0] + UIPage_MIN_HEIGHT + UIPage_BORDER[1],
 
           {},
 
@@ -42,8 +48,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
           DIR_UPLEFT,
           0,
           0,
-          this->w(),
-          this->h(),
+          [this](const Widget *){ return this->w(); },
+          [this](const Widget *){ return this->h(); },
 
           &m_frame,
 
@@ -76,8 +82,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
           DIR_UPLEFT,
           0,
           0,
-          m_frameCropDup.w(),
-          m_frameCropDup.h(),
+          [this](const Widget *){ return m_frameCropDup.w(); },
+          [this](const Widget *){ return m_frameCropDup.h(); },
 
           &m_background,
 
@@ -93,8 +99,9 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
     , m_close
       {
           DIR_UPLEFT,
-          m_frameCropDup.w() - 38,
-          m_frameCropDup.h() - 40,
+          [this](const Widget *){ return m_frameCropDup.w() - 38; },
+          [this](const Widget *){ return m_frameCropDup.h() - 40; },
+
           {SYS_U32NIL, 0X0000001C, 0X0000001D},
           {
               SYS_U32NIL,
@@ -128,8 +135,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .title = new LabelBoard
               {
                   DIR_NONE,
-                  45 + (m_frameCropDup.w() - 45 - 190) / 2,
-                  29,
+                  [this](const Widget *){ return 45 + (m_frameCropDup.w() - 45 - 190) / 2; },
+                  [    ](const Widget *){ return 29; },
 
                   u8"好友名称",
                   1,
@@ -143,8 +150,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .control = new PageControl
               {
                   DIR_RIGHT,
-                  m_frameCropDup.w() - 42,
-                  29,
+                  [this](const Widget *){ return m_frameCropDup.w() - 42; },
+                  [    ](const Widget *){ return 29; },
                   2,
 
                   {
@@ -254,10 +261,10 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .slider = new TexSlider
               {
                   DIR_UPLEFT,
-                  m_frameCropDup.w() - 30,
-                  70,
-                  9,
-                  m_frameCropDup.h() - 140,
+                  [this](const Widget *){ return m_frameCropDup.w() -  30; },
+                  [    ](const Widget *){ return                       70; },
+                  [    ](const Widget *){ return                        9; },
+                  [this](const Widget *){ return m_frameCropDup.h() - 140; },
 
                   false,
                   3,
@@ -299,8 +306,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .title = new LabelBoard
               {
                   DIR_NONE,
-                  45 + (m_frameCropDup.w() - 45 - 190) / 2,
-                  29,
+                  [this](const Widget *){ return 45 + (m_frameCropDup.w() - 45 - 190) / 2; },
+                  [    ](const Widget *){ return 29; },
 
                   u8"【聊天记录】",
                   1,
@@ -314,8 +321,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .control = new PageControl
               {
                   DIR_RIGHT,
-                  m_frameCropDup.w() - 42,
-                  28,
+                  [this](const Widget *){ return m_frameCropDup.w() - 42; },
+                  [    ](const Widget *){ return 29; },
                   2,
 
                   {
@@ -352,10 +359,10 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .slider = new TexSlider
               {
                   DIR_UPLEFT,
-                  m_frameCropDup.w() - 30,
-                  70,
-                  9,
-                  m_frameCropDup.h() - 140,
+                  [this](const Widget *){ return m_frameCropDup.w() -  30; },
+                  [    ](const Widget *){ return                       70; },
+                  [    ](const Widget *){ return                        9; },
+                  [this](const Widget *){ return m_frameCropDup.h() - 140; },
 
                   false,
                   3,
@@ -381,8 +388,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .title = new LabelBoard
               {
                   DIR_NONE,
-                  45 + (m_frameCropDup.w() - 45 - 190) / 2,
-                  29,
+                  [this](const Widget *){ return 45 + (m_frameCropDup.w() - 45 - 190) / 2; },
+                  [    ](const Widget *){ return 29; },
 
                   u8"【好友列表】",
                   1,
@@ -396,8 +403,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .control = new PageControl
               {
                   DIR_RIGHT,
-                  m_frameCropDup.w() - 42,
-                  28,
+                  [this](const Widget *){ return m_frameCropDup.w() - 42; },
+                  [    ](const Widget *){ return 29; },
                   2,
 
                   {
@@ -484,10 +491,10 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .slider = new TexSlider
               {
                   DIR_UPLEFT,
-                  m_frameCropDup.w() - 30,
-                  70,
-                  9,
-                  m_frameCropDup.h() - 140,
+                  [this](const Widget *){ return m_frameCropDup.w() -  30; },
+                  [    ](const Widget *){ return                       70; },
+                  [    ](const Widget *){ return                        9; },
+                  [this](const Widget *){ return m_frameCropDup.h() - 140; },
 
                   false,
                   3,
@@ -513,8 +520,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .title = new LabelBoard
               {
                   DIR_NONE,
-                  45 + (m_frameCropDup.w() - 45 - 190) / 2,
-                  29,
+                  [this](const Widget *){ return 45 + (m_frameCropDup.w() - 45 - 190) / 2; },
+                  [    ](const Widget *){ return 29; },
 
                   u8"【查找用户】",
                   1,
@@ -528,8 +535,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .control = new PageControl
               {
                   DIR_RIGHT,
-                  m_frameCropDup.w() - 42,
-                  28,
+                  [this](const Widget *){ return m_frameCropDup.w() - 42; },
+                  [    ](const Widget *){ return 29; },
                   2,
 
                   {
@@ -566,10 +573,10 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .slider = new TexSlider
               {
                   DIR_UPLEFT,
-                  m_frameCropDup.w() - 30,
-                  70,
-                  9,
-                  m_frameCropDup.h() - 140,
+                  [this](const Widget *){ return m_frameCropDup.w() -  30; },
+                  [    ](const Widget *){ return                       70; },
+                  [    ](const Widget *){ return                        9; },
+                  [this](const Widget *){ return m_frameCropDup.h() - 140; },
 
                   false,
                   3,
@@ -595,8 +602,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .title = new LabelBoard
               {
                   DIR_NONE,
-                  45 + (m_frameCropDup.w() - 45 - 190) / 2,
-                  29,
+                  [this](const Widget *){ return 45 + (m_frameCropDup.w() - 45 - 190) / 2; },
+                  [    ](const Widget *){ return 29; },
 
                   u8"【创建群聊】",
                   1,
@@ -610,8 +617,8 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .control = new PageControl
               {
                   DIR_RIGHT,
-                  m_frameCropDup.w() - 42,
-                  28,
+                  [this](const Widget *){ return m_frameCropDup.w() - 42; },
+                  [    ](const Widget *){ return 29; },
                   2,
 
                   {
@@ -753,10 +760,10 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
               .slider = new TexSlider
               {
                   DIR_UPLEFT,
-                  m_frameCropDup.w() - 30,
-                  70,
-                  9,
-                  m_frameCropDup.h() - 140,
+                  [this](const Widget *){ return m_frameCropDup.w() -  30; },
+                  [    ](const Widget *){ return                       70; },
+                  [    ](const Widget *){ return                        9; },
+                  [this](const Widget *){ return m_frameCropDup.h() - 140; },
 
                   false,
                   3,
@@ -778,7 +785,7 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
 
               .enter = [this](int, UIPage *uiPage)
               {
-                  auto listPage = dynamic_cast<FriendChatBoard::FriendListPage *>(uiPage->page);
+                  auto listPage = dynamic_cast<FriendListPage *>(uiPage->page);
                   listPage->canvas.clearChild([this](const Widget *widget, bool)
                   {
                       return std::find_if(m_sdFriendList.begin(), m_sdFriendList.end(), [widget](const auto &x)
@@ -794,9 +801,9 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
                           return dynamic_cast<const FriendItem *>(widget)->cpid.id() == peer.id;
 
                       })){
-                          listPage->append(peer, [](FriendChatBoard::FriendItem *item)
+                          listPage->append(peer, [](FriendItem *item)
                           {
-                              if(auto friendItem = dynamic_cast<FriendChatBoard::FriendItem *>(item)){
+                              if(auto friendItem = dynamic_cast<FriendItem *>(item)){
                                   if(auto checkBox = dynamic_cast<CheckBox *>(friendItem->hasChild(friendItem->funcWidgetID))){
                                       checkBox->toggle();
                                   }
@@ -849,6 +856,10 @@ FriendChatBoard::FriendChatBoard(int argX, int argY, ProcessRun *runPtr, Widget 
 
 void FriendChatBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
 {
+    if(!show()){
+        return;
+    }
+
     for(const auto &p:
     {
         static_cast<const Widget *>(&m_backgroundCropDup),
@@ -964,10 +975,10 @@ void FriendChatBoard::addFriendListChatPeer(const SDChatPeerID &sdCPID)
             return;
         }
 
-        dynamic_cast<FriendListPage *>(m_uiPageList[UIPage_FRIENDLIST].page)->append(*peer, [peerInst = *peer, this](FriendChatBoard::FriendItem *item)
+        dynamic_cast<FriendListPage *>(m_uiPageList[UIPage_FRIENDLIST].page)->append(*peer, [peerInst = *peer, this](FriendItem *item)
         {
             setChatPeer(peerInst, true);
-            setUIPage(FriendChatBoard::UIPage_CHAT);
+            setUIPage(UIPage_CHAT);
             m_processRun->requestLatestChatMessage({item->cpid.asU64()}, 50, true, true);
         });
     });
@@ -1133,7 +1144,7 @@ void FriendChatBoard::addMessage(std::optional<uint64_t> localPendingID, const S
             if(chatPage->peer.cpid() == peerIter->cpid){
                 if(localPendingID.has_value()){
                     if(auto p = chatPage->chat.canvas.hasChild(localPendingID.value())){
-                        dynamic_cast<FriendChatBoard::ChatItem *>(p)->pending = false;
+                        dynamic_cast<ChatItem *>(p)->pending = false;
                     }
                 }
                 else{

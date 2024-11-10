@@ -1,11 +1,13 @@
 #include "hero.hpp"
 #include "pngtexdb.hpp"
-#include "processrun.hpp"
+#include "frienditem.hpp"
+#include "friendlistpage.hpp"
 #include "friendchatboard.hpp"
+#include "friendchatboardconst.hpp"
 
 extern PNGTexDB *g_progUseDB;
 
-FriendChatBoard::FriendListPage::FriendListPage(Widget::VarDir argDir,
+FriendListPage::FriendListPage(Widget::VarDir argDir,
 
         Widget::VarOff argX,
         Widget::VarOff argY,
@@ -19,8 +21,8 @@ FriendChatBoard::FriendListPage::FriendListPage(Widget::VarDir argDir,
           std::move(argX),
           std::move(argY),
 
-          UIPage_WIDTH  - UIPage_MARGIN * 2,
-          UIPage_HEIGHT - UIPage_MARGIN * 2,
+          UIPage_MIN_WIDTH  - UIPage_MARGIN * 2,
+          UIPage_MIN_HEIGHT - UIPage_MARGIN * 2,
 
           {},
 
@@ -43,7 +45,7 @@ FriendChatBoard::FriendListPage::FriendListPage(Widget::VarDir argDir,
       }
 {}
 
-void FriendChatBoard::FriendListPage::append(const SDChatPeer &peer, std::function<void(FriendChatBoard::FriendItem *)> argOnClick, std::pair<Widget *, bool> argFuncWidget)
+void FriendListPage::append(const SDChatPeer &peer, std::function<void(FriendItem *)> argOnClick, std::pair<Widget *, bool> argFuncWidget)
 {
     canvas.addChild(new FriendItem
     {

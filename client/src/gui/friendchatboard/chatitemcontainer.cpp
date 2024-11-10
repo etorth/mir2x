@@ -2,12 +2,15 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "chatpage.hpp"
+#include "chatitem.hpp"
 #include "friendchatboard.hpp"
+#include "chatitemcontainer.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::ChatItemContainer::BackgroundWrapper::BackgroundWrapper(dir8_t argDir,
+ChatItemContainer::BackgroundWrapper::BackgroundWrapper(dir8_t argDir,
         int argX,
         int argY,
 
@@ -74,7 +77,7 @@ FriendChatBoard::ChatItemContainer::BackgroundWrapper::BackgroundWrapper(dir8_t 
     moveFront(&background);
 }
 
-FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
+ChatItemContainer::ChatItemContainer(dir8_t argDir,
 
         int argX,
         int argY,
@@ -90,7 +93,7 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
           argX,
           argY,
 
-          UIPage_WIDTH - UIPage_MARGIN * 2,
+          UIPage_MIN_WIDTH - UIPage_MARGIN * 2,
           std::move(argH),
 
           {},
@@ -252,7 +255,7 @@ FriendChatBoard::ChatItemContainer::ChatItemContainer(dir8_t argDir,
     });
 }
 
-void FriendChatBoard::ChatItemContainer::clearChatItem()
+void ChatItemContainer::clearChatItem()
 {
     canvas.clearChild([this](const Widget *child, bool)
     {
@@ -260,7 +263,7 @@ void FriendChatBoard::ChatItemContainer::clearChatItem()
     });
 }
 
-bool FriendChatBoard::ChatItemContainer::hasChatItem() const
+bool ChatItemContainer::hasChatItem() const
 {
     return canvas.foreachChild([this](const Widget *widget, bool)
     {
@@ -268,7 +271,7 @@ bool FriendChatBoard::ChatItemContainer::hasChatItem() const
     });
 }
 
-const FriendChatBoard::ChatItem *FriendChatBoard::ChatItemContainer::lastChatItem() const
+const ChatItem *ChatItemContainer::lastChatItem() const
 {
     const Widget *lastItem = nullptr;
     canvas.foreachChild([&lastItem, this](const Widget *widget, bool)
@@ -289,12 +292,12 @@ const FriendChatBoard::ChatItem *FriendChatBoard::ChatItemContainer::lastChatIte
     return dynamic_cast<const ChatItem *>(lastItem);
 }
 
-const SDChatPeer &FriendChatBoard::ChatItemContainer::getChatPeer() const
+const SDChatPeer &ChatItemContainer::getChatPeer() const
 {
-    return dynamic_cast<const FriendChatBoard::ChatPage *>(parent())->peer;
+    return dynamic_cast<const ChatPage *>(parent())->peer;
 }
 
-void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(const FriendChatBoard::ChatItem *)> fnOp)
+void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(const ChatItem *)> fnOp)
 {
     auto chatItem = new ChatItem
     {
@@ -355,7 +358,7 @@ void FriendChatBoard::ChatItemContainer::append(const SDChatMessage &sdCM, std::
     FriendChatBoard::getParentBoard(this)->queryChatPeer(sdCM.from, [widgetID = chatItem->id(), sdCM, fnOp = std::move(fnOp), this](const SDChatPeer *peer, bool)
     {
         fflassert(peer, sdCM.from.asU64());
-        if(auto chatItem = dynamic_cast<FriendChatBoard::ChatItem *>(this->canvas.hasChild(widgetID))){
+        if(auto chatItem = dynamic_cast<ChatItem *>(this->canvas.hasChild(widgetID))){
             const auto from = sdCM.from;
             const auto job    = peer->player() ? peer->player()->job    : 0;
             const auto gender = peer->player() ? peer->player()->gender : false;

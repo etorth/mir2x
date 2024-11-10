@@ -1,9 +1,10 @@
 #include "sdldevice.hpp"
+#include "chatpage.hpp"
 #include "friendchatboard.hpp"
 
 extern SDLDevice *g_sdlDevice;
 
-FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
+ChatPage::ChatPage(dir8_t argDir,
 
         int argX,
         int argY,
@@ -17,8 +18,8 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
           argX,
           argY,
 
-          UIPage_WIDTH,
-          UIPage_HEIGHT,
+          UIPage_MIN_WIDTH,
+          UIPage_MIN_HEIGHT,
 
           {},
 
@@ -31,8 +32,8 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
           DIR_UPLEFT,
           0,
           0,
-          UIPage_WIDTH,
-          UIPage_HEIGHT,
+          UIPage_MIN_WIDTH,
+          UIPage_MIN_HEIGHT,
 
           [this](const Widget *, int drawDstX, int drawDstY)
           {
@@ -40,27 +41,27 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
                       colorf::RGBA(231, 231, 189, 64),
 
                       drawDstX,
-                      drawDstY + UIPage_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h() - 1,
+                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h() - 1,
 
-                      drawDstX + UIPage_WIDTH,
-                      drawDstY + UIPage_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h() - 1);
+                      drawDstX + UIPage_MIN_WIDTH,
+                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h() - 1);
 
               g_sdlDevice->fillRectangle(
                       colorf::RGBA(231, 231, 189, 32),
 
                       drawDstX,
-                      drawDstY + UIPage_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h(),
+                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h(),
 
-                      UIPage_WIDTH,
+                      UIPage_MIN_WIDTH,
                       UIPage_MARGIN * 2 + ChatPage::INPUT_MARGIN * 2 + input.h());
 
               g_sdlDevice->fillRectangle(
                       colorf::BLACK + colorf::A_SHF(255),
 
                       drawDstX + UIPage_MARGIN,
-                      drawDstY + UIPage_HEIGHT - UIPage_MARGIN - INPUT_MARGIN * 2 - input.h(),
+                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN - INPUT_MARGIN * 2 - input.h(),
 
-                      UIPage_WIDTH - UIPage_MARGIN * 2,
+                      UIPage_MIN_WIDTH - UIPage_MARGIN * 2,
                       ChatPage::INPUT_MARGIN * 2 + input.h(),
 
                       ChatPage::INPUT_CORNER);
@@ -69,9 +70,9 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
                       colorf::RGBA(231, 231, 189, 96),
 
                       drawDstX + UIPage_MARGIN,
-                      drawDstY + UIPage_HEIGHT - UIPage_MARGIN - INPUT_MARGIN * 2 - input.h(),
+                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN - INPUT_MARGIN * 2 - input.h(),
 
-                      UIPage_WIDTH - UIPage_MARGIN * 2,
+                      UIPage_MIN_WIDTH - UIPage_MARGIN * 2,
                       ChatPage::INPUT_MARGIN * 2 + input.h(),
 
                       ChatPage::INPUT_CORNER);
@@ -85,7 +86,7 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
       {
           DIR_DOWNLEFT,
           UIPage_MARGIN                 + ChatPage::INPUT_MARGIN,
-          UIPage_HEIGHT - UIPage_MARGIN - ChatPage::INPUT_MARGIN - 1,
+          UIPage_MIN_HEIGHT - UIPage_MARGIN - ChatPage::INPUT_MARGIN - 1,
 
           this,
           false,
@@ -99,7 +100,7 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
 
           [this](const Widget *)
           {
-              return UIPage_HEIGHT - UIPage_MARGIN * 4 - ChatPage::INPUT_MARGIN * 2 - input.h() - 1;
+              return UIPage_MIN_HEIGHT - UIPage_MARGIN * 4 - ChatPage::INPUT_MARGIN * 2 - input.h() - 1;
           },
 
           this,
@@ -107,7 +108,7 @@ FriendChatBoard::ChatPage::ChatPage(dir8_t argDir,
       }
 {}
 
-bool FriendChatBoard::ChatPage::processEventDefault(const SDL_Event &event, bool valid)
+bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
         return consumeFocus(false);
