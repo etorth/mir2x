@@ -965,17 +965,40 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
 
                     const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
 
-                    const auto fnAdjustW = [rendererW, this](int dw){ setW(std::min<int>(std::max<int>(w() + dw, UIPage_MIN_WIDTH ), rendererW)); };
-                    const auto fnAdjustH = [rendererH, this](int dh){ setH(std::min<int>(std::max<int>(h() + dh, UIPage_MIN_HEIGHT), rendererH)); };
+                    const auto fnAdjustW = [rendererW, this](int dw, bool adjustOff)
+                    {
+                        const int oldW = w();
+                        const int newW = std::min<int>(std::max<int>(oldW + dw, UIPage_MIN_WIDTH), rendererW);
 
-                    if     (mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y0, w0, h0)){ fnAdjustW(-event.motion.xrel); fnAdjustH(-event.motion.yrel); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y0, w1, h0)){                                fnAdjustH(-event.motion.yrel); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y0, w2, h0)){ fnAdjustW( event.motion.xrel); fnAdjustH(-event.motion.yrel); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y1, w0, h1)){ fnAdjustW(-event.motion.xrel);                                }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y1, w2, h1)){ fnAdjustW( event.motion.xrel);                                }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y2, w0, h2)){ fnAdjustW(-event.motion.xrel); fnAdjustH( event.motion.yrel); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y2, w1, h2)){                                fnAdjustH( event.motion.yrel); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y2, w2, h2)){ fnAdjustW( event.motion.xrel); fnAdjustH( event.motion.yrel); }
+                        if(oldW != newW){
+                            setW(newW);
+                            if(adjustOff){
+                                moveBy(oldW - newW, 0);
+                            }
+                        }
+                    };
+
+                    const auto fnAdjustH = [rendererH, this](int dh, bool adjustOff)
+                    {
+                        const int oldH = h();
+                        const int newH = std::min<int>(std::max<int>(oldH + dh, UIPage_MIN_HEIGHT), rendererH);
+
+                        if(oldH != newH){
+                            setH(newH);
+                            if(adjustOff){
+                                moveBy(0, oldH - newH);
+                            }
+                        }
+                    };
+
+                    if     (mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y0, w0, h0)){ fnAdjustW(-event.motion.xrel, 1); fnAdjustH(-event.motion.yrel, 1); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y0, w1, h0)){                                   fnAdjustH(-event.motion.yrel, 1); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y0, w2, h0)){ fnAdjustW( event.motion.xrel, 0); fnAdjustH(-event.motion.yrel, 1); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y1, w0, h1)){ fnAdjustW(-event.motion.xrel, 1);                                   }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y1, w2, h1)){ fnAdjustW( event.motion.xrel, 0);                                   }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y2, w0, h2)){ fnAdjustW(-event.motion.xrel, 1); fnAdjustH( event.motion.yrel, 0); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y2, w1, h2)){                                   fnAdjustH( event.motion.yrel, 0); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y2, w2, h2)){ fnAdjustW( event.motion.xrel, 0); fnAdjustH( event.motion.yrel, 0); }
 
                     else{
                         const int maxX = rendererW - w();
