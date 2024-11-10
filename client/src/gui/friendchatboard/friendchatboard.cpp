@@ -931,13 +931,60 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
-                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
-                    const int maxX = rendererW - w();
-                    const int maxY = rendererH - h();
+                    // ->|w0|<----w1------->|w2|<-   |
+                    //   x0 x1              x2       v
+                    //   +--+---------------+--+ y0  -
+                    //   |  |               |  |     h0
+                    //   +--+---------------+--+ y1  -
+                    //   |  |               |  |     ^
+                    //   |  |               |  |     |
+                    //   |  |               |  |     h1
+                    //   |  |               |  |     |
+                    //   |  |               |  |     v
+                    //   +--+---------------+--+ y2  -
+                    //   |  |               |  |     h2
+                    //   +--+---------------+--+     -
+                    //                               ^
+                    //                               |
 
-                    const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
-                    const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
-                    moveBy(newX - x(), newY - y());
+                    const int x0 = x();
+                    const int x1 = x0       + UIPage_DRAGBORDER[2];
+                    const int x2 = x0 + w() - UIPage_DRAGBORDER[3];
+
+                    const int y0 = y();
+                    const int y1 = y0       + UIPage_DRAGBORDER[0];
+                    const int y2 = y0 + h() - UIPage_DRAGBORDER[1];
+
+                    const int w0 =                              UIPage_DRAGBORDER[2];
+                    const int w1 = w() - UIPage_DRAGBORDER[2] - UIPage_DRAGBORDER[3];
+                    const int w2 =                              UIPage_DRAGBORDER[3];
+
+                    const int h0 =                              UIPage_DRAGBORDER[0];
+                    const int h1 = h() - UIPage_DRAGBORDER[0] - UIPage_DRAGBORDER[1];
+                    const int h2 =                              UIPage_DRAGBORDER[1];
+
+                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+
+                    const auto fnAdjustW = [rendererW, this](int dw){ setW(std::min<int>(std::max<int>(w() + dw, UIPage_MIN_WIDTH ), rendererW)); };
+                    const auto fnAdjustH = [rendererH, this](int dh){ setH(std::min<int>(std::max<int>(h() + dh, UIPage_MIN_HEIGHT), rendererH)); };
+
+                    if     (mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y0, w0, h0)){ fnAdjustW(-event.motion.xrel); fnAdjustH(-event.motion.yrel); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y0, w1, h0)){                                fnAdjustH(-event.motion.yrel); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y0, w2, h0)){ fnAdjustW( event.motion.xrel); fnAdjustH(-event.motion.yrel); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y1, w0, h1)){ fnAdjustW(-event.motion.xrel);                                }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y1, w2, h1)){ fnAdjustW( event.motion.xrel);                                }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y2, w0, h2)){ fnAdjustW(-event.motion.xrel); fnAdjustH( event.motion.yrel); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y2, w1, h2)){                                fnAdjustH( event.motion.yrel); }
+                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y2, w2, h2)){ fnAdjustW( event.motion.xrel); fnAdjustH( event.motion.yrel); }
+
+                    else{
+                        const int maxX = rendererW - w();
+                        const int maxY = rendererH - h();
+
+                        const int newX = std::max<int>(0, std::min<int>(maxX, x() + event.motion.xrel));
+                        const int newY = std::max<int>(0, std::min<int>(maxY, y() + event.motion.yrel));
+                        moveBy(newX - x(), newY - y());
+                    }
                     return consumeFocus(true);
                 }
                 return consumeFocus(false);
