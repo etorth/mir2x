@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include <optional>
 #include <unordered_map>
 #include "serdesmsg.hpp"
 #include "widget.hpp"
@@ -43,6 +44,9 @@ class FriendChatBoard: public Widget
 
     private:
         ProcessRun *m_processRun;
+
+    private:
+        std::optional<int> m_dragIndex;
 
     private:
         ImageBoard m_frame;

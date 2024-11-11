@@ -930,7 +930,7 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
             }
         case SDL_MOUSEMOTION:
             {
-                if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || focus())){
+                if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || m_dragIndex.has_value())){
                     // ->|w0|<----w1------->|w2|<-   |
                     //   x0 x1              x2       v
                     //   +--+---------------+--+ y0  -
@@ -991,15 +991,28 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                         }
                     };
 
-                    if     (mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y0, w0, h0)){ fnAdjustW(-event.motion.xrel, 1); fnAdjustH(-event.motion.yrel, 1); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y0, w1, h0)){                                   fnAdjustH(-event.motion.yrel, 1); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y0, w2, h0)){ fnAdjustW( event.motion.xrel, 0); fnAdjustH(-event.motion.yrel, 1); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y1, w0, h1)){ fnAdjustW(-event.motion.xrel, 1);                                   }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y1, w2, h1)){ fnAdjustW( event.motion.xrel, 0);                                   }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y2, w0, h2)){ fnAdjustW(-event.motion.xrel, 1); fnAdjustH( event.motion.yrel, 0); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y2, w1, h2)){                                   fnAdjustH( event.motion.yrel, 0); }
-                    else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y2, w2, h2)){ fnAdjustW( event.motion.xrel, 0); fnAdjustH( event.motion.yrel, 0); }
+                    if(!m_dragIndex.has_value()){
+                        if     (mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y0, w0, h0)){ m_dragIndex = 0; }
+                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y0, w1, h0)){ m_dragIndex = 1; }
+                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y0, w2, h0)){ m_dragIndex = 2; }
+                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y1, w0, h1)){ m_dragIndex = 3; }
+                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y1, w2, h1)){ m_dragIndex = 4; }
+                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y2, w0, h2)){ m_dragIndex = 5; }
+                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y2, w1, h2)){ m_dragIndex = 6; }
+                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y2, w2, h2)){ m_dragIndex = 7; }
+                        else { m_dragIndex.reset(); }
+                    }
 
+                    if(m_dragIndex.has_value()){
+                        if     (m_dragIndex.value() == 0){ fnAdjustW(-event.motion.xrel, 1); fnAdjustH(-event.motion.yrel, 1); }
+                        else if(m_dragIndex.value() == 1){                                   fnAdjustH(-event.motion.yrel, 1); }
+                        else if(m_dragIndex.value() == 2){ fnAdjustW( event.motion.xrel, 0); fnAdjustH(-event.motion.yrel, 1); }
+                        else if(m_dragIndex.value() == 3){ fnAdjustW(-event.motion.xrel, 1);                                   }
+                        else if(m_dragIndex.value() == 4){ fnAdjustW( event.motion.xrel, 0);                                   }
+                        else if(m_dragIndex.value() == 5){ fnAdjustW(-event.motion.xrel, 1); fnAdjustH( event.motion.yrel, 0); }
+                        else if(m_dragIndex.value() == 6){                                   fnAdjustH( event.motion.yrel, 0); }
+                        else                             { fnAdjustW( event.motion.xrel, 0); fnAdjustH( event.motion.yrel, 0); }
+                    }
                     else{
                         const int maxX = rendererW - w();
                         const int maxY = rendererH - h();
@@ -1011,6 +1024,11 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                     return consumeFocus(true);
                 }
                 return consumeFocus(false);
+            }
+        case SDL_MOUSEBUTTONUP:
+            {
+                m_dragIndex.reset();
+                return consumeFocus(in(event.button.x, event.button.y));
             }
         case SDL_MOUSEBUTTONDOWN:
             {
