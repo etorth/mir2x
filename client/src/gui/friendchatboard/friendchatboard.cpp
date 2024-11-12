@@ -897,10 +897,12 @@ void FriendChatBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, i
 bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
 {
     if(!valid){
+        m_dragIndex.reset();
         return consumeFocus(false);
     }
 
     if(!show()){
+        m_dragIndex.reset();
         return consumeFocus(false);
     }
 
@@ -928,40 +930,52 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                 }
                 return false;
             }
+        case SDL_MOUSEBUTTONDOWN:
+            {
+                if(m_uiPageList[m_uiPage].page->in(event.button.x, event.button.y)){
+                    if(m_uiPageList[m_uiPage].page->processEvent(event, true)){
+                        return consumeFocus(true, m_uiPageList[m_uiPage].page);
+                    }
+                }
+
+                m_dragIndex = getEdgeDragIndex(event.button.x, event.button.y);
+                return consumeFocus(in(event.button.x, event.button.y));
+            }
+        case SDL_MOUSEBUTTONUP:
+            {
+                m_dragIndex.reset();
+                return consumeFocus(in(event.button.x, event.button.y));
+            }
         case SDL_MOUSEMOTION:
             {
-                if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || m_dragIndex.has_value())){
-                    const auto fnAdjustW = [this](int dw, bool adjustOff)
-                    {
-                        const int oldW = w();
-                        const int newW = std::max<int>(oldW + dw, UIPage_MIN_WIDTH);
-
-                        if(oldW != newW){
-                            setW(newW);
-                            if(adjustOff){
-                                moveBy(oldW - newW, 0);
-                            }
-                        }
-                    };
-
-                    const auto fnAdjustH = [this](int dh, bool adjustOff)
-                    {
-                        const int oldH = h();
-                        const int newH = std::max<int>(oldH + dh, UIPage_MIN_HEIGHT);
-
-                        if(oldH != newH){
-                            setH(newH);
-                            if(adjustOff){
-                                moveBy(0, oldH - newH);
-                            }
-                        }
-                    };
-
-                    if(!m_dragIndex.has_value()){
-                        m_dragIndex = getEdgeDragIndex(event.motion.x, event.motion.y);
-                    }
-
+                if(event.motion.state & SDL_BUTTON_LMASK){
                     if(m_dragIndex.has_value()){
+                        const auto fnAdjustW = [this](int dw, bool adjustOff)
+                        {
+                            const int oldW = w();
+                            const int newW = std::max<int>(oldW + dw, UIPage_MIN_WIDTH);
+
+                            if(oldW != newW){
+                                setW(newW);
+                                if(adjustOff){
+                                    moveBy(oldW - newW, 0);
+                                }
+                            }
+                        };
+
+                        const auto fnAdjustH = [this](int dh, bool adjustOff)
+                        {
+                            const int oldH = h();
+                            const int newH = std::max<int>(oldH + dh, UIPage_MIN_HEIGHT);
+
+                            if(oldH != newH){
+                                setH(newH);
+                                if(adjustOff){
+                                    moveBy(0, oldH - newH);
+                                }
+                            }
+                        };
+
                         if     (m_dragIndex.value() == 0){ fnAdjustW(-event.motion.xrel, 1); fnAdjustH(-event.motion.yrel, 1); }
                         else if(m_dragIndex.value() == 1){                                   fnAdjustH(-event.motion.yrel, 1); }
                         else if(m_dragIndex.value() == 2){ fnAdjustW( event.motion.xrel, 0); fnAdjustH(-event.motion.yrel, 1); }
@@ -984,20 +998,6 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                     return consumeFocus(true);
                 }
                 return consumeFocus(false);
-            }
-        case SDL_MOUSEBUTTONUP:
-            {
-                m_dragIndex.reset();
-                return consumeFocus(in(event.button.x, event.button.y));
-            }
-        case SDL_MOUSEBUTTONDOWN:
-            {
-                if(m_uiPageList[m_uiPage].page->in(event.button.x, event.button.y)){
-                    if(m_uiPageList[m_uiPage].page->processEvent(event, true)){
-                        return consumeFocus(true, m_uiPageList[m_uiPage].page);
-                    }
-                }
-                return consumeFocus(in(event.button.x, event.button.y));
             }
         case SDL_MOUSEWHEEL:
             {
