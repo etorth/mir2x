@@ -138,6 +138,7 @@ void SearchPage::appendFriendItem(const SDChatPeer &candidate)
         DIR_UPLEFT,
         0,
         maxY,
+        [this](const Widget *){ return w(); }, // use SearchPage::w()
 
         SDChatPeerID(CP_PLAYER, candidate.id),
         to_u8cstr(candidate.name),
@@ -194,7 +195,6 @@ void SearchPage::appendFriendItem(const SDChatPeer &candidate)
 
             true,
         },
-
     }, true);
 }
 

@@ -39,9 +39,10 @@ struct FriendItem: public Widget
     ImageBoard avatar;
     LabelBoard name;
 
-    FriendItem(dir8_t,
-            int,
-            int,
+    FriendItem(Widget::VarDir,
+            Widget::VarOff,
+            Widget::VarOff,
+            Widget::VarSize, // flexible width
 
             const SDChatPeerID &,
 
