@@ -38,7 +38,7 @@ FriendListPage::FriendListPage(Widget::VarDir argDir,
           0,
           0,
 
-          this->w(),
+          [this](const Widget *){ return w(); },
           {},
           {},
 

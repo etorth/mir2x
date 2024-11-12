@@ -58,4 +58,3 @@ struct FriendItem: public Widget
     void setFuncWidget(Widget *, bool);
     bool processEventDefault(const SDL_Event &, bool) override;
 };
-
