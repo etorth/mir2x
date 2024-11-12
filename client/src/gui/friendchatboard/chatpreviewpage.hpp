@@ -10,6 +10,8 @@ struct ChatPreviewPage: public Widget
 
             Widget::VarOff,
             Widget::VarOff,
+            Widget::VarSize,
+            Widget::VarSize,
 
             Widget * = nullptr,
             bool     = false);

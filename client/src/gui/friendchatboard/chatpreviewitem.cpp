@@ -9,9 +9,11 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
-        int argX,
-        int argY,
+ChatPreviewItem::ChatPreviewItem(
+        Widget::VarDir  argDir,
+        Widget::VarOff  argX,
+        Widget::VarOff  argY,
+        Widget::VarSize argW,
 
         const SDChatPeerID &argCPID,
         const char8_t *argChatXMLStr,
@@ -21,11 +23,10 @@ ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
 
     : Widget
       {
-          argDir,
-          argX,
-          argY,
-
-          ChatPreviewItem::WIDTH,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
+          std::move(argW),
           ChatPreviewItem::HEIGHT,
 
           {},
@@ -105,7 +106,11 @@ ChatPreviewItem::ChatPreviewItem(dir8_t argDir,
           ChatPreviewItem::ITEM_MARGIN + ChatPreviewItem::AVATAR_WIDTH + ChatPreviewItem::GAP,
           ChatPreviewItem::ITEM_MARGIN + ChatPreviewItem::NAME_HEIGHT,
 
-          ChatPreviewItem::WIDTH  - ChatPreviewItem::ITEM_MARGIN * 2 - ChatPreviewItem::AVATAR_WIDTH - ChatPreviewItem::GAP,
+          [this](const Widget *)
+          {
+              return w() - ChatPreviewItem::ITEM_MARGIN * 2 - ChatPreviewItem::AVATAR_WIDTH - ChatPreviewItem::GAP;
+          },
+
           ChatPreviewItem::HEIGHT - ChatPreviewItem::ITEM_MARGIN * 2 - ChatPreviewItem::NAME_HEIGHT,
 
           {

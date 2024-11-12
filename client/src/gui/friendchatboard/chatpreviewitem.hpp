@@ -9,7 +9,6 @@
 
 struct ChatPreviewItem: public Widget
 {
-    constexpr static int WIDTH  = UIPage_MIN_WIDTH - UIPage_MARGIN * 2;
     constexpr static int HEIGHT = 50;
 
     constexpr static int ITEM_MARGIN = 5;
@@ -34,8 +33,7 @@ struct ChatPreviewItem: public Widget
     //        |<--->|
     //      AVATAR_WIDTH
     //
-    //     |<---------------------------->|
-    //                  WIDTH
+    //     |<---------------------------->| UIPage_MIN_WIDTH - UIPage_MARGIN * 2
     //
     const SDChatPeerID cpid;
 
@@ -47,9 +45,11 @@ struct ChatPreviewItem: public Widget
 
     ShapeClipBoard selected;
 
-    ChatPreviewItem(dir8_t,
-            int,
-            int,
+    ChatPreviewItem(
+            Widget::VarDir,
+            Widget::VarOff,
+            Widget::VarOff,
+            Widget::VarSize,
 
             const SDChatPeerID &,
             const char8_t *,
@@ -59,4 +59,3 @@ struct ChatPreviewItem: public Widget
 
     bool processEventDefault(const SDL_Event &, bool) override;
 };
-

@@ -8,6 +8,9 @@ ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
         Widget::VarOff argX,
         Widget::VarOff argY,
 
+        Widget::VarSize argW,
+        Widget::VarSize argH,
+
         Widget *argParent,
         bool    argAutoDelete)
 
@@ -16,9 +19,8 @@ ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
           std::move(argDir),
           std::move(argX),
           std::move(argY),
-
-          UIPage_MIN_WIDTH  - UIPage_MARGIN * 2,
-          UIPage_MIN_HEIGHT - UIPage_MARGIN * 2,
+          std::move(argW),
+          std::move(argH),
 
           {},
 
@@ -32,7 +34,7 @@ ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
           0,
           0,
 
-          this->w(),
+          [this](const Widget *){ return w(); },
           {},
           {},
 
@@ -60,6 +62,7 @@ void ChatPreviewPage::updateChatPreview(const SDChatPeerID &sdCPID, const std::s
             DIR_UPLEFT,
             0,
             0,
+            [this](const Widget *){ return w(); },
 
             sdCPID,
             to_u8cstr(argMsg),

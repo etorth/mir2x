@@ -378,6 +378,9 @@ FriendChatBoard::FriendChatBoard(Widget::VarOff argX, Widget::VarOff argY, Proce
                   UIPage_BORDER[2] + UIPage_MARGIN,
                   UIPage_BORDER[0] + UIPage_MARGIN,
 
+                  [this](const Widget *){ return m_frameCropDup.w() - UIPage_BORDER[2] - UIPage_BORDER[3] - 2 * UIPage_MARGIN; },
+                  [this](const Widget *){ return m_frameCropDup.h() - UIPage_BORDER[0] - UIPage_BORDER[1] - 2 * UIPage_MARGIN; },
+
                   this,
                   true,
               },
@@ -509,6 +512,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarOff argX, Widget::VarOff argY, Proce
                   DIR_UPLEFT,
                   UIPage_BORDER[2] + UIPage_MARGIN,
                   UIPage_BORDER[0] + UIPage_MARGIN,
+
                   [this](const Widget *){ return m_frameCropDup.w() - UIPage_BORDER[2] - UIPage_BORDER[3] - 2 * UIPage_MARGIN; },
                   [this](const Widget *){ return m_frameCropDup.h() - UIPage_BORDER[0] - UIPage_BORDER[1] - 2 * UIPage_MARGIN; },
 
