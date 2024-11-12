@@ -963,12 +963,11 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                     const int h1 = h() - UIPage_DRAGBORDER[0] - UIPage_DRAGBORDER[1];
                     const int h2 =                              UIPage_DRAGBORDER[1];
 
-                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
 
-                    const auto fnAdjustW = [rendererW, this](int dw, bool adjustOff)
+                    const auto fnAdjustW = [this](int dw, bool adjustOff)
                     {
                         const int oldW = w();
-                        const int newW = std::min<int>(std::max<int>(oldW + dw, UIPage_MIN_WIDTH), rendererW);
+                        const int newW = std::max<int>(oldW + dw, UIPage_MIN_WIDTH);
 
                         if(oldW != newW){
                             setW(newW);
@@ -978,10 +977,10 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                         }
                     };
 
-                    const auto fnAdjustH = [rendererH, this](int dh, bool adjustOff)
+                    const auto fnAdjustH = [this](int dh, bool adjustOff)
                     {
                         const int oldH = h();
-                        const int newH = std::min<int>(std::max<int>(oldH + dh, UIPage_MIN_HEIGHT), rendererH);
+                        const int newH = std::max<int>(oldH + dh, UIPage_MIN_HEIGHT);
 
                         if(oldH != newH){
                             setH(newH);
@@ -1014,6 +1013,8 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                         else                             { fnAdjustW( event.motion.xrel, 0); fnAdjustH( event.motion.yrel, 0); }
                     }
                     else{
+                        const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+
                         const int maxX = rendererW - w();
                         const int maxY = rendererH - h();
 
