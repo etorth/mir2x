@@ -12,6 +12,9 @@ FriendListPage::FriendListPage(Widget::VarDir argDir,
         Widget::VarOff argX,
         Widget::VarOff argY,
 
+        Widget::VarSize argW,
+        Widget::VarSize argH,
+
         Widget *argParent,
         bool    argAutoDelete)
 
@@ -20,9 +23,8 @@ FriendListPage::FriendListPage(Widget::VarDir argDir,
           std::move(argDir),
           std::move(argX),
           std::move(argY),
-
-          UIPage_MIN_WIDTH  - UIPage_MARGIN * 2,
-          UIPage_MIN_HEIGHT - UIPage_MARGIN * 2,
+          std::move(argW),
+          std::move(argH),
 
           {},
 
