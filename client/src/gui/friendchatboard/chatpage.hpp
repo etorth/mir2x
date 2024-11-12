@@ -15,7 +15,7 @@ struct ChatPage: public Widget
     // because we fill different color to chat area and input area
     //
     //         |<--- UIPage_MIN_WIDTH ---->|
-    //       ->||<---- UIPage_MARGIN                     v
+    //       ->||<-- UIPage_MARGIN                       v
     //       - +---------------------------+             -
     //       ^ |+-------------------------+|           - -
     //       | || +------+                ||           ^ ^
