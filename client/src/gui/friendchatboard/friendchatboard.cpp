@@ -953,7 +953,7 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                         const auto fnAdjustW = [this](int dw, bool adjustOff)
                         {
                             const int oldW = w();
-                            const int newW = std::max<int>(oldW + dw, UIPage_MIN_WIDTH);
+                            const int newW = std::max<int>(oldW + dw, UIPage_BORDER[2] + UIPage_MIN_WIDTH + UIPage_BORDER[3]);
 
                             if(oldW != newW){
                                 setW(newW);
@@ -966,7 +966,7 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                         const auto fnAdjustH = [this](int dh, bool adjustOff)
                         {
                             const int oldH = h();
-                            const int newH = std::max<int>(oldH + dh, UIPage_MIN_HEIGHT);
+                            const int newH = std::max<int>(oldH + dh, UIPage_BORDER[0] + UIPage_MIN_HEIGHT + UIPage_BORDER[1]);
 
                             if(oldH != newH){
                                 setH(newH);
