@@ -53,8 +53,8 @@ FriendItem::FriendItem(
           0,
           0,
 
-          this->w(),
-          this->h(),
+          [this](const Widget *){ return w(); },
+          [this](const Widget *){ return h(); },
 
           [this](const Widget *, int drawDstX, int drawDstY)
           {
