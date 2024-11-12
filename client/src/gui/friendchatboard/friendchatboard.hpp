@@ -129,4 +129,7 @@ class FriendChatBoard: public Widget
     public:
         void onAddFriendAccepted(const SDChatPeer &);
         void onAddFriendRejected(const SDChatPeer &);
+
+    private:
+        std::optional<int> getEdgeDragIndex(int, int) const;
 };

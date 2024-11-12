@@ -931,39 +931,6 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (in(event.motion.x, event.motion.y) || m_dragIndex.has_value())){
-                    // ->|w0|<----w1------->|w2|<-   |
-                    //   x0 x1              x2       v
-                    //   +--+---------------+--+ y0  -
-                    //   |  |               |  |     h0
-                    //   +--+---------------+--+ y1  -
-                    //   |  |               |  |     ^
-                    //   |  |               |  |     |
-                    //   |  |               |  |     h1
-                    //   |  |               |  |     |
-                    //   |  |               |  |     v
-                    //   +--+---------------+--+ y2  -
-                    //   |  |               |  |     h2
-                    //   +--+---------------+--+     -
-                    //                               ^
-                    //                               |
-
-                    const int x0 = x();
-                    const int x1 = x0       + UIPage_DRAGBORDER[2];
-                    const int x2 = x0 + w() - UIPage_DRAGBORDER[3];
-
-                    const int y0 = y();
-                    const int y1 = y0       + UIPage_DRAGBORDER[0];
-                    const int y2 = y0 + h() - UIPage_DRAGBORDER[1];
-
-                    const int w0 =                              UIPage_DRAGBORDER[2];
-                    const int w1 = w() - UIPage_DRAGBORDER[2] - UIPage_DRAGBORDER[3];
-                    const int w2 =                              UIPage_DRAGBORDER[3];
-
-                    const int h0 =                              UIPage_DRAGBORDER[0];
-                    const int h1 = h() - UIPage_DRAGBORDER[0] - UIPage_DRAGBORDER[1];
-                    const int h2 =                              UIPage_DRAGBORDER[1];
-
-
                     const auto fnAdjustW = [this](int dw, bool adjustOff)
                     {
                         const int oldW = w();
@@ -991,15 +958,7 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                     };
 
                     if(!m_dragIndex.has_value()){
-                        if     (mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y0, w0, h0)){ m_dragIndex = 0; }
-                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y0, w1, h0)){ m_dragIndex = 1; }
-                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y0, w2, h0)){ m_dragIndex = 2; }
-                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y1, w0, h1)){ m_dragIndex = 3; }
-                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y1, w2, h1)){ m_dragIndex = 4; }
-                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x0, y2, w0, h2)){ m_dragIndex = 5; }
-                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x1, y2, w1, h2)){ m_dragIndex = 6; }
-                        else if(mathf::pointInRectangle<int>(event.motion.x, event.motion.y, x2, y2, w2, h2)){ m_dragIndex = 7; }
-                        else { m_dragIndex.reset(); }
+                        m_dragIndex = getEdgeDragIndex(event.motion.x, event.motion.y);
                     }
 
                     if(m_dragIndex.has_value()){
@@ -1510,4 +1469,49 @@ void FriendChatBoard::onAddFriendAccepted(const SDChatPeer &argCP)
 void FriendChatBoard::onAddFriendRejected(const SDChatPeer &argCP)
 {
     m_processRun->addCBParLog(u8R"###(<par bgcolor="rgb(0x00, 0x80, 0x00)"><t color="red">%s</t>已经拒绝了你的好友请求。</par>)###", to_cstr(argCP.name));
+}
+
+std::optional<int> FriendChatBoard::getEdgeDragIndex(int eventX, int eventY) const
+{
+    // ->|w0|<----w1------->|w2|<-   |
+    //   x0 x1              x2       v
+    //   +--+---------------+--+ y0  -
+    //   |0)|       1)      |2)|     h0
+    //   +--+---------------+--+ y1  -
+    //   |  |               |  |     ^
+    //   |  |               |  |     |
+    //   |3)|               |4)|     h1
+    //   |  |               |  |     |
+    //   |  |               |  |     v
+    //   +--+---------------+--+ y2  -
+    //   |5)|       6)      |7)|     h2
+    //   +--+---------------+--+     -
+    //                               ^
+    //                               |
+
+    const int x0 = x();
+    const int x1 = x0       + UIPage_DRAGBORDER[2];
+    const int x2 = x0 + w() - UIPage_DRAGBORDER[3];
+
+    const int y0 = y();
+    const int y1 = y0       + UIPage_DRAGBORDER[0];
+    const int y2 = y0 + h() - UIPage_DRAGBORDER[1];
+
+    const int w0 =                              UIPage_DRAGBORDER[2];
+    const int w1 = w() - UIPage_DRAGBORDER[2] - UIPage_DRAGBORDER[3];
+    const int w2 =                              UIPage_DRAGBORDER[3];
+
+    const int h0 =                              UIPage_DRAGBORDER[0];
+    const int h1 = h() - UIPage_DRAGBORDER[0] - UIPage_DRAGBORDER[1];
+    const int h2 =                              UIPage_DRAGBORDER[1];
+
+    if     (mathf::pointInRectangle<int>(eventX, eventY, x0, y0, w0, h0)) return 0;
+    else if(mathf::pointInRectangle<int>(eventX, eventY, x1, y0, w1, h0)) return 1;
+    else if(mathf::pointInRectangle<int>(eventX, eventY, x2, y0, w2, h0)) return 2;
+    else if(mathf::pointInRectangle<int>(eventX, eventY, x0, y1, w0, h1)) return 3;
+    else if(mathf::pointInRectangle<int>(eventX, eventY, x2, y1, w2, h1)) return 4;
+    else if(mathf::pointInRectangle<int>(eventX, eventY, x0, y2, w0, h2)) return 5;
+    else if(mathf::pointInRectangle<int>(eventX, eventY, x1, y2, w1, h2)) return 6;
+    else if(mathf::pointInRectangle<int>(eventX, eventY, x2, y2, w2, h2)) return 7;
+    else                                                                  return std::nullopt;
 }
