@@ -3,8 +3,8 @@
 #include "friendchatboard.hpp"
 #include "friendchatboardconst.hpp"
 
-ChatPreviewPage::ChatPreviewPage(Widget::VarDir argDir,
-
+ChatPreviewPage::ChatPreviewPage(
+        Widget::VarDir argDir,
         Widget::VarOff argX,
         Widget::VarOff argY,
 

@@ -18,4 +18,3 @@ struct ChatPreviewPage: public Widget
 
     void updateChatPreview(const SDChatPeerID &, const std::string &);
 };
-
