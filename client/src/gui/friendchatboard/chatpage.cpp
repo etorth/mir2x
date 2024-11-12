@@ -4,22 +4,23 @@
 
 extern SDLDevice *g_sdlDevice;
 
-ChatPage::ChatPage(dir8_t argDir,
-
-        int argX,
-        int argY,
+ChatPage::ChatPage(
+        Widget::VarDir  argDir,
+        Widget::VarOff  argX,
+        Widget::VarOff  argY,
+        Widget::VarSize argW,
+        Widget::VarSize argH,
 
         Widget *argParent,
         bool argAutoDelete)
 
     : Widget
       {
-          argDir,
-          argX,
-          argY,
-
-          UIPage_MIN_WIDTH,
-          UIPage_MIN_HEIGHT,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
+          std::move(argW),
+          std::move(argH),
 
           {},
 
@@ -32,8 +33,9 @@ ChatPage::ChatPage(dir8_t argDir,
           DIR_UPLEFT,
           0,
           0,
-          UIPage_MIN_WIDTH,
-          UIPage_MIN_HEIGHT,
+
+          [this](const Widget *){ return w(); },
+          [this](const Widget *){ return h(); },
 
           [this](const Widget *, int drawDstX, int drawDstY)
           {
@@ -85,7 +87,7 @@ ChatPage::ChatPage(dir8_t argDir,
     , input
       {
           DIR_DOWNLEFT,
-          UIPage_MARGIN                 + ChatPage::INPUT_MARGIN,
+          UIPage_MARGIN                     + ChatPage::INPUT_MARGIN,
           UIPage_MIN_HEIGHT - UIPage_MARGIN - ChatPage::INPUT_MARGIN - 1,
 
           this,

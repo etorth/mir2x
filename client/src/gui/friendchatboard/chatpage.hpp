@@ -14,7 +14,7 @@ struct ChatPage: public Widget
     // chat page is different, it uses the UIPage_MARGIN area
     // because we fill different color to chat area and input area
     //
-    //         |<----- UIPage_MIN_WIDTH ------>|
+    //         |<--- UIPage_MIN_WIDTH ---->|
     //       ->||<---- UIPage_MARGIN                     v
     //       - +---------------------------+             -
     //       ^ |+-------------------------+|           - -
@@ -60,14 +60,15 @@ struct ChatPage: public Widget
 
     MenuBoard *menu = nullptr;
 
-    ChatPage(dir8_t,
-
-            int,
-            int,
+    ChatPage(
+            Widget::VarDir,
+            Widget::VarOff,
+            Widget::VarOff,
+            Widget::VarSize,
+            Widget::VarSize,
 
             Widget * = nullptr,
             bool     = false);
 
     bool processEventDefault(const SDL_Event &, bool) override;
 };
-

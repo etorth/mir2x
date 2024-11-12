@@ -280,6 +280,9 @@ FriendChatBoard::FriendChatBoard(Widget::VarOff argX, Widget::VarOff argY, Proce
                   UIPage_BORDER[2],
                   UIPage_BORDER[0],
 
+                  [this](const Widget *){ return m_frameCropDup.w() - UIPage_BORDER[2] - UIPage_BORDER[3]; }, // UIPage_MARGIN included
+                  [this](const Widget *){ return m_frameCropDup.h() - UIPage_BORDER[0] - UIPage_BORDER[1]; },
+
                   this,
                   true,
               },
