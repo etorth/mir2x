@@ -121,13 +121,13 @@ ChatItemRef::ChatItemRef(
           [this](Widget *)
           {
               m_crossBgColor = colorf::BLUE + colorf::A_SHF(128);
-              m_cross.setFont(ChatItemRef::CROSS_FONT_SIZES[1]);
+              m_cross.setFontSize(ChatItemRef::CROSS_FONT_SIZES[1]);
           },
 
           [this](Widget *)
           {
               m_crossBgColor = colorf::GREY + colorf::A_SHF(255);
-              m_cross.setFont(ChatItemRef::CROSS_FONT_SIZES[0]);
+              m_cross.setFontSize(ChatItemRef::CROSS_FONT_SIZES[0]);
           },
 
           [this](Widget *, bool clickDone)
@@ -135,7 +135,7 @@ ChatItemRef::ChatItemRef(
               if(clickDone){
               }
               else{
-                  m_cross.setFont(ChatItemRef::CROSS_FONT_SIZES[2]);
+                  m_cross.setFontSize(ChatItemRef::CROSS_FONT_SIZES[2]);
               }
           },
 
