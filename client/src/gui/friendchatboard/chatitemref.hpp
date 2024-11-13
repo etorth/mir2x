@@ -26,6 +26,8 @@ struct ChatItemRef: public Widget
     constexpr static int BUTTON_R      = 5;
     constexpr static int BUTTON_MARGIN = 5;
 
+    constexpr static uint8_t CROSS_FONT_SIZES[3] {14, 14, 12};
+
     ShapeClipBoard background; // round corner rectangle
 
     LabelBoard     cross;

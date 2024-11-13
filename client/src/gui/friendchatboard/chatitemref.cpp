@@ -59,7 +59,7 @@ ChatItemRef::ChatItemRef(
           u8"×", // multiplication sign for better symmetry
 
           1,
-          12,
+          ChatItemRef::CROSS_FONT_SIZES[0],
           0,
 
           colorf::WHITE + colorf::A_SHF(255),
