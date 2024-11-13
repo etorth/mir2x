@@ -39,6 +39,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               setShow(false);
@@ -70,6 +71,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -106,6 +108,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               setExtendedItemID(0);
@@ -138,6 +141,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               m_ext1Page = std::max<int>(0, m_ext1Page - 1);
@@ -168,6 +172,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -203,6 +208,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -242,6 +248,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               setExtendedItemID(0);
@@ -272,6 +279,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)

@@ -46,6 +46,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
           nullptr,
           nullptr,
           nullptr,
+          nullptr,
 
           0,
           0,
@@ -72,6 +73,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -114,6 +116,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               if(m_showCandidateList && (m_selectedIndex[m_showCandidateList] >= 0)){
@@ -146,6 +149,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -182,6 +186,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               refresh();
@@ -212,6 +217,7 @@ TeamStateBoard::TeamStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *w
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)

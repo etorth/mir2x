@@ -112,6 +112,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               if(auto p = m_processRun->getWidget("QuickAccessBoard")){
@@ -143,6 +144,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [](Widget *)
@@ -177,6 +179,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           nullptr,
           nullptr,
+          nullptr,
 
           0,
           0,
@@ -206,6 +209,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               addLog(0, "exchange doesn't implemented yet.");
@@ -229,6 +233,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           colorf::WHITE + colorf::A_SHF(255),
           0X00000043,
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -263,6 +268,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               m_processRun->flipDrawMagicKey();
@@ -284,6 +290,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -319,6 +326,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               if(auto p = m_processRun->getWidget("PlayerStateBoard")){
@@ -350,6 +358,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -385,6 +394,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               if(auto p = m_processRun->getWidget("GuildBoard")){
@@ -416,6 +426,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -460,6 +471,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               if(auto p = m_processRun->getWidget("QuestStateBoard")){
@@ -495,6 +507,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               if(auto p = m_processRun->getWidget("HorseBoard")){
@@ -528,6 +541,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               if(auto p = m_processRun->getWidget("RuntimeConfigBoard")){
@@ -559,6 +573,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)
@@ -624,6 +639,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               switchExpandMode();
@@ -656,6 +672,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           nullptr,
           nullptr,
+          nullptr,
 
           0,
           0,
@@ -681,6 +698,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           nullptr,

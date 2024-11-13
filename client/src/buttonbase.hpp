@@ -62,9 +62,10 @@ class ButtonBase: public Widget
         const int m_offset[3][2];
 
     protected:
-        std::function<void(Widget *)> m_onOverIn;
-        std::function<void(Widget *)> m_onOverOut;
-        std::function<void(Widget *)> m_onClick;
+        std::function<void(Widget *      )> m_onOverIn;
+        std::function<void(Widget *      )> m_onOverOut;
+        std::function<void(Widget *, bool)> m_onClick;
+        std::function<void(Widget *      )> m_onTrigger;
 
     public:
         ButtonBase(Widget::VarDir,
@@ -73,9 +74,10 @@ class ButtonBase: public Widget
                 Widget::VarSize,
                 Widget::VarSize,
 
-                std::function<void(Widget *)> = nullptr,
-                std::function<void(Widget *)> = nullptr,
-                std::function<void(Widget *)> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
+                std::function<void(Widget *, bool)> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
 
                 std::optional<uint32_t> = {},
                 std::optional<uint32_t> = {},
@@ -143,8 +145,9 @@ class ButtonBase: public Widget
         void setDown() { setState(BEVENT_DOWN); }
 
     private:
-        void onClick();
         void onOverIn();
         void onOverOut();
+        void onClick(bool);
+        void onTrigger();
         void onBadEvent();
 };

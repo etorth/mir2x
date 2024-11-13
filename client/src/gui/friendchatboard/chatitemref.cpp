@@ -127,6 +127,8 @@ ChatItemRef::ChatItemRef(
               cross.setFont(ChatItemRef::CROSS_FONT_SIZES[0]);
           },
 
+          nullptr,
+
           [this](Widget *)
           {
               setShow(false);

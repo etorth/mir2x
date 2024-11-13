@@ -43,6 +43,7 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               m_alphaOn = !m_alphaOn;
@@ -83,6 +84,7 @@ MiniMapBoard::MiniMapBoard(ProcessRun *runPtr, Widget *parent, bool autoDelete)
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)

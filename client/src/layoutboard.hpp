@@ -83,7 +83,7 @@ class LayoutBoard: public Widget
 
     public:
         LayoutBoard(
-                Widget::VarDir    argDir,
+                Widget::VarDir argDir,
                 Widget::VarOff argX,
                 Widget::VarOff argY,
 

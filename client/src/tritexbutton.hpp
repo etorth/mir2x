@@ -24,9 +24,10 @@ class TritexButton: public ButtonBase
                 const uint32_t (&)[3],
                 const uint32_t (&)[3],
 
-                std::function<void(Widget *)> = nullptr,
-                std::function<void(Widget *)> = nullptr,
-                std::function<void(Widget *)> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
+                std::function<void(Widget *, bool)> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
 
                 int = 0,
                 int = 0,

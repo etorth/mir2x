@@ -83,6 +83,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               setShow(false);

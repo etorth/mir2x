@@ -39,6 +39,7 @@ QuickAccessBoard::QuickAccessBoard(int x, int y, ProcessRun *proc, Widget *pwidg
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               setShow(false);

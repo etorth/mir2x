@@ -15,9 +15,10 @@ TritexButton::TritexButton(
         const uint32_t (& texIDList)[3],
         const uint32_t (&seffIDList)[3],
 
-        std::function<void(Widget *)> fnOnOverIn,
-        std::function<void(Widget *)> fnOnOverOut,
-        std::function<void(Widget *)> fnOnClick,
+        std::function<void(Widget *      )> fnOnOverIn,
+        std::function<void(Widget *      )> fnOnOverOut,
+        std::function<void(Widget *, bool)> fnOnClick,
+        std::function<void(Widget *      )> fnOnTrigger,
 
         int offXOnOver,
         int offYOnOver,
@@ -42,6 +43,7 @@ TritexButton::TritexButton(
           std::move(fnOnOverIn),
           std::move(fnOnOverOut),
           std::move(fnOnClick),
+          std::move(fnOnTrigger),
 
           seffIDList[0],
           seffIDList[1],

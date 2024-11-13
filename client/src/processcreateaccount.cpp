@@ -127,6 +127,7 @@ ProcessCreateAccount::ProcessCreateAccount()
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               doPostAccount();
@@ -153,6 +154,7 @@ ProcessCreateAccount::ProcessCreateAccount()
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)

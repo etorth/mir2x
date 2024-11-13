@@ -18,9 +18,10 @@ class TrigfxButton: public ButtonBase
                 std::array<const Widget *, 3>,
                 std::array<std::optional<uint32_t>, 3>,
 
-                std::function<void(Widget *)> = nullptr,
-                std::function<void(Widget *)> = nullptr,
-                std::function<void(Widget *)> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
+                std::function<void(Widget *, bool)> = nullptr,
+                std::function<void(Widget *      )> = nullptr,
 
                 int = 0,
                 int = 0,

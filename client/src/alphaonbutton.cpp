@@ -20,9 +20,10 @@ AlphaOnButton::AlphaOnButton(
         uint32_t onColor,
         uint32_t downTexID,
 
-        std::function<void(Widget *)> fnOnOverIn,
-        std::function<void(Widget *)> fnOnOverOut,
-        std::function<void(Widget *)> fnOnClick,
+        std::function<void(Widget *      )> fnOnOverIn,
+        std::function<void(Widget *      )> fnOnOverOut,
+        std::function<void(Widget *, bool)> fnOnClick,
+        std::function<void(Widget *      )> fnOnTrigger,
 
         bool    triggerOnDone,
         Widget *pwidget,
@@ -38,6 +39,7 @@ AlphaOnButton::AlphaOnButton(
           std::move(fnOnOverIn),
           std::move(fnOnOverOut),
           std::move(fnOnClick),
+          std::move(fnOnTrigger),
 
           SYS_U32NIL,
           SYS_U32NIL,

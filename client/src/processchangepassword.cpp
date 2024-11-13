@@ -162,6 +162,7 @@ ProcessChangePassword::ProcessChangePassword()
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               doPostPasswordChange();
@@ -188,6 +189,7 @@ ProcessChangePassword::ProcessChangePassword()
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)

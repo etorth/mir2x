@@ -65,6 +65,7 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               inputLineDone();
@@ -96,6 +97,7 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)

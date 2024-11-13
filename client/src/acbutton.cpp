@@ -18,6 +18,7 @@ ACButton::ACButton(dir8_t dir, int x, int y, ProcessRun *proc, const std::vector
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               m_currButtonName = (m_currButtonName + 1) % m_buttonNameList.size();

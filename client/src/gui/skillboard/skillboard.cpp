@@ -113,6 +113,7 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMag
           nullptr,
           nullptr,
           nullptr,
+          nullptr,
 
           0,
           0,
@@ -309,6 +310,8 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
                       m_cursorOnTabIndex = -1;
                   },
 
+                  nullptr,
+
                   [i, this](Widget *)
                   {
                       if(m_selectedTabIndex == i){
@@ -380,6 +383,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           [this](Widget *)

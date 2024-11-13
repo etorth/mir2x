@@ -298,6 +298,7 @@ RuntimeConfigBoard::PullMenu::PullMenu(
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               m_menuList.flipShow();
@@ -598,6 +599,7 @@ RuntimeConfigBoard::MenuPage::TabHeader::TabHeader(
               0X01020000 + 105,
           },
 
+          nullptr,
           nullptr,
           nullptr,
           std::move(argOnClick),

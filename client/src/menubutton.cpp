@@ -44,6 +44,7 @@ MenuButton::MenuButton(dir8_t argDir,
 
           nullptr,
           nullptr,
+          nullptr,
           [this](Widget *)
           {
               m_menuBoard->flipShow();
