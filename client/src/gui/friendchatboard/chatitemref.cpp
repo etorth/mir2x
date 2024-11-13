@@ -94,8 +94,8 @@ ChatItemRef::ChatItemRef(
           ChatItemRef::BUTTON_D,
 
           {
-              {&crossBg, DIR_NONE, ChatItemRef::BUTTON_R, ChatItemRef::BUTTON_R, false},
-              {&cross  , DIR_NONE, ChatItemRef::BUTTON_R, ChatItemRef::BUTTON_R, false},
+              {&crossBg, DIR_NONE, [this](const Widget *){ return crossButtonGfx.w() / 2; }, [this](const Widget *){ return crossButtonGfx.h() / 2; }, false},
+              {&cross  , DIR_NONE, [this](const Widget *){ return crossButtonGfx.w() / 2; }, [this](const Widget *){ return crossButtonGfx.h() / 2; }, false},
           },
       }
 
