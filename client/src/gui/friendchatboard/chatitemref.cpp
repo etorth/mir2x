@@ -71,14 +71,14 @@ ChatItemRef::ChatItemRef(
           0,
           0,
 
-          ChatItemRef::BUTTON_R * 2 + 1,
-          ChatItemRef::BUTTON_R * 2 + 1,
+          ChatItemRef::BUTTON_D,
+          ChatItemRef::BUTTON_D,
 
           [](const Widget *, int drawDstX, int drawDstY)
           {
               if(auto texPtr = g_sdlDevice->getCover(ChatItemRef::BUTTON_R, 360)){
-                  SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
-                  SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::GREY + colorf::A_SHF(255));
+                  const SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
+                  const SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::GREY + colorf::A_SHF(255));
                   g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY);
               }
           },
@@ -90,8 +90,8 @@ ChatItemRef::ChatItemRef(
           0,
           0,
 
-          ChatItemRef::BUTTON_R * 2 + 1,
-          ChatItemRef::BUTTON_R * 2 + 1,
+          ChatItemRef::BUTTON_D,
+          ChatItemRef::BUTTON_D,
 
           {
               {&crossBg, DIR_NONE, ChatItemRef::BUTTON_R, ChatItemRef::BUTTON_R, false},
@@ -150,7 +150,7 @@ ChatItemRef::ChatItemRef(
           ChatItemRef::MARGIN,
           ChatItemRef::MARGIN,
 
-          std::max<int>(1, argShowButton ? (argMaxWidth - ChatItemRef::MARGIN - ChatItemRef::BUTTON_MARGIN * 2 - ChatItemRef::BUTTON_R * 2 - 1)
+          std::max<int>(1, argShowButton ? (argMaxWidth - ChatItemRef::MARGIN - ChatItemRef::BUTTON_MARGIN * 2 - ChatItemRef::BUTTON_D)
                                          : (argMaxWidth - ChatItemRef::MARGIN * 2)),
           argLayoutXML.c_str(),
           0,
@@ -192,7 +192,7 @@ ChatItemRef::ChatItemRef(
         setW([argShowButton, this](const Widget *)
         {
             if(argShowButton){
-                return ChatItemRef::MARGIN + message.w() + ChatItemRef::BUTTON_MARGIN * 2 + ChatItemRef::BUTTON_R * 2 + 1;
+                return ChatItemRef::MARGIN + message.w() + ChatItemRef::BUTTON_MARGIN * 2 + ChatItemRef::BUTTON_D;
             }
             else{
                 return ChatItemRef::MARGIN * 2 + message.w();
@@ -202,6 +202,6 @@ ChatItemRef::ChatItemRef(
 
     setH([this](const Widget *)
     {
-        return std::max<int>(ChatItemRef::MARGIN * 2 + message.h(), ChatItemRef::BUTTON_R * 2 + 1);
+        return std::max<int>(ChatItemRef::MARGIN * 2 + message.h(), ChatItemRef::BUTTON_D);
     });
 }

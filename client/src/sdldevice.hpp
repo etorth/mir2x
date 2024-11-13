@@ -406,7 +406,7 @@ class SDLDevice final
        }
 
     public:
-       SDL_Texture *getCover(int, int);
+       SDL_Texture *getCover(int, int); // diameter = 2 * r - 1, r >= 1
 
     public:
        void drawString(uint32_t, int, int, const char *);
