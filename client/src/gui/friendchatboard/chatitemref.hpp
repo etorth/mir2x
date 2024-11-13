@@ -26,10 +26,10 @@ class ChatItemRef: public Widget
 
         constexpr static int BUTTON_MARGIN = 5;
 
-        constexpr static int BUTTON_R = 6;
+        constexpr static int BUTTON_R = 7;
         constexpr static int BUTTON_D = ChatItemRef::BUTTON_R * 2 - 1;
 
-        constexpr static uint8_t CROSS_FONT_SIZES[3] {14, 14, 10};
+        constexpr static uint8_t CROSS_FONT_SIZES[3] {13, 13, 8};
 
     private:
         uint32_t m_crossBgColor;
