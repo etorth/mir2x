@@ -56,7 +56,7 @@ ChatItemRef::ChatItemRef(
           0,
           0,
 
-          u8"x",
+          u8"×", // multiplication sign for better symmetry
 
           1,
           12,
