@@ -120,7 +120,7 @@ ChatItemRef::ChatItemRef(
 
           [this](Widget *)
           {
-              m_crossBgColor = colorf::BLUE + colorf::A_SHF(128);
+              m_crossBgColor = colorf::BLUE + colorf::A_SHF(64);
               m_cross.setFontSize(ChatItemRef::CROSS_FONT_SIZES[1]);
           },
 
