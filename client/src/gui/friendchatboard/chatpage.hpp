@@ -59,7 +59,7 @@ struct ChatPage: public Widget
     constexpr static int INPUT_MIN_HEIGHT =  10;
     constexpr static int INPUT_MAX_HEIGHT = 200;
 
-    constexpr static int CHATREF_GAP = 10;
+    constexpr static int CHATREF_GAP = 5;
 
     SDChatPeer peer;
     ShapeClipBoard background;
