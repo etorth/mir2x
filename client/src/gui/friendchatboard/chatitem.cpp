@@ -290,8 +290,14 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid)
                 6,
 
                 {
-                    {new LabelBoard(DIR_UPLEFT, 0, 0, u8"引用" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)), false, true},
-                    {new LabelBoard(DIR_UPLEFT, 0, 0, u8"复制" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)), false, true},
+                    {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"引用" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::string>("引用")), false, true},
+                    {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"复制" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::string>("复制")), false, true},
+                },
+
+                [](Widget *item)
+                {
+                    if(const auto op = std::any_cast<std::string>(item->data()); op == "引用"){
+                    }
                 },
             }),
 
