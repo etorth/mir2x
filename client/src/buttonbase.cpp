@@ -7,11 +7,12 @@
 extern SDLDevice *g_sdlDevice;
 extern SoundEffectDB *g_seffDB;
 
-ButtonBase::ButtonBase(Widget::VarDir argDir,
-        Widget::VarOff argX,
-        Widget::VarOff argY,
-        Widget::VarSize   argW,
-        Widget::VarSize   argH,
+ButtonBase::ButtonBase(
+        Widget::VarDir  argDir,
+        Widget::VarOff  argX,
+        Widget::VarOff  argY,
+        Widget::VarSize argW,
+        Widget::VarSize argH,
 
         std::function<void(Widget *)> fnOnOverIn,
         std::function<void(Widget *)> fnOnOverOut,
@@ -63,9 +64,9 @@ ButtonBase::ButtonBase(Widget::VarDir argDir,
           {offXOnClick  , offYOnClick},
       }
 
-    , m_onOverIn (std::move(fnOnOverIn))
+    , m_onOverIn (std::move(fnOnOverIn ))
     , m_onOverOut(std::move(fnOnOverOut))
-    , m_onClick  (std::move(fnOnClick))
+    , m_onClick  (std::move(fnOnClick  ))
 {}
 
 bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid)

@@ -127,6 +127,17 @@ class ButtonBase: public Widget
         }
 
     public:
+        bool getOnClickDone() const
+        {
+            return m_onClickDone;
+        }
+
+        bool getRadioMode() const
+        {
+            return m_radioMode;
+        }
+
+    public:
         void setOff () { setState(BEVENT_OFF ); }
         void setOn  () { setState(BEVENT_ON  ); }
         void setDown() { setState(BEVENT_DOWN); }
