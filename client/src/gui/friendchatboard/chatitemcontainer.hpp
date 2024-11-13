@@ -52,11 +52,12 @@ struct ChatItemContainer: public Widget
     BackgroundWrapper nomsgWrapper;
     BackgroundWrapper opsWrapper;
 
-    ChatItemContainer(dir8_t,
+    ChatItemContainer(
+            Widget::VarDir,
+            Widget::VarOff,
+            Widget::VarOff,
 
-            int,
-            int,
-
+            Widget::VarSize,
             Widget::VarSize,
 
             Widget * = nullptr,

@@ -39,31 +39,35 @@ ChatPage::ChatPage(
 
           [this](const Widget *, int drawDstX, int drawDstY)
           {
+              // ChatPage = top + sepLine + bottom
+              const int bottomHeight = UIPage_MARGIN + ChatPage::SEP_MARGIN + ChatPage::INPUT_MARGIN * 2 + input.h() + (chatref.show() ? (chatref.h() + ChatPage::CHATREF_GAP) : 0);
+              const int sepLineDY    = h() - bottomHeight - 1;
+
               g_sdlDevice->drawLine(
                       colorf::RGBA(231, 231, 189, 64),
 
                       drawDstX,
-                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h() - 1,
+                      drawDstY + sepLineDY,
 
-                      drawDstX + UIPage_MIN_WIDTH,
-                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h() - 1);
+                      drawDstX + w(),
+                      drawDstY + sepLineDY);
 
               g_sdlDevice->fillRectangle(
                       colorf::RGBA(231, 231, 189, 32),
 
                       drawDstX,
-                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN * 2 - INPUT_MARGIN * 2 - input.h(),
+                      drawDstY + sepLineDY + 1,
 
-                      UIPage_MIN_WIDTH,
-                      UIPage_MARGIN * 2 + ChatPage::INPUT_MARGIN * 2 + input.h());
+                      w(),
+                      bottomHeight);
 
               g_sdlDevice->fillRectangle(
                       colorf::BLACK + colorf::A_SHF(255),
 
                       drawDstX + UIPage_MARGIN,
-                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN - INPUT_MARGIN * 2 - input.h(),
+                      drawDstY + sepLineDY + ChatPage::SEP_MARGIN,
 
-                      UIPage_MIN_WIDTH - UIPage_MARGIN * 2,
+                      w() - UIPage_MARGIN * 2,
                       ChatPage::INPUT_MARGIN * 2 + input.h(),
 
                       ChatPage::INPUT_CORNER);
@@ -72,9 +76,9 @@ ChatPage::ChatPage(
                       colorf::RGBA(231, 231, 189, 96),
 
                       drawDstX + UIPage_MARGIN,
-                      drawDstY + UIPage_MIN_HEIGHT - UIPage_MARGIN - INPUT_MARGIN * 2 - input.h(),
+                      drawDstY + sepLineDY + ChatPage::SEP_MARGIN,
 
-                      UIPage_MIN_WIDTH - UIPage_MARGIN * 2,
+                      w() - UIPage_MARGIN * 2,
                       ChatPage::INPUT_MARGIN * 2 + input.h(),
 
                       ChatPage::INPUT_CORNER);
@@ -84,11 +88,35 @@ ChatPage::ChatPage(
           false,
       }
 
+    , chatref
+      {
+          DIR_DOWNLEFT,
+          UIPage_MARGIN,
+          [this](const Widget *){ return h() - UIPage_MARGIN - 1; },
+
+          w(), // can not stretch
+          true,
+          true,
+
+          "<layout><par>你好啊这里是引用</par></layout>",
+
+          this,
+          false,
+      }
+
     , input
       {
           DIR_DOWNLEFT,
-          UIPage_MARGIN                     + ChatPage::INPUT_MARGIN,
-          UIPage_MIN_HEIGHT - UIPage_MARGIN - ChatPage::INPUT_MARGIN - 1,
+          UIPage_MARGIN + ChatPage::INPUT_MARGIN,
+          [this](const Widget *)
+          {
+              return h() - UIPage_MARGIN - (chatref.show() ? (chatref.h() + ChatPage::CHATREF_GAP) : 0) - ChatPage::INPUT_MARGIN - 1;
+          },
+
+          [this](const Widget *)
+          {
+              return w() - UIPage_MARGIN * 2 - ChatPage::INPUT_MARGIN * 2;
+          },
 
           this,
           false,
@@ -102,7 +130,12 @@ ChatPage::ChatPage(
 
           [this](const Widget *)
           {
-              return UIPage_MIN_HEIGHT - UIPage_MARGIN * 4 - ChatPage::INPUT_MARGIN * 2 - input.h() - 1;
+              return w() - UIPage_MARGIN * 2;
+          },
+
+          [this](const Widget *)
+          {
+              return h() - UIPage_MARGIN * 2 - ChatPage::SEP_MARGIN * 2 - 1 - ChatPage::INPUT_MARGIN * 2 - input.h() - (chatref.show() ? (chatref.h() + ChatPage::CHATREF_GAP) : 0);
           },
 
           this,

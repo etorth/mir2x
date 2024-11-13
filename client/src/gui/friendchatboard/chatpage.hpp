@@ -5,6 +5,7 @@
 #include "serdesmsg.hpp"
 #include "widget.hpp"
 #include "menuboard.hpp"
+#include "chatitemref.hpp"
 #include "shapeclipboard.hpp"
 #include "chatinputcontainer.hpp"
 #include "chatitemcontainer.hpp"
@@ -24,27 +25,33 @@ struct ChatPage: public Widget
     //       | ||                +------+ ||           |
     //  U    | ||                |******| ||           |
     //  I    | ||                +------+ ||           |
-    //  P    | || +------------+          ||           +-- UIPage_MIN_HEIGHT - UIPage_MARGIN * 4 - INPUT_MARGIN * 2 - input.h() - 1
-    //  a    | || |************|          ||           |
-    //  g ---+ || |*****       |          ||           |
-    //  e    | || +------------+          ||           |
-    //  |    | ||                         ||           |
-    //  H    | ||       chat area         ||         | |
+    //  P    | || +------------+          ||           +-- UIPage_MIN_HEIGHT
+    //  a    | || |************|          ||           |         - UIPage_MARGIN * 2            // top & bottom margin
+    //  g ---+ || |*****       |          ||           |         -    SEP_MARGIN * 2 - 1        // middle area between chat area and input area
+    //  e    | || +------------+          ||           |         -  INPUT_MARGIN * 2            //
+    //  |    | ||                         ||           |         - input.h()                    //
+    //  H    | ||       chat area         ||         | |         - (chatref.show() ? (chatref.h() + CHATREF_GAP) : 0)
     //  E    | ||                         ||         v v
     //  I    | |+-------------------------+|       | - -
-    //  G    | +===========================+       v   UIPage_MARGIN * 2 + 1
+    //  G    | +===========================+       v   SEP_MARGIN * 2 + 1
     //  H    | |  +---------------------+  |       - -
     //  T    | | / +-------------------+ \ |     - -<- INPUT_MARGIN
     //       | ||  |*******************|  ||     ^ ^
     //       | ||  |****input area*****|  ||   | +---- input.h()
     //       | ||  |*******************|  || | v v
-    //       | | \ +-------------------+ / | v - -
-    //       v |  +---------------------+  | - -
-    //       - +---------------------------+ - ^
-    //       ->||<---- UIPage_MARGIN         ^ |
-    //       -->| |<--  INPUT_CORNER         | +------  INPUT_MARGIN
-    //       -->|  |<-  INPUT_MARGIN         +-------- UIPage_MARGIN
+    //       | | \ +-------------------+ / | v - -                +--- chatref.show() ? chatref.h() : 0
+    //       | |  +---------------------+  | - -                  |
+    //       | |                           |   ^                  v
+    //       | |+-------------------------+| - |                  -
+    //       | ||        ChatRef      (x) || ^ +-- INPUT_MARGIN
+    //       v |+-------------------------+| |                    -
+    //       - +---------------------------+ +---- chatref.show() ? CHATREF_GAP : 0
+    //       ->||<---- UIPage_MARGIN
+    //       -->| |<--  INPUT_CORNER
+    //       -->|  |<-  INPUT_MARGIN
     //             |<--- input.w() --->|
+
+    constexpr static int SEP_MARGIN = 2;
 
     constexpr static int INPUT_CORNER = 8;
     constexpr static int INPUT_MARGIN = 8;
@@ -52,9 +59,12 @@ struct ChatPage: public Widget
     constexpr static int INPUT_MIN_HEIGHT =  10;
     constexpr static int INPUT_MAX_HEIGHT = 200;
 
+    constexpr static int CHATREF_GAP = 10;
+
     SDChatPeer peer;
     ShapeClipBoard background;
 
+    ChatItemRef        chatref;
     ChatInputContainer input;
     ChatItemContainer  chat;
 

@@ -3,9 +3,12 @@
 #include "chatitemref.hpp"
 
 extern SDLDevice *g_sdlDevice;
-ChatItemRef::ChatItemRef(dir8_t argDir,
-        int argX,
-        int argY,
+
+ChatItemRef::ChatItemRef(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
+
         int argMaxWidth,
 
         bool argForceWidth,
@@ -18,9 +21,9 @@ ChatItemRef::ChatItemRef(dir8_t argDir,
 
     : Widget
       {
-          argDir,
-          argX,
-          argY,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
           0, // setup later
           0, //
 

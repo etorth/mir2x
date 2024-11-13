@@ -1,7 +1,5 @@
 #pragma once
-#include <array>
 #include <string>
-#include <unordered_map>
 #include "widget.hpp"
 #include "labelboard.hpp"
 #include "layoutboard.hpp"
@@ -31,15 +29,16 @@ struct ChatItemRef: public Widget
     ShapeClipBoard background; // round corner rectangle
 
     LabelBoard     cross;
-    ShapeClipBoard crossBg; // round cover under x
-    Widget         crossButtonGfx;
-    TrigfxButton   crossButton;
+    ShapeClipBoard crossBg;        // round cover under x
+    Widget         crossButtonGfx; // merge cross and crossBg to be a single gfx-widget, then use it in TrigfxButton
+    TrigfxButton   crossButton;    //
 
     LayoutBoard message;
 
-    ChatItemRef(dir8_t,
-            int,
-            int,
+    ChatItemRef(
+            Widget::VarDir,
+            Widget::VarOff,
+            Widget::VarOff,
             int, // max width
 
             bool, // force max width

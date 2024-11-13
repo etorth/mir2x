@@ -11,21 +11,21 @@ extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-ChatInputContainer::ChatInputContainer(dir8_t argDir,
-
-        int argX,
-        int argY,
+ChatInputContainer::ChatInputContainer(
+        Widget::VarDir  argDir,
+        Widget::VarOff  argX,
+        Widget::VarOff  argY,
+        Widget::VarSize argW,
 
         Widget *argParent,
         bool    argAutoDelete)
 
     : Widget
       {
-          argDir,
-          argX,
-          argY,
-
-          UIPage_MIN_WIDTH - UIPage_MARGIN * 2 - ChatPage::INPUT_MARGIN * 2,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
+          std::move(argW),
           [this](const Widget *)
           {
               return mathf::bound<int>(layout.h(), ChatPage::INPUT_MIN_HEIGHT, ChatPage::INPUT_MAX_HEIGHT);

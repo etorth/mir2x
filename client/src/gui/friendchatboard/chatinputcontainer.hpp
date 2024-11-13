@@ -5,10 +5,11 @@
 struct ChatInputContainer: public Widget
 {
     LayoutBoard layout;
-    ChatInputContainer(dir8_t,
-
-            int,
-            int,
+    ChatInputContainer(
+            Widget::VarDir,
+            Widget::VarOff,
+            Widget::VarOff,
+            Widget::VarSize, // width only
 
             Widget * = nullptr,
             bool     = false);

@@ -77,11 +77,11 @@ ChatItemContainer::BackgroundWrapper::BackgroundWrapper(dir8_t argDir,
     moveFront(&background);
 }
 
-ChatItemContainer::ChatItemContainer(dir8_t argDir,
-
-        int argX,
-        int argY,
-
+ChatItemContainer::ChatItemContainer(
+        Widget::VarDir  argDir,
+        Widget::VarOff  argX,
+        Widget::VarOff  argY,
+        Widget::VarSize argW,
         Widget::VarSize argH,
 
         Widget *argParent,
@@ -89,11 +89,10 @@ ChatItemContainer::ChatItemContainer(dir8_t argDir,
 
     : Widget
       {
-          argDir,
-          argX,
-          argY,
-
-          UIPage_MIN_WIDTH - UIPage_MARGIN * 2,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
+          std::move(argW),
           std::move(argH),
 
           {},
