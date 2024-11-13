@@ -75,18 +75,21 @@ class LabelBoard: public Widget
         {
             m_tpset.setFont(nFont);
             m_tpset.build();
+            setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
         }
 
         void setFontSize(uint8_t nFontSize)
         {
             m_tpset.setFontSize(nFontSize);
             m_tpset.build();
+            setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
         }
 
         void setFontStyle(uint8_t nFontStyle)
         {
             m_tpset.setFontStyle(nFontStyle);
             m_tpset.build();
+            setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
         }
 
         void setFontColor(uint32_t nFontColor)
@@ -98,6 +101,7 @@ class LabelBoard: public Widget
         void clear()
         {
             m_tpset.clear();
+            setSize(0, 0);
         }
 
     public:
