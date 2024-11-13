@@ -20,6 +20,5 @@ void LabelBoard::loadXML(const char *xmlString)
     // don't need to specify the font/size/style info here
 
     m_tpset.loadXML(xmlString);
-    m_w = m_tpset.px() + m_tpset.pw();
-    m_h = m_tpset.py() + m_tpset.ph();
+    setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
 }

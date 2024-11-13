@@ -98,7 +98,7 @@ ChatPage::ChatPage(
           true,
           true,
 
-          "<layout><par>你好啊</par><par>这里是引用</par></layout>",
+          "<layout><par>这里是引用</par></layout>",
 
           this,
           false,

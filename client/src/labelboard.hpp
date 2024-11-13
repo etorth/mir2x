@@ -74,16 +74,19 @@ class LabelBoard: public Widget
         void setFont(uint8_t nFont)
         {
             m_tpset.setFont(nFont);
+            m_tpset.build();
         }
 
         void setFontSize(uint8_t nFontSize)
         {
             m_tpset.setFontSize(nFontSize);
+            m_tpset.build();
         }
 
         void setFontStyle(uint8_t nFontStyle)
         {
             m_tpset.setFontStyle(nFontStyle);
+            m_tpset.build();
         }
 
         void setFontColor(uint32_t nFontColor)
@@ -104,9 +107,9 @@ class LabelBoard: public Widget
         }
 
     public:
-        void drawEx(int nDstX, int nDstY, int nSrcX, int nSrcY, int nW, int nH) const override
+        void drawEx(int argDstX, int argDstY, int argSrcX, int argSrcY, int argSrcW, int argSrcH) const override
         {
-            m_tpset.drawEx(nDstX, nDstY, nSrcX, nSrcY, nW, nH);
+            m_tpset.drawEx(argDstX, argDstY, argSrcX, argSrcY, argSrcW, argSrcH);
         }
 
     public:

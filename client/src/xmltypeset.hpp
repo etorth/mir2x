@@ -126,7 +126,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        void clear()
+        void clear() // release everything
         {
             m_px = 0;
             m_py = 0;
@@ -134,6 +134,11 @@ class XMLTypeset // means XMLParagraph typeset
             m_ph = 0;
             m_lineList.clear();
             m_paragraph->clear();
+        }
+
+        void build() // build without reload xml
+        {
+            buildTypeset(0, 0);
         }
 
     private:

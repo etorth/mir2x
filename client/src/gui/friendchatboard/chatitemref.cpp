@@ -132,7 +132,9 @@ ChatItemRef::ChatItemRef(
 
           [this](Widget *, bool clickDone)
           {
-              if(!clickDone){
+              if(clickDone){
+              }
+              else{
                   m_cross.setFont(ChatItemRef::CROSS_FONT_SIZES[2]);
               }
           },
