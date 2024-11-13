@@ -94,7 +94,7 @@ ChatPage::ChatPage(
           UIPage_MARGIN,
           [this](const Widget *){ return h() - UIPage_MARGIN - 1; },
 
-          w(), // can not stretch
+          w() - 20, // can not stretch
           true,
           true,
 
