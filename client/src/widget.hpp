@@ -481,11 +481,11 @@ class Widget: public WidgetTreeNode
             // don't check if w/h is a function
             // because it may refers to sub-widget which has not be initialized yet
 
-            if(Widget::hasFuncDir   (m_dir      )){ fflassert(Widget::asFuncDir   (m_dir      ), m_dir      ); }
-            if(Widget::hasFuncOff(m_x.first  )){ fflassert(Widget::asFuncOff(m_x.first  ), m_x.first  ); }
-            if(Widget::hasFuncOff(m_y.first  )){ fflassert(Widget::asFuncOff(m_y.first  ), m_y.first  ); }
-            if(Widget::hasFuncSize  (m_w        )){ fflassert(Widget::asFuncSize  (m_w        ), m_w        ); }
-            if(Widget::hasFuncSize  (m_h        )){ fflassert(Widget::asFuncSize  (m_h        ), m_h        ); }
+            if(Widget::hasFuncDir (m_dir      )){ fflassert(Widget::asFuncDir (m_dir      ), m_dir      ); }
+            if(Widget::hasFuncOff (m_x.first  )){ fflassert(Widget::asFuncOff (m_x.first  ), m_x.first  ); }
+            if(Widget::hasFuncOff (m_y.first  )){ fflassert(Widget::asFuncOff (m_y.first  ), m_y.first  ); }
+            if(Widget::hasFuncSize(m_w        )){ fflassert(Widget::asFuncSize(m_w        ), m_w        ); }
+            if(Widget::hasFuncSize(m_h        )){ fflassert(Widget::asFuncSize(m_h        ), m_h        ); }
 
             if(Widget::hasIntSize(m_w)){ fflassert(Widget::asIntSize(m_w) >= 0, m_w); }
             if(Widget::hasIntSize(m_h)){ fflassert(Widget::asIntSize(m_h) >= 0, m_h); }
