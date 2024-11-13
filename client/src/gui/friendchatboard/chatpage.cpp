@@ -153,6 +153,10 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
+    if(chatref.processEvent(event, valid)){
+        return true;
+    }
+
     switch(event.type){
         case SDL_KEYDOWN:
             {
