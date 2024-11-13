@@ -91,8 +91,8 @@ ChatItemRef::ChatItemRef(
           0,
           0,
 
-          ChatItemRef::BUTTON_D,
-          ChatItemRef::BUTTON_D,
+          [this](const Widget *){ return m_crossBg.w(); },
+          [this](const Widget *){ return m_crossBg.h(); },
 
           {
               {&m_crossBg, DIR_NONE, [this](const Widget *){ return m_crossButtonGfx.w() / 2; }, [this](const Widget *){ return m_crossButtonGfx.h() / 2; }, false},
