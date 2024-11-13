@@ -102,8 +102,8 @@ ChatItemRef::ChatItemRef(
     , crossButton
       {
           DIR_RIGHT,
-          [this](const Widget *){ return w() - ChatItemRef::MARGIN - 1; },
-          [this](const Widget *){ return h() / 2;                       },
+          [this](const Widget *){ return w() - ChatItemRef::BUTTON_MARGIN - 1; },
+          [this](const Widget *){ return h() / 2;                              },
 
           {
               &crossButtonGfx,
@@ -119,12 +119,12 @@ ChatItemRef::ChatItemRef(
 
           [this](Widget *)
           {
-              cross.setFont(10);
+              cross.setFont(ChatItemRef::CROSS_FONT_SIZES[1]);
           },
 
           [this](Widget *)
           {
-              cross.setFont(12);
+              cross.setFont(ChatItemRef::CROSS_FONT_SIZES[0]);
           },
 
           [this](Widget *)
