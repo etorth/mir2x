@@ -33,7 +33,8 @@ ChatItemRef::ChatItemRef(
           argAutoDelete,
       }
 
-    , background
+    , m_crossBgColor(colorf::GREY + colorf::A_SHF(255))
+    , m_background
       {
           DIR_UPLEFT,
           0,
@@ -50,7 +51,7 @@ ChatItemRef::ChatItemRef(
           false,
       }
 
-    , cross
+    , m_cross
       {
           DIR_UPLEFT, // ignored
           0,
@@ -65,7 +66,7 @@ ChatItemRef::ChatItemRef(
           colorf::WHITE + colorf::A_SHF(255),
       }
 
-    , crossBg
+    , m_crossBg
       {
           DIR_UPLEFT, // ignored
           0,
@@ -74,17 +75,17 @@ ChatItemRef::ChatItemRef(
           ChatItemRef::BUTTON_D,
           ChatItemRef::BUTTON_D,
 
-          [](const Widget *, int drawDstX, int drawDstY)
+          [this](const Widget *, int drawDstX, int drawDstY)
           {
               if(auto texPtr = g_sdlDevice->getCover(ChatItemRef::BUTTON_R, 360)){
                   const SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND);
-                  const SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, colorf::GREY + colorf::A_SHF(255));
+                  const SDLDeviceHelper::EnableTextureModColor enableModColor(texPtr, m_crossBgColor);
                   g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY);
               }
           },
       }
 
-    , crossButtonGfx
+    , m_crossButtonGfx
       {
           DIR_UPLEFT,
           0,
@@ -94,21 +95,21 @@ ChatItemRef::ChatItemRef(
           ChatItemRef::BUTTON_D,
 
           {
-              {&crossBg, DIR_NONE, [this](const Widget *){ return crossButtonGfx.w() / 2; }, [this](const Widget *){ return crossButtonGfx.h() / 2; }, false},
-              {&cross  , DIR_NONE, [this](const Widget *){ return crossButtonGfx.w() / 2; }, [this](const Widget *){ return crossButtonGfx.h() / 2; }, false},
+              {&m_crossBg, DIR_NONE, [this](const Widget *){ return m_crossButtonGfx.w() / 2; }, [this](const Widget *){ return m_crossButtonGfx.h() / 2; }, false},
+              {&m_cross  , DIR_NONE, [this](const Widget *){ return m_crossButtonGfx.w() / 2; }, [this](const Widget *){ return m_crossButtonGfx.h() / 2; }, false},
           },
       }
 
-    , crossButton
+    , m_crossButton
       {
           DIR_RIGHT,
           [this](const Widget *){ return w() - ChatItemRef::BUTTON_MARGIN - 1; },
           [this](const Widget *){ return h() / 2;                              },
 
           {
-              &crossButtonGfx,
-              &crossButtonGfx,
-              &crossButtonGfx,
+              &m_crossButtonGfx,
+              &m_crossButtonGfx,
+              &m_crossButtonGfx,
           },
 
           {
@@ -119,15 +120,22 @@ ChatItemRef::ChatItemRef(
 
           [this](Widget *)
           {
-              cross.setFont(ChatItemRef::CROSS_FONT_SIZES[1]);
+              m_crossBgColor = colorf::BLUE + colorf::A_SHF(128);
+              m_cross.setFont(ChatItemRef::CROSS_FONT_SIZES[1]);
           },
 
           [this](Widget *)
           {
-              cross.setFont(ChatItemRef::CROSS_FONT_SIZES[0]);
+              m_crossBgColor = colorf::GREY + colorf::A_SHF(255);
+              m_cross.setFont(ChatItemRef::CROSS_FONT_SIZES[0]);
           },
 
-          nullptr,
+          [this](Widget *, bool clickDone)
+          {
+              if(!clickDone){
+                  m_cross.setFont(ChatItemRef::CROSS_FONT_SIZES[2]);
+              }
+          },
 
           [this](Widget *)
           {
@@ -146,7 +154,7 @@ ChatItemRef::ChatItemRef(
           false,
       }
 
-    , message
+    , m_message
       {
           DIR_UPLEFT,
           ChatItemRef::MARGIN,
@@ -185,7 +193,7 @@ ChatItemRef::ChatItemRef(
           false,
       }
 {
-    crossButton.setShow(argShowButton);
+    m_crossButton.setShow(argShowButton);
 
     if(argForceWidth){
         setW(std::max<int>(0, argMaxWidth));
@@ -194,16 +202,16 @@ ChatItemRef::ChatItemRef(
         setW([argShowButton, this](const Widget *)
         {
             if(argShowButton){
-                return ChatItemRef::MARGIN + message.w() + ChatItemRef::BUTTON_MARGIN * 2 + ChatItemRef::BUTTON_D;
+                return ChatItemRef::MARGIN + m_message.w() + ChatItemRef::BUTTON_MARGIN * 2 + ChatItemRef::BUTTON_D;
             }
             else{
-                return ChatItemRef::MARGIN * 2 + message.w();
+                return ChatItemRef::MARGIN * 2 + m_message.w();
             }
         });
     }
 
     setH([this](const Widget *)
     {
-        return std::max<int>(ChatItemRef::MARGIN * 2 + message.h(), ChatItemRef::BUTTON_D);
+        return std::max<int>(ChatItemRef::MARGIN * 2 + m_message.h(), ChatItemRef::BUTTON_D);
     });
 }

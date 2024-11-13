@@ -6,7 +6,7 @@
 #include "trigfxbutton.hpp"
 #include "shapeclipboard.hpp"
 
-struct ChatItemRef: public Widget
+class ChatItemRef: public Widget
 {
     //  ->|                              |<------ WIDTH = MARGIN * 2 + message.w()
     //  ->| |<----------------------------------- MARGIN
@@ -20,36 +20,44 @@ struct ChatItemRef: public Widget
     //                              ->||<-------- BUTTON_R
     //                               ->| |<------ BUTTON_MARGIN
 
-    constexpr static int MARGIN = 3;
-    constexpr static int CORNER = 3;
+    public:
+        constexpr static int MARGIN = 3;
+        constexpr static int CORNER = 3;
 
-    constexpr static int BUTTON_MARGIN = 5;
+        constexpr static int BUTTON_MARGIN = 5;
 
-    constexpr static int BUTTON_R = 6;
-    constexpr static int BUTTON_D = ChatItemRef::BUTTON_R * 2 - 1;
+        constexpr static int BUTTON_R = 6;
+        constexpr static int BUTTON_D = ChatItemRef::BUTTON_R * 2 - 1;
 
-    constexpr static uint8_t CROSS_FONT_SIZES[3] {14, 14, 12};
+        constexpr static uint8_t CROSS_FONT_SIZES[3] {14, 14, 12};
 
-    ShapeClipBoard background; // round corner rectangle
+    private:
+        uint32_t m_crossBgColor;
 
-    LabelBoard     cross;
-    ShapeClipBoard crossBg;        // round cover under x
-    Widget         crossButtonGfx; // merge cross and crossBg to be a single gfx-widget, then use it in TrigfxButton
-    TrigfxButton   crossButton;    //
+    private:
+        ShapeClipBoard m_background; // round corner rectangle
 
-    LayoutBoard message;
+    private:
+        LabelBoard     m_cross;
+        ShapeClipBoard m_crossBg;        // round cover under x
+        Widget         m_crossButtonGfx; // merge cross and crossBg to be a single gfx-widget, then use it in TrigfxButton
+        TrigfxButton   m_crossButton;    //
 
-    ChatItemRef(
-            Widget::VarDir,
-            Widget::VarOff,
-            Widget::VarOff,
-            int, // max width
+    private:
+        LayoutBoard m_message;
 
-            bool, // force max width
-            bool, // show x button
+    public:
+        ChatItemRef(
+                Widget::VarDir,
+                Widget::VarOff,
+                Widget::VarOff,
+                int, // max width
 
-            std::string,
+                bool, // force max width
+                bool, // show x button
 
-            Widget * = nullptr,
-            bool     = false);
+                std::string,
+
+                Widget * = nullptr,
+                bool     = false);
 };

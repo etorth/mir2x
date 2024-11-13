@@ -265,8 +265,13 @@ void ButtonBase::onClick(bool clickDone)
         m_onClick(this, clickDone);
     }
 
-    if(m_seffID[2].has_value()){
-        g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[2].value())));
+    if(clickDone){
+        // press button
+    }
+    else{
+        if(m_seffID[2].has_value()){
+            g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seffID[2].value())));
+        }
     }
 }
 
