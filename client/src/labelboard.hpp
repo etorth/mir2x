@@ -4,10 +4,10 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 
+#include "colorf.hpp"
 #include "widget.hpp"
 #include "lalign.hpp"
 #include "xmltypeset.hpp"
-#include "colorf.hpp"
 
 class LabelBoard: public Widget
 {
