@@ -39,43 +39,21 @@ class LabelBoard: public Widget
         void setText(const char8_t *, ...);
 
     public:
-        std::string getText(bool textOnly) const
-        {
-            return m_tpset.getText(textOnly);
-        }
-
-    public:
-        void setFont(uint8_t argFont)
-        {
-            m_tpset.setFont(argFont);
-            m_tpset.build();
-            setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
-        }
-
-        void setFontSize(uint8_t argFontSize)
-        {
-            m_tpset.setFontSize(argFontSize);
-            m_tpset.build();
-            setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
-        }
-
-        void setFontStyle(uint8_t argFontStyle)
-        {
-            m_tpset.setFontStyle(argFontStyle);
-            m_tpset.build();
-            setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
-        }
-
-        void setFontColor(uint32_t argFontColor)
-        {
-            m_tpset.setFontColor(argFontColor);
-        }
+        void setFont(uint8_t);
+        void setFontSize(uint8_t);
+        void setFontStyle(uint8_t);
+        void setFontColor(uint32_t);
+        void setImageMaskColor(uint32_t);
 
     public:
         void clear()
         {
             m_tpset.clear();
-            setSize(0, 0);
+        }
+
+        bool empty() const
+        {
+            return m_tpset.empty();
         }
 
     public:
@@ -84,21 +62,14 @@ class LabelBoard: public Widget
             return m_tpset.getXML();
         }
 
+        std::string getText(bool textOnly) const
+        {
+            return m_tpset.getText(textOnly);
+        }
+
     public:
         void drawEx(int argDstX, int argDstY, int argSrcX, int argSrcY, int argSrcW, int argSrcH) const override
         {
             m_tpset.drawEx(argDstX, argDstY, argSrcX, argSrcY, argSrcW, argSrcH);
-        }
-
-    public:
-        void setImageMaskColor(uint32_t color)
-        {
-            m_tpset.setImageMaskColor(color);
-        }
-
-    public:
-        bool empty() const
-        {
-            return m_tpset.empty();
         }
 };

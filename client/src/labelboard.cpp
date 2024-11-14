@@ -47,6 +47,8 @@ LabelBoard::LabelBoard(
       }
 {
     setText(u8"%s", argContent ? argContent : u8"");
+    setSize([this](const Widget *){ return m_tpset.px() + m_tpset.pw(); },
+            [this](const Widget *){ return m_tpset.py() + m_tpset.ph(); });
 }
 
 void LabelBoard::setText(const char8_t *format, ...)
@@ -62,5 +64,32 @@ void LabelBoard::loadXML(const char *xmlString)
     // don't need to specify the font/size/style info here
 
     m_tpset.loadXML(xmlString);
-    setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
+}
+
+void LabelBoard::setFont(uint8_t argFont)
+{
+    m_tpset.setFont(argFont);
+    m_tpset.build();
+}
+
+void LabelBoard::setFontSize(uint8_t argFontSize)
+{
+    m_tpset.setFontSize(argFontSize);
+    m_tpset.build();
+}
+
+void LabelBoard::setFontStyle(uint8_t argFontStyle)
+{
+    m_tpset.setFontStyle(argFontStyle);
+    m_tpset.build();
+}
+
+void LabelBoard::setFontColor(uint32_t argFontColor)
+{
+    m_tpset.setFontColor(argFontColor);
+}
+
+void LabelBoard::setImageMaskColor(uint32_t argColor)
+{
+    m_tpset.setImageMaskColor(argColor);
 }

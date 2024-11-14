@@ -843,10 +843,10 @@ void XMLTypeset::resetBoardPixelRegion()
             throw fflerror("found empty line in XMLTypeset: line = %d", argLine);
         }
 
-        nMaxPX = (std::max<int>)(nMaxPX, LineReachMaxX(argLine));
-        nMaxPY = (std::max<int>)(nMaxPY, LineReachMaxY(argLine));
-        nMinPX = (std::min<int>)(nMinPX, LineReachMinX(argLine));
-        nMinPY = (std::min<int>)(nMinPY, LineReachMinY(argLine));
+        nMaxPX = std::max<int>(nMaxPX, LineReachMaxX(argLine));
+        nMaxPY = std::max<int>(nMaxPY, LineReachMaxY(argLine));
+        nMinPX = std::min<int>(nMinPX, LineReachMinX(argLine));
+        nMinPY = std::min<int>(nMinPY, LineReachMinY(argLine));
     }
 
     m_px = nMinPX;
