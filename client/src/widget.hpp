@@ -997,6 +997,12 @@ class Widget: public WidgetTreeNode
         }
 
     public:
+        virtual void afterResize()
+        {
+            foreachChild([](Widget *child, bool){ child->afterResize(); });
+        }
+
+    public:
         Widget *setProcessEvent(std::function<bool(Widget *, const SDL_Event &, bool)> argHandler)
         {
             m_processEventHandler = std::move(argHandler);
