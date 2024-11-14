@@ -16,46 +16,20 @@ class LabelBoard: public Widget
 
     public:
         LabelBoard(
-                Widget::VarDir argDir,
-                Widget::VarOff argX,
-                Widget::VarOff argY,
+                Widget::VarDir,
+                Widget::VarOff,
+                Widget::VarOff,
 
-                const char8_t *argContent    = nullptr,
-                uint8_t        argFont       = 0,
-                uint8_t        argFontSize   = 10,
-                uint8_t        argFontStyle  = 0,
-                uint32_t       argFontColor  = colorf::WHITE + colorf::A_SHF(255),
+                const char8_t * = nullptr,
 
-                Widget *argParent     = nullptr,
-                bool    argAutoDelete = false)
+                uint8_t =  0,
+                uint8_t = 10,
+                uint8_t =  0,
 
-            : Widget
-              {
-                  std::move(argDir),
-                  std::move(argX),
-                  std::move(argY),
-                  0,
-                  0,
+                uint32_t = colorf::WHITE + colorf::A_SHF(255),
 
-                  {},
-
-                  argParent,
-                  argAutoDelete,
-              }
-
-            , m_tpset
-              {
-                  0,
-                  LALIGN_LEFT,
-                  false,
-                  argFont,
-                  argFontSize,
-                  argFontStyle,
-                  argFontColor,
-              }
-        {
-            setText(u8"%s", argContent ? argContent : u8"");
-        }
+                Widget * = nullptr,
+                bool     = false);
 
     public:
         ~LabelBoard() = default;
@@ -71,30 +45,30 @@ class LabelBoard: public Widget
         }
 
     public:
-        void setFont(uint8_t nFont)
+        void setFont(uint8_t argFont)
         {
-            m_tpset.setFont(nFont);
+            m_tpset.setFont(argFont);
             m_tpset.build();
             setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
         }
 
-        void setFontSize(uint8_t nFontSize)
+        void setFontSize(uint8_t argFontSize)
         {
-            m_tpset.setFontSize(nFontSize);
+            m_tpset.setFontSize(argFontSize);
             m_tpset.build();
             setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
         }
 
-        void setFontStyle(uint8_t nFontStyle)
+        void setFontStyle(uint8_t argFontStyle)
         {
-            m_tpset.setFontStyle(nFontStyle);
+            m_tpset.setFontStyle(argFontStyle);
             m_tpset.build();
             setSize(m_tpset.px() + m_tpset.pw(), m_tpset.py() + m_tpset.ph());
         }
 
-        void setFontColor(uint32_t nFontColor)
+        void setFontColor(uint32_t argFontColor)
         {
-            m_tpset.setFontColor(nFontColor);
+            m_tpset.setFontColor(argFontColor);
         }
 
     public:
