@@ -8,18 +8,27 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widget *widgetPtr, bool autoDelete)
+InputStringBoard::InputStringBoard(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
+
+        bool argSecurity,
+
+        Widget *argParent,
+        bool    argAutoDelete)
+
     : Widget
       {
-          dir,
-          x,
-          y,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
           0,
           0,
           {},
 
-          widgetPtr,
-          autoDelete
+          argParent,
+          argAutoDelete,
       }
 
     , m_input
@@ -29,7 +38,7 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
           225,
           315,
           23,
-          security,
+          argSecurity,
 
           1,
           14,
@@ -120,12 +129,12 @@ InputStringBoard::InputStringBoard(dir8_t dir, int x, int y, bool security, Widg
       }
 {
     setShow(false);
-    if(auto texPtr = g_progUseDB->retrieve(0X07000000)){
-        std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
-    }
-    else{
+    if(auto texPtr = g_progUseDB->retrieve(0X07000000); !texPtr){
         throw fflerror("no valid purchase count board frame texture");
     }
+
+    setSize([this](const Widget *){ return SDLDeviceHelper::getTextureWidth (g_progUseDB->retrieve(0X07000000)); },
+            [this](const Widget *){ return SDLDeviceHelper::getTextureHeight(g_progUseDB->retrieve(0X07000000)); });
 }
 
 void InputStringBoard::update(double ms)

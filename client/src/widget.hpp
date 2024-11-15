@@ -446,7 +446,7 @@ class Widget: public WidgetTreeNode
         std::pair<Widget::VarOff, int> m_x;
         std::pair<Widget::VarOff, int> m_y;
 
-    protected:
+    private:
         Widget::VarSize m_w;
         Widget::VarSize m_h;
 
@@ -506,7 +506,7 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        virtual void drawChildEx(Widget *child, int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const final
+        virtual void drawChildEx(const Widget *child, int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const final
         {
             fflassert(child);
             fflassert(hasChild(child->id()));

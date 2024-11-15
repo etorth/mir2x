@@ -190,8 +190,8 @@ void NPCChatBoard::loadXML(uint64_t uid, const char *eventPath, const char *xmlS
     }
     m_chatBoard.loadXML(xmlString);
 
-    m_w = 386;
-    m_h = 160 + getMiddlePixels() + 44;
+    setW(386);
+    setH(160 + getMiddlePixels() + 44);
 
     m_buttonClose.moveTo(w() - 40, h() - 43);
     if(auto texPtr = g_progUseDB->retrieve(getNPCFaceKey())){

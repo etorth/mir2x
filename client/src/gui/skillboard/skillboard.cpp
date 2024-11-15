@@ -130,8 +130,8 @@ SkillBoard::MagicIconButton::MagicIconButton(int argX, int argY, uint32_t argMag
 {
     // leave some pixels to draw level label
     // since level can change during run, can't get the exact size here
-    m_w = m_icon.w() + 8;
-    m_h = m_icon.h() + 8;
+    setW(m_icon.w() + 8);
+    setH(m_icon.h() + 8);
 }
 
 void SkillBoard::MagicIconButton::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
@@ -203,15 +203,12 @@ SkillBoard::SkillPage::SkillPage(uint32_t pageImage, SkillBoardConfig *configPtr
 
     , m_pageImage(pageImage)
 {
-    std::tie(m_w, m_h) = [this]() -> std::tuple<int, int>
-    {
-        if(auto texPtr = g_progUseDB->retrieve(m_pageImage)){
-            return SDLDeviceHelper::getTextureSize(texPtr);
-        }
+    if(auto texPtr = g_progUseDB->retrieve(m_pageImage)){
+        setSize(SDLDeviceHelper::getTextureWidth(texPtr), SDLDeviceHelper::getTextureHeight(texPtr));
+    }
 
-        const auto r = SkillBoard::getPageRectange();
-        return {r[2], r[3]};
-    }();
+    const auto r = SkillBoard::getPageRectange();
+    setSize(r[2], r[3]);
 }
 
 void SkillBoard::SkillPage::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int srcH) const
@@ -406,7 +403,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *widgetPtr
 {
     setShow(false);
     if(auto texPtr = g_progUseDB->retrieve(0X05000000)){
-        std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
+        setSize(SDLDeviceHelper::getTextureHeight(texPtr), SDLDeviceHelper::getTextureWidth(texPtr));
     }
     else{
         throw fflerror("no valid inventory frame texture");

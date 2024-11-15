@@ -19,7 +19,15 @@ class InputStringBoard: public Widget
         std::function<void(std::u8string)> m_onDone;
 
     public:
-        InputStringBoard(dir8_t, int, int, bool, Widget * = nullptr, bool = false);
+        InputStringBoard(
+                Widget::VarDir,
+                Widget::VarOff,
+                Widget::VarOff,
+
+                bool,
+
+                Widget * = nullptr,
+                bool     = false);
 
     public:
         void update(double) override;

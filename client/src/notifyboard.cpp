@@ -1,8 +1,69 @@
 #include "strf.hpp"
+#include "mathf.hpp"
 #include "totype.hpp"
 #include "xmltypeset.hpp"
-#include "mathf.hpp"
 #include "notifyboard.hpp"
+
+NotifyBoard::NotifyBoard(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
+
+        int argLineW,
+
+        uint8_t  argDefaultFont,
+        uint8_t  argDefaultFontSize,
+        uint8_t  argDefaultFontStyle,
+        uint32_t argDefaultFontColor,
+
+        uint64_t argShowTime,
+        size_t   argMaxEntryCount,
+
+        Widget *argWidgetPtr,
+        bool    argAutoDelete)
+
+    : Widget
+      {
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
+
+          [this](const Widget *)
+          {
+              if(m_lineW > 0){
+                  return m_lineW;
+              }
+
+              int maxW = 0;
+              for(const auto &tp: m_boardList){
+                  maxW = std::max<int>(maxW, tp.typeset->pw());
+              }
+              return maxW;
+          },
+
+          [this](const Widget *)
+          {
+              int sumH = 0;
+              for(const auto &tp: m_boardList){
+                  sumH += tp.typeset->ph();
+              }
+              return sumH;
+          },
+
+          {},
+
+          argWidgetPtr,
+          argAutoDelete,
+      }
+
+    , m_lineW(argLineW)
+    , m_font(argDefaultFont)
+    , m_fontSize(argDefaultFontSize)
+    , m_fontStyle(argDefaultFontStyle)
+    , m_fontColor(argDefaultFontColor)
+    , m_showTime(argShowTime)
+    , m_maxEntryCount(argMaxEntryCount)
+{}
 
 void NotifyBoard::addLog(const char8_t * format, ...)
 {
@@ -14,11 +75,10 @@ void NotifyBoard::addLog(const char8_t * format, ...)
     }
 
     m_boardList.emplace_back();
-    m_boardList.back().typeset =std::make_unique<XMLTypeset>(m_lineW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
+    m_boardList.back().typeset = std::make_unique<XMLTypeset>(m_lineW, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
 
     const auto xmlString = xmlf::toParString("%s", text.empty() ? "" : to_cstr(text));
     m_boardList.back().typeset->loadXML(xmlString.c_str());
-    updateSize();
 }
 
 void NotifyBoard::update(double)
@@ -32,7 +92,6 @@ void NotifyBoard::update(double)
                 break;
             }
         }
-        updateSize();
     }
 }
 
@@ -75,20 +134,4 @@ int NotifyBoard::pw() const
         maxW = std::max<int>(maxW, tp.typeset->pw());
     }
     return maxW;
-}
-
-void NotifyBoard::updateSize()
-{
-    m_w = 0;
-    m_h = 0;
-
-    for(const auto &tp: m_boardList){
-        Widget::asIntSize(m_h) += tp.typeset->ph();
-        if(m_lineW > 0){
-            m_w = m_lineW;
-        }
-        else{
-            m_w = std::max<int>(asIntSize(m_w), tp.typeset->pw());
-        }
-    }
 }

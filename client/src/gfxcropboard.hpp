@@ -8,27 +8,26 @@ class GfxCropBoard: public Widget
         const Widget * const m_gfxWidget;
 
     private:
-        const int m_brdCropX;
-        const int m_brdCropY;
-        const int m_brdCropW;
-        const int m_brdCropH;
+        const Widget::VarOff m_brdCropX;
+        const Widget::VarOff m_brdCropY;
+        const Widget::VarOff m_brdCropW;
+        const Widget::VarOff m_brdCropH;
 
     private:
         const std::array<int, 4> m_margin;
 
     public:
         GfxCropBoard(
-                dir8_t argDir,
-
-                int argX,
-                int argY,
+                Widget::VarDir argDir,
+                Widget::VarOff argX,
+                Widget::VarOff argY,
 
                 const Widget *argWidget,
 
-                int argBrdCropX, // crop on gfx widget
-                int argBrdCropY, // ...
-                int argBrdCropW, // ...
-                int argBrdCropH, // ...
+                Widget::VarOff argBrdCropX, // crop on gfx widget
+                Widget::VarOff argBrdCropY, // ...
+                Widget::VarOff argBrdCropW, // crop width, don't use Widget::VarSize, support over-cropping
+                Widget::VarOff argBrdCropH, // ...
 
                 std::array<int, 4> argMargin = {0, 0, 0, 0},
 
@@ -37,9 +36,9 @@ class GfxCropBoard: public Widget
 
             : Widget
               {
-                  argDir,
-                  argX,
-                  argY,
+                  std::move(argDir),
+                  std::move(argX),
+                  std::move(argY),
                   0,
                   0,
 
@@ -51,15 +50,29 @@ class GfxCropBoard: public Widget
 
             , m_gfxWidget([argWidget]{ fflassert(argWidget); return argWidget; }())
 
-            , m_brdCropX(argBrdCropX)
-            , m_brdCropY(argBrdCropY)
-            , m_brdCropW([argBrdCropW]{ fflassert(argBrdCropW >= 0); return argBrdCropW; }())
-            , m_brdCropH([argBrdCropH]{ fflassert(argBrdCropH >= 0); return argBrdCropH; }())
+            , m_brdCropX(std::move(argBrdCropX))
+            , m_brdCropY(std::move(argBrdCropY))
+            , m_brdCropW(std::move(argBrdCropW))
+            , m_brdCropH(std::move(argBrdCropH))
 
             , m_margin(argMargin)
         {
-            setW(m_brdCropW + m_margin[2] + m_margin[3]); // respect blank space by over-cropping
-            setH(m_brdCropH + m_margin[0] + m_margin[1]);
+            // respect blank space by over-cropping
+            // if cropped size bigger than gfx size, we fill with blank
+
+            setSize([this](const Widget *)
+            {
+                const auto cropW = Widget::evalOff(m_brdCropW, this);
+                fflassert(cropW >= 0);
+                return cropW + m_margin[2] + m_margin[3];
+            },
+
+            [this](const Widget *)
+            {
+                const auto cropH = Widget::evalOff(m_brdCropH, this);
+                fflassert(cropH >= 0);
+                return cropH + m_margin[0] + m_margin[1];
+            });
         }
 
     public:
@@ -69,10 +82,16 @@ class GfxCropBoard: public Widget
                 return;
             }
 
-            int brdCropX = m_brdCropX;
-            int brdCropY = m_brdCropY;
-            int brdCropW = m_brdCropW;
-            int brdCropH = m_brdCropH;
+            const int brdCropXOrig = Widget::evalOff(m_brdCropX, this);
+            const int brdCropYOrig = Widget::evalOff(m_brdCropY, this);
+
+            int brdCropX = brdCropXOrig;
+            int brdCropY = brdCropYOrig;
+            int brdCropW = Widget::evalOff(m_brdCropW, this);
+            int brdCropH = Widget::evalOff(m_brdCropH, this);
+
+            fflassert(brdCropW >= 0);
+            fflassert(brdCropH >= 0);
 
             if(!mathf::rectangleOverlapRegion<int>(0, 0, m_gfxWidget->w(), m_gfxWidget->h(), brdCropX, brdCropY, brdCropW, brdCropH)){
                 return;
@@ -93,8 +112,8 @@ class GfxCropBoard: public Widget
                         w(),
                         h(),
 
-                        m_margin[2] + brdCropX - m_brdCropX,
-                        m_margin[0] + brdCropY - m_brdCropY,
+                        m_margin[2] + brdCropX - brdCropXOrig,
+                        m_margin[0] + brdCropY - brdCropYOrig,
 
                         brdCropW,
                         brdCropH)){

@@ -18,10 +18,9 @@ class GfxCutoutBoard: public Widget
 
     public:
         GfxCutoutBoard(
-                dir8_t argDir,
-
-                int argX,
-                int argY,
+                Widget::VarDir argDir,
+                Widget::VarOff argX,
+                Widget::VarOff argY,
 
                 const Widget *argWidget,
 
@@ -35,11 +34,12 @@ class GfxCutoutBoard: public Widget
 
             : Widget
               {
-                  argDir,
-                  argX,
-                  argY,
-                  argWidget->w(),
-                  argWidget->h(),
+                  std::move(argDir),
+                  std::move(argX),
+                  std::move(argY),
+
+                  [argWidget](const Widget *){ return argWidget->w(); },
+                  [argWidget](const Widget *){ return argWidget->h(); },
 
                   {},
 

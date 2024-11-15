@@ -34,58 +34,52 @@ class NotifyBoard: public Widget
 
     public:
         NotifyBoard(
-                dir8_t           nDir,
-                int              nX,
-                int              nY,
-                int              nW,
-                uint8_t          defaultFont      = 0,
-                uint8_t          defaultFontSize  = 10,
-                uint8_t          defaultFontStyle = 0,
-                uint32_t         defaultFontColor = colorf::WHITE + colorf::A_SHF(255),
-                uint64_t         showTime         = 0,
-                size_t           maxEntryCount    = 0,
-                Widget          *widgetPtr        = nullptr,
-                bool             autoDelete       = false)
-            : Widget(nDir, nX, nY, 0, 0, {}, widgetPtr, autoDelete)
-            , m_lineW(nW)
-            , m_font(defaultFont)
-            , m_fontSize(defaultFontSize)
-            , m_fontStyle(defaultFontStyle)
-            , m_fontColor(defaultFontColor)
-            , m_showTime(showTime)
-            , m_maxEntryCount(maxEntryCount)
-        {}
+                Widget::VarDir,
+                Widget::VarOff,
+                Widget::VarOff,
+
+                int, // line width
+
+                uint8_t =  0,
+                uint8_t = 10,
+                uint8_t =  0,
+
+                uint32_t = colorf::WHITE + colorf::A_SHF(255),
+
+                uint64_t = 0,
+                size_t   = 0,
+
+                Widget * = nullptr,
+                bool     = false);
 
     public:
         void addLog(const char8_t *, ...);
 
     public:
-        void SetFont(uint8_t nFont)
+        void setFont(uint8_t argFont)
         {
-            m_font = nFont;
+            m_font = argFont;
         }
 
-        void SetFontSize(uint8_t nFontSize)
+        void setFontSize(uint8_t argFontSize)
         {
-            m_fontSize = nFontSize;
+            m_fontSize = argFontSize;
         }
 
-        void SetFontStyle(uint8_t nFontStyle)
+        void setFontStyle(uint8_t argFontStyle)
         {
-            m_fontStyle = nFontStyle;
+            m_fontStyle = argFontStyle;
         }
 
-        void SetFontColor(uint32_t nFontColor)
+        void setFontColor(uint32_t argFontColor)
         {
-            m_fontColor = nFontColor;
+            m_fontColor = argFontColor;
         }
 
     public:
         void clear()
         {
             m_boardList.clear();
-            m_w = 0;
-            m_h = 0;
         }
 
     public:
@@ -102,7 +96,4 @@ class NotifyBoard: public Widget
 
     public:
         void drawEx(int, int, int, int, int, int) const override;
-
-    private:
-        void updateSize();
 };

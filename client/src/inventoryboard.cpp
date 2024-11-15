@@ -143,7 +143,9 @@ InventoryBoard::InventoryBoard(int nX, int nY, ProcessRun *pRun, Widget *pwidget
     if(!texPtr){
         throw fflerror("no valid inventory frame texture");
     }
-    std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
+
+    setW(SDLDeviceHelper::getTextureWidth (texPtr));
+    setH(SDLDeviceHelper::getTextureHeight(texPtr));
 }
 
 void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin &bin, uint32_t fillColor) const

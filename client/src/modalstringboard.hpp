@@ -1,13 +1,12 @@
 #pragma once
-#include <vector>
 #include <cstdint>
 #include <mutex>
-#include <functional>
 #include <condition_variable>
 #include "widget.hpp"
-#include "inputline.hpp"
 #include "imageboard.hpp"
-#include "tritexbutton.hpp"
+#include "layoutboard.hpp"
+#include "gfxcropboard.hpp"
+#include "gfxcropdupboard.hpp"
 
 class ModalStringBoard: public Widget
 {
@@ -16,7 +15,17 @@ class ModalStringBoard: public Widget
         mutable std::condition_variable m_cond;
 
     private:
-        ImageBoard m_image;
+        const int m_minH = 300;
+        const uint32_t m_texID = 0X07000000;
+
+    private:
+        LayoutBoard m_board;
+
+    private:
+        ImageBoard      m_image;
+        GfxCropBoard    m_imageUp;    // top 180 pixels
+        GfxCropDupBoard m_imageUpDup; // duplicate top 84 ~ 180 pixels for stretch
+        GfxCropBoard    m_imageDown;  // bottom 40 pixels
 
     private:
         bool m_done = false;
@@ -26,28 +35,12 @@ class ModalStringBoard: public Widget
         ModalStringBoard();
 
     public:
-        void loadXML(std::u8string s)
-        {
-            {
-                std::lock_guard<std::mutex> lockGuard(m_lock);
-                m_xmlString = std::move(s);
-            }
-            m_cond.notify_one();
-        }
+        void loadXML(std::u8string);
 
     public:
         void drawEx(int, int, int, int, int, int) const override;
 
     public:
+        void  setDone();
         void waitDone();
-
-    public:
-        void setDone()
-        {
-            {
-                std::lock_guard<std::mutex> lockGuard(m_lock);
-                m_done = true;
-            }
-            m_cond.notify_one();
-        }
 };

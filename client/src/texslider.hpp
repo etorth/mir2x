@@ -45,8 +45,8 @@ class TexSlider: public Slider
         const SliderTexInfo &m_sliderTexInfo;
 
     public:
-        TexSlider(Widget::VarDir,
-
+        TexSlider(
+                Widget::VarDir,
                 Widget::VarOff,
                 Widget::VarOff,
                 Widget::VarSize,
@@ -59,21 +59,6 @@ class TexSlider: public Slider
 
                 Widget * = nullptr,
                 bool     = false);
-
-    public:
-        void resizeWidth(int width)
-        {
-            if(width >= 0){
-                m_w = width;
-            }
-        }
-
-        void resizeHeight(int height)
-        {
-            if(height >= 0){
-                m_h = height;
-            }
-        }
 
     public:
         void drawEx(int, int, int, int, int, int) const override;

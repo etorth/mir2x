@@ -1343,7 +1343,7 @@ void ControlBoard::setButtonLoc()
         m_buttonMute .moveTo(boardW - 178 - 220, 87);
 
         m_slider.moveTo(w() - 178 - 176, 40 - modeDiffY);
-        m_slider.resizeHeight(60 + modeDiffY);
+        m_slider.setH(60 + modeDiffY);
     }
     else{
         m_buttonSwitchMode.moveTo(boardW - 178 - 181, 3);
@@ -1351,7 +1351,7 @@ void ControlBoard::setButtonLoc()
         m_arcAniBoard.moveTo((boardW - 178 - 166 - m_arcAniBoard.w()) / 2, -13);
 
         m_slider.moveTo(w() - 178 - 176, 40);
-        m_slider.resizeHeight(60);
+        m_slider.setH(60);
     }
 }
 
@@ -1367,7 +1367,7 @@ void ControlBoard::onWindowResize(int winW, int winH)
 {
     const auto prevWidth = w();
     m_right.moveBy(winW - w(), 0);
-    m_w = winW;
+    setW(winW);
 
     m_logBoard.setLineWidth(m_logBoard.getLineWidth() + (winW - prevWidth));
     const int maxStretchH = winH - 47 - 55;

@@ -173,8 +173,7 @@ void MiniMapBoard::flipExtended()
 void MiniMapBoard::setPLoc()
 {
     const int size = getFrameSize();
-    m_w = size;
-    m_h = size;
+    setSize(size, size);
 
     moveTo(g_sdlDevice->getRendererWidth() - w(), 0);
 

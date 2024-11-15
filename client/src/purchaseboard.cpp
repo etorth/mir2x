@@ -344,7 +344,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *runPtr, Widget *widgetPtr, bool autoDel
 {
     setShow(false);
     if(auto texPtr = g_progUseDB->retrieve(0X08000000)){
-        std::tie(m_w, m_h) = SDLDeviceHelper::getTextureSize(texPtr);
+        setSize(SDLDeviceHelper::getTextureWidth(texPtr), SDLDeviceHelper::getTextureHeight(texPtr));
     }
     else{
         throw fflerror("no valid purchase status board frame texture");

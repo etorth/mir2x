@@ -8,9 +8,9 @@ extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 AlphaOnButton::AlphaOnButton(
-        dir8_t dir,
-        int x,
-        int y,
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
 
         int onOffX,
         int onOffY,
@@ -28,11 +28,12 @@ AlphaOnButton::AlphaOnButton(
         bool    triggerOnDone,
         Widget *pwidget,
         bool    autoDelete)
+
     : ButtonBase
       {
-          dir,
-          x,
-          y,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
           0,
           0,
 
@@ -63,15 +64,12 @@ AlphaOnButton::AlphaOnButton(
     , m_onOffY(onOffY)
     , m_onRadius(onRadius)
 {
-
-    auto texPtr = g_progUseDB->retrieve(m_texID);
-    if(!texPtr){
+    if(auto texPtr = g_progUseDB->retrieve(m_texID); !texPtr){
         throw fflerror("can't load down texture: %llu", to_llu(m_texID));
     }
 
-    const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-    m_w = texW;
-    m_h = texH;
+    setSize([this](const Widget *){ return SDLDeviceHelper::getTextureWidth (g_progUseDB->retrieve(m_texID)); },
+            [this](const Widget *){ return SDLDeviceHelper::getTextureHeight(g_progUseDB->retrieve(m_texID)); });
 }
 
 void AlphaOnButton::drawEx(int dstX, int dstY, int, int, int, int) const

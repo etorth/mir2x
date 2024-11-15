@@ -9,12 +9,12 @@ class GfxDupBoard: public Widget
 
     public:
         GfxDupBoard(
-                dir8_t argDir,
+                Widget::VarDir argDir,
+                Widget::VarOff argX,
+                Widget::VarOff argY,
 
-                int argX,
-                int argY,
-                int argW,
-                int argH,
+                Widget::VarSize argW,
+                Widget::VarSize argH,
 
                 const Widget *argWidget,
 
@@ -23,11 +23,11 @@ class GfxDupBoard: public Widget
 
             : Widget
               {
-                  argDir,
-                  argX,
-                  argY,
-                  argW,
-                  argH,
+                  std::move(argDir),
+                  std::move(argX),
+                  std::move(argY),
+                  std::move(argW),
+                  std::move(argH),
 
                   {},
 

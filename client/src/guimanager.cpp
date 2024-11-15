@@ -274,7 +274,8 @@ Widget *GUIManager::getWidget(const std::string &name)
 
 void GUIManager::onWindowResize()
 {
-    std::tie(m_w, m_h) = g_sdlDevice->getRendererSize();
+    setW(g_sdlDevice->getRendererWidth ());
+    setH(g_sdlDevice->getRendererHeight());
     m_runtimeConfigBoard.updateWindowSizeLabel(w(), h(), true);
 
     m_controlBoard.onWindowResize(w(), h());

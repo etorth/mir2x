@@ -33,8 +33,7 @@ TexAniBoard::TexAniBoard(dir8_t dir, int x, int y, uint32_t texID, size_t frameC
         throw fflerror("empty animation");
     }
 
-    m_w = maxW;
-    m_h = maxH;
+    setSize(maxW, maxH);
 }
 
 void TexAniBoard::update(double fUpdateTime)
