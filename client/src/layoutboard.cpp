@@ -17,6 +17,150 @@ extern FontexDB *g_fontexDB;
 extern IMEBoard *g_imeBoard;
 extern SDLDevice *g_sdlDevice;
 
+LayoutBoard::LayoutBoard(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
+
+        int argLineWidth,
+
+        const char *argInitXML,
+        size_t argParLimit,
+
+        std::array<int, 4> argMargin,
+
+        bool argCanSelect,
+        bool argCanEdit,
+        bool argIMEEnabled,
+        bool argCanThrough,
+
+        uint8_t  argFont,
+        uint8_t  argFontSize,
+        uint8_t  argFontStyle,
+        uint32_t argFontColor,
+        uint32_t argFontBGColor,
+
+        int argLineAlign,
+        int argLineSpace,
+        int argWordSpace,
+
+        int      argCursorWidth,
+        uint32_t argCursorColor,
+
+        std::function<void()> argOnTab,
+        std::function<void()> argOnCR,
+        std::function<void(const std::unordered_map<std::string, std::string> &, int)> argEventCB,
+
+        Widget *argParent,
+        bool    argAutoDelete)
+
+    : Widget
+      {
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
+
+          [this](const Widget *)
+          {
+              int maxW = 0;
+              for(const auto &node: m_parNodeList){
+                  maxW = std::max<int>(maxW, node.margin[2] + node.tpset->pw() + node.margin[3]);
+              }
+
+              if(m_canEdit){
+                  maxW = std::max<int>(maxW, m_cursorWidth);
+              }
+
+              return maxW;
+          },
+
+          [this](const Widget *)
+          {
+              if(empty()){
+                  if(m_canEdit){
+                      throw fflerror("editable layout shall have at least one par");
+                  }
+                  return 0;
+              }
+
+              const auto &backNode = m_parNodeList.back();
+              return backNode.startY + std::max<int>(backNode.tpset->ph(), m_canEdit ? backNode.tpset->getDefaultFontHeight() : 0) + backNode.margin[1];
+          },
+
+          {},
+
+          argParent,
+          argAutoDelete,
+      }
+
+    , m_parNodeConfig
+      {
+          argLineWidth,
+          argMargin,
+          argCanThrough,
+          argFont,
+          argFontSize,
+          argFontStyle,
+          argFontColor,
+          argFontBGColor,
+          argLineAlign,
+          argLineSpace,
+          argWordSpace,
+      }
+
+    , m_cursorClip
+      {
+          DIR_UPLEFT,
+          0,
+          0,
+
+          [this](const Widget *){ return this->w(); },
+          [this](const Widget *){ return this->h(); },
+
+          [this](const Widget *, int drawDstX, int drawDstY)
+          {
+              drawCursorBlink(drawDstX, drawDstY);
+          },
+
+          this,
+          false,
+      }
+
+    , m_canSelect(argCanSelect)
+    , m_canEdit(argCanEdit)
+    , m_imeEnabled(argIMEEnabled)
+
+    , m_cursorWidth(argCursorWidth)
+    , m_cursorColor(argCursorColor)
+
+    , m_onTab(std::move(argOnTab))
+    , m_onCR(std::move(argOnCR))
+    , m_eventCB(std::move(argEventCB))
+{
+    for(size_t i = 0; i < m_parNodeConfig.margin.size(); ++i){
+        if(m_parNodeConfig.margin[i] < 0){
+            throw fflerror("invalid parNodeConfig::margin[%zu]: %d", i, m_parNodeConfig.margin[i]);
+        }
+    }
+
+    if((m_parNodeConfig.lineWidth > 0) && (m_parNodeConfig.lineWidth <= m_parNodeConfig.margin[2] + m_parNodeConfig.margin[3])){
+        throw fflerror("invalid default paragraph parameters");
+    }
+
+    if(argInitXML){
+        loadXML(argInitXML, argParLimit);
+    }
+
+    if(m_canEdit){
+        if(empty()){
+            loadXML("<layout><par></par></layout>");
+        }
+
+        m_cursorLoc.par = parCount() - 1;
+        std::tie(m_cursorLoc.x, m_cursorLoc.y) = m_parNodeList.rbegin()->tpset->lastCursorLoc();
+    }
+}
+
 void LayoutBoard::loadXML(const char *xmlString, size_t parLimit)
 {
     if(!xmlString){
