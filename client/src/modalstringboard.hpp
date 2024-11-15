@@ -15,7 +15,7 @@ class ModalStringBoard: public Widget
         mutable std::condition_variable m_cond;
 
     private:
-        const int m_minH = 300;
+        const int m_minH = 220;
         const uint32_t m_texID = 0X07000000;
 
     private:

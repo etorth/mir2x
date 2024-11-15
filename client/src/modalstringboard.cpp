@@ -46,6 +46,7 @@ ModalStringBoard::ModalStringBoard()
           0,
 
           {},
+
           false,
           false,
           false,
@@ -95,7 +96,7 @@ ModalStringBoard::ModalStringBoard()
           0,
           0,
           [this](const Widget *){ return m_image.w(); },
-          [this](const Widget *){ return std::max<int>(m_minH, 84 + m_board.h() + 40); },
+          [this](const Widget *){ return std::max<int>(m_minH, 84 + m_board.h() + 30 * 2); }, // add 30 pixels as top/bottom margin of m_board
 
           &m_imageUp,
 
