@@ -137,6 +137,8 @@ LayoutBoard::LayoutBoard(
     , m_onCR(std::move(argOnCR))
     , m_eventCB(std::move(argEventCB))
 {
+    disableSetSize();
+
     for(size_t i = 0; i < m_parNodeConfig.margin.size(); ++i){
         if(m_parNodeConfig.margin[i] < 0){
             throw fflerror("invalid parNodeConfig::margin[%zu]: %d", i, m_parNodeConfig.margin[i]);

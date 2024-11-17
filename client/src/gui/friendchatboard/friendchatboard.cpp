@@ -974,12 +974,14 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
             {
                 if(event.motion.state & SDL_BUTTON_LMASK){
                     if(m_dragIndex.has_value()){
-                        const auto fnAdjustW = [this](int dw, bool adjustOff)
+                        bool sizeChanged = false;
+                        const auto fnAdjustW = [&sizeChanged, this](int dw, bool adjustOff)
                         {
                             const int oldW = w();
                             const int newW = std::max<int>(oldW + dw, UIPage_BORDER[2] + UIPage_MIN_WIDTH + UIPage_BORDER[3]);
 
                             if(oldW != newW){
+                                sizeChanged = true;
                                 setW(newW);
                                 if(adjustOff){
                                     moveBy(oldW - newW, 0);
@@ -987,12 +989,13 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                             }
                         };
 
-                        const auto fnAdjustH = [this](int dh, bool adjustOff)
+                        const auto fnAdjustH = [&sizeChanged, this](int dh, bool adjustOff)
                         {
                             const int oldH = h();
                             const int newH = std::max<int>(oldH + dh, UIPage_BORDER[0] + UIPage_MIN_HEIGHT + UIPage_BORDER[1]);
 
                             if(oldH != newH){
+                                sizeChanged = true;
                                 setH(newH);
                                 if(adjustOff){
                                     moveBy(0, oldH - newH);
@@ -1008,6 +1011,10 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                         else if(m_dragIndex.value() == 5){ fnAdjustW(-event.motion.xrel, 1); fnAdjustH( event.motion.yrel, 0); }
                         else if(m_dragIndex.value() == 6){                                   fnAdjustH( event.motion.yrel, 0); }
                         else                             { fnAdjustW( event.motion.xrel, 0); fnAdjustH( event.motion.yrel, 0); }
+
+                        if(sizeChanged){
+                            afterResize();
+                        }
                     }
                     else{
                         const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
