@@ -447,6 +447,9 @@ class Widget: public WidgetTreeNode
         std::pair<Widget::VarOff, int> m_y;
 
     private:
+        bool m_disableSetSize = false;
+
+    private:
         Widget::VarSize m_w;
         Widget::VarSize m_h;
 
@@ -985,15 +988,37 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        Widget *setW(Widget::VarSize argSize) { m_w = std::move(argSize); return this; }
-        Widget *setH(Widget::VarSize argSize) { m_h = std::move(argSize); return this; }
+        Widget *disableSetSize()
+        {
+            m_disableSetSize = true; // can not flip back
+            return this;
+        }
 
     public:
-        Widget *setSize(Widget::VarSize argW, Widget::VarSize argH)
+        virtual Widget *setW(Widget::VarSize argSize) final
         {
-            m_w = std::move(argW);
-            m_h = std::move(argH);
+            if(m_disableSetSize){
+                throw fflerror("can not resize %s", name());
+            }
+
+            m_w = std::move(argSize);
             return this;
+        }
+
+        virtual Widget *setH(Widget::VarSize argSize) final
+        {
+            if(m_disableSetSize){
+                throw fflerror("can not resize %s", name());
+            }
+
+            m_h = std::move(argSize);
+            return this;
+        }
+
+    public:
+        virtual Widget *setSize(Widget::VarSize argW, Widget::VarSize argH) final
+        {
+            return setW(std::move(argW))->setH(std::move(argH));
         }
 
     public:
