@@ -84,4 +84,5 @@ struct ChatPage: public Widget
     bool showref() const;
     void afterResize() override;
     bool processEventDefault(const SDL_Event &, bool) override;
+    static ChatItemRef *createChatItemRef(std::string, Widget *, bool);
 };

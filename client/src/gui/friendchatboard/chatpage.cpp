@@ -88,21 +88,7 @@ ChatPage::ChatPage(
           false,
       }
 
-    , chatref(new ChatItemRef
-      {
-          DIR_DOWNLEFT,
-          UIPage_MARGIN,
-          [this](const Widget *){ return h() - UIPage_MARGIN - 1; },
-
-          w() - 24, // can not stretch
-          true,
-          true,
-
-          "<layout><par>这里是引用MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM</par></layout>",
-
-          this,
-          true,
-      })
+    , chatref(ChatPage::createChatItemRef("<layout><par>这里是引用MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM</par></layout>", this, true))
 
     , input
       {
@@ -154,24 +140,9 @@ void ChatPage::afterResize()
         return;
     }
 
-    const auto xmlStr = chatref->getXML();
+    auto xmlStr = chatref->getXML();
     removeChild(chatref, true);
-
-    chatref = new ChatItemRef
-    {
-        DIR_DOWNLEFT,
-        UIPage_MARGIN,
-        [this](const Widget *){ return h() - UIPage_MARGIN - 1; },
-
-        w() - 24, // can not stretch
-        true,
-        true,
-
-        xmlStr.c_str(),
-
-        this,
-        true,
-    };
+    chatref = ChatPage::createChatItemRef(std::move(xmlStr), this, true);
 }
 
 bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
@@ -236,4 +207,23 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
                 return Widget::processEventDefault(event, valid);
             }
     }
+}
+
+ChatItemRef *ChatPage::createChatItemRef(std::string xmlStr, Widget *self, bool autoDelete)
+{
+    return new ChatItemRef
+    {
+        DIR_DOWNLEFT,
+        UIPage_MARGIN,
+        [self](const Widget *){ return self->h() - UIPage_MARGIN - 1; },
+
+        self->w() - 24, // can not stretch
+        true,
+        true,
+
+        xmlStr.c_str(),
+
+        self,
+        autoDelete,
+    };
 }
