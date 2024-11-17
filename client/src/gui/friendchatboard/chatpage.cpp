@@ -40,7 +40,7 @@ ChatPage::ChatPage(
           [this](const Widget *, int drawDstX, int drawDstY)
           {
               // ChatPage = top + sepLine + bottom
-              const int bottomHeight = UIPage_MARGIN + ChatPage::SEP_MARGIN + ChatPage::INPUT_MARGIN * 2 + input.h() + (chatref.show() ? (chatref.h() + ChatPage::CHATREF_GAP) : 0);
+              const int bottomHeight = UIPage_MARGIN + ChatPage::SEP_MARGIN + ChatPage::INPUT_MARGIN * 2 + input.h() + (showref() ? (chatref->h() + ChatPage::CHATREF_GAP) : 0);
               const int sepLineDY    = h() - bottomHeight - 1;
 
               g_sdlDevice->drawLine(
@@ -88,7 +88,7 @@ ChatPage::ChatPage(
           false,
       }
 
-    , chatref
+    , chatref(new ChatItemRef
       {
           DIR_DOWNLEFT,
           UIPage_MARGIN,
@@ -98,11 +98,11 @@ ChatPage::ChatPage(
           true,
           true,
 
-          "<layout><par>这里是引用</par></layout>",
+          "<layout><par>这里是引用MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM</par></layout>",
 
           this,
-          false,
-      }
+          true,
+      })
 
     , input
       {
@@ -110,7 +110,7 @@ ChatPage::ChatPage(
           UIPage_MARGIN + ChatPage::INPUT_MARGIN,
           [this](const Widget *)
           {
-              return h() - UIPage_MARGIN - (chatref.show() ? (chatref.h() + ChatPage::CHATREF_GAP) : 0) - ChatPage::INPUT_MARGIN - 1;
+              return h() - UIPage_MARGIN - (showref() ? (chatref->h() + ChatPage::CHATREF_GAP) : 0) - ChatPage::INPUT_MARGIN - 1;
           },
 
           [this](const Widget *)
@@ -135,13 +135,44 @@ ChatPage::ChatPage(
 
           [this](const Widget *)
           {
-              return h() - UIPage_MARGIN * 2 - ChatPage::SEP_MARGIN * 2 - 1 - ChatPage::INPUT_MARGIN * 2 - input.h() - (chatref.show() ? (chatref.h() + ChatPage::CHATREF_GAP) : 0);
+              return h() - UIPage_MARGIN * 2 - ChatPage::SEP_MARGIN * 2 - 1 - ChatPage::INPUT_MARGIN * 2 - input.h() - (showref() ? (chatref->h() + ChatPage::CHATREF_GAP) : 0);
           },
 
           this,
           false,
       }
 {}
+
+bool ChatPage::showref() const
+{
+    return chatref && chatref->show();
+}
+
+void ChatPage::afterResize()
+{
+    if(!showref()){
+        return;
+    }
+
+    const auto xmlStr = chatref->getXML();
+    removeChild(chatref, true);
+
+    chatref = new ChatItemRef
+    {
+        DIR_DOWNLEFT,
+        UIPage_MARGIN,
+        [this](const Widget *){ return h() - UIPage_MARGIN - 1; },
+
+        w() - 24, // can not stretch
+        true,
+        true,
+
+        xmlStr.c_str(),
+
+        this,
+        true,
+    };
+}
 
 bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
 {
@@ -153,8 +184,10 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
         return consumeFocus(false);
     }
 
-    if(chatref.processEvent(event, valid)){
-        return true;
+    if(showref()){
+        if(chatref->processEvent(event, valid)){
+            return true;
+        }
     }
 
     switch(event.type){

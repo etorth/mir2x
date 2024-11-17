@@ -60,4 +60,10 @@ class ChatItemRef: public Widget
 
                 Widget * = nullptr,
                 bool     = false);
+
+    public:
+        std::string getXML() const
+        {
+            return m_message.getXML();
+        }
 };
