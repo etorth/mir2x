@@ -146,8 +146,8 @@ ChatItem::ChatItem(
           0,
           0,
 
-          ChatItem::MESSAGE_MARGIN * 2 + std::max<int>(message.w(), ChatItem::MESSAGE_MIN_WIDTH ) + ChatItem::TRIANGLE_WIDTH,
-          ChatItem::MESSAGE_MARGIN * 2 + std::max<int>(message.h(), ChatItem::MESSAGE_MIN_HEIGHT),
+          [this](const Widget *){ return ChatItem::MESSAGE_MARGIN * 2 + std::max<int>(message.w(), ChatItem::MESSAGE_MIN_WIDTH ) + ChatItem::TRIANGLE_WIDTH; },
+          [this](const Widget *){ return ChatItem::MESSAGE_MARGIN * 2 + std::max<int>(message.h(), ChatItem::MESSAGE_MIN_HEIGHT)                           ; },
 
           [this](const Widget *, int drawDstX, int drawDstY)
           {
@@ -230,8 +230,9 @@ ChatItem::ChatItem(
         }
     }
     else{
-        const auto realWidth = ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH + std::max<int>({
-            name.w(),
+        const auto realWidth = ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH + std::max<int>
+        ({
+            showName ? name.w() : 0,
             std::max<int>(message.w(), ChatItem::MESSAGE_MIN_WIDTH) + ChatItem::MESSAGE_MARGIN * 2,
             msgref ? msgref->w() : 0,
         });
