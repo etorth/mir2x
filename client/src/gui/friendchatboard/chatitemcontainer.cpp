@@ -190,7 +190,7 @@ ChatItemContainer::ChatItemContainer(
     , nomsgWrapper
       {
           DIR_UP,
-          canvas.w() / 2,
+          [this](const Widget *){ return canvas.w() / 2; },
           ChatItem::ITEM_SPACE,
 
           3,
@@ -217,7 +217,12 @@ ChatItemContainer::ChatItemContainer(
           false,
       }
 {
-    opsWrapper.moveAt(DIR_UP, canvas.w() / 2, [this](const Widget *)
+    opsWrapper.moveAt(DIR_UP, [this](const Widget *)
+    {
+        return canvas.w() / 2;
+    },
+
+    [this](const Widget *)
     {
         if(const auto lastItem = lastChatItem()){
             return lastItem->dy() + lastItem->h() + ChatItem::ITEM_SPACE;
