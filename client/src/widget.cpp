@@ -214,3 +214,8 @@ bool Widget::processEventDefault(const SDL_Event &event, bool valid)
 
     return took;
 }
+
+void Widget::afterResizeDefault()
+{
+    foreachChild([](Widget *child, bool){ child->afterResize(); });
+}

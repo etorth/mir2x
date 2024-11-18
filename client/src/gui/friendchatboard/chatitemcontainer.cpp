@@ -360,6 +360,11 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         });
     }
 
+    chatItem->setAfterResize([this](Widget *self)
+    {
+        dynamic_cast<ChatItem *>(self)->setMaxWidth(chatItemMaxWidth());
+    });
+
     if(sdCM.from.group()){
         ops.loadXML(R"###(<layout><par>GROUP</par></layout>)###");
     }

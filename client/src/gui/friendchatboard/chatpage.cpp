@@ -134,7 +134,7 @@ bool ChatPage::showref() const
     return chatref && chatref->show();
 }
 
-void ChatPage::afterResize()
+void ChatPage::afterResizeDefault()
 {
     if(!showref()){
         return;

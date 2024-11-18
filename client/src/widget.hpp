@@ -458,6 +458,7 @@ class Widget: public WidgetTreeNode
         mutable bool m_wCalc = false;
 
     private:
+        std::function<void(Widget *)> m_afterResizeHandler;
         std::function<bool(Widget *, const SDL_Event &, bool)> m_processEventHandler;
 
     public:
@@ -657,6 +658,12 @@ class Widget: public WidgetTreeNode
         }
 
     public:
+        Widget *setProcessEvent(std::function<bool(Widget *, const SDL_Event &, bool)> argHandler)
+        {
+            m_processEventHandler = std::move(argHandler);
+            return this;
+        }
+
         virtual bool processEvent(const SDL_Event &event, bool valid) final
         {
             if(m_processEventHandler){
@@ -675,6 +682,26 @@ class Widget: public WidgetTreeNode
         // this function alters the draw order
         // if a widget has children having overlapping then be careful
         virtual bool processEventDefault(const SDL_Event &, bool);
+
+    public:
+        Widget *setAfterResize(std::function<void(Widget *)> argHandler)
+        {
+            m_afterResizeHandler = std::move(argHandler);
+            return this;
+        }
+
+        virtual void afterResize() final
+        {
+            if(m_afterResizeHandler){
+                m_afterResizeHandler(this);
+            }
+            else{
+                afterResizeDefault();
+            }
+        }
+
+    protected:
+        virtual void afterResizeDefault();
 
     public:
         virtual dir8_t dir() const
@@ -1019,18 +1046,5 @@ class Widget: public WidgetTreeNode
         virtual Widget *setSize(Widget::VarSize argW, Widget::VarSize argH) final
         {
             return setW(std::move(argW))->setH(std::move(argH));
-        }
-
-    public:
-        virtual void afterResize()
-        {
-            foreachChild([](Widget *child, bool){ child->afterResize(); });
-        }
-
-    public:
-        Widget *setProcessEvent(std::function<bool(Widget *, const SDL_Event &, bool)> argHandler)
-        {
-            m_processEventHandler = std::move(argHandler);
-            return this;
         }
 };
