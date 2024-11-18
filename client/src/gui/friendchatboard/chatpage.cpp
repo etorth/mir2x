@@ -136,6 +136,9 @@ bool ChatPage::showref() const
 
 void ChatPage::afterResizeDefault()
 {
+    chat .afterResize();
+    input.afterResize();
+
     if(!showref()){
         return;
     }
