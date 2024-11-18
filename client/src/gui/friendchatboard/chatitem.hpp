@@ -85,7 +85,8 @@ struct ChatItem: public Widget
 
     ChatItemRef * const msgref = nullptr;
 
-    ChatItem(Widget::VarDir,
+    ChatItem(
+            Widget::VarDir,
             Widget::VarOff,
             Widget::VarOff,
 

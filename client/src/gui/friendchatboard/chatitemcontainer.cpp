@@ -114,9 +114,12 @@ ChatItemContainer::ChatItemContainer(
               return -1 * to_dround((self->h() - this->h()) * FriendChatBoard::getParentBoard(this)->m_uiPageList[UIPage_CHAT].slider->getValue());
           },
 
-          this->w(),
-          {},
+          [this](const Widget *)
+          {
+              return w();
+          },
 
+          {},
           {},
 
           this,
@@ -340,7 +343,12 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         });
     }
     else{
-        chatItem->moveAt(DIR_UPRIGHT, canvas.w() - 1, [extraH, startY, this](const Widget *)
+        chatItem->moveAt(DIR_UPRIGHT, [this](const Widget *)
+        {
+            return canvas.w() - 1;
+        },
+
+        [extraH, startY, this](const Widget *)
         {
             return startY - (nomsgWrapper.show() ? 0 : extraH);
         });
