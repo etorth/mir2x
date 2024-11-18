@@ -163,11 +163,13 @@ LayoutBoard::LayoutBoard(
     }
 }
 
+void LayoutBoard::buildGfx(size_t)
+{
+}
+
 void LayoutBoard::loadXML(const char *xmlString, size_t parLimit)
 {
-    if(!xmlString){
-        throw fflerror("null xmlString");
-    }
+    fflassert(str_haschar(xmlString));
 
     m_parNodeList.clear();
     tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);

@@ -136,7 +136,7 @@ class XMLTypeset // means XMLParagraph typeset
             m_paragraph->clear();
         }
 
-        void build() // build without reload xml
+        void buildGfx() // build without reload xml
         {
             buildTypeset(0, 0);
         }
