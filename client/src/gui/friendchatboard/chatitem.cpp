@@ -11,6 +11,7 @@ ChatItem::ChatItem(
         Widget::VarOff argX,
         Widget::VarOff argY,
 
+        int  argMaxWidth,
         bool argPending,
 
         const char8_t *argNameStr,
@@ -74,7 +75,8 @@ ChatItem::ChatItem(
           DIR_UPLEFT,
           0,
           0,
-          ChatItem::MAX_WIDTH - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN * 2,
+
+          std::max<int>(1, argMaxWidth - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN * 2),
 
           to_cstr(argMessageStr),
           0,
@@ -213,6 +215,8 @@ ChatItem::ChatItem(
           to_cstr(argMessageRefStr),
       } : nullptr)
 {
+    disableSetSize();
+
     if(avatarLeft){
         addChild(&avatar, DIR_UPLEFT, 0, 0, false);
         if(showName){
@@ -248,6 +252,11 @@ ChatItem::ChatItem(
         if(avatarLeft) addChild(msgref, DIR_UPLEFT , message.dx()                   - ChatItem::MESSAGE_MARGIN, message.dy() + message.h() - 1 + ChatItem::REF_GAP, true);
         else           addChild(msgref, DIR_UPRIGHT, message.dx() + message.w() - 1 + ChatItem::MESSAGE_MARGIN, message.dy() + message.h() - 1 + ChatItem::REF_GAP, true);
     }
+}
+
+void ChatItem::setMaxWidth(int argWidth)
+{
+    message.setLineWidth(argWidth - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN * 2);
 }
 
 void ChatItem::update(double fUpdateTime)

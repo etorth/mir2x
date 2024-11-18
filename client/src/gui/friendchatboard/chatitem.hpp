@@ -60,8 +60,6 @@ struct ChatItem: public Widget
     constexpr static int TRIANGLE_WIDTH  = 4;
     constexpr static int TRIANGLE_HEIGHT = 6;
 
-    constexpr static int MAX_WIDTH = UIPage_MIN_WIDTH - UIPage_MARGIN * 2 - ChatItem::TRIANGLE_WIDTH - ChatItem::GAP - ChatItem::AVATAR_WIDTH;
-
     constexpr static int MESSAGE_MARGIN = 5;
     constexpr static int MESSAGE_CORNER = 3;
 
@@ -90,6 +88,7 @@ struct ChatItem: public Widget
             Widget::VarOff,
             Widget::VarOff,
 
+            int,
             bool,
 
             const char8_t *,
@@ -105,6 +104,7 @@ struct ChatItem: public Widget
             Widget * = nullptr,
             bool     = false);
 
+    void setMaxWidth(int);
     void update(double) override;
     bool processEventDefault(const SDL_Event &, bool) override;
 };

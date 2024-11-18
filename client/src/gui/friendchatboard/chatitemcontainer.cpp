@@ -265,6 +265,11 @@ void ChatItemContainer::clearChatItem()
     });
 }
 
+int ChatItemContainer::chatItemMaxWidth() const
+{
+    return canvas.w() - ChatItem::TRIANGLE_WIDTH - ChatItem::GAP - ChatItem::AVATAR_WIDTH;
+}
+
 bool ChatItemContainer::hasChatItem() const
 {
     return canvas.foreachChild([this](const Widget *widget, bool)
@@ -306,6 +311,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         DIR_UPLEFT, // setup later
         0,
         0,
+        chatItemMaxWidth(), // cannot auto-stretch
 
         !sdCM.seq.has_value(),
 
