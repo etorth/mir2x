@@ -103,26 +103,14 @@ class XMLTypeset // means XMLParagraph typeset
         {
             clear();
             m_paragraph->loadXML(xmlString);
-
-            if(m_paragraph->leafCount() > 0){
-                buildTypeset(0, 0);
-            }
-            else{
-                m_ph = getDefaultFontHeight();
-            }
+            buildGfx();
         }
 
         void loadXMLNode(const tinyxml2::XMLNode *node)
         {
             clear();
             m_paragraph->loadXMLNode(node);
-
-            if(m_paragraph->leafCount() > 0){
-                buildTypeset(0, 0);
-            }
-            else{
-                m_ph = getDefaultFontHeight();
-            }
+            buildGfx();
         }
 
     public:
@@ -138,7 +126,12 @@ class XMLTypeset // means XMLParagraph typeset
 
         void buildGfx() // build without reload xml
         {
-            buildTypeset(0, 0);
+            if(m_paragraph->leafCount() > 0){
+                buildTypeset(0, 0);
+            }
+            else{
+                m_ph = getDefaultFontHeight();
+            }
         }
 
     private:
