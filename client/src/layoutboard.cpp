@@ -449,11 +449,41 @@ void LayoutBoard::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int s
     }
 }
 
-void LayoutBoard::setLineWidth(int lineWidth)
+void LayoutBoard::setFont(uint8_t argFont)
 {
-    m_parNodeConfig.lineWidth = lineWidth;
+    m_parNodeConfig.font = argFont;
+    updateGfx();
+}
+
+void LayoutBoard::setFontSize(uint8_t argFontSize)
+{
+    m_parNodeConfig.fontSize = argFontSize;
+    updateGfx();
+}
+
+void LayoutBoard::setFontStyle(uint8_t argFontStyle)
+{
+    m_parNodeConfig.fontStyle = argFontStyle;
+    updateGfx();
+}
+
+void LayoutBoard::setFontColor(uint32_t argFontColor)
+{
+    m_parNodeConfig.fontColor = argFontColor;
+    updateGfx();
+}
+
+void LayoutBoard::setFontBGColor(uint32_t argFontBGColor)
+{
+    m_parNodeConfig.fontBGColor = argFontBGColor;
+    updateGfx();
+}
+
+void LayoutBoard::setLineWidth(int argLineWidth)
+{
+    m_parNodeConfig.lineWidth = argLineWidth;
     for(auto &node: m_parNodeList){
-        node.tpset->setLineWidth(lineWidth);
+        node.tpset->setLineWidth(argLineWidth);
     }
     setupStartY(0);
 }

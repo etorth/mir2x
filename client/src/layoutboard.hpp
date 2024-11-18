@@ -196,31 +196,13 @@ class LayoutBoard: public Widget
         }
 
     public:
-        void setFont(uint8_t font)
-        {
-            m_parNodeConfig.font = font;
-        }
+        void setFont(uint8_t);
+        void setFontSize(uint8_t);
+        void setFontStyle(uint8_t);
+        void setFontColor(uint32_t);
+        void setFontBGColor(uint32_t);
 
-        void setFontSize(uint8_t fontSize)
-        {
-            m_parNodeConfig.fontSize = fontSize;
-        }
-
-        void setFontStyle(uint8_t fontStyle)
-        {
-            m_parNodeConfig.fontStyle = fontStyle;
-        }
-
-        void setFontColor(uint32_t fontColor)
-        {
-            m_parNodeConfig.fontColor = fontColor;
-        }
-
-        void setFontBGColor(uint32_t fontBGColor)
-        {
-            m_parNodeConfig.fontBGColor = fontBGColor;
-        }
-
+    public:
         void setLineWidth(int);
 
     public:
