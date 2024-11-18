@@ -107,6 +107,12 @@ class XMLParagraph
         }
 
     public:
+        const tinyxml2::XMLNode *getXMLNode() const
+        {
+            return m_xmlDocument->RootElement();
+        }
+
+    public:
         std::string getXML() const
         {
             tinyxml2::XMLPrinter printer;

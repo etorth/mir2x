@@ -163,8 +163,16 @@ LayoutBoard::LayoutBoard(
     }
 }
 
-void LayoutBoard::buildGfx(size_t)
+void LayoutBoard::updateGfx()
 {
+    tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
+    for(int parIndex = 0, parTotalCount = parCount(); parIndex < parTotalCount; ++parIndex){
+        auto parNodeIter = ithParIterator(parIndex);
+        auto xmlNode = parNodeIter->tpset->getXMLNode()->DeepClone(&xmlDoc);
+
+        m_parNodeList.erase(parNodeIter);
+        addPar(parIndex, m_parNodeConfig.margin, xmlNode);
+    }
 }
 
 void LayoutBoard::loadXML(const char *xmlString, size_t parLimit)

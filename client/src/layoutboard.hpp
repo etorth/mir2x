@@ -120,7 +120,7 @@ class LayoutBoard: public Widget
                 bool     = false);
 
     public:
-        void buildGfx(size_t = 0);
+        void updateGfx();
         void loadXML(const char *, size_t = 0);
 
     public:

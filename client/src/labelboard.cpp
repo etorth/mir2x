@@ -71,19 +71,19 @@ void LabelBoard::loadXML(const char *xmlString)
 void LabelBoard::setFont(uint8_t argFont)
 {
     m_tpset.setFont(argFont);
-    m_tpset.buildGfx();
+    m_tpset.updateGfx();
 }
 
 void LabelBoard::setFontSize(uint8_t argFontSize)
 {
     m_tpset.setFontSize(argFontSize);
-    m_tpset.buildGfx();
+    m_tpset.updateGfx();
 }
 
 void LabelBoard::setFontStyle(uint8_t argFontStyle)
 {
     m_tpset.setFontStyle(argFontStyle);
-    m_tpset.buildGfx();
+    m_tpset.updateGfx();
 }
 
 void LabelBoard::setFontColor(uint32_t argFontColor)

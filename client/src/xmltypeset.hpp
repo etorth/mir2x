@@ -103,14 +103,14 @@ class XMLTypeset // means XMLParagraph typeset
         {
             clear();
             m_paragraph->loadXML(xmlString);
-            buildGfx();
+            updateGfx();
         }
 
         void loadXMLNode(const tinyxml2::XMLNode *node)
         {
             clear();
             m_paragraph->loadXMLNode(node);
-            buildGfx();
+            updateGfx();
         }
 
     public:
@@ -124,7 +124,7 @@ class XMLTypeset // means XMLParagraph typeset
             m_paragraph->clear();
         }
 
-        void buildGfx() // build without reload xml
+        void updateGfx() // build without reload xml
         {
             if(m_paragraph->leafCount() > 0){
                 buildTypeset(0, 0);
@@ -318,6 +318,12 @@ class XMLTypeset // means XMLParagraph typeset
 
     public:
         std::string getText(bool) const;
+
+    public:
+        const tinyxml2::XMLNode *getXMLNode() const
+        {
+            return m_paragraph->getXMLNode();
+        }
 
     public:
         const auto leafEvent(int leafID) const
