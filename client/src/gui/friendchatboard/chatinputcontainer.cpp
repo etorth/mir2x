@@ -130,4 +130,8 @@ ChatInputContainer::ChatInputContainer(
     // layout always attach to buttom of input container, so argX needs container height
     // in initialization list we can not call this->h() since initialization of layout is not done yet
     layout.moveAt(DIR_DOWNLEFT, 0, [this](const Widget *){ return this->h() - 1; });
+    setAfterResize([this](Widget *)
+    {
+        layout.setLineWidth(this->w());
+    });
 }
