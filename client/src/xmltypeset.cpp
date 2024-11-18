@@ -1423,7 +1423,7 @@ bool XMLTypeset::blankToken(int x, int y) const
 void XMLTypeset::setLineWidth(int lineWidth)
 {
     m_lineWidth = lineWidth;
-    buildTypeset(0, 0);
+    updateGfx();
 }
 
 int XMLTypeset::getDefaultFontHeight() const
