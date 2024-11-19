@@ -17,7 +17,7 @@ extern SDLDevice *g_sdlDevice;
 extern EmojiDB *g_emojiDB;
 extern ClientArgParser *g_clientArgParser;
 
-void XMLTypeset::SetTokenBoxWordSpace(int argLine)
+void XMLTypeset::setTokenBoxWordSpace(int argLine)
 {
     if(!lineValid(argLine)){
         throw fflerror("invalid line: %d", argLine);
@@ -347,11 +347,11 @@ void XMLTypeset::resetOneLine(int argLine, bool bCREnd)
             }
     }
 
-    SetLineTokenStartX(argLine);
-    SetLineTokenStartY(argLine);
+    setLineTokenStartX(argLine);
+    setLineTokenStartY(argLine);
 }
 
-void XMLTypeset::SetLineTokenStartX(int argLine)
+void XMLTypeset::setLineTokenStartX(int argLine)
 {
     if(!lineValid(argLine)){
         throw fflerror("invalid line: %d", argLine);
@@ -563,7 +563,7 @@ int XMLTypeset::LineNewStartY(int argLine)
     return to_d((std::max<int>)(nCurrentY, LineReachMaxY(argLine - 1) + 1));
 }
 
-void XMLTypeset::SetLineTokenStartY(int argLine)
+void XMLTypeset::setLineTokenStartY(int argLine)
 {
     if(!lineValid(argLine)){
         throw fflerror("invalid line: %d", argLine);

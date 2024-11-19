@@ -341,11 +341,11 @@ class XMLTypeset // means XMLParagraph typeset
         bool addRawTokenLine(int, const std::vector<TOKEN> &);
 
     private:
-        void SetTokenBoxWordSpace(int);
+        void setTokenBoxWordSpace(int);
 
     private:
-        void SetLineTokenStartX(int);
-        void SetLineTokenStartY(int);
+        void setLineTokenStartX(int);
+        void setLineTokenStartY(int);
 
     private:
         int LineRawWidth(int, bool) const;
