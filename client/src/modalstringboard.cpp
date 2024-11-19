@@ -132,7 +132,7 @@ ModalStringBoard::ModalStringBoard()
         throw fflerror("invalid texID: %llu", to_llu(m_texID));
     }
 
-    addChild(&m_board, DIR_NONE, [this](const Widget *)
+    addChildAt(&m_board, DIR_NONE, [this](const Widget *)
     {
         return m_imageUpDup.w() / 2;
     },

@@ -49,7 +49,7 @@ FriendListPage::FriendListPage(Widget::VarDir argDir,
 
 void FriendListPage::append(const SDChatPeer &peer, std::function<void(FriendItem *)> argOnClick, std::pair<Widget *, bool> argFuncWidget)
 {
-    canvas.addChild(new FriendItem
+    canvas.addChildAt(new FriendItem
     {
         DIR_UPLEFT,
         0,

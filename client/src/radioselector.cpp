@@ -113,8 +113,8 @@ void RadioSelector::append(Widget *widget, bool autoDelete)
     const auto startX = 0;
     const auto startY = (hasChild() ? (h() + m_itemSpace) : 0) + std::max<int>(button->h(), widget->h()) / 2;
 
-    addChild(button, DIR_LEFT, startX                      , startY, true);
-    addChild(widget, DIR_LEFT, startX + button->w() + m_gap, startY, autoDelete);
+    addChildAt(button, DIR_LEFT, startX                      , startY, true);
+    addChildAt(widget, DIR_LEFT, startX + button->w() + m_gap, startY, autoDelete);
 }
 
 const Widget *RadioSelector::getter() const

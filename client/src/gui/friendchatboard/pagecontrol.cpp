@@ -34,7 +34,7 @@ PageControl::PageControl(
 
     int offX = 0;
     for(auto &[widgetPtr, autoDelete]: argChildList){
-        addChild(widgetPtr, DIR_UPLEFT, offX, (maxH - widgetPtr->h()) / 2, autoDelete);
+        addChildAt(widgetPtr, DIR_UPLEFT, offX, (maxH - widgetPtr->h()) / 2, autoDelete);
         offX += widgetPtr->w();
         offX += argSpace;
     }

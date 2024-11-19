@@ -48,7 +48,7 @@ class MarginWrapper: public Widget
 
             true);
 
-            Widget::addChild(argWidget,
+            Widget::addChildAt(argWidget,
                     DIR_UPLEFT,
 
                     std::max<int>(argMargin[2], 0),
@@ -64,8 +64,8 @@ class MarginWrapper: public Widget
         }
 
     public:
-        void addChild(Widget *,                                                 bool) override { throw fflreach(); }
-        void addChild(Widget *, Widget::VarDir, Widget::VarOff, Widget::VarOff, bool) override { throw fflreach(); }
+        void addChild  (Widget *,                                                 bool) override { throw fflreach(); }
+        void addChildAt(Widget *, Widget::VarDir, Widget::VarOff, Widget::VarOff, bool) override { throw fflreach(); }
 
     public:
         const Widget *wrapped() const { return lastChild(); }

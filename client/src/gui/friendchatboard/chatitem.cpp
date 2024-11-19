@@ -218,15 +218,15 @@ ChatItem::ChatItem(
     disableSetSize();
 
     if(avatarLeft){
-        addChild(&avatar, DIR_UPLEFT, 0, 0, false);
+        addChildAt(&avatar, DIR_UPLEFT, 0, 0, false);
         if(showName){
-            addChild(&name      , DIR_LEFT  ,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH                           , ChatItem::NAME_HEIGHT / 2                       , false);
-            addChild(&background, DIR_UPLEFT,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP                                                      , ChatItem::NAME_HEIGHT                           , false);
-            addChild(&message   , DIR_UPLEFT,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH + ChatItem::MESSAGE_MARGIN, ChatItem::NAME_HEIGHT + ChatItem::MESSAGE_MARGIN, false);
+            addChildAt(&name      , DIR_LEFT  ,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH                           , ChatItem::NAME_HEIGHT / 2                       , false);
+            addChildAt(&background, DIR_UPLEFT,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP                                                      , ChatItem::NAME_HEIGHT                           , false);
+            addChildAt(&message   , DIR_UPLEFT,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH + ChatItem::MESSAGE_MARGIN, ChatItem::NAME_HEIGHT + ChatItem::MESSAGE_MARGIN, false);
         }
         else{
-            addChild(&background, DIR_UPLEFT,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP                                                      , 0                                               , false);
-            addChild(&message   , DIR_UPLEFT,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH + ChatItem::MESSAGE_MARGIN, ChatItem::MESSAGE_MARGIN                        , false);
+            addChildAt(&background, DIR_UPLEFT,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP                                                      , 0                                               , false);
+            addChildAt(&message   , DIR_UPLEFT,                  ChatItem::AVATAR_WIDTH + ChatItem::GAP + ChatItem::TRIANGLE_WIDTH + ChatItem::MESSAGE_MARGIN, ChatItem::MESSAGE_MARGIN                        , false);
         }
     }
     else{
@@ -240,21 +240,21 @@ ChatItem::ChatItem(
             });
         };
 
-        addChild(&avatar, DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1; }, 0, false);
+        addChildAt(&avatar, DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1; }, 0, false);
         if(showName){
-            addChild(&name      , DIR_RIGHT  , [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH                           ; }, ChatItem::NAME_HEIGHT / 2                       , false);
-            addChild(&background, DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP                                                      ; }, ChatItem::NAME_HEIGHT                           , false);
-            addChild(&message   , DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN; }, ChatItem::NAME_HEIGHT + ChatItem::MESSAGE_MARGIN, false);
+            addChildAt(&name      , DIR_RIGHT  , [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH                           ; }, ChatItem::NAME_HEIGHT / 2                       , false);
+            addChildAt(&background, DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP                                                      ; }, ChatItem::NAME_HEIGHT                           , false);
+            addChildAt(&message   , DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN; }, ChatItem::NAME_HEIGHT + ChatItem::MESSAGE_MARGIN, false);
         }
         else{
-            addChild(&background, DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP                                                      ; }, 0                                               , false);
-            addChild(&message   , DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN; }, ChatItem::MESSAGE_MARGIN                        , false);
+            addChildAt(&background, DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP                                                      ; }, 0                                               , false);
+            addChildAt(&message   , DIR_UPRIGHT, [fnRealWidth](const Widget *){ return fnRealWidth() - 1 - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN; }, ChatItem::MESSAGE_MARGIN                        , false);
         }
     }
 
     if(msgref){
-        if(avatarLeft) addChild(msgref, DIR_UPLEFT , [this](const Widget *){ return message.dx()                   - ChatItem::MESSAGE_MARGIN; }, [this](const Widget *){ return message.dy() + message.h() - 1 + ChatItem::REF_GAP; }, true);
-        else           addChild(msgref, DIR_UPRIGHT, [this](const Widget *){ return message.dx() + message.w() - 1 + ChatItem::MESSAGE_MARGIN; }, [this](const Widget *){ return message.dy() + message.h() - 1 + ChatItem::REF_GAP; }, true);
+        if(avatarLeft) addChildAt(msgref, DIR_UPLEFT , [this](const Widget *){ return message.dx()                   - ChatItem::MESSAGE_MARGIN; }, [this](const Widget *){ return message.dy() + message.h() - 1 + ChatItem::REF_GAP; }, true);
+        else           addChildAt(msgref, DIR_UPRIGHT, [this](const Widget *){ return message.dx() + message.w() - 1 + ChatItem::MESSAGE_MARGIN; }, [this](const Widget *){ return message.dy() + message.h() - 1 + ChatItem::REF_GAP; }, true);
     }
 }
 
@@ -289,7 +289,7 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid)
                 chatPage->menu = nullptr;
             }
 
-            chatPage->addChild((chatPage->menu = new MenuBoard
+            chatPage->addChildAt((chatPage->menu = new MenuBoard
             {
                 DIR_UPLEFT,
                 0,

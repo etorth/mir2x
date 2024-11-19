@@ -49,7 +49,7 @@ class ItemFlex: public Widget
         {
             m_origChildList.push_back(argWidget);
             if(m_hbox){
-                addChild(argWidget, DIR_UPLEFT, [this](const Widget *self)
+                addChildAt(argWidget, DIR_UPLEFT, [this](const Widget *self)
                 {
                     int offset = 0;
                     for(auto widget: m_origChildList){
@@ -65,7 +65,7 @@ class ItemFlex: public Widget
                 argAutoDelete);
             }
             else{
-                addChild(argWidget, DIR_UPLEFT, 0, [this](const Widget *self)
+                addChildAt(argWidget, DIR_UPLEFT, 0, [this](const Widget *self)
                 {
                     int offset = 0;
                     for(auto widget: m_origChildList){

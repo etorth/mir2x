@@ -244,8 +244,8 @@ class WidgetTreeNode // tree concept, used by class Widget only
         virtual void removeChild(Widget *, bool);
 
     public:
-        virtual void addChild(Widget *, bool);
-        virtual void addChild(Widget *, WidgetTreeNode::VarDir, WidgetTreeNode::VarOff, WidgetTreeNode::VarOff, bool);
+        virtual void addChild  (Widget *, bool);
+        virtual void addChildAt(Widget *, WidgetTreeNode::VarDir, WidgetTreeNode::VarOff, WidgetTreeNode::VarOff, bool);
 
     public:
         bool hasChild() const;
@@ -496,7 +496,7 @@ class Widget: public WidgetTreeNode
 
             for(auto &[childPtr, offDir, offX, offY, autoDelete]: argChildList){
                 if(childPtr){
-                    addChild(childPtr, std::move(offDir), std::move(offX), std::move(offY), autoDelete);
+                    addChildAt(childPtr, std::move(offDir), std::move(offX), std::move(offY), autoDelete);
                 }
             }
         }
