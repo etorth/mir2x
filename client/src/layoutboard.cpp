@@ -481,11 +481,15 @@ void LayoutBoard::setFontBGColor(uint32_t argFontBGColor)
 
 void LayoutBoard::setLineWidth(int argLineWidth)
 {
+    const auto cursorOff = ithParIterator(m_cursorLoc.y)->tpset->cursorLoc2Off(m_cursorLoc.x, m_cursorLoc.y);
     m_parNodeConfig.lineWidth = argLineWidth;
+
     for(auto &node: m_parNodeList){
         node.tpset->setLineWidth(argLineWidth);
     }
+
     setupStartY(0);
+    std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.y)->tpset->cursorOff2Loc(cursorOff);
 }
 
 bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid)

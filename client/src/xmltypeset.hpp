@@ -236,6 +236,10 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
+        int cursorLoc2Off(int, int) const;
+        std::tuple<int, int> cursorOff2Loc(int) const;
+
+    public:
         void update(double);
 
     public:

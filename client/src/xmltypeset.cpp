@@ -1366,6 +1366,30 @@ std::tuple<int, int> XMLTypeset::locCursor(int xOffPixel, int yOffPixel) const
     return {cursorX, cursorY};
 }
 
+int XMLTypeset::cursorLoc2Off(int argCursorX, int argCursorY) const
+{
+    fflassert(cursorLocValid(argCursorX, argCursorY), argCursorX, argCursorY);
+    int off = 0;
+    for(int line = 0; line < argCursorY; ++line){
+        off += lineTokenCount(line);
+    }
+    return off + argCursorX;
+}
+
+std::tuple<int, int> XMLTypeset::cursorOff2Loc(int argCursorOff) const
+{
+    int line = 0;
+    for(; line < lineCount(); ++line){
+        if(argCursorOff < lineTokenCount(line)){
+            return {argCursorOff, line};
+        }
+        else{
+            line -= lineTokenCount(line);
+        }
+    }
+    return {-1, -1};
+}
+
 bool XMLTypeset::locInToken(int xOffPixel, int yOffPixel, const TOKEN *pToken, bool withPadding)
 {
     if(!pToken){
