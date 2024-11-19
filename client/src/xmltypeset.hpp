@@ -236,7 +236,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        int cursorLoc2Off(int, int) const;
+        int cursorLoc2Off(int, int) const; // actually returns how many tokens in front of cursor
         std::tuple<int, int> cursorOff2Loc(int) const;
 
     public:

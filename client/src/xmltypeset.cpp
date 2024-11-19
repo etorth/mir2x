@@ -1380,11 +1380,11 @@ std::tuple<int, int> XMLTypeset::cursorOff2Loc(int argCursorOff) const
 {
     int line = 0;
     for(; line < lineCount(); ++line){
-        if(argCursorOff < lineTokenCount(line)){
+        if(argCursorOff <= lineTokenCount(line)){
             return {argCursorOff, line};
         }
         else{
-            line -= lineTokenCount(line);
+            argCursorOff -= lineTokenCount(line);
         }
     }
     return {-1, -1};
