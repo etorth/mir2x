@@ -42,13 +42,8 @@ class MarginWrapper: public Widget
         }
 
     public:
-        void addChild(Widget *argWidget, bool argAutoDelete) override
-        {
-            if(hasChild()){
-                throw fflerror("margin wrapper contains single child widget");
-            }
-            Widget::addChild(argWidget, argAutoDelete);
-        }
+        void addChild(Widget *,                                                 bool) override { throw fflreach(); }
+        void addChild(Widget *, Widget::VarDir, Widget::VarOff, Widget::VarOff, bool) override { throw fflreach(); }
 
     public:
         const Widget *wrapped() const { return firstChild(); }
