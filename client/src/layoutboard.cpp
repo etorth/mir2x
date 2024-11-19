@@ -190,7 +190,7 @@ void LayoutBoard::loadXML(const char *xmlString, size_t parLimit)
     const auto rootElem = xmlDoc.RootElement();
 
     for(const char *cstr: {"layout", "Layout", "LAYOUT"}){
-        if(std::string(rootElem->Name()) == cstr){
+        if(to_sv(rootElem->Name()) == cstr){
             layoutXML = true;
             break;
         }
@@ -213,7 +213,7 @@ void LayoutBoard::loadXML(const char *xmlString, size_t parLimit)
 
         bool parXML = false;
         for(const char *cstr: {"par", "Par", "PAR"}){
-            if(std::string(p->Value()) == cstr){
+            if(to_sv(p->Value()) == cstr){
                 parXML = true;
                 break;
             }
@@ -246,7 +246,7 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
 
     bool parXML = false;
     for(const char *cstr: {"par", "Par", "PAR"}){
-        if(std::string(elemNode->Name()) == cstr){
+        if(to_sv(elemNode->Name()) == cstr){
             parXML = true;
             break;
         }
@@ -281,11 +281,11 @@ void LayoutBoard::addPar(int loc, const std::array<int, 4> &parMargin, const tin
     const int lineAlign = [elemNode, this]()
     {
         if(const auto val = elemNode->Attribute("align")){
-            if(std::string(val) == "left"       ) return LALIGN_LEFT;
-            if(std::string(val) == "right"      ) return LALIGN_RIGHT;
-            if(std::string(val) == "center"     ) return LALIGN_CENTER;
-            if(std::string(val) == "justify"    ) return LALIGN_JUSTIFY;
-            if(std::string(val) == "distributed") return LALIGN_DISTRIBUTED;
+            if(to_sv(val) == "left"       ) return LALIGN_LEFT;
+            if(to_sv(val) == "right"      ) return LALIGN_RIGHT;
+            if(to_sv(val) == "center"     ) return LALIGN_CENTER;
+            if(to_sv(val) == "justify"    ) return LALIGN_JUSTIFY;
+            if(to_sv(val) == "distributed") return LALIGN_DISTRIBUTED;
         }
         return m_parNodeConfig.align;
     }();

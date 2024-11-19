@@ -334,7 +334,7 @@ void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
 
     bool parXML = false;
     for(const char *cstr: {"par", "Par", "PAR"}){
-        if(std::string(node->Value()) == cstr){
+        if(to_sv(node->Value()) == cstr){
             parXML = true;
             break;
         }
@@ -393,7 +393,7 @@ size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlStr
 
     bool parXML = false;
     for(const char *cstr: {"par", "Par", "PAR"}){
-        if(std::string(xmlRoot->Value()) == cstr){
+        if(to_sv(xmlRoot->Value()) == cstr){
             parXML = true;
             break;
         }
