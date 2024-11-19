@@ -1,4 +1,3 @@
-
 #pragma once
 #include <array>
 #include <string>
@@ -8,34 +7,13 @@
 #include "chatitem.hpp"
 #include "labelboard.hpp"
 #include "layoutboard.hpp"
+#include "marginwrapper.hpp"
 #include "shapeclipboard.hpp"
 
 struct ChatItemContainer: public Widget
 {
-    struct BackgroundWrapper: public Widget
-    {
-        Widget * const gfxWidget;
-        ShapeClipBoard background;
-
-        BackgroundWrapper(
-                Widget::VarDir,
-                Widget::VarOff, // x
-                Widget::VarOff, // y
-
-                int, // margin
-                int, // corner
-
-                Widget *, // holding widget
-                          // widget should have been initialized
-
-                Widget * = nullptr,
-                bool     = false);
-
-        bool processEventDefault(const SDL_Event &event, bool valid) override
-        {
-            return gfxWidget->processEvent(event, valid);
-        }
-    };
+    constexpr static int BACKGROUND_MARGIN = 3;
+    constexpr static int BACKGROUND_CORNER = 4;
 
     // use canvas to hold all chat item
     // then we can align canvas always to buttom when needed
@@ -51,8 +29,8 @@ struct ChatItemContainer: public Widget
     LabelBoard nomsg; // show when there is no chat message
     LayoutBoard ops;  // block strangers, add friends, etc
 
-    BackgroundWrapper nomsgWrapper;
-    BackgroundWrapper opsWrapper;
+    MarginWrapper nomsgWrapper;
+    MarginWrapper opsWrapper;
 
     ChatItemContainer(
             Widget::VarDir,

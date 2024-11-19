@@ -10,74 +10,6 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-ChatItemContainer::BackgroundWrapper::BackgroundWrapper(
-        Widget::VarDir argDir,
-        Widget::VarOff argX,
-        Widget::VarOff argY,
-
-        int argMargin,
-        int argCorner,
-
-        Widget *argWidget, // widget should has been initialized
-
-        Widget *argParent,
-        bool    argAutoDelete)
-
-    : Widget
-      {
-          argDir,
-          argX,
-          argY,
-
-          [argMargin, this](const Widget *){ return gfxWidget->w() + std::max<int>(0, argMargin) * 2; },
-          [argMargin, this](const Widget *){ return gfxWidget->h() + std::max<int>(0, argMargin) * 2; },
-
-          {
-              {
-                  argWidget,
-                  DIR_NONE,
-
-                  [this](const Widget *)
-                  {
-                      return w() / 2;
-                  },
-
-                  [this](const Widget *)
-                  {
-                      return h() / 2;
-                  },
-
-                  false,
-              },
-          },
-
-          argParent,
-          argAutoDelete,
-      }
-
-    , gfxWidget(argWidget)
-
-    , background
-      {
-          DIR_UPLEFT,
-          0,
-          0,
-
-          [this](const Widget *){ return this->w(); },
-          [this](const Widget *){ return this->h(); },
-
-          [argCorner](const Widget *self, int drawDstX, int drawDstY)
-          {
-              g_sdlDevice->fillRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64), drawDstX, drawDstY, self->w(), self->h(), argCorner);
-          },
-
-          this,
-          false,
-      }
-{
-    moveFront(&background);
-}
-
 ChatItemContainer::ChatItemContainer(
         Widget::VarDir  argDir,
         Widget::VarOff  argX,
@@ -194,10 +126,20 @@ ChatItemContainer::ChatItemContainer(
           [this](const Widget *){ return canvas.w() / 2; },
           ChatItem::ITEM_SPACE,
 
-          3,
-          4,
-
           &nomsg,
+          false,
+
+          {
+              ChatItemContainer::BACKGROUND_MARGIN,
+              ChatItemContainer::BACKGROUND_MARGIN,
+              ChatItemContainer::BACKGROUND_MARGIN,
+              ChatItemContainer::BACKGROUND_MARGIN,
+          },
+
+          [](const Widget *self, int drawDstX, int drawDstY)
+          {
+              g_sdlDevice->fillRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64), drawDstX, drawDstY, self->w(), self->h(), ChatItemContainer::BACKGROUND_CORNER);
+          },
 
           &canvas,
           false,
@@ -209,10 +151,20 @@ ChatItemContainer::ChatItemContainer(
           0,
           0,
 
-          3,
-          4,
-
           &ops,
+          false,
+
+          {
+              ChatItemContainer::BACKGROUND_MARGIN,
+              ChatItemContainer::BACKGROUND_MARGIN,
+              ChatItemContainer::BACKGROUND_MARGIN,
+              ChatItemContainer::BACKGROUND_MARGIN,
+          },
+
+          [](const Widget *self, int drawDstX, int drawDstY)
+          {
+              g_sdlDevice->fillRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64), drawDstX, drawDstY, self->w(), self->h(), ChatItemContainer::BACKGROUND_CORNER);
+          },
 
           &canvas,
           false,
