@@ -9,7 +9,8 @@ class ShapeClipBoard: public Widget
         std::function<void(const Widget *, int, int)> m_drawFunc;
 
     public:
-        ShapeClipBoard(Widget::VarDir,
+        ShapeClipBoard(
+                Widget::VarDir,
                 Widget::VarOff,
                 Widget::VarOff,
 

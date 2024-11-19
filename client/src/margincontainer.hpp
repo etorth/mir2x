@@ -1,5 +1,6 @@
 #pragma once
 #include "widget.hpp"
+#include "shapeclipboard.hpp"
 
 class MarginContainer: public Widget
 {
@@ -20,6 +21,8 @@ class MarginContainer: public Widget
                 Widget::VarDir argWidgetDir,
                 bool           argWidgetAutoDelete,
 
+                std::function<void(const Widget *, int, int)> argDrawFunc = nullptr,
+
                 Widget *argParent     = nullptr,
                 bool    argAutoDelete = false)
 
@@ -39,7 +42,21 @@ class MarginContainer: public Widget
 
             , m_widgetDir(std::move(argWidgetDir))
         {
-            addChild(argWidget, [this](const Widget *)
+            Widget::addChild(new ShapeClipBoard
+            {
+                DIR_UPLEFT,
+                0,
+                0,
+
+                [this](const Widget *){ return w(); },
+                [this](const Widget *){ return h(); },
+
+                std::move(argDrawFunc),
+            },
+
+            true);
+
+            Widget::addChild(argWidget, [this](const Widget *)
             {
                 return Widget::evalDir(m_widgetDir, this);
             },
@@ -88,6 +105,6 @@ class MarginContainer: public Widget
         void addChild(Widget *, Widget::VarDir, Widget::VarOff, Widget::VarOff, bool) override { throw fflreach(); }
 
     public:
-        const Widget *contained() const { return firstChild(); }
-        /* */ Widget *contained()       { return firstChild(); }
+        const Widget *contained() const { return lastChild(); }
+        /* */ Widget *contained()       { return lastChild(); }
 };
