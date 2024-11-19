@@ -17,9 +17,11 @@ struct ChatItemContainer: public Widget
         Widget * const gfxWidget;
         ShapeClipBoard background;
 
-        BackgroundWrapper(dir8_t,
-                int, // x
-                int, // y
+        BackgroundWrapper(
+                Widget::VarDir,
+                Widget::VarOff, // x
+                Widget::VarOff, // y
+
                 int, // margin
                 int, // corner
 

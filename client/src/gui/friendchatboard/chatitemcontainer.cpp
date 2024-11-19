@@ -10,9 +10,10 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-ChatItemContainer::BackgroundWrapper::BackgroundWrapper(dir8_t argDir,
-        int argX,
-        int argY,
+ChatItemContainer::BackgroundWrapper::BackgroundWrapper(
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
 
         int argMargin,
         int argCorner,
