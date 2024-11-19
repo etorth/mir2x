@@ -88,23 +88,27 @@ void WidgetTreeNode::execDeath() noexcept
     onDeath();
 }
 
-void WidgetTreeNode::addChild(Widget *widget, bool autoDelete)
+void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete)
 {
-    fflassert(widget);
-    WidgetTreeNode *treeNode = widget;
+    fflassert(argWidget);
+    WidgetTreeNode *treeNode = argWidget;
 
     if(treeNode->m_parent){
-        treeNode->m_parent->removeChild(widget, false);
+        treeNode->m_parent->removeChild(argWidget, false);
     }
 
     treeNode->m_parent = static_cast<Widget *>(this);
-    m_childList.emplace_back(widget, autoDelete);
+    m_childList.emplace_back(argWidget, argAutoDelete);
 }
 
-void WidgetTreeNode::addChildAt(Widget *argWidget, Widget::VarDir argDir, Widget::VarOff argX, Widget::VarOff argY, bool argAutoDelete)
+void WidgetTreeNode::addChild(Widget *argWidget, bool argAutoDelete)
 {
-    fflassert(argWidget);
-    addChild(argWidget, argAutoDelete);
+    doAddChild(argWidget, argAutoDelete);
+}
+
+void WidgetTreeNode::addChildAt(Widget *argWidget, WidgetTreeNode::VarDir argDir, WidgetTreeNode::VarOff argX, WidgetTreeNode::VarOff argY, bool argAutoDelete)
+{
+    doAddChild(argWidget, argAutoDelete);
     argWidget->moveAt(std::move(argDir), std::move(argX), std::move(argY));
 }
 
