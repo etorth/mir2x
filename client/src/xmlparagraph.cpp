@@ -353,9 +353,11 @@ void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
     }
 
     m_leafList.clear();
-    for(auto pNode = xmlf::getTreeFirstLeaf(m_xmlDocument->FirstChild()); pNode; pNode = xmlf::getNextLeaf(pNode)){
-        if(xmlf::checkValidLeaf(pNode)){
-            m_leafList.emplace_back(pNode);
+    if(auto parNode = m_xmlDocument->FirstChild(); !parNode->NoChildren()){
+        for(auto nodePtr = xmlf::getNodeFirstLeaf(parNode); nodePtr; nodePtr = xmlf::getNextLeaf(nodePtr, parNode)){
+            if(xmlf::checkValidLeaf(nodePtr)){
+                m_leafList.emplace_back(nodePtr);
+            }
         }
     }
 }
@@ -420,9 +422,11 @@ size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlStr
     // this is not necessary, optimize later
 
     m_leafList.clear();
-    for(auto pNode = xmlf::getTreeFirstLeaf(m_xmlDocument->FirstChild()); pNode; pNode = xmlf::getNextLeaf(pNode)){
-        if(xmlf::checkValidLeaf(pNode)){
-            m_leafList.emplace_back(pNode);
+    if(auto parNode = m_xmlDocument->FirstChild(); !parNode->NoChildren()){
+        for(auto nodePtr = xmlf::getNodeFirstLeaf(parNode); nodePtr; nodePtr = xmlf::getNextLeaf(nodePtr, parNode)){
+            if(xmlf::checkValidLeaf(nodePtr)){
+                m_leafList.emplace_back(nodePtr);
+            }
         }
     }
 

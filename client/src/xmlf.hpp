@@ -12,15 +12,11 @@ namespace xmlf
 
     const char *findAttribute(const tinyxml2::XMLNode *, const char *, bool);
 
-    // 1. current input should be a xml leaf
-    // 2. return next xml node if exists, or nullptr
-    tinyxml2::XMLNode *getNextLeaf(tinyxml2::XMLNode *);
+    bool hasChild(tinyxml2::XMLNode *, tinyxml2::XMLNode *);
 
+    tinyxml2::XMLNode *getNextLeaf(tinyxml2::XMLNode *, tinyxml2::XMLNode * = nullptr);
     tinyxml2::XMLNode *getNodeFirstLeaf(tinyxml2::XMLNode *);
-    tinyxml2::XMLNode *getTreeFirstLeaf(tinyxml2::XMLNode *);
-
     tinyxml2::XMLNode *getNodeLastLeaf(tinyxml2::XMLNode *);
-    tinyxml2::XMLNode *getTreeLastLeaf(tinyxml2::XMLNode *);
 
     bool validTagName(const std::string &);
     bool validAttributeName(const std::string &);
