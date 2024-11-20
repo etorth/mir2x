@@ -310,6 +310,7 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid)
                 [](Widget *item)
                 {
                     if(const auto op = std::any_cast<std::string>(item->data()); op == "引用"){
+                        item->hasParent<ChatPage>()->enableChatRef("<layout><par>你好呀这里是引用</par></layout>");
                     }
                 },
             }),

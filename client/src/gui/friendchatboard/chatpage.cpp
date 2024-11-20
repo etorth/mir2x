@@ -132,6 +132,27 @@ bool ChatPage::showref() const
     return chatref && chatref->show();
 }
 
+bool ChatPage::showmenu() const
+{
+    return menu && menu->show();
+}
+
+void ChatPage::enableChatRef(std::string xmlStr)
+{
+    if(chatref){
+        removeChild(chatref, true);
+    }
+    chatref = ChatPage::createChatItemRef(std::move(xmlStr), this, true);
+}
+
+void ChatPage::disableChatRef()
+{
+    if(chatref){
+        removeChild(chatref, true);
+        chatref = nullptr;
+    }
+}
+
 void ChatPage::afterResizeDefault()
 {
     chat .afterResize();
@@ -141,9 +162,7 @@ void ChatPage::afterResizeDefault()
         return;
     }
 
-    auto xmlStr = chatref->getXML();
-    removeChild(chatref, true);
-    chatref = ChatPage::createChatItemRef(std::move(xmlStr), this, true);
+    enableChatRef(chatref->getXML());
 }
 
 bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
@@ -158,6 +177,12 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
 
     if(showref()){
         if(chatref->processEvent(event, valid)){
+            return true;
+        }
+    }
+
+    if(showmenu()){
+        if(menu->processEvent(event, valid)){
             return true;
         }
     }
