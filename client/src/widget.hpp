@@ -285,6 +285,10 @@ class WidgetTreeNode // tree concept, used by class Widget only
     public:
         /**/  Widget *hasDescendant(std::invocable<const Widget *, bool> auto);
         const Widget *hasDescendant(std::invocable<const Widget *, bool> auto) const;
+
+    public:
+        template<std::derived_from<Widget> T> /**/  T *hasParent();
+        template<std::derived_from<Widget> T> const T *hasParent() const;
 };
 
 class Widget: public WidgetTreeNode
@@ -1088,6 +1092,26 @@ const Widget *WidgetTreeNode::hasDescendant(std::invocable<const Widget *, bool>
             else if(auto descendant = child.widget->hasDescendant(f)){
                 return descendant;
             }
+        }
+    }
+    return nullptr;
+}
+
+template<std::derived_from<Widget> T> T *WidgetTreeNode::hasParent()
+{
+    for(auto p = parent(); p; p = p->parent()){
+        if(dynamic_cast<T *>(p)){
+            return static_cast<T *>(p);
+        }
+    }
+    return nullptr;
+}
+
+template<std::derived_from<Widget> T> const T *WidgetTreeNode::hasParent() const
+{
+    for(auto p = parent(); p; p = p->parent()){
+        if(dynamic_cast<const T *>(p)){
+            return static_cast<const T *>(p);
         }
     }
     return nullptr;

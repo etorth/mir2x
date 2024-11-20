@@ -283,7 +283,7 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid)
             && event.button.button == SDL_BUTTON_RIGHT
             && background.in(event.button.x, event.button.y)){
 
-        if(auto chatPage = dynamic_cast<ChatPage *>(parent(4))){
+        if(auto chatPage = hasParent<ChatPage>()){
             if(chatPage->menu){
                 chatPage->removeChild(chatPage->menu, true);
                 chatPage->menu = nullptr;
