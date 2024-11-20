@@ -88,8 +88,6 @@ ChatPage::ChatPage(
           false,
       }
 
-    , chatref(ChatPage::createChatItemRef("<layout><par>这里是引用MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM</par></layout>", this, true))
-
     , input
       {
           DIR_DOWNLEFT,
