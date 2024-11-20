@@ -2,7 +2,6 @@
 #include <vector>
 #include <stdexcept>
 #include <tinyxml2.h>
-#include "strf.hpp"
 
 namespace xmlf
 {
