@@ -307,10 +307,10 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid)
                     {(new LabelBoard(DIR_UPLEFT, 0, 0, u8"复制" , 1, 12, 0, colorf::WHITE + colorf::A_SHF(255)))->setData(std::make_any<std::string>("复制")), false, true},
                 },
 
-                [](Widget *item)
+                [this](Widget *item) // create new menu board whenever click a new chat item
                 {
                     if(const auto op = std::any_cast<std::string>(item->data()); op == "引用"){
-                        item->hasParent<ChatPage>()->enableChatRef("<layout><par>你好呀这里是引用</par></layout>");
+                        hasParent<ChatPage>()->enableChatRef(message.getXML());
                     }
                 },
             }),
