@@ -162,7 +162,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
     }
 
     m_itemList.emplace_back(argWidget, argAddSeparator);
-    m_canvas.appendItem((new Widget
+    m_canvas.addChild((new Widget
     {
         DIR_UPLEFT, // ignore
         0,

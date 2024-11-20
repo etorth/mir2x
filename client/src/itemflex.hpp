@@ -40,12 +40,12 @@ class ItemFlex: public Widget
             , m_hbox(argHBox)
         {
             for(auto [widget, autoDelete]: argChildList){
-                appendItem(widget, autoDelete);
+                addChild(widget, autoDelete);
             }
         }
 
     public:
-        void appendItem(Widget *argWidget, bool argAutoDelete)
+        void addChild(Widget *argWidget, bool argAutoDelete) override
         {
             m_origChildList.push_back(argWidget);
             if(m_hbox){
