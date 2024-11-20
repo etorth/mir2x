@@ -228,6 +228,7 @@ class LayoutBoard: public Widget
 
     public:
         std::string getXML() const;
+        std::string getText(bool) const;
 
     public:
         Widget *setFocus(bool argFocus) override

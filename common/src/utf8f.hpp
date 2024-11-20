@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
+#include <string>
 #include <cstdint>
+#include <utf8.h>
 
 namespace utf8f
 {
