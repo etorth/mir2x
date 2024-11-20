@@ -4,14 +4,15 @@
 #include <unordered_map>
 #include "serdesmsg.hpp"
 #include "widget.hpp"
+#include "itemflex.hpp"
 #include "chatitem.hpp"
 #include "labelboard.hpp"
 #include "layoutboard.hpp"
-#include "marginwrapper.hpp"
-#include "shapeclipboard.hpp"
+#include "margincontainer.hpp"
 
 struct ChatItemContainer: public Widget
 {
+    constexpr static int ITEM_SPACE = 5;
     constexpr static int BACKGROUND_MARGIN = 3;
     constexpr static int BACKGROUND_CORNER = 4;
 
@@ -20,17 +21,14 @@ struct ChatItemContainer: public Widget
     //
     // when scroll we can only move canvas inside this container
     // no need to move chat item one by one
-    //
-    // canvas height is flexible
-    // ShapeClipBoard can achieve this on drawing, but prefer ShapeClipBoard when drawing primitives
 
-    Widget canvas;
+    ItemFlex canvas;
 
     LabelBoard nomsg; // show when there is no chat message
-    LayoutBoard ops;  // block strangers, add friends, etc
+    LayoutBoard ops;  // all kinds of ops, including block strangers, add friends, etc
 
-    MarginWrapper nomsgWrapper;
-    MarginWrapper opsWrapper;
+    MarginContainer nomsgBox;
+    MarginContainer   opsBox;
 
     ChatItemContainer(
             Widget::VarDir,
@@ -48,6 +46,5 @@ struct ChatItemContainer: public Widget
     void append(const SDChatMessage &, std::function<void(const ChatItem *)>);
 
     bool hasChatItem() const;
-    const ChatItem *lastChatItem() const;
     const SDChatPeer &getChatPeer() const;
 };

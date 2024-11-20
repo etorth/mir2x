@@ -31,8 +31,8 @@ class MarginContainer: public Widget
                   std::move(argDir),
                   std::move(argX),
                   std::move(argY),
-                  std::move(argW)
-                  std::move(argH)
+                  std::move(argW),
+                  std::move(argH),
 
                   {},
 
@@ -56,7 +56,7 @@ class MarginContainer: public Widget
 
             true);
 
-            Widget::addChild(argWidget, [this](const Widget *)
+            Widget::addChildAt(argWidget, [this](const Widget *)
             {
                 return Widget::evalDir(m_widgetDir, this);
             },
@@ -101,8 +101,8 @@ class MarginContainer: public Widget
         }
 
     public:
-        void addChild(Widget *,                                                 bool) override { throw fflreach(); }
-        void addChild(Widget *, Widget::VarDir, Widget::VarOff, Widget::VarOff, bool) override { throw fflreach(); }
+        void addChild  (Widget *,                                                 bool) override { throw fflreach(); }
+        void addChildAt(Widget *, Widget::VarDir, Widget::VarOff, Widget::VarOff, bool) override { throw fflreach(); }
 
     public:
         const Widget *contained() const { return lastChild(); }

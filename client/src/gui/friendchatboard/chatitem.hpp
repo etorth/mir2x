@@ -54,7 +54,6 @@ struct ChatItem: public Widget
     constexpr static int AVATAR_HEIGHT = AVATAR_WIDTH * 94 / 84;
 
     constexpr static int GAP = 5;
-    constexpr static int ITEM_SPACE = 5;  // space between two items
     constexpr static int NAME_HEIGHT = 20;
 
     constexpr static int TRIANGLE_WIDTH  = 4;

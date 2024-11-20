@@ -4,6 +4,7 @@
 #include "processrun.hpp"
 #include "chatpage.hpp"
 #include "chatitem.hpp"
+#include "margincontainer.hpp"
 #include "friendchatboard.hpp"
 #include "chatitemcontainer.hpp"
 
@@ -52,7 +53,9 @@ ChatItemContainer::ChatItemContainer(
               return w();
           },
 
-          {},
+          false,
+          ChatItemContainer::ITEM_SPACE,
+
           {},
 
           this,
@@ -120,80 +123,58 @@ ChatItemContainer::ChatItemContainer(
           },
       }
 
-    , nomsgWrapper
+    , nomsgBox
       {
-          DIR_UP,
-          [this](const Widget *){ return canvas.w() / 2; },
-          ChatItem::ITEM_SPACE,
+          DIR_UPLEFT,
+          0,
+          0,
+
+          [this](const Widget *){ return canvas.w(); },
+          [this](const Widget *){ return nomsg.h() + 2 * ChatItemContainer::BACKGROUND_MARGIN; },
 
           &nomsg,
+          DIR_NONE,
           false,
 
+          [this](const Widget *, int, int)
           {
-              ChatItemContainer::BACKGROUND_MARGIN,
-              ChatItemContainer::BACKGROUND_MARGIN,
-              ChatItemContainer::BACKGROUND_MARGIN,
-              ChatItemContainer::BACKGROUND_MARGIN,
+              g_sdlDevice->fillRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64),
+                      nomsg.x() - ChatItemContainer::BACKGROUND_MARGIN,
+                      nomsg.y() - ChatItemContainer::BACKGROUND_MARGIN,
+                      nomsg.w() + ChatItemContainer::BACKGROUND_MARGIN * 2,
+                      nomsg.h() + ChatItemContainer::BACKGROUND_MARGIN * 2, ChatItemContainer::BACKGROUND_CORNER);
           },
-
-          [](const Widget *self, int drawDstX, int drawDstY)
-          {
-              g_sdlDevice->fillRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64), drawDstX, drawDstY, self->w(), self->h(), ChatItemContainer::BACKGROUND_CORNER);
-          },
-
-          &canvas,
-          false,
       }
 
-    , opsWrapper
+    , opsBox
       {
-          DIR_UPLEFT, // setup later
+          DIR_UPLEFT,
           0,
           0,
+
+          [this](const Widget *){ return canvas.w(); },
+          [this](const Widget *){ return ops.h() + 2 * ChatItemContainer::BACKGROUND_MARGIN; },
 
           &ops,
+          DIR_NONE,
           false,
 
+          [this](const Widget *, int, int)
           {
-              ChatItemContainer::BACKGROUND_MARGIN,
-              ChatItemContainer::BACKGROUND_MARGIN,
-              ChatItemContainer::BACKGROUND_MARGIN,
-              ChatItemContainer::BACKGROUND_MARGIN,
+              g_sdlDevice->fillRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64),
+                      ops.x() - ChatItemContainer::BACKGROUND_MARGIN,
+                      ops.y() - ChatItemContainer::BACKGROUND_MARGIN,
+                      ops.w() + ChatItemContainer::BACKGROUND_MARGIN * 2,
+                      ops.h() + ChatItemContainer::BACKGROUND_MARGIN * 2, ChatItemContainer::BACKGROUND_CORNER);
           },
-
-          [](const Widget *self, int drawDstX, int drawDstY)
-          {
-              g_sdlDevice->fillRectangle(colorf::RGB(231, 231, 189) + colorf::A_SHF(64), drawDstX, drawDstY, self->w(), self->h(), ChatItemContainer::BACKGROUND_CORNER);
-          },
-
-          &canvas,
-          false,
       }
 {
-    opsWrapper.moveAt(DIR_UP, [this](const Widget *)
-    {
-        return canvas.w() / 2;
-    },
-
-    [this](const Widget *)
-    {
-        if(const auto lastItem = lastChatItem()){
-            return lastItem->dy() + lastItem->h() + ChatItem::ITEM_SPACE;
-        }
-        else if(nomsgWrapper.show()){
-            return nomsgWrapper.dy() + nomsgWrapper.h() + ChatItem::ITEM_SPACE;
-        }
-        else{
-            return ChatItem::ITEM_SPACE;
-        }
-    });
-
-    nomsgWrapper.setShow([this](const Widget *)
+    nomsgBox.setShow([this](const Widget *) -> bool
     {
         return !hasChatItem();
     });
 
-    opsWrapper.setShow([this](const Widget *) -> bool
+    opsBox.setShow([this](const Widget *) -> bool
     {
         if(!hasChatItem()){
             return false;
@@ -213,13 +194,16 @@ ChatItemContainer::ChatItemContainer(
 
         return !FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
     });
+
+    canvas.addChild(&nomsgBox, false);
+    canvas.addChild(&  opsBox, false);
 }
 
 void ChatItemContainer::clearChatItem()
 {
     canvas.clearChild([this](const Widget *child, bool)
     {
-        return child != &nomsgWrapper && child != &opsWrapper;
+        return child != &nomsgBox && child != &opsBox;
     });
 }
 
@@ -232,29 +216,8 @@ bool ChatItemContainer::hasChatItem() const
 {
     return canvas.foreachChild([this](const Widget *widget, bool)
     {
-        return widget != &nomsgWrapper && widget != &opsWrapper;
+        return widget != &nomsgBox && widget != &opsBox;
     });
-}
-
-const ChatItem *ChatItemContainer::lastChatItem() const
-{
-    const Widget *lastItem = nullptr;
-    canvas.foreachChild([&lastItem, this](const Widget *widget, bool)
-    {
-        if(widget != &nomsgWrapper && widget != &opsWrapper){
-            if(lastItem){
-                if(lastItem->dy() + lastItem->h() < widget->dy() + widget->h()){
-                    lastItem = widget;
-                }
-            }
-            else{
-                lastItem = widget;
-            }
-        }
-        return false;
-    });
-
-    return dynamic_cast<const ChatItem *>(lastItem);
 }
 
 const SDChatPeer &ChatItemContainer::getChatPeer() const
@@ -266,7 +229,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
 {
     auto chatItem = new ChatItem
     {
-        DIR_UPLEFT, // setup later
+        DIR_UPLEFT,
         0,
         0,
         chatItemMaxWidth(), // cannot auto-stretch
@@ -288,35 +251,24 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         {},
     };
 
-    const auto extraH = ChatItem::ITEM_SPACE + nomsgWrapper.h(); // extra height if nomsgWrapper box shows
-    const auto startY = [extraH, this]() -> int // start Y if nomsgWrapper shows
+    auto chatItemBox = new MarginContainer
     {
-        if(const auto lastItem = lastChatItem()){
-            if(nomsgWrapper.show()) return          lastItem->dy() + lastItem->h() + ChatItem::ITEM_SPACE;
-            else                    return extraH + lastItem->dy() + lastItem->h() + ChatItem::ITEM_SPACE;
-        }
-        else{
-            return extraH + ChatItem::ITEM_SPACE;
-        }
-    }();
+        DIR_UPLEFT,
+        0,
+        0,
 
-    if(chatItem->avatarLeft){
-        chatItem->moveAt(DIR_UPLEFT, 0, [extraH, startY, this](const Widget *)
-        {
-            return startY - (nomsgWrapper.show() ? 0 : extraH);
-        });
-    }
-    else{
-        chatItem->moveAt(DIR_UPRIGHT, [this](const Widget *)
-        {
-            return canvas.w() - 1;
-        },
+        [this    ](const Widget *){ return    canvas.w(); },
+        [chatItem](const Widget *){ return chatItem->h(); },
 
-        [extraH, startY, this](const Widget *)
-        {
-            return startY - (nomsgWrapper.show() ? 0 : extraH);
-        });
-    }
+        chatItem,
+
+        [chatItem](const Widget *){ return chatItem->avatarLeft ? DIR_LEFT : DIR_RIGHT; },
+        true,
+    };
+
+    canvas.removeChild(    &opsBox, false);
+    canvas.   addChild(chatItemBox, true );
+    canvas.   addChild(    &opsBox, false);
 
     chatItem->setAfterResize([this](Widget *self)
     {
@@ -330,11 +282,10 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         ops.loadXML(R"###(<layout><par>对方不是你的好友，你可以<event id="添加">添加</event>对方为好友，或者<event id="屏蔽">屏蔽</event>对方的消息。</par></layout>)###");
     }
 
-    canvas.addChild(chatItem, true);
     FriendChatBoard::getParentBoard(this)->queryChatPeer(sdCM.from, [widgetID = chatItem->id(), sdCM, fnOp = std::move(fnOp), this](const SDChatPeer *peer, bool)
     {
         fflassert(peer, sdCM.from.asU64());
-        if(auto chatItem = dynamic_cast<ChatItem *>(this->canvas.hasChild(widgetID))){
+        if(auto chatItem = dynamic_cast<ChatItem *>(this->canvas.hasDescendant(widgetID))){
             const auto from = sdCM.from;
             const auto job    = peer->player() ? peer->player()->job    : 0;
             const auto gender = peer->player() ? peer->player()->gender : false;

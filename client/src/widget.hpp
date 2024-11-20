@@ -33,8 +33,8 @@ class WidgetTreeNode // tree concept, used by class Widget only
     private:
         friend class Widget;
 
-    private:
-        struct WidgetChildElement
+    protected:
+        struct ChildElement final
         {
             Widget *widget     = nullptr;
             bool    autoDelete = false;
@@ -50,7 +50,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
         Widget * m_parent;
 
     private:
-        std::list<WidgetChildElement> m_childList; // widget shall NOT access this list directly
+        std::list<WidgetTreeNode::ChildElement> m_childList; // widget shall NOT access this list directly
 
     private:
         std::vector<Widget *> m_delayList;
@@ -225,10 +225,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
             for(auto &child: m_childList){
                 if(child.widget){
                     if(f(child.widget, child.autoDelete)){
-                        if(child.autoDelete){
-                            m_delayList.push_back(child.widget);
-                        }
-                        child.widget = nullptr;
+                        removeChildElement(child, true);
                     }
                 }
             }
@@ -239,9 +236,12 @@ class WidgetTreeNode // tree concept, used by class Widget only
             clearChild([](const Widget *, bool){ return true; });
         }
 
+    protected:
+        virtual void removeChildElement(WidgetTreeNode::ChildElement &, bool);
+
     public:
         virtual void purge();
-        virtual void removeChild(Widget *, bool) final;
+        virtual void removeChild(Widget *, bool);
 
     private:
         virtual void doAddChild(Widget *, bool) final;
@@ -277,6 +277,14 @@ class WidgetTreeNode // tree concept, used by class Widget only
             }
             return nullptr;
         }
+
+    public:
+        /**/  Widget *hasDescendant(uint64_t);
+        const Widget *hasDescendant(uint64_t) const;
+
+    public:
+        /**/  Widget *hasDescendant(std::invocable<const Widget *, bool> auto);
+        const Widget *hasDescendant(std::invocable<const Widget *, bool> auto) const;
 };
 
 class Widget: public WidgetTreeNode
@@ -286,6 +294,9 @@ class Widget: public WidgetTreeNode
         using WidgetTreeNode::VarOff;
         using WidgetTreeNode::VarSize;
         using WidgetTreeNode::VarFlag;
+
+    public:
+        using WidgetTreeNode::ChildElement;
 
     public:
         static bool hasIntDir(const Widget::VarDir &varDir)
@@ -1051,3 +1062,33 @@ class Widget: public WidgetTreeNode
             return setW(std::move(argW))->setH(std::move(argH));
         }
 };
+
+Widget *WidgetTreeNode::hasDescendant(std::invocable<const Widget *, bool> auto f)
+{
+    for(auto &child: m_childList){
+        if(child.widget){
+            if(f(child.widget, child.autoDelete)){
+                return child.widget;
+            }
+            else if(auto descendant = child.widget->hasDescendant(f)){
+                return descendant;
+            }
+        }
+    }
+    return nullptr;
+}
+
+const Widget *WidgetTreeNode::hasDescendant(std::invocable<const Widget *, bool> auto f) const
+{
+    for(auto &child: m_childList){
+        if(child.widget){
+            if(f(child.widget, child.autoDelete)){
+                return child.widget;
+            }
+            else if(auto descendant = child.widget->hasDescendant(f)){
+                return descendant;
+            }
+        }
+    }
+    return nullptr;
+}

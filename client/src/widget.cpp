@@ -112,18 +112,27 @@ void WidgetTreeNode::addChildAt(Widget *argWidget, WidgetTreeNode::VarDir argDir
     argWidget->moveAt(std::move(argDir), std::move(argX), std::move(argY));
 }
 
-void WidgetTreeNode::removeChild(Widget *widget, bool triggerDelete)
+void WidgetTreeNode::removeChild(Widget *argWidget, bool argTriggerDelete)
 {
-    for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
-        if(WidgetTreeNode * treeNode = p->widget; p->widget == widget){
-            p->widget = nullptr;
-            treeNode->m_parent = nullptr;
-
-            if(triggerDelete && p->autoDelete){
-                widget->execDeath();
-                m_delayList.push_back(widget);
+    if(argWidget){
+        for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
+            if(p->widget == argWidget){
+                removeChildElement(*p, argTriggerDelete);
+                return;
             }
-            return;
+        }
+    }
+}
+
+void WidgetTreeNode::removeChildElement(WidgetTreeNode::ChildElement &argElement, bool argTriggerDelete)
+{
+    if(auto widptr = argElement.widget){
+        widptr->m_parent = nullptr;
+        argElement.widget = nullptr;
+
+        if(argElement.autoDelete && argTriggerDelete){
+            widptr->execDeath();
+            m_delayList.push_back(widptr);
         }
     }
 }
@@ -170,6 +179,36 @@ const Widget *WidgetTreeNode::hasChild(uint64_t argID) const
     for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
         if(p->widget && p->widget->id() == argID){
             return p->widget;
+        }
+    }
+    return nullptr;
+}
+
+Widget *WidgetTreeNode::hasDescendant(uint64_t argID)
+{
+    for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
+        if(p->widget){
+            if(p->widget->id() == argID){
+                return p->widget;
+            }
+            else if(auto descendant = p->widget->hasDescendant(argID)){
+                return descendant;
+            }
+        }
+    }
+    return nullptr;
+}
+
+const Widget *WidgetTreeNode::hasDescendant(uint64_t argID) const
+{
+    for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
+        if(p->widget){
+            if(p->widget->id() == argID){
+                return p->widget;
+            }
+            else if(auto descendant = p->widget->hasDescendant(argID)){
+                return descendant;
+            }
         }
     }
     return nullptr;
