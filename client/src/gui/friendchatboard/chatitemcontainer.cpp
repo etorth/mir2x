@@ -285,7 +285,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
     FriendChatBoard::getParentBoard(this)->queryChatPeer(sdCM.from, [widgetID = chatItem->id(), sdCM, fnOp = std::move(fnOp), this](const SDChatPeer *peer, bool)
     {
         fflassert(peer, sdCM.from.asU64());
-        if(auto chatItem = dynamic_cast<ChatItem *>(this->canvas.hasDescendant(widgetID))){
+        if(auto chatItem = dynamic_cast<ChatItem *>(canvas.hasDescendant(widgetID))){
             const auto from = sdCM.from;
             const auto job    = peer->player() ? peer->player()->job    : 0;
             const auto gender = peer->player() ? peer->player()->gender : false;

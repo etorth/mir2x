@@ -1222,7 +1222,7 @@ void FriendChatBoard::addMessage(std::optional<uint64_t> localPendingID, const S
         else{
             if(chatPage->peer.cpid() == peerIter->cpid){
                 if(localPendingID.has_value()){
-                    if(auto p = chatPage->chat.canvas.hasChild(localPendingID.value())){
+                    if(auto p = chatPage->chat.canvas.hasDescendant(localPendingID.value())){
                         dynamic_cast<ChatItem *>(p)->pending = false;
                     }
                 }

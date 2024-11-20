@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <utility>
 #include <initializer_list>
 #include "widget.hpp"
 
@@ -66,6 +67,10 @@ class ItemFlex: public Widget
                             break;
                         }
 
+                        if(!widget->show()){
+                            continue;
+                        }
+
                         offset += widget->w();
                         offset += itemSpace;
                     }
@@ -85,6 +90,10 @@ class ItemFlex: public Widget
                     for(auto widget: m_origChildList){
                         if(widget == self){
                             break;
+                        }
+
+                        if(!widget->show()){
+                            continue;
                         }
 
                         offset += widget->h();

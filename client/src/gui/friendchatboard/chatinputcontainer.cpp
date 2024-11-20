@@ -98,10 +98,8 @@ ChatInputContainer::ChatInputContainer(
                   msgbuf.append(chatMessage.message.begin(), chatMessage.message.end());
 
                   const auto widgetID = chatItem->id();
-                  const auto chatItemCanvas = std::addressof(dynamic_cast<ChatPage *>(parent())->chat.canvas);
-
                   FriendChatBoard::getParentBoard(this)->addMessagePending(widgetID, chatMessage);
-                  g_client->send({CM_CHATMESSAGE, msgbuf}, [widgetID, chatItemCanvas, chatMessage, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+                  g_client->send({CM_CHATMESSAGE, msgbuf}, [widgetID, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
                   {
                       switch(headCode){
                           case SM_OK:
