@@ -123,9 +123,9 @@ bool SearchAutoCompletionItem::processEventDefault(const SDL_Event &event, bool 
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(in(event.button.x, event.button.y)){
-                    dynamic_cast<SearchPage *>(this->parent(2))->candidates.setShow(true);
-                    dynamic_cast<SearchPage *>(this->parent(2))->autocompletes.setShow(false);
-                    dynamic_cast<SearchPage *>(this->parent(2))->input.input.setInput(byID ? std::to_string(candidate.id).c_str() : candidate.name.c_str());
+                    hasParent<SearchPage>()->candidates.setShow(true);
+                    hasParent<SearchPage>()->autocompletes.setShow(false);
+                    hasParent<SearchPage>()->input.input.setInput(byID ? std::to_string(candidate.id).c_str() : candidate.name.c_str());
                     return consumeFocus(true);
                 }
                 return false;

@@ -222,7 +222,7 @@ bool ChatItemContainer::hasChatItem() const
 
 const SDChatPeer &ChatItemContainer::getChatPeer() const
 {
-    return dynamic_cast<const ChatPage *>(parent())->peer;
+    return hasParent<ChatPage>()->peer;
 }
 
 void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(const ChatItem *)> fnOp)

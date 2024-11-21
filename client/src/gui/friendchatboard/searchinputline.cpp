@@ -105,8 +105,8 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
           nullptr,
           [this]()
           {
-              dynamic_cast<SearchPage *>(parent())->candidates.setShow(true);
-              dynamic_cast<SearchPage *>(parent())->autocompletes.setShow(false);
+              hasParent<SearchPage>()->candidates.setShow(true);
+              hasParent<SearchPage>()->autocompletes.setShow(false);
           },
 
           [this](std::string query)
@@ -114,11 +114,11 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
               hint.setShow(query.empty());
 
               if(query.empty()){
-                  dynamic_cast<SearchPage *>(parent())->candidates.clearChild();
-                  dynamic_cast<SearchPage *>(parent())->autocompletes.clearChild();
+                  hasParent<SearchPage>()->candidates.clearChild();
+                  hasParent<SearchPage>()->autocompletes.clearChild();
 
-                  dynamic_cast<SearchPage *>(parent())->candidates.setShow(false);
-                  dynamic_cast<SearchPage *>(parent())->autocompletes.setShow(true);
+                  hasParent<SearchPage>()->candidates.setShow(false);
+                  hasParent<SearchPage>()->autocompletes.setShow(true);
               }
               else{
                   CMQueryChatPeerList cmQPC;
@@ -130,12 +130,12 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
                       switch(headCode){
                           case SM_OK:
                             {
-                                dynamic_cast<SearchPage *>(parent())->candidates.clearChild();
-                                dynamic_cast<SearchPage *>(parent())->autocompletes.clearChild();
+                                hasParent<SearchPage>()->candidates.clearChild();
+                                hasParent<SearchPage>()->autocompletes.clearChild();
 
                                 for(const auto &candidate: cerealf::deserialize<SDChatPeerList>(data, size)){
-                                    dynamic_cast<SearchPage *>(parent())->appendFriendItem(candidate);
-                                    dynamic_cast<SearchPage *>(parent())->appendAutoCompletionItem(query == std::to_string(candidate.id), candidate, [&candidate, &query]
+                                    hasParent<SearchPage>()->appendFriendItem(candidate);
+                                    hasParent<SearchPage>()->appendAutoCompletionItem(query == std::to_string(candidate.id), candidate, [&candidate, &query]
                                     {
                                         if(const auto pos = candidate.name.find(query); pos != std::string::npos){
                                             return str_printf(R"###(<par>%s<t color="red">%s</t>%s（%llu）</par>)###", candidate.name.substr(0, pos).c_str(), query.c_str(), candidate.name.substr(pos + query.size()).c_str(), to_llu(candidate.id));
