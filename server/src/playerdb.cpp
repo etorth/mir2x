@@ -323,6 +323,28 @@ std::optional<SDChatPeer> Player::dbLoadChatPeer(uint64_t argCPID)
     }
 }
 
+std::optional<SDChatMessage> Player::dbQueryChatMessage(uint64_t argMsgID)
+{
+    if(auto query = g_dbPod->createQuery("select * from tbl_chatmessage where fld_id = %llu", to_llu(argMsgID)); query.executeStep()){
+        return SDChatMessage
+        {
+            .seq = SDChatMessageDBSeq
+            {
+                .id        = to_u64(query.getColumn("fld_id").getInt64()),
+                .timestamp = to_u64(query.getColumn("fld_timestamp").getInt64()),
+            },
+
+            .refer = query.getColumn("fld_refer").isNull() ? std::nullopt : std::make_optional<uint64_t>(query.getColumn("fld_refer").getInt64()),
+
+            .from = SDChatPeerID(to_u64(query.getColumn("fld_from").getInt64())),
+            .to   = SDChatPeerID(to_u64(query.getColumn("fld_to"  ).getInt64())),
+
+            .message = query.getColumn("fld_message").getString(),
+        };
+    }
+    return std::nullopt;
+}
+
 std::vector<uint32_t> Player::dbLoadChatGroupMemberList(uint32_t chatGroup)
 {
     std::vector<uint32_t> result;
@@ -660,17 +682,18 @@ void Player::dbLoadFriendList()
     }
 }
 
-std::tuple<uint64_t, uint64_t> Player::dbSaveChatMessage(const SDChatPeerID &fromCPID, const SDChatPeerID &toCPID, const std::string_view &sv)
+std::tuple<uint64_t, uint64_t> Player::dbSaveChatMessage(const SDChatPeerID &fromCPID, const SDChatPeerID &toCPID, const std::string_view &sv, std::optional<uint64_t> argRef)
 {
     auto tstamp= hres_tstamp::localtime();
     auto query = g_dbPod->createQuery(
-        u8R"###( insert into tbl_chatmessage(fld_timestamp, fld_from, fld_to, fld_message) )###"
-        u8R"###( values                                                                    )###"
-        u8R"###(     (%llu, %llu, %llu, ?)                                                 )###"
-        u8R"###( returning                                                                 )###"
-        u8R"###(     fld_id;                                                               )###",
+        u8R"###( insert into tbl_chatmessage(fld_timestamp, fld_refer, fld_from, fld_to, fld_message) )###"
+        u8R"###( values                                                                               )###"
+        u8R"###(     (%llu, %s, %llu, %llu, ?)                                                        )###"
+        u8R"###( returning                                                                            )###"
+        u8R"###(     fld_id;                                                                          )###",
 
         to_llu(tstamp),
+        argRef.has_value() ? std::to_string(argRef.value()).c_str() : "null",
         to_llu(fromCPID.asU64()),
         to_llu(  toCPID.asU64()));
 
@@ -737,6 +760,8 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
                 .id        = to_u64(query.getColumn("fld_id").getInt64()),
                 .timestamp = to_u64(query.getColumn("fld_timestamp").getInt64()),
             },
+
+            .refer = query.getColumn("fld_refer").isNull() ? std::nullopt : std::make_optional<uint64_t>(query.getColumn("fld_refer").getInt64()),
 
             .from = SDChatPeerID(to_u64(query.getColumn("fld_from").getInt64())),
             .to   = SDChatPeerID(to_u64(query.getColumn("fld_to"  ).getInt64())),

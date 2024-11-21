@@ -70,6 +70,8 @@ struct ChatItem: public Widget
     bool pending = true;
     double accuTime = 0.0;
 
+    std::optional<uint64_t> msgID = std::nullopt; // support some fake chat message
+
     const bool showName;
     const bool avatarLeft;
     const std::optional<uint32_t> bgColor;
@@ -77,7 +79,7 @@ struct ChatItem: public Widget
     ImageBoard avatar;
     LabelBoard name;
 
-    LayoutBoard    message;
+    LayoutBoard message;
     ShapeClipBoard background;
 
     ChatItemRef * const msgref = nullptr;
@@ -89,6 +91,9 @@ struct ChatItem: public Widget
 
             int,
             bool,
+
+            std::optional<uint64_t>,
+            std::optional<uint64_t>,
 
             const char8_t *,
             const char8_t *,

@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <string>
+#include <optional>
 #include <unordered_map>
 #include "serdesmsg.hpp"
 #include "widget.hpp"
@@ -84,10 +85,12 @@ struct ChatPage: public Widget
     bool showref() const;
     bool showmenu() const;
 
-    void  enableChatRef(std::string);
+    std::optional<uint64_t> refopt() const;
+
+    void  enableChatRef(uint64_t, std::string);
     void disableChatRef();
 
     void afterResizeDefault() override;
     bool processEventDefault(const SDL_Event &, bool) override;
-    static ChatItemRef *createChatItemRef(std::string, Widget *, bool);
+    static ChatItemRef *createChatItemRef(uint64_t, std::string, Widget *, bool);
 };

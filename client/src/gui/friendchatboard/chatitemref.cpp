@@ -14,6 +14,7 @@ ChatItemRef::ChatItemRef(
         bool argForceWidth,
         bool argShowButton,
 
+        uint64_t argRef,
         std::string argLayoutXML,
 
         Widget *argParent,
@@ -155,6 +156,8 @@ ChatItemRef::ChatItemRef(
           this,
           false,
       }
+
+    , m_refer(argRef)
 
     , m_message
       {

@@ -15,6 +15,9 @@ ChatItem::ChatItem(
         int  argMaxWidth,
         bool argPending,
 
+        /**/  std::optional<uint64_t> argMsgID,
+        const std::optional<uint64_t> argMsgRefID,
+
         const char8_t *argNameStr,
         const char8_t *argMessageStr,
         const char8_t *argMessageRefStr,
@@ -43,6 +46,7 @@ ChatItem::ChatItem(
       }
 
     , pending(argPending)
+    , msgID(argMsgID)
     , showName(argShowName)
     , avatarLeft(argAvatarLeft)
     , bgColor(std::move(argBGColor))
@@ -203,7 +207,7 @@ ChatItem::ChatItem(
           },
       }
 
-    , msgref(argMessageRefStr ? new ChatItemRef
+    , msgref(argMsgRefID.has_value() ? new ChatItemRef
       {
           DIR_UPLEFT,
           0,
@@ -213,6 +217,7 @@ ChatItem::ChatItem(
           false,
           false,
 
+          argMsgRefID.value(),
           to_cstr(argMessageRefStr),
       } : nullptr)
 {
@@ -320,7 +325,7 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid)
                             textStr.resize(std::distance(textStr.begin(), p));
                             textStr.append("...");
                         }
-                        hasParent<ChatPage>()->enableChatRef("<layout>" + xmlf::toParString("%s：%s", name.getText(false).c_str(), textStr.c_str()) + "</layout>");
+                        hasParent<ChatPage>()->enableChatRef(msgID.value(), "<layout>" + xmlf::toParString("%s：%s", name.getText(false).c_str(), textStr.c_str()) + "</layout>");
                     }
                 },
             }),

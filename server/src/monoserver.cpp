@@ -378,6 +378,7 @@ void MonoServer::createDefaultDatabase()
         u8R"###( create table tbl_chatmessage(                                           )###"
         u8R"###(     fld_id             integer not null primary key autoincrement,      )###"
         u8R"###(     fld_timestamp      integer not null,                                )###"
+        u8R"###(     fld_refer          integer,                                         )###"
         u8R"###(     fld_from           integer not null,                                )###"
         u8R"###(     fld_to             integer not null,                                )###"
         u8R"###(     fld_message        blob        null default (x'')                   )###"

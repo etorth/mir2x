@@ -3,6 +3,7 @@
 #include <deque>
 #include <cstdint>
 #include <cstring>
+#include <optional>
 #include <type_traits>
 #include "totype.hpp"
 #include "monoserver.hpp"
@@ -200,6 +201,7 @@ class Player final: public BattleObject
         void net_CM_QUERYPLAYERNAME           (uint8_t, const uint8_t *, size_t, uint64_t);
         void net_CM_QUERYPLAYERWLDESP         (uint8_t, const uint8_t *, size_t, uint64_t);
         void net_CM_QUERYCHATPEERLIST         (uint8_t, const uint8_t *, size_t, uint64_t);
+        void net_CM_QUERYCHATMESSAGE          (uint8_t, const uint8_t *, size_t, uint64_t);
         void net_CM_QUERYSELLITEMLIST         (uint8_t, const uint8_t *, size_t, uint64_t);
         void net_CM_QUERYUIDBUFF              (uint8_t, const uint8_t *, size_t, uint64_t);
         void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -337,7 +339,7 @@ class Player final: public BattleObject
         void dbRemoveInventoryItem(uint32_t, uint32_t);
 
     private:
-        static std::tuple<uint64_t, uint64_t> dbSaveChatMessage(const SDChatPeerID &, const SDChatPeerID &, const std::string_view &);
+        static std::tuple<uint64_t, uint64_t> dbSaveChatMessage(const SDChatPeerID &, const SDChatPeerID &, const std::string_view &, std::optional<uint64_t>);
         SDChatMessageList dbRetrieveLatestChatMessage(const std::span<const uint64_t> &, size_t, bool, bool);
 
     private:
@@ -358,6 +360,7 @@ class Player final: public BattleObject
     private:
         void dbLoadPlayerConfig();
         std::optional<SDChatPeer> dbLoadChatPeer(uint64_t);
+        std::optional<SDChatMessage> dbQueryChatMessage(uint64_t);
         std::vector<uint32_t> dbLoadChatGroupMemberList(uint32_t);
         SDChatPeerList dbQueryChatPeerList(const std::string &, bool, bool);
 

@@ -37,6 +37,7 @@ enum CMType: uint8_t
     CM_QUERYPLAYERNAME,
     CM_QUERYPLAYERWLDESP,
     CM_QUERYCHATPEERLIST,
+    CM_QUERYCHATMESSAGE,
     CM_CREATECHATGROUP,
     CM_CREATEACCOUNT,
     CM_NPCEVENT,
@@ -153,6 +154,18 @@ struct CMQueryPlayerWLDesp
 struct CMQueryChatPeerList
 {
     StaticBuffer<128> input;
+};
+
+struct CMChatMessageHeader
+{
+    uint64_t toCPID;
+    uint64_t hasRef :  1;
+    uint64_t refID  : 63;
+};
+
+struct CMQueryChatMessage
+{
+    uint64_t msgid;
 };
 
 struct CMCreateChatGroup
@@ -326,6 +339,7 @@ namespace
         _RSVD_register_clientmsg(CM_QUERYPLAYERNAME,            1, sizeof(CMQueryPlayerName)           );
         _RSVD_register_clientmsg(CM_QUERYPLAYERWLDESP,          1, sizeof(CMQueryPlayerWLDesp)         );
         _RSVD_register_clientmsg(CM_QUERYCHATPEERLIST,          1, sizeof(CMQueryChatPeerList)         );
+        _RSVD_register_clientmsg(CM_QUERYCHATMESSAGE,           1, sizeof(CMQueryChatMessage)          );
         _RSVD_register_clientmsg(CM_CREATECHATGROUP,            1, sizeof(CMCreateChatGroup)           );
         _RSVD_register_clientmsg(CM_CREATEACCOUNT,              1, sizeof(CMCreateAccount)             );
         _RSVD_register_clientmsg(CM_CHANGEPASSWORD,             1, sizeof(CMChangePassword)            );

@@ -137,12 +137,20 @@ bool ChatPage::showmenu() const
     return menu && menu->show();
 }
 
-void ChatPage::enableChatRef(std::string xmlStr)
+std::optional<uint64_t> ChatPage::refopt() const
+{
+    if(showref()){
+        return chatref->refer();
+    }
+    return std::nullopt;
+}
+
+void ChatPage::enableChatRef(uint64_t refMsgID, std::string xmlStr)
 {
     if(chatref){
         removeChild(chatref, true);
     }
-    chatref = ChatPage::createChatItemRef(std::move(xmlStr), this, true);
+    chatref = ChatPage::createChatItemRef(refMsgID, std::move(xmlStr), this, true);
 }
 
 void ChatPage::disableChatRef()
@@ -162,7 +170,7 @@ void ChatPage::afterResizeDefault()
         return;
     }
 
-    enableChatRef(chatref->getXML());
+    enableChatRef(chatref->refer(), chatref->getXML());
 }
 
 bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
@@ -235,7 +243,7 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid)
     }
 }
 
-ChatItemRef *ChatPage::createChatItemRef(std::string xmlStr, Widget *self, bool autoDelete)
+ChatItemRef *ChatPage::createChatItemRef(uint64_t msgID, std::string xmlStr, Widget *self, bool autoDelete)
 {
     return new ChatItemRef
     {
@@ -247,6 +255,7 @@ ChatItemRef *ChatPage::createChatItemRef(std::string xmlStr, Widget *self, bool 
         true,
         true,
 
+        msgID,
         xmlStr.c_str(),
 
         self,

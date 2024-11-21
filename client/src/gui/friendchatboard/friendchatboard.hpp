@@ -69,6 +69,9 @@ class FriendChatBoard: public Widget
         std::list<SDChatPeer> m_cachedChatPeerList;
 
     private:
+        std::unordered_map<uint64_t, SDChatMessage> m_cachedChatMessageList;
+
+    private:
         std::unordered_map<uint64_t, SDChatMessage> m_localMessageList;
         std::list<FriendMessage> m_friendMessageList;
 
@@ -93,6 +96,7 @@ class FriendChatBoard: public Widget
         const SDChatPeer *findFriendChatPeer(const SDChatPeerID &) const;
 
     private:
+        void queryChatMessage(uint64_t, std::function<void(const SDChatMessage *, bool)>);
         void queryChatPeer(const SDChatPeerID &, std::function<void(const SDChatPeer *, bool /* async */)>);
 
     public:

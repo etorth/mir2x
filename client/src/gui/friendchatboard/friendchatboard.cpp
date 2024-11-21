@@ -1116,6 +1116,38 @@ const SDChatPeer *FriendChatBoard::findChatPeer(const SDChatPeerID &sdCPID) cons
     return nullptr;
 }
 
+void FriendChatBoard::queryChatMessage(uint64_t argMsgID, std::function<void(const SDChatMessage *, bool)> argOp)
+{
+    if(auto p = m_cachedChatMessageList.find(argMsgID); p != m_cachedChatMessageList.end()){
+        if(argOp){
+            argOp(std::addressof(p->second), false);
+        }
+    }
+
+    else{
+        CMQueryChatMessage cmQCM;
+        std::memset(&cmQCM, 0, sizeof(cmQCM));
+
+        cmQCM.msgid = argMsgID;
+        g_client->send({CM_QUERYCHATMESSAGE, cmQCM}, [argMsgID, argOp = std::move(argOp), this](uint8_t headCode, const uint8_t *data, size_t size)
+        {
+            if(headCode == SM_OK){
+                const auto sdCM = cerealf::deserialize<SDChatMessage>(data, size);
+                fflassert(sdCM.seq.has_value());
+                fflassert(sdCM.seq.value().id == argMsgID);
+
+                auto iter = m_cachedChatMessageList.emplace(argMsgID, sdCM);
+                if(argOp){
+                    argOp(std::addressof(iter.first->second), true);
+                }
+            }
+            else if(argOp){
+                argOp(nullptr, true);
+            }
+        });
+    }
+}
+
 void FriendChatBoard::queryChatPeer(const SDChatPeerID &sdCPID, std::function<void(const SDChatPeer *, bool)> argOp)
 {
     if(auto p = sdCPID.group() ? nullptr : findChatPeer(sdCPID)){

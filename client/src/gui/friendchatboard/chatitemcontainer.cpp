@@ -236,9 +236,12 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
 
         !sdCM.seq.has_value(),
 
+        sdCM.seq.has_value() ? std::make_optional(sdCM.seq.value().id) : std::nullopt,
+        sdCM.refer,
+
         to_u8cstr("..."),
         to_u8cstr(cerealf::deserialize<std::string>(sdCM.message)),
-        nullptr,
+        sdCM.refer.has_value() ? u8"<layout><par>...</par></layout>" : nullptr,
 
         [](const ImageBoard *)
         {
@@ -282,7 +285,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         ops.loadXML(R"###(<layout><par>对方不是你的好友，你可以<event id="添加">添加</event>对方为好友，或者<event id="屏蔽">屏蔽</event>对方的消息。</par></layout>)###");
     }
 
-    FriendChatBoard::getParentBoard(this)->queryChatPeer(sdCM.from, [widgetID = chatItem->id(), sdCM, fnOp = std::move(fnOp), this](const SDChatPeer *peer, bool)
+    hasParent<FriendChatBoard>()->queryChatPeer(sdCM.from, [widgetID = chatItem->id(), sdCM, fnOp = std::move(fnOp), this](const SDChatPeer *peer, bool)
     {
         fflassert(peer, sdCM.from.asU64());
         if(auto chatItem = dynamic_cast<ChatItem *>(canvas.hasDescendant(widgetID))){
@@ -308,4 +311,13 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
             }
         }
     });
+
+    if(sdCM.refer.has_value()){
+        hasParent<FriendChatBoard>()->queryChatMessage(sdCM.refer.value(), [widgetID = chatItem->id(), this](const SDChatMessage *sdCM, bool)
+        {
+            if(auto chatItem = dynamic_cast<ChatItem *>(hasDescendant(widgetID))){
+                chatItem->msgref->loadXML(sdCM ? cerealf::deserialize<std::string>(sdCM->message) : "<layout><par>错误的信息引用</par></layout>");
+            }
+        });
+    }
 }

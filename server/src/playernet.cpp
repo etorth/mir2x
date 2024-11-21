@@ -285,17 +285,32 @@ void Player::net_CM_QUERYCHATPEERLIST(uint8_t, const uint8_t *buf, size_t, uint6
     }
 }
 
+void Player::net_CM_QUERYCHATMESSAGE(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+{
+    const auto cmQCM = ClientMsg::conv<CMQueryChatMessage>(buf);
+    if(auto msgOpt = dbQueryChatMessage(cmQCM.msgid); msgOpt.has_value()){
+        postNetMessage(SM_OK, cerealf::serialize(msgOpt.value()), respID);
+    }
+    else{
+        postNetMessage(SM_ERROR, respID);
+    }
+}
+
 void Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t respID)
 {
-    fflassert(bufSize >= 8, bufSize);
+    fflassert(bufSize >= sizeof(CMChatMessageHeader), bufSize);
 
-    const SDChatPeerID toCPID(as_u64(buf, 8));
+    CMChatMessageHeader cmCMH;
+    std::memcpy(&cmCMH, buf, sizeof(CMChatMessageHeader));
+
+    const SDChatPeerID toCPID(cmCMH.toCPID);
+    const auto refIDOpt = cmCMH.hasRef ? std::optional<uint64_t>(to_u64(cmCMH.refID)) : std::nullopt;
+
     std::string msgBuf;
+    msgBuf = as_sv(buf + sizeof(CMChatMessageHeader), bufSize - sizeof(CMChatMessageHeader));
 
-    msgBuf = as_sv(buf + 8, bufSize - 8);
-
-    const auto [msgId, tstamp] = dbSaveChatMessage(cpid(), toCPID, msgBuf);
-    const auto fnForwardChatMessage = [toCPID, msgBuf, msgId, tstamp, this](uint32_t playerDBID)
+    const auto [msgId, tstamp] = dbSaveChatMessage(cpid(), toCPID, msgBuf, refIDOpt);
+    const auto fnForwardChatMessage = [toCPID, refIDOpt, msgBuf, msgId, tstamp, this](uint32_t playerDBID)
     {
         forwardNetPackage(uidf::getPlayerUID(playerDBID), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
         {
@@ -307,7 +322,7 @@ void Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_t bufSize, uin
                     .timestamp = tstamp,
                 },
 
-                .refer = std::nullopt,
+                .refer = refIDOpt,
 
                 .from = cpid(),
                 .to   = toCPID,
@@ -390,7 +405,7 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
     const auto fnForwardSystemMessage = [&sdCPID, this](const std::string xmlChatMsg)
     {
         const auto msgBuf = cerealf::serialize(xmlChatMsg);
-        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM), sdCPID, msgBuf);
+        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM), sdCPID, msgBuf, {});
 
         forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
         {

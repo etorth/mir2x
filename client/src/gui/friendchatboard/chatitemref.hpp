@@ -44,6 +44,9 @@ class ChatItemRef: public Widget
         TrigfxButton   m_crossButton;    //
 
     private:
+        uint64_t m_refer;
+
+    private:
         LayoutBoard m_message;
 
     public:
@@ -56,6 +59,7 @@ class ChatItemRef: public Widget
                 bool, // force max width
                 bool, // show x button
 
+                uint64_t,
                 std::string,
 
                 Widget * = nullptr,
@@ -65,5 +69,16 @@ class ChatItemRef: public Widget
         std::string getXML() const
         {
             return m_message.getXML();
+        }
+
+        uint64_t refer() const
+        {
+            return m_refer;
+        }
+
+    public:
+        void loadXML(std::string argXMLStr)
+        {
+            m_message.loadXML(argXMLStr.c_str());
         }
 };
