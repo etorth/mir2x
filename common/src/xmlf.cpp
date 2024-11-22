@@ -5,6 +5,20 @@
 #include "xmlf.hpp"
 #include "fflerror.hpp"
 
+bool xmlf::checkNodeName(const tinyxml2::XMLNode *node, const char *value, bool exact)
+{
+    fflassert(node);
+    fflassert(node->ToElement());
+    fflassert(str_haschar(value));
+
+    if(exact){
+        return std::strcmp(node->Value(), value) == 0;
+    }
+    else{
+        return str_toupper(node->Value()) == str_toupper(value);
+    }
+}
+
 bool xmlf::checkTextLeaf(const tinyxml2::XMLNode *node)
 {
     fflassert(node);

@@ -5,6 +5,8 @@
 
 namespace xmlf
 {
+    bool checkNodeName(const tinyxml2::XMLNode *, const char *, bool /* exact */ = false);
+
     bool checkTextLeaf (const tinyxml2::XMLNode *);
     bool checkEmojiLeaf(const tinyxml2::XMLNode *);
     bool checkImageLeaf(const tinyxml2::XMLNode *);

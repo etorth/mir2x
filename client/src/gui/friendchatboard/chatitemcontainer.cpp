@@ -324,12 +324,15 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
                 hasParent<FriendChatBoard>()->queryChatPeer(refMsg->from, [compMsg = refMsg->message, widgetID, this](const SDChatPeer *peer, bool)
                 {
                     if(auto chatItem = dynamic_cast<ChatItem *>(hasDescendant(widgetID))){
-                        std::string xmlStr = cerealf::deserialize<std::string>(compMsg);
+                        const auto xmlStr = cerealf::deserialize<std::string>(compMsg);
                         tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
 
                         if(xmlDoc.Parse(xmlStr.c_str()) != tinyxml2::XML_SUCCESS){
                             throw fflerror("tinyxml2::XMLDocument::Parse() failed: %s", xmlStr.c_str());
                         }
+
+                        fflassert(xmlf::checkNodeName(xmlDoc.FirstChild(), "layout"));
+                        fflassert(xmlf::checkNodeName(xmlDoc.FirstChild()->FirstChild(), "par"));
 
                         auto nameText = str_printf("%s：", peer ? peer->name.c_str() : "[未知]");
                         auto nameTextNode = xmlDoc.NewText(nameText.c_str());
