@@ -313,10 +313,31 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
     });
 
     if(sdCM.refer.has_value()){
-        hasParent<FriendChatBoard>()->queryChatMessage(sdCM.refer.value(), [widgetID = chatItem->id(), this](const SDChatMessage *sdCM, bool)
+        hasParent<FriendChatBoard>()->queryChatMessage(sdCM.refer.value(), [widgetID = chatItem->id(), this](const SDChatMessage *refMsg, bool)
         {
-            if(auto chatItem = dynamic_cast<ChatItem *>(hasDescendant(widgetID))){
-                chatItem->msgref->loadXML(sdCM ? cerealf::deserialize<std::string>(sdCM->message) : "<layout><par>错误的信息引用</par></layout>");
+            if(auto chatItem = dynamic_cast<ChatItem *>(canvas.hasDescendant(widgetID))){
+                if(!refMsg){
+                    chatItem->msgref->loadXML(R"###(<layout><par><t color="RED">引用的信息不存在或者已被删除</t></par></layout>)###");
+                    return;
+                }
+
+                hasParent<FriendChatBoard>()->queryChatPeer(refMsg->from, [compMsg = refMsg->message, widgetID, this](const SDChatPeer *peer, bool)
+                {
+                    if(auto chatItem = dynamic_cast<ChatItem *>(hasDescendant(widgetID))){
+                        std::string xmlStr = cerealf::deserialize<std::string>(compMsg);
+                        tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
+
+                        if(xmlDoc.Parse(xmlStr.c_str()) != tinyxml2::XML_SUCCESS){
+                            throw fflerror("tinyxml2::XMLDocument::Parse() failed: %s", xmlStr.c_str());
+                        }
+
+                        auto nameText = str_printf("%s：", peer ? peer->name.c_str() : "[未知]");
+                        auto nameTextNode = xmlDoc.NewText(nameText.c_str());
+
+                        xmlDoc.FirstChild()->FirstChild()->InsertFirstChild(nameTextNode);
+                        chatItem->msgref->loadXML(xmlf::toString(&xmlDoc));
+                    }
+                });
             }
         });
     }

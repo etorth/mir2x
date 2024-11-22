@@ -214,3 +214,11 @@ std::string xmlf::toParString(const char *format, ...)
     xmlDoc.Print(&printer);
     return printer.CStr();
 }
+
+std::string xmlf::toString(const tinyxml2::XMLNode *node)
+{
+    fflassert(node);
+    tinyxml2::XMLPrinter printer;
+    node->Accept(&printer);
+    return printer.CStr();
+}

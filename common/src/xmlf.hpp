@@ -29,4 +29,5 @@ namespace xmlf
     // to support <, >, / in xml string
     // don't directly pass the raw string to addParXML
     std::string toParString(const char *, ...);
+    std::string toString(const tinyxml2::XMLNode *);
 }
