@@ -88,6 +88,7 @@ ChatInputContainer::ChatInputContainer(
                   .message = cerealf::serialize(message),
               };
 
+              chatPage->disableChatRef();
               chatPage->chat.append(chatMessage, [chatMessage, this](const ChatItem *chatItem)
               {
                   CMChatMessageHeader cmCMH;
