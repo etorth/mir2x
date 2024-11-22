@@ -70,7 +70,9 @@ struct ChatItem: public Widget
     bool pending = true;
     double accuTime = 0.0;
 
-    std::optional<uint64_t> msgID = std::nullopt; // support some fake chat message
+    // nullopt when message id is pending
+    // also used to support fake chat message that has no message id
+    std::optional<uint64_t> msgID = std::nullopt;
 
     const bool showName;
     const bool avatarLeft;
