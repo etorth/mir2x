@@ -1028,7 +1028,7 @@ bool FriendChatBoard::processEventDefault(const SDL_Event &event, bool valid)
                     }
                     return consumeFocus(true);
                 }
-                return consumeFocus(false);
+                return false;
             }
         case SDL_MOUSEWHEEL:
             {
