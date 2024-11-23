@@ -1363,7 +1363,7 @@ std::tuple<int, int> XMLTypeset::locCursor(int xOffPixel, int yOffPixel) const
         return std::distance(m_lineList.at(cursorY).content.begin(), pBox);
     }();
 
-    return {cursorX, cursorY};
+    return {std::max<int>(1, cursorX), cursorY};
 }
 
 int XMLTypeset::cursorLoc2Off(int argCursorX, int argCursorY) const
