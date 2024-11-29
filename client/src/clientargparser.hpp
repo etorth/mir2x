@@ -10,6 +10,7 @@ struct ClientArgParser
     const bool disableProfiler;         // "--disable-profiler"
     const bool disableVersionCheck;     // "--disable-version-check"
     const bool disableAudio;            // "--disable-audio"
+    const bool disableTypesetCache;     // "--disable-typeset-cache"
     const bool drawUID;                 // "--draw-uid"
     const bool alwaysDrawName;          // "--always-draw-name"
     const bool drawMapGrid;             // "--draw-map-grid"
@@ -43,6 +44,7 @@ struct ClientArgParser
         : disableProfiler(cmdParser["disable-profiler"])
         , disableVersionCheck(cmdParser["disable-version-check"])
         , disableAudio(cmdParser["disable-audio"])
+        , disableTypesetCache(cmdParser["disable-typeset-cache"])
         , drawUID(cmdParser["draw-uid"])
         , alwaysDrawName(cmdParser["always-draw-name"])
         , drawMapGrid(cmdParser["draw-map-grid"])

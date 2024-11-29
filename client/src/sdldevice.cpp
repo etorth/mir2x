@@ -166,6 +166,31 @@ SDLDeviceHelper::EnableTextureModColor::~EnableTextureModColor()
     }
 }
 
+SDLDeviceHelper::EnableRenderTarget::EnableRenderTarget(SDL_Texture *argTarget, SDLDevice * argDevice)
+    : m_device(argDevice ? argDevice : g_sdlDevice)
+    , m_target(SDL_GetRenderTarget(m_device->getRenderer()))
+{
+    if(argTarget){
+        if(int access = -1; SDL_QueryTexture(argTarget, nullptr, &access, nullptr, nullptr)){
+            throw fflerror("SDL_QueryTexture(%p) failed: %s", to_cvptr(argTarget), SDL_GetError());
+        }
+        else if(access != SDL_TEXTUREACCESS_TARGET){
+            throw fflerror("Texture can not be used as renderer target: %p", to_cvptr(argTarget));
+        }
+    }
+
+    if(SDL_SetRenderTarget(m_device->getRenderer(), argTarget)){
+        throw fflerror("SDL_SetRenderTarget(%p) failed: %s", to_cvptr(argTarget), SDL_GetError());
+    }
+}
+
+SDLDeviceHelper::EnableRenderTarget::~EnableRenderTarget()
+{
+    if(SDL_SetRenderTarget(m_device->getRenderer(), m_target)){
+        g_log->addLog(LOGTYPE_WARNING, "SDL_SetRenderTarget(%p) failed: %s", to_cvptr(m_target), SDL_GetError());
+    }
+}
+
 char SDLDeviceHelper::getKeyChar(const SDL_Event &event, bool checkShiftKey)
 {
     const static std::unordered_map<SDL_Keycode, const char *> s_lookupTable

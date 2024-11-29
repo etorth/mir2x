@@ -101,6 +101,19 @@ namespace SDLDeviceHelper
             /* dtor */ ~EnableTextureModColor();
     };
 
+    class EnableRenderTarget final
+    {
+        private:
+            SDLDevice *m_device;
+
+        private:
+            SDL_Texture *m_target;
+
+        public:
+            /* ctor */  EnableRenderTarget(SDL_Texture *, SDLDevice * = nullptr);
+            /* dtor */ ~EnableRenderTarget();
+    };
+
     struct SDLEventPLoc final
     {
         const int x = 0;
@@ -383,7 +396,11 @@ class SDLDevice final
        void createInitViewWindow();
 
     public:
+       SDL_Texture *createTargetTexture(size_t, size_t);
        SDL_Texture *createRGBATexture(const uint32_t *, size_t, size_t);
+
+    public:
+       void destroyTexture(SDL_Texture *);
 
     public:
        TTF_Font *defaultTTF(uint8_t);
