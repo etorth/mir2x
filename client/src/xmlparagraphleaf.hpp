@@ -84,7 +84,7 @@ class XMLParagraphLeaf
             return const_cast<std::vector<int> &>(static_cast<const XMLParagraphLeaf *>(this)->utf8CharOffRef());
         }
 
-        const char *UTF8Text() const
+        const char *utf8Text() const
         {
             if(type() != LEAF_UTF8STR){
                 return nullptr;

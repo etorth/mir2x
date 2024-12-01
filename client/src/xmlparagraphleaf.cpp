@@ -66,7 +66,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     , m_event(BEVENT_OFF)
 {
     if(type() == LEAF_UTF8STR){
-        m_utf8CharOff = utf8f::buildUTF8Off(UTF8Text());
+        m_utf8CharOff = utf8f::buildUTF8Off(utf8Text());
         if(auto par = m_node->Parent(); par && par->ToElement()){
             std::string tagName = par->ToElement()->Name();
             std::transform(tagName.begin(), tagName.end(), tagName.begin(), [](unsigned char c)
@@ -208,8 +208,8 @@ std::tuple<tinyxml2::XMLNode *, tinyxml2::XMLNode *> XMLParagraphLeaf::split(int
     tinyxml2::XMLNode *node1 = nullptr;
     tinyxml2::XMLNode *node2 = nullptr;
 
-    const auto text1 = std::string(UTF8Text() , m_utf8CharOff.at(cursor));
-    const auto text2 = std::string(UTF8Text() + m_utf8CharOff.at(cursor));
+    const auto text1 = std::string(utf8Text() , m_utf8CharOff.at(cursor));
+    const auto text2 = std::string(utf8Text() + m_utf8CharOff.at(cursor));
 
     if(m_node->GetDocument() == &doc1){
         node1 = m_node;
@@ -229,7 +229,7 @@ std::tuple<tinyxml2::XMLNode *, tinyxml2::XMLNode *> XMLParagraphLeaf::split(int
     node2->SetValue(text2.c_str());
 
     if(node1 == m_node || node2 == m_node){
-        m_utf8CharOff = utf8f::buildUTF8Off(UTF8Text());
+        m_utf8CharOff = utf8f::buildUTF8Off(utf8Text());
     }
 
     return {node1, node2};

@@ -1223,7 +1223,7 @@ std::string XMLTypeset::getText(bool textOnly) const
         switch(auto leafType = m_paragraph->leaf(i).type()){
             case LEAF_UTF8STR:
                 {
-                    plainString += m_paragraph->leaf(i).UTF8Text();
+                    plainString += m_paragraph->leaf(i).utf8Text();
                     break;
                 }
             case LEAF_IMAGE:
