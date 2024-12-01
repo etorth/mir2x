@@ -1229,7 +1229,7 @@ std::string XMLTypeset::getText(bool textOnly) const
             case LEAF_IMAGE:
                 {
                     if(!textOnly){
-                        plainString += str_printf("\\image{0x%016" PRIx64 "}", m_paragraph->leaf(i).ImageU64Key());
+                        plainString += str_printf("\\image{0x%016" PRIx64 "}", m_paragraph->leaf(i).imageU64Key());
                     }
                     break;
                 }

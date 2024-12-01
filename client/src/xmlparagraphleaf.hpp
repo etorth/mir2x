@@ -92,7 +92,7 @@ class XMLParagraphLeaf
             return xmlNode()->Value();
         }
 
-        uint64_t ImageU64Key() const
+        uint64_t imageU64Key() const
         {
             if(type() != LEAF_IMAGE){
                 throw fflerror("leaf is not an image");
