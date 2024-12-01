@@ -128,7 +128,7 @@ uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
         throw fflerror("try peek utf8 code from a leaf with type: %d", type());
     }
 
-    return utf8f::peekUTF8Code(xmlNode()->Value() + utf8CharOffRef()[leafOff]);
+    return utf8f::peekUTF8Code(xmlNode()->Value() + utf8CharOff()[leafOff]);
 }
 
 std::optional<uint32_t> XMLParagraphLeaf::color() const

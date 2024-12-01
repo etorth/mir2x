@@ -81,7 +81,7 @@ size_t XMLParagraph::insertUTF8String(int leafIndex, int leafOff, const char *ut
         throw fflerror("the %d-th leaf is not a XMLText", leafIndex);
     }
 
-    if(leafOff < 0 || leafOff > to_d(leaf(leafIndex).utf8CharOffRef().size())){
+    if(leafOff < 0 || leafOff > to_d(leaf(leafIndex).utf8CharOff().size())){
         throw fflerror("leaf offset %d is not a valid insert offset", leafOff);
     }
 
@@ -97,7 +97,7 @@ size_t XMLParagraph::insertUTF8String(int leafIndex, int leafOff, const char *ut
         throw fflerror("invalid utf-8 string: %s", utf8String);
     }
 
-    auto &utf8OffRef = leaf(leafIndex).utf8CharOffRef();
+    auto &utf8OffRef = leaf(leafIndex).utf8CharOff();
     const auto [oldLength, newValue] = [leafIndex, leafOff, utf8String, &utf8OffRef, this]() -> std::tuple<int, std::string>
     {
         // after we call XMLNode::SetValue(), the oldValue pointer get updated
@@ -162,11 +162,11 @@ void XMLParagraph::deleteUTF8Char(int leafIndex, int leafOff, int tokenCount)
         return;
     }
 
-    const int charOff = leaf(leafIndex).utf8CharOffRef()[leafOff];
+    const int charOff = leaf(leafIndex).utf8CharOff()[leafOff];
     const int charLen = [this, leafIndex, charOff, leafOff, tokenCount]() -> int
     {
-        if(leafOff + tokenCount < to_d(leaf(leafIndex).utf8CharOffRef().size())){
-            return leaf(leafIndex).utf8CharOffRef()[leafOff + tokenCount] - charOff;
+        if(leafOff + tokenCount < to_d(leaf(leafIndex).utf8CharOff().size())){
+            return leaf(leafIndex).utf8CharOff()[leafOff + tokenCount] - charOff;
         }
         return to_d(std::strlen(leaf(leafIndex).xmlNode()->Value())) - charOff;
     }();
@@ -174,10 +174,10 @@ void XMLParagraph::deleteUTF8Char(int leafIndex, int leafOff, int tokenCount)
     const auto newValue = std::string(leaf(leafIndex).xmlNode()->Value()).erase(charOff, charLen);
     leaf(leafIndex).xmlNode()->SetValue(newValue.c_str());
 
-    for(int i = leafOff; i + tokenCount < to_d(leaf(leafIndex).utf8CharOffRef().size()); ++i){
-        leaf(leafIndex).utf8CharOffRef()[i] = leaf(leafIndex).utf8CharOffRef()[i + tokenCount] - charLen;
+    for(int i = leafOff; i + tokenCount < to_d(leaf(leafIndex).utf8CharOff().size()); ++i){
+        leaf(leafIndex).utf8CharOff()[i] = leaf(leafIndex).utf8CharOff()[i + tokenCount] - charLen;
     }
-    leaf(leafIndex).utf8CharOffRef().resize(leaf(leafIndex).utf8CharOffRef().size() - tokenCount);
+    leaf(leafIndex).utf8CharOff().resize(leaf(leafIndex).utf8CharOff().size() - tokenCount);
 }
 
 void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
@@ -243,8 +243,8 @@ void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
 
 std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leafIndex, int leafOff, int) const
 {
-    if(leafOff >= to_d(leaf(leafIndex).utf8CharOffRef().size())){
-        throw fflerror("the %d-th leaf has only %zu tokens", leafIndex, leaf(leafIndex).utf8CharOffRef().size());
+    if(leafOff >= to_d(leaf(leafIndex).utf8CharOff().size())){
+        throw fflerror("the %d-th leaf has only %zu tokens", leafIndex, leaf(leafIndex).utf8CharOff().size());
     }
 
     return {0, 0, 0};

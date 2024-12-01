@@ -1008,7 +1008,7 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
             addedCount = m_paragraph->insertLeafXML(leafCount(), xmlText.c_str());
         }
         else{
-            addedCount = m_paragraph->insertUTF8String(leafCount() - 1, m_paragraph->backLeaf().utf8CharOffRef().size(), text);
+            addedCount = m_paragraph->insertUTF8String(leafCount() - 1, m_paragraph->backLeaf().utf8CharOff().size(), text);
         }
         buildTypeset(0, 0);
         return addedCount;
@@ -1029,7 +1029,7 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
     }
     else{
         if(m_paragraph->leaf(prevLeaf).type() == LEAF_UTF8STR){
-            addedCount = m_paragraph->insertUTF8String(prevLeaf, m_paragraph->leaf(prevLeaf).utf8CharOffRef().size(), text);
+            addedCount = m_paragraph->insertUTF8String(prevLeaf, m_paragraph->leaf(prevLeaf).utf8CharOff().size(), text);
         }
         if(m_paragraph->leaf(currLeaf).type() == LEAF_UTF8STR){
             addedCount = m_paragraph->insertUTF8String(currLeaf, 0, text);

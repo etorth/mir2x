@@ -61,12 +61,12 @@ class XMLParagraphLeaf
         int length() const
         {
             if(type() == LEAF_UTF8STR){
-                return to_d(utf8CharOffRef().size());
+                return to_d(utf8CharOff().size());
             }
             return 1;
         }
 
-        const std::vector<int> &utf8CharOffRef() const
+        const std::vector<int> &utf8CharOff() const
         {
             if(type() != LEAF_UTF8STR){
                 throw fflerror("leaf is not an utf8 string");
@@ -79,9 +79,9 @@ class XMLParagraphLeaf
             return m_utf8CharOff;
         }
 
-        std::vector<int> &utf8CharOffRef()
+        std::vector<int> &utf8CharOff()
         {
-            return const_cast<std::vector<int> &>(static_cast<const XMLParagraphLeaf *>(this)->utf8CharOffRef());
+            return const_cast<std::vector<int> &>(static_cast<const XMLParagraphLeaf *>(this)->utf8CharOff());
         }
 
         const char *utf8Text() const
