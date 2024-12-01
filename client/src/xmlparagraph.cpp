@@ -77,7 +77,7 @@ void XMLParagraph::deleteLeaf(int leaf)
 
 size_t XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8String)
 {
-    if(leafRef(leaf).type() != LEAF_UTF8GROUP){
+    if(leafRef(leaf).type() != LEAF_UTF8STR){
         throw fflerror("the %d-th leaf is not a XMLText", leaf);
     }
 
@@ -141,7 +141,7 @@ size_t XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8Str
 
 void XMLParagraph::deleteUTF8Char(int leaf, int leafOff, int tokenCount)
 {
-    if(leafRef(leaf).type() != LEAF_UTF8GROUP){
+    if(leafRef(leaf).type() != LEAF_UTF8STR){
         throw fflerror("the %d-th leaf is not a XMLText", leaf);
     }
 
@@ -216,7 +216,7 @@ void XMLParagraph::deleteToken(int leaf, int leafOff, int tokenCount)
 
     while(deletedToken < tokenCount){
         switch(leafRef(currLeaf).type()){
-            case LEAF_UTF8GROUP:
+            case LEAF_UTF8STR:
                 {
                     const int needDelete = std::min<int>(leafRef(currLeaf).length() - currLeafOff, tokenCount - deletedToken);
                     deleteUTF8Char(currLeaf, currLeafOff, needDelete);
@@ -264,7 +264,7 @@ std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leaf, int leafOff, int t
         switch(auto nType = leafRef(nCurrLeaf).type()){
             case LEAF_EMOJI:
             case LEAF_IMAGE:
-            case LEAF_UTF8GROUP:
+            case LEAF_UTF8STR:
                 {
                     int nCurrTokenLeft = leafRef(nCurrLeaf).length() - nCurrLeafOff - 1;
                     if(nCurrTokenLeft >= tokenCount - nAdvancedToken){
@@ -450,7 +450,7 @@ size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlStr
 void XMLParagraph::deleteToken(int leaf, int leafOff)
 {
     switch(leafRef(leaf).type()){
-        case LEAF_UTF8GROUP:
+        case LEAF_UTF8STR:
             {
                 deleteUTF8Char(leaf, leafOff, 1);
                 return;
@@ -473,7 +473,7 @@ std::string XMLParagraph::getRawString() const
     std::string rawString;
     for(const auto &leaf: m_leafList){
         switch(leaf.type()){
-            case LEAF_UTF8GROUP:
+            case LEAF_UTF8STR:
                 {
                     rawString += leaf.xmlNode()->Value();
                     break;

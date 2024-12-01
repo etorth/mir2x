@@ -10,9 +10,9 @@
 #include "strf.hpp"
 #include "fflerror.hpp"
 
-constexpr int LEAF_UTF8GROUP = 0;
-constexpr int LEAF_IMAGE     = 1;
-constexpr int LEAF_EMOJI     = 2;
+constexpr int LEAF_UTF8STR = 0;
+constexpr int LEAF_IMAGE   = 1;
+constexpr int LEAF_EMOJI   = 2;
 
 class XMLParagraphLeaf
 {
@@ -60,7 +60,7 @@ class XMLParagraphLeaf
 
         int length() const
         {
-            if(type() == LEAF_UTF8GROUP){
+            if(type() == LEAF_UTF8STR){
                 return to_d(utf8CharOffRef().size());
             }
             return 1;
@@ -68,7 +68,7 @@ class XMLParagraphLeaf
 
         const std::vector<int> &utf8CharOffRef() const
         {
-            if(type() != LEAF_UTF8GROUP){
+            if(type() != LEAF_UTF8STR){
                 throw fflerror("leaf is not an utf8 string");
             }
 
@@ -86,7 +86,7 @@ class XMLParagraphLeaf
 
         const char *UTF8Text() const
         {
-            if(type() != LEAF_UTF8GROUP){
+            if(type() != LEAF_UTF8STR){
                 return nullptr;
             }
             return xmlNode()->Value();

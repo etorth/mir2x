@@ -29,7 +29,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
               if(!utf8::is_valid(xmlNode()->Value(), xmlNode()->Value() + std::strlen(xmlNode()->Value()))){
                   throw fflerror("not a utf8 string: %s", xmlNode()->Value());
               }
-              return LEAF_UTF8GROUP;
+              return LEAF_UTF8STR;
           }
 
           if(xmlf::checkEmojiLeaf(xmlNode())){
@@ -65,7 +65,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
       }())
     , m_event(BEVENT_OFF)
 {
-    if(type() == LEAF_UTF8GROUP){
+    if(type() == LEAF_UTF8STR){
         m_utf8CharOff = utf8f::buildUTF8Off(UTF8Text());
         if(auto par = m_node->Parent(); par && par->ToElement()){
             std::string tagName = par->ToElement()->Name();
@@ -124,7 +124,7 @@ uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
         throw fflerror("provided LeafOff exceeds leaf length: %d", length());
     }
 
-    if(type() != LEAF_UTF8GROUP){
+    if(type() != LEAF_UTF8STR){
         throw fflerror("try peek utf8 code from a leaf with type: %d", type());
     }
 
@@ -202,7 +202,7 @@ std::optional<bool> XMLParagraphLeaf::wrap() const
 
 std::tuple<tinyxml2::XMLNode *, tinyxml2::XMLNode *> XMLParagraphLeaf::split(int cursor, tinyxml2::XMLDocument &doc1, tinyxml2::XMLDocument &doc2)
 {
-    fflassert(type() == LEAF_UTF8GROUP, type());
+    fflassert(type() == LEAF_UTF8STR, type());
     fflassert(cursor > 0 && cursor < length(), cursor, length()); // we don't support empty leaf node
 
     tinyxml2::XMLNode *node1 = nullptr;

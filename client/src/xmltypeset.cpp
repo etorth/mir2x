@@ -271,7 +271,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
 
     if(fnLeafPadding([this](int x, int y) -> bool
     {
-        return m_paragraph->leafRef(getToken(x, y)->leaf).type() == LEAF_UTF8GROUP;
+        return m_paragraph->leafRef(getToken(x, y)->leaf).type() == LEAF_UTF8STR;
     }) == MaxLineWidth()){
         return;
     }
@@ -668,7 +668,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leaf, uint32_t emoji) const
 TOKEN XMLTypeset::createToken(int leaf, int leafOff) const
 {
     switch(auto &rstLeaf = m_paragraph->leafRef(leaf); rstLeaf.type()){
-        case LEAF_UTF8GROUP:
+        case LEAF_UTF8STR:
             {
                 auto nFont      = rstLeaf.font()     .value_or(m_font);
                 auto nFontSize  = rstLeaf.fontSize() .value_or(m_fontSize);
@@ -706,7 +706,7 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leaf, int leafOff, std::vecto
             throw fflerror("pick up token in middle of non-wrap leaf");
         }
 
-        if(m_paragraph->leafRef(leaf).type() != LEAF_UTF8GROUP){
+        if(m_paragraph->leafRef(leaf).type() != LEAF_UTF8STR){
             throw fflerror("non-text leaf node has wrap attribute disabled");
         }
 
@@ -989,7 +989,7 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
 
     if(x == 0 && y == 0){
         size_t addedCount = 0;
-        if(m_paragraph->leafRef(0).type() != LEAF_UTF8GROUP){
+        if(m_paragraph->leafRef(0).type() != LEAF_UTF8STR){
             addedCount = m_paragraph->insertLeafXML(0, xmlText.c_str());
         }
         else{
@@ -1004,7 +1004,7 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
 
     if((y == lineCount() - 1) && (x == lineTokenCount(y))){
         size_t addedCount = 0;
-        if(m_paragraph->backLeafRef().type() != LEAF_UTF8GROUP){
+        if(m_paragraph->backLeafRef().type() != LEAF_UTF8STR){
             addedCount = m_paragraph->insertLeafXML(leafCount(), xmlText.c_str());
         }
         else{
@@ -1020,7 +1020,7 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
 
     size_t addedCount = 0;
     if(prevLeaf == currLeaf){
-        if(m_paragraph->leafRef(prevLeaf).type() != LEAF_UTF8GROUP){
+        if(m_paragraph->leafRef(prevLeaf).type() != LEAF_UTF8STR){
             throw fflerror("only UTF8 leaf can have length great than 1");
         }
 
@@ -1028,10 +1028,10 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
         addedCount = m_paragraph->insertUTF8String(currLeaf, leafOff, text);
     }
     else{
-        if(m_paragraph->leafRef(prevLeaf).type() == LEAF_UTF8GROUP){
+        if(m_paragraph->leafRef(prevLeaf).type() == LEAF_UTF8STR){
             addedCount = m_paragraph->insertUTF8String(prevLeaf, m_paragraph->leafRef(prevLeaf).utf8CharOffRef().size(), text);
         }
-        if(m_paragraph->leafRef(currLeaf).type() == LEAF_UTF8GROUP){
+        if(m_paragraph->leafRef(currLeaf).type() == LEAF_UTF8STR){
             addedCount = m_paragraph->insertUTF8String(currLeaf, 0, text);
         }
         else{
@@ -1148,7 +1148,7 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
             const int dy = boxY - tokenPtr->Box.State.Y;
 
             switch(leaf.type()){
-                case LEAF_UTF8GROUP:
+                case LEAF_UTF8STR:
                     {
                         if(auto texPtr = g_fontexDB->retrieve(tokenPtr->UTF8Char.U64Key)){
                             SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, fgColorVal);
@@ -1221,7 +1221,7 @@ std::string XMLTypeset::getText(bool textOnly) const
     std::string plainString;
     for(int i = 0; i < m_paragraph->leafCount(); ++i){
         switch(auto leafType = m_paragraph->leafRef(i).type()){
-            case LEAF_UTF8GROUP:
+            case LEAF_UTF8STR:
                 {
                     plainString += m_paragraph->leafRef(i).UTF8Text();
                     break;
@@ -1449,7 +1449,7 @@ bool XMLTypeset::blankToken(int x, int y) const
         return (u64Key & 0X00000000FFFFFFFFULL) == ' ';
     };
 
-    return (leaf.type() == LEAF_UTF8GROUP) && fnCheckBlank(tokenPtr->UTF8Char.U64Key);
+    return (leaf.type() == LEAF_UTF8STR) && fnCheckBlank(tokenPtr->UTF8Char.U64Key);
 }
 
 void XMLTypeset::setLineWidth(int lineWidth)
