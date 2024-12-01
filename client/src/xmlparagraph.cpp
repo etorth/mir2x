@@ -12,16 +12,16 @@
 #include "xmlparagraph.hpp"
 
 extern Log *g_log;
-XMLParagraph *XMLParagraph::split(int leaf, int cursorLoc)
+XMLParagraph *XMLParagraph::split(int leafIndex, int cursorLoc)
 {
-    fflassert(leafValid(leaf));
-    fflassert(cursorLoc >= 0 && cursorLoc <= leafRef(leaf).length());
+    fflassert(leafValid(leafIndex));
+    fflassert(cursorLoc >= 0 && cursorLoc <= leaf(leafIndex).length());
 
     XMLParagraph * newPar = new XMLParagraph{};
     XMLParagraph *fromPar = this;
     XMLParagraph *  toPar = newPar;
 
-    if(leaf * 2 > leafCount()){
+    if(leafIndex * 2 > leafCount()){
         std::swap(fromPar->m_xmlDocument, toPar->m_xmlDocument);
         std::swap(fromPar->m_leafList   , toPar->m_leafList   );
         std::swap(fromPar               , toPar               );
@@ -37,7 +37,7 @@ XMLParagraph *XMLParagraph::split(int leaf, int cursorLoc)
         fromPar->m_leafList.pop_front();
     };
 
-    for(int i = 0; i < leaf - 1; ++i){
+    for(int i = 0; i < leafIndex - 1; ++i){
         fnMoveFrontLeaf();
     }
 
@@ -56,9 +56,9 @@ XMLParagraph *XMLParagraph::split(int leaf, int cursorLoc)
     return newPar;
 }
 
-void XMLParagraph::deleteLeaf(int leaf)
+void XMLParagraph::deleteLeaf(int leafIndex)
 {
-    auto node   = leafRef(leaf).xmlNode();
+    auto node   = leaf(leafIndex).xmlNode();
     auto parent = node->Parent();
 
     while(parent && (parent->FirstChild() == parent->LastChild())){
@@ -72,16 +72,16 @@ void XMLParagraph::deleteLeaf(int leaf)
     else{
         m_xmlDocument->Clear();
     }
-    m_leafList.erase(m_leafList.begin() + leaf);
+    m_leafList.erase(m_leafList.begin() + leafIndex);
 }
 
-size_t XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8String)
+size_t XMLParagraph::insertUTF8String(int leafIndex, int leafOff, const char *utf8String)
 {
-    if(leafRef(leaf).type() != LEAF_UTF8STR){
-        throw fflerror("the %d-th leaf is not a XMLText", leaf);
+    if(leaf(leafIndex).type() != LEAF_UTF8STR){
+        throw fflerror("the %d-th leaf is not a XMLText", leafIndex);
     }
 
-    if(leafOff < 0 || leafOff > to_d(leafRef(leaf).utf8CharOffRef().size())){
+    if(leafOff < 0 || leafOff > to_d(leaf(leafIndex).utf8CharOffRef().size())){
         throw fflerror("leaf offset %d is not a valid insert offset", leafOff);
     }
 
@@ -97,13 +97,13 @@ size_t XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8Str
         throw fflerror("invalid utf-8 string: %s", utf8String);
     }
 
-    auto &utf8OffRef = leafRef(leaf).utf8CharOffRef();
-    const auto [oldLength, newValue] = [leaf, leafOff, utf8String, &utf8OffRef, this]() -> std::tuple<int, std::string>
+    auto &utf8OffRef = leaf(leafIndex).utf8CharOffRef();
+    const auto [oldLength, newValue] = [leafIndex, leafOff, utf8String, &utf8OffRef, this]() -> std::tuple<int, std::string>
     {
         // after we call XMLNode::SetValue(), the oldValue pointer get updated
         // use lambda here on purpose to prevent oldValue pointer get exposed to outiler scope
 
-        const auto oldValue  = leafRef(leaf).xmlNode()->Value();
+        const auto oldValue  = leaf(leafIndex).xmlNode()->Value();
         const auto oldLength = std::strlen(oldValue);
 
         if(leafOff >= to_d(utf8OffRef.size())){
@@ -111,7 +111,7 @@ size_t XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8Str
         }
         return {oldLength, (std::string(oldValue, oldValue + utf8OffRef[leafOff]) + utf8String) + std::string(oldValue + utf8OffRef[leafOff])};
     }();
-    m_leafList[leaf].xmlNode()->SetValue(newValue.c_str());
+    m_leafList[leafIndex].xmlNode()->SetValue(newValue.c_str());
 
     auto addedValueOff = utf8f::buildUTF8Off(utf8String);
     if(leafOff > 0){
@@ -139,13 +139,13 @@ size_t XMLParagraph::insertUTF8String(int leaf, int leafOff, const char *utf8Str
     return addedValueOff.size();
 }
 
-void XMLParagraph::deleteUTF8Char(int leaf, int leafOff, int tokenCount)
+void XMLParagraph::deleteUTF8Char(int leafIndex, int leafOff, int tokenCount)
 {
-    if(leafRef(leaf).type() != LEAF_UTF8STR){
-        throw fflerror("the %d-th leaf is not a XMLText", leaf);
+    if(leaf(leafIndex).type() != LEAF_UTF8STR){
+        throw fflerror("the %d-th leaf is not a XMLText", leafIndex);
     }
 
-    if(!leafOffValid(leaf, leafOff)){
+    if(!leafOffValid(leafIndex, leafOff)){
         throw fflerror("invalid leafOff: %d", leafOff);
     }
 
@@ -153,52 +153,52 @@ void XMLParagraph::deleteUTF8Char(int leaf, int leafOff, int tokenCount)
         return;
     }
 
-    if((leafOff + tokenCount - 1) >= leafRef(leaf).length()){
-        throw fflerror("the %d-th leaf has only %d tokens", leaf, leafRef(leaf).length());
+    if((leafOff + tokenCount - 1) >= leaf(leafIndex).length()){
+        throw fflerror("the %d-th leaf has only %d tokens", leafIndex, leaf(leafIndex).length());
     }
 
-    if(tokenCount == leafRef(leaf).length()){
-        deleteLeaf(leaf);
+    if(tokenCount == leaf(leafIndex).length()){
+        deleteLeaf(leafIndex);
         return;
     }
 
-    const int charOff = leafRef(leaf).utf8CharOffRef()[leafOff];
-    const int charLen = [this, leaf, charOff, leafOff, tokenCount]() -> int
+    const int charOff = leaf(leafIndex).utf8CharOffRef()[leafOff];
+    const int charLen = [this, leafIndex, charOff, leafOff, tokenCount]() -> int
     {
-        if(leafOff + tokenCount < to_d(leafRef(leaf).utf8CharOffRef().size())){
-            return leafRef(leaf).utf8CharOffRef()[leafOff + tokenCount] - charOff;
+        if(leafOff + tokenCount < to_d(leaf(leafIndex).utf8CharOffRef().size())){
+            return leaf(leafIndex).utf8CharOffRef()[leafOff + tokenCount] - charOff;
         }
-        return to_d(std::strlen(leafRef(leaf).xmlNode()->Value())) - charOff;
+        return to_d(std::strlen(leaf(leafIndex).xmlNode()->Value())) - charOff;
     }();
 
-    const auto newValue = std::string(leafRef(leaf).xmlNode()->Value()).erase(charOff, charLen);
-    leafRef(leaf).xmlNode()->SetValue(newValue.c_str());
+    const auto newValue = std::string(leaf(leafIndex).xmlNode()->Value()).erase(charOff, charLen);
+    leaf(leafIndex).xmlNode()->SetValue(newValue.c_str());
 
-    for(int i = leafOff; i + tokenCount < to_d(leafRef(leaf).utf8CharOffRef().size()); ++i){
-        leafRef(leaf).utf8CharOffRef()[i] = leafRef(leaf).utf8CharOffRef()[i + tokenCount] - charLen;
+    for(int i = leafOff; i + tokenCount < to_d(leaf(leafIndex).utf8CharOffRef().size()); ++i){
+        leaf(leafIndex).utf8CharOffRef()[i] = leaf(leafIndex).utf8CharOffRef()[i + tokenCount] - charLen;
     }
-    leafRef(leaf).utf8CharOffRef().resize(leafRef(leaf).utf8CharOffRef().size() - tokenCount);
+    leaf(leafIndex).utf8CharOffRef().resize(leaf(leafIndex).utf8CharOffRef().size() - tokenCount);
 }
 
-void XMLParagraph::deleteToken(int leaf, int leafOff, int tokenCount)
+void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
 {
-    if(!leafOffValid(leaf, leafOff)){
-        throw fflerror("invalid leaf off: (%d, %d)", leaf, leafOff);
+    if(!leafOffValid(leafIndex, leafOff)){
+        throw fflerror("invalid leaf off: (%d, %d)", leafIndex, leafOff);
     }
 
     if(tokenCount == 0){
         return;
     }
 
-    const bool hasEnoughToken = [leaf, leafOff, tokenCount, this]()
+    const bool hasEnoughToken = [leafIndex, leafOff, tokenCount, this]()
     {
-        int tokenLeft = leafRef(leaf).length() - leafOff;
+        int tokenLeft = leaf(leafIndex).length() - leafOff;
         if(tokenLeft >= tokenCount){
             return true;
         }
 
-        for(int i = leaf + 1; i < leafCount(); ++i){
-            tokenLeft += leafRef(i).length();
+        for(int i = leafIndex + 1; i < leafCount(); ++i){
+            tokenLeft += leaf(i).length();
             if(tokenLeft >= tokenCount){
                 return true;
             }
@@ -210,15 +210,15 @@ void XMLParagraph::deleteToken(int leaf, int leafOff, int tokenCount)
         throw fflerror("insufficient token to remove");
     }
 
-    int currLeaf     = leaf;
+    int currLeaf     = leafIndex;
     int currLeafOff  = leafOff;
     int deletedToken = 0;
 
     while(deletedToken < tokenCount){
-        switch(leafRef(currLeaf).type()){
+        switch(leaf(currLeaf).type()){
             case LEAF_UTF8STR:
                 {
-                    const int needDelete = std::min<int>(leafRef(currLeaf).length() - currLeafOff, tokenCount - deletedToken);
+                    const int needDelete = std::min<int>(leaf(currLeaf).length() - currLeafOff, tokenCount - deletedToken);
                     deleteUTF8Char(currLeaf, currLeafOff, needDelete);
                     deletedToken += needDelete;
                     break;
@@ -232,7 +232,7 @@ void XMLParagraph::deleteToken(int leaf, int leafOff, int tokenCount)
                 }
             default:
                 {
-                    throw fflerror("invalid leaf type: %d", leafRef(currLeaf).type());
+                    throw fflerror("invalid leaf type: %d", leaf(currLeaf).type());
                 }
         }
 
@@ -241,32 +241,32 @@ void XMLParagraph::deleteToken(int leaf, int leafOff, int tokenCount)
     }
 }
 
-std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leaf, int leafOff, int) const
+std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leafIndex, int leafOff, int) const
 {
-    if(leafOff >= to_d(leafRef(leaf).utf8CharOffRef().size())){
-        throw fflerror("the %d-th leaf has only %zu tokens", leaf, leafRef(leaf).utf8CharOffRef().size());
+    if(leafOff >= to_d(leaf(leafIndex).utf8CharOffRef().size())){
+        throw fflerror("the %d-th leaf has only %zu tokens", leafIndex, leaf(leafIndex).utf8CharOffRef().size());
     }
 
     return {0, 0, 0};
 }
 
-std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leaf, int leafOff, int tokenCount) const
+std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leafIndex, int leafOff, int tokenCount) const
 {
-    if(leafOff >= leafRef(leaf).length()){
-        throw fflerror("the %d-th leaf has only %d tokens", leaf, leafRef(leaf).length());
+    if(leafOff >= leaf(leafIndex).length()){
+        throw fflerror("the %d-th leaf has only %d tokens", leafIndex, leaf(leafIndex).length());
     }
 
-    int nCurrLeaf      = leaf;
+    int nCurrLeaf      = leafIndex;
     int nCurrLeafOff   = leafOff;
     int nAdvancedToken = 0;
 
     while((nAdvancedToken < tokenCount) && (nCurrLeaf < leafCount())){
-        switch(auto nType = leafRef(nCurrLeaf).type()){
+        switch(auto nType = leaf(nCurrLeaf).type()){
             case LEAF_EMOJI:
             case LEAF_IMAGE:
             case LEAF_UTF8STR:
                 {
-                    int nCurrTokenLeft = leafRef(nCurrLeaf).length() - nCurrLeafOff - 1;
+                    int nCurrTokenLeft = leaf(nCurrLeaf).length() - nCurrLeafOff - 1;
                     if(nCurrTokenLeft >= tokenCount - nAdvancedToken){
                         return {nCurrLeaf, nCurrLeafOff + (tokenCount - nAdvancedToken), tokenCount};
                     }
@@ -274,7 +274,7 @@ std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leaf, int leafOff, int t
                     // current leaf is not enough
                     // but this is the last leaf, have to stop
                     if(nCurrLeaf == (leafCount() - 1)){
-                        return {nCurrLeaf, leafRef(nCurrLeaf).length() - 1, nAdvancedToken + nCurrTokenLeft};
+                        return {nCurrLeaf, leaf(nCurrLeaf).length() - 1, nAdvancedToken + nCurrTokenLeft};
                     }
 
                     // take all the rest
@@ -367,7 +367,7 @@ size_t XMLParagraph::insertLeafXML(int loc, const char *xmlString)
     if(loc < 0 || loc > leafCount() || !xmlString){
         throw fflerror("invalid argument: loc = %d, xmlString = %p", loc, xmlString);
     }
-    return insertXMLAfter(leafRef(loc).xmlNode(), xmlString);
+    return insertXMLAfter(leaf(loc).xmlNode(), xmlString);
 }
 
 size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlString)
@@ -434,36 +434,36 @@ size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlStr
     size_t addedCount = 0;
 
     for(int i = 0; i < leafCount(); ++i){
-        if(leafRef(i).xmlNode() == after){
+        if(leaf(i).xmlNode() == after){
             afterLoc = i;
             break;
         }
     }
 
     for(int i = afterLoc + 1; i < leafCount() && addedLeafCount > 0; ++i, --addedLeafCount){
-        addedCount += leafRef(i).length();
+        addedCount += leaf(i).length();
     }
 
     return addedCount;
 }
 
-void XMLParagraph::deleteToken(int leaf, int leafOff)
+void XMLParagraph::deleteToken(int leafIndex, int leafOff)
 {
-    switch(leafRef(leaf).type()){
+    switch(leaf(leafIndex).type()){
         case LEAF_UTF8STR:
             {
-                deleteUTF8Char(leaf, leafOff, 1);
+                deleteUTF8Char(leafIndex, leafOff, 1);
                 return;
             }
         case LEAF_EMOJI:
         case LEAF_IMAGE:
             {
-                deleteLeaf(leaf);
+                deleteLeaf(leafIndex);
                 return;
             }
         default:
             {
-                throw fflerror("invalid leaf type: %d", leafRef(leaf).type());
+                throw fflerror("invalid leaf type: %d", leaf(leafIndex).type());
             }
     }
 }
@@ -496,7 +496,7 @@ size_t XMLParagraph::tokenCount() const
 {
     size_t count = 0;
     for(int i = 0; i < leafCount(); ++i){
-        count += leafRef(i).length();
+        count += leaf(i).length();
     }
     return count;
 }

@@ -20,7 +20,7 @@ class XMLParagraphLeaf
         friend class XMLParapragh;
 
     private:
-        tinyxml2::XMLNode *m_node;
+        tinyxml2::XMLNode * m_node;
 
     private:
         int m_type;

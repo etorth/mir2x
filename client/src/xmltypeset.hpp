@@ -208,12 +208,12 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        std::tuple<int, int> leafTokenLoc(int leaf) const
+        std::tuple<int, int> leafTokenLoc(int leafIndex) const
         {
-            if(leafValid(leaf)){
-                return m_leaf2TokenLoc.at(leaf);
+            if(leafValid(leafIndex)){
+                return m_leaf2TokenLoc.at(leafIndex);
             }
-            throw fflerror("invalid leaf: %d", leaf);
+            throw fflerror("invalid leaf: %d", leafIndex);
         }
 
     public:
@@ -260,24 +260,24 @@ class XMLTypeset // means XMLParagraph typeset
             return m_paragraph->leafCount();
         }
 
-        bool leafValid(int leaf) const
+        bool leafValid(int leafIndex) const
         {
-            return leaf < leafCount();
+            return leafIndex < leafCount();
         }
 
     public:
         void clearEvent(int currLeaf = -1)
         {
-            for(int leaf = 0; leaf < m_paragraph->leafCount(); ++leaf){
-                if(leaf != currLeaf){
-                    m_paragraph->leafRef(leaf).markEvent(BEVENT_OFF);
+            for(int leafIndex = 0; leafIndex < m_paragraph->leafCount(); ++leafIndex){
+                if(leafIndex != currLeaf){
+                    m_paragraph->leaf(leafIndex).markEvent(BEVENT_OFF);
                 }
             }
         }
 
-        int markLeafEvent(int leaf, int event)
+        int markLeafEvent(int leafIndex, int event)
         {
-            return m_paragraph->leafRef(leaf).markEvent(event);
+            return m_paragraph->leaf(leafIndex).markEvent(event);
         }
 
     public:
@@ -332,7 +332,7 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         const auto leafEvent(int leafID) const
         {
-            return m_paragraph->leafRef(leafID).hasEvent();
+            return m_paragraph->leaf(leafID).hasEvent();
         }
 
     private:

@@ -39,36 +39,36 @@ class XMLParagraph
         }
 
     public:
-        bool leafValid(int leaf) const
+        bool leafValid(int leafIndex) const
         {
-            return leaf >= 0 && leaf < leafCount();
+            return leafIndex >= 0 && leafIndex < leafCount();
         }
 
     public:
-        const auto &leafRef(int leaf) const
+        const auto &leaf(int leafIndex) const
         {
-            if(!leafValid(leaf)){
-                throw fflerror("invalid leaf index: %d", leaf);
+            if(!leafValid(leafIndex)){
+                throw fflerror("invalid leaf index: %d", leafIndex);
             }
-            return m_leafList[leaf];
+            return m_leafList[leafIndex];
         }
 
-        auto &leafRef(int leaf)
+        auto &leaf(int leafIndex)
         {
-            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->leafRef(leaf));
+            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->leaf(leafIndex));
         }
 
     public:
-        bool leafOffValid(int leaf, int leafOff) const
+        bool leafOffValid(int leafIndex, int leafOff) const
         {
-            if(!leafValid(leaf)){
+            if(!leafValid(leafIndex)){
                 return false;
             }
-            return leafOff >= 0 && leafOff < leafRef(leaf).length();
+            return leafOff >= 0 && leafOff < leaf(leafIndex).length();
         }
 
     public:
-        const auto &backLeafRef() const
+        const auto &backLeaf() const
         {
             if(m_leafList.empty()){
                 throw fflerror("no leaf");
@@ -76,9 +76,9 @@ class XMLParagraph
             return m_leafList.back();
         }
 
-        auto &backLeafRef()
+        auto &backLeaf()
         {
-            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->backLeafRef());
+            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->backLeaf());
         }
 
     public:
@@ -101,9 +101,9 @@ class XMLParagraph
         size_t insertUTF8String(int, int, const char *);
 
     public:
-        tinyxml2::XMLNode *CloneLeaf(tinyxml2::XMLDocument *pDoc, int leaf) const
+        tinyxml2::XMLNode *CloneLeaf(tinyxml2::XMLDocument *pDoc, int leafIndex) const
         {
-            return leafRef(leaf).xmlNode()->DeepClone(pDoc);
+            return leaf(leafIndex).xmlNode()->DeepClone(pDoc);
         }
 
     public:
