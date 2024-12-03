@@ -48,14 +48,9 @@ class XMLParagraphLeaf
             return m_type;
         }
 
-        const tinyxml2::XMLNode *xmlNode() const
+        tinyxml2::XMLNode *xmlNode(this auto && self)
         {
-            return m_node;
-        }
-
-        tinyxml2::XMLNode *xmlNode()
-        {
-            return const_cast<tinyxml2::XMLNode *>(static_cast<const XMLParagraphLeaf *>(this)->xmlNode());
+            return self.m_node;
         }
 
         int length() const
