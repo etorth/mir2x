@@ -45,17 +45,12 @@ class XMLParagraph
         }
 
     public:
-        const auto &leaf(int leafIndex) const
+        auto & leaf(this auto && self, int leafIndex)
         {
-            if(!leafValid(leafIndex)){
+            if(!self.leafValid(leafIndex)){
                 throw fflerror("invalid leaf index: %d", leafIndex);
             }
-            return m_leafList[leafIndex];
-        }
-
-        auto &leaf(int leafIndex)
-        {
-            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->leaf(leafIndex));
+            return self.m_leafList[leafIndex];
         }
 
     public:
@@ -68,17 +63,12 @@ class XMLParagraph
         }
 
     public:
-        const auto &backLeaf() const
+        auto & backLeaf(this auto && self)
         {
-            if(m_leafList.empty()){
+            if(self.m_leafList.empty()){
                 throw fflerror("no leaf");
             }
-            return m_leafList.back();
-        }
-
-        auto &backLeaf()
-        {
-            return const_cast<XMLParagraphLeaf &>(static_cast<const XMLParagraph *>(this)->backLeaf());
+            return self.m_leafList.back();
         }
 
     public:

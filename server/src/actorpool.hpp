@@ -584,25 +584,15 @@ class ActorPool final
         }
 
     public:
-        const MailboxSubBucket & getSubBucket(int bucketId, int subBucketId) const
+        auto & getSubBucket(this auto && self, int bucketId, int subBucketId)
         {
-            return const_cast<ActorPool *>(this)->getSubBucket(bucketId, subBucketId);
-        }
-
-        MailboxSubBucket & getSubBucket(int bucketId, int subBucketId)
-        {
-            return m_bucketList.at(bucketId).subBucketList.at(subBucketId);
+            return self.m_bucketList.at(bucketId).subBucketList.at(subBucketId);
         }
 
     public:
-        const MailboxSubBucket & getSubBucket(uint64_t uid) const
+        auto & getSubBucket(this auto && self, uint64_t uid)
         {
-            return const_cast<ActorPool *>(this)->getSubBucket(uid);
-        }
-
-        MailboxSubBucket & getSubBucket(uint64_t uid)
-        {
-            return getSubBucket(getBucketID(uid), getSubBucketID(uid));
+            return self.getSubBucket(self.getBucketID(uid), self.getSubBucketID(uid));
         }
 
     private:

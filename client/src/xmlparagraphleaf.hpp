@@ -53,30 +53,25 @@ class XMLParagraphLeaf
             return self.m_node;
         }
 
+        auto & utf8CharOff(this auto && self)
+        {
+            if(self.type() != LEAF_UTF8STR){
+                throw fflerror("leaf is not an utf8 string");
+            }
+
+            if(self.m_utf8CharOff.empty()){
+                throw fflerror("utf8 token off doesn't initialized");
+            }
+
+            return self.m_utf8CharOff;
+        }
+
         int length() const
         {
             if(type() == LEAF_UTF8STR){
                 return to_d(utf8CharOff().size());
             }
             return 1;
-        }
-
-        const std::vector<int> &utf8CharOff() const
-        {
-            if(type() != LEAF_UTF8STR){
-                throw fflerror("leaf is not an utf8 string");
-            }
-
-            if(m_utf8CharOff.empty()){
-                throw fflerror("utf8 token off doesn't initialized");
-            }
-
-            return m_utf8CharOff;
-        }
-
-        std::vector<int> &utf8CharOff()
-        {
-            return const_cast<std::vector<int> &>(static_cast<const XMLParagraphLeaf *>(this)->utf8CharOff());
         }
 
         const char *utf8Text() const

@@ -209,15 +209,10 @@ class ServerMap final: public ServerObject
         int getMonsterCount(uint32_t);
 
     private:
-        const auto &getGrid(int x, int y) const
+        auto & getGrid(this auto && self, int x, int y)
         {
-            fflassert(validC(x, y));
-            return m_gridList.at(x + y * W());
-        }
-
-        auto &getGrid(int x, int y)
-        {
-            return const_cast<MapGrid &>(static_cast<const ServerMap *>(this)->getGrid(x, y));
+            fflassert(self.validC(x, y));
+            return self.m_gridList.at(x + y * self.W());
         }
 
     private:
@@ -313,7 +308,7 @@ class ServerMap final: public ServerObject
         }
 
     private:
-        template<std::predicate<int, int> F> bool doCircle(int cx0, int cy0, int r, const F &f)
+        template<std::predicate<int, int> F> bool doCircle(this auto && self, int cx0, int cy0, int r, const F &f)
         {
             int doW = 2 * r - 1;
             int doH = 2 * r - 1;
@@ -321,10 +316,10 @@ class ServerMap final: public ServerObject
             int x0 = cx0 - r + 1;
             int y0 = cy0 - r + 1;
 
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), x0, y0, doW, doH)){
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, self.W(), self.H(), x0, y0, doW, doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(validC(x, y)){
+                        if(self.validC(x, y)){
                             if(mathf::LDistance2(x, y, cx0, cy0) <= (r - 1) * (r - 1)){
                                 if(f(x, y)){
                                     return true;
@@ -337,17 +332,12 @@ class ServerMap final: public ServerObject
             return false;
         }
 
-        template<std::predicate<int, int> F> bool doCircle(int cx0, int cy0, int r, const F &f) const
+        template<std::predicate<int, int> F> bool doSquare(this auto && self, int x0, int y0, int doW, int doH, const F &f)
         {
-            return const_cast<ServerMap *>(this)->doCircle(cx0, cy0, r, f);
-        }
-
-        template<std::predicate<int, int> F> bool doSquare(int x0, int y0, int doW, int doH, const F &f)
-        {
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, W(), H(), x0, y0, doW, doH)){
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, self.W(), self.H(), x0, y0, doW, doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(validC(x, y)){
+                        if(self.validC(x, y)){
                             if(f(x, y)){
                                 return true;
                             }
@@ -356,11 +346,6 @@ class ServerMap final: public ServerObject
                 }
             }
             return false;
-        }
-
-        template<std::predicate<int, int> F> bool doSquare(int x0, int y0, int doW, int doH, const F &f) const
-        {
-            return const_cast<ServerMap *>(this)->doSquare(x0, y0, doW, doH, f);
         }
 
         bool DoCenterCircle(int, int, int,      bool, const std::function<bool(int, int)> &);
