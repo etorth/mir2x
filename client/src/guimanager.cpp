@@ -201,7 +201,7 @@ bool GUIManager::processEventDefault(const SDL_Event &event, bool valid)
     return tookEvent;
 }
 
-Widget *GUIManager::getWidget(const std::string &name)
+Widget *GUIManager::getWidget(const std::string_view &name)
 {
     if(name == "InventoryBoard"){
         return &m_inventoryBoard;

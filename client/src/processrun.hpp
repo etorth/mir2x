@@ -373,14 +373,9 @@ class ProcessRun: public Process
         void queryInvOp(int, uint32_t, uint32_t) const;
 
     public:
-        Widget *getWidget(const std::string &widgetName)
+        auto getWidget(this auto && self, const std::string_view &widgetName)
         {
-            return getGUIManager()->getWidget(widgetName);
-        }
-
-        const Widget *getWidget(const std::string &widgetName) const
-        {
-            return const_cast<ProcessRun *>(this)->getWidget(widgetName);
+            return self.getGUIManager()->getWidget(widgetName);
         }
 
     public:
@@ -405,9 +400,9 @@ class ProcessRun: public Process
         std::tuple<int, int> getACNum(const std::string &) const;
 
     public:
-        GUIManager *getGUIManager()
+        auto getGUIManager(this auto && self)
         {
-            return std::addressof(m_guiManager);
+            return std::addressof(self.m_guiManager);
         }
 
     public:
@@ -486,8 +481,13 @@ class ProcessRun: public Process
         void setCursor(int);
 
     public:
-        template<int CfgIndex> auto getRuntimeConfig() const
+        // template<int CfgIndex> auto getRuntimeConfig() const
+        // {
+        //     return SDRuntimeConfig_getConfig<CfgIndex>(dynamic_cast<const RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->getConfig());
+        // }
+
+        template<int CfgIndex> auto getRuntimeConfig(this auto && self)
         {
-            return SDRuntimeConfig_getConfig<CfgIndex>(dynamic_cast<const RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->getConfig());
+            return SDRuntimeConfig_getConfig<CfgIndex>(dynamic_cast<const RuntimeConfigBoard *>(self.getWidget("RuntimeConfigBoard"))->getConfig());
         }
 };

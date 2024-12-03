@@ -58,10 +58,10 @@ class GUIManager: public Widget
         bool processEventDefault(const SDL_Event &, bool) override;
 
     public:
-        Widget *getWidget(const std::string &);
+        Widget *getWidget(const std::string_view &);
 
     public:
-        const Widget *getWidget(const std::string &name) const
+        const Widget *getWidget(const std::string_view &name) const
         {
             return const_cast<GUIManager *>(this)->getWidget(name);
         }

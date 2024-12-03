@@ -358,55 +358,40 @@ class XMLTypeset // means XMLParagraph typeset
         int LineFullWidth(int) const;
 
     public:
-        const TOKEN *getToken(int argX, int argY) const
+        auto getToken(this auto && self, int argX, int argY)
         {
-            if(!tokenLocValid(argX, argY)){
+            if(!self.tokenLocValid(argX, argY)){
                 throw fflerror("invalid token location: (%d, %d)", argX, argY);
             }
-            return &(m_lineList[argY].content[argX]);
-        }
-
-        TOKEN *getToken(int argX, int argY)
-        {
-            return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->getToken(argX, argY));
+            return std::addressof(self.m_lineList[argY].content[argX]);
         }
 
     public:
-        const TOKEN *GetLineBackToken(int argLine) const
+        auto GetLineBackToken(this auto && self, int argLine)
         {
-            if(!lineValid(argLine)){
+            if(!self.lineValid(argLine)){
                 throw fflerror("invalid line: %d", argLine);
             }
 
-            if(lineTokenCount(argLine) == 0){
+            if(self.lineTokenCount(argLine) == 0){
                 throw fflerror("invalie empty line: %d", argLine);
             }
 
-            return getToken(lineTokenCount(argLine) - 1, argLine);
-        }
-
-        TOKEN *GetLineBackToken(int argLine)
-        {
-            return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->GetLineBackToken(argLine));
+            return self.getToken(self.lineTokenCount(argLine) - 1, argLine);
         }
 
     public:
-        const TOKEN *GetBackToken() const
+        auto GetBackToken(this auto && self)
         {
-            if(lineCount() == 0){
+            if(self.lineCount() == 0){
                 throw fflerror("empty board");
             }
 
-            if(lineTokenCount(lineCount() - 1) == 0){
-                throw fflerror("invalie empty line: %d", lineCount() - 1);
+            if(self.lineTokenCount(self.lineCount() - 1) == 0){
+                throw fflerror("invalie empty line: %d", self.lineCount() - 1);
             }
 
-            return GetLineBackToken(lineCount() - 1);
-        }
-
-        TOKEN *GetBackToken()
-        {
-            return const_cast<TOKEN *>(static_cast<const XMLTypeset *>(this)->GetBackToken());
+            return self.GetLineBackToken(self.lineCount() - 1);
         }
 
     private:
