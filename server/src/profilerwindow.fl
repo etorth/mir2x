@@ -16,10 +16,10 @@ class ProfilerWindow {} {
   }
   Function {ProfilerWindow()} {} {
     Fl_Window m_window {
-      xywh {2387 383 830 505} type Double labelfont 4 hide resizable
+      xywh {2387 383 830 505} type Double hide resizable
     } {
       Fl_Text_Display m_display {
-        xywh {0 0 830 505} labelfont 4 textfont 4 resizable
+        xywh {0 0 830 505} textfont 4 resizable
       }
     }
     code {{

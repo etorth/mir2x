@@ -12,31 +12,31 @@ class ActorMonitorWindow {} {
   Function {ActorMonitorWindow()} {} {
     Fl_Window m_window {
       label ActorMointorWindow
-      xywh {2215 203 1030 445} type Double labelfont 4 resizable visible
+      xywh {2215 203 1030 445} type Double resizable visible
     } {
       Fl_Table m_actorMonitorTable {
-        xywh {0 25 1030 400} labelfont 4 resizable
+        xywh {0 25 1030 400} resizable
         code0 {\#include "actormonitortable.hpp"}
         class ActorMonitorTable
       } {}
       Fl_Menu_Bar {} {
-        xywh {0 0 1030 25} box THIN_UP_BOX labelfont 4
+        xywh {0 0 1030 25} box THIN_UP_BOX
       } {
         Submenu {} {
           label Monitor
-          xywh {0 0 70 21} labelfont 4
+          xywh {0 0 70 21}
         } {
           MenuItem {} {
             label {Exit    }
             callback {{
     m_window->hide();
 }}
-            xywh {0 0 36 21} shortcut 0x40071 labelfont 4
+            xywh {0 0 36 21} shortcut 0x40071
           }
         }
       }
       Fl_Box m_logBar {
-        xywh {0 425 1030 20} box UP_BOX labelfont 4 align 20
+        xywh {0 425 1030 20} box UP_BOX align 20
       }
     }
     code {// register the timer here

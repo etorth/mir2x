@@ -33,14 +33,14 @@ class MainWindow {} {
       callback {{
 	// do nothing
 }}
-      xywh {0 0 720 400} type Double labelfont 4 resizable visible
+      xywh {0 0 720 400} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
-        xywh {0 0 721 25} box FLAT_BOX labelfont 4 textfont 4
+        xywh {0 0 721 25} box FLAT_BOX textfont 4
       } {
         Submenu {} {
           label Server
-          xywh {0 0 62 20} labelfont 4
+          xywh {0 0 62 20}
         } {
           MenuItem m_launchMenu {
             label {Launch        }
@@ -53,24 +53,24 @@ class MainWindow {} {
 
 	m_launchMenu->deactivate();
 }}
-            xywh {0 0 30 20} shortcut 0x4006c labelfont 4 divider
+            xywh {0 0 30 20} shortcut 0x4006c divider
             code0 {\#include "monoserver.hpp"}
           }
           MenuItem {} {
             label Pause
-            xywh {10 10 30 20} shortcut 0x40070 labelfont 4 divider
+            xywh {10 10 30 20} shortcut 0x40070 divider
           }
           MenuItem {} {
             label Quit
             callback {{
 	exit(0);
 }}
-            xywh {20 20 30 20} shortcut 0x40071 labelfont 4
+            xywh {20 20 30 20} shortcut 0x40071
           }
         }
         Submenu {} {
           label Configure
-          xywh {0 0 62 20} labelfont 4
+          xywh {0 0 62 20}
         } {
           MenuItem {} {
             label {Server        }
@@ -78,12 +78,12 @@ class MainWindow {} {
 	extern ServerConfigureWindow	*g_serverConfigureWindow;
 	g_serverConfigureWindow->showAll();
 }}
-            xywh {10 10 30 20} labelfont 4 divider
+            xywh {10 10 30 20} divider
             code0 {\#include "serverconfigurewindow.hpp"}
           }
           Submenu {} {
             label Fonts
-            xywh {0 0 70 21} labelfont 4
+            xywh {0 0 70 21}
           } {
             Submenu m_firstGroup_submenu {
               label font_family
@@ -9701,7 +9701,7 @@ class MainWindow {} {
         }
         Submenu m_commandMenuButton {
           label Command
-          xywh {15 15 62 20} labelfont 4
+          xywh {15 15 62 20}
         } {
           MenuItem m_subMenuRunCommand {
             label {Run            }
@@ -9714,7 +9714,7 @@ class MainWindow {} {
         fl_alert("%s", "Create command window failed");
     }
 }}
-            xywh {0 0 36 20} labelfont 4 divider
+            xywh {0 0 36 20} divider
           }
           MenuItem m_menuItemToggleAll {
             label {Toggle All}
@@ -9744,7 +9744,7 @@ class MainWindow {} {
         }
     }
 }}
-            xywh {10 10 36 20} labelfont 4
+            xywh {10 10 36 20}
           }
           MenuItem m_menuItemFirstCW {
             label {Window 01}
@@ -9757,7 +9757,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {40 40 36 20} labelfont 4 hide
+            xywh {40 40 36 20} hide
             code0 {\#include "commandwindow.hpp"}
           }
           MenuItem {} {
@@ -9771,7 +9771,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {50 50 36 20} labelfont 4 hide
+            xywh {50 50 36 20} hide
           }
           MenuItem {} {
             label {Window 03}
@@ -9784,7 +9784,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {60 60 36 20} labelfont 4 hide
+            xywh {60 60 36 20} hide
           }
           MenuItem {} {
             label {Window 04}
@@ -9797,7 +9797,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {70 70 36 20} labelfont 4 hide
+            xywh {70 70 36 20} hide
           }
           MenuItem {} {
             label {Window 05}
@@ -9810,7 +9810,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {80 80 36 20} labelfont 4 hide
+            xywh {80 80 36 20} hide
           }
           MenuItem {} {
             label {Window 06}
@@ -9823,7 +9823,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {90 90 36 20} labelfont 4 hide
+            xywh {90 90 36 20} hide
           }
           MenuItem {} {
             label {Window 07}
@@ -9836,7 +9836,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {100 100 36 20} labelfont 4 hide
+            xywh {100 100 36 20} hide
           }
           MenuItem {} {
             label {Window 08}
@@ -9849,7 +9849,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {110 110 36 20} labelfont 4 hide
+            xywh {110 110 36 20} hide
           }
           MenuItem {} {
             label {Window 09}
@@ -9862,7 +9862,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {120 120 36 20} labelfont 4 hide
+            xywh {120 120 36 20} hide
           }
           MenuItem {} {
             label {Window 10}
@@ -9875,7 +9875,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {130 130 36 20} labelfont 4 hide
+            xywh {130 130 36 20} hide
           }
           MenuItem {} {
             label {Window 11}
@@ -9888,7 +9888,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {140 140 36 20} labelfont 4 hide
+            xywh {140 140 36 20} hide
           }
           MenuItem {} {
             label {Window 12}
@@ -9901,7 +9901,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {140 140 36 20} labelfont 4 hide
+            xywh {140 140 36 20} hide
           }
           MenuItem {} {
             label {Window 13}
@@ -9914,7 +9914,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {150 150 36 20} labelfont 4 hide
+            xywh {150 150 36 20} hide
           }
           MenuItem {} {
             label {Window 14}
@@ -9927,7 +9927,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {160 160 36 20} labelfont 4 hide
+            xywh {160 160 36 20} hide
           }
           MenuItem {} {
             label {Window 15}
@@ -9940,7 +9940,7 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {170 170 36 20} labelfont 4 hide
+            xywh {170 170 36 20} hide
           }
           MenuItem m_menuItemLastCW {
             label {Window 16}
@@ -9953,12 +9953,12 @@ class MainWindow {} {
         (m_menuItemFirstCW + (nMenuItem - 1))->deactivate();
     }
 }}
-            xywh {180 180 36 20} labelfont 4 hide
+            xywh {180 180 36 20} hide
           }
         }
         Submenu {} {
           label Script
-          xywh {0 0 100 20} labelfont 4
+          xywh {0 0 100 20}
         } {
           MenuItem {} {
             label {Load        }
@@ -9991,13 +9991,13 @@ class MainWindow {} {
     }
 
 }}
-            xywh {0 0 100 20} labelfont 4
+            xywh {0 0 100 20}
             code0 {\#include "scriptwindow.hpp"}
           }
         }
         Submenu {} {
           label Monitor
-          xywh {0 0 70 21} labelfont 4
+          xywh {0 0 70 21}
         } {
           MenuItem {} {
             label {Actor               }
@@ -10006,7 +10006,7 @@ class MainWindow {} {
     extern ActorMonitorWindow *g_actorMonitorWindow;
     g_actorMonitorWindow->showAll();
 }}
-            xywh {0 0 36 21} labelfont 4 divider
+            xywh {0 0 36 21} divider
             code0 {\#include "actormonitorwindow.hpp"}
           }
           MenuItem {} {
@@ -10016,12 +10016,12 @@ class MainWindow {} {
     extern PodMonitorWindow *g_podMonitorWindow;
     g_podMonitorWindow->showAll();
 }}
-            xywh {10 10 36 21} labelfont 4 divider
+            xywh {10 10 36 21} divider
             code0 {\#include "podmonitorwindow.hpp"}
           }
           MenuItem {} {
             label {Actor Thread}
-            xywh {0 0 36 21} labelfont 4 divider
+            xywh {0 0 36 21} divider
           }
           MenuItem {} {
             label {Function Profiler}
@@ -10030,13 +10030,13 @@ class MainWindow {} {
     extern ProfilerWindow *g_profilerWindow;
     g_profilerWindow->showAll();
 }}
-            xywh {10 10 36 21} labelfont 4
+            xywh {10 10 36 21}
             code0 {\#include "profilerwindow.hpp"}
           }
         }
       }
       Fl_Browser m_browser {
-        xywh {0 24 720 375} type Hold labelfont 4 textfont 4 resizable
+        xywh {0 24 720 375} type Hold textfont 4 resizable
       }
     }
     code {// insert font menus
@@ -10068,8 +10068,13 @@ class MainWindow {} {
         return m_firstGroup_firstMenuItem + numItemInGroup * familyIndex + fontIndex;
     };
 
+    const auto fnCmp = [](const std::string &x, const std::string &y)
+    {
+        return str_toupper(x) < str_toupper(y);
+    };
+
     const int numSysFontFound = Fl::set_fonts("-*");
-    std::map<std::string, Fl_Font> fontMap; // duplicates removed
+    std::map<std::string, Fl_Font, decltype(fnCmp)> fontMap(fnCmp); // duplicates removed
 
     for(int i = 0; i < numSysFontFound; ++i){
         int fontType = -1;

@@ -18,18 +18,18 @@ class ScriptWindow {} {
   }
   Function {ScriptWindow()} {} {
     Fl_Window m_window {
-      xywh {9 72 830 505} type Double labelfont 4 resizable visible
+      xywh {9 72 830 505} type Double resizable visible
     } {
       Fl_Menu_Bar {} {
-        xywh {0 0 830 25} box FLAT_BOX labelfont 4
+        xywh {0 0 830 25} box FLAT_BOX
       } {
         Submenu {} {
           label File
-          xywh {0 0 100 20} labelfont 4
+          xywh {0 0 100 20}
         } {
           MenuItem {} {
             label {Load        }
-            xywh {0 0 100 20} shortcut 0x4006c labelfont 4 divider
+            xywh {0 0 100 20} shortcut 0x4006c divider
           }
           MenuItem {} {
             label Update
@@ -38,23 +38,23 @@ class ScriptWindow {} {
         LoadFile(m_fileName.c_str());
     }
 }}
-            xywh {0 0 100 20} shortcut 0x40075 labelfont 4 divider
+            xywh {0 0 100 20} shortcut 0x40075 divider
           }
           MenuItem {} {
             label Exit
             callback {{
 	m_window->hide();
 }}
-            xywh {0 0 100 20} labelfont 4
+            xywh {0 0 100 20}
           }
         }
         Submenu {} {
           label Execute
-          xywh {0 0 100 20} labelfont 4
+          xywh {0 0 100 20}
         } {
           MenuItem {} {
             label {Configure     }
-            xywh {0 0 100 20} shortcut 0x40063 labelfont 4 divider
+            xywh {0 0 100 20} shortcut 0x40063 divider
           }
           MenuItem {} {
             label {Run   }
@@ -69,13 +69,13 @@ class ScriptWindow {} {
         fl_alert("Command window %d is not active", cwid);
     }
 }}
-            xywh {0 0 100 20} shortcut 0x40072 labelfont 4
+            xywh {0 0 100 20} shortcut 0x40072
             code0 {\#include "mainwindow.hpp"}
           }
         }
       }
       Fl_Text_Display m_display {
-        xywh {0 25 830 480} labelfont 4 textfont 4 resizable
+        xywh {0 25 830 480} textfont 4 resizable
       }
     }
     code {{

@@ -50,31 +50,31 @@ class ServerConfigureWindow {} {
   Function {ServerConfigureWindow()} {} {
     Fl_Window m_window {
       label ConfigureWindow
-      xywh {48 119 625 360} type Double labelfont 4 modal visible
+      xywh {48 119 625 360} type Double modal visible
     } {
       Fl_Value_Input m_maxPlayerCount {
         label {Maximal Player: }
-        xywh {172 146 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {172 146 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Input m_mapFullName {
         label {Map Path: }
-        xywh {172 20 273 24} labelfont 4 textfont 4
+        xywh {172 20 273 24} textfont 4
       }
       Fl_Input m_scriptFullName {
         label {Script Path: }
-        xywh {172 61 273 24} labelfont 4 textfont 4
+        xywh {172 61 273 24} textfont 4
       }
       Fl_Value_Input m_equipmentRate {
         label {Drop Rate: }
-        xywh {172 221 60 24} labelfont 4 minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {172 221 60 24} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Value_Input m_m_experienceRate {
         label {Exprience Rate: }
-        xywh {172 183 60 24} labelfont 4 minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {172 183 60 24} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Value_Input m_goldRate {
         label {Gold Rate: }
-        xywh {172 259 60 24} labelfont 4 minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {172 259 60 24} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Button {} {
         label {@fileopen}
@@ -116,7 +116,7 @@ class ServerConfigureWindow {} {
       }
       Fl_Value_Input m_maxMonsterCount {
         label {Maximal Monster: }
-        xywh {172 108 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {172 108 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Button {} {
         label OK
@@ -126,7 +126,7 @@ m_window->hide();}
       }
       Fl_Value_Input m_port {
         label {Listen Port: }
-        xywh {171 298 60 24} labelfont 4 minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {171 298 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Button {} {
         label {@fileopen}

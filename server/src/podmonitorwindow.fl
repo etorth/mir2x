@@ -15,31 +15,31 @@ class PodMonitorWindow {} {
   Function {PodMonitorWindow()} {} {
     Fl_Window m_window {
       label PodMointorWindow
-      xywh {1021 530 900 445} type Double labelfont 4 resizable visible
+      xywh {1021 530 900 445} type Double resizable visible
     } {
       Fl_Table m_podMonitorTable {
-        xywh {0 25 900 400} labelfont 4 resizable
+        xywh {0 25 900 400} resizable
         code0 {\#include "podmonitortable.hpp"}
         class PodMonitorTable
       } {}
       Fl_Menu_Bar {} {
-        xywh {0 0 900 25} box THIN_UP_BOX labelfont 4
+        xywh {0 0 900 25} box THIN_UP_BOX
       } {
         Submenu {} {
           label Monitor
-          xywh {0 0 70 21} labelfont 4
+          xywh {0 0 70 21}
         } {
           MenuItem {} {
             label {Exit    }
             callback {{
     m_window->hide();
 }}
-            xywh {0 0 36 21} shortcut 0x40071 labelfont 4
+            xywh {0 0 36 21} shortcut 0x40071
           }
         }
       }
       Fl_Box m_logBar {
-        xywh {0 425 900 20} box UP_BOX labelfont 4 align 20
+        xywh {0 425 900 20} box UP_BOX align 20
       }
     }
     code {// register the timer here
