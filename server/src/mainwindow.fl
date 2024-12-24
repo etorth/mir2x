@@ -10083,14 +10083,29 @@ class MainWindow {} {
         }
     }
 
-    const auto fnParseTokens = [](const std::string s)
+    const auto fnParseTokens = [](const std::string &s)
     {
         std::string t;
         std::vector<std::string> tokens;
 
         std::istringstream iss(s);
         while(iss >> t){
-            tokens.push_back(t);
+            if([&t]() -> bool // keep token
+            {
+                for(const auto lower = str_tolower(t); const auto suffix:
+                {
+                    "bold",
+                    "italic",
+                    "underline",
+                }){
+                    if(lower == suffix){
+                        return false;
+                    }
+                }
+                return true;
+            }()){
+                tokens.push_back(t);
+            }
         }
         return tokens;
     };
@@ -10112,7 +10127,7 @@ class MainWindow {} {
 
         for(auto iter = std::next(fontMap.begin()); iter != fontMap.end(); ++iter){
             const auto currTokenList = fnParseTokens(iter->first);
-            if(firstTokenList.front() != currTokenList.front()){
+            if(firstTokenList != currTokenList){
                 if(const auto numItemInGroupFound = std::distance(firstIter, iter); numItemInGroupFound == 1){
                     fnGetFontFamily(familyIndex)->hide();
                     fnGetSingleFontFamily(familyIndex)->label(strdup(firstIter->first.c_str()));
