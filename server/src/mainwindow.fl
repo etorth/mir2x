@@ -10137,7 +10137,7 @@ class MainWindow {} {
                 }
                 else{
                     fnGetSingleFontFamily(familyIndex)->hide();
-                    fnGetFontFamily(familyIndex)->label(strdup(firstIter->first.c_str()));
+                    fnGetFontFamily(familyIndex)->label(strdup(str_join(firstTokenList, " ").c_str())); // use common prefix as family name
                     fnGetFontFamily(familyIndex)->labelfont((Fl_Font)(firstIter->second));
                     fnGetFontFamily(familyIndex)->show();
                     for(int i = 0; i < numFontInFamily; ++i){
