@@ -49,6 +49,7 @@ class MainWindow {} {
 	delete g_monoServer;
 
         extern ServerPasswordWindow *g_serverPasswordWindow;
+        g_serverPasswordWindow->setTitle("Please set server password:");
         g_serverPasswordWindow->showAll();
 
 	g_monoServer = new MonoServer();
