@@ -45,17 +45,23 @@ class MainWindow {} {
           MenuItem m_launchMenu {
             label {Launch        }
             callback {{
-	extern MonoServer *g_monoServer;
-	delete g_monoServer;
-
         extern ServerPasswordWindow *g_serverPasswordWindow;
         g_serverPasswordWindow->setTitle("Please set server password:");
+
+	auto fnLaunchCallback = [this](ServerPasswordWindow *)
+        {
+            extern MonoServer *g_monoServer;
+            delete g_monoServer;
+
+            g_monoServer = new MonoServer();
+            g_monoServer->Launch();
+
+            m_launchMenu->deactivate();
+            g_serverPasswordWindow->hideAll();
+	};
+
+        g_serverPasswordWindow->setCallback(fnLaunchCallback);
         g_serverPasswordWindow->showAll();
-
-	g_monoServer = new MonoServer();
-	g_monoServer->Launch();
-
-	m_launchMenu->deactivate();
 }}
             xywh {0 0 30 20} shortcut 0x4006c divider
             code0 {\#include "monoserver.hpp"}
