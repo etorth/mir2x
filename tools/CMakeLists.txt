@@ -22,3 +22,5 @@ ADD_SUBDIRECTORY(followuidmagiceditor)
 ADD_SUBDIRECTORY(wtldecoder)
 ADD_SUBDIRECTORY(bgmlistdecoder)
 ADD_SUBDIRECTORY(soundlistdecoder)
+
+ADD_SUBDIRECTORY(xmltran)
