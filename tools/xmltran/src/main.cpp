@@ -2,41 +2,45 @@
 #include <iostream>
 #include "tinyxml2.h"
 
-using namespace std;
-using namespace tinyxml2;
-
-void xmlTran(tinyxml2::XMLNode* node) {
-    if(node == nullptr)
+static void xmlTran(tinyxml2::XMLNode* node)
+{
+    if(node == nullptr){
         return;
-
-    if(node->ToDeclaration()) {
-        auto declaration = dynamic_cast<tinyxml2::XMLDeclaration*>(node);
-        cout << "XML 声明，value=" << declaration->Value() << endl;
     }
-    if(node->ToElement()) {
-        auto element = dynamic_cast<tinyxml2::XMLElement*>(node);
-        cout << "XML 元素，name=" << element->Name() << ", value=" << element->Value() << endl;
+
+    if(node->ToDeclaration()){
+        auto declaration = dynamic_cast<tinyxml2::XMLDeclaration *>(node);
+        std::cout << "XMLDeclaration value: " << declaration->Value() << std::endl;
+    }
+
+    if(node->ToElement()){
+        auto element = dynamic_cast<tinyxml2::XMLElement *>(node);
+        std::cout << "XMLElement name: " << element->Name() << ", value: " << element->Value() << std::endl;
         const tinyxml2::XMLAttribute* attribute = element->FirstAttribute();
         while (attribute != nullptr) {
-            cout << "\t属性 " << attribute->Name() << "=" << attribute->Value() << endl;
+            std::cout << "\tXMLAttribute " << attribute->Name() << "=" << attribute->Value() << std::endl;
             attribute = attribute->Next();
         }
     }
-    if(node->ToText()) {
-        auto text = dynamic_cast<tinyxml2::XMLText*>(node);
-        cout << "XML 文本：" << text->Value() << endl;
+
+    if(node->ToText()){
+        auto text = dynamic_cast<tinyxml2::XMLText *>(node);
+        std::cout << "XMLText: " << text->Value() << std::endl;
     }
+
     if(node->ToComment()) {
-        auto comment = dynamic_cast<tinyxml2::XMLComment*>(node);
-        cout << "XML 注释：" << comment->Value() << endl;
+        auto comment = dynamic_cast<tinyxml2::XMLComment *>(node);
+        std::cout << "XMLComment: " << comment->Value() << std::endl;
     }
+
     if(node->ToUnknown()) {
-        auto unknown = dynamic_cast<tinyxml2::XMLUnknown*>(node);
-        cout << "XML 未知：" << unknown->Value() << endl;
+        auto unknown = dynamic_cast<tinyxml2::XMLUnknown *>(node);
+        std::cout << "XMLUnknown: " << unknown->Value() << std::endl;
     }
+
     if(node->ToDocument()) {
-        auto document = dynamic_cast<tinyxml2::XMLDocument*>(node);
-        cout << "XML 文档：" << document->ErrorName() << endl;
+        auto document = dynamic_cast<tinyxml2::XMLDocument *>(node);
+        std::cout << "XMLDocument: " << document->ErrorName() << std::endl;
     }
 
     if(node->NoChildren()) {
@@ -56,7 +60,7 @@ int main(int argc, char *argv[])
         tinyxml2::XMLDocument xmlDoc;
         tinyxml2::XMLError error = xmlDoc.LoadFile(argv[1]);
         if(error != tinyxml2::XML_SUCCESS) {
-            std::cout << "Failed to read XML: " << xmlDoc.ErrorStr() << endl;
+            std::cout << "Failed to read XML: " << xmlDoc.ErrorStr() << std::endl;
             return EXIT_FAILURE;
         }
 
