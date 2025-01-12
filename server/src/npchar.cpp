@@ -1,6 +1,7 @@
 #include <cstdint>
 #include "uidf.hpp"
 #include "luaf.hpp"
+#include "xmlf.hpp"
 #include "dbpod.hpp"
 #include "mathf.hpp"
 #include "npchar.hpp"
@@ -333,6 +334,27 @@ NPChar::NPChar(const ServerMap *mapCPtr, const SDInitNPChar &initNPChar)
     , m_initScriptName(initNPChar.fullScriptName)
 {}
 
+uint64_t NPChar::rollXMLSeqID(uint64_t uid)
+{
+    const auto added = static_cast<uint64_t>(std::rand());
+    if(auto p = m_xmlLayoutSeqIDList.find(uid); p != m_xmlLayoutSeqIDList.end()){
+        return p->second += added;
+    }
+    else{
+        return m_xmlLayoutSeqIDList.emplace(uid, m_xmlLayoutSeqID += added).first->second;
+    }
+}
+
+std::optional<uint64_t> NPChar::getXMLSeqID(uint64_t uid) const
+{
+    if(auto p = m_xmlLayoutSeqIDList.find(uid); p != m_xmlLayoutSeqIDList.end()){
+        return p->second;
+    }
+    else{
+        return std::nullopt;
+    }
+}
+
 bool NPChar::update()
 {
     return true;
@@ -411,11 +433,31 @@ void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitT
 
 void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString)
 {
+    tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
+    if(xmlDoc.Parse(xmlString.c_str()) != tinyxml2::XML_SUCCESS){
+        throw fflerror("parse xml failed: %s", to_cstr(xmlString));
+    }
+
+    fflassert(xmlDoc.RootElement(), xmlString);
+    fflassert(str_tolower(xmlDoc.RootElement()->Name()) == "layout", xmlString);
+
+    rollXMLSeqID(uid);
+    for(auto node = xmlf::getNodeFirstLeaf(xmlDoc.RootElement()); node; node = xmlf::getNextLeaf(node)){
+        auto elem = node->ToElement();
+        for(auto attr = elem->FirstAttribute(); attr; attr = attr->Next()){
+            if(str_tolower(attr->Name()) == "id"){
+                std::string val = attr->Value() + std::to_string(getXMLSeqID(uid).value());
+                const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(val.c_str());
+                break;
+            }
+        }
+    }
+
     forwardNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
     {
         .npcUID = UID(),
         .eventPath = std::move(path),
-        .xmlLayout = std::move(xmlString),
+        .xmlLayout = xmlf::toString(xmlDoc.RootElement()),
     }));
 }
 

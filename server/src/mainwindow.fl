@@ -48,6 +48,9 @@ class MainWindow {} {
 	extern MonoServer *g_monoServer;
 	delete g_monoServer;
 
+        extern ServerPasswordWindow *g_serverPasswordWindow;
+        g_serverPasswordWindow->showAll();
+
 	g_monoServer = new MonoServer();
 	g_monoServer->Launch();
 
@@ -55,6 +58,7 @@ class MainWindow {} {
 }}
             xywh {0 0 30 20} shortcut 0x4006c divider
             code0 {\#include "monoserver.hpp"}
+            code1 {\#include "serverpasswordwindow.hpp"}
           }
           MenuItem {} {
             label Pause

@@ -11,6 +11,7 @@
 #include "profilerwindow.hpp"
 #include "serverargparser.hpp"
 #include "podmonitorwindow.hpp"
+#include "serverpasswordwindow.hpp"
 #include "serverconfigurewindow.hpp"
 
 ServerArgParser          *g_serverArgParser;
@@ -24,6 +25,7 @@ ScriptWindow             *g_scriptWindow;
 ProfilerWindow           *g_profilerWindow;
 MainWindow               *g_mainWindow;
 MonoServer               *g_monoServer;
+ServerPasswordWindow     *g_serverPasswordWindow;
 ServerConfigureWindow    *g_serverConfigureWindow;
 PodMonitorWindow         *g_podMonitorWindow;
 ActorMonitorWindow       *g_actorMonitorWindow;
@@ -48,6 +50,7 @@ int main(int argc, char *argv[])
         g_mainWindow            = new MainWindow();
         g_monoServer            = new MonoServer();
         g_mapBinDB              = new MapBinDB();
+        g_serverPasswordWindow  = new ServerPasswordWindow();
         g_serverConfigureWindow = new ServerConfigureWindow();
         g_actorPool             = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
         g_dbPod                 = new DBPod();

@@ -40,6 +40,12 @@ class NPChar final: public CharObject
         std::unique_ptr<NPChar::LuaThreadRunner> m_luaRunner;
         std::unordered_map<uint32_t, std::map<uint32_t, SellItem>> m_sellItemList;
 
+    private:
+        // don't use m_lunRunner->getSeqID(uid)
+        // because it's possible to received event while no lua thread is running
+        uint64_t m_xmlLayoutSeqID = 1;
+        std::unordered_map<uint64_t, uint64_t> m_xmlLayoutSeqIDList;
+
     public:
         NPChar(const ServerMap *, const SDInitNPChar &initNPChar);
 
@@ -48,6 +54,10 @@ class NPChar final: public CharObject
 
     public:
         void reportCO(uint64_t) override;
+
+    public:
+        uint64_t rollXMLSeqID(uint64_t);
+        std::optional<uint64_t> getXMLSeqID(uint64_t) const;
 
     protected:
         const std::set<uint32_t> &getSellList() const
