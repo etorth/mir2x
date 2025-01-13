@@ -1,5 +1,6 @@
 #include <cstdint>
 #include "uidf.hpp"
+#include "aesf.hpp"
 #include "luaf.hpp"
 #include "xmlf.hpp"
 #include "dbpod.hpp"
@@ -14,10 +15,12 @@
 #include "serdesmsg.hpp"
 #include "friendtype.hpp"
 #include "monoserver.hpp"
+#include "serverpasswordwindow.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern DBPod *g_dbPod;
 extern MonoServer *g_monoServer;
+extern ServerPasswordWindow *g_serverPasswordWindow;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
 NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
@@ -449,15 +452,10 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
         if(auto elem = node->ToElement()){
             for(auto attr = elem->FirstAttribute(); attr; attr = attr->Next()){
                 if(str_tolower(attr->Name()) == "id"){
-                    std::string val = attr->Value() + std::to_string(xmlSeqID);
-                    const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(val.c_str());
+                    const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(aesf::encrypt(attr->Value(), g_serverPasswordWindow->getPassword(), xmlSeqID).c_str());
                     break;
                 }
             }
-        }
-
-        if(node->NoChildren()) {
-            return;
         }
 
         for(auto child = node->FirstChild(); child; child = child->NextSibling()){
@@ -466,7 +464,6 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
     };
 
     fnXMLTran(xmlDoc.RootElement());
-
     forwardNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
     {
         .npcUID = UID(),
