@@ -441,17 +441,31 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
     fflassert(xmlDoc.RootElement(), xmlString);
     fflassert(str_tolower(xmlDoc.RootElement()->Name()) == "layout", xmlString);
 
-    rollXMLSeqID(uid);
-    for(auto node = xmlf::getNodeFirstLeaf(xmlDoc.RootElement()); node; node = xmlf::getNextLeaf(node)){
-        auto elem = node->ToElement();
-        for(auto attr = elem->FirstAttribute(); attr; attr = attr->Next()){
-            if(str_tolower(attr->Name()) == "id"){
-                std::string val = attr->Value() + std::to_string(getXMLSeqID(uid).value());
-                const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(val.c_str());
-                break;
+    auto fnXMLTran = [xmlSeqID = rollXMLSeqID(uid)](this auto &&self, tinyxml2::XMLNode *node)
+    {
+        if(!node){
+            return;
+        }
+        if(auto elem = node->ToElement()){
+            for(auto attr = elem->FirstAttribute(); attr; attr = attr->Next()){
+                if(str_tolower(attr->Name()) == "id"){
+                    std::string val = attr->Value() + std::to_string(xmlSeqID);
+                    const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(val.c_str());
+                    break;
+                }
             }
         }
-    }
+
+        if(node->NoChildren()) {
+            return;
+        }
+
+        for(auto child = node->FirstChild(); child; child = child->NextSibling()){
+            self(child);
+        }
+    };
+
+    fnXMLTran(xmlDoc.RootElement());
 
     forwardNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
     {
