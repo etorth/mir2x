@@ -29,7 +29,11 @@ void NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
 void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
 {
     fflassert(mpk.from());
-    const auto sdNPCE = mpk.deserialize<SDNPCEvent>();
+    auto sdNPCE = mpk.deserialize<SDNPCEvent>();
+
+    if(!sdNPCE.event.empty() && sdNPCE.event != SYS_ENTER){
+        sdNPCE.event = AESHelper(this, mpk.from()).decode(sdNPCE.event.c_str());
+    }
 
     // when CO initially sends a message to NPC, we assume its UID is the callStackUID
     // when NPC querys CO attributes the response should be handled in actor response handler, not here
