@@ -43,6 +43,10 @@ std::string NPChar::AESHelper::decode(const char *s)
 {
     auto buf = base64f::decode(to_sv(s));
     decrypt(buf);
+
+    while(!(buf.empty() || buf.back() != '\0')){
+        buf.pop_back();
+    }
     return buf;
 }
 
