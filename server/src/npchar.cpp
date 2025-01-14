@@ -477,10 +477,12 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
             return;
         }
         if(auto elem = node->ToElement()){
-            for(auto attr = elem->FirstAttribute(); attr; attr = attr->Next()){
-                if(str_tolower(attr->Name()) == "id"){
-                    const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(AESHelper(npc, uid).encode(attr->Value()).c_str());
-                    break;
+            if(str_tolower(elem->Name()) == "event"){
+                for(auto attr = elem->FirstAttribute(); attr; attr = attr->Next()){
+                    if(str_tolower(attr->Name()) == "id"){
+                        const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(AESHelper(npc, uid).encode(attr->Value()).c_str());
+                        break;
+                    }
                 }
             }
         }
