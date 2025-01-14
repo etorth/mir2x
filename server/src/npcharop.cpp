@@ -33,7 +33,7 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
 
     if(!sdNPCE.event.empty() && sdNPCE.event != SYS_ENTER){
         sdNPCE.event = AESHelper(this, mpk.from()).decode(sdNPCE.event.c_str());
-        m_xmlLayoutSeqIDList.erase(mpk.from());
+        // m_xmlLayoutSeqIDList.erase(mpk.from());
     }
 
     // when CO initially sends a message to NPC, we assume its UID is the callStackUID
