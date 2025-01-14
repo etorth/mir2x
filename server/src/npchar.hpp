@@ -2,6 +2,7 @@
 #include <memory>
 #include <cstdint>
 #include <optional>
+#include "aesf.hpp"
 #include "servicecore.hpp"
 #include "servermap.hpp"
 #include "charobject.hpp"
@@ -14,6 +15,15 @@ class NPChar final: public CharObject
             SDItem item;
             bool locked = false;
             std::vector<SDCostItem> costList;
+        };
+
+        struct AESHelper: protected aesf::AES
+        {
+            /**/  AESHelper(const NPChar *, uint64_t);
+            /**/ ~AESHelper() = default;
+
+            std::string encode(const char *);
+            std::string decode(const char *);
         };
 
     protected:

@@ -1,27 +1,56 @@
+#include <type_traits>
+#include <utility>
+
 #include "aesf.hpp"
 #include "strf.hpp"
 #include "totype.hpp"
-#include "base64f.hpp"
+#include "fflerror.hpp"
 
-std::string aesf::encrypt(const char *orig, const char *password, uint64_t r)
+#define ECB 0
+#define CTR 0
+#define CBC 1
+#include "aes.hpp"
+
+static_assert(AES_KEYLEN == 16);
+static_assert(AES_BLOCKLEN == 16);
+
+#define AES_ctx_ptr(p) std::launder(reinterpret_cast<AES_ctx *>(p))
+
+aesf::AES::AES(const char *key, uint64_t iv1, uint64_t iv2)
 {
-    fflassert(orig, to_cstr(orig));
-    fflassert(password, to_cstr(password));
+    static_assert(AES_storage_alignment >= alignof(AES_ctx));
+    static_assert(AES_storage_size      >=  sizeof(AES_ctx));
 
-    std::string result;
-    result.append(orig);
-    result.append(password);
-    result.append(std::to_string(r));
-    result.append(str_printf("%04zu", to_sv(orig).size()));
-    return base64f::encode(result);
+    const auto keysv = to_sv(str_haschar(key) ? key : "0299dc69a0a0f4de");
+    uint8_t keybuf[AES_KEYLEN];
+
+    for(size_t done = 0; done < AES_KEYLEN;){
+        const size_t copied = std::min<size_t>(AES_KEYLEN - done, keysv.size());
+        std::memcpy(keybuf + done, keysv.data(), copied);
+        done += copied;
+    }
+
+    std::construct_at<AES_ctx>(reinterpret_cast<AES_ctx *>(storage));
+
+    uint8_t ivbuf[16];
+    std::memcpy(ivbuf    , &iv1, 8);
+    std::memcpy(ivbuf + 8, &iv2, 8);
+
+    AES_init_ctx_iv(AES_ctx_ptr(storage), keybuf, ivbuf);
 }
 
-std::string aesf::decrypt(const char *encoded, const char *, uint64_t)
+void aesf::AES::encrypt(void *data, size_t size)
 {
-    const auto s = base64f::decode(encoded, to_sv(encoded).size());
-    const size_t size = (s.rbegin()[3] - '0') * 1000
-                      + (s.rbegin()[2] - '0') * 100
-                      + (s.rbegin()[1] - '0') * 10
-                      + (s.rbegin()[0] - '0') * 1;
-    return s.substr(0, size);
+    fflassert(data);
+    fflassert(size);
+    fflassert(size % 16 == 0, size);
+    AES_CBC_encrypt_buffer(AES_ctx_ptr(storage), reinterpret_cast<uint8_t *>(data), size);
+}
+
+void aesf::AES::decrypt(void *data, size_t size)
+{
+    fflassert(data);
+    fflassert(size);
+    fflassert(size % 16 == 0, size);
+    AES_CBC_decrypt_buffer(AES_ctx_ptr(storage), reinterpret_cast<uint8_t *>(data), size);
 }

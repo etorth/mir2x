@@ -8,6 +8,7 @@
 #include "npchar.hpp"
 #include "colorf.hpp"
 #include "totype.hpp"
+#include "base64f.hpp"
 #include "filesys.hpp"
 #include "dbcomid.hpp"
 #include "cerealf.hpp"
@@ -22,6 +23,28 @@ extern DBPod *g_dbPod;
 extern MonoServer *g_monoServer;
 extern ServerPasswordWindow *g_serverPasswordWindow;
 extern ServerConfigureWindow *g_serverConfigureWindow;
+
+NPChar::AESHelper::AESHelper(const NPChar *npc, uint64_t uid)
+    : aesf::AES(g_serverPasswordWindow->getPassword(), reinterpret_cast<uintptr_t>(to_cvptr(npc)) ^ ~uid, npc->getXMLSeqID(uid).value())
+{}
+
+std::string NPChar::AESHelper::encode(const char *s)
+{
+    fflassert(str_haschar(s), s);
+    std::string buf(s);
+
+    buf.resize((buf.size() + 15) / 16 * 16);
+    encrypt(buf);
+
+    return base64f::encode(buf);
+}
+
+std::string NPChar::AESHelper::decode(const char *s)
+{
+    auto buf = base64f::decode(to_sv(s));
+    decrypt(buf);
+    return buf;
+}
 
 NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
     : CharObject::LuaThreadRunner(npc)
@@ -444,7 +467,7 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
     fflassert(xmlDoc.RootElement(), xmlString);
     fflassert(str_tolower(xmlDoc.RootElement()->Name()) == "layout", xmlString);
 
-    auto fnXMLTran = [xmlSeqID = rollXMLSeqID(uid)](this auto &&self, tinyxml2::XMLNode *node)
+    auto fnXMLTran = [uid, npc = this](this auto &&self, tinyxml2::XMLNode *node)
     {
         if(!node){
             return;
@@ -452,7 +475,7 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
         if(auto elem = node->ToElement()){
             for(auto attr = elem->FirstAttribute(); attr; attr = attr->Next()){
                 if(str_tolower(attr->Name()) == "id"){
-                    const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(aesf::encrypt(attr->Value(), g_serverPasswordWindow->getPassword(), xmlSeqID).c_str());
+                    const_cast<tinyxml2::XMLAttribute *>(attr)->SetAttribute(AESHelper(npc, uid).encode(attr->Value()).c_str());
                     break;
                 }
             }
@@ -463,6 +486,7 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
         }
     };
 
+    rollXMLSeqID(uid);
     fnXMLTran(xmlDoc.RootElement());
     forwardNetPackage(uid, SM_NPCXMLLAYOUT, cerealf::serialize(SDNPCXMLLayout
     {
