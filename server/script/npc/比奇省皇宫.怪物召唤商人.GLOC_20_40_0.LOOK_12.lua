@@ -30,7 +30,7 @@ eventHandlerTable[SYS_ENTER] = function(uid, value)
             <par></par>
             <par align="justify">%s</par>
             <par></par>
-            <par><event id="%s">关闭</event></par>
+            <par><event id="%s" close="1">关闭</event></par>
         </layout>
     ]], uidQueryName(uid), getNPCName(), table.concat(monsterNameList), SYS_EXIT)
 end

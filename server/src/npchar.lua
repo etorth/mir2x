@@ -380,7 +380,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             <layout>
                 <par>我听不懂你在说什么。</par>
                 <par></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], SYS_EXIT)
     end
@@ -391,7 +391,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
             <layout>
                 <par>和你这样的人我无话可说。</par>
                 <par></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], SYS_EXIT)
     end
@@ -547,7 +547,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
 
             table.insert(xmlStrs, string.format([[
                     <par></par>
-                    <par><event id="%s">退出</event></par>
+                    <par><event id="%s" close="1">退出</event></par>
                 </layout>
             ]], SYS_EXIT))
 

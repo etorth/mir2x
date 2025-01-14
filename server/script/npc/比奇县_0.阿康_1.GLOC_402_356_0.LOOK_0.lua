@@ -8,7 +8,7 @@ setEventHandler(
                     <par>我不想和你这种坏人做生意。</par>
                     <par></par>
 
-                    <par><event id="%s">关闭</event></par>
+                    <par><event id="%s" close="1">关闭</event></par>
                 </layout>
             ]], SYS_EXIT)
 
@@ -20,7 +20,7 @@ setEventHandler(
                     <par></par>
                     <par><event id="npc_goto_special_repair">特殊修理</event>武器</par>
                     <par><event id="npc_goto_unequip_weapon">请求把剑从手分离开</event></par>
-                    <par><event id="%s">关闭</event></par>
+                    <par><event id="%s" close="1">关闭</event></par>
                 </layout>
             ]], SYS_EXIT)
         end
@@ -57,7 +57,7 @@ setEventHandler(
                 <par>今天没事情可拜托你了。</par>
                 <par></par>
 
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], SYS_EXIT)
     end,

@@ -19,7 +19,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>遇到那个客人了吗？</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -66,7 +66,7 @@ setQuestFSMTable(
                         <layout>
                             <par>是啊，滚！叫你滚啊！ 呃...全给我滚开！呼...呃...</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -81,7 +81,7 @@ setQuestFSMTable(
                         <layout>
                             <par>呃...真是太感谢了！我落的如此惨状，过去我也曾是堂堂的商坛主人呢！我不能如此厚颜地接受别人的帮助...请收下这个吧！只要看到这个，几个还记得我的比奇省商人们会照应你的！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -108,7 +108,7 @@ setQuestFSMTable(
                         <layout>
                             <par>虽然我现在落的如此窘境...您却还给我留下最后的自尊，多谢了！</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -150,7 +150,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>谢谢啦！还有这个略表一下我的谢意吧！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -185,7 +185,7 @@ setQuestFSMTable(
                         <layout>
                             <par>是吗...那个人要是自觉的话现在应该已经离开旅馆了。那些欠下的住宿费就算了吧！</par>
                             <par>谢谢啦！还有这个略表一下我的谢意吧！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -229,7 +229,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '客栈店员_1'), getUID(), getQuestN
                     <par><event id="npc_accept">让我跟他说说吧！</event></par>
                     <par><event id="npc_refuse">我实在是没这个闲工夫啊！</event></par>
                 </layout>
-            ]=], SYS_EXIT)
+            ]=])
         end,
 
         npc_accept = function(uid, args)
@@ -238,7 +238,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '客栈店员_1'), getUID(), getQuestN
                 <layout>
                     <par>那就太谢谢了！那个客人白天时一般在酒摊儿附近喝的烂醉！</par>
                     <par></par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]=], SYS_EXIT)
 
@@ -251,7 +251,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '客栈店员_1'), getUID(), getQuestN
                 <layout>
                     <par>是吗？嗯...这真是郁闷啊，真愁人啊！</par>
                     <par></par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]=], SYS_EXIT)
         end,

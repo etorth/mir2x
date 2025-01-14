@@ -28,7 +28,7 @@ setEventHandler(
                 <par><event id="npc_goto_1">查看您寄售物品的销售情况</event></par>
 
                 <par></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], getNPCName(), SYS_EXIT)
     end,

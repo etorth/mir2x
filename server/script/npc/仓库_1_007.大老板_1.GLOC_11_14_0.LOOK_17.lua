@@ -7,7 +7,7 @@ setEventHandler(
                 <layout>
                     <par>我不愿意和你这样丧尽天良的人进行交易。</par>
                     <par></par>
-                    <par><event id="%s">关闭</event></par>
+                    <par><event id="%s" close="1">关闭</event></par>
                 </layout>
             ]], SYS_EXIT)
         else
@@ -19,7 +19,7 @@ setEventHandler(
                     <par></par>
                     <par><event id="npc_goto_buy" >购买</event>物品</par>
                     <par><event id="npc_goto_sell">出售</event>物品</par>
-                    <par><event id="%s">关闭</event></par>
+                    <par><event id="%s" close="1">关闭</event></par>
                 </layout>
             ]], getSubukGuildName(), SYS_EXIT)
         end
@@ -42,7 +42,7 @@ setEventHandler(
             <layout>
                 <par>请把不用的东西卖给我，我给你个合理的价钱。</par>
                 <par></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], SYS_EXIT)
     end,

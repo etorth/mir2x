@@ -19,7 +19,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>苍蝇拍还没做好吗？</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -51,7 +51,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>找到苍蝇拍的材料的话我就会帮你做苍蝇拍！苍蝇拍所需的材料是牛毛和竹棍。牛毛可以从牛身上弄到，竹棍或许能从钉耙猫那儿弄到！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -145,7 +145,7 @@ setQuestFSMTable(
                         <layout>
                             <par>哦！材料全部找到了啊！请稍等一下...</par>
                             <par>给你！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -175,7 +175,7 @@ setQuestFSMTable(
                             <layout>
                                 <par>噢...真是太感谢了，现在可以对付这些该死的苍蝇了！</par>
                                 <par>这是一些对你帮助的奖励，请你不要客气。</par>
-                                <par><event id="%s">结束</event></par>
+                                <par><event id="%s" close="1">结束</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -188,7 +188,7 @@ setQuestFSMTable(
                         [=[
                             <layout>
                                 <par>你给我带的苍蝇拍呢？</par>
-                                <par><event id="%s">结束</event></par>
+                                <par><event id="%s" close="1">结束</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end
@@ -230,7 +230,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '金氏_1'), getUID(), getQuestName(),
             [=[
                 <layout>
                     <par>那就拜托你了！杂货店就是在右边能看到的那个地方。准确位置是<t color="red">450,413</t>。</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]=], SYS_EXIT)
 
@@ -242,7 +242,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '金氏_1'), getUID(), getQuestName(),
             [=[
                 <layout>
                     <par>啊，这样啊...一小会儿就行的...唉，真是没辙了！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]=], SYS_EXIT)
         end,

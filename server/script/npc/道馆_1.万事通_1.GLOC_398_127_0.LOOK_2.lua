@@ -38,7 +38,7 @@ local quest_config = {
                 <layout>
                     <par>你还没有开始完成乞丐任务呢！</par>
                     <par>在比奇省东海客栈工作的客栈店员最近好像有点棘手的事情，去看看吧！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -50,7 +50,7 @@ local quest_config = {
                     <par>你辛苦了。</par>
                     <par>像你这样热心帮助别人的好心人，一定有好报的...</par>
                     <par></par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -76,7 +76,7 @@ local quest_config = {
                 <layout>
                     <par>你还没有开始苍蝇拍任务呢！</par>
                     <par>比奇省经营肉铺店的金氏正在因为没有苍蝇拍的事儿而苦恼呢！去看看怎么回事吧！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -86,7 +86,7 @@ local quest_config = {
             [[
                 <layout>
                     <par>金氏拿到苍蝇拍以后，对你非常感激。</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -111,7 +111,7 @@ local quest_config = {
                 <layout>
                     <par>你还没有开始石母任务呢！</par>
                     <par>最近，在比奇省东边的公园常传出隐约的抽泣声。前去调查一番吧！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -121,7 +121,7 @@ local quest_config = {
             [[
                 <layout>
                     <par>哦？原来石母就是那童子像的母亲石啊！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -162,7 +162,7 @@ local quest_config = {
                     <par>王大人任务是去帮助王大人将比奇省商界掌握在比奇商会手中。</par>
                     <par>完成任务后，凭借你与王大人的交情将会对完成以后的任务有很大帮助！</par>
                     <par>那么，先去王大人那儿走走吧。</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -173,7 +173,7 @@ local quest_config = {
                 <layout>
                     <par>很好，现在比奇省商界的势力就要改朝换代了！</par>
                     <par>从王大人的话中得知好像也要得到比奇城城主的信任才行！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -214,7 +214,7 @@ local quest_config = {
                     <par>你还没有开始轻型盔甲任务呢！</par>
                     <par>去找一找在比奇省经营布店的怡美，她会向你提出一个请求。</par>
                     <par>如果完成了她拜托你办的事情的话，你会得到她送给你的礼物哦。</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -225,7 +225,7 @@ local quest_config = {
                 <layout>
                     <par>你辛苦了！</par>
                     <par>得到特制的轻型盔甲，辛苦总算没有白费啊！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -265,7 +265,7 @@ local quest_config = {
                     <par>你还没有开始半兽任务呢！</par>
                     <par>半兽任务是制止以半兽勇士为中心集结起来的半兽人纠合势力使用古代魔法的阴谋。</par>
                     <par>前往比奇省内城找比奇城城主看看，他好像要拜托你帮助他阻止半兽人的阴谋。</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -276,7 +276,7 @@ local quest_config = {
                 <layout>
                     <par>太辛苦你了！</par>
                     <par>托你的福，来自半兽人的威胁已经大大减轻了。</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -316,7 +316,7 @@ local quest_config = {
                     <par>你还没有开始被盗灵魂任务呢！</par>
                     <par>最近比奇省的贩牛商王小二的独生女王丽灵突然被发现一夕之间变成了白痴。好像是最近盗取百姓灵魂的妖怪干的好事！灵魂任务就是揭开这个妖怪的真面目。</par>
                     <par>先去王小二的亲戚王大人家了解一些情况吧。</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -327,7 +327,7 @@ local quest_config = {
                 <layout>
                     <par>再晚到一步，就让邪恶的道士偷到不死牌了！</par>
                     <par>你救出了王丽灵小姐，并揭开妖怪的真面目，真的很不错啊！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -367,7 +367,7 @@ local quest_config = {
                     <par>你还没有开始千年毒蛇任务呢！</par>
                     <par>毒蛇山谷中出现了传说中的蛇，叫做珍珍的小孩好像已经中毒了！当务之急就是找那条传说中的蛇取得解毒剂。</par>
                     <par>先去毒蛇山谷去见珍珍的毒蛇山谷老太吧！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -378,7 +378,7 @@ local quest_config = {
                 <layout>
                     <par>幸亏你及时找到药，毒蛇山谷的珍珍现在已经平安无恙了！</par>
                     <par>辛苦你了！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -416,7 +416,7 @@ local quest_config = {
                     <par>你还没有开始堕落道士任务呢！</par>
                     <par>经过浴血奋战从半兽人手中拿到的不死牌，却被某个道士给偷走了。 因此必须粉碎这个堕落道士计划利用不死牌进行的邪恶阴谋！</par>
                     <par>去向曾经保管不死牌的比奇城城主打听具体的情况吧！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -426,7 +426,7 @@ local quest_config = {
             [[
                 <layout>
                     <par>你做得很棒！由于你的努力堕落道士引发的灾难终于到此结束了！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -452,7 +452,7 @@ local quest_config = {
                 <layout>
                     <par>抱歉，对于这个任务我几乎一无所知。</par>
                     <par>我只是听说过去曾经追随沃玛教主的沃玛教最后幸存者为了弥补过去的罪过而与邪恶势力在孤军奋战。去帮助他破坏沃玛教主在地上发挥力量的根源---灵魂明珠，并处决沃玛教主好让那些惨死的冤魂们升天。</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         end,
@@ -469,7 +469,7 @@ setEventHandler(
                 <par></par>
                 <par><event id="npc_show_quest_list">询问一般的任务</event></par>
                 <par><event id="npc_daily_quest">对今日的任务进行了解</event></par>
-                <par><event id="%s">结束</event></par>
+                <par><event id="%s" close="1">结束</event></par>
             </layout>
         ]], SYS_EXIT)
     end,
@@ -503,7 +503,7 @@ setEventHandler(
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]],
 
@@ -534,7 +534,7 @@ setEventHandler(
                 <layout>
                     <par>你还没有足够能力执行此任务，修炼到7级后，再来找我吧。</par>
                     <par></par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]], SYS_EXIT)
         else

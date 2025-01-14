@@ -39,7 +39,7 @@ setQuestFSMTable(
                         <layout>
                             <par>嗯...首饰店所蒙受的损失少一点，说不定他们会接受。</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -78,7 +78,7 @@ setQuestFSMTable(
                         <layout>
                             <par>这个...我知道的就只有这些了。唉...人世艰辛啊！前不久我们店里也来过一个失魂落魄的女子，据说她在逃难时失去了丈夫要靠自己来混口饭吃。那个人好像有什么难言之隐，一直少言寡语。我们商店因为人手够，所以介绍她去棉布店工作了。不过依我看那个女子好像和洪气霖是从一个地方来的！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -105,7 +105,7 @@ setQuestFSMTable(
                         <layout>
                             <par>听说棉布店有一个女子和我是同乡？难道...不会的，这是不可能的！</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -164,7 +164,7 @@ setQuestFSMTable(
                         <layout>
                             <par>只能这样啊！万一他已经有了别的妻子，我就会妨碍他们的！所以请你替我去打听一下他的心意啊！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -201,7 +201,7 @@ setQuestFSMTable(
                             <layout>
                                 <par>那个在棉布店工作的女子好像就是我妻子啊！哦...难道没有什么要转交给我的东西吗？</par>
                                 <par></par>
-                                <par><event id="%s">退出</event></par>
+                                <par><event id="%s" close="1">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end
@@ -237,7 +237,7 @@ setQuestFSMTable(
                             <par>真是太感谢了！啊，收下这个吧！这本来是我们家族的传家之宝，但现在已经家门零落还要这传家宝又有什么用呢？别谦让，请收下吧！</par>
                             <par>我收拾一下马上就去！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -263,7 +263,7 @@ setQuestFSMTable(
                         <layout>
                             <par>那么请你一定要把我给你的这个玉指环带给他看，并探查一下他的心意，多多拜托您了！</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,

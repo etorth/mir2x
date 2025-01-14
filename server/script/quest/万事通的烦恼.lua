@@ -22,7 +22,7 @@ setQuestFSMTable(
                 <layout>
                     <par>多谢少侠出手相助！最近城外钉耙猫肆虐，请少侠出城斩杀一只<t color="red">钉耙猫</t>，事后我万拍子有礼物奉上！</par>
                     <par></par>
-                    <par><event id="%s">好的</event></par>
+                    <par><event id="%s" close="1">好的</event></par>
                 </layout>
             ]=], SYS_EXIT)
         ]])
@@ -64,7 +64,7 @@ setQuestFSMTable(
                         <layout>
                             <par>那<t color="red">钉耙猫</t>原本是温顺的小猫，近年不知为何开始变得像猩猩一般强健，还偷走附近农户的钉耙向行人胡乱攻击。</par>
                             <par>少侠你可要千万当心！</par>
-                            <par><event id="%s">好的</event></par>
+                            <par><event id="%s" close="1">好的</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -89,7 +89,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>少侠神勇！我万拍子果然没有看错，这是我的一点心意，还望少侠收下！</par>
-                            <par><event id="%s">关闭</event></par>
+                            <par><event id="%s" close="1">关闭</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -147,7 +147,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '万事通_1'), getUID(), getQuestName(),
                 <layout>
                     <par>我万拍子近日愁眉苦脸，都是被那城门外的<t color="red">钉耙猫</t>害的啊！少侠你已经<t color="green">%d</t>级了，愿意帮助老夫吗？</par>
                     <par><event id="npc_accept_quest">同意</event></par>
-                    <par><event id="%s"              >退出</event></par>
+                    <par><event id="%s" close="1"    >退出</event></par>
                 </layout>
             ]=], uidRemoteCall(uid, [=[ return getLevel() ]=]), SYS_EXIT)
         end,

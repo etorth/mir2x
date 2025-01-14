@@ -7,7 +7,7 @@ setEventHandler(
                 <par>客官%s你好我是%s，我可以给你展示系统所有的账号！<emoji id="0"/></par>
                 <par></par>
                 <par><event id="npc_goto_1">展示</event></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], uidQueryName(uid), getNPCName(), SYS_EXIT))
     end,
@@ -36,7 +36,7 @@ setEventHandler(
                 <par>click_count：%d</par>
                 <par></par>
                 <par><event id="npc_goto_1">刷新</event></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]],
 

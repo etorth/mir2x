@@ -16,7 +16,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>还没有找到我孩子吗？</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -39,7 +39,7 @@ setQuestFSMTable(
                         <layout>
                             <par>深更半夜的什么事啊？你来找我有什么事？</par>
                             <par><event id="npc_ask_where_is_kid">我来找比奇省的一名妇人的孩子</event></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -49,7 +49,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>嘿，什么话？！我虽然是个做生意的，但我可不是诱拐别人家的孩子那种没头没脑的人。你如果是为这件事来找我，还是赶快走吧！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -75,7 +75,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>嘿，你怎么还在？你要是再说那种没头没尾的话，就赶快给我走！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -157,7 +157,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>现在还不能为你解释！不管怎么样，那个寿石就是我的孩子！帮我找回那个寿石我一定不忘您的大恩大德。请帮我把它找回来吧！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -183,7 +183,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>还没有找到我孩子吗？</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -206,7 +206,7 @@ setQuestFSMTable(
                         <layout>
                             <par>怎么还是你！你要是不买东西就赶快走！</par>
                             <par><event id="npc_ask_for_purchase">今天我是来买东西的。</event></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -223,7 +223,7 @@ setQuestFSMTable(
                             <par><event id="npc_ask_for_purchase_kid_statue">童子像</event></par>
                             <par></par>
 
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -285,7 +285,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>真是大甩卖了。你到底知不知道那东西的价值啊？那玩意儿不是普通的东西，是蕴含着灵气的。 你小心点弄它吧。</par>
-                            <par><event id="%s">知道了</event></par>
+                            <par><event id="%s" close="1">知道了</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -311,7 +311,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>怎么还是你！你要是不买东西就赶快走！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -333,7 +333,7 @@ setQuestFSMTable(
                     [=[
                         <layout>
                             <par>啊啊，终于找回我的孩子了，真是太感谢了！这个虽然微薄，但也是我的一片心意！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -372,7 +372,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
             [=[
                 <layout>
                     <par>请一定要帮帮我...啊？太无情了！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]=], SYS_EXIT)
 
@@ -388,7 +388,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
                     <par><event id="npc_accept">知道了，我会去帮你找回孩子的！</event></par>
                     <par><event id="npc_refuse">我没有这闲工夫。</event></par>
                 </layout>
-            ]=], SYS_EXIT)
+            ]=])
         end,
 
         npc_accept = function(uid, args)
@@ -396,7 +396,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
             [=[
                 <layout>
                     <par>多谢了！听说夜市的商人在(452,297)，请一定要帮我找回孩子啊！</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]=], SYS_EXIT)
 
@@ -409,7 +409,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
             [=[
                 <layout>
                     <par>这样啊...呜呜...天下之大，竟然没有同情失去孩儿母亲心的侠客吗？...</par>
-                    <par><event id="%s">结束</event></par>
+                    <par><event id="%s" close="1">结束</event></par>
                 </layout>
             ]=], SYS_EXIT)
 
@@ -422,7 +422,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
                 <layout>
                     <par>这到底是怎么回事？那就是说女人回来了？</par>
                     <par><event id="%s">问一下这个来路不明的女人！</event></par>
-                    <par><event id="%s">还是算了！</event></par>
+                    <par><event id="%s" close="1">还是算了！</event></par>
                 </layout>
             ]=], SYS_ENTER, SYS_EXIT)
         end,
@@ -453,7 +453,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '母子石像_1'), getUID(), getQuestN
             <layout>
                 <par>这石头的样子真奇怪...</par>
                 <par><event id="%s">过去看看？</event></par>
-                <par><event id="%s">感觉很奇怪，我还是离远点比较好...</event></par>
+                <par><event id="%s" close="1">感觉很奇怪，我还是离远点比较好...</event></par>
             </layout>
         ]=], SYS_ENTER, SYS_EXIT)
     end)

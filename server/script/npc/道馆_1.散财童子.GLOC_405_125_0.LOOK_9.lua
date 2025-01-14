@@ -9,7 +9,7 @@ setEventHandler(
                 <par><event id="npc_goto_1">领取金币</event></par>
                 <par><event id="npc_goto_2">领取装备</event></par>
                 <par><event id="npc_goto_random_move" close="1">随机行走100步</event></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], uidQueryName(uid), getNPCName(), SYS_EXIT)
     end,
@@ -28,7 +28,7 @@ setEventHandler(
                     <par>你刚刚领取过金币了，请稍后再来！<emoji id="1"/></par>
                     <par></par>
                     <par><event id="%s">返回</event></par>
-                    <par><event id="%s">关闭</event></par>
+                    <par><event id="%s" close="1">关闭</event></par>
                 </layout>
             ]], SYS_ENTER, SYS_EXIT)
         end

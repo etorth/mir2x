@@ -45,7 +45,7 @@ setQuestFSMTable(
                             <par>先去武器店或铁匠铺买把鹤嘴锄，再去矿山就可以挖到各种矿石。</par>
                             <par>从中挑出5个纯度在13以上的铁矿带给我就行。</par>
                             <par>离这里最近的矿山是比奇矿区，可能去764:206附近就能找到入口。</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -56,7 +56,7 @@ setQuestFSMTable(
                         <layout>
                             <par>那我等你的好消息。</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -82,7 +82,7 @@ setQuestFSMTable(
                             <par>拿来铁矿了啊！嘻嘻，现在不用担心原料不足，可以稳定的供应顾客的需求啦！</par>
                             <par>太谢谢你啦！这是我说好为你定做的特制轻型盔甲。但愿它够带给你很大帮助，呵呵呵！</par>
                             <par>这可是我特地为您精心制作的哦，所以要像我一样珍惜爱护它啊，呵呵呵！</par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -112,7 +112,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                         <par>您就是最近为比奇商会四处游说的<t color="red">%s</t>吧！久仰久仰！</par>
                         <par>尽管你和王大人的关系十分熟，但是我跟你这种等级没有达到%d的毛头小子没什么话可说。想让我完全信任你的话还是再去好好修炼一下再来找我吧！</par>
                         <par></par>
-                        <par><event id="%s">结束</event></par>
+                        <par><event id="%s" close="1">结束</event></par>
                     </layout>
                 ]=], plyapi.getName(uid), minQuestLevel, SYS_EXIT)
 
@@ -177,7 +177,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                     <par>实不相瞒，我有一件关于这种盔甲的事情要拜托你...</par>
                     <par><event id="npc_introduce_quest">有什么要拜托的事情请您尽管说。</event></par>
                 </layout>
-            ]=], SYS_EXIT)
+            ]=])
         end,
 
         npc_ask_when_not_interested = function(uid, args)
@@ -201,7 +201,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                     <par><event id="npc_where_to_get_iron">到哪儿去找铁矿呢？</event></par>
                     <par><event id="npc_accept_quest">知道了。</event></par>
                 </layout>
-            ]=], SYS_EXIT)
+            ]=])
         end,
 
         npc_where_to_get_iron = function(uid, args)
@@ -211,9 +211,9 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                     <par>先去武器店或铁匠铺买把鹤嘴锄，再去<event id="npc_nearest_iron">矿山</event>就可以挖到各种矿石！</par>
                     <par>挑出我所需要的纯度在13以上的铁矿之后，剩下的还可以卖给武器店赚到很多钱。</par>
                     <par>如果你觉得麻烦不想去矿山挖矿的话也可以去武器店购买铁矿，但是那样的话就有点亏本哦！</par>
-                    <par><event id="npc_accept_quest">知道了。</event></par>
+                    <par><event id="npc_accept_quest" close="1">知道了。</event></par>
                 </layout>
-            ]=], SYS_EXIT)
+            ]=])
         end,
 
         npc_nearest_iron = function(uid, args)
@@ -222,9 +222,9 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                 <layout>
                     <par>离这里最近的矿山是比奇矿区，可能去764:206附近就能找到入口。</par>
                     <par></par>
-                    <par><event id="npc_accept_quest">知道了。</event></par>
+                    <par><event id="npc_accept_quest" close="1">知道了。</event></par>
                 </layout>
-            ]=], SYS_EXIT)
+            ]=])
         end,
 
         npc_accept_quest = function(uid, args)

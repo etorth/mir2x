@@ -20,7 +20,7 @@ setQuestFSMTable(
                         <par>真的太感谢了！我期待着你能带来好消息！</par>
                         <par>传奇商会所属的其它商人仍然还有很多，但是现在凭我自己的力量很难一一说服。虽然从好几个方面同时下手。不管怎样？难道不该先避免沦为乞丐吗？所以拜托啦！</par>
                         <par></par>
-                        <par><event id="%s">好的</event></par>
+                        <par><event id="%s" close="1">好的</event></par>
                     </layout>
                 ]=], SYS_EXIT)
 
@@ -31,7 +31,7 @@ setQuestFSMTable(
                         <par>不行？</par>
                         <par>那么我只好再去找其他人了。</par>
                         <par></par>
-                        <par><event id="%s">结束</event></par>
+                        <par><event id="%s" close="1">结束</event></par>
                     </layout>
                 ]=], SYS_EXIT)
             end
@@ -86,7 +86,7 @@ setQuestFSMTable(
                             <par>唉！</par>
                             <par>老天爷啊！真的丢下我不管了吗！？</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -123,7 +123,7 @@ setQuestFSMTable(
                                 <par>我期待着你能带来好消息！</par>
                                 <par>只要<t color="red">图书管理人</t>和<t color="red">药剂师</t>加入我们这一方的话就是一次值得的斗争！</par>
                                 <par></par>
-                                <par><event id="%s">好的</event></par>
+                                <par><event id="%s" close="1">好的</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -134,7 +134,7 @@ setQuestFSMTable(
                                 <par>还没能拉拢<t color="red">图书管理人</t>啊？再加把劲儿！</par>
                                 <par>只要<t color="red">图书管理人</t>和<t color="red">药剂师</t>加入我们这一方的话就是一次值得的斗争！</par>
                                 <par></par>
-                                <par><event id="%s">好的</event></par>
+                                <par><event id="%s" close="1">好的</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -145,7 +145,7 @@ setQuestFSMTable(
                                 <par>还没能拉拢<t color="red">药剂师</t>啊？再加把劲儿！</par>
                                 <par>只要<t color="red">图书管理人</t>和<t color="red">药剂师</t>加入我们这一方的话就是一次值得的斗争！</par>
                                 <par></par>
-                                <par><event id="%s">好的</event></par>
+                                <par><event id="%s" close="1">好的</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -168,7 +168,7 @@ setQuestFSMTable(
                         <layout>
                             <par>真没想到啊！不知不觉中就把传奇商会的商家拉拢到我们这一方啦！真是手腕精明啊！由于你的活动终于使我们比奇商会统一了比奇地区商权。这是为了报答你的功劳准备的一点小小礼物，请不要谦让务必收下。</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -213,7 +213,7 @@ setQuestFSMTable(
                             <par></par>
                             <par><event id="npc_discuss_2">也就是说无论如何都不行吗？</event></par>
                         </layout>
-                    ]=], SYS_EXIT)
+                    ]=])
                 end,
 
                 npc_discuss_2 = function(uid, value)
@@ -236,7 +236,7 @@ setQuestFSMTable(
                             <par>不管怎么样你也是武林人士，可能和他们能够有通融的地方，所以这就是我要拜托你的事情！值班卫士反正也不能和别人说话，所以希望你能替我去那儿找那些休班卫士从他们那里收集关于比奇省历史的故事。如果你能做到的话，我会听你的劝告加入比奇商会的。</par>
                             <par></par>
                             <par><event id="npc_accept">也许我可以去试试？</event></par>
-                            <par><event id="%s">我和他们也不熟啊！</event></par>
+                            <par><event id="%s" close="1">我和他们也不熟啊！</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -248,7 +248,7 @@ setQuestFSMTable(
                             <par>哦？你答应我的请求了？</par>
                             <par>那太好了，我等着你的好消息！</par>
                             <par></par>
-                            <par><event id="%s">好的！</event></par>
+                            <par><event id="%s" close="1">好的！</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -292,7 +292,7 @@ setQuestFSMTable(
                             <par></par>
                             <par><event id="npc_discuss_2">那就没有别的办法了吗？</event></par>
                         </layout>
-                    ]=], SYS_EXIT)
+                    ]=])
                 end,
 
                 npc_discuss_2 = function(uid, value)
@@ -317,7 +317,7 @@ setQuestFSMTable(
                             <par>穿过毒蛇山谷一直向东走就会达到那个村庄。在那儿找药商<t color="red">金中医</t>(334,224)向他购买<t color="red">毒蛇牙齿</t>。</par>
                             <par>现在患者数量仍然呈增加的趋势，所以还不能推测出以后具体需要多少药材。不管怎么样你都要快去快回。</par>
                             <par></par>
-                            <par><event id="%s">好的</event></par>
+                            <par><event id="%s" close="1">好的</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -336,7 +336,7 @@ setQuestFSMTable(
                             <par>千万不要太拖延而忘了一切啊！人命关天啊！</par>
                             <par>我们所有人啊！</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -366,7 +366,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                         <layout>
                             <par>你看起来还没有听到休班卫士的全部故事啊？可以在比奇省内转转就可以找到休班卫士！</par>
                             <par></par>
-                            <par><event id="%s">好的</event></par>
+                            <par><event id="%s" close="1">好的</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -452,7 +452,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             <par>为什么还要再来？</par>
                             <par>我已经把我知道的都告诉你了！</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -521,7 +521,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             <par>喂！我可是卫士中资历最深的！你先去跟其他的人打听之后再来找我吧！</par>
                             <par>不能让人小瞧了我...</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -558,7 +558,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                                 <par>啊！又是你，你能不能离我远点！？大热天的为什么要三番五次地惹人烦呢？</par>
                                 <par>要是能有口酒润润嗓子就好啦！</par>
                                 <par></par>
-                                <par><event id="%s">退出</event></par>
+                                <par><event id="%s" close="1">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end
@@ -583,7 +583,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             <par>你是不愿意给我喝呢，还是酒已经被喝光了？</par>
                             <par>真扫兴！</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -673,7 +673,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             <par></par>
                             <par><event id="npc_give_guard_3_gold" args="100"  close="1">给他100金币</event></par>
                             <par><event id="npc_give_guard_3_gold" args="1000" close="1">给他1000金币</event></par>
-                            <par><event id="%s">不询问他</event></par>
+                            <par><event id="%s" close="1">不询问他</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -816,7 +816,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             <layout>
                                 <par>快去买啊！1个金币还不够吗？</par>
                                 <par></par>
-                                <par><event id="%s">退出</event></par>
+                                <par><event id="%s" close="1">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -827,7 +827,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                                 <par>臭小子，我是说五瓶，快去再买点！</par>
                                 <par>竟敢不听我的！</par>
                                 <par></par>
-                                <par><event id="%s">退出</event></par>
+                                <par><event id="%s" close="1">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -841,7 +841,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                                 <par></par>
                                 <par><event id="npc_guard_3_give_info">我想知道关于比奇省历史的事。</event></par>
                             </layout>
-                        ]=], SYS_EXIT)
+                        ]=])
                     end
                 end,
 
@@ -877,7 +877,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     <par>尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...</par>
                     %s
                     <par></par>
-                    <par><event id="%s">谢谢你！</event></par>
+                    <par><event id="%s" close="1">谢谢你！</event></par>
                 </layout>
             ]=], text1, text2, SYS_EXIT)
         ]])
@@ -918,7 +918,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             <par><event id="npc_question_2" args="3">半兽人和内日</event></par>
                             <par><event id="npc_question_2" args="4">半兽人和诺玛</event></par>
                         </layout>
-                    ]=], SYS_EXIT)
+                    ]=])
                 end,
 
                 npc_question_2 = function(uid, value)
@@ -1006,7 +1006,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             <par>奇怪！根据我的调查好像不是这么回事儿啊！你确定没有听错吗？</par>
                             <par>请再去打听一下吧！</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -1034,7 +1034,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                         <layout>
                             <par>患者越来越多，快去<event id="npc_path_details">毒蛇山谷</event>买<t color="red">毒蛇牙齿</t>吧！</par>
                             <par></par>
-                            <par><event id="%s">好的</event></par>
+                            <par><event id="%s" close="1">好的</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -1045,7 +1045,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                         <layout>
                             <par>从这儿向东北部去就能到达毒蛇山谷，去(643,15)附近就能够找得到。穿过毒蛇山谷一直向东走就会达到那个村庄，在那儿找药商<t color="red">金中医</t>(334,224)向他购买<t color="red">毒蛇牙齿</t>。</par>
                             <par></par>
-                            <par><event id="%s">好的</event></par>
+                            <par><event id="%s" close="1">好的</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -1104,7 +1104,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                             <par>很着急的样子啊！</par>
                             <par>给你，快去比奇省看看吧！</par>
                             <par></par>
-                            <par><event id="%s">好的</event></par>
+                            <par><event id="%s" close="1">好的</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -1157,7 +1157,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                 [=[
                     <layout>
                         <par>东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！</par>
-                        <par><event id="%s">好的</event></par>
+                        <par><event id="%s" close="1">好的</event></par>
                     </layout>
                 ]=], SYS_EXIT)
 
@@ -1191,7 +1191,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                         <layout>
                             <par>你是在开玩笑吗？你没有<t color="red">%d</t>金币啊？！</par>
                             <par>你这个不老实的家伙，不要再浪费我的时间了！先凑够<t color="red">%d</t>金币再来找我吧！</par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], askedGold, askedGold, SYS_EXIT)
 
@@ -1208,7 +1208,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                         <layout>
                             <par>你是在开玩笑吗？你没有<t color="red">%d</t>金币啊？！</par>
                             <par>你这个家伙实在浪费我的一片好心，不要再说了！我决定涨价<t color="red">50%%</t>，先凑够<t color="red">%d</t>金币再来找我吧！</par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], askedGold, newAskedGold, SYS_EXIT)
 
@@ -1237,7 +1237,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                             <par>你带来<t color="red">%d</t>金币了吗？</par>
                             <par></par>
                             <par><event id="npc_purchase">带来了！</event></par>
-                            <par><event id="%s">我还没凑齐！</event></par>
+                            <par><event id="%s" close="1">我还没凑齐！</event></par>
                         </layout>
                     ]=], askedGold, SYS_EXIT)
                 end,
@@ -1280,7 +1280,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                     [=[
                         <layout>
                             <par>我是看药剂师的面子才免费的！东西都在这儿快快拿去，赶紧返回<t color="red">比奇省</t>吧！</par>
-                            <par><event id="%s">好的</event></par>
+                            <par><event id="%s" close="1">好的</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -1312,7 +1312,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                         <layout>
                             <par>干嘛呢？还不快把药材带给<t color="yellow">比奇省</t><t color="red">药剂师</t>。</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -1336,7 +1336,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                             <par>您为病人们做了一件大好事！所以我会听从你的劝说加入王大人的比奇商会的，只好对不起崔大夫了！</par>
                             <par>啊！对了，这是金创药，收下这个吧！急匆匆地走了这么远的路累坏了吧！喝了这个可以补充一下元气。</par>
                             <par></par>
-                            <par><event id="%s">谢谢！</event></par>
+                            <par><event id="%s" close="1">谢谢！</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -1372,7 +1372,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '王大人_1'), getUID(), getQuestName
                     <layout>
                         <par>我要托付你帮我办点事情，但是现在的你好象还有点应付不了。再去好好修炼一下，等级达到9级的时候才能够得到我的信任让我把这件事情交给你去做。</par>
                         <par></par>
-                        <par><event id="%s">退出</event></par>
+                        <par><event id="%s" close="1">退出</event></par>
                     </layout>
                 ]=], SYS_EXIT)
             else

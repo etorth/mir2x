@@ -17,7 +17,7 @@ setEventHandler(
                 <par>客官%s你好我是%s，%s<emoji id="0"/></par>
                 <par></par>
                 <par><event id="event_post_sell">购买武器</event></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], uidQueryName(uid), getNPCName(), randomHeadString(), SYS_EXIT))
     end,

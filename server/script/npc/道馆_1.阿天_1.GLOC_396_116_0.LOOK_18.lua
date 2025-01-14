@@ -13,7 +13,7 @@ setEventHandler(
                 <par><event id="npc_goto_get_back">取回</event>物品</par>
                 <par><event id="npc_goto_set_password">设置</event>仓库密码</par>
                 <par><event id="npc_goto_daily_quest">对今日的任务进行了解</event></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], getSubukGuildName(), SYS_EXIT)
     end,
@@ -100,7 +100,7 @@ setEventHandler(
                 <par>请再次输入密码确认。</par>
                 <par></par>
 
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], value, SYS_EXIT)
         invop.postStartInput(uid, '<layout><par>请确认密码</par></layout>', 'npc_goto_get_set_password_2', true)
@@ -121,7 +121,7 @@ setEventHandler(
                     <par></par>
 
                     <par><event id="%s">前一步</event></par>
-                    <par><event id="%s">关闭</event></par>
+                    <par><event id="%s" close="1">关闭</event></par>
                 </layout>
             ]], SYS_ENTER, SYS_EXIT)
         else
@@ -132,7 +132,7 @@ setEventHandler(
                     <par></par>
 
                     <par><event id="npc_goto_set_password">设置密码</event></par>
-                    <par><event id="%s">关闭</event></par>
+                    <par><event id="%s" close="1">关闭</event></par>
                 </layout>
             ]], SYS_EXIT)
         end
@@ -151,7 +151,7 @@ setEventHandler(
                 <par>今天没事情可拜托你了。</par>
                 <par></par>
 
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], SYS_EXIT)
     end,

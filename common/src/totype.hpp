@@ -204,11 +204,11 @@ template<typename T> int to_boolint(T t)
 inline bool to_parsedbool(const char *s)
 {
     if(!s){
-        throw std::runtime_error("to_bool: null string");
+        throw std::runtime_error("to_parsedbool: null string");
     }
 
     if(s[0] == '\0'){
-        throw std::runtime_error("to_bool: zero-length string");
+        throw std::runtime_error("to_parsedbool: zero-length string");
     }
 
     if(false
@@ -227,7 +227,7 @@ inline bool to_parsedbool(const char *s)
         return false;
     }
 
-    throw std::runtime_error(std::string("to_bool: invalid boolean string: ") + s);
+    throw std::runtime_error(std::string("to_parsedbool: invalid boolean string: ") + s);
 }
 
 inline bool to_parsedbool(const std::string &s)

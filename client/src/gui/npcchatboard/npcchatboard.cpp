@@ -54,14 +54,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
                   if(const auto id = LayoutBoard::findAttrValue(attrList, "id", nullptr)){
                       const auto autoClose = [id, closeAttr = LayoutBoard::findAttrValue(attrList, "close", nullptr)]() -> bool
                       {
-                          if(closeAttr){
-                              for(const auto  trueStr: {"1", "TRUE" }){ if(str_toupper(closeAttr) ==  trueStr){ return true ; }}
-                              for(const auto falseStr: {"0", "FALSE"}){ if(str_toupper(closeAttr) == falseStr){ return false; }}
-                              throw fflerror("invalid close attribute: %s", to_cstr(closeAttr));
-                          }
-                          else{
-                              return to_sv(id) == SYS_EXIT;
-                          }
+                          return closeAttr ? to_parsedbool(closeAttr) : false;
                       }();
                       onClickEvent(LayoutBoard::findAttrValue(attrList, "path", m_eventPath.c_str()), id, LayoutBoard::findAttrValue(attrList, "args", nullptr), autoClose);
                   }

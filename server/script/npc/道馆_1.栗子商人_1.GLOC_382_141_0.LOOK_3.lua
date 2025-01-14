@@ -20,7 +20,7 @@ local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
 
                 <par><event id="%s" args="%s">还卖其它的%s</event></par>
                 <par><event id="%s">前一步</event></par>
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], priceTable[chestnutName], currTagName, chestnutName, chestnutName, lastTagName, SYS_EXIT)
     else
@@ -30,7 +30,7 @@ local function onSellChestnut(uid, chestnutName, currTagName, lastTagName)
                 <par>哼，你没带%s来，快去找！</par>
                 <par></par>
 
-                <par><event id="%s">关闭</event></par>
+                <par><event id="%s" close="1">关闭</event></par>
             </layout>
         ]], chestnutName, SYS_EXIT)
     end
@@ -46,7 +46,7 @@ setEventHandler(
                     <par>跟你这种人我无话可说。</par>
                     <par></par>
 
-                    <par><event id="%s">关闭</event></par>
+                    <par><event id="%s" close="1">关闭</event></par>
                 </layout>
             ]], SYS_EXIT)
         else
@@ -61,7 +61,7 @@ setEventHandler(
                     <par><event id="npc_goto_trade" args="银色栗子">带来了银色栗子，你要卖吗？</event></par>
                     <par><event id="npc_goto_trade" args="铜色栗子">带来了铜色栗子，你要卖吗？</event></par>
                     <par><event id="npc_goto_trade" args="褐色栗子">带来了褐色栗子，你要卖吗？</event></par>
-                    <par><event id="%s">马上去给你找</event></par>
+                    <par><event id="%s" close="1">马上去给你找</event></par>
                 </layout>
             ]], SYS_EXIT)
         end

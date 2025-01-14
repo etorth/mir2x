@@ -33,7 +33,7 @@ setQuestFSMTable(
                             <par>阿潘道友还在等着呢！尽快把这个护身符给他带过去吧！</par>
                             <par>从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在<event id="npc_fly_to_loc" args="{'道馆_1',429,120}" close="1">(429,120)</event>。</par>
                             <par></par>
-                            <par><event id="%s">好的！</event></par>
+                            <par><event id="%s" close="1">好的！</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -76,7 +76,7 @@ setQuestFSMTable(
                         <layout>
                             <par>出去后向右上方一直走就是武器库的入口。位置在<event id="npc_fly_to_loc" args="{'道馆_1',429,120}" close="1">(429,120)</event>，到阿潘道友后把道力护身符交给他。</par>
                             <par></par>
-                            <par><event id="%s">好的！</event></par>
+                            <par><event id="%s" close="1">好的！</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -109,7 +109,7 @@ setQuestFSMTable(
                             <par>送你一把我们店里卖的匕首就当是报答你了，希望能好好使用它哦！</par>
                             <par>再去找找大老板道友吧，或许又有什么事情要派施主去做呢！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -141,7 +141,7 @@ setQuestFSMTable(
                         <layout>
                             <par>大老板道友呆的杂货店在<event id="npc_fly_to_loc" args="{'道馆_1',394,169}" close="1">(394,169)</event>那儿。快回去看看吧！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -173,7 +173,7 @@ setQuestFSMTable(
                             <par>把护身符交给啊潘道友了吧? 那么我会信任施主并且再拜托施主办另外的事儿的！倒没什么特别的，只是在道馆北部的灌木林中最近总有怪物出没，跑出来骚扰百姓，所以需要许多护身符。但是我又有其他的急事要办没时间去弄制护身符所需的鸡血，所以希望你替我收集<t color="green">2</t>瓶<t color="red">鸡血</t>来！</par>
                             <par>嗯, 只要去猎到鸡自然就会有鸡血了，所以不用特别担心！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -219,7 +219,7 @@ setQuestFSMTable(
                             <par>多亏了你，我才能及时画完所有的护身符啊！这是辛苦费请你收下！</par>
                             <par>再回去找找士官吧，或许还有别的事情要你做呢！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -251,7 +251,7 @@ setQuestFSMTable(
                             <layout>
                                 <par>施主的实力真是大有所增啊！下次交给你做的事可能有点难，等你修炼到了6级再来吧！</par>
                                 <par></par>
-                                <par><event id="%s">结束</event></par>
+                                <par><event id="%s" close="1">结束</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end,
@@ -303,7 +303,7 @@ setQuestFSMTable(
                                 <par>往比奇省西南方走，就能找到王大人了。详细的位置在比奇县(389,396)。找到他，然后把这本书转交给他，他自然会支付给你报酬。通过比奇省的东南部通路(516,580)到达比奇县后，就可以找到比奇省了。</par>
                                 <par>对了，别忘了把这本武功秘笈给道士高手清明子。这位高手能给像施主这样的道士入门者传授一些基本的魔法，施主一定会有所收获的。清明子就在本馆内。从本馆左边往上走就可以找到了。准确位置在(429,96)。</par>
                                 <par></par>
-                                <par><event id="%s">结束</event></par>
+                                <par><event id="%s" close="1">结束</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -337,7 +337,7 @@ setQuestFSMTable(
                         <layout>
                             <par>去见完比奇省的王大人，还要请您去拜访本馆的清明子！王大人在比奇省的西南部就可以找到.准确位置是比奇县(389,396)。通过比奇省的东南通路(516,580)到达比奇县后，便可以找到比奇省了。清明子就在本馆内。从本馆左边往上走就可以找到了。准确位置在(429,96)。</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -385,7 +385,7 @@ setQuestFSMTable(
                             <par>哦？带来了道馆的士官送给我的东西吗？啊哈，这就是我以前想要的古书。远道而来，辛苦你啦！</par>
                             <par>这是给你的辛苦费，请收下吧！对了，或许以后还需要你的帮助呢，下次再来吧！</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -406,7 +406,7 @@ setQuestFSMTable(
                             <par>出发有一会儿了，也该到了啊？</par>
                             <par>不知是不是在路上哪儿遇到了什么麻烦？</par>
                             <par></par>
-                            <par><event id="%s">结束</event></par>
+                            <par><event id="%s" close="1">结束</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -431,7 +431,7 @@ setQuestFSMTable(
                         <layout>
                             <par>暂时没有什么需要你帮忙的。</par>
                             <par></par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
                 end,
@@ -462,7 +462,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                         <par><event id="npc_what_is_taoist">什么是道士？</event></par>
                         <par><event id="npc_what_is_dogwan">这道馆是什么地方？</event></par>
                         <par><event id="npc_who_are_you">士官是做什么事的人？</event></par>
-                        <par><event id="%s">退出</event></par>
+                        <par><event id="%s" close="1">退出</event></par>
                     </layout>
                 ]=], SYS_EXIT)
             else
@@ -476,7 +476,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                         <par><event id="npc_what_is_dogwan">这道馆是什么地方？</event></par>
                         <par><event id="npc_who_are_you">士官是做什么事的人？</event></par>
                         <par><event id="npc_what_is_my_quest">什么是我要做的事情？</event></par>
-                        <par><event id="%s">退出</event></par>
+                        <par><event id="%s" close="1">退出</event></par>
                     </layout>
                 ]=], SYS_EXIT)
             end
@@ -530,7 +530,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                         <par>请级别高一点，修练到6级以上再来吧！</par>
                         <par>祝你好运噢！</par>
                         <par></par>
-                        <par><event id="%s">退出</event></par>
+                        <par><event id="%s" close="1">退出</event></par>
                     </layout>
                 ]=], SYS_EXIT)
             else
@@ -541,7 +541,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                         <par>大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在<event id="npc_fly_to_loc" args="{'道馆_1',394,169}" close="1">(394,169)</event>，请参考一下吧！</par>
                         <par></par>
                         <par><event id="npc_accept_quest" close="1">好的！</event></par>
-                        <par><event id="%s">还是算了。</event></par>
+                        <par><event id="%s" close="1">还是算了。</event></par>
                     </layout>
                 ]=], SYS_EXIT)
             end

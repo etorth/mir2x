@@ -9,7 +9,7 @@ setQuestFSMTable(
                 <layout>
                     <par>和队友开始挑战珐玛大陆的怪物吧！</par>
                     <par></par>
-                    <par><event id="%s">好的</event></par>
+                    <par><event id="%s" close="1">好的</event></par>
                 </layout>
             ]=], SYS_EXIT)
         ]])
@@ -69,7 +69,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 [=[
                     <layout>
                         <par>你已经完成挑战任务。</par>
-                        <par><event id="%s">退出</event></par>
+                        <par><event id="%s" close="1">退出</event></par>
                     </layout>
                 ]=], SYS_EXIT)
 
@@ -78,7 +78,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 [=[
                     <layout>
                         <par>请继续你的挑战任务。</par>
-                        <par><event id="%s">退出</event></par>
+                        <par><event id="%s" close="1">退出</event></par>
                     </layout>
                 ]=], SYS_EXIT)
 
@@ -89,7 +89,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                     [=[
                         <layout>
                             <par>请先组建一个队伍</par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -98,7 +98,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                     [=[
                         <layout>
                             <par>你不是队长</par>
-                            <par><event id="%s">退出</event></par>
+                            <par><event id="%s" close="1">退出</event></par>
                         </layout>
                     ]=], SYS_EXIT)
 
@@ -110,7 +110,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                             <layout>
                                 <par>你拥有一个队伍，愿意接受任务吗？</par>
                                 <par><event id="npc_accept_quest">同意</event></par>
-                                <par><event id="%s"              >退出</event></par>
+                                <par><event id="%s" close="1"    >退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -119,7 +119,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                         [=[
                             <layout>
                                 <par>你的等级太低，请至少添加一名队友结队冒险，或者升到7级再来找我。</par>
-                                <par><event id="%s">退出</event></par>
+                                <par><event id="%s" close="1">退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
 
@@ -129,7 +129,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                             <layout>
                                 <par>你确定独自冒险吗？</par>
                                 <par><event id="npc_accept_quest">同意</event></par>
-                                <par><event id="%s"              >退出</event></par>
+                                <par><event id="%s" close="1"    >退出</event></par>
                             </layout>
                         ]=], SYS_EXIT)
                     end
