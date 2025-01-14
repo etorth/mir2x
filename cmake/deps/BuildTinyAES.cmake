@@ -7,22 +7,22 @@ ExternalProject_Add(
     GIT_TAG        "master"
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/tiny-aes"
-    INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/tiny-aes/build"
 
     UPDATE_COMMAND ""
     PATCH_COMMAND ""
     INSTALL_COMMAND ""
 
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${MIR2X_3RD_PARTY_DIR}/tiny-aes/build/install -DCMAKE_BUILD_TYPE=Release
+    # this repo's cmake config doesn't support "make install"
+    BUILD_IN_SOURCE 1
+    CMAKE_ARGS -DCMAKE_BUILD_TYPE=Release
 
-    LOG_BUILD 1
     LOG_CONFIGURE 1
-    LOG_INSTALL 1
+    LOG_BUILD 1
 )
 
-SET(TINYAES_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/tiny-aes/build/install/include")
+SET(TINYAES_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/tiny-aes")
 SET(TINYAES_LIBRARIES    "${CMAKE_STATIC_LIBRARY_PREFIX}tiny-aes${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 INCLUDE_DIRECTORIES(SYSTEM ${TINYAES_INCLUDE_DIRS})
-LINK_DIRECTORIES(${MIR2X_3RD_PARTY_DIR}/tiny-aes/build/install/lib)
+LINK_DIRECTORIES(${MIR2X_3RD_PARTY_DIR}/tiny-aes)
 ADD_DEPENDENCIES(mir2x_3rds tiny-aes)
