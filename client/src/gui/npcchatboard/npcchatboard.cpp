@@ -80,7 +80,7 @@ NPCChatBoard::NPCChatBoard(ProcessRun *proc, Widget *pwidget, bool autoDelete)
           [this](Widget *)
           {
               setShow(false);
-              m_process->sendNPCEvent(m_npcUID, m_eventPath, SYS_EXIT);
+              // m_process->sendNPCEvent(m_npcUID, m_eventPath, SYS_EXIT);
           },
 
           0,
