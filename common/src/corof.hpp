@@ -48,7 +48,7 @@ namespace corof
                 public:
                     auto initial_suspend()
                     {
-                        return std::suspend_never{};
+                        return std::suspend_always{};
                     }
 
                     auto final_suspend() noexcept
