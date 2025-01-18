@@ -3,7 +3,7 @@
 
 function dbHasFlag(flag)
     assertType(flag, 'string')
-    local found, value = dbGetVar(flag)
+    local found, value = dbHasVar(flag)
 
     if found then
         if value == SYS_FLAGVAL then
