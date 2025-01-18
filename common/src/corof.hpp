@@ -222,6 +222,7 @@ namespace corof
     {
         private:
             std::optional<T> m_var;
+            corof::eval_poller<T> m_poller;
 
         public:
             template<typename U = T> void assign(U && u)
@@ -231,7 +232,9 @@ namespace corof
             }
 
         public:
-            async_variable() = default;
+            async_variable()
+                : m_poller(create_poller())
+            {}
 
         public:
             template<typename U    > async_variable                 (const async_variable<U> &) = delete;
@@ -240,13 +243,16 @@ namespace corof
         public:
             auto operator co_await() noexcept
             {
-                return [](corof::async_variable<T> *p) -> corof::eval_poller<T>
-                {
-                    while(!p->m_var.has_value()){
-                        co_await std::suspend_always{};
-                    }
-                    co_return p->m_var.value();
-                }(this).operator co_await();
+                return m_poller.operator co_await();
+            }
+
+        private:
+            corof::eval_poller<T> create_poller()
+            {
+                while(!m_var.has_value()){
+                    co_await std::suspend_always{};
+                }
+                co_return m_var.value();
             }
     };
 
