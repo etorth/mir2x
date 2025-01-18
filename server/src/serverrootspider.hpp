@@ -18,7 +18,7 @@ class ServerRootSpider final: public Monster
         void addBombSpider();
 
     protected:
-        corof::eval_poller updateCoroFunc() override;
+        corof::eval_poller<> updateCoroFunc() override;
 
     protected:
         ActionNode makeActionStand() const override

@@ -64,7 +64,7 @@ class Monster: public BattleObject
         AStarCache m_astarCache;
 
     protected:
-        corof::eval_poller m_updateCoro;
+        corof::eval_poller<> m_updateCoro;
 
     public:
         Monster(uint32_t,           // monster id
@@ -96,7 +96,7 @@ class Monster: public BattleObject
         bool update() override;
 
     protected:
-        virtual corof::eval_poller updateCoroFunc();
+        virtual corof::eval_poller<> updateCoroFunc();
 
     protected:
         bool randomMove();
@@ -209,22 +209,23 @@ class Monster: public BattleObject
         virtual bool goGhost();
 
     protected:
-        virtual corof::eval_awaiter<bool>     coro_randomMove();
-        virtual corof::eval_awaiter<bool>     coro_moveForward();
-        virtual corof::eval_awaiter<bool>     coro_followMaster();
-        virtual corof::eval_awaiter<uint64_t> coro_pickTarget();
-        virtual corof::eval_awaiter<uint64_t> coro_pickHealTarget();
-        virtual corof::eval_awaiter<int>      coro_checkFriend(uint64_t);
-        virtual corof::eval_awaiter<bool>     coro_trackUID(uint64_t, DCCastRange);
-        virtual corof::eval_awaiter<bool>     coro_attackUID(uint64_t, int);
-        virtual corof::eval_awaiter<bool>     coro_jumpGLoc(int, int, int);
-        virtual corof::eval_awaiter<bool>     coro_jumpUID(uint64_t);
-        virtual corof::eval_awaiter<bool>     coro_jumpAttackUID(uint64_t);
-        virtual corof::eval_awaiter<bool>     coro_trackAttackUID(uint64_t);
-        virtual corof::eval_awaiter<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
-        virtual corof::eval_awaiter<bool>     coro_validTarget(uint64_t);
-        virtual corof::eval_awaiter<std::optional<SDHealth>> coro_queryHealth(uint64_t);
-        virtual corof::eval_awaiter<std::tuple<uint32_t, int, int>> coro_getCOGLoc(uint64_t);
+        virtual corof::eval_poller<bool>     coro_randomMove();
+        virtual corof::eval_poller<bool>     coro_moveForward();
+        virtual corof::eval_poller<bool>     coro_followMaster();
+        virtual corof::eval_poller<bool>     coro_needHeal(uint64_t);
+        virtual corof::eval_poller<uint64_t> coro_pickTarget();
+        virtual corof::eval_poller<uint64_t> coro_pickHealTarget();
+        virtual corof::eval_poller<int>      coro_checkFriend(uint64_t);
+        virtual corof::eval_poller<bool>     coro_trackUID(uint64_t, DCCastRange);
+        virtual corof::eval_poller<bool>     coro_attackUID(uint64_t, int);
+        virtual corof::eval_poller<bool>     coro_jumpGLoc(int, int, int);
+        virtual corof::eval_poller<bool>     coro_jumpUID(uint64_t);
+        virtual corof::eval_poller<bool>     coro_jumpAttackUID(uint64_t);
+        virtual corof::eval_poller<bool>     coro_trackAttackUID(uint64_t);
+        virtual corof::eval_poller<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
+        virtual corof::eval_poller<bool>     coro_validTarget(uint64_t);
+        virtual corof::eval_poller<std::optional<SDHealth>> coro_queryHealth(uint64_t);
+        virtual corof::eval_poller<std::tuple<uint32_t, int, int>> coro_getCOGLoc(uint64_t);
 
     public:
         const auto &getMR() const

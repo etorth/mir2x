@@ -8,7 +8,7 @@ class ServerMinotaurGuardian final: public Monster
         ServerMinotaurGuardian(uint32_t, ServerMap *, int, int, int, uint64_t);
 
     protected:
-        corof::eval_poller updateCoroFunc() override;
+        corof::eval_poller<> updateCoroFunc() override;
 
     protected:
         DamageNode getAttackDamage(int, int) const override;

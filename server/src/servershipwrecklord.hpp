@@ -11,5 +11,5 @@ class ServerShipwreckLord final: public Monster
         {}
 
     protected:
-        corof::eval_poller updateCoroFunc() override;
+        corof::eval_poller<> updateCoroFunc() override;
 };

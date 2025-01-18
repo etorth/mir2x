@@ -39,7 +39,7 @@ void ServerAntHealer::sendHeal(uint64_t uid)
     }
 }
 
-corof::eval_poller ServerAntHealer::updateCoroFunc()
+corof::eval_poller<> ServerAntHealer::updateCoroFunc()
 {
     while(m_sdHealth.hp > 0){
         if(m_sdHealth.hp < m_sdHealth.maxHP){
@@ -67,5 +67,5 @@ corof::eval_poller ServerAntHealer::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
+    co_return;
 }

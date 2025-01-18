@@ -34,7 +34,7 @@ class ServerTaoDog final: public ServerTaoSummon
         }
 
     protected:
-        corof::eval_poller updateCoroFunc() override;
+        corof::eval_poller<> updateCoroFunc() override;
 
     protected:
         ActionNode makeActionStand() const override

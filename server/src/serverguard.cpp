@@ -15,7 +15,7 @@ ServerGuard::ServerGuard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, 
     fflassert(uidf::isGuardMode(UID()));
 }
 
-corof::eval_poller ServerGuard::updateCoroFunc()
+corof::eval_poller<> ServerGuard::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
@@ -58,7 +58,6 @@ corof::eval_poller ServerGuard::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }
 
 void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)

@@ -33,7 +33,7 @@ void ServerBugbatMaggot::addBat()
     });
 }
 
-corof::eval_poller ServerBugbatMaggot::updateCoroFunc()
+corof::eval_poller<> ServerBugbatMaggot::updateCoroFunc()
 {
     while(m_sdHealth.hp > 0){
         for(auto p = m_batUIDList.begin(); p != m_batUIDList.end();){
@@ -59,5 +59,5 @@ corof::eval_poller ServerBugbatMaggot::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
+    co_return;
 }

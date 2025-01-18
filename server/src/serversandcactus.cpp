@@ -2,7 +2,7 @@
 #include "serversandcactus.hpp"
 #include "raiitimer.hpp"
 
-corof::eval_poller ServerSandCactus::updateCoroFunc()
+corof::eval_poller<> ServerSandCactus::updateCoroFunc()
 {
     const auto magicID = DBCOM_MAGICID(u8"沙漠树魔_喷刺");
     const auto &mr = DBCOM_MAGICRECORD(magicID);
@@ -29,7 +29,6 @@ corof::eval_poller ServerSandCactus::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }
 
 DamageNode ServerSandCactus::getAttackDamage(int dc, int) const

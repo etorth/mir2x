@@ -4,7 +4,7 @@
 #include "serverzumataurus.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::eval_poller ServerZumaTaurus::updateCoroFunc()
+corof::eval_poller<> ServerZumaTaurus::updateCoroFunc()
 {
     const auto hellFireDC = DBCOM_MAGICID(u8"祖玛教主_地狱火");
     const auto fireWallDC = DBCOM_MAGICID(u8"祖玛教主_火墙");
@@ -54,7 +54,6 @@ corof::eval_poller ServerZumaTaurus::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }
 
 void ServerZumaTaurus::onAMAttack(const ActorMsgPack &mpk)

@@ -2,7 +2,7 @@
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::eval_poller ServerEvilTentacle::updateCoroFunc()
+corof::eval_poller<> ServerEvilTentacle::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
@@ -36,5 +36,4 @@ corof::eval_poller ServerEvilTentacle::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }

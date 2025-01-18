@@ -4,7 +4,7 @@
 #include "raiitimer.hpp"
 #include "servercannibalplant.hpp"
 
-corof::eval_poller ServerCannibalPlant::updateCoroFunc()
+corof::eval_poller<> ServerCannibalPlant::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
@@ -33,5 +33,4 @@ corof::eval_poller ServerCannibalPlant::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }

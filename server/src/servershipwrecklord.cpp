@@ -1,7 +1,7 @@
 #include "fflerror.hpp"
 #include "servershipwrecklord.hpp"
 
-corof::eval_poller ServerShipwreckLord::updateCoroFunc()
+corof::eval_poller<> ServerShipwreckLord::updateCoroFunc()
 {
     const auto  phyDC = DBCOM_MAGICID(u8"物理攻击");
     const auto pushDC = DBCOM_MAGICID(u8"霸王教主_野蛮冲撞");
@@ -58,5 +58,4 @@ corof::eval_poller ServerShipwreckLord::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }

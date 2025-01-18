@@ -10,7 +10,7 @@ class ServerBombSpider final: public Monster
         {}
 
     protected:
-        corof::eval_poller updateCoroFunc() override
+        corof::eval_poller<> updateCoroFunc() override
         {
             uint64_t targetUID = 0;
             while(m_sdHealth.hp > 0){
@@ -38,6 +38,5 @@ class ServerBombSpider final: public Monster
             }
 
             goDie();
-            co_return true;
         }
 };

@@ -13,7 +13,7 @@ class ServerSandGhost final: public Monster
         {}
 
     protected:
-        corof::eval_poller updateCoroFunc() override;
+        corof::eval_poller<> updateCoroFunc() override;
 
     protected:
         ActionNode makeActionStand() const override

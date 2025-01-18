@@ -5,7 +5,7 @@
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::eval_poller ServerWoomaTaurus::updateCoroFunc()
+corof::eval_poller<> ServerWoomaTaurus::updateCoroFunc()
 {
     const auto   lightMagicID = DBCOM_MAGICID(u8"沃玛教主_电光");
     const auto thunderMagicID = DBCOM_MAGICID(u8"沃玛教主_雷电术");
@@ -68,7 +68,6 @@ corof::eval_poller ServerWoomaTaurus::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }
 
 void ServerWoomaTaurus::sendThunderBolt(uint64_t uid)

@@ -36,7 +36,7 @@ void ServerRootSpider::addBombSpider()
     });
 }
 
-corof::eval_poller ServerRootSpider::updateCoroFunc()
+corof::eval_poller<> ServerRootSpider::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
@@ -73,5 +73,4 @@ corof::eval_poller ServerRootSpider::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }

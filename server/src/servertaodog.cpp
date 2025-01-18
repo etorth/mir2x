@@ -4,7 +4,7 @@
 #include "raiitimer.hpp"
 #include "servertaodog.hpp"
 
-corof::eval_poller ServerTaoDog::updateCoroFunc()
+corof::eval_poller<> ServerTaoDog::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
@@ -42,7 +42,6 @@ corof::eval_poller ServerTaoDog::updateCoroFunc()
     }
 
     goDie();
-    co_return true;
 }
 
 void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void()> onOK, std::function<void()> onError)

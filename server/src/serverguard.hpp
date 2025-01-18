@@ -13,7 +13,7 @@ class ServerGuard: public Monster
         ServerGuard(uint32_t, ServerMap *, int, int, int);
 
     protected:
-        corof::eval_poller updateCoroFunc() override;
+        corof::eval_poller<> updateCoroFunc() override;
 
     private:
         void checkFriend(uint64_t, std::function<void(int)>) override;
