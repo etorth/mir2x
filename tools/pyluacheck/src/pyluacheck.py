@@ -85,10 +85,10 @@ def create_lua_tmpfile(s):
     return path
 
 
-def check_lua_str(s):
+def check_lua_str(luac_path, s):
     path = create_lua_tmpfile(s)
     try:
-        subprocess.run(['luac', '-p', path], check=True)
+        subprocess.run([luac_path, '-p', path], check=True)
 
     except subprocess.CalledProcessError:
         print('code:', s)
@@ -98,16 +98,24 @@ def check_lua_str(s):
         os.unlink(path)
 
     for subs in parse_lua_substr(s):
-        check_lua_str(subs)
+        check_lua_str(luac_path, subs)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Usage: %s <filename>' % sys.argv[0])
+
+    if len(sys.argv) == 2:
+        luac_path = 'luac'
+        file_path = sys.argv[1]
+
+    elif len(sys.argv) == 3:
+        luac_path = sys.argv[1]
+        file_path = sys.argv[2]
+
+    else:
+        print('Usage: %s [luac-path] <file-path>' % sys.argv[0])
         sys.exit(1)
 
-    path = sys.argv[1]
-    with open(path) as f:
+    with open(file_path) as f:
         s = f.read()
 
-    check_lua_str(s)
+    check_lua_str(luac_path, s)
