@@ -16,7 +16,7 @@ class TexAniBoard: public Widget
         std::vector<uint32_t> m_texSeq;
 
     public:
-        TexAniBoard(dir8_t, int, int, uint32_t, size_t, size_t, bool, bool loop = true, Widget * pwidget = nullptr, bool autoDelete = false);
+        TexAniBoard(Widget::VarDir, Widget::VarOff, Widget::VarOff, uint32_t, size_t, size_t, bool, bool loop = true, Widget * pwidget = nullptr, bool autoDelete = false);
 
     public:
         void update(double) override;

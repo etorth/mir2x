@@ -8,8 +8,8 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-TexAniBoard::TexAniBoard(dir8_t dir, int x, int y, uint32_t texID, size_t frameCount, size_t fps, bool fadeInout, bool loop, Widget *pwidget, bool autoDelete)
-    : Widget(dir, x, y, 0, 0, {}, pwidget, autoDelete)
+TexAniBoard::TexAniBoard(Widget::VarDir dir, Widget::VarOff x, Widget::VarOff y, uint32_t texID, size_t frameCount, size_t fps, bool fadeInout, bool loop, Widget *pwidget, bool autoDelete)
+    : Widget(std::move(dir), std::move(x),std::move(y), 0, 0, {}, pwidget, autoDelete)
     , m_fps(fps)
     , m_accuTime(0.0)
     , m_loop(loop)
