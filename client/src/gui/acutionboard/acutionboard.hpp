@@ -12,7 +12,7 @@ class AcutionBoard: public Widget
         ImageBoard m_background;
 
     public:
-        AcutionBoard(Widget::VarDir, Widget::VarOff, Widget::VarOff, ProcessRun *, Widget * = nullptr, bool = false);
+        AcutionBoard(ProcessRun *, Widget * = nullptr, bool = false);
 
     // public:
     //     void drawEx(int, int, int, int, int, int) const override;

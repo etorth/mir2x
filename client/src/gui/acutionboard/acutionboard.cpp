@@ -5,21 +5,12 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-AcutionBoard::AcutionBoard(
-        Widget::VarDir argDir,
-        Widget::VarOff argX,
-        Widget::VarOff argY,
-
-        ProcessRun *argProc,
-
-        Widget * argParent,
-        bool     argAutoDelete)
-
+AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
     : Widget
       {
-          std::move(argDir),
-          std::move(argX),
-          std::move(argY),
+          DIR_NONE,
+          [](const Widget *){ return g_sdlDevice->getRendererWidth () / 2; },
+          [](const Widget *){ return g_sdlDevice->getRendererHeight() / 2; },
 
           0,
           0,

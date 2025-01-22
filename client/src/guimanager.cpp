@@ -13,8 +13,8 @@ GUIManager::GUIManager(ProcessRun *proc)
           DIR_UPLEFT,
           0,
           0,
-          g_sdlDevice->getRendererWidth(),
-          g_sdlDevice->getRendererHeight(),
+          [](const Widget *){ return g_sdlDevice->getRendererWidth();  },
+          [](const Widget *){ return g_sdlDevice->getRendererHeight(); },
       }
 
     , m_processRun(proc)
@@ -65,6 +65,12 @@ GUIManager::GUIManager(ProcessRun *proc)
     , m_miniMapBoard
       {
           proc,
+      }
+
+    , m_acutionBoard
+      {
+          proc,
+          this,
       }
 
     , m_purchaseBoard
