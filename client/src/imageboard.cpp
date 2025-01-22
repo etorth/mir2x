@@ -6,9 +6,9 @@
 extern SDLDevice *g_sdlDevice;
 
 ImageBoard::ImageBoard(
-        dir8_t argDir,
-        int argX,
-        int argY,
+        Widget::VarDir argDir,
+        Widget::VarOff argX,
+        Widget::VarOff argY,
 
         Widget::VarSize argW,
         Widget::VarSize argH,
@@ -26,9 +26,9 @@ ImageBoard::ImageBoard(
 
     : Widget
       {
-          argDir,
-          argX,
-          argY,
+          std::move(argDir),
+          std::move(argX),
+          std::move(argY),
           0,
           0,
 

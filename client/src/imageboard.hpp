@@ -32,9 +32,9 @@ class ImageBoard: public Widget
         uint32_t m_color;
 
     public:
-        ImageBoard(dir8_t,
-                int,
-                int,
+        ImageBoard(Widget::VarDir,
+                Widget::VarOff,
+                Widget::VarOff,
 
                 Widget::VarSize,
                 Widget::VarSize,
