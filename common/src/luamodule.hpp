@@ -20,7 +20,7 @@ class LuaModule
         virtual ~LuaModule() = default;
 
     public:
-        sol::state &getLuaState()
+        sol::state &getState()
         {
             return m_luaState;
         }

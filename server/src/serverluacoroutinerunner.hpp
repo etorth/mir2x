@@ -208,7 +208,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 : key(argKey)
                 , seqID(argSeqID)
                 , onDone(std::move(argOnDone))
-                , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
+                , runner(sol::thread::create(argLuaModule.getState().lua_state()))
                 , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
             {
                 fflassert(key);
@@ -223,7 +223,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 : key(argKey)
                 , seqID(argSeqID)
                 , onDone(std::move(argOnDone))
-                , runner(sol::thread::create(argLuaModule.getLuaState().lua_state()))
+                , runner(sol::thread::create(argLuaModule.getState().lua_state()))
                 , callback(runner.state(), sol::ref_index(func.registry_index())) // callback initialized as: https://github.com/ThePhD/sol2/issues/836
             {
                 fflassert(key);
