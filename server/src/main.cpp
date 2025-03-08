@@ -41,27 +41,6 @@ int main(int argc, char *argv[])
             logDisableProfiler();
         }
 
-        // start FLTK multithreading support
-        Fl::lock();
-
-        g_log                   = new Log("mir2x-monoserver-v0.1");
-        g_scriptWindow          = new ScriptWindow();
-        g_profilerWindow        = new ProfilerWindow();
-        g_mainWindow            = new MainWindow();
-        g_monoServer            = new MonoServer();
-        g_mapBinDB              = new MapBinDB();
-        g_serverPasswordWindow  = new ServerPasswordWindow();
-        g_serverConfigureWindow = new ServerConfigureWindow();
-        g_actorPool             = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
-        g_dbPod                 = new DBPod();
-        g_netDriver             = new NetDriver();
-        g_podMonitorWindow      = new PodMonitorWindow();
-        g_actorMonitorWindow    = new ActorMonitorWindow();
-
-        if(g_serverArgParser->textFont >= 0){
-            g_mainWindow->setGUIFont(g_serverArgParser->textFont);
-        }
-
         std::atexit(+[]()
         {
             logProfiling([](const std::string &s)
@@ -70,10 +49,34 @@ int main(int argc, char *argv[])
             });
         });
 
-        g_mainWindow->showAll();
-        if(g_serverArgParser->autoLaunch){
-            g_monoServer = new MonoServer();
-            g_monoServer->Launch();
+        if(!g_serverArgParser->slave){
+            Fl::lock(); // start FLTK multithreading support
+        }
+
+        g_log        = new Log("mir2x-monoserver-v0.1");
+        g_monoServer = new MonoServer();
+        g_mapBinDB   = new MapBinDB();
+        g_actorPool  = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
+        g_dbPod      = new DBPod();
+        g_netDriver  = new NetDriver();
+
+        if(!g_serverArgParser->slave){
+            g_scriptWindow          = new ScriptWindow();
+            g_profilerWindow        = new ProfilerWindow();
+            g_mainWindow            = new MainWindow();
+            g_serverPasswordWindow  = new ServerPasswordWindow();
+            g_serverConfigureWindow = new ServerConfigureWindow();
+            g_podMonitorWindow      = new PodMonitorWindow();
+            g_actorMonitorWindow    = new ActorMonitorWindow();
+
+            if(g_serverArgParser->textFont >= 0){
+                g_mainWindow->setGUIFont(g_serverArgParser->textFont);
+            }
+
+            g_mainWindow->showAll();
+            if(g_serverArgParser->autoLaunch){
+                g_monoServer->Launch();
+            }
         }
 
         while(Fl::wait() > 0){
