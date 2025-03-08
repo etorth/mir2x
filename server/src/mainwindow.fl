@@ -54,7 +54,7 @@ class MainWindow {} {
             delete g_monoServer;
 
             g_monoServer = new MonoServer();
-            g_monoServer->Launch();
+            g_monoServer->launch();
 
             m_launchMenu->deactivate();
             g_serverPasswordWindow->hideAll();

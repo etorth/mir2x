@@ -53,15 +53,13 @@ class MonoServer final
        ~MonoServer() = default;
 
     public:
-        void ReadHC();
-
-        void Launch();
+        void launch();
         void restart(const std::string & = {});
 
     private:
         void RunASIO();
-        void CreateDBConnection();
-        void LoadMapBinDB();
+        void createDBConnection();
+        void loadMapBinDB();
 
     private:
         bool hasDatabase() const;
@@ -86,8 +84,8 @@ class MonoServer final
         void addLog(const Log::LogTypeLoc &, const char *, ...);
 
     private:
-        void StartNetwork();
-        void StartServiceCore();
+        void startNetwork();
+        void startServiceCore();
 
     public:
         bool loadMap(const std::string &);

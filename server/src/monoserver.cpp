@@ -406,7 +406,7 @@ void MonoServer::createDefaultDatabase()
     addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
 }
 
-void MonoServer::CreateDBConnection()
+void MonoServer::createDBConnection()
 {
     const char *dbName = "mir2x.db3";
     g_dbPod->launch(dbName);
@@ -419,7 +419,7 @@ void MonoServer::CreateDBConnection()
     addLog(LOGTYPE_INFO, "Connect to database %s successfully", dbName);
 }
 
-void MonoServer::LoadMapBinDB()
+void MonoServer::loadMapBinDB()
 {
     std::string szMapPath = g_serverConfigureWindow->getConfig().mapPath;
 
@@ -428,7 +428,7 @@ void MonoServer::LoadMapBinDB()
     }
 }
 
-void MonoServer::StartServiceCore()
+void MonoServer::startServiceCore()
 {
     g_actorPool->launchPool();
 
@@ -436,18 +436,18 @@ void MonoServer::StartServiceCore()
     m_serviceCore->activate(-1.0);
 }
 
-void MonoServer::StartNetwork()
+void MonoServer::startNetwork()
 {
     g_netDriver->launch(g_serverConfigureWindow->getConfig().listenPort);
 }
 
-void MonoServer::Launch()
+void MonoServer::launch()
 {
-    CreateDBConnection();
-    LoadMapBinDB();
+    createDBConnection();
+    loadMapBinDB();
 
-    StartServiceCore();
-    StartNetwork();
+    startServiceCore();
+    startNetwork();
 }
 
 void MonoServer::propagateException() noexcept
