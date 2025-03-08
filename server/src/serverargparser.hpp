@@ -29,6 +29,7 @@ struct ServerArgParser
     const bool showStrikeGrid;              // "--show-strike-grid"
     const bool preloadMap;                  // "--preload-map"
     const bool autoLaunch;                  // "--auto-launch"
+    const bool slave;                       // "--slave"
     const int  preloadMapID;                // "--preload-map-id"
     const int  actorPoolThread;             // "--actor-pool-thread"
     const int  logicalFPS;                  // "--logical-fps"
@@ -55,6 +56,7 @@ struct ServerArgParser
         , showStrikeGrid(cmdParser["show-strike-grid"])
         , preloadMap(cmdParser["preload-map"])
         , autoLaunch(cmdParser["auto-launch"])
+        , slave(cmdParser["slave"])
         , preloadMapID([&cmdParser]() -> int
           {
               if(const auto s = cmdParser("preload-map-id").str(); !s.empty()){
