@@ -3,7 +3,6 @@
 #include <FL/Fl.H>
 #include <FL/fl_draw.H>
 #include <FL/Fl_Menu_Item.H>
-#include "threadpool.hpp"
 
 namespace fl_wrapper
 {
@@ -85,19 +84,27 @@ namespace fl_wrapper
     }
 
     bool is_main_thread();
+    class gui_lock final
+    {
+        public:
+            gui_lock()
+            {
+                if(!is_main_thread()){
+                    Fl::lock();
+                }
+            }
+
+            ~gui_lock()
+            {
+                if(!is_main_thread()){
+                    Fl::unlock();
+                }
+            }
+    };
+
     template<typename Callable> void mtcall(Callable &&f)
     {
-        if(!is_main_thread()){
-            Fl::lock();
-        }
-
-        const threadPool::scopeGuard lockGuard([]()
-        {
-            if(!is_main_thread()){
-                Fl::unlock();
-            }
-        });
-
+        const gui_lock lock;
         f();
     }
 }
