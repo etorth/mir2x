@@ -84,10 +84,20 @@ namespace fl_wrapper
         return FL_BLACK;
     }
 
+    bool is_main_thread();
     template<typename Callable> void mtcall(Callable &&f)
     {
-        Fl::lock();
-        const threadPool::scopeGuard lockGuard([](){ Fl::unlock(); });
+        if(!is_main_thread()){
+            Fl::lock();
+        }
+
+        const threadPool::scopeGuard lockGuard([]()
+        {
+            if(!is_main_thread()){
+                Fl::unlock();
+            }
+        });
+
         f();
     }
 }

@@ -26,6 +26,7 @@
 #include "dispatcher.hpp"
 #include "servicecore.hpp"
 #include "commandwindow.hpp"
+#include "serverargparser.hpp"
 
 extern Log *g_log;
 extern DBPod *g_dbPod;
@@ -34,6 +35,7 @@ extern ActorPool *g_actorPool;
 extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 extern MainWindow *g_mainWindow;
+extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
 void MonoServer::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
@@ -439,6 +441,55 @@ void MonoServer::startServiceCore()
 void MonoServer::startNetwork()
 {
     g_netDriver->launch(g_serverConfigureWindow->getConfig().listenPort);
+}
+
+void MonoServer::mainLoop()
+{
+    if(g_serverArgParser->slave){
+        m_hasExcept.wait(false);
+    }
+    else{
+        // gui event loop
+        // Fl::wait() automatically calls Fl::unlock()
+        while(Fl::wait() > 0){
+            switch((uintptr_t)(Fl::thread_message())){
+                case 0:
+                    {
+                        // FLTK will send 0 automatically
+                        // to update the widgets and handle events
+                        //
+                        // if main loop or child thread need to flush
+                        // call Fl::awake(0) to force Fl::wait() to terminate
+                        break;
+                    }
+                case 2:
+                    {
+                        // propagate all exceptions to main thread
+                        // then log it in main thread and request restart
+                        //
+                        // won't handle exception in threads
+                        // all threads need to call Fl::awake(2) to propagate exception(s) caught
+                        try{
+                            g_monoServer->checkException();
+                        }
+                        catch(const std::exception &e){
+                            std::string firstExceptStr;
+                            g_monoServer->logException(e, &firstExceptStr);
+                            g_monoServer->restart(firstExceptStr);
+                        }
+                        break;
+                    }
+                case 1:
+                default:
+                    {
+                        // pase the gui requests in the queue
+                        // designed to send Fl::awake(1) to notify gui
+                        g_monoServer->parseNotifyGUIQ();
+                        break;
+                    }
+            }
+        }
+    }
 }
 
 void MonoServer::launch()

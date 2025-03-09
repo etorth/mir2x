@@ -50,7 +50,9 @@ int main(int argc, char *argv[])
         });
 
         if(!g_serverArgParser->slave){
-            Fl::lock(); // start FLTK multithreading support
+            // start FLTK multithreading support
+            // for more details: https://www.fltk.org/doc-1.4/advanced.html
+            Fl::lock();
         }
 
         g_log        = new Log("mir2x-monoserver-v0.1");
@@ -79,49 +81,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        if(g_serverArgParser->slave){
-
-        }
-        else{
-            while(Fl::wait() > 0){
-                switch((uintptr_t)(Fl::thread_message())){
-                    case 0:
-                        {
-                            // FLTK will send 0 automatically
-                            // to update the widgets and handle events
-                            //
-                            // if main loop or child thread need to flush
-                            // call Fl::awake(0) to force Fl::wait() to terminate
-                            break;
-                        }
-                    case 2:
-                        {
-                            // propagate all exceptions to main thread
-                            // then log it in main thread and request restart
-                            //
-                            // won't handle exception in threads
-                            // all threads need to call Fl::awake(2) to propagate exception(s) caught
-                            try{
-                                g_monoServer->checkException();
-                            }
-                            catch(const std::exception &e){
-                                std::string firstExceptStr;
-                                g_monoServer->logException(e, &firstExceptStr);
-                                g_monoServer->restart(firstExceptStr);
-                            }
-                            break;
-                        }
-                    case 1:
-                    default:
-                        {
-                            // pase the gui requests in the queue
-                            // designed to send Fl::awake(1) to notify gui
-                            g_monoServer->parseNotifyGUIQ();
-                            break;
-                        }
-                }
-            }
-        }
+        g_monoServer->mainLoop();
     }
     catch(const std::exception &e){
         // use raw log directly

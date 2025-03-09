@@ -1,6 +1,7 @@
 #pragma once
 #include <mutex>
 #include <queue>
+#include <atomic>
 #include <vector>
 #include <cstdint>
 #include <exception>
@@ -35,6 +36,7 @@ class MonoServer final
         ServiceCore *m_serviceCore = nullptr;
 
     private:
+        std::atomic_flag m_hasExcept;
         std::exception_ptr m_currException;
 
     private:
@@ -51,6 +53,9 @@ class MonoServer final
     public:
         MonoServer() = default;
        ~MonoServer() = default;
+
+    public:
+       void mainLoop();
 
     public:
         void launch();
