@@ -64,7 +64,7 @@ void NetDriver::launch(uint32_t port)
             }
             catch(const ChannelError &e){
                 doClose(e.channID());
-                g_monoServer->addLog(LOGTYPE_WARNING, "Channel %d has been disconnected.", to_d(e.channID()));
+                g_monoServer->addLog(LOGTYPE_INFO, "Channel %d has been disconnected.", to_d(e.channID()));
             }
             // only catch channError
             // let it crash when caught any other exceptions
@@ -224,7 +224,9 @@ void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
         if(auto channPtr = m_channelSlotList[channID].channPtr.get()){
             channPtr->bindPlayer(uid);
         }
+
         waitDone.test_and_set();
+        waitDone.notify_all();
     });
     waitDone.wait(false);
 }
@@ -234,6 +236,7 @@ void NetDriver::close(uint32_t channID)
     logProfiler();
     fflassert(to_uz(channID) > 0);
     fflassert(to_uz(channID) < m_channelSlotList.size());
+    fflassert(g_actorPool->isActorThread());
 
     // if actor thread would initialize a shutdown to a channel
     // it should call this function to schedule a shutdown event via m_context->post()
@@ -241,12 +244,16 @@ void NetDriver::close(uint32_t channID)
     // after this function call, the channel slot can still be not empty
     // player actor should keep a flag(m_channID.has_value() && m_channID.value() == 1) to indicate it shall not post any new message
 
-    asio::post(*m_context, [channID, this]()
+    std::atomic_flag closeDone;
+    asio::post(*m_context, [channID, &closeDone, this]()
     {
         // TODO shall I add any validation to confirm that only the bind player UID can close the channel?
         //      otherwise a careless call to NetDriver::close() with random channID can crash other player's connection
         doClose(channID);
+        closeDone.test_and_set();
+        closeDone.notify_all();
     });
+    closeDone.wait(false);
 }
 
 void NetDriver::doRelease()

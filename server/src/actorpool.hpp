@@ -19,6 +19,7 @@
 #include "parallel_hashmap/phmap.h"
 
 class ActorPod;
+class NetDriver;
 class Receiver;
 class Dispatcher;
 class SyncDriver;
@@ -27,6 +28,7 @@ class ActorPool final
 {
     private:
         friend class ActorPod;
+        friend class NetDriver;
         friend class Receiver;
         friend class Dispatcher;
         friend class SyncDriver;
