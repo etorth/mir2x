@@ -1,5 +1,4 @@
 #pragma once
-#include <asio.hpp>
 #include <cstdint>
 #include <array>
 #include <tuple>
@@ -7,8 +6,8 @@
 #include <thread>
 #include <queue>
 #include <cstdint>
+#include <asio.hpp>
 #include "uidf.hpp"
-#include "channel.hpp"
 #include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "dispatcher.hpp"
@@ -39,12 +38,10 @@ class NetDriver final
         };
 
     private:
-        unsigned int m_port = 0;
+        asio::ip::port_type m_port = 0;
 
     private:
-        asio::io_service        *m_io       = nullptr;
-        asio::ip::tcp::endpoint *m_endPoint = nullptr;
-        asio::ip::tcp::acceptor *m_acceptor = nullptr;
+        std::unique_ptr<asio::io_context> m_context;
 
     private:
         std::thread m_thread;
@@ -77,7 +74,7 @@ class NetDriver final
         void post(uint32_t, uint8_t, const void *, size_t, uint64_t);   // post message to a channel
 
     private:
-        void acceptNewConnection();
+        asio::awaitable<void> acceptNewConnection(asio::ip::tcp::acceptor);
 
     private:
         void doRelease();

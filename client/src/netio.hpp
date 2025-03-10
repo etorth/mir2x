@@ -8,7 +8,7 @@
 class NetIO final
 {
     private:
-        asio::io_service        m_io;
+        asio::io_context        m_io;
         asio::ip::tcp::resolver m_resolver;
         asio::ip::tcp::socket   m_socket;
 
@@ -55,7 +55,7 @@ class NetIO final
 
         void stop()
         {
-            m_io.post([this]()
+            asio::post(m_io, [this]()
             {
                 shutdown();
             });
