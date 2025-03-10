@@ -215,7 +215,8 @@ void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
     fflassert(to_uz(channID) < m_channelSlotList.size());
     fflassert(uidf::isPlayer(uid));
 
-    asio::post(*m_context, [uid, channID, this]()
+    std::atomic_flag waitDone;
+    asio::post(*m_context, [uid, channID, &waitDone, this]()
     {
         // use post rather than directly assignement since asio thread accesses m_playerUID
         // potential bug is it's done by post so actor uid is not updated immediately after this call
@@ -223,7 +224,9 @@ void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
         if(auto channPtr = m_channelSlotList[channID].channPtr.get()){
             channPtr->bindPlayer(uid);
         }
+        waitDone.test_and_set();
     });
+    waitDone.wait(false);
 }
 
 void NetDriver::close(uint32_t channID)

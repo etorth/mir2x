@@ -65,7 +65,7 @@ class NetDriver final
         void launch(uint32_t);
 
     public:
-        // these functions are provided to actor thread
+        // these functions are provided to actor threads
         // actor thread send/receive message by these interfaces
         // actor thread can invalidate channel by calling close(channID), asio loop can invalidate by catching exception
         // but no method to check channel is valid, after actor thread invalidate it, actor thread should keep flag to prevent access an invalidated channel
