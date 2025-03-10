@@ -127,7 +127,7 @@ asio::awaitable<std::tuple<const uint8_t *, size_t>> Channel::readPacketBody(siz
                                               : zcompf::xorDecode  (origDataPtr, m_clientMsg->dataLen(), maskDataPtr, compDataPtr);
 
             fflassert(decodedBytes == bodySize);
-            co_return std::make_tuple(origDataPtr, bodySize);
+            co_return std::make_tuple(origDataPtr, m_clientMsg->dataLen());
         }
     }
     co_return std::make_tuple(bodySize ? m_readDBuf.data() : nullptr, bodySize);
