@@ -81,5 +81,5 @@ class NetDriver final
         void doClose(uint32_t);
 
     private:
-        std::array<std::tuple<const uint8_t *, size_t>, 2> encodePostBuf(uint8_t, const void *, size_t, uint64_t, std::vector<uint8_t> &);
+        static std::array<std::tuple<const uint8_t *, size_t>, 2> encodePostBuf(uint8_t, const void *, size_t, uint64_t, std::vector<uint8_t> &);
 };
