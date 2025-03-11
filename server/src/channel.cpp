@@ -133,7 +133,7 @@ asio::awaitable<void> Channel::writer()
             asio::error_code ec;
             co_await m_timer.async_wait(asio::redirect_error(asio::use_awaitable, ec));
             if(ec != asio::error::operation_aborted){
-                throw ChannelError(id(), "%s", ec.message());
+                throw ChannelError(id(), "%s", ec.message().c_str());
             }
         }
         else{
@@ -183,7 +183,7 @@ void Channel::close()
 
     m_socket.close(ec);
     if(ec){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Close channel %zu: %s", ec.message());
+        g_monoServer->addLog(LOGTYPE_WARNING, "Close channel %zu: %s", ec.message().c_str());
     }
 }
 

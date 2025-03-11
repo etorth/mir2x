@@ -113,7 +113,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
         void checkErrcode(const asio::error_code &ec) const
         {
             if(ec){
-                throw ChannelError(id(), "%s", ec.message());
+                throw ChannelError(id(), "%s", ec.message().c_str());
             }
         }
 
