@@ -276,6 +276,7 @@ void NetDriver::doClose(uint32_t channID)
     fflassert(isNetThread());
 
     if(m_channelSlotList[channID].channPtr){
+        m_channelSlotList[channID].channPtr->close();
         m_channelSlotList[channID].channPtr->notify();
         m_channelSlotList[channID].channPtr.reset();
         m_channelIDList.push_back(channID);
