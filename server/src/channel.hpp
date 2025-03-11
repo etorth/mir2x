@@ -86,9 +86,6 @@ class Channel final: public std::enable_shared_from_this<Channel>
     public:
         Channel(asio::ip::tcp::socket, uint32_t, std::mutex &, std::vector<uint8_t> &);
 
-    public:
-        ~Channel();
-
     private:
         uint32_t id() const
         {
@@ -157,7 +154,4 @@ class Channel final: public std::enable_shared_from_this<Channel>
 
     private:
         asio::awaitable<std::tuple<const uint8_t *, size_t>> readPacketBody(size_t, size_t);
-
-    private:
-        static void forwardException(std::exception_ptr);
 };

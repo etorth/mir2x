@@ -50,7 +50,7 @@ void NetDriver::launch(uint32_t port)
     m_port = static_cast<asio::ip::port_type>(port);
     m_context = std::make_unique<asio::io_context>(1);
 
-    asio::co_spawn(*m_context, acceptNewConnection(asio::ip::tcp::acceptor(*m_context, {asio::ip::tcp::v4(), m_port})), asio::detached);
+    asio::co_spawn(*m_context, listener(), [](std::exception_ptr e){ std::rethrow_exception(e); });
     m_thread = std::thread([this]()
     {
         t_netThreadFlag = true;
@@ -72,31 +72,41 @@ void NetDriver::launch(uint32_t port)
     });
 }
 
-asio::awaitable<void> NetDriver::acceptNewConnection(asio::ip::tcp::acceptor acceptor)
+asio::awaitable<void> NetDriver::listener()
 {
-    while(!m_channelIDList.empty()){
-        const auto channID = m_channelIDList.front();
-        m_channelIDList.pop_front();
+    fflassert(isNetThread());
 
-        fflassert(to_uz(channID) > 0, channID);
-        fflassert(to_uz(channID) < m_channelSlotList.size(), channID, m_channelSlotList.size());
+    asio::error_code ec;
+    asio::ip::tcp::acceptor acceptor(*m_context, {asio::ip::tcp::v4(), m_port});
 
-        asio::error_code ec;
+    while(true){
         auto sock = co_await acceptor.async_accept(asio::redirect_error(asio::use_awaitable, ec));
-
         if(ec){
-            throw ChannelError(channID, "network error when accepting new connection: %s", ec.message().c_str());
+            acceptor.close();
+            throw fflerror("acceptor error: %s", ec.message().c_str());
         }
 
-        auto slotPtr = m_channelSlotList.data() + channID;
+        if(m_channelIDList.empty()){
+            // TODO notify client that server is busy
+        }
+        else{
+            const auto channID = m_channelIDList.front();
+            m_channelIDList.pop_front();
 
-        slotPtr->sendBuf.clear();
-        slotPtr->channPtr = std::make_shared<Channel>(std::move(sock), channID, slotPtr->lock, slotPtr->sendBuf);
+            fflassert(to_uz(channID) > 0, channID);
+            fflassert(to_uz(channID) < m_channelSlotList.size(), channID, m_channelSlotList.size());
 
-        auto channPtr = m_channelSlotList[channID].channPtr.get();
-        g_monoServer->addLog(LOGTYPE_INFO, "Channel %d has been established for endpoint (%s:%d).", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
 
-        channPtr->launch();
+            auto slotPtr = m_channelSlotList.data() + channID;
+
+            slotPtr->sendBuf.clear();
+            slotPtr->channPtr = std::make_shared<Channel>(std::move(sock), channID, slotPtr->lock, slotPtr->sendBuf);
+
+            auto channPtr = m_channelSlotList[channID].channPtr.get();
+            g_monoServer->addLog(LOGTYPE_INFO, "Channel %d has been established for endpoint (%s:%d).", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
+
+            channPtr->launch();
+        }
     }
 }
 
@@ -255,7 +265,13 @@ void NetDriver::close(uint32_t channID)
         closeDone.test_and_set();
         closeDone.notify_all();
     });
+
     closeDone.wait(false);
+    auto slotPtr = m_channelSlotList.data() + channID;
+    {
+        const std::lock_guard<std::mutex> lockGuard(slotPtr->lock);
+        std::vector<uint8_t>().swap(slotPtr->sendBuf);
+    }
 }
 
 void NetDriver::doRelease()

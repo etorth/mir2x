@@ -31,9 +31,8 @@ class NetDriver final
             // used when post messages that need xor compression
             std::vector<uint8_t> encodeBuf;
 
-            // channel
             // only asio thread can access it
-            // actor thread access it through asio::post(access_handler)
+            // actor thread access it through asio::post(access_handler), except channPtr->notify()
             std::shared_ptr<Channel> channPtr;
         };
 
@@ -74,11 +73,11 @@ class NetDriver final
         void post(uint32_t, uint8_t, const void *, size_t, uint64_t);   // post message to a channel
 
     private:
-        asio::awaitable<void> acceptNewConnection(asio::ip::tcp::acceptor);
+        asio::awaitable<void> listener();
 
     private:
-        void doRelease();
         void doClose(uint32_t);
+        void doRelease();
 
     private:
         static std::array<std::tuple<const uint8_t *, size_t>, 2> encodePostBuf(uint8_t, const void *, size_t, uint64_t, std::vector<uint8_t> &);

@@ -26,23 +26,6 @@ Channel::Channel(asio::ip::tcp::socket argSocket, uint32_t argChannID, std::mute
     , m_nextSendQ(sendBuf)
 {}
 
-Channel::~Channel()
-{
-    try{
-        close();
-        {
-            const std::lock_guard<std::mutex> lockGuard(m_nextQLock);
-            std::vector<uint8_t>().swap(m_nextSendQ);
-        }
-    }
-    catch(const std::exception &e){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Failed to release channel %d: %s", to_d(id()), e.what());
-    }
-    catch(...){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Failed to release channel %d: unknown error", to_d(id()));
-    }
-}
-
 asio::awaitable<void> Channel::reader()
 {
     asio::error_code ec;
@@ -58,7 +41,7 @@ asio::awaitable<void> Channel::reader()
         }
 
         const uint8_t *dataPtr = nullptr;
-        size_t   dataLen = 0;
+        /* */  size_t  dataLen = 0;
 
         switch(m_clientMsg->type()){
             case 0:
@@ -192,38 +175,29 @@ void Channel::close()
     m_playerUID = 0;
     m_dispatcher.forward(uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
 
-    // if we call m_socket.shutdown() here
-    // we need to use try-catch since if connection has already been broken, it throws exception
+    // For portable behaviour with respect to graceful closure of a connected socket, call shutdown() before closing the socket.
+    // asio-1.30.2/doc/asio/reference/basic_stream_socket/close/overload2.html
 
-    // try{
-    //     m_socket.shutdown(asio::ip::tcp::socket::shutdown_both);
-    // }
-    // catch(...){
-    //     ...
-    // }
+    std::error_code ec;
+    m_socket.shutdown(asio::ip::tcp::socket::shutdown_both, ec);
 
-    m_socket.close();
+    m_socket.close(ec);
+    if(ec){
+        g_monoServer->addLog(LOGTYPE_WARNING, "Close channel %zu: %s", ec.message());
+    }
 }
 
 void Channel::launch()
 {
     fflassert(g_netDriver->isNetThread());
-    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->reader(); }, Channel::forwardException);
-    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->writer(); }, Channel::forwardException);
+    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->reader(); }, [](std::exception_ptr e){ std::rethrow_exception(e); });
+    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->writer(); }, [](std::exception_ptr e){ std::rethrow_exception(e); });
 }
 
 void Channel::bindPlayer(uint64_t uid)
 {
     fflassert(g_netDriver->isNetThread());
     fflassert(uidf::isPlayer(uid), uidf::getUIDString(uid));
-
-    fflassert(!m_playerUID, uidf::getUIDString(m_playerUID));
+    fflassert(!m_playerUID, uidf::getUIDString(m_playerUID), uidf::getUIDString(uid));
     m_playerUID = uid;
-}
-
-void Channel::forwardException(std::exception_ptr e)
-{
-    if(e){
-        std::rethrow_exception(e);
-    }
 }
