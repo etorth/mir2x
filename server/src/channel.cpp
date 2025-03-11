@@ -45,8 +45,10 @@ Channel::~Channel()
 
 asio::awaitable<void> Channel::reader()
 {
+    asio::error_code ec;
     while(true){
-        co_await asio::async_read(m_socket, asio::buffer(m_readSBuf, 1), asio::use_awaitable);
+        co_await asio::async_read(m_socket, asio::buffer(m_readSBuf, 1), asio::redirect_error(asio::use_awaitable, ec));
+        checkErrcode(ec);
 
         m_respIDOpt.reset();
         prepareClientMsg(m_readSBuf[0]);
@@ -111,7 +113,10 @@ asio::awaitable<std::tuple<const uint8_t *, size_t>> Channel::readPacketBody(siz
     }
 
     if(const auto totalSize = maskSize + bodySize){
-        co_await asio::async_read(m_socket, asio::buffer(m_readDBuf.data(), totalSize), asio::use_awaitable);
+        asio::error_code ec;
+        co_await asio::async_read(m_socket, asio::buffer(m_readDBuf.data(), totalSize), asio::redirect_error(asio::use_awaitable, ec));
+        checkErrcode(ec);
+
         if(maskSize){
             const bool useWide = m_clientMsg->useXor64();
             const size_t dataCount = zcompf::xorCountMask(m_readDBuf.data(), maskSize);
@@ -143,11 +148,15 @@ asio::awaitable<void> Channel::writer()
 
         if(m_currSendQ.empty()){
             asio::error_code ec;
-            co_await m_timer.async_wait(redirect_error(asio::use_awaitable, ec));
+            co_await m_timer.async_wait(asio::redirect_error(asio::use_awaitable, ec));
+            if(ec != asio::error::operation_aborted){
+                throw ChannelError(id(), "%s", ec.message());
+            }
         }
         else{
-            const auto sentBytes = co_await asio::async_write(m_socket, asio::buffer(m_currSendQ.data(), m_currSendQ.size()), asio::deferred);
-            fflassert(sentBytes == m_currSendQ.size());
+            asio::error_code ec;
+            co_await asio::async_write(m_socket, asio::buffer(m_currSendQ.data(), m_currSendQ.size()), asio::redirect_error(asio::use_awaitable, ec));
+            checkErrcode(ec);
             m_currSendQ.clear();
         }
     }
@@ -199,8 +208,8 @@ void Channel::close()
 void Channel::launch()
 {
     fflassert(g_netDriver->isNetThread());
-    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->reader(); }, asio::detached);
-    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->writer(); }, asio::detached);
+    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->reader(); }, Channel::forwardException);
+    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->writer(); }, Channel::forwardException);
 }
 
 void Channel::bindPlayer(uint64_t uid)
@@ -210,4 +219,11 @@ void Channel::bindPlayer(uint64_t uid)
 
     fflassert(!m_playerUID, uidf::getUIDString(m_playerUID));
     m_playerUID = uid;
+}
+
+void Channel::forwardException(std::exception_ptr e)
+{
+    if(e){
+        std::rethrow_exception(e);
+    }
 }

@@ -113,6 +113,14 @@ class Channel final: public std::enable_shared_from_this<Channel>
         }
 
     private:
+        void checkErrcode(const asio::error_code &ec) const
+        {
+            if(ec){
+                throw ChannelError(id(), "%s", ec.message());
+            }
+        }
+
+    private:
         asio::awaitable<void> reader();
         asio::awaitable<void> writer();
 
@@ -149,4 +157,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
 
     private:
         asio::awaitable<std::tuple<const uint8_t *, size_t>> readPacketBody(size_t, size_t);
+
+    private:
+        static void forwardException(std::exception_ptr);
 };

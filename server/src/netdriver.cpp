@@ -196,16 +196,18 @@ void NetDriver::post(uint32_t channID, uint8_t headCode, const void *buf, size_t
     //
     // idea from: https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
     auto slotPtr = m_channelSlotList.data() + channID;
-    const auto encodedBufList = encodePostBuf(headCode, buf, bufSize, respID, slotPtr->encodeBuf);
-    {
-        const std::lock_guard<std::mutex> lockGuard(slotPtr->lock);
-        for(const auto &[encodedBuf, encodedBufSize]: encodedBufList){
-            if(encodedBuf){
-                slotPtr->sendBuf.insert(slotPtr->sendBuf.end(), encodedBuf, encodedBuf + encodedBufSize);
+    if(auto channPtr = slotPtr->channPtr){
+        const auto encodedBufList = encodePostBuf(headCode, buf, bufSize, respID, slotPtr->encodeBuf);
+        {
+            const std::lock_guard<std::mutex> lockGuard(slotPtr->lock);
+            for(const auto &[encodedBuf, encodedBufSize]: encodedBufList){
+                if(encodedBuf){
+                    slotPtr->sendBuf.insert(slotPtr->sendBuf.end(), encodedBuf, encodedBuf + encodedBufSize);
+                }
             }
         }
+        channPtr->notifySend();
     }
-    slotPtr->channPtr->notifySend();
 }
 
 void NetDriver::bindPlayer(uint32_t channID, uint64_t uid)
