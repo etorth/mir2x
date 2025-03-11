@@ -190,8 +190,8 @@ void Channel::close()
 void Channel::launch()
 {
     fflassert(g_netDriver->isNetThread());
-    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->reader(); }, [](std::exception_ptr e){ std::rethrow_exception(e); });
-    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->writer(); }, [](std::exception_ptr e){ std::rethrow_exception(e); });
+    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->reader(); }, +[](std::exception_ptr e){ std::rethrow_exception(e); });
+    asio::co_spawn(m_socket.get_executor(), [self = shared_from_this()]{ return self->writer(); }, +[](std::exception_ptr e){ std::rethrow_exception(e); });
 }
 
 void Channel::bindPlayer(uint64_t uid)
