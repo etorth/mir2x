@@ -85,7 +85,7 @@ class Log final
         }
 
     public:
-        void addLog(const LogTypeLoc &typeLoc, const char *format, ...)
+        void addLog(const LogTypeLoc &typeLoc, const char *format, ...) STR_PRINTF_CHECK_FORMAT(3)
         {
             std::string logLine;
             str_format(format, logLine);

@@ -23,7 +23,7 @@ class ChannelError: public std::exception
             : m_channID(channID)
         {}
 
-        ChannelError(uint32_t channID, const char *format, ...)
+        ChannelError(uint32_t channID, const char *format, ...) STR_PRINTF_CHECK_FORMAT(3)
             : m_channID(channID)
         {
             str_format(format, m_what);

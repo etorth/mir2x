@@ -990,7 +990,7 @@ bool ProcessRun::luaCommand(const char *luaCmdString)
         return false;
     }
 
-    const auto callResult = m_luaModule.execString(luaCmdString);
+    const auto callResult = m_luaModule.execString("%s", luaCmdString);
     if(callResult.valid()){
         return true;
     }

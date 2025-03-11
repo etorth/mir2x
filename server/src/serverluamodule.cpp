@@ -90,7 +90,7 @@ ServerLuaModule::ServerLuaModule()
     bindFunction("dbExecString", [](std::string cmd)
     {
         fflassert(!cmd.empty());
-        g_dbPod->exec(to_cstr(cmd));
+        g_dbPod->exec("%s", to_cstr(cmd));
     });
 
     bindFunction("dbQueryString", [](std::string query, sol::this_state s)
