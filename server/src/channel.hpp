@@ -107,7 +107,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
         }
 
     private:
-        void notifySend()
+        void notify()
         {
             m_timer.cancel();
         }

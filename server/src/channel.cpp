@@ -140,7 +140,7 @@ asio::awaitable<std::tuple<const uint8_t *, size_t>> Channel::readPacketBody(siz
 
 asio::awaitable<void> Channel::writer()
 {
-    while(true){
+    while(m_socket.is_open()){
         {
             const std::lock_guard<std::mutex> lockGuard(m_nextQLock);
             std::swap(m_currSendQ, m_nextSendQ);
