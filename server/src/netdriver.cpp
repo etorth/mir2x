@@ -50,7 +50,13 @@ void NetDriver::launch(uint32_t port)
     m_port = static_cast<asio::ip::port_type>(port);
     m_context = std::make_unique<asio::io_context>(1);
 
-    asio::co_spawn(*m_context, listener(), [](std::exception_ptr e){ std::rethrow_exception(e); });
+    asio::co_spawn(*m_context, listener(), [](std::exception_ptr e)
+    {
+        if(e){
+            std::rethrow_exception(e);
+        }
+    });
+
     m_thread = std::thread([this]()
     {
         t_netThreadFlag = true;
