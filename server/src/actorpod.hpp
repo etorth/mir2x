@@ -83,6 +83,9 @@ class ActorPod final
     private:
         ActorPodMonitor m_podMonitor;
 
+    private:
+        uint32_t m_channID = 0;
+
     public:
         explicit ActorPod(
                 uint64_t,                                   // UID
@@ -192,7 +195,9 @@ class ActorPod final
         }
 
     public:
-        void postNet(uint32_t, uint8_t, const void *, size_t, uint64_t);
-        void bindUID(uint32_t);
-        void closeNet(uint32_t);
+        void postNet(uint8_t, const void *, size_t, uint64_t);
+
+    public:
+        void  bindNet(uint32_t);
+        void closeNet();
 };

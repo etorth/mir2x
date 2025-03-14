@@ -38,7 +38,7 @@ void Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
     fflassert(!m_channID.has_value());
 
     m_channID = amBC.channID;
-    m_actorPod->bindUID(m_channID.value());
+    m_actorPod->bindNet(m_channID.value());
 
     postOnlineOK();
 }
