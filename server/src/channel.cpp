@@ -147,7 +147,7 @@ asio::awaitable<void> Channel::writer()
 
 bool Channel::forwardActorMessage(uint8_t headCode, const uint8_t *dataPtr, size_t dataLen, uint64_t respID)
 {
-    fflassert(g_netDriver->isNetThread());
+    fflassert(NetDriver::isNetThread());
     fflassert(ClientMsg(headCode).checkData(dataPtr, dataLen));
 
     AMRecvPackage amRP;
@@ -160,7 +160,7 @@ bool Channel::forwardActorMessage(uint8_t headCode, const uint8_t *dataPtr, size
 
 void Channel::close()
 {
-    fflassert(g_netDriver->isNetThread());
+    fflassert(NetDriver::isNetThread());
     AMBadChannel amBC;
     std::memset(&amBC, 0, sizeof(amBC));
 
@@ -189,7 +189,7 @@ void Channel::close()
 
 void Channel::launch()
 {
-    fflassert(g_netDriver->isNetThread());
+    fflassert(NetDriver::isNetThread());
     const auto handler = +[](std::exception_ptr e)
     {
         if(e){
@@ -203,7 +203,7 @@ void Channel::launch()
 
 void Channel::bindPlayer(uint64_t uid)
 {
-    fflassert(g_netDriver->isNetThread());
+    fflassert(NetDriver::isNetThread());
     fflassert(uidf::isPlayer(uid), uidf::getUIDString(uid));
     fflassert(!m_playerUID, uidf::getUIDString(m_playerUID), uidf::getUIDString(uid));
     m_playerUID = uid;
