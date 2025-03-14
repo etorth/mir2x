@@ -7,13 +7,11 @@
 #include "dbcomid.hpp"
 #include "friendtype.hpp"
 #include "actorpod.hpp"
-#include "netdriver.hpp"
 #include "monoserver.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
 #include "buildconfig.hpp"
 
-extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
 void Player::on_AM_METRONOME(const ActorMsgPack &)
@@ -40,7 +38,7 @@ void Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
     fflassert(!m_channID.has_value());
 
     m_channID = amBC.channID;
-    g_netDriver->bindPlayer(m_channID.value(), UID());
+    m_actorPod->bindUID(m_channID.value());
 
     postOnlineOK();
 }

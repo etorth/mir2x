@@ -190,4 +190,9 @@ class ActorPod final
                 m_msgOpList.at(type) = std::move(op);
             }
         }
+
+    public:
+        void postNet(uint32_t, uint8_t, const void *, size_t, uint64_t);
+        void bindUID(uint32_t);
+        void closeNet(uint32_t);
 };

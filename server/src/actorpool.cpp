@@ -7,6 +7,7 @@
 #include "fflerror.hpp"
 #include "receiver.hpp"
 #include "actorpod.hpp"
+#include "netdriver.hpp"
 #include "raiitimer.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
@@ -770,6 +771,12 @@ namespace _details
                 m_ref--;
             }
     };
+}
+
+void ActorPool::launchNet(int port)
+{
+    m_netDriver = std::make_unique<NetDriver>();
+    m_netDriver->launch(port);
 }
 
 void ActorPool::launchPool()

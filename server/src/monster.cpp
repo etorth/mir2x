@@ -8,7 +8,6 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "fflerror.hpp"
-#include "netdriver.hpp"
 #include "actorpod.hpp"
 #include "actormsg.hpp"
 #include "sysconst.hpp"

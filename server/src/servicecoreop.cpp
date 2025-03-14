@@ -3,11 +3,9 @@
 
 #include "player.hpp"
 #include "actorpod.hpp"
-#include "netdriver.hpp"
 #include "monoserver.hpp"
 #include "servicecore.hpp"
 
-extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
 // ServiceCore accepts net packages from *many* sessions and based on it to create

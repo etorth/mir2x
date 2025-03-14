@@ -4,7 +4,6 @@
 #include "dbpod.hpp"
 #include "mapbindb.hpp"
 #include "actorpool.hpp"
-#include "netdriver.hpp"
 #include "argparser.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
@@ -17,7 +16,6 @@
 ServerArgParser          *g_serverArgParser;
 Log                      *g_log;
 ActorPool                *g_actorPool;
-NetDriver                *g_netDriver;
 DBPod                    *g_dbPod;
 
 MapBinDB                 *g_mapBinDB;
@@ -60,7 +58,6 @@ int main(int argc, char *argv[])
         g_mapBinDB   = new MapBinDB();
         g_actorPool  = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
         g_dbPod      = new DBPod();
-        g_netDriver  = new NetDriver();
 
         if(!g_serverArgParser->slave){
             g_scriptWindow          = new ScriptWindow();

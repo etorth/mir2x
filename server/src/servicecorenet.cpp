@@ -3,7 +3,6 @@
 #include "dbpod.hpp"
 #include "idstrf.hpp"
 #include "dbcomid.hpp"
-#include "netdriver.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
 #include "dispatcher.hpp"
@@ -12,20 +11,19 @@
 #include "actorpool.hpp"
 
 extern DBPod *g_dbPod;
-extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 extern ActorPool *g_actorPool;
 
 void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmL = ClientMsg::conv<CMLogin>(buf);
-    const auto fnLoginError = [channID, &cmL, respID](int error)
+    const auto fnLoginError = [channID, &cmL, respID, this](int error)
     {
         SMLoginError smLE;
         std::memset(&smLE, 0, sizeof(smLE));
 
         smLE.error = error;
-        g_netDriver->post(channID, SM_LOGINERROR, &smLE, sizeof(smLE), respID);
+        m_actorPod->postNet(channID, SM_LOGINERROR, &smLE, sizeof(smLE), respID);
         g_monoServer->addLog(LOGTYPE_WARNING, "Login account failed: id = %s, ec = %d", cmL.id.as_cstr(), error);
     };
 
@@ -53,17 +51,17 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
     }
 
     m_dbidList[channID] = std::make_pair(dbid, false);
-    g_netDriver->post(channID, SM_LOGINOK, nullptr, 0, respID);
+    m_actorPod->postNet(channID, SM_LOGINOK, nullptr, 0, respID);
 }
 
 void ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
 {
-    const auto fnQueryCharError = [channID, respID](int error)
+    const auto fnQueryCharError = [channID, respID, this](int error)
     {
         SMQueryCharError smQCE;
         std::memset(&smQCE, 0, sizeof(smQCE));
         smQCE.error = error;
-        g_netDriver->post(channID, SM_QUERYCHARERROR, &smQCE, sizeof(smQCE), respID);
+        m_actorPod->postNet(channID, SM_QUERYCHARERROR, &smQCE, sizeof(smQCE), respID);
     };
 
     const auto dbidOpt = findDBID(channID);
@@ -85,17 +83,17 @@ void ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, s
     smQCOK.gender = queryChar.getColumn("fld_gender");
     smQCOK.job = queryChar.getColumn("fld_job");
     smQCOK.exp = queryChar.getColumn("fld_exp");
-    g_netDriver->post(channID, SM_QUERYCHAROK, &smQCOK, sizeof(smQCOK), respID);
+    m_actorPod->postNet(channID, SM_QUERYCHAROK, &smQCOK, sizeof(smQCOK), respID);
 }
 
 void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
 {
-    const auto fnOnlineError = [channID, respID](int error)
+    const auto fnOnlineError = [channID, respID, this](int error)
     {
         SMOnlineError smOE;
         std::memset(&smOE, 0, sizeof(smOE));
         smOE.error = error;
-        g_netDriver->post(channID, SM_ONLINEERROR, &smOE, sizeof(smOE), respID);
+        m_actorPod->postNet(channID, SM_ONLINEERROR, &smOE, sizeof(smOE), respID);
     };
 
     const auto dbidOpt = findDBID(channID);
@@ -177,12 +175,12 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
 
 void ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
-    const auto fnCreateAccountError = [channID, respID](int error)
+    const auto fnCreateAccountError = [channID, respID, this](int error)
     {
         SMCreateAccountError smCAE;
         std::memset(&smCAE, 0, sizeof(smCAE));
         smCAE.error = error;
-        g_netDriver->post(channID, SM_CREATEACCOUNTERROR, &smCAE, sizeof(smCAE), respID);
+        m_actorPod->postNet(channID, SM_CREATEACCOUNTERROR, &smCAE, sizeof(smCAE), respID);
     };
 
     const auto cmCA = ClientMsg::conv<CMCreateAccount>(buf);
@@ -205,17 +203,17 @@ void ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t 
     }
 
     g_dbPod->exec(u8R"###( insert into tbl_account(fld_account, fld_password) values ('%s', '%s') )###", id.c_str(), password.c_str());
-    g_netDriver->post(channID, SM_CREATEACCOUNTOK, nullptr, 0, respID);
+    m_actorPod->postNet(channID, SM_CREATEACCOUNTOK, nullptr, 0, respID);
 }
 
 void ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
-    const auto fnChangePasswordError= [channID, respID](int error)
+    const auto fnChangePasswordError= [channID, respID, this](int error)
     {
         SMChangePasswordError smCPE;
         std::memset(&smCPE, 0, sizeof(smCPE));
         smCPE.error = error;
-        g_netDriver->post(channID, SM_CHANGEPASSWORDERROR, &smCPE, sizeof(smCPE), respID);
+        m_actorPod->postNet(channID, SM_CHANGEPASSWORDERROR, &smCPE, sizeof(smCPE), respID);
     };
 
     const auto cmCP = ClientMsg::conv<CMChangePassword>(buf);
@@ -249,17 +247,17 @@ void ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t
         fnChangePasswordError(CHGPWDERR_BADACCOUNTPASSWORD);
         return;
     }
-    g_netDriver->post(channID, SM_CHANGEPASSWORDOK, nullptr, 0, respID);
+    m_actorPod->postNet(channID, SM_CHANGEPASSWORDOK, nullptr, 0, respID);
 }
 
 void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
-    const auto fnDeleteCharError = [channID, respID](int error)
+    const auto fnDeleteCharError = [channID, respID, this](int error)
     {
         SMDeleteCharError smDCE;
         std::memset(&smDCE, 0, sizeof(smDCE));
         smDCE.error = error;
-        g_netDriver->post(channID, SM_DELETECHARERROR, &smDCE, sizeof(smDCE), respID);
+        m_actorPod->postNet(channID, SM_DELETECHARERROR, &smDCE, sizeof(smDCE), respID);
     };
 
     const auto cmDC = ClientMsg::conv<CMDeleteChar>(buf);
@@ -397,18 +395,18 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
 
     // we don't move items in tbl_secureditemlist to tbl_inventory because tbl_secureditemlist has password
     // otherwise people can get secured items by just deleting char
-    g_netDriver->post(channID, SM_DELETECHAROK, nullptr, 0, respID);
+    m_actorPod->postNet(channID, SM_DELETECHAROK, nullptr, 0, respID);
 }
 
 void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmCC = ClientMsg::conv<CMCreateChar>(buf);
-    const auto fnCreateCharError = [channID, respID](int error)
+    const auto fnCreateCharError = [channID, respID, this](int error)
     {
         SMCreateCharError smCCE;
         std::memset(&smCCE, 0, sizeof(smCCE));
         smCCE.error = error;
-        g_netDriver->post(channID, SM_CREATECHARERROR, &smCCE, sizeof(smCCE), respID);
+        m_actorPod->postNet(channID, SM_CREATECHARERROR, &smCCE, sizeof(smCCE), respID);
     };
 
     const auto dbidOpt = findDBID(channID);
@@ -452,7 +450,7 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
             120
         );
 
-        g_netDriver->post(channID, SM_CREATECHAROK, nullptr, 0, respID);
+        m_actorPod->postNet(channID, SM_CREATECHAROK, nullptr, 0, respID);
         return;
     }
     catch(const std::exception &e){

@@ -8,7 +8,6 @@
 #include "mathf.hpp"
 #include "dbcomid.hpp"
 #include "sysconst.hpp"
-#include "netdriver.hpp"
 #include "charobject.hpp"
 #include "friendtype.hpp"
 #include "protocoldef.hpp"
@@ -16,7 +15,6 @@
 #include "serverargparser.hpp"
 
 extern DBPod *g_dbPod;
-extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
@@ -1022,7 +1020,7 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
         // after this line the channel slot may still be non-empty, but we shall not post any network message
         // so use m_channID = 0 as a flag, please check comments for Player::on_AM_BADCHANNEL()
 
-        g_netDriver->close(m_channID.value());
+        m_actorPod->closeNet(m_channID.value());
         m_channID = 0;
     }
 }
@@ -1040,7 +1038,7 @@ bool Player::goOffline()
 void Player::postNetMessage(uint8_t headCode, const void *buf, size_t bufLen, uint64_t respID)
 {
     if(m_channID.has_value() && m_channID.value()){
-        g_netDriver->post(m_channID.value(), headCode, (const uint8_t *)(buf), bufLen, respID);
+        m_actorPod->postNet(m_channID.value(), headCode, (const uint8_t *)(buf), bufLen, respID);
     }
     else{
         goOffline();

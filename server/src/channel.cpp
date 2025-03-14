@@ -5,7 +5,6 @@
 #include "monoserver.hpp"
 #include "actormsgpack.hpp"
 
-extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 
 Channel::Channel(asio::ip::tcp::socket argSocket, uint32_t argChannID, std::mutex &sendLock, std::vector<uint8_t> &sendBuf)

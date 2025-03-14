@@ -89,7 +89,6 @@ class MonoServer final
         void addLog(const Log::LogTypeLoc &, const char *, ...);
 
     private:
-        void startNetwork();
         void startServiceCore();
 
     public:

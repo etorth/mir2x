@@ -7,6 +7,7 @@
 #include "actorpod.hpp"
 #include "actorpool.hpp"
 #include "raiitimer.hpp"
+#include "netdriver.hpp"
 #include "monoserver.hpp"
 #include "serverargparser.hpp"
 
@@ -265,4 +266,19 @@ void ActorPod::PrintMonitor() const
             g_monoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
         }
     }
+}
+
+void ActorPod::postNet(uint32_t channID, uint8_t headCode, const void *buf, size_t bufSize, uint64_t respID)
+{
+    g_actorPool->m_netDriver->post(channID, headCode, buf, bufSize, respID);
+}
+
+void ActorPod::bindUID(uint32_t channID)
+{
+    g_actorPool->m_netDriver->bindPlayer(channID, UID());
+}
+
+void ActorPod::closeNet(uint32_t channID)
+{
+    g_actorPool->m_netDriver->close(channID);
 }

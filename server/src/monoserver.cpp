@@ -17,7 +17,6 @@
 #include "monster.hpp"
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
-#include "netdriver.hpp"
 #include "serdesmsg.hpp"
 #include "actorpool.hpp"
 #include "syncdriver.hpp"
@@ -27,12 +26,12 @@
 #include "servicecore.hpp"
 #include "commandwindow.hpp"
 #include "serverargparser.hpp"
+#include "serverconfigurewindow.hpp"
 
 extern Log *g_log;
 extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
 extern ActorPool *g_actorPool;
-extern NetDriver *g_netDriver;
 extern MonoServer *g_monoServer;
 extern MainWindow *g_mainWindow;
 extern ServerArgParser *g_serverArgParser;
@@ -436,11 +435,8 @@ void MonoServer::startServiceCore()
 
     m_serviceCore = new ServiceCore();
     m_serviceCore->activate(-1.0);
-}
 
-void MonoServer::startNetwork()
-{
-    g_netDriver->launch(g_serverConfigureWindow->getConfig().listenPort);
+    g_actorPool->launchNet(g_serverConfigureWindow->getConfig().listenPort);
 }
 
 void MonoServer::mainLoop()
@@ -496,9 +492,7 @@ void MonoServer::launch()
 {
     createDBConnection();
     loadMapBinDB();
-
     startServiceCore();
-    startNetwork();
 }
 
 void MonoServer::propagateException() noexcept
