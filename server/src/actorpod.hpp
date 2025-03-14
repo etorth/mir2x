@@ -195,7 +195,8 @@ class ActorPod final
         }
 
     public:
-        void postNet(uint8_t, const void *, size_t, uint64_t);
+        void postNet(          uint8_t, const void *, size_t, uint64_t);
+        void postNet(uint32_t, uint8_t, const void *, size_t, uint64_t);
 
     public:
         void  bindNet(uint32_t);

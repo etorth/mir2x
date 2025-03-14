@@ -268,6 +268,12 @@ void ActorPod::PrintMonitor() const
     }
 }
 
+void ActorPod::postNet(uint32_t channID, uint8_t headCode, const void *buf, size_t bufSize, uint64_t respID)
+{
+    fflassert(channID);
+    g_actorPool->m_netDriver->post(channID, headCode, buf, bufSize, respID);
+}
+
 void ActorPod::postNet(uint8_t headCode, const void *buf, size_t bufSize, uint64_t respID)
 {
     fflassert(m_channID);
@@ -284,6 +290,8 @@ void ActorPod::bindNet(uint32_t channID)
 
 void ActorPod::closeNet()
 {
-    g_actorPool->m_netDriver->close(m_channID);
-    m_channID = 0;
+    if(m_channID){
+        g_actorPool->m_netDriver->close(m_channID);
+        m_channID = 0;
+    }
 }
