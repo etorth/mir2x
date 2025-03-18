@@ -191,6 +191,34 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
        {
            return m_respID;
        }
+
+    public:
+       template<class Archive> void save(Archive & ar) const
+       {
+           ar(m_type, m_from, m_seqID, m_respID);
+           ar(size());
+           ar(cereal::binary_data(data(), size()));
+       }
+
+       template<class Archive> void load(Archive & ar)
+       {
+           ar(m_type, m_from, m_seqID, m_respID);
+
+           size_t size = 0;
+           ar(size);
+
+           if(size <= SBUFSIZE){
+               m_sbufSize = size;
+               m_dbufSize = 0;
+               ar(cereal::binary_data(m_sbuf, size));
+           }
+           else{
+               m_sbufSize = 0;
+               m_dbufSize = size;
+               m_dbuf = new uint8_t[size];
+               ar(cereal::binary_data(m_dbuf, size));
+           }
+       }
 };
 
 inline const char *mpkName(int type)
