@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0304
+version 1.0308
 header_name {.hpp}
 code_name {.cpp}
 decl {\#include <cmath>} {public global
@@ -50,31 +50,31 @@ class ServerConfigureWindow {} {
   Function {ServerConfigureWindow()} {} {
     Fl_Window m_window {
       label ConfigureWindow
-      xywh {48 119 625 360} type Double modal visible
+      xywh {547 190 570 360} type Double modal visible
     } {
       Fl_Value_Input m_maxPlayerCount {
         label {Maximal Player: }
-        xywh {172 146 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {170 100 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Input m_mapFullName {
         label {Map Path: }
-        xywh {172 20 273 24} textfont 4
+        xywh {170 20 273 24} textfont 4
       }
       Fl_Input m_scriptFullName {
         label {Script Path: }
-        xywh {172 61 273 24} textfont 4
+        xywh {170 60 273 24} textfont 4
       }
       Fl_Value_Input m_equipmentRate {
         label {Drop Rate: }
-        xywh {172 221 60 24} minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {170 180 60 24} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Value_Input m_m_experienceRate {
         label {Exprience Rate: }
-        xywh {172 183 60 24} minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {170 140 60 24} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Value_Input m_goldRate {
         label {Gold Rate: }
-        xywh {172 259 60 24} minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {170 220 60 24} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Button {} {
         label {@fileopen}
@@ -109,24 +109,20 @@ class ServerConfigureWindow {} {
             }
     }
 }}
-        xywh {451 20 26 23}
+        xywh {450 20 26 23}
         code0 {\#include <string>}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
-      }
-      Fl_Value_Input m_maxMonsterCount {
-        label {Maximal Monster: }
-        xywh {172 108 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Button {} {
         label OK
         callback {applyConfig();
 m_window->hide();}
-        xywh {523 315 70 25}
+        xywh {460 315 70 25}
       }
       Fl_Value_Input m_port {
-        label {Listen Port: }
-        xywh {171 298 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
+        label {Player Port: }
+        xywh {170 260 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Button {} {
         label {@fileopen}
@@ -157,7 +153,7 @@ m_window->hide();}
             }
     }
 }}
-        xywh {451 61 26 23}
+        xywh {450 60 26 23}
         code0 {\#include <string>}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
@@ -165,12 +161,16 @@ m_window->hide();}
       Fl_Button {} {
         label Apply
         callback {applyConfig();}
-        xywh {447 315 70 25}
+        xywh {380 315 70 25}
       }
       Fl_Button {} {
         label Cancel
         callback {m_window->hide();}
-        xywh {371 315 70 25}
+        xywh {300 315 70 25}
+      }
+      Fl_Value_Input m_port {
+        label {Slave Port: }
+        xywh {170 300 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
       }
     }
     code {// set up the default map path
