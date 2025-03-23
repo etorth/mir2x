@@ -211,18 +211,17 @@ m_window->hide();}
 
         const auto fnAssignPositiveInteger = [](const char *value, const char *usage, int &dst)
         {
-            std::string err = "unknown error";
             try{
-                if(const auto val = std::stoi(value); val > 0){
+                if(const int val = std::stoi(value); val > 0){
                     dst = val;
                     return;
                 }
-            }
-            catch(const std::exception &e){
-                err = e.what();
+                else{
+                    fl_alert("Invalid %s: %d", usage, val);
+                }
             }
             catch(...){}
-            fl_alert("Invalid %s: %s", usage, err.c_str());
+            fl_alert("Invalid %s: %s", usage, to_cstr(value));
         };
 
         fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayer);
@@ -231,18 +230,17 @@ m_window->hide();}
 
         const auto fnAssignPositiveDouble = [](const char *value, const char *usage, double &dst)
         {
-            std::string err = "unknown error";
             try{
-                if(const auto val = std::stod(value); val >= 0){
+                if(const double val = std::stod(value); val >= 0){
                     dst = val;
                     return;
                 }
-            }
-            catch(const std::exception &e){
-                err = e.what();
+                else{
+                    fl_alert("Invalid %s: %f", usage, val);
+                }
             }
             catch(...){}
-            fl_alert("Invalid %s: %s", usage, err.c_str());
+            fl_alert("Invalid %s: %s", usage, to_cstr(value));
         };
 
         fnAssignPositiveDouble(m_experienceRate->value(), "experience rate", m_config.experienceRate);
