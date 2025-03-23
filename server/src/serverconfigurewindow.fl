@@ -38,43 +38,47 @@ class ServerConfig {} {
   }
   decl {double goldRate = 1.0;} {public local
   }
-  decl {int listenPort = 5000;} {public local
+  decl {int clientPort = 5000;} {public local
+  }
+  decl {int slavePort = 6000;} {public local
   }
 }
 
-class ServerConfigureWindow {} {
+class ServerConfigureWindow {open
+} {
   decl {mutable std::mutex m_configLock;} {private local
   }
   decl {ServerConfig m_config;} {private local
   }
-  Function {ServerConfigureWindow()} {} {
+  Function {ServerConfigureWindow()} {open
+  } {
     Fl_Window m_window {
-      label ConfigureWindow
+      label ConfigureWindow open
       xywh {547 190 570 360} type Double modal visible
     } {
       Fl_Value_Input m_maxPlayerCount {
         label {Maximal Player: }
-        xywh {170 100 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {170 100 60 25} minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Input m_mapFullName {
         label {Map Path: }
-        xywh {170 20 273 24} textfont 4
+        xywh {170 20 275 25} textfont 4
       }
       Fl_Input m_scriptFullName {
         label {Script Path: }
-        xywh {170 60 273 24} textfont 4
+        xywh {170 60 275 25} textfont 4
       }
       Fl_Value_Input m_equipmentRate {
         label {Drop Rate: }
-        xywh {170 180 60 24} minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {170 180 60 25} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Value_Input m_m_experienceRate {
         label {Exprience Rate: }
-        xywh {170 140 60 24} minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {170 140 60 25} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Value_Input m_goldRate {
         label {Gold Rate: }
-        xywh {170 220 60 24} minimum 1024 maximum 10000 value 1 textfont 4
+        xywh {170 220 60 25} minimum 1024 maximum 10000 value 1 textfont 4
       }
       Fl_Button {} {
         label {@fileopen}
@@ -109,7 +113,7 @@ class ServerConfigureWindow {} {
             }
     }
 }}
-        xywh {450 20 26 23}
+        xywh {450 20 30 25}
         code0 {\#include <string>}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
@@ -120,9 +124,9 @@ class ServerConfigureWindow {} {
 m_window->hide();}
         xywh {460 315 70 25}
       }
-      Fl_Value_Input m_port {
-        label {Player Port: }
-        xywh {170 260 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
+      Fl_Value_Input m_clientPort {
+        label {Client Port: }
+        xywh {170 260 60 25} minimum 1024 maximum 10000 value 5000 textfont 4
       }
       Fl_Button {} {
         label {@fileopen}
@@ -153,7 +157,7 @@ m_window->hide();}
             }
     }
 }}
-        xywh {450 60 26 23}
+        xywh {450 60 30 25}
         code0 {\#include <string>}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
@@ -168,9 +172,13 @@ m_window->hide();}
         callback {m_window->hide();}
         xywh {300 315 70 25}
       }
-      Fl_Value_Input m_port {
+      Fl_Value_Input m_slavePort {
         label {Slave Port: }
-        xywh {170 300 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
+        xywh {170 300 60 25} minimum 1024 maximum 10000 value 5000 textfont 4
+      }
+      Fl_Input {} {
+        label {input:}
+        xywh {300 100 60 25} type Int
       }
     }
     code {// set up the default map path
@@ -217,9 +225,9 @@ m_window->hide();}
             }
         };
 
-        fnAssignPositiveInteger(m_maxMonsterCount->value(), "maximal monster", m_config.maxMonster);
         fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayer);
-        fnAssignPositiveInteger(m_port->value(), "listen port", m_config.listenPort);
+        fnAssignPositiveInteger(m_clientPort->value(), "client port", m_config.clientPort);
+        fnAssignPositiveInteger(m_slavePort->value(), "slave port", m_config.slavePort);
 
         const auto fnAssignPositiveDouble = [](double f, const char *usage, double &dst)
         {
