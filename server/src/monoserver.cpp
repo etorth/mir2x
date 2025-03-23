@@ -436,7 +436,7 @@ void MonoServer::startServiceCore()
     m_serviceCore = new ServiceCore();
     m_serviceCore->activate(-1.0);
 
-    g_actorPool->launchNet(g_serverConfigureWindow->getConfig().listenPort);
+    g_actorPool->launchNet(g_serverConfigureWindow->getConfig().clientPort);
 }
 
 void MonoServer::mainLoop()

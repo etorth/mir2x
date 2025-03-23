@@ -44,41 +44,19 @@ class ServerConfig {} {
   }
 }
 
-class ServerConfigureWindow {open
-} {
+class ServerConfigureWindow {} {
   decl {mutable std::mutex m_configLock;} {private local
   }
   decl {ServerConfig m_config;} {private local
   }
-  Function {ServerConfigureWindow()} {open
-  } {
+  Function {ServerConfigureWindow()} {} {
     Fl_Window m_window {
-      label ConfigureWindow open
+      label ConfigureWindow
       xywh {547 190 570 360} type Double modal visible
     } {
-      Fl_Value_Input m_maxPlayerCount {
-        label {Maximal Player: }
-        xywh {170 100 60 25} minimum 1024 maximum 10000 value 5000 textfont 4
-      }
       Fl_Input m_mapFullName {
-        label {Map Path: }
-        xywh {170 20 275 25} textfont 4
-      }
-      Fl_Input m_scriptFullName {
-        label {Script Path: }
-        xywh {170 60 275 25} textfont 4
-      }
-      Fl_Value_Input m_equipmentRate {
-        label {Drop Rate: }
-        xywh {170 180 60 25} minimum 1024 maximum 10000 value 1 textfont 4
-      }
-      Fl_Value_Input m_m_experienceRate {
-        label {Exprience Rate: }
-        xywh {170 140 60 25} minimum 1024 maximum 10000 value 1 textfont 4
-      }
-      Fl_Value_Input m_goldRate {
-        label {Gold Rate: }
-        xywh {170 220 60 25} minimum 1024 maximum 10000 value 1 textfont 4
+        label {Map Path:}
+        xywh {150 20 300 25}
       }
       Fl_Button {} {
         label {@fileopen}
@@ -118,15 +96,9 @@ class ServerConfigureWindow {open
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
       }
-      Fl_Button {} {
-        label OK
-        callback {applyConfig();
-m_window->hide();}
-        xywh {460 315 70 25}
-      }
-      Fl_Value_Input m_clientPort {
-        label {Client Port: }
-        xywh {170 260 60 25} minimum 1024 maximum 10000 value 5000 textfont 4
+      Fl_Input m_scriptFullName {
+        label {Script Path:}
+        xywh {150 60 300 25}
       }
       Fl_Button {} {
         label {@fileopen}
@@ -162,23 +134,45 @@ m_window->hide();}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
       }
-      Fl_Button {} {
-        label Apply
-        callback {applyConfig();}
-        xywh {380 315 70 25}
+      Fl_Input m_maxPlayerCount {
+        label {Maximal Player:}
+        xywh {150 100 60 25} type Int
+      }
+      Fl_Input m_experienceRate {
+        label {Experience Rate:}
+        xywh {150 140 60 25} type Float
+      }
+      Fl_Input m_dropRate {
+        label {Drop Rate:}
+        xywh {150 180 60 25} type Float
+      }
+      Fl_Input m_goldRate {
+        label {Gold Rate:}
+        xywh {150 220 60 25} type Float
+      }
+      Fl_Input m_clientPort {
+        label {Client Port:}
+        xywh {150 260 60 25} type Int
+      }
+      Fl_Input m_slavePort {
+        label {SlavePort:}
+        xywh {150 300 60 25} type Int
       }
       Fl_Button {} {
         label Cancel
         callback {m_window->hide();}
         xywh {300 315 70 25}
       }
-      Fl_Value_Input m_slavePort {
-        label {Slave Port: }
-        xywh {170 300 60 25} minimum 1024 maximum 10000 value 5000 textfont 4
+      Fl_Button {} {
+        label Apply
+        callback {applyConfig();}
+        xywh {380 315 70 25}
       }
-      Fl_Input {} {
-        label {input:}
-        xywh {300 100 60 25} type Int
+      Fl_Button {} {
+        label OK
+        callback {applyConfig();
+m_window->hide();}
+        xywh {460 315 70 25}
       }
     }
     code {// set up the default map path
