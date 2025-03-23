@@ -180,9 +180,9 @@ m_window->hide();}
     m_mapFullName->value("map/mapbin.zsdb");
     m_scriptFullName->value("script");
     m_maxPlayerCount->value("5000");
-    m_experienceRate->value("1");
-    m_dropRate->value("1");
-    m_goldRate->value("1");
+    m_experienceRate->value("1.0");
+    m_dropRate->value("1.0");
+    m_goldRate->value("1.0");
     m_clientPort->value("5000");
     m_slavePort->value("6000");
 }} {}
