@@ -209,32 +209,44 @@ m_window->hide();}
         fnAssignPath(m_mapFullName->value(), "map path", m_config.mapPath);
         fnAssignPath(m_scriptFullName->value(), "script path", m_config.scriptPath);
 
-        const auto fnAssignPositiveInteger = [](double f, const char *usage, int &dst)
+        const auto fnAssignPositiveInteger = [](const char *value, const char *usage, int &dst)
         {
-            if(f >= 0.0){
-                dst = std::lround(std::floor(f));
+            std::string err = "unknown error";
+            try{
+                if(const auto val = std::stoi(value); val > 0){
+                    dst = val;
+                    return;
+                }
             }
-            else{
-                fl_alert("invalid %s: %f", to_cstr(usage), f);
+            catch(const std::exception &e){
+                err = e.what();
             }
+            catch(...){}
+            fl_alert("Invalid %s: %s", usage, err.c_str());
         };
 
         fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayer);
         fnAssignPositiveInteger(m_clientPort->value(), "client port", m_config.clientPort);
         fnAssignPositiveInteger(m_slavePort->value(), "slave port", m_config.slavePort);
 
-        const auto fnAssignPositiveDouble = [](double f, const char *usage, double &dst)
+        const auto fnAssignPositiveDouble = [](const char *value, const char *usage, double &dst)
         {
-            if(f >= 0.0){
-                dst = f;
+            std::string err = "unknown error";
+            try{
+                if(const auto val = std::stod(value); val >= 0){
+                    dst = val;
+                    return;
+                }
             }
-            else{
-                fl_alert("invalid %s: %f", to_cstr(usage), f);
+            catch(const std::exception &e){
+                err = e.what();
             }
+            catch(...){}
+            fl_alert("Invalid %s: %s", usage, err.c_str());
         };
 
-        fnAssignPositiveDouble(m_m_experienceRate->value(), "experience rate", m_config.experienceRate);
-        fnAssignPositiveDouble(m_equipmentRate->value(), "drop rate", m_config.dropRate);
+        fnAssignPositiveDouble(m_experienceRate->value(), "experience rate", m_config.experienceRate);
+        fnAssignPositiveDouble(m_dropRate->value(), "drop rate", m_config.dropRate);
         fnAssignPositiveDouble(m_goldRate->value(), "gold rate", m_config.goldRate);
 }} {}
   }
