@@ -7,9 +7,15 @@
 
 enum ActorMsgPackType: int
 {
-    AM_NONE  = 0,
-    AM_BEGIN = 1,
-    AM_OK    = 1,
+    AM_NONE = 0,
+
+    AM_SYS_BEGIN       = 1,
+    AM_SYS_NOTIFYSLAVE = 1,
+    AM_SYS_LAUNCH,
+    AM_SYS_END,
+
+    AM_BEGIN = AM_SYS_END,
+    AM_OK    = AM_BEGIN,
     AM_ERROR,
     AM_BADACTORPOD,
     AM_BADCHANNEL,

@@ -1,23 +1,24 @@
 #include <cinttypes>
 #include "fflerror.hpp"
-#include "sysconst.hpp"
+#include "serdesmsg.hpp"
 #include "actorpool.hpp"
-#include "channel.hpp"
-#include "netdriver.hpp"
 #include "monoserver.hpp"
+#include "actornetdriver.hpp"
+#include "serverargparser.hpp"
+#include "serverpeer.hpp"
 
 extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 static thread_local bool t_actorNetThreadFlag = false; // use bool since only has 1 net thread
 
 ActorNetDriver::ActorNetDriver()
-    : m_channelSlotList(SYS_MAXPLAYERNUM + 1)
+    : m_context(std::make_unique<asio::io_context>(1))
 {
-    // allocate channal IDs
-    // reserve the first slot with zero channel ID
-    for(size_t channID = 1; channID < m_channelSlotList.size(); ++channID){
-        m_channelIDList.push_back(channID);
+    if(g_serverArgParser->slave){
+        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort, nullptr);
     }
+    launch(g_serverArgParser->masterPort);
 }
 
 ActorNetDriver::~ActorNetDriver()
@@ -38,17 +39,13 @@ bool ActorNetDriver::isNetThread()
     return t_actorNetThreadFlag;
 }
 
-void ActorNetDriver::launch(uint32_t port)
+void ActorNetDriver::launch(asio::ip::port_type port)
 {
-    fflassert(port > 1024, port);
-    fflassert(g_actorPool->checkUIDValid(uidf::getServiceCoreUID()));
-
-    fflassert(!m_port);
     fflassert(!isNetThread());
-    fflassert(!m_channelIDList.empty());
+    fflassert(port > 1024, port);
 
-    m_port = static_cast<asio::ip::port_type>(port);
-    m_context = std::make_unique<asio::io_context>(1);
+    m_context  = std::make_unique<asio::io_context>(1);
+    m_acceptor = std::make_unique<asio::ip::tcp::acceptor>(*m_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port));
 
     asio::co_spawn(*m_context, listener(), [](std::exception_ptr e)
     {
@@ -60,21 +57,7 @@ void ActorNetDriver::launch(uint32_t port)
     m_thread = std::thread([this]()
     {
         t_actorNetThreadFlag = true;
-
-        // net driver shouldn't crash the main loop when exception get thrown in completion handlers
-        // see: http://www.boost.org/doc/libs/1_65_1/doc/html/boost_asio/reference/io_service.html#boost_asio.reference.io_service.effect_of_exceptions_thrown_from_handlers
-        while(true){
-            try{
-                m_context->run();
-                break; // run() exited normally
-            }
-            catch(const ChannelError &e){
-                doClose(e.channID());
-                g_monoServer->addLog(LOGTYPE_INFO, "Channel %d has been disconnected.", to_d(e.channID()));
-            }
-            // only catch channError
-            // let it crash when caught any other exceptions
-        }
+        m_context->run();
     });
 }
 
@@ -83,177 +66,76 @@ asio::awaitable<void> ActorNetDriver::listener()
     fflassert(isNetThread());
 
     asio::error_code ec;
-    asio::ip::tcp::acceptor acceptor(*m_context, {asio::ip::tcp::v4(), m_port});
-
     while(true){
-        auto sock = co_await acceptor.async_accept(asio::redirect_error(asio::use_awaitable, ec));
+        auto sock = co_await m_acceptor->async_accept(asio::redirect_error(asio::use_awaitable, ec));
         if(ec){
-            acceptor.close();
+            m_acceptor->close();
             throw fflerror("acceptor error: %s", ec.message().c_str());
         }
 
-        if(m_channelIDList.empty()){
-            // TODO notify client that server is busy
+        m_peerSlotList.emplace_back();
+        auto slotPtr = m_peerSlotList.back().get();
+
+        slotPtr->sendBuf.clear();
+        slotPtr->peer = std::make_shared<ServerPeer>(this, std::move(sock), m_peerSlotList.size(), slotPtr->lock, slotPtr->sendBuf);
+
+        auto peer = slotPtr->peer.get();
+        // g_monoServer->addLog(LOGTYPE_INFO, "Channel %zu has been established for endpoint (%s:%d).", to_d(peer->peerIndex()), to_cstr(peer->ip()), to_d(peer->port()));
+
+        peer->launch();
+
+        SDSysNotifySlave sdSNS
+        {
+            .slaveID = m_peerSlotList.size(),
+        };
+
+        for(const auto &slot: m_peerSlotList){
+            sdSNS.peerList.emplace_back(slot->peer->ip(), slot->peer->port());
         }
-        else{
-            const auto channID = m_channelIDList.front();
-            m_channelIDList.pop_front();
 
-            fflassert(to_uz(channID) > 0, channID);
-            fflassert(to_uz(channID) < m_channelSlotList.size(), channID, m_channelSlotList.size());
-
-
-            auto slotPtr = m_channelSlotList.data() + channID;
-
-            slotPtr->sendBuf.clear();
-            slotPtr->channPtr = std::make_shared<Channel>(std::move(sock), channID, slotPtr->lock, slotPtr->sendBuf);
-
-            auto channPtr = m_channelSlotList[channID].channPtr.get();
-            g_monoServer->addLog(LOGTYPE_INFO, "Channel %d has been established for endpoint (%s:%d).", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
-
-            channPtr->launch();
-        }
+        post(m_peerSlotList.size(), 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(sdSNS)));
     }
 }
 
-std::array<std::tuple<const uint8_t *, size_t>, 2> ActorNetDriver::encodePostBuf(uint8_t headCode, const void *buf, size_t bufSize, uint64_t respID, std::vector<uint8_t> &encodeBuf)
-{
-    const ServerMsg smsg(headCode);
-    fflassert(smsg.checkData(buf, bufSize));
-
-    encodeBuf.clear();
-
-    if(respID){
-        uint8_t respBuf[32];
-        const size_t respEncSize = msgf::encodeLength(respBuf, 32, respID);
-
-        encodeBuf.push_back(headCode | 0x80);
-        encodeBuf.insert(encodeBuf.end(), respBuf, respBuf + respEncSize);
-    }
-    else{
-        encodeBuf.push_back(headCode);
-    }
-
-    switch(smsg.type()){
-        case 0:
-            {
-                return
-                {
-                    std::make_tuple(encodeBuf.data(), encodeBuf.size()),
-                    std::make_tuple(nullptr, 0),
-                };
-            }
-        case 1:
-            {
-                const size_t sizeStartOff = encodeBuf.size();
-                encodeBuf.resize(sizeStartOff + smsg.maskLen() + smsg.dataLen() + 64);
-
-                /* */ auto sizeBuf = encodeBuf.data() + sizeStartOff;
-                /* */ auto compBuf = encodeBuf.data() + sizeStartOff + 32;
-                const auto compCnt = smsg.useXor64 () ? zcompf::xorEncode64(compBuf, (const uint8_t *)(buf), bufSize)
-                                                      : zcompf::xorEncode  (compBuf, (const uint8_t *)(buf), bufSize);
-
-                const size_t sizeEncLength = msgf::encodeLength(sizeBuf, 32, compCnt);
-                return
-                {
-                    std::make_tuple(encodeBuf.data(), sizeStartOff + sizeEncLength),
-                    std::make_tuple(compBuf, smsg.maskLen() + compCnt),
-                };
-            }
-        case 2:
-            {
-                return
-                {
-                    std::make_tuple(encodeBuf.data(), encodeBuf.size()),
-                    std::make_tuple((const uint8_t *)(buf), bufSize),
-                };
-            }
-        case 3:
-            {
-                const auto sizeStartOff = encodeBuf.size();
-                encodeBuf.resize(encodeBuf.size() + 32);
-
-                const auto encodedLenBytes = msgf::encodeLength(encodeBuf.data() + sizeStartOff, 32, bufSize);
-                encodeBuf.resize(sizeStartOff + encodedLenBytes);
-
-                return
-                {
-                    std::make_tuple(encodeBuf.data(), encodeBuf.size()),
-                    std::make_tuple((const uint8_t *)(buf), bufSize),
-                };
-            }
-        default:
-            {
-                throw fflvalue(smsg.name());
-            }
-    }
-}
-
-void ActorNetDriver::post(uint32_t channID, uint8_t headCode, const void *buf, size_t bufSize, uint64_t respID)
+void ActorNetDriver::post(size_t peerIndex, uint64_t uid, ActorMsgPack mpk)
 {
     logProfiler();
-    fflassert(to_uz(channID) > 0);
-    fflassert(to_uz(channID) < m_channelSlotList.size());
-    fflassert(ServerMsg(headCode).checkData(buf, bufSize));
 
-    if(headCode >= 0x80){
-        throw fflerror("invalid head code %02d", to_d(headCode));
-    }
+    uint8_t buf[16];
+    size_t  bufSize = 0;
 
-    // post current message to sendBuf, which links to Channel::m_nextSendQ
-    // this function is called by server thread only
-    //
-    // current implementation is based on double-queue method
-    // one queue (Q1) is used for store new packages in parallel
-    // the other (Q2) queue is used to post all packages in ASIO main loop
-    //
-    // then Q1 needs to be protected from data race
-    // but for Q2 since it's only used in ASIO main loop, we don't need to protect it
-    //
-    // idea from: https://stackoverflow.com/questions/4029448/thread-safety-for-stl-queue
-    auto slotPtr = m_channelSlotList.data() + channID;
-    if(auto channPtr = slotPtr->channPtr){
-        const auto encodedBufList = encodePostBuf(headCode, buf, bufSize, respID, slotPtr->encodeBuf);
+    m_sendBuf.clear();
+
+    bufSize = msgf::encodeLength(buf, sizeof(buf), uid);
+    m_sendBuf.append(reinterpret_cast<const char *>(buf), bufSize);
+
+    auto msgBuf = cerealf::serialize(mpk);
+
+    bufSize = msgf::encodeLength(buf, sizeof(buf), msgBuf.size());
+    m_sendBuf.append(reinterpret_cast<const char *>(buf), bufSize);
+
+    m_sendBuf.append(std::move(msgBuf));
+
+    auto slotPtr = m_peerSlotList.at(peerIndex).get();
+    if(auto peer = slotPtr->peer){
         {
             const std::lock_guard<std::mutex> lockGuard(slotPtr->lock);
-            for(const auto &[encodedBuf, encodedBufSize]: encodedBufList){
-                if(encodedBuf){
-                    slotPtr->sendBuf.insert(slotPtr->sendBuf.end(), encodedBuf, encodedBuf + encodedBufSize);
-                }
-            }
+            slotPtr->sendBuf.insert(slotPtr->sendBuf.end(), m_sendBuf.begin(), m_sendBuf.end());
         }
-        channPtr->notify();
+        peer->notify();
     }
 }
 
-void ActorNetDriver::bindPlayer(uint32_t channID, uint64_t uid)
+void ActorNetDriver::postMaster(ActorMsgPack mpk)
 {
-    logProfiler();
-    fflassert(to_uz(channID) > 0);
-    fflassert(to_uz(channID) < m_channelSlotList.size());
-    fflassert(uidf::isPlayer(uid));
-
-    std::atomic_flag waitDone;
-    asio::post(*m_context, [uid, channID, &waitDone, this]()
-    {
-        // use post rather than directly assignement since asio thread accesses m_playerUID
-        // potential bug is it's done by post so actor uid is not updated immediately after this call
-
-        if(auto channPtr = m_channelSlotList[channID].channPtr.get()){
-            channPtr->bindPlayer(uid);
-        }
-
-        waitDone.test_and_set();
-        waitDone.notify_all();
-    });
-    waitDone.wait(false);
+    post(0, 0, mpk);
 }
 
 void ActorNetDriver::close(uint32_t channID)
 {
     logProfiler();
     fflassert(to_uz(channID) > 0);
-    fflassert(to_uz(channID) < m_channelSlotList.size());
+    fflassert(to_uz(channID) < m_peerSlotList.size());
     fflassert(g_actorPool->isActorThread());
 
     // if actor thread would initialize a shutdown to a channel
@@ -273,10 +155,10 @@ void ActorNetDriver::close(uint32_t channID)
     });
 
     closeDone.wait(false);
-    auto slotPtr = m_channelSlotList.data() + channID;
+    auto slotPtr = m_peerSlotList.at(channID).get();
     {
         const std::lock_guard<std::mutex> lockGuard(slotPtr->lock);
-        std::vector<uint8_t>().swap(slotPtr->sendBuf);
+        std::vector<char>().swap(slotPtr->sendBuf);
     }
 }
 
@@ -294,13 +176,84 @@ void ActorNetDriver::doRelease()
 void ActorNetDriver::doClose(uint32_t channID)
 {
     fflassert(to_uz(channID) > 0);
-    fflassert(to_uz(channID) < m_channelSlotList.size());
+    fflassert(to_uz(channID) < m_peerSlotList.size());
     fflassert(isNetThread());
 
-    if(m_channelSlotList[channID].channPtr){
-        m_channelSlotList[channID].channPtr->close();
-        m_channelSlotList[channID].channPtr->notify();
-        m_channelSlotList[channID].channPtr.reset();
-        m_channelIDList.push_back(channID);
+    if(m_peerSlotList[channID]->peer){
+        m_peerSlotList[channID]->peer->close();
+        m_peerSlotList[channID]->peer->notify();
+        m_peerSlotList[channID]->peer.reset();
     }
+}
+
+size_t ActorNetDriver::hasPeer() const
+{
+    size_t count = 0;
+    for(const auto &p: m_peerSlotList){
+        if(p){
+            count++;
+        }
+    }
+    return count;
+}
+
+void ActorNetDriver::onRemoteMessage(uint64_t uid, ActorMsgPack mpk)
+{
+    if(uid){
+        g_actorPool->postLocalMessage(uid, std::move(mpk));
+        return;
+    }
+
+    switch(mpk.type()){
+        case AM_SYS_NOTIFYSLAVE:
+            {
+                const auto sdSNS = mpk.deserialize<SDSysNotifySlave>();
+                m_peerIndex = sdSNS.slaveID;
+
+                for(size_t id = 0; const auto &[ip, port]: sdSNS.peerList){
+                    asyncConnect(id, ip, port, [ip]
+                    {
+                        g_monoServer->addLog(LOGTYPE_INFO, "%s", to_cstr(ip));
+                    });
+                }
+                return;
+            }
+        case AM_SYS_LAUNCH:
+            {
+                g_actorPool->launchPool();
+                return;
+            }
+        default:
+            {
+                return;
+            }
+    }
+}
+
+void ActorNetDriver::asyncConnect(size_t peerIndex, const std::string &ip, asio::ip::port_type port, std::function<void()> afterLaunch)
+{
+    auto masterSock = std::make_shared<asio::ip::tcp::socket>(*m_context);
+    asio::async_connect(*masterSock, asio::ip::tcp::resolver(*m_context).resolve(ip, std::to_string(port)), [peerIndex, masterSock, afterLaunch = std::move(afterLaunch), this](std::error_code ec, const asio::ip::tcp::endpoint &)
+    {
+        if(ec){
+            throw fflerror("network error: %s", ec.message().c_str());
+        }
+
+        m_peerSlotList[peerIndex]->sendBuf.clear();
+        m_peerSlotList[peerIndex]->peer = std::make_shared<ServerPeer>
+        (
+            this,
+
+            std::move(*masterSock),
+            peerIndex,
+
+            m_peerSlotList[peerIndex]->lock,
+            m_peerSlotList[peerIndex]->sendBuf
+        );
+
+        m_peerSlotList[peerIndex]->peer->launch();
+        if(afterLaunch){
+            afterLaunch();
+        }
+    });
 }

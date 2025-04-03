@@ -1094,6 +1094,17 @@ struct SDTeamMemberList
     }
 };
 
+struct SDSysNotifySlave
+{
+    size_t slaveID {};
+    std::vector<std::pair<std::string, uint32_t>> peerList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(slaveID, peerList);
+    }
+};
+
 struct SDQuestDespUpdate
 {
     std::string name {};

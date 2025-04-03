@@ -5,13 +5,15 @@
 #include "channel.hpp"
 #include "netdriver.hpp"
 #include "monoserver.hpp"
+#include "serverconfigurewindow.hpp"
 
 extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
+extern ServerConfigureWindow *g_serverConfigureWindow;
 static thread_local bool t_netThreadFlag = false; // use bool since only has 1 net thread
 
 NetDriver::NetDriver()
-    : m_channelSlotList(SYS_MAXPLAYERNUM + 1)
+    : m_channelSlotList(g_serverConfigureWindow->getConfig().maxPlayerCount + 1)
 {
     // allocate channal IDs
     // reserve the first slot with zero channel ID

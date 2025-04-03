@@ -58,8 +58,6 @@ constexpr int SYS_MAPVISIBLEW  = 60;
 constexpr int SYS_MAPVISIBLEH  = 40;
 constexpr int SYS_MAPVISIBLECD = 100;
 
-constexpr int SYS_MAXPLAYERNUM = 16384;
-
 // view range is mutual direction and universal
 // a monster tracks player in range MonsterRecord::view, but it keeps records for all player in SYS_VIEWR as neighbors
 // otherwise monsters will not send ACTION to players in range MonsterRecord::view < d <= SYS_VIEWR

@@ -28,9 +28,7 @@ class ServerConfig {} {
   }
   decl {std::string scriptPath = "script";} {public local
   }
-  decl {int maxMonster = 5000;} {public local
-  }
-  decl {int maxPlayer = 5000;} {public local
+  decl {int maxPlayerCount = 5000;} {public local
   }
   decl {double experienceRate = 1.0;} {public local
   }
@@ -230,7 +228,7 @@ m_window->hide();}
             fl_alert("Invalid %s: %s", usage, to_cstr(value));
         };
 
-        fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayer);
+        fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayerCount);
         fnAssignPositiveInteger(m_clientPort->value(), "client port", m_config.clientPort);
         fnAssignPositiveInteger(m_slavePort->value(), "slave port", m_config.slavePort);
 

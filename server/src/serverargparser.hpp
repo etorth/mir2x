@@ -30,6 +30,7 @@ struct ServerArgParser
     const bool preloadMap;                  // "--preload-map"
     const bool autoLaunch;                  // "--auto-launch"
     const bool slave;                       // "--slave"
+    const bool lightMasterServer;           // "--light-master-server"
     const int  preloadMapID;                // "--preload-map-id"
     const int  actorPoolThread;             // "--actor-pool-thread"
     const int  logicalFPS;                  // "--logical-fps"
@@ -37,6 +38,9 @@ struct ServerArgParser
     const int  textFont;                    // "--text-font"
 
     const std::string loadSingleQuest;      // "--load-single-quest"
+    const std::string masterIP;             // "--master-ip"
+    const         int masterPort;           // "--master-port"
+    const         int peerPort;             // "--peer-port"
 
     ServerArgParser(const argh::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
@@ -57,6 +61,7 @@ struct ServerArgParser
         , preloadMap(cmdParser["preload-map"])
         , autoLaunch(cmdParser["auto-launch"])
         , slave(cmdParser["slave"])
+        , lightMasterServer(cmdParser["light-master-server"])
         , preloadMapID([&cmdParser]() -> int
           {
               if(const auto s = cmdParser("preload-map-id").str(); !s.empty()){
@@ -154,6 +159,42 @@ struct ServerArgParser
                   return 0;
               }
           }())
+
         , loadSingleQuest(cmdParser("load-single-quest").str())
+        , masterIP(cmdParser("master-ip").str())
+        , masterPort([&cmdParser]() -> int
+          {
+              if(const auto numStr = cmdParser("master-port").str(); !numStr.empty()){
+                  try{
+                      if(const auto font = std::stoi(numStr); font >= 0){
+                          return font;
+                      }
+                  }
+                  catch(...){
+                      // ...
+                  }
+                  throw fflerror("invalid port: %s", numStr.c_str());
+              }
+              else{
+                  return 0;
+              }
+          }())
+        , peerPort([&cmdParser]() -> int
+          {
+              if(const auto numStr = cmdParser("peer-port").str(); !numStr.empty()){
+                  try{
+                      if(const auto font = std::stoi(numStr); font >= 0){
+                          return font;
+                      }
+                  }
+                  catch(...){
+                      // ...
+                  }
+                  throw fflerror("invalid port: %s", numStr.c_str());
+              }
+              else{
+                  return 0;
+              }
+          }())
     {}
 };

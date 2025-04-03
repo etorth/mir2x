@@ -1,23 +1,17 @@
-#include "zcompf.hpp"
-#include "channel.hpp"
-#include "netdriver.hpp"
-#include "actorpool.hpp"
+#include <asio.hpp>
+#include "asiof.hpp"
 #include "monoserver.hpp"
+#include "serverpeer.hpp"
 #include "actormsgpack.hpp"
+#include "actornetdriver.hpp"
 
 extern MonoServer *g_monoServer;
 
-ServerPeer::ServerPeer(asio::ip::tcp::socket argSocket, uint32_t argChannID, std::mutex &sendLock, std::vector<uint8_t> &sendBuf)
-    : m_socket(std::move(argSocket))
-    , m_id([argChannID]
-      {
-          fflassert(argChannID);
-          return argChannID;
-      }())
-
+ServerPeer::ServerPeer(ActorNetDriver *argDriver, asio::ip::tcp::socket argSocket, size_t argID, std::mutex &sendLock, std::vector<char> &sendBuf)
+    : m_driver(argDriver)
+    , m_socket(std::move(argSocket))
+    , m_id(argID)
     , m_timer(m_socket.get_executor(), std::chrono::steady_clock::time_point::max())
-
-    , m_clientMsgBuf(CM_NONE_0)
 
     // pass sendBuf and sendLock refs to channel
     // sendBuf and sendLock can outlive channel for thread-safe implementation
@@ -27,18 +21,18 @@ ServerPeer::ServerPeer(asio::ip::tcp::socket argSocket, uint32_t argChannID, std
 
 asio::awaitable<void> ServerPeer::reader()
 {
+    std::string buf;
     while(true){
         uint64_t uid = 0;
         co_await asio::async_read(m_socket, asio::buffer(std::addressof(uid), sizeof(uid)), asio::use_awaitable);
 
-        size_t bufSize = 0;
-        co_await asio::async_read(m_socket, asio::buffer(std::addressof(bufSize), sizeof(bufSize)), asio::use_awaitable);
+        const auto bufSize = co_await asiof::readVLInteger<size_t>(m_socket);
+        fflassert(bufSize > 0);
 
-        std::string buf;
         buf.resize(bufSize);
         co_await asio::async_read(m_socket, asio::buffer(buf.data(), buf.size()), asio::use_awaitable);
 
-        g_actorPool->postMessage(uid, cerealf::deserialize<ActorMsgPack>(buf));
+        m_driver->onRemoteMessage(uid, cerealf::deserialize<ActorMsgPack>(buf));
     }
 }
 
@@ -58,15 +52,7 @@ asio::awaitable<void> ServerPeer::writer()
             }
         }
         else{
-            for(const auto &[uid, mpk]; m_currSendQ){
-                co_await asio::async_write(m_socket, asio::buffer(std::addressof(uid), sizeof(uid)), asio::use_awaitable);
-
-                const auto buf = cerealf::serialize(mpk);
-                const size_t bufSize = buf.size();
-
-                co_await asio::async_write(m_socket, asio::buffer(std::addressof(bufSize), sizeof(bufSize)), asio::use_awaitable);
-                co_await asio::async_write(m_socket, asio::buffer(buf.data(), buf.size()), asio::use_awaitable);
-            }
+            co_await asio::async_write(m_socket, asio::buffer(m_currSendQ.data(), m_currSendQ.size()), asio::use_awaitable);
             m_currSendQ.clear();
         }
     }
@@ -74,21 +60,6 @@ asio::awaitable<void> ServerPeer::writer()
 
 void ServerPeer::close()
 {
-    fflassert(ActorNetDriver::isNetThread());
-    AMBadChannel amBC;
-    std::memset(&amBC, 0, sizeof(amBC));
-
-    // can forward to servicecore or player
-    // servicecore won't keep pointer *this* then we need to report it
-    amBC.channID = id();
-
-    if(m_playerUID){
-        m_dispatcher.forward(m_playerUID, {AM_BADCHANNEL, amBC});
-    }
-
-    m_playerUID = 0;
-    m_dispatcher.forward(uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
-
     // For portable behaviour with respect to graceful closure of a connected socket, call shutdown() before closing the socket.
     // asio-1.30.2/doc/asio/reference/basic_stream_socket/close/overload2.html
 
@@ -97,7 +68,7 @@ void ServerPeer::close()
 
     m_socket.close(ec);
     if(ec){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Close channel %zu: %s", ec.message().c_str());
+        g_monoServer->addLog(LOGTYPE_WARNING, "Close peer %zu: %s", id(), ec.message().c_str());
     }
 }
 

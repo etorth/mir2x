@@ -22,8 +22,8 @@ class ActorPod;
 class NetDriver;
 class Receiver;
 class Dispatcher;
-class NetDriver;
 class SyncDriver;
+class ActorNetDriver;
 
 class ActorPool final
 {
@@ -33,6 +33,7 @@ class ActorPool final
         friend class Receiver;
         friend class Dispatcher;
         friend class SyncDriver;
+        friend class ActorNetDriver;
 
     public:
         struct UIDComper
@@ -528,6 +529,7 @@ class ActorPool final
 
     private:
         std::unique_ptr<NetDriver> m_netDriver;
+        std::unique_ptr<ActorNetDriver> m_actorNetDriver;
 
     public:
         ActorPool(int, int);
@@ -563,6 +565,7 @@ class ActorPool final
 
     private:
         bool postMessage(uint64_t, ActorMsgPack);
+        bool postLocalMessage(uint64_t, ActorMsgPack);
 
     private:
         void runOneUID(uint64_t);

@@ -11,8 +11,11 @@
 #include "raiitimer.hpp"
 #include "actorpool.hpp"
 #include "monoserver.hpp"
+#include "actornetdriver.hpp"
+#include "serverargparser.hpp"
 
 extern MonoServer *g_monoServer;
+extern ServerArgParser *g_serverArgParser;
 
 // KEEP IN MIND:
 // at ANY time only one thread can access one actor message handler
@@ -339,7 +342,7 @@ void ActorPool::detach(const Receiver *receiverPtr)
     }
 }
 
-bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
+bool ActorPool::postLocalMessage(uint64_t uid, ActorMsgPack msg)
 {
     logProfiler();
     if(!uid){
@@ -436,6 +439,43 @@ bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
         m_bucketList.at(bucketId).uidQPending.push(uid);
         return true;
     }
+}
+
+bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
+{
+    logProfiler();
+
+    fflassert(uid);
+    fflassert(msg);
+
+    if(const auto peerCount = m_actorNetDriver->hasPeer(); peerCount > 0){
+        switch(uidf::getUIDType(uid)){
+            case UID_MAP:
+            case UID_MON:
+                {
+                    const auto peerIndex = [uid, peerCount, this]() -> size_t
+                    {
+                        if(g_serverArgParser->lightMasterServer){
+                            return (uid % peerCount) + 1;
+                        }
+                        else{
+                            return uid % (peerCount + 1);
+                        }
+                    }();
+
+                    if(peerIndex != m_actorNetDriver->peerIndex()){
+                        m_actorNetDriver->post(peerIndex, uid, std::move(msg));
+                        return true;
+                    }
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+    }
+    return postLocalMessage(uid, std::move(msg));
 }
 
 void ActorPool::runOneUID(uint64_t uid)
