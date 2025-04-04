@@ -16,9 +16,9 @@ ActorNetDriver::ActorNetDriver()
     : m_context(std::make_unique<asio::io_context>(1))
 {
     if(g_serverArgParser->slave){
-        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort, nullptr);
+        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort.value_or(6100), nullptr);
     }
-    launch(g_serverArgParser->masterPort);
+    launch(g_serverArgParser->peerPort.value_or(6200));
 }
 
 ActorNetDriver::~ActorNetDriver()

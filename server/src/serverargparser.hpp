@@ -3,7 +3,7 @@
 #include <cstdint>
 #include "totype.hpp"
 #include "fflerror.hpp"
-#include "argparser.hpp"
+#include "argf.hpp"
 #include "dbcomid.hpp"
 
 struct ServerArgParser
@@ -38,11 +38,12 @@ struct ServerArgParser
     const int  textFont;                    // "--text-font"
 
     const std::string loadSingleQuest;      // "--load-single-quest"
-    const std::string masterIP;             // "--master-ip"
-    const         int masterPort;           // "--master-port"
-    const         int peerPort;             // "--peer-port"
 
-    ServerArgParser(const argh::parser &cmdParser)
+    const std::string             masterIP;     // "--master-ip"
+    const std::optional<uint32_t> masterPort;   // "--master-port"
+    const std::optional<uint32_t> peerPort;     // "--peer-port"
+
+    ServerArgParser(const argf::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
         , disableMapScript(cmdParser["disable-map-script"])
         , disableQuestScript(cmdParser["disable-quest-script"])
@@ -162,39 +163,7 @@ struct ServerArgParser
 
         , loadSingleQuest(cmdParser("load-single-quest").str())
         , masterIP(cmdParser("master-ip").str())
-        , masterPort([&cmdParser]() -> int
-          {
-              if(const auto numStr = cmdParser("master-port").str(); !numStr.empty()){
-                  try{
-                      if(const auto font = std::stoi(numStr); font >= 0){
-                          return font;
-                      }
-                  }
-                  catch(...){
-                      // ...
-                  }
-                  throw fflerror("invalid port: %s", numStr.c_str());
-              }
-              else{
-                  return 0;
-              }
-          }())
-        , peerPort([&cmdParser]() -> int
-          {
-              if(const auto numStr = cmdParser("peer-port").str(); !numStr.empty()){
-                  try{
-                      if(const auto font = std::stoi(numStr); font >= 0){
-                          return font;
-                      }
-                  }
-                  catch(...){
-                      // ...
-                  }
-                  throw fflerror("invalid port: %s", numStr.c_str());
-              }
-              else{
-                  return 0;
-              }
-          }())
+        , masterPort(argf::getPort(cmdParser, "master-port"))
+        , peerPort(argf::getPort(cmdParser, "peer-port"))
     {}
 };

@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 {
     std::srand((unsigned int)std::time(nullptr));
     try{
-        arg_parser cmdParser(argc, argv);
+        argf::parser cmdParser(argc, argv);
         g_clientArgParser = new ClientArgParser(cmdParser);
 
         if(g_clientArgParser->disableProfiler){

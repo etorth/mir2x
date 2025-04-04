@@ -1,10 +1,10 @@
 #include <ctime>
 #include <asio.hpp>
 #include "log.hpp"
+#include "argf.hpp"
 #include "dbpod.hpp"
 #include "mapbindb.hpp"
 #include "actorpool.hpp"
-#include "argparser.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
 #include "profilerwindow.hpp"
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 {
     std::srand((unsigned int)std::time(nullptr));
     try{
-        arg_parser cmdParser(argc, argv);
+        argf::parser cmdParser(argc, argv);
         g_serverArgParser = new ServerArgParser(cmdParser);
 
         if(g_serverArgParser->disableProfiler){

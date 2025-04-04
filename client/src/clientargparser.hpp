@@ -3,7 +3,7 @@
 #include <utility>
 #include <optional>
 #include "fflerror.hpp"
-#include "argparser.hpp"
+#include "argf.hpp"
 
 struct ClientArgParser
 {
@@ -40,7 +40,7 @@ struct ClientArgParser
 
     bool traceMove;
 
-    ClientArgParser(const arg_parser &cmdParser)
+    ClientArgParser(const argf::parser &cmdParser)
         : disableProfiler(cmdParser["disable-profiler"])
         , disableVersionCheck(cmdParser["disable-version-check"])
         , disableAudio(cmdParser["disable-audio"])
