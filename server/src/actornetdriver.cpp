@@ -5,20 +5,31 @@
 #include "monoserver.hpp"
 #include "actornetdriver.hpp"
 #include "serverargparser.hpp"
+#include "serverconfigurewindow.hpp"
 #include "serverpeer.hpp"
 
 extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
+extern ServerConfigureWindow *g_serverConfigureWindow;
 static thread_local bool t_actorNetThreadFlag = false; // use bool since only has 1 net thread
 
 ActorNetDriver::ActorNetDriver()
     : m_context(std::make_unique<asio::io_context>(1))
 {
+    launch(g_serverArgParser->peerPort.value_or([]()
+    {
+        if(g_serverArgParser->slave){
+            return g_serverArgParser->masterPort.value();
+        }
+        else{
+            return g_serverArgParser->clientPort.value() + 1;
+        }
+    }()));
+
     if(g_serverArgParser->slave){
-        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort.value_or(6100), nullptr);
+        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort.value(), nullptr);
     }
-    launch(g_serverArgParser->peerPort.value_or(6200));
 }
 
 ActorNetDriver::~ActorNetDriver()

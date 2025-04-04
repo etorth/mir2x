@@ -41,6 +41,8 @@ struct ServerArgParser
 
     const std::string             masterIP;     // "--master-ip"
     const std::optional<uint32_t> masterPort;   // "--master-port"
+
+    const std::optional<uint32_t> clientPort;   // "--master-port"
     const std::optional<uint32_t> peerPort;     // "--peer-port"
 
     ServerArgParser(const argf::parser &cmdParser)
@@ -164,6 +166,26 @@ struct ServerArgParser
         , loadSingleQuest(cmdParser("load-single-quest").str())
         , masterIP(cmdParser("master-ip").str())
         , masterPort(argf::getPort(cmdParser, "master-port"))
+        , clientPort(argf::getPort(cmdParser, "client-port"))
         , peerPort(argf::getPort(cmdParser, "peer-port"))
-    {}
+    {
+        if(slave){
+            if(!str_haschar(masterIP)){
+                throw fflerror("slave mode requires ---master-ip=<ip>");
+            }
+
+            if(!masterPort.has_value()){
+                throw fflerror("slave mode requires ---master-port=<port>");
+            }
+
+            if(clientPort.has_value()){
+                throw fflerror("invalid option for slave mode: ---client-port");
+            }
+        }
+        else{
+            if(peerPort.has_value()){
+                throw fflerror("master server has no peer port");
+            }
+        }
+    }
 };
