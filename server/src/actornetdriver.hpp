@@ -54,6 +54,9 @@ class ActorNetDriver
         void close(uint32_t);
 
     public:
+        void closeAcceptor();
+
+    public:
         static bool isNetThread();
 
     public:

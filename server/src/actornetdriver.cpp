@@ -268,3 +268,8 @@ void ActorNetDriver::asyncConnect(size_t peerIndex, const std::string &ip, asio:
         }
     });
 }
+
+void ActorNetDriver::closeAcceptor()
+{
+    m_acceptor->close();
+}

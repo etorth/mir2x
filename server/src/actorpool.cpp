@@ -902,6 +902,11 @@ void ActorPool::launchPool()
     }
 }
 
+void ActorPool::closeSlaveAcceptor()
+{
+    m_actorNetDriver->closeAcceptor();
+}
+
 bool ActorPool::checkUIDValid(uint64_t uid) const
 {
     // always need to r-lock the sub-bucket even in dedicated actor thread
