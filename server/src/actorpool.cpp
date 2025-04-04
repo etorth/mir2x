@@ -60,6 +60,7 @@ ActorPool::ActorPool(int bucketCount, int logicFPS)
           fflassert(bucketCount > 0);
           return bucketCount;
       }())
+    , m_actorNetDriver(std::make_unique<ActorNetDriver>())
 {
     g_monoServer->addLog(LOGTYPE_INFO, "Server FPS: %llu", to_llu(m_logicFPS));
 }
