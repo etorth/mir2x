@@ -88,9 +88,6 @@ class MonoServer final
     public:
         void addLog(const Log::LogTypeLoc &, const char *, ...);
 
-    private:
-        void startServiceCore();
-
     public:
         bool loadMap(const std::string &);
         std::vector<int> getMapList();

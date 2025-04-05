@@ -13,9 +13,12 @@
 #include "monoserver.hpp"
 #include "actornetdriver.hpp"
 #include "serverargparser.hpp"
+#include "servicecore.hpp"
+#include "serverconfigurewindow.hpp"
 
 extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
+extern ServerConfigureWindow *g_serverConfigureWindow;
 
 // KEEP IN MIND:
 // at ANY time only one thread can access one actor message handler
@@ -812,6 +815,21 @@ namespace _details
                 m_ref--;
             }
     };
+}
+
+void ActorPool::launch()
+{
+    launchPool();
+
+    m_serviceCore = std::make_unique<ServiceCore>();
+    m_serviceCore->activate(-1.0);
+
+    closeSlaveAcceptor();
+    if(g_serverArgParser->slave){
+    }
+    else{
+        launchNet(g_serverConfigureWindow->getConfig().clientPort);
+    }
 }
 
 void ActorPool::launchNet(int port)

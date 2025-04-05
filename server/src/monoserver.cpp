@@ -429,19 +429,6 @@ void MonoServer::loadMapBinDB()
     }
 }
 
-void MonoServer::startServiceCore()
-{
-    g_actorPool->launchPool();
-
-    m_serviceCore = new ServiceCore();
-    m_serviceCore->activate(-1.0);
-
-    g_actorPool->closeSlaveAcceptor();
-    if(!g_serverArgParser->slave){
-        g_actorPool->launchNet(g_serverConfigureWindow->getConfig().clientPort);
-    }
-}
-
 void MonoServer::mainLoop()
 {
     if(g_serverArgParser->slave){
@@ -495,7 +482,7 @@ void MonoServer::launch()
 {
     createDBConnection();
     loadMapBinDB();
-    startServiceCore();
+    g_actorPool->launch();
 }
 
 void MonoServer::propagateException() noexcept

@@ -232,6 +232,7 @@ void ActorNetDriver::onRemoteMessage(uint64_t uid, ActorMsgPack mpk)
         case AM_SYS_LAUNCH:
             {
                 g_actorPool->launchPool();
+                postMaster(AM_SYS_LAUNCHED);
                 return;
             }
         default:

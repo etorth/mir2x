@@ -24,6 +24,7 @@ class Receiver;
 class Dispatcher;
 class SyncDriver;
 class ActorNetDriver;
+class ServiceCore;
 
 class ActorPool final
 {
@@ -524,6 +525,9 @@ class ActorPool final
         };
 
     private:
+        std::unique_ptr<ServiceCore> m_serviceCore;
+
+    private:
         std::mutex m_receiverLock;
         std::unordered_map<uint64_t, Receiver *> m_receiverList;
 
@@ -556,6 +560,7 @@ class ActorPool final
         void detach(const ActorPod *, std::function<void()>);
 
     public:
+        void launch();
         void launchNet(int);
         void launchPool();
         bool checkUIDValid(uint64_t) const;
