@@ -183,6 +183,14 @@ struct ServerArgParser
             }
         }
         else{
+            if(cmdParser.has_option("master-ip")){
+                throw fflerror("invalid option for master mode: ---master-ip");
+            }
+
+            if(cmdParser.has_option("master-port")){
+                throw fflerror("invalid option for master mode: ---master-port");
+            }
+
             if(peerPort.has_value()){
                 throw fflerror("master server has no peer port");
             }
