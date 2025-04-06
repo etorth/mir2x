@@ -97,7 +97,7 @@ asio::awaitable<void> ActorNetDriver::listener()
         slotPtr->peer = std::make_shared<ServerPeer>(this, std::move(sock), m_peerSlotList.size(), slotPtr->lock, slotPtr->sendBuf);
 
         auto peer = slotPtr->peer.get();
-        // g_monoServer->addLog(LOGTYPE_INFO, "Channel %zu has been established for endpoint (%s:%d).", to_d(peer->peerIndex()), to_cstr(peer->ip()), to_d(peer->port()));
+        g_monoServer->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
 
         peer->launch();
 
