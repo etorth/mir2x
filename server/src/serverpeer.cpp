@@ -23,10 +23,9 @@ asio::awaitable<void> ServerPeer::reader()
 {
     std::string buf;
     while(true){
-        uint64_t uid = 0;
-        co_await asio::async_read(m_socket, asio::buffer(std::addressof(uid), sizeof(uid)), asio::use_awaitable);
+        const auto uid     = co_await asiof::readVLInteger<uint64_t>(m_socket);
+        const auto bufSize = co_await asiof::readVLInteger<  size_t>(m_socket);
 
-        const auto bufSize = co_await asiof::readVLInteger<size_t>(m_socket);
         fflassert(bufSize > 0);
 
         buf.resize(bufSize);
