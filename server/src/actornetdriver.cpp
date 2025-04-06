@@ -84,6 +84,12 @@ asio::awaitable<void> ActorNetDriver::listener()
             throw fflerror("acceptor error: %s", ec.message().c_str());
         }
 
+        if(!g_serverArgParser->slave){
+            if(m_peerSlotList.empty()){
+                m_peerSlotList.emplace_back();
+            }
+        }
+
         m_peerSlotList.emplace_back(std::make_unique<PeerSlot>());
         auto slotPtr = m_peerSlotList.back().get();
 
@@ -100,11 +106,11 @@ asio::awaitable<void> ActorNetDriver::listener()
             .slaveID = m_peerSlotList.size(),
         };
 
-        for(const auto &slot: m_peerSlotList){
-            sdSNS.peerList.emplace_back(slot->peer->ip(), slot->peer->port());
+        for(size_t i = 1; i + 1 < m_peerSlotList.size(); ++i){
+            sdSNS.peerList[i] = std::make_pair(m_peerSlotList.at(i)->peer->ip(), m_peerSlotList.at(i)->peer->port());
         }
 
-        post(m_peerSlotList.size(), 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(sdSNS)));
+        post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(sdSNS)));
     }
 }
 
@@ -221,8 +227,8 @@ void ActorNetDriver::onRemoteMessage(uint64_t uid, ActorMsgPack mpk)
                 const auto sdSNS = mpk.deserialize<SDSysNotifySlave>();
                 m_peerIndex = sdSNS.slaveID;
 
-                for(size_t id = 0; const auto &[ip, port]: sdSNS.peerList){
-                    asyncConnect(id, ip, port, [ip]
+                for(const auto &[peerIndex, addr]: sdSNS.peerList){
+                    asyncConnect(peerIndex, addr.first, addr.second, [ip = addr.first]
                     {
                         g_monoServer->addLog(LOGTYPE_INFO, "%s", to_cstr(ip));
                     });
