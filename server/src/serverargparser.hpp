@@ -191,7 +191,7 @@ struct ServerArgParser
                 throw fflerror("invalid option for master mode: ---master-port");
             }
 
-            if(peerPort.has_value()){
+            if(!peerPort.has_value()){
                 throw fflerror("master server has no peer port");
             }
         }

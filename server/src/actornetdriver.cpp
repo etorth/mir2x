@@ -84,7 +84,7 @@ asio::awaitable<void> ActorNetDriver::listener()
             throw fflerror("acceptor error: %s", ec.message().c_str());
         }
 
-        m_peerSlotList.emplace_back();
+        m_peerSlotList.emplace_back(std::make_unique<PeerSlot>());
         auto slotPtr = m_peerSlotList.back().get();
 
         slotPtr->sendBuf.clear();
@@ -249,6 +249,14 @@ void ActorNetDriver::asyncConnect(size_t peerIndex, const std::string &ip, asio:
     {
         if(ec){
             throw fflerror("network error: %s", ec.message().c_str());
+        }
+
+        if(peerIndex >= m_peerSlotList.size()){
+            m_peerSlotList.resize(peerIndex + 1);
+        }
+
+        if(!m_peerSlotList[peerIndex]){
+            m_peerSlotList[peerIndex] = std::make_unique<PeerSlot>();
         }
 
         m_peerSlotList[peerIndex]->sendBuf.clear();

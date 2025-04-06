@@ -824,11 +824,11 @@ void ActorPool::launch()
     // m_serviceCore = std::make_unique<ServiceCore>();
     // m_serviceCore->activate(-1.0);
 
-    closeSlaveAcceptor();
+    // closeSlaveAcceptor();
     if(g_serverArgParser->slave){
     }
     else{
-        launchNet(g_serverConfigureWindow->getConfig().clientPort);
+        // launchNet(g_serverConfigureWindow->getConfig().clientPort);
     }
 }
 
