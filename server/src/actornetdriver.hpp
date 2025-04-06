@@ -31,9 +31,6 @@ class ActorNetDriver
     private:
         std::thread m_thread;
 
-    private:
-        std::string m_sendBuf; // scratch buffer
-
     public:
         ActorNetDriver();
 

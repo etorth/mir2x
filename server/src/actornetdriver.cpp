@@ -121,23 +121,23 @@ void ActorNetDriver::post(size_t peerIndex, uint64_t uid, ActorMsgPack mpk)
     uint8_t buf[16];
     size_t  bufSize = 0;
 
-    m_sendBuf.clear();
+    std::string encodeBuf;
 
     bufSize = msgf::encodeLength(buf, sizeof(buf), uid);
-    m_sendBuf.append(reinterpret_cast<const char *>(buf), bufSize);
+    encodeBuf.append(reinterpret_cast<const char *>(buf), bufSize);
 
     auto msgBuf = cerealf::serialize(mpk);
 
     bufSize = msgf::encodeLength(buf, sizeof(buf), msgBuf.size());
-    m_sendBuf.append(reinterpret_cast<const char *>(buf), bufSize);
+    encodeBuf.append(reinterpret_cast<const char *>(buf), bufSize);
 
-    m_sendBuf.append(std::move(msgBuf));
+    encodeBuf.append(std::move(msgBuf));
 
     auto slotPtr = m_peerSlotList.at(peerIndex).get();
     if(auto peer = slotPtr->peer){
         {
             const std::lock_guard<std::mutex> lockGuard(slotPtr->lock);
-            slotPtr->sendBuf.insert(slotPtr->sendBuf.end(), m_sendBuf.begin(), m_sendBuf.end());
+            slotPtr->sendBuf.insert(slotPtr->sendBuf.end(), encodeBuf.begin(), encodeBuf.end());
         }
         peer->notify();
     }
