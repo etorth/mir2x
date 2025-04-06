@@ -821,8 +821,8 @@ void ActorPool::launch()
 {
     launchPool();
 
-    m_serviceCore = std::make_unique<ServiceCore>();
-    m_serviceCore->activate(-1.0);
+    // m_serviceCore = std::make_unique<ServiceCore>();
+    // m_serviceCore->activate(-1.0);
 
     closeSlaveAcceptor();
     if(g_serverArgParser->slave){

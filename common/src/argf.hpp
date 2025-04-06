@@ -34,6 +34,19 @@ namespace argf
                 return 0;
             }
 
+            std::optional<std::string> get_option(const std::string &opt) const
+            {
+                if(const auto &s = (*this)(opt); s){
+                    return s.str();
+                }
+
+                if((*this)[opt]){
+                    return std::string{};
+                }
+
+                return std::nullopt;
+            }
+
             // support
             // --opt      : return true
             // --opt=[xx] : return true with warning message

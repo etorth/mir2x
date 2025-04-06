@@ -183,7 +183,7 @@ struct ServerArgParser
             }
         }
         else{
-            if(cmdParser.has_option("master-ip")){
+            if(cmdParser.get_option("master-ip").has_value()){
                 throw fflerror("invalid option for master mode: ---master-ip");
             }
 
