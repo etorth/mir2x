@@ -57,7 +57,7 @@ class NPChar final: public CharObject
         std::unordered_map<uint64_t, uint64_t> m_xmlLayoutSeqIDList;
 
     public:
-        NPChar(const ServerMap *, const SDInitNPChar &initNPChar);
+        NPChar(const SDInitNPChar &initNPChar);
 
     public:
         bool update() override;

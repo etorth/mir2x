@@ -179,7 +179,7 @@ corof::eval_poller<bool> Monster::coro_inDCCastRange(uint64_t targetUID, DCCastR
     corof::async_variable<bool> done;
     getCOLocation(targetUID, [r, &done, this](const COLocation &coLoc)
     {
-        if(m_map->in(coLoc.mapID, coLoc.x, coLoc.y)){
+        if((coLoc.mapID == mapID()) && mapBin()->validC(coLoc.x, coLoc.y)){
             done.assign(pathf::inDCCastRange(r, X(), Y(), coLoc.x, coLoc.y));
         }
         else{

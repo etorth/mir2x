@@ -756,9 +756,9 @@ void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
     AMAllowMapSwitch amAMS;
     std::memset(&amAMS, 0, sizeof(amAMS));
 
-    amAMS.Ptr = this;
-    amAMS.X   = amTMS.X;
-    amAMS.Y   = amTMS.Y;
+    amAMS.mapUID = UID();
+    amAMS.X      = amTMS.X;
+    amAMS.Y      = amTMS.Y;
 
     getGrid(amAMS.X, amAMS.Y).locked = true;
     m_actorPod->forward(mpk.from(), {AM_ALLOWMAPSWITCH, amAMS}, mpk.seqID(), [this, fromUID, amAMS](const ActorMsgPack &rmpk)

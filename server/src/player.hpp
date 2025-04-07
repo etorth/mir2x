@@ -97,7 +97,7 @@ class Player final: public BattleObject
         std::unordered_map<int, std::vector<sol::function>> m_scriptEventTriggerList;
 
     public:
-        Player(const SDInitPlayer &, const ServerMap *);
+        Player(const SDInitPlayer &);
 
     public:
         ~Player() = default;

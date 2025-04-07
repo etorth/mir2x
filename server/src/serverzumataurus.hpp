@@ -9,8 +9,8 @@ class ServerZumaTaurus final: public Monster
         bool m_standMode = false;
 
     public:
-        ServerZumaTaurus(ServerMap *mapPtr, int argX, int argY, uint64_t masterUID)
-            : Monster(DBCOM_MONSTERID(u8"祖玛教主"), mapPtr, argX, argY, DIR_BEGIN, masterUID)
+        ServerZumaTaurus(uint64_t argMapUID, int argX, int argY, uint64_t masterUID)
+            : Monster(DBCOM_MONSTERID(u8"祖玛教主"), argMapUID, argX, argY, DIR_BEGIN, masterUID)
         {}
 
     public:

@@ -8,8 +8,8 @@ class ServerEvilCentipede final: public Monster
         bool m_standMode = false;
 
     public:
-        ServerEvilCentipede(ServerMap *mapPtr, int argX, int argY)
-            : Monster(DBCOM_MONSTERID(u8"触龙神"), mapPtr, argX, argY, DIR_BEGIN, 0)
+        ServerEvilCentipede(uint64_t argMapUID, int argX, int argY)
+            : Monster(DBCOM_MONSTERID(u8"触龙神"), argMapUID, argX, argY, DIR_BEGIN, 0)
         {}
 
     protected:

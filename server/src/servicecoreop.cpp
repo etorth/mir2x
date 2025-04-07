@@ -35,19 +35,19 @@ void ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
 void ServiceCore::on_AM_ADDCO(const ActorMsgPack &rstMPK)
 {
     const auto amACO = rstMPK.conv<AMAddCharObject>();
-    if(!amACO.mapID){
+    if(!amACO.mapUID){
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }
 
-    auto pMap = retrieveMap(amACO.mapID);
+    auto pMap = retrieveMap(uidf::getMapID(amACO.mapUID));
 
     if(!pMap){
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }
 
-    if(!pMap->in(amACO.mapID, amACO.x, amACO.y) && amACO.strictLoc){
+    if(!pMap->in(uidf::getMapID(amACO.mapUID), amACO.x, amACO.y) && amACO.strictLoc){
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }

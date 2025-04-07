@@ -1090,7 +1090,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerTaoSkeleton
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         nMasterUID,
@@ -1101,7 +1101,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerTaoSkeletonExt
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         nMasterUID,
@@ -1112,7 +1112,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerTaoDog
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP, // TODO face its master
@@ -1124,7 +1124,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerCannibalPlant
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                     };
@@ -1134,7 +1134,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerBugbatMaggot
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                     };
@@ -1145,7 +1145,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new Monster
                     {
                         nMonsterID,
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_LEFT, // direction for initial gfx when born
@@ -1160,7 +1160,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new ServerMonsterTree
                     {
                         nMonsterID,
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                     };
@@ -1170,7 +1170,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerSandCactus
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                     };
@@ -1180,7 +1180,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerDualAxeSkeleton
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1194,7 +1194,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new ServerEvilTentacle
                     {
                         nMonsterID,
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1205,7 +1205,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerSandGhost
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1219,7 +1219,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new ServerRebornZombie
                     {
                         nMonsterID,
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1230,7 +1230,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerAntHealer
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1242,7 +1242,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerWoomaTaurus
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1254,7 +1254,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerEvilCentipede
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                     };
@@ -1266,7 +1266,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new ServerZumaMonster
                     {
                         nMonsterID,
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1278,7 +1278,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerZumaTaurus
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         nMasterUID,
@@ -1289,7 +1289,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerBombSpider
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1300,7 +1300,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerRootSpider
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                     };
@@ -1310,7 +1310,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerRedMoonEvil
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                     };
@@ -1320,7 +1320,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                 {
                     monsterPtr = new ServerShipwreckLord
                     {
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1334,7 +1334,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new ServerMinotaurGuardian
                     {
                         nMonsterID,
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1347,7 +1347,7 @@ Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHi
                     monsterPtr = new Monster
                     {
                         nMonsterID,
-                        this,
+                        UID(),
                         nDstX,
                         nDstY,
                         DIR_UP,
@@ -1375,7 +1375,7 @@ ServerGuard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
     auto guardPtr = new ServerGuard
     {
         monID,
-        this,
+        UID(),
         x,
         y,
         direction,
@@ -1392,7 +1392,7 @@ NPChar *ServerMap::addNPChar(const SDInitNPChar &initParam)
     }
 
     try{
-        auto npcPtr = new NPChar(this, initParam);
+        auto npcPtr = new NPChar(initParam);
         m_npcList[npcPtr->UID()] = npcPtr;
         npcPtr->activate();
         return npcPtr;
@@ -1423,12 +1423,7 @@ Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
     }
 
     if(const auto loc = getRCValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
-        auto playerPtr = new Player
-        {
-            initPlayer,
-            this,
-        };
-
+        auto playerPtr = new Player(initPlayer);
         playerPtr->activate();
         return playerPtr;
     }
@@ -1597,7 +1592,7 @@ void ServerMap::loadNPChar()
             SDInitNPChar initNPChar
             {
                 .fullScriptName = scriptPath + "/" + fileName,
-                .mapID = ID(),
+                .mapUID = UID(),
             };
 
             for(int i = 0; const auto &m: result){

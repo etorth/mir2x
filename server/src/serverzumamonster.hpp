@@ -8,8 +8,8 @@ class ServerZumaMonster final: public Monster
         bool m_standMode = false;
 
     public:
-        ServerZumaMonster(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : Monster(monID, mapPtr, argX, argY, argDir, masterUID)
+        ServerZumaMonster(uint32_t monID, uint64_t argMapUID, int argX, int argY, int argDir, uint64_t masterUID)
+            : Monster(monID, argMapUID, argX, argY, argDir, masterUID)
         {
             fflassert(isMonster(u8"祖玛雕像") || isMonster(u8"祖玛卫士"));
         }

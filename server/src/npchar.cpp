@@ -350,11 +350,11 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
     )###"));
 }
 
-NPChar::NPChar(const ServerMap *mapCPtr, const SDInitNPChar &initNPChar)
+NPChar::NPChar(const SDInitNPChar &initNPChar)
     : CharObject
       {
-          mapCPtr,
           uidf::buildNPCUID(initNPChar.lookID),
+          initNPChar.mapUID,
 
           initNPChar.x,
           initNPChar.y,
@@ -510,15 +510,15 @@ void NPChar::postAddMonster(uint32_t monsterID)
     std::memset(&amACO, 0, sizeof(amACO));
 
     amACO.type = UID_MON;
+    amACO.mapUID = mapUID();
     amACO.x = X();
     amACO.y = Y() + 1;
-    amACO.mapID = mapID();
     amACO.strictLoc = false;
 
     amACO.monster.monsterID = monsterID;
     amACO.monster.masterUID = 0;
 
-    m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
+    m_actorPod->forward(mapUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_UID:

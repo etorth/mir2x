@@ -2,6 +2,7 @@
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "mathf.hpp"
+#include "mapbindb.hpp"
 #include "fflerror.hpp"
 #include "servermap.hpp"
 #include "monoserver.hpp"
@@ -11,6 +12,7 @@
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
 
+extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
 
 CharObject::LuaThreadRunner::LuaThreadRunner(CharObject *charObjectPtr)
@@ -32,19 +34,19 @@ CharObject::LuaThreadRunner::LuaThreadRunner(CharObject *charObjectPtr)
 }
 
 CharObject::CharObject(
-        const ServerMap *mapCPtr,
-        uint64_t         uid,
-        int              mapX,
-        int              mapY,
-        int              direction)
+        uint64_t uid,
+        uint64_t argMapUID,
+        int      mapX,
+        int      mapY,
+        int      direction)
     : ServerObject(uid)
-    , m_map(mapCPtr)
+    , m_mapUID(argMapUID)
+    , m_mapBinPtr(g_mapBinDB->retrieve(mapID()))
     , m_X(mapX)
     , m_Y(mapY)
     , m_direction(direction)
 {
-    fflassert(m_map);
-    fflassert(m_map->validC(X(), Y()), X(), Y());
+    fflassert(mapBin()->validC(X(), Y()), X(), Y());
     fflassert(pathf::dirValid(Direction()), Direction()); // for NPC direction is gfxDir + DIR_BEGIN
 }
 
@@ -117,9 +119,9 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
     std::memset(&amACO, 0, sizeof(amACO));
 
     amACO.type = UID_MON;
+    amACO.mapUID = mapUID();
     amACO.x = x;
     amACO.y = y;
-    amACO.mapID = m_map->ID();
     amACO.strictLoc = strictLoc;
 
     amACO.monster.monsterID = monsterID;
@@ -138,7 +140,7 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 
 bool CharObject::inView(uint32_t argMapID, int argX, int argY) const
 {
-    return m_map->in(argMapID, argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;
+    return (argMapID == mapID()) && mapBin()->validC(argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;
 }
 
 void CharObject::trimInViewCO()
@@ -267,7 +269,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
     }
 
     if(forceMap){
-        m_actorPod->forward(m_map->UID(), {AM_ACTION, amA});
+        m_actorPod->forward(mapUID(), {AM_ACTION, amA});
         return;
     }
 
@@ -278,7 +280,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
         case ACTION_SPACEMOVE:
         case ACTION_SPAWN:
             {
-                m_actorPod->forward(m_map->UID(), {AM_ACTION, amA});
+                m_actorPod->forward(mapUID(), {AM_ACTION, amA});
                 return;
             }
         default:

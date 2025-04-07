@@ -296,6 +296,12 @@ class Mir2xMapData final
         }
 
     public:
+        bool groundValid(int argX, int argY) const
+        {
+            return validC(argX, argY) && cell(argX, argY).land.canThrough();
+        }
+
+    public:
         Mir2xMapData submap(size_t argX, size_t argY, size_t argW, size_t argH) const
         {
             fflassert(argX % 2 == 0);

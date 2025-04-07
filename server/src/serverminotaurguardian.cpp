@@ -2,8 +2,8 @@
 #include "raiitimer.hpp"
 #include "serverminotaurguardian.hpp"
 
-ServerMinotaurGuardian::ServerMinotaurGuardian(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t argMasterUID)
-    : Monster(monID, mapPtr, argX, argY, argDir, argMasterUID)
+ServerMinotaurGuardian::ServerMinotaurGuardian(uint32_t monID, uint64_t argMapUID, int argX, int argY, int argDir, uint64_t argMasterUID)
+    : Monster(monID, argMapUID, argX, argY, argDir, argMasterUID)
 {
     fflassert(isMonster(u8"潘夜左护卫") || isMonster(u8"潘夜右护卫"));
 }

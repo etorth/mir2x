@@ -68,13 +68,14 @@ void Monster::AStarCache::cache(uint32_t mapID, std::vector<pathf::PathNode> nod
     m_path.swap(nodeList);
 }
 
-Monster::Monster(uint32_t monID,
-        const ServerMap  *mapCPtr,
-        int               mapX,
-        int               mapY,
-        int               direction,
-        uint64_t          masterUID)
-    : BattleObject(mapCPtr, uidf::buildMonsterUID(monID), mapX, mapY, direction)
+Monster::Monster(
+        uint32_t monID,
+        uint64_t argMapUID,
+        int      mapX,
+        int      mapY,
+        int      direction,
+        uint64_t masterUID)
+    : BattleObject(uidf::buildMonsterUID(monID), argMapUID, mapX, mapY, direction)
     , m_masterUID(masterUID)
 {
     fflassert(getMR());
@@ -256,7 +257,7 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
         const auto nDir   = pathf::dirValid(coLoc.direction) ? coLoc.direction : DIR_UP;
         const auto nMapID = coLoc.mapID;
 
-        if(!m_map->in(nMapID, nX, nY)){
+        if(mapID() != nMapID || !mapBin()->validC(nX, nY)){
             if(onError){
                 onError();
             }
@@ -279,7 +280,7 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
 
         const auto nextDir = pathf::getNextDir(nDir, 1);
         const auto [nFrontX, nFrontY] = pathf::getFrontGLoc(nX, nY, nextDir, 1);
-        if(!m_map->groundValid(nFrontX, nFrontY)){
+        if(!mapBin()->groundValid(nFrontX, nFrontY)){
             if(onError){
                 onError();
             }
@@ -301,7 +302,7 @@ void Monster::trackUID(uint64_t nUID, DCCastRange r, std::function<void()> onOK,
 {
     getCOLocation(nUID, [this, r, onOK, onError](const COLocation &coLoc)
     {
-        if(!m_map->in(coLoc.mapID, coLoc.x, coLoc.y)){
+        if(mapID() != coLoc.mapID || !mapBin()->validC(coLoc.x, coLoc.y)){
             if(onError){
                 onError();
             }
@@ -762,7 +763,7 @@ bool Monster::goDie()
     dispatchOffenderExp();
 
     for(auto &item: getMonsterDropItemList(monsterID())){
-        m_actorPod->forward(m_map->UID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+        m_actorPod->forward(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
         {
             .x = X(),
             .y = Y(),
@@ -811,8 +812,8 @@ bool Monster::goGhost()
     // send this to remove the map grid coverage
     // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
 
-    if(hasActorPod() && m_map && m_map->hasActorPod()){
-        m_actorPod->forward(m_map->UID(), {AM_DEADFADEOUT, amDFO});
+    if(hasActorPod()){
+        m_actorPod->forward(mapUID(), {AM_DEADFADEOUT, amDFO});
     }
 
     deactivate();
@@ -1136,7 +1137,7 @@ bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
 
                     std::vector<pathf::PathNode> stvPathNode;
                     for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
-                        if(m_map->groundValid(pCurr->X, pCurr->Y)){
+                        if(mapBin()->groundValid(pCurr->X, pCurr->Y)){
                             stvPathNode.emplace_back(pCurr->X, pCurr->Y);
                         }
                         else{

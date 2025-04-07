@@ -5,6 +5,7 @@
 #include "totype.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
+#include "mapbindb.hpp"
 #include "monster.hpp"
 #include "mathf.hpp"
 #include "servertaodog.hpp"
@@ -17,6 +18,7 @@
 #include "buff.hpp"
 #include "bufflist.hpp"
 
+extern MapBinDB *g_mapBinDB;
 extern MonoServer *g_monoServer;
 
 BattleObject::LuaThreadRunner::LuaThreadRunner(BattleObject *battleObjectPtr)
@@ -56,7 +58,7 @@ BattleObject::BOPathFinder::BOPathFinder(const BattleObject *boPtr, int checkCO)
 
 int BattleObject::BOPathFinder::getGrid(int nX, int nY) const
 {
-    if(!m_BO->GetServerMap()->validC(nX, nY)){
+    if(!m_BO->mapBin()->validC(nX, nY)){
         return PF_NONE;
     }
 
@@ -68,17 +70,16 @@ int BattleObject::BOPathFinder::getGrid(int nX, int nY) const
 }
 
 BattleObject::BattleObject(
-        const ServerMap *mapCPtr,
-        uint64_t         uid,
-        int              mapX,
-        int              mapY,
-        int              direction)
-    : CharObject(mapCPtr, uid, mapX, mapY, direction)
+        uint64_t uid,
+        uint64_t argMapUID,
+        int      mapX,
+        int      mapY,
+        int      direction)
+    : CharObject(uid, argMapUID, mapX, mapY, direction)
     , m_moveLock(false)
     , m_attackLock(false)
     , m_lastAction(ACTION_NONE)
 {
-    fflassert(m_map);
     m_lastActionTime.fill(0);
     m_stateTrigger.install([ptimer = std::make_shared<hres_timer>(), this]() mutable -> bool
     {
@@ -92,7 +93,7 @@ BattleObject::BattleObject(
 
 bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!m_map->groundValid(nX, nY)){
+    if(!mapBin()->groundValid(nX, nY)){
         throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), nX, nY);
     }
 
@@ -193,7 +194,7 @@ bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<voi
 
 bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove, bool removeMonster, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!m_map->groundValid(dstX, dstY)){
+    if(!mapBin()->groundValid(dstX, dstY)){
         throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), dstX, dstY);
     }
 
@@ -284,7 +285,7 @@ bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove
                     // servermap permitted dst may not be (dstX, dstY)
 
                     const auto amAM = rmpk.conv<AMAllowMove>();
-                    fflassert(m_map->validC(amAM.EndX, amAM.EndY));
+                    fflassert(mapBin()->validC(amAM.EndX, amAM.EndY));
 
                     if(!canMove()){
                         m_actorPod->forward(rmpk.from(), AM_MOVEERROR, rmpk.seqID());
@@ -351,12 +352,12 @@ bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove
 bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::function<void()> onOK, std::function<void()> onError)
 {
     if(strictMove){
-        if(!m_map->groundValid(locX, locY)){
+        if(!mapBin()->groundValid(locX, locY)){
             throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(mapID()), locX, locY);
         }
     }
     else{
-        if(!m_map->validC(locX, locY)){
+        if(!mapBin()->validC(locX, locY)){
             throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(mapID()), locX, locY);
         }
     }
@@ -505,42 +506,19 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                                         return;
                                     }
 
-                                    const auto amAMS = rmpk.conv<AMAllowMapSwitch>();
-                                    const auto newMapPtr = static_cast<const ServerMap *>(amAMS.Ptr);
-
-                                    if(!(true && newMapPtr
-                                              && newMapPtr->ID()
-                                              && newMapPtr->UID()
-                                              && newMapPtr->validC(amAMS.X, amAMS.Y))){
-
-                                        // fake map
-                                        // invalid argument, this is not good place to call onError()
-
-                                        m_actorPod->forward(rmpk.from(), AM_MAPSWITCHERROR, rmpk.seqID());
-                                        if(onError){
-                                            onError();
-                                        }
-                                        return;
-                                    }
-
                                     AMTryLeave amTL;
                                     std::memset(&amTL, 0, sizeof(amTL));
 
                                     amTL.X = X();
                                     amTL.Y = Y();
 
-                                    // current map respond for the leave request
-                                    // dangerous here, we should keep m_map always valid
-
                                     m_moveLock = true;
-                                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, rmpk, onOK, onError](const ActorMsgPack &leavermpk)
+                                    m_actorPod->forward(mapUID(), {AM_TRYLEAVE, amTL}, [this, rmpk, onOK, onError](const ActorMsgPack &leavermpk)
                                     {
                                         fflassert(m_moveLock);
                                         m_moveLock = false;
 
                                         const auto amAMS = rmpk.conv<AMAllowMapSwitch>();
-                                        const auto newMapPtr = static_cast<const ServerMap *>(amAMS.Ptr);
-
                                         switch(leavermpk.type()){
                                             case AM_ALLOWLEAVE:
                                                 {
@@ -553,7 +531,9 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                                                         return;
                                                     }
 
-                                                    m_map = newMapPtr;
+                                                    m_mapUID = amAMS.mapUID;
+                                                    m_mapBinPtr = g_mapBinDB->retrieve(mapID());
+
                                                     m_X = amAMS.X;
                                                     m_Y = amAMS.Y;
 
@@ -583,7 +563,7 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                                                                     amMSOK.uid = UID();
                                                                     amMSOK.mapID = mapID();
                                                                     amMSOK.action = makeActionStand();
-                                                                    m_actorPod->forward(m_map->UID(), {AM_MAPSWITCHOK, amMSOK}, rmpk.seqID());
+                                                                    m_actorPod->forward(mapUID(), {AM_MAPSWITCHOK, amMSOK}, rmpk.seqID());
 
                                                                     trimInViewCO();
                                                                     if(isPlayer()){
@@ -606,7 +586,7 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                                                 }
                                             default:
                                                 {
-                                                    m_actorPod->forward(newMapPtr->UID(), AM_MAPSWITCHERROR, rmpk.seqID());
+                                                    m_actorPod->forward(rmpk.conv<AMAllowMapSwitch>().mapUID, AM_MAPSWITCHERROR, rmpk.seqID());
                                                     if(onError){
                                                         onError();
                                                     }
@@ -704,7 +684,7 @@ std::optional<std::tuple<int, int, int>> BattleObject::oneStepReach(int dir, int
     std::optional<std::tuple<int, int, int>> result;
     for(int d = 1; d <= maxDistance; ++d){
         const auto [dstX, dstY] = pathf::getFrontGLoc(X(), Y(), dir, d);
-        if(!m_map->groundValid(dstX, dstY)){
+        if(!mapBin()->groundValid(dstX, dstY)){
             break;
         }
         result = std::make_tuple(dstX, dstY, d);
@@ -764,9 +744,9 @@ void BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
     std::memset(&amACO, 0, sizeof(amACO));
 
     amACO.type = UID_MON;
+    amACO.mapUID = mapUID();
     amACO.x = x;
     amACO.y = y;
-    amACO.mapID = m_map->ID();
     amACO.strictLoc = strictLoc;
 
     amACO.monster.monsterID = monsterID;
@@ -785,8 +765,7 @@ void BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 
 int BattleObject::estimateHop(int nX, int nY)
 {
-    fflassert(m_map);
-    if(!m_map->validC(nX, nY)){
+    if(!mapBin()->validC(nX, nY)){
         return -1;
     }
 
@@ -823,12 +802,11 @@ int BattleObject::estimateHop(int nX, int nY)
 
 int BattleObject::checkPathGrid(int argX, int argY) const
 {
-    fflassert(m_map);
-    if(!m_map->getMapData().validC(argX, argY)){
+    if(!mapBin()->validC(argX, argY)){
         return PF_NONE;
     }
 
-    if(!m_map->getMapData().cell(argX, argY).land.canThrough()){
+    if(!mapBin()->cell(argX, argY).land.canThrough()){
         return PF_OBSTACLE;
     }
 
@@ -896,7 +874,7 @@ std::vector<pathf::PathNode> BattleObject::getValidChaseGrid(int nX, int nY, int
 {
     std::vector<pathf::PathNode> result;
     for(const auto &node: getChaseGrid(nX, nY, nDLen)){
-        if(m_map->groundValid(node.X, node.Y)){
+        if(mapBin()->groundValid(node.X, node.Y)){
             result.push_back(node);
         }
     }
@@ -907,7 +885,7 @@ void BattleObject::getValidChaseGrid(int nX, int nY, int nDLen, scoped_alloc::sv
 {
     buf.c.clear();
     for(const auto &node: getChaseGrid(nX, nY, nDLen)){
-        if(m_map->groundValid(node.X, node.Y)){
+        if(mapBin()->groundValid(node.X, node.Y)){
             buf.c.push_back(node);
         }
     }

@@ -6,8 +6,8 @@
 class ServerTaoSkeletonExt final: public ServerTaoSummon
 {
     public:
-        ServerTaoSkeletonExt(ServerMap *mapPtr, int argX, int argY, uint64_t masterUID)
-            : ServerTaoSummon(DBCOM_MONSTERID(u8"超强骷髅"), mapPtr, argX, argY, DIR_DOWNLEFT, masterUID)
+        ServerTaoSkeletonExt(uint64_t argMapUID, int argX, int argY, uint64_t masterUID)
+            : ServerTaoSummon(DBCOM_MONSTERID(u8"超强骷髅"), argMapUID, argX, argY, DIR_DOWNLEFT, masterUID)
         {}
 
     protected:

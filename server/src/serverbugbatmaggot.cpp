@@ -7,15 +7,15 @@ void ServerBugbatMaggot::addBat()
     std::memset(&amACO, 0, sizeof(amACO));
 
     amACO.type = UID_MON;
+    amACO.mapUID = mapUID();
     amACO.x = X();
     amACO.y = Y() - 1;
-    amACO.mapID = mapID();
     amACO.strictLoc = false;
 
     amACO.monster.monsterID = DBCOM_MONSTERID(u8"蝙蝠");
     amACO.monster.masterUID = 0;
 
-    m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [this](const ActorMsgPack &rmpk)
+    m_actorPod->forward(mapUID(), {AM_ADDCO, amACO}, [this](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_UID:

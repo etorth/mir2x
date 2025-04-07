@@ -10,7 +10,7 @@ class ServerGuard: public Monster
         const int m_standDirection;
 
     public:
-        ServerGuard(uint32_t, ServerMap *, int, int, int);
+        ServerGuard(uint32_t, uint64_t, int, int, int);
 
     protected:
         corof::eval_poller<> updateCoroFunc() override;

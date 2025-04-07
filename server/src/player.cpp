@@ -389,7 +389,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         {
             const int startDir = pathf::getRandDir();
             for(int i = 0; i < 8; ++i){
-                if(const auto [newX, newY] = pathf::getFrontGLoc(getPlayer()->X(), getPlayer()->Y(), pathf::getNextDir(startDir, i)); getPlayer()->m_map->groundValid(newX, newY)){
+                if(const auto [newX, newY] = pathf::getFrontGLoc(getPlayer()->X(), getPlayer()->Y(), pathf::getNextDir(startDir, i)); getPlayer()->mapBin()->groundValid(newX, newY)){
                     return {{newX, newY}};
                 }
             }
@@ -489,8 +489,8 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
     END_LUAINC()));
 }
 
-Player::Player(const SDInitPlayer &initParam, const ServerMap *mapPtr)
-    : BattleObject(mapPtr, uidf::getPlayerUID(initParam.dbid), initParam.x, initParam.y, DIR_DOWN)
+Player::Player(const SDInitPlayer &initParam)
+    : BattleObject(uidf::getPlayerUID(initParam.dbid), initParam.mapUID, initParam.x, initParam.y, DIR_DOWN)
     , m_exp(initParam.exp)
     , m_gender(initParam.gender)
     , m_job(initParam.job)
@@ -844,11 +844,8 @@ bool Player::goGhost()
     amDFO.X     = X();
     amDFO.Y     = Y();
 
-    if(true
-            && hasActorPod()
-            && m_map
-            && m_map->hasActorPod()){
-        m_actorPod->forward(m_map->UID(), {AM_DEADFADEOUT, amDFO});
+    if(hasActorPod()){
+        m_actorPod->forward(mapUID(), {AM_DEADFADEOUT, amDFO});
     }
 
     deactivate();
@@ -979,11 +976,7 @@ bool Player::ActionValid(const ActionNode &)
 
 void Player::dispatchOffline()
 {
-    if(true
-            && hasActorPod()
-            && m_map
-            && m_map->hasActorPod()){
-
+    if(hasActorPod()){
         AMOffline amO;
         std::memset(&amO, 0, sizeof(amO));
 
@@ -992,7 +985,7 @@ void Player::dispatchOffline()
         amO.X     = X();
         amO.Y     = Y();
 
-        m_actorPod->forward(m_map->UID(), {AM_OFFLINE, amO});
+        m_actorPod->forward(mapUID(), {AM_OFFLINE, amO});
         return;
     }
 
@@ -1051,10 +1044,7 @@ void Player::onCMActionStand(CMAction stCMA)
     int nY = stCMA.action.y;
     int nDirection = stCMA.action.direction;
 
-    if(true
-            && m_map
-            && m_map->validC(nX, nY)){
-
+    if(mapBin()->validC(nX, nY)){
         // server get report stand
         // means client is trying to re-sync
         // try client's current location and always response
@@ -1583,8 +1573,8 @@ void Player::onCMActionSpell(CMAction cmA)
                             std::tie(amCFW.x, amCFW.y) = pathf::getFrontGLoc(cmA.action.aimX, cmA.action.aimY, dir, 1);
                         }
 
-                        if(m_map->groundValid(amCFW.x, amCFW.y)){
-                            m_actorPod->forward(m_map->UID(), {AM_CASTFIREWALL, amCFW});
+                        if(mapBin()->groundValid(amCFW.x, amCFW.y)){
+                            m_actorPod->forward(mapUID(), {AM_CASTFIREWALL, amCFW});
                         }
                     }
                 });
@@ -1642,14 +1632,14 @@ void Player::onCMActionSpell(CMAction cmA)
                 std::memset(&amSFLD, 0, sizeof(amSFLD));
 
                 for(const auto &[pathGX, pathGY]: pathGridList){
-                    if(m_map->groundValid(pathGX, pathGY)){
+                    if(mapBin()->groundValid(pathGX, pathGY)){
                         amSFLD.x = pathGX;
                         amSFLD.y = pathGY;
                         amSFLD.damage = getAttackDamage(magicID, 0);
                         addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this]()
                         {
                             if(castMapID == mapID()){
-                                m_actorPod->forward(m_map->UID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                                m_actorPod->forward(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
                                 if(g_serverArgParser->showStrikeGrid){
                                     SMStrikeGrid smSG;
                                     std::memset(&smSG, 0, sizeof(smSG));

@@ -5,8 +5,8 @@
 class ServerMonsterTree final: public Monster
 {
     public:
-        ServerMonsterTree(uint32_t monsterID, const ServerMap *mapPtr, int argX, int argY)
-            : Monster(monsterID, mapPtr, argX, argY, DIR_BEGIN, 0)
+        ServerMonsterTree(uint32_t monsterID, uint64_t argMapUID, int argX, int argY)
+            : Monster(monsterID, argMapUID, argX, argY, DIR_BEGIN, 0)
         {}
 
     protected:

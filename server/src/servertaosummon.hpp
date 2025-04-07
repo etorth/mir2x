@@ -8,8 +8,8 @@ class ServerTaoSummon: public Monster
         int m_masterSC[2] = {0, 0};
 
     public:
-        ServerTaoSummon(uint32_t argMonID, ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : Monster(argMonID, mapPtr, argX, argY, argDir, masterUID)
+        ServerTaoSummon(uint32_t argMonID, uint64_t argMapUID, int argX, int argY, int argDir, uint64_t masterUID)
+            : Monster(argMonID, argMapUID, argX, argY, argDir, masterUID)
         {}
 
     public:

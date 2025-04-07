@@ -36,9 +36,10 @@ struct SDInitPlayer
     std::string name {};
     uint32_t nameColor = 0;
 
+    uint64_t mapUID = 0;
+
     int x = 0;
     int y = 0;
-    uint32_t mapID = 0;
 
     int hp = 0;
     int mp = 0;
@@ -53,7 +54,7 @@ struct SDInitPlayer
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(dbid, channID, name, nameColor, x, y, mapID, hp, mp, exp, gold, gender, job, hair, hairColor);
+        ar(dbid, channID, name, nameColor, mapUID, x, y, hp, mp, exp, gold, gender, job, hair, hairColor);
     }
 };
 
@@ -63,14 +64,15 @@ struct SDInitNPChar
     std::string npcName {};
     std::string fullScriptName {};
 
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
+
     int x = 0;
     int y = 0;
     int gfxDir = 0;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(lookID, npcName, fullScriptName, mapID, x, y, gfxDir);
+        ar(lookID, npcName, fullScriptName, mapUID, x, y, gfxDir);
     }
 };
 

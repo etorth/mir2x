@@ -5,8 +5,8 @@
 class ServerSandCactus final: public Monster
 {
     public:
-        ServerSandCactus(ServerMap *mapPtr, int argX, int argY)
-            : Monster(DBCOM_MONSTERID(u8"沙漠树魔"), mapPtr, argX, argY, DIR_BEGIN, 0)
+        ServerSandCactus(uint64_t argMapUID, int argX, int argY)
+            : Monster(DBCOM_MONSTERID(u8"沙漠树魔"), argMapUID, argX, argY, DIR_BEGIN, 0)
         {}
 
     protected:

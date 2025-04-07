@@ -108,7 +108,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
         {
             std::vector<std::tuple<int, int>> gridList;
             for(const auto r: {1, 2}){
-                if(const auto [attackGX, attackGY] = pathf::getFrontGLoc(X(), Y(), Direction(), r); m_map->groundValid(attackGX, attackGY)){
+                if(const auto [attackGX, attackGY] = pathf::getFrontGLoc(X(), Y(), Direction(), r); mapBin()->groundValid(attackGX, attackGY)){
                     gridList.push_back({attackGX, attackGY});
                 }
             }
@@ -121,7 +121,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
             std::memset(&amA, 0, sizeof(amA));
 
             amA.UID = UID();
-            amA.mapID = m_map->UID();
+            amA.mapID = mapUID();
 
             amA.X = X();
             amA.Y = Y();

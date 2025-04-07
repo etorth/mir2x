@@ -68,7 +68,7 @@ class Monster: public BattleObject
 
     public:
         Monster(uint32_t,           // monster id
-                const ServerMap *,  // server map
+                uint64_t,           // server map uid
                 int,                // map x
                 int,                // map y
                 int,                // direction

@@ -97,7 +97,7 @@ void Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t, uint64_t)
 void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmPU = ClientMsg::conv<CMPickUp>(buf);
-    if(cmPU.mapID != m_map->ID()){
+    if(cmPU.mapID != mapID()){
         return;
     }
 
@@ -126,7 +126,7 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
     amPU.availableWeight = 500;
 
     m_pickUpLock = true;
-    m_actorPod->forward(m_map->UID(), {AM_PICKUP, amPU}, [fnPostPickUpError, this](const ActorMsgPack &mpk)
+    m_actorPod->forward(mapUID(), {AM_PICKUP, amPU}, [fnPostPickUpError, this](const ActorMsgPack &mpk)
     {
         if(!m_pickUpLock){
             throw fflerror("pick up lock released before get response");
@@ -961,7 +961,7 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
     fflassert(dropItem);
     removeInventoryItem(dropItem);
 
-    m_actorPod->forward(m_map->UID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+    m_actorPod->forward(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
     {
         .x = X(),
         .y = Y(),

@@ -567,9 +567,9 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     std::memset(&amACO, 0, sizeof(amACO));
 
     amACO.type = UID_MON;
+    amACO.mapUID = uidf::getMapBaseUID(mapID);
     amACO.x = x;
     amACO.y = y;
-    amACO.mapID = mapID;
     amACO.strictLoc = strictLoc;
 
     amACO.monster.monsterID = monsterID;
@@ -609,7 +609,7 @@ bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID,
     std::memset(&amACO, 0, sizeof(amACO));
 
     amACO.type  = UID_NPC;
-    amACO.mapID = mapID;
+    amACO.mapUID = uidf::getMapBaseUID(mapID);
     amACO.x = x;
     amACO.y = y;
     amACO.strictLoc = false;
@@ -619,7 +619,7 @@ bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID,
         .lookID = lookID,
         .npcName = npcName,
         .fullScriptName = fullScriptName,
-        .mapID = mapID,
+        .mapUID = uidf::getMapBaseUID(mapID),
         .x = x,
         .y = y,
         .gfxDir = gfxDir,

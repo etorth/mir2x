@@ -6,8 +6,8 @@
 #include "serverguard.hpp"
 
 extern MonoServer *g_monoServer;
-ServerGuard::ServerGuard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
-    : Monster(monID, mapPtr, argX, argY, argDir, 0)
+ServerGuard::ServerGuard(uint32_t monID, uint64_t argMapUID, int argX, int argY, int argDir)
+    : Monster(monID, argMapUID, argX, argY, argDir, 0)
     , m_standX(argX)
     , m_standY(argY)
     , m_standDirection(argDir)

@@ -8,8 +8,8 @@ class ServerTaoDog final: public ServerTaoSummon
         bool m_standMode = false;
 
     public:
-        ServerTaoDog(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : ServerTaoSummon(DBCOM_MONSTERID(u8"神兽"), mapPtr, argX, argY, argDir, masterUID)
+        ServerTaoDog(uint64_t argMapUID, int argX, int argY, int argDir, uint64_t masterUID)
+            : ServerTaoSummon(DBCOM_MONSTERID(u8"神兽"), argMapUID, argX, argY, argDir, masterUID)
         {}
 
     public:

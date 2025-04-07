@@ -5,8 +5,8 @@
 class ServerAntHealer final: public Monster
 {
     public:
-        ServerAntHealer(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : Monster(DBCOM_MONSTERID(u8"蚂蚁道士"), mapPtr, argX, argY, argDir, masterUID)
+        ServerAntHealer(uint64_t argMapUID, int argX, int argY, int argDir, uint64_t masterUID)
+            : Monster(DBCOM_MONSTERID(u8"蚂蚁道士"), argMapUID, argX, argY, argDir, masterUID)
         {}
 
     protected:

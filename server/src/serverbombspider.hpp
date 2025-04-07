@@ -5,8 +5,8 @@
 class ServerBombSpider final: public Monster
 {
     public:
-        ServerBombSpider(ServerMap *mapPtr, int argX, int argY, int argDir)
-            : Monster(DBCOM_MONSTERID(u8"爆裂蜘蛛"), mapPtr, argX, argY, argDir, 0)
+        ServerBombSpider(uint64_t argMapUID, int argX, int argY, int argDir)
+            : Monster(DBCOM_MONSTERID(u8"爆裂蜘蛛"), argMapUID, argX, argY, argDir, 0)
         {}
 
     protected:

@@ -5,8 +5,8 @@
 class ServerDualAxeSkeleton final: public Monster
 {
     public:
-        ServerDualAxeSkeleton(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : Monster(DBCOM_MONSTERID(u8"掷斧骷髅"), mapPtr, argX, argY, argDir, masterUID)
+        ServerDualAxeSkeleton(uint64_t argMapUID, int argX, int argY, int argDir, uint64_t masterUID)
+            : Monster(DBCOM_MONSTERID(u8"掷斧骷髅"), argMapUID, argX, argY, argDir, masterUID)
         {}
 
     protected:

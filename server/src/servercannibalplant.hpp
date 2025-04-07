@@ -8,8 +8,8 @@ class ServerCannibalPlant final: public Monster
         bool m_standMode = false;
 
     public:
-        ServerCannibalPlant(ServerMap *mapPtr, int argX, int argY)
-            : Monster(DBCOM_MONSTERID(u8"食人花"), mapPtr, argX, argY, DIR_BEGIN, 0)
+        ServerCannibalPlant(uint64_t argMapUID, int argX, int argY)
+            : Monster(DBCOM_MONSTERID(u8"食人花"), argMapUID, argX, argY, DIR_BEGIN, 0)
         {}
 
     protected:

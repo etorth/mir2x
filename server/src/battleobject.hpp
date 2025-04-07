@@ -77,12 +77,6 @@ class BattleObject: public CharObject
         };
 
     protected:
-        const ServerMap *GetServerMap() const
-        {
-            return m_map;
-        }
-
-    protected:
         SDHealth m_sdHealth;
         SDBuffedAbility m_sdBuffedAbility;
 
@@ -102,11 +96,11 @@ class BattleObject: public CharObject
 
     public:
         BattleObject(
-                const ServerMap *,  // server map
-                uint64_t,           // uid
-                int,                // map x
-                int,                // map y
-                int);               // direction
+                uint64_t, // uid
+                uint64_t, // server map uid
+                int,      // map x
+                int,      // map y
+                int);     // direction
 
     public:
         ~BattleObject() = default;

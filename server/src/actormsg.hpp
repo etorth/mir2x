@@ -170,9 +170,10 @@ struct AMAddCharObject
 {
     int type;
 
+    uint64_t mapUID;
     int x;
     int y;
-    uint32_t mapID;
+
     bool strictLoc;
 
     struct _monsterType
@@ -362,8 +363,7 @@ struct AMTryMapSwitch
 
 struct AMAllowMapSwitch
 {
-    void *Ptr;
-
+    uint64_t mapUID;
     int X;
     int Y;
 };
