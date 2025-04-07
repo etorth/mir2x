@@ -97,11 +97,12 @@ asio::awaitable<void> ActorNetDriver::listener()
         g_monoServer->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
 
         peer->launch();
-
-        post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(SDSysNotifySlave
-        {
-             .peerIndex = m_peerSlotList.size() - 1,
-        })));
+        if(!g_serverArgParser->slave){
+            post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(SDSysNotifySlave
+            {
+                 .peerIndex = m_peerSlotList.size() - 1,
+            })));
+        }
     }
 }
 
