@@ -338,7 +338,7 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                             {
                                 postPeer(peerIndex, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
                                 {
-                                    .index = peerIndex,
+                                    .index = m_peerIndex.value(),
                                 })));
                             });
                         }
