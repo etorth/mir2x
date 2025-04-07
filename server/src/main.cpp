@@ -57,7 +57,10 @@ int main(int argc, char *argv[])
         g_monoServer = new MonoServer();
         g_mapBinDB   = new MapBinDB();
         g_actorPool  = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
-        g_dbPod      = new DBPod();
+
+        if(!g_serverArgParser->slave){
+            g_dbPod = new DBPod();
+        }
 
         if(!g_serverArgParser->slave){
             g_scriptWindow          = new ScriptWindow();
