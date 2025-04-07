@@ -20,6 +20,7 @@ class ActorNetDriver
 
     private:
         std::optional<size_t> m_peerIndex;
+        std::map<size_t, std::pair<std::string, uint32_t>> m_remotePeerList;
 
     private:
         std::vector<std::unique_ptr<PeerSlot>> m_peerSlotList;
@@ -72,6 +73,6 @@ class ActorNetDriver
         void postMaster(ActorMsgPack);
 
     private:
-        void onRemoteMessage(uint64_t, ActorMsgPack);
+        void onRemoteMessage(size_t, uint64_t, ActorMsgPack);
         void asyncConnect(size_t, const std::string &, asio::ip::port_type, std::function<void()>);
 };

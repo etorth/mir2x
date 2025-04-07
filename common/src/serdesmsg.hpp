@@ -1094,14 +1094,30 @@ struct SDTeamMemberList
     }
 };
 
-struct SDSysNotifySlave
+struct SDSysSlavePeerPort
 {
-    size_t slaveID {};
-    std::map<size_t, std::pair<std::string, uint32_t>> peerList;
-
+    uint32_t port = 0;
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(slaveID, peerList);
+        ar(port);
+    }
+};
+
+struct SDSysSlavePeerList
+{
+    std::map<size_t, std::pair<std::string, uint32_t>> list;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(list);
+    }
+};
+
+struct SDSysNotifySlave
+{
+    size_t peerIndex {};
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(peerIndex);
     }
 };
 

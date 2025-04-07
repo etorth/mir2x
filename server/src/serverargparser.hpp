@@ -196,4 +196,17 @@ struct ServerArgParser
             }
         }
     }
+
+    uint32_t getPeerPort() const
+    {
+        return peerPort.value_or([this]()
+        {
+            if(slave){
+                return masterPort.value();
+            }
+            else{
+                return clientPort.value() + 1;
+            }
+        }());
+    }
 };

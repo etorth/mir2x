@@ -17,18 +17,15 @@ static thread_local bool t_actorNetThreadFlag = false; // use bool since only ha
 ActorNetDriver::ActorNetDriver()
     : m_context(std::make_unique<asio::io_context>(1))
 {
-    launch(g_serverArgParser->peerPort.value_or([]()
-    {
-        if(g_serverArgParser->slave){
-            return g_serverArgParser->masterPort.value();
-        }
-        else{
-            return g_serverArgParser->clientPort.value() + 1;
-        }
-    }()));
-
+    launch(g_serverArgParser->getPeerPort());
     if(g_serverArgParser->slave){
-        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort.value(), nullptr);
+        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort.value(), [this]()
+        {
+            postMaster(ActorMsgBuf(AM_SYS_SLAVEPEERPORT, cerealf::serialize(SDSysSlavePeerPort
+            {
+                .port = g_serverArgParser->getPeerPort(),
+            })));
+        });
     }
 }
 
@@ -94,23 +91,17 @@ asio::awaitable<void> ActorNetDriver::listener()
         auto slotPtr = m_peerSlotList.back().get();
 
         slotPtr->sendBuf.clear();
-        slotPtr->peer = std::make_shared<ServerPeer>(this, std::move(sock), m_peerSlotList.size(), slotPtr->lock, slotPtr->sendBuf);
+        slotPtr->peer = std::make_shared<ServerPeer>(this, std::move(sock), m_peerSlotList.size() - 1, slotPtr->lock, slotPtr->sendBuf);
 
         auto peer = slotPtr->peer.get();
         g_monoServer->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
 
         peer->launch();
 
-        SDSysNotifySlave sdSNS
+        post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(SDSysNotifySlave
         {
-            .slaveID = m_peerSlotList.size(),
-        };
-
-        for(size_t i = 1; i + 1 < m_peerSlotList.size(); ++i){
-            sdSNS.peerList[i] = std::make_pair(m_peerSlotList.at(i)->peer->ip(), m_peerSlotList.at(i)->peer->port());
-        }
-
-        post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(sdSNS)));
+             .peerIndex = m_peerSlotList.size() - 1,
+        })));
     }
 }
 
@@ -214,7 +205,7 @@ size_t ActorNetDriver::hasPeer() const
     return count;
 }
 
-void ActorNetDriver::onRemoteMessage(uint64_t uid, ActorMsgPack mpk)
+void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMsgPack mpk)
 {
     if(uid){
         g_actorPool->postLocalMessage(uid, std::move(mpk));
@@ -225,13 +216,56 @@ void ActorNetDriver::onRemoteMessage(uint64_t uid, ActorMsgPack mpk)
         case AM_SYS_NOTIFYSLAVE:
             {
                 const auto sdSNS = mpk.deserialize<SDSysNotifySlave>();
-                m_peerIndex = sdSNS.slaveID;
+                m_peerIndex = sdSNS.peerIndex;
+                return;
+            }
+        case AM_SYS_SLAVEPEERPORT:
+            {
+                const auto sdSPP = mpk.deserialize<SDSysSlavePeerPort>();
+                m_remotePeerList[fromPeerIndex] = std::make_pair(m_peerSlotList.at(fromPeerIndex)->peer->ip(), sdSPP.port);
 
-                for(const auto &[peerIndex, addr]: sdSNS.peerList){
-                    asyncConnect(peerIndex, addr.first, addr.second, [ip = addr.first]
+                for(size_t i = 1; i < m_peerSlotList.size(); ++i){
+                    post(i, 0, ActorMsgBuf(AM_SYS_SLAVEPEERLIST, cerealf::serialize(SDSysSlavePeerList
                     {
-                        g_monoServer->addLog(LOGTYPE_INFO, "%s", to_cstr(ip));
-                    });
+                        .list = m_remotePeerList,
+                    })));
+                }
+                return;
+            }
+        case AM_SYS_SLAVEPEERLIST:
+            {
+                const auto sdSPL = mpk.deserialize<SDSysSlavePeerList>();
+                for(const auto &[peerIndex, addr]: sdSPL.list){
+                    if(peerIndex == 0){
+                        throw fflerror("found master peer in slave peer list");
+                    }
+                    else if(m_peerIndex == peerIndex){
+                        continue;
+                    }
+                    else if(const auto p = m_remotePeerList.find(peerIndex); p != m_remotePeerList.end()){
+                        if(p->second != addr){
+                            throw fflerror("peer %zu address mismatch", peerIndex);
+                        }
+                    }
+                    else{
+                        if(peerIndex >= m_peerSlotList.size()){
+                            m_peerSlotList.resize(peerIndex + 1);
+                        }
+
+                        if(m_peerSlotList[peerIndex]){
+                            if(m_peerSlotList[peerIndex]->peer){
+                                // already connected
+                            }
+                            else{
+                                // connecting
+                            }
+                        }
+                        else{
+                            // start to connect
+                            m_peerSlotList[peerIndex] = std::make_unique<PeerSlot>();
+                            asyncConnect(peerIndex, addr.first, addr.second, nullptr);
+                        }
+                    }
                 }
                 return;
             }
