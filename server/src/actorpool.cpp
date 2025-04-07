@@ -824,19 +824,15 @@ void ActorPool::launch()
         launchPool();
     }
     else{
-        const auto peerCount = m_actorNetDriver->hasPeer();
-        for(size_t peerIndex = 1; peerIndex <= peerCount; ++peerIndex){
-            m_actorNetDriver->postPeer(peerIndex, AM_SYS_LAUNCH);
+        if(const auto peerCount = m_actorNetDriver->hasPeer(); peerCount > 0){
+            for(size_t peerIndex = 1; peerIndex <= peerCount; ++peerIndex){
+                m_actorNetDriver->postPeer(peerIndex, AM_SYS_LAUNCH);
+            }
+        }
+        else{
+            launchBalance();
         }
     }
-    // m_serviceCore = std::make_unique<ServiceCore>();
-    // m_serviceCore->activate(-1.0);
-    //
-    // if(g_serverArgParser->slave){
-    // }
-    // else{
-    //     launchNet(g_serverConfigureWindow->getConfig().clientPort);
-    // }
 }
 
 void ActorPool::launchNet(int port)
@@ -925,6 +921,19 @@ void ActorPool::launchPool()
         });
         g_monoServer->addLog(LOGTYPE_INFO, "Actor thread %d launched", bucketId);
     }
+}
+
+void ActorPool::launchBalance()
+{
+    launchPool();
+
+    m_serviceCore = std::make_unique<ServiceCore>();
+    m_serviceCore->activate(-1.0);
+
+    const auto clientPort = g_serverConfigureWindow->getConfig().clientPort;
+
+    launchNet(clientPort);
+    g_monoServer->addLog(LOGTYPE_INFO, "Master server launched, listening players on port: %d", clientPort);
 }
 
 bool ActorPool::checkUIDValid(uint64_t uid) const

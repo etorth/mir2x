@@ -16,7 +16,16 @@ extern ServerConfigureWindow *g_serverConfigureWindow;
 static thread_local bool t_actorNetThreadFlag = false; // use bool since only has 1 net thread
 
 ActorNetDriver::ActorNetDriver()
-    : m_context(std::make_unique<asio::io_context>(1))
+    : m_peerIndex([]() -> std::optional<size_t>
+      {
+          if(g_serverArgParser->slave){
+              return std::nullopt;
+          }
+          else{
+              return 0;
+          }
+      }())
+    , m_context(std::make_unique<asio::io_context>(1))
 {
     launch(g_serverArgParser->getPeerPort());
     if(g_serverArgParser->slave){
@@ -365,9 +374,7 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                 m_launchedCount++;
 
                 if(m_launchedCount >= hasPeer()){
-                    // TODO
-                    // create service core
-                    // launch player acceptor
+                    g_actorPool->launchBalance();
                 }
                 return;
             }

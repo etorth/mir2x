@@ -560,10 +560,20 @@ class ActorPool final
         void detach(const ActorPod *, std::function<void()>);
 
     public:
-        void launch();
-        void launchNet(int);
-        void launchPool();
         bool checkUIDValid(uint64_t) const;
+
+    public:
+        void launch();  // --launch-+-closeAcceptor
+                        //          |
+                        //          +-launchBalance-+-launchPool
+                        //                          |
+                        //                          +-launchNet
+    private:
+        void launchBalance();
+
+    private:
+        void launchPool();
+        void launchNet(int);
 
     private:
         uint64_t GetInnActorUID();
