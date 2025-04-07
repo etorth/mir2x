@@ -221,8 +221,8 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                     throw fflerror("invalid request to reassign peer %zu to index %zu", m_peerIndex.value(), sdSNS.peerIndex);
                 }
 
-                addLog(LOGTYPE_INFO, "Assign peer index %zu.", m_peerIndex.value());
                 m_peerIndex = sdSNS.peerIndex;
+                g_monoServer->addLog(LOGTYPE_INFO, "Assign peer index %zu.", m_peerIndex.value());
                 return;
             }
         case AM_SYS_SLAVEPEERPORT:
