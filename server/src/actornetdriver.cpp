@@ -7,6 +7,7 @@
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 #include "serverpeer.hpp"
+#include "asiof.hpp"
 
 extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
@@ -81,29 +82,88 @@ asio::awaitable<void> ActorNetDriver::listener()
             throw fflerror("acceptor error: %s", ec.message().c_str());
         }
 
-        if(!g_serverArgParser->slave){
+        if(g_serverArgParser->slave){
+            asio::co_spawn(*m_context, readPeerIndex(std::move(sock)), [](std::exception_ptr e)
+            {
+                if(e){
+                    std::rethrow_exception(e);
+                }
+            });
+        }
+        else{
             if(m_peerSlotList.empty()){
                 m_peerSlotList.emplace_back();
             }
-        }
 
-        m_peerSlotList.emplace_back(std::make_unique<PeerSlot>());
-        auto slotPtr = m_peerSlotList.back().get();
+            m_peerSlotList.emplace_back(std::make_unique<PeerSlot>());
+            auto slotPtr = m_peerSlotList.back().get();
 
-        slotPtr->sendBuf.clear();
-        slotPtr->peer = std::make_shared<ServerPeer>(this, std::move(sock), m_peerSlotList.size() - 1, slotPtr->lock, slotPtr->sendBuf);
+            slotPtr->sendBuf.clear();
+            slotPtr->peer = std::make_shared<ServerPeer>
+            (
+                this,
+                std::move(sock),
 
-        auto peer = slotPtr->peer.get();
-        g_monoServer->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
+                m_peerSlotList.size() - 1,
 
-        peer->launch();
-        if(!g_serverArgParser->slave){
+                slotPtr->lock,
+                slotPtr->sendBuf
+            );
+
+            auto peer = slotPtr->peer.get();
+            g_monoServer->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
+
+            peer->launch();
             post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(SDSysNotifySlave
             {
                  .peerIndex = m_peerSlotList.size() - 1,
             })));
         }
     }
+}
+
+asio::awaitable<void> ActorNetDriver::readPeerIndex(asio::ip::tcp::socket sock)
+{
+    fflassert(isNetThread());
+    std::string buf;
+
+    const auto uid     = co_await asiof::readVLInteger<uint64_t>(sock);
+    const auto bufSize = co_await asiof::readVLInteger<  size_t>(sock);
+
+    fflassert(uid == 0);
+    fflassert(bufSize > 0);
+
+    buf.resize(bufSize);
+    co_await asio::async_read(sock, asio::buffer(buf.data(), buf.size()), asio::use_awaitable);
+
+    const auto mpk = cerealf::deserialize<ActorMsgPack>(buf);
+    fflassert(mpk.type() == AM_SYS_NOTIFYSLAVE, mpkName(mpk.type()));
+
+
+    const auto sdNS = cerealf::deserialize<SDSysNotifySlave>(buf);
+    fflassert(sdNS.peerIndex > 0);
+
+    if(sdNS.peerIndex >= m_peerSlotList.size()){
+        m_peerSlotList.resize(sdNS.peerIndex + 1);
+    }
+
+    if(!m_peerSlotList[sdNS.peerIndex]){
+        m_peerSlotList[sdNS.peerIndex] = std::make_unique<PeerSlot>();
+    }
+
+    m_peerSlotList[sdNS.peerIndex]->sendBuf.clear();
+    m_peerSlotList[sdNS.peerIndex]->peer = std::make_shared<ServerPeer>
+    (
+        this,
+
+        std::move(sock),
+        sdNS.peerIndex,
+
+        m_peerSlotList[sdNS.peerIndex]->lock,
+        m_peerSlotList[sdNS.peerIndex]->sendBuf
+    );
+
+    m_peerSlotList[sdNS.peerIndex]->peer->launch();
 }
 
 void ActorNetDriver::post(size_t peerIndex, uint64_t uid, ActorMsgPack mpk)

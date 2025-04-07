@@ -59,6 +59,7 @@ class ActorNetDriver
 
     public:
         asio::awaitable<void> listener();
+        asio::awaitable<void> readPeerIndex(asio::ip::tcp::socket);
 
     public:
         void post(size_t, uint64_t, ActorMsgPack);
