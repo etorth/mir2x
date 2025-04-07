@@ -217,6 +217,11 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
         case AM_SYS_NOTIFYSLAVE:
             {
                 const auto sdSNS = mpk.deserialize<SDSysNotifySlave>();
+                if(m_peerIndex.has_value()){
+                    throw fflerror("invalid request to reassign peer %zu to index %zu", m_peerIndex.value(), sdSNS.peerIndex);
+                }
+
+                addLog(LOGTYPE_INFO, "Assign peer index %zu.", m_peerIndex.value());
                 m_peerIndex = sdSNS.peerIndex;
                 return;
             }
