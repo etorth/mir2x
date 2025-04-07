@@ -5,6 +5,7 @@
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
+#include "uid2p.hpp"
 #include "receiver.hpp"
 #include "actorpod.hpp"
 #include "netdriver.hpp"
@@ -452,34 +453,13 @@ bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
     fflassert(uid);
     fflassert(msg);
 
-    if(const auto peerCount = m_actorNetDriver->hasPeer(); peerCount > 0){
-        switch(uidf::getUIDType(uid)){
-            case UID_MAP:
-            case UID_MON:
-                {
-                    const auto peerIndex = [uid, peerCount, this]() -> size_t
-                    {
-                        if(g_serverArgParser->lightMasterServer){
-                            return (uid % peerCount) + 1;
-                        }
-                        else{
-                            return uid % (peerCount + 1);
-                        }
-                    }();
-
-                    if(peerIndex != m_actorNetDriver->peerIndex()){
-                        m_actorNetDriver->post(peerIndex, uid, std::move(msg));
-                        return true;
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
+    if(const auto peerIndex = uid2p::peerIndex(uid); peerIndex == m_actorNetDriver->peerIndex()){
+        return postLocalMessage(uid, std::move(msg));
     }
-    return postLocalMessage(uid, std::move(msg));
+    else{
+        m_actorNetDriver->post(peerIndex, uid, std::move(msg));
+        return true;
+    }
 }
 
 void ActorPool::runOneUID(uint64_t uid)
@@ -1050,4 +1030,9 @@ ActorPodMonitor ActorPool::getPodMonitor(uint64_t uid) const
         }
     }
     return {};
+}
+
+size_t ActorPool::hasPeer() const
+{
+    return m_actorNetDriver->hasPeer();
 }

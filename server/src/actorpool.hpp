@@ -560,6 +560,9 @@ class ActorPool final
         void detach(const ActorPod *, std::function<void()>);
 
     public:
+        size_t hasPeer() const;
+
+    public:
         bool checkUIDValid(uint64_t) const;
 
     public:
