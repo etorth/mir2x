@@ -239,13 +239,13 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                     if(peerIndex == 0){
                         throw fflerror("found master peer in slave peer list");
                     }
-                    else if(m_peerIndex == peerIndex){
-                        continue;
-                    }
                     else if(const auto p = m_remotePeerList.find(peerIndex); p != m_remotePeerList.end()){
                         if(p->second != addr){
                             throw fflerror("peer %zu address mismatch", peerIndex);
                         }
+                    }
+                    else if(peerIndex >= m_peerIndex){
+                        continue;
                     }
                     else{
                         if(peerIndex >= m_peerSlotList.size()){
@@ -263,7 +263,10 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                         else{
                             // start to connect
                             m_peerSlotList[peerIndex] = std::make_unique<PeerSlot>();
-                            asyncConnect(peerIndex, addr.first, addr.second, nullptr);
+                            asyncConnect(peerIndex, addr.first, addr.second, [peerIndex]()
+                            {
+                                g_monoServer->addLog(LOGTYPE_INFO, "Connected to peer %zu", peerIndex);
+                            });
                         }
                     }
                 }
