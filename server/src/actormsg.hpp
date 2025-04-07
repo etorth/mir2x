@@ -9,8 +9,8 @@ enum ActorMsgPackType: int
 {
     AM_NONE = 0,
 
-    AM_SYS_BEGIN       = 1,
-    AM_SYS_NOTIFYSLAVE = 1,
+    AM_SYS_BEGIN     = 1,
+    AM_SYS_PEERINDEX = 1,
     AM_SYS_LAUNCH,
     AM_SYS_LAUNCHED,
     AM_SYS_SLAVEPEERPORT,

@@ -1112,12 +1112,12 @@ struct SDSysSlavePeerList
     }
 };
 
-struct SDSysNotifySlave
+struct SDSysPeerIndex
 {
-    size_t peerIndex {};
+    size_t index {};
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(peerIndex);
+        ar(index);
     }
 };
 

@@ -72,6 +72,7 @@ class ActorNetDriver
 
     private:
         void postMaster(ActorMsgPack);
+        void postPeer(size_t, ActorMsgPack);
 
     private:
         void onRemoteMessage(size_t, uint64_t, ActorMsgPack);

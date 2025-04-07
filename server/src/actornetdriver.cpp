@@ -114,9 +114,9 @@ asio::awaitable<void> ActorNetDriver::listener()
             g_monoServer->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
 
             peer->launch();
-            post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_NOTIFYSLAVE, cerealf::serialize(SDSysNotifySlave
+            post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
             {
-                 .peerIndex = m_peerSlotList.size() - 1,
+                 .index = m_peerSlotList.size() - 1,
             })));
         }
     }
@@ -137,33 +137,33 @@ asio::awaitable<void> ActorNetDriver::readPeerIndex(asio::ip::tcp::socket sock)
     co_await asio::async_read(sock, asio::buffer(buf.data(), buf.size()), asio::use_awaitable);
 
     const auto mpk = cerealf::deserialize<ActorMsgPack>(buf);
-    fflassert(mpk.type() == AM_SYS_NOTIFYSLAVE, mpkName(mpk.type()));
+    fflassert(mpk.type() == AM_SYS_PEERINDEX, mpkName(mpk.type()));
 
 
-    const auto sdNS = cerealf::deserialize<SDSysNotifySlave>(buf);
-    fflassert(sdNS.peerIndex > 0);
+    const auto sdPI = cerealf::deserialize<SDSysPeerIndex>(buf);
+    fflassert(sdPI.index > 0);
 
-    if(sdNS.peerIndex >= m_peerSlotList.size()){
-        m_peerSlotList.resize(sdNS.peerIndex + 1);
+    if(sdPI.index >= m_peerSlotList.size()){
+        m_peerSlotList.resize(sdPI.index + 1);
     }
 
-    if(!m_peerSlotList[sdNS.peerIndex]){
-        m_peerSlotList[sdNS.peerIndex] = std::make_unique<PeerSlot>();
+    if(!m_peerSlotList[sdPI.index]){
+        m_peerSlotList[sdPI.index] = std::make_unique<PeerSlot>();
     }
 
-    m_peerSlotList[sdNS.peerIndex]->sendBuf.clear();
-    m_peerSlotList[sdNS.peerIndex]->peer = std::make_shared<ServerPeer>
+    m_peerSlotList[sdPI.index]->sendBuf.clear();
+    m_peerSlotList[sdPI.index]->peer = std::make_shared<ServerPeer>
     (
         this,
 
         std::move(sock),
-        sdNS.peerIndex,
+        sdPI.index,
 
-        m_peerSlotList[sdNS.peerIndex]->lock,
-        m_peerSlotList[sdNS.peerIndex]->sendBuf
+        m_peerSlotList[sdPI.index]->lock,
+        m_peerSlotList[sdPI.index]->sendBuf
     );
 
-    m_peerSlotList[sdNS.peerIndex]->peer->launch();
+    m_peerSlotList[sdPI.index]->peer->launch();
 }
 
 void ActorNetDriver::post(size_t peerIndex, uint64_t uid, ActorMsgPack mpk)
@@ -195,9 +195,14 @@ void ActorNetDriver::post(size_t peerIndex, uint64_t uid, ActorMsgPack mpk)
     }
 }
 
+void ActorNetDriver::postPeer(size_t peerIndex, ActorMsgPack mpk)
+{
+    post(peerIndex, 0, std::move(mpk));
+}
+
 void ActorNetDriver::postMaster(ActorMsgPack mpk)
 {
-    post(0, 0, mpk);
+    postPeer(0, std::move(mpk));
 }
 
 void ActorNetDriver::close(uint32_t channID)
@@ -274,14 +279,14 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
     }
 
     switch(mpk.type()){
-        case AM_SYS_NOTIFYSLAVE:
+        case AM_SYS_PEERINDEX:
             {
-                const auto sdSNS = mpk.deserialize<SDSysNotifySlave>();
+                const auto sdPI = mpk.deserialize<SDSysPeerIndex>();
                 if(m_peerIndex.has_value()){
-                    throw fflerror("invalid request to reassign peer %zu to index %zu", m_peerIndex.value(), sdSNS.peerIndex);
+                    throw fflerror("invalid request to reassign peer %zu to index %zu", m_peerIndex.value(), sdPI.index);
                 }
 
-                m_peerIndex = sdSNS.peerIndex;
+                m_peerIndex = sdPI.index;
                 g_monoServer->addLog(LOGTYPE_INFO, "Assign peer index %zu.", m_peerIndex.value());
                 return;
             }
@@ -329,9 +334,12 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                         else{
                             // start to connect
                             m_peerSlotList[peerIndex] = std::make_unique<PeerSlot>();
-                            asyncConnect(peerIndex, addr.first, addr.second, [peerIndex]()
+                            asyncConnect(peerIndex, addr.first, addr.second, [peerIndex, this]()
                             {
-                                g_monoServer->addLog(LOGTYPE_INFO, "Connected to peer %zu", peerIndex);
+                                postPeer(peerIndex, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
+                                {
+                                    .index = peerIndex,
+                                })));
                             });
                         }
                     }
