@@ -78,8 +78,12 @@ asio::awaitable<void> ActorNetDriver::listener()
     while(true){
         auto sock = co_await m_acceptor->async_accept(asio::redirect_error(asio::use_awaitable, ec));
         if(ec){
-            m_acceptor->close();
-            throw fflerror("acceptor error: %s", ec.message().c_str());
+            if(ec == asio::error::operation_aborted){
+                co_return;
+            }
+            else{
+                throw std::system_error(ec);
+            }
         }
 
         if(g_serverArgParser->slave){
@@ -262,13 +266,13 @@ void ActorNetDriver::doClose(uint32_t channID)
 
 size_t ActorNetDriver::hasPeer() const
 {
-    size_t count = 0;
-    for(const auto &p: m_peerSlotList){
-        if(p){
-            count++;
+    size_t result = 0;
+    for(size_t i = 1; i < m_peerSlotList.size(); ++i){
+        if(m_peerSlotList[i] || (g_serverArgParser->slave && (i == m_peerIndex.value()))){
+            result++;
         }
     }
-    return count;
+    return result;
 }
 
 void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMsgPack mpk)
@@ -310,46 +314,61 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                     if(peerIndex == 0){
                         throw fflerror("found master peer in slave peer list");
                     }
-                    else if(const auto p = m_remotePeerList.find(peerIndex); p != m_remotePeerList.end()){
-                        if(p->second != addr){
-                            throw fflerror("peer %zu address mismatch", peerIndex);
-                        }
+
+                    if(const auto p = m_remotePeerList.find(peerIndex); p == m_remotePeerList.end()){
+                        m_remotePeerList[peerIndex] = addr;
                     }
-                    else if(peerIndex >= m_peerIndex){
+                    else if(p->second != addr){
+                        throw fflerror("peer %zu address has been changed", peerIndex);
+                    }
+
+                    if(peerIndex >= m_peerIndex.value()){
                         continue;
                     }
-                    else{
-                        if(peerIndex >= m_peerSlotList.size()){
-                            m_peerSlotList.resize(peerIndex + 1);
-                        }
 
-                        if(m_peerSlotList[peerIndex]){
-                            if(m_peerSlotList[peerIndex]->peer){
-                                // already connected
-                            }
-                            else{
-                                // connecting
-                            }
+
+                    if(peerIndex >= m_peerSlotList.size()){
+                        m_peerSlotList.resize(peerIndex + 1);
+                    }
+
+                    if(m_peerSlotList[peerIndex]){
+                        if(m_peerSlotList[peerIndex]->peer){
+                            // already connected
                         }
                         else{
-                            // start to connect
-                            m_peerSlotList[peerIndex] = std::make_unique<PeerSlot>();
-                            asyncConnect(peerIndex, addr.first, addr.second, [peerIndex, this]()
-                            {
-                                postPeer(peerIndex, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
-                                {
-                                    .index = m_peerIndex.value(),
-                                })));
-                            });
+                            // connecting
                         }
+                    }
+                    else{
+                        // start to connect
+                        m_peerSlotList[peerIndex] = std::make_unique<PeerSlot>();
+                        asyncConnect(peerIndex, addr.first, addr.second, [peerIndex, this]()
+                        {
+                            postPeer(peerIndex, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
+                            {
+                                .index = m_peerIndex.value(),
+                            })));
+                        });
                     }
                 }
                 return;
             }
         case AM_SYS_LAUNCH:
             {
-                g_actorPool->launchPool();
+                g_actorPool->launch();
                 postMaster(AM_SYS_LAUNCHED);
+                return;
+            }
+        case AM_SYS_LAUNCHED:
+            {
+                g_monoServer->addLog(LOGTYPE_INFO, "Slave server %zu has been launched", fromPeerIndex);
+                m_launchedCount++;
+
+                if(m_launchedCount >= hasPeer()){
+                    // TODO
+                    // create service core
+                    // launch player acceptor
+                }
                 return;
             }
         default:

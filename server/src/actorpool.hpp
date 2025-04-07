@@ -565,9 +565,6 @@ class ActorPool final
         void launchPool();
         bool checkUIDValid(uint64_t) const;
 
-    public:
-        void closeSlaveAcceptor();
-
     private:
         uint64_t GetInnActorUID();
 

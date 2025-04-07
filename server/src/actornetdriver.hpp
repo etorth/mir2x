@@ -4,10 +4,13 @@
 #include <asio.hpp>
 #include "actormsgpack.hpp"
 
+class ActorPool;
 class ServerPeer;
+
 class ActorNetDriver
 {
     private:
+        friend class ActorPool;
         friend class ServerPeer;
 
     private:
@@ -23,6 +26,7 @@ class ActorNetDriver
         std::map<size_t, std::pair<std::string, uint32_t>> m_remotePeerList;
 
     private:
+        size_t m_launchedCount = 0;
         std::vector<std::unique_ptr<PeerSlot>> m_peerSlotList;
 
     private:

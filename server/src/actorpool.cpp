@@ -819,17 +819,24 @@ namespace _details
 
 void ActorPool::launch()
 {
-    launchPool();
-
-    // m_serviceCore = std::make_unique<ServiceCore>();
-    // m_serviceCore->activate(-1.0);
-
-    // closeSlaveAcceptor();
+    m_actorNetDriver->closeAcceptor();
     if(g_serverArgParser->slave){
+        launchPool();
     }
     else{
-        // launchNet(g_serverConfigureWindow->getConfig().clientPort);
+        const auto peerCount = m_actorNetDriver->hasPeer();
+        for(size_t peerIndex = 1; peerIndex <= peerCount; ++peerIndex){
+            m_actorNetDriver->postPeer(peerIndex, AM_SYS_LAUNCH);
+        }
     }
+    // m_serviceCore = std::make_unique<ServiceCore>();
+    // m_serviceCore->activate(-1.0);
+    //
+    // if(g_serverArgParser->slave){
+    // }
+    // else{
+    //     launchNet(g_serverConfigureWindow->getConfig().clientPort);
+    // }
 }
 
 void ActorPool::launchNet(int port)
@@ -918,11 +925,6 @@ void ActorPool::launchPool()
         });
         g_monoServer->addLog(LOGTYPE_INFO, "Actor thread %d launched", bucketId);
     }
-}
-
-void ActorPool::closeSlaveAcceptor()
-{
-    m_actorNetDriver->closeAcceptor();
 }
 
 bool ActorPool::checkUIDValid(uint64_t uid) const
