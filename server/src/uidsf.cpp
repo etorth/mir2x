@@ -7,9 +7,9 @@
 extern ActorPool *g_actorPool;
 extern ServerArgParser *g_serverArgParser;
 
-bool uidsf::isLocalUID(uint64_t uid)
+size_t uidsf::peerIndex()
 {
-    return uidsf::peerIndex(uid) == g_actorPool->peerIndex();
+    return g_actorPool->peerIndex();
 }
 
 size_t uidsf::peerIndex(uint64_t uid)
@@ -42,6 +42,11 @@ size_t uidsf::peerIndex(uint64_t uid)
         }
     }
     return 0;
+}
+
+bool uidsf::isLocalUID(uint64_t uid)
+{
+    return uidsf::peerIndex(uid) == g_actorPool->peerIndex();
 }
 
 uint64_t uidsf::getServiceCoreUID()
