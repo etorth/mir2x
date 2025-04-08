@@ -105,9 +105,9 @@ uint64_t uidf::buildReceiverUID()
     return (to_u64(UID_RCV) << 59) + to_u64(++s_recvSeq);
 }
 
-uint64_t uidf::getServiceCoreUID()
+uint64_t uidf::getServiceCoreUID(uint32_t peerIndex)
 {
-    return to_u64(UID_COR) << 59;
+    return (to_u64(UID_COR) << 59) | peerIndex;
 }
 
 uint64_t uidf::getServerLuaObjectUID(uint32_t luaObjIndex)
@@ -163,6 +163,11 @@ _def_get_UID_seq_helper(uidf::getMonsterSeq, UID_MON)
 #undef _def_get_UID_seq_helper
 
 uint64_t uidf::getReceiverSeq(uint64_t uid)
+{
+    return uid & 0X07FFFFFFFFFFFFFFULL;
+}
+
+uint32_t uidf::getServiceCoreSeq(uint64_t uid)
 {
     return uid & 0X07FFFFFFFFFFFFFFULL;
 }

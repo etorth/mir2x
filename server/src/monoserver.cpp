@@ -15,6 +15,7 @@
 #include "filesys.hpp"
 #include "message.hpp"
 #include "monster.hpp"
+#include "uidsf.hpp"
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
 #include "serdesmsg.hpp"
@@ -576,7 +577,7 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     amACO.monster.masterUID = 0;
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
 
-    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); stRMPK.type()){
+    switch(auto stRMPK = SyncDriver().forward(uidsf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); stRMPK.type()){
         case AM_UID:
             {
                 if(const auto amUID = stRMPK.conv<AMUID>(); amUID.UID){
@@ -626,7 +627,7 @@ bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID,
     }));
 
     addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(fullScriptName));
-    switch(auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); rmpk.type()){
+    switch(auto rmpk = SyncDriver().forward(uidsf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); rmpk.type()){
         case AM_UID:
             {
                 if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
@@ -656,7 +657,7 @@ bool MonoServer::loadMap(const std::string &mapName)
         return false;
     }
 
-    switch(const auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
+    switch(const auto rmpk = SyncDriver().forward(uidsf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
         case AM_LOADMAPOK:
             {
                 addLog(LOGTYPE_INFO, "Load map %s: uid = %s", to_cstr(mapName), uidf::getUIDString(uidf::getMapBaseUID(amLM.mapID)).c_str());
@@ -672,7 +673,7 @@ bool MonoServer::loadMap(const std::string &mapName)
 
 std::vector<int> MonoServer::getMapList()
 {
-    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), AM_QUERYMAPLIST); stRMPK.type()){
+    switch(auto stRMPK = SyncDriver().forward(uidsf::getServiceCoreUID(), AM_QUERYMAPLIST); stRMPK.type()){
         case AM_MAPLIST:
             {
                 AMMapList amML;
@@ -717,7 +718,7 @@ sol::optional<int> MonoServer::getMonsterCount(int nMonsterID, int nMapID)
         amQCOC.Check.Monster        = true;
         amQCOC.CheckParam.MonsterID = to_u32(nMonsterID);
 
-        switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
+        switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(0), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
             case AM_COCOUNT:
                 {
                     AMCOCount amCOC;

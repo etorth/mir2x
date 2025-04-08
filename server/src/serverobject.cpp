@@ -6,6 +6,7 @@
 #include "serverobject.hpp"
 #include "actorpool.hpp"
 #include "uidf.hpp"
+#include "uidsf.hpp"
 
 extern ActorPool *g_actorPool;
 extern MonoServer *g_monoServer;
@@ -22,7 +23,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
             *closed = true;
         });
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
+        m_actorPod->forward(uidf::getServiceCoreUID(0), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
         {
             .name = std::move(questName),
         })},
@@ -65,7 +66,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
             *closed = true;
         });
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), AM_QUERYQUESTUIDLIST, [closed, onDone](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(0), AM_QUERYQUESTUIDLIST, [closed, onDone](const ActorMsgPack &rmpk)
         {
             if(*closed){
                 return;
@@ -106,7 +107,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
         amLM.activateMap = true;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, mapID = amLM.mapID, onDone, this](const ActorMsgPack &mpk)
+        m_actorPod->forward(uidsf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, mapID = amLM.mapID, onDone, this](const ActorMsgPack &mpk)
         {
             if(*closed){
                 return;

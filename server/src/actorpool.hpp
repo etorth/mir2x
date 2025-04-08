@@ -561,6 +561,7 @@ class ActorPool final
 
     public:
         size_t hasPeer() const;
+        size_t peerIndex() const;
 
     public:
         bool checkUIDValid(uint64_t) const;

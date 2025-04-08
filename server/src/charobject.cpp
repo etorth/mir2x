@@ -2,6 +2,7 @@
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "mathf.hpp"
+#include "uidsf.hpp"
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
 #include "servermap.hpp"
@@ -127,7 +128,7 @@ void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
     amACO.monster.monsterID = monsterID;
     amACO.monster.masterUID = UID();
 
-    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
+    m_actorPod->forward(uidsf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             default:

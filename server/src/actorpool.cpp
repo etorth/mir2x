@@ -5,7 +5,7 @@
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
-#include "uid2p.hpp"
+#include "uidsf.hpp"
 #include "receiver.hpp"
 #include "actorpod.hpp"
 #include "netdriver.hpp"
@@ -453,7 +453,7 @@ bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
     fflassert(uid);
     fflassert(msg);
 
-    if(const auto peerIndex = uid2p::peerIndex(uid); peerIndex == m_actorNetDriver->peerIndex()){
+    if(const auto peerIndex = uidsf::peerIndex(uid); peerIndex == m_actorNetDriver->peerIndex()){
         return postLocalMessage(uid, std::move(msg));
     }
     else{
@@ -1035,4 +1035,9 @@ ActorPodMonitor ActorPool::getPodMonitor(uint64_t uid) const
 size_t ActorPool::hasPeer() const
 {
     return m_actorNetDriver->hasPeer();
+}
+
+size_t ActorPool::peerIndex() const
+{
+    return m_actorNetDriver->peerIndex();
 }

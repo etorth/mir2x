@@ -117,12 +117,8 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
     fflassert(!g_actorPool->checkUIDValid(expectedUID));
 
     const int mapID = queryChar.getColumn("fld_map");
-    const int mapX = queryChar.getColumn("fld_mapx");
-    const int mapY = queryChar.getColumn("fld_mapy");
-
-    const auto mapPtr = retrieveMap(mapID);
-    fflassert(mapPtr);
-    fflassert(mapPtr->in(mapID, mapX, mapY));
+    const int mapX  = queryChar.getColumn("fld_mapx");
+    const int mapY  = queryChar.getColumn("fld_mapy");
 
     AMAddCharObject amACO;
     std::memset(&amACO, 0, sizeof(amACO));
@@ -147,29 +143,32 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
         .hairColor = queryChar.getColumn("fld_haircolor"),
     }));
 
-    m_dbidList[channID].second = true;
-    m_actorPod->forward(mapPtr->UID(), {AM_ADDCO, amACO}, [channID, expectedUID, fnOnlineError, this](const ActorMsgPack &rmpk)
+    loadMap(mapID, [mapID, amACO, channID, expectedUID, fnOnlineError, this](bool)
     {
-        fflassert(findDBID(channID).has_value());
-        fflassert(findDBID(channID).value().second);
+        m_dbidList[channID].second = true;
+        m_actorPod->forward(uidf::getMapBaseUID(mapID), {AM_ADDCO, amACO}, [channID, expectedUID, fnOnlineError, this](const ActorMsgPack &rmpk)
+        {
+            fflassert(findDBID(channID).has_value());
+            fflassert(findDBID(channID).value().second);
 
-        switch(rmpk.type()){
-            case AM_UID:
-                {
-                    // don't need to send ONLINEOK here
-                    // will be sent by Player actor with more parameters, not here
+            switch(rmpk.type()){
+                case AM_UID:
+                    {
+                        // don't need to send ONLINEOK here
+                        // will be sent by Player actor with more parameters, not here
 
-                    const auto amUID = rmpk.conv<AMUID>();
-                    fflassert(amUID.UID == expectedUID);
-                    return;
-                }
-            default:
-                {
-                    fnOnlineError(ONLINEERR_AMERROR);
-                    m_dbidList[channID].second = false;
-                    return;
-                }
-        }
+                        const auto amUID = rmpk.conv<AMUID>();
+                        fflassert(amUID.UID == expectedUID);
+                        return;
+                    }
+                default:
+                    {
+                        fnOnlineError(ONLINEERR_AMERROR);
+                        m_dbidList[channID].second = false;
+                        return;
+                    }
+            }
+        });
     });
 }
 

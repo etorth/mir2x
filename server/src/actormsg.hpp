@@ -56,6 +56,8 @@ enum ActorMsgPackType: int
     AM_SENDPACKAGE,
     AM_RECVPACKAGE,
     AM_ADDCO,
+    AM_ADDMAP,
+    AM_ADDMAPOK,
     AM_BINDCHANNEL,
     AM_ACTION,
     AM_QUERYMAPLIST,
@@ -206,6 +208,18 @@ struct AMAddCharObject
     };
 
     StaticBuffer<256> buf;
+};
+
+struct AMAddMap
+{
+    uint32_t mapID;
+    uint16_t newAdded;
+};
+
+struct AMAddMapOK
+{
+    uint32_t mapID;
+    uint16_t newLoad;
 };
 
 struct AMLogin

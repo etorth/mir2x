@@ -2,6 +2,7 @@
 #include <cinttypes>
 #include "pathf.hpp"
 #include "uidf.hpp"
+#include "uidsf.hpp"
 #include "totype.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
@@ -471,7 +472,7 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
     std::memset(&amLM, 0, sizeof(amLM));
 
     amLM.mapID = argMapID;
-    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [argMapID, locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
+    return m_actorPod->forward(uidf::getServiceCoreUID(0), {AM_LOADMAP, amLM}, [argMapID, locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
     {
         switch(mpk.type()){
             case AM_LOADMAPOK:
@@ -752,7 +753,7 @@ void BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
     amACO.monster.monsterID = monsterID;
     amACO.monster.masterUID = UID();
 
-    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rstRMPK)
+    m_actorPod->forward(uidsf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.type()){
             default:

@@ -50,7 +50,7 @@ ServerLuaModule::ServerLuaModule()
 
     bindFunction("getServiceCoreUID", []() -> uint64_t
     {
-        return uidf::getServiceCoreUID();
+        return uidf::getServiceCoreUID(0);
     });
 
     bindFunction("randMapGLoc", [](std::string mapName)

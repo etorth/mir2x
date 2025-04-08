@@ -208,7 +208,7 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
         amMQTT.type = triggerType;
         amMQTT.enable = enable;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [closed, onDone, this](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(0), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [closed, onDone, this](const ActorMsgPack &rmpk)
         {
             if(*closed){
                 return;
@@ -305,7 +305,7 @@ Quest::Quest(const SDInitQuest &initQuest)
 void Quest::onActivate()
 {
     ServerObject::onActivate();
-    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_REGISTERQUEST, cerealf::serialize(SDRegisterQuest
+    m_actorPod->forward(uidf::getServiceCoreUID(0), {AM_REGISTERQUEST, cerealf::serialize(SDRegisterQuest
     {
         .name = getQuestName(),
     })});

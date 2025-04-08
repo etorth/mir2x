@@ -45,7 +45,7 @@ namespace uidf
     uint64_t buildMonsterUID(uint32_t);
     uint64_t buildReceiverUID();
 
-    uint64_t getServiceCoreUID();
+    uint64_t getServiceCoreUID(uint32_t);
     uint64_t getServerLuaObjectUID(uint32_t);
 
     uint64_t getQuestUID(uint32_t);
@@ -67,6 +67,7 @@ namespace uidf
     uint32_t getMonsterSeq(uint64_t);
 
     uint64_t getReceiverSeq(uint64_t);
+    uint32_t getServiceCoreSeq(uint64_t);
 }
 
 namespace uidf

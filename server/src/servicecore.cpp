@@ -1,5 +1,7 @@
 #include <string>
 #include <cstring>
+#include "uidf.hpp"
+#include "uidsf.hpp"
 #include "quest.hpp"
 #include "player.hpp"
 #include "totype.hpp"
@@ -18,7 +20,7 @@ extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
 ServiceCore::ServiceCore()
-    : ServerObject(uidf::getServiceCoreUID())
+    : ServerObject(uidsf::getServiceCoreUID())
 {}
 
 void ServiceCore::operateAM(const ActorMsgPack &rstMPK)
@@ -141,17 +143,18 @@ void ServiceCore::onActivate()
 {
     ServerObject::onActivate();
     if(const auto mapID = g_serverArgParser->preloadMapID; mapID > 0){
-        if(retrieveMap(mapID)){
+        loadMap(mapID, [mapID](bool)
+        {
             g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
-        }
+        });
     }
 
     if(g_serverArgParser->preloadMap){
-        for(uint32_t mapID = 1;; ++mapID){
-            if(!retrieveMap(mapID)){
-                break;
-            }
-            g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
+        for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
+            loadMap(mapID, [mapID](bool)
+            {
+                g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
+            });
         }
     }
 
@@ -180,37 +183,79 @@ void ServiceCore::onActivate()
     }
 }
 
-void ServiceCore::loadMap(uint32_t mapID)
+void ServiceCore::loadMap(uint32_t mapID, std::function<void(bool)> onDone, std::function<void()> onError)
 {
     if(!mapID){
+        if(onError){
+            onError();
+        }
         return;
     }
 
     if(!g_mapBinDB->retrieve(mapID)){
+        if(onError){
+            onError();
+        }
         return;
     }
 
-    if(m_mapList.contains(mapID)){
+    if(auto p = m_loadMapOps.find(mapID); p != m_loadMapOps.end()){
+        if(p->second.pending){
+            if(onDone){
+                p->second.onDone.push_back(std::move(onDone));
+            }
+
+            if(onError){
+                p->second.onError.push_back(std::move(onError));
+            }
+        }
+        else{
+            if(onDone){
+                onDone(false);
+            }
+        }
         return;
     }
 
-    m_mapList.insert_or_assign(mapID, new ServerMap(mapID)).first->second->activate();
-}
+    if(const auto mapUID = uidf::getMapBaseUID(mapID); uidsf::isLocalUID(mapUID)){
+        auto mapPtr = new ServerMap(mapID);
+        mapPtr->activate();
 
-const ServerMap *ServiceCore::retrieveMap(uint32_t mapID)
-{
-    if(!mapID){
-        return nullptr;
+        m_loadMapOps[mapID].pending = false;
+        if(onDone){
+            onDone(true);
+        }
     }
+    else{
+        AMAddMap amAM;
+        std::memset(&amAM, 0, sizeof(amAM));
+        amAM.mapID = mapID;
 
-    if(!m_mapList.contains(mapID)){
-        loadMap(mapID);
+        m_loadMapOps[mapID].pending = true;
+        m_actorPod->forward(uidf::getServiceCoreUID(uidsf::peerIndex(mapUID)), {AM_ADDMAP, amAM}, [mapID, onDone = std::move(onDone), onError = std::move(onError), this](const ActorMsgPack &mpk)
+        {
+            switch(mpk.type()){
+                case AM_ADDMAPOK:
+                    {
+                        for(auto &onDone: m_loadMapOps.at(mapID).onDone){
+                            if(onDone){
+                                onDone(true);
+                            }
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        for(auto &onError: m_loadMapOps.at(mapID).onError){
+                            if(onError){
+                                onError();
+                            }
+                        }
+                        break;
+                    }
+            }
+        });
     }
-
-    if(auto p = m_mapList.find(mapID); p != m_mapList.end()){
-        return p->second;
-    }
-    return nullptr;
 }
 
 std::optional<std::pair<uint32_t, bool>> ServiceCore::findDBID(uint32_t channID) const
