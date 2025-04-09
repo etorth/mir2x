@@ -17,13 +17,13 @@
 #include "mapbindb.hpp"
 #include "servermap.hpp"
 #include "charobject.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "rotatecoord.hpp"
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern MapBinDB *g_mapBinDB;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 

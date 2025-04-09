@@ -4,11 +4,11 @@
 #include "sysconst.hpp"
 #include "actorpod.hpp"
 #include "mathf.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "friendtype.hpp"
 #include "dbcomid.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 void Monster::on_AM_METRONOME(const ActorMsgPack &)
 {
     update();

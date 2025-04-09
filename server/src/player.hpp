@@ -6,7 +6,7 @@
 #include <optional>
 #include <type_traits>
 #include "totype.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "battleobject.hpp"
 #include "combatnode.hpp"
 

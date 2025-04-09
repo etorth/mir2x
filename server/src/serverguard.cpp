@@ -2,10 +2,10 @@
 #include "fflerror.hpp"
 #include "dbcomid.hpp"
 #include "friendtype.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverguard.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 ServerGuard::ServerGuard(const SDInitGuard &sdIG)
     : Monster
       {
@@ -126,5 +126,5 @@ bool ServerGuard::canAttack() const
     if(m_lastAction != ACTION_ATTACK){
         return true;
     }
-    return g_monoServer->getCurrTick() >= m_lastActionTime.at(ACTION_ATTACK) + getMR().attackWait;
+    return g_server->getCurrTick() >= m_lastActionTime.at(ACTION_ATTACK) + getMR().attackWait;
 }

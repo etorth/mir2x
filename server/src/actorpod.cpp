@@ -8,11 +8,11 @@
 #include "actorpool.hpp"
 #include "raiitimer.hpp"
 #include "netdriver.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverargparser.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
 ActorPod::ActorPod(uint64_t uid,
@@ -48,14 +48,14 @@ ActorPod::~ActorPod()
         g_actorPool->detach(this, nullptr);
     }
     catch(...){
-        g_monoServer->propagateException();
+        g_server->propagateException();
     }
 }
 
 void ActorPod::innHandler(const ActorMsgPack &mpk)
 {
     if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+        g_server->addLog(LOGTYPE_DEBUG, "%s <- %s : (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
     }
 
     if(m_expireTime){
@@ -171,7 +171,7 @@ bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID)
     }
 
     if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: 0, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
+        g_server->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: 0, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
     }
 
     m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;
@@ -198,7 +198,7 @@ bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID, s
 
     const auto seqID = rollSeqID();
     if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(seqID), to_llu(respID));
+        g_server->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(seqID), to_llu(respID));
     }
 
     m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;
@@ -263,7 +263,7 @@ void ActorPod::PrintMonitor() const
         const uint64_t nSendCount = m_podMonitor.amProcMonitorList[nIndex].sendCount;
         const uint64_t nRecvCount = m_podMonitor.amProcMonitorList[nIndex].recvCount;
         if(nSendCount || nRecvCount){
-            g_monoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
+            g_server->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
         }
     }
 }

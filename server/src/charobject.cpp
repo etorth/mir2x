@@ -6,7 +6,7 @@
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
 #include "servermap.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "charobject.hpp"
 #include "battleobject.hpp"
 #include "scopedalloc.hpp"
@@ -14,7 +14,7 @@
 #include "protocoldef.hpp"
 
 extern MapBinDB *g_mapBinDB;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 CharObject::LuaThreadRunner::LuaThreadRunner(CharObject *charObjectPtr)
     : ServerObject::LuaThreadRunner(charObjectPtr)

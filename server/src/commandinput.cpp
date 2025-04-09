@@ -3,13 +3,13 @@
 #include "fflerror.hpp"
 #include "flwrapper.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "threadpool.hpp"
 #include "commandinput.hpp"
 #include "commandwindow.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 int CommandInput::handle(int event)
 {
@@ -80,7 +80,7 @@ int CommandInput::handle(int event)
                                 // should give method to disable the echo
 
                                 // won't use CommandWindow::AddLog() directly
-                                // use MonoServer::AddCWLog() for thread-safe access
+                                // use Server::AddCWLog() for thread-safe access
                                 const int cwid = m_window->getLuaModule()->CWID();
 
                                 // we echo the command to the command window
@@ -107,13 +107,13 @@ int CommandInput::handle(int event)
 
                                         // we do find an enter
                                         // remove the enter and print it
-                                        g_monoServer->addCWLogString(cwid, 0, fnGetPrompt(), currCmdStr.substr(currLoc, enterLoc - currLoc).c_str());
+                                        g_server->addCWLogString(cwid, 0, fnGetPrompt(), currCmdStr.substr(currLoc, enterLoc - currLoc).c_str());
                                         currLoc = enterLoc + 1;
                                     }
                                     else{
                                         // can't find a enter
                                         // we done here for the whole string
-                                        g_monoServer->addCWLogString(cwid, 0, fnGetPrompt(), currCmdStr.substr(currLoc).c_str());
+                                        g_server->addCWLogString(cwid, 0, fnGetPrompt(), currCmdStr.substr(currLoc).c_str());
                                         break;
                                     }
                                 }
@@ -195,15 +195,15 @@ void CommandInput::postExecLuaString(const std::string &code)
 
                 std::string errLine;
                 while(std::getline(errStream, errLine, '\n')){
-                    g_monoServer->addCWLogString(cwid, 2, ">>> ", errLine.c_str());
+                    g_server->addCWLogString(cwid, 2, ">>> ", errLine.c_str());
                 }
             }
         }
         catch(const std::exception &e){
-            g_monoServer->addCWLogString(cwid, 2, ">>> ", e.what());
+            g_server->addCWLogString(cwid, 2, ">>> ", e.what());
         }
         catch(...){
-            g_monoServer->addCWLogString(cwid, 2, ">>> ", "unknown error");
+            g_server->addCWLogString(cwid, 2, ">>> ", "unknown error");
         }
 
         // need to protect any FLTK widget access by Fl::lock() and Fl::unlock()

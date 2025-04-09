@@ -1,10 +1,10 @@
 #include "uidf.hpp"
 #include "receiver.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 Receiver::Receiver()
     : m_uid(uidf::buildReceiverUID())
@@ -18,7 +18,7 @@ Receiver::~Receiver()
         g_actorPool->detach(this);
     }
     catch(...){
-        g_monoServer->propagateException();
+        g_server->propagateException();
     }
 }
 

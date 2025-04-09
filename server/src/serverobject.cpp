@@ -2,14 +2,14 @@
 #include "serdesmsg.hpp"
 #include "actorpod.hpp"
 #include "serverargparser.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverobject.hpp"
 #include "actorpool.hpp"
 #include "uidf.hpp"
 #include "uidsf.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
 ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
@@ -142,7 +142,7 @@ ServerObject::ServerObject(uint64_t uid)
     if(g_serverArgParser->traceActorMessageCount){
         m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
         {
-            if(const auto currTick = g_monoServer->getCurrTick(); lastCheckTick + 1000 < currTick){
+            if(const auto currTick = g_server->getCurrTick(); lastCheckTick + 1000 < currTick){
                 if(hasActorPod()){
                     m_actorPod->PrintMonitor();
                 }

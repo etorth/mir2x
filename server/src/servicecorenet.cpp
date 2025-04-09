@@ -6,14 +6,14 @@
 #include "idstrf.hpp"
 #include "dbcomid.hpp"
 #include "servermap.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "dispatcher.hpp"
 #include "protocoldef.hpp"
 #include "servicecore.hpp"
 #include "actorpool.hpp"
 
 extern DBPod *g_dbPod;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ActorPool *g_actorPool;
 
 void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
@@ -26,7 +26,7 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
 
         smLE.error = error;
         m_actorPod->postNet(channID, SM_LOGINERROR, &smLE, sizeof(smLE), respID);
-        g_monoServer->addLog(LOGTYPE_WARNING, "Login account failed: id = %s, ec = %d", cmL.id.as_cstr(), error);
+        g_server->addLog(LOGTYPE_WARNING, "Login account failed: id = %s, ec = %d", cmL.id.as_cstr(), error);
     };
 
     // don't check id/password by idstrf here
@@ -458,5 +458,5 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
     }
 
     fnCreateCharError(CRTCHARERR_DBERROR);
-    g_monoServer->addLog(LOGTYPE_WARNING, "Create char failed: %s", dbError.c_str());
+    g_server->addLog(LOGTYPE_WARNING, "Create char failed: %s", dbError.c_str());
 }

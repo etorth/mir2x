@@ -11,11 +11,11 @@
 #include "actorpod.hpp"
 #include "raiitimer.hpp"
 #include "servermap.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "rotatecoord.hpp"
 #include "serverargparser.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
 void ServerMap::on_AM_METRONOME(const ActorMsgPack &)
@@ -149,22 +149,22 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
     const auto amTSM = mpk.conv<AMTrySpaceMove>();
     const auto fnPrintMoveError = [&amTSM]()
     {
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::X          = %d", &amTSM, amTSM.X);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::Y          = %d", &amTSM, amTSM.Y);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::EndX       = %d", &amTSM, amTSM.EndX);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::EndY       = %d", &amTSM, amTSM.EndY);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::StrictMove = %s", &amTSM, to_boolcstr(amTSM.StrictMove));
+        g_server->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::X          = %d", &amTSM, amTSM.X);
+        g_server->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::Y          = %d", &amTSM, amTSM.Y);
+        g_server->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::EndX       = %d", &amTSM, amTSM.EndX);
+        g_server->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::EndY       = %d", &amTSM, amTSM.EndY);
+        g_server->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::StrictMove = %s", &amTSM, to_boolcstr(amTSM.StrictMove));
     };
 
     if(!in(ID(), amTSM.X, amTSM.Y)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
+        g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
         return;
     }
 
     if(!hasGridUID(mpk.from(), amTSM.X, amTSM.Y)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
+        g_server->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
         return;
@@ -295,14 +295,14 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     const auto amTJ = mpk.conv<AMTryJump>();
     const auto fnPrintJumpError = [&amTJ]()
     {
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::X    = %d", &amTJ, amTJ.X);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::Y    = %d", &amTJ, amTJ.Y);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::EndX = %d", &amTJ, amTJ.EndX);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::EndY = %d", &amTJ, amTJ.EndY);
+        g_server->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::X    = %d", &amTJ, amTJ.X);
+        g_server->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::Y    = %d", &amTJ, amTJ.Y);
+        g_server->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::EndX = %d", &amTJ, amTJ.EndX);
+        g_server->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::EndY = %d", &amTJ, amTJ.EndY);
     };
 
     if(!in(ID(), amTJ.X, amTJ.Y)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
+        g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintJumpError();
         m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
         return;
@@ -312,14 +312,14 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     // for client every motion request need to be prepared to avoid this
 
     if(!in(ID(), amTJ.EndX, amTJ.EndY)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
+        g_server->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintJumpError();
         m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
         return;
     }
 
     if(!hasGridUID(mpk.from(), amTJ.X, amTJ.Y)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
+        g_server->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintJumpError();
         m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
         return;
@@ -440,17 +440,17 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 
     auto fnPrintMoveError = [&amTM]()
     {
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &amTM, amTM.UID);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::mapID         = %" PRIu32 , &amTM, amTM.mapID);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &amTM, amTM.X);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::Y             = %d"       , &amTM, amTM.Y);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndX          = %d"       , &amTM, amTM.EndX);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndY          = %d"       , &amTM, amTM.EndY);
-        g_monoServer->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &amTM, amTM.AllowHalfMove ? "true" : "false");
+        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &amTM, amTM.UID);
+        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::mapID         = %" PRIu32 , &amTM, amTM.mapID);
+        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &amTM, amTM.X);
+        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::Y             = %d"       , &amTM, amTM.Y);
+        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndX          = %d"       , &amTM, amTM.EndX);
+        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndY          = %d"       , &amTM, amTM.EndY);
+        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &amTM, amTM.AllowHalfMove ? "true" : "false");
     };
 
     if(!in(amTM.mapID, amTM.X, amTM.Y)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
+        g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
         return;
@@ -460,14 +460,14 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     // for client every motion request need to be prepared to avoid this
 
     if(!in(amTM.mapID, amTM.EndX, amTM.EndY)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
+        g_server->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
         return;
     }
 
     if(!hasGridUID(amTM.UID, amTM.X, amTM.Y)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
+        g_server->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
         return;
@@ -495,7 +495,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
+                g_server->addLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
                 fnPrintMoveError();
                 m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
                 return;
@@ -684,7 +684,7 @@ void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
 
     if(!(in(ID(), fromGridX, fromGridY) && hasGridUID(mpk.from(), fromGridX, fromGridY))){
         m_actorPod->forward(mpk.from(), AM_REJECTLEAVE, mpk.seqID());
-        g_monoServer->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(fromUID), fromGridX, fromGridY);
+        g_server->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(fromUID), fromGridX, fromGridY);
         return;
     }
 
@@ -859,7 +859,7 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
         // we get a dangerous parameter from actormsg
         // correct here and put an warning in the log system
         amPF.MaxStep = 1;
-        g_monoServer->addLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", amPF.MaxStep);
+        g_server->addLog(LOGTYPE_WARNING, "Invalid MaxStep: %d, should be (1, 2, 3)", amPF.MaxStep);
     }
 
     ServerPathFinder stPathFinder(this, amPF.MaxStep, amPF.CheckCO);
@@ -903,7 +903,7 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
             case 0:
             default:
                 {
-                    g_monoServer->addLog(LOGTYPE_WARNING, "Invalid path node found");
+                    g_server->addLog(LOGTYPE_WARNING, "Invalid path node found");
                     break;
                 }
         }

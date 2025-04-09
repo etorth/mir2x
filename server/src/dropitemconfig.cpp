@@ -4,7 +4,7 @@
 
 #include "mathf.hpp"
 #include "dbcomid.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "dropitemconfig.hpp"
 #include "serverconfigurewindow.hpp"
 

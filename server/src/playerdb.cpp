@@ -2,10 +2,10 @@
 #include "luaf.hpp"
 #include "dbpod.hpp"
 #include "player.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 
 extern DBPod *g_dbPod;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 luaf::luaVar Player::dbGetVar(const std::string &var)
 {

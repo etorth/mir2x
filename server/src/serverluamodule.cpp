@@ -4,7 +4,7 @@
 #include "dbcomid.hpp"
 #include "mapbindb.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverargparser.hpp"
 #include "serverluamodule.hpp"
 #include "serverconfigurewindow.hpp"
@@ -12,7 +12,7 @@
 extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -148,9 +148,9 @@ void ServerLuaModule::addLogString(int nLogType, const char8_t *logInfo)
     // this will get printed in the server GUI console
 
     switch(nLogType){
-        case 0  : g_monoServer->addLog(LOGTYPE_INFO   , "%s", to_cstr(logInfo)); return;
-        case 1  : g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(logInfo)); return;
-        case 2  : g_monoServer->addLog(LOGTYPE_FATAL  , "%s", to_cstr(logInfo)); return;
-        default : g_monoServer->addLog(LOGTYPE_DEBUG  , "%s", to_cstr(logInfo)); return;
+        case 0  : g_server->addLog(LOGTYPE_INFO   , "%s", to_cstr(logInfo)); return;
+        case 1  : g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(logInfo)); return;
+        case 2  : g_server->addLog(LOGTYPE_FATAL  , "%s", to_cstr(logInfo)); return;
+        default : g_server->addLog(LOGTYPE_DEBUG  , "%s", to_cstr(logInfo)); return;
     }
 }

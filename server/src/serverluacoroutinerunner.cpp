@@ -6,11 +6,11 @@
 #include "fflerror.hpp"
 #include "actorpod.hpp"
 #include "serdesmsg.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverobject.hpp"
 #include "serverluacoroutinerunner.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 LuaCoopResumer::LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, void *currRunner, sol::function callback, const LuaCoopCallDoneFlag &doneFlag)
     : m_luaRunner(luaRunner)
@@ -128,7 +128,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 }
 
                 for(const auto &line: error){
-                    g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                    g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                 }
             }
         });
@@ -183,9 +183,9 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                             // don't need to handle remote call error, peer side has reported the error
                             // _RSVD_NAME_uidExecute always returns valid result from remote peer to lua layer if not throw
                             fflassert(sdRCR.varList.empty(), sdRCR.error, sdRCR.varList);
-                            g_monoServer->addLog(LOGTYPE_WARNING, "Error detected in remote call: %s", concatCode(code).c_str());
+                            g_server->addLog(LOGTYPE_WARNING, "Error detected in remote call: %s", concatCode(code).c_str());
                             for(const auto &line: sdRCR.error){
-                                g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                                g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                             }
                             throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(uid)));
                         }
@@ -592,7 +592,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
         std::vector<std::string> error;
         if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
             if(pfr.return_count() > 0){
-                g_monoServer->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
+                g_server->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
             }
         }
         else{
@@ -601,7 +601,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
             }
 
             for(const auto &line: error){
-                g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
             }
         }
     }

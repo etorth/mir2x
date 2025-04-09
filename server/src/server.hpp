@@ -18,7 +18,7 @@
 
 class ServiceCore;
 class ServerObject;
-class MonoServer final
+class Server final
 {
     private:
         std::mutex m_logLock;
@@ -51,8 +51,8 @@ class MonoServer final
         void FlushCWBrowser();
 
     public:
-        MonoServer() = default;
-       ~MonoServer() = default;
+        Server() = default;
+       ~Server() = default;
 
     public:
        void mainLoop();

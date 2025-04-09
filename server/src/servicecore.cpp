@@ -9,13 +9,13 @@
 #include "actorpod.hpp"
 #include "mapbindb.hpp"
 #include "serdesmsg.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "servicecore.hpp"
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern MapBinDB *g_mapBinDB;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -88,7 +88,7 @@ void ServiceCore::operateAM(const ActorMsgPack &mpk)
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(mpk.type()));
+                g_server->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(mpk.type()));
                 break;
             }
     }
@@ -145,7 +145,7 @@ void ServiceCore::onActivate()
     if(const auto mapID = g_serverArgParser->preloadMapID; mapID > 0){
         requestLoadMap(mapID, [mapID](bool)
         {
-            g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
+            g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
         });
     }
 
@@ -153,7 +153,7 @@ void ServiceCore::onActivate()
         for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
             requestLoadMap(mapID, [mapID](bool)
             {
-                g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
+                g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
             });
         }
     }

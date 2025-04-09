@@ -110,9 +110,12 @@ const char *uidf::getUIDTypeCStr(uint64_t uid)
     }
 }
 
-template<UIDType uidType> static uint64_t _build_UID_helper(uint32_t id, size_t peerIndex, uint32_t startOff, std::optional<uint32_t> seqIDOpt = std::nullopt)
+template<UIDType uidType> static uint64_t _build_UID_helper(bool allowZeroId, uint32_t id, size_t peerIndex, uint32_t startOff, std::optional<uint32_t> seqIDOpt = std::nullopt)
 {
-    fflassert(id > 0, id);
+    if(!allowZeroId){
+        fflassert(id > 0, id);
+    }
+
     fflassert(id < (1uz << idBitWidth), id, idBitWidth);
     fflassert(peerIndex < (1uz << peerIndexBitWidth), peerIndex, peerIndexBitWidth);
 
@@ -139,9 +142,9 @@ template<UIDType uidType> static uint64_t _build_UID_helper(uint32_t id, size_t 
         (to_u64(    seqID) <<       seqBitOff) ;
 }
 
-uint64_t uidf::buildMapUID    (uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_MAP>(id, peerIndex, 2); } // 1 used for map base UID
-uint64_t uidf::buildNPCUID    (uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_NPC>(id, peerIndex, 1); }
-uint64_t uidf::buildMonsterUID(uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_MON>(id, peerIndex, 1); }
+uint64_t uidf::buildMapUID    (uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_MAP>(0, id, peerIndex, 2); } // 1 used for map base UID
+uint64_t uidf::buildNPCUID    (uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_NPC>(1, id, peerIndex, 1); }
+uint64_t uidf::buildMonsterUID(uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_MON>(0, id, peerIndex, 1); }
 
 uint64_t uidf::buildReceiverUID()
 {

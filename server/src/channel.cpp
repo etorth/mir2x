@@ -2,10 +2,10 @@
 #include "channel.hpp"
 #include "netdriver.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "actormsgpack.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 Channel::Channel(asio::ip::tcp::socket argSocket, uint32_t argChannID, std::mutex &sendLock, std::vector<uint8_t> &sendBuf)
     : m_socket(std::move(argSocket))
@@ -182,7 +182,7 @@ void Channel::close()
 
     m_socket.close(ec);
     if(ec){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Close channel %zu: %s", ec.message().c_str());
+        g_server->addLog(LOGTYPE_WARNING, "Close channel %zu: %s", ec.message().c_str());
     }
 }
 

@@ -12,7 +12,7 @@
 #include "servertaodog.hpp"
 #include "fflerror.hpp"
 #include "actorpod.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "charobject.hpp"
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
@@ -20,7 +20,7 @@
 #include "bufflist.hpp"
 
 extern MapBinDB *g_mapBinDB;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 BattleObject::LuaThreadRunner::LuaThreadRunner(BattleObject *battleObjectPtr)
     : CharObject::LuaThreadRunner(battleObjectPtr)
@@ -636,15 +636,15 @@ bool BattleObject::canAct() const
                             switch(uidf::getMonsterID(UID())){
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 600;
+                                        return g_server->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 600;
                                     }
                                 case DBCOM_MONSTERID(u8"神兽"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
+                                        return g_server->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
                                     }
                                 case DBCOM_MONSTERID(u8"食人花"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
+                                        return g_server->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
                                     }
                                 default:
                                     {
@@ -963,7 +963,7 @@ std::optional<double> BattleObject::oneStepCost(const BattleObject::BOPathFinder
 void BattleObject::setLastAction(int type)
 {
     m_lastAction = type;
-    m_lastActionTime.at(type) = g_monoServer->getCurrTick();
+    m_lastActionTime.at(type) = g_server->getCurrTick();
 }
 
 bool BattleObject::isOffender(uint64_t nUID)

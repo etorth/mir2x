@@ -4,10 +4,10 @@
 #include "quest.hpp"
 #include "dbpod.hpp"
 #include "filesys.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 
 extern DBPod *g_dbPod;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
     : ServerObject::LuaThreadRunner(quest)

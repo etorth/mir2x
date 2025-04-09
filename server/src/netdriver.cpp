@@ -4,11 +4,11 @@
 #include "actorpool.hpp"
 #include "channel.hpp"
 #include "netdriver.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 static thread_local bool t_netThreadFlag = false; // use bool since only has 1 net thread
 
@@ -28,10 +28,10 @@ NetDriver::~NetDriver()
         doRelease();
     }
     catch(const std::exception &e){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Failed when release net driver: %s", e.what());
+        g_server->addLog(LOGTYPE_WARNING, "Failed when release net driver: %s", e.what());
     }
     catch(...){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Failed when release net driver: unknown error");
+        g_server->addLog(LOGTYPE_WARNING, "Failed when release net driver: unknown error");
     }
 }
 
@@ -72,7 +72,7 @@ void NetDriver::launch(uint32_t port)
             }
             catch(const ChannelError &e){
                 doClose(e.channID());
-                g_monoServer->addLog(LOGTYPE_INFO, "Channel %d has been disconnected.", to_d(e.channID()));
+                g_server->addLog(LOGTYPE_INFO, "Channel %d has been disconnected.", to_d(e.channID()));
             }
             // only catch channError
             // let it crash when caught any other exceptions
@@ -111,7 +111,7 @@ asio::awaitable<void> NetDriver::listener()
             slotPtr->channPtr = std::make_shared<Channel>(std::move(sock), channID, slotPtr->lock, slotPtr->sendBuf);
 
             auto channPtr = m_channelSlotList[channID].channPtr.get();
-            g_monoServer->addLog(LOGTYPE_INFO, "Channel %d has been established for endpoint (%s:%d).", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
+            g_server->addLog(LOGTYPE_INFO, "Channel %d has been established for endpoint (%s:%d).", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
 
             channPtr->launch();
         }

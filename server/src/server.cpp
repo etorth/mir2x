@@ -22,7 +22,7 @@
 #include "actorpool.hpp"
 #include "syncdriver.hpp"
 #include "mainwindow.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "dispatcher.hpp"
 #include "servicecore.hpp"
 #include "commandwindow.hpp"
@@ -33,12 +33,12 @@ extern Log *g_log;
 extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern MainWindow *g_mainWindow;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
-void MonoServer::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
+void Server::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
 {
     std::string s;
     str_format(format, s);
@@ -72,7 +72,7 @@ void MonoServer::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
     }
 }
 
-void MonoServer::addCWLogString(uint32_t cwID, int logType, const char *prompt, const char *log)
+void Server::addCWLogString(uint32_t cwID, int logType, const char *prompt, const char *log)
 {
     if(!str_haschar(prompt)){
         prompt = "";
@@ -94,12 +94,12 @@ void MonoServer::addCWLogString(uint32_t cwID, int logType, const char *prompt, 
     }
 }
 
-bool MonoServer::hasDatabase() const
+bool Server::hasDatabase() const
 {
     return g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table')###").executeStep();
 }
 
-bool MonoServer::hasCharacter(const char *charName) const
+bool Server::hasCharacter(const char *charName) const
 {
     if(!str_haschar(charName)){
         throw fflerror("invalid char name: %s", to_cstr(charName));
@@ -107,7 +107,7 @@ bool MonoServer::hasCharacter(const char *charName) const
     return g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_char where fld_name = '%s')###", charName).executeStep();
 }
 
-int MonoServer::createAccount(const char *id, const char *password)
+int Server::createAccount(const char *id, const char *password)
 {
     if(!(str_haschar(id) && (str_haschar(password)))){
         throw fflerror("bad account: id = %s, password = %s", to_cstr(id), to_cstr(password));
@@ -125,7 +125,7 @@ int MonoServer::createAccount(const char *id, const char *password)
     return CRTACCERR_NONE;
 }
 
-bool MonoServer::createAccountCharacter(const char *id, const char *charName, bool gender, int job)
+bool Server::createAccountCharacter(const char *id, const char *charName, bool gender, int job)
 {
     fflassert(str_haschar(id));
     fflassert(str_haschar(charName));
@@ -231,7 +231,7 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
     return true;
 }
 
-void MonoServer::createDefaultDatabase()
+void Server::createDefaultDatabase()
 {
     const char8_t *defSQLCmdList[]
     {
@@ -413,7 +413,7 @@ void MonoServer::createDefaultDatabase()
     addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
 }
 
-void MonoServer::createDBConnection()
+void Server::createDBConnection()
 {
     const char *dbName = "mir2x.db3";
     g_dbPod->launch(dbName);
@@ -426,7 +426,7 @@ void MonoServer::createDBConnection()
     addLog(LOGTYPE_INFO, "Connect to database %s successfully", dbName);
 }
 
-void MonoServer::loadMapBinDB()
+void Server::loadMapBinDB()
 {
     std::string szMapPath = g_serverConfigureWindow->getConfig().mapPath;
 
@@ -435,7 +435,7 @@ void MonoServer::loadMapBinDB()
     }
 }
 
-void MonoServer::mainLoop()
+void Server::mainLoop()
 {
     if(g_serverArgParser->slave){
         m_hasExcept.wait(false);
@@ -462,12 +462,12 @@ void MonoServer::mainLoop()
                         // won't handle exception in threads
                         // all threads need to call Fl::awake(2) to propagate exception(s) caught
                         try{
-                            g_monoServer->checkException();
+                            g_server->checkException();
                         }
                         catch(const std::exception &e){
                             std::string firstExceptStr;
-                            g_monoServer->logException(e, &firstExceptStr);
-                            g_monoServer->restart(firstExceptStr);
+                            g_server->logException(e, &firstExceptStr);
+                            g_server->restart(firstExceptStr);
                         }
                         break;
                     }
@@ -476,7 +476,7 @@ void MonoServer::mainLoop()
                     {
                         // pase the gui requests in the queue
                         // designed to send Fl::awake(1) to notify gui
-                        g_monoServer->parseNotifyGUIQ();
+                        g_server->parseNotifyGUIQ();
                         break;
                     }
             }
@@ -484,26 +484,26 @@ void MonoServer::mainLoop()
     }
 }
 
-void MonoServer::launch()
+void Server::launch()
 {
     createDBConnection();
     loadMapBinDB();
     g_actorPool->launch();
 }
 
-void MonoServer::propagateException() noexcept
+void Server::propagateException() noexcept
 {
     // TODO
     // add multi-thread protection
     try{
         if(!std::current_exception()){
-            addLog(LOGTYPE_WARNING, "call MonoServer::propagateException() without exception captured");
+            addLog(LOGTYPE_WARNING, "call Server::propagateException() without exception captured");
             return;
         }
 
         // we do have an exception
         // but may not be std::exception, nest it...
-        std::throw_with_nested(fflerror("rethrow in MonoServer::propagateException()"));
+        std::throw_with_nested(fflerror("rethrow in Server::propagateException()"));
     }
     catch(...){
         // must have one exception...
@@ -513,14 +513,14 @@ void MonoServer::propagateException() noexcept
     }
 }
 
-void MonoServer::checkException()
+void Server::checkException()
 {
     if(m_currException){
         std::rethrow_exception(m_currException);
     }
 }
 
-void MonoServer::logException(const std::exception &except, std::string *strPtr) noexcept
+void Server::logException(const std::exception &except, std::string *strPtr) noexcept
 {
     addLog(LOGTYPE_WARNING, "%s", except.what());
     try{
@@ -537,7 +537,7 @@ void MonoServer::logException(const std::exception &except, std::string *strPtr)
     }
 }
 
-void MonoServer::restart(const std::string &msg)
+void Server::restart(const std::string &msg)
 {
     // TODO: FLTK multi-threading support is weak, see:
     // http://www.fltk.org/doc-1.3/advanced.html#advanced_multithreading
@@ -562,7 +562,7 @@ void MonoServer::restart(const std::string &msg)
     }
 }
 
-bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool strictLoc)
+bool Server::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool strictLoc)
 {
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID %llu.", to_llu(monsterID));
 
@@ -598,7 +598,7 @@ bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bo
     return false;
 }
 
-bool MonoServer::loadMap(const std::string &mapName)
+bool Server::loadMap(const std::string &mapName)
 {
     const auto mapID = DBCOM_MAPID(to_u8cstr(mapName));
     if(mapID == 0){
@@ -624,7 +624,7 @@ bool MonoServer::loadMap(const std::string &mapName)
     }
 }
 
-std::vector<int> MonoServer::getMapList()
+std::vector<int> Server::getMapList()
 {
     switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), AM_QUERYMAPLIST); stRMPK.type()){
         case AM_MAPLIST:
@@ -650,7 +650,7 @@ std::vector<int> MonoServer::getMapList()
     }
 }
 
-sol::optional<int> MonoServer::getMonsterCount(int nMonsterID, int nMapID)
+sol::optional<int> Server::getMonsterCount(int nMonsterID, int nMapID)
 {
     // I have two ways to implement this function
     //  1. getMapList() / GetMapUID() / GetMapAddress() / QueryMonsterCount()
@@ -691,7 +691,7 @@ sol::optional<int> MonoServer::getMonsterCount(int nMonsterID, int nMapID)
     return sol::optional<int>();
 }
 
-void MonoServer::notifyGUI(std::string notifStr)
+void Server::notifyGUI(std::string notifStr)
 {
     if(!notifStr.empty()){
         {
@@ -702,7 +702,7 @@ void MonoServer::notifyGUI(std::string notifStr)
     }
 }
 
-void MonoServer::parseNotifyGUIQ()
+void Server::parseNotifyGUIQ()
 {
     const auto fnGetTokenList = [](const std::string &cmdStr) -> std::deque<std::string>
     {
@@ -790,12 +790,12 @@ void MonoServer::parseNotifyGUIQ()
         }
 
         if(fnCheckFront({"flushbrowser", "FlushBrowser", "FLUSHBROWSER"})){
-            g_monoServer->FlushBrowser();
+            g_server->FlushBrowser();
             continue;
         }
 
         if(fnCheckFront({"flushcwbrowser", "FlushCWBrowser", "FLUSHCWBROWSER"})){
-            g_monoServer->FlushCWBrowser();
+            g_server->FlushCWBrowser();
             continue;
         }
 
@@ -816,11 +816,11 @@ void MonoServer::parseNotifyGUIQ()
             continue;
         }
 
-        g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported notification: %s", tokenList.front().c_str());
+        g_server->addLog(LOGTYPE_WARNING, "Unsupported notification: %s", tokenList.front().c_str());
     }
 }
 
-void MonoServer::FlushBrowser()
+void Server::FlushBrowser()
 {
     std::lock_guard<std::mutex> stLockGuard(m_logLock);
     {
@@ -833,7 +833,7 @@ void MonoServer::FlushBrowser()
     }
 }
 
-void MonoServer::FlushCWBrowser()
+void Server::FlushCWBrowser()
 {
     std::lock_guard<std::mutex> stLockGuard(m_CWLogLock);
     {
@@ -863,7 +863,7 @@ void MonoServer::FlushCWBrowser()
     }
 }
 
-uint64_t MonoServer::sleepExt(uint64_t tickCount)
+uint64_t Server::sleepExt(uint64_t tickCount)
 {
     const auto enterTime = std::chrono::steady_clock::now();
     const auto excptTime = enterTime + std::chrono::milliseconds(tickCount);
@@ -883,7 +883,7 @@ uint64_t MonoServer::sleepExt(uint64_t tickCount)
     return 0;
 }
 
-void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
+void Server::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
 {
     if(!(modulePtr && nCWID)){
         throw fflerror("invalid argument: module = %p, window ID = %llu", to_cvptr(modulePtr), to_llu(nCWID));
@@ -1021,6 +1021,6 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     });
 
     modulePtr->pfrCheck(modulePtr->execRawString(BEGIN_LUAINC(char)
-#include "monoserver.lua"
+#include "server.lua"
     END_LUAINC()));
 }

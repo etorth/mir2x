@@ -1,11 +1,11 @@
 #include <asio.hpp>
 #include "asiof.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverpeer.hpp"
 #include "actormsgpack.hpp"
 #include "actornetdriver.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 ServerPeer::ServerPeer(ActorNetDriver *argDriver, asio::ip::tcp::socket argSocket, size_t argID, std::mutex &sendLock, std::vector<char> &sendBuf)
     : m_driver(argDriver)
@@ -67,7 +67,7 @@ void ServerPeer::close()
 
     m_socket.close(ec);
     if(ec){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Close peer %zu: %s", id(), ec.message().c_str());
+        g_server->addLog(LOGTYPE_WARNING, "Close peer %zu: %s", id(), ec.message().c_str());
     }
 }
 

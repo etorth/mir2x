@@ -11,14 +11,14 @@
 #include "netdriver.hpp"
 #include "raiitimer.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "actornetdriver.hpp"
 #include "serverargparser.hpp"
 #include "peercore.hpp"
 #include "servicecore.hpp"
 #include "serverconfigurewindow.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -67,7 +67,7 @@ ActorPool::ActorPool(int bucketCount, int logicFPS)
       }())
     , m_actorNetDriver(std::make_unique<ActorNetDriver>())
 {
-    g_monoServer->addLog(LOGTYPE_INFO, "Server FPS: %llu", to_llu(m_logicFPS));
+    g_server->addLog(LOGTYPE_INFO, "Server FPS: %llu", to_llu(m_logicFPS));
 }
 
 ActorPool::~ActorPool()
@@ -87,7 +87,7 @@ ActorPool::~ActorPool()
         m_bucketList.clear();
     }
     catch(...){
-        g_monoServer->propagateException();
+        g_server->propagateException();
     }
 }
 
@@ -899,10 +899,10 @@ void ActorPool::launchPool()
                 }
             }
             catch(...){
-                g_monoServer->propagateException();
+                g_server->propagateException();
             }
         });
-        g_monoServer->addLog(LOGTYPE_INFO, "Actor thread %d launched", bucketId);
+        g_server->addLog(LOGTYPE_INFO, "Actor thread %d launched", bucketId);
     }
 }
 
@@ -916,7 +916,7 @@ void ActorPool::launchBalance()
     const auto clientPort = g_serverConfigureWindow->getConfig().clientPort;
 
     launchNet(clientPort);
-    g_monoServer->addLog(LOGTYPE_INFO, "Master server launched, listening players on port: %d", clientPort);
+    g_server->addLog(LOGTYPE_INFO, "Master server launched, listening players on port: %d", clientPort);
 }
 
 bool ActorPool::checkUIDValid(uint64_t uid) const

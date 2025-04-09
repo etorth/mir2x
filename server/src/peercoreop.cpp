@@ -7,9 +7,9 @@
 #include "peercore.hpp"
 #include "servicecore.hpp"
 #include "serdesmsg.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 void PeerCore::on_AM_ADDCO(const ActorMsgPack &mpk)
 {
@@ -44,7 +44,7 @@ void PeerCore::on_AM_ADDCO(const ActorMsgPack &mpk)
             err = "unknown error";
         }
 
-        g_monoServer->addLog(LOGTYPE_WARNING, "Failed to create char object: %s", to_cstr(err));
+        g_server->addLog(LOGTYPE_WARNING, "Failed to create char object: %s", to_cstr(err));
         m_actorPod->forward(fromAddr, AM_ERROR);
     };
 

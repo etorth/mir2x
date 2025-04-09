@@ -7,12 +7,12 @@
 #include "dbcomid.hpp"
 #include "friendtype.hpp"
 #include "actorpod.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
 #include "buildconfig.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 void Player::on_AM_METRONOME(const ActorMsgPack &)
 {
@@ -143,7 +143,7 @@ void Player::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
 {
     const auto amMST = mpk.conv<AMMapSwitchTrigger>();
     if(!(amMST.UID && amMST.mapID)){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, mapID = %llu)", to_llu(amMST.UID), to_llu(amMST.mapID));
+        g_server->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, mapID = %llu)", to_llu(amMST.UID), to_llu(amMST.mapID));
     }
 
     if(amMST.mapID == mapID()){

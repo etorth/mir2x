@@ -10,7 +10,7 @@
 #include "actorpod.hpp"
 #include "mapbindb.hpp"
 #include "serdesmsg.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "servicecore.hpp"
 #include "npchar.hpp"
 #include "serverargparser.hpp"
@@ -39,7 +39,7 @@
 #include "serverminotaurguardian.hpp"
 
 extern MapBinDB *g_mapBinDB;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -79,7 +79,7 @@ void PeerCore::operateAM(const ActorMsgPack &mpk)
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(mpk.type()));
+                g_server->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(mpk.type()));
                 break;
             }
     }

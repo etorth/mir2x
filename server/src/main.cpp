@@ -22,7 +22,7 @@ MapBinDB                 *g_mapBinDB;
 ScriptWindow             *g_scriptWindow;
 ProfilerWindow           *g_profilerWindow;
 MainWindow               *g_mainWindow;
-MonoServer               *g_monoServer;
+Server               *g_server;
 ServerPasswordWindow     *g_serverPasswordWindow;
 ServerConfigureWindow    *g_serverConfigureWindow;
 PodMonitorWindow         *g_podMonitorWindow;
@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
             Fl::lock();
         }
 
-        g_log        = new Log("mir2x-monoserver-v0.1");
-        g_monoServer = new MonoServer();
+        g_log        = new Log("mir2x-server-v0.1");
+        g_server = new Server();
         g_mapBinDB   = new MapBinDB();
         g_actorPool  = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
 
@@ -77,11 +77,11 @@ int main(int argc, char *argv[])
 
             g_mainWindow->showAll();
             if(g_serverArgParser->autoLaunch){
-                g_monoServer->launch();
+                g_server->launch();
             }
         }
 
-        g_monoServer->mainLoop();
+        g_server->mainLoop();
     }
     catch(const std::exception &e){
         // use raw log directly

@@ -15,12 +15,12 @@
 #include "fflerror.hpp"
 #include "serdesmsg.hpp"
 #include "friendtype.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverpasswordwindow.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern DBPod *g_dbPod;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerPasswordWindow *g_serverPasswordWindow;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -533,7 +533,7 @@ void NPChar::postAddMonster(uint32_t monsterID)
                     break;
                 }
         }
-        g_monoServer->addLog(LOGTYPE_WARNING, "NPC failed to add monster");
+        g_server->addLog(LOGTYPE_WARNING, "NPC failed to add monster");
     });
 }
 

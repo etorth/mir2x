@@ -2,7 +2,7 @@
 #include "fflerror.hpp"
 #include "serdesmsg.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "actornetdriver.hpp"
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
@@ -10,7 +10,7 @@
 #include "asiof.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 static thread_local bool t_actorNetThreadFlag = false; // use bool since only has 1 net thread
@@ -45,10 +45,10 @@ ActorNetDriver::~ActorNetDriver()
         doRelease();
     }
     catch(const std::exception &e){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Failed when release net driver: %s", e.what());
+        g_server->addLog(LOGTYPE_WARNING, "Failed when release net driver: %s", e.what());
     }
     catch(...){
-        g_monoServer->addLog(LOGTYPE_WARNING, "Failed when release net driver: unknown error");
+        g_server->addLog(LOGTYPE_WARNING, "Failed when release net driver: unknown error");
     }
 }
 
@@ -124,7 +124,7 @@ asio::awaitable<void> ActorNetDriver::listener()
             );
 
             auto peer = slotPtr->peer.get();
-            g_monoServer->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
+            g_server->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
 
             peer->launch();
             post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
@@ -300,7 +300,7 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                 }
 
                 m_peerIndex = sdPI.index;
-                g_monoServer->addLog(LOGTYPE_INFO, "Assign peer index %zu.", m_peerIndex.value());
+                g_server->addLog(LOGTYPE_INFO, "Assign peer index %zu.", m_peerIndex.value());
                 return;
             }
         case AM_SYS_SLAVEPEERPORT:
@@ -370,7 +370,7 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
             }
         case AM_SYS_LAUNCHED:
             {
-                g_monoServer->addLog(LOGTYPE_INFO, "Slave server %zu has been launched", fromPeerIndex);
+                g_server->addLog(LOGTYPE_INFO, "Slave server %zu has been launched", fromPeerIndex);
                 m_launchedCount++;
 
                 if(m_launchedCount >= peerCount()){

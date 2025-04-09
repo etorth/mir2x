@@ -12,18 +12,18 @@
 #include "actormsg.hpp"
 #include "sysconst.hpp"
 #include "friendtype.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
 #include "dropitemconfig.hpp"
 #include "serverargparser.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
 std::optional<pathf::PathNode> Monster::AStarCache::retrieve(uint32_t mapID, int srcX, int srcY, int dstX, int dstY)
 {
-    if(g_monoServer->getCurrTick() >= (m_time + m_refresh)){
+    if(g_server->getCurrTick() >= (m_time + m_refresh)){
         m_path.clear();
         return {};
     }
@@ -63,7 +63,7 @@ std::optional<pathf::PathNode> Monster::AStarCache::retrieve(uint32_t mapID, int
 void Monster::AStarCache::cache(uint32_t mapID, std::vector<pathf::PathNode> nodeList)
 {
     fflassert(!nodeList.empty());
-    m_time = g_monoServer->getCurrTick();
+    m_time = g_server->getCurrTick();
     m_mapID = mapID;
     m_path.swap(nodeList);
 }
@@ -715,7 +715,7 @@ bool Monster::canMove() const
         return false;
     }
 
-    return g_monoServer->getCurrTick() >= std::max<uint32_t>(
+    return g_server->getCurrTick() >= std::max<uint32_t>(
     {
         m_lastActionTime.at(m_lastAction    ) + 100,
         m_lastActionTime.at(ACTION_JUMP     ) + 100,
@@ -740,7 +740,7 @@ bool Monster::canAttack() const
         return false;
     }
 
-    return g_monoServer->getCurrTick() >= std::max<uint32_t>(
+    return g_server->getCurrTick() >= std::max<uint32_t>(
     {
         m_lastActionTime.at(m_lastAction ) + 100,
         m_lastActionTime.at(ACTION_MOVE  ) + getMR().walkWait,

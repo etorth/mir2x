@@ -4,12 +4,12 @@
 #include "uidsf.hpp"
 #include "player.hpp"
 #include "actorpod.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "servicecore.hpp"
 #include "mapbindb.hpp"
 
 extern MapBinDB *g_mapBinDB;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 // ServiceCore accepts net packages from *many* sessions and based on it to create
 // the player object for a one to one map

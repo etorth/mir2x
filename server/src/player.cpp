@@ -15,7 +15,7 @@
 #include "serverargparser.hpp"
 
 extern DBPod *g_dbPod;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
 Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
@@ -699,7 +699,7 @@ void Player::operateAM(const ActorMsgPack &rstMPK)
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
+                g_server->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
                 break;
             }
     }
@@ -989,7 +989,7 @@ void Player::dispatchOffline()
         return;
     }
 
-    g_monoServer->addLog(LOGTYPE_WARNING, "Can't dispatch offline event");
+    g_server->addLog(LOGTYPE_WARNING, "Can't dispatch offline event");
 }
 
 void Player::reportOffline(uint64_t nUID, uint32_t nMapID)

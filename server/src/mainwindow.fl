@@ -29,7 +29,7 @@ decl {class CommandWindow;} {public global
 class MainWindow {} {
   Function {MainWindow()} {} {
     Fl_Window m_window {
-      label MonoServer
+      label Server
       callback {{
 	// do nothing
 }}
@@ -50,11 +50,11 @@ class MainWindow {} {
 
 	auto fnLaunchCallback = [this](ServerPasswordWindow *)
         {
-            extern MonoServer *g_monoServer;
-            delete g_monoServer;
+            extern Server *g_server;
+            delete g_server;
 
-            g_monoServer = new MonoServer();
-            g_monoServer->launch();
+            g_server = new Server();
+            g_server->launch();
 
             m_launchMenu->deactivate();
             g_serverPasswordWindow->hideAll();
@@ -64,7 +64,7 @@ class MainWindow {} {
         g_serverPasswordWindow->showAll();
 }}
             xywh {0 0 30 20} shortcut 0x4006c divider
-            code0 {\#include "monoserver.hpp"}
+            code0 {\#include "server.hpp"}
             code1 {\#include "serverpasswordwindow.hpp"}
           }
           MenuItem {} {
