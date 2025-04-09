@@ -5,6 +5,7 @@
 #include "npchar.hpp"
 #include "monster.hpp"
 #include "peercore.hpp"
+#include "servicecore.hpp"
 #include "serdesmsg.hpp"
 #include "monoserver.hpp"
 
@@ -57,25 +58,38 @@ void PeerCore::on_AM_ADDCO(const ActorMsgPack &mpk)
 
     sdICO);
 
-    AMLoadMap amLM;
-    std::memset(&amLM, 0, sizeof(amLM));
+    if(uidf::peerIndex(UID()) > 0){
+        AMLoadMap amLM;
+        std::memset(&amLM, 0, sizeof(amLM));
 
-    amLM.mapUID = mapUID;
-    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [fromAddr = mpk.fromAddr(), fnAddCO, this](const ActorMsgPack &rmpk)
-    {
-        switch(rmpk.type()){
-            case AM_LOADMAPOK:
-                {
-                    fnAddCO();
-                    break;
-                }
-            default:
-                {
-                    m_actorPod->forward(fromAddr, AM_ERROR);
-                    break;
-                }
-        }
-    });
+        amLM.mapUID = mapUID;
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [fromAddr = mpk.fromAddr(), fnAddCO, this](const ActorMsgPack &rmpk)
+        {
+            switch(rmpk.type()){
+                case AM_LOADMAPOK:
+                    {
+                        fnAddCO();
+                        break;
+                    }
+                default:
+                    {
+                        m_actorPod->forward(fromAddr, AM_ERROR);
+                        break;
+                    }
+            }
+        });
+    }
+    else{
+        dynamic_cast<ServiceCore *>(this)->requestLoadMap(mapUID, [fnAddCO](bool)
+        {
+            fnAddCO();
+        },
+
+        [fromAddr = mpk.fromAddr(), this]()
+        {
+            m_actorPod->forward(fromAddr, AM_ERROR);
+        });
+    }
 }
 
 void PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)

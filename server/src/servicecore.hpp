@@ -6,9 +6,13 @@
 #include "serdesmsg.hpp"
 #include "peercore.hpp"
 
+class PeerCore;
 class ServerMap;
 class ServiceCore final: public PeerCore
 {
+    private:
+        friend class PeerCore;
+
     private:
         struct LoadMapOp
         {
