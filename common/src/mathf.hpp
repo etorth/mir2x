@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
+#include <random>
 #include <cstdlib>
+#include <cstdint>
 #include <concepts>
 #include <algorithm>
 #include <stdexcept>
@@ -17,18 +19,53 @@ namespace mathf
 #else
     constexpr double pi = 3.141592653589793;
 #endif
+}
 
+namespace mathf
+{
+    uint64_t rand();
+    std::string randstr(size_t, const std::string &);
+}
+
+namespace mathf
+{
+    struct randGenerator
+    {
+        using result_type = uint64_t;
+
+        result_type operator()()
+        {
+            return mathf::rand();
+        }
+
+        static constexpr result_type min()
+        {
+            return std::mt19937_64::min();
+        }
+
+        static constexpr result_type max()
+        {
+            return std::mt19937_64::max();
+        }
+    };
+
+    template <typename T> concept arithmetic = std::integral<T> || std::floating_point<T>;
+}
+
+namespace mathf
+{
     template<std::integral T> T rand(T min, T max)
     {
-        return min + static_cast<T>(std::rand() % (1 + std::max<int>(max - min, 0)));
+        mathf::randGenerator rg;
+        std::uniform_int_distribution<T> uf{min, max};
+        return uf(rg);
     }
 
     template<std::floating_point T> T rand(T min, T max)
     {
-        if(min < max){
-            return min + (max - min) * to_f(std::rand()) / to_f(RAND_MAX);
-        }
-        return min;
+        mathf::randGenerator rg;
+        std::uniform_real_distribution<T> uf{min, max};
+        return uf(rg);
     }
 
     template<typename T> T bound(T val, T min, T max)
@@ -36,25 +73,8 @@ namespace mathf
         return std::min<T>(std::max<T>(val, min), max);
     }
 
-    inline std::string randstr(size_t size, const std::string &tok)
+    template<mathf::arithmetic T> T CDistance(T nfX, T nfY, T nfX1, T nfY1)
     {
-        std::string s;
-        s.reserve(size);
-
-        for(size_t i = 0; i < size; ++i){
-            if(tok.empty()){
-                s.push_back(rand<char>(1, 127));
-            }
-            else{
-                s.push_back(tok[rand<size_t>(0, tok.size() - 1)]);
-            }
-        }
-        return s;
-    }
-
-    template<typename T> T CDistance(T nfX, T nfY, T nfX1, T nfY1)
-    {
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
         if(std::is_unsigned<T>::value){
             // for unsigned intergal and bool
             if(nfX < nfX1){
@@ -73,9 +93,8 @@ namespace mathf
         return 1.0 / (1.0 + std::exp(-1.0 * x));
     }
 
-    template<typename T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
+    template<mathf::arithmetic T> T LDistance2(T nfX, T nfY, T nfX1, T nfY1)
     {
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
         if(std::is_unsigned<T>::value){
             // for unsigned intergal and bool
             if(nfX < nfX1){
@@ -94,9 +113,8 @@ namespace mathf
         return T(std::sqrt(LDistance2(nfX, nfY, nfX1, nfY1)));
     }
 
-    template<typename T> bool circleOverlap(T nfX, T nfY, T nfR, T nfX1, T nfY1, T nfR1)
+    template<mathf::arithmetic T> bool circleOverlap(T nfX, T nfY, T nfR, T nfX1, T nfY1, T nfR1)
     {
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
         return LDistance2(nfX, nfY, nfX1, nfY1) <= (nfR + nfR1) * (nfR + nfR1);
     }
 
@@ -121,7 +139,7 @@ namespace mathf
 
         if(nfDX <= (nfW / 2)){
             return true;
-        } 
+        }
 
         if(nfDY <= (nfH / 2)){
             return true;
@@ -135,21 +153,18 @@ namespace mathf
         return circleRectangleOverlap(nfCX, nfCY, nfCR, nfX, nfY, nfW, nfH);
     }
 
-    template<typename T> bool pointInSegment(T nfX, T nfStartX, T nfW)
+    template<mathf::arithmetic T> bool pointInSegment(T nfX, T nfStartX, T nfW)
     {
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
         return nfX >= nfStartX && nfX < nfStartX + nfW;
     }
 
-    template<typename T> bool pointInRectangle(T nfX, T nfY, T nStartX, T nStartY, T nfW, T nfH)
+    template<mathf::arithmetic T> bool pointInRectangle(T nfX, T nfY, T nStartX, T nStartY, T nfW, T nfH)
     {
         return pointInSegment(nfX, nStartX, nfW) && pointInSegment(nfY, nStartY, nfH);
     }
 
-    template<typename T> bool pointInTriangle(T nfX, T nfY, T nfX1, T nfY1, T nfX2, T nfY2, T nfX3, T nfY3)
+    template<mathf::arithmetic T> bool pointInTriangle(T nfX, T nfY, T nfX1, T nfY1, T nfX2, T nfY2, T nfX3, T nfY3)
     {
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
-
         bool b1 = false;
         bool b2 = false;
         bool b3 = false;
@@ -182,9 +197,8 @@ namespace mathf
         return LDistance2(nfX, nfY, nfCX, nfCY) <= nfR * nfR;
     }
 
-    template<typename T> bool segmentOverlap(T nfX1, T nfW1, T nfX2, T nfW2)
+    template<mathf::arithmetic T> bool segmentOverlap(T nfX1, T nfW1, T nfX2, T nfW2)
     {
-        static_assert(std::is_arithmetic<T>::value);
         return !(nfX1 >= nfX2 + nfW2 || nfX2 >= nfX1 + nfW1);
     }
 
@@ -194,27 +208,24 @@ namespace mathf
     }
 
     // check whether R2 is inside R1
-    template<typename T> bool rectangleInside(T nfX1, T nfY1, T nfW1, T nfH1, T nfX2, T nfY2, T nfW2, T nfH2)
+    template<mathf::arithmetic T> bool rectangleInside(T nfX1, T nfY1, T nfW1, T nfH1, T nfX2, T nfY2, T nfW2, T nfH2)
     {
         // TODO
         // finish code
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
         return true
             && (nfX1 <= nfX2) && (nfX1 + nfW1 >= nfX2 + nfW2)
             && (nfY1 <= nfY2) && (nfY1 + nfH1 >= nfY2 + nfH2);
     }
 
-    template<typename T> bool intervalOverlap(T nfX1, T nfW1, T nfX2, T nfW2)
+    template<mathf::arithmetic T> bool intervalOverlap(T nfX1, T nfW1, T nfX2, T nfW2)
     {
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
         // TODO
         // assume T2 is smaller
         return !(nfX1 + nfW1 <= nfX2 || nfX2 + nfW2 <= nfX1);
     }
 
-    template<typename T> bool intervalOverlapRegion(T nfX1, T nfW1, T *nfX2, T *nfW2)
+    template<mathf::arithmetic T> bool intervalOverlapRegion(T nfX1, T nfW1, T *nfX2, T *nfW2)
     {
-        static_assert(std::is_arithmetic<T>::value);
         if(!(nfX2 && nfW2)){
             throw fflerror("invalid arguments");
         }
@@ -247,19 +258,16 @@ namespace mathf
         return true;
     }
 
-    template<typename T> bool powerOf2(T nParam)
+    template<std::integral T> bool powerOf2(T nParam)
     {
-        static_assert(std::is_integral<T>::value, "Integral type required...");
         return !(nParam & (nParam - 1));
     }
 
     // TODO & TBD
     // this is portable but not optimized, gcc has builtin functions
     // as __builtin_clz(), google it, however it's not portable
-    template<typename T> T roundByPowerOf2(T nParam)
+    template<std::integral T> T roundByPowerOf2(T nParam)
     {
-        static_assert(std::is_integral<T>::value, "Integral type required...");
-
         nParam |= (nParam >> 1);
         nParam |= (nParam >> 2);
 
@@ -277,9 +285,8 @@ namespace mathf
     //
     // TODO: 1. R is positive
     //       2. two points are distinct to form a line
-    template<typename T> bool circleLineOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nfY0, T nfX1, T nfY1)
+    template<mathf::arithmetic T> bool circleLineOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nfY0, T nfX1, T nfY1)
     {
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
         if(false
                 || pointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR)
                 || pointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR)){ return true; }
@@ -310,11 +317,8 @@ namespace mathf
     //
     // TODO: 1. assume R is positive
     //       2. assume two points are distinct
-    template<typename T> bool circleSegmentOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nfY0, T nfX1, T nfY1)
+    template<mathf::arithmetic T> bool circleSegmentOverlap(T nfCX, T nfCY, T nfCR, T nfX0, T nfY0, T nfX1, T nfY1)
     {
-        // 1. check type
-        static_assert(std::is_arithmetic<T>::value, "Arithmetic type required...");
-
         // 2. one or two end points are inside the circle
         if(false
                 || pointInCircle(nfX0, nfY0, nfCX, nfCY, nfCR)

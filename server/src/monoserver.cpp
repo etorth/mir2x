@@ -564,74 +564,26 @@ void MonoServer::restart(const std::string &msg)
 
 bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool strictLoc)
 {
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
+    addLog(LOGTYPE_INFO, "Try to add monster, monsterID %llu.", to_llu(monsterID));
 
-    amACO.type = UID_MON;
-    amACO.mapUID = uidf::getMapBaseUID(mapID);
-    amACO.x = x;
-    amACO.y = y;
-    amACO.strictLoc = strictLoc;
+    const auto mapUID = uidsf::getMapBaseUID(mapID);
+    const auto peerIndex = uidf::peerIndex(mapUID);
 
-    amACO.monster.monsterID = monsterID;
-    amACO.monster.masterUID = 0;
-    addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
-
-    switch(auto stRMPK = SyncDriver().forward(uidsf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); stRMPK.type()){
-        case AM_UID:
-            {
-                if(const auto amUID = stRMPK.conv<AMUID>(); amUID.UID){
-                    addLog(LOGTYPE_INFO, "Add monster succeeds");
-                    return true;
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    addLog(LOGTYPE_WARNING, "Add monster failed");
-    return false;
-}
-
-bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID, int x, int y, int gfxDir, const char *fullScriptName)
-{
-    fflassert(mapID);
-    fflassert(x >= 0);
-    fflassert(y >= 0);
-
-    fflassert(str_haschar(npcName));
-    fflassert(str_haschar(fullScriptName));
-    fflassert(filesys::hasFile(fullScriptName), fullScriptName);
-
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type  = UID_NPC;
-    amACO.mapUID = uidf::getMapBaseUID(mapID);
-    amACO.x = x;
-    amACO.y = y;
-    amACO.strictLoc = false;
-
-    amACO.buf.assign(cerealf::serialize(SDInitNPChar
+    SDInitCharObject sdICO = SDInitMonster
     {
-        .lookID = lookID,
-        .npcName = npcName,
-        .fullScriptName = fullScriptName,
-        .mapUID = uidf::getMapBaseUID(mapID),
+        .monsterID = monsterID,
+        .mapUID = mapUID,
         .x = x,
         .y = y,
-        .gfxDir = gfxDir,
-    }));
+        .strictLoc = strictLoc,
+        .direction = DIR_BEGIN, // monster may ignore
+    };
 
-    addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(fullScriptName));
-    switch(auto rmpk = SyncDriver().forward(uidsf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); rmpk.type()){
+    switch(auto rmpk = SyncDriver().forward(uidf::getPeerCoreUID(peerIndex), {AM_ADDCO, cerealf::serialize(sdICO)}, 0, 0); rmpk.type()){
         case AM_UID:
             {
-                if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
-                    addLog(LOGTYPE_INFO, "Add NPC succeeds");
+                if(const auto amUID = rmpk.conv<AMUID>(); amUID.uid){
+                    addLog(LOGTYPE_INFO, "Add monster succeeds.");
                     return true;
                 }
                 break;
@@ -642,25 +594,26 @@ bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID,
             }
     }
 
-    addLog(LOGTYPE_WARNING, "Add NPC failed");
+    addLog(LOGTYPE_WARNING, "Add monster failed.");
     return false;
 }
 
 bool MonoServer::loadMap(const std::string &mapName)
 {
-    AMLoadMap amLM;
-    std::memset(&amLM, 0, sizeof(amLM));
-
-    amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
-    if(amLM.mapID == 0){
+    const auto mapID = DBCOM_MAPID(to_u8cstr(mapName));
+    if(mapID == 0){
         addLog(LOGTYPE_WARNING, "Invalid map name: %s", to_cstr(mapName));
         return false;
     }
 
-    switch(const auto rmpk = SyncDriver().forward(uidsf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
+    AMLoadMap amLM;
+    std::memset(&amLM, 0, sizeof(amLM));
+
+    amLM.mapUID = uidsf::getMapBaseUID(mapID);
+    switch(const auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
         case AM_LOADMAPOK:
             {
-                addLog(LOGTYPE_INFO, "Load map %s: uid = %s", to_cstr(mapName), uidf::getUIDString(uidf::getMapBaseUID(amLM.mapID)).c_str());
+                addLog(LOGTYPE_INFO, "Load map %s: uid = %s", to_cstr(mapName), uidf::getUIDString(amLM.mapUID).c_str());
                 return true;
             }
         default:
@@ -673,7 +626,7 @@ bool MonoServer::loadMap(const std::string &mapName)
 
 std::vector<int> MonoServer::getMapList()
 {
-    switch(auto stRMPK = SyncDriver().forward(uidsf::getServiceCoreUID(), AM_QUERYMAPLIST); stRMPK.type()){
+    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), AM_QUERYMAPLIST); stRMPK.type()){
         case AM_MAPLIST:
             {
                 AMMapList amML;
@@ -718,7 +671,7 @@ sol::optional<int> MonoServer::getMonsterCount(int nMonsterID, int nMapID)
         amQCOC.Check.Monster        = true;
         amQCOC.CheckParam.MonsterID = to_u32(nMonsterID);
 
-        switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(0), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
+        switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
             case AM_COCOUNT:
                 {
                     AMCOCount amCOC;

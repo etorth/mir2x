@@ -47,7 +47,7 @@ class ActorNetDriver
         void launch(asio::ip::port_type);
 
     public:
-        size_t hasPeer() const;
+        size_t peerCount() const;
 
     private:
         void doRelease();

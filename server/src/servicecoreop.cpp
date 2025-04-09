@@ -1,6 +1,7 @@
 #include <string>
 #include <type_traits>
 
+#include "uidsf.hpp"
 #include "player.hpp"
 #include "actorpod.hpp"
 #include "monoserver.hpp"
@@ -34,62 +35,15 @@ void ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
     m_questList[mpk.from()] = sdRQ;
 }
 
-void ServiceCore::on_AM_ADDCO(const ActorMsgPack &rstMPK)
-{
-    const auto amACO = rstMPK.conv<AMAddCharObject>();
-    if(!amACO.mapUID){
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
-        return;
-    }
-
-    if(!g_mapBinDB->retrieve(uidf::getMapID(amACO.mapUID))->validC(amACO.x, amACO.y) && amACO.strictLoc){
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
-        return;
-    }
-
-    loadMap(uidf::getMapID(amACO.mapUID), [amACO, rstMPK, this](bool)
-    {
-        m_actorPod->forward(amACO.mapUID, {AM_ADDCO, amACO}, [this, amACO, rstMPK](const ActorMsgPack &rstRMPK)
-        {
-            m_actorPod->forward(rstMPK.from(), {rstRMPK.type(), rstRMPK.data()}, rstMPK.seqID());
-        });
-    },
-
-    [rstMPK, this]()
-    {
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
-    });
-}
-
-void ServiceCore::on_AM_ADDMAP(const ActorMsgPack &rstMPK)
-{
-    const auto amAM = rstMPK.conv<AMAddMap>();
-    loadMap(amAM.mapID, [amAM, rstMPK, this](bool newLoad)
-    {
-        AMAddMapOK amAMOK;
-        std::memset(&amAMOK, 0, sizeof(amAMOK));
-
-        amAMOK.mapID   = amAM.mapID;
-        amAMOK.newLoad = newLoad;
-
-        m_actorPod->forward(rstMPK.from(), {AM_ADDMAPOK, amAMOK}, rstMPK.seqID());
-    },
-
-    [rstMPK, this]()
-    {
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
-    });
-}
-
 void ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
 {
     AMMapList amML;
     std::memset(&amML, 0, sizeof(amML));
 
     size_t nIndex = 0;
-    for(const auto &[mapID, ops]: m_loadMapOps){
+    for(const auto mapUID: m_mapList){
         if(nIndex < std::extent_v<decltype(amML.MapList)>){
-            amML.MapList[nIndex++] = mapID;
+            amML.MapList[nIndex++] = uidf::getMapID(mapUID);
         }
         else{
             throw fflerror("Need larger map list size in AMMapList");
@@ -101,18 +55,18 @@ void ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
 void ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
 {
     const auto amLM = mpk.conv<AMLoadMap>();
-    loadMap(amLM.mapID, [amLM, mpk, this](bool)
+    requestLoadMap(amLM.mapUID, [mpk, this](bool newLoad)
     {
         AMLoadMapOK amLMOK;
         std::memset(&amLMOK, 0, sizeof(amLMOK));
 
-        amLMOK.uid = uidf::getMapBaseUID(amLM.mapID);
+        amLMOK.newLoad = newLoad;
         m_actorPod->forward(mpk.fromAddr(), {AM_LOADMAPOK, amLMOK});
     },
 
     [mpk, this]()
     {
-        m_actorPod->forward(mpk.fromAddr(), AM_LOADMAPERROR);
+        m_actorPod->forward(mpk.fromAddr(), AM_ERROR);
     });
 }
 
@@ -122,7 +76,7 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     const auto checkCount = [&amQCOC, this]()
     {
         if(amQCOC.mapID){
-            if(auto p = m_loadMapOps.find(amQCOC.mapID); p != m_loadMapOps.end() && !p->second.pending){
+            if(m_mapList.contains(uidsf::getMapBaseUID(amQCOC.mapID))){
                 return 1;
             }
             else{
@@ -140,7 +94,7 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
             }
         case 1:
             {
-                m_actorPod->forward(uidf::getMapBaseUID(amQCOC.mapID), {AM_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const ActorMsgPack &rstRMPK)
+                m_actorPod->forward(uidsf::getMapBaseUID(amQCOC.mapID), {AM_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const ActorMsgPack &rstRMPK)
                 {
                     switch(rstRMPK.type()){
                         case AM_COCOUNT:
@@ -160,13 +114,6 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
             }
         default:
             {
-                std::set<uint32_t> mapList;
-                for(const auto &[mapID, op]: m_loadMapOps){
-                    if(!op.pending){
-                        mapList.insert(mapID);
-                    }
-                }
-
                 struct SharedState
                 {
                     bool error = false;
@@ -175,7 +122,7 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                 };
 
                 auto sharedState = std::make_shared<SharedState>();
-                sharedState->check = to_d(mapList.size());
+                sharedState->check = to_d(m_mapList.size());
 
                 auto fnOnResp = [sharedState, this, rstMPK](const ActorMsgPack &rstRMPK)
                 {
@@ -205,8 +152,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                     }
                 };
 
-                for(const auto mapID: mapList){
-                    m_actorPod->forward(uidf::getMapBaseUID(mapID), {AM_QUERYCOCOUNT, amQCOC}, fnOnResp);
+                for(const auto mapID: m_mapList){
+                    m_actorPod->forward(uidsf::getMapBaseUID(mapID), {AM_QUERYCOCOUNT, amQCOC}, fnOnResp);
                 }
                 return;
             }
@@ -262,7 +209,7 @@ void ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
     AMUID amUID;
     std::memset(&amUID, 0, sizeof(amUID));
 
-    amUID.UID = questUID;
+    amUID.uid = questUID;
     m_actorPod->forward(mpk.fromAddr(), {AM_UID, amUID});
 }
 

@@ -23,7 +23,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
             *closed = true;
         });
 
-        m_actorPod->forward(uidf::getServiceCoreUID(0), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
         {
             .name = std::move(questName),
         })},
@@ -41,8 +41,8 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
                 case AM_UID:
                     {
                         const auto amUID = rmpk.conv<AMUID>();
-                        if(amUID.UID){
-                            onDone(amUID.UID);
+                        if(amUID.uid){
+                            onDone(amUID.uid);
                         }
                         else{
                             onDone();
@@ -66,7 +66,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
             *closed = true;
         });
 
-        m_actorPod->forward(uidf::getServiceCoreUID(0), AM_QUERYQUESTUIDLIST, [closed, onDone](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), AM_QUERYQUESTUIDLIST, [closed, onDone](const ActorMsgPack &rmpk)
         {
             if(*closed){
                 return;
@@ -104,10 +104,8 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         AMLoadMap amLM;
         std::memset(&amLM, 0, sizeof(AMLoadMap));
 
-        amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
-        amLM.activateMap = true;
-
-        m_actorPod->forward(uidsf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, mapID = amLM.mapID, onDone, this](const ActorMsgPack &mpk)
+        amLM.mapUID = uidf::getMapBaseUID(DBCOM_MAPID(to_u8cstr(mapName)), uidsf::pickPeerIndex(UID_MAP));
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, amLM, onDone, this](const ActorMsgPack &mpk)
         {
             if(*closed){
                 return;
@@ -119,13 +117,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
             switch(mpk.type()){
                 case AM_LOADMAPOK:
                     {
-                        const auto amLMOK = mpk.conv<AMLoadMapOK>();
-                        if(amLMOK.uid){
-                            onDone(amLMOK.uid);
-                        }
-                        else{
-                            onDone();
-                        }
+                        onDone(amLM.mapUID);
                         break;
                     }
                 default:

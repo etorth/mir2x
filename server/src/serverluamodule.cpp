@@ -1,4 +1,5 @@
 #include "uidf.hpp"
+#include "mathf.hpp"
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
 #include "mapbindb.hpp"
@@ -50,7 +51,7 @@ ServerLuaModule::ServerLuaModule()
 
     bindFunction("getServiceCoreUID", []() -> uint64_t
     {
-        return uidf::getServiceCoreUID(0);
+        return uidf::getServiceCoreUID();
     });
 
     bindFunction("randMapGLoc", [](std::string mapName)
@@ -58,8 +59,8 @@ ServerLuaModule::ServerLuaModule()
         const auto fnGetRandGLoc = [](const auto dataCPtr) -> std::array<int, 2>
         {
             while(true){
-                const int x = std::rand() % dataCPtr->w();
-                const int y = std::rand() % dataCPtr->h();
+                const int x = mathf::rand() % dataCPtr->w();
+                const int y = mathf::rand() % dataCPtr->h();
 
                 if(dataCPtr->validC(x, y) && dataCPtr->cell(x, y).land.canThrough()){
                     return {x, y};

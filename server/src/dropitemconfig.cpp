@@ -100,7 +100,7 @@ std::vector<SDItem> getMonsterDropItemList(uint32_t monsterID)
                 return std::max<int>(1, std::lround(dropItem.probRecip / serverConfig.dropRate));
             }();
 
-            if((dropItem.probRecip > 0) && ((std::rand() % adjProbRecip) == 0)){
+            if((dropItem.probRecip > 0) && ((mathf::rand() % adjProbRecip) == 0)){
                 const auto &ir = DBCOM_ITEMRECORD(dropItem.itemID);
                 fflassert(ir);
 

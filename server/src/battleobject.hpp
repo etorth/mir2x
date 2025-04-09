@@ -162,7 +162,7 @@ class BattleObject: public CharObject
 
     protected:
         bool requestMapSwitch(
-                uint32_t,                           // mapID
+                uint64_t,                           // mapUID
                 int,                                // x
                 int,                                // y
                 bool,                               // strictMove

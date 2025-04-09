@@ -11,7 +11,7 @@ class ServerRootSpider final: public Monster
 
     public:
         ServerRootSpider(uint64_t argMapUID, int argX, int argY)
-            : Monster(DBCOM_MONSTERID(u8"幻影蜘蛛"), argMapUID, argX, argY, DIR_BEGIN + std::rand() % 3, 0)
+            : Monster(DBCOM_MONSTERID(u8"幻影蜘蛛"), argMapUID, argX, argY, DIR_BEGIN + mathf::rand() % 3, 0)
         {}
 
     protected:

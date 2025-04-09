@@ -4,6 +4,8 @@
 #include "dbcomid.hpp"
 #include "monster.hpp"
 #include "strf.hpp"
+#include "uidf.hpp"
+#include "uidsf.hpp"
 #include "mathf.hpp"
 #include "sysconst.hpp"
 #include "actorpod.hpp"
@@ -31,7 +33,7 @@ void ServerMap::on_AM_BADACTORPOD(const ActorMsgPack &)
 void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
-    if(!validC(amA.action.x, amA.action.y)){
+    if(!mapBin()->validC(amA.action.x, amA.action.y)){
         return;
     }
 
@@ -48,7 +50,7 @@ void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
 
     doCircle(amA.action.x, amA.action.y, SYS_VIEWR, [this, amA](int nX, int nY) -> bool
     {
-        if(true || validC(nX, nY)){
+        if(true || mapBin()->validC(nX, nY)){
             doUIDList(nX, nY, [this, amA](uint64_t nUID) -> bool
             {
                 if(nUID != amA.UID){
@@ -73,74 +75,74 @@ void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 }
 
-void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
-{
-    const auto amACO = rstMPK.conv<AMAddCharObject>();
-    const auto nX = amACO.x;
-    const auto nY = amACO.y;
-    const bool bStrictLoc = amACO.strictLoc;
-
-    AMUID amUID;
-    std::memset(&amUID, 0, sizeof(amUID));
-
-    switch(amACO.type){
-        case UID_MON:
-            {
-                const auto nMonsterID = amACO.monster.monsterID;
-                const auto nMasterUID = amACO.monster.masterUID;
-
-                if(auto monPtr = addMonster(nMonsterID, nMasterUID, nX, nY, bStrictLoc)){
-                    amUID.UID = monPtr->UID();
-                }
-
-                m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
-                return;
-            }
-        case UID_PLY:
-            {
-                const auto initParam = amACO.buf.deserialize<SDInitPlayer>();
-                if(auto playerPtr = addPlayer(initParam)){
-                    AMBindChannel amBC;
-                    std::memset(&amBC, 0, sizeof(amBC));
-                    amBC.channID = initParam.channID;
-
-                    m_actorPod->forward(playerPtr->UID(), {AM_BINDCHANNEL, amBC});
-                    doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
-                    {
-                        if(true || validC(nX, nY)){
-                            // ReportGroundItem(nChannID, nX, nY);
-                        }
-                        return false;
-                    });
-                    amUID.UID = playerPtr->UID();
-                }
-
-                m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
-                return;
-            }
-        case UID_NPC:
-            {
-                if(auto npcPtr = addNPChar(amACO.buf.deserialize<SDInitNPChar>())){
-                    doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
-                    {
-                        if(true || validC(nX, nY)){
-                            // ReportGroundItem(nChannID, nX, nY);
-                        }
-                        return false;
-                    });
-                    amUID.UID = npcPtr->UID();
-                }
-
-                m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
-                return;
-            }
-        default:
-            {
-                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
-                return;
-            }
-    }
-}
+// void ServerMap::on_AM_ADDCO(const ActorMsgPack &rstMPK)
+// {
+//     const auto amACO = rstMPK.conv<AMAddCharObject>();
+//     const auto nX = amACO.x;
+//     const auto nY = amACO.y;
+//     const bool bStrictLoc = amACO.strictLoc;
+//
+//     AMUID amUID;
+//     std::memset(&amUID, 0, sizeof(amUID));
+//
+//     switch(amACO.type){
+//         case UID_MON:
+//             {
+//                 const auto nMonsterID = amACO.monster.monsterID;
+//                 const auto nMasterUID = amACO.monster.masterUID;
+//
+//                 if(auto monPtr = addMonster(nMonsterID, nMasterUID, nX, nY, bStrictLoc)){
+//                     amUID.uid = monPtr->UID();
+//                 }
+//
+//                 m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
+//                 return;
+//             }
+//         case UID_PLY:
+//             {
+//                 const auto initParam = amACO.buf.deserialize<SDInitPlayer>();
+//                 if(auto playerPtr = addPlayer(initParam)){
+//                     AMBindChannel amBC;
+//                     std::memset(&amBC, 0, sizeof(amBC));
+//                     amBC.channID = initParam.channID;
+//
+//                     m_actorPod->forward(playerPtr->UID(), {AM_BINDCHANNEL, amBC});
+//                     doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
+//                     {
+//                         if(true || validC(nX, nY)){
+//                             // ReportGroundItem(nChannID, nX, nY);
+//                         }
+//                         return false;
+//                     });
+//                     amUID.UID = playerPtr->UID();
+//                 }
+//
+//                 m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
+//                 return;
+//             }
+//         case UID_NPC:
+//             {
+//                 if(auto npcPtr = addNPChar(amACO.buf.deserialize<SDInitNPChar>())){
+//                     doCircle(nX, nY, 20, [this](int nX, int nY) -> bool
+//                     {
+//                         if(true || validC(nX, nY)){
+//                             // ReportGroundItem(nChannID, nX, nY);
+//                         }
+//                         return false;
+//                     });
+//                     amUID.UID = npcPtr->UID();
+//                 }
+//
+//                 m_actorPod->forward(rstMPK.from(), {AM_UID, amUID}, rstMPK.seqID());
+//                 return;
+//             }
+//         default:
+//             {
+//                 m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+//                 return;
+//             }
+//     }
+// }
 
 void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 {
@@ -171,14 +173,14 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
     int nDstX = amTSM.EndX;
     int nDstY = amTSM.EndY;
 
-    if(!validC(amTSM.X, amTSM.Y)){
+    if(!mapBin()->validC(amTSM.X, amTSM.Y)){
         if(amTSM.StrictMove){
             m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
             return;
         }
 
-        nDstX = std::rand() % W();
-        nDstY = std::rand() % H();
+        nDstX = mathf::rand() % mapBin()->w();
+        nDstY = mathf::rand() % mapBin()->h();
     }
 
     const auto loc = getRCValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
@@ -415,7 +417,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                         AMMapSwitchTrigger amMST;
                         std::memset(&amMST, 0, sizeof(amMST));
 
-                        amMST.UID   = uidf::getMapBaseUID(getGrid(amTJ.EndX, amTJ.EndY).mapID); // TODO
+                        amMST.UID   = uidsf::getMapBaseUID(getGrid(amTJ.EndX, amTJ.EndY).mapID); // TODO
                         amMST.mapID = getGrid(amTJ.EndX, amTJ.EndY).mapID;
                         amMST.X     = getGrid(amTJ.EndX, amTJ.EndY).switchX;
                         amMST.Y     = getGrid(amTJ.EndX, amTJ.EndY).switchY;
@@ -656,7 +658,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                         AMMapSwitchTrigger amMST;
                         std::memset(&amMST, 0, sizeof(amMST));
 
-                        amMST.UID   = uidf::getMapBaseUID(getGrid(nMostX, nMostY).mapID); // TODO
+                        amMST.UID   = uidsf::getMapBaseUID(getGrid(nMostX, nMostY).mapID); // TODO
                         amMST.mapID = getGrid(nMostX, nMostY).mapID;
                         amMST.X     = getGrid(nMostX, nMostY).switchX;
                         amMST.Y     = getGrid(nMostX, nMostY).switchY;
@@ -914,10 +916,10 @@ void ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
     AMUpdateHP amUHP;
     std::memcpy(&amUHP, rstMPK.data(), sizeof(amUHP));
 
-    if(validC(amUHP.X, amUHP.Y)){
+    if(mapBin()->validC(amUHP.X, amUHP.Y)){
         doCircle(amUHP.X, amUHP.Y, 20, [this, amUHP](int nX, int nY) -> bool
         {
-            if(true || validC(nX, nY)){
+            if(true || mapBin()->validC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
                     if(nUID != amUHP.UID){
                         if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
@@ -937,11 +939,11 @@ void ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
     // and server map then boardcast to all its neighbors to remove this CO from their list to do clean
 
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
-    if(validC(amDFO.X, amDFO.Y)){
+    if(mapBin()->validC(amDFO.X, amDFO.Y)){
         removeGridUID(amDFO.UID, amDFO.X, amDFO.Y);
         doCircle(amDFO.X, amDFO.Y, 20, [this, amDFO](int nX, int nY) -> bool
         {
-            if(true || validC(nX, nY)){
+            if(true || mapBin()->validC(nX, nY)){
                 for(auto nUID: getUIDList(nX, nY)){
                     if(nUID != amDFO.UID){
                         if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
@@ -966,8 +968,8 @@ void ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     }
 
     int nCOCount = 0;
-    for(int nX = 0; nX < W(); ++nX){
-        for(int nY = 0; nY < H(); ++nY){
+    for(int nX = 0; nX < to_d(mapBin()->w()); ++nX){
+        for(int nY = 0; nY < to_d(mapBin()->h()); ++nY){
             std::for_each(getUIDList(nX, nY).begin(), getUIDList(nX, nY).end(), [amQCOC, &nCOCount](uint64_t nUID){
                 if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
                     if(amQCOC.Check.NPC    ){ nCOCount++; return; }
@@ -989,16 +991,16 @@ void ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
 {
     auto sdDI = mpk.deserialize<SDDropItem>();
     fflassert(sdDI.item);
-    fflassert(groundValid(sdDI.x, sdDI.y));
+    fflassert(mapBin()->groundValid(sdDI.x, sdDI.y));
 
     int bestX = -1;
     int bestY = -1;
     int checkGridCount = 0;
     int minGridItemCount = SYS_MAXDROPITEM + 1;
 
-    RotateCoord rc(sdDI.x, sdDI.y, 0, 0, W(), H());
+    RotateCoord rc(sdDI.x, sdDI.y, 0, 0, mapBin()->w(), mapBin()->h());
     do{
-        if(groundValid(rc.x(), rc.y())){
+        if(mapBin()->groundValid(rc.x(), rc.y())){
             if(const auto currCount = to_d(getGridItemList(rc.x(), rc.y()).size()); currCount < minGridItemCount){
                 bestX = rc.x();
                 bestY = rc.y();
@@ -1010,7 +1012,7 @@ void ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
         }
     }while(rc.forward() && (checkGridCount++ <= SYS_MAXDROPITEMGRID));
 
-    if(groundValid(bestX, bestY)){
+    if(mapBin()->groundValid(bestX, bestY)){
         addGridItem(std::move(sdDI.item), bestX, bestY);
     }
 }
@@ -1026,7 +1028,7 @@ void ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 
     doCircle(amO.X, amO.Y, 10, [amO, this](int nX, int nY) -> bool
     {
-        if(true || validC(nX, nY)){
+        if(true || mapBin()->validC(nX, nY)){
             for(auto nUID: getUIDList(nX, nY)){
                 if(nUID != amO.UID){
                     m_actorPod->forward(nUID, {AM_OFFLINE, amO});
@@ -1041,7 +1043,7 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
 {
     const auto amPU = mpk.conv<AMPickUp>();
 
-    fflassert(validC(amPU.x, amPU.y));
+    fflassert(mapBin()->validC(amPU.x, amPU.y));
     fflassert(uidf::getUIDType(mpk.from()) == UID_PLY);
 
     std::vector<SDItem> pickedItemList;
@@ -1127,7 +1129,7 @@ void ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
 void ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
 {
     const auto amCFW = mpk.conv<AMCastFireWall>();
-    if(groundValid(amCFW.x, amCFW.y)){
+    if(mapBin()->groundValid(amCFW.x, amCFW.y)){
         getGrid(amCFW.x, amCFW.y).fireWallList.push_back(FireWallMagicNode
         {
             .uid = mpk.from(),

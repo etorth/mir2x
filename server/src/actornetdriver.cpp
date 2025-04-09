@@ -273,7 +273,7 @@ void ActorNetDriver::doClose(uint32_t channID)
     }
 }
 
-size_t ActorNetDriver::hasPeer() const
+size_t ActorNetDriver::peerCount() const
 {
     size_t result = 0;
     for(size_t i = 1; i < m_peerSlotList.size(); ++i){
@@ -373,7 +373,7 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                 g_monoServer->addLog(LOGTYPE_INFO, "Slave server %zu has been launched", fromPeerIndex);
                 m_launchedCount++;
 
-                if(m_launchedCount >= hasPeer()){
+                if(m_launchedCount >= peerCount()){
                     g_actorPool->launchBalance();
                 }
                 return;

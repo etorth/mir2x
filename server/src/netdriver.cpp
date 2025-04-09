@@ -43,7 +43,7 @@ bool NetDriver::isNetThread()
 void NetDriver::launch(uint32_t port)
 {
     fflassert(port > 1024, port);
-    fflassert(g_actorPool->checkUIDValid(uidf::getServiceCoreUID(0)));
+    fflassert(g_actorPool->checkUIDValid(uidf::getServiceCoreUID()));
 
     fflassert(!m_port);
     fflassert(!isNetThread());

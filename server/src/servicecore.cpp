@@ -20,75 +20,75 @@ extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
 ServiceCore::ServiceCore()
-    : ServerObject(uidsf::getServiceCoreUID())
+    : PeerCore()
 {}
 
-void ServiceCore::operateAM(const ActorMsgPack &rstMPK)
+void ServiceCore::operateAM(const ActorMsgPack &mpk)
 {
-    switch(rstMPK.type()){
+    switch(mpk.type()){
         case AM_BADCHANNEL:
             {
-                on_AM_BADCHANNEL(rstMPK);
+                on_AM_BADCHANNEL(mpk);
                 break;
             }
         case AM_METRONOME:
             {
-                on_AM_METRONOME(rstMPK);
+                on_AM_METRONOME(mpk);
                 break;
             }
         case AM_REGISTERQUEST:
             {
-                on_AM_REGISTERQUEST(rstMPK);
-                break;
-            }
-        case AM_ADDCO:
-            {
-                on_AM_ADDCO(rstMPK);
+                on_AM_REGISTERQUEST(mpk);
                 break;
             }
         case AM_RECVPACKAGE:
             {
-                on_AM_RECVPACKAGE(rstMPK);
+                on_AM_RECVPACKAGE(mpk);
                 break;
             }
         case AM_QUERYMAPLIST:
             {
-                on_AM_QUERYMAPLIST(rstMPK);
+                on_AM_QUERYMAPLIST(mpk);
                 break;
             }
         case AM_QUERYCOCOUNT:
             {
-                on_AM_QUERYCOCOUNT(rstMPK);
+                on_AM_QUERYCOCOUNT(mpk);
+                break;
+            }
+        case AM_ADDCO:
+            {
+                on_AM_ADDCO(mpk);
                 break;
             }
         case AM_LOADMAP:
             {
-                on_AM_LOADMAP(rstMPK);
+                on_AM_LOADMAP(mpk);
                 break;
             }
         case AM_MODIFYQUESTTRIGGERTYPE:
             {
-                on_AM_MODIFYQUESTTRIGGERTYPE(rstMPK);
+                on_AM_MODIFYQUESTTRIGGERTYPE(mpk);
                 break;
             }
         case AM_QUERYQUESTTRIGGERLIST:
             {
-                on_AM_QUERYQUESTTRIGGERLIST(rstMPK);
+                on_AM_QUERYQUESTTRIGGERLIST(mpk);
                 break;
             }
         case AM_QUERYQUESTUID:
             {
-                on_AM_QUERYQUESTUID(rstMPK);
+                on_AM_QUERYQUESTUID(mpk);
                 break;
             }
         case AM_QUERYQUESTUIDLIST:
             {
-                on_AM_QUERYQUESTUIDLIST(rstMPK);
+                on_AM_QUERYQUESTUIDLIST(mpk);
                 break;
             }
         default:
             {
-                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
+                g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(mpk.type()));
                 break;
             }
     }
@@ -143,7 +143,7 @@ void ServiceCore::onActivate()
 {
     ServerObject::onActivate();
     if(const auto mapID = g_serverArgParser->preloadMapID; mapID > 0){
-        loadMap(mapID, [mapID](bool)
+        requestLoadMap(mapID, [mapID](bool)
         {
             g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
         });
@@ -151,7 +151,7 @@ void ServiceCore::onActivate()
 
     if(g_serverArgParser->preloadMap){
         for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
-            loadMap(mapID, [mapID](bool)
+            requestLoadMap(mapID, [mapID](bool)
             {
                 g_monoServer->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
             });
@@ -183,79 +183,70 @@ void ServiceCore::onActivate()
     }
 }
 
-void ServiceCore::loadMap(uint32_t mapID, std::function<void(bool)> onDone, std::function<void()> onError)
+void ServiceCore::requestLoadMap(uint64_t mapUID, std::function<void(bool)> onDone, std::function<void()> onError)
 {
-    if(!mapID){
-        if(onError){
-            onError();
-        }
-        return;
-    }
-
-    if(!g_mapBinDB->retrieve(mapID)){
-        if(onError){
-            onError();
-        }
-        return;
-    }
-
-    if(auto p = m_loadMapOps.find(mapID); p != m_loadMapOps.end()){
-        if(p->second.pending){
+    if(uidsf::isLocalUID(mapUID)){
+        if(const auto [loaded, newLoad] = loadMap(mapUID); loaded){
             if(onDone){
-                p->second.onDone.push_back(std::move(onDone));
-            }
-
-            if(onError){
-                p->second.onError.push_back(std::move(onError));
+                onDone(newLoad);
             }
         }
         else{
-            if(onDone){
-                onDone(false);
+            if(onError){
+                onError();
             }
         }
         return;
     }
 
-    if(const auto mapUID = uidf::getMapBaseUID(mapID); uidsf::isLocalUID(mapUID)){
-        auto mapPtr = new ServerMap(mapID);
-        mapPtr->activate();
-
-        m_loadMapOps[mapID].pending = false;
+    if(auto p = m_loadMapPendingOps.find(mapUID); p != m_loadMapPendingOps.end()){
         if(onDone){
-            onDone(true);
+            p->second.onDone.push_back(std::move(onDone));
         }
-    }
-    else{
-        AMAddMap amAM;
-        std::memset(&amAM, 0, sizeof(amAM));
-        amAM.mapID = mapID;
 
-        m_loadMapOps[mapID].pending = true;
-        m_actorPod->forward(uidf::getServiceCoreUID(uidsf::peerIndex(mapUID)), {AM_ADDMAP, amAM}, [mapID, onDone = std::move(onDone), onError = std::move(onError), this](const ActorMsgPack &mpk)
-        {
-            switch(mpk.type()){
-                case AM_ADDMAPOK:
-                    {
-                        for(auto &onDone: m_loadMapOps.at(mapID).onDone){
-                            if(onDone){
-                                onDone(true);
-                            }
-                        }
-                        break;
-                    }
-                default:
-                    {
-                        for(auto &onError: m_loadMapOps.at(mapID).onError){
-                            if(onError){
-                                onError();
-                            }
-                        }
-                        break;
-                    }
-            }
-        });
+        if(onError){
+            p->second.onError.push_back(std::move(onError));
+        }
+        return;
     }
+
+    AMPeerLoadMap amPLM;
+    std::memset(&amPLM, 0, sizeof(amPLM));
+    amPLM.mapUID = mapUID;
+
+    auto &ops = m_loadMapPendingOps.insert_or_assign(mapUID, LoadMapOp{}).first->second;
+
+    ops.onDone .push_back(std::move(onDone));
+    ops.onError.push_back(std::move(onError));
+
+    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID)), {AM_PEERLOADMAP, amPLM}, [mapUID, this](const ActorMsgPack &mpk)
+    {
+        switch(mpk.type()){
+            case AM_PEERLOADMAPOK:
+                {
+                    for(auto &onDone: m_loadMapPendingOps.at(mapUID).onDone){
+                        if(onDone){
+                            onDone(true);
+                        }
+                    }
+
+                    m_mapList.insert(mapUID);
+                    m_loadMapPendingOps.erase(mapUID);
+                    break;
+                }
+            default:
+                {
+                    for(auto &onError: m_loadMapPendingOps.at(mapUID).onError){
+                        if(onError){
+                            onError();
+                        }
+                    }
+
+                    m_loadMapPendingOps.erase(mapUID); // won't keep record of bad load
+                    break;
+                }
+        }
+    });
 }
 
 std::optional<std::pair<uint32_t, bool>> ServiceCore::findDBID(uint32_t channID) const

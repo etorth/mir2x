@@ -24,7 +24,7 @@ class Receiver;
 class Dispatcher;
 class SyncDriver;
 class ActorNetDriver;
-class ServiceCore;
+class PeerCore;
 
 class ActorPool final
 {
@@ -525,7 +525,7 @@ class ActorPool final
         };
 
     private:
-        std::unique_ptr<ServiceCore> m_serviceCore;
+        std::unique_ptr<PeerCore> m_peerCore;
 
     private:
         std::mutex m_receiverLock;
@@ -560,7 +560,7 @@ class ActorPool final
         void detach(const ActorPod *, std::function<void()>);
 
     public:
-        size_t hasPeer() const;
+        size_t peerCount() const;
         size_t peerIndex() const;
 
     public:

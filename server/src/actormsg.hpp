@@ -68,9 +68,10 @@ enum ActorMsgPackType: int
     AM_REJECTMAPSWITCH,
     AM_MAPSWITCHOK,
     AM_MAPSWITCHERROR,
+    AM_PEERLOADMAP,
+    AM_PEERLOADMAPOK,
     AM_LOADMAP,
     AM_LOADMAPOK,
-    AM_LOADMAPERROR,
     AM_QUERYLOCATION,
     AM_QUERYSELLITEMLIST,
     AM_LOCATION,
@@ -208,18 +209,6 @@ struct AMAddCharObject
     };
 
     StaticBuffer<256> buf;
-};
-
-struct AMAddMap
-{
-    uint32_t mapID;
-    uint16_t newAdded;
-};
-
-struct AMAddMapOK
-{
-    uint32_t mapID;
-    uint16_t newLoad;
 };
 
 struct AMLogin
@@ -389,20 +378,29 @@ struct AMMapSwitchOK
     ActionNode action;
 };
 
+struct AMPeerLoadMap
+{
+    uint64_t mapUID;
+};
+
+struct AMPeerLoadMapOK
+{
+    uint8_t newLoad;
+};
+
 struct AMLoadMap
 {
-    uint32_t mapID;
-    bool     activateMap;
+    uint64_t mapUID;
 };
 
 struct AMLoadMapOK
 {
-    uint64_t uid;
+    uint8_t newLoad;
 };
 
 struct AMUID
 {
-    uint64_t UID;
+    uint64_t uid;
 };
 
 struct AMQueryLocation

@@ -1,4 +1,6 @@
 #include "jobf.hpp"
+#include "uidf.hpp"
+#include "uidsf.hpp"
 #include "mathf.hpp"
 #include "dbpod.hpp"
 #include "idstrf.hpp"
@@ -113,24 +115,20 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
         return;
     }
 
-    const auto expectedUID = uidf::getPlayerUID(dbidOpt.value().first);
-    fflassert(!g_actorPool->checkUIDValid(expectedUID));
-
     const int mapID = queryChar.getColumn("fld_map");
     const int mapX  = queryChar.getColumn("fld_mapx");
     const int mapY  = queryChar.getColumn("fld_mapy");
 
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
+    const uint64_t mapUID = uidsf::getMapBaseUID(mapID); // same mapID always maps to same UID
+    const uint64_t expectedUID = uidf::getPlayerUID(dbidOpt.value().first);
 
-    amACO.type = UID_PLY;
-    amACO.buf.assign(cerealf::serialize(SDInitPlayer
+    SDInitCharObject sdICO = SDInitPlayer
     {
         .dbid      = dbidOpt.value().first,
         .channID   = channID,
         .name      = queryChar.getColumn("fld_name"),
         .nameColor = queryChar.getColumn("fld_namecolor"),
-        .mapUID    = uidf::getMapBaseUID(mapID),
+        .mapUID    = mapUID,
         .x         = mapX,
         .y         = mapY,
         .hp        = queryChar.getColumn("fld_hp"),
@@ -141,12 +139,12 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
         .job       = queryChar.getColumn("fld_job"),
         .hair      = queryChar.getColumn("fld_hair"),
         .hairColor = queryChar.getColumn("fld_haircolor"),
-    }));
+    };
 
-    loadMap(mapID, [mapID, amACO, channID, expectedUID, fnOnlineError, this](bool)
+    requestLoadMap(mapUID, [sdICO, channID, expectedUID, fnOnlineError, this](bool)
     {
         m_dbidList[channID].second = true;
-        m_actorPod->forward(uidf::getMapBaseUID(mapID), {AM_ADDCO, amACO}, [channID, expectedUID, fnOnlineError, this](const ActorMsgPack &rmpk)
+        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize(sdICO)}, [channID, expectedUID, fnOnlineError, this](const ActorMsgPack &rmpk)
         {
             fflassert(findDBID(channID).has_value());
             fflassert(findDBID(channID).value().second);
@@ -158,7 +156,7 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
                         // will be sent by Player actor with more parameters, not here
 
                         const auto amUID = rmpk.conv<AMUID>();
-                        fflassert(amUID.UID == expectedUID);
+                        fflassert(amUID.uid == expectedUID);
                         return;
                     }
                 default:

@@ -21,7 +21,7 @@ corof::eval_poller<bool> Monster::coro_followMaster()
 
 corof::eval_poller<bool> Monster::coro_randomMove()
 {
-    if(std::rand() % 10 < 2){
+    if(mathf::rand() % 10 < 2){
         if(randomTurn()){
             co_await corof::async_wait(getMR().walkWait);
             co_return true;

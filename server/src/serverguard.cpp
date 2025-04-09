@@ -6,11 +6,19 @@
 #include "serverguard.hpp"
 
 extern MonoServer *g_monoServer;
-ServerGuard::ServerGuard(uint32_t monID, uint64_t argMapUID, int argX, int argY, int argDir)
-    : Monster(monID, argMapUID, argX, argY, argDir, 0)
-    , m_standX(argX)
-    , m_standY(argY)
-    , m_standDirection(argDir)
+ServerGuard::ServerGuard(const SDInitGuard &sdIG)
+    : Monster
+      {
+          sdIG.monsterID,
+          sdIG.mapUID,
+          sdIG.x,
+          sdIG.y,
+          sdIG.direction,
+          0,
+      }
+    , m_standX(sdIG.x)
+    , m_standY(sdIG.y)
+    , m_standDirection(sdIG.direction)
 {
     fflassert(uidf::isGuardMode(UID()));
 }

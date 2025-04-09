@@ -23,8 +23,8 @@ void ServerRootSpider::addBombSpider()
         switch(rmpk.type()){
             case AM_UID:
                 {
-                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
-                        m_batUIDList.insert(amUID.UID);
+                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.uid){
+                        m_batUIDList.insert(amUID.uid);
                     }
                     return;
                 }

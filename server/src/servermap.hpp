@@ -100,8 +100,7 @@ class ServerMap final: public ServerObject
         };
 
     private:
-        const uint32_t     m_ID;
-        const Mir2xMapData m_mir2xMapData;
+        std::shared_ptr<Mir2xMapData> m_mapBin;
 
     private:
         std::unordered_map<uint64_t, const NPChar *> m_npcList;
@@ -122,56 +121,34 @@ class ServerMap final: public ServerObject
         void operateAM(const ActorMsgPack &);
 
     public:
-        ServerMap(uint32_t);
+        ServerMap(uint64_t);
 
     private:
         ~ServerMap() = default;
 
     public:
-        uint32_t ID() const { return m_ID; }
-
-    public:
-        bool in(uint32_t nMapID, int nX, int nY) const
+        const Mir2xMapData *mapBin() const
         {
-            return (nMapID == m_ID) && validC(nX, nY);
+            return m_mapBin.get();
         }
 
     public:
-        bool groundValid(int, int) const;
+        uint32_t ID() const
+        {
+            return uidf::getMapID(UID());
+        }
+
+    public:
+        bool in(uint32_t argMapID, int argX, int argY) const
+        {
+            return (argMapID == ID()) && mapBin()->validC(argX, argY);
+        }
 
     protected:
         bool canMove(bool, bool, int, int) const;
 
     protected:
         std::optional<double> oneStepCost(int, int, int, int, int, int, int) const;
-
-    public:
-        const Mir2xMapData &getMapData() const
-        {
-            return m_mir2xMapData;
-        }
-
-    public:
-        int W() const
-        {
-            return m_mir2xMapData.w();
-        }
-
-        int H() const
-        {
-            return m_mir2xMapData.h();
-        }
-
-    public:
-        bool validC(int nX, int nY) const
-        {
-            return m_mir2xMapData.validC(nX, nY);
-        }
-
-        bool validP(int nX, int nY) const
-        {
-            return m_mir2xMapData.validP(nX, nY);
-        }
 
     public:
         void onActivate() override;
@@ -196,14 +173,7 @@ class ServerMap final: public ServerObject
         void notifyNewCO(uint64_t, int, int);
 
     private:
-        Player *addPlayer(const SDInitPlayer &);
-        NPChar *addNPChar(const SDInitNPChar &);
-
-    private:
-        Monster *addMonster(uint32_t, uint64_t, int, int, bool);
-
-    private:
-        ServerGuard *addGuard(uint32_t, int, int, int);
+        void addCO(const SDInitCharObject &, std::function<void(uint64_t)> = nullptr);
 
     private:
         int getMonsterCount(uint32_t);
@@ -211,8 +181,8 @@ class ServerMap final: public ServerObject
     private:
         auto & getGrid(this auto && self, int x, int y)
         {
-            fflassert(self.validC(x, y));
-            return self.m_gridList.at(x + y * self.W());
+            fflassert(self.mapBin()->validC(x, y));
+            return self.m_gridList.at(x + y * self.mapBin()->w());
         }
 
     private:
@@ -295,7 +265,7 @@ class ServerMap final: public ServerObject
     private:
         template<std::predicate<uint64_t> F> bool doUIDList(int x, int y, const F &func)
         {
-            if(!validC(x, y)){
+            if(!mapBin()->validC(x, y)){
                 return false;
             }
 
@@ -316,10 +286,10 @@ class ServerMap final: public ServerObject
             int x0 = cx0 - r + 1;
             int y0 = cy0 - r + 1;
 
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, self.W(), self.H(), x0, y0, doW, doH)){
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion<int>(0, 0, self.mapBin()->w(), self.mapBin()->h(), x0, y0, doW, doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(self.validC(x, y)){
+                        if(self.mapBin()->validC(x, y)){
                             if(mathf::LDistance2(x, y, cx0, cy0) <= (r - 1) * (r - 1)){
                                 if(f(x, y)){
                                     return true;
@@ -334,10 +304,10 @@ class ServerMap final: public ServerObject
 
         template<std::predicate<int, int> F> bool doSquare(this auto && self, int x0, int y0, int doW, int doH, const F &f)
         {
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, self.W(), self.H(), x0, y0, doW, doH)){
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion<int>(0, 0, self.mapBin()->w(), self.mapBin()->h(), x0, y0, doW, doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(self.validC(x, y)){
+                        if(self.mapBin()->validC(x, y)){
                             if(f(x, y)){
                                 return true;
                             }
@@ -368,7 +338,6 @@ class ServerMap final: public ServerObject
         void on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
         void on_AM_TRYSPACEMOVE        (const ActorMsgPack &);
         void on_AM_CASTFIREWALL        (const ActorMsgPack &);
-        void on_AM_ADDCO               (const ActorMsgPack &);
         void on_AM_REMOTECALL          (const ActorMsgPack &);
         void on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
 };

@@ -5,7 +5,7 @@ class RotateCoord
     private:
         // define the direction current x/y increments
         //      2
-        //  <-------A
+        //  <-------^
         //  |       |
         // 3|       |1
         //  |   0   |

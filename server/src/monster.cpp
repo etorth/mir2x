@@ -75,7 +75,7 @@ Monster::Monster(
         int      mapY,
         int      direction,
         uint64_t masterUID)
-    : BattleObject(uidf::buildMonsterUID(monID), argMapUID, mapX, mapY, direction)
+    : BattleObject(uidf::buildMonsterUID(monID, uidf::peerIndex(argMapUID)), argMapUID, mapX, mapY, direction)
     , m_masterUID(masterUID)
 {
     fflassert(getMR());
@@ -123,7 +123,7 @@ bool Monster::randomMove()
         // by 20% make a move
         // if move failed we make a turn
 
-        if(std::rand() % 97 < 20){
+        if(mathf::rand() % 97 < 20){
             if(!fnMoveOneStep()){
                 return fnMakeOneTurn();
             }
@@ -133,7 +133,7 @@ bool Monster::randomMove()
         // by 20% make a turn only
         // if didn't try the move/trun
 
-        if(std::rand() % 97 < 20){
+        if(mathf::rand() % 97 < 20){
             return fnMakeOneTurn();
         }
 
@@ -1285,7 +1285,7 @@ void Monster::queryMaster(uint64_t targetUID, std::function<void(uint64_t)> fnOp
                     {
                         const auto amUID = rmpk.conv<AMUID>();
                         if(fnOp){
-                            fnOp(amUID.UID);
+                            fnOp(amUID.uid);
                         }
                         return;
                     }

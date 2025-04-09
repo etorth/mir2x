@@ -193,6 +193,12 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
        }
 
     public:
+       ActorMsgBuf msgBuf() const
+       {
+           return ActorMsgBuf(type(), data(), size());
+       }
+
+    public:
        template<class Archive> void save(Archive & ar) const
        {
            ar(m_type, m_from, m_seqID, m_respID);
@@ -276,7 +282,6 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_MAPSWITCHERROR)
         _add_mpk_type_case(AM_LOADMAP)
         _add_mpk_type_case(AM_LOADMAPOK)
-        _add_mpk_type_case(AM_LOADMAPERROR)
         _add_mpk_type_case(AM_QUERYLOCATION)
         _add_mpk_type_case(AM_QUERYSELLITEMLIST)
         _add_mpk_type_case(AM_LOCATION)

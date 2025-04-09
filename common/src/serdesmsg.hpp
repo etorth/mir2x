@@ -28,6 +28,23 @@ struct SDInitQuest
     }
 };
 
+struct SDInitGuard
+{
+    uint32_t monsterID = 0;
+
+    uint64_t mapUID = 0;
+    int x = 0;
+    int y = 0;
+    bool strictLoc = false;
+
+    int direction = DIR_NONE;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(monsterID, mapUID, x, y, strictLoc, direction);
+    }
+};
+
 struct SDInitPlayer
 {
     uint32_t dbid = 0;
@@ -40,6 +57,8 @@ struct SDInitPlayer
 
     int x = 0;
     int y = 0;
+
+    bool strictLoc = false;
 
     int hp = 0;
     int mp = 0;
@@ -54,7 +73,7 @@ struct SDInitPlayer
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(dbid, channID, name, nameColor, mapUID, x, y, hp, mp, exp, gold, gender, job, hair, hairColor);
+        ar(dbid, channID, name, nameColor, mapUID, x, y, strictLoc, hp, mp, exp, gold, gender, job, hair, hairColor);
     }
 };
 
@@ -68,13 +87,37 @@ struct SDInitNPChar
 
     int x = 0;
     int y = 0;
+
+    bool strictLoc = false;
+
     int gfxDir = 0;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(lookID, npcName, fullScriptName, mapUID, x, y, gfxDir);
+        ar(lookID, npcName, fullScriptName, mapUID, x, y, strictLoc, gfxDir);
     }
 };
+
+struct SDInitMonster
+{
+    uint32_t monsterID = 0;
+
+    uint64_t mapUID = 0;
+    int x = 0;
+    int y = 0;
+
+    bool strictLoc = false;
+    int  direction = DIR_NONE;
+
+    uint64_t masterUID = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(monsterID, mapUID, x, y, strictLoc, direction, masterUID);
+    }
+};
+
+using SDInitCharObject = std::variant<SDInitGuard, SDInitPlayer, SDInitNPChar, SDInitMonster>;
 
 struct SDQuestTriggerLevelUp
 {

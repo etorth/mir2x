@@ -1,4 +1,5 @@
 #include "uidf.hpp"
+#include "mathf.hpp"
 #include "uidsf.hpp"
 #include "fflerror.hpp"
 #include "actorpool.hpp"
@@ -7,49 +8,54 @@
 extern ActorPool *g_actorPool;
 extern ServerArgParser *g_serverArgParser;
 
+size_t uidsf::peerCount()
+{
+    return g_actorPool->peerCount();
+}
+
 size_t uidsf::peerIndex()
 {
     return g_actorPool->peerIndex();
 }
 
-size_t uidsf::peerIndex(uint64_t uid)
+size_t uidsf::pickPeerIndex(int uidType, std::optional<size_t> seedOpt)
 {
-    if(const auto peerCount = g_actorPool->hasPeer(); peerCount > 0){
-        switch(uidf::getUIDType(uid)){
-            case UID_COR:
-                {
-                    if(const auto index = uidf::getServiceCoreSeq(uid); index <= peerCount){
-                        return index;
-                    }
-                    else{
-                        throw fflerror("invalid service core seq: %zu", to_uz(index));
-                    }
-                }
-            case UID_MAP:
-            case UID_MON:
-                {
+    switch(uidType){
+        case UID_MAP:
+            {
+                const size_t peerCount = uidsf::peerCount();
+                const size_t seed = seedOpt.value_or(mathf::rand());
+
+                if(peerCount > 0){
                     if(g_serverArgParser->lightMasterServer){
-                        return (uid % peerCount) + 1;
+                        return (seed % peerCount) + 1;
                     }
                     else{
-                        return uid % (peerCount + 1);
+                        return seed % (peerCount + 1);
                     }
                 }
-            default:
-                {
-                    break;
+                else{
+                    return 0;
                 }
-        }
+            }
+        default:
+            {
+                throw fflerror("invalid uid type %d", uidType);
+            }
     }
-    return 0;
 }
 
 bool uidsf::isLocalUID(uint64_t uid)
 {
-    return uidsf::peerIndex(uid) == g_actorPool->peerIndex();
+    return uidf::peerIndex(uid) == uidsf::peerIndex();
 }
 
-uint64_t uidsf::getServiceCoreUID()
+uint64_t uidsf::getMapBaseUID(uint32_t mapID)
 {
-    return uidf::getServiceCoreUID(g_actorPool->peerIndex());
+    return uidf::getMapBaseUID(mapID, uidsf::pickPeerIndex(UID_MAP, mapID));
+}
+
+uint64_t uidsf::getPeerCoreUID()
+{
+    return uidf::getPeerCoreUID(uidsf::peerIndex());
 }

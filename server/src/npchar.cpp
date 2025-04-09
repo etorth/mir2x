@@ -350,23 +350,23 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
     )###"));
 }
 
-NPChar::NPChar(const SDInitNPChar &initNPChar)
+NPChar::NPChar(const SDInitNPChar &sdINPC)
     : CharObject
       {
-          uidf::buildNPCUID(initNPChar.lookID),
-          initNPChar.mapUID,
+          uidf::buildNPCUID(sdINPC.lookID, uidf::peerIndex(sdINPC.mapUID)),
+          sdINPC.mapUID,
 
-          initNPChar.x,
-          initNPChar.y,
-          initNPChar.gfxDir + DIR_BEGIN, // NPC gfx dir, may not be the 8-dir, but should be in DIR_BEGIN + [0, 8)
+          sdINPC.x,
+          sdINPC.y,
+          sdINPC.gfxDir + DIR_BEGIN, // NPC gfx dir, may not be the 8-dir, but should be in DIR_BEGIN + [0, 8)
       }
-    , m_npcName(initNPChar.npcName)
-    , m_initScriptName(initNPChar.fullScriptName)
+    , m_npcName(sdINPC.npcName)
+    , m_initScriptName(sdINPC.fullScriptName)
 {}
 
 uint64_t NPChar::rollXMLSeqID(uint64_t uid)
 {
-    const auto added = static_cast<uint64_t>(std::rand());
+    const auto added = static_cast<uint64_t>(mathf::rand());
     if(auto p = m_xmlLayoutSeqIDList.find(uid); p != m_xmlLayoutSeqIDList.end()){
         return p->second += added;
     }
@@ -523,7 +523,7 @@ void NPChar::postAddMonster(uint32_t monsterID)
         switch(rmpk.type()){
             case AM_UID:
                 {
-                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
+                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.uid){
                         return;
                     }
                     break;
@@ -653,7 +653,7 @@ void NPChar::fillSellItemList()
             }
         }
         else{
-            const auto fillSize = std::max<size_t>(itemListRef.size(), 20 + std::rand() % 5);
+            const auto fillSize = std::max<size_t>(itemListRef.size(), 20 + mathf::rand() % 5);
             while(itemListRef.size() < fillSize){
                 const uint32_t seqID = itemListRef.empty() ? 1 : (itemListRef.rbegin()->first + 1);
                 const auto item = createSellItem(itemID, seqID);

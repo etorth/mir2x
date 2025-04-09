@@ -118,9 +118,6 @@ class CharObject: public ServerObject
         void getCOLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
 
     protected:
-        void addMonster(uint32_t, int, int, bool);
-
-    protected:
         virtual bool goDie()   = 0;
         virtual bool goGhost() = 0;
 

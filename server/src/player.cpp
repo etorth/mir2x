@@ -460,7 +460,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
 
         amQQTL.type = triggerType;
 
-        getPlayer()->m_actorPod->forward(uidf::getServiceCoreUID(0), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [closed, onDone, this](const ActorMsgPack &rmpk)
+        getPlayer()->m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [closed, onDone, this](const ActorMsgPack &rmpk)
         {
             if(*closed){
                 return;

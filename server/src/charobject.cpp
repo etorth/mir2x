@@ -114,31 +114,6 @@ void CharObject::getCOLocation(uint64_t uid, std::function<void(const COLocation
     });
 }
 
-void CharObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
-{
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_MON;
-    amACO.mapUID = mapUID();
-    amACO.x = x;
-    amACO.y = y;
-    amACO.strictLoc = strictLoc;
-
-    amACO.monster.monsterID = monsterID;
-    amACO.monster.masterUID = UID();
-
-    m_actorPod->forward(uidsf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
-    {
-        switch(rmpk.type()){
-            default:
-                {
-                    break;
-                }
-        }
-    });
-}
-
 bool CharObject::inView(uint32_t argMapID, int argX, int argY) const
 {
     return (argMapID == mapID()) && mapBin()->validC(argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;

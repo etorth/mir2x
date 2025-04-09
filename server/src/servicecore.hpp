@@ -4,19 +4,18 @@
 #include <unordered_set>
 #include <unordered_map>
 #include "serdesmsg.hpp"
-#include "serverobject.hpp"
+#include "peercore.hpp"
 
 class ServerMap;
-class ServiceCore final: public ServerObject
+class ServiceCore final: public PeerCore
 {
     private:
         struct LoadMapOp
         {
-            bool pending = false;
-            std::vector<std::function<void(bool)>> onDone; // bool: newly_loaded
-            std::vector<std::function<void(    )>> onError;
+            std::vector<std::function<void(bool)>> onDone  {}; // bool: newly_loaded
+            std::vector<std::function<void(    )>> onError {};
         };
-        std::unordered_map<uint32_t, LoadMapOp> m_loadMapOps;
+        std::unordered_map<uint64_t, LoadMapOp> m_loadMapPendingOps;
 
     private:
         std::unordered_map<uint32_t, std::pair<uint32_t, bool>> m_dbidList; // channID -> {dbid, online}
@@ -34,7 +33,13 @@ class ServiceCore final: public ServerObject
         void operateNet(uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
-        void loadMap(uint32_t, std::function<void(bool)> = nullptr, std::function<void()> = nullptr);
+        void requestLoadMap(uint64_t, std::function<void(bool)> = nullptr, std::function<void()> = nullptr);
+
+    private:
+        ServerGuard *addGuard  (const SDInitGuard   &);
+        Player      *addPlayer (const SDInitPlayer  &);
+        NPChar      *addNPChar (const SDInitNPChar  &);
+        Monster     *addMonster(const SDInitMonster &);
 
     public:
         void onActivate() override;
@@ -50,8 +55,6 @@ class ServiceCore final: public ServerObject
         void on_AM_LOADMAP               (const ActorMsgPack &);
         void on_AM_QUERYMAPLIST          (const ActorMsgPack &);
         void on_AM_QUERYCOCOUNT          (const ActorMsgPack &);
-        void on_AM_ADDCO                 (const ActorMsgPack &);
-        void on_AM_ADDMAP                (const ActorMsgPack &);
         void on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &);
         void on_AM_QUERYQUESTTRIGGERLIST (const ActorMsgPack &);
         void on_AM_QUERYQUESTUID         (const ActorMsgPack &);

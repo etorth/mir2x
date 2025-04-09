@@ -14,6 +14,7 @@
 #include "monoserver.hpp"
 #include "actornetdriver.hpp"
 #include "serverargparser.hpp"
+#include "peercore.hpp"
 #include "servicecore.hpp"
 #include "serverconfigurewindow.hpp"
 
@@ -453,7 +454,7 @@ bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
     fflassert(uid);
     fflassert(msg);
 
-    if(const auto peerIndex = uidsf::peerIndex(uid); peerIndex == m_actorNetDriver->peerIndex()){
+    if(const auto peerIndex = uidf::peerIndex(uid); peerIndex == m_actorNetDriver->peerIndex()){
         return postLocalMessage(uid, std::move(msg));
     }
     else{
@@ -801,10 +802,12 @@ void ActorPool::launch()
 {
     m_actorNetDriver->closeAcceptor();
     if(g_serverArgParser->slave){
+        m_peerCore = std::make_unique<PeerCore>();
+        m_peerCore->activate(-1.0);
         launchPool();
     }
     else{
-        if(const auto peerCount = m_actorNetDriver->hasPeer(); peerCount > 0){
+        if(const auto peerCount = m_actorNetDriver->peerCount(); peerCount > 0){
             for(size_t peerIndex = 1; peerIndex <= peerCount; ++peerIndex){
                 m_actorNetDriver->postPeer(peerIndex, AM_SYS_LAUNCH);
             }
@@ -907,8 +910,8 @@ void ActorPool::launchBalance()
 {
     launchPool();
 
-    m_serviceCore = std::make_unique<ServiceCore>();
-    m_serviceCore->activate(-1.0);
+    m_peerCore = std::make_unique<ServiceCore>();
+    m_peerCore->activate(-1.0);
 
     const auto clientPort = g_serverConfigureWindow->getConfig().clientPort;
 
@@ -1032,9 +1035,9 @@ ActorPodMonitor ActorPool::getPodMonitor(uint64_t uid) const
     return {};
 }
 
-size_t ActorPool::hasPeer() const
+size_t ActorPool::peerCount() const
 {
-    return m_actorNetDriver->hasPeer();
+    return m_actorNetDriver->peerCount();
 }
 
 size_t ActorPool::peerIndex() const

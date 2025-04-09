@@ -248,7 +248,7 @@ void Monster::on_AM_QUERYMASTER(const ActorMsgPack &mpk)
     AMUID amUID;
     std::memset(&amUID, 0, sizeof(amUID));
 
-    amUID.UID = masterUID() ? masterUID() : UID();
+    amUID.uid = masterUID() ? masterUID() : UID();
     m_actorPod->forward(mpk.from(), {AM_UID, amUID}, mpk.seqID());
 }
 
@@ -259,7 +259,7 @@ void Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &mpk)
         AMUID amUID;
         std::memset(&amUID, 0, sizeof(amUID));
 
-        amUID.UID = finalMasterUID;
+        amUID.uid = finalMasterUID;
         m_actorPod->forward(mpk.from(), {AM_UID, amUID}, mpk.seqID());
     });
 }

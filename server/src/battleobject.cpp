@@ -451,14 +451,14 @@ bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::fu
     });
 }
 
-bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool strictMove, std::function<void()> onOK, std::function<void()> onError)
+bool BattleObject::requestMapSwitch(uint64_t argMapUID, int locX, int locY, bool strictMove, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(argMapID == mapID()){
-        throw fflerror("request to switch on same map: mapID = %llu", to_llu(argMapID));
+    if(argMapUID == mapUID()){
+        throw fflerror("request to switch on same map: mapUID %llu", to_llu(argMapUID));
     }
 
     if(locX < 0 || locY < 0){
-        throw fflerror("invalid argument: mapID = %llu, locX = %d, locY = %d", to_llu(argMapID), locX, locY);
+        throw fflerror("invalid argument: mapUID %llu, locX %d, locY %d", to_llu(argMapUID), locX, locY);
     }
 
     if(!canMove()){
@@ -471,8 +471,8 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
     AMLoadMap amLM;
     std::memset(&amLM, 0, sizeof(amLM));
 
-    amLM.mapID = argMapID;
-    return m_actorPod->forward(uidf::getServiceCoreUID(0), {AM_LOADMAP, amLM}, [argMapID, locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
+    amLM.mapUID = argMapUID;
+    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [argMapUID, locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
     {
         switch(mpk.type()){
             case AM_LOADMAPOK:
@@ -488,7 +488,7 @@ bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool 
                     // if request rejected then it stays in current map
 
                     m_moveLock = true;
-                    m_actorPod->forward(uidf::getMapBaseUID(argMapID), {AM_TRYMAPSWITCH, amTMS}, [mpk, onOK, onError, this](const ActorMsgPack &rmpk)
+                    m_actorPod->forward(argMapUID, {AM_TRYMAPSWITCH, amTMS}, [mpk, onOK, onError, this](const ActorMsgPack &rmpk)
                     {
                         fflassert(m_moveLock);
                         m_moveLock = false;
@@ -741,21 +741,20 @@ int BattleObject::Speed(int nSpeedType) const
 
 void BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 {
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_MON;
-    amACO.mapUID = mapUID();
-    amACO.x = x;
-    amACO.y = y;
-    amACO.strictLoc = strictLoc;
-
-    amACO.monster.monsterID = monsterID;
-    amACO.monster.masterUID = UID();
-
-    m_actorPod->forward(uidsf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rstRMPK)
+    SDInitCharObject sdICO = SDInitMonster
     {
-        switch(rstRMPK.type()){
+        .monsterID = monsterID,
+        .mapUID = mapUID(),
+        .x = x,
+        .y = y,
+        .strictLoc = strictLoc,
+        .direction = DIR_BEGIN, // monster may ignore
+        .masterUID = UID(),
+    };
+
+    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}, [](const ActorMsgPack &rmpk)
+    {
+        switch(rmpk.type()){
             default:
                 {
                     break;
@@ -1016,7 +1015,7 @@ void BattleObject::queryFinalMaster(uint64_t targetUID, std::function<void(uint6
                                 {
                                     const auto amUID = rmpk.conv<AMUID>();
                                     if(fnOp){
-                                        fnOp(amUID.UID);
+                                        fnOp(amUID.uid);
                                     }
                                     return;
                                 }
