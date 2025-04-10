@@ -199,6 +199,7 @@ function uidRemoteCall(uid, ...)
     local args = table.pack(...)
 
     assert(args.n >= 1)
+    assertType(uid, 'integer')
     assertType(args[args.n], 'string')
 
     if uid == getUID() then
