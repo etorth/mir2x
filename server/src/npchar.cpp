@@ -580,6 +580,11 @@ void NPChar::operateAM(const ActorMsgPack &mpk)
                 on_AM_QUERYLOCATION(mpk);
                 break;
             }
+        case AM_QUERYNPCINFO:
+            {
+                on_AM_QUERYNPCINFO(mpk);
+                break;
+            }
         case AM_QUERYSELLITEMLIST:
             {
                 on_AM_QUERYSELLITEMLIST(mpk);

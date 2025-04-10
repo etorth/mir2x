@@ -216,8 +216,8 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 
     bindFunction("getNPCharUID", [this](std::string npcName, sol::this_state s) -> sol::object
     {
-        for(const auto [uid, npcPtr]: getServerMap()->m_npcList){
-            if(npcPtr->getNPCName() == npcName){
+        for(const auto &[uid, info]: getServerMap()->m_npcList){
+            if(info.name == npcName){
                 return luaf::buildLuaObj(sol::state_view(s), lua_Integer(uid));
             }
         }
@@ -1257,7 +1257,27 @@ void ServerMap::loadNPChar()
                     default:                                        ; break;
                 }
             }
-            addCO(initNPChar);
+
+            addCO(initNPChar, [this](uint64_t uid)
+            {
+                if(uid){
+                    fflassert(uidf::isNPChar(uid), uidf::getUIDString(uid));
+                    m_actorPod->forward(uid, AM_QUERYNPCINFO, [uid, this](const ActorMsgPack &mpk)
+                    {
+                        switch(mpk.type()){
+                            case AM_NPCINFO:
+                                {
+                                    m_npcList.emplace(uid, mpk.deserialize<SDNPCharInfo>());
+                                    break;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                        }
+                    });
+                }
+            });
         }
         else{
             throw fflvalue(fileName);

@@ -92,6 +92,14 @@ void NPChar::on_AM_QUERYCORECORD(const ActorMsgPack &mpk)
     dispatchAction(fromUID, makeActionStand());
 }
 
+void NPChar::on_AM_QUERYNPCINFO(const ActorMsgPack &mpk)
+{
+    m_actorPod->forward(mpk.fromAddr(), {AM_NPCINFO, cerealf::serialize(SDNPCharInfo
+    {
+        .name = getNPCName(),
+    })});
+}
+
 void NPChar::on_AM_QUERYLOCATION(const ActorMsgPack &mpk)
 {
     AMLocation amL;

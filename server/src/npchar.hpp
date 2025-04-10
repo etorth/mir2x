@@ -89,6 +89,7 @@ class NPChar final: public CharObject
         void on_AM_NPCEVENT(const ActorMsgPack &);
         void on_AM_NOTIFYNEWCO(const ActorMsgPack &);
         void on_AM_BADACTORPOD(const ActorMsgPack &);
+        void on_AM_QUERYNPCINFO(const ActorMsgPack &);
         void on_AM_QUERYCORECORD(const ActorMsgPack &);
         void on_AM_QUERYLOCATION(const ActorMsgPack &);
         void on_AM_REMOTECALL(const ActorMsgPack &);

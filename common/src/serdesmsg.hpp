@@ -882,6 +882,15 @@ struct SDNPCEvent
     }
 };
 
+struct SDNPCharInfo
+{
+    std::string name;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(name);
+    }
+};
+
 struct SDTaggedValMap
 {
     std::map<int, int> valMap;

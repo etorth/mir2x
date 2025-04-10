@@ -103,7 +103,7 @@ class ServerMap final: public ServerObject
         std::shared_ptr<Mir2xMapData> m_mapBin;
 
     private:
-        std::unordered_map<uint64_t, const NPChar *> m_npcList;
+        std::unordered_map<uint64_t, const SDNPCharInfo> m_npcList;
 
     private:
         std::vector<MapGrid> m_gridList;
