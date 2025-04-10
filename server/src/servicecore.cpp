@@ -143,7 +143,7 @@ void ServiceCore::onActivate()
 {
     ServerObject::onActivate();
     if(const auto mapID = g_serverArgParser->preloadMapID; mapID > 0){
-        requestLoadMap(mapID, [mapID](bool)
+        requestLoadMap(uidsf::getMapBaseUID(mapID), [mapID](bool)
         {
             g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
         });
@@ -151,7 +151,7 @@ void ServiceCore::onActivate()
 
     if(g_serverArgParser->preloadMap){
         for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
-            requestLoadMap(mapID, [mapID](bool)
+            requestLoadMap(uidsf::getMapBaseUID(mapID), [mapID](bool)
             {
                 g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
             });
