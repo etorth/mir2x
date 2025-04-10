@@ -39,12 +39,6 @@ class ServiceCore final: public PeerCore
     protected:
         void requestLoadMap(uint64_t, std::function<void(bool)> = nullptr, std::function<void()> = nullptr);
 
-    private:
-        ServerGuard *addGuard  (const SDInitGuard   &);
-        Player      *addPlayer (const SDInitPlayer  &);
-        NPChar      *addNPChar (const SDInitNPChar  &);
-        Monster     *addMonster(const SDInitMonster &);
-
     public:
         void onActivate() override;
 
