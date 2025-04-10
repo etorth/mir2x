@@ -3,10 +3,15 @@
 
 function _RSVD_NAME_luaCoroutineRunner_main(code, args)
     assertType(code, 'string')
-    if args == nil then
-        return (load(code))()
+    local func, err = load(code)
+    if not func then
+        fatalPrintf("Failed to load code: %s", err)
     else
-        return (load(code))(table.unpack(args, 1, args.n))
+        if args == nil then
+            return func()
+        else
+            return func(table.unpack(args, 1, args.n))
+        end
     end
 end
 
