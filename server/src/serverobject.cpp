@@ -104,7 +104,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         AMLoadMap amLM;
         std::memset(&amLM, 0, sizeof(AMLoadMap));
 
-        amLM.mapUID = uidf::getMapBaseUID(DBCOM_MAPID(to_u8cstr(mapName)), uidsf::pickPeerIndex(UID_MAP));
+        amLM.mapUID = uidsf::getMapBaseUID(DBCOM_MAPID(to_u8cstr(mapName)));
         m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, amLM, onDone, this](const ActorMsgPack &mpk)
         {
             if(*closed){
