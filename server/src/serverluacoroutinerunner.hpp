@@ -357,10 +357,14 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         template<typename Func> void bindFunctionCoop(std::string funcName, Func && func)
         {
             fflassert(str_haschar(funcName));
-            bindFunction(funcName + SYS_COOP, [this](auto && func)
+            bindFunction(funcName + SYS_COOP, [funcName, this](auto && func)
             {
-                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaUserArgsAsTuple<Func>::type args, sol::function cb, sol::this_state s)
+                return [funcName, func = std::function(std::forward<Func>(func)), this](typename _extractLambdaUserArgsAsTuple<Func>::type args, sol::function cb, sol::this_state s)
                 {
+                    if(!m_currRunner){
+                        throw fflerror("calling %s() without an spawned runner", to_cstr(funcName));
+                    }
+
                     fflassert(s.lua_state());
                     const LuaCoopCallDoneFlag doneFlag;
 

@@ -36,6 +36,7 @@ void PeerCore::on_AM_ADDCO(const ActorMsgPack &mpk)
 
             amUID.uid = coPtr->UID();
             m_actorPod->forward(fromAddr, {AM_UID, amUID});
+            return;
         }
         catch(const std::exception &e){
             err = e.what();
@@ -44,7 +45,7 @@ void PeerCore::on_AM_ADDCO(const ActorMsgPack &mpk)
             err = "unknown error";
         }
 
-        g_server->addLog(LOGTYPE_WARNING, "Failed to create char object: %s", to_cstr(err));
+        g_server->addLog(LOGTYPE_WARNING, "Failed in PeerCore::ADDCO: %s.", to_cstr(err));
         m_actorPod->forward(fromAddr, AM_ERROR);
     };
 
