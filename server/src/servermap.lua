@@ -12,5 +12,14 @@ function asyncWait(ms)
     end
 end
 
+function addGuard(guard, x, y, dir)
+    assertType(guard, 'integer', 'string')
+    assertType(    x, 'integer')
+    assertType(    y, 'integer')
+    assertType(  dir, 'integer')
+
+    return _RSVD_NAME_callFuncCoop('addGuard', guard, x, y, dir)
+end
+
 --
 -- )###"

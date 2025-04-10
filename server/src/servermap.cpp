@@ -363,6 +363,10 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         });
     });
 
+    pfrCheck(execRawString(BEGIN_LUAINC(char)
+#include "servermap.lua"
+    END_LUAINC()));
+
     pfrCheck(execFile([this]() -> std::string
     {
         const auto configScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
@@ -379,10 +383,6 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         }
         throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
     }().c_str()));
-
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "servermap.lua"
-    END_LUAINC()));
 }
 
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMaxStep, int argCheckCO)
