@@ -31,7 +31,7 @@ size_t uidf::peerIndex(uint64_t uid)
     switch(uidf::getUIDType(uid)){
         case UID_COR:
             {
-                return uid & peerIndexBitMask;
+                return uidf::getPeerCoreSeq(uid);
             }
         case UID_MAP:
         case UID_NPC:
