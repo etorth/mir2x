@@ -111,7 +111,7 @@ void imgf::blendImageBuffer(
 bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const char *fileName)
 {
     // libpng uses longjmp
-    // requres initializatio at beginning
+    // requires initialization at beginning
 
     constexpr int pixelSize    = 4;
     FILE         *fp           = nullptr;
@@ -120,8 +120,8 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
     size_t        rowPtrBufLen = 0;
     png_byte    **rowPtrBuf    = nullptr;
 
-    // result could be optimized into a register while setjmp only save current stack
-    // then when jump back result may lost or invalid
+    // result could be optimized into a register while setjmp only saves the current stack
+    // then when jumping back, result may be lost or invalid
     volatile bool result = false;
 
     if(!(true
@@ -131,8 +131,8 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
                 && fileName
                 && std::strlen(fileName))){
 
-        // use goto sttement
-        // then all variable declaration should at the very beginning
+        // use goto statement
+        // then all variable declarations should be at the very beginning
         goto imgf_saveRGBABuffer_check_argument_failed;
     }
 
@@ -172,8 +172,8 @@ bool imgf::saveImageBuffer(const void *imgBuf, size_t imgW, size_t imgH, const c
             PNG_COMPRESSION_TYPE_DEFAULT,
             PNG_FILTER_TYPE_DEFAULT);
 
-    //  be extreme careful for memory allocation
-    //  I use this function to generate extremely large PNG files, i.e. render the whole map
+    //  be extremely careful for memory allocation
+    //  I use this function to generate extremely large PNG files, i.e., render the whole map
 
 #ifdef PNG_FLAG_MALLOC_NULL_MEM_OK
 #define CHECK_PNG_MALLOC_RESULT(img, buf) \
@@ -215,7 +215,9 @@ imgf_saveRGBABuffer_png_create_info_struct_failed:
     png_destroy_write_struct(&imgPtr, &imgInfoPtr);
 
 imgf_saveRGBABuffer_png_create_write_struct_failed:
-    std::fclose(fp);
+    if(fp){
+        std::fclose(fp);
+    }
 
 imgf_saveRGBABuffer_fopen_failed:
 imgf_saveRGBABuffer_check_argument_failed:
