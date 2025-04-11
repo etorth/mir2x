@@ -11,7 +11,7 @@
 struct COLocation
 {
     uint64_t uid = 0;
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
 
     int x = -1;
     int y = -1;
@@ -122,7 +122,7 @@ class CharObject: public ServerObject
         virtual bool goGhost() = 0;
 
     protected:
-        bool inView(uint32_t, int, int) const;
+        bool inView(uint64_t, int, int) const;
 
     protected:
         void trimInViewCO();

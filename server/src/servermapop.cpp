@@ -148,7 +148,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                     std::memset(&amA, 0, sizeof(amA));
 
                     amA.UID = fromUID;
-                    amA.mapID = amSMOK.mapID;
+                    amA.mapUID = amSMOK.mapUID;
                     amA.action = amSMOK.action;
 
                     if(!removeGridUID(fromUID, amTSM.X, amTSM.Y)){
@@ -276,7 +276,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                     std::memset(&amA, 0, sizeof(amA));
 
                     amA.UID = amJOK.uid;
-                    amA.mapID = amJOK.mapID;
+                    amA.mapUID = amJOK.mapUID;
                     amA.action = amJOK.action;
 
                     if(!hasGridUID(fromUID, amTJ.X, amTJ.Y)){
@@ -515,7 +515,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                     std::memset(&amA, 0, sizeof(amA));
 
                     amA.UID = amMOK.uid;
-                    amA.mapID = amMOK.mapID;
+                    amA.mapUID = amMOK.mapUID;
                     amA.action = amMOK.action;
 
                     // the object comfirm to move
@@ -629,7 +629,7 @@ void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
                     std::memset(&amA, 0, sizeof(amA));
 
                     amA.UID = fromUID;
-                    amA.mapID = amLOK.mapID; // new map CO that switched into
+                    amA.mapUID = amLOK.mapUID; // new map CO that switched into
                     amA.action = amLOK.action;
 
                     if(!removeGridUID(fromUID, fromGridX, fromGridY)){
@@ -708,7 +708,7 @@ void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
                     std::memset(&amA, 0, sizeof(amA));
 
                     amA.UID = amMSOK.uid;
-                    amA.mapID = amMSOK.mapID;
+                    amA.mapUID = amMSOK.mapUID;
                     amA.action = amMSOK.action;
 
                     // didn't check map switch here

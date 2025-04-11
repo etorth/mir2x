@@ -252,12 +252,12 @@ void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::funct
 {
     getCOLocation(targetUID, [this, onOK, onError](const COLocation &coLoc)
     {
-        const auto nX     = coLoc.x;
-        const auto nY     = coLoc.y;
-        const auto nDir   = pathf::dirValid(coLoc.direction) ? coLoc.direction : DIR_UP;
-        const auto nMapID = coLoc.mapID;
+        const auto nX      = coLoc.x;
+        const auto nY      = coLoc.y;
+        const auto nDir    = pathf::dirValid(coLoc.direction) ? coLoc.direction : DIR_UP;
+        const auto nMapUID = coLoc.mapUID;
 
-        if(mapID() != nMapID || !mapBin()->validC(nX, nY)){
+        if(mapUID() != nMapUID || !mapBin()->validC(nX, nY)){
             if(onError){
                 onError();
             }
@@ -302,7 +302,7 @@ void Monster::trackUID(uint64_t nUID, DCCastRange r, std::function<void()> onOK,
 {
     getCOLocation(nUID, [this, r, onOK, onError](const COLocation &coLoc)
     {
-        if(mapID() != coLoc.mapID || !mapBin()->validC(coLoc.x, coLoc.y)){
+        if(mapUID() != coLoc.mapUID || !mapBin()->validC(coLoc.x, coLoc.y)){
             if(onError){
                 onError();
             }
@@ -369,7 +369,7 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
 
         const auto nX         = coLoc.x;
         const auto nY         = coLoc.y;
-        const auto nMapID     = coLoc.mapID;
+        const auto nMapUID    = coLoc.mapUID;
         const auto nDirection = pathf::dirValid(coLoc.direction) ? coLoc.direction : [this]() -> int
         {
             switch(uidf::getUIDType(masterUID())){
@@ -378,7 +378,7 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
             }
         }();
 
-        if((nMapID == mapID()) && (mathf::LDistance<double>(nX, nY, X(), Y()) < 10.0)){
+        if((nMapUID == mapUID()) && (mathf::LDistance<double>(nX, nY, X(), Y()) < 10.0)){
 
             // not that long
             // slave should move step by step
@@ -411,11 +411,11 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
             // need to do spacemove or even mapswitch
 
             const auto [nBackX, nBackY] = pathf::getBackGLoc(nX, nY, nDirection, 3);
-            if(nMapID == mapID()){
+            if(nMapUID == mapUID()){
                 return requestSpaceMove(nBackX, nBackY, false, onOK, onError);
             }
             else{
-                return requestMapSwitch(nMapID, nBackX, nBackY, false, onOK, onError);
+                return requestMapSwitch(nMapUID, nBackX, nBackY, false, onOK, onError);
             }
         }
     });

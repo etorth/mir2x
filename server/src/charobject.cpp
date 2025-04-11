@@ -87,7 +87,7 @@ void CharObject::getCOLocation(uint64_t uid, std::function<void(const COLocation
                     const COLocation coLoc
                     {
                         .uid       = amL.UID,
-                        .mapID     = amL.mapID,
+                        .mapUID    = amL.mapUID,
                         .x         = amL.X,
                         .y         = amL.Y,
                         .direction = amL.Direction
@@ -114,15 +114,15 @@ void CharObject::getCOLocation(uint64_t uid, std::function<void(const COLocation
     });
 }
 
-bool CharObject::inView(uint32_t argMapID, int argX, int argY) const
+bool CharObject::inView(uint64_t argMapUID, int argX, int argY) const
 {
-    return (argMapID == mapID()) && mapBin()->validC(argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;
+    return (argMapUID == mapUID()) && mapBin()->validC(argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;
 }
 
 void CharObject::trimInViewCO()
 {
     for(auto p = m_inViewCOList.begin(); p != m_inViewCOList.end();){
-        if(inView(p->second.mapID, p->second.x, p->second.y)){
+        if(inView(p->second.mapUID, p->second.x, p->second.y)){
             p++;
         }
         else{
@@ -157,11 +157,11 @@ int CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)
         return DIR_NONE;
     }();
 
-    if(!forceDelete && inView(coLoc.mapID, coLoc.x, coLoc.y)){
+    if(!forceDelete && inView(coLoc.mapUID, coLoc.x, coLoc.y)){
         m_inViewCOList.insert_or_assign(coLoc.uid, COLocation
         {
-            .uid   = coLoc.uid,
-            .mapID = coLoc.mapID,
+            .uid    = coLoc.uid,
+            .mapUID = coLoc.mapUID,
 
             .x = coLoc.x,
             .y = coLoc.y,
@@ -237,7 +237,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
     std::memset(&amA, 0, sizeof(amA));
 
     amA.UID = UID();
-    amA.mapID = mapID();
+    amA.mapUID = mapUID();
     amA.action = action;
 
     if(auto boPtr = dynamic_cast<BattleObject *>(this)){
@@ -265,8 +265,8 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
                 {
                     const auto nX = rstLocation.x;
                     const auto nY = rstLocation.y;
-                    const auto nMapID = rstLocation.mapID;
-                    if(inView(nMapID, nX, nY)){
+                    const auto nMapUID = rstLocation.mapUID;
+                    if(inView(nMapUID, nX, nY)){
                         m_actorPod->forward(rstLocation.uid, {AM_ACTION, amA});
                     }
                 });
@@ -282,7 +282,7 @@ void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
     std::memset(&amA, 0, sizeof(amA));
 
     amA.UID = UID();
-    amA.mapID = mapID();
+    amA.mapUID = mapUID();
     amA.action = action;
     m_actorPod->forward(uid, {AM_ACTION, amA});
 }

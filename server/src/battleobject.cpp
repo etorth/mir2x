@@ -158,7 +158,7 @@ bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<voi
                     std::memset(&amJOK, 0, sizeof(amJOK));
 
                     amJOK.uid = UID();
-                    amJOK.mapID = mapID();
+                    amJOK.mapUID = mapUID();
                     amJOK.action = ActionJump
                     {
                         .direction = Direction(),
@@ -307,7 +307,7 @@ bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove
                     AMMoveOK amMOK;
                     std::memset(&amMOK, 0, sizeof(amMOK));
                     amMOK.uid = UID();
-                    amMOK.mapID = mapID();
+                    amMOK.mapUID = mapUID();
                     amMOK.action = ActionMove
                     {
                         .speed = speed,
@@ -413,7 +413,7 @@ bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::fu
                     std::memset(&amSMOK, 0, sizeof(amSMOK));
 
                     amSMOK.uid = UID();
-                    amSMOK.mapID = mapID();
+                    amSMOK.mapUID = mapUID();
                     amSMOK.action = ActionSpaceMove
                     {
                         .direction = Direction(),
@@ -542,7 +542,7 @@ bool BattleObject::requestMapSwitch(uint64_t argMapUID, int locX, int locY, bool
                                                     std::memset(&amLOK, 0, sizeof(amLOK));
 
                                                     amLOK.uid = UID();
-                                                    amLOK.mapID = mapID();
+                                                    amLOK.mapUID = mapUID();
                                                     amLOK.action = makeActionStand();
 
                                                     m_moveLock = true;
@@ -562,7 +562,7 @@ bool BattleObject::requestMapSwitch(uint64_t argMapUID, int locX, int locY, bool
                                                                     std::memset(&amMSOK, 0, sizeof(amMSOK));
 
                                                                     amMSOK.uid = UID();
-                                                                    amMSOK.mapID = mapID();
+                                                                    amMSOK.mapUID = mapUID();
                                                                     amMSOK.action = makeActionStand();
                                                                     m_actorPod->forward(mapUID(), {AM_MAPSWITCHOK, amMSOK}, rmpk.seqID());
 

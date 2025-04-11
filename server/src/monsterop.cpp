@@ -129,7 +129,7 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
 
     const auto distChanged = [dstX, dstY, amA, this]() -> bool
     {
-        if(amA.mapID != mapID()){
+        if(amA.mapUID != mapUID()){
             return true;
         }
 
@@ -142,7 +142,7 @@ void Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
     const auto addedInView = updateInViewCO(COLocation
     {
         .uid = amA.UID,
-        .mapID = amA.mapID,
+        .mapUID = amA.mapUID,
 
         .x = dstX,
         .y = dstY,
@@ -193,7 +193,7 @@ void Monster::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
     std::memset(&amL, 0, sizeof(amL));
 
     amL.UID       = UID();
-    amL.mapID     = mapID();
+    amL.mapUID    = mapUID();
     amL.X         = X();
     amL.Y         = Y();
     amL.Direction = Direction();

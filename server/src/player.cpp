@@ -3,6 +3,7 @@
 #include "player.hpp"
 #include "luaf.hpp"
 #include "uidf.hpp"
+#include "uidsf.hpp"
 #include "jobf.hpp"
 #include "pathf.hpp"
 #include "mathf.hpp"
@@ -1163,7 +1164,7 @@ void Player::onCMActionAttack(CMAction stCMA)
         int nDCType = stCMA.action.extParam.attack.magicID;
         uint64_t nAimUID = stCMA.action.aimUID;
 
-        if(rstLocation.mapID != mapID()){
+        if(rstLocation.mapUID != mapUID()){
             return;
         }
 

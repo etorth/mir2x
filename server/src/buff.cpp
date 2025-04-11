@@ -100,7 +100,7 @@ void BaseBuff::runOnBOMove()
         {
             boPtr->getCOLocation(fromUID, [boPtr, buffSeq, radius](const COLocation &coLoc)
             {
-                if((boPtr->mapID() != coLoc.mapID) || (mathf::LDistance2<int>(boPtr->X(), boPtr->Y(), coLoc.x, coLoc.y) > radius * radius)){
+                if((boPtr->mapUID() != coLoc.mapUID) || (mathf::LDistance2<int>(boPtr->X(), boPtr->Y(), coLoc.x, coLoc.y) > radius * radius)){
                     boPtr->removeBuff(buffSeq, true);
                 }
             });

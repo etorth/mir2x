@@ -179,7 +179,7 @@ corof::eval_poller<bool> Monster::coro_inDCCastRange(uint64_t targetUID, DCCastR
     corof::async_variable<bool> done;
     getCOLocation(targetUID, [r, &done, this](const COLocation &coLoc)
     {
-        if((coLoc.mapID == mapID()) && mapBin()->validC(coLoc.x, coLoc.y)){
+        if((coLoc.mapUID == mapUID()) && mapBin()->validC(coLoc.x, coLoc.y)){
             done.assign(pathf::inDCCastRange(r, X(), Y(), coLoc.x, coLoc.y));
         }
         else{
@@ -214,14 +214,14 @@ corof::eval_poller<std::tuple<uint32_t, int, int>> Monster::coro_getCOGLoc(uint6
 {
     int x = -1;
     int y = -1;
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
     corof::async_variable<bool> done;
 
-    getCOLocation(targetUID, [&x, &y, &mapID, &done](const COLocation &coLoc)
+    getCOLocation(targetUID, [&x, &y, &mapUID, &done](const COLocation &coLoc)
     {
         x = coLoc.x;
         y = coLoc.y;
-        mapID = coLoc.mapID;
+        mapUID = coLoc.mapUID;
         done.assign(true);
     },
 
@@ -231,10 +231,10 @@ corof::eval_poller<std::tuple<uint32_t, int, int>> Monster::coro_getCOGLoc(uint6
     });
 
     if(co_await done){
-        co_return std::tuple<uint32_t, int, int>(mapID, x, y);
+        co_return std::tuple<uint64_t, int, int>(mapUID, x, y);
     }
     else{
-        co_return std::tuple<uint32_t, int, int>(0, -1, -1);
+        co_return std::tuple<uint64_t, int, int>(0, -1, -1);
     }
 }
 

@@ -106,7 +106,7 @@ void NPChar::on_AM_QUERYLOCATION(const ActorMsgPack &mpk)
     std::memset(&amL, 0, sizeof(amL));
 
     amL.UID       = UID();
-    amL.mapID     = mapID();
+    amL.mapUID    = mapUID();
     amL.X         = X();
     amL.Y         = Y();
     amL.Direction = Direction();

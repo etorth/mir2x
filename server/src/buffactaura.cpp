@@ -51,7 +51,7 @@ void BaseBuffActAura::transmit(uint64_t targetUID)
                     const auto &baref = getBAREF();
                     fflassert(baref);
 
-                    if((getBuff()->getBO()->mapID() != coLoc.mapID) || (mathf::LDistance2<int>(getBuff()->getBO()->X(), getBuff()->getBO()->Y(), coLoc.x, coLoc.y) > baref.aura.radius * baref.aura.radius)){
+                    if((getBuff()->getBO()->mapUID() != coLoc.mapUID) || (mathf::LDistance2<int>(getBuff()->getBO()->X(), getBuff()->getBO()->Y(), coLoc.x, coLoc.y) > baref.aura.radius * baref.aura.radius)){
                         return;
                     }
 

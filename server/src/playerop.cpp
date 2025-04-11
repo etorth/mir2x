@@ -1,6 +1,7 @@
 #include <cinttypes>
 #include "totype.hpp"
 #include "luaf.hpp"
+#include "uidsf.hpp"
 #include "mathf.hpp"
 #include "pathf.hpp"
 #include "player.hpp"
@@ -81,7 +82,7 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
 
     const auto distChanged = [dstX, dstY, amA, this]() -> bool
     {
-        if(amA.mapID != mapID()){
+        if(amA.mapUID != mapUID()){
             return true;
         }
 
@@ -93,8 +94,8 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
 
     const auto addedInView = updateInViewCO(COLocation
     {
-        .uid = amA.UID,
-        .mapID = amA.mapID,
+        .uid    = amA.UID,
+        .mapUID = amA.mapUID,
 
         .x = dstX,
         .y = dstY,
@@ -110,7 +111,7 @@ void Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
     }
 
     // always need to notify client for CO gets added/moved/removed
-    reportAction(amA.UID, amA.mapID, amA.action);
+    reportAction(amA.UID, amA.mapUID, amA.action);
 }
 
 void Player::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
@@ -150,7 +151,7 @@ void Player::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
         requestSpaceMove(amMST.X, amMST.Y, false);
     }
     else{
-        requestMapSwitch(amMST.mapID, amMST.X, amMST.Y, false);
+        requestMapSwitch(uidsf::getMapBaseUID(amMST.mapID), amMST.X, amMST.Y, false);
     }
 }
 
@@ -160,7 +161,7 @@ void Player::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
     std::memset(&amL, 0, sizeof(amL));
 
     amL.UID       = UID();
-    amL.mapID     = mapID();
+    amL.mapUID    = mapUID();
     amL.X         = X();
     amL.Y         = Y();
     amL.Direction = Direction();

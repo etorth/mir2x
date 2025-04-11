@@ -167,7 +167,7 @@ struct AMAllowLeave
 struct AMLeaveOK
 {
     uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -246,7 +246,7 @@ struct AMAllowSpaceMove
 struct AMSpaceMoveOK
 {
     uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -280,7 +280,7 @@ struct AMAllowMove
 struct AMMoveOK
 {
     uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -305,7 +305,7 @@ struct AMAllowJump
 struct AMJumpOK
 {
     uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -341,7 +341,7 @@ struct AMBindChannel
 struct AMAction
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -376,7 +376,7 @@ struct AMAllowMapSwitch
 struct AMMapSwitchOK
 {
     uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -419,7 +419,7 @@ struct AMQuerySellItemList
 struct AMLocation
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;

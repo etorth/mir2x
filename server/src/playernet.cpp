@@ -1,4 +1,5 @@
 #include <cinttypes>
+#include "uidsf.hpp"
 #include "player.hpp"
 #include "message.hpp"
 #include "actorpod.hpp"
@@ -70,7 +71,7 @@ void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t, uint64
         });
     }
     else{
-        requestMapSwitch(cmRSM.mapID, cmRSM.X, cmRSM.Y, false, [this]()
+        requestMapSwitch(uidsf::getMapBaseUID(cmRSM.mapID), cmRSM.X, cmRSM.Y, false, [this]()
         {
             dbUpdateMapGLoc();
         });
