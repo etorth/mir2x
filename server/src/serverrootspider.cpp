@@ -5,33 +5,10 @@
 void ServerRootSpider::addBombSpider()
 {
     const auto [spawnGX, spawnGY] = pathf::getFrontGLoc(X(), Y(), Direction() + 3, 1);
-
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_MON;
-    amACO.mapUID = mapUID();
-    amACO.x = spawnGX;
-    amACO.y = spawnGY;
-    amACO.strictLoc = false;
-
-    amACO.monster.monsterID = DBCOM_MONSTERID(u8"爆裂蜘蛛");
-    amACO.monster.masterUID = 0;
-
-    m_actorPod->forward(mapUID(), {AM_ADDCO, amACO}, [this](const ActorMsgPack &rmpk)
+    addMonster(DBCOM_MONSTERID(u8"爆裂蜘蛛"), spawnGX, spawnGY, false, [this](uint64_t uid)
     {
-        switch(rmpk.type()){
-            case AM_UID:
-                {
-                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.uid){
-                        m_batUIDList.insert(amUID.uid);
-                    }
-                    return;
-                }
-            default:
-                {
-                    return;
-                }
+        if(uid){
+            m_childUIDList.insert(uid);
         }
     });
 }
@@ -49,16 +26,16 @@ corof::eval_poller<> ServerRootSpider::updateCoroFunc()
         }
 
         if(targetUID){
-            for(auto p = m_batUIDList.begin(); p != m_batUIDList.end();){
+            for(auto p = m_childUIDList.begin(); p != m_childUIDList.end();){
                 if(m_actorPod->checkUIDValid(*p)){
                     p++;
                 }
                 else{
-                    p = m_batUIDList.erase(p);
+                    p = m_childUIDList.erase(p);
                 }
             }
 
-            if(m_batUIDList.size() < m_maxBatCount){
+            if(m_childUIDList.size() < m_maxBatCount){
                 dispatchAction(ActionAttack
                 {
                     .x = X(),

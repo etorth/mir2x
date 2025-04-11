@@ -518,7 +518,7 @@ void NPChar::postAddMonster(uint32_t monsterID)
     amACO.monster.monsterID = monsterID;
     amACO.monster.masterUID = 0;
 
-    m_actorPod->forward(mapUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
+    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_UID:

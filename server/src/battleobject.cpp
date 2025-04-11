@@ -739,7 +739,7 @@ int BattleObject::Speed(int nSpeedType) const
     }
 }
 
-void BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
+void BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc, std::function<void(uint64_t)> op)
 {
     SDInitCharObject sdICO = SDInitMonster
     {
@@ -752,11 +752,21 @@ void BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
         .masterUID = UID(),
     };
 
-    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}, [](const ActorMsgPack &rmpk)
+    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}, [op = std::move(op)](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
+            case AM_UID:
+                {
+                    if(op){
+                        op(rmpk.conv<AMUID>().uid);
+                    }
+                    break;
+                }
             default:
                 {
+                    if(op){
+                        op(0);
+                    }
                     break;
                 }
         }

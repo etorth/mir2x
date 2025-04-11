@@ -7,7 +7,7 @@ class ServerRootSpider final: public Monster
 {
     private:
         const size_t m_maxBatCount = 20;
-        std::unordered_set<uint64_t> m_batUIDList;
+        std::unordered_set<uint64_t> m_childUIDList;
 
     public:
         ServerRootSpider(uint64_t argMapUID, int argX, int argY)

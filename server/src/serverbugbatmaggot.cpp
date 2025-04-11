@@ -3,32 +3,10 @@
 
 void ServerBugbatMaggot::addBat()
 {
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_MON;
-    amACO.mapUID = mapUID();
-    amACO.x = X();
-    amACO.y = Y() - 1;
-    amACO.strictLoc = false;
-
-    amACO.monster.monsterID = DBCOM_MONSTERID(u8"蝙蝠");
-    amACO.monster.masterUID = 0;
-
-    m_actorPod->forward(mapUID(), {AM_ADDCO, amACO}, [this](const ActorMsgPack &rmpk)
+    addMonster(DBCOM_MONSTERID(u8"蝙蝠"), X(), Y() - 1, false, [this](uint64_t uid)
     {
-        switch(rmpk.type()){
-            case AM_UID:
-                {
-                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.uid){
-                        m_batUIDList.insert(amUID.uid);
-                    }
-                    return;
-                }
-            default:
-                {
-                    return;
-                }
+        if(uid){
+            m_batUIDList.insert(uid);
         }
     });
 }

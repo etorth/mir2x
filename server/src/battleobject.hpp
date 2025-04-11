@@ -187,7 +187,7 @@ class BattleObject: public CharObject
         virtual bool struckDamage(uint64_t, const DamageNode &) = 0;
 
     protected:
-        void addMonster(uint32_t, int, int, bool);
+        void addMonster(uint32_t, int, int, bool, std::function<void(uint64_t)> = nullptr);
 
     protected:
         virtual int maxStep() const
