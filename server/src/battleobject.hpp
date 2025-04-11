@@ -108,18 +108,6 @@ class BattleObject: public CharObject
     public:
         virtual bool update() = 0;
 
-    public:
-        void onActivate() override
-        {
-            ServerObject::onActivate();
-            dispatchAction(ActionSpawn
-            {
-                .direction = Direction(),
-                .x = X(),
-                .y = Y(),
-            });
-        }
-
     protected:
         virtual void reportCO(uint64_t) = 0;
 
