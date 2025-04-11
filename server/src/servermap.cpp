@@ -309,58 +309,37 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         });
     });
 
-    bindFunctionCoop("_RSVD_NAME_addGuard", [this](LuaCoopResumer onDone, sol::object monInfo, int x, int y, int direction)
+    bindFunction("addGuard", [this](sol::object monInfo, int x, int y, int direction)
     {
+        // we don't need uid of added guard
+        // this is a function, not a coroutine like addMonster
+
         const uint32_t monsterID = [&monInfo]() -> uint32_t
         {
             if(monInfo.is<int>()){
                 return monInfo.as<int>();
             }
 
-            if(monInfo.is<std::string>()){
+            else if(monInfo.is<std::string>()){
                 return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
             }
 
-            return 0;
+            else{
+                throw fflerror("invalid argument: addGuard()");
+            }
         }();
 
-        if(!monsterID){
-            onDone();
-            return;
+        if(monsterID){
+            getServerMap()->addCO(SDInitGuard
+            {
+                .monsterID = monsterID,
+                .mapUID = getServerMap()->UID(),
+                .x = x,
+                .y = y,
+                .strictLoc = false,
+                .direction = direction,
+            });
         }
-
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
-        {
-            *closed = true;
-        });
-
-        getServerMap()->addCO(SDInitGuard
-        {
-            .monsterID = monsterID,
-            .mapUID = getServerMap()->UID(),
-            .x = x,
-            .y = y,
-            .strictLoc = false,
-            .direction = direction,
-        },
-
-        [closed, onDone, this](uint64_t uid)
-        {
-            if(*closed){
-                return;
-            }
-            else{
-                onDone.popOnClose();
-            }
-
-            if(uid){
-                onDone(uid);
-            }
-            else{
-                onDone();
-            }
-        });
     });
 
     pfrCheck(execRawString(BEGIN_LUAINC(char)
