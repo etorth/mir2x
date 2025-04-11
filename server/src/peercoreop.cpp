@@ -106,11 +106,14 @@ void PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
     }
 
     if(auto [loaded, newLoad] = loadMap(amPLM.mapUID); loaded){
-        AMLoadMapOK amLMOK;
-        std::memset(&amLMOK, 0, sizeof(amLMOK));
+        AMPeerLoadMapOK amPLMOK;
+        std::memset(&amPLMOK, 0, sizeof(amPLMOK));
 
-        amLMOK.newLoad = newLoad;
-        m_actorPod->forward(mpk.fromAddr(), {AM_LOADMAPOK, amLMOK});
+        amPLMOK.newLoad = newLoad;
+        m_actorPod->forward(mpk.fromAddr(), {AM_PEERLOADMAPOK, amPLMOK});
+        if(newLoad){
+            g_server->addLog(LOGTYPE_INFO, "Load map %d on peer %zu successfully.", to_d(uidf::getMapID(amPLM.mapUID)), uidf::peerIndex(UID()));
+        }
     }
     else{
         m_actorPod->forward(mpk.fromAddr(), AM_ERROR);

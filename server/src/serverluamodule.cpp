@@ -36,7 +36,7 @@ ServerLuaModule::ServerLuaModule()
 
     pfrCheck(execString("package.path = package.path .. ';%s/?.lua'", []() -> std::string
     {
-        if(const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath; cfgScriptPath.empty()){
+        if(const auto cfgScriptPath = g_serverArgParser->slave ? std::string{} : g_serverConfigureWindow->getConfig().scriptPath; cfgScriptPath.empty()){
             return "script";
         }
         else{

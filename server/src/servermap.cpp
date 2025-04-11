@@ -348,7 +348,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 
     pfrCheck(execFile([this]() -> std::string
     {
-        const auto configScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+        const auto configScriptPath = g_serverArgParser->slave ? std::string{} : g_serverConfigureWindow->getConfig().scriptPath;
         const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
 
         const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
@@ -1200,7 +1200,7 @@ void ServerMap::onActivate()
 
 void ServerMap::loadNPChar()
 {
-    const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+    const auto cfgScriptPath = g_serverArgParser->slave ? std::string{}: g_serverConfigureWindow->getConfig().scriptPath;
     const auto scriptPath = cfgScriptPath.empty() ? std::string("script/npc") : (cfgScriptPath + "/npc");
 
     // npc script file has format:

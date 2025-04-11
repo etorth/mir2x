@@ -428,9 +428,17 @@ void Server::createDBConnection()
 
 void Server::loadMapBinDB()
 {
-    std::string szMapPath = g_serverConfigureWindow->getConfig().mapPath;
+    const auto mapPath = []() -> std::string
+    {
+        if(g_serverArgParser->slave){
+            return "map/mapbin.zsdb";
+        }
+        else{
+            return g_serverConfigureWindow->getConfig().mapPath;
+        }
+    }();
 
-    if(!g_mapBinDB->load(szMapPath.c_str())){
+    if(!g_mapBinDB->load(mapPath.c_str())){
         throw fflerror("Failed to load mapbindb");
     }
 }

@@ -804,6 +804,7 @@ void ActorPool::launch()
     if(g_serverArgParser->slave){
         m_peerCore = std::make_unique<PeerCore>();
         m_peerCore->activate(-1.0);
+        g_server->loadMapBinDB();
         launchPool();
     }
     else{

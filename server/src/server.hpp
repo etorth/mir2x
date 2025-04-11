@@ -64,6 +64,8 @@ class Server final
     private:
         void RunASIO();
         void createDBConnection();
+
+    public:
         void loadMapBinDB();
 
     private:
