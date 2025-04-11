@@ -120,8 +120,6 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
     const int mapY  = queryChar.getColumn("fld_mapy");
 
     const uint64_t mapUID = uidsf::getMapBaseUID(mapID); // same mapID always maps to same UID
-    const uint64_t expectedUID = uidf::getPlayerUID(dbidOpt.value().first);
-
     SDInitCharObject sdICO = SDInitPlayer
     {
         .dbid      = dbidOpt.value().first,
@@ -141,32 +139,15 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
         .hairColor = queryChar.getColumn("fld_haircolor"),
     };
 
-    requestLoadMap(mapUID, [sdICO, channID, expectedUID, fnOnlineError, this](bool)
+    requestLoadMap(mapUID, [sdICO, channID, fnOnlineError, this](bool)
     {
-        m_dbidList[channID].second = true;
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize(sdICO)}, [channID, expectedUID, fnOnlineError, this](const ActorMsgPack &rmpk)
-        {
-            fflassert(findDBID(channID).has_value());
-            fflassert(findDBID(channID).value().second);
-
-            switch(rmpk.type()){
-                case AM_UID:
-                    {
-                        // don't need to send ONLINEOK here
-                        // will be sent by Player actor with more parameters, not here
-
-                        const auto amUID = rmpk.conv<AMUID>();
-                        fflassert(amUID.uid == expectedUID);
-                        return;
-                    }
-                default:
-                    {
-                        fnOnlineError(ONLINEERR_AMERROR);
-                        m_dbidList[channID].second = false;
-                        return;
-                    }
-            }
-        });
+        if(addCO(sdICO)){
+            m_dbidList[channID].second = true;
+        }
+        else{
+            m_dbidList[channID].second = false;
+            fnOnlineError(ONLINEERR_AMERROR);
+        }
     });
 }
 

@@ -359,7 +359,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
             });
         }
         else{
-            getPlayer()->requestMapSwitch(argMapID, argX, argY, false, [closed, onDone, this]()
+            getPlayer()->requestMapSwitch(uidsf::getMapBaseUID(argMapID), argX, argY, false, [closed, onDone, this]()
             {
                 if(*closed){
                     return;

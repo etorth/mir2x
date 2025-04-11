@@ -144,6 +144,19 @@ std::optional<std::pair<int, int>> PeerCore::getMapGLoc(uint32_t mapID, int x, i
     return std::nullopt;
 }
 
+CharObject *PeerCore::addCO(SDInitCharObject sdICO)
+{
+    return std::visit(VarDispatcher
+    {
+        [this](const SDInitGuard   &sdIG  ) { return static_cast<CharObject *>(addGuard  (sdIG  )); },
+        [this](const SDInitPlayer  &sdIP  ) { return static_cast<CharObject *>(addPlayer (sdIP  )); },
+        [this](const SDInitNPChar  &sdINPC) { return static_cast<CharObject *>(addNPChar (sdINPC)); },
+        [this](const SDInitMonster &sdIM  ) { return static_cast<CharObject *>(addMonster(sdIM  )); },
+    },
+
+    std::move(sdICO));
+}
+
 ServerGuard *PeerCore::addGuard(SDInitGuard sdIG)
 {
     if(g_serverArgParser->disableGuardSpawn){

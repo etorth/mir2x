@@ -21,20 +21,10 @@ void PeerCore::on_AM_ADDCO(const ActorMsgPack &mpk)
     {
         std::string err;
         try{
-            auto coPtr = std::visit(VarDispatcher
-            {
-                [this](const SDInitGuard   &sdIG  ) { return static_cast<CharObject *>(addGuard  (sdIG  )); },
-                [this](const SDInitPlayer  &sdIP  ) { return static_cast<CharObject *>(addPlayer (sdIP  )); },
-                [this](const SDInitNPChar  &sdINPC) { return static_cast<CharObject *>(addNPChar (sdINPC)); },
-                [this](const SDInitMonster &sdIM  ) { return static_cast<CharObject *>(addMonster(sdIM  )); },
-            },
-
-            sdICO);
-
             AMUID amUID;
             std::memset(&amUID, 0, sizeof(amUID));
 
-            amUID.uid = coPtr->UID();
+            amUID.uid = addCO(sdICO)->UID();
             m_actorPod->forward(fromAddr, {AM_UID, amUID});
             return;
         }
