@@ -1234,7 +1234,7 @@ void ServerMap::loadNPChar()
     for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), false, expr.c_str())){
         std::match_results<std::string::const_iterator> result;
         if(std::regex_match(fileName.begin(), fileName.end(), result, regExpr)){
-            SDInitNPChar initNPChar
+            SDInitNPChar sdNPC
             {
                 .fullScriptName = scriptPath + "/" + fileName,
                 .mapUID = UID(),
@@ -1242,16 +1242,16 @@ void ServerMap::loadNPChar()
 
             for(int i = 0; const auto &m: result){
                 switch(i++){
-                    case 1 : initNPChar.npcName =           m.str() ; break;
-                    case 2 : initNPChar.x       = std::stoi(m.str()); break;
-                    case 3 : initNPChar.y       = std::stoi(m.str()); break;
-                    case 4 : initNPChar.gfxDir  = std::stoi(m.str()); break;
-                    case 5 : initNPChar.lookID  = std::stoi(m.str()); break;
-                    default:                                        ; break;
+                    case 1 : sdNPC.npcName =           m.str() ; break;
+                    case 2 : sdNPC.x       = std::stoi(m.str()); break;
+                    case 3 : sdNPC.y       = std::stoi(m.str()); break;
+                    case 4 : sdNPC.gfxDir  = std::stoi(m.str()); break;
+                    case 5 : sdNPC.lookID  = std::stoi(m.str()); break;
+                    default:                                   ; break;
                 }
             }
 
-            auto npcPtr = std::make_unique<NPChar>(initNPChar);
+            auto npcPtr = std::unique_ptr<NPChar>(dynamic_cast<NPChar *>(m_addCO->addCO(std::move(sdNPC))));
             auto npcUID = npcPtr->UID();
 
             m_npcList.emplace(npcUID, std::move(npcPtr));
