@@ -287,6 +287,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                             .x = -1,
                             .y = -1,
                             .strictLoc = false,
+                            .direction = DIR_BEGIN,
                         }));
                     }
                 case 2:
@@ -304,6 +305,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                                 .x = nX,
                                 .y = nY,
                                 .strictLoc = false,
+                                .direction = DIR_BEGIN,
                             }));
                         }
                         break;
@@ -325,6 +327,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                                 .x = nX,
                                 .y = nY,
                                 .strictLoc = bStrictLoc,
+                                .direction = DIR_BEGIN,
                             }));
                         }
                         break;
