@@ -56,11 +56,6 @@ void ServiceCore::operateAM(const ActorMsgPack &mpk)
                 on_AM_QUERYCOCOUNT(mpk);
                 break;
             }
-        case AM_ADDCO:
-            {
-                on_AM_ADDCO(mpk);
-                break;
-            }
         case AM_LOADMAP:
             {
                 on_AM_LOADMAP(mpk);
@@ -142,6 +137,8 @@ void ServiceCore::operateNet(uint32_t channID, uint8_t cmType, const uint8_t *bu
 void ServiceCore::onActivate()
 {
     ServerObject::onActivate();
+    m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
+
     if(const auto mapID = g_serverArgParser->preloadMapID; mapID > 0){
         requestLoadMap(uidsf::getMapBaseUID(mapID), [mapID](bool)
         {

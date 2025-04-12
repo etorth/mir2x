@@ -216,8 +216,8 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 
     bindFunction("getNPCharUID", [this](std::string npcName, sol::this_state s) -> sol::object
     {
-        for(const auto &[uid, info]: getServerMap()->m_npcList){
-            if(info.name == npcName){
+        for(const auto &[uid, npcPtr]: getServerMap()->m_npcList){
+            if(npcPtr->getNPCName() == npcName){
                 return luaf::buildLuaObj(sol::state_view(s), lua_Integer(uid));
             }
         }
@@ -255,9 +255,14 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         return -1;
     });
 
-    bindFunctionCoop("_RSVD_NAME_addMonster", [this](LuaCoopResumer onDone, sol::object monInfo, int x, int y, bool strictLoc)
+    bindFunction("addMonster", [this](sol::object monInfo, sol::variadic_args args) -> uint64_t
     {
-        const uint32_t monsterID = [&monInfo]() -> uint32_t
+        const auto fnGetMonsterUID = [](const CharObject *monPtr) -> uint64_t
+        {
+            return monPtr ? monPtr->UID() : 0;
+        };
+
+        const uint32_t monID = [&monInfo]() -> uint32_t
         {
             if(monInfo.is<int>()){
                 return monInfo.as<int>();
@@ -270,46 +275,70 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             return 0;
         }();
 
-        if(!monsterID){
-            onDone();
-            return;
+        if(monID){
+            const std::vector<sol::object> argList(args.begin(), args.end());
+            switch(argList.size()){
+                case 0:
+                    {
+                        return fnGetMonsterUID(getServerMap()->m_addCO->addCO(SDInitMonster
+                        {
+                            .monsterID = monID,
+                            .mapUID = getServerMap()->UID(),
+                            .x = -1,
+                            .y = -1,
+                            .strictLoc = false,
+                        }));
+                    }
+                case 2:
+                    {
+                        if(true
+                                && argList[0].is<int>()
+                                && argList[1].is<int>()){
+
+                            const auto nX = argList[0].as<int>();
+                            const auto nY = argList[1].as<int>();
+                            return fnGetMonsterUID(getServerMap()->m_addCO->addCO(SDInitMonster
+                            {
+                                .monsterID = monID,
+                                .mapUID = getServerMap()->UID(),
+                                .x = nX,
+                                .y = nY,
+                                .strictLoc = false,
+                            }));
+                        }
+                        break;
+                    }
+                case 3:
+                    {
+                        if(true
+                                && argList[0].is<int >()
+                                && argList[1].is<int >()
+                                && argList[2].is<bool>()){
+
+                            const auto nX = argList[0].as<int >();
+                            const auto nY = argList[1].as<int >();
+                            const auto bStrictLoc = argList[2].as<bool>();
+                            return fnGetMonsterUID(getServerMap()->m_addCO->addCO(SDInitMonster
+                            {
+                                .monsterID = monID,
+                                .mapUID = getServerMap()->UID(),
+                                .x = nX,
+                                .y = nY,
+                                .strictLoc = bStrictLoc,
+                            }));
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
         }
-
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
-        {
-            *closed = true;
-        });
-
-        getServerMap()->addCO(SDInitMonster
-        {
-            .monsterID = monsterID,
-            .mapUID = getServerMap()->UID(),
-            .x = x,
-            .y = y,
-            .strictLoc = strictLoc,
-            .direction = DIR_BEGIN,
-        },
-
-        [closed, onDone, this](uint64_t uid)
-        {
-            if(*closed){
-                return;
-            }
-            else{
-                onDone.popOnClose();
-            }
-
-            if(uid){
-                onDone(uid);
-            }
-            else{
-                onDone();
-            }
-        });
+        return fnGetMonsterUID(nullptr);
     });
 
-    bindFunction("addGuard", [this](sol::object monInfo, int x, int y, int direction)
+    bindFunction("addGuard", [this](sol::object monInfo, int x, int y, int direction) -> uint64_t
     {
         // we don't need uid of added guard
         // this is a function, not a coroutine like addMonster
@@ -330,7 +359,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         }();
 
         if(monsterID){
-            getServerMap()->addCO(SDInitGuard
+            if(auto coPtr = getServerMap()->m_addCO->addCO(SDInitGuard
             {
                 .monsterID = monsterID,
                 .mapUID = getServerMap()->UID(),
@@ -338,8 +367,11 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                 .y = y,
                 .strictLoc = false,
                 .direction = direction,
-            });
+            })){
+                return coPtr->UID();
+            }
         }
+        return 0;
     });
 
     pfrCheck(execRawString(BEGIN_LUAINC(char)
@@ -1017,29 +1049,6 @@ int ServerMap::getMonsterCount(uint32_t monsterID)
     return result;
 }
 
-void ServerMap::addCO(const SDInitCharObject &sdICO, std::function<void(uint64_t)> onDone)
-{
-    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(UID())), {AM_ADDCO, cerealf::serialize(sdICO)}, [onDone = std::move(onDone)](const ActorMsgPack &mpk)
-    {
-        switch(mpk.type()){
-            case AM_UID:
-                {
-                    if(onDone){
-                        onDone(mpk.conv<AMUID>().uid);
-                    }
-                    break;
-                }
-            default:
-                {
-                    if(onDone){
-                        onDone(0);
-                    }
-                    break;
-                }
-        }
-    });
-}
-
 void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
 {
     AMNotifyNewCO amNNCO;
@@ -1192,6 +1201,8 @@ void ServerMap::updateMapGridGroundItem()
 void ServerMap::onActivate()
 {
     ServerObject::onActivate();
+    m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
+
     loadNPChar();
 
     m_luaRunner = std::make_unique<ServerMap::LuaThreadRunner>(this);
@@ -1237,26 +1248,10 @@ void ServerMap::loadNPChar()
                 }
             }
 
-            addCO(initNPChar, [this](uint64_t uid)
-            {
-                if(uid){
-                    fflassert(uidf::isNPChar(uid), uidf::getUIDString(uid));
-                    m_actorPod->forward(uid, AM_QUERYNPCINFO, [uid, this](const ActorMsgPack &mpk)
-                    {
-                        switch(mpk.type()){
-                            case AM_NPCINFO:
-                                {
-                                    m_npcList.emplace(uid, mpk.deserialize<SDNPCharInfo>());
-                                    break;
-                                }
-                            default:
-                                {
-                                    break;
-                                }
-                        }
-                    });
-                }
-            });
+            auto npcPtr = std::make_unique<NPChar>(initNPChar);
+            auto npcUID = npcPtr->UID();
+
+            m_npcList.emplace(npcUID, std::move(npcPtr));
         }
         else{
             throw fflvalue(fileName);

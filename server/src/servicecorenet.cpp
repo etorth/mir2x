@@ -141,7 +141,7 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
 
     requestLoadMap(mapUID, [sdICO, channID, fnOnlineError, this](bool)
     {
-        if(addCO(sdICO)){
+        if(m_addCO->addCO(sdICO)){
             m_dbidList[channID].second = true;
         }
         else{

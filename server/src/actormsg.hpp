@@ -114,8 +114,6 @@ enum ActorMsgPackType: int
     AM_NAMECOLOR,
     AM_MASTERKILL,
     AM_MASTERHITTED,
-    AM_QUERYNPCINFO,
-    AM_NPCINFO,
     AM_NPCEVENT,
     AM_NPCERROR,
     AM_BUY,

@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <string>
 #include <utility>
 #include <unordered_set>
@@ -8,10 +9,12 @@
 
 class PeerCore;
 class ServerMap;
+class EnableAddCO;
 class ServiceCore final: public PeerCore
 {
     private:
         friend class PeerCore;
+        friend class EnableAddCO;
 
     private:
         struct LoadMapOp
@@ -27,6 +30,9 @@ class ServiceCore final: public PeerCore
     private:
         std::unordered_map<uint64_t, SDRegisterQuest> m_questList;
         std::unordered_map<int, std::unordered_set<uint64_t>> m_questTriggerList;
+
+    private:
+        std::unique_ptr<EnableAddCO> m_addCO;
 
     public:
         ServiceCore();

@@ -11,6 +11,7 @@
 #include "totype.hpp"
 #include "sysconst.hpp"
 #include "serdesmsg.hpp"
+#include "enableaddco.hpp"
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
 #include "lochashtable.hpp"
@@ -54,6 +55,7 @@ class ServerMap final: public ServerObject
 
     private:
         friend class ServerPathFinder;
+        friend class ServerMap::LuaThreadRunner;
 
     private:
         struct FireWallMagicNode
@@ -100,10 +102,13 @@ class ServerMap final: public ServerObject
         };
 
     private:
+        std::unique_ptr<EnableAddCO> m_addCO;
+
+    private:
         std::shared_ptr<Mir2xMapData> m_mapBin;
 
     private:
-        std::unordered_map<uint64_t, const SDNPCharInfo> m_npcList;
+        std::unordered_map<uint64_t, std::unique_ptr<NPChar>> m_npcList;
 
     private:
         std::vector<MapGrid> m_gridList;
@@ -171,9 +176,6 @@ class ServerMap final: public ServerObject
 
     private:
         void notifyNewCO(uint64_t, int, int);
-
-    private:
-        void addCO(const SDInitCharObject &, std::function<void(uint64_t)> = nullptr);
 
     private:
         int getMonsterCount(uint32_t);
