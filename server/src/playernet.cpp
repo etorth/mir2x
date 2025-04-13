@@ -15,7 +15,7 @@ void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
 
     if(true
             && cmA.UID == UID()
-            && cmA.mapID == mapID()){
+            && cmA.mapUID == mapUID()){
 
         // don't do dispatchAction(cmA.action) here
         // we may need to filter some actions to anti-cheat, dispatch in onCMActionXXXX(cmA) if legeal
@@ -64,14 +64,14 @@ void Player::net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *buf, size
 void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRSM = ClientMsg::conv<CMRequestSpaceMove>(buf);
-    if(cmRSM.mapID == mapID()){
+    if(cmRSM.mapUID == mapUID()){
         requestSpaceMove(cmRSM.X, cmRSM.Y, false, [this]()
         {
             dbUpdateMapGLoc();
         });
     }
     else{
-        requestMapSwitch(uidsf::getMapBaseUID(cmRSM.mapID), cmRSM.X, cmRSM.Y, false, [this]()
+        requestMapSwitch(cmRSM.mapUID, cmRSM.X, cmRSM.Y, false, [this]()
         {
             dbUpdateMapGLoc();
         });
@@ -98,7 +98,7 @@ void Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t, uint64_t)
 void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmPU = ClientMsg::conv<CMPickUp>(buf);
-    if(cmPU.mapID != mapID()){
+    if(cmPU.mapUID != mapUID()){
         return;
     }
 
@@ -184,7 +184,7 @@ void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen, uint64_
     {
         .x = X(),
         .y = Y(),
-        .mapID = mapID(),
+        .mapUID = mapUID(),
 
         .path = cmNPCE.path,
         .event = cmNPCE.event,

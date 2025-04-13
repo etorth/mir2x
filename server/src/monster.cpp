@@ -678,7 +678,7 @@ void Monster::reportCO(uint64_t toUID)
     std::memset(&amCOR, 0, sizeof(amCOR));
 
     amCOR.UID = UID();
-    amCOR.mapID = mapID();
+    amCOR.mapUID = mapUID();
     amCOR.action = makeActionStand();
     amCOR.Monster.MonsterID = monsterID();
     m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
@@ -804,10 +804,10 @@ bool Monster::goGhost()
     AMDeadFadeOut amDFO;
     std::memset(&amDFO, 0, sizeof(amDFO));
 
-    amDFO.UID   = UID();
-    amDFO.mapID = mapID();
-    amDFO.X     = X();
-    amDFO.Y     = Y();
+    amDFO.UID    = UID();
+    amDFO.mapUID = mapUID();
+    amDFO.X      = X();
+    amDFO.Y      = Y();
 
     // send this to remove the map grid coverage
     // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
@@ -873,8 +873,8 @@ bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
                         AMHeal amH;
                         std::memset(&amH, 0, sizeof(amH));
 
-                        amH.mapID = mapID();
-                        amH.addHP = std::min<int>(damage, 20);
+                        amH.mapUID = mapUID();
+                        amH.addHP  = std::min<int>(damage, 20);
 
                         m_actorPod->forward(fromUID, {AM_HEAL, amH});
                         break;
@@ -1112,7 +1112,7 @@ bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
     std::memset(&amPF, 0, sizeof(amPF));
 
     amPF.UID       = UID();
-    amPF.mapID     = mapID();
+    amPF.mapUID    = mapUID();
     amPF.CheckCO   = 1;
     amPF.MaxStep   = maxStep();
     amPF.X         = X();

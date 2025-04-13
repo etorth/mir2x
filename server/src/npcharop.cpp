@@ -49,7 +49,7 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     // can be SYS_ENTER or scritp event
     // script event defines like text button pressed etc
 
-    if(sdNPCE.mapID != mapID() || mathf::LDistance2(sdNPCE.x, sdNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
+    if(sdNPCE.mapUID != mapUID() || mathf::LDistance2(sdNPCE.x, sdNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
         AMNPCError amNPCE;
         std::memset(&amNPCE, 0, sizeof(amNPCE));
 

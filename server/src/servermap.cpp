@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "totype.hpp"
 #include "uidf.hpp"
+#include "uidsf.hpp"
 #include "npchar.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
@@ -439,9 +440,11 @@ ServerMap::ServerMap(uint64_t argMapUID)
 
             for(int nW = 0; nW < entry.w; ++nW){
                 for(int nH = 0; nH < entry.h; ++nH){
-                    getGrid(entry.x + nW, entry.y + nH).mapID   = DBCOM_MAPID(entry.endName);
-                    getGrid(entry.x + nW, entry.y + nH).switchX = entry.endX;
-                    getGrid(entry.x + nW, entry.y + nH).switchY = entry.endY;
+                    if(const auto mapID = DBCOM_MAPID(entry.endName)){
+                        getGrid(entry.x + nW, entry.y + nH).mapUID  = uidsf::getMapBaseUID(mapID);
+                        getGrid(entry.x + nW, entry.y + nH).switchX = entry.endX;
+                        getGrid(entry.x + nW, entry.y + nH).switchY = entry.endY;
+                    }
                 }
             }
         }
@@ -693,7 +696,7 @@ std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool chec
         const int currX = rc.x();
         const int currY = rc.y();
 
-        if(in(ID(), currX, currY) && canMove(checkCO, checkLock, currX, currY)){
+        if(in(UID(), currX, currY) && canMove(checkCO, checkLock, currX, currY)){
             return std::make_tuple(currX, currY);
         }
 
@@ -927,7 +930,7 @@ SDGroundItemIDList ServerMap::getGroundItemIDList(int x, int y, size_t r)
     // an invalid center can cover valid grids
 
     SDGroundItemIDList groundItemIDList;
-    groundItemIDList.mapID = ID();
+    groundItemIDList.mapUID = UID();
 
     doCircle(x, y, r, [&groundItemIDList, this](int x, int y) -> bool
     {
@@ -979,7 +982,7 @@ SDGroundFireWallList ServerMap::getGroundFireWallList(int x, int y, size_t r)
     // an invalid center can cover valid grids
 
     SDGroundFireWallList groundFireWallList;
-    groundFireWallList.mapID = ID();
+    groundFireWallList.mapUID = UID();
 
     doCircle(x, y, r, [&groundFireWallList, this](int x, int y) -> bool
     {
@@ -1122,7 +1125,7 @@ void ServerMap::updateMapGridFireWall()
                 std::memset(&amA, 0, sizeof(amA));
 
                 amA.UID = p->uid;
-                amA.mapID = UID();
+                amA.mapUID = UID();
                 amA.X = nX;
                 amA.Y = nY;
 

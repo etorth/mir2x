@@ -795,7 +795,7 @@ void MyHero::reportAction(const ActionNode &action)
     std::memset(&cmA, 0, sizeof(cmA));
 
     cmA.UID = UID();
-    cmA.mapID = m_processRun->mapID();
+    cmA.mapUID = m_processRun->mapUID();
     cmA.action = action;
 
     g_client->send({CM_ACTION, cmA});

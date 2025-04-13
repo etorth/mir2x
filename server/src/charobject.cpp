@@ -73,7 +73,7 @@ void CharObject::getCOLocation(uint64_t uid, std::function<void(const COLocation
     std::memset(&amQL, 0, sizeof(amQL));
 
     amQL.UID = UID();
-    amQL.mapID = mapID();
+    amQL.mapUID = mapUID();
 
     m_actorPod->forward(uid, {AM_QUERYLOCATION, amQL}, [this, uid, onOK, onError](const ActorMsgPack &rmpk)
     {

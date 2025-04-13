@@ -79,7 +79,7 @@ void ProcessSelectChar::on_SM_ONLINEOK(const uint8_t *buf, size_t)
 {
     const auto smOOK = ServerMsg::conv<SMOnlineOK>(buf);
     fflassert(uidf::isPlayer(smOOK.uid), smOOK.uid, uidf::getUIDString(smOOK.uid));
-    fflassert(DBCOM_MAPRECORD(smOOK.mapID), smOOK.mapID);
+    fflassert(DBCOM_MAPRECORD(uidf::getMapID(smOOK.mapUID)), smOOK.mapUID);
 
     g_client->setOnlineOK(smOOK);
     g_client->requestProcess(PROCESSID_RUN);

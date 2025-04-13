@@ -75,8 +75,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     const auto amQCOC = rstMPK.conv<AMQueryCOCount>();
     const auto checkCount = [&amQCOC, this]()
     {
-        if(amQCOC.mapID){
-            if(m_mapList.contains(uidsf::getMapBaseUID(amQCOC.mapID))){
+        if(amQCOC.mapUID){
+            if(m_mapList.contains(amQCOC.mapUID)){
                 return 1;
             }
             else{
@@ -94,7 +94,7 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
             }
         case 1:
             {
-                m_actorPod->forward(uidsf::getMapBaseUID(amQCOC.mapID), {AM_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const ActorMsgPack &rstRMPK)
+                m_actorPod->forward(amQCOC.mapUID, {AM_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const ActorMsgPack &rstRMPK)
                 {
                     switch(rstRMPK.type()){
                         case AM_COCOUNT:
@@ -116,9 +116,9 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
             {
                 struct SharedState
                 {
-                    bool error = false;
-                    int  count = 0;
-                    int  check = 0;
+                    bool   error = false;
+                    size_t count = 0;
+                    int    check = 0;
                 };
 
                 auto sharedState = std::make_shared<SharedState>();
@@ -152,8 +152,8 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                     }
                 };
 
-                for(const auto mapID: m_mapList){
-                    m_actorPod->forward(uidsf::getMapBaseUID(mapID), {AM_QUERYCOCOUNT, amQCOC}, fnOnResp);
+                for(const auto mapUID: m_mapList){
+                    m_actorPod->forward(mapUID, {AM_QUERYCOCOUNT, amQCOC}, fnOnResp);
                 }
                 return;
             }

@@ -192,7 +192,7 @@ uint32_t uidf::getPlayerDBID(uint64_t uid)
 #define _def_get_UID_id_helper(funcName, uidType) \
 uint32_t funcName(uint64_t uid) \
 { \
-    fflassert(uidf::getUIDType(uid) == uidType, uid, uidf::getUIDString(uid), uidf::getUIDTypeCStr(uidType)); \
+    fflassert(uidf::getUIDType(uid) == uidType, uid, uidf::getUIDString(uid)); \
     return to_u32((uid & idBitMask) >> idBitOff); \
 } \
 

@@ -87,7 +87,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
         g_server->addLog(LOGTYPE_WARNING, "TRYSPACEMOVE[%p]::StrictMove = %s", &amTSM, to_boolcstr(amTSM.StrictMove));
     };
 
-    if(!in(ID(), amTSM.X, amTSM.Y)){
+    if(!in(UID(), amTSM.X, amTSM.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
@@ -232,7 +232,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
         g_server->addLog(LOGTYPE_WARNING, "TRYJUMP[%p]::EndY = %d", &amTJ, amTJ.EndY);
     };
 
-    if(!in(ID(), amTJ.X, amTJ.Y)){
+    if(!in(UID(), amTJ.X, amTJ.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintJumpError();
         m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
@@ -242,7 +242,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     // we never allow server to handle motion to invalid grid
     // for client every motion request need to be prepared to avoid this
 
-    if(!in(ID(), amTJ.EndX, amTJ.EndY)){
+    if(!in(UID(), amTJ.EndX, amTJ.EndY)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintJumpError();
         m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
@@ -344,14 +344,13 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                         return false;
                     });
 
-                    if(uidf::isPlayer(fromUID) && getGrid(amTJ.EndX, amTJ.EndY).mapID){
+                    if(uidf::isPlayer(fromUID) && getGrid(amTJ.EndX, amTJ.EndY).mapUID){
                         AMMapSwitchTrigger amMST;
                         std::memset(&amMST, 0, sizeof(amMST));
 
-                        amMST.UID   = uidsf::getMapBaseUID(getGrid(amTJ.EndX, amTJ.EndY).mapID); // TODO
-                        amMST.mapID = getGrid(amTJ.EndX, amTJ.EndY).mapID;
-                        amMST.X     = getGrid(amTJ.EndX, amTJ.EndY).switchX;
-                        amMST.Y     = getGrid(amTJ.EndX, amTJ.EndY).switchY;
+                        amMST.mapUID = getGrid(amTJ.EndX, amTJ.EndY).mapUID;
+                        amMST.X      = getGrid(amTJ.EndX, amTJ.EndY).switchX;
+                        amMST.Y      = getGrid(amTJ.EndX, amTJ.EndY).switchY;
                         m_actorPod->forward(fromUID, {AM_MAPSWITCHTRIGGER, amMST});
                     }
                     break;
@@ -372,7 +371,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     auto fnPrintMoveError = [&amTM]()
     {
         g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::UID           = %" PRIu32 , &amTM, amTM.UID);
-        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::mapID         = %" PRIu32 , &amTM, amTM.mapID);
+        g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::mapUID        = %" PRIu64 , &amTM, amTM.mapUID);
         g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::X             = %d"       , &amTM, amTM.X);
         g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::Y             = %d"       , &amTM, amTM.Y);
         g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::EndX          = %d"       , &amTM, amTM.EndX);
@@ -380,7 +379,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
         g_server->addLog(LOGTYPE_WARNING, "TRYMOVE[%p]::AllowHalfMove = %s"       , &amTM, amTM.AllowHalfMove ? "true" : "false");
     };
 
-    if(!in(amTM.mapID, amTM.X, amTM.Y)){
+    if(!in(amTM.mapUID, amTM.X, amTM.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
@@ -390,7 +389,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     // we never allow server to handle motion to invalid grid
     // for client every motion request need to be prepared to avoid this
 
-    if(!in(amTM.mapID, amTM.EndX, amTM.EndY)){
+    if(!in(amTM.mapUID, amTM.EndX, amTM.EndY)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
         m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
@@ -494,7 +493,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     std::memset(&amAM, 0, sizeof(amAM));
 
     amAM.UID   = UID();
-    amAM.mapID = ID();
+    amAM.mapUID = UID();
     amAM.X     = amTM.X;
     amAM.Y     = amTM.Y;
     amAM.EndX  = nMostX;
@@ -585,14 +584,13 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                         return false;
                     });
 
-                    if(uidf::isPlayer(amTM.UID) && getGrid(nMostX, nMostY).mapID){
+                    if(uidf::isPlayer(amTM.UID) && getGrid(nMostX, nMostY).mapUID){
                         AMMapSwitchTrigger amMST;
                         std::memset(&amMST, 0, sizeof(amMST));
 
-                        amMST.UID   = uidsf::getMapBaseUID(getGrid(nMostX, nMostY).mapID); // TODO
-                        amMST.mapID = getGrid(nMostX, nMostY).mapID;
-                        amMST.X     = getGrid(nMostX, nMostY).switchX;
-                        amMST.Y     = getGrid(nMostX, nMostY).switchY;
+                        amMST.mapUID = getGrid(nMostX, nMostY).mapUID;
+                        amMST.X      = getGrid(nMostX, nMostY).switchX;
+                        amMST.Y      = getGrid(nMostX, nMostY).switchY;
                         m_actorPod->forward(amTM.UID, {AM_MAPSWITCHTRIGGER, amMST});
                     }
                     break;
@@ -613,7 +611,7 @@ void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
     const auto fromGridX = amTL.X;
     const auto fromGridY = amTL.Y;
 
-    if(!(in(ID(), fromGridX, fromGridY) && hasGridUID(mpk.from(), fromGridX, fromGridY))){
+    if(!(in(UID(), fromGridX, fromGridY) && hasGridUID(mpk.from(), fromGridX, fromGridY))){
         m_actorPod->forward(mpk.from(), AM_REJECTLEAVE, mpk.seqID());
         g_server->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(fromUID), fromGridX, fromGridY);
         return;
@@ -770,8 +768,8 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     AMPathFindOK amPFOK;
     std::memset(&amPFOK, 0, sizeof(amPFOK));
 
-    amPFOK.UID   = amPF.UID;
-    amPFOK.mapID = ID();
+    amPFOK.UID    = amPF.UID;
+    amPFOK.mapUID = UID();
 
     // we fill all slots with -1 for initialization
     // won't keep a record of ``how many path nodes are valid"
@@ -893,12 +891,12 @@ void ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     AMQueryCOCount amQCOC;
     std::memcpy(&amQCOC, rstMPK.data(), sizeof(amQCOC));
 
-    if(amQCOC.mapID && (amQCOC.mapID != ID())){
+    if(amQCOC.mapUID && (amQCOC.mapUID != UID())){
         m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
         return;
     }
 
-    int nCOCount = 0;
+    size_t nCOCount = 0;
     for(int nX = 0; nX < to_d(mapBin()->w()); ++nX){
         for(int nY = 0; nY < to_d(mapBin()->h()); ++nY){
             std::for_each(getUIDList(nX, nY).begin(), getUIDList(nX, nY).end(), [amQCOC, &nCOCount](uint64_t nUID){
@@ -1039,7 +1037,7 @@ void ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
                     std::memset(&amA, 0, sizeof(amA));
 
                     amA.UID = fromUID;
-                    amA.mapID = UID();
+                    amA.mapUID = UID();
 
                     amA.X = amSFLD.x;
                     amA.Y = amSFLD.y;

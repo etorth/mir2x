@@ -417,7 +417,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
                 // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
                 // but here need to sendback the forced move since it's driven by server
 
-                getPlayer()->reportAction(getPlayer()->UID(), getPlayer()->mapID(), ActionMove
+                getPlayer()->reportAction(getPlayer()->UID(), getPlayer()->mapUID(), ActionMove
                 {
                     .speed = SYS_DEFSPEED,
                     .x = oldX,
@@ -771,7 +771,7 @@ void Player::reportCO(uint64_t toUID)
     std::memset(&amCOR, 0, sizeof(amCOR));
 
     amCOR.UID = UID();
-    amCOR.mapID = mapID();
+    amCOR.mapUID = mapUID();
     amCOR.action = makeActionStand();
     amCOR.Player.gender = gender();
     amCOR.Player.job = job();
@@ -781,10 +781,10 @@ void Player::reportCO(uint64_t toUID)
 
 void Player::reportStand()
 {
-    reportAction(UID(), mapID(), makeActionStand());
+    reportAction(UID(), mapUID(), makeActionStand());
 }
 
-void Player::reportAction(uint64_t uid, uint32_t actionMapID, const ActionNode &action)
+void Player::reportAction(uint64_t uid, uint64_t actionMapUID, const ActionNode &action)
 {
     fflassert(uid);
 
@@ -795,7 +795,7 @@ void Player::reportAction(uint64_t uid, uint32_t actionMapID, const ActionNode &
     // this is used for CO map switch, client use it to remove left neighbors
 
     smA.UID = uid;
-    smA.mapID = actionMapID;
+    smA.mapUID = actionMapUID;
     smA.action = action;
 
     postNetMessage(SM_ACTION, smA);
@@ -840,10 +840,10 @@ bool Player::goGhost()
     AMDeadFadeOut amDFO;
     std::memset(&amDFO, 0, sizeof(amDFO));
 
-    amDFO.UID   = UID();
-    amDFO.mapID = mapID();
-    amDFO.X     = X();
-    amDFO.Y     = Y();
+    amDFO.UID    = UID();
+    amDFO.mapUID = mapUID();
+    amDFO.X      = X();
+    amDFO.Y      = Y();
 
     if(hasActorPod()){
         m_actorPod->forward(mapUID(), {AM_DEADFADEOUT, amDFO});
@@ -981,10 +981,10 @@ void Player::dispatchOffline()
         AMOffline amO;
         std::memset(&amO, 0, sizeof(amO));
 
-        amO.UID   = UID();
-        amO.mapID = mapID();
-        amO.X     = X();
-        amO.Y     = Y();
+        amO.UID    = UID();
+        amO.mapUID = mapUID();
+        amO.X      = X();
+        amO.Y      = Y();
 
         m_actorPod->forward(mapUID(), {AM_OFFLINE, amO});
         return;
@@ -993,10 +993,10 @@ void Player::dispatchOffline()
     g_server->addLog(LOGTYPE_WARNING, "Can't dispatch offline event");
 }
 
-void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
+void Player::reportOffline(uint64_t nUID, uint64_t nMapUID)
 {
     fflassert(nUID);
-    fflassert(nMapID);
+    fflassert(nMapUID);
 
     // player can initiatively start the offline procedure
     // in this case the m_channID still contains a good channel id, we need to call close
@@ -1006,7 +1006,7 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
         std::memset(&smO, 0, sizeof(smO));
 
         smO.UID = nUID;
-        smO.mapID = nMapID;
+        smO.mapUID = nMapUID;
         postNetMessage(SM_OFFLINE, smO);
 
         // player initiatively close the channel
@@ -1022,7 +1022,7 @@ void Player::reportOffline(uint64_t nUID, uint32_t nMapID)
 bool Player::goOffline()
 {
     dispatchOffline();
-    reportOffline(UID(), mapID());
+    reportOffline(UID(), mapUID());
     dbUpdateMapGLoc();
 
     deactivate();
@@ -1443,13 +1443,13 @@ void Player::onCMActionSpell(CMAction cmA)
                 SMCastMagic smFM;
                 std::memset(&smFM, 0, sizeof(smFM));
 
-                smFM.UID    = UID();
-                smFM.mapID  = mapID();
-                smFM.Magic  = magicID;
-                smFM.Speed  = MagicSpeed();
-                smFM.X      = cmA.action.x;
-                smFM.Y      = cmA.action.y;
-                smFM.AimUID = cmA.action.aimUID;
+                smFM.UID     = UID();
+                smFM.mapUID  = mapUID();
+                smFM.Magic   = magicID;
+                smFM.Speed   = MagicSpeed();
+                smFM.X       = cmA.action.x;
+                smFM.Y       = cmA.action.y;
+                smFM.AimUID  = cmA.action.aimUID;
 
                 addDelay(1400, [this, smFM]()
                 {
@@ -1495,12 +1495,12 @@ void Player::onCMActionSpell(CMAction cmA)
                 SMCastMagic smFM;
                 std::memset(&smFM, 0, sizeof(smFM));
 
-                smFM.UID   = UID();
-                smFM.mapID = mapID();
-                smFM.Magic = magicID;
-                smFM.Speed = MagicSpeed();
-                smFM.AimX  = nFrontX;
-                smFM.AimY  = nFrontY;
+                smFM.UID    = UID();
+                smFM.mapUID = mapUID();
+                smFM.Magic  = magicID;
+                smFM.Speed  = MagicSpeed();
+                smFM.AimX   = nFrontX;
+                smFM.AimY   = nFrontY;
 
                 addDelay(600, [this, magicID, smFM]()
                 {
@@ -1526,7 +1526,7 @@ void Player::onCMActionSpell(CMAction cmA)
                 std::memset(&smFM, 0, sizeof(smFM));
 
                 smFM.UID   = UID();
-                smFM.mapID = mapID();
+                smFM.mapUID = mapUID();
                 smFM.Magic = magicID;
                 smFM.Speed = MagicSpeed();
                 smFM.AimX  = nFrontX;
@@ -1813,14 +1813,14 @@ void Player::postOnlineOK()
     smOOK.name.assign(m_name);
     smOOK.gender = gender();
     smOOK.job = job();
-    smOOK.mapID = mapID();
+    smOOK.mapUID = mapUID();
     smOOK.action = makeActionStand();
 
     postNetMessage(SM_ONLINEOK, smOOK);
     postNetMessage(SM_STARTGAMESCENE, cerealf::serialize(SDStartGameScene
     {
         .uid = UID(),
-        .mapID = mapID(),
+        .mapUID = mapUID(),
 
         .x = X(),
         .y = Y(),

@@ -76,7 +76,7 @@ void ServerWoomaTaurus::sendThunderBolt(uint64_t uid)
     std::memset(&smFM, 0, sizeof(smFM));
 
     smFM.UID    = UID();
-    smFM.mapID  = mapID();
+    smFM.mapUID = mapUID();
     smFM.Magic  = DBCOM_MAGICID(u8"沃玛教主_雷电术");
     smFM.Speed  = MagicSpeed();
     smFM.X      = X();

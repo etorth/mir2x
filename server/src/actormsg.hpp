@@ -28,7 +28,6 @@ enum ActorMsgPackType: int
     AM_UID,
     AM_UIDLIST,
     AM_PING,
-    AM_LOGIN,
     AM_METRONOME,
     AM_TRYJUMP,
     AM_ALLOWJUMP,
@@ -52,7 +51,6 @@ enum ActorMsgPackType: int
     AM_LEAVEERROR,      // step-3. CO -> ServerMap  : Co rejects  to take the leave permission
     AM_FINISHLEAVE,     // step-4. ServerMap -> CO  : server map has finished the leave, leave-event broadcasted, CO can broadcast for new location
     AM_LOGINOK,
-    AM_LOGINQUERYDB,
     AM_SENDPACKAGE,
     AM_RECVPACKAGE,
     AM_ADDCO,
@@ -211,18 +209,6 @@ struct AMAddCharObject
     StaticBuffer<256> buf;
 };
 
-struct AMLogin
-{
-    uint32_t DBID;
-    uint64_t UID;
-    uint32_t SID;
-    uint32_t mapID;
-    uint64_t Key;
-
-    int X;
-    int Y;
-};
-
 struct AMTrySpaceMove
 {
     int X;
@@ -251,7 +237,7 @@ struct AMSpaceMoveOK
 struct AMTryMove
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -266,7 +252,7 @@ struct AMTryMove
 struct AMAllowMove
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -307,19 +293,6 @@ struct AMJumpOK
     ActionNode action;
 };
 
-struct AMLoginQueryDB
-{
-    uint32_t channID;
-
-    uint32_t DBID;
-    uint32_t mapID;
-    int      MapX;
-    int      MapY;
-    int      Level;
-    int      JobID;
-    int      Direction;
-};
-
 struct AMSendPackage
 {
     ActorDataPackage package;
@@ -350,9 +323,7 @@ struct AMMapList
 
 struct AMMapSwitchTrigger
 {
-    uint32_t mapID;
-    uint64_t UID;
-
+    uint64_t mapUID;
     int X;
     int Y;
 };
@@ -406,7 +377,7 @@ struct AMUID
 struct AMQueryLocation
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 };
 
 struct AMQuerySellItemList
@@ -427,7 +398,7 @@ struct AMLocation
 struct AMPathFind
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int CheckCO;
     int MaxStep;
@@ -443,7 +414,7 @@ struct AMPathFind
 struct AMPathFindOK
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     struct _Point
     {
@@ -455,7 +426,7 @@ struct AMPathFindOK
 struct AMAttack
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -466,7 +437,7 @@ struct AMAttack
 struct AMUpdateHP
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -478,7 +449,7 @@ struct AMUpdateHP
 struct AMDeadFadeOut
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -491,7 +462,7 @@ struct AMQueryCORecord
 
 struct AMQueryCOCount
 {
-    uint32_t mapID;
+    uint64_t mapUID;
     struct _Check
     {
         bool NPC;
@@ -510,7 +481,7 @@ struct AMQueryCOCount
 
 struct AMCOCount
 {
-    uint32_t Count;
+    size_t Count;
 };
 
 struct AMAddBuff
@@ -538,7 +509,7 @@ struct AMMiss
 
 struct AMHeal
 {
-    uint32_t mapID;
+    uint64_t mapUID;
     int x;
     int y;
 
@@ -554,7 +525,7 @@ struct AMNotifyDead
 struct AMOffline
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -579,7 +550,7 @@ struct AMRemoveGroundItem
 struct AMCORecord
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 
     // instantiation of anonymous struct is supported in C11

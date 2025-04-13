@@ -31,7 +31,7 @@ void Monster::on_AM_MISS(const ActorMsgPack &mpk)
 void Monster::on_AM_HEAL(const ActorMsgPack &mpk)
 {
     const auto amH = mpk.conv<AMHeal>();
-    if(amH.mapID == mapID()){
+    if(amH.mapUID == mapUID()){
         updateHealth(amH.addHP, amH.addMP);
     }
 }

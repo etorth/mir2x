@@ -16,7 +16,7 @@ void ServerAntHealer::sendHeal(uint64_t uid)
             AMHeal amH;
             std::memset(&amH, 0, sizeof(amH));
 
-            amH.mapID = mapID();
+            amH.mapUID = mapUID();
             amH.x = X();
             amH.y = Y();
 

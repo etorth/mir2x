@@ -614,8 +614,8 @@ struct SDUIDWLDesp
 
 struct SDStartGameScene
 {
-    uint64_t uid   = 0;
-    uint32_t mapID = 0;
+    uint64_t uid    = 0;
+    uint64_t mapUID = 0;
 
     int x = -1;
     int y = -1;
@@ -627,7 +627,7 @@ struct SDStartGameScene
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, mapID, x, y, direction, desp, name);
+        ar(uid, mapUID, x, y, direction, desp, name);
     }
 };
 
@@ -728,17 +728,17 @@ struct SDGroundItemIDList
         }
     };
 
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
     std::vector<GridItemIDList> gridItemIDList;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(mapID, gridItemIDList);
+        ar(mapUID, gridItemIDList);
     }
 
     void clear()
     {
-        mapID = 0;
+        mapUID = 0;
         gridItemIDList.clear();
     }
 };
@@ -757,12 +757,12 @@ struct SDGridFireWall
 
 struct SDGroundFireWallList
 {
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
     std::vector<SDGridFireWall> fireWallList;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(mapID, fireWallList);
+        ar(mapUID, fireWallList);
     }
 };
 
@@ -885,7 +885,7 @@ struct SDNPCEvent
 {
     int x = 0;
     int y = 0;
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
 
     std::string path {};
     std::string event {};
@@ -893,7 +893,7 @@ struct SDNPCEvent
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(x, y, mapID, path, event, value);
+        ar(x, y, mapUID, path, event, value);
     }
 };
 

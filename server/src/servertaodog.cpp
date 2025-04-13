@@ -121,7 +121,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
             std::memset(&amA, 0, sizeof(amA));
 
             amA.UID = UID();
-            amA.mapID = mapUID();
+            amA.mapUID = mapUID();
 
             amA.X = X();
             amA.Y = Y();

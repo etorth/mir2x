@@ -262,7 +262,7 @@ bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove
     std::memset(&amTM, 0, sizeof(amTM));
 
     amTM.UID           = UID();
-    amTM.mapID         = mapID();
+    amTM.mapUID        = mapUID();
     amTM.X             = X();
     amTM.Y             = Y();
     amTM.EndX          = dstX;
@@ -427,7 +427,7 @@ bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::fu
                     trimInViewCO();
 
                     if(isPlayer()){
-                        dynamic_cast<Player *>(this)->reportAction(UID(), mapID(), amSMOK.action);
+                        dynamic_cast<Player *>(this)->reportAction(UID(), mapUID(), amSMOK.action);
                         dynamic_cast<Player *>(this)->notifySlaveGLoc();
                     }
 
@@ -711,7 +711,7 @@ void BattleObject::dispatchAttackDamage(uint64_t nUID, int nDC, int modifierID)
         std::memset(&amA, 0, sizeof(amA));
 
         amA.UID   = UID();
-        amA.mapID = mapID();
+        amA.mapUID = mapUID();
 
         amA.X = X();
         amA.Y = Y();

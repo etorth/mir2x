@@ -142,15 +142,15 @@ void Player::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
 void Player::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
 {
     const auto amMST = mpk.conv<AMMapSwitchTrigger>();
-    if(!(amMST.UID && amMST.mapID)){
-        g_server->addLog(LOGTYPE_WARNING, "Map switch request failed: (UID = %llu, mapID = %llu)", to_llu(amMST.UID), to_llu(amMST.mapID));
+    if(!uidf::isMap(amMST.mapUID)){
+        g_server->addLog(LOGTYPE_WARNING, "Map switch request failed: mapUID %llu", to_llu(amMST.mapUID));
     }
 
-    if(amMST.mapID == mapID()){
+    if(amMST.mapUID == mapUID()){
         requestSpaceMove(amMST.X, amMST.Y, false);
     }
     else{
-        requestMapSwitch(uidsf::getMapBaseUID(amMST.mapID), amMST.X, amMST.Y, false);
+        requestMapSwitch(amMST.mapUID, amMST.X, amMST.Y, false);
     }
 }
 
@@ -210,8 +210,9 @@ void Player::on_AM_ATTACK(const ActorMsgPack &mpk)
         .y = Y(),
         .fromUID = amA.UID,
     });
+
     struckDamage(amA.UID, amA.damage);
-    reportAction(UID(), mapID(), ActionHitted
+    reportAction(UID(), mapUID(), ActionHitted
     {
         .direction = Direction(),
         .x = X(),
@@ -229,10 +230,10 @@ void Player::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
         SMDeadFadeOut smDFO;
         std::memset(&smDFO, 0, sizeof(smDFO));
 
-        smDFO.UID   = amDFO.UID;
-        smDFO.mapID = amDFO.mapID;
-        smDFO.X     = amDFO.X;
-        smDFO.Y     = amDFO.Y;
+        smDFO.UID    = amDFO.UID;
+        smDFO.mapUID = amDFO.mapUID;
+        smDFO.X      = amDFO.X;
+        smDFO.Y      = amDFO.Y;
 
         postNetMessage(SM_DEADFADEOUT, smDFO);
     }
@@ -309,7 +310,7 @@ void Player::on_AM_MISS(const ActorMsgPack &mpk)
 void Player::on_AM_HEAL(const ActorMsgPack &mpk)
 {
     const auto amH = mpk.conv<AMHeal>();
-    if(amH.mapID == mapID()){
+    if(amH.mapUID == mapUID()){
         updateHealth(amH.addHP, amH.addMP);
     }
 }
@@ -334,7 +335,7 @@ void Player::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
     AMOffline amO;
     std::memcpy(&amO, rstMPK.data(), sizeof(amO));
 
-    reportOffline(amO.UID, amO.mapID);
+    reportOffline(amO.UID, amO.mapUID);
 }
 
 void Player::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
@@ -405,7 +406,7 @@ void Player::on_AM_CORECORD(const ActorMsgPack &mpk)
     std::memset(&smCOR, 0, sizeof(smCOR));
 
     smCOR.UID = amCOR.UID;
-    smCOR.mapID = amCOR.mapID;
+    smCOR.mapUID = amCOR.mapUID;
     smCOR.action = amCOR.action;
 
     switch(uidf::getUIDType(amCOR.UID)){

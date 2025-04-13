@@ -86,13 +86,13 @@ class ServerMap final: public ServerObject
             std::vector<DroppedItemNode> itemList;
             std::vector<FireWallMagicNode> fireWallList;
 
-            uint32_t mapID   =  0;
+            uint64_t mapUID  =  0;
             int      switchX = -1;
             int      switchY = -1;
 
             bool empty() const
             {
-                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapID == 0);
+                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0);
             }
 
             bool hasUID(uint64_t uid) const
@@ -144,9 +144,9 @@ class ServerMap final: public ServerObject
         }
 
     public:
-        bool in(uint32_t argMapID, int argX, int argY) const
+        bool in(uint64_t argMapUID, int argX, int argY) const
         {
-            return (argMapID == ID()) && mapBin()->validC(argX, argY);
+            return (argMapUID == UID()) && mapBin()->validC(argX, argY);
         }
 
     protected:

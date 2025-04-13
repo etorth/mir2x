@@ -93,7 +93,7 @@ class Server final
     public:
         bool loadMap(const std::string &);
         std::vector<int> getMapList();
-        sol::optional<int> getMonsterCount(int, int);
+        sol::optional<size_t> getMonsterCount(uint32_t, uint64_t);
 
     public:
         bool addMonster(uint32_t,       // monster id

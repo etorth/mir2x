@@ -504,28 +504,21 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
 
 void NPChar::postAddMonster(uint32_t monsterID)
 {
-    fflassert(monsterID);
+    SDInitCharObject sdICO = SDInitMonster
+    {
+        .monsterID = monsterID,
+        .mapUID = mapUID(),
+        .x = X(),
+        .y = Y() + 1,
+        .strictLoc = false,
+        .direction = DIR_BEGIN,
+    };
 
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_MON;
-    amACO.mapUID = mapUID();
-    amACO.x = X();
-    amACO.y = Y() + 1;
-    amACO.strictLoc = false;
-
-    amACO.monster.monsterID = monsterID;
-    amACO.monster.masterUID = 0;
-
-    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
+    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}, [](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_UID:
                 {
-                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.uid){
-                        return;
-                    }
                     break;
                 }
             default:
@@ -533,7 +526,6 @@ void NPChar::postAddMonster(uint32_t monsterID)
                     break;
                 }
         }
-        g_server->addLog(LOGTYPE_WARNING, "NPC failed to add monster");
     });
 }
 

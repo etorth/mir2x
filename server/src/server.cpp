@@ -658,45 +658,29 @@ std::vector<int> Server::getMapList()
     }
 }
 
-sol::optional<int> Server::getMonsterCount(int nMonsterID, int nMapID)
+sol::optional<size_t> Server::getMonsterCount(uint32_t argMonsterID, uint64_t argMapUID)
 {
-    // I have two ways to implement this function
-    //  1. getMapList() / GetMapUID() / GetMapAddress() / QueryMonsterCount()
-    //  2. send QueryMonsterCount to ServiceCore, ServiceCore queries all maps and return the sum
-    // currently using method-2
+    // argMonsterID : 0 means check all types
+    // argMapUID    : 0 means check all monsters
 
-    if(true
-            && nMapID     >= 0      // 0 means check all
-            && nMonsterID >= 0){    // 0 means check all types
+    AMQueryCOCount amQCOC;
+    std::memset(&amQCOC, 0, sizeof(amQCOC));
 
-        // OK we send request to service core
-        // and poll the result here till we get the sum
+    amQCOC.mapUID               = argMapUID;
+    amQCOC.Check.Monster        = true;
+    amQCOC.CheckParam.MonsterID = argMonsterID;
 
-        AMQueryCOCount amQCOC;
-        std::memset(&amQCOC, 0, sizeof(amQCOC));
-
-        amQCOC.mapID                = to_u32(nMapID);
-        amQCOC.Check.Monster        = true;
-        amQCOC.CheckParam.MonsterID = to_u32(nMonsterID);
-
-        switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
-            case AM_COCOUNT:
-                {
-                    AMCOCount amCOC;
-                    std::memcpy(&amCOC, stRMPK.data(), sizeof(amCOC));
-
-                    // may overflow
-                    // should put some check here
-                    return sol::optional<int>(to_d(amCOC.Count));
-                }
-            case AM_ERROR:
-            default:
-                {
-                    break;
-                }
-        }
+    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
+        case AM_COCOUNT:
+            {
+                return stRMPK.conv<AMCOCount>().Count;
+            }
+        case AM_ERROR:
+        default:
+            {
+                return std::nullopt;
+            }
     }
-    return sol::optional<int>();
 }
 
 void Server::notifyGUI(std::string notifStr)
@@ -928,13 +912,25 @@ void Server::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     });
 
     // register command countMonster(monsterID, mapID)
-    modulePtr->bindFunction("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
+    modulePtr->bindFunction("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> lua_Integer
     {
-        auto nRet = getMonsterCount(nMonsterID, nMapID).value_or(-1);
-        if(nRet < 0){
-            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
+        if(nMonsterID <= 0){
+            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed: invalid argument: MonsterID");
+            return -1;
         }
-        return nRet;
+
+        if(nMapID <= 0){
+            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed: invalid argument: MapID");
+            return -1;
+        }
+
+        auto nRet = getMonsterCount(to_u32(nMonsterID), uidsf::getMapBaseUID(nMapID));
+        if(!nRet.has_value()){
+            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
+            return -1;
+        }
+
+        return (lua_Integer)(nRet.value());
     });
 
     // register command addMonster

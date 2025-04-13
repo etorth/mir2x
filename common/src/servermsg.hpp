@@ -136,9 +136,11 @@ struct SMOnlineOK
 {
     uint64_t uid;
     StaticBuffer<128> name;
+
     uint8_t gender : 1;
     uint8_t job    : 3;
-    uint32_t mapID;
+
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -150,14 +152,15 @@ struct SMOnlineError
 struct SMAction
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
 struct SMCORecord
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
+
     ActionNode action;
 
     struct _SMCORecord_Monster
@@ -193,7 +196,7 @@ struct SMNotifyDead
 struct SMDeadFadeOut
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     uint32_t X;
     uint32_t Y;
@@ -219,7 +222,7 @@ struct SMMiss
 struct SMCastMagic
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     uint8_t Magic;
     uint8_t MagicParam;
@@ -236,7 +239,7 @@ struct SMCastMagic
 struct SMOffline
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 };
 
 struct SMPickUpError

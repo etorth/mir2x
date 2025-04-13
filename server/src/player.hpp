@@ -228,12 +228,12 @@ class Player final: public BattleObject
         void reportTeamMemberList();
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t) override;
-        void reportOffline(uint64_t, uint32_t);
+        void reportOffline(uint64_t, uint64_t);
         void reportRemoveItem(uint32_t, uint32_t, size_t);
         void reportSecuredItemList();
 
     protected:
-        virtual void reportAction(uint64_t, uint32_t, const ActionNode &);
+        virtual void reportAction(uint64_t, uint64_t, const ActionNode &);
 
     protected:
         void pullTeamMemberList(std::function<void(std::optional<SDTeamMemberList>)>);

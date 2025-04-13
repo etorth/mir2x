@@ -96,7 +96,7 @@ struct CMDeleteChar
 struct CMAction
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -118,7 +118,7 @@ struct CMRequestRetrieveSecuredItem
 
 struct CMRequestSpaceMove
 {
-    uint32_t mapID;
+    uint64_t mapUID;
     uint16_t X;
     uint16_t Y;
 };
@@ -133,7 +133,7 @@ struct CMPickUp
 {
     uint16_t x;
     uint16_t y;
-    uint32_t mapID;
+    uint64_t mapUID;
 };
 
 struct CMQueryUIDBuff

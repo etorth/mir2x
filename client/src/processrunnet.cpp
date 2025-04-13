@@ -36,7 +36,7 @@ void ProcessRun::on_SM_STARTGAMESCENE(const uint8_t *buf, size_t bufSize)
     // verfy mapID and myHeroUID
     // myHeroUID and mapID has been sent by smOnlineOK
 
-    fflassert(sdSGS.mapID == mapID(), sdSGS.mapID, mapID());
+    fflassert(sdSGS.mapUID == mapUID(), sdSGS.mapUID, mapUID());
     fflassert(sdSGS.uid == getMyHeroUID(), sdSGS.uid, getMyHeroUID());
 
     getMyHero()->parseAction(ActionStand
@@ -112,7 +112,7 @@ void ProcessRun::on_SM_ACTION(const uint8_t *bufPtr, size_t)
     SMAction smA;
     std::memcpy(&smA, bufPtr, sizeof(smA));
 
-    if(smA.mapID != mapID()){
+    if(smA.mapUID != mapUID()){
         if(smA.UID != getMyHero()->UID()){
             m_coList.erase(smA.UID);
             return;
@@ -126,7 +126,7 @@ void ProcessRun::on_SM_ACTION(const uint8_t *bufPtr, size_t)
 
         m_actionBlocker.clear();
         getMyHero()->flushForcedMotion();
-        loadMap(smA.mapID, smA.action.x, smA.action.y);
+        loadMap(smA.mapUID, smA.action.x, smA.action.y);
 
         // directly assign a stand motion
         // this need to skip all location validation
@@ -256,7 +256,7 @@ void ProcessRun::on_SM_ACTION(const uint8_t *bufPtr, size_t)
 void ProcessRun::on_SM_CORECORD(const uint8_t *bufPtr, size_t)
 {
     const auto smCOR = ServerMsg::conv<SMCORecord>(bufPtr);
-    if(smCOR.mapID != mapID()){
+    if(smCOR.mapUID != mapUID()){
         return;
     }
 
@@ -326,7 +326,7 @@ void ProcessRun::on_SM_DEADFADEOUT(const uint8_t *bufPtr, size_t)
     SMDeadFadeOut stSMDFO;
     std::memcpy(&stSMDFO, bufPtr, sizeof(stSMDFO));
 
-    if(stSMDFO.mapID == mapID()){
+    if(stSMDFO.mapUID == mapUID()){
         if(auto p = findUID(stSMDFO.UID)){
             p->deadFadeOut();
         }
@@ -407,7 +407,7 @@ void ProcessRun::on_SM_BUYSUCCEED(const uint8_t *buf, size_t)
 void ProcessRun::on_SM_GROUNDITEMIDLIST(const uint8_t *buf, size_t bufSize)
 {
     const auto sdGIIDL = cerealf::deserialize<SDGroundItemIDList>(buf, bufSize);
-    if(sdGIIDL.mapID != m_mapID){
+    if(sdGIIDL.mapUID != mapUID()){
         return;
     }
 
@@ -429,7 +429,7 @@ void ProcessRun::on_SM_GROUNDITEMIDLIST(const uint8_t *buf, size_t bufSize)
 void ProcessRun::on_SM_GROUNDFIREWALLLIST(const uint8_t *buf, size_t bufSize)
 {
     const auto sdGFWL = cerealf::deserialize<SDGroundFireWallList>(buf, bufSize);
-    if(sdGFWL.mapID != m_mapID){
+    if(sdGFWL.mapUID != mapUID()){
         return;
     }
 
@@ -551,7 +551,7 @@ void ProcessRun::on_SM_CASTMAGIC(const uint8_t *bufPtr, size_t)
 void ProcessRun::on_SM_OFFLINE(const uint8_t *bufPtr, size_t)
 {
     const auto smO = ServerMsg::conv<SMOffline>(bufPtr);
-    if(smO.mapID == mapID()){
+    if(smO.mapUID == mapUID()){
         m_coList.erase(smO.UID);
         // if(auto coPtr = findUID(smO.UID)){
         //     coPtr->addAttachMagic(std::unique_ptr<AttachMagic>(new AttachMagic(u8"瞬息移动", u8"启动")));
