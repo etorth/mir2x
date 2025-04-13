@@ -17,6 +17,21 @@
 #include "sditem.hpp"
 #include "sdruntimeconfig.hpp"
 
+struct SDSendPackage
+{
+    //              SDSendPackage
+    // used for SO ---------------> player -> client
+    // msg sent by server has no response field
+
+    uint8_t type = 0;
+    std::vector<uint8_t> buf;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(type, buf);
+    }
+};
+
 struct SDInitQuest
 {
     uint32_t questID = 0;
