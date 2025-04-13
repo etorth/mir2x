@@ -224,6 +224,16 @@ bool uidf::isGM(uint64_t uid)
     return (uidf::getUIDType(uid) == UID_PLY) && (uidf::getPlayerDBID(uid) <= 10);
 }
 
+bool uidf::isMap(uint64_t uid)
+{
+    return (uidf::getUIDType(uid) == UID_MAP) && (uidf::getMapID(uid) > 0);
+}
+
+bool uidf::isBaseMap(uint64_t uid)
+{
+    return (uidf::getUIDType(uid) == UID_MAP) && (uidf::getMapID(uid) == 1);
+}
+
 bool uidf::isPlayer(uint64_t uid)
 {
     return uidf::getUIDType(uid) == UID_PLY;

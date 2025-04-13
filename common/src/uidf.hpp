@@ -95,6 +95,9 @@ namespace uidf
     bool isNPChar(uint64_t);
     bool isReceiver(uint64_t);
 
+    bool isMap(uint64_t);
+    bool isBaseMap(uint64_t);
+
     bool isMonster(uint64_t);
     bool isMonster(uint64_t, uint32_t);
     bool isMonster(uint64_t, const char8_t *);

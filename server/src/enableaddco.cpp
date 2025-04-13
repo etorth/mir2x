@@ -81,7 +81,11 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
 
         sdICO);
 
-        if(m_actorPod->UID() == uidf::getServiceCoreUID()){
+        fflassert(uidf::isMap(mapUID));
+        if(m_actorPod->UID() == mapUID){
+            fnAddCO();
+        }
+        else if(m_actorPod->UID() == uidf::getServiceCoreUID()){
             dynamic_cast<ServiceCore *>(m_actorPod->getSO())->requestLoadMap(mapUID, [fnAddCO](bool)
             {
                 fnAddCO();
