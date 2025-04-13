@@ -14,6 +14,8 @@ inline auto to_d    (auto x){ return static_cast<               int>(x); }
 inline auto to_u    (auto x){ return static_cast<      unsigned int>(x); }
 inline auto to_f    (auto x){ return static_cast<             float>(x); }
 inline auto to_df   (auto x){ return static_cast<            double>(x); }
+inline auto to_ld   (auto x){ return static_cast<              long>(x); }
+inline auto to_lu   (auto x){ return static_cast<     unsigned long>(x); }
 inline auto to_lld  (auto x){ return static_cast<         long long>(x); }
 inline auto to_llu  (auto x){ return static_cast<unsigned long long>(x); }
 inline auto to_uz   (auto x){ return static_cast<            size_t>(x); }

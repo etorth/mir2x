@@ -38,6 +38,7 @@ inline void buildActorDataPackage(ActorDataPackage *pkg, uint8_t type, const voi
 
 template<typename T> void buildActorDataPackage(ActorDataPackage *pkg, uint8_t type, const T &t, uint64_t respID = 0)
 {
+    static_assert(std::is_trivially_copyable_v<T>);
     buildActorDataPackage(pkg, type, &t, sizeof(t), respID);
 }
 
