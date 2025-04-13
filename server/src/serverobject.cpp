@@ -211,11 +211,18 @@ void ServerObject::deactivate()
 void ServerObject::forwardNetPackage(uint64_t uid, uint8_t type, const void *buf, size_t bufLen)
 {
     fflassert(uid != UID());
-    fflassert(uidf::getUIDType(uid) == UID_PLY);
+    fflassert(uidf::isPlayer(uid));
 
-    AMSendPackage amSP;
-    std::memset(&amSP, 0, sizeof(amSP));
+    const auto *bufPtr = reinterpret_cast<const uint8_t *>(buf);
+    std::vector<uint8_t> packData
+    {
+        bufPtr,
+        bufPtr + bufLen,
+    };
 
-    buildActorDataPackage(&(amSP.package), type, buf, bufLen);
-    m_actorPod->forward(uid, {AM_SENDPACKAGE, amSP}); // TODO when actor is offline, we should register callback to delete buffer allocated here
+    m_actorPod->forward(uid, {AM_SENDPACKAGE, cerealf::serialize(SDSendPackage
+    {
+        .type = type,
+        .buf = std::move(packData),
+    })});
 }

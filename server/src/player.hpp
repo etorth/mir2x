@@ -287,7 +287,7 @@ class Player final: public BattleObject
 
         template<typename T> void postNetMessage(uint8_t headCode, const T &t, uint64_t respID = 0)
         {
-            static_assert(std::is_trivially_copyable_v<T>);
+            static_assert(std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>);
             postNetMessage(headCode, &t, sizeof(t), respID);
         }
 

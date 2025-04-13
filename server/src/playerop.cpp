@@ -46,9 +46,8 @@ void Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
 
 void Player::on_AM_SENDPACKAGE(const ActorMsgPack &mpk)
 {
-    /* const */ auto amSP = mpk.conv<AMSendPackage>();
-    postNetMessage(amSP.package.type, amSP.package.buf(), amSP.package.size, amSP.package.resp);
-    freeActorDataPackage(&(amSP.package));
+    const auto sdSP = mpk.deserialize<SDSendPackage>();
+    postNetMessage(sdSP.type, sdSP.buf.empty() ? nullptr : sdSP.buf.data(), sdSP.buf.size(), 0);
 }
 
 void Player::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
