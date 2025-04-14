@@ -172,6 +172,21 @@ void Player::net_CM_PING(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
     postNetMessage(SM_PING, smP);
 }
 
+void Player::net_CM_QUERYMAPBASEUID(uint8_t, const uint8_t *buf, size_t size, uint64_t respID)
+{
+    const auto cmQMBUID = ClientMsg::conv<CMQueryMapBaseUID>(buf, size);
+    if(DBCOM_MAPRECORD(cmQMBUID.mapID)){
+        SMUID smUID;
+        std::memset(&smUID, 0, sizeof(smUID));
+
+        smUID.uid = uidsf::getMapBaseUID(cmQMBUID.mapID);
+        postNetMessage(SM_UID, smUID, respID);
+    }
+    else{
+        postNetMessage(SM_ERROR, respID);
+    }
+}
+
 void Player::net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t, uint64_t)
 {
     reportGold();

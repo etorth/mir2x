@@ -1280,6 +1280,8 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
     {
         int locX = 0;
         int locY = 0;
+
+        uint32_t argMapID = 0;
         uint64_t argMapUID = 0;
 
         const std::vector<sol::object> argList(args.begin(), args.end());
@@ -1296,8 +1298,8 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                         throw fflerror("invalid arguments: moveTo(mapID: int)");
                     }
 
-                    argMapUID = uidf::getMapBaseUID(argList[0].as<lua_Integer>(), 0); // TODO may not work
-                    std::tie(locX, locY) = getRandLoc(uidf::getMapID(argMapUID));
+                    argMapID = to_u32(argList[0].as<int>());
+                    std::tie(locX, locY) = getRandLoc(argMapID);
                     break;
                 }
             case 2:
@@ -1317,7 +1319,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                         throw fflerror("invalid arguments: moveTo(mapID: int, x: int, y: int)");
                     }
 
-                    argMapUID = uidf::getMapBaseUID(argList[0].as<lua_Integer>(), 0); // TODO may not work
+                    argMapID = to_u32(argList[0].as<int>());
                     locX = argList[1].as<int>();
                     locY = argList[2].as<int>();
                     break;
@@ -1328,11 +1330,24 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                 }
         }
 
-        if(requestSpaceMove(argMapUID, locX, locY)){
-            addCBLog(CBLOG_SYS, u8"Move request (mapName = %s, x = %d, y = %d) sent", to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name), locX, locY);
+        const auto fnRequestSpaceMove = [locX, locY, this](uint64_t argMapUID)
+        {
+            if(requestSpaceMove(argMapUID, locX, locY)){
+                addCBLog(CBLOG_SYS, u8"Move request (mapName = %s, x = %d, y = %d) sent", to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name), locX, locY);
+            }
+            else{
+                addCBLog(CBLOG_ERR, u8"Move request (mapName = %s, x = %d, y = %d) failed", to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name), locX, locY);
+            }
+        };
+
+        if(argMapUID){
+            fnRequestSpaceMove(argMapUID);
+        }
+        else if(argMapID){
+            queryMapBaseUID(argMapID, fnRequestSpaceMove);
         }
         else{
-            addCBLog(CBLOG_ERR, u8"Move request (mapName = %s, x = %d, y = %d) failed", to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name), locX, locY);
+            addCBLog(CBLOG_ERR, u8"Move request failed: No map provided");
         }
     });
 
@@ -2316,6 +2331,36 @@ void ProcessRun::queryUIDBuff(uint64_t uid) const
                 throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
             }
     }
+}
+
+void ProcessRun::queryMapBaseUID(uint32_t mapID, std::function<void(uint64_t)> op) const
+{
+    fflassert(mapID);
+
+    CMQueryMapBaseUID cmQMBUID;
+    std::memset(&cmQMBUID, 0, sizeof(cmQMBUID));
+
+    cmQMBUID.mapID = mapID;
+    g_client->send({CM_QUERYMAPBASEUID, cmQMBUID}, [op = std::move(op)](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    {
+        switch(headCode){
+            case SM_UID:
+                {
+                    const auto smUID = ServerMsg::conv<SMUID>(buf, bufSize);
+                    if(op){
+                        op(smUID.uid);
+                    }
+                    break;
+                }
+            default:
+                {
+                    if(op){
+                        op(0);
+                    }
+                    break;
+                }
+        }
+    });
 }
 
 void ProcessRun::queryPlayerWLDesp(uint64_t uid) const

@@ -12,6 +12,7 @@ enum SMType: uint8_t
     SM_OK     = 1,
     SM_ERROR,
     SM_PING,
+    SM_UID,
     SM_LOGINOK,
     SM_LOGINERROR,
     SM_CREATEACCOUNTOK,
@@ -92,6 +93,11 @@ static_assert(SM_END < 128);
 struct SMPing
 {
     uint32_t Tick;
+};
+
+struct SMUID
+{
+    uint64_t uid;
 };
 
 struct SMLoginError
@@ -358,6 +364,7 @@ namespace
         _RSVD_register_servermsg(SM_OK,                  3                               );
         _RSVD_register_servermsg(SM_ERROR,               3                               );
         _RSVD_register_servermsg(SM_PING,                2, sizeof(SMPing)               );
+        _RSVD_register_servermsg(SM_UID,                 2, sizeof(SMUID)                );
         _RSVD_register_servermsg(SM_LOGINOK,             0                               );
         _RSVD_register_servermsg(SM_LOGINERROR,          1, sizeof(SMLoginError)         );
         _RSVD_register_servermsg(SM_CREATEACCOUNTOK,     0                               );
