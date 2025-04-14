@@ -71,7 +71,9 @@ void Player::dbUpdateExp()
 
 void Player::dbUpdateMapGLoc()
 {
-    g_dbPod->exec(u8R"###( update tbl_char set fld_map = %d, fld_mapx = %d, fld_mapy = %d where fld_dbid = %llu )###", to_d(mapID()), X(), Y(), to_llu(dbid()));
+    if(uidf::isBaseMap(mapUID())){
+        g_dbPod->exec(u8R"###( update tbl_char set fld_map = %d, fld_mapx = %d, fld_mapy = %d where fld_dbid = %llu )###", to_d(mapID()), X(), Y(), to_llu(dbid()));
+    }
 }
 
 void Player::dbUpdateHealth()
