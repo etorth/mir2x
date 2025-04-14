@@ -353,7 +353,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 NPChar::NPChar(const SDInitNPChar &sdINPC)
     : CharObject
       {
-          uidf::buildNPCUID(sdINPC.lookID, uidf::peerIndex(sdINPC.mapUID)),
+          uidf::buildNPCUID(sdINPC.lookID, 0),
           sdINPC.mapUID,
 
           sdINPC.x,

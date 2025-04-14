@@ -213,6 +213,10 @@ Player *EnableAddCO::addPlayer(SDInitPlayer sdIP)
         return nullptr;
     }
 
+    if(uidsf::peerIndex()){
+        throw fflerror("can not spawn player on peer server %zu", uidsf::peerIndex());
+    }
+
     auto playerPtr = new Player(sdIP);
     playerPtr->activate();
 
@@ -232,6 +236,10 @@ NPChar *EnableAddCO::addNPChar(SDInitNPChar sdINPC)
 
     if(!adjustMapGLoc(uidf::getMapID(sdINPC.mapUID), sdINPC.x, sdINPC.y, sdINPC.strictLoc)){
         return nullptr;
+    }
+
+    if(uidsf::peerIndex()){
+        throw fflerror("can not spawn NPC on peer server %zu", uidsf::peerIndex());
     }
 
     auto npcPtr = new NPChar(sdINPC);
