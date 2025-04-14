@@ -33,5 +33,6 @@ class PeerCore: public ServerObject
         void operateAM(const ActorMsgPack &) override;
 
     protected:
+        void on_AM_PEERCONFIG (const ActorMsgPack &);
         void on_AM_PEERLOADMAP(const ActorMsgPack &);
 };

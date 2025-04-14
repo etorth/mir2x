@@ -45,6 +45,11 @@ std::pair<bool, bool> PeerCore::loadMap(uint64_t mapUID)
 void PeerCore::operateAM(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
+        case AM_PEERCONFIG:
+            {
+                on_AM_PEERCONFIG(mpk);
+                break;
+            }
         case AM_PEERLOADMAP:
             {
                 on_AM_PEERLOADMAP(mpk);

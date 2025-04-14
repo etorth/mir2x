@@ -8,8 +8,16 @@
 #include "servicecore.hpp"
 #include "serdesmsg.hpp"
 #include "server.hpp"
+#include "peerconfig.hpp"
 
 extern Server *g_server;
+extern PeerConfig *g_peerConfig;
+
+void PeerCore::on_AM_PEERCONFIG(const ActorMsgPack &mpk)
+{
+    g_peerConfig->setConfig(mpk.deserialize<SDPeerConfig>());
+}
+
 void PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
 {
     // map may run on peer

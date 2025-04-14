@@ -927,6 +927,17 @@ struct SDTaggedValMap
     }
 };
 
+struct SDPeerConfig
+{
+    double dropRate = 1.0f;
+    double goldRate = 1.0f;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(dropRate, goldRate);
+    }
+};
+
 struct SDBuffedAbility
 {
     SDTaggedValMap dc[2];

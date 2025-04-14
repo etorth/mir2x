@@ -5,6 +5,7 @@
 #include "dbpod.hpp"
 #include "mapbindb.hpp"
 #include "actorpool.hpp"
+#include "peerconfig.hpp"
 #include "mainwindow.hpp"
 #include "scriptwindow.hpp"
 #include "profilerwindow.hpp"
@@ -14,6 +15,7 @@
 #include "serverconfigurewindow.hpp"
 
 ServerArgParser          *g_serverArgParser;
+PeerConfig               *g_peerConfig;
 Log                      *g_log;
 ActorPool                *g_actorPool;
 DBPod                    *g_dbPod;
@@ -53,10 +55,14 @@ int main(int argc, char *argv[])
             Fl::lock();
         }
 
-        g_log        = new Log("mir2x-server-v0.1");
-        g_server = new Server();
-        g_mapBinDB   = new MapBinDB();
-        g_actorPool  = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
+        g_log       = new Log("mir2x-server-v0.1");
+        g_server    = new Server();
+        g_mapBinDB  = new MapBinDB();
+        g_actorPool = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
+
+        if(g_serverArgParser->slave){
+            g_peerConfig = new PeerConfig();
+        }
 
         if(!g_serverArgParser->slave){
             g_dbPod = new DBPod();
