@@ -215,14 +215,48 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         }
     });
 
-    bindFunction("getNPCharUID", [this](std::string npcName, sol::this_state s) -> sol::object
+    bindFunctionCoop("_RSVD_NAME_getNPCharUID", [this](LuaCoopResumer onDone, std::string npcName)
     {
-        for(const auto &[uid, npcPtr]: getServerMap()->m_npcList){
-            if(npcPtr->getNPCName() == npcName){
-                return luaf::buildLuaObj(sol::state_view(s), lua_Integer(uid));
-            }
+        auto mapPtr = getServerMap();
+        auto p = mapPtr->m_npcList.find(npcName);
+
+        if(p == mapPtr->m_npcList.end()){
+            onDone();
+            return;
         }
-        return luaf::buildLuaObj(sol::state_view(s), luaf::luaNil{});
+
+        if(p->second.uid.has_value()){
+            if(p->second.uid.value()){
+                onDone(p->second.uid.value());
+            }
+            else{
+                onDone(); // load tried but failed
+            }
+            return;
+        }
+
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed]()
+        {
+            *closed = true;
+        });
+
+        p->second.ops.push_back([closed, onDone](uint64_t uid)
+        {
+            if(*closed){
+                return;
+            }
+            else{
+                onDone.popOnClose();
+            }
+
+            if(uid){
+                onDone(uid);
+            }
+            else{
+                onDone();
+            }
+        });
     });
 
     bindFunction("getMonsterCount", [this](sol::variadic_args args) -> int
@@ -1237,7 +1271,7 @@ void ServerMap::loadNPChar()
     for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), false, expr.c_str())){
         std::match_results<std::string::const_iterator> result;
         if(std::regex_match(fileName.begin(), fileName.end(), result, regExpr)){
-            SDInitNPChar sdNPC
+            SDInitNPChar sdINPC
             {
                 .fullScriptName = scriptPath + "/" + fileName,
                 .mapUID = UID(),
@@ -1245,19 +1279,48 @@ void ServerMap::loadNPChar()
 
             for(int i = 0; const auto &m: result){
                 switch(i++){
-                    case 1 : sdNPC.npcName =           m.str() ; break;
-                    case 2 : sdNPC.x       = std::stoi(m.str()); break;
-                    case 3 : sdNPC.y       = std::stoi(m.str()); break;
-                    case 4 : sdNPC.gfxDir  = std::stoi(m.str()); break;
-                    case 5 : sdNPC.lookID  = std::stoi(m.str()); break;
+                    case 1 : sdINPC.npcName =           m.str() ; break;
+                    case 2 : sdINPC.x       = std::stoi(m.str()); break;
+                    case 3 : sdINPC.y       = std::stoi(m.str()); break;
+                    case 4 : sdINPC.gfxDir  = std::stoi(m.str()); break;
+                    case 5 : sdINPC.lookID  = std::stoi(m.str()); break;
                     default:                                   ; break;
                 }
             }
 
-            auto npcPtr = std::unique_ptr<NPChar>(dynamic_cast<NPChar *>(m_addCO->addCO(std::move(sdNPC))));
-            auto npcUID = npcPtr->UID();
+            // spawn NPC on master server, even servermap itself can spawn COs
+            // because npc needs access to database
 
-            m_npcList.emplace(npcUID, std::move(npcPtr));
+            m_npcList.emplace(sdINPC.npcName, NPCharOp{});
+            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize<SDInitCharObject>(sdINPC)}, [sdINPC, this](const ActorMsgPack &mpk)
+            {
+                switch(mpk.type()){
+                    case AM_UID:
+                        {
+                            auto amUID = mpk.conv<AMUID>();
+                            auto &npc = m_npcList[sdINPC.npcName];
+
+                            npc.uid = amUID.uid;
+                            for(auto &op: npc.ops){
+                                if(op){
+                                    op(amUID.uid);
+                                }
+                            }
+                            return;
+                        }
+                    default:
+                        {
+                            auto &npc = m_npcList[sdINPC.npcName];
+                            npc.uid = 0;
+                            for(auto &op: npc.ops){
+                                if(op){
+                                    op(0);
+                                }
+                            }
+                            return;
+                        }
+                }
+            });
         }
         else{
             throw fflvalue(fileName);

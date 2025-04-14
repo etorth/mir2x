@@ -12,5 +12,10 @@ function asyncWait(ms)
     end
 end
 
+function getNPCharUID(npcName)
+    assertType(npcName, 'string')
+    return _RSVD_NAME_callFuncCoop('getNPCharUID', npcName)
+end
+
 --
 -- )###"
