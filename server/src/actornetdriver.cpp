@@ -27,13 +27,13 @@ ActorNetDriver::ActorNetDriver()
       }())
     , m_context(std::make_unique<asio::io_context>(1))
 {
-    launch(g_serverArgParser->getPeerPort());
+    launch(g_serverArgParser->peerPort.first);
     if(g_serverArgParser->slave){
-        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort.value(), [this]()
+        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort.first, [this]()
         {
             postMaster(ActorMsgBuf(AM_SYS_SLAVEPEERPORT, cerealf::serialize(SDSysSlavePeerPort
             {
-                .port = g_serverArgParser->getPeerPort(),
+                .port = g_serverArgParser->peerPort.first,
             })));
         });
     }

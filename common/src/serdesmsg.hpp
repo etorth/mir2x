@@ -1167,7 +1167,7 @@ struct SDTeamMemberList
 
 struct SDSysSlavePeerPort
 {
-    uint32_t port = 0;
+    int port = 0;
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(port);

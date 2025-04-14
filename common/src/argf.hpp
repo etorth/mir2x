@@ -7,6 +7,11 @@
 
 namespace argf
 {
+    enum
+    {
+        REQ, OPT, BAN,
+    };
+
     class parser: public argh::parser
     {
         public:
@@ -75,18 +80,4 @@ namespace argf
             {
             }
     };
-
-    inline std::optional<uint32_t> getPort(const argf::parser &parser, const std::string &portName)
-    {
-        if(const auto val = parser(portName).str(); !val.empty()){
-            try{
-                if(const auto port = std::stoi(val); port >= 0){
-                    return static_cast<uint32_t>(port);
-                }
-            }
-            catch(...){}
-            throw fflerror("invalid port: %s", val.c_str());
-        }
-        return std::nullopt;
-    }
 }

@@ -35,6 +35,12 @@ decl {\#include "serdesmsg.hpp"} {private local
 decl {\#include "dispatcher.hpp"} {private local
 }
 
+decl {\#include "serverargparser.hpp"} {private local
+}
+
+decl {extern ServerArgParser *g_serverArgParser;} {private local
+}
+
 class ServerConfig {} {
   decl {std::string mapPath = "map/mapbin.zsdb";} {public local
   }
@@ -193,8 +199,16 @@ m_window->hide();}
     m_experienceRate->value("1.0");
     m_dropRate->value("1.0");
     m_goldRate->value("1.0");
-    m_clientPort->value("5000");
-    m_slavePort->value("6000");
+
+    m_clientPort->value(std::to_string(g_serverArgParser->clientPort.first).c_str());
+    if(!g_serverArgParser->clientPort.second){
+        m_clientPort->deactivate();
+    }
+
+    m_slavePort->value(std::to_string(g_serverArgParser->peerPort.first).c_str());
+    if(!g_serverArgParser->peerPort.second){
+        m_slavePort->deactivate();
+    }
 }} {}
   }
   Function {showAll()} {} {
