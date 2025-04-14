@@ -15,6 +15,7 @@
 #include <list>
 #include <mutex>
 #include <tuple>
+#include <memory>
 #include <concepts>
 #include <optional>
 #include <type_traits>
@@ -95,7 +96,7 @@ template<std::unsigned_integral KeyT, typename ResT, bool ThreadSafe = false> cl
                 }
 
                 if(p->second.res.has_value()){
-                    return &(p->second.res.value());
+                    return std::addressof(p->second.res.value());
                 }
                 return nullptr;
             }
@@ -131,12 +132,15 @@ template<std::unsigned_integral KeyT, typename ResT, bool ThreadSafe = false> cl
                     if(poldest->second.res.has_value()){
                         freeResource(poldest->second.res.value());
                     }
+
                     m_resSum -= poldest->second.weight;
+                    m_elemList.erase(poldest);
+                    m_keyList.pop_back();
                 }
             }
 
             if(emplaced->second.res.has_value()){
-                return &(emplaced->second.res.value());
+                return std::addressof(emplaced->second.res.value());
             }
             return nullptr;
         }
