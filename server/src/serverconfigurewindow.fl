@@ -32,7 +32,7 @@ decl {\#include "filesys.hpp"} {private local
 decl {\#include "serdesmsg.hpp"} {private local
 }
 
-decl {\#include "syncdriver.hpp"} {private local
+decl {\#include "dispatcher.hpp"} {private local
 }
 
 class ServerConfig {} {
@@ -266,7 +266,7 @@ m_window->hide();}
     }
 
     for(size_t i = 1; i <= uidsf::peerCount(); ++i){
-        SyncDriver().forward(uidf::getPeerCoreUID(i), {AM_PEERCONFIG, cerealf::serialize(SDPeerConfig
+        Dispatcher().forward(uidf::getPeerCoreUID(i), {AM_PEERCONFIG, cerealf::serialize(SDPeerConfig
         {
             .dropRate = m_config.dropRate,
             .goldRate = m_config.goldRate,
