@@ -1291,36 +1291,44 @@ void ServerMap::loadNPChar()
             // spawn NPC on master server, even servermap itself can spawn COs
             // because npc needs access to database
 
-            m_npcList.emplace(sdINPC.npcName, NPCharOp{});
-            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize<SDInitCharObject>(sdINPC)}, [sdINPC, this](const ActorMsgPack &mpk)
-            {
-                switch(mpk.type()){
-                    case AM_UID:
-                        {
-                            auto amUID = mpk.conv<AMUID>();
-                            auto &npc = m_npcList[sdINPC.npcName];
+            if(uidf::peerIndex(UID())){
+                m_npcList.emplace(sdINPC.npcName, NPCharOp{});
+                m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize<SDInitCharObject>(sdINPC)}, [sdINPC, this](const ActorMsgPack &mpk)
+                {
+                    switch(mpk.type()){
+                        case AM_UID:
+                            {
+                                auto amUID = mpk.conv<AMUID>();
+                                auto &npc = m_npcList[sdINPC.npcName];
 
-                            npc.uid = amUID.uid;
-                            for(auto &op: npc.ops){
-                                if(op){
-                                    op(amUID.uid);
+                                npc.uid = amUID.uid;
+                                for(auto &op: npc.ops){
+                                    if(op){
+                                        op(amUID.uid);
+                                    }
                                 }
+                                return;
                             }
-                            return;
-                        }
-                    default:
-                        {
-                            auto &npc = m_npcList[sdINPC.npcName];
-                            npc.uid = 0;
-                            for(auto &op: npc.ops){
-                                if(op){
-                                    op(0);
+                        default:
+                            {
+                                auto &npc = m_npcList[sdINPC.npcName];
+                                npc.uid = 0;
+                                for(auto &op: npc.ops){
+                                    if(op){
+                                        op(0);
+                                    }
                                 }
+                                return;
                             }
-                            return;
-                        }
-                }
-            });
+                    }
+                });
+            }
+            else{
+                auto npcPtr = m_addCO->addCO(sdINPC);
+                auto npcUID = npcPtr->UID();
+
+                m_npcList[sdINPC.npcName].uid = npcUID; // TODO responsible to release it
+            }
         }
         else{
             throw fflvalue(fileName);
