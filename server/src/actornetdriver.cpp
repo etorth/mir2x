@@ -79,7 +79,7 @@ void ActorNetDriver::launch(asio::ip::port_type port)
         throw fflerror("failed to create acceptor: unknown error");
     }
 
-    g_server->addLog(LOGTYPE_INFO, "%s server listens on port %llu", g_serverArgParser->runMode(), to_llu(m_acceptor->local_endpoint().port()));
+    g_server->addLog(LOGTYPE_INFO, "%s server listens on port %llu", g_serverArgParser->runMode(true), to_llu(m_acceptor->local_endpoint().port()));
     asio::co_spawn(*m_context, listener(), [](std::exception_ptr e)
     {
         if(e){
