@@ -139,15 +139,8 @@ void ServiceCore::onActivate()
     ServerObject::onActivate();
     m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
 
-    if(const auto mapID = g_serverArgParser->preloadMapID; mapID > 0){
-        requestLoadMap(uidsf::getMapBaseUID(mapID), [mapID](bool)
-        {
-            g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
-        });
-    }
-
-    if(g_serverArgParser->preloadMap){
-        for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
+    for(uint32_t mapID = 1;; ++mapID){
+        if(g_serverArgParser->preloadMapCheck(mapID)){
             requestLoadMap(uidsf::getMapBaseUID(mapID), [mapID](bool)
             {
                 g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));

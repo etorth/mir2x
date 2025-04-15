@@ -60,8 +60,6 @@ bool ActorNetDriver::isNetThread()
 void ActorNetDriver::launch(asio::ip::port_type port)
 {
     fflassert(!isNetThread());
-    fflassert(port > 1024, port);
-
     m_context = std::make_unique<asio::io_context>(1);
     try{
         m_acceptor = std::make_unique<asio::ip::tcp::acceptor>(*m_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port));
@@ -81,6 +79,7 @@ void ActorNetDriver::launch(asio::ip::port_type port)
         throw fflerror("failed to create acceptor: unknown error");
     }
 
+    g_server->addLog(LOGTYPE_INFO, "%s server listens on port %llu", g_serverArgParser->runMode(), to_llu(m_acceptor->local_endpoint().port()));
     asio::co_spawn(*m_context, listener(), [](std::exception_ptr e)
     {
         if(e){
