@@ -102,7 +102,7 @@ struct ServerArgParser
               return 0;
           }())
 
-        , actorPoolThread(argf::parseInteger<int>(parseString(cmdParser, "actor-pool-thread", this->slave, argf::OPT, argf::BAN, false, false), "actor pool thread", argf::checkPositive,   std::max<int>(16, std::thread::hardware_concurrency())).first)
+        , actorPoolThread(argf::parseInteger<int>(parseString(cmdParser, "actor-pool-thread", this->slave, argf::OPT, argf::OPT, false, false), "actor pool thread", argf::checkPositive,   std::max<int>(16, std::thread::hardware_concurrency())).first)
         , logicalFPS     (argf::parseInteger<int>(parseString(cmdParser, "logical-fps",       this->slave, argf::OPT, argf::BAN, false, false), "logical fps",       argf::checkPositive,   10).first)
         , summonCount    (argf::parseInteger<int>(parseString(cmdParser, "summon-count",      this->slave, argf::OPT, argf::BAN, false, false), "summon count",      argf::checkPositive,    1).first)
         , textFont       (argf::parseInteger<int>(parseString(cmdParser, "text-font",         this->slave, argf::OPT, argf::BAN, false, false), "text-font",         argf::checkNonNegative, 0).first)

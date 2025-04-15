@@ -62,8 +62,24 @@ void ActorNetDriver::launch(asio::ip::port_type port)
     fflassert(!isNetThread());
     fflassert(port > 1024, port);
 
-    m_context  = std::make_unique<asio::io_context>(1);
-    m_acceptor = std::make_unique<asio::ip::tcp::acceptor>(*m_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port));
+    m_context = std::make_unique<asio::io_context>(1);
+    try{
+        m_acceptor = std::make_unique<asio::ip::tcp::acceptor>(*m_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port));
+    }
+    catch(const std::system_error &e){
+        if(e.code() == std::errc::address_in_use){
+            throw fflerror("port %llu is already in use", to_llu(port));
+        }
+        else{
+            throw fflerror("failed to create acceptor: %s", e.what());
+        }
+    }
+    catch(const std::exception &e){
+        throw fflerror("failed to create acceptor: %s", e.what());
+    }
+    catch(...){
+        throw fflerror("failed to create acceptor: unknown error");
+    }
 
     asio::co_spawn(*m_context, listener(), [](std::exception_ptr e)
     {
