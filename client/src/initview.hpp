@@ -81,12 +81,12 @@ class InitView final
     private:
         int donePercent() const
         {
-            size_t taskWeigthSum = 0;
+            size_t taskWeightSum = 0;
             for(const auto &[weight, task]: m_taskList){
                 fflassert(weight);
-                taskWeigthSum += weight;
+                taskWeightSum += weight;
             }
-            return to_d(std::lround(to_f(m_doneWeight.load()) * 100.0 / taskWeigthSum));
+            return to_d(std::lround(to_f(m_doneWeight.load()) * 100.0 / taskWeightSum));
         }
 
     private:
@@ -109,6 +109,7 @@ class InitView final
             addIVLog(LOGIV_INFO, "[%03d%%]Loading %s", donePercent(), to_cstr(fileName));
             try{
                 dbPtr->load(fullPath.string().c_str());
+                m_doneWeight += taskWeight;
                 addIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", donePercent(), to_cstr(fileName));
             }
             catch(const std::exception &e){
