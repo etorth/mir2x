@@ -32,6 +32,7 @@ struct ClientArgParser
     const bool debugPlayerStateBoard;   // "--debug-player-state-board"
     const bool debugSlider;             // "--debug-slider"
     const bool debugClickEvent;         // "--debug-click-event"
+    const int  screenMode;              // "--screen-mode"
 
     const std::string serverIP;            // "--server-ip"
     const std::pair<int, bool> serverPort; // "--server-port"
@@ -65,6 +66,7 @@ struct ClientArgParser
         , debugPlayerStateBoard(argf::parseInteger<bool>(parseString(parser, "--debug-player-state-board", argf::OPT, true), "debug-player-state-board", argf::checkPass<bool>, false, true).first)
         , debugSlider          (argf::parseInteger<bool>(parseString(parser, "--debug-slider",             argf::OPT, true), "debug-slider",             argf::checkPass<bool>, false, true).first)
         , debugClickEvent      (argf::parseInteger<bool>(parseString(parser, "--debug-click-event",        argf::OPT, true), "debug-click-event",        argf::checkPass<bool>, false, true).first)
+        , screenMode           (argf::parseInteger<int> (parseString(parser, "--screen-mode",              argf::OPT      ), "screen-mode",              checkScreenMode,           0,    0).first)
 
         , serverIP(parseString(parser, "--server-ip", argf::REQ).value())
         , serverPort(argf::parseInteger<int>(parseString(parser, "--server-port", argf::OPT), "server-port", argf::checkUserListenPort(false), argf::defVal::clientPort))
@@ -84,6 +86,16 @@ struct ClientArgParser
               return std::nullopt;
           }())
     {}
+
+    static int checkScreenMode(const char *, int screenMode)
+    {
+        switch(screenMode){
+            case 0:
+            case 1:
+            case 2: return screenMode;
+            default: throw fflerror("invalid screen mode: %d", screenMode);
+        }
+    }
 
     static std::optional<std::string> parseString(const argf::parser &parser, const std::string &opt, int optChoice, bool allowEmpty = false)
     {
