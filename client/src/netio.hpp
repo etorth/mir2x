@@ -45,7 +45,7 @@ class NetIO final
         }
 
     public:
-        void start(const char *, const char *, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)>);
+        void start(const std::string &, const std::string &, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)>);
 
     public:
         void poll()

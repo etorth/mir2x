@@ -130,36 +130,10 @@ void Client::eventDelay(double fDelayMS)
 
 void Client::initASIO()
 {
-    // this function will run in another thread
-    // make sure there is no data race
+    const auto ipStr = g_clientArgParser->serverIP;
+    const auto portStr = std::to_string(g_clientArgParser->serverPort.first);
 
-    // TODO
-    // may need lock here since g_xmlConf may used in main thread also
-    const auto ipStr = []()-> std::string
-    {
-        if(!g_clientArgParser->serverIP.empty()){
-            return g_clientArgParser->serverIP;
-        }
-
-        if(auto nodePtr = g_xmlConf->getXMLNode("/root/network/server/ip"); nodePtr && nodePtr->GetText()){
-            return std::string(nodePtr->GetText());
-        }
-        return "127.0.0.1";
-    }();
-
-    const auto portStr = []()-> std::string
-    {
-        if(!g_clientArgParser->serverPort.empty()){
-            return g_clientArgParser->serverPort;
-        }
-
-        if(auto nodePtr = g_xmlConf->getXMLNode("/root/network/server/port"); nodePtr && nodePtr->GetText()){
-            return std::string(nodePtr->GetText());
-        }
-        return "5000";
-    }();
-
-    m_netIO.start(ipStr.c_str(), portStr.c_str(), [this](uint8_t headCode, const uint8_t *pData, size_t nDataLen, uint64_t respID)
+    m_netIO.start(ipStr, portStr, [this](uint8_t headCode, const uint8_t *pData, size_t nDataLen, uint64_t respID)
     {
         // core should handle on fully recieved message from the serer
         // previously there are two steps (HC, Body) seperately handled, error-prone

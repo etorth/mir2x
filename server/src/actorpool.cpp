@@ -917,7 +917,8 @@ void ActorPool::launchBalance()
     const auto clientPort = g_serverConfigureWindow->getConfig().clientPort;
 
     launchNet(clientPort);
-    g_server->addLog(LOGTYPE_INFO, "Master server launched, listening players on port: %d", clientPort);
+    g_server->addLog(LOGTYPE_INFO, "Master server listens players on port: %d", clientPort);
+    g_server->addLog(LOGTYPE_INFO, "Master server has been launched successfully");
 }
 
 bool ActorPool::checkUIDValid(uint64_t uid) const

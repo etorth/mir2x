@@ -193,12 +193,13 @@ m_window->hide();}
     }
     code {// set up the default map path
 {
-    m_mapFullName->value("map/mapbin.zsdb");
-    m_scriptFullName->value("script");
-    m_maxPlayerCount->value("5000");
-    m_experienceRate->value("1.0");
-    m_dropRate->value("1.0");
-    m_goldRate->value("1.0");
+    ServerConfig defConfg {};
+    m_mapFullName->value(defConfg.mapPath.c_str());
+    m_scriptFullName->value(defConfg.scriptPath.c_str());
+    m_maxPlayerCount->value(std::to_string(defConfg.maxPlayerCount).c_str());
+    m_experienceRate->value(std::to_string(defConfg.experienceRate).c_str());
+    m_dropRate->value(std::to_string(defConfg.dropRate).c_str());
+    m_goldRate->value(std::to_string(defConfg.goldRate).c_str());
 
     m_clientPort->value(std::to_string(g_serverArgParser->clientPort.first).c_str());
     if(!g_serverArgParser->clientPort.second){
@@ -209,6 +210,8 @@ m_window->hide();}
     if(!g_serverArgParser->peerPort.second){
         m_slavePort->deactivate();
     }
+
+    applyConfig();
 }} {}
   }
   Function {showAll()} {} {

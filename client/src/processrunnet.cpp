@@ -52,15 +52,15 @@ void ProcessRun::on_SM_STARTGAMESCENE(const uint8_t *buf, size_t bufSize)
     centerMyHero();
     getMyHero()->pullGold();
 
-    if(g_clientArgParser->inputScript.has_value()){
+    if(!g_clientArgParser->inputScript.empty()){
         std::vector<std::string> error;
-        const auto pfr = m_luaModule.execFile(g_clientArgParser->inputScript.value().c_str());
+        const auto pfr = m_luaModule.execFile(g_clientArgParser->inputScript.c_str());
 
         if(m_luaModule.pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
             addCBLog(CBLOG_SYS, u8"脚本返回: %s", str_any(pfr).c_str());
         }
         else{
-            addCBLog(CBLOG_ERR, u8"脚本错误: %s", g_clientArgParser->inputScript.value().c_str());
+            addCBLog(CBLOG_ERR, u8"脚本错误: %s", g_clientArgParser->inputScript.c_str());
             for(const auto &err: error){
                 addCBLog(CBLOG_ERR, u8"%s", err.c_str());
             }

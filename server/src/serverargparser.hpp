@@ -42,7 +42,7 @@ struct ServerArgParser
     const std::string masterIP;                 // "--master-ip"
     const std::pair<int, bool> masterPort;      // "--master-port"
 
-    const std::pair<int, bool> clientPort;      // "--master-port"
+    const std::pair<int, bool> clientPort;      // "--client-port"
     const std::pair<int, bool> peerPort;        // "--peer-port"
 
     ServerArgParser(const argf::parser &parser)
