@@ -18,8 +18,8 @@ namespace argf
 
     struct defVal
     {
-        constexpr static int     clientPort = 6000; // open to players
-        constexpr static int masterPeerPort = 7000; // open to slave servers
+        constexpr static int     clientPort = 7000; // open to players
+        constexpr static int masterPeerPort = 8000; // open to slave servers
     };
 
     class parser: public argh::parser
