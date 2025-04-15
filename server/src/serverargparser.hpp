@@ -102,17 +102,17 @@ struct ServerArgParser
               return 0;
           }())
 
-        , actorPoolThread(parseInteger(parseString(cmdParser, "actor-pool-thread", this->slave, argf::OPT, argf::BAN, false, false), "actor pool thread",  false, false, std::max<int>(16, std::thread::hardware_concurrency())).first)
-        , logicalFPS     (parseInteger(parseString(cmdParser, "logical-fps",       this->slave, argf::OPT, argf::BAN, false, false), "logical fps",        false, false, 1).first)
-        , summonCount    (parseInteger(parseString(cmdParser, "summon-count",      this->slave, argf::OPT, argf::BAN, false, false), "summon count",        true, false, 1).first)
-        , textFont       (parseInteger(parseString(cmdParser, "text-font",         this->slave, argf::OPT, argf::BAN, false, false), "text-font",           true, false, 0).first)
+        , actorPoolThread(argf::parseInteger<int>(parseString(cmdParser, "actor-pool-thread", this->slave, argf::OPT, argf::BAN, false, false), "actor pool thread", argf::checkPositive,   std::max<int>(16, std::thread::hardware_concurrency())).first)
+        , logicalFPS     (argf::parseInteger<int>(parseString(cmdParser, "logical-fps",       this->slave, argf::OPT, argf::BAN, false, false), "logical fps",       argf::checkPositive,   10).first)
+        , summonCount    (argf::parseInteger<int>(parseString(cmdParser, "summon-count",      this->slave, argf::OPT, argf::BAN, false, false), "summon count",      argf::checkPositive,    1).first)
+        , textFont       (argf::parseInteger<int>(parseString(cmdParser, "text-font",         this->slave, argf::OPT, argf::BAN, false, false), "text-font",         argf::checkNonNegative, 0).first)
 
         , loadSingleQuest(parseString(cmdParser, "load-single-quest", this->slave, argf::OPT, argf::BAN, false, false).value_or(std::string{}))
         , masterIP       (parseString(cmdParser, "master-ip",         this->slave, argf::BAN, argf::REQ, false, false).value_or(std::string{}))
 
-        , masterPort(parseInteger(parseString(cmdParser, "master-port", this->slave, argf::BAN, argf::OPT, false, false), "master port", false, false, defVals::masterPort))
-        , clientPort(parseInteger(parseString(cmdParser, "client-port", this->slave, argf::OPT, argf::BAN, false, false), "client port", false, false, defVals::clientPort))
-        ,   peerPort(parseInteger(parseString(cmdParser,   "peer-port", this->slave, argf::OPT, argf::OPT, false, false),   "peer port", false, false, defVals::  peerPort))
+        , masterPort(argf::parseInteger<int>(parseString(cmdParser, "master-port", this->slave, argf::BAN, argf::OPT, false, false), "master port", argf::checkUserPort, defVals::masterPort))
+        , clientPort(argf::parseInteger<int>(parseString(cmdParser, "client-port", this->slave, argf::OPT, argf::BAN, false, false), "client port", argf::checkUserPort, defVals::clientPort))
+        ,   peerPort(argf::parseInteger<int>(parseString(cmdParser,   "peer-port", this->slave, argf::OPT, argf::OPT, false, false),   "peer port", argf::checkUserPort, defVals::  peerPort))
     {}
 
     static std::optional<std::string> parseString(const argf::parser &parser, const std::string &opt,
@@ -152,30 +152,5 @@ struct ServerArgParser
             throw fflerror("invalid empty option value in %s mode: --%s", slave ? "slave" : "master", opt.c_str());
         }
         return optVal;
-    }
-
-    std::pair<int, bool> parseInteger(const std::optional<std::string> optStr, const std::string &name, bool allowZero, bool allowNegative, int defaultVal = 0)
-    {
-        const auto val = [&optStr, &name, defaultVal]() -> int
-        {
-            if(optStr.has_value()){
-                try{
-                    return std::stoi(optStr.value());
-                }
-                catch(...){}
-                throw fflerror("invalid %s value: %s", to_cstr(name), to_cstr(optStr.value()));
-            }
-            return defaultVal;
-        }();
-
-        if(!allowZero && (val == 0)){
-            throw fflerror("invalid %s value: zero", to_cstr(name));
-        }
-
-        if(!allowNegative && (val < 0)){
-            throw fflerror("invalid %s value: negative", to_cstr(name));
-        }
-
-        return {val, !optStr.has_value()}; // {value, value_is_default}
     }
 };

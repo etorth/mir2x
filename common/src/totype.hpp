@@ -32,11 +32,12 @@ inline auto to_cvptr(auto x){ return static_cast<      const void *>(x); }
 
 template<typename T, typename F> static T check_cast(F from)
 {
-    auto to = static_cast<T>(from);
-    if(static_cast<F>(to) != from){
+    if(const auto to = static_cast<T>(from); static_cast<F>(to) == from){
+        return to;
+    }
+    else{
         throw std::runtime_error("cast fails to preserve original value");
     }
-    return to;
 }
 
 int to_dround(std::floating_point auto x)

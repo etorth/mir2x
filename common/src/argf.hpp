@@ -1,9 +1,12 @@
 #pragma once
 #include <cstdint>
 #include <optional>
+#include <exception>
 #include "argh.h"
 #include "strf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
+#include "dbcomid.hpp"
 
 namespace argf
 {
@@ -79,5 +82,77 @@ namespace argf
             virtual void print_message(const std::string &) const
             {
             }
+    };
+
+    template<typename T> std::pair<T, bool> parseInteger(const std::optional<std::string> optStr, const std::string &name, auto fnCheck, T defVal = T{})
+    {
+        const auto val = [&optStr, &name, &defVal]() -> T
+        {
+            if(optStr.has_value()){
+                try{
+                    if constexpr (std::is_unsigned_v<T>){
+                        // std::stoull can accept "-1" and returns 18446744073709551615
+                        // check_cast can detect this corncase
+                        return check_cast<T>(std::stoll(optStr.value()));
+                    }
+                    else if constexpr (std::is_signed_v<T>){
+                        return check_cast<T>(std::stoll(optStr.value()));
+                    }
+                    else if constexpr (std::is_same_v<T, bool>){
+                        return to_parsedbool(optStr.value().c_str());
+                    }
+                    else if constexpr (std::is_same_v<T, float>){
+                        return std::stof(optStr.value());
+                    }
+                    else if constexpr (std::is_same_v<T, double>){
+                        return std::stod(optStr.value());
+                    }
+                    else if constexpr (std::is_same_v<T, long double>){
+                        return std::stold(optStr.value());
+                    }
+                    else{
+                        static_assert(false, "unsupported type");
+                    }
+                }
+                catch(...){}
+                throw fflerror("invalid %s value: %s", to_cstr(name), to_cstr(optStr.value()));
+            }
+            return defVal;
+        }();
+        return {fnCheck(val), !optStr.has_value()}; // {value, value_is_default}
+    }
+
+    constexpr auto checkUserPort = [](int port)
+    {
+        if(port < 0    ) throw fflerror("invalid netagive port: %d", port);
+        if(port < 1024 ) throw fflerror("invalid reserved port: %d", port);
+        if(port > 65535) throw fflerror("invalid port: %d", port);
+        return port;
+    };
+
+    const auto checkPositive = [](int val)
+    {
+        if(val <= 0) throw fflerror("invalid non-positive value: %d", val);
+        return val;
+    };
+
+    const auto checkNonNegative = [](int val)
+    {
+        if(val < 0) throw fflerror("invalid negative value: %d", val);
+        return val;
+    };
+
+    constexpr auto checkMapID = [](uint32_t mapID)
+    {
+        if(!DBCOM_MAPRECORD(mapID)) throw fflerror("invalid map id: %llu", to_llu(mapID));
+        return mapID;
+    };
+
+    constexpr auto checkMapIDString = [](const std::string &mapIDStr) -> uint32_t
+    {
+        if(const auto mapID = DBCOM_MAPID(to_u8cstr(mapIDStr)); mapID > 0){
+            return mapID;
+        }
+        return argf::parseInteger<uint32_t>(mapIDStr, "mapID", checkMapID).first;
     };
 }
