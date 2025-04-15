@@ -139,7 +139,7 @@ void ServiceCore::onActivate()
     ServerObject::onActivate();
     m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
 
-    for(uint32_t mapID = 1;; ++mapID){
+    for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
         if(g_serverArgParser->preloadMapCheck(mapID)){
             requestLoadMap(uidsf::getMapBaseUID(mapID), [mapID](bool)
             {

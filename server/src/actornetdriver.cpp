@@ -33,7 +33,7 @@ ActorNetDriver::ActorNetDriver()
         {
             postMaster(ActorMsgBuf(AM_SYS_SLAVEPEERPORT, cerealf::serialize(SDSysSlavePeerPort
             {
-                .port = g_serverArgParser->peerPort.first,
+                .port = to_d(m_acceptor->local_endpoint().port()),
             })));
         });
     }
