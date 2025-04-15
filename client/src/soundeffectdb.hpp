@@ -28,10 +28,9 @@ class SoundEffectDB: public innDB<uint32_t, SoundEffectElement>
         virtual ~SoundEffectDB() = default;
 
     public:
-        bool load(const char *soundEffectDBName)
+        void load(const char *soundEffectDBName)
         {
             m_zsdbPtr = std::make_unique<ZSDB>(soundEffectDBName);
-            return true;
         }
 
     public:

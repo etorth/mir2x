@@ -36,8 +36,10 @@ struct ClientArgParser
 
     const std::string serverIP;            // "--server-ip"
     const std::pair<int, bool> serverPort; // "--server-port"
-                                           //
-    const std::string inputScript;                                      // "--input-script"
+
+    const std::string resPath;             // "--res-path"
+    const std::string inputScript;         // "--input-script"
+
     const std::optional<std::pair<std::string, std::string>> autoLogin; // "--auto-login"
 
     ClientArgParser(const argf::parser &parser)
@@ -71,7 +73,9 @@ struct ClientArgParser
         , serverIP(parseString(parser, "--server-ip", argf::REQ).value())
         , serverPort(argf::parseInteger<int>(parseString(parser, "--server-port", argf::OPT), "server-port", argf::checkUserListenPort(false), argf::defVal::clientPort))
 
+        , resPath    (parseString(parser, "--res-path",     argf::OPT).value_or("res"))
         , inputScript(parseString(parser, "--input-script", argf::OPT).value_or(std::string{}))
+
         , autoLogin([&parser]() -> std::optional<std::pair<std::string, std::string>>
           {
               if(const auto autoLoginStr = parseString(parser, "--auto-login", argf::OPT); autoLoginStr.has_value()){

@@ -68,10 +68,9 @@ class EmojiDB: public innDB<uint32_t, EmojiElement>
         {}
 
     public:
-        bool load(const char *emojiDBName)
+        void load(const char *emojiDBName)
         {
             m_zsdbPtr = std::make_unique<ZSDB>(emojiDBName);
-            return true;
         }
 
     public:

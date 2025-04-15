@@ -18,10 +18,11 @@
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
 #include "pngtexoffdb.hpp"
+#include "clientargparser.hpp"
 
-extern Log       *g_log;
-extern XMLConf   *g_xmlConf;
+extern Log *g_log;
 extern SDLDevice *g_sdlDevice;
+extern ClientArgParser *g_clientArgParser;
 
 extern EmojiDB       *g_emojiDB;
 extern BGMusicDB     *g_bgmDB;
@@ -47,23 +48,23 @@ InitView::InitView(uint8_t fontSize)
     : m_fontSize(fontSize)
     , m_taskList
       {
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_progUseDB,    "root/texture/progUseDB"   ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_itemDB,       "root/texture/itemDB"      ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_mapDB,        "root/texture/mapDB"       ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_fontexDB,     "root/font/fontexDB"       ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_heroDB,       "root/texture/heroDB"      ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_hairDB,       "root/texture/hairDB"      ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_monsterDB,    "root/texture/monsterDB"   ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_weaponDB,     "root/texture/weaponDB"    ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_helmetDB,     "root/texture/helmetDB"    ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_magicDB,      "root/texture/magicDB"     ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_equipDB,      "root/texture/equipDB"     ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_standNPCDB,   "root/texture/standNPCDB"  ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_selectCharDB, "root/texture/selectCharDB"); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_mapBinDB,     "root/map/mapBinDB"        ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_emojiDB,      "root/emoji/emojiDB"       ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_bgmDB,        "root/sound/bgmDB"         ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_seffDB,       "root/sound/seffDB"        ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_progUseDB,    g_clientArgParser->resPath, "texture/progUseDB"   ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_itemDB,       g_clientArgParser->resPath, "texture/itemDB"      ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_mapDB,        g_clientArgParser->resPath, "texture/mapDB"       ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_fontexDB,     g_clientArgParser->resPath, "font/fontexDB"       ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_heroDB,       g_clientArgParser->resPath, "texture/heroDB"      ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_hairDB,       g_clientArgParser->resPath, "texture/hairDB"      ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_monsterDB,    g_clientArgParser->resPath, "texture/monsterDB"   ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_weaponDB,     g_clientArgParser->resPath, "texture/weaponDB"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_helmetDB,     g_clientArgParser->resPath, "texture/helmetDB"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_magicDB,      g_clientArgParser->resPath, "texture/magicDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_equipDB,      g_clientArgParser->resPath, "texture/equipDB"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_standNPCDB,   g_clientArgParser->resPath, "texture/standNPCDB"  ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_selectCharDB, g_clientArgParser->resPath, "texture/selectCharDB"); }},
+          {1, [this](size_t weight){ loadDB(weight, g_mapBinDB,     g_clientArgParser->resPath, "map/mapBinDB"        ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_emojiDB,      g_clientArgParser->resPath, "emoji/emojiDB"       ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_bgmDB,        g_clientArgParser->resPath, "sound/bgmDB"         ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_seffDB,       g_clientArgParser->resPath, "sound/seffDB"        ); }},
       }
 {
     const Rawbuf boardData

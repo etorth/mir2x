@@ -11,7 +11,6 @@
 #include "totype.hpp"
 #include "rawbuf.hpp"
 #include "colorf.hpp"
-#include "xmlconf.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
@@ -20,7 +19,6 @@
 #include "scopedalloc.hpp"
 
 extern Log *g_log;
-extern XMLConf *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 

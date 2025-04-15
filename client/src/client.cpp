@@ -6,7 +6,6 @@
 
 #include "log.hpp"
 #include "client.hpp"
-#include "xmlconf.hpp"
 #include "initview.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
@@ -27,7 +26,6 @@
 #include "clientargparser.hpp"
 
 extern Log *g_log;
-extern XMLConf *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;

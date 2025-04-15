@@ -76,11 +76,10 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         TTF_Font *findTTF(uint16_t);
 
     public:
-        bool load(const char *fontDBName)
+        void load(const char *fontDBName)
         {
             m_zsdbPtr = std::make_unique<ZSDB>(fontDBName);
             m_entryList = m_zsdbPtr->getEntryList();
-            return true;
         }
 
     public:
