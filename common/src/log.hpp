@@ -53,14 +53,14 @@ class Log final
             g3::initializeLogging(m_worker.get());
             std::future<std::string> logFileNameFeature = m_handler->call(&g3::FileSink::fileName);
 
-            std::cout << "* This is the initialization of Log functionality, pid " << getpid() << "." << std::endl;
-            std::cout << "* For info/debug/warning/fatal messages."                                   << std::endl;
+            std::cout << "* This is the initialization of Log functionality, pid " << getpid() << std::endl;
+            std::cout << "* For info/debug/warning/fatal messages"                             << std::endl;
 
             m_logFileName = logFileNameFeature.get();
 
-            std::cout << "* Log file: [" << m_logFileName << "]"                                      << std::endl;
-            std::cout << "* Log functionality established!"                                           << std::endl;
-            std::cout << "* All messges will be redirected to the log after this line"                << std::endl;
+            std::cout << "* Log file: [" << m_logFileName << "]"                               << std::endl;
+            std::cout << "* Log functionality established"                                     << std::endl;
+            std::cout << "* All messges will be redirected to the log after this line"         << std::endl;
         }
 
     public:
