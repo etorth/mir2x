@@ -37,7 +37,7 @@ void PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
         amPLMOK.newLoad = newLoad;
         m_actorPod->forward(mpk.fromAddr(), {AM_PEERLOADMAPOK, amPLMOK});
         if(newLoad){
-            g_server->addLog(LOGTYPE_INFO, "Load map %d on peer %zu successfully.", to_d(uidf::getMapID(amPLM.mapUID)), uidf::peerIndex(UID()));
+            g_server->addLog(LOGTYPE_INFO, "Load map %d on peer %zu successfully", to_d(uidf::getMapID(amPLM.mapUID)), uidf::peerIndex(UID()));
         }
     }
     else{

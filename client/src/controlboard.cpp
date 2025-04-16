@@ -212,7 +212,7 @@ ControlBoard::ControlBoard(int boardW, int startY, ProcessRun *proc, Widget *pwi
           nullptr,
           [this](Widget *)
           {
-              addLog(0, "exchange doesn't implemented yet.");
+              addLog(0, "exchange doesn't implemented yet");
           },
 
           true,

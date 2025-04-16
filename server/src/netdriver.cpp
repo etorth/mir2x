@@ -72,7 +72,7 @@ void NetDriver::launch(uint32_t port)
             }
             catch(const ChannelError &e){
                 doClose(e.channID());
-                g_server->addLog(LOGTYPE_INFO, "Channel %d has been disconnected.", to_d(e.channID()));
+                g_server->addLog(LOGTYPE_INFO, "Channel %d has been disconnected", to_d(e.channID()));
             }
             // only catch channError
             // let it crash when caught any other exceptions
@@ -111,7 +111,7 @@ asio::awaitable<void> NetDriver::listener()
             slotPtr->channPtr = std::make_shared<Channel>(std::move(sock), channID, slotPtr->lock, slotPtr->sendBuf);
 
             auto channPtr = m_channelSlotList[channID].channPtr.get();
-            g_server->addLog(LOGTYPE_INFO, "Channel %d has been established for endpoint (%s:%d).", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
+            g_server->addLog(LOGTYPE_INFO, "Channel %d has been established for endpoint (%s:%d)", to_d(channPtr->id()), to_cstr(channPtr->ip()), to_d(channPtr->port()));
 
             channPtr->launch();
         }

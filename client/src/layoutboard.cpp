@@ -201,7 +201,7 @@ void LayoutBoard::loadXML(const char *xmlString, size_t parLimit)
     }
 
     if(rootElem->FirstAttribute()){
-        g_log->addLog(LOGTYPE_WARNING, "Layout XML doesn't accept attributes, ignored.");
+        g_log->addLog(LOGTYPE_WARNING, "Layout XML doesn't accept attributes, ignored");
     }
 
     size_t addedParCount = 0;

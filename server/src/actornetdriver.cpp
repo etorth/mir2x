@@ -139,7 +139,7 @@ asio::awaitable<void> ActorNetDriver::listener()
             );
 
             auto peer = slotPtr->peer.get();
-            g_server->addLog(LOGTYPE_INFO, "Server peer %zu has connected to master.", m_peerSlotList.size() - 1);
+            g_server->addLog(LOGTYPE_INFO, "Server peer %zu has connected to master", m_peerSlotList.size() - 1);
 
             peer->launch();
             post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
@@ -315,7 +315,7 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                 }
 
                 m_peerIndex = sdPI.index;
-                g_server->addLog(LOGTYPE_INFO, "Assign peer index %zu.", m_peerIndex.value());
+                g_server->addLog(LOGTYPE_INFO, "Assign peer index %zu", m_peerIndex.value());
                 return;
             }
         case AM_SYS_SLAVEPEERPORT:

@@ -70,7 +70,7 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
             }
 
             if(!err.empty()){
-                g_server->addLog(LOGTYPE_WARNING, "Failed in EnableAddCO::ADDCO: %s.", to_cstr(err));
+                g_server->addLog(LOGTYPE_WARNING, "Failed in EnableAddCO::ADDCO: %s", to_cstr(err));
             }
             m_actorPod->forward(fromAddr, AM_ERROR);
         };
