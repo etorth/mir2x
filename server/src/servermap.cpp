@@ -1251,6 +1251,10 @@ void ServerMap::onActivate()
 
 void ServerMap::loadNPChar()
 {
+    if(g_serverArgParser->disableNPCSpawn){
+        return;
+    }
+
     const auto cfgScriptPath = g_serverArgParser->slave ? std::string{}: g_serverConfigureWindow->getConfig().scriptPath;
     const auto scriptPath = cfgScriptPath.empty() ? std::string("script/npc") : (cfgScriptPath + "/npc");
 
@@ -1284,7 +1288,7 @@ void ServerMap::loadNPChar()
                     case 3 : sdINPC.y       = std::stoi(m.str()); break;
                     case 4 : sdINPC.gfxDir  = std::stoi(m.str()); break;
                     case 5 : sdINPC.lookID  = std::stoi(m.str()); break;
-                    default:                                   ; break;
+                    default:                                    ; break;
                 }
             }
 
@@ -1324,10 +1328,12 @@ void ServerMap::loadNPChar()
                 });
             }
             else{
-                auto npcPtr = m_addCO->addCO(sdINPC);
-                auto npcUID = npcPtr->UID();
+                // servermap is also on master server
+                // spawn NPC locally
 
-                m_npcList[sdINPC.npcName].uid = npcUID; // TODO responsible to release it
+                if(const auto npcPtr = m_addCO->addCO(sdINPC)){
+                    m_npcList[sdINPC.npcName].uid = npcPtr->UID();
+                }
             }
         }
         else{

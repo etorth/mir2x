@@ -53,21 +53,25 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
         {
             std::string err;
             try{
-                AMUID amUID;
-                std::memset(&amUID, 0, sizeof(amUID));
+                if(auto coPtr = addCO(sdICO)){
+                    AMUID amUID;
+                    std::memset(&amUID, 0, sizeof(amUID));
 
-                amUID.uid = addCO(sdICO)->UID();
-                m_actorPod->forward(fromAddr, {AM_UID, amUID});
-                return;
+                    amUID.uid = coPtr->UID();
+                    m_actorPod->forward(fromAddr, {AM_UID, amUID});
+                    return;
+                }
             }
             catch(const std::exception &e){
-                err = e.what();
+                err = str_haschar(e.what()) ? e.what() : "unknown error";
             }
             catch(...){
                 err = "unknown error";
             }
 
-            g_server->addLog(LOGTYPE_WARNING, "Failed in EnableAddCO::ADDCO: %s.", to_cstr(err));
+            if(!err.empty()){
+                g_server->addLog(LOGTYPE_WARNING, "Failed in EnableAddCO::ADDCO: %s.", to_cstr(err));
+            }
             m_actorPod->forward(fromAddr, AM_ERROR);
         };
 
