@@ -139,7 +139,7 @@ asio::awaitable<void> ActorNetDriver::listener()
             );
 
             auto peer = slotPtr->peer.get();
-            g_server->addLog(LOGTYPE_INFO, "Server peer %zu has been connected to master server.", m_peerSlotList.size() - 1);
+            g_server->addLog(LOGTYPE_INFO, "Server peer %zu has connected to master.", m_peerSlotList.size() - 1);
 
             peer->launch();
             post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
