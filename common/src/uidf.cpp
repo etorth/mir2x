@@ -76,7 +76,7 @@ std::string uidf::getUIDString(uint64_t uid)
             }
         case UID_COR:
             {
-                return std::string("CORE_%llu", to_llu(uidf::peerIndex(uid)));
+                return str_printf("CORE_%llu", to_llu(uidf::peerIndex(uid)));
             }
         case UID_RCV:
             {

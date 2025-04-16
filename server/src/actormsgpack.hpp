@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <optional>
 #include "cerealf.hpp"
+#include "uidf.hpp"
 #include "strf.hpp"
 #include "fflerror.hpp"
 #include "actormsg.hpp"
@@ -235,7 +236,7 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
            return str_printf("{type:%s, from:%s, %sseqID:%llu, respID:%llu, size:%llu}",
                    mpkName(type()),
                    to_cstr(uidf::getUIDString(from())),
-                   to_cstr(toOpt.has_value() ? str_printf("to:%llu, ", to_llu(toOpt.value())) : std::string{}),
+                   to_cstr(toOpt.has_value() ? str_printf("to:%s, ", to_cstr(uidf::getUIDString(toOpt.value()))) : ""),
                    to_llu(seqID()),
                    to_llu(respID()),
                    to_llu(size()));
