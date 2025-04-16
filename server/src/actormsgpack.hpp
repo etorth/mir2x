@@ -3,10 +3,13 @@
 #include <cstdint>
 #include <utility>
 #include <type_traits>
+#include <optional>
 #include "cerealf.hpp"
+#include "strf.hpp"
 #include "fflerror.hpp"
 #include "actormsg.hpp"
 #include "actormsgbuf.hpp"
+#include "totype.hpp"
 
 template<size_t SBUFSIZE = 64> class InnActorMsgPack final
 {
@@ -224,6 +227,18 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
                m_dbuf = new uint8_t[size];
                ar(cereal::binary_data(m_dbuf, size));
            }
+       }
+
+    public:
+       std::string str(std::optional<uint64_t> toOpt) const
+       {
+           return str_printf("{type:%s, from:%s, %sseqID:%llu, respID:%llu, size:%llu}",
+                   mpkName(type()),
+                   to_cstr(uidf::getUIDString(from())),
+                   to_cstr(toOpt.has_value() ? str_printf("to:%llu, ", to_llu(toOpt.value())) : std::string{}),
+                   to_llu(seqID()),
+                   to_llu(respID()),
+                   to_llu(size()));
        }
 };
 
