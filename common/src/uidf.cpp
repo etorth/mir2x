@@ -64,19 +64,19 @@ std::string uidf::getUIDString(uint64_t uid)
             }
         case UID_MON:
             {
-                return str_printf("MON_%llu_%llu", to_llu(uidf::getMonsterID(uid)), to_llu(uidf::getMonsterSeq(uid)));
+                return str_printf("MON_%llu_%llu_%llu", to_llu(uidf::getMonsterID(uid)), to_llu(uidf::peerIndex(uid)), to_llu(uidf::getMonsterSeq(uid)));
             }
         case UID_NPC:
             {
-                return str_printf("NPC_%llu_%llu", to_llu(uidf::getNPCID(uid)), to_llu(uidf::getNPCSeq(uid)));
+                return str_printf("NPC_%llu_%llu_%llu", to_llu(uidf::getNPCID(uid)), to_llu(uidf::peerIndex(uid)), to_llu(uidf::getNPCSeq(uid)));
             }
         case UID_MAP:
             {
-                return str_printf("MAP_%llu_%llu", to_llu(uidf::getMapID(uid)), to_llu(uidf::getMapSeq(uid)));
+                return str_printf("MAP_%llu_%llu_%llu", to_llu(uidf::getMapID(uid)), to_llu(uidf::peerIndex(uid)), to_llu(uidf::getMapSeq(uid)));
             }
         case UID_COR:
             {
-                return std::string("CORE");
+                return std::string("CORE_%llu", to_llu(uidf::peerIndex(uid)));
             }
         case UID_RCV:
             {
