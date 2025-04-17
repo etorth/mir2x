@@ -58,7 +58,7 @@ class ServerConfig {} {
   }
   decl {int slavePort = 6000;} {public local
   }
-  Function {getPeerConfig(SDPeerConfig *) const} {return_type void
+  Function {getPeerConfig(SDPeerConfig *confg) const} {return_type void
   } {
     code {{
     if(confg){
