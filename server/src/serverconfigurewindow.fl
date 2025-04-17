@@ -197,9 +197,9 @@ m_window->hide();}
     m_mapFullName->value(defConfg.mapPath.c_str());
     m_scriptFullName->value(defConfg.scriptPath.c_str());
     m_maxPlayerCount->value(std::to_string(defConfg.maxPlayerCount).c_str());
-    m_experienceRate->value(std::to_string(defConfg.experienceRate).c_str());
-    m_dropRate->value(std::to_string(defConfg.dropRate).c_str());
-    m_goldRate->value(std::to_string(defConfg.goldRate).c_str());
+    m_experienceRate->value(str_printf("%.2f", defConfg.experienceRate).c_str());
+    m_dropRate->value(str_printf("%.2f", defConfg.dropRate).c_str());
+    m_goldRate->value(str_printf("%.2f", defConfg.goldRate).c_str());
 
     m_clientPort->value(std::to_string(g_serverArgParser->clientPort.first).c_str());
     if(!g_serverArgParser->clientPort.second){
