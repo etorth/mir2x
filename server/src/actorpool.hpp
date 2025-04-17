@@ -464,9 +464,6 @@ class ActorPool final
         };
 
     private:
-        const uint32_t m_logicFPS;
-
-    private:
         std::atomic<size_t> m_countRunning {0};
         std::vector<MailboxBucket> m_bucketList;
 
@@ -536,7 +533,7 @@ class ActorPool final
         std::unique_ptr<ActorNetDriver> m_actorNetDriver;
 
     public:
-        ActorPool(int, int);
+        ActorPool(int);
 
     public:
         ~ActorPool();

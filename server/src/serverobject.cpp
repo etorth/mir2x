@@ -139,7 +139,7 @@ ServerObject::ServerObject(uint64_t uid)
         return false;
     });
 
-    if(g_serverArgParser->traceActorMessageCount){
+    if(g_serverArgParser->sharedConfig().traceActorMessageCount){
         m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
         {
             if(const auto currTick = g_server->getCurrTick(); lastCheckTick + 1000 < currTick){

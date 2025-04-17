@@ -140,7 +140,7 @@ void ServiceCore::onActivate()
     m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
 
     for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
-        if(g_serverArgParser->preloadMapCheck(mapID)){
+        if(g_serverArgParser->masterConfig().preloadMapCheck(mapID)){
             requestLoadMap(uidsf::getMapBaseUID(mapID), [mapID](bool)
             {
                 g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
@@ -148,16 +148,16 @@ void ServiceCore::onActivate()
         }
     }
 
-    if(!g_serverArgParser->disableQuestScript){
+    if(!g_serverArgParser->masterConfig().disableQuestScript){
         const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
         const auto scriptPath = cfgScriptPath.empty() ? std::string("script/quest") : (cfgScriptPath + "/quest");
         const auto questFileNameRegex = []() -> std::string
         {
-            if(g_serverArgParser->loadSingleQuest.empty()){
+            if(g_serverArgParser->masterConfig().loadSingleQuest.empty()){
                 return R"#(.*\.lua)#";
             }
             else{
-                return g_serverArgParser->loadSingleQuest + R"#(\.lua)#";
+                return g_serverArgParser->masterConfig().loadSingleQuest + R"#(\.lua)#";
             }
         }();
 

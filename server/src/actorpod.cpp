@@ -54,7 +54,7 @@ ActorPod::~ActorPod()
 
 void ActorPod::innHandler(const ActorMsgPack &mpk)
 {
-    if(g_serverArgParser->traceActorMessage){
+    if(g_serverArgParser->sharedConfig().traceActorMessage){
         g_server->addLog(LOGTYPE_DEBUG, "%s <- %s : (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
     }
 
@@ -147,7 +147,7 @@ uint64_t ActorPod::rollSeqID()
     // when we sent a message and wait its response but timed out, we remove the respond callback from m_respondCBList
     // then m_respondCBList can be empty if we reset m_nextSeqID, however the responding actor message can come after the m_nextSeqID reset
 
-    if(g_serverArgParser->enableUniqueActorMessageID){
+    if(g_serverArgParser->sharedConfig().enableUniqueActorMessageID){
         static std::atomic<uint64_t> s_nextSeqID {1}; // shared by all ActorPod
         return s_nextSeqID.fetch_add(1);
     }
@@ -170,7 +170,7 @@ bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID)
         throw fflerror("%s -> %s: (type: AM_NONE, seqID: 0, respID: %llu): Try to send an empty message", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), to_llu(respID));
     }
 
-    if(g_serverArgParser->traceActorMessage){
+    if(g_serverArgParser->sharedConfig().traceActorMessage){
         g_server->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: 0, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
     }
 
@@ -197,7 +197,7 @@ bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID, s
     }
 
     const auto seqID = rollSeqID();
-    if(g_serverArgParser->traceActorMessage){
+    if(g_serverArgParser->sharedConfig().traceActorMessage){
         g_server->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(seqID), to_llu(respID));
     }
 

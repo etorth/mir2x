@@ -24,7 +24,7 @@ ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint32_t r
         m_currID = 1;
     }
 
-    if(g_serverArgParser->traceActorMessage){
+    if(g_serverArgParser->sharedConfig().traceActorMessage){
         g_server->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(uid).c_str(), mpkName(mb.type()), to_llu(m_currID), to_llu(resp));
     }
 

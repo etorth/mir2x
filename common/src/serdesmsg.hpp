@@ -929,41 +929,12 @@ struct SDTaggedValMap
 
 struct SDPeerConfig
 {
-    // from server-arg-parser
-
-    int logicalFPS = false;
-    int summonCount = false;
-
-    bool lightMasterServer = false;
-
-    bool disableMapScript = false;
-    bool disableQuestScript = false;
-
-    bool disableLearnMagicCheckJob = false;
-    bool disableLearnMagicCheckLevel = false;
-    bool disableLearnMagicCheckPrior = false;
-
-    bool traceActorMessage = false;
-    bool traceActorMessageCount = false;
-    bool enableUniqueActorMessageID = false;
-
-    bool disablePetSpawn = false;
-    bool disableGuardSpawn = false;
-    bool disableMonsterSpawn = false;
-    bool disableNPCSpawn = false;
-
-    bool showStrikeGrid = false;
-    bool forceMonsterRandomMove = false;
-
-    // from server-configure-window
-
-    double experienceRate = 1.0;
-    double       dropRate = 1.0;
-    double       goldRate = 1.0;
+    double dropRate = 1.0f;
+    double goldRate = 1.0f;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(logicalFPS, summonCount, lightMasterServer, disableMapScript, disableQuestScript, disableLearnMagicCheckJob, disableLearnMagicCheckLevel, disableLearnMagicCheckPrior, traceActorMessage, traceActorMessageCount, enableUniqueActorMessageID, disablePetSpawn, disableGuardSpawn, disableMonsterSpawn, disableNPCSpawn, showStrikeGrid, forceMonsterRandomMove, experienceRate, dropRate, goldRate);
+        ar(dropRate, goldRate);
     }
 };
 
@@ -1215,9 +1186,11 @@ struct SDSysSlavePeerList
 struct SDSysPeerIndex
 {
     size_t index {};
+    std::string masterConfig {};
+
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(index);
+        ar(index, masterConfig);
     }
 };
 

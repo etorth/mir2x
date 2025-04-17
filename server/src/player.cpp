@@ -1505,7 +1505,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(600, [this, magicID, smFM]()
                 {
-                    for(int i = 0; i < g_serverArgParser->summonCount; ++i){
+                    for(int i = 0; i < g_serverArgParser->sharedConfig().summonCount; ++i){
                         if(to_u32(magicID) == DBCOM_MAGICID(u8"召唤骷髅")){
                             addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
                         }
@@ -1535,7 +1535,7 @@ void Player::onCMActionSpell(CMAction cmA)
 
                 addDelay(1000, [this, smFM]()
                 {
-                    for(int i = 0; i < g_serverArgParser->summonCount; ++i){
+                    for(int i = 0; i < g_serverArgParser->sharedConfig().summonCount; ++i){
                         addMonster(DBCOM_MONSTERID(u8"神兽"), smFM.AimX, smFM.AimY, false);
                     }
                 });
@@ -1642,7 +1642,7 @@ void Player::onCMActionSpell(CMAction cmA)
                         {
                             if(castMapID == mapID()){
                                 m_actorPod->forward(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
-                                if(g_serverArgParser->showStrikeGrid){
+                                if(g_serverArgParser->sharedConfig().showStrikeGrid){
                                     SMStrikeGrid smSG;
                                     std::memset(&smSG, 0, sizeof(smSG));
 
@@ -2106,7 +2106,7 @@ bool Player::consumeBook(uint32_t itemID)
         return false;
     }
 
-    if(!g_serverArgParser->disableLearnMagicCheckJob){
+    if(!g_serverArgParser->sharedConfig().disableLearnMagicCheckJob){
         bool hasJob = false;
         for(const auto jobstr: jobf::jobName(job())){
             if(jobstr){
@@ -2125,12 +2125,12 @@ bool Player::consumeBook(uint32_t itemID)
         }
     }
 
-    if(to_d(level()) < mr.req.level[0] && !g_serverArgParser->disableLearnMagicCheckLevel){
+    if(to_d(level()) < mr.req.level[0] && !g_serverArgParser->sharedConfig().disableLearnMagicCheckLevel){
         postNetMessage(SM_TEXT, str_printf(u8"无法学习%s，因为你尚未到达%d级", to_cstr(mr.name), mr.req.level[0]));
         return false;
     }
 
-    if(str_haschar(mr.req.prior) && !g_serverArgParser->disableLearnMagicCheckPrior){
+    if(str_haschar(mr.req.prior) && !g_serverArgParser->sharedConfig().disableLearnMagicCheckPrior){
         const auto priorMagicID = DBCOM_MAGICID(mr.req.prior);
         const auto &priorMR = DBCOM_MAGICRECORD(priorMagicID);
 

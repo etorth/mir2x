@@ -493,7 +493,7 @@ corof::eval_poller<> Monster::updateCoroFunc()
                 break;
             }
         }
-        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+        else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
             co_await coro_randomMove();
             m_actorPod->setMetronomeFreq(10);
         }

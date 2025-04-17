@@ -61,7 +61,7 @@ corof::eval_poller<> ServerWoomaTaurus::updateCoroFunc()
         else if(masterUID()){
             co_await coro_followMaster();
         }
-        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+        else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
             co_await coro_randomMove();
         }
         co_await corof::async_wait(200);

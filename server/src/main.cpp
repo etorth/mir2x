@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         g_log       = new Log("mir2x-server-v0.1");
         g_server    = new Server();
         g_mapBinDB  = new MapBinDB();
-        g_actorPool = new ActorPool(g_serverArgParser->actorPoolThread, g_serverArgParser->logicalFPS);
+        g_actorPool = new ActorPool(g_serverArgParser->actorPoolThread);
 
         if(g_serverArgParser->slave){
             g_peerConfig = new PeerConfig();
@@ -77,12 +77,12 @@ int main(int argc, char *argv[])
             g_podMonitorWindow      = new PodMonitorWindow();
             g_actorMonitorWindow    = new ActorMonitorWindow();
 
-            if(g_serverArgParser->textFont >= 0){
-                g_mainWindow->setGUIFont(g_serverArgParser->textFont);
+            if(g_serverArgParser->masterConfig().textFont >= 0){
+                g_mainWindow->setGUIFont(g_serverArgParser->masterConfig().textFont);
             }
 
             g_mainWindow->showAll();
-            if(g_serverArgParser->autoLaunch){
+            if(g_serverArgParser->masterConfig().autoLaunch){
                 g_server->launch();
             }
         }

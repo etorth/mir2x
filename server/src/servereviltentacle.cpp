@@ -29,7 +29,7 @@ corof::eval_poller<> ServerEvilTentacle::updateCoroFunc()
                 m_inViewCOList.erase(targetUID);
             }
         }
-        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+        else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
             co_await coro_randomMove();
         }
         co_await corof::async_wait(200);

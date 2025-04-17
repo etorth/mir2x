@@ -29,7 +29,7 @@ decl {\#include "uidsf.hpp"} {private local
 decl {\#include "filesys.hpp"} {private local
 }
 
-decl {\#include "serdesmsg.hpp"} {public global
+decl {\#include "serdesmsg.hpp"} {private local
 }
 
 decl {\#include "dispatcher.hpp"} {private local
@@ -57,16 +57,6 @@ class ServerConfig {} {
   decl {int clientPort = 5000;} {public local
   }
   decl {int slavePort = 6000;} {public local
-  }
-  Function {getPeerConfig(SDPeerConfig *confg) const} {return_type void
-  } {
-    code {{
-    if(confg){
-        confg->dropRate = this->dropRate;
-        confg->goldRate = this->goldRate;
-        confg->experienceRate = this->experienceRate;
-    }
-}} {}
   }
 }
 
@@ -211,13 +201,13 @@ m_window->hide();}
     m_dropRate->value(str_printf("%.2f", defConfg.dropRate).c_str());
     m_goldRate->value(str_printf("%.2f", defConfg.goldRate).c_str());
 
-    m_clientPort->value(std::to_string(g_serverArgParser->clientPort.first).c_str());
-    if(!g_serverArgParser->clientPort.second){
+    m_clientPort->value(std::to_string(g_serverArgParser->masterConfig().clientPort.first).c_str());
+    if(!g_serverArgParser->masterConfig().clientPort.second){
         m_clientPort->deactivate();
     }
 
-    m_slavePort->value(std::to_string(g_serverArgParser->peerPort.first).c_str());
-    if(!g_serverArgParser->peerPort.second){
+    m_slavePort->value(std::to_string(g_serverArgParser->masterConfig().peerPort.first).c_str());
+    if(!g_serverArgParser->masterConfig().peerPort.second){
         m_slavePort->deactivate();
     }
 
@@ -292,13 +282,12 @@ m_window->hide();}
         fnAssignPositiveDouble(m_goldRate->value(), "gold rate", m_config.goldRate);
     }
 
-    SDPeerConfig sdPC {};
-
-    getConfig()       .getPeerConfig(&sdPC);
-    g_serverArgParser->getPeerConfig(&sdPC);
-
     for(size_t i = 1; i <= uidsf::peerCount(); ++i){
-        Dispatcher().forward(uidf::getPeerCoreUID(i), {AM_PEERCONFIG, cerealf::serialize(sdPC)});
+        Dispatcher().forward(uidf::getPeerCoreUID(i), {AM_PEERCONFIG, cerealf::serialize(SDPeerConfig
+        {
+            .dropRate = m_config.dropRate,
+            .goldRate = m_config.goldRate,
+        })});
     }
 }} {}
   }

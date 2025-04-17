@@ -28,11 +28,11 @@ ServerLuaModule::ServerLuaModule()
             R"###(     disableNPCSpawn     = %s,    )###"
             R"###( })                               )###",
 
-            to_boolcstr(g_serverArgParser->disableMapScript   ),
-            to_boolcstr(g_serverArgParser->disablePetSpawn    ),
-            to_boolcstr(g_serverArgParser->disableGuardSpawn  ),
-            to_boolcstr(g_serverArgParser->disableMonsterSpawn),
-            to_boolcstr(g_serverArgParser->disableNPCSpawn    )));
+            to_boolcstr(g_serverArgParser->sharedConfig().disableMapScript   ),
+            to_boolcstr(g_serverArgParser->sharedConfig().disablePetSpawn    ),
+            to_boolcstr(g_serverArgParser->sharedConfig().disableGuardSpawn  ),
+            to_boolcstr(g_serverArgParser->sharedConfig().disableMonsterSpawn),
+            to_boolcstr(g_serverArgParser->sharedConfig().disableNPCSpawn    )));
 
     pfrCheck(execString("package.path = package.path .. ';%s/?.lua'", []() -> std::string
     {

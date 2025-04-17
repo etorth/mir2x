@@ -198,7 +198,7 @@ CharObject *EnableAddCO::addCO(SDInitCharObject sdICO)
 
 ServerGuard *EnableAddCO::addGuard(SDInitGuard sdIG)
 {
-    if(g_serverArgParser->disableGuardSpawn){
+    if(g_serverArgParser->sharedConfig().disableGuardSpawn){
         return nullptr;
     }
 
@@ -234,7 +234,7 @@ Player *EnableAddCO::addPlayer(SDInitPlayer sdIP)
 
 NPChar *EnableAddCO::addNPChar(SDInitNPChar sdINPC)
 {
-    if(g_serverArgParser->disableNPCSpawn){
+    if(g_serverArgParser->sharedConfig().disableNPCSpawn){
         return nullptr;
     }
 
@@ -254,12 +254,12 @@ NPChar *EnableAddCO::addNPChar(SDInitNPChar sdINPC)
 Monster *EnableAddCO::addMonster(SDInitMonster sdIM)
 {
     if(uidf::getUIDType(sdIM.masterUID) == UID_PLY){
-        if(g_serverArgParser->disablePetSpawn){
+        if(g_serverArgParser->sharedConfig().disablePetSpawn){
             return nullptr;
         }
     }
     else{
-        if(g_serverArgParser->disableMonsterSpawn){
+        if(g_serverArgParser->sharedConfig().disableMonsterSpawn){
             return nullptr;
         }
     }

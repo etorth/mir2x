@@ -29,7 +29,7 @@ ActorNetDriver::ActorNetDriver()
 {
     launch(g_serverArgParser->peerPort.first);
     if(g_serverArgParser->slave){
-        asyncConnect(0, g_serverArgParser->masterIP, g_serverArgParser->masterPort.first, [this]()
+        asyncConnect(0, g_serverArgParser->slaveConfig().masterIP, g_serverArgParser->slaveConfig().masterPort.first, [this]()
         {
             postMaster(ActorMsgBuf(AM_SYS_SLAVEPEERPORT, cerealf::serialize(SDSysSlavePeerPort
             {
@@ -142,9 +142,10 @@ asio::awaitable<void> ActorNetDriver::listener()
             g_server->addLog(LOGTYPE_INFO, "Server peer %zu has connected to master", m_peerSlotList.size() - 1);
 
             peer->launch();
-            post(m_peerSlotList.size() - 1, 0, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
+            postPeer(m_peerSlotList.size() - 1, ActorMsgBuf(AM_SYS_PEERINDEX, cerealf::serialize(SDSysPeerIndex
             {
                  .index = m_peerSlotList.size() - 1,
+                 .masterConfig = cerealf::serialize(g_serverArgParser->sharedConfig()),
             })));
         }
     }
@@ -315,6 +316,8 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                 }
 
                 m_peerIndex = sdPI.index;
+                g_serverArgParser->setSharedConfig(cerealf::deserialize<ServerArgParser::MasterSharedConfig>(sdPI.masterConfig));
+
                 g_server->addLog(LOGTYPE_INFO, "Assign peer index %zu", m_peerIndex.value());
                 return;
             }
@@ -324,7 +327,7 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                 m_remotePeerList[fromPeerIndex] = std::make_pair(m_peerSlotList.at(fromPeerIndex)->peer->ip(), sdSPP.port);
 
                 for(size_t i = 1; i < m_peerSlotList.size(); ++i){
-                    post(i, 0, ActorMsgBuf(AM_SYS_SLAVEPEERLIST, cerealf::serialize(SDSysSlavePeerList
+                    postPeer(i, ActorMsgBuf(AM_SYS_SLAVEPEERLIST, cerealf::serialize(SDSysSlavePeerList
                     {
                         .list = m_remotePeerList,
                     })));

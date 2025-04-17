@@ -27,7 +27,7 @@ size_t uidsf::pickPeerIndex(int uidType, std::optional<size_t> seedOpt)
                 const size_t seed = seedOpt.value_or(mathf::rand());
 
                 if(peerCount > 0){
-                    if(g_serverArgParser->lightMasterServer){
+                    if(g_serverArgParser->sharedConfig().lightMasterServer){
                         return (seed % peerCount) + 1;
                     }
                     else{

@@ -1251,7 +1251,7 @@ void ServerMap::onActivate()
 
 void ServerMap::loadNPChar()
 {
-    if(g_serverArgParser->disableNPCSpawn){
+    if(g_serverArgParser->sharedConfig().disableNPCSpawn){
         return;
     }
 

@@ -10181,7 +10181,7 @@ class MainWindow {} {
     }
 
     extern ServerArgParser *g_serverArgParser;
-    if(g_serverArgParser->autoLaunch){
+    if(g_serverArgParser->masterConfig().autoLaunch){
         m_launchMenu->deactivate();
     }
 }} {}

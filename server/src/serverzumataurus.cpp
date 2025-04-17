@@ -207,7 +207,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
                                 {
                                     if(castMapID == mapID()){
                                         m_actorPod->forward(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
-                                        if(g_serverArgParser->showStrikeGrid){
+                                        if(g_serverArgParser->sharedConfig().showStrikeGrid){
                                             SMStrikeGrid smSG;
                                             std::memset(&smSG, 0, sizeof(smSG));
 

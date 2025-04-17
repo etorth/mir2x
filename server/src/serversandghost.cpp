@@ -38,7 +38,7 @@ corof::eval_poller<> ServerSandGhost::updateCoroFunc()
                 targetUID = 0;
             }
         }
-        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
+        else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
             if(m_standMode){
                 co_await coro_randomMove();
             }

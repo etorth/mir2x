@@ -54,21 +54,14 @@ ActorPool::Mailbox::Mailbox(ActorPod *actorPtr, std::function<void()> atStartTri
     , atStart(std::move(atStartTrigger))
 {}
 
-ActorPool::ActorPool(int bucketCount, int logicFPS)
-    : m_logicFPS([logicFPS]() -> uint32_t
-      {
-          fflassert(logicFPS > 0);
-          return logicFPS;
-      }())
-    , m_bucketList([bucketCount]() -> uint32_t
+ActorPool::ActorPool(int bucketCount)
+    : m_bucketList([bucketCount]() -> uint32_t
       {
           fflassert(bucketCount > 0);
           return bucketCount;
       }())
     , m_actorNetDriver(std::make_unique<ActorNetDriver>())
-{
-    g_server->addLog(LOGTYPE_INFO, "Server FPS: %llu", to_llu(m_logicFPS));
-}
+{}
 
 ActorPool::~ActorPool()
 {
@@ -830,8 +823,13 @@ void ActorPool::launchPool()
     // one bucket has one dedicated thread
     // it will feed the update message METRNOME and can steal jobs when not busy
 
+    const auto logicalFPS = g_serverArgParser->sharedConfig().logicalFPS;
+
+    g_server->addLog(LOGTYPE_INFO, "Logical FPS: %d", logicalFPS);
+    g_server->addLog(LOGTYPE_INFO, "Launch actor pool with %zu thread", m_bucketList.size());
+
     for(int bucketId = 0; bucketId < to_d(m_bucketList.size()); ++bucketId){
-        m_bucketList.at(bucketId).runThread = std::async(std::launch::async, [bucketId, this]()
+        m_bucketList.at(bucketId).runThread = std::async(std::launch::async, [bucketId, logicalFPS, this]()
         {
             // setup the worker id
             // for any other thread this will NOT get assigned
@@ -839,7 +837,7 @@ void ActorPool::launchPool()
             try{
                 raii_timer timer;
                 uint64_t lastUpdateTime = 0;
-                const uint64_t maxUpdateWaitTime = 1000ULL / m_logicFPS;
+                const uint64_t maxUpdateWaitTime = 1000ULL / logicalFPS;
 
                 std::vector<uint64_t> uidList;
                 uidList.reserve(2048);
