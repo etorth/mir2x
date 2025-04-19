@@ -231,7 +231,7 @@ bool uidf::isMap(uint64_t uid)
 
 bool uidf::isBaseMap(uint64_t uid)
 {
-    return (uidf::getUIDType(uid) == UID_MAP) && (uidf::getMapID(uid) == 1);
+    return uidf::isMap(uid) && (uidf::getMapSeq(uid) == 1);
 }
 
 bool uidf::isPlayer(uint64_t uid)
