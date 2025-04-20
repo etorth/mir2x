@@ -176,7 +176,7 @@ class ModalStringBoardImpl: public Widget
         {
             drawChildEx(&m_imageUpDup, dstX, dstY, srcX, srcY, srcW, srcH);
             drawChildEx(&m_imageDown , dstX, dstY, srcX, srcY, srcW, srcH);
-            drawChildEx(&m_board, dstX, dstY, srcX, srcY, srcW, srcH);
+            drawChildEx(&m_board     , dstX, dstY, srcX, srcY, srcW, srcH);
         }
 };
 
@@ -186,51 +186,24 @@ ModalStringBoard::ModalStringBoard()
 
 void ModalStringBoard::loadXML(std::u8string s)
 {
-    {
-        const std::lock_guard<std::mutex> lockGuard(m_lock);
-        if(s == m_xmlString){
-            return;
-        }
-
-        m_xmlString = std::move(s);
-        dynamic_cast<ModalStringBoardImpl *>(m_boardImpl.get())->m_board.loadXML(to_cstr(m_xmlString));
+    if(s == m_xmlString){
+        return;
     }
-    m_cond.notify_one();
+
+    m_xmlString = std::move(s);
+    dynamic_cast<ModalStringBoardImpl *>(m_boardImpl.get())->m_board.loadXML(to_cstr(m_xmlString));
 }
 
-void ModalStringBoard::setDone()
+void ModalStringBoard::drawScreen(bool drainEvents) const
 {
-    {
-        const std::lock_guard<std::mutex> lockGuard(m_lock);
-        m_done = true;
-    }
-    m_cond.notify_one();
-}
-
-void ModalStringBoard::waitDone()
-{
-    while(true){
-        // ignore events but need to flush
-        // seems it's required to commit event like window size change
+    if(drainEvents){
         SDL_Event event;
         while(SDL_PollEvent(&event)){
             continue;
         }
-
-        g_sdlDevice->clearScreen();
-        {
-            const std::lock_guard<std::mutex> lockGuard(m_lock);
-            m_boardImpl->draw();
-        }
-        g_sdlDevice->present();
-
-        // put wait at end
-        // this makes sure every waitDone() can draw at least 1 frame
-        {
-            std::unique_lock<std::mutex> lockGuard(m_lock);
-            if(m_cond.wait_for(lockGuard, std::chrono::milliseconds(10), [this](){ return m_done; })){
-                return;
-            }
-        }
     }
+
+    g_sdlDevice->clearScreen();
+    m_boardImpl->draw();
+    g_sdlDevice->present();
 }

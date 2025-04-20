@@ -738,7 +738,7 @@ void ProcessRun::loadMap(uint64_t newMapUID, int centerGX, int centerGY)
     const auto lastMapUID = mapUID();
     ModalStringBoard loadStringBoard;
 
-    const auto fnSetDoneRatio = [&loadStringBoard, newMapUID](int ratio)
+    const auto fnUpdateLoadRatio = [&loadStringBoard, newMapUID](int ratio)
     {
         const std::string mapName = to_cstr(DBCOM_MAPRECORD(uidf::getMapID(newMapUID)).name);
         loadStringBoard.loadXML(str_printf
@@ -751,22 +751,20 @@ void ProcessRun::loadMap(uint64_t newMapUID, int centerGX, int centerGY)
             mapName.substr(0, mapName.find('_')).c_str(),
             mathf::bound<int>(ratio, 0, 100)
         ));
-
-        if(ratio >= 100){
-            loadStringBoard.setDone();
-        }
+        loadStringBoard.drawScreen(true);
     };
 
-    const auto fnLoadMap = [newMapUID, &fnSetDoneRatio, centerGX, centerGY, this]()
+    g_sdlDevice->stopSoundEffect();
+    fnUpdateLoadRatio(0);
     {
         const auto mapBinPtr = g_mapBinDB->retrieve(uidf::getMapID(newMapUID));
         fflassert(mapBinPtr);
-        fnSetDoneRatio(30);
+        fnUpdateLoadRatio(30);
 
         m_mapUID = newMapUID;
         m_mir2xMapData = *mapBinPtr;
         m_groundItemIDList.clear();
-        fnSetDoneRatio(40);
+        fnUpdateLoadRatio(40);
 
         // don't use getRenererSize() here
         // SDLDevice::getRenererSize() doesn't have lock protection
@@ -803,20 +801,13 @@ void ProcessRun::loadMap(uint64_t newMapUID, int centerGX, int centerGY)
 
                 if(const auto currRatio = to_d(std::lround(to_f(doneGridCount++ * (100 - 40)) / totalGridCount)); currRatio > lastRatio){
                     lastRatio = currRatio;
-                    fnSetDoneRatio(40 + currRatio);
+                    fnUpdateLoadRatio(40 + currRatio);
                 }
             }
         }
-        fnSetDoneRatio(100);
-    };
+    }
 
-    g_sdlDevice->stopSoundEffect();
-
-    fnSetDoneRatio(0);
-    auto loadThread = std::async(std::launch::async, fnLoadMap);
-    loadStringBoard.waitDone();
-    loadThread.get();
-
+    fnUpdateLoadRatio(100);
     if(auto boardPtr = dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))){
         if(boardPtr->show()){
             if(boardPtr->getMiniMapTexture()){

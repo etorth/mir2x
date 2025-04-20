@@ -1,18 +1,11 @@
 #pragma once
-#include <mutex>
-#include <condition_variable>
 #include <memory>
 #include <string>
 
 class Widget;
-class ModalStringBoard // thread safe text board
+class ModalStringBoard
 {
     private:
-        mutable std::mutex m_lock;
-        mutable std::condition_variable m_cond;
-
-    private:
-        bool m_done = false;
         std::u8string m_xmlString;
 
     private:
@@ -26,6 +19,5 @@ class ModalStringBoard // thread safe text board
         void loadXML(std::u8string);
 
     public:
-        void  setDone();
-        void waitDone();
+        void drawScreen(bool) const;
 };
