@@ -1,5 +1,5 @@
 #pragma once
-namespace utils
+namespace sgf // scope_guard
 {
     namespace _scope_guard_details
     {
@@ -85,7 +85,7 @@ namespace utils
         };
     }
 
-    template<typename F> [[nodiscard]] auto guard_scope(F&& f) noexcept(noexcept(_scope_guard_details::scope_guard<std::decay_t<F>>(static_cast<F &&>(f))))
+    template<typename F> [[nodiscard]] auto guard(F&& f) noexcept(noexcept(_scope_guard_details::scope_guard<std::decay_t<F>>(static_cast<F &&>(f))))
     {
         return _scope_guard_details::scope_guard<std::decay_t<F>>(static_cast<F &&>(f));
     }
