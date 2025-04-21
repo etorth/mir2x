@@ -27,13 +27,13 @@ void XMLTypeset::setTokenBoxWordSpace(int argLine)
     int nW2 = m_wordSpace - nW1;
 
     for(auto &rstToken: m_lineList[argLine].content){
-        rstToken.Box.State.W1 = nW1;
-        rstToken.Box.State.W2 = nW2;
+        rstToken.box.state.w1 = nW1;
+        rstToken.box.state.w2 = nW2;
     }
 
     if(!m_lineList[argLine].content.empty()){
-        m_lineList[argLine].content[0]    .Box.State.W1 = 0;
-        m_lineList[argLine].content.back().Box.State.W2 = 0;
+        m_lineList[argLine].content[0]    .box.state.w1 = 0;
+        m_lineList[argLine].content.back().box.state.w2 = 0;
     }
 }
 
@@ -51,7 +51,7 @@ int XMLTypeset::LineFullWidth(int argLine) const
     int nWidth = 0;
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
         auto pToken = getToken(nIndex, argLine);
-        nWidth += (pToken->Box.State.W1 + pToken->Box.Info.W + pToken->Box.State.W2);
+        nWidth += (pToken->box.state.w1 + pToken->box.info.w + pToken->box.state.w2);
     }
     return nWidth;
 }
@@ -77,7 +77,7 @@ int XMLTypeset::LineRawWidth(int argLine, bool bWithWordSpace) const
             }
         case 1:
             {
-                return getToken(0, argLine)->Box.Info.W;
+                return getToken(0, argLine)->box.info.w;
             }
         default:
             {
@@ -86,7 +86,7 @@ int XMLTypeset::LineRawWidth(int argLine, bool bWithWordSpace) const
 
                 int nWidth = 0;
                 for(int nX = 0; nX < lineTokenCount(argLine); ++nX){
-                    nWidth += getToken(nX, argLine)->Box.Info.W;
+                    nWidth += getToken(nX, argLine)->box.info.w;
                     if(bWithWordSpace){
                         nWidth += GetTokenWordSpace(nX, argLine);
                     }
@@ -127,7 +127,7 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
     {
         int result = 0;
         for(const auto &token: tokenLine){
-            result += token.Box.Info.W;
+            result += token.box.info.w;
         }
         return result;
     }();
@@ -208,9 +208,9 @@ void XMLTypeset::LineJustifyPadding(int argLine)
                 }
 
                 auto tokenPtr = getToken(x, y);
-                if(tokenPtr->Box.State.W1 <= tokenPtr->Box.State.W2){
+                if(tokenPtr->box.state.w1 <= tokenPtr->box.state.w2){
                     if(x != 0){
-                        tokenPtr->Box.State.W1++;
+                        tokenPtr->box.state.w1++;
                         nDoneDWidth--;
 
                         if(nDoneDWidth == 0){
@@ -221,7 +221,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
 
                 else{
                     if(x != lineTokenCount(y) - 1){
-                        tokenPtr->Box.State.W2++;
+                        tokenPtr->box.state.w2++;
                         nDoneDWidth--;
 
                         if(nDoneDWidth == 0){
@@ -249,7 +249,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
         const auto tokenPtr = getToken(x, y);
         switch(m_paragraph->leaf(tokenPtr->leaf).type()){
             case LEAF_IMAGE:
-            case LEAF_EMOJI: return tokenPtr->Box.State.W1 + tokenPtr->Box.State.W2 < tokenPtr->Box.Info.W / 5;
+            case LEAF_EMOJI: return tokenPtr->box.state.w1 + tokenPtr->box.state.w2 < tokenPtr->box.info.w / 5;
             default        : return false;
         }
     }) == MaxLineWidth()){
@@ -324,8 +324,8 @@ void XMLTypeset::resetOneLine(int argLine, bool bCREnd)
     }();
 
     for(int i = 0, tokenCnt = lineTokenCount(argLine); i < tokenCnt; ++i){
-        getToken(i, argLine)->Box.State.W1 = (i     == 0       ) ? 0 : wordSpace[0];
-        getToken(i, argLine)->Box.State.W2 = (i + 1 == tokenCnt) ? 0 : wordSpace[1];
+        getToken(i, argLine)->box.state.w1 = (i     == 0       ) ? 0 : wordSpace[0];
+        getToken(i, argLine)->box.state.w2 = (i + 1 == tokenCnt) ? 0 : wordSpace[1];
     }
 
     switch(lineAlign()){
@@ -373,11 +373,11 @@ void XMLTypeset::setLineTokenStartX(int argLine)
 
     int nCurrX = nLineStartX;
     for(auto &rstToken: m_lineList[argLine].content){
-        nCurrX += rstToken.Box.State.W1;
-        rstToken.Box.State.X = nCurrX;
+        nCurrX += rstToken.box.state.w1;
+        rstToken.box.state.x = nCurrX;
 
-        nCurrX += rstToken.Box.Info.W;
-        nCurrX += rstToken.Box.State.W2;
+        nCurrX += rstToken.box.info.w;
+        nCurrX += rstToken.box.state.w2;
     }
 }
 
@@ -422,11 +422,11 @@ int XMLTypeset::LineIntervalMaxH2(int argLine, int nIntervalStartX, int nInterva
     int nMaxH2 = -1;
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
         auto pToken = getToken(nIndex, argLine);
-        int nW  = pToken->Box.Info .W;
-        int nX  = pToken->Box.State.X;
-        int nW1 = pToken->Box.State.W1;
-        int nW2 = pToken->Box.State.W2;
-        int nH2 = pToken->Box.State.H2;
+        int nW  = pToken->box.info .w;
+        int nX  = pToken->box.state.x;
+        int nW1 = pToken->box.state.w1;
+        int nW2 = pToken->box.state.w2;
+        int nH2 = pToken->box.state.h2;
 
         if(mathf::intervalOverlap<int>(nX - nW1, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
             nMaxH2 = (std::max<int>)(nMaxH2, nH2);
@@ -539,9 +539,9 @@ int XMLTypeset::LineNewStartY(int argLine)
     int nCurrentY = -1;
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
         auto pToken = getToken(nIndex, argLine);
-        int nX  = pToken->Box.State.X;
-        int nW  = pToken->Box.Info .W;
-        int nH1 = pToken->Box.State.H1;
+        int nX  = pToken->box.state.x;
+        int nW  = pToken->box.info .w;
+        int nH1 = pToken->box.state.h1;
 
         // LineTokenBestY() already take m_lineSpace into consideration
         nCurrentY = (std::max<int>)(nCurrentY, LineTokenBestY(argLine, nX, nW, nH1));
@@ -572,7 +572,7 @@ void XMLTypeset::setLineTokenStartY(int argLine)
     m_lineList[argLine].startY = to_d(LineNewStartY(argLine));
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
         auto pToken = getToken(nIndex, argLine);
-        pToken->Box.State.Y = m_lineList[argLine].startY - pToken->Box.State.H1;
+        pToken->box.state.y = m_lineList[argLine].startY - pToken->box.state.h1;
     }
 }
 
@@ -595,11 +595,11 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t nFont, uint8_t nFontSize
         int nBoxW = -1;
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
-            stToken.Box.Info.W      = nBoxW;
-            stToken.Box.Info.H      = nBoxH;
-            stToken.Box.State.H1    = stToken.Box.Info.H;
-            stToken.Box.State.H2    = 0;
-            stToken.UTF8Char.U64Key = nU64Key;
+            stToken.box.info.w      = nBoxW;
+            stToken.box.info.h      = nBoxH;
+            stToken.box.state.h1    = stToken.box.info.h;
+            stToken.box.state.h2    = 0;
+            stToken.utf8char.key = nU64Key;
             return stToken;
         }
         throw fflerror("SDL_QueryTexture(%p) failed", to_cvptr(pTexture));
@@ -624,11 +624,11 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t nFont, uint8_t nFontSize
         int nBoxH = -1;
         if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
             g_log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", to_d(nFont), to_d(m_font), to_d(nFontSize), to_d(m_fontSize));
-            stToken.Box.Info.W      = nBoxW;
-            stToken.Box.Info.H      = nBoxH;
-            stToken.Box.State.H1    = stToken.Box.Info.H;
-            stToken.Box.State.H2    = 0;
-            stToken.UTF8Char.U64Key = nU64Key;
+            stToken.box.info.w      = nBoxW;
+            stToken.box.info.h      = nBoxH;
+            stToken.box.state.h1    = stToken.box.info.h;
+            stToken.box.state.h2    = 0;
+            stToken.utf8char.key = nU64Key;
             return stToken;
         }
         throw fflerror("SDL_QueryTexture(%p) failed", to_cvptr(pTexture));
@@ -654,13 +654,13 @@ TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
 
     emoji <<= 8;
     if(g_emojiDB->retrieve(emoji, 0, 0, &tokenW, &tokenH, &h1, &fps, &frameCount)){
-        token.Box.Info.W       = tokenW;
-        token.Box.Info.H       = tokenH;
-        token.Box.State.H1     = h1;
-        token.Box.State.H2     = tokenH - h1;
-        token.Emoji.U32Key     = emoji;
-        token.Emoji.FPS        = fps;
-        token.Emoji.FrameCount = frameCount;
+        token.box.info.w       = tokenW;
+        token.box.info.h       = tokenH;
+        token.box.state.h1     = h1;
+        token.box.state.h2     = tokenH - h1;
+        token.emoji.key     = emoji;
+        token.emoji.fps        = fps;
+        token.emoji.frameCount = frameCount;
     }
     return token;
 }
@@ -1122,20 +1122,20 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
             // background can be bigger than tokenbox by W1/W2
 
             if(colorf::A(bgColorVal)){
-                int bgBoxX = tokenPtr->Box.State.X - tokenPtr->Box.State.W1;
-                int bgBoxY = tokenPtr->Box.State.Y;
-                int bgBoxW = tokenPtr->Box.Info.W + tokenPtr->Box.State.W1 + tokenPtr->Box.State.W2;
-                int bgBoxH = tokenPtr->Box.Info.H;
+                int bgBoxX = tokenPtr->box.state.x - tokenPtr->box.state.w1;
+                int bgBoxY = tokenPtr->box.state.y;
+                int bgBoxW = tokenPtr->box.info.w + tokenPtr->box.state.w1 + tokenPtr->box.state.w2;
+                int bgBoxH = tokenPtr->box.info.h;
 
                 if(mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, bgBoxX, bgBoxY, bgBoxW, bgBoxH)){
                     g_sdlDevice->fillRectangle(bgColorVal, bgBoxX + dstDX, bgBoxY + dstDY, bgBoxW, bgBoxH);
                 }
             }
 
-            int boxX = tokenPtr->Box.State.X;
-            int boxY = tokenPtr->Box.State.Y;
-            int boxW = tokenPtr->Box.Info.W;
-            int boxH = tokenPtr->Box.Info.H;
+            int boxX = tokenPtr->box.state.x;
+            int boxY = tokenPtr->box.state.y;
+            int boxW = tokenPtr->box.info.w;
+            int boxH = tokenPtr->box.info.h;
 
             if(!mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, boxX, boxY, boxW, boxH)){
                 continue;
@@ -1144,13 +1144,13 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
             const int drawDstX = boxX + dstDX;
             const int drawDstY = boxY + dstDY;
 
-            const int dx = boxX - tokenPtr->Box.State.X;
-            const int dy = boxY - tokenPtr->Box.State.Y;
+            const int dx = boxX - tokenPtr->box.state.x;
+            const int dy = boxY - tokenPtr->box.state.y;
 
             switch(leaf.type()){
                 case LEAF_UTF8STR:
                     {
-                        if(auto texPtr = g_fontexDB->retrieve(tokenPtr->UTF8Char.U64Key)){
+                        if(auto texPtr = g_fontexDB->retrieve(tokenPtr->utf8char.key)){
                             SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, fgColorVal);
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
@@ -1171,10 +1171,10 @@ void XMLTypeset::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int sr
                     {
                         const auto emojiKey = [tokenPtr]() -> uint32_t
                         {
-                            if(tokenPtr->Emoji.FrameCount && tokenPtr->Emoji.FPS){
-                                return (tokenPtr->Emoji.U32Key & 0XFFFFFF00) + tokenPtr->Emoji.Frame % tokenPtr->Emoji.FrameCount;
+                            if(tokenPtr->emoji.frameCount && tokenPtr->emoji.fps){
+                                return (tokenPtr->emoji.key & 0XFFFFFF00) + tokenPtr->emoji.frame % tokenPtr->emoji.frameCount;
                             }
-                            return tokenPtr->Emoji.U32Key & 0XFFFFFF00;
+                            return tokenPtr->emoji.key & 0XFFFFFF00;
                         }();
 
                         int xOnTex = 0;
@@ -1204,13 +1204,13 @@ void XMLTypeset::update(double fMS)
     for(int leafIndex = 0; leafIndex < m_paragraph->leafCount(); ++leafIndex){
         if(m_paragraph->leaf(leafIndex).type() == LEAF_EMOJI){
             const auto [x, y] = leafTokenLoc(leafIndex);
-            if(auto pToken= getToken(x, y); pToken->Emoji.FPS != 0){
-                double fPeroidMS = 1000.0 / pToken->Emoji.FPS;
-                double fCurrTick = fMS + pToken->Emoji.Tick;
+            if(auto pToken= getToken(x, y); pToken->emoji.fps != 0){
+                double fPeroidMS = 1000.0 / pToken->emoji.fps;
+                double fCurrTick = fMS + pToken->emoji.tick;
 
                 auto nAdvancedFrame  = to_u8(fCurrTick / fPeroidMS);
-                pToken->Emoji.Tick   = to_u8(fCurrTick - nAdvancedFrame * fPeroidMS);
-                pToken->Emoji.Frame += nAdvancedFrame;
+                pToken->emoji.tick   = to_u8(fCurrTick - nAdvancedFrame * fPeroidMS);
+                pToken->emoji.frame += nAdvancedFrame;
             }
         }
     }
@@ -1268,7 +1268,7 @@ int XMLTypeset::LineReachMaxX(int argLine) const
     }
 
     auto pToken = GetLineBackToken(argLine);
-    return pToken->Box.State.X + pToken->Box.Info.W;
+    return pToken->box.state.x + pToken->box.info.w;
 }
 
 int XMLTypeset::LineReachMaxY(int argLine) const
@@ -1289,7 +1289,7 @@ int XMLTypeset::LineReachMinX(int argLine) const
         throw fflerror("invalie empty line: %d", argLine);
     }
 
-    return getToken(0, argLine)->Box.State.X;
+    return getToken(0, argLine)->box.state.x;
 }
 
 int XMLTypeset::LineReachMinY(int argLine) const
@@ -1315,7 +1315,7 @@ int XMLTypeset::LineMaxHk(int argLine, int k) const
 
     int nCurrMaxHk = 0;
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
-        nCurrMaxHk = (std::max<int>)(nCurrMaxHk, (k == 1) ? getToken(nIndex, argLine)->Box.State.H1 : getToken(nIndex, argLine)->Box.State.H2);
+        nCurrMaxHk = (std::max<int>)(nCurrMaxHk, (k == 1) ? getToken(nIndex, argLine)->box.state.h1 : getToken(nIndex, argLine)->box.state.h2);
     }
     return nCurrMaxHk;
 }
@@ -1358,7 +1358,7 @@ std::tuple<int, int> XMLTypeset::locCursor(int xOffPixel, int yOffPixel) const
 
         const auto pBox = std::lower_bound(iter_begin, iter_end, xOffPixel, [](const auto &parmX, const auto &parmY)
         {
-            return parmX.Box.State.X < parmY;
+            return parmX.box.state.x < parmY;
         });
         return std::distance(m_lineList.at(cursorY).content.begin(), pBox);
     }();
@@ -1404,10 +1404,10 @@ bool XMLTypeset::locInToken(int xOffPixel, int yOffPixel, const TOKEN *pToken, b
         throw fflerror("null token pointer");
     }
 
-    const int startX = pToken->Box.State.X - (withPadding ? pToken->Box.State.W1 : 0);
-    const int startY = pToken->Box.State.Y;
-    const int boxW   = pToken->Box.Info.W + (withPadding ? (pToken->Box.State.W1 + pToken->Box.State.W2) : 0);
-    const int boxH   = pToken->Box.Info.H;
+    const int startX = pToken->box.state.x - (withPadding ? pToken->box.state.w1 : 0);
+    const int startY = pToken->box.state.y;
+    const int boxW   = pToken->box.info.w + (withPadding ? (pToken->box.state.w1 + pToken->box.state.w2) : 0);
+    const int boxH   = pToken->box.info.h;
 
     return mathf::pointInRectangle(xOffPixel, yOffPixel, startX, startY, boxW, boxH);
 }
@@ -1449,7 +1449,7 @@ bool XMLTypeset::blankToken(int x, int y) const
         return (u64Key & 0X00000000FFFFFFFFULL) == ' ';
     };
 
-    return (leaf.type() == LEAF_UTF8STR) && fnCheckBlank(tokenPtr->UTF8Char.U64Key);
+    return (leaf.type() == LEAF_UTF8STR) && fnCheckBlank(tokenPtr->utf8char.key);
 }
 
 void XMLTypeset::setLineWidth(int lineWidth)
