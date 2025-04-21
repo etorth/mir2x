@@ -1,4 +1,8 @@
 #pragma once
+#include <utility>
+#include <type_traits>
+#include <iostream>
+
 namespace sgf // scope_guard
 {
     namespace _scope_guard_details
