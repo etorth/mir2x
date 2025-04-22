@@ -19,8 +19,7 @@ ActorPod::ActorPod(uint64_t uid,
         ServerObject *serverObject,
         std::function<void()> fnTrigger,
         std::function<void(const ActorMsgPack &)> fnOperation,
-        double updateFreq,
-        uint64_t expireTime)
+        double updateFreq)
     : m_UID([uid]() -> uint64_t
       {
           fflassert(uid);
@@ -33,7 +32,6 @@ ActorPod::ActorPod(uint64_t uid,
     , m_trigger(std::move(fnTrigger))
     , m_operation(std::move(fnOperation))
     , m_updateFreq(regMetronomeFreq(updateFreq))
-    , m_expireTime(expireTime)
 {}
 
 ActorPod::~ActorPod()
@@ -58,40 +56,13 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
         g_server->addLog(LOGTYPE_DEBUG, "%s <- %s : (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
     }
 
-    if(m_expireTime){
-        while(!m_respondCBList.empty()){
-            if(hres_tstamp().to_nsec() >= m_respondCBList.begin()->second.expireTime){
-                // everytime when we received the new MPK we check if there is handler the timeout
-                // also this time get counted into the monitor entry
-                m_podMonitor.amProcMonitorList[AM_TIMEOUT].recvCount++;
-                {
-                    raii_timer stTimer(&(m_podMonitor.amProcMonitorList[AM_TIMEOUT].procTick));
-                    m_respondCBList.begin()->second.op(AM_TIMEOUT);
-                }
-                m_respondCBList.erase(m_respondCBList.begin());
-                continue;
-            }
-
-            // std::map<ID, Handler> keeps order in ID number
-            // ID number is the Resp() of the responding messages
-            //
-            // and we guarantee "ID1 < ID2" => "ExpireTime1 <= ExpireTime2"
-            // so if we get first non-expired handler, means the rest are all not expired
-            break;
-        }
-    }
-
     if(mpk.respID()){
-        // try to find the response handler for current responding message
-        // 1.     find it, good
-        // 2. not find it: 1. didn't register for it, we must prevent this at sending
-        //                 2. repsonse is too late ooops and the handler has already be deleted
         if(auto p = m_respondCBList.find(mpk.respID()); p != m_respondCBList.end()){
-            if(p->second.op){
+            if(p->second){
                 m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
                 {
                     raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
-                    p->second.op(mpk);
+                    p->second(mpk);
                 }
             }
             else{
@@ -132,21 +103,6 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
 
 uint64_t ActorPod::rollSeqID()
 {
-    // NOTE we have to use increasing seqID for one pod to support timeout
-    // previously we reset m_nextSeqID when m_respondCBList is empty, as following:
-    //
-    //     if(m_respondCBList.empty){
-    //         m_nextSeqID = 1;
-    //     }
-    //     else{
-    //         m_nextSeqID++;
-    //     }
-    //     return m_nextSeqID;
-    //
-    // This implementation has bug when we support timeout:
-    // when we sent a message and wait its response but timed out, we remove the respond callback from m_respondCBList
-    // then m_respondCBList can be empty if we reset m_nextSeqID, however the responding actor message can come after the m_nextSeqID reset
-
     if(g_serverArgParser->sharedConfig().enableUniqueActorMessageID){
         static std::atomic<uint64_t> s_nextSeqID {1}; // shared by all ActorPod
         return s_nextSeqID.fetch_add(1);
@@ -203,7 +159,7 @@ bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID, s
 
     m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;
     if(g_actorPool->postMessage(uid, {mbuf, UID(), seqID, respID})){
-        if(m_respondCBList.try_emplace(seqID, hres_tstamp().to_nsec() + m_expireTime, std::move(opr)).second){
+        if(m_respondCBList.try_emplace(seqID, std::move(opr)).second){
             return true;
         }
         throw fflerror("failed to register response handler for posted message: %s", mpkName(mbuf.type()));

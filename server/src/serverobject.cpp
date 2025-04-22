@@ -168,7 +168,7 @@ ServerObject::~ServerObject()
 //
 // And if we really want to change the address of current object, maybe we need to
 // delete current object totally and create a new one instead
-uint64_t ServerObject::activate(double metronomeFreq, uint64_t expireTime)
+uint64_t ServerObject::activate(double metronomeFreq)
 {
     fflassert(!m_actorPod);
     m_actorPod = new ActorPod
@@ -187,7 +187,6 @@ uint64_t ServerObject::activate(double metronomeFreq, uint64_t expireTime)
         },
 
         metronomeFreq,
-        expireTime,
     };
 
     // seperate attach call

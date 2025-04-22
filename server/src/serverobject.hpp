@@ -56,7 +56,7 @@ class ServerObject
         }
 
     public:
-        uint64_t activate(double metronomeFreq = 10.0, uint64_t expireTime = 3600ULL * 1000 * 10000 * 1000);
+        uint64_t activate(double metronomeFreq = 10.0);
 
     protected:
         virtual void onActivate() {}

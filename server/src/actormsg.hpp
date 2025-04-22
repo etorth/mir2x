@@ -24,7 +24,6 @@ enum ActorMsgPackType: int
     AM_BADCHANNEL,
     AM_SDBUFFER,
     AM_REMOTECALL,
-    AM_TIMEOUT,
     AM_UID,
     AM_UIDLIST,
     AM_PING,
@@ -151,7 +150,6 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_BADCHANNEL)
         _add_mpk_type_case(AM_SDBUFFER)
         _add_mpk_type_case(AM_REMOTECALL)
-        _add_mpk_type_case(AM_TIMEOUT)
         _add_mpk_type_case(AM_UID)
         _add_mpk_type_case(AM_UIDLIST)
         _add_mpk_type_case(AM_PING)

@@ -1,9 +1,9 @@
 #pragma once
-#include <map>
 #include <array>
 #include <string>
 #include <cfloat>
 #include <functional>
+#include <unordered_map>
 
 #include "actormsgbuf.hpp"
 #include "actormsgpack.hpp"
@@ -14,18 +14,6 @@ class ActorPod final
 {
     private:
         friend class ActorPool;
-
-    private:
-        struct RespondCallback
-        {
-            uint64_t expireTime;
-            std::function<void(const ActorMsgPack &)> op;
-
-            RespondCallback(uint64_t argExpireTime, std::function<void(const ActorMsgPack &)> argOp)
-                : expireTime(argExpireTime)
-                , op(std::move(argOp))
-            {}
-        };
 
     private:
         const uint64_t m_UID;
@@ -63,22 +51,8 @@ class ActorPod final
         // to create unique proper ID for an message expcecting response
         uint64_t m_nextSeqID = 1;
 
-        // for expire time check in nanoseconds
-        // zero expire time means we never expire any handler for current pod
-        // we can put argument to specify the expire time of each handler but not necessary
-        const uint64_t m_expireTime;
-
-        // use std::map instead of std::unordered_map
-        //
-        // 1. we have to scan the map every time when new message comes to remove expired ones
-        //    std::unordered_map is slow for scan the entire map
-        //    I can maintain another std::priority_queue based on expire time
-        //    but it's hard to remove those entry which executed before expire from the queue
-        //
-        // 2. std::map keeps entries in order by Resp number
-        //    Resp number gives strict order of expire time, excellent feature by std::map
-        //    then when checking expired ones, we start from std::map::begin() and stop at the fist non-expired one
-        std::map<uint64_t, RespondCallback> m_respondCBList;
+    private:
+        std::unordered_map<uint64_t, std::function<void(const ActorMsgPack &)>> m_respondCBList;
 
     private:
         ActorPodMonitor m_podMonitor;
@@ -92,8 +66,7 @@ class ActorPod final
                 ServerObject *,                             // SO
                 std::function<void()>,                      // trigger
                 std::function<void(const ActorMsgPack &)>,  // msgHandler
-                double,                                     // metronome frequency in HZ
-                uint64_t);                                  // timeout in nanoseconds
+                double);                                    // metronome frequency in HZ
 
     public:
         ~ActorPod();
