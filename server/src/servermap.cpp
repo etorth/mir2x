@@ -488,7 +488,7 @@ ServerMap::ServerMap(uint64_t argMapUID)
     }
 }
 
-void ServerMap::operateAM(const ActorMsgPack &rstMPK)
+void ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
         case AM_PICKUP:
@@ -1101,7 +1101,7 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
             doUIDList(nX, nY, [this, amNNCO](uint64_t nUID)
             {
                 if(nUID != amNNCO.UID){
-                    m_actorPod->forward(nUID, {AM_NOTIFYNEWCO, amNNCO});
+                    m_actorPod->post(nUID, {AM_NOTIFYNEWCO, amNNCO});
                 }
                 return false;
             });
@@ -1177,7 +1177,7 @@ void ServerMap::updateMapGridFireWall()
                             case UID_PLY:
                             case UID_MON:
                                 {
-                                    m_actorPod->forward(uid, {AM_ATTACK, amA});
+                                    m_actorPod->post(uid, {AM_ATTACK, amA});
                                     break;
                                 }
                             default:
@@ -1297,7 +1297,7 @@ void ServerMap::loadNPChar()
 
             if(uidf::peerIndex(UID())){
                 m_npcList.emplace(sdINPC.npcName, NPCharOp{});
-                m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize<SDInitCharObject>(sdINPC)}, [sdINPC, this](const ActorMsgPack &mpk)
+                m_actorPod->send(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize<SDInitCharObject>(sdINPC)}, [sdINPC, this](const ActorMsgPack &mpk)
                 {
                     switch(mpk.type()){
                         case AM_UID:

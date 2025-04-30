@@ -1,17 +1,19 @@
 #include "quest.hpp"
 #include "totype.hpp"
 
-void Quest::on_AM_METRONOME(const ActorMsgPack &)
+corof::entrance Quest::on_AM_METRONOME(const ActorMsgPack &)
 {
+    return {};
 }
 
-void Quest::on_AM_REMOTECALL(const ActorMsgPack &mpk)
+corof::entrance Quest::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();
     m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
+    return {};
 }
 
-void Quest::on_AM_RUNQUESTTRIGGER(const ActorMsgPack &mpk)
+corof::entrance Quest::on_AM_RUNQUESTTRIGGER(const ActorMsgPack &mpk)
 {
     std::visit(VarDispatcher
     {
@@ -45,4 +47,5 @@ void Quest::on_AM_RUNQUESTTRIGGER(const ActorMsgPack &mpk)
             throw fflerror("invalid quest trigger");
         },
     }, mpk.deserialize<SDQuestTriggerVar>());
+    return {};
 }

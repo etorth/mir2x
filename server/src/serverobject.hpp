@@ -24,6 +24,7 @@ class ServerObject
         };
 
     private:
+        friend class ActorPod;
         friend class ServerObjectLuaThreadRunner;
 
     private:
@@ -59,7 +60,10 @@ class ServerObject
         uint64_t activate(double metronomeFreq = 10.0);
 
     protected:
-        virtual void onActivate() {}
+        virtual corof::entrance onActivate()
+        {
+            return {};
+        }
 
     protected:
         void deactivate();
@@ -71,7 +75,13 @@ class ServerObject
         }
 
     public:
-        virtual void operateAM(const ActorMsgPack &) = 0;
+        virtual corof::entrance onActorMsg(const ActorMsgPack &) = 0;
+
+    public:
+        virtual void afterActorMsg()
+        {
+            m_stateTrigger.run();
+        }
 
     public:
         auto addDelay(uint64_t delayTick, std::function<void()> cmd)

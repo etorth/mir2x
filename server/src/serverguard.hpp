@@ -25,6 +25,6 @@ class ServerGuard: public Monster
         }
 
     protected:
-        bool canMove()   const override;
+        bool canMove(true)   const override;
         bool canAttack() const override;
 };

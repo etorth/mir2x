@@ -49,7 +49,7 @@ void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t, uint64_t
         // send the query without response requirement
 
         amQCOR.UID = UID();
-        if(!m_actorPod->forward(stCMQCOR.AimUID, {AM_QUERYCORECORD, amQCOR})){
+        if(!m_actorPod->post(stCMQCOR.AimUID, {AM_QUERYCORECORD, amQCOR})){
             reportDeadUID(stCMQCOR.AimUID);
         }
     }
@@ -127,7 +127,7 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
     amPU.availableWeight = 500;
 
     m_pickUpLock = true;
-    m_actorPod->forward(mapUID(), {AM_PICKUP, amPU}, [fnPostPickUpError, this](const ActorMsgPack &mpk)
+    m_actorPod->send(mapUID(), {AM_PICKUP, amPU}, [fnPostPickUpError, this](const ActorMsgPack &mpk)
     {
         if(!m_pickUpLock){
             throw fflerror("pick up lock released before get response");
@@ -195,7 +195,7 @@ void Player::net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t, uint64_t)
 void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen, uint64_t)
 {
     const auto cmNPCE = ClientMsg::conv<CMNPCEvent>(buf, bufLen);
-    m_actorPod->forward(cmNPCE.uid, {AM_NPCEVENT, cerealf::serialize(SDNPCEvent
+    m_actorPod->post(cmNPCE.uid, {AM_NPCEVENT, cerealf::serialize(SDNPCEvent
     {
         .x = X(),
         .y = Y(),
@@ -220,7 +220,7 @@ void Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf, size_t, uint6
 
     std::memset(&amQSIL, 0, sizeof(amQSIL));
     amQSIL.itemID = cmQSIL.itemID;
-    m_actorPod->forward(cmQSIL.npcUID, {AM_QUERYSELLITEMLIST, amQSIL});
+    m_actorPod->post(cmQSIL.npcUID, {AM_QUERYSELLITEMLIST, amQSIL});
 }
 
 void Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size_t, uint64_t)
@@ -238,7 +238,7 @@ void Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size_t, uint64_t)
             case UID_PLY:
             case UID_MON:
                 {
-                    m_actorPod->forward(cmQUIDB.uid, AM_QUERYUIDBUFF);
+                    m_actorPod->post(cmQUIDB.uid, AM_QUERYUIDBUFF);
                     break;
                 }
             default:
@@ -261,7 +261,7 @@ void Player::net_CM_QUERYPLAYERNAME(uint8_t, const uint8_t *buf, size_t, uint64_
         }));
     }
     else if(uidf::isPlayer(cmQPN.uid)){
-        m_actorPod->forward(cmQPN.uid, AM_QUERYPLAYERNAME);
+        m_actorPod->post(cmQPN.uid, AM_QUERYPLAYERNAME);
     }
 }
 
@@ -281,7 +281,7 @@ void Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf, size_t, uint6
         }, true));
     }
     else if(uidf::getUIDType(cmQPWLD.uid) == UID_PLY){
-        m_actorPod->forward(cmQPWLD.uid, AM_QUERYPLAYERWLDESP);
+        m_actorPod->post(cmQPWLD.uid, AM_QUERYPLAYERWLDESP);
     }
     else{
         throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQPWLD.uid), uidf::getUIDTypeCStr(cmQPWLD.uid));
@@ -576,7 +576,7 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint64_t)
     amB.itemID = cmB.itemID;
     amB.seqID  = cmB.seqID;
     amB.count  = cmB.count;
-    m_actorPod->forward(cmB.npcUID, {AM_BUY, amB}, [cmB, this](const ActorMsgPack &mpk)
+    m_actorPod->send(cmB.npcUID, {AM_BUY, amB}, [cmB, this](const ActorMsgPack &mpk)
     {
         const auto fnPostBuyError = [&cmB, &mpk, this](int buyError)
         {
@@ -614,7 +614,7 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint64_t)
                     }
 
                     if(lackItemID){
-                        m_actorPod->forward(mpk.from(), AM_ERROR, mpk.seqID());
+                        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
                         fnPostBuyError(BUYERR_INSUFFCIENT);
                     }
                     else{
@@ -646,7 +646,7 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint64_t)
                         else{
                             addInventoryItem(sdBC.item, false);
                         }
-                        m_actorPod->forward(mpk.from(), AM_OK, mpk.seqID());
+                        m_actorPod->post(mpk.fromAddr(), AM_OK);
 
                         if(!ir.packable()){
                             SMBuySucceed smBS;
@@ -904,11 +904,11 @@ void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t, uint64_
     }
     else if(m_teamLeader == UID()){
         m_teamMemberList.push_back(cmRJT.uid);
-        m_actorPod->forward(cmRJT.uid, AM_TEAMUPDATE);
+        m_actorPod->post(cmRJT.uid, AM_TEAMUPDATE);
         reportTeamMemberList();
     }
     else{
-        m_actorPod->forward(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
+        m_actorPod->post(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
         {
             .player
             {
@@ -934,7 +934,7 @@ void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, size_t, uint64
     if(m_teamLeader == UID()){
         for(const auto member: m_teamMemberList){
             if(member != UID()){
-                m_actorPod->forward(member, AM_TEAMUPDATE);
+                m_actorPod->post(member, AM_TEAMUPDATE);
             }
         }
 
@@ -949,7 +949,7 @@ void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, size_t, uint64
         reportTeamMemberList();
     }
     else if(cmRLT.uid == UID()){
-        m_actorPod->forward(m_teamLeader, AM_REQUESTLEAVETEAM);
+        m_actorPod->post(m_teamLeader, AM_REQUESTLEAVETEAM);
     }
 }
 
@@ -977,7 +977,7 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
     fflassert(dropItem);
     removeInventoryItem(dropItem);
 
-    m_actorPod->forward(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+    m_actorPod->post(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
     {
         .x = X(),
         .y = Y(),

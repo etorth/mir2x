@@ -96,7 +96,7 @@ class CharObject: public ServerObject
         virtual bool update() = 0;
 
     public:
-        void onActivate() override
+        corof::entrance onActivate() override
         {
             ServerObject::onActivate();
             dispatchAction(ActionSpawn
@@ -105,6 +105,7 @@ class CharObject: public ServerObject
                 .x = X(),
                 .y = Y(),
             });
+            return {};
         }
 
     protected:
@@ -115,7 +116,7 @@ class CharObject: public ServerObject
         virtual void dispatchAction(uint64_t, const ActionNode &);
 
     protected:
-        void getCOLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
+        corof::awaitable<std::optional<COLocation>> getCOLocation(uint64_t);
 
     protected:
         virtual bool goDie()   = 0;

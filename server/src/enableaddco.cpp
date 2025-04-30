@@ -1,6 +1,7 @@
 #include "serverargparser.hpp"
 #include "rotatecoord.hpp"
 #include "uidf.hpp"
+#include "sgf.hpp"
 #include "uidsf.hpp"
 #include "actorpod.hpp"
 #include "actormsg.hpp"
@@ -43,7 +44,7 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
     : m_actorPod(argPod)
 {
     fflassert(m_actorPod);
-    m_actorPod->registerOp(AM_ADDCO, [this](const ActorMsgPack &mpk)
+    m_actorPod->registerOp(AM_ADDCO, [this]([[maybe_unused]] this auto self, const ActorMsgPack &mpk) -> corof::entrance
     {
         // always create CO if request received
         // it's sender's responsibility to figure out to forward the request to which peer
@@ -58,7 +59,7 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
                     std::memset(&amUID, 0, sizeof(amUID));
 
                     amUID.uid = coPtr->UID();
-                    m_actorPod->forward(fromAddr, {AM_UID, amUID});
+                    m_actorPod->post(fromAddr, {AM_UID, amUID});
                     return;
                 }
             }
@@ -72,7 +73,7 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
             if(!err.empty()){
                 g_server->addLog(LOGTYPE_WARNING, "Failed in EnableAddCO::ADDCO: %s", to_cstr(err));
             }
-            m_actorPod->forward(fromAddr, AM_ERROR);
+            m_actorPod->post(fromAddr, AM_ERROR);
         };
 
         const auto mapUID = std::visit(VarDispatcher
@@ -90,36 +91,30 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
             fnAddCO();
         }
         else if(m_actorPod->UID() == uidf::getServiceCoreUID()){
-            dynamic_cast<ServiceCore *>(m_actorPod->getSO())->requestLoadMap(mapUID, [fnAddCO](bool)
-            {
+            if(co_await dynamic_cast<ServiceCore *>(m_actorPod->getSO())->requestLoadMap(mapUID)){
                 fnAddCO();
-            },
-
-            [fromAddr = mpk.fromAddr(), this]()
-            {
-                m_actorPod->forward(fromAddr, AM_ERROR);
-            });
+            }
+            else{
+                m_actorPod->post(fromAddr, AM_ERROR);
+            }
         }
         else{
             AMLoadMap amLM;
             std::memset(&amLM, 0, sizeof(amLM));
 
             amLM.mapUID = mapUID;
-            m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [fromAddr = mpk.fromAddr(), fnAddCO, this](const ActorMsgPack &rmpk)
-            {
-                switch(rmpk.type()){
-                    case AM_LOADMAPOK:
-                        {
-                            fnAddCO();
-                            break;
-                        }
-                    default:
-                        {
-                            m_actorPod->forward(fromAddr, AM_ERROR);
-                            break;
-                        }
-                }
-            });
+            switch(const auto rmpk = co_await m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
+                case AM_LOADMAPOK:
+                    {
+                        fnAddCO();
+                        break;
+                    }
+                default:
+                    {
+                        m_actorPod->post(fromAddr, AM_ERROR);
+                        break;
+                    }
+            }
         }
     });
 }
@@ -228,7 +223,7 @@ Player *EnableAddCO::addPlayer(SDInitPlayer sdIP)
     std::memset(&amBC, 0, sizeof(amBC));
     amBC.channID = sdIP.channID;
 
-    m_actorPod->forward(playerPtr->UID(), {AM_BINDCHANNEL, amBC});
+    m_actorPod->post(playerPtr->UID(), {AM_BINDCHANNEL, amBC});
     return playerPtr;
 }
 

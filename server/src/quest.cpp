@@ -208,7 +208,7 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
         amMQTT.type = triggerType;
         amMQTT.enable = enable;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [closed, onDone, this](const ActorMsgPack &rmpk)
+        m_actorPod->send(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [closed, onDone, this](const ActorMsgPack &rmpk)
         {
             if(*closed){
                 return;
@@ -305,7 +305,7 @@ Quest::Quest(const SDInitQuest &initQuest)
 void Quest::onActivate()
 {
     ServerObject::onActivate();
-    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_REGISTERQUEST, cerealf::serialize(SDRegisterQuest
+    m_actorPod->post(uidf::getServiceCoreUID(), {AM_REGISTERQUEST, cerealf::serialize(SDRegisterQuest
     {
         .name = getQuestName(),
     })});
@@ -319,23 +319,20 @@ void Quest::onActivate()
     m_luaRunner->spawn(m_mainScriptThreadKey, filesys::readFile(m_scriptName.c_str()));
 }
 
-void Quest::operateAM(const ActorMsgPack &mpk)
+corof::entrance Quest::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_METRONOME:
             {
-                on_AM_METRONOME(mpk);
-                break;
+                return on_AM_METRONOME(mpk);
             }
         case AM_REMOTECALL:
             {
-                on_AM_REMOTECALL(mpk);
-                break;
+                return on_AM_REMOTECALL(mpk);
             }
         case AM_RUNQUESTTRIGGER:
             {
-                on_AM_RUNQUESTTRIGGER(mpk);
-                break;
+                return on_AM_RUNQUESTTRIGGER(mpk);
             }
         default:
             {

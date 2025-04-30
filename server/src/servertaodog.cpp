@@ -142,7 +142,7 @@ void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void(
                         }
 
                         if(uidf::getUIDType(enemyFinalMaster) == UID_MON){
-                            m_actorPod->forward(inViewCOLoc.uid, {AM_ATTACK, amA});
+                            m_actorPod->post(inViewCOLoc.uid, {AM_ATTACK, amA});
                             return;
                         }
 

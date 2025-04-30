@@ -32,7 +32,7 @@ class ServerRootSpider final: public Monster
         }
 
     protected:
-        bool canMove() const override
+        bool canMove(true) const override
         {
             return false;
         }

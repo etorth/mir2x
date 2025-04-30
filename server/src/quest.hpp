@@ -43,7 +43,7 @@ class Quest final: public ServerObject
         Quest(const SDInitQuest &);
 
     protected:
-        void onActivate() override;
+        corof::entrance onActivate() override;
 
     public:
         std::string getQuestName() const
@@ -60,10 +60,10 @@ class Quest final: public ServerObject
         void dumpQuestField(uint64_t, const std::string &) const;
 
     protected:
-        void operateAM(const ActorMsgPack &) override;
+        corof::entrance onActorMsg(const ActorMsgPack &) override;
 
     protected:
-        void on_AM_METRONOME      (const ActorMsgPack &);
-        void on_AM_REMOTECALL     (const ActorMsgPack &);
-        void on_AM_RUNQUESTTRIGGER(const ActorMsgPack &);
+        corof::entrance on_AM_METRONOME      (const ActorMsgPack &);
+        corof::entrance on_AM_REMOTECALL     (const ActorMsgPack &);
+        corof::entrance on_AM_RUNQUESTTRIGGER(const ActorMsgPack &);
 };

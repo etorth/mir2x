@@ -23,7 +23,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
             *closed = true;
         });
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
+        m_actorPod->post(uidf::getServiceCoreUID(), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
         {
             .name = std::move(questName),
         })},
@@ -66,7 +66,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
             *closed = true;
         });
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), AM_QUERYQUESTUIDLIST, [closed, onDone](const ActorMsgPack &rmpk)
+        m_actorPod->send(uidf::getServiceCoreUID(), AM_QUERYQUESTUIDLIST, [closed, onDone](const ActorMsgPack &rmpk)
         {
             if(*closed){
                 return;
@@ -105,7 +105,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         std::memset(&amLM, 0, sizeof(AMLoadMap));
 
         amLM.mapUID = uidsf::getMapBaseUID(DBCOM_MAPID(to_u8cstr(mapName)));
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, amLM, onDone, this](const ActorMsgPack &mpk)
+        m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, amLM, onDone, this](const ActorMsgPack &mpk)
         {
             if(*closed){
                 return;
@@ -175,17 +175,6 @@ uint64_t ServerObject::activate(double metronomeFreq)
     {
         m_UID,
         this,
-
-        [this]()
-        {
-            m_stateTrigger.run();
-        },
-
-        [this](const ActorMsgPack &mpk)
-        {
-            operateAM(mpk);
-        },
-
         metronomeFreq,
     };
 
@@ -193,10 +182,7 @@ uint64_t ServerObject::activate(double metronomeFreq)
     // this triggers the startup callback, i.e. the onActivate()
     // if automatically call attach() in ActorPod::ctor() then m_actorPod is invalid yet
 
-    m_actorPod->attach([this]()
-    {
-        onActivate();
-    });
+    m_actorPod->attach();
     return UID();
 }
 
@@ -219,7 +205,7 @@ void ServerObject::forwardNetPackage(uint64_t uid, uint8_t type, const void *buf
         bufPtr + bufLen,
     };
 
-    m_actorPod->forward(uid, {AM_SENDPACKAGE, cerealf::serialize(SDSendPackage
+    m_actorPod->post(uid, {AM_SENDPACKAGE, cerealf::serialize(SDSendPackage
     {
         .type = type,
         .buf = std::move(packData),

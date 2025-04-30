@@ -18,18 +18,16 @@ void ServerLuaObject::onActivate()
     m_luaRunner = std::make_unique<ServerLuaObject::LuaThreadRunner>(this);
 }
 
-void ServerLuaObject::operateAM(const ActorMsgPack &mpk)
+corof::entrance ServerLuaObject::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_METRONOME:
             {
-                on_AM_METRONOME(mpk);
-                break;
+                return on_AM_METRONOME(mpk);
             }
         case AM_REMOTECALL:
             {
-                on_AM_REMOTECALL(mpk);
-                break;
+                return on_AM_REMOTECALL(mpk);
             }
         default:
             {

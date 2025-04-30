@@ -13,12 +13,12 @@
 extern Server *g_server;
 extern PeerConfig *g_peerConfig;
 
-void PeerCore::on_AM_PEERCONFIG(const ActorMsgPack &mpk)
+corof::entrance PeerCore::on_AM_PEERCONFIG(const ActorMsgPack &mpk)
 {
     g_peerConfig->setConfig(mpk.deserialize<SDPeerConfig>());
 }
 
-void PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
+corof::entrance PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
 {
     // map may run on peer
     // but is manageed on service core
@@ -26,7 +26,7 @@ void PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
     const auto amPLM = mpk.conv<AMPeerLoadMap>();
 
     if(!uidsf::isLocalUID(amPLM.mapUID)){
-        m_actorPod->forward(mpk.fromAddr(), AM_ERROR);
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
         return;
     }
 
@@ -35,12 +35,12 @@ void PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
         std::memset(&amPLMOK, 0, sizeof(amPLMOK));
 
         amPLMOK.newLoad = newLoad;
-        m_actorPod->forward(mpk.fromAddr(), {AM_PEERLOADMAPOK, amPLMOK});
+        m_actorPod->post(mpk.fromAddr(), {AM_PEERLOADMAPOK, amPLMOK});
         if(newLoad){
             g_server->addLog(LOGTYPE_INFO, "Load map %d on peer %zu successfully", to_d(uidf::getMapID(amPLM.mapUID)), uidf::peerIndex(UID()));
         }
     }
     else{
-        m_actorPod->forward(mpk.fromAddr(), AM_ERROR);
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
     }
 }

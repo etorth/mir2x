@@ -28,6 +28,7 @@ enum ActorMsgPackType: int
     AM_UIDLIST,
     AM_PING,
     AM_METRONOME,
+    AM_ACTIVATE,
     AM_TRYJUMP,
     AM_ALLOWJUMP,
     AM_REJECTJUMP,
@@ -154,6 +155,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_UIDLIST)
         _add_mpk_type_case(AM_PING)
         _add_mpk_type_case(AM_METRONOME)
+        _add_mpk_type_case(AM_ACTIVATE)
         _add_mpk_type_case(AM_TRYJUMP)
         _add_mpk_type_case(AM_ALLOWJUMP)
         _add_mpk_type_case(AM_REJECTJUMP)
@@ -290,7 +292,6 @@ struct AMAllowLeave
 
 struct AMLeaveOK
 {
-    uint64_t uid;
     uint64_t mapUID;
     ActionNode action;
 };
@@ -465,15 +466,12 @@ struct AMTryMapSwitch
 
 struct AMAllowMapSwitch
 {
-    uint64_t mapUID;
     int X;
     int Y;
 };
 
 struct AMMapSwitchOK
 {
-    uint64_t uid;
-    uint64_t mapUID;
     ActionNode action;
 };
 

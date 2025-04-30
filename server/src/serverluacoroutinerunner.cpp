@@ -52,10 +52,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
-    m_actorPod->registerOp(AM_SENDNOTIFY, [this](const ActorMsgPack &mpk)
+    m_actorPod->registerOp(AM_SENDNOTIFY, [thisptr = this]([[maybe_unused]] this auto self, const ActorMsgPack &mpk) -> corof::entrance
     {
         auto sdSN = mpk.deserialize<SDSendNotify>();
-        auto runnerPtr = hasKey(sdSN.key, sdSN.seqID);
+        auto runnerPtr = thisptr->hasKey(sdSN.key, sdSN.seqID);
 
         if(runnerPtr){
             // notify is from variadic_args, which may contain tailing nil
@@ -74,10 +74,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                     runnerPtr->needNotify = false;
                     resumeRunner(runnerPtr);
                 }
-                m_actorPod->forward(mpk.fromAddr(), AM_OK);
+                thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
             }
             else{
-                m_actorPod->forward(mpk.fromAddr(), AM_OK);
+                thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
                 if(runnerPtr && runnerPtr->needNotify){
                     runnerPtr->needNotify = false;
                     resumeRunner(runnerPtr);
@@ -90,6 +90,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 resumeRunner(runnerPtr);
             }
         }
+        return {};
     });
 
     bindFunction("getUID", [this]() -> uint64_t
@@ -144,7 +145,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             *closed = true;
         });
 
-        m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
+        m_actorPod->post(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
         {
             .code = code,
             .args = luaf::buildLuaVar(args),
@@ -215,7 +216,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             argList.emplace_back(luaf::buildLuaVar(sol::object(arg)));
         }
 
-        m_actorPod->forward(uid, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
+        m_actorPod->post(uid, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
         {
             .key = dstThreadKey,
             .seqID = dstThreadSeqID,
@@ -244,7 +245,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
 
         const LuaCoopCallDoneFlag callDoneFlag;
-        m_actorPod->forward(questUID, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
+        m_actorPod->post(questUID, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
         {
             .key = dstThreadKey,
             .seqID = dstThreadSeqID,
@@ -434,7 +435,7 @@ std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, std:
                 fflassert(varList.empty(), error, varList);
             }
 
-            m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+            m_actorPod->post(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
                 .error = std::move(error),
                 .varList = std::move(varList),
@@ -487,7 +488,7 @@ std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, std:
     [closed, reqAddr, this]()
     {
         if(*closed){
-            m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+            m_actorPod->post(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
                 .varList
                 {

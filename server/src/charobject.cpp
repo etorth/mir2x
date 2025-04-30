@@ -51,7 +51,7 @@ CharObject::CharObject(
     fflassert(pathf::dirValid(Direction()), Direction()); // for NPC direction is gfxDir + DIR_BEGIN
 }
 
-void CharObject::getCOLocation(uint64_t uid, std::function<void(const COLocation &)> onOK, std::function<void()> onError)
+corof::awaitable<std::optional<COLocation>> CharObject::getCOLocation(uint64_t uid)
 {
     fflassert(uid);
     fflassert(uid != UID());
@@ -60,10 +60,7 @@ void CharObject::getCOLocation(uint64_t uid, std::function<void(const COLocation
     // always trust the InViewCOList, can even skip the expiration now
 
     if(auto p = getInViewCOPtr(uid)){
-        if(onOK){
-            onOK(*p);
-        }
-        return;
+        co_return *p;
     }
 
     // can't find uid or expired
@@ -75,48 +72,61 @@ void CharObject::getCOLocation(uint64_t uid, std::function<void(const COLocation
     amQL.UID = UID();
     amQL.mapUID = mapUID();
 
-    m_actorPod->forward(uid, {AM_QUERYLOCATION, amQL}, [this, uid, onOK, onError](const ActorMsgPack &rmpk)
-    {
-        switch(rmpk.type()){
-            case AM_LOCATION:
+    switch(const auto rmpk = co_await m_actorPod->send(uid, {AM_QUERYLOCATION, amQL}); rmpk.type()){
+        case AM_LOCATION:
+            {
+                // TODO when we get this response
+                // it's possible that the co has switched map or dead
+
+                const auto amL = rmpk.conv<AMLocation>();
+                const COLocation coLoc
                 {
-                    // TODO when we get this response
-                    // it's possible that the co has switched map or dead
+                    .uid       = amL.UID,
+                    .mapUID    = amL.mapUID,
+                    .x         = amL.X,
+                    .y         = amL.Y,
+                    .direction = amL.Direction
+                };
 
-                    const auto amL = rmpk.conv<AMLocation>();
-                    const COLocation coLoc
-                    {
-                        .uid       = amL.UID,
-                        .mapUID    = amL.mapUID,
-                        .x         = amL.X,
-                        .y         = amL.Y,
-                        .direction = amL.Direction
-                    };
-
-                    if(updateInViewCO(coLoc) > 0){
-                        dispatchAction(coLoc.uid, makeActionStand());
-                    }
-
-                    if(onOK){
-                        onOK(coLoc);
-                    }
-                    return;
+                if(updateInViewCO(coLoc) > 0){
+                    dispatchAction(coLoc.uid, makeActionStand());
                 }
-            default:
-                {
-                    m_inViewCOList.erase(uid);
-                    if(onError){
-                        onError();
-                    }
-                    return;
-                }
-        }
-    });
+
+                co_return coLoc;
+            }
+        default:
+            {
+                m_inViewCOList.erase(uid);
+                co_return std::nullopt;
+            }
+    }
 }
 
 bool CharObject::inView(uint64_t argMapUID, int argX, int argY) const
 {
-    return (argMapUID == mapUID()) && mapBin()->validC(argX, argY) && mathf::LDistance2<int>(X(), Y(), argX, argY) <= SYS_VIEWR * SYS_VIEWR;
+    if(argMapUID != mapUID()){
+        return false;
+    }
+
+    if(!mapBin()->validC(argX, argY)){
+        return false;
+    }
+
+    const auto r = [this]() -> int
+    {
+        if(isMonster()){
+            if(const auto r = DBCOM_MONSTERRECORD(uidf::getMonsterID(UID))){
+                return r.view;
+            }
+        }
+        return SYS_VIEWR;
+    }();
+
+    if(r <= 0){
+        return false; // always blind
+    }
+
+    return mathf::LDistance2<int>(X(), Y(), argX, argY) <= r * r;
 }
 
 void CharObject::trimInViewCO()
@@ -197,7 +207,7 @@ void CharObject::notifyDead(uint64_t uid)
     std::memset(&amND, 0, sizeof(amND));
 
     amND.UID = UID();
-    m_actorPod->forward(uid, {AM_NOTIFYDEAD, amND});
+    m_actorPod->post(uid, {AM_NOTIFYDEAD, amND});
 }
 
 ActionNode CharObject::makeActionStand() const
@@ -245,7 +255,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
     }
 
     if(forceMap){
-        m_actorPod->forward(mapUID(), {AM_ACTION, amA});
+        m_actorPod->post(mapUID(), {AM_ACTION, amA});
         return;
     }
 
@@ -256,7 +266,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
         case ACTION_SPACEMOVE:
         case ACTION_SPAWN:
             {
-                m_actorPod->forward(mapUID(), {AM_ACTION, amA});
+                m_actorPod->post(mapUID(), {AM_ACTION, amA});
                 return;
             }
         default:
@@ -267,7 +277,7 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
                     const auto nY = rstLocation.y;
                     const auto nMapUID = rstLocation.mapUID;
                     if(inView(nMapUID, nX, nY)){
-                        m_actorPod->forward(rstLocation.uid, {AM_ACTION, amA});
+                        m_actorPod->post(rstLocation.uid, {AM_ACTION, amA});
                     }
                 });
                 return;
@@ -284,5 +294,5 @@ void CharObject::dispatchAction(uint64_t uid, const ActionNode &action)
     amA.UID = UID();
     amA.mapUID = mapUID();
     amA.action = action;
-    m_actorPod->forward(uid, {AM_ACTION, amA});
+    m_actorPod->post(uid, {AM_ACTION, amA});
 }

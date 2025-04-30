@@ -13,27 +13,24 @@ class ServerTaoSummon: public Monster
         {}
 
     public:
-        void onActivate() override
+        corof::entrance onActivate() override
         {
-            CharObject::onActivate();
             fflassert(masterUID());
+            CharObject::onActivate()();
 
-            m_actorPod->forward(masterUID(), {AM_CHECKMASTER}, [this](const ActorMsgPack &mpk)
-            {
-                switch(mpk.type()){
-                    case AM_CHECKMASTEROK:
-                        {
-                            const auto amCMOK = mpk.conv<AMCheckMasterOK>();
-                            m_masterSC[0] = amCMOK.sc[0];
-                            m_masterSC[1] = amCMOK.sc[1];
-                            return;
-                        }
-                    default:
-                        {
-                            goDie();
-                            return;
-                        }
-                }
-            });
+            switch(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type()){
+                case AM_CHECKMASTEROK:
+                    {
+                        const auto amCMOK = mpk.conv<AMCheckMasterOK>();
+                        m_masterSC[0] = amCMOK.sc[0];
+                        m_masterSC[1] = amCMOK.sc[1];
+                        break;
+                    }
+                default:
+                    {
+                        goDie();
+                        break;
+                    }
+            }
         }
 };

@@ -76,23 +76,23 @@ class NPChar final: public CharObject
         }
 
     protected:
-        void onActivate() override;
+        corof::entrance onActivate() override;
 
     public:
         bool goDie() override;
         bool goGhost() override;
 
     private:
-        void on_AM_BUY(const ActorMsgPack &);
-        void on_AM_ATTACK(const ActorMsgPack &);
-        void on_AM_ACTION(const ActorMsgPack &);
-        void on_AM_NPCEVENT(const ActorMsgPack &);
-        void on_AM_NOTIFYNEWCO(const ActorMsgPack &);
-        void on_AM_BADACTORPOD(const ActorMsgPack &);
-        void on_AM_QUERYCORECORD(const ActorMsgPack &);
-        void on_AM_QUERYLOCATION(const ActorMsgPack &);
-        void on_AM_REMOTECALL(const ActorMsgPack &);
-        void on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
+        corof::entrance on_AM_BUY(const ActorMsgPack &);
+        corof::entrance on_AM_ATTACK(const ActorMsgPack &);
+        corof::entrance on_AM_ACTION(const ActorMsgPack &);
+        corof::entrance on_AM_NPCEVENT(const ActorMsgPack &);
+        corof::entrance on_AM_NOTIFYNEWCO(const ActorMsgPack &);
+        corof::entrance on_AM_BADACTORPOD(const ActorMsgPack &);
+        corof::entrance on_AM_QUERYCORECORD(const ActorMsgPack &);
+        corof::entrance on_AM_QUERYLOCATION(const ActorMsgPack &);
+        corof::entrance on_AM_REMOTECALL(const ActorMsgPack &);
+        corof::entrance on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
 
     private:
         void sendRemoteCall(uint64_t, uint64_t, const std::string &);
@@ -108,7 +108,7 @@ class NPChar final: public CharObject
         void postStartInvOp(uint64_t, int, std::string, std::string, std::vector<std::u8string>);
 
     public:
-        void operateAM(const ActorMsgPack &) override;
+        corof::entrance onActorMsg(const ActorMsgPack &) override;
 
     protected:
         virtual std::set<uint32_t> getDefaultSellItemIDList() const;

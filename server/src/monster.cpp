@@ -88,7 +88,7 @@ Monster::Monster(
 
 bool Monster::randomMove()
 {
-    if(canMove()){
+    if(canMove(true)){
         auto fnMoveOneStep = [this]() -> bool
         {
             const auto reachRes = oneStepReach(Direction(), 1);
@@ -337,7 +337,7 @@ void Monster::trackUID(uint64_t nUID, DCCastRange r, std::function<void()> onOK,
 
 void Monster::followMaster(std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!(masterUID() && canMove())){
+    if(!(masterUID() && canMove(true))){
         if(onError){
             onError();
         }
@@ -360,7 +360,7 @@ void Monster::followMaster(std::function<void()> onOK, std::function<void()> onE
             return false;
         }
 
-        if(!canMove()){
+        if(!canMove(true)){
             if(onError){
                 onError();
             }
@@ -529,133 +529,108 @@ bool Monster::update()
     return true;
 }
 
-void Monster::operateAM(const ActorMsgPack &rstMPK)
+corof::entrance Monster::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
         case AM_METRONOME:
             {
-                on_AM_METRONOME(rstMPK);
-                break;
+                return on_AM_METRONOME(rstMPK);
             }
         case AM_CHECKMASTER:
             {
-                on_AM_CHECKMASTER(rstMPK);
-                break;
+                return on_AM_CHECKMASTER(rstMPK);
             }
         case AM_ADDBUFF:
             {
-                on_AM_ADDBUFF(rstMPK);
-                break;
+                return on_AM_ADDBUFF(rstMPK);
             }
         case AM_REMOVEBUFF:
             {
-                on_AM_REMOVEBUFF(rstMPK);
-                break;
+                return on_AM_REMOVEBUFF(rstMPK);
             }
         case AM_QUERYFINALMASTER:
             {
-                on_AM_QUERYFINALMASTER(rstMPK);
-                break;
+                return on_AM_QUERYFINALMASTER(rstMPK);
             }
         case AM_QUERYFRIENDTYPE:
             {
-                on_AM_QUERYFRIENDTYPE(rstMPK);
-                break;
+                return on_AM_QUERYFRIENDTYPE(rstMPK);
             }
         case AM_QUERYNAMECOLOR:
             {
-                on_AM_QUERYNAMECOLOR(rstMPK);
-                break;
+                return on_AM_QUERYNAMECOLOR(rstMPK);
             }
         case AM_QUERYHEALTH:
             {
-                on_AM_QUERYHEALTH(rstMPK);
-                break;
+                return on_AM_QUERYHEALTH(rstMPK);
             }
         case AM_NOTIFYNEWCO:
             {
-                on_AM_NOTIFYNEWCO(rstMPK);
-                break;
+                return on_AM_NOTIFYNEWCO(rstMPK);
             }
         case AM_DEADFADEOUT:
             {
-                on_AM_DEADFADEOUT(rstMPK);
-                break;
+                return on_AM_DEADFADEOUT(rstMPK);
             }
         case AM_NOTIFYDEAD:
             {
-                on_AM_NOTIFYDEAD(rstMPK);
-                break;
+                return on_AM_NOTIFYDEAD(rstMPK);
             }
         case AM_UPDATEHP:
             {
-                on_AM_UPDATEHP(rstMPK);
-                break;
+                return on_AM_UPDATEHP(rstMPK);
             }
         case AM_EXP:
             {
-                on_AM_EXP(rstMPK);
-                break;
+                return on_AM_EXP(rstMPK);
             }
         case AM_MISS:
             {
-                on_AM_MISS(rstMPK);
-                break;
+                return on_AM_MISS(rstMPK);
             }
         case AM_HEAL:
             {
-                on_AM_HEAL(rstMPK);
-                break;
+                return on_AM_HEAL(rstMPK);
             }
         case AM_ACTION:
             {
-                on_AM_ACTION(rstMPK);
-                break;
+                return on_AM_ACTION(rstMPK);
             }
         case AM_ATTACK:
             {
-                on_AM_ATTACK(rstMPK);
-                break;
+                return on_AM_ATTACK(rstMPK);
             }
         case AM_MAPSWITCHTRIGGER:
             {
-                on_AM_MAPSWITCHTRIGGER(rstMPK);
-                break;
+                return on_AM_MAPSWITCHTRIGGER(rstMPK);
             }
         case AM_QUERYLOCATION:
             {
-                on_AM_QUERYLOCATION(rstMPK);
-                break;
+                return on_AM_QUERYLOCATION(rstMPK);
             }
         case AM_QUERYUIDBUFF:
             {
-                on_AM_QUERYUIDBUFF(rstMPK);
-                break;
+                return on_AM_QUERYUIDBUFF(rstMPK);
             }
         case AM_QUERYCORECORD:
             {
-                on_AM_QUERYCORECORD(rstMPK);
-                break;
+                return on_AM_QUERYCORECORD(rstMPK);
             }
         case AM_BADACTORPOD:
             {
-                on_AM_BADACTORPOD(rstMPK);
-                break;
+                return on_AM_BADACTORPOD(rstMPK);
             }
         case AM_OFFLINE:
             {
-                on_AM_OFFLINE(rstMPK);
-                break;
+                return on_AM_OFFLINE(rstMPK);
             }
         case AM_MASTERKILL:
             {
-                on_AM_MASTERKILL(rstMPK);
-                break;
+                return on_AM_MASTERKILL(rstMPK);
             }
         case AM_MASTERHITTED:
             {
-                on_AM_MASTERHITTED(rstMPK);
-                break;
+                return on_AM_MASTERHITTED(rstMPK);
             }
         default:
             {
@@ -681,7 +656,7 @@ void Monster::reportCO(uint64_t toUID)
     amCOR.mapUID = mapUID();
     amCOR.action = makeActionStand();
     amCOR.Monster.MonsterID = monsterID();
-    m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
+    m_actorPod->post(toUID, {AM_CORECORD, amCOR});
 }
 
 DamageNode Monster::getAttackDamage(int dc, int modifierID) const
@@ -709,9 +684,9 @@ DamageNode Monster::getAttackDamage(int dc, int modifierID) const
     }
 }
 
-bool Monster::canMove() const
+bool Monster::canMove(bool checkMoveLock) const
 {
-    if(!BattleObject::canMove()){
+    if(!BattleObject::canMove(checkMoveLock)){
         return false;
     }
 
@@ -734,9 +709,9 @@ bool Monster::canMove() const
 // if there is no GCD, it jumps to (x, y) and immediately attack player and dispatch the attack result
 // from client we see monster is just start moving, but player already get the ACTION_HITTED
 
-bool Monster::canAttack() const
+bool Monster::canAttack(bool checkAttackLock) const
 {
-    if(!BattleObject::canAttack()){
+    if(!BattleObject::canAttack(checkAttackLock)){
         return false;
     }
 
@@ -763,7 +738,7 @@ bool Monster::goDie()
     dispatchOffenderExp();
 
     for(auto &item: getMonsterDropItemList(monsterID())){
-        m_actorPod->forward(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+        m_actorPod->post(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
         {
             .x = X(),
             .y = Y(),
@@ -813,7 +788,7 @@ bool Monster::goGhost()
     // for monster don't need fadeout (like Taodog) we shouldn't send the FADEOUT to client
 
     if(hasActorPod()){
-        m_actorPod->forward(mapUID(), {AM_DEADFADEOUT, amDFO});
+        m_actorPod->post(mapUID(), {AM_DEADFADEOUT, amDFO});
     }
 
     deactivate();
@@ -876,7 +851,7 @@ bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
                         amH.mapUID = mapUID();
                         amH.addHP  = std::min<int>(damage, 20);
 
-                        m_actorPod->forward(fromUID, {AM_HEAL, amH});
+                        m_actorPod->post(fromUID, {AM_HEAL, amH});
                         break;
                     }
                 default:
@@ -896,7 +871,7 @@ bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
 
 bool Monster::moveOneStep(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!canMove()){
+    if(!canMove(true)){
         if(onError){
             onError();
         }
@@ -966,7 +941,7 @@ bool Monster::moveOneStep(int nX, int nY, std::function<void()> onOK, std::funct
 
 bool Monster::moveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!canMove()){
+    if(!canMove(true)){
         if(onError){
             onError();
         }
@@ -994,7 +969,7 @@ bool Monster::moveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, st
 
 bool Monster::moveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!canMove()){
+    if(!canMove(true)){
         if(onError){
             onError();
         }
@@ -1086,7 +1061,7 @@ bool Monster::moveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std:
 
 bool Monster::moveOneStepCombine(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!canMove()){
+    if(!canMove(true)){
         if(onError){
             onError();
         }
@@ -1101,7 +1076,7 @@ bool Monster::moveOneStepCombine(int nX, int nY, std::function<void()> onOK, std
 
 bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
 {
-    if(!canMove()){
+    if(!canMove(true)){
         if(onError){
             onError();
         }
@@ -1121,7 +1096,7 @@ bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
     amPF.EndX      = nX;
     amPF.EndY      = nY;
 
-    return m_actorPod->forward(mapUID(), {AM_PATHFIND, amPF}, [this, nX, nY, onOK, onError](const ActorMsgPack &rstRMPK)
+    return m_actorPod->send(mapUID(), {AM_PATHFIND, amPF}, [this, nX, nY, onOK, onError](const ActorMsgPack &rstRMPK)
     {
         switch(rstRMPK.type()){
             case AM_PATHFINDOK:
@@ -1278,7 +1253,7 @@ void Monster::queryMaster(uint64_t targetUID, std::function<void(uint64_t)> fnOp
         }
     }
     else{
-        m_actorPod->forward(targetUID, AM_QUERYMASTER, [this, targetUID, fnOp](const ActorMsgPack &rmpk)
+        m_actorPod->send(targetUID, AM_QUERYMASTER, [this, targetUID, fnOp](const ActorMsgPack &rmpk)
         {
             switch(rmpk.type()){
                 case AM_UID:
@@ -1516,7 +1491,7 @@ void Monster::queryPlayerFriend(uint64_t fromUID, uint64_t targetUID, std::funct
     std::memset(&amQFT, 0, sizeof(amQFT));
 
     amQFT.UID = targetUID;
-    m_actorPod->forward(fromUID, {AM_QUERYFRIENDTYPE, amQFT}, [fnOp](const ActorMsgPack &rmpk)
+    m_actorPod->send(fromUID, {AM_QUERYFRIENDTYPE, amQFT}, [fnOp](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_FRIENDTYPE:
@@ -1586,7 +1561,7 @@ void Monster::onAMAttack(const ActorMsgPack &mpk)
                                     std::memset(&amM, 0, sizeof(amM));
 
                                     amM.UID = amA.UID;
-                                    m_actorPod->forward(amA.UID, {AM_MISS, amM});
+                                    m_actorPod->post(amA.UID, {AM_MISS, amM});
                                     return;
                                 }
                             default:
@@ -1650,7 +1625,7 @@ void Monster::dispatchOffenderExp()
                     std::memset(&amE, 0, sizeof(amE));
 
                     amE.exp = std::max<int>(1, std::lround((to_df(offender.damage) / sumDamage) * getMR().exp));
-                    m_actorPod->forward(offender.uid, {AM_EXP, amE});
+                    m_actorPod->post(offender.uid, {AM_EXP, amE});
                     break;
                 }
             default:

@@ -66,8 +66,8 @@ class ServerZumaMonster final: public Monster
         void onAMAttack(const ActorMsgPack &) override;
 
     protected:
-        bool canMove() const override
+        bool canMove(true) const override
         {
-            return m_standMode && Monster::canMove();
+            return m_standMode && Monster::canMove(true);
         }
 };

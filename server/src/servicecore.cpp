@@ -23,7 +23,7 @@ ServiceCore::ServiceCore()
     : PeerCore()
 {}
 
-void ServiceCore::operateAM(const ActorMsgPack &mpk)
+void ServiceCore::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_BADCHANNEL:
@@ -173,70 +173,40 @@ void ServiceCore::onActivate()
     }
 }
 
-void ServiceCore::requestLoadMap(uint64_t mapUID, std::function<void(bool)> onDone, std::function<void()> onError)
+corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(uint64_t mapUID)
 {
     if(uidsf::isLocalUID(mapUID)){
-        if(const auto [loaded, newLoad] = loadMap(mapUID); loaded){
-            if(onDone){
-                onDone(newLoad);
-            }
-        }
-        else{
-            if(onError){
-                onError();
-            }
-        }
-        return;
+        co_return loadMap(mapUID);
     }
 
     if(auto p = m_loadMapPendingOps.find(mapUID); p != m_loadMapPendingOps.end()){
-        if(onDone){
-            p->second.onDone.push_back(std::move(onDone));
-        }
-
-        if(onError){
-            p->second.onError.push_back(std::move(onError));
-        }
-        return;
+        co_return co_await RegisterLoadMapOpAwaiter
+        {
+            .core = this,
+            .mapUID = mapUID,
+        };
     }
 
     AMPeerLoadMap amPLM;
     std::memset(&amPLM, 0, sizeof(amPLM));
     amPLM.mapUID = mapUID;
 
-    auto &ops = m_loadMapPendingOps.insert_or_assign(mapUID, LoadMapOp{}).first->second;
+    m_loadMapPendingOps.emplace(mapUID, {});
 
-    ops.onDone .push_back(std::move(onDone));
-    ops.onError.push_back(std::move(onError));
+    const auto mpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID)), {AM_PEERLOADMAP, amPLM});
+    const bool loaded= (mpk.type() == AM_PEERLOADMAPOK);
 
-    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID)), {AM_PEERLOADMAP, amPLM}, [mapUID, this](const ActorMsgPack &mpk)
-    {
-        switch(mpk.type()){
-            case AM_PEERLOADMAPOK:
-                {
-                    for(auto &onDone: m_loadMapPendingOps.at(mapUID).onDone){
-                        if(onDone){
-                            onDone(true);
-                        }
-                    }
+    if(loaded){
+        m_mapList.insert(mapUID);
+    }
 
-                    m_mapList.insert(mapUID);
-                    m_loadMapPendingOps.erase(mapUID);
-                    break;
-                }
-            default:
-                {
-                    for(auto &onError: m_loadMapPendingOps.at(mapUID).onError){
-                        if(onError){
-                            onError();
-                        }
-                    }
+    for(auto &h: m_loadMapPendingOps.at(mapUID)){
+        h.resume();
+        h.destroy();
+    }
 
-                    m_loadMapPendingOps.erase(mapUID); // won't keep record of bad load
-                    break;
-                }
-        }
-    });
+    m_loadMapPendingOps.erase(mapUID); // won't keep record of bad load
+    co_return {loaded, true};        // second parameter is ignored if load failed
 }
 
 std::optional<std::pair<uint32_t, bool>> ServiceCore::findDBID(uint32_t channID) const

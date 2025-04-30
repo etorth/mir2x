@@ -23,7 +23,7 @@ void ServerAntHealer::sendHeal(uint64_t uid)
             amH.addHP = 10;
             amH.addMP =  5;
 
-            m_actorPod->forward(p->first, {AM_HEAL, amH});
+            m_actorPod->post(p->first, {AM_HEAL, amH});
             dispatchAction(ActionAttack
             {
                 .speed = attackSpeed(),

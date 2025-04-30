@@ -120,7 +120,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
                         }
                     }();
 
-                    getPlayer()->m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerLevelUp
+                    getPlayer()->m_actorPod->post(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerLevelUp
                     {
                         .oldLevel = oldLevel,
                         .newLevel = newLevel,
@@ -133,7 +133,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
                     fflassert(args[0].is<lua_Integer>());
 
                     const auto monsterID = to_u32(args[0].as<lua_Integer>());
-                    getPlayer()->m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerKill
+                    getPlayer()->m_actorPod->post(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerKill
                     {
                         .monsterID = monsterID,
                     })});
@@ -145,7 +145,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
                     fflassert(args[0].is<lua_Integer>());
 
                     const auto addedExp = to_d(args[0].as<lua_Integer>());
-                    getPlayer()->m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainExp
+                    getPlayer()->m_actorPod->post(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainExp
                     {
                         .addedExp = addedExp,
                     })});
@@ -157,7 +157,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
                     fflassert(args[0].is<lua_Integer>());
 
                     const auto addedGold = to_d(args[0].as<lua_Integer>());
-                    getPlayer()->m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainGold
+                    getPlayer()->m_actorPod->post(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainGold
                     {
                         .addedGold = addedGold,
                     })});
@@ -169,7 +169,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
                     fflassert(args[0].is<lua_Integer>());
 
                     const auto itemID = to_u32(args[0].as<lua_Integer>());
-                    getPlayer()->m_actorPod->forward(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainItem
+                    getPlayer()->m_actorPod->post(questUID, {AM_RUNQUESTTRIGGER, cerealf::serialize<SDQuestTriggerVar>(SDQuestTriggerGainItem
                     {
                         .itemID = itemID,
                     })});
@@ -461,7 +461,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
 
         amQQTL.type = triggerType;
 
-        getPlayer()->m_actorPod->forward(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [closed, onDone, this](const ActorMsgPack &rmpk)
+        getPlayer()->m_actorPod->send(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [closed, onDone, this](const ActorMsgPack &rmpk)
         {
             if(*closed){
                 return;
@@ -525,7 +525,7 @@ void Player::onActivate()
     m_luaRunner->spawn(m_threadKey++, "_RSVD_NAME_setupQuests()");
 }
 
-void Player::operateAM(const ActorMsgPack &rstMPK)
+void Player::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
         case AM_METRONOME:
@@ -777,7 +777,7 @@ void Player::reportCO(uint64_t toUID)
     amCOR.Player.gender = gender();
     amCOR.Player.job = job();
     amCOR.Player.Level = level();
-    m_actorPod->forward(toUID, {AM_CORECORD, amCOR});
+    m_actorPod->post(toUID, {AM_CORECORD, amCOR});
 }
 
 void Player::reportStand()
@@ -847,7 +847,7 @@ bool Player::goGhost()
     amDFO.Y      = Y();
 
     if(hasActorPod()){
-        m_actorPod->forward(mapUID(), {AM_DEADFADEOUT, amDFO});
+        m_actorPod->post(mapUID(), {AM_DEADFADEOUT, amDFO});
     }
 
     deactivate();
@@ -987,7 +987,7 @@ void Player::dispatchOffline()
         amO.X      = X();
         amO.Y      = Y();
 
-        m_actorPod->forward(mapUID(), {AM_OFFLINE, amO});
+        m_actorPod->post(mapUID(), {AM_OFFLINE, amO});
         return;
     }
 
@@ -1576,7 +1576,7 @@ void Player::onCMActionSpell(CMAction cmA)
                         }
 
                         if(mapBin()->groundValid(amCFW.x, amCFW.y)){
-                            m_actorPod->forward(mapUID(), {AM_CASTFIREWALL, amCFW});
+                            m_actorPod->post(mapUID(), {AM_CASTFIREWALL, amCFW});
                         }
                     }
                 });
@@ -1641,7 +1641,7 @@ void Player::onCMActionSpell(CMAction cmA)
                         addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this]()
                         {
                             if(castMapID == mapID()){
-                                m_actorPod->forward(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                                m_actorPod->post(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
                                 if(g_serverArgParser->sharedConfig().showStrikeGrid){
                                     SMStrikeGrid smSG;
                                     std::memset(&smSG, 0, sizeof(smSG));
@@ -1800,7 +1800,7 @@ void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
 void Player::RequestKillPets()
 {
     for(auto uid: m_slaveList){
-        m_actorPod->forward(uid, {AM_MASTERKILL});
+        m_actorPod->post(uid, {AM_MASTERKILL});
     }
     m_slaveList.clear();
 }
@@ -2178,7 +2178,7 @@ void Player::pullTeamMemberList(std::function<void(std::optional<SDTeamMemberLis
     }
 
     if(m_teamLeader != UID()){
-        m_actorPod->forward(m_teamLeader, AM_QUERYTEAMMEMBERLIST, [fnHandle, this](const ActorMsgPack &mpk)
+        m_actorPod->send(m_teamLeader, AM_QUERYTEAMMEMBERLIST, [fnHandle, this](const ActorMsgPack &mpk)
         {
             switch(mpk.type()){
                 case AM_TEAMMEMBERLIST:
@@ -2218,7 +2218,7 @@ void Player::pullTeamMemberList(std::function<void(std::optional<SDTeamMemberLis
             }
         }
         else{
-            m_actorPod->forward(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER, [i, cnter, sdTML, memberCount = m_teamMemberList.size(), fnHandle, this](const ActorMsgPack &mpk)
+            m_actorPod->send(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER, [i, cnter, sdTML, memberCount = m_teamMemberList.size(), fnHandle, this](const ActorMsgPack &mpk)
             {
                 switch(mpk.type()){
                     case AM_TEAMPLAYER:

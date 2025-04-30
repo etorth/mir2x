@@ -514,7 +514,7 @@ void NPChar::postAddMonster(uint32_t monsterID)
         .direction = DIR_BEGIN,
     };
 
-    m_actorPod->forward(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}, [](const ActorMsgPack &rmpk)
+    m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}, [](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_UID:
@@ -529,7 +529,7 @@ void NPChar::postAddMonster(uint32_t monsterID)
     });
 }
 
-void NPChar::operateAM(const ActorMsgPack &mpk)
+void NPChar::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_OFFLINE:

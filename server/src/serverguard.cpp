@@ -112,9 +112,9 @@ void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
     }
 }
 
-bool ServerGuard::canMove() const
+bool ServerGuard::canMove(true) const
 {
-    return BattleObject::canMove();
+    return BattleObject::canMove(true);
 }
 
 bool ServerGuard::canAttack() const

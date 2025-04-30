@@ -18,24 +18,24 @@ extern Server *g_server;
 // in the net package otherwise we can't find the session even we have session's
 // address, session is a sync-driver, even we have it's address we can't find it
 //
-void ServiceCore::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
+corof::entrance ServiceCore::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
     operateNet(amRP.channID, amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
     freeActorDataPackage(&(amRP.package));
 }
 
-void ServiceCore::on_AM_METRONOME(const ActorMsgPack &)
+corof::entrance ServiceCore::on_AM_METRONOME(const ActorMsgPack &)
 {
 }
 
-void ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
+corof::entrance ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
 {
     const auto sdRQ = mpk.deserialize<SDRegisterQuest>();
     m_questList[mpk.from()] = sdRQ;
 }
 
-void ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
+corof::entrance ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
 {
     AMMapList amML;
     std::memset(&amML, 0, sizeof(amML));
@@ -49,10 +49,10 @@ void ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
             throw fflerror("Need larger map list size in AMMapList");
         }
     }
-    m_actorPod->forward(rstMPK.from(), {AM_MAPLIST, amML}, rstMPK.seqID());
+    m_actorPod->post(rstMPK.fromAddr(), {AM_MAPLIST, amML});
 }
 
-void ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
+corof::entrance ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
 {
     const auto amLM = mpk.conv<AMLoadMap>();
     requestLoadMap(amLM.mapUID, [mpk, this](bool newLoad)
@@ -61,16 +61,16 @@ void ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
         std::memset(&amLMOK, 0, sizeof(amLMOK));
 
         amLMOK.newLoad = newLoad;
-        m_actorPod->forward(mpk.fromAddr(), {AM_LOADMAPOK, amLMOK});
+        m_actorPod->post(mpk.fromAddr(), {AM_LOADMAPOK, amLMOK});
     },
 
     [mpk, this]()
     {
-        m_actorPod->forward(mpk.fromAddr(), AM_ERROR);
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
     });
 }
 
-void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
+corof::entrance ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
 {
     const auto amQCOC = rstMPK.conv<AMQueryCOCount>();
     const auto checkCount = [&amQCOC, this]()
@@ -89,23 +89,23 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     switch(checkCount){
         case 0:
             {
-                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+                m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
                 return;
             }
         case 1:
             {
-                m_actorPod->forward(amQCOC.mapUID, {AM_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const ActorMsgPack &rstRMPK)
+                m_actorPod->send(amQCOC.mapUID, {AM_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const ActorMsgPack &rstRMPK)
                 {
                     switch(rstRMPK.type()){
                         case AM_COCOUNT:
                             {
-                                m_actorPod->forward(rstMPK.from(), {AM_COCOUNT, rstRMPK.data(), rstRMPK.size()}, rstMPK.seqID());
+                                m_actorPod->post(rstMPK.fromAddr(), {AM_COCOUNT, rstRMPK.data(), rstRMPK.size()});
                                 return;
                             }
                         case AM_ERROR:
                         default:
                             {
-                                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+                                m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
                                 return;
                             }
                     }
@@ -133,7 +133,7 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                                     auto amCOC = rstRMPK.conv<AMCOCount>();
                                     if(sharedState->check == 1){
                                         amCOC.Count += sharedState->count;
-                                        m_actorPod->forward(rstMPK.from(), {AM_COCOUNT, amCOC}, rstMPK.seqID());
+                                        m_actorPod->post(rstMPK.fromAddr(), {AM_COCOUNT, amCOC});
                                     }
                                     else{
                                         sharedState->check--;
@@ -146,21 +146,21 @@ void ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
                         default:
                             {
                                 sharedState->error = true;
-                                m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+                                m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
                                 return;
                             }
                     }
                 };
 
                 for(const auto mapUID: m_mapList){
-                    m_actorPod->forward(mapUID, {AM_QUERYCOCOUNT, amQCOC}, fnOnResp);
+                    m_actorPod->post(mapUID, {AM_QUERYCOCOUNT, amQCOC}, fnOnResp);
                 }
                 return;
             }
     }
 }
 
-void ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &mpk)
+corof::entrance ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &mpk)
 {
     const auto amMQTT = mpk.conv<AMModifyQuestTriggerType>();
 
@@ -176,10 +176,10 @@ void ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &mpk)
 
     // give an response
     // helps quest side to confirm that enable/disable is done
-    m_actorPod->forward(mpk.fromAddr(), AM_OK);
+    m_actorPod->post(mpk.fromAddr(), AM_OK);
 }
 
-void ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
+corof::entrance ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
 {
     const auto amQQTL = mpk.conv<AMQueryQuestTriggerList>();
 
@@ -191,10 +191,10 @@ void ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
         uidList.assign(p->second.begin(), p->second.end());
     }
 
-    m_actorPod->forward(mpk.fromAddr(), {AM_OK, cerealf::serialize(uidList)});
+    m_actorPod->post(mpk.fromAddr(), {AM_OK, cerealf::serialize(uidList)});
 }
 
-void ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
+corof::entrance ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
 {
     const auto sdQQUID = mpk.deserialize<SDQueryQuestUID>();
 
@@ -210,10 +210,10 @@ void ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
     std::memset(&amUID, 0, sizeof(amUID));
 
     amUID.uid = questUID;
-    m_actorPod->forward(mpk.fromAddr(), {AM_UID, amUID});
+    m_actorPod->post(mpk.fromAddr(), {AM_UID, amUID});
 }
 
-void ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
+corof::entrance ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
 {
     SDUIDList uidList;
     uidList.reserve(m_questList.size());
@@ -222,10 +222,10 @@ void ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
         uidList.push_back(uid);
     }
 
-    m_actorPod->forward(mpk.fromAddr(), {AM_UIDLIST, cerealf::serialize(uidList)});
+    m_actorPod->post(mpk.fromAddr(), {AM_UIDLIST, cerealf::serialize(uidList)});
 }
 
-void ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
+corof::entrance ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();
     m_dbidList.erase(amBC.channID);

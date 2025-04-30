@@ -144,7 +144,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
                             }
 
                             if(mapBin()->groundValid(amCFW.x, amCFW.y)){
-                                m_actorPod->forward(mapUID(), {AM_CASTFIREWALL, amCFW});
+                                m_actorPod->post(mapUID(), {AM_CASTFIREWALL, amCFW});
                             }
                         }
                         break;
@@ -206,7 +206,7 @@ void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<v
                                 addDelay(10 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this]()
                                 {
                                     if(castMapID == mapID()){
-                                        m_actorPod->forward(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
+                                        m_actorPod->post(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
                                         if(g_serverArgParser->sharedConfig().showStrikeGrid){
                                             SMStrikeGrid smSG;
                                             std::memset(&smSG, 0, sizeof(smSG));

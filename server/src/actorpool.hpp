@@ -392,7 +392,6 @@ class ActorPool final
             std::vector<std::pair<ActorMsgPack, uint64_t>> currQ;
             std::vector<std::pair<ActorMsgPack, uint64_t>> nextQ;
 
-            std::function<void()> atStart;
             std::function<void()> atExit;
 
             // pool can automatically send METRONOME to actorpod
@@ -425,7 +424,7 @@ class ActorPool final
 
             // put ctor in actorpool.cpp
             // ActorPod is incomplete type in actorpool.hpp
-            Mailbox(ActorPod *, std::function<void()>);
+            explicit Mailbox(ActorPod *, bool);
         };
 
         struct MailboxSubBucket
@@ -549,8 +548,8 @@ class ActorPool final
         bool isActorThread(int) const;
 
     private:
+        void attach(ActorPod *);
         void attach(Receiver *);
-        void attach(ActorPod *, std::function<void()>);
 
     private:
         void detach(const Receiver *);

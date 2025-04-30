@@ -129,7 +129,7 @@ class ServerMap final: public ServerObject
         std::unique_ptr<ServerMap::LuaThreadRunner> m_luaRunner;
 
     private:
-        void operateAM(const ActorMsgPack &);
+        corof::entrance onActorMsg(const ActorMsgPack &) override;
 
     public:
         ServerMap(uint64_t);
@@ -162,7 +162,7 @@ class ServerMap final: public ServerObject
         std::optional<double> oneStepCost(int, int, int, int, int, int, int) const;
 
     public:
-        void onActivate() override;
+        corof::entrance onActivate() override;
 
     private:
         void loadNPChar();
@@ -330,22 +330,22 @@ class ServerMap final: public ServerObject
         bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
-        void on_AM_ACTION              (const ActorMsgPack &);
-        void on_AM_PICKUP              (const ActorMsgPack &);
-        void on_AM_OFFLINE             (const ActorMsgPack &);
-        void on_AM_TRYJUMP             (const ActorMsgPack &);
-        void on_AM_TRYMOVE             (const ActorMsgPack &);
-        void on_AM_TRYLEAVE            (const ActorMsgPack &);
-        void on_AM_PATHFIND            (const ActorMsgPack &);
-        void on_AM_UPDATEHP            (const ActorMsgPack &);
-        void on_AM_METRONOME           (const ActorMsgPack &);
-        void on_AM_BADACTORPOD         (const ActorMsgPack &);
-        void on_AM_DEADFADEOUT         (const ActorMsgPack &);
-        void on_AM_DROPITEM            (const ActorMsgPack &);
-        void on_AM_TRYMAPSWITCH        (const ActorMsgPack &);
-        void on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
-        void on_AM_TRYSPACEMOVE        (const ActorMsgPack &);
-        void on_AM_CASTFIREWALL        (const ActorMsgPack &);
-        void on_AM_REMOTECALL          (const ActorMsgPack &);
-        void on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
+        corof::entrance on_AM_ACTION              (const ActorMsgPack &);
+        corof::entrance on_AM_PICKUP              (const ActorMsgPack &);
+        corof::entrance on_AM_OFFLINE             (const ActorMsgPack &);
+        corof::entrance on_AM_TRYJUMP             (const ActorMsgPack &);
+        corof::entrance on_AM_TRYMOVE             (const ActorMsgPack &);
+        corof::entrance on_AM_TRYLEAVE            (const ActorMsgPack &);
+        corof::entrance on_AM_PATHFIND            (const ActorMsgPack &);
+        corof::entrance on_AM_UPDATEHP            (const ActorMsgPack &);
+        corof::entrance on_AM_METRONOME           (const ActorMsgPack &);
+        corof::entrance on_AM_BADACTORPOD         (const ActorMsgPack &);
+        corof::entrance on_AM_DEADFADEOUT         (const ActorMsgPack &);
+        corof::entrance on_AM_DROPITEM            (const ActorMsgPack &);
+        corof::entrance on_AM_TRYMAPSWITCH        (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
+        corof::entrance on_AM_TRYSPACEMOVE        (const ActorMsgPack &);
+        corof::entrance on_AM_CASTFIREWALL        (const ActorMsgPack &);
+        corof::entrance on_AM_REMOTECALL          (const ActorMsgPack &);
+        corof::entrance on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
 };

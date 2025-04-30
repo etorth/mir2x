@@ -124,35 +124,35 @@ class Monster: public BattleObject
         DamageNode getAttackDamage(int, int) const override;
 
     private:
-        void on_AM_EXP             (const ActorMsgPack &);
-        void on_AM_MISS            (const ActorMsgPack &);
-        void on_AM_HEAL            (const ActorMsgPack &);
-        void on_AM_ATTACK          (const ActorMsgPack &);
-        void on_AM_ADDBUFF         (const ActorMsgPack &);
-        void on_AM_REMOVEBUFF      (const ActorMsgPack &);
-        void on_AM_ACTION          (const ActorMsgPack &);
-        void on_AM_OFFLINE         (const ActorMsgPack &);
-        void on_AM_UPDATEHP        (const ActorMsgPack &);
-        void on_AM_METRONOME       (const ActorMsgPack &);
-        void on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
-        void on_AM_MASTERKILL      (const ActorMsgPack &);
-        void on_AM_MASTERHITTED    (const ActorMsgPack &);
-        void on_AM_NOTIFYDEAD      (const ActorMsgPack &);
-        void on_AM_BADACTORPOD     (const ActorMsgPack &);
-        void on_AM_CHECKMASTER     (const ActorMsgPack &);
-        void on_AM_QUERYMASTER     (const ActorMsgPack &);
-        void on_AM_QUERYHEALTH     (const ActorMsgPack &);
-        void on_AM_DEADFADEOUT     (const ActorMsgPack &);
-        void on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
-        void on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
-        void on_AM_QUERYCORECORD   (const ActorMsgPack &);
-        void on_AM_QUERYLOCATION   (const ActorMsgPack &);
-        void on_AM_QUERYNAMECOLOR  (const ActorMsgPack &);
-        void on_AM_QUERYFRIENDTYPE (const ActorMsgPack &);
-        void on_AM_QUERYFINALMASTER(const ActorMsgPack &);
+        corof::entrance on_AM_EXP             (const ActorMsgPack &);
+        corof::entrance on_AM_MISS            (const ActorMsgPack &);
+        corof::entrance on_AM_HEAL            (const ActorMsgPack &);
+        corof::entrance on_AM_ATTACK          (const ActorMsgPack &);
+        corof::entrance on_AM_ADDBUFF         (const ActorMsgPack &);
+        corof::entrance on_AM_REMOVEBUFF      (const ActorMsgPack &);
+        corof::entrance on_AM_ACTION          (const ActorMsgPack &);
+        corof::entrance on_AM_OFFLINE         (const ActorMsgPack &);
+        corof::entrance on_AM_UPDATEHP        (const ActorMsgPack &);
+        corof::entrance on_AM_METRONOME       (const ActorMsgPack &);
+        corof::entrance on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
+        corof::entrance on_AM_MASTERKILL      (const ActorMsgPack &);
+        corof::entrance on_AM_MASTERHITTED    (const ActorMsgPack &);
+        corof::entrance on_AM_NOTIFYDEAD      (const ActorMsgPack &);
+        corof::entrance on_AM_BADACTORPOD     (const ActorMsgPack &);
+        corof::entrance on_AM_CHECKMASTER     (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYMASTER     (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYHEALTH     (const ActorMsgPack &);
+        corof::entrance on_AM_DEADFADEOUT     (const ActorMsgPack &);
+        corof::entrance on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYCORECORD   (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYLOCATION   (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYNAMECOLOR  (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYFRIENDTYPE (const ActorMsgPack &);
+        corof::entrance on_AM_QUERYFINALMASTER(const ActorMsgPack &);
 
     protected:
-        void operateAM(const ActorMsgPack &);
+        corof::entrance onActorMsg(const ActorMsgPack &) override;
 
     protected:
         void reportCO(uint64_t) override;
@@ -185,24 +185,19 @@ class Monster: public BattleObject
         bool moveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
 
     public:
-        void onActivate() override
+        corof::entrance onActivate() override
         {
             CharObject::onActivate();
-            if(!masterUID()){
-                return;
-            }
-
-            m_actorPod->forward(masterUID(), {AM_CHECKMASTER}, [this](const ActorMsgPack &rstRMPK)
-            {
-                if(rstRMPK.type() != AM_CHECKMASTEROK){
+            if(masterUID()){
+                if(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type() != AM_CHECKMASTEROK){
                     goDie();
                 }
-            });
+            }
         }
 
     protected:
-        bool canMove()   const override;
-        bool canAttack() const override;
+        bool canMove(bool)   const override;
+        bool canAttack(bool) const override;
 
     protected:
         virtual bool goDie();

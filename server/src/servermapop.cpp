@@ -18,7 +18,7 @@
 extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
-void ServerMap::on_AM_METRONOME(const ActorMsgPack &)
+corof::entrance ServerMap::on_AM_METRONOME(const ActorMsgPack &)
 {
     updateMapGrid();
     if(!g_serverArgParser->sharedConfig().disableMapScript){
@@ -26,11 +26,11 @@ void ServerMap::on_AM_METRONOME(const ActorMsgPack &)
     }
 }
 
-void ServerMap::on_AM_BADACTORPOD(const ActorMsgPack &)
+corof::entrance ServerMap::on_AM_BADACTORPOD(const ActorMsgPack &)
 {
 }
 
-void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
+corof::entrance ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
     if(!mapBin()->validC(amA.action.x, amA.action.y)){
@@ -59,7 +59,7 @@ void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
                         case UID_MON:
                         case UID_NPC:
                             {
-                                m_actorPod->forward(nUID, {AM_ACTION, amA});
+                                m_actorPod->post(nUID, {AM_ACTION, amA});
                                 break;
                             }
                         default:
@@ -75,7 +75,7 @@ void ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 }
 
-void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 {
     const auto amTSM = mpk.conv<AMTrySpaceMove>();
     const auto fnPrintMoveError = [&amTSM]()
@@ -90,14 +90,14 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
     if(!in(UID(), amTSM.X, amTSM.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
+        m_actorPod->post(mpk.fromAddr(), AM_REJECTSPACEMOVE);
         return;
     }
 
     if(!hasGridUID(mpk.from(), amTSM.X, amTSM.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
+        m_actorPod->post(mpk.fromAddr(), AM_REJECTSPACEMOVE);
         return;
     }
 
@@ -106,7 +106,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 
     if(!mapBin()->validC(amTSM.X, amTSM.Y)){
         if(amTSM.StrictMove){
-            m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
+            m_actorPod->post(mpk.fromAddr(), AM_REJECTSPACEMOVE);
             return;
         }
 
@@ -116,7 +116,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 
     const auto loc = getRCValidGrid(false, false, amTSM.StrictMove ? 1 : 100, nDstX, nDstY);
     if(!loc.has_value()){
-        m_actorPod->forward(mpk.from(), AM_REJECTSPACEMOVE, mpk.seqID());
+        m_actorPod->post(mpk.fromAddr(), AM_REJECTSPACEMOVE);
         return;
     }
 
@@ -130,7 +130,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
     amASM.EndX = nDstX;
     amASM.EndY = nDstY;
 
-    m_actorPod->forward(mpk.from(), {AM_ALLOWSPACEMOVE, amASM}, mpk.seqID(), [this, fromUID = mpk.from(), amTSM, nDstX, nDstY](const ActorMsgPack &rmpk)
+    m_actorPod->send(mpk.fromAddr(), {AM_ALLOWSPACEMOVE, amASM}, [this, fromUID = mpk.from(), amTSM, nDstX, nDstY](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_SPACEMOVEOK:
@@ -166,7 +166,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                                 case UID_NPC:
                                     {
                                         if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_actorPod->post(gridUID, {AM_ACTION, amA});
                                             seenUIDList.insert(gridUID);
                                         }
                                         break;
@@ -197,7 +197,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                                 case UID_NPC:
                                     {
                                         if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_actorPod->post(gridUID, {AM_ACTION, amA});
                                             seenUIDList.insert(gridUID);
                                         }
                                         break;
@@ -221,7 +221,7 @@ void ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
     });
 }
 
-void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
 {
     const auto amTJ = mpk.conv<AMTryJump>();
     const auto fnPrintJumpError = [&amTJ]()
@@ -235,7 +235,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     if(!in(UID(), amTJ.X, amTJ.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintJumpError();
-        m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
+        m_actorPod->post(mpk.fromAddr(), AM_REJECTJUMP);
         return;
     }
 
@@ -245,14 +245,14 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     if(!in(UID(), amTJ.EndX, amTJ.EndY)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintJumpError();
-        m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
+        m_actorPod->post(mpk.fromAddr(), AM_REJECTJUMP);
         return;
     }
 
     if(!hasGridUID(mpk.from(), amTJ.X, amTJ.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintJumpError();
-        m_actorPod->forward(mpk.from(), AM_REJECTJUMP, mpk.seqID());
+        m_actorPod->post(mpk.fromAddr(), AM_REJECTJUMP);
         return;
     }
 
@@ -262,7 +262,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     amAJ.EndX = amTJ.EndX;
     amAJ.EndY = amTJ.EndY;
 
-    m_actorPod->forward(mpk.from(), {AM_ALLOWJUMP, amAJ}, mpk.seqID(), [this, amTJ, fromUID = mpk.from()](const ActorMsgPack &rmpk)
+    m_actorPod->send(mpk.fromAddr(), {AM_ALLOWJUMP, amAJ}, [this, amTJ, fromUID = mpk.from()](const ActorMsgPack &rmpk)
     {
         switch(rmpk.type()){
             case AM_JUMPOK:
@@ -296,7 +296,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                                 case UID_NPC:
                                     {
                                         if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_actorPod->post(gridUID, {AM_ACTION, amA});
                                             seenUIDList.insert(gridUID);
                                         }
                                         break;
@@ -329,7 +329,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                                 case UID_NPC:
                                     {
                                         if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_actorPod->post(gridUID, {AM_ACTION, amA});
                                             seenUIDList.insert(gridUID);
                                         }
                                         break;
@@ -351,7 +351,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                         amMST.mapUID = getGrid(amTJ.EndX, amTJ.EndY).mapUID;
                         amMST.X      = getGrid(amTJ.EndX, amTJ.EndY).switchX;
                         amMST.Y      = getGrid(amTJ.EndX, amTJ.EndY).switchY;
-                        m_actorPod->forward(fromUID, {AM_MAPSWITCHTRIGGER, amMST});
+                        m_actorPod->post(fromUID, {AM_MAPSWITCHTRIGGER, amMST});
                     }
                     break;
                 }
@@ -363,7 +363,7 @@ void ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     });
 }
 
-void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
+corof::entrance ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 {
     AMTryMove amTM;
     std::memcpy(&amTM, rstMPK.data(), sizeof(amTM));
@@ -382,7 +382,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     if(!in(amTM.mapUID, amTM.X, amTM.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
+        m_actorPod->post(rstMPK.fromAddr(), AM_REJECTMOVE);
         return;
     }
 
@@ -392,14 +392,14 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     if(!in(amTM.mapUID, amTM.EndX, amTM.EndY)){
         g_server->addLog(LOGTYPE_WARNING, "Invalid location: (EndX, EndY)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
+        m_actorPod->post(rstMPK.fromAddr(), AM_REJECTMOVE);
         return;
     }
 
     if(!hasGridUID(amTM.UID, amTM.X, amTM.Y)){
         g_server->addLog(LOGTYPE_WARNING, "Can't find CO at current location: (UID, X, Y)");
         fnPrintMoveError();
-        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
+        m_actorPod->post(rstMPK.fromAddr(), AM_REJECTMOVE);
         return;
     }
 
@@ -427,7 +427,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
             {
                 g_server->addLog(LOGTYPE_WARNING, "Invalid move request: (X, Y) -> (EndX, EndY)");
                 fnPrintMoveError();
-                m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
+                m_actorPod->post(rstMPK.fromAddr(), AM_REJECTMOVE);
                 return;
             }
     }
@@ -480,12 +480,12 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     }
 
     if(!bCheckMove){
-        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
+        m_actorPod->post(rstMPK.fromAddr(), AM_REJECTMOVE);
         return;
     }
 
     if(getGrid(nMostX, nMostY).locked){
-        m_actorPod->forward(rstMPK.from(), AM_REJECTMOVE, rstMPK.seqID());
+        m_actorPod->post(rstMPK.fromAddr(), AM_REJECTMOVE);
         return;
     }
 
@@ -500,7 +500,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     amAM.EndY  = nMostY;
 
     getGrid(nMostX, nMostY).locked = true;
-    m_actorPod->forward(rstMPK.from(), {AM_ALLOWMOVE, amAM}, rstMPK.seqID(), [this, amTM, nMostX, nMostY](const ActorMsgPack &rstRMPK)
+    m_actorPod->send(rstMPK.fromAddr(), {AM_ALLOWMOVE, amAM}, [this, amTM, nMostX, nMostY](const ActorMsgPack &rstRMPK)
     {
         fflassert(getGrid(nMostX, nMostY).locked);
         getGrid(nMostX, nMostY).locked = false;
@@ -536,7 +536,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                                 case UID_NPC:
                                     {
                                         if((gridUID != amTM.UID) && (seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_actorPod->post(gridUID, {AM_ACTION, amA});
                                             seenUIDList.insert(gridUID);
                                         }
                                         break;
@@ -569,7 +569,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                                 case UID_NPC:
                                     {
                                         if((gridUID != amTM.UID) && (seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_actorPod->post(gridUID, {AM_ACTION, amA});
                                             seenUIDList.insert(gridUID);
                                         }
                                         break;
@@ -591,7 +591,7 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                         amMST.mapUID = getGrid(nMostX, nMostY).mapUID;
                         amMST.X      = getGrid(nMostX, nMostY).switchX;
                         amMST.Y      = getGrid(nMostX, nMostY).switchY;
-                        m_actorPod->forward(amTM.UID, {AM_MAPSWITCHTRIGGER, amMST});
+                        m_actorPod->post(amTM.UID, {AM_MAPSWITCHTRIGGER, amMST});
                     }
                     break;
                 }
@@ -603,96 +603,82 @@ void ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     });
 }
 
-void ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.from();
     const auto amTL = mpk.conv<AMTryLeave>();
 
-    const auto fromGridX = amTL.X;
-    const auto fromGridY = amTL.Y;
-
-    if(!(in(UID(), fromGridX, fromGridY) && hasGridUID(mpk.from(), fromGridX, fromGridY))){
-        m_actorPod->forward(mpk.from(), AM_REJECTLEAVE, mpk.seqID());
-        g_server->addLog(LOGTYPE_WARNING, "Leave request failed: UID = %llu, X = %d, Y = %d", to_llu(fromUID), fromGridX, fromGridY);
-        return;
+    if(!(in(UID(), amTL.X, amTL.Y) && hasGridUID(mpk.from(), amTL.X, amTL.Y))){
+        m_actorPod->post(mpk.fromAddr(), AM_REJECTLEAVE);
+        co_return;
     }
 
-    m_actorPod->forward(fromUID, AM_ALLOWLEAVE, mpk.seqID(), [fromUID, fromGridX, fromGridY, this](const ActorMsgPack &rmpk)
+    const auto rmpk = co_await m_actorPod->send(mpk.fromAddr(), AM_ALLOWLEAVE);
+    if(rmpk.type() != AM_LEAVEOK){
+        co_return;
+    }
+
+    const auto amLOK = rmpk.conv<AMLeaveOK>();
+
+    AMAction amA;
+    std::memset(&amA, 0, sizeof(amA));
+    amA.UID = rmpk.from();
+    amA.mapUID = amLOK.mapUID; // new map CO that switched into
+    amA.action = amLOK.action;
+
+    if(!removeGridUID(fromUID, amTL.X, amTL.Y)){
+        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), amTL.X, amTL.Y);
+    }
+
+    // broadcast new CO location to leaving map
+    // then all old neighbors can remove it from their inview list
+
+    std::unordered_set<uint64_t> seenUIDList;
+    doCircle(amTL.X, amTL.Y, SYS_VIEWR, [fromUID, &amA, &seenUIDList, this](int gridX, int gridY)
     {
-        switch(rmpk.type()){
-            case AM_LEAVEOK:
-                {
-                    const auto amLOK = rmpk.conv<AMLeaveOK>();
-                    AMAction amA;
-                    std::memset(&amA, 0, sizeof(amA));
-
-                    amA.UID = fromUID;
-                    amA.mapUID = amLOK.mapUID; // new map CO that switched into
-                    amA.action = amLOK.action;
-
-                    if(!removeGridUID(fromUID, fromGridX, fromGridY)){
-                        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), fromGridX, fromGridY);
-                    }
-
-                    // broadcast new CO location to leaving map
-                    // then all old neighbors can remove it from their inview list
-
-                    std::unordered_set<uint64_t> seenUIDList;
-                    doCircle(fromGridX, fromGridY, SYS_VIEWR, [fromUID, amA, &seenUIDList, this](int gridX, int gridY)
+        doUIDList(gridX, gridY, [fromUID, &amA, &seenUIDList, this](uint64_t gridUID)
+        {
+            switch(uidf::getUIDType(gridUID)){
+                case UID_PLY:
+                case UID_MON:
+                case UID_NPC:
                     {
-                        doUIDList(gridX, gridY, [fromUID, amA, &seenUIDList, this](uint64_t gridUID)
-                        {
-                            switch(uidf::getUIDType(gridUID)){
-                                case UID_PLY:
-                                case UID_MON:
-                                case UID_NPC:
-                                    {
-                                        if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
-                                            seenUIDList.insert(gridUID);
-                                        }
-                                        break;
-                                    }
-                                default:
-                                    {
-                                        break;
-                                    }
-                            }
-                            return false;
-                        });
-                        return false;
-                    });
-
-                    m_actorPod->forward(fromUID, AM_FINISHLEAVE, rmpk.seqID());
-                    return;
-                }
-            default:
-                {
-                    return;
-                }
-        }
+                        if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
+                            seenUIDList.insert(gridUID);
+                            m_actorPod->post(gridUID, {AM_ACTION, amA});
+                        }
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+            return false;
+        });
+        return false;
     });
+
+    m_actorPod->post({fromUID, rmpk.seqID()}, AM_FINISHLEAVE);
 }
 
-void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.from();
     const auto amTMS = mpk.conv<AMTryMapSwitch>();
 
     if(!canMove(false, true, amTMS.X, amTMS.Y)){
-        m_actorPod->forward(mpk.from(), AM_REJECTMAPSWITCH, mpk.seqID());
+        m_actorPod->post(mpk.fromAddr(), AM_REJECTMAPSWITCH);
         return;
     }
 
     AMAllowMapSwitch amAMS;
     std::memset(&amAMS, 0, sizeof(amAMS));
-
-    amAMS.mapUID = UID();
-    amAMS.X      = amTMS.X;
-    amAMS.Y      = amTMS.Y;
+    amAMS.X = amTMS.X;
+    amAMS.Y = amTMS.Y;
 
     getGrid(amAMS.X, amAMS.Y).locked = true;
-    m_actorPod->forward(mpk.from(), {AM_ALLOWMAPSWITCH, amAMS}, mpk.seqID(), [this, fromUID, amAMS](const ActorMsgPack &rmpk)
+    m_actorPod->send(mpk.fromAddr(), {AM_ALLOWMAPSWITCH, amAMS}, [this, fromUID, amAMS](const ActorMsgPack &rmpk)
     {
         fflassert(getGrid(amAMS.X, amAMS.Y).locked);
         getGrid(amAMS.X, amAMS.Y).locked = false;
@@ -729,7 +715,7 @@ void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
                                 case UID_NPC:
                                     {
                                         if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
-                                            m_actorPod->forward(gridUID, {AM_ACTION, amA});
+                                            m_actorPod->post(gridUID, {AM_ACTION, amA});
                                             seenUIDList.insert(gridUID);
                                         }
                                         break;
@@ -753,7 +739,7 @@ void ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
     });
 }
 
-void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
+corof::entrance ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
 {
     AMPathFind amPF;
     std::memcpy(&amPF, rstMPK.data(), sizeof(amPF));
@@ -793,7 +779,7 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
 
     ServerPathFinder stPathFinder(this, amPF.MaxStep, amPF.CheckCO);
     if(!stPathFinder.search(nX0, nY0, nDir, nX1, nY1).hasPath()){
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
         return;
     }
 
@@ -801,7 +787,7 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     // it's should be the provided start point
     const auto pathList = stPathFinder.getPathNode();
     if(pathList.size() < 2){
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
         return;
     }
 
@@ -837,10 +823,10 @@ void ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
                 }
         }
     }
-    m_actorPod->forward(rstMPK.from(), {AM_PATHFINDOK, amPFOK}, rstMPK.seqID());
+    m_actorPod->post(rstMPK.fromAddr(), {AM_PATHFINDOK, amPFOK});
 }
 
-void ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
+corof::entrance ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
 {
     AMUpdateHP amUHP;
     std::memcpy(&amUHP, rstMPK.data(), sizeof(amUHP));
@@ -852,7 +838,7 @@ void ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
                 for(auto nUID: getUIDList(nX, nY)){
                     if(nUID != amUHP.UID){
                         if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
-                            m_actorPod->forward(nUID, {AM_UPDATEHP, amUHP});
+                            m_actorPod->post(nUID, {AM_UPDATEHP, amUHP});
                         }
                     }
                 }
@@ -862,7 +848,7 @@ void ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
     }
 }
 
-void ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
     // CO always send AM_DEADFADEOUT to server map to remove the grid occupation
     // and server map then boardcast to all its neighbors to remove this CO from their list to do clean
@@ -876,7 +862,7 @@ void ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
                 for(auto nUID: getUIDList(nX, nY)){
                     if(nUID != amDFO.UID){
                         if(uidf::getUIDType(nUID) == UID_PLY || uidf::getUIDType(nUID) == UID_MON){
-                            m_actorPod->forward(nUID, {AM_DEADFADEOUT, amDFO});
+                            m_actorPod->post(nUID, {AM_DEADFADEOUT, amDFO});
                         }
                     }
                 }
@@ -886,13 +872,13 @@ void ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
     }
 }
 
-void ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
+corof::entrance ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
 {
     AMQueryCOCount amQCOC;
     std::memcpy(&amQCOC, rstMPK.data(), sizeof(amQCOC));
 
     if(amQCOC.mapUID && (amQCOC.mapUID != UID())){
-        m_actorPod->forward(rstMPK.from(), AM_ERROR, rstMPK.seqID());
+        m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
         return;
     }
 
@@ -913,10 +899,10 @@ void ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     std::memset(&amCOC, 0, sizeof(amCOC));
 
     amCOC.Count = nCOCount;
-    m_actorPod->forward(rstMPK.from(), {AM_COCOUNT, amCOC}, rstMPK.seqID());
+    m_actorPod->post(rstMPK.fromAddr(), {AM_COCOUNT, amCOC});
 }
 
-void ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
 {
     auto sdDI = mpk.deserialize<SDDropItem>();
     fflassert(sdDI.item);
@@ -946,7 +932,7 @@ void ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
     }
 }
 
-void ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
+corof::entrance ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 {
     AMOffline amO;
     std::memcpy(&amO, rstMPK.data(), sizeof(amO));
@@ -960,7 +946,7 @@ void ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
         if(true || mapBin()->validC(nX, nY)){
             for(auto nUID: getUIDList(nX, nY)){
                 if(nUID != amO.UID){
-                    m_actorPod->forward(nUID, {AM_OFFLINE, amO});
+                    m_actorPod->post(nUID, {AM_OFFLINE, amO});
                 }
             }
         }
@@ -968,7 +954,7 @@ void ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
     });
 }
 
-void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
 {
     const auto amPU = mpk.conv<AMPickUp>();
 
@@ -1021,10 +1007,10 @@ void ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
     if(!sdPUIL.itemList.empty()){
         postGridItemIDList(amPU.x, amPU.y);
     }
-    m_actorPod->forward(mpk.from(), {AM_PICKUPITEMLIST, cerealf::serialize(sdPUIL)}, mpk.seqID());
+    m_actorPod->post(mpk.fromAddr(), {AM_PICKUPITEMLIST, cerealf::serialize(sdPUIL)});
 }
 
-void ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
 {
     const auto amSFLD = mpk.conv<AMStrikeFixedLocDamage>();
     doUIDList(amSFLD.x, amSFLD.y, [fromUID = mpk.from(), amSFLD, this](uint64_t uid) -> bool
@@ -1043,7 +1029,7 @@ void ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
                     amA.Y = amSFLD.y;
                     amA.damage = amSFLD.damage;
 
-                    m_actorPod->forward(uid, {AM_ATTACK, amA});
+                    m_actorPod->post(uid, {AM_ATTACK, amA});
                     break;
                 }
             default:
@@ -1055,7 +1041,7 @@ void ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
     });
 }
 
-void ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
 {
     const auto amCFW = mpk.conv<AMCastFireWall>();
     if(mapBin()->groundValid(amCFW.x, amCFW.y)){
@@ -1078,7 +1064,7 @@ void ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
     }
 }
 
-void ServerMap::on_AM_REMOTECALL(const ActorMsgPack &mpk)
+corof::entrance ServerMap::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();
     m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
