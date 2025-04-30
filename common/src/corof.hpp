@@ -46,7 +46,7 @@ namespace corof
 
         struct eval_poller_promise_with_void: public _details::eval_poller_base_promise
         {
-            void return_void(){}
+            void return_void() {}
         };
 
         template<typename T> struct eval_poller_promise_with_type: public _details::eval_poller_base_promise
@@ -327,13 +327,30 @@ namespace corof
 
 namespace corof
 {
-    template<typename T> class awaitable
+    namespace _details
+    {
+        struct awaitable_promise_with_void
+        {
+            void return_void() {}
+        };
+
+        template<typename T> struct awaitable_promise_with_type
+        {
+            std::optional<T> m_result;
+            void return_value(T t)
+            {
+                m_result = std::move(t);
+            }
+        };
+    }
+
+    template<typename T = void> class [[nodiscard]] awaitable
     {
         private:
             class AwaitableAsAwaiter;
 
         public:
-            class promise_type
+            class promise_type: public std::conditional_t<std::is_void_v<T>, _details::awaitable_promise_with_void, _details::awaitable_promise_with_type<T>>
             {
                 private:
                     friend class AwaitableAsAwaiter;
@@ -356,18 +373,12 @@ namespace corof
                     };
 
                 private:
-                    std::optional<T> m_result;
                     std::coroutine_handle<> m_continuation;
 
                 public:
                     awaitable get_return_object() noexcept
                     {
-                        return {std::coroutine_handle<promise_type>::from_promise(*this)};
-                    }
-
-                    void return_value(T t)
-                    {
-                        m_result = std::move(t);
+                        return awaitable(std::coroutine_handle<promise_type>::from_promise(*this));
                     }
 
                     std::suspend_always        initial_suspend() const noexcept { return {}; }
@@ -386,7 +397,7 @@ namespace corof
                     std::coroutine_handle<promise_type> m_handle;
 
                 public:
-                    AwaitableAsAwaiter(std::coroutine_handle<promise_type> h)
+                    explicit AwaitableAsAwaiter(std::coroutine_handle<promise_type> h)
                         : m_handle(h)
                     {}
 
@@ -404,7 +415,12 @@ namespace corof
 
                     auto await_resume()
                     {
-                        return m_handle.promise().m_result.value();
+                        if constexpr(std::is_void_v<T>){
+                            return;
+                        }
+                        else{
+                            return m_handle.promise().m_result.value();
+                        }
                     }
             };
 
@@ -412,9 +428,26 @@ namespace corof
             std::coroutine_handle<promise_type> m_handle;
 
         public:
-            awaitable(std::coroutine_handle<promise_type> h)
+            explicit awaitable(std::coroutine_handle<awaitable::promise_type> h)
                 : m_handle(h)
             {}
+
+        public:
+            awaitable(awaitable && other) noexcept
+            {
+                std::swap(m_handle, other.m_handle);
+            }
+
+        public:
+            awaitable & operator = (awaitable && other) noexcept
+            {
+                std::swap(m_handle, other.m_handle);
+                return *this;
+            }
+
+        public:
+            awaitable              (const awaitable &) = delete;
+            awaitable & operator = (const awaitable &) = delete;
 
         public:
             auto operator co_await() && noexcept
