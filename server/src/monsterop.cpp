@@ -9,12 +9,12 @@
 #include "dbcomid.hpp"
 
 extern Server *g_server;
-corof::entrance Monster::on_AM_METRONOME(const ActorMsgPack &)
+corof::awaitable<> Monster::on_AM_METRONOME(const ActorMsgPack &)
 {
     update();
 }
 
-corof::entrance Monster::on_AM_MISS(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_MISS(const ActorMsgPack &mpk)
 {
     const auto amM = mpk.conv<AMMiss>();
     if(amM.UID != UID()){
@@ -28,7 +28,7 @@ corof::entrance Monster::on_AM_MISS(const ActorMsgPack &mpk)
     dispatchInViewCONetPackage(SM_MISS, smM);
 }
 
-corof::entrance Monster::on_AM_HEAL(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_HEAL(const ActorMsgPack &mpk)
 {
     const auto amH = mpk.conv<AMHeal>();
     if(amH.mapUID == mapUID()){
@@ -36,7 +36,7 @@ corof::entrance Monster::on_AM_HEAL(const ActorMsgPack &mpk)
     }
 }
 
-corof::entrance Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
 {
     AMQueryCORecord amQCOR;
     std::memcpy(&amQCOR, rstMPK.data(), sizeof(amQCOR));
@@ -44,7 +44,7 @@ corof::entrance Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
     reportCO(amQCOR.UID);
 }
 
-corof::entrance Monster::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
 {
     forwardNetPackage(mpk.from(), SM_BUFFIDLIST, cerealf::serialize(SDBuffIDList
     {
@@ -53,7 +53,7 @@ corof::entrance Monster::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
     }));
 }
 
-corof::entrance Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
 {
     const auto amAB = mpk.conv<AMAddBuff>();
     fflassert(amAB.id);
@@ -92,20 +92,20 @@ corof::entrance Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
     });
 }
 
-corof::entrance Monster::on_AM_REMOVEBUFF(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_REMOVEBUFF(const ActorMsgPack &mpk)
 {
     const auto amRB = mpk.conv<AMRemoveBuff>();
     removeFromBuff(amRB.fromUID, amRB.fromBuffSeq, true);
 }
 
-corof::entrance Monster::on_AM_EXP(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_EXP(const ActorMsgPack &rstMPK)
 {
     if(masterUID()){
         m_actorPod->post(masterUID(), {rstMPK.type(), rstMPK.data(), rstMPK.size()});
     }
 }
 
-corof::entrance Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
     if(amA.UID == UID()){
@@ -165,7 +165,7 @@ corof::entrance Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
     }
 }
 
-corof::entrance Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
 {
     const auto amNNCO = rstMPK.conv<AMNotifyNewCO>();
     if(m_dead.get()){
@@ -178,16 +178,16 @@ corof::entrance Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
     }
 }
 
-corof::entrance Monster::on_AM_ATTACK(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_ATTACK(const ActorMsgPack &mpk)
 {
     onAMAttack(mpk);
 }
 
-corof::entrance Monster::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &)
+corof::awaitable<> Monster::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &)
 {
 }
 
-corof::entrance Monster::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
 {
     AMLocation amL;
     std::memset(&amL, 0, sizeof(amL));
@@ -201,27 +201,27 @@ corof::entrance Monster::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
     m_actorPod->post(rstMPK.fromAddr(), {AM_LOCATION, amL});
 }
 
-corof::entrance Monster::on_AM_UPDATEHP(const ActorMsgPack &)
+corof::awaitable<> Monster::on_AM_UPDATEHP(const ActorMsgPack &)
 {
 }
 
-corof::entrance Monster::on_AM_BADACTORPOD(const ActorMsgPack &)
+corof::awaitable<> Monster::on_AM_BADACTORPOD(const ActorMsgPack &)
 {
 }
 
-corof::entrance Monster::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
     m_inViewCOList.erase(amDFO.UID);
 }
 
-corof::entrance Monster::on_AM_NOTIFYDEAD(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_NOTIFYDEAD(const ActorMsgPack &rstMPK)
 {
     const auto amND = rstMPK.conv<AMNotifyDead>();
     m_inViewCOList.erase(amND.UID);
 }
 
-corof::entrance Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 {
     AMOffline amO;
     std::memcpy(&amO, rstMPK.data(), sizeof(amO));
@@ -233,17 +233,17 @@ corof::entrance Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
     }
 }
 
-corof::entrance Monster::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 {
     m_actorPod->post(rstMPK.fromAddr(), AM_OK);
 }
 
-corof::entrance Monster::on_AM_QUERYHEALTH(const ActorMsgPack &rmpk)
+corof::awaitable<> Monster::on_AM_QUERYHEALTH(const ActorMsgPack &rmpk)
 {
     m_actorPod->post(rmpk.fromAddr(), {AM_HEALTH, cerealf::serialize(m_sdHealth)});
 }
 
-corof::entrance Monster::on_AM_QUERYMASTER(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_QUERYMASTER(const ActorMsgPack &mpk)
 {
     AMUID amUID;
     std::memset(&amUID, 0, sizeof(amUID));
@@ -252,7 +252,7 @@ corof::entrance Monster::on_AM_QUERYMASTER(const ActorMsgPack &mpk)
     m_actorPod->post(mpk.fromAddr(), {AM_UID, amUID});
 }
 
-corof::entrance Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &mpk)
 {
     queryFinalMaster(UID(), [this, mpk](uint64_t finalMasterUID)
     {
@@ -264,7 +264,7 @@ corof::entrance Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &mpk)
     });
 }
 
-corof::entrance Monster::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &rstMPK)
 {
     AMQueryFriendType amQFT;
     std::memcpy(&amQFT, rstMPK.data(), sizeof(amQFT));
@@ -279,7 +279,7 @@ corof::entrance Monster::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &rstMPK)
     });
 }
 
-corof::entrance Monster::on_AM_QUERYNAMECOLOR(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_QUERYNAMECOLOR(const ActorMsgPack &rstMPK)
 {
     AMNameColor amNC;
     std::memset(&amNC, 0, sizeof(amNC));
@@ -288,14 +288,14 @@ corof::entrance Monster::on_AM_QUERYNAMECOLOR(const ActorMsgPack &rstMPK)
     m_actorPod->post(rstMPK.fromAddr(), {AM_NAMECOLOR, amNC});
 }
 
-corof::entrance Monster::on_AM_MASTERKILL(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_MASTERKILL(const ActorMsgPack &rstMPK)
 {
     if(masterUID() && (rstMPK.from() == masterUID())){
         goDie();
     }
 }
 
-corof::entrance Monster::on_AM_MASTERHITTED(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::on_AM_MASTERHITTED(const ActorMsgPack &mpk)
 {
     onAMMasterHitted(mpk);
 }

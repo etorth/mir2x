@@ -13,7 +13,7 @@ class ServerTaoSummon: public Monster
         {}
 
     public:
-        corof::entrance onActivate() override
+        corof::awaitable<> onActivate() override
         {
             fflassert(masterUID());
             CharObject::onActivate()();

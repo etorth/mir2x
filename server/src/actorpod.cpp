@@ -28,7 +28,7 @@ ActorPod::ActorPod(uint64_t uid, ServerObject *serverObject, double updateFreq)
     , m_SO(serverObject)
     , m_updateFreq(regMetronomeFreq(updateFreq))
 {
-    registerOp(AM_ACTIVATE, [thisptr = this]([[maybe_unused]] this auto self, const ActorMsgPack &) -> corof::entrance
+    registerOp(AM_ACTIVATE, [thisptr = this]([[maybe_unused]] this auto self, const ActorMsgPack &) -> corof::awaitable<>
     {
         return thisptr->m_SO->onActivate();
     });
@@ -80,10 +80,10 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
         {
             raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
             if(const auto &mpkFunc = m_msgOpList.at(mpk.type())){
-                mpkFunc(mpk)();
+                mpkFunc(mpk).resume();
             }
             else{
-                m_SO->onActorMsg(mpk)();
+                m_SO->onActorMsg(mpk).resume();
             }
         }
     }

@@ -16,7 +16,7 @@ extern DBPod *g_dbPod;
 extern Server *g_server;
 extern ActorPool *g_actorPool;
 
-corof::entrance ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmL = ClientMsg::conv<CMLogin>(buf);
     const auto fnLoginError = [channID, &cmL, respID, this](int error)
@@ -57,7 +57,7 @@ corof::entrance ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8
     return {};
 }
 
-corof::entrance ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
 {
     const auto fnQueryCharError = [channID, respID, this](int error)
     {
@@ -90,7 +90,7 @@ corof::entrance ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const u
     return {};
 }
 
-corof::entrance ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
 {
     const auto fnOnlineError = [channID, respID, this](int error)
     {
@@ -153,7 +153,7 @@ corof::entrance ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint
     });
 }
 
-corof::entrance ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto fnCreateAccountError = [channID, respID, this](int error)
     {
@@ -187,7 +187,7 @@ corof::entrance ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, con
     return {};
 }
 
-corof::entrance ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto fnChangePasswordError= [channID, respID, this](int error)
     {
@@ -232,7 +232,7 @@ corof::entrance ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, co
     return {};
 }
 
-corof::entrance ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto fnDeleteCharError = [channID, respID, this](int error)
     {
@@ -381,7 +381,7 @@ corof::entrance ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const 
     return {};
 }
 
-corof::entrance ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmCC = ClientMsg::conv<CMCreateChar>(buf);
     const auto fnCreateCharError = [channID, respID, this](int error)

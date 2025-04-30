@@ -45,7 +45,7 @@ class ActorPod final
         ServerObject * const m_SO;
 
     private:
-        std::array<std::function<corof::entrance(const ActorMsgPack &)>, AM_END> m_msgOpList;
+        std::array<std::function<corof::awaitable<>(const ActorMsgPack &)>, AM_END> m_msgOpList;
 
     private:
         // actorpool automatically send METRONOME to actor
@@ -134,7 +134,7 @@ class ActorPod final
         }
 
     public:
-        void registerOp(int type, std::function<corof::entrance(const ActorMsgPack &)> op)
+        void registerOp(int type, std::function<corof::awaitable<>(const ActorMsgPack &)> op)
         {
             if(op){
                 m_msgOpList.at(type) = std::move(op);

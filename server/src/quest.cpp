@@ -319,7 +319,7 @@ void Quest::onActivate()
     m_luaRunner->spawn(m_mainScriptThreadKey, filesys::readFile(m_scriptName.c_str()));
 }
 
-corof::entrance Quest::onActorMsg(const ActorMsgPack &mpk)
+corof::awaitable<> Quest::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_METRONOME:

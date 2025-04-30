@@ -18,24 +18,24 @@ extern Server *g_server;
 // in the net package otherwise we can't find the session even we have session's
 // address, session is a sync-driver, even we have it's address we can't find it
 //
-corof::entrance ServiceCore::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
     operateNet(amRP.channID, amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
     freeActorDataPackage(&(amRP.package));
 }
 
-corof::entrance ServiceCore::on_AM_METRONOME(const ActorMsgPack &)
+corof::awaitable<> ServiceCore::on_AM_METRONOME(const ActorMsgPack &)
 {
 }
 
-corof::entrance ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
 {
     const auto sdRQ = mpk.deserialize<SDRegisterQuest>();
     m_questList[mpk.from()] = sdRQ;
 }
 
-corof::entrance ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
 {
     AMMapList amML;
     std::memset(&amML, 0, sizeof(amML));
@@ -52,7 +52,7 @@ corof::entrance ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
     m_actorPod->post(rstMPK.fromAddr(), {AM_MAPLIST, amML});
 }
 
-corof::entrance ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
 {
     const auto amLM = mpk.conv<AMLoadMap>();
     requestLoadMap(amLM.mapUID, [mpk, this](bool newLoad)
@@ -70,7 +70,7 @@ corof::entrance ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
     });
 }
 
-corof::entrance ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
 {
     const auto amQCOC = rstMPK.conv<AMQueryCOCount>();
     const auto checkCount = [&amQCOC, this]()
@@ -160,7 +160,7 @@ corof::entrance ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     }
 }
 
-corof::entrance ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &mpk)
 {
     const auto amMQTT = mpk.conv<AMModifyQuestTriggerType>();
 
@@ -179,7 +179,7 @@ corof::entrance ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &mp
     m_actorPod->post(mpk.fromAddr(), AM_OK);
 }
 
-corof::entrance ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
 {
     const auto amQQTL = mpk.conv<AMQueryQuestTriggerList>();
 
@@ -194,7 +194,7 @@ corof::entrance ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk
     m_actorPod->post(mpk.fromAddr(), {AM_OK, cerealf::serialize(uidList)});
 }
 
-corof::entrance ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
 {
     const auto sdQQUID = mpk.deserialize<SDQueryQuestUID>();
 
@@ -213,7 +213,7 @@ corof::entrance ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
     m_actorPod->post(mpk.fromAddr(), {AM_UID, amUID});
 }
 
-corof::entrance ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
 {
     SDUIDList uidList;
     uidList.reserve(m_questList.size());
@@ -225,7 +225,7 @@ corof::entrance ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
     m_actorPod->post(mpk.fromAddr(), {AM_UIDLIST, cerealf::serialize(uidList)});
 }
 
-corof::entrance ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();
     m_dbidList.erase(amBC.channID);

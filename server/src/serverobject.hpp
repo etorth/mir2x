@@ -60,7 +60,7 @@ class ServerObject
         uint64_t activate(double metronomeFreq = 10.0);
 
     protected:
-        virtual corof::entrance onActivate()
+        virtual corof::awaitable<> onActivate()
         {
             return {};
         }
@@ -75,7 +75,7 @@ class ServerObject
         }
 
     public:
-        virtual corof::entrance onActorMsg(const ActorMsgPack &) = 0;
+        virtual corof::awaitable<> onActorMsg(const ActorMsgPack &) = 0;
 
     public:
         virtual void afterActorMsg()

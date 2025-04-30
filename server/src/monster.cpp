@@ -529,7 +529,7 @@ bool Monster::update()
     return true;
 }
 
-corof::entrance Monster::onActorMsg(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
         case AM_METRONOME:

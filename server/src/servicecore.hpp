@@ -56,37 +56,37 @@ class ServiceCore final: public PeerCore
         ~ServiceCore() = default;
 
     protected:
-        corof::entrance onActorMsg(const ActorMsgPack &) override;
-        corof::entrance operateNet(uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
+        corof::awaitable<> operateNet(uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
         corof::awaitable<std::pair<bool, bool>> requestLoadMap(uint64_t);
 
     public:
-        corof::entrance onActivate() override;
+        corof::awaitable<> onActivate() override;
 
     private:
         std::optional<std::pair<uint32_t, bool>> findDBID(uint32_t channID) const;
 
     private:
-        corof::entrance on_AM_REGISTERQUEST         (const ActorMsgPack &);
-        corof::entrance on_AM_METRONOME             (const ActorMsgPack &);
-        corof::entrance on_AM_BADCHANNEL            (const ActorMsgPack &);
-        corof::entrance on_AM_RECVPACKAGE           (const ActorMsgPack &);
-        corof::entrance on_AM_LOADMAP               (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYMAPLIST          (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYCOCOUNT          (const ActorMsgPack &);
-        corof::entrance on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &);
-        corof::entrance on_AM_QUERYQUESTTRIGGERLIST (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYQUESTUID         (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYQUESTUIDLIST     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REGISTERQUEST         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_METRONOME             (const ActorMsgPack &);
+        corof::awaitable<> on_AM_BADCHANNEL            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_RECVPACKAGE           (const ActorMsgPack &);
+        corof::awaitable<> on_AM_LOADMAP               (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYMAPLIST          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYCOCOUNT          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYQUESTTRIGGERLIST (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYQUESTUID         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYQUESTUIDLIST     (const ActorMsgPack &);
 
     private:
-        corof::entrance net_CM_LOGIN         (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
-        corof::entrance net_CM_ONLINE        (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
-        corof::entrance net_CM_QUERYCHAR     (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
-        corof::entrance net_CM_CREATECHAR    (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
-        corof::entrance net_CM_DELETECHAR    (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
-        corof::entrance net_CM_CREATEACCOUNT (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
-        corof::entrance net_CM_CHANGEPASSWORD(uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_LOGIN         (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_ONLINE        (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYCHAR     (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CREATECHAR    (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_DELETECHAR    (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CREATEACCOUNT (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CHANGEPASSWORD(uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
 };

@@ -96,7 +96,7 @@ class CharObject: public ServerObject
         virtual bool update() = 0;
 
     public:
-        corof::entrance onActivate() override
+        corof::awaitable<> onActivate() override
         {
             ServerObject::onActivate();
             dispatchAction(ActionSpawn

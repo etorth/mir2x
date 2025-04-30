@@ -124,35 +124,35 @@ class Monster: public BattleObject
         DamageNode getAttackDamage(int, int) const override;
 
     private:
-        corof::entrance on_AM_EXP             (const ActorMsgPack &);
-        corof::entrance on_AM_MISS            (const ActorMsgPack &);
-        corof::entrance on_AM_HEAL            (const ActorMsgPack &);
-        corof::entrance on_AM_ATTACK          (const ActorMsgPack &);
-        corof::entrance on_AM_ADDBUFF         (const ActorMsgPack &);
-        corof::entrance on_AM_REMOVEBUFF      (const ActorMsgPack &);
-        corof::entrance on_AM_ACTION          (const ActorMsgPack &);
-        corof::entrance on_AM_OFFLINE         (const ActorMsgPack &);
-        corof::entrance on_AM_UPDATEHP        (const ActorMsgPack &);
-        corof::entrance on_AM_METRONOME       (const ActorMsgPack &);
-        corof::entrance on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
-        corof::entrance on_AM_MASTERKILL      (const ActorMsgPack &);
-        corof::entrance on_AM_MASTERHITTED    (const ActorMsgPack &);
-        corof::entrance on_AM_NOTIFYDEAD      (const ActorMsgPack &);
-        corof::entrance on_AM_BADACTORPOD     (const ActorMsgPack &);
-        corof::entrance on_AM_CHECKMASTER     (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYMASTER     (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYHEALTH     (const ActorMsgPack &);
-        corof::entrance on_AM_DEADFADEOUT     (const ActorMsgPack &);
-        corof::entrance on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYCORECORD   (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYLOCATION   (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYNAMECOLOR  (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYFRIENDTYPE (const ActorMsgPack &);
-        corof::entrance on_AM_QUERYFINALMASTER(const ActorMsgPack &);
+        corof::awaitable<> on_AM_EXP             (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MISS            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_HEAL            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ATTACK          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ADDBUFF         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOVEBUFF      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ACTION          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_OFFLINE         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_UPDATEHP        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_METRONOME       (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
+        corof::awaitable<> on_AM_MASTERKILL      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MASTERHITTED    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_NOTIFYDEAD      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_BADACTORPOD     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CHECKMASTER     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYMASTER     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYHEALTH     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_DEADFADEOUT     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYCORECORD   (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYLOCATION   (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYNAMECOLOR  (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYFRIENDTYPE (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYFINALMASTER(const ActorMsgPack &);
 
     protected:
-        corof::entrance onActorMsg(const ActorMsgPack &) override;
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     protected:
         void reportCO(uint64_t) override;
@@ -185,7 +185,7 @@ class Monster: public BattleObject
         bool moveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
 
     public:
-        corof::entrance onActivate() override
+        corof::awaitable<> onActivate() override
         {
             CharObject::onActivate();
             if(masterUID()){

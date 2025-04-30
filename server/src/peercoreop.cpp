@@ -13,12 +13,12 @@
 extern Server *g_server;
 extern PeerConfig *g_peerConfig;
 
-corof::entrance PeerCore::on_AM_PEERCONFIG(const ActorMsgPack &mpk)
+corof::awaitable<> PeerCore::on_AM_PEERCONFIG(const ActorMsgPack &mpk)
 {
     g_peerConfig->setConfig(mpk.deserialize<SDPeerConfig>());
 }
 
-corof::entrance PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
+corof::awaitable<> PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
 {
     // map may run on peer
     // but is manageed on service core

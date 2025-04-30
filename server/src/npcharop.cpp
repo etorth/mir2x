@@ -5,12 +5,12 @@
 #include "serdesmsg.hpp"
 #include "actormsgpack.hpp"
 
-corof::entrance NPChar::on_AM_ATTACK(const ActorMsgPack &)
+corof::awaitable<> NPChar::on_AM_ATTACK(const ActorMsgPack &)
 {
     return {};
 }
 
-corof::entrance NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAction>();
     switch(uidf::getUIDType(amA.UID)){
@@ -27,7 +27,7 @@ corof::entrance NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
     }
 }
 
-corof::entrance NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
 {
     fflassert(mpk.from());
     auto sdNPCE = mpk.deserialize<SDNPCEvent>();
@@ -78,7 +78,7 @@ corof::entrance NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::entrance NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
 {
     if(uidf::getUIDType(mpk.from()) == UID_PLY){
         dispatchAction(mpk.from(), makeActionStand());
@@ -86,7 +86,7 @@ corof::entrance NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::entrance NPChar::on_AM_QUERYCORECORD(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_QUERYCORECORD(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.conv<AMQueryCORecord>().UID;
     if(uidf::getUIDType(fromUID) != UID_PLY){
@@ -96,7 +96,7 @@ corof::entrance NPChar::on_AM_QUERYCORECORD(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::entrance NPChar::on_AM_QUERYLOCATION(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_QUERYLOCATION(const ActorMsgPack &mpk)
 {
     AMLocation amL;
     std::memset(&amL, 0, sizeof(amL));
@@ -111,7 +111,7 @@ corof::entrance NPChar::on_AM_QUERYLOCATION(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::entrance NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
 {
     // 
     // query all selling items for one specified itemID
@@ -141,21 +141,21 @@ corof::entrance NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::entrance NPChar::on_AM_REMOTECALL(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();
     m_luaRunner->spawn(mpk.from(), mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
     return {};
 }
 
-corof::entrance NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)
 {
     const auto amBAP = mpk.conv<AMBadActorPod>();
     m_luaRunner->close(amBAP.UID);
     return {};
 }
 
-corof::entrance NPChar::on_AM_BUY(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_BUY(const ActorMsgPack &mpk)
 {
     const auto fnSendBuyError = [&mpk, this](int buyError)
     {

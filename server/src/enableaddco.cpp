@@ -44,7 +44,7 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
     : m_actorPod(argPod)
 {
     fflassert(m_actorPod);
-    m_actorPod->registerOp(AM_ADDCO, [this]([[maybe_unused]] this auto self, const ActorMsgPack &mpk) -> corof::entrance
+    m_actorPod->registerOp(AM_ADDCO, [this]([[maybe_unused]] this auto self, const ActorMsgPack &mpk) -> corof::awaitable<>
     {
         // always create CO if request received
         // it's sender's responsibility to figure out to forward the request to which peer

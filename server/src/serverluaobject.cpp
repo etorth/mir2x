@@ -18,7 +18,7 @@ void ServerLuaObject::onActivate()
     m_luaRunner = std::make_unique<ServerLuaObject::LuaThreadRunner>(this);
 }
 
-corof::entrance ServerLuaObject::onActorMsg(const ActorMsgPack &mpk)
+corof::awaitable<> ServerLuaObject::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_METRONOME:

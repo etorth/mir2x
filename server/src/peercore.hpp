@@ -20,7 +20,7 @@ class PeerCore: public ServerObject
         ~PeerCore() = default;
 
     protected:
-        corof::entrance onActivate() override
+        corof::awaitable<> onActivate() override
         {
             ServerObject::onActivate();
             m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
@@ -31,9 +31,9 @@ class PeerCore: public ServerObject
         std::pair<bool, bool> loadMap(uint64_t); // {loadOK, newLoad}
 
     protected:
-        corof::entrance onActorMsg(const ActorMsgPack &) override;
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     protected:
-        corof::entrance on_AM_PEERCONFIG (const ActorMsgPack &);
-        corof::entrance on_AM_PEERLOADMAP(const ActorMsgPack &);
+        corof::awaitable<> on_AM_PEERCONFIG (const ActorMsgPack &);
+        corof::awaitable<> on_AM_PEERLOADMAP(const ActorMsgPack &);
 };

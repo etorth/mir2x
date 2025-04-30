@@ -26,12 +26,12 @@ class ServerLuaObject: public ServerObject
         ServerLuaObject(uint32_t);
 
     protected:
-        corof::entrance onActivate() override;
+        corof::awaitable<> onActivate() override;
 
     protected:
-        corof::entrance onActorMsg(const ActorMsgPack &) override;
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     protected:
-        corof::entrance on_AM_METRONOME (const ActorMsgPack &);
-        corof::entrance on_AM_REMOTECALL(const ActorMsgPack &);
+        corof::awaitable<> on_AM_METRONOME (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOTECALL(const ActorMsgPack &);
 };

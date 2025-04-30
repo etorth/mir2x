@@ -76,23 +76,23 @@ class NPChar final: public CharObject
         }
 
     protected:
-        corof::entrance onActivate() override;
+        corof::awaitable<> onActivate() override;
 
     public:
         bool goDie() override;
         bool goGhost() override;
 
     private:
-        corof::entrance on_AM_BUY(const ActorMsgPack &);
-        corof::entrance on_AM_ATTACK(const ActorMsgPack &);
-        corof::entrance on_AM_ACTION(const ActorMsgPack &);
-        corof::entrance on_AM_NPCEVENT(const ActorMsgPack &);
-        corof::entrance on_AM_NOTIFYNEWCO(const ActorMsgPack &);
-        corof::entrance on_AM_BADACTORPOD(const ActorMsgPack &);
-        corof::entrance on_AM_QUERYCORECORD(const ActorMsgPack &);
-        corof::entrance on_AM_QUERYLOCATION(const ActorMsgPack &);
-        corof::entrance on_AM_REMOTECALL(const ActorMsgPack &);
-        corof::entrance on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
+        corof::awaitable<> on_AM_BUY(const ActorMsgPack &);
+        corof::awaitable<> on_AM_ATTACK(const ActorMsgPack &);
+        corof::awaitable<> on_AM_ACTION(const ActorMsgPack &);
+        corof::awaitable<> on_AM_NPCEVENT(const ActorMsgPack &);
+        corof::awaitable<> on_AM_NOTIFYNEWCO(const ActorMsgPack &);
+        corof::awaitable<> on_AM_BADACTORPOD(const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYCORECORD(const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYLOCATION(const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOTECALL(const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
 
     private:
         void sendRemoteCall(uint64_t, uint64_t, const std::string &);
@@ -108,7 +108,7 @@ class NPChar final: public CharObject
         void postStartInvOp(uint64_t, int, std::string, std::string, std::vector<std::u8string>);
 
     public:
-        corof::entrance onActorMsg(const ActorMsgPack &) override;
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     protected:
         virtual std::set<uint32_t> getDefaultSellItemIDList() const;

@@ -18,7 +18,7 @@
 extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
-corof::entrance ServerMap::on_AM_METRONOME(const ActorMsgPack &)
+corof::awaitable<> ServerMap::on_AM_METRONOME(const ActorMsgPack &)
 {
     updateMapGrid();
     if(!g_serverArgParser->sharedConfig().disableMapScript){
@@ -26,11 +26,11 @@ corof::entrance ServerMap::on_AM_METRONOME(const ActorMsgPack &)
     }
 }
 
-corof::entrance ServerMap::on_AM_BADACTORPOD(const ActorMsgPack &)
+corof::awaitable<> ServerMap::on_AM_BADACTORPOD(const ActorMsgPack &)
 {
 }
 
-corof::entrance ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
     if(!mapBin()->validC(amA.action.x, amA.action.y)){
@@ -75,7 +75,7 @@ corof::entrance ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 }
 
-corof::entrance ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
 {
     const auto amTSM = mpk.conv<AMTrySpaceMove>();
     const auto fnPrintMoveError = [&amTSM]()
@@ -221,7 +221,7 @@ corof::entrance ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
     });
 }
 
-corof::entrance ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
 {
     const auto amTJ = mpk.conv<AMTryJump>();
     const auto fnPrintJumpError = [&amTJ]()
@@ -363,7 +363,7 @@ corof::entrance ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
     });
 }
 
-corof::entrance ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 {
     AMTryMove amTM;
     std::memcpy(&amTM, rstMPK.data(), sizeof(amTM));
@@ -603,7 +603,7 @@ corof::entrance ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     });
 }
 
-corof::entrance ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.from();
     const auto amTL = mpk.conv<AMTryLeave>();
@@ -662,7 +662,7 @@ corof::entrance ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
     m_actorPod->post({fromUID, rmpk.seqID()}, AM_FINISHLEAVE);
 }
 
-corof::entrance ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.from();
     const auto amTMS = mpk.conv<AMTryMapSwitch>();
@@ -739,7 +739,7 @@ corof::entrance ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
     });
 }
 
-corof::entrance ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
 {
     AMPathFind amPF;
     std::memcpy(&amPF, rstMPK.data(), sizeof(amPF));
@@ -826,7 +826,7 @@ corof::entrance ServerMap::on_AM_PATHFIND(const ActorMsgPack &rstMPK)
     m_actorPod->post(rstMPK.fromAddr(), {AM_PATHFINDOK, amPFOK});
 }
 
-corof::entrance ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
 {
     AMUpdateHP amUHP;
     std::memcpy(&amUHP, rstMPK.data(), sizeof(amUHP));
@@ -848,7 +848,7 @@ corof::entrance ServerMap::on_AM_UPDATEHP(const ActorMsgPack &rstMPK)
     }
 }
 
-corof::entrance ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
     // CO always send AM_DEADFADEOUT to server map to remove the grid occupation
     // and server map then boardcast to all its neighbors to remove this CO from their list to do clean
@@ -872,7 +872,7 @@ corof::entrance ServerMap::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
     }
 }
 
-corof::entrance ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
 {
     AMQueryCOCount amQCOC;
     std::memcpy(&amQCOC, rstMPK.data(), sizeof(amQCOC));
@@ -902,7 +902,7 @@ corof::entrance ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     m_actorPod->post(rstMPK.fromAddr(), {AM_COCOUNT, amCOC});
 }
 
-corof::entrance ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
 {
     auto sdDI = mpk.deserialize<SDDropItem>();
     fflassert(sdDI.item);
@@ -932,7 +932,7 @@ corof::entrance ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
     }
 }
 
-corof::entrance ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 {
     AMOffline amO;
     std::memcpy(&amO, rstMPK.data(), sizeof(amO));
@@ -954,7 +954,7 @@ corof::entrance ServerMap::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
     });
 }
 
-corof::entrance ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
 {
     const auto amPU = mpk.conv<AMPickUp>();
 
@@ -1010,7 +1010,7 @@ corof::entrance ServerMap::on_AM_PICKUP(const ActorMsgPack &mpk)
     m_actorPod->post(mpk.fromAddr(), {AM_PICKUPITEMLIST, cerealf::serialize(sdPUIL)});
 }
 
-corof::entrance ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
 {
     const auto amSFLD = mpk.conv<AMStrikeFixedLocDamage>();
     doUIDList(amSFLD.x, amSFLD.y, [fromUID = mpk.from(), amSFLD, this](uint64_t uid) -> bool
@@ -1041,7 +1041,7 @@ corof::entrance ServerMap::on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &mpk)
     });
 }
 
-corof::entrance ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
 {
     const auto amCFW = mpk.conv<AMCastFireWall>();
     if(mapBin()->groundValid(amCFW.x, amCFW.y)){
@@ -1064,7 +1064,7 @@ corof::entrance ServerMap::on_AM_CASTFIREWALL(const ActorMsgPack &mpk)
     }
 }
 
-corof::entrance ServerMap::on_AM_REMOTECALL(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();
     m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));

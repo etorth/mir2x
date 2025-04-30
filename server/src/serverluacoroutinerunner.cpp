@@ -52,7 +52,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
-    m_actorPod->registerOp(AM_SENDNOTIFY, [thisptr = this]([[maybe_unused]] this auto self, const ActorMsgPack &mpk) -> corof::entrance
+    m_actorPod->registerOp(AM_SENDNOTIFY, [thisptr = this]([[maybe_unused]] this auto self, const ActorMsgPack &mpk) -> corof::awaitable<>
     {
         auto sdSN = mpk.deserialize<SDSendNotify>();
         auto runnerPtr = thisptr->hasKey(sdSN.key, sdSN.seqID);
