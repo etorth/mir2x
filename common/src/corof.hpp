@@ -433,6 +433,11 @@ namespace corof
             {}
 
         public:
+            awaitable()
+                : m_handle(nullptr)
+            {}
+
+        public:
             awaitable(awaitable && other) noexcept
             {
                 std::swap(m_handle, other.m_handle);
@@ -450,9 +455,22 @@ namespace corof
             awaitable & operator = (const awaitable &) = delete;
 
         public:
-            auto operator co_await() && noexcept
+            auto operator co_await() &&
             {
-                return AwaitableAsAwaiter(m_handle);
+                if(m_handle){
+                    return AwaitableAsAwaiter(m_handle);
+                }
+                else{
+                    throw std::runtime_error("coroutine handle is empty");
+                }
+            }
+
+        public:
+            void resume()
+            {
+                if(m_handle){
+                    AwaitableAsAwaiter(m_handle).await_suspend(std::noop_coroutine());
+                }
             }
     };
 }
