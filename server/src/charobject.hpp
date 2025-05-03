@@ -98,14 +98,13 @@ class CharObject: public ServerObject
     public:
         corof::awaitable<> onActivate() override
         {
-            ServerObject::onActivate();
+            co_await ServerObject::onActivate();
             dispatchAction(ActionSpawn
             {
                 .direction = Direction(),
                 .x = X(),
                 .y = Y(),
             });
-            return {};
         }
 
     protected:

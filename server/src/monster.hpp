@@ -187,7 +187,7 @@ class Monster: public BattleObject
     public:
         corof::awaitable<> onActivate() override
         {
-            CharObject::onActivate();
+            co_await CharObject::onActivate();
             if(masterUID()){
                 if(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type() != AM_CHECKMASTEROK){
                     goDie();

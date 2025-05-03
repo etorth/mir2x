@@ -22,9 +22,8 @@ class PeerCore: public ServerObject
     protected:
         corof::awaitable<> onActivate() override
         {
-            ServerObject::onActivate();
+            co_await ServerObject::onActivate();
             m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
-            return {};
         }
 
     public:
