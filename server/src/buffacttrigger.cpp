@@ -9,21 +9,25 @@ BaseBuffActTrigger::BaseBuffActTrigger(BaseBuff *argBuff, size_t argBuffActOff)
 {
     fflassert(getBAR().isTrigger());
     if(getBAREF().trigger.on & BATGR_TIME){
-        const auto buffSeq = getBuff()->buffSeq();
-        const auto actOff  = actOff();
-        getBuff()->getBO()->defer([boPtr = getBuff()->getBO(), buffSeq, actOff, thisptr = this](this auto) -> corof::awaitable<>
+        getBuff()->getBO()->defer([bo = getBuff()->getBO(), key = actKey()](this auto) -> corof::awaitable<>
         {
-            if(auto buffPtr = boPtr->hasBuff(buffSeq)){
-                if(auto tgrPtr = dynamic_cast<BaseBuffActTrigger *>(buffPtr->hasBuffAct(actOff))){
-                    const auto tick = 1000L / tgrPtr->getBAREF().trigger.tps;
-                    const auto totalCount = tgrPtr->getBAREF().trigger.tps * tgrPtr->getBAREF().duration;
-
-                    co_await runOnTrigger(BATGR_TIME);
-                    for(int i = 1; i < totalCount; ++i){
-                        co_await getBuff()->getBO()->asyncWait(tick);
-                        co_await runOnTrigger(BATGR_TIME);
+            if(auto tgrPtr = dynamic_cast<BaseBuffActTrigger *>(bo->m_buffList.hasBuffAct(key))){
+                const auto tick = 1000L / tgrPtr->getBAREF().trigger.tps;
+                const auto totalCount = [tgrPtr]()
+                {
+                    switch(tgrPtr->getBAREF().duration){
+                        case BADUR_UNLIMITED: return -1;
+                        case BADUR_INSTANT  : return  0;
+                        default             : return tgrPtr->getBAREF().duration * tgPtr->getBAREF().trigger.tps;
                     }
+                }();
+
+                co_await tgrPtr->runOnTrigger(BATGR_TIME);
+                for(int i = 1; totalCount < 0 || i < totalCount; ++i){
+                    co_await bo->asyncWait(tick);
+                    co_await tgrPtr->runOnTrigger(BATGR_TIME);
                 }
+                co_await tgrPtr->runOnDone();
             }
         });
     }

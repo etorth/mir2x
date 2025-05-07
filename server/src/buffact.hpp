@@ -50,9 +50,6 @@ class BaseBuffAct
         std::pair<uint64_t, size_t> actKey() const;
 
     public:
-        virtual bool done() const; // if duration has passed
-
-    public:
         const BuffRecord & getBR() const;
 
     public:

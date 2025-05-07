@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include "corof.hpp"
 #include "uidf.hpp"
 #include "buffrecord.hpp"
 #include "dbcomid.hpp"
@@ -142,25 +143,6 @@ class BaseBuff
         }
 
     public:
-        BaseBuffAct *hasBuffAct(size_t argActOff) const
-        {
-            for(auto &p: m_activeActList){
-                if(p && p->actOff() == argActOff){
-                    return p.get();
-                }
-            }
-            return nullptr;
-        }
-
-    public:
-        bool removeBuffAct(size_t argActOff)
-        {
-            for(auto &p: m_activeActList){
-                if(p && p->actOff() == argActOff){
-                    m_deadActList.push_back(std::move(p));
-                    return true;
-                }
-            }
-            return false;
-        }
+        BaseBuffAct *hasBuffAct(size_t) const;
+        bool      removeBuffAct(size_t);
 };

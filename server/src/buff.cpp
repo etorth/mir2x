@@ -42,18 +42,17 @@ BaseBuff::BaseBuff(BattleObject *argBO, uint64_t argFromUID, uint64_t argFromBuf
     }
 }
 
-void BaseBuff::runOnTrigger(int btgr)
+corof::awaitable<> BaseBuff::runOnTrigger(int btgr)
 {
     fflassert(validBuffActTrigger(btgr));
     for(auto &actPtr: m_activeActList){
         if(actPtr->getBAR().isTrigger()){
-            fflassert(validBuffActTrigger(actPtr->getBAREF().trigger.on));
             auto ptgr = dynamic_cast<BaseBuffActTrigger *>(actPtr.get());
             fflassert(ptgr);
 
             for(int m = 1; m < BATGR_END; m <<= 1){
                 if(actPtr->getBAREF().trigger.on & m){
-                    ptgr->runOnTrigger(m);
+                    co_await ptgr->runOnTrigger(m);
                 }
             }
         }
@@ -66,26 +65,27 @@ corof::awaitable<> BaseBuff::runOnBOMove()
     // check if need to disable because out of radius
 
     if(getBO()->UID() == fromUID()){
-        return;
+        co_return;
     }
 
     // capture this->getBO() should be fine, but don't capture *this*
     // buff may get released before lambada triggered
 
     if(const auto bap = fromAuraBAREF()){
-        getBO()->defer([boPtr = getBO(), fromUID = fromUID(), buffSeq = buffSeq(), radius = bap->aura.radius]([[maybe_unused]] this auto self) -> corof::awaitable<> // may call removeBuff() and can break outside for-loop
-        {
-            if(const auto coLocOpt = co_await boPtr->getCOLocation(fromUID); !coLocOpt.has_value()){
-                if((boPtr->mapUID() != coLocOpt.value().mapUID) || (mathf::LDistance2<int>(boPtr->X(), boPtr->Y(), coLocOpt.value().x, coLocOpt.value().y) > radius * radius)){
-                    boPtr->removeBuff(buffSeq, true);
-                }
+        auto bo = getBO();
+        auto seq = buffSeq();
+
+        if(const auto coLocOpt = co_await getBO()->getCOLocation(fromUID()); !coLocOpt.has_value()){
+            if((bo->mapUID() != coLocOpt.value().mapUID) || (mathf::LDistance2<int>(bo->X(), bo->Y(), coLocOpt.value().x, coLocOpt.value().y) > bap->aura.radius * bap->aura.radius)){
+                bo->removeBuff(seq, true);
             }
-        });
+        }
     }
 }
 
-void BaseBuff::runOnDone()
+corof::awaitable<> BaseBuff::runOnDone()
 {
+    co_return;
 }
 
 std::vector<BaseBuffActAura *> BaseBuff::getAuraList()
@@ -111,4 +111,25 @@ corof::awaitable<> BaseBuff::dispatchAura()
     for(auto paura: getAuraList()){
         co_await paura->dispatch();
     }
+}
+
+BaseBuffAct *BaseBuff::hasBuffAct(size_t argActOff) const
+{
+    for(auto &p: m_activeActList){
+        if(p && p->actOff() == argActOff){
+            return p.get();
+        }
+    }
+    return nullptr;
+}
+
+bool BaseBuff::removeBuffAct(size_t argActOff)
+{
+    for(auto &p: m_activeActList){
+        if(p && p->actOff() == argActOff){
+            m_deadActList.push_back(std::move(p));
+            return true;
+        }
+    }
+    return false;
 }

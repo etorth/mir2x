@@ -30,24 +30,6 @@ std::pair<uint64_t, size_t> BaseBuffAct::actKey() const
     return {getBuff()->buffSeq(), actOff()};
 }
 
-bool BaseBuffAct::done() const
-{
-    switch(getBAREF().duration){
-        case BADUR_UNLIMITED:
-            {
-                return false;
-            }
-        case BADUR_INSTANT:
-            {
-                return true;
-            }
-        default:
-            {
-                return std::lround(m_buff->accuTime()) >= getBAREF().duration;
-            }
-    }
-}
-
 BaseBuffAct *BaseBuffAct::createBuffAct(BaseBuff *argBuff, size_t argBuffActOff)
 {
     fflassert(argBuff);

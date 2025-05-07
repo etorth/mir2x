@@ -20,6 +20,7 @@ class BattleObject: public CharObject
     public:
         friend class CharObject;
         friend class BaseBuff;
+        firend class BaseBuffAct;
         friend class BaseBuffActAura;
         friend class BaseBuffActTrigger;
         friend class BaseBuffActAttributeModifier;
