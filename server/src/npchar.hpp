@@ -60,9 +60,6 @@ class NPChar final: public CharObject
         NPChar(const SDInitNPChar &initNPChar);
 
     public:
-        bool update() override;
-
-    public:
         void reportCO(uint64_t) override;
 
     public:

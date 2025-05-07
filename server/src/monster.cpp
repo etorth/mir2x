@@ -509,26 +509,6 @@ corof::eval_poller<> Monster::updateCoroFunc()
     co_return;
 }
 
-bool Monster::update()
-{
-    if(m_sdHealth.hp < 0){
-        return goDie();
-    }
-
-    if(masterUID() && !m_actorPod->checkUIDValid(masterUID())){
-        return goDie();
-    }
-
-    if(m_buffList.update()){
-        dispatchBuffIDList();
-    }
-
-    if(!m_updateCoro.valid() || m_updateCoro.poll()){
-        m_updateCoro = updateCoroFunc();
-    }
-    return true;
-}
-
 corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){

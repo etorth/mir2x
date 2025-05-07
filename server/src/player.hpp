@@ -137,8 +137,6 @@ class Player final: public BattleObject
             return 5;
         }
 
-        bool update() override;
-
     protected:
         void operateNet(uint8_t, const uint8_t *, size_t, uint64_t);
 

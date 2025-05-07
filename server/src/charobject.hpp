@@ -93,9 +93,6 @@ class CharObject: public ServerObject
         }
 
     public:
-        virtual bool update() = 0;
-
-    public:
         corof::awaitable<> onActivate() override
         {
             co_await ServerObject::onActivate();

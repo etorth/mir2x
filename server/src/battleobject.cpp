@@ -945,13 +945,6 @@ void BattleObject::dispatchBuffIDList()
     }
 }
 
-void BattleObject::updateBuffList()
-{
-    if(m_buffList.update()){
-        dispatchBuffIDList();
-    }
-}
-
 void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
 {
     if(auto buffp = m_buffList.hasBuffSeq(buffSeq)){

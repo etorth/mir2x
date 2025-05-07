@@ -106,9 +106,6 @@ class BattleObject: public CharObject
     public:
         ~BattleObject() = default;
 
-    public:
-        virtual bool update() = 0;
-
     protected:
         virtual void reportCO(uint64_t) = 0;
 
@@ -248,9 +245,6 @@ class BattleObject: public CharObject
 
     protected:
         void dispatchBuffIDList();
-
-    protected:
-        virtual void updateBuffList();
 
     protected:
         virtual bool updateHealth(

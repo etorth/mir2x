@@ -77,25 +77,6 @@ class BuffList final
         }
 
     public:
-        bool update()
-        {
-            // for update()/done()/runOnUpdate()
-            // follow the same design way as BaseMagic in client/src/basemagic.hpp
-
-            bool changed = false;
-            for(auto &p: m_activeBuffList){
-                if(p.second && p.second->update(m_timer.diff_msecf())){
-                    m_deadBufList.push_back(std::move(p.second));
-                    changed = true;
-                }
-            }
-
-            m_deadBufList.clear();
-            m_timer.reset();
-            return changed;
-        }
-
-    public:
         void removeBuff(uint64_t buffSeq)
         {
             if(auto p = m_activeBuffList.find(buffSeq); p != m_activeBuffList.end() && p->second){

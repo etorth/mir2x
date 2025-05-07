@@ -14,12 +14,6 @@
 #include "buildconfig.hpp"
 
 extern Server *g_server;
-
-corof::awaitable<> Player::on_AM_METRONOME(const ActorMsgPack &)
-{
-    update();
-}
-
 corof::awaitable<> Player::on_AM_BADACTORPOD(const ActorMsgPack &rstMPK)
 {
     AMBadActorPod amBAP;

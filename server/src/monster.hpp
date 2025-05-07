@@ -93,7 +93,6 @@ class Monster: public BattleObject
 
     protected:
         void SearchViewRange();
-        bool update() override;
 
     protected:
         virtual corof::eval_poller<> updateCoroFunc();

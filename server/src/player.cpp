@@ -754,14 +754,6 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, ui
     }
 }
 
-bool Player::update()
-{
-    if(m_buffList.update()){
-        dispatchBuffIDList();
-    }
-    return true;
-}
-
 void Player::reportCO(uint64_t toUID)
 {
     if(!toUID){

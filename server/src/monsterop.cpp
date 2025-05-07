@@ -9,11 +9,6 @@
 #include "dbcomid.hpp"
 
 extern Server *g_server;
-corof::awaitable<> Monster::on_AM_METRONOME(const ActorMsgPack &)
-{
-    update();
-}
-
 corof::awaitable<> Monster::on_AM_MISS(const ActorMsgPack &mpk)
 {
     const auto amM = mpk.conv<AMMiss>();

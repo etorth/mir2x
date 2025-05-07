@@ -385,11 +385,6 @@ std::optional<uint64_t> NPChar::getXMLSeqID(uint64_t uid) const
     }
 }
 
-bool NPChar::update()
-{
-    return true;
-}
-
 void NPChar::reportCO(uint64_t)
 {
 }
