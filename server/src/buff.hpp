@@ -97,8 +97,8 @@ class BaseBuff
         }
 
     public:
-        virtual void runOnTrigger(int);
-        virtual void runOnDone();
+        virtual corof::awaitable<> runOnTrigger(int);
+        virtual corof::awaitable<> runOnDone();
 
     public:
         virtual corof::awaitable<> runOnBOMove();

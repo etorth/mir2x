@@ -2,6 +2,7 @@
 #include <array>
 #include <string>
 #include <cfloat>
+#include <variant>
 #include <coroutine>
 #include <functional>
 #include <unordered_map>
@@ -58,7 +59,7 @@ class ActorPod final
         uint64_t m_nextSeqID = 1;
 
     private:
-        std::unordered_map<uint64_t, std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type>> m_respondCBList;
+        std::unordered_map<uint64_t, std::variant<std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type>, std::function<void(const ActorMsgPack &)>>> m_respondCBList;
 
     private:
         ActorPodMonitor m_podMonitor;
@@ -183,8 +184,8 @@ class ActorPod final
         }
 
     public:
-        std::pair<uint64_t, uint64_t> createWaitToken(uint64_t);
-        bool                          cancelWaitToken(const std::pair<uint64_t, uint64_t> &);
+        std::pair<uint64_t, uint64_t> createWaitToken(uint64_t, std::function<void(const ActorMsgPack &)>);
+        bool cancelWaitToken(const std::pair<uint64_t, uint64_t> &);
 
     public:
         corof::awaitable<ActorMsgPack> wait(uint64_t tick)
@@ -192,7 +193,7 @@ class ActorPod final
             co_await RegisterContinuationAwaiter
             {
                 .actor = this,
-                .seqID = createWaitToken(tick).second,
+                .seqID = createWaitToken(tick, nullptr).second,
             };
         }
 

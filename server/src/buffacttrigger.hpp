@@ -15,7 +15,7 @@ class BaseBuffActTrigger: public BaseBuffAct
         BaseBuffActTrigger(BaseBuff *, size_t);
 
     public:
-        virtual void runOnTrigger(int) = 0;
+        virtual corof::awaitable<> runOnTrigger(int) = 0;
 
     public:
         static BaseBuffActTrigger *createTrigger(BaseBuff *, size_t);

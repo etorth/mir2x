@@ -18,10 +18,10 @@ BaseBuffActTrigger::BaseBuffActTrigger(BaseBuff *argBuff, size_t argBuffActOff)
                     const auto tick = 1000L / tgrPtr->getBAREF().trigger.tps;
                     const auto totalCount = tgrPtr->getBAREF().trigger.tps * tgrPtr->getBAREF().duration;
 
-                    runOnTrigger(BATGR_TIME);
+                    co_await runOnTrigger(BATGR_TIME);
                     for(int i = 1; i < totalCount; ++i){
                         co_await getBuff()->getBO()->asyncWait(tick);
-                        runOnTrigger(BATGR_TIME);
+                        co_await runOnTrigger(BATGR_TIME);
                     }
                 }
             }
@@ -67,7 +67,10 @@ template<uint32_t INDEX> class BuffActTrigger: public IndexedBuffActTrigger<INDE
         {}
 
     protected:
-        void runOnTrigger(int) override {}
+        corof::awaitable<> runOnTrigger(int) override
+        {
+            co_return;
+        }
 };
 
 #define _decl_named_buff_act_trigger(name) template<> class BuffActTrigger<DBCOM_BUFFACTID(name)>: public IndexedBuffActTrigger<DBCOM_BUFFACTID(name)> \
@@ -84,10 +87,10 @@ template<uint32_t INDEX> class BuffActTrigger: public IndexedBuffActTrigger<INDE
         {} \
  \
     protected: \
-        void runOnTrigger(int) override; \
+               corof::awaitable<> runOnTrigger(int) override; \
 }; \
  \
-void  BuffActTrigger<DBCOM_BUFFACTID(name)>::runOnTrigger
+corof::awaitable<>  BuffActTrigger<DBCOM_BUFFACTID(name)>::runOnTrigger
 
 // define all triggers here
 // macros usage:
@@ -102,7 +105,7 @@ _decl_named_buff_act_trigger(u8"HP持续")(int trigger)
 {
     if(trigger & BATGR_TIME){
         const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().trigger.arg);
-        getBuff()->getBO()->updateHealth(value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxHP() / 100.0));
+        co_await getBuff()->getBO()->updateHealth(value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxHP() / 100.0));
     }
 }
 
@@ -110,20 +113,20 @@ _decl_named_buff_act_trigger(u8"MP持续")(int trigger)
 {
     if(trigger & BATGR_TIME){
         const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().trigger.arg);
-        getBuff()->getBO()->updateHealth(0, value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxMP() / 100.0));
+        co_await getBuff()->getBO()->updateHealth(0, value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxMP() / 100.0));
     }
 }
 
 _decl_named_buff_act_trigger(u8"HP移动伤害")(int trigger)
 {
     if(trigger & BATGR_MOVE){
-        getBuff()->getBO()->updateHealth(-1 * std::get<int>(getBAREF().trigger.arg));
+        co_await getBuff()->getBO()->updateHealth(-1 * std::get<int>(getBAREF().trigger.arg));
     }
 }
 
 _decl_named_buff_act_trigger(u8"MP移动伤害")(int)
 {
-    getBuff()->getBO()->updateHealth(0, -1);
+    co_await getBuff()->getBO()->updateHealth(0, -1);
 }
 
 #undef _decl_named_buff_act_trigger

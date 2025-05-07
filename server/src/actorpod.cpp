@@ -2,6 +2,7 @@
 #include <atomic>
 #include <cinttypes>
 
+#include "protocoldef.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "actorpod.hpp"
@@ -58,17 +59,35 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
 
     if(mpk.respID()){
         if(auto p = m_respondCBList.find(mpk.respID()); p != m_respondCBList.end()){
-            if(p->second){
-                m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
+            std::visit(VarDispatcher
+            {
+                [&mpk, this](std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type> &handle)
                 {
-                    raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
-                    p->second.promise().return_value(mpk);
-                    p->second.resume();
-                }
-            }
-            else{
-                throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): coroutine not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
-            }
+                    if(handle){
+                        m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
+                        {
+                            raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
+                            handle.promise().return_value(mpk);
+                            handle.resume();
+                        }
+                    }
+                    else{
+                        throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): coroutine not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+                    }
+                },
+
+                [&mpk, this](std::function<void(const ActorMsgPack &)> &op)
+                {
+                    if(op){
+                        op(mpk);
+                    }
+                    else{
+                        throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): coroutine not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+                    }
+                },
+            },
+
+            p->second);
             m_respondCBList.erase(p);
         }
         else{
@@ -107,11 +126,17 @@ uint64_t ActorPod::rollSeqID()
     }
 }
 
-std::pair<uint64_t, uint64_t> ActorPod::createWaitToken(uint64_t tick)
+std::pair<uint64_t, uint64_t> ActorPod::createWaitToken(uint64_t tick, std::function<void(const ActorMsgPack &)> op)
 {
     const auto seqID = rollSeqID();
-    const auto key = g_actorPool->requestTimeout({UID(), seqID}, tick);
-    return {key, seqID};
+    const auto empOK = m_respondCBList.emplace(seqID, std::move(op)); // prepare cb before request timeout
+
+    fflassert(empOK.second);
+    return
+    {
+        g_actorPool->requestTimeout({UID(), seqID}, tick),
+        seqID,
+    };
 }
 
 bool ActorPod::cancelWaitToken(const std::pair<uint64_t, uint64_t> &token)

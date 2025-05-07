@@ -22,7 +22,7 @@ class BuffList final
 
     private:
         std::vector<std::unique_ptr<BaseBuff>> m_deadBufList;
-        std::unordered_map<uint64_t, std::unique_ptr<BaseBuff>> m_activeBuffList;
+        std::map<uint64_t, std::unique_ptr<BaseBuff>> m_activeBuffList; // sorted by seqID
 
     public:
         /* ctor */  BuffList() = default;
@@ -85,22 +85,22 @@ class BuffList final
         }
 
     public:
-        void runOnTrigger(int btgr)
+        corof::awaitable<> runOnTrigger(int btgr)
         {
             fflassert(validBuffActTrigger(btgr));
             for(auto &p: m_activeBuffList){
                 if(p.second){
-                    p.second->runOnTrigger(btgr);
+                    co_await p.second->runOnTrigger(btgr);
                 }
             }
         }
 
     public:
-        void runOnBOMove()
+        corof::awaitable<> runOnBOMove()
         {
             for(auto &p: m_activeBuffList){
                 if(p.second){
-                    p.second->runOnBOMove();
+                    co_await p.second->runOnBOMove();
                 }
             }
         }
@@ -151,7 +151,7 @@ class BuffList final
         }
 
     public:
-        BaseBuff *hasBuffSeq(uint64_t buffSeq) const
+        BaseBuff *hasBuff(uint64_t buffSeq) const
         {
             if(m_activeBuffList.contains(buffSeq)){
                 return m_activeBuffList.at(buffSeq).get();
@@ -167,7 +167,7 @@ class BuffList final
 
             for(auto &p: m_activeBuffList){
                 if(p.second){
-                    for(auto &actPtr: p.second->m_actList){
+                    for(auto &actPtr: p.second->m_activeActList){
                         if(actPtr->getBAR().isBuffAct(name)){
                             result.push_back(actPtr.get());
                         }
@@ -175,6 +175,14 @@ class BuffList final
                 }
             }
             return result;
+        }
+
+        BaseBuffAct *hasBuffAct(const std::pair<uint64_t, size_t> &argKey)
+        {
+            if(auto buff = hasBuff(argKey.first)){
+                return buff->hasBuffAct(argKey.second);
+            }
+            return nullptr;
         }
 
     public:

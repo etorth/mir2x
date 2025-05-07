@@ -271,13 +271,10 @@ void CharObject::dispatchAction(const ActionNode &action, bool forceMap)
             }
         default:
             {
-                foreachInViewCO([this, amA](const COLocation &rstLocation)
+                foreachInViewCO([this, amA](const COLocation &coLoc)
                 {
-                    const auto nX = rstLocation.x;
-                    const auto nY = rstLocation.y;
-                    const auto nMapUID = rstLocation.mapUID;
-                    if(inView(nMapUID, nX, nY)){
-                        m_actorPod->post(rstLocation.uid, {AM_ACTION, amA});
+                    if(inView(coLoc.mapUID, coLoc.x, coLoc.y)){
+                        m_actorPod->post(coLoc.uid, {AM_ACTION, amA});
                     }
                 });
                 return;

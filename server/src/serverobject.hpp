@@ -80,6 +80,12 @@ class ServerObject
         }
 
     public:
+        std::pair<uint64_t, uint64_t> createWaitToken(uint64_t tick, std::function<void(bool)> op)
+        {
+            return m_actorPod->createWaitToken(tick, std::move(op));
+        }
+
+    public:
         corof::awaitable<bool> asyncWait(uint64_t tick)
         {
             switch(const auto mpk = co_await m_actorPod->wait(tick); mpk.type()){
@@ -94,25 +100,36 @@ class ServerObject
             }
         }
 
+        corof::awaitable<bool> asyncWait(const std::pair<uint64_t, uint64_t> &token)
+        {
+            switch(const auto mpk = co_await m_actorPod->waitToken(token); mpk.type()){
+                case AM_TIMEOUT:
+                    {
+                        co_return true;
+                    }
+                default:
+                    {
+                        co_return false;
+                    }
+            }
+        }
+
     public:
-        auto defer(std::function<corof::awaitable<>()> cmd)
+        auto defer(std::function<void()> cmd)
         {
             m_stateTrigger.install([cmd = std::move(cmd)]() -> bool
             {
-                cmd().resume();
+                cmd();
                 return true;
             });
         }
 
-        auto addDelay(uint64_t delayTick, std::function<corof::awaitable<>()> cmd)
+        auto addDelay(uint64_t delayTick, std::function<void(bool)> cmd)
         {
-            const auto token = m_actorPod->createWaitToken(delayTick);
-            defer([token, cmd = std::move(cmd), thisptr = this]([[maybe_unused]] this auto self) -> corof::awaitable<>
+            return m_actorPod->createWaitToken(delayTick, [cmd = std::move(cmd)](const ActorMsgPack &mpk)
             {
-                co_await thisptr->m_actorPod->waitToken(token);
-                co_await cmd();
+                cmd(mpk.type() == AM_TIMEOUT);
             });
-            return token;
         }
 
         void removeDelay(const std::pair<uint64_t, uint64_t> &token)

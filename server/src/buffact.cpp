@@ -25,6 +25,11 @@ BaseBuffAct::BaseBuffAct(BaseBuff *argBuff, size_t argBuffActOff)
       }())
 {}
 
+std::pair<uint64_t, size_t> BaseBuffAct::actKey() const
+{
+    return {getBuff()->buffSeq(), actOff()};
+}
+
 bool BaseBuffAct::done() const
 {
     switch(getBAREF().duration){

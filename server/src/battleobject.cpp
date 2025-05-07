@@ -157,9 +157,9 @@ corof::awaitable<bool> BattleObject::requestJump(int nX, int nY, int nDirection)
                     dynamic_cast<Player *>(this)->notifySlaveGLoc();
                 }
 
-                m_buffList.runOnTrigger(BATGR_MOVE);
-                m_buffList.runOnBOMove();
-                m_buffList.dispatchAura();
+                co_await m_buffList.runOnTrigger(BATGR_MOVE);
+                co_await m_buffList.runOnBOMove();
+                co_await m_buffList.dispatchAura();
 
                 co_return true;
             }
@@ -286,9 +286,9 @@ corof::awaitable<bool> BattleObject::requestMove(int dstX, int dstY, int speed, 
                     dynamic_cast<Player *>(this)->notifySlaveGLoc();
                 }
 
-                m_buffList.runOnTrigger(BATGR_MOVE);
-                m_buffList.runOnBOMove();
-                m_buffList.dispatchAura();
+                co_await m_buffList.runOnTrigger(BATGR_MOVE);
+                co_await m_buffList.runOnBOMove();
+                co_await m_buffList.dispatchAura();
 
                 co_return true;
             }
@@ -368,9 +368,9 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
                     dynamic_cast<Player *>(this)->notifySlaveGLoc();
                 }
 
-                m_buffList.runOnTrigger(BATGR_MOVE);
-                m_buffList.runOnBOMove();
-                m_buffList.dispatchAura();
+                co_await m_buffList.runOnTrigger(BATGR_MOVE);
+                co_await m_buffList.runOnBOMove();
+                co_await m_buffList.dispatchAura();
 
                 co_return true;
             }
@@ -475,9 +475,9 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
         dynamic_cast<Player *>(this)->notifySlaveGLoc();
     }
 
-    m_buffList.runOnTrigger(BATGR_MOVE);
-    m_buffList.runOnBOMove();
-    m_buffList.dispatchAura();
+    co_await m_buffList.runOnTrigger(BATGR_MOVE);
+    co_await m_buffList.runOnBOMove();
+    co_await m_buffList.dispatchAura();
 
     co_return true;
 }
@@ -947,13 +947,12 @@ void BattleObject::dispatchBuffIDList()
 
 void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
 {
-    if(auto buffp = m_buffList.hasBuffSeq(buffSeq)){
+    if(auto buffp = m_buffList.hasBuff(buffSeq)){
         const auto fromUID = buffp->fromUID();
-        m_buffList.erase(buffSeq);
+        m_buffList.removeBuff(buffSeq);
 
         AMRemoveBuff amRB;
         std::memset(&amRB, 0, sizeof(amRB));
-
         amRB.fromUID = UID();
         amRB.fromBuffSeq = buffSeq;
 
@@ -997,12 +996,15 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
 {
     const auto fnAddBuff = [fromUID, fromBuffSeq, buffID, this]() -> BaseBuff *
     {
-        if(auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)))){
+        auto buffSeqID = m_buffList.rollSeqID(buffID);
+        auto buffPtr   = std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, buffSeqID);
+
+        if(auto buff = m_buffList.addBuff(std::move(buffPtr))){
             for(const auto paura: buff->getAuraList()){
-                paura->dispatch();
                 if(paura->getBAR().aura.self){
                     addBuff(buff->fromUID(), buff->buffSeq(), DBCOM_BUFFID(paura->getBAR().aura.buff));
                 }
+                [paura]() -> corof::awaitable<> { co_await paura->dispatch(); }().resume();
             }
 
             if(buff->getBR().icon.show){
@@ -1016,21 +1018,26 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
     // NOTE currently only *replace* buff added by self
     // can not remove/override buffs added by other person to avoid cheating
 
-    if(const auto &br = DBCOM_BUFFRECORD(buffID); br){
-        auto pbuffList = m_buffList.hasBuff(br.name);
-        auto pbuffListFromUID = m_buffList.hasFromBuff(fromUID, fromBuffSeq, buffID);
-
-        fflassert(pbuffList.size() >= pbuffListFromUID.size());
-        if(to_d(pbuffList.size()) < br.stackCount + 1){
-            return fnAddBuff();
-        }
-        else if(!pbuffListFromUID.empty() && br.stackReplace){
-            // total number has reach max stack count
-            // but there are buffs from fromUID and can replace, remove the oldest and add new buff
-            m_buffList.erase(pbuffListFromUID.front()->buffSeq());
-            return fnAddBuff();
-        }
+    const auto &br = DBCOM_BUFFRECORD(buffID);
+    if(!br){
+        return nullptr;
     }
+
+    const auto pbuffList = m_buffList.hasBuff(br.name);
+    if(to_d(pbuffList.size()) < br.stackCount + 1){
+        return fnAddBuff();
+    }
+
+    // total number has reach max stack count
+    // check if there are buffs from fromUID and can replace, remove the oldest and add new buff
+    const auto pbuffListFromUID = m_buffList.hasFromBuff(fromUID, fromBuffSeq, buffID);
+    fflassert(pbuffList.size() >= pbuffListFromUID.size());
+
+    if(!pbuffListFromUID.empty() && br.stackReplace){
+        m_buffList.removeBuff(pbuffListFromUID.front()->buffSeq());
+        return fnAddBuff();
+    }
+
     return nullptr;
 }
 

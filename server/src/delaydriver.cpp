@@ -89,7 +89,6 @@ uint64_t DelayDriver::add(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_
             recycleTimer(seq);
         }
     });
-
     return seq;
 }
 
