@@ -181,4 +181,27 @@ class ActorPod final
                 .seqID = doPost({addr, 0}, std::move(mbuf), true),
             };
         }
+
+    public:
+        std::pair<uint64_t, uint64_t> createWaitToken(uint64_t);
+        bool                          cancelWaitToken(const std::pair<uint64_t, uint64_t> &);
+
+    public:
+        corof::awaitable<ActorMsgPack> wait(uint64_t tick)
+        {
+            co_await RegisterContinuationAwaiter
+            {
+                .actor = this,
+                .seqID = createWaitToken(tick).second,
+            };
+        }
+
+        corof::awaitable<ActorMsgPack> waitToken(const std::pair<uint64_t, uint64_t> &token)
+        {
+            co_await RegisterContinuationAwaiter
+            {
+                .actor = this,
+                .seqID = token.second,
+            };
+        }
 };

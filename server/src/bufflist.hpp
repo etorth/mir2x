@@ -21,7 +21,8 @@ class BuffList final
         std::unordered_map<uint32_t, uint32_t> m_buffSeqBase;
 
     private:
-        std::unordered_map<uint64_t, std::unique_ptr<BaseBuff>> m_buffList;
+        std::vector<std::unique_ptr<BaseBuff>> m_deadBufList;
+        std::unordered_map<uint64_t, std::unique_ptr<BaseBuff>> m_activeBuffList;
 
     public:
         /* ctor */  BuffList() = default;
@@ -37,35 +38,41 @@ class BuffList final
         BaseBuff * addBuff(std::unique_ptr<BaseBuff> buffPtr)
         {
             fflassert(buffPtr);
-            fflassert(!m_buffList.count(buffPtr->buffSeq()), buffPtr->id(), buffPtr->seqID());
+            fflassert(!m_activeBuffList.contains(buffPtr->buffSeq()), buffPtr->id(), buffPtr->seqID());
 
             const auto buffSeq = buffPtr->buffSeq();
-            return (m_buffList[buffSeq] = std::move(buffPtr)).get();
+            return (m_activeBuffList[buffSeq] = std::move(buffPtr)).get();
         }
 
     public:
-        void sendAura(uint64_t targetUID)
+        corof::awaitable<> sendAura(uint64_t targetUID)
         {
-            for(auto &p: m_buffList){
-                p.second->sendAura(targetUID);
+            for(auto &p: m_activeBuffList){
+                if(p.second){
+                    co_await p.second->sendAura(targetUID);
+                }
             }
         }
 
-        void updateAura(uint64_t uid)
+        corof::awaitable<> updateAura(uint64_t uid)
         {
-            sendAura(uid);
-            for(auto &[buffSeq, pbuff]: m_buffList){
-                if((pbuff->fromUID() == uid) && pbuff->fromAuraBAREF()){
-                    pbuff->runOnBOMove(); // behave same as BO itself moves
+            co_await sendAura(uid);
+            for(auto &p: m_activeBuffList){
+                if(p.second){
+                    if((p.second->fromUID() == uid) && p.second->fromAuraBAREF()){
+                        co_await p.second->runOnBOMove(); // behave same as BO itself moves
+                    }
                 }
             }
         }
 
     public:
-        void dispatchAura()
+        corof::awaitable<> dispatchAura()
         {
-            for(auto &p: m_buffList){
-                p.second->dispatchAura();
+            for(auto &p: m_activeBuffList){
+                if(p.second){
+                    co_await p.second->dispatchAura();
+                }
             }
         }
 
@@ -76,47 +83,44 @@ class BuffList final
             // follow the same design way as BaseMagic in client/src/basemagic.hpp
 
             bool changed = false;
-            for(auto p = m_buffList.begin(); p != m_buffList.end();){
-                if(p->second->update(m_timer.diff_msecf())){
-                    p = m_buffList.erase(p);
+            for(auto &p: m_activeBuffList){
+                if(p.second && p.second->update(m_timer.diff_msecf())){
+                    m_deadBufList.push_back(std::move(p.second));
                     changed = true;
-                }
-                else{
-                    p++;
                 }
             }
 
+            m_deadBufList.clear();
             m_timer.reset();
             return changed;
         }
 
     public:
-        void erase(uint64_t buffSeq)
+        void removeBuff(uint64_t buffSeq)
         {
-            m_buffList.erase(buffSeq);
+            if(auto p = m_activeBuffList.find(buffSeq); p != m_activeBuffList.end() && p->second){
+                m_deadBufList.push_back(std::move(p->second));
+            }
         }
 
     public:
         void runOnTrigger(int btgr)
         {
             fflassert(validBuffActTrigger(btgr));
-            for(auto &p: m_buffList){
-                p.second->runOnTrigger(btgr);
+            for(auto &p: m_activeBuffList){
+                if(p.second){
+                    p.second->runOnTrigger(btgr);
+                }
             }
         }
 
     public:
         void runOnBOMove()
         {
-            // TODO BaseBuff::runOnBOMove() can call removeBuff()
-            // which destruct the Buff itself and this causes dangling pointer
-
-            for(auto p = m_buffList.begin(); p != m_buffList.end();){
-                auto pnext = std::next(p);
-                auto pbuff = p->second.get();
-
-                pbuff->runOnBOMove();
-                p = pnext;
+            for(auto &p: m_activeBuffList){
+                if(p.second){
+                    p.second->runOnBOMove();
+                }
             }
         }
 
@@ -124,11 +128,13 @@ class BuffList final
         std::vector<uint32_t> getIDList(bool showIconOnly = true) const
         {
             std::vector<uint32_t> idList;
-            idList.reserve(m_buffList.size());
+            idList.reserve(m_activeBuffList.size());
 
-            for(const auto &p: m_buffList){
-                if(!showIconOnly || p.second->getBR().icon.show){
-                    idList.push_back(p.second->id());
+            for(const auto &p: m_activeBuffList){
+                if(p.second){
+                    if(!showIconOnly || p.second->getBR().icon.show){
+                        idList.push_back(p.second->id());
+                    }
                 }
             }
 
@@ -142,8 +148,8 @@ class BuffList final
             fflassert(str_haschar(name));
             std::vector<BaseBuff *> result;
 
-            for(auto &p: m_buffList){
-                if(p.second->getBR().isBuff(name)){
+            for(auto &p: m_activeBuffList){
+                if(p.second && p.second->getBR().isBuff(name)){
                     result.push_back(p.second.get());
                 }
             }
@@ -153,9 +159,11 @@ class BuffList final
         std::vector<BaseBuff *> hasFromBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t buffID = 0)
         {
             std::vector<BaseBuff *> result;
-            for(auto &elemp: m_buffList){
-                if((elemp.second->fromUID() == fromUID) && (elemp.second->fromBuffSeq() == fromBuffSeq) && (buffID == 0 || buffID == elemp.second->id())){
-                    result.push_back(elemp.second.get());
+            for(auto &p: m_activeBuffList){
+                if(p.second){
+                    if((p.second->fromUID() == fromUID) && (p.second->fromBuffSeq() == fromBuffSeq) && (buffID == 0 || buffID == p.second->id())){
+                        result.push_back(p.second.get());
+                    }
                 }
             }
             return result;
@@ -164,8 +172,8 @@ class BuffList final
     public:
         BaseBuff *hasBuffSeq(uint64_t buffSeq) const
         {
-            if(m_buffList.count(buffSeq)){
-                return m_buffList.at(buffSeq).get();
+            if(m_activeBuffList.contains(buffSeq)){
+                return m_activeBuffList.at(buffSeq).get();
             }
             return nullptr;
         }
@@ -176,10 +184,12 @@ class BuffList final
             fflassert(str_haschar(name));
             std::vector<BaseBuffAct *> result;
 
-            for(auto &elemp: m_buffList){
-                for(auto &actPtr: elemp.second->m_actList){
-                    if(actPtr->getBAR().isBuffAct(name)){
-                        result.push_back(actPtr.get());
+            for(auto &p: m_activeBuffList){
+                if(p.second){
+                    for(auto &actPtr: p.second->m_actList){
+                        if(actPtr->getBAR().isBuffAct(name)){
+                            result.push_back(actPtr.get());
+                        }
                     }
                 }
             }

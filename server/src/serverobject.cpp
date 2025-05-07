@@ -133,12 +133,6 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
 ServerObject::ServerObject(uint64_t uid)
     : m_UID(uid)
 {
-    m_stateTrigger.install([this]() -> bool
-    {
-        m_delayCmdQ.exec();
-        return false;
-    });
-
     if(g_serverArgParser->sharedConfig().traceActorMessageCount){
         m_stateTrigger.install([this, lastCheckTick = to_u32(0)]() mutable -> bool
         {

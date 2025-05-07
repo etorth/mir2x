@@ -268,7 +268,7 @@ void Quest::LuaThreadRunner::closeQuestState(uint64_t uid, const char *fsm, cons
         //
         // this prevents any possibility of resuming the thread after this function call
 
-        getQuest()->addDelay(0, [threadKey = p->second, this]()
+        getQuest()->defer([threadKey = p->second, this]()
         {
             close(threadKey);
         });

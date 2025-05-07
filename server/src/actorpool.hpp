@@ -23,6 +23,7 @@ class NetDriver;
 class Receiver;
 class Dispatcher;
 class SyncDriver;
+class DelayDriver;
 class ActorNetDriver;
 class PeerCore;
 
@@ -34,6 +35,7 @@ class ActorPool final
         friend class Receiver;
         friend class Dispatcher;
         friend class SyncDriver;
+        friend class DelayDriver;
         friend class ActorNetDriver;
 
     public:
@@ -529,6 +531,7 @@ class ActorPool final
 
     private:
         std::unique_ptr<NetDriver> m_netDriver;
+        std::unique_ptr<DelayDriver> m_delayDriver;
         std::unique_ptr<ActorNetDriver> m_actorNetDriver;
 
     public:
@@ -623,4 +626,8 @@ class ActorPool final
     private:
         Mailbox *tryGetMailboxPtr(uint64_t);
         std::pair<MailboxSubBucket::RLockGuard, Mailbox *> tryGetRLockedMailboxPtr(uint64_t);
+
+    public:
+        uint64_t requestTimeout(const std::pair<uint64_t, uint64_t> &, uint64_t);
+        bool cancelTimeout(uint64_t);
 };

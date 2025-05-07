@@ -6,10 +6,12 @@
 std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
 {
     scoped_alloc::svobuf_wrapper<BaseBuffActAttackModifier *, 16> amodList;
-    for(auto &elemp: m_buffList){
-        for(auto &actPtr: elemp.second->m_actList){
-            if(actPtr->getBAR().isAttackModifier()){
-                amodList.c.push_back(dynamic_cast<BaseBuffActAttackModifier *>(actPtr.get()));
+    for(auto &p: m_activeBuffList){
+        if(p.second){
+            for(auto &actPtr: p.second->m_actList){
+                if(actPtr->getBAR().isAttackModifier()){
+                    amodList.c.push_back(dynamic_cast<BaseBuffActAttackModifier *>(actPtr.get()));
+                }
             }
         }
     }
@@ -38,13 +40,15 @@ std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
     fflassert(str_haschar(name)); \
     std::vector<T *> result; \
  \
-    for(auto &elemp: m_buffList){ \
-        for(auto &actPtr: elemp.second->m_actList){ \
-            const auto &bar = DBCOM_BUFFACTRECORD(name); \
-            fflassert(bar); \
+    for(auto &p: m_activeBuffList){ \
+        if(p.second){ \
+            for(auto &actPtr: p.second->m_actList){ \
+                const auto &bar = DBCOM_BUFFACTRECORD(name); \
+                fflassert(bar); \
  \
-            if(bar.isT() && bar.isBuffAct(name)){ \
-                result.push_back(dynamic_cast<T *>(actPtr.get())); \
+                if(bar.isT() && bar.isBuffAct(name)){ \
+                    result.push_back(dynamic_cast<T *>(actPtr.get())); \
+                } \
             } \
         } \
     } \

@@ -35,15 +35,15 @@ class BaseBuffAct
             return m_id;
         }
 
-    public:
-        BaseBuff * getBuff()
+        size_t actOff() const
         {
-            return m_buff;
+            return m_actOff;
         }
 
-        const BaseBuff *getBuff() const
+    public:
+        auto getBuff(this auto &&self)
         {
-            return m_buff;
+            return self.m_buff;
         }
 
     public:

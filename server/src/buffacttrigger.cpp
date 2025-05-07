@@ -1,14 +1,31 @@
 #include "fflerror.hpp"
 #include "battleobject.hpp"
 #include "dbcomid.hpp"
+#include "corof.hpp"
 #include "buffacttrigger.hpp"
 
-void BaseBuffActTrigger::checkTimedTrigger()
+BaseBuffActTrigger::BaseBuffActTrigger(BaseBuff *argBuff, size_t argBuffActOff)
+    : BaseBuffAct(argBuff, argBuffActOff)
 {
+    fflassert(getBAR().isTrigger());
     if(getBAREF().trigger.on & BATGR_TIME){
-        for(const auto neededCount = std::lround(getBuff()->accuTime() * getBAREF().trigger.tps / 1000.0); m_tpsCount < neededCount; ++m_tpsCount){
-            runOnTrigger(BATGR_TIME);
-        }
+        const auto buffSeq = getBuff()->buffSeq();
+        const auto actOff  = actOff();
+        getBuff()->getBO()->defer([boPtr = getBuff()->getBO(), buffSeq, actOff, thisptr = this](this auto) -> corof::awaitable<>
+        {
+            if(auto buffPtr = boPtr->hasBuff(buffSeq)){
+                if(auto tgrPtr = dynamic_cast<BaseBuffActTrigger *>(buffPtr->hasBuffAct(actOff))){
+                    const auto tick = 1000L / tgrPtr->getBAREF().trigger.tps;
+                    const auto totalCount = tgrPtr->getBAREF().trigger.tps * tgrPtr->getBAREF().duration;
+
+                    runOnTrigger(BATGR_TIME);
+                    for(int i = 1; i < totalCount; ++i){
+                        co_await getBuff()->getBO()->asyncWait(tick);
+                        runOnTrigger(BATGR_TIME);
+                    }
+                }
+            }
+        });
     }
 }
 

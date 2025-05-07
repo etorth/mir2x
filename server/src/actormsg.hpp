@@ -26,6 +26,8 @@ enum ActorMsgPackType: int
     AM_REMOTECALL,
     AM_UID,
     AM_UIDLIST,
+    AM_TIMEOUT,
+    AM_CANCEL,
     AM_PING,
     AM_METRONOME,
     AM_ACTIVATE,
@@ -153,6 +155,8 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_REMOTECALL)
         _add_mpk_type_case(AM_UID)
         _add_mpk_type_case(AM_UIDLIST)
+        _add_mpk_type_case(AM_TIMEOUT)
+        _add_mpk_type_case(AM_CANCEL)
         _add_mpk_type_case(AM_PING)
         _add_mpk_type_case(AM_METRONOME)
         _add_mpk_type_case(AM_ACTIVATE)

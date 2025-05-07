@@ -154,7 +154,7 @@ bool Channel::forwardActorMessage(uint8_t headCode, const uint8_t *dataPtr, size
 
     amRP.channID = id();
     buildActorDataPackage(&(amRP.package), headCode, dataPtr, dataLen, respID);
-    return m_dispatcher.forward(m_playerUID ? m_playerUID : uidf::getServiceCoreUID(), {AM_RECVPACKAGE, amRP});
+    return m_dispatcher.post(m_playerUID ? m_playerUID : uidf::getServiceCoreUID(), {AM_RECVPACKAGE, amRP});
 }
 
 void Channel::close()
@@ -168,11 +168,11 @@ void Channel::close()
     amBC.channID = id();
 
     if(m_playerUID){
-        m_dispatcher.forward(m_playerUID, {AM_BADCHANNEL, amBC});
+        m_dispatcher.post(m_playerUID, {AM_BADCHANNEL, amBC});
     }
 
     m_playerUID = 0;
-    m_dispatcher.forward(uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
+    m_dispatcher.post(uidf::getServiceCoreUID(), {AM_BADCHANNEL, amBC});
 
     // For portable behaviour with respect to graceful closure of a connected socket, call shutdown() before closing the socket.
     // asio-1.30.2/doc/asio/reference/basic_stream_socket/close/overload2.html

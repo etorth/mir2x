@@ -60,7 +60,6 @@ bool ActorNetDriver::isNetThread()
 void ActorNetDriver::launch(asio::ip::port_type port)
 {
     fflassert(!isNetThread());
-    m_context = std::make_unique<asio::io_context>(1);
     try{
         m_acceptor = std::make_unique<asio::ip::tcp::acceptor>(*m_context, asio::ip::tcp::endpoint(asio::ip::tcp::v4(), port));
     }

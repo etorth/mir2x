@@ -107,6 +107,18 @@ uint64_t ActorPod::rollSeqID()
     }
 }
 
+std::pair<uint64_t, uint64_t> ActorPod::createWaitToken(uint64_t tick)
+{
+    const auto seqID = rollSeqID();
+    const auto key = g_actorPool->requestTimeout({UID(), seqID}, tick);
+    return {key, seqID};
+}
+
+bool ActorPod::cancelWaitToken(const std::pair<uint64_t, uint64_t> &token)
+{
+    return g_actorPool->cancelTimeout(token.first);
+}
+
 std::optional<uint64_t> ActorPod::doPost(const std::pair<uint64_t, uint64_t> &addr, ActorMsgBuf mbuf, bool waitResp)
 {
     const auto uid = addr.first;

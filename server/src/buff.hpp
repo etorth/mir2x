@@ -1,5 +1,4 @@
 #pragma once
-#include <set>
 #include <cmath>
 #include <tuple>
 #include <vector>
@@ -35,16 +34,14 @@ class BaseBuff
         const uint32_t m_seqID;
 
     protected:
-        double m_accuTime = 0.0;
-
-    protected:
-        std::set<std::unique_ptr<BaseBuffAct>> m_actList;
+        std::vector<std::unique_ptr<BaseBuffAct>>   m_deadActList;
+        std::vector<std::unique_ptr<BaseBuffAct>> m_activeActList;
 
     public:
         BaseBuff(BattleObject *, uint64_t, uint64_t, uint32_t, uint32_t);
 
     public:
-        virtual ~BaseBuff();
+        virtual ~BaseBuff() = default;
 
     public:
         uint32_t id() const
@@ -89,46 +86,31 @@ class BaseBuff
         }
 
     public:
-        double accuTime() const
-        {
-            return m_accuTime;
-        }
-
-    public:
         virtual bool done() const
         {
-            return m_actList.empty();
-        }
-
-    public:
-        virtual bool update(double ms)
-        {
-            m_accuTime += ms;
-            runOnUpdate();
-
-            if(done()){
-                runOnDone();
-                return true;
+            for(auto &p: m_activeActList){
+                if(p){
+                    return false;
+                }
             }
-            return false;
+            return true;
         }
 
     public:
-        virtual void runOnUpdate();
         virtual void runOnTrigger(int);
         virtual void runOnDone();
 
     public:
-        virtual void runOnBOMove();
+        virtual corof::awaitable<> runOnBOMove();
 
     public:
         std::vector<BaseBuffActAura *> getAuraList();
 
     public:
-        void sendAura(uint64_t);
+        corof::awaitable<> sendAura(uint64_t);
 
     public:
-        void dispatchAura();
+        corof::awaitable<> dispatchAura();
 
     public:
         void updateAura(uint64_t);
@@ -157,5 +139,28 @@ class BaseBuff
                 }
             }
             return nullptr;
+        }
+
+    public:
+        BaseBuffAct *hasBuffAct(size_t argActOff) const
+        {
+            for(auto &p: m_activeActList){
+                if(p && p->actOff() == argActOff){
+                    return p.get();
+                }
+            }
+            return nullptr;
+        }
+
+    public:
+        bool removeBuffAct(size_t argActOff)
+        {
+            for(auto &p: m_activeActList){
+                if(p && p->actOff() == argActOff){
+                    m_deadActList.push_back(std::move(p));
+                    return true;
+                }
+            }
+            return false;
         }
 };

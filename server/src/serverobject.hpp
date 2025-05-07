@@ -4,7 +4,6 @@
 #include "uidf.hpp"
 #include "actorpod.hpp"
 #include "actormsgpack.hpp"
-#include "delaycommand.hpp"
 #include "statetrigger.hpp"
 #include "serverluacoroutinerunner.hpp"
 
@@ -35,9 +34,6 @@ class ServerObject
 
     protected:
         StateTrigger m_stateTrigger;
-
-    protected:
-        DelayCommandQueue m_delayCmdQ;
 
     public:
         ServerObject(uint64_t);
@@ -84,14 +80,44 @@ class ServerObject
         }
 
     public:
-        auto addDelay(uint64_t delayTick, std::function<void()> cmd)
+        corof::awaitable<bool> asyncWait(uint64_t tick)
         {
-            return m_delayCmdQ.addDelay(delayTick, std::move(cmd));
+            switch(const auto mpk = co_await m_actorPod->wait(tick); mpk.type()){
+                case AM_TIMEOUT:
+                    {
+                        co_return true;
+                    }
+                default:
+                    {
+                        co_return false;
+                    }
+            }
         }
 
-        void removeDelay(const std::pair<uint32_t, uint64_t> &key)
+    public:
+        auto defer(std::function<corof::awaitable<>()> cmd)
         {
-            m_delayCmdQ.removeDelay(key);
+            m_stateTrigger.install([cmd = std::move(cmd)]() -> bool
+            {
+                cmd().resume();
+                return true;
+            });
+        }
+
+        auto addDelay(uint64_t delayTick, std::function<corof::awaitable<>()> cmd)
+        {
+            const auto token = m_actorPod->createWaitToken(delayTick);
+            defer([token, cmd = std::move(cmd), thisptr = this]([[maybe_unused]] this auto self) -> corof::awaitable<>
+            {
+                co_await thisptr->m_actorPod->waitToken(token);
+                co_await cmd();
+            });
+            return token;
+        }
+
+        void removeDelay(const std::pair<uint64_t, uint64_t> &token)
+        {
+            m_actorPod->cancelWaitToken(token);
         }
 
     protected:

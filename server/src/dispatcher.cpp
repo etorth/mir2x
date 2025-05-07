@@ -10,7 +10,7 @@ extern ActorPool *g_actorPool;
 extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
-bool Dispatcher::forward(uint64_t uid, const ActorMsgBuf &msgBuf, uint32_t resp)
+bool Dispatcher::post(uint64_t uid, const ActorMsgBuf &msgBuf, uint32_t resp)
 {
     fflassert(uid);
     if(g_serverArgParser->sharedConfig().traceActorMessage){

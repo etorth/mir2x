@@ -16,7 +16,7 @@ class ServerTaoSummon: public Monster
         corof::awaitable<> onActivate() override
         {
             fflassert(masterUID());
-            co_await CharObject::onActivate()();
+            co_await CharObject::onActivate();
 
             switch(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type()){
                 case AM_CHECKMASTEROK:

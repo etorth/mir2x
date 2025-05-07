@@ -283,7 +283,7 @@ m_window->hide();}
     }
 
     for(size_t i = 1; i <= uidsf::peerCount(); ++i){
-        Dispatcher().forward(uidf::getPeerCoreUID(i), {AM_PEERCONFIG, cerealf::serialize(SDPeerConfig
+        Dispatcher().post(uidf::getPeerCoreUID(i), {AM_PEERCONFIG, cerealf::serialize(SDPeerConfig
         {
             .dropRate = m_config.dropRate,
             .goldRate = m_config.goldRate,
