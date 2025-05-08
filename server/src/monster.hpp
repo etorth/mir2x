@@ -64,7 +64,7 @@ class Monster: public BattleObject
         AStarCache m_astarCache;
 
     protected:
-        corof::eval_poller<> m_updateCoro;
+        corof::awaitable<> m_updateCoro;
 
     public:
         Monster(uint32_t,           // monster id
@@ -95,18 +95,16 @@ class Monster: public BattleObject
         void SearchViewRange();
 
     protected:
-        virtual corof::eval_poller<> updateCoroFunc();
+        virtual corof::awaitable<> updateCoroFunc();
 
     protected:
         bool randomTurn();
-        corof::awaitable<bool> randomMove();
+        virtual corof::awaitable<bool> randomMove();
+        virtual corof::awaitable<bool> moveForward();
+        virtual corof::awaitable<bool> followMaster();
 
     protected:
-        corof::awaitable<bool> followMaster();
-
-    protected:
-        void searchNearestTarget(std::function<void(uint64_t)>);
-        void searchNearestTargetHelper(std::unordered_set<uint64_t>, std::function<void(uint64_t)>);
+        corof::awaitable<uint64_t> searchNearestTarget();
 
     protected:
         virtual corof::awaitable<bool> jumpUID       (uint64_t             );
@@ -162,7 +160,13 @@ class Monster: public BattleObject
         corof::awaitable<bool> moveOneStep(int, int);
 
     protected:
-        virtual void pickTarget(std::function<void(uint64_t)>);
+        virtual corof::awaitable<bool> validTarget(uint64_t);
+
+    protected:
+        virtual corof::awaitable<uint64_t> pickTarget();
+        virtual corof::awaitable<uint64_t> pickHealTarget();
+
+    protected:
         virtual int  getAttackMagic(uint64_t) const;
 
     protected:
@@ -177,10 +181,10 @@ class Monster: public BattleObject
         corof::awaitable<int> checkFriend_ctrlByMonster(uint64_t);
 
     protected:
-        bool moveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
-        bool moveOneStepGreedy  (int, int, std::function<void()>, std::function<void()>);
-        bool moveOneStepCombine (int, int, std::function<void()>, std::function<void()>);
-        bool moveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
+        corof::awaitable<bool> moveOneStepAStar   (int, int);
+        corof::awaitable<bool> moveOneStepGreedy  (int, int);
+        corof::awaitable<bool> moveOneStepCombine (int, int);
+        corof::awaitable<bool> moveOneStepNeighbor(int, int);
 
     public:
         corof::awaitable<> onActivate() override
@@ -202,23 +206,8 @@ class Monster: public BattleObject
         virtual bool goGhost();
 
     protected:
-        virtual corof::eval_poller<bool>     coro_randomMove();
-        virtual corof::eval_poller<bool>     coro_moveForward();
-        virtual corof::eval_poller<bool>     coro_followMaster();
-        virtual corof::eval_poller<bool>     coro_needHeal(uint64_t);
-        virtual corof::eval_poller<uint64_t> coro_pickTarget();
-        virtual corof::eval_poller<uint64_t> coro_pickHealTarget();
-        virtual corof::eval_poller<int>      coro_checkFriend(uint64_t);
-        virtual corof::eval_poller<bool>     coro_trackUID(uint64_t, DCCastRange);
-        virtual corof::eval_poller<bool>     coro_attackUID(uint64_t, int);
-        virtual corof::eval_poller<bool>     coro_jumpGLoc(int, int, int);
-        virtual corof::eval_poller<bool>     coro_jumpUID(uint64_t);
-        virtual corof::eval_poller<bool>     coro_jumpAttackUID(uint64_t);
-        virtual corof::eval_poller<bool>     coro_trackAttackUID(uint64_t);
-        virtual corof::eval_poller<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
-        virtual corof::eval_poller<bool>     coro_validTarget(uint64_t);
-        virtual corof::eval_poller<std::optional<SDHealth>> coro_queryHealth(uint64_t);
-        virtual corof::eval_poller<std::tuple<uint32_t, int, int>> coro_getCOGLoc(uint64_t);
+        virtual corof::awaitable<bool> needHeal(uint64_t);
+        virtual corof::awaitable<bool> inDCCastRange(uint64_t, DCCastRange);
 
     public:
         const auto &getMR() const

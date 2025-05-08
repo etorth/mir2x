@@ -12,15 +12,14 @@ extern Server *g_server;
 corof::awaitable<> Monster::on_AM_MISS(const ActorMsgPack &mpk)
 {
     const auto amM = mpk.conv<AMMiss>();
-    if(amM.UID != UID()){
-        return;
+    if(amM.UID == UID()){
+        SMMiss smM;
+        std::memset(&smM, 0, sizeof(smM));
+
+        smM.UID = amM.UID;
+        dispatchInViewCONetPackage(SM_MISS, smM);
     }
-
-    SMMiss smM;
-    std::memset(&smM, 0, sizeof(smM));
-
-    smM.UID = amM.UID;
-    dispatchInViewCONetPackage(SM_MISS, smM);
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_HEAL(const ActorMsgPack &mpk)
@@ -29,6 +28,7 @@ corof::awaitable<> Monster::on_AM_HEAL(const ActorMsgPack &mpk)
     if(amH.mapUID == mapUID()){
         updateHealth(amH.addHP, amH.addMP);
     }
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
@@ -37,6 +37,7 @@ corof::awaitable<> Monster::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
     std::memcpy(&amQCOR, rstMPK.data(), sizeof(amQCOR));
 
     reportCO(amQCOR.UID);
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
@@ -46,51 +47,49 @@ corof::awaitable<> Monster::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
         .uid = UID(),
         .idList = m_buffList.getIDList(),
     }));
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
 {
     const auto amAB = mpk.conv<AMAddBuff>();
     fflassert(amAB.id);
-    fflassert(DBCOM_BUFFRECORD(amAB.id));
 
-    checkFriend(amAB.fromUID, [amAB, this](int friendType)
-    {
-        const auto &br = DBCOM_BUFFRECORD(amAB.id);
-        fflassert(br);
+    const auto &br = DBCOM_BUFFRECORD(amAB.id);
+    fflassert(br);
 
-        switch(friendType){
-            case FT_FRIEND:
-                {
-                    if(br.favor >= 0){
-                        addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
-                    }
-                    return;
-                }
-            case FT_ENEMY:
-                {
-                    if(br.favor <= 0){
-                        addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
-                    }
-                    return;
-                }
-            case FT_NEUTRAL:
-                {
+    switch(const auto friendType = co_await checkFriend(amAB.fromUID)){
+        case FT_FRIEND:
+            {
+                if(br.favor >= 0){
                     addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
-                    return;
                 }
-            default:
-                {
-                    return;
+                break;
+            }
+        case FT_ENEMY:
+            {
+                if(br.favor <= 0){
+                    addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
                 }
-        }
-    });
+                break;
+            }
+        case FT_NEUTRAL:
+            {
+                addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
 }
 
 corof::awaitable<> Monster::on_AM_REMOVEBUFF(const ActorMsgPack &mpk)
 {
     const auto amRB = mpk.conv<AMRemoveBuff>();
     removeFromBuff(amRB.fromUID, amRB.fromBuffSeq, true);
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_EXP(const ActorMsgPack &rstMPK)
@@ -98,6 +97,7 @@ corof::awaitable<> Monster::on_AM_EXP(const ActorMsgPack &rstMPK)
     if(masterUID()){
         m_actorPod->post(masterUID(), {rstMPK.type(), rstMPK.data(), rstMPK.size()});
     }
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
@@ -122,6 +122,16 @@ corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         }
     }();
 
+    const auto addedInView = updateInViewCO(COLocation
+    {
+        .uid = amA.UID,
+        .mapUID = amA.mapUID,
+
+        .x = dstX,
+        .y = dstY,
+        .direction = amA.action.direction,
+    });
+
     const auto distChanged = [dstX, dstY, amA, this]() -> bool
     {
         if(amA.mapUID != mapUID()){
@@ -134,16 +144,6 @@ corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         return true;
     }();
 
-    const auto addedInView = updateInViewCO(COLocation
-    {
-        .uid = amA.UID,
-        .mapUID = amA.mapUID,
-
-        .x = dstX,
-        .y = dstY,
-        .direction = amA.action.direction,
-    });
-
     if(distChanged){
         m_buffList.updateAura(amA.UID);
     }
@@ -155,7 +155,6 @@ corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         dispatchAction(amA.UID, makeActionStand());
         if(uidf::isPlayer(amA.UID)){
             dispatchHealth(amA.UID);
-            m_actorPod->setMetronomeFreq(10);
         }
     }
 }

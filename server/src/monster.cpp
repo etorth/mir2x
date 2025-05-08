@@ -231,7 +231,7 @@ corof::awaitable<bool> Monster::jumpUID(uint64_t targetUID)
         co_return true;
     }
 
-    co_return requestJump(frontX, frontY, pathf::getBackDir(nextDir));
+    co_return co_await requestJump(frontX, frontY, pathf::getBackDir(nextDir));
 }
 
 corof::awaitable<bool> Monster::trackUID(uint64_t targetUID, DCCastRange r)
@@ -331,7 +331,7 @@ corof::awaitable<bool> Monster::followMaster()
                 }
             default:
                 {
-                    co_return moveOneStep(backX, backY);
+                    co_return co_await moveOneStep(backX, backY);
                 }
         }
     }
@@ -341,10 +341,10 @@ corof::awaitable<bool> Monster::followMaster()
         const auto [backX, backY] = pathf::getBackGLoc(coLoc.x, coLoc.y, masterDir, 3);
 
         if(coLoc.mapUID == mapUID()){
-            co_return requestSpaceMove(backX, backY, false);
+            co_return co_await requestSpaceMove(backX, backY, false);
         }
         else{
-            co_return requestMapSwitch(coLoc.mapUID, backX, backY, false);
+            co_return co_await requestMapSwitch(coLoc.mapUID, backX, backY, false);
         }
     }
 }
@@ -387,7 +387,7 @@ corof::awaitable<bool> Monster::trackAttackUID(uint64_t targetUID)
     co_return false;
 }
 
-corof::eval_poller<> Monster::updateCoroFunc()
+corof::awaitable<> Monster::updateCoroFunc()
 {
     uint64_t targetUID = 0;
     hres_timer targetActiveTimer;
@@ -397,32 +397,32 @@ corof::eval_poller<> Monster::updateCoroFunc()
             targetUID = 0;
         }
 
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
             if(targetUID){
                 targetActiveTimer.reset();
             }
         }
 
         if(targetUID){
-            if(co_await coro_trackAttackUID(targetUID)){
+            if(co_await trackAttackUID(targetUID)){
                 targetActiveTimer.reset();
             }
         }
         else if(masterUID()){
             if(m_actorPod->checkUIDValid(masterUID())){
-                co_await coro_followMaster();
+                co_await followMaster();
             }
             else{
                 break;
             }
         }
         else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await coro_randomMove();
+            co_await randomMove();
             m_actorPod->setMetronomeFreq(10);
         }
         else{
@@ -670,7 +670,7 @@ bool Monster::goDie()
     // theoratically dead actor shouldn't dispatch anything
 
     if(getMR().deadFadeOut){
-        addDelay(1000, [this]() { goGhost(); });
+        addDelay(1000, [this](bool) { goGhost(); });
         return true;
     }
     else{
@@ -777,27 +777,21 @@ bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
     return false;
 }
 
-bool Monster::moveOneStep(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::moveOneStep(int argX, int argY)
 {
     if(!canMove(true)){
-        if(onError){
-            onError();
-        }
-        return false;
+        co_return false;
     }
 
-    switch(estimateHop(nX, nY)){
+    switch(estimateHop(argX, argY)){
         case 0:
             {
-                if(onError){
-                    onError();
-                }
-                return false;
+                co_return false;
             }
         case 1:
             {
-                if(oneStepCost(nullptr, 1, X(), Y(), Direction(), nX, nY).has_value()){
-                    return requestMove(nX, nY, moveSpeed(), false, false, onOK, onError);
+                if(oneStepCost(nullptr, 1, X(), Y(), Direction(), argX, argY).has_value()){
+                    co_return co_await requestMove(argX, argY, moveSpeed(), false, false);
                 }
                 break;
             }
@@ -807,61 +801,49 @@ bool Monster::moveOneStep(int nX, int nY, std::function<void()> onOK, std::funct
             }
         default:
             {
-                if(onError){
-                    onError();
-                }
-                return false;
+                co_return false;
             }
     }
 
-    if(const auto nodeOpt = m_astarCache.retrieve(mapID(), X(), Y(), nX, nY); nodeOpt.has_value()){
+    if(const auto nodeOpt = m_astarCache.retrieve(mapID(), X(), Y(), argX, argY); nodeOpt.has_value()){
         if(oneStepCost(nullptr, 1, X(), Y(), Direction(), nodeOpt.value().X, nodeOpt.value().Y).has_value()){
-            return requestMove(nodeOpt.value().X, nodeOpt.value().Y, moveSpeed(), false, false, onOK, onError);
+            co_return co_await requestMove(nodeOpt.value().X, nodeOpt.value().Y, moveSpeed(), false, false);
         }
     }
 
     switch(FindPathMethod()){
         case FPMETHOD_ASTAR:
             {
-                return moveOneStepAStar(nX, nY, onOK, onError);
+                co_return co_await moveOneStepAStar(argX, argY);
             }
         case FPMETHOD_GREEDY:
             {
-                return moveOneStepGreedy(nX, nY, onOK, onError);
+                co_return co_await moveOneStepGreedy(argX, argY);
             }
         case FPMETHOD_COMBINE:
             {
-                return moveOneStepCombine(nX, nY, onOK, onError);
+                co_return co_await moveOneStepCombine(argX, argY);
             }
         case FPMETHOD_NEIGHBOR:
             {
-                return moveOneStepNeighbor(nX, nY, onOK, onError);
+                co_return co_await moveOneStepNeighbor(argX, argY);
             }
         default:
             {
-                if(onError){
-                    onError();
-                }
-                return false;
+                co_return false;
             }
     }
 }
 
-bool Monster::moveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::moveOneStepNeighbor(int argX, int argY)
 {
     if(!canMove(true)){
-        if(onError){
-            onError();
-        }
-        return false;
+        co_return false;
     }
 
     BattleObject::BOPathFinder stFinder(this, 1);
-    if(!stFinder.search(X(), Y(), Direction(), nX, nY).hasPath()){
-        if(onError){
-            onError();
-        }
-        return false;
+    if(!stFinder.search(X(), Y(), Direction(), argX, argY).hasPath()){
+        co_return false;
     }
 
     auto pathList = stFinder.getPathNode();
@@ -872,123 +854,61 @@ bool Monster::moveOneStepNeighbor(int nX, int nY, std::function<void()> onOK, st
     }
 
     m_astarCache.cache(mapID(), std::move(pathList));
-    return requestMove(stPathNode.X, stPathNode.Y, moveSpeed(), false, false, onOK, onError);
+    co_return co_await requestMove(stPathNode.X, stPathNode.Y, moveSpeed(), false, false);
 }
 
-bool Monster::moveOneStepGreedy(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::moveOneStepGreedy(int argX, int argY)
 {
     if(!canMove(true)){
-        if(onError){
-            onError();
-        }
-        return false;
+        co_return false;
     }
 
-    auto pathNodePtr = std::make_shared<scoped_alloc::svobuf_wrapper<pathf::PathNode, 3>>();
-    const bool longJump = (maxStep() > 1) && (mathf::CDistance(X(), Y(), nX, nY) >= maxStep());
-    getValidChaseGrid(nX, nY, longJump ? maxStep() : 1, *(pathNodePtr.get()));
+    scoped_alloc::svobuf_wrapper<int, 2> distList;
+    distList.c.push_back(1);
 
-    if(pathNodePtr->c.size() > 3){
-        throw fflerror("invalid chase grid result: size = %zu", pathNodePtr->c.size());
+    if((maxStep() > 1) && (mathf::CDistance(X(), Y(), argX, argY) >= maxStep())){
+        distList.c.push_back(maxStep());
     }
 
-    if(pathNodePtr->c.empty()){
-        if(onError){
-            onError();
+    scoped_alloc::svobuf_wrapper<pathf::PathNode, 3> pathNodeList;
+    for(const auto stepSize: distList.c){
+
+        pathNodeList.c.clear();
+        getValidChaseGrid(argX, argY, stepSize, pathNodeList);
+
+        if(pathNodeList.c.size() > 3){
+            throw fflerror("invalid chase grid size: %zu", pathNodeList.c.size());
         }
-        return false;
+
+        for(const auto &node: pathNodeList.c){
+            if(co_await requestMove(node.X, node.Y, moveSpeed(), false, false)){
+                co_return true;
+            }
+        }
     }
-
-    const auto fnOnNodeListError = [nX, nY, longJump, onOK, onError, this]()
-    {
-        if(!longJump){
-            if(onError){
-                onError();
-            }
-            return;
-        }
-
-        auto minPathNodePtr = std::make_shared<scoped_alloc::svobuf_wrapper<pathf::PathNode, 3>>();
-        getValidChaseGrid(nX, nY, 1, *(minPathNodePtr.get()));
-
-        if(minPathNodePtr->c.size() > 3){
-            throw fflerror("invalid chase grid result: size = %zu", minPathNodePtr->c.size());
-        }
-
-        if(minPathNodePtr->c.empty()){
-            if(onError){
-                onError();
-            }
-            return;
-        }
-
-        requestMove(minPathNodePtr->c[0].X, minPathNodePtr->c[0].Y, moveSpeed(), false, false, onOK, [this, minPathNodePtr, onOK, onError]()
-        {
-            if(minPathNodePtr->c.size() == 1){
-                if(onError){
-                    onError();
-                }
-                return;
-            }
-
-            requestMove(minPathNodePtr->c[1].X, minPathNodePtr->c[1].Y, moveSpeed(), false, false, onOK, [this, minPathNodePtr, onOK, onError]()
-            {
-                if(minPathNodePtr->c.size() == 2){
-                    if(onError){
-                        onError();
-                    }
-                    return;
-                }
-
-                requestMove(minPathNodePtr->c[2].X, minPathNodePtr->c[2].Y, moveSpeed(), false, false, onOK, onError);
-            });
-        });
-    };
-
-    return requestMove(pathNodePtr->c[0].X, pathNodePtr->c[0].Y, moveSpeed(), false, false, onOK, [this, longJump, nX, nY, pathNodePtr, onOK, fnOnNodeListError]()
-    {
-        if(pathNodePtr->c.size() == 1){
-            fnOnNodeListError();
-            return;
-        }
-
-        requestMove(pathNodePtr->c[1].X, pathNodePtr->c[1].Y, moveSpeed(), false, false, onOK, [this, longJump, nX, nY, pathNodePtr, onOK, fnOnNodeListError]()
-        {
-            if(pathNodePtr->c.size() == 2){
-                fnOnNodeListError();
-                return;
-            }
-
-            requestMove(pathNodePtr->c[2].X, pathNodePtr->c[2].Y, moveSpeed(), false, false, onOK, [this, longJump, nX, nY,onOK, fnOnNodeListError]()
-            {
-                fnOnNodeListError();
-            });
-        });
-    });
+    co_return false;
 }
 
-bool Monster::moveOneStepCombine(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::moveOneStepCombine(int argX, int argY)
 {
     if(!canMove(true)){
-        if(onError){
-            onError();
-        }
-        return false;
+        co_return false;
     }
 
-    return moveOneStepGreedy(nX, nY, onOK, [this, nX, nY, onOK, onError]()
-    {
-        moveOneStepNeighbor(nX, nY, onOK, onError);
-    });
+    if(co_await moveOneStepGreedy(argX, argY)){
+        co_return true;
+    }
+    if(co_await moveOneStepNeighbor(argX, argY)){
+        co_return true;
+    }
+
+    co_return false;
 }
 
-bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::moveOneStepAStar(int argX, int argY)
 {
     if(!canMove(true)){
-        if(onError){
-            onError();
-        }
-        return false;
+        co_return false;
     }
 
     AMPathFind amPF;
@@ -1001,50 +921,43 @@ bool Monster::moveOneStepAStar(int nX, int nY, std::function<void()> onOK, std::
     amPF.X         = X();
     amPF.Y         = Y();
     amPF.direction = Direction();
-    amPF.EndX      = nX;
-    amPF.EndY      = nY;
+    amPF.EndX      = argX;
+    amPF.EndY      = argY;
 
-    return m_actorPod->send(mapUID(), {AM_PATHFIND, amPF}, [this, nX, nY, onOK, onError](const ActorMsgPack &rstRMPK)
-    {
-        switch(rstRMPK.type()){
-            case AM_PATHFINDOK:
-                {
-                    AMPathFindOK amPFOK;
-                    std::memcpy(&amPFOK, rstRMPK.data(), sizeof(amPFOK));
+    switch(const auto rmpk = co_await m_actorPod->send(mapUID(), {AM_PATHFIND, amPF}); rmpk.type()){
+        case AM_PATHFINDOK:
+            {
+                AMPathFindOK amPFOK;
+                std::memcpy(&amPFOK, rmpk.data(), sizeof(amPFOK));
 
-                    constexpr auto nNodeCount = std::extent<decltype(amPFOK.Point)>::value;
-                    static_assert(nNodeCount >= 2);
+                constexpr auto nNodeCount = std::extent<decltype(amPFOK.Point)>::value;
+                static_assert(nNodeCount >= 2);
 
-                    auto pBegin = amPFOK.Point;
-                    auto pEnd   = amPFOK.Point + nNodeCount;
+                auto pBegin = amPFOK.Point;
+                auto pEnd   = amPFOK.Point + nNodeCount;
 
-                    std::vector<pathf::PathNode> stvPathNode;
-                    for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
-                        if(mapBin()->groundValid(pCurr->X, pCurr->Y)){
-                            stvPathNode.emplace_back(pCurr->X, pCurr->Y);
-                        }
-                        else{
-                            break;
-                        }
+                std::vector<pathf::PathNode> stvPathNode;
+                for(auto pCurr = pBegin; pCurr != pEnd; ++pCurr){
+                    if(mapBin()->groundValid(pCurr->X, pCurr->Y)){
+                        stvPathNode.emplace_back(pCurr->X, pCurr->Y);
                     }
-
-                    if(!stvPathNode.back().eq(nX, nY)){
-                        stvPathNode.emplace_back(nX, nY);
+                    else{
+                        break;
                     }
-
-                    m_astarCache.cache(mapID(), std::move(stvPathNode));
-                    requestMove(amPFOK.Point[1].X, amPFOK.Point[1].Y, moveSpeed(), false, false, onOK, onError);
-                    break;
                 }
-            default:
-                {
-                    if(onError){
-                        onError();
-                    }
-                    break;
+
+                if(!stvPathNode.back().eq(argX, argY)){
+                    stvPathNode.emplace_back(argX, argY);
                 }
-        }
-    });
+
+                m_astarCache.cache(mapID(), std::move(stvPathNode));
+                co_return co_await requestMove(amPFOK.Point[1].X, amPFOK.Point[1].Y, moveSpeed(), false, false);
+            }
+        default:
+            {
+                co_return false;
+            }
+    }
 }
 
 int Monster::FindPathMethod()
@@ -1052,99 +965,82 @@ int Monster::FindPathMethod()
     return FPMETHOD_COMBINE;
 }
 
-void Monster::searchNearestTargetHelper(std::unordered_set<uint64_t> seen, std::function<void(uint64_t)> fnTarget)
+corof::awaitable<uint64_t> Monster::searchNearestTarget()
 {
-    const auto viewDistance = getMR().view;
-    if(viewDistance <= 0){
-        if(fnTarget){
-            fnTarget(0);
-        }
-        return;
+    if(m_inViewCOList.empty()){
+        co_return 0;
     }
 
-    int minDistance = INT_MAX;
-    uint64_t minDistanceUID = 0;
+    for(auto p = m_offenderList.rbegin(); p != m_offenderList.rend(); ++p){
+        if(m_actorPod->checkUIDValid(p->uid)){
+            co_return p->uid;
+        }
+    }
 
-    if(seen.empty()){
-        seen.reserve(m_inViewCOList.size() + 8);
+    if(uidf::isNeutralMode(UID())){
+        co_return 0;
+    }
+
+    const auto viewDistance = getMR().view;
+    if(viewDistance <= 0){
+        co_return 0;
     }
 
     // for monster like ServerCannibalPlant with view distance 1
     // need to use Chebyshev's distance, otherwise dirs for DIR_UPLEFT, DIR_UPRIGHT, DIR_DOWNLEFT, DIR_DOWNRIGHT are not reachable
 
-    for(const auto &[uid, coLoc]: m_inViewCOList){
-        if(!seen.count(uid)){
-            const auto distCb = mathf::CDistance <int>(X(), Y(), coLoc.x, coLoc.y);
-            const auto distL2 = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y);
+    const auto fnSearchNearestUID = [viewDistance, this](std::unordered_set<uint64_t> &seen) -> uint64_t
+    {
+        int minDistance = INT_MAX;
+        uint64_t minDistanceUID = 0;
 
-            if(false
-                    || ((viewDistance <= 1) && (distCb <= viewDistance))
-                    || ((viewDistance >  1) && (distL2 <= viewDistance * viewDistance))){
+        for(const auto &[uid, coLoc]: m_inViewCOList){
+            if(!seen.contains(uid)){
+                const auto distCb = mathf::CDistance <int>(X(), Y(), coLoc.x, coLoc.y);
+                const auto distL2 = mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y);
 
-                if(distL2 < minDistance){
-                    minDistance    = distL2;
-                    minDistanceUID = uid;
+                if(false
+                        || ((viewDistance <= 1) && (distCb <= viewDistance))
+                        || ((viewDistance >  1) && (distL2 <= viewDistance * viewDistance))){
+
+                    if(distL2 < minDistance){
+                        minDistance    = distL2;
+                        minDistanceUID = uid;
+                    }
                 }
             }
         }
-    }
 
-    if(minDistanceUID){
-        checkFriend(minDistanceUID, [this, minDistanceUID, seen = std::move(seen), fnTarget = std::move(fnTarget)](int friendType) mutable
-        {
-            if(friendType == FT_ENEMY){
-                if(fnTarget){
-                    fnTarget(minDistanceUID);
-                }
-                return;
-            }
-
+        if(minDistanceUID){
             seen.insert(minDistanceUID);
-            searchNearestTargetHelper(std::move(seen), std::move(fnTarget));
-        });
-    }
-    else{
-        if(fnTarget){
-            fnTarget(0);
+        }
+        return minDistanceUID;
+    };
+
+    std::unordered_set<uint64_t> seen;
+    seen.reserve(m_inViewCOList.size() + 8);
+
+    while(const auto targetUID = fnSearchNearestUID(seen)){
+        switch(const auto friendType = co_await checkFriend(targetUID)){
+            case FT_ENEMY:
+                {
+                    co_return targetUID;
+                }
+            default:
+                {
+                    break;
+                }
         }
     }
+
+    co_return 0;
 }
 
-void Monster::searchNearestTarget(std::function<void(uint64_t)> fnTarget)
-{
-    if(m_inViewCOList.empty()){
-        if(fnTarget){
-            fnTarget(0);
-        }
-        return;
-    }
-
-    // TODO check if offender is still on same map
-    //      and if too far monster should pick up a target near it
-    for(auto p = m_offenderList.rbegin(); p != m_offenderList.rend(); ++p){
-        if(m_actorPod->checkUIDValid(p->uid)){
-            if(fnTarget){
-                fnTarget(p->uid);
-            }
-            return;
-        }
-    }
-
-    if(uidf::isNeutralMode(UID())){
-        if(fnTarget){
-            fnTarget(0);
-        }
-        return;
-    }
-
-    searchNearestTargetHelper({}, std::move(fnTarget));
-}
-
-void Monster::pickTarget(std::function<void(uint64_t)> fnTarget)
+corof::awaitable<uint64_t> Monster::pickTarget()
 {
     // can have different strategy to pick target: nearest, latest, weakest
     //
-    searchNearestTarget(std::move(fnTarget));
+    return searchNearestTarget();
 }
 
 int Monster::getAttackMagic(uint64_t) const
@@ -1458,4 +1354,116 @@ void Monster::addOffenderDamage(uint64_t nUID, int nDamage)
         .damage = to_u64(nDamage),
         .activeTime = hres_tstamp().to_sec(),
     });
+}
+
+corof::awaitable<bool> Monster::moveForward()
+{
+    const auto reachRes = oneStepReach(Direction(), 1);
+    if(!reachRes.has_value()){
+        co_return false;
+    }
+
+    const auto [nextX, nextY, reachDist] = reachRes.value();
+    if(reachDist != 1){
+        co_return false;
+    }
+
+    co_return co_await requestMove(nextX, nextY, moveSpeed(), false, false);
+}
+
+corof::awaitable<bool> Monster::needHeal(uint64_t uid)
+{
+    switch(uidf::getUIDType(uid)){
+        case UID_MON:
+        case UID_PLY:
+            {
+                const auto health = co_await queryHealth(uid);
+                if(health.has_value() && health.value().hp < health.value().maxHP){
+                    co_return true;
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+    co_return false;
+}
+
+corof::awaitable<uint64_t> Monster::pickHealTarget()
+{
+    if(masterUID() && m_inViewCOList.contains(masterUID()) && (co_await needHeal(masterUID()))){
+        co_return masterUID();
+    }
+
+    for(const auto uid: getInViewUIDList()){
+        if(uid == masterUID()){
+            continue;
+        }
+
+        if((co_await checkFriend(uid)) != FT_FRIEND){
+            continue;
+        }
+
+        if(co_await needHeal(uid)){
+            co_return uid;
+        }
+    }
+    co_return 0;
+}
+
+corof::awaitable<bool> Monster::inDCCastRange(uint64_t targetUID, DCCastRange r)
+{
+    fflassert(targetUID);
+    fflassert(r);
+
+    const auto coLocOpt = co_await getCOLocation(targetUID);
+
+    if(!coLocOpt.has_value()){
+        co_return false;
+    }
+
+    const auto &coLoc = coLocOpt.value();
+    co_return pathf::inDCCastRange(r, X(), Y(), coLoc.x, coLoc.y);
+}
+
+corof::awaitable<bool> Monster::validTarget(uint64_t targetUID)
+{
+    switch(uidf::getUIDType(targetUID)){
+        case UID_MON:
+        case UID_PLY:
+            {
+                break;
+            }
+        default:
+            {
+                co_return false;
+            }
+    }
+
+    if(!m_actorPod->checkUIDValid(targetUID)){
+        co_return false;
+    }
+
+    const auto coLocOpt = co_await getCOLocation(targetUID);
+
+    if(!coLocOpt.has_value()){
+        co_return false;
+    }
+
+    const auto &coLoc = coLocOpt.value();
+    if(!inView(coLoc.mapUID, coLoc.x, coLoc.y)){
+        co_return false;
+    }
+
+    const auto viewDistance = getMR().view;
+    if(viewDistance <= 0){
+        co_return false;
+    }
+
+    if(mathf::LDistance2<int>(X(), Y(), locX, locY) > viewDistance * viewDistance){
+        co_return false;
+    }
+    co_return true;
 }
