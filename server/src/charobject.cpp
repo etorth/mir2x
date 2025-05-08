@@ -115,7 +115,7 @@ bool CharObject::inView(uint64_t argMapUID, int argX, int argY) const
     const auto r = [this]() -> int
     {
         if(isMonster()){
-            if(const auto r = DBCOM_MONSTERRECORD(uidf::getMonsterID(UID))){
+            if(const auto r = DBCOM_MONSTERRECORD(uidf::getMonsterID(UID()))){
                 return r.view;
             }
         }
@@ -147,13 +147,22 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     // it may change m_inViewCOList
 
     scoped_alloc::svobuf_wrapper<COLocation, 128> coLocList;
-    for(const auto &[uid, coLoc]: m_inViewCOList){
+    for(const auto &[_, coLoc]: m_inViewCOList){
         coLocList.c.push_back(coLoc);
     }
 
     for(const auto &coLoc: coLocList.c){
         fnOnLoc(coLoc);
     }
+}
+
+bool CharObject::removeInViewCO(uint64_t uid)
+{
+    if(auto p = m_inViewCOList.find(uid); p != m_inViewCOList.end()){
+        m_inViewCOList.erase(p);
+        return true;
+    }
+    return false;
 }
 
 int CharObject::updateInViewCO(const COLocation &coLoc, bool forceDelete)

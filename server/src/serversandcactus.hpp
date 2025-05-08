@@ -16,7 +16,7 @@ class ServerSandCactus final: public Monster
         DamageNode getAttackDamage(int, int) const override;
 
     protected:
-        bool canMove(true) const override
+        bool canMove(bool) const override
         {
             return false;
         }

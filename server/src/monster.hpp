@@ -98,20 +98,22 @@ class Monster: public BattleObject
         virtual corof::eval_poller<> updateCoroFunc();
 
     protected:
-        bool randomMove();
         bool randomTurn();
-        void followMaster(std::function<void()>, std::function<void()>);
+        corof::awaitable<bool> randomMove();
+
+    protected:
+        corof::awaitable<bool> followMaster();
 
     protected:
         void searchNearestTarget(std::function<void(uint64_t)>);
         void searchNearestTargetHelper(std::unordered_set<uint64_t>, std::function<void(uint64_t)>);
 
     protected:
-        virtual void jumpUID       (uint64_t,              std::function<void()>, std::function<void()>);
-        virtual void trackUID      (uint64_t, DCCastRange, std::function<void()>, std::function<void()>);
-        virtual void attackUID     (uint64_t,         int, std::function<void()>, std::function<void()>);
-        virtual void jumpAttackUID (uint64_t,              std::function<void()>, std::function<void()>);
-        virtual void trackAttackUID(uint64_t,              std::function<void()>, std::function<void()>);
+        virtual corof::awaitable<bool> jumpUID       (uint64_t             );
+        virtual corof::awaitable<bool> trackUID      (uint64_t, DCCastRange);
+        virtual corof::awaitable<bool> attackUID     (uint64_t,         int);
+        virtual corof::awaitable<bool> jumpAttackUID (uint64_t             );
+        virtual corof::awaitable<bool> trackAttackUID(uint64_t             );
 
     protected:
         bool dcValid(int, bool);
@@ -157,7 +159,7 @@ class Monster: public BattleObject
         void reportCO(uint64_t) override;
 
     protected:
-        bool moveOneStep(int, int, std::function<void()>, std::function<void()>);
+        corof::awaitable<bool> moveOneStep(int, int);
 
     protected:
         virtual void pickTarget(std::function<void(uint64_t)>);

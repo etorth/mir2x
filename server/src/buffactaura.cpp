@@ -59,31 +59,29 @@ corof::awaitable<> BaseBuffActAura::transmit(uint64_t targetUID)
                     }
 
                     switch(const auto friendType = co_await getBuff()->getBO()->checkFriend(targetUID)){
-                        switch(friendType){
-                            case FT_FRIEND:
-                                {
-                                    if(getBR().favor >= 0){
-                                        getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
-                                    }
-                                    break;
-                                }
-                            case FT_ENEMY:
-                                {
-                                    if(getBR().favor <= 0){
-                                        getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
-                                    }
-                                    break;
-                                }
-                            case FT_NEUTRAL:
-                                {
+                        case FT_FRIEND:
+                            {
+                                if(getBR().favor >= 0){
                                     getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
-                                    break;
                                 }
-                            default:
-                                {
-                                    break;
+                                break;
+                            }
+                        case FT_ENEMY:
+                            {
+                                if(getBR().favor <= 0){
+                                    getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
                                 }
-                        }
+                                break;
+                            }
+                        case FT_NEUTRAL:
+                            {
+                                getBuff()->getBO()->sendBuff(targetUID, getBuff()->buffSeq(), getAuraBuffID());
+                                break;
+                            }
+                        default:
+                            {
+                                throw fflvalue(friendType);
+                            }
                     }
                 }
                 break;

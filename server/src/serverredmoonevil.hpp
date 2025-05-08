@@ -24,7 +24,7 @@ class ServerRedMoonEvil final: public Monster
         }
 
     protected:
-        bool canMove(true) const override
+        bool canMove(bool) const override
         {
             return false;
         }

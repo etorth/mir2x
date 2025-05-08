@@ -68,7 +68,7 @@ corof::eval_poller<> ServerGuard::updateCoroFunc()
     goDie();
 }
 
-void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
+corof::awaitable<int> ServerGuard::checkFriend(uint64_t targetUID)
 {
     fflassert(targetUID);
     fflassert(targetUID != UID());
@@ -77,49 +77,34 @@ void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
         case UID_MON:
             {
                 if(uidf::isGuardMode(targetUID)){
-                    if(fnOp){
-                        fnOp(FT_FRIEND);
-                    }
-                    return;
+                    co_return FT_FRIEND;
                 }
 
                 if(uidf::isNeutralMode(targetUID)){
-                    if(fnOp){
-                        fnOp(FT_NEUTRAL);
-                    }
-                    return;
+                    co_return FT_NEUTRAL;
                 }
 
-                if(fnOp){
-                    fnOp(FT_ENEMY);
-                }
-                return;
+                co_return FT_ENEMY;
             }
         case UID_PLY:
             {
-                if(fnOp){
-                    fnOp(FT_NEUTRAL);
-                }
-                return;
+                co_return FT_NEUTRAL;
             }
         default:
             {
-                if(fnOp){
-                    fnOp(FT_FRIEND);
-                }
-                return;
+                co_return FT_FRIEND;
             }
     }
 }
 
-bool ServerGuard::canMove(true) const
+bool ServerGuard::canMove(bool checkMoveLock) const
 {
-    return BattleObject::canMove(true);
+    return BattleObject::canMove(checkMoveLock);
 }
 
-bool ServerGuard::canAttack() const
+bool ServerGuard::canAttack(bool checkAttackLock) const
 {
-    if(!BattleObject::canAttack()){
+    if(!BattleObject::canAttack(checkAttackLock)){
         return false;
     }
 

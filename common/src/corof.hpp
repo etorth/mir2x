@@ -404,7 +404,7 @@ namespace corof
                 public:
                     bool await_ready() const noexcept
                     {
-                        return false;
+                        return !m_handle;
                     }
 
                     void await_suspend(std::coroutine_handle<> h) noexcept
@@ -471,6 +471,11 @@ namespace corof
                 if(m_handle){
                     AwaitableAsAwaiter(m_handle).await_suspend(std::noop_coroutine());
                 }
+            }
+
+            bool empty() const
+            {
+                return !m_handle;
             }
     };
 }

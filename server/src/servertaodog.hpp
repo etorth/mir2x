@@ -55,7 +55,7 @@ class ServerTaoDog final: public ServerTaoSummon
         }
 
     protected:
-        void attackUID(uint64_t, int, std::function<void()>, std::function<void()>) override;
+        corof::awaitable<bool> attackUID(uint64_t, int) override;
 
     protected:
         void onAMMasterHitted(const ActorMsgPack &) override

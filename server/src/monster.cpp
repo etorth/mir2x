@@ -86,63 +86,6 @@ Monster::Monster(
     m_sdHealth.maxMP = getMR().mp;
 }
 
-bool Monster::randomMove()
-{
-    if(canMove(true)){
-        auto fnMoveOneStep = [this]() -> bool
-        {
-            const auto reachRes = oneStepReach(Direction(), 1);
-            if(!reachRes.has_value()){
-                return false;
-            }
-
-            const auto [dstX, dstY, dstDist] = reachRes.value();
-            if(dstDist != 1){
-                return false;
-            }
-            return requestMove(dstX, dstY, moveSpeed(), false, false);
-        };
-
-        const auto fnMakeOneTurn = [this]() -> bool
-        {
-            for(int i = 0, startDir = pathf::getRandDir(); i < 8; ++i){
-                if(const auto currDir = pathf::getNextDir(startDir, i); Direction() != currDir){
-                    if(oneStepReach(currDir, 1).has_value()){
-                        m_direction = currDir;
-                        dispatchAction(makeActionStand());
-
-                        // we won't do reportStand() for monster
-                        // monster's moving is only driven by server currently
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
-
-        // by 20% make a move
-        // if move failed we make a turn
-
-        if(mathf::rand() % 97 < 20){
-            if(!fnMoveOneStep()){
-                return fnMakeOneTurn();
-            }
-            return true;
-        }
-
-        // by 20% make a turn only
-        // if didn't try the move/trun
-
-        if(mathf::rand() % 97 < 20){
-            return fnMakeOneTurn();
-        }
-
-        // do nothing
-        // stay as idle state
-    }
-    return false;
-}
-
 bool Monster::randomTurn()
 {
     for(int i = 0, startDir = pathf::getRandDir(); i < 8; ++i){
@@ -157,306 +100,291 @@ bool Monster::randomTurn()
     return false;
 }
 
-void Monster::attackUID(uint64_t uid, int magicID, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::randomMove()
 {
-    if(!canAttack()){
-        if(onError){
-            onError();
+    if(!canMove(true)){
+        co_return false;
+    }
+
+    if(mathf::rand() % 100 < 20){
+        if(const auto reachRes = oneStepReach(Direction(), 1); reachRes.has_value()){
+            if(const auto [dstX, dstY, dstDist] = reachRes.value(); dstDist == 1){
+                co_return co_await requestMove(dstX, dstY, moveSpeed(), false, false);
+            }
         }
-        return;
+    }
+
+    if(mathf::rand() % 100 < 20){
+        co_return randomTurn();
+    }
+
+    co_return false; // does nothing
+}
+
+corof::awaitable<bool> Monster::attackUID(uint64_t uid, int magicID)
+{
+    if(!canAttack(true)){
+        co_return false;
     }
 
     if(!dcValid(magicID, true)){
-        if(onError){
-            onError();
-        }
-        return;
+        co_return false;
     }
 
     // retrieving could schedule location query
     // before response received we can't allow any attack request
 
     m_attackLock = true;
-    getCOLocation(uid, [this, magicID, uid, onOK, onError](const COLocation &coLoc)
+    const auto attackLockSg = sgf::guard([this]() noexcept { m_attackLock = false; });
+
+    const auto coLocOpt = co_await getCOLocation(uid);
+    if(!coLocOpt.has_value()){
+        co_return false;
+    }
+
+    const auto &coLoc = coLocOpt.value();
+    const auto &mr = DBCOM_MAGICRECORD(magicID);
+
+    if(!pathf::inDCCastRange(mr.castRange, X(), Y(), coLoc.x, coLoc.y)){
+        co_return false;
+    }
+
+    if(const auto newDir = pathf::getOffDir(X(), Y(), coLoc.x, coLoc.y); pathf::dirValid(newDir)){
+        m_direction = newDir;
+    }
+
+    if(!canAttack(false)){
+        co_return false;
+    }
+
+    const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
+    dispatchAction(ActionAttack
     {
-        fflassert(m_attackLock);
-        m_attackLock = false;
-
-        const auto &mr = DBCOM_MAGICRECORD(magicID);
-        if(!pathf::inDCCastRange(mr.castRange, X(), Y(), coLoc.x, coLoc.y)){
-            if(onError){
-                onError();
-            }
-            return;
-        }
-
-        if(const auto newDir = pathf::getOffDir(X(), Y(), coLoc.x, coLoc.y); pathf::dirValid(newDir)){
-            m_direction = newDir;
-        }
-
-        if(!canAttack()){
-            if(onError){
-                onError();
-            }
-            return;
-        }
-
-        const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
-        dispatchAction(ActionAttack
+        .speed = attackSpeed(),
+        .x = X(),
+        .y = Y(),
+        .aimUID = uid,
+        .extParam
         {
-            .speed = attackSpeed(),
-            .x = X(),
-            .y = Y(),
-            .aimUID = uid,
-            .extParam
-            {
-                .magicID = to_u32(magicID),
-                .modifierID = to_u32(modifierID),
-            },
-        });
-
-        if(buffID){
-            sendBuff(uid, 0, buffID);
-        }
-
-        // send attack message to target
-        // target can ignore this message directly
-        //
-        // For mir2 code, at the time when monster attacks
-        //   1. immediately change target CO's HP and MP, but don't report
-        //   2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
-        //   3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
-
-        addDelay(550, [this, uid, magicID, modifierID]()
-        {
-            dispatchAttackDamage(uid, magicID, modifierID);
-        });
-
-        if(onOK){
-            onOK();
-        }
-    },
-
-    [this, uid, onError]()
-    {
-        m_attackLock = false;
-        m_inViewCOList.erase(uid);
-
-        if(onError){
-            onError();
-        }
+            .magicID = to_u32(magicID),
+            .modifierID = to_u32(modifierID),
+        },
     });
+
+    if(buffID){
+        sendBuff(uid, 0, buffID);
+    }
+
+    // send attack message to target
+    // target can ignore this message directly
+    //
+    // For mir2 code, at the time when monster attacks
+    //   1. immediately change target CO's HP and MP, but don't report
+    //   2. delay 550ms, then report RM_ATTACK with CO's new HP and MP
+    //   3. target CO reports to client for motion change (_MOTION_HITTED) and new HP/MP
+
+    addDelay(550, [this, uid, magicID, modifierID](bool)
+    {
+        dispatchAttackDamage(uid, magicID, modifierID);
+    });
+
+    co_return true;
 }
 
-void Monster::jumpUID(uint64_t targetUID, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::jumpUID(uint64_t targetUID)
 {
-    getCOLocation(targetUID, [this, onOK, onError](const COLocation &coLoc)
-    {
-        const auto nX      = coLoc.x;
-        const auto nY      = coLoc.y;
-        const auto nDir    = pathf::dirValid(coLoc.direction) ? coLoc.direction : DIR_UP;
-        const auto nMapUID = coLoc.mapUID;
+    const auto coLocOpt = co_await getCOLocation(targetUID);
+    if(!coLocOpt.has_value()){
+        co_return false;
+    }
 
-        if(mapUID() != nMapUID || !mapBin()->validC(nX, nY)){
-            if(onError){
-                onError();
-            }
-            return;
-        }
+    const auto &coLoc = coLocOpt.value();
 
-        // default stand and direction when jump to an UID
-        // this way keeps distance and has best opporitunity to attack if UID is moving forward
-        //
-        // +---+---+---+
-        // |   |   |  /|
-        // |   |   |L  |
-        // +---+---+---+
-        // |   | ^ |   |
-        // |   | | |   |
-        // +---+---+---+
-        // |   |   |   |
-        // |   |   |   |
-        // +---+---+---+
+    if(mapUID() != coLoc.mapUID || !mapBin()->validC(coLoc.x, coLoc.y)){
+        co_return false;
+    }
 
-        const auto nextDir = pathf::getNextDir(nDir, 1);
-        const auto [nFrontX, nFrontY] = pathf::getFrontGLoc(nX, nY, nextDir, 1);
-        if(!mapBin()->groundValid(nFrontX, nFrontY)){
-            if(onError){
-                onError();
-            }
-            return;
-        }
+    // default stand and direction when jump to an UID
+    // this way keeps distance and has best opporitunity to attack if UID is moving forward
+    //
+    // +---+---+---+
+    // |   |   |  /|
+    // |   |   |L  |
+    // +---+---+---+
+    // |   | ^ |   |
+    // |   | | |   |
+    // +---+---+---+
+    // |   |   |   |
+    // |   |   |   |
+    // +---+---+---+
 
-        if(nFrontX == X() && nFrontY == Y()){
-            if(onOK){
-                onOK();
-            }
+    const auto  dstDir = pathf::dirValid(coLoc.direction) ? coLoc.direction : DIR_UP;
+    const auto nextDir = pathf::getNextDir(dstDir, 1);
+
+    const auto [frontX, frontY] = pathf::getFrontGLoc(coLoc.x, coLoc.y, nextDir, 1);
+
+    if(!mapBin()->groundValid(frontX, frontY)){
+        co_return false;
+    }
+
+    if(frontX == X() && frontY == Y()){
+        co_return true;
+    }
+
+    co_return requestJump(frontX, frontY, pathf::getBackDir(nextDir));
+}
+
+corof::awaitable<bool> Monster::trackUID(uint64_t targetUID, DCCastRange r)
+{
+    const auto coLocOpt = co_await getCOLocation(targetUID);
+
+    if(!coLocOpt.has_value()){
+        co_return false;
+    }
+
+    const auto &coLoc = coLocOpt.value();
+
+    if(mapUID() != coLoc.mapUID || !mapBin()->validC(coLoc.x, coLoc.y)){
+        co_return false;
+    }
+
+    // patch the track function, r can be provided as {}
+    // if r provided as invalid, we accept it as to follow the uid generally
+
+    if(r){
+        if(pathf::inDCCastRange(r, X(), Y(), coLoc.x, coLoc.y)){
+            co_return true;
         }
         else{
-            requestJump(nFrontX, nFrontY, pathf::getBackDir(nextDir), onOK, onError);
+            co_return co_await moveOneStep(coLoc.x, coLoc.y);
         }
-    }, onError);
-}
-
-void Monster::trackUID(uint64_t nUID, DCCastRange r, std::function<void()> onOK, std::function<void()> onError)
-{
-    getCOLocation(nUID, [this, r, onOK, onError](const COLocation &coLoc)
-    {
-        if(mapUID() != coLoc.mapUID || !mapBin()->validC(coLoc.x, coLoc.y)){
-            if(onError){
-                onError();
-            }
-            return;
-        }
-
-        // patch the track function, r can be provided as {}
-        // if r provided as invalid, we accept it as to follow the uid generally
-
-        if(r){
-            if(pathf::inDCCastRange(r, X(), Y(), coLoc.x, coLoc.y)){
-                if(onOK){
-                    onOK();
-                }
-            }
-            else{
-                moveOneStep(coLoc.x, coLoc.y, onOK, onError);
-            }
+    }
+    else{
+        if((X() == coLoc.x) && (Y() == coLoc.y)){
+            co_return true;
         }
         else{
-            if((X() == coLoc.x) && (Y() == coLoc.y)){
-                if(onOK){
-                    onOK();
-                }
-            }
-            else{
-                moveOneStep(coLoc.x, coLoc.y, onOK, onError);
-            }
+            co_return co_await moveOneStep(coLoc.x, coLoc.y);
         }
-    }, onError);
+    }
 }
 
-void Monster::followMaster(std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::followMaster()
 {
-    if(!(masterUID() && canMove(true))){
-        if(onError){
-            onError();
-        }
-        return;
+    if(!masterUID()){
+        co_return false;
+    }
+
+    if(!canMove(true)){
+        co_return false;
     }
 
     // followMaster works almost like trackUID(), but
     // 1. follower always try to stand at the back of the master
     // 2. when distance is too far or master is on different map, follower takes space move
 
-    getCOLocation(masterUID(), [this, onOK, onError](const COLocation &coLoc) -> bool
-    {
-        // check if it's still my master?
-        // possible during the location query master changed
+    const auto coLocOpt = co_await getCOLocation(masterUID());
 
-        if(coLoc.uid != masterUID()){
-            if(onError){
-                onError();
-            }
-            return false;
-        }
-
-        if(!canMove(true)){
-            if(onError){
-                onError();
-            }
-            return false;
-        }
-
-        const auto nX         = coLoc.x;
-        const auto nY         = coLoc.y;
-        const auto nMapUID    = coLoc.mapUID;
-        const auto nDirection = pathf::dirValid(coLoc.direction) ? coLoc.direction : [this]() -> int
-        {
-            switch(uidf::getUIDType(masterUID())){
-                case UID_PLY: return pathf::getRandDir();
-                default     : return DIR_BEGIN;
-            }
-        }();
-
-        if((nMapUID == mapUID()) && (mathf::LDistance<double>(nX, nY, X(), Y()) < 10.0)){
-
-            // not that long
-            // slave should move step by step
-
-            const auto [nBackX, nBackY] = pathf::getBackGLoc(nX, nY, nDirection, 1);
-            switch(mathf::LDistance2(nBackX, nBackY, X(), Y())){
-                case 0:
-                    {
-                        // already get there
-                        // need to make a turn if needed
-
-                        if(Direction() != nDirection){
-                            m_direction = nDirection;
-                            dispatchAction(makeActionStand());
-                        }
-
-                        if(onOK){
-                            onOK();
-                        }
-                        return true;
-                    }
-                default:
-                    {
-                        return moveOneStep(nBackX, nBackY, onOK, onError);
-                    }
-            }
-        }
-        else{
-            // long distance
-            // need to do spacemove or even mapswitch
-
-            const auto [nBackX, nBackY] = pathf::getBackGLoc(nX, nY, nDirection, 3);
-            if(nMapUID == mapUID()){
-                return requestSpaceMove(nBackX, nBackY, false, onOK, onError);
-            }
-            else{
-                return requestMapSwitch(nMapUID, nBackX, nBackY, false, onOK, onError);
-            }
-        }
-    });
-}
-
-void Monster::jumpAttackUID(uint64_t targetUID, std::function<void()> onOK, std::function<void()> onError)
-{
-    fflassert(targetUID);
-    const auto magicID = getAttackMagic(targetUID);
-    const auto &mr = DBCOM_MAGICRECORD(magicID);
-    if(!mr){
-        if(onError){
-            onError();
-        }
-        return;
+    if(!coLocOpt.has_value()){
+        co_return false;
     }
 
-    jumpUID(targetUID, [targetUID, magicID, onOK, onError, this]()
+    const auto &coLoc = coLocOpt.value();
+
+    // check if it's still my master?
+    // possible during the location query master changed
+
+    if(coLoc.uid != masterUID()){
+        co_return false;
+    }
+
+    if(!canMove(true)){
+        co_return false;
+    }
+
+    const auto masterDir = pathf::dirValid(coLoc.direction) ? coLoc.direction : [this]() -> int
     {
-        attackUID(targetUID, magicID, onOK, onError);
-    }, onError);
+        switch(uidf::getUIDType(masterUID())){
+            case UID_PLY: return pathf::getRandDir();
+            default     : return DIR_BEGIN;
+        }
+    }();
+
+    if((coLoc.mapUID == mapUID()) && (mathf::LDistance<double>(coLoc.x, coLoc.y, X(), Y()) < 10.0)){
+
+        // not that long
+        // slave should move step by step
+        const auto [backX, backY] = pathf::getBackGLoc(coLoc.x, coLoc.y, masterDir, 1);
+
+        switch(mathf::LDistance2<int>(backX, backY, X(), Y())){
+            case 0:
+                {
+                    // already get there
+                    // need to make a turn if needed
+
+                    if(Direction() != masterDir){
+                        m_direction = masterDir;
+                        dispatchAction(makeActionStand());
+                    }
+
+                    co_return true;
+                }
+            default:
+                {
+                    co_return moveOneStep(backX, backY);
+                }
+        }
+    }
+    else{
+        // long distance
+        // need to do spacemove or even mapswitch
+        const auto [backX, backY] = pathf::getBackGLoc(coLoc.x, coLoc.y, masterDir, 3);
+
+        if(coLoc.mapUID == mapUID()){
+            co_return requestSpaceMove(backX, backY, false);
+        }
+        else{
+            co_return requestMapSwitch(coLoc.mapUID, backX, backY, false);
+        }
+    }
 }
 
-void Monster::trackAttackUID(uint64_t targetUID, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> Monster::jumpAttackUID(uint64_t targetUID)
 {
     fflassert(targetUID);
     fflassert(targetUID != UID());
 
     const auto magicID = getAttackMagic(targetUID);
     const auto &mr = DBCOM_MAGICRECORD(magicID);
+
     if(!mr){
-        if(onError){
-            onError();
-        }
-        return;
+        co_return false;
     }
 
-    trackUID(targetUID, mr.castRange, [targetUID, magicID, onOK, onError, this]()
-    {
-        attackUID(targetUID, magicID, onOK, onError);
-    }, onError);
+    if(co_await jumpUID(targetUID)){
+        co_return co_await attackUID(targetUID, magicID);
+    }
+
+    co_return false;
+}
+
+corof::awaitable<bool> Monster::trackAttackUID(uint64_t targetUID)
+{
+    fflassert(targetUID);
+    fflassert(targetUID != UID());
+
+    const auto magicID = getAttackMagic(targetUID);
+    const auto &mr = DBCOM_MAGICRECORD(magicID);
+
+    if(!mr){
+        co_return false;
+    }
+
+    if(co_await trackUID(targetUID, mr.castRange)){
+        co_return co_await attackUID(targetUID, magicID);
+    }
+
+    co_return false;
 }
 
 corof::eval_poller<> Monster::updateCoroFunc()

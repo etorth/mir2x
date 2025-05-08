@@ -870,7 +870,7 @@ corof::awaitable<std::optional<SDHealth>> BattleObject::queryHealth(uint64_t uid
 
 corof::awaitable<uint64_t> BattleObject::queryFinalMaster(uint64_t targetUID)
 {
-    const auto fnQuery = [thisptr = this]([[maybe_unused]] this auto self, uint64_t targetUID) -> corof::awaitable<uint64_t>
+    const auto fnQuery = [thisptr = this](this auto, uint64_t targetUID) -> corof::awaitable<uint64_t>
     {
         switch(const auto rmpk = co_await thisptr->m_actorPod->send(targetUID, AM_QUERYFINALMASTER); rmpk.type()){
             case AM_UID:

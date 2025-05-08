@@ -63,24 +63,18 @@ void ServerZumaTaurus::onAMAttack(const ActorMsgPack &mpk)
     }
 }
 
-void ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> ServerZumaTaurus::attackUID(uint64_t targetUID, int dcType)
 {
     fflassert(false
             || to_u32(dcType) == DBCOM_MAGICID(u8"祖玛教主_火墙")
             || to_u32(dcType) == DBCOM_MAGICID(u8"祖玛教主_地狱火"));
 
-    if(!canAttack()){
-        if(onError){
-            onError();
-        }
-        return;
+    if(!canAttack(true)){
+        co_return false;
     }
 
     if(!dcValid(dcType, true)){
-        if(onError){
-            onError();
-        }
-        return;
+        co_return false;
     }
 
     m_attackLock = true;

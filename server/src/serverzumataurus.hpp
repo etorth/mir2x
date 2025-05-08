@@ -60,7 +60,7 @@ class ServerZumaTaurus final: public Monster
         }
 
     protected:
-        void attackUID(uint64_t, int, std::function<void()>, std::function<void()>) override;
+        corof::awaitable<bool> attackUID(uint64_t, int) override;
 
     protected:
         void onAMMasterHitted(const ActorMsgPack &) override
@@ -72,8 +72,8 @@ class ServerZumaTaurus final: public Monster
         void onAMAttack(const ActorMsgPack &) override;
 
     protected:
-        bool canMove(true) const override
+        bool canMove(bool checkMoveLock) const override
         {
-            return m_standMode && Monster::canMove(true);
+            return m_standMode && Monster::canMove(checkMoveLock);
         }
 };

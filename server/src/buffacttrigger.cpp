@@ -24,15 +24,18 @@ BaseBuffActTrigger::BaseBuffActTrigger(BaseBuff *argBuff, size_t argBuffActOff)
             if(auto tgrPtr = dynamic_cast<BaseBuffActTrigger *>(bo->m_buffList.hasBuffAct(key))){
                 co_await tgrPtr->runOnTrigger(BATGR_TIME);
             }
+            else{
+                co_return;
+            }
 
-            for(int i = 1; totalCount < 0 || i < totalCount; ++i){
+            for(int i = 1; tgrCount < 0 || i < tgrCount; ++i){
                 co_await bo->asyncWait(tick);
                 if(auto tgrPtr = dynamic_cast<BaseBuffActTrigger *>(bo->m_buffList.hasBuffAct(key))){
                     co_await tgrPtr->runOnTrigger(BATGR_TIME);
                 }
-            }
-
-                co_await tgrPtr->runOnDone();
+                else{
+                    co_return;
+                }
             }
         });
     }
@@ -114,28 +117,32 @@ _decl_named_buff_act_trigger(u8"HP持续")(int trigger)
 {
     if(trigger & BATGR_TIME){
         const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().trigger.arg);
-        co_await getBuff()->getBO()->updateHealth(value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxHP() / 100.0));
+        getBuff()->getBO()->updateHealth(value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxHP() / 100.0));
     }
+    return {};
 }
 
 _decl_named_buff_act_trigger(u8"MP持续")(int trigger)
 {
     if(trigger & BATGR_TIME){
         const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().trigger.arg);
-        co_await getBuff()->getBO()->updateHealth(0, value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxMP() / 100.0));
+        getBuff()->getBO()->updateHealth(0, value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxMP() / 100.0));
     }
+    return {};
 }
 
 _decl_named_buff_act_trigger(u8"HP移动伤害")(int trigger)
 {
     if(trigger & BATGR_MOVE){
-        co_await getBuff()->getBO()->updateHealth(-1 * std::get<int>(getBAREF().trigger.arg));
+        getBuff()->getBO()->updateHealth(-1 * std::get<int>(getBAREF().trigger.arg));
     }
+    return {};
 }
 
 _decl_named_buff_act_trigger(u8"MP移动伤害")(int)
 {
-    co_await getBuff()->getBO()->updateHealth(0, -1);
+    getBuff()->getBO()->updateHealth(0, -1);
+    return {};
 }
 
 #undef _decl_named_buff_act_trigger

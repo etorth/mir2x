@@ -123,6 +123,7 @@ class CharObject: public ServerObject
 
     protected:
         void trimInViewCO();
+        bool removeInViewCO(uint64_t);
         int  updateInViewCO(const COLocation &, bool = false);
         void foreachInViewCO(std::function<void(const COLocation &)>);
 

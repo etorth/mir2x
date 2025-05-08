@@ -16,7 +16,7 @@ class ServerGuard: public Monster
         corof::eval_poller<> updateCoroFunc() override;
 
     private:
-        void checkFriend(uint64_t, std::function<void(int)>) override;
+        corof::awaitable<int> checkFriend(uint64_t) override;
 
     protected:
         void onAMAttack(const ActorMsgPack &) override
@@ -25,6 +25,6 @@ class ServerGuard: public Monster
         }
 
     protected:
-        bool canMove(true)   const override;
-        bool canAttack() const override;
+        bool canMove(bool)   const override;
+        bool canAttack(bool) const override;
 };

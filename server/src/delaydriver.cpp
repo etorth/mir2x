@@ -54,7 +54,7 @@ bool DelayDriver::isDelayThread()
 
 uint64_t DelayDriver::add(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_t tick)
 {
-    uint64 seq;
+    uint64_t seq;
     timer_map::iterator iter;
     {
         const std::lock_guard lockGuard(m_lock);
@@ -72,7 +72,7 @@ uint64_t DelayDriver::add(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_
         }
     }
 
-    iter->second.expire_after(std::chrono::milliseconds(tick));
+    iter->second.expires_after(std::chrono::milliseconds(tick));
     iter->second.async_wait([fromAddr, seq, this](std::error_code ec)
     {
         if(ec){
