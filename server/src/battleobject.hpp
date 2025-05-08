@@ -20,7 +20,7 @@ class BattleObject: public CharObject
     public:
         friend class CharObject;
         friend class BaseBuff;
-        firend class BaseBuffAct;
+        friend class BaseBuffAct;
         friend class BaseBuffActAura;
         friend class BaseBuffActTrigger;
         friend class BaseBuffActAttributeModifier;
@@ -213,7 +213,7 @@ class BattleObject: public CharObject
         std::optional<double> oneStepCost(const BattleObject::BOPathFinder *, int, int, int, int, int, int) const;
 
     protected:
-        virtual void checkFriend(uint64_t, std::function<void(int)>) = 0;
+        virtual corof::awaitable<int> checkFriend(uint64_t) = 0;
 
     protected:
         corof::awaitable<std::optional<SDHealth>> queryHealth(uint64_t);

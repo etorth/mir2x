@@ -167,15 +167,12 @@ class Monster: public BattleObject
         int FindPathMethod();
 
     protected:
-        void checkFriend(uint64_t, std::function<void(int)>) override;
-        void queryPlayerFriend(uint64_t, uint64_t, std::function<void(int)>);
+        corof::awaitable<int> checkFriend(uint64_t) override;
+        corof::awaitable<int> queryPlayerFriend(uint64_t, uint64_t);
 
     private:
-        void checkFriend_ctrlByPlayer (uint64_t, std::function<void(int)>);
-        void checkFriend_ctrlByMonster(uint64_t, std::function<void(int)>);
-
-    protected:
-        void queryMaster(uint64_t, std::function<void(uint64_t)>);
+        corof::awaitable<int> checkFriend_ctrlByPlayer (uint64_t);
+        corof::awaitable<int> checkFriend_ctrlByMonster(uint64_t);
 
     protected:
         bool moveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);

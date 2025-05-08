@@ -393,7 +393,7 @@ class Player final: public BattleObject
         SDChatPeer dbCreateChatGroup(const char *, const std::span<const uint32_t> &);
 
     protected:
-        void checkFriend(uint64_t, std::function<void(int)>) override;
+        corof::awaitable<int> checkFriend(uint64_t) override;
 
     private:
         void postExp();

@@ -1725,7 +1725,7 @@ void Player::reportTeamMemberList()
     });
 }
 
-void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
+corof::awaitable<int> Player::checkFriend(uint64_t targetUID)
 {
     // this function means:
     // this player says: how I fell about targetUID
@@ -1736,51 +1736,33 @@ void Player::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
     switch(uidf::getUIDType(targetUID)){
         case UID_NPC:
             {
-                if(fnOp){
-                    fnOp(FT_NEUTRAL);
-                }
-                return;
+                co_return FT_NEUTRAL;
             }
         case UID_PLY:
             {
-                if(fnOp){
-                    fnOp(isOffender(targetUID) ? FT_ENEMY : FT_NEUTRAL);
-                }
-                return;
+                co_return isOffender(targetUID) ? FT_ENEMY : FT_NEUTRAL;
             }
         case UID_MON:
             {
-                queryFinalMaster(targetUID, [this, targetUID, fnOp](uint64_t finalMasterUID)
-                {
-                    if(!finalMasterUID){
-                        if(fnOp){
-                            fnOp(FT_ERROR);
-                        }
-                        return;
-                    }
-
+                if(const auto finalMasterUID = co_await queryFinalMaster(targetUID)){
                     switch(uidf::getUIDType(finalMasterUID)){
                         case UID_PLY:
                             {
-                                if(fnOp){
-                                    fnOp(isOffender(targetUID) ? FT_ENEMY : FT_NEUTRAL);
-                                }
-                                return;
+                                co_return isOffender(targetUID) ? FT_ENEMY : FT_NEUTRAL;
                             }
                         case UID_MON:
                             {
-                                if(fnOp){
-                                    fnOp(FT_ENEMY);
-                                }
-                                return;
+                                co_return FT_ENEMY;
                             }
                         default:
                             {
                                 throw fflvalue(uidf::getUIDString(finalMasterUID));
                             }
                     }
-                });
-                return;
+                }
+                else{
+                    co_return FT_ERROR;
+                }
             }
         default:
             {
