@@ -31,11 +31,6 @@ void ServiceCore::onActorMsg(const ActorMsgPack &mpk)
                 on_AM_BADCHANNEL(mpk);
                 break;
             }
-        case AM_METRONOME:
-            {
-                on_AM_METRONOME(mpk);
-                break;
-            }
         case AM_REGISTERQUEST:
             {
                 on_AM_REGISTERQUEST(mpk);

@@ -338,15 +338,15 @@ class ActorPool final
                 MailboxMutex &m_mutexRef;
 
             public:
-                MailboxLock(MailboxMutex &rstMutex, int nWorkerID)
+                MailboxLock(MailboxMutex &m, int workerID)
                     : m_expected(MAILBOX_READY)
                     , m_workerID(MAILBOX_ERROR)
-                    , m_mutexRef(rstMutex)
+                    , m_mutexRef(m)
                 {
                     // need to save the worker id
                     // since the mailbox may get detached quietly
-                    if(m_mutexRef.m_status.compare_exchange_strong(m_expected, nWorkerID)){
-                        m_workerID = nWorkerID;
+                    if(m_mutexRef.m_status.compare_exchange_strong(m_expected, workerID)){
+                        m_workerID = workerID;
                     }
                 }
 
@@ -400,6 +400,10 @@ class ActorPool final
             // this record last send time, in ms
             uint64_t lastUpdateTime = 0;
 
+            // put ctor in actorpool.cpp
+            // ActorPod is incomplete type in actorpool.hpp
+            Mailbox(ActorPod *, bool);
+
             // put a monitor structure and always maintain it
             // then no need to acquire schedLock to dump the monitor
             struct MailboxMonitor
@@ -423,10 +427,6 @@ class ActorPool final
                     to_u32(monitor.messagePending.load()),
                 };
             }
-
-            // put ctor in actorpool.cpp
-            // ActorPod is incomplete type in actorpool.hpp
-            explicit Mailbox(ActorPod *, bool);
         };
 
         struct MailboxSubBucket
@@ -587,7 +587,7 @@ class ActorPool final
 
     private:
         void runOneUID(uint64_t);
-        bool runOneMailbox(Mailbox *, bool, uint64_t);
+        bool runOneMailbox(Mailbox *); // return false if mailbox detached
         void runOneMailboxBucket(int, uint64_t);
 
     private:

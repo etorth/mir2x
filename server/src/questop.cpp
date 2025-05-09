@@ -1,11 +1,6 @@
 #include "quest.hpp"
 #include "totype.hpp"
 
-corof::awaitable<> Quest::on_AM_METRONOME(const ActorMsgPack &)
-{
-    return {};
-}
-
 corof::awaitable<> Quest::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();

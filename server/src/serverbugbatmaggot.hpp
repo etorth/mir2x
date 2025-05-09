@@ -18,7 +18,7 @@ class ServerBugbatMaggot final: public Monster
         void addBat();
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         ActionNode makeActionStand() const override

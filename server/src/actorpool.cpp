@@ -490,7 +490,7 @@ void ActorPool::runOneUID(uint64_t uid)
                     lockGuard.unlock();
                 }
 
-                runOneMailbox(mailboxPtr, false, 0ULL);
+                runOneMailbox(mailboxPtr);
                 return;
             }
         default:
@@ -500,7 +500,7 @@ void ActorPool::runOneUID(uint64_t uid)
     }
 }
 
-bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome, uint64_t startUpdateTime)
+bool ActorPool::runOneMailbox(Mailbox *mailboxPtr)
 {
     if(!isActorThread()){
         throw fflerror("accessing actor message handlers outside of actor threads: %d", getWorkerID());
@@ -522,29 +522,12 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr, bool useMetronome, uint64_t s
     // because it's in the message handling thread and it grabs the schedLock
     // any thread want to flip the actor to detached status must firstly grab its schedLock
 
-    if(useMetronome){
-        if(mailboxPtr->schedLock.detached()){   // don't need this check
-            return false;                       // any thread want to call runOneMailbox should first grab the schedLoc
-        }                                       // means it's in grabbed status rather than detached status if we can reach here
-
-        if((mailboxPtr->actor->getMetronomeFreq() > 0.0) && (mailboxPtr->lastUpdateTime + std::lround(1000.0 / mailboxPtr->actor->getMetronomeFreq()) <= startUpdateTime)){
-            raii_timer procTimer(&(mailboxPtr->monitor.procTick));
-            mailboxPtr->actor->innHandler({AM_METRONOME, 0, 0});
-            mailboxPtr->lastUpdateTime = startUpdateTime;
-        }
-
-        mailboxPtr->monitor.messageDone.fetch_add(1);
-        if(mailboxPtr->schedLock.detached()){
-            return false;
-        }
-    }
-
     // process till first time can see empty queue
     // outside of this function always give up if found the mailbox is running
 
     while(true){
         if(mailboxPtr->currQ.empty()){
-            std::lock_guard<std::mutex> lockGuard(mailboxPtr->nextQLock);
+            const std::lock_guard<std::mutex> lockGuard(mailboxPtr->nextQLock);
             if(mailboxPtr->nextQ.empty()){
                 return true;
             }
@@ -654,7 +637,7 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
     mailboxPtr->currQ.clear();
 }
 
-void ActorPool::runOneMailboxBucket(int bucketId, uint64_t startUpdateTime)
+void ActorPool::runOneMailboxBucket(int bucketId)
 {
     logProfiler();
     const int workerId = getWorkerID();
@@ -662,7 +645,7 @@ void ActorPool::runOneMailboxBucket(int bucketId, uint64_t startUpdateTime)
         throw fflerror("udpate mailbox bucket %d by thread %d", bucketId, workerId);
     }
 
-    const auto fnRunMailbox = [workerId, startUpdateTime, this](Mailbox *mailboxPtr) -> bool
+    const auto fnRunMailbox = [workerId, this](Mailbox *mailboxPtr) -> bool
     {
         // we can use raw mailboxPtr here because it's in dedicated actor thread
         // no one else can remove {uid, mailboxPtr} from the sub-bucket
@@ -681,8 +664,8 @@ void ActorPool::runOneMailboxBucket(int bucketId, uint64_t startUpdateTime)
                     // we just return immediately and leave the rest handled message there
 
                     // don't try clean it
-                    // since we can't guarentee to clean it complately
-                    return runOneMailbox(mailboxPtr, true, startUpdateTime);
+                    // we can't guarentee to clean it complately
+                    return runOneMailbox(mailboxPtr);
                 }
             case MAILBOX_ACCESS_PUB:
                 {
@@ -695,7 +678,7 @@ void ActorPool::runOneMailboxBucket(int bucketId, uint64_t startUpdateTime)
             default:
                 {
                     // we didn't get the schedlock
-                    // then don't access the actor pointer here for read/log...
+                    // then can't access the actor pointer here
                     if(!isActorThread(lockType)){
                         throw fflerror("invalid mailbox status: %d", lockType);
                     }
@@ -819,7 +802,7 @@ void ActorPool::launchNet(int port)
 void ActorPool::launchPool()
 {
     // one bucket has one dedicated thread
-    // it will feed the update message METRNOME and can steal jobs when not busy
+    // it will consume all pending messages and can steal jobs if not busy
 
     const auto logicalFPS = g_serverArgParser->sharedConfig().logicalFPS;
 

@@ -387,7 +387,7 @@ corof::awaitable<bool> Monster::trackAttackUID(uint64_t targetUID)
     co_return false;
 }
 
-corof::awaitable<> Monster::updateCoroFunc()
+corof::awaitable<> Monster::runAICoro()
 {
     uint64_t targetUID = 0;
     hres_timer targetActiveTimer;
@@ -440,10 +440,6 @@ corof::awaitable<> Monster::updateCoroFunc()
 corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
-        case AM_METRONOME:
-            {
-                return on_AM_METRONOME(rstMPK);
-            }
         case AM_CHECKMASTER:
             {
                 return on_AM_CHECKMASTER(rstMPK);

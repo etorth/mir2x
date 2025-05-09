@@ -4,7 +4,7 @@
 #include "raiitimer.hpp"
 #include "serverevilcentipede.hpp"
 
-corof::eval_poller<> ServerEvilCentipede::updateCoroFunc()
+corof::awaitable<> ServerEvilCentipede::runAICoro()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;

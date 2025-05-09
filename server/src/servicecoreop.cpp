@@ -25,10 +25,6 @@ corof::awaitable<> ServiceCore::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
     freeActorDataPackage(&(amRP.package));
 }
 
-corof::awaitable<> ServiceCore::on_AM_METRONOME(const ActorMsgPack &)
-{
-}
-
 corof::awaitable<> ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
 {
     const auto sdRQ = mpk.deserialize<SDRegisterQuest>();

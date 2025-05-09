@@ -546,11 +546,6 @@ void ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
                 on_AM_TRYMAPSWITCH(rstMPK);
                 break;
             }
-        case AM_METRONOME:
-            {
-                on_AM_METRONOME(rstMPK);
-                break;
-            }
         case AM_TRYSPACEMOVE:
             {
                 on_AM_TRYSPACEMOVE(rstMPK);

@@ -528,11 +528,6 @@ void Player::onActivate()
 void Player::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
-        case AM_METRONOME:
-            {
-                on_AM_METRONOME(rstMPK);
-                break;
-            }
         case AM_BADACTORPOD:
             {
                 on_AM_BADACTORPOD(rstMPK);

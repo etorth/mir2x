@@ -84,18 +84,18 @@ class Monster: public BattleObject
         }
 
     protected:
-       // don't expose it to public
-       // master may change by time or by magic
-       uint64_t masterUID() const
-       {
-           return m_masterUID;
-       }
+        // don't expose it to public
+        // master may change by time or by magic
+        uint64_t masterUID() const
+        {
+            return m_masterUID;
+        }
 
     protected:
         void SearchViewRange();
 
     protected:
-        virtual corof::awaitable<> updateCoroFunc();
+        virtual corof::awaitable<> runAICoro();
 
     protected:
         bool randomTurn();
@@ -132,7 +132,6 @@ class Monster: public BattleObject
         corof::awaitable<> on_AM_ACTION          (const ActorMsgPack &);
         corof::awaitable<> on_AM_OFFLINE         (const ActorMsgPack &);
         corof::awaitable<> on_AM_UPDATEHP        (const ActorMsgPack &);
-        corof::awaitable<> on_AM_METRONOME       (const ActorMsgPack &);
         corof::awaitable<> on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
         corof::awaitable<> on_AM_MASTERKILL      (const ActorMsgPack &);
         corof::awaitable<> on_AM_MASTERHITTED    (const ActorMsgPack &);

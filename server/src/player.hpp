@@ -154,7 +154,6 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_ATTACK             (const ActorMsgPack &);
         corof::awaitable<> on_AM_OFFLINE            (const ActorMsgPack &);
         corof::awaitable<> on_AM_CORECORD           (const ActorMsgPack &);
-        corof::awaitable<> on_AM_METRONOME          (const ActorMsgPack &);
         corof::awaitable<> on_AM_MAPSWITCHTRIGGER   (const ActorMsgPack &);
         corof::awaitable<> on_AM_SENDPACKAGE        (const ActorMsgPack &);
         corof::awaitable<> on_AM_RECVPACKAGE        (const ActorMsgPack &);

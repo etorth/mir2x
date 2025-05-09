@@ -10,7 +10,7 @@ class ServerMonsterTree final: public Monster
         {}
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         ActionNode makeActionStand() const override

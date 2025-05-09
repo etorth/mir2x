@@ -1,11 +1,6 @@
 #include "serdesmsg.hpp"
 #include "serverluaobject.hpp"
 
-corof::awaitable<> ServerLuaObject::on_AM_METRONOME(const ActorMsgPack &)
-{
-    return {};
-}
-
 corof::awaitable<> ServerLuaObject::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();

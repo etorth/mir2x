@@ -4,7 +4,7 @@
 #include "serverzumataurus.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::eval_poller<> ServerZumaTaurus::updateCoroFunc()
+corof::awaitable<> ServerZumaTaurus::runAICoro()
 {
     const auto hellFireDC = DBCOM_MAGICID(u8"祖玛教主_地狱火");
     const auto fireWallDC = DBCOM_MAGICID(u8"祖玛教主_火墙");

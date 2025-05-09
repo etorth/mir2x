@@ -1,6 +1,6 @@
 #include "serverzumamonster.hpp"
 
-corof::eval_poller<> ServerZumaMonster::updateCoroFunc()
+corof::awaitable<> ServerZumaMonster::runAICoro()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;

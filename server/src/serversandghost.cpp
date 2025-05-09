@@ -6,7 +6,7 @@
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::eval_poller<> ServerSandGhost::updateCoroFunc()
+corof::awaitable<> ServerSandGhost::runAICoro()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;

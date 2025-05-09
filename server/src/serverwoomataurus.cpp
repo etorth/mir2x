@@ -5,7 +5,7 @@
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::eval_poller<> ServerWoomaTaurus::updateCoroFunc()
+corof::awaitable<> ServerWoomaTaurus::runAICoro()
 {
     const auto   lightMagicID = DBCOM_MAGICID(u8"沃玛教主_电光");
     const auto thunderMagicID = DBCOM_MAGICID(u8"沃玛教主_雷电术");

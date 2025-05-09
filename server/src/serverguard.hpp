@@ -13,7 +13,7 @@ class ServerGuard: public Monster
         ServerGuard(const SDInitGuard &);
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     private:
         corof::awaitable<int> checkFriend(uint64_t) override;

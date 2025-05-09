@@ -23,7 +23,7 @@ ServerGuard::ServerGuard(const SDInitGuard &sdIG)
     fflassert(uidf::isGuardMode(UID()));
 }
 
-corof::eval_poller<> ServerGuard::updateCoroFunc()
+corof::awaitable<> ServerGuard::runAICoro()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){

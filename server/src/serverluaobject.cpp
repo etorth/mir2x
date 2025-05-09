@@ -21,10 +21,6 @@ void ServerLuaObject::onActivate()
 corof::awaitable<> ServerLuaObject::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
-        case AM_METRONOME:
-            {
-                return on_AM_METRONOME(mpk);
-            }
         case AM_REMOTECALL:
             {
                 return on_AM_REMOTECALL(mpk);

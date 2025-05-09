@@ -2,7 +2,7 @@
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::eval_poller<> ServerEvilTentacle::updateCoroFunc()
+corof::awaitable<> ServerEvilTentacle::runAICoro()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){

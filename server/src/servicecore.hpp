@@ -70,7 +70,6 @@ class ServiceCore final: public PeerCore
 
     private:
         corof::awaitable<> on_AM_REGISTERQUEST         (const ActorMsgPack &);
-        corof::awaitable<> on_AM_METRONOME             (const ActorMsgPack &);
         corof::awaitable<> on_AM_BADCHANNEL            (const ActorMsgPack &);
         corof::awaitable<> on_AM_RECVPACKAGE           (const ActorMsgPack &);
         corof::awaitable<> on_AM_LOADMAP               (const ActorMsgPack &);

@@ -6,7 +6,7 @@
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-corof::eval_poller<> ServerRebornZombie::updateCoroFunc()
+corof::awaitable<> ServerRebornZombie::runAICoro()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;

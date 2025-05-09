@@ -18,14 +18,14 @@
 extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
-corof::awaitable<> ServerMap::on_AM_METRONOME(const ActorMsgPack &)
-{
-    updateMapGrid();
-    if(!g_serverArgParser->sharedConfig().disableMapScript){
-        m_luaRunner->resume(m_mainScriptThreadKey);
-    }
-}
-
+// corof::awaitable<> ServerMap::on_AM_METRONOME(const ActorMsgPack &)
+// {
+//     updateMapGrid();
+//     if(!g_serverArgParser->sharedConfig().disableMapScript){
+//         m_luaRunner->resume(m_mainScriptThreadKey);
+//     }
+// }
+//
 corof::awaitable<> ServerMap::on_AM_BADACTORPOD(const ActorMsgPack &)
 {
 }

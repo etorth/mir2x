@@ -528,7 +528,6 @@ void NPChar::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_OFFLINE:
-        case AM_METRONOME:
             {
                 break;
             }
