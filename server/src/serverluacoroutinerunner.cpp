@@ -52,7 +52,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
-    m_actorPod->registerOp(AM_SENDNOTIFY, [thisptr = this]([[maybe_unused]] this auto self, const ActorMsgPack &mpk) -> corof::awaitable<>
+    m_actorPod->registerOp(AM_SENDNOTIFY, [thisptr = this](this auto, const ActorMsgPack &mpk) -> corof::awaitable<>
     {
         auto sdSN = mpk.deserialize<SDSendNotify>();
         auto runnerPtr = thisptr->hasKey(sdSN.key, sdSN.seqID);
@@ -72,7 +72,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             if(sdSN.waitConsume){
                 if(runnerPtr && runnerPtr->needNotify){
                     runnerPtr->needNotify = false;
-                    resumeRunner(runnerPtr);
+                    thisptr->resumeRunner(runnerPtr);
                 }
                 thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
             }
@@ -80,14 +80,14 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
                 if(runnerPtr && runnerPtr->needNotify){
                     runnerPtr->needNotify = false;
-                    resumeRunner(runnerPtr);
+                    thisptr->resumeRunner(runnerPtr);
                 }
             }
         }
         else{
             if(runnerPtr && runnerPtr->needNotify){
                 runnerPtr->needNotify = false;
-                resumeRunner(runnerPtr);
+                thisptr->resumeRunner(runnerPtr);
             }
         }
         return {};

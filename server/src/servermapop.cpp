@@ -28,13 +28,14 @@ extern ServerArgParser *g_serverArgParser;
 //
 corof::awaitable<> ServerMap::on_AM_BADACTORPOD(const ActorMsgPack &)
 {
+    return {};
 }
 
 corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
     if(!mapBin()->validC(amA.action.x, amA.action.y)){
-        return;
+         return {};
     }
 
     // spawn message is sent by startup trigger
@@ -73,6 +74,7 @@ corof::awaitable<> ServerMap::on_AM_ACTION(const ActorMsgPack &rstMPK)
         }
         return false;
     });
+    return {};
 }
 
 corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
