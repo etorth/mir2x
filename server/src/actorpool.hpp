@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <shared_mutex>
 #include <unordered_map>
+#include <iostream>
 #include "uidf.hpp"
 #include "raiitimer.hpp"
 #include "actormsgpack.hpp"
@@ -358,14 +359,18 @@ class ActorPool final
                             if(m_expected != MAILBOX_DETACHED){
                                 // big error here and should never happen
                                 // someone stolen the mailbox without accquire the lock
-                                std::abort();
+                                std::cerr << "MailboxLock::dtor failure" << std::endl;
+                                std::terminate();
                             }
                         }
                     }
                 }
 
-                MailboxLock(const MailboxLock &) = delete;
-                MailboxLock &operator = (MailboxLock) = delete;
+            public:
+                MailboxLock              (      MailboxLock &&) = delete;
+                MailboxLock              (const MailboxLock & ) = delete;
+                MailboxLock & operator = (      MailboxLock &&) = delete;
+                MailboxLock & operator = (const MailboxLock & ) = delete;
 
             public:
                 bool locked() const
@@ -588,7 +593,7 @@ class ActorPool final
     private:
         void runOneUID(uint64_t);
         bool runOneMailbox(Mailbox *); // return false if mailbox detached
-        void runOneMailboxBucket(int, uint64_t);
+        void runOneMailboxBucket(int);
 
     private:
         void clearOneMailbox(Mailbox *);

@@ -40,20 +40,17 @@ extern ServerConfigureWindow *g_serverConfigureWindow;
 // anytime when we get a raw mailboPtr from the sub-bucket
 // we need to add r-lock because other thread can spawn new actors to the sub-bucket concurrently
 
-// actor thread id marker
-// only get explicit assignment in actor threads
-// for any other application threads it returns the defaut value
 static thread_local int t_workerID = ActorPool::MAILBOX_ACCESS_PUB;
 static int getWorkerID()
 {
     return t_workerID;
 }
 
-ActorPool::Mailbox::Mailbox(ActorPod *actorPtr, bool initActivateMsg)
+ActorPool::Mailbox::Mailbox(ActorPod *actorPtr, bool addActivateMsg)
     : uid(actorPtr->UID())
     , actor(actorPtr)
 {
-    if(initActivateMsg){
+    if(addActivateMsg){
         nextQ.emplace_back(ActorMsgPack{AM_ACTIVATE}, monitor.liveTimer.diff_nsec());
     }
 }
@@ -75,12 +72,12 @@ ActorPool::~ActorPool()
             throw fflerror("destroy actor pool in actor thread %d", getWorkerID());
         }
 
-        for(auto &bucketRef: m_bucketList){
-            bucketRef.uidQPending.close();
+        for(auto &bucket: m_bucketList){
+            bucket.uidQPending.close();
         }
 
-        for(auto &bucketRef: m_bucketList){
-            bucketRef.runThread.get();
+        for(auto &bucket: m_bucketList){
+            bucket.runThread.get();
         }
         m_bucketList.clear();
     }
@@ -92,9 +89,9 @@ ActorPool::~ActorPool()
 void ActorPool::attach(ActorPod *actorPtr)
 {
     logProfiler();
-    if(!(actorPtr && actorPtr->UID())){
-        throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %llu", to_cvptr(actorPtr), to_llu(actorPtr->UID()));
-    }
+
+    fflassert(actorPtr);
+    fflassert(actorPtr->UID());
 
     // can call this function from:
     // 1. application thread
@@ -110,7 +107,7 @@ void ActorPool::attach(ActorPod *actorPtr)
     const auto uid = actorPtr->UID();
     auto mailboxPtr = std::make_unique<Mailbox>(actorPtr, true);
     auto mailboxRawPtr = mailboxPtr.get();
-    auto &subBucketRef = getSubBucket(uid);
+    auto &subBucket = getSubBucket(uid);
     {
         // always place the w-lock-protection
         // this is the only place that can grow a subbucket
@@ -123,8 +120,8 @@ void ActorPool::attach(ActorPod *actorPtr)
         //   1. in the actor message handler: should be OK, we always call message handler without sub-bucket lock accqured
         //   2. out of   the message handler: in actorpool.cpp, we shouldn't call attach() out of actor message hander in actor threads
 
-        MailboxSubBucket::WLockGuard lockGuard(subBucketRef.lock);
-        if(!(subBucketRef.mailboxList.emplace(uid, std::move(mailboxPtr)).second)){
+        MailboxSubBucket::WLockGuard lockGuard(subBucket.lock);
+        if(!(subBucket.mailboxList.emplace(uid, std::move(mailboxPtr)).second)){
             throw fflerror("actor UID %llu exists in bucket already", to_llu(uid));
         }
     }
@@ -144,33 +141,32 @@ void ActorPool::attach(ActorPod *actorPtr)
     // we can't do this because its dedicated actor thread may immediately remove {uid, mailboxPtr} before here we push it
 
     if(getWorkerID() == bucketId){
-        subBucketRef.mailboxListCache.push_back(mailboxRawPtr);
+        subBucket.mailboxListCache.push_back(mailboxRawPtr);
     }
 }
 
-void ActorPool::attach(Receiver *receriverPtr)
+void ActorPool::attach(Receiver *receiverPtr)
 {
-    if(!(receriverPtr && receriverPtr->UID())){
-        throw fflerror("invlaid argument: Receiver = %p", to_cvptr(receriverPtr));
-    }
+    fflassert(receiverPtr);
+    fflassert(receiverPtr->UID());
 
-    std::lock_guard<decltype(m_receiverLock)> lockGuard(m_receiverLock);
-    if(!m_receiverList.emplace(receriverPtr->UID(), receriverPtr).second){
-        throw fflerror("receriver UID %llu alreayd exists in receriver list", to_llu(receriverPtr->UID()));
+    const std::lock_guard<std::mutex> lockGuard(m_receiverLock);
+    if(!m_receiverList.emplace(receiverPtr->UID(), receiverPtr).second){
+        throw fflerror("receriver UID %llu alreayd exists in receriver list", to_llu(receiverPtr->UID()));
     }
 }
 
 void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
 {
     logProfiler();
-    if(!(actorPtr && actorPtr->UID())){
-        throw fflerror("invalid arguments: ActorPod = %p, ActorPod::UID() = %llu", to_cvptr(actorPtr), to_llu(actorPtr->UID()));
-    }
+
+    fflassert(actorPtr);
+    fflassert(actorPtr->UID());
 
     // we can use uid as parameter
-    // but use actor address prevents other thread detach blindly
+    // here use actor address helps to prevent other thread detach blindly
 
-    // we only flip the schedLock by this function
+    // we ONLY flip the schedLock by this function
     // this function guarentees that it won't remove the {uid, mailboxPtr} from the sub-bucket
 
     const auto uid = actorPtr->UID();
@@ -182,6 +178,7 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
 
     Mailbox *mailboxPtr = nullptr;
     MailboxSubBucket::RLockGuard lockGuard;
+
     if(workerId == bucketId){
         mailboxPtr = tryGetMailboxPtr(uid);
     }
@@ -264,8 +261,10 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
                     // but it should never ever execute the actor handler
 
                     // I was planning to forbid any public thread to access the schedLock, but
+                    //
                     //     1. detach outside of actor threads
                     //     2. query actor status
+                    //
                     // needs to access the schedLock
                     // especially for case-1, we need this to forcely remove an actor from the actor threads
                     //
@@ -284,6 +283,7 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
                 {
                     // can't grab the schedLock, means someone else is accessing it
                     // and we know it's not public threads accessing, then must be actor threads
+
                     if(!isActorThread(lockType)){
                         throw fflerror("invalid actor status: ActorPod = %p, ActorPod::UID() = %llu, status = %d", to_cvptr(actorPtr), to_llu(uid), lockType);
                     }
@@ -330,14 +330,13 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
 
 void ActorPool::detach(const Receiver *receiverPtr)
 {
-    if(!(receiverPtr && receiverPtr->UID())){
-        throw fflerror("invalid arguments: Receiver = %p, Receiver::UID() = %llu", to_cvptr(receiverPtr), to_llu(receiverPtr->UID()));
-    }
+    fflassert(receiverPtr);
+    fflassert(receiverPtr->UID());
 
     // we allow detach a receiver multiple times
     // since it's supported for actor
 
-    std::lock_guard<std::mutex> lockGuard(m_receiverLock);
+    const std::lock_guard<std::mutex> lockGuard(m_receiverLock);
     if(auto p = m_receiverList.find(receiverPtr->UID()); p != m_receiverList.end()){
         if(p->second != receiverPtr){
             throw fflerror("different receivers with same UID: Receiver = (%p, %p), Receiver::UID() = %llu", to_cvptr(receiverPtr), to_cvptr(p->second), to_llu(receiverPtr->UID()));
@@ -349,16 +348,12 @@ void ActorPool::detach(const Receiver *receiverPtr)
 bool ActorPool::postLocalMessage(uint64_t uid, ActorMsgPack msg)
 {
     logProfiler();
-    if(!uid){
-        throw fflerror("sending %s to zero UID", mpkName(msg.type()));
-    }
 
-    if(!msg){
-        throw fflerror("sending empty message to %llu", to_llu(uid));
-    }
+    fflassert(uid);
+    fflassert(msg);
 
     if(uidf::isReceiver(uid)){
-        std::lock_guard<std::mutex> lockGuard(m_receiverLock);
+        const std::lock_guard<std::mutex> lockGuard(m_receiverLock);
         if(auto p = m_receiverList.find(uid); p != m_receiverList.end()){
             p->second->pushMessage(std::move(msg));
             return true;
@@ -384,15 +379,17 @@ bool ActorPool::postLocalMessage(uint64_t uid, ActorMsgPack msg)
         // measure the delay that when the message reaches actorpool and it gets executed
         const uint64_t nowTime = mailboxPtr->monitor.liveTimer.diff_nsec();
         {
-            std::lock_guard<std::mutex> lockGuard(mailboxPtr->nextQLock);
+            const std::lock_guard<std::mutex> lockGuard(mailboxPtr->nextQLock);
             if(mailboxPtr->schedLock.detached()){
                 return false;
             }
 
             // during the push other thread can still flip the actor to detached status
             // we can't guarantee, the only thing we can do is:
+            //
             //   1. don't run an already detached actor
             //   2. clear all pending message in a detached actor by clearOneMailbox()
+            //
             mailboxPtr->nextQ.push_back(std::pair<ActorMsgPack, uint64_t>(std::move(msg), nowTime));
         }
         return true;
@@ -464,12 +461,13 @@ bool ActorPool::postMessage(uint64_t uid, ActorMsgPack msg)
 void ActorPool::runOneUID(uint64_t uid)
 {
     const auto workerId = getWorkerID();
-    if(!isActorThread(workerId)){
-        throw fflerror("running actor UID %llu by public thread", to_llu(uid));
-    }
+
+    fflassert(uid);
+    fflassert(isActorThread(workerId), workerId);
 
     Mailbox *mailboxPtr = nullptr;
     MailboxSubBucket::RLockGuard lockGuard;
+
     if(workerId == getBucketID(uid)){
         mailboxPtr = tryGetMailboxPtr(uid);
     }
@@ -502,9 +500,8 @@ void ActorPool::runOneUID(uint64_t uid)
 
 bool ActorPool::runOneMailbox(Mailbox *mailboxPtr)
 {
-    if(!isActorThread()){
-        throw fflerror("accessing actor message handlers outside of actor threads: %d", getWorkerID());
-    }
+    fflassert(mailboxPtr);
+    fflassert(isActorThread());
 
     if(mailboxPtr->schedLock.detached()){   // don't need this check
         return false;                       // any thread want to call runOneMailbox should first grab the schedLoc
@@ -516,8 +513,8 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr)
     //     if(actorPtr->detached()){       // 1. check
     //         return false;               // 2. return
     //     }                               // 3. actor can't flip to detached here
-    //     actorPtr->innHandler(stMPK);    // 4. handle
-
+    //     actorPtr->innHandler(mpk);      // 4. handle
+    //
     // don't worry about actor detached at line-3
     // because it's in the message handling thread and it grabs the schedLock
     // any thread want to flip the actor to detached status must firstly grab its schedLock
@@ -588,13 +585,13 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
     // 1 {                                      | 1 if(Mailbox.detached()){
     // 2     LockGuard(Mailbox.nextQLock);      | 2     {                                         // clearOneMailbox() begins
     // 3     if(Mailbox.detached()){            | 3         LockGuard(Mailbox.nextQLock);         //
-    // 4         return false;                  | 4         Mailbox.currQ.Enqueue(Mailbox.nextQ); //
+    // 4         return false;                  | 4         Mailbox.currQ.enqueue(Mailbox.nextQ); //
     // 5     }                                  | 5     }                                         //
-    // 6     Mailbox.nextQ.Enqueue(MSG);        | 6                                               //
+    // 6     Mailbox.nextQ.enqueue(msg);        | 6                                               //
     // 7     return true                        | 7     ReplyBadPod(Mailbox.currQ);               // clearOneMailbox() ends
     // 8 }                                      | 8 }
 
-    // currQ is only used in main/stealing actor threads
+    // currQ is only used in dedicated/stealing actor threads
     // what I want to make sure is:
     //
     //      when thread-2 is at or after line 4, threads like thread-1 can't reach line 6
@@ -613,7 +610,7 @@ void ActorPool::clearOneMailbox(Mailbox *mailboxPtr)
 
     logProfiler();
     {
-        std::lock_guard<std::mutex> lockGuard(mailboxPtr->nextQLock);
+        const std::lock_guard<std::mutex> lockGuard(mailboxPtr->nextQLock);
         if(!mailboxPtr->nextQ.empty()){
             mailboxPtr->currQ.insert(mailboxPtr->currQ.end(), mailboxPtr->nextQ.begin(), mailboxPtr->nextQ.end());
         }
@@ -641,6 +638,7 @@ void ActorPool::runOneMailboxBucket(int bucketId)
 {
     logProfiler();
     const int workerId = getWorkerID();
+
     if(workerId != bucketId){
         throw fflerror("udpate mailbox bucket %d by thread %d", bucketId, workerId);
     }
@@ -670,15 +668,19 @@ void ActorPool::runOneMailboxBucket(int bucketId)
             case MAILBOX_ACCESS_PUB:
                 {
                     // we need to allow public threads accessing the schedLock to detach actors
+                    //
                     //    1. public thread can detach it by force
                     //    2. public thread can query actorpod statistics
-                    // but should I spin here or just leave and try next mailbox ???
+                    //
+                    // but should I spin here or just leave and try next mailbox
+                    // currently leave it without further operation
                     return true;
                 }
             default:
                 {
                     // we didn't get the schedlock
                     // then can't access the actor pointer here
+
                     if(!isActorThread(lockType)){
                         throw fflerror("invalid mailbox status: %d", lockType);
                     }
@@ -698,27 +700,44 @@ void ActorPool::runOneMailboxBucket(int bucketId)
         }
     };
 
-    auto &bucketRef = m_bucketList.at(bucketId);
+    auto &currBucket = m_bucketList.at(bucketId);
     for(int subBucketId = 0; subBucketId < m_subBucketCount; ++subBucketId){
-        auto &subBucketRef = bucketRef.subBucketList.at(subBucketId);
-        auto &listCacheRef = subBucketRef.mailboxListCache;
+        auto &currSubBucket = currBucket.subBucketList.at(subBucketId);
+        auto &currMailboxListCache = currSubBucket.mailboxListCache;
         {
-            MailboxSubBucket::RLockGuard lockGuard(subBucketRef.lock);
-            if(listCacheRef.size() != subBucketRef.mailboxList.size()){
-                listCacheRef.clear();
-                listCacheRef.reserve(subBucketRef.mailboxList.size());
-                for(auto &p: subBucketRef.mailboxList){
-                    listCacheRef.push_back(p.second.get());
+            // can not get rid of this mailboxList cache
+            // we need to release any r/w lock when running actor message handler
+            //
+            // this may grow the current subBucket map (can not trim since only dedicated thread can trim)
+            // then we can not loop all mailbox here since rehash may happen
+            //
+            // we only need to collect mailboxList cache when grow happens
+            // this is not that much
+
+            logScopedProfiler("refreshMailboxListCache");
+
+            const auto cachedSize = currMailboxListCache.size();
+            const MailboxSubBucket::RLockGuard lockGuard(currSubBucket.lock);
+
+            // can only grow map
+            // so check cached size is sufficient
+
+            if(cachedSize != currSubBucket.mailboxList.size()){
+                currMailboxListCache.clear();
+                currMailboxListCache.reserve(currSubBucket.mailboxList.size() + 128);
+
+                for(auto &p: currSubBucket.mailboxList){
+                    currMailboxListCache.push_back(p.second.get());
                 }
             }
         }
 
-        // implemented to use index, not iterator
-        // this can help to support if we append new mailbox pointers into the cache
+        // implemented to use raw index loop, not iterator
+        // this can help to support if we append new mailbox pointers into the cache during loop
 
         bool hasDeletedMailbox = false;
-        for(size_t mailboxIndex = 0; mailboxIndex < listCacheRef.size(); ++mailboxIndex){
-            auto mailboxPtr = listCacheRef.at(mailboxIndex);
+        for(size_t mailboxIndex = 0; mailboxIndex < currMailboxListCache.size(); ++mailboxIndex){
+            auto mailboxPtr = currMailboxListCache.at(mailboxIndex);
             if(fnRunMailbox(mailboxPtr)){
                 continue;
             }
@@ -734,18 +753,18 @@ void ActorPool::runOneMailboxBucket(int bucketId)
 
             clearOneMailbox(mailboxPtr);
             {
-                MailboxSubBucket::WLockGuard lockGuard(subBucketRef.lock);
-                subBucketRef.mailboxList.erase(mailboxPtr->uid);
+                MailboxSubBucket::WLockGuard lockGuard(currSubBucket.lock);
+                currSubBucket.mailboxList.erase(mailboxPtr->uid);
                 hasDeletedMailbox = true;
             }
         }
 
         // clear the cache if we removed any mailbox
-        // otherwise accesses dangling pointers when we deleted one mailbox and and one mailbox
+        // otherwise accesses dangling pointers when we deleted one mailbox then add one mailbox
         // the size check can't detect it
 
         if(hasDeletedMailbox){
-            listCacheRef.clear();
+            currMailboxListCache.clear();
         }
     }
 }
@@ -834,7 +853,7 @@ void ActorPool::launchPool()
                     else{
                         const uint64_t currTime = timer.diff_msec();
                         if(currTime >= lastUpdateTime + maxUpdateWaitTime){
-                            runOneMailboxBucket(bucketId, currTime);
+                            runOneMailboxBucket(bucketId);
                             lastUpdateTime = currTime;
                         }
 
@@ -979,9 +998,9 @@ ActorPool::Mailbox *ActorPool::tryGetMailboxPtr(uint64_t uid)
     // the dedicated actor thread can grab the schedLock and remove the {uid, mailboxPtr} pair form the sub-bucket
 
     logProfiler();
-    auto &subBucketRef = getSubBucket(uid);
-    MailboxSubBucket::RLockGuard lockGuard(subBucketRef.lock);
-    if(auto p = subBucketRef.mailboxList.find(uid); p != subBucketRef.mailboxList.end()){
+    auto &subBucket = getSubBucket(uid);
+    MailboxSubBucket::RLockGuard lockGuard(subBucket.lock);
+    if(auto p = subBucket.mailboxList.find(uid); p != subBucket.mailboxList.end()){
         // should I check if it's detached here?
         // it's not mandatory
         return p->second.get();
