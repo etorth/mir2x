@@ -908,7 +908,7 @@ corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, s
 {
     const auto cmRJT = ClientMsg::conv<CMRequestJoinTeam>(buf);
     if(!uidf::isPlayer(cmRJT.uid)){
-        return {};
+        co_return;
     }
 
     if(cmRJT.uid == UID()){
@@ -921,13 +921,13 @@ corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, s
         else{
             m_teamLeader = UID();
             m_teamMemberList = std::vector<uint64_t>{UID()};
-            reportTeamMemberList();
+            co_await reportTeamMemberList();
         }
     }
     else if(m_teamLeader == UID()){
         m_teamMemberList.push_back(cmRJT.uid);
         m_actorPod->post(cmRJT.uid, AM_TEAMUPDATE);
-        reportTeamMemberList();
+        co_await reportTeamMemberList();
     }
     else{
         m_actorPod->post(cmRJT.uid, {AM_REQUESTJOINTEAM, cerealf::serialize(SDRequestJoinTeam
@@ -940,19 +940,17 @@ corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, s
             },
         })});
     }
-
-    return {};
 }
 
 corof::awaitable<> Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRLT = ClientMsg::conv<CMRequestLeaveTeam>(buf);
     if(!uidf::isPlayer(cmRLT.uid)){
-        return {};
+        co_return;
     }
 
     if(!m_teamLeader){
-        return {};
+        co_return;
     }
 
     if(m_teamLeader == UID()){
@@ -970,13 +968,11 @@ corof::awaitable<> Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, 
             m_teamMemberList.erase(std::remove(m_teamMemberList.begin(), m_teamMemberList.end(), cmRLT.uid), m_teamMemberList.end());
         }
 
-        reportTeamMemberList();
+        co_await reportTeamMemberList();
     }
     else if(cmRLT.uid == UID()){
         m_actorPod->post(m_teamLeader, AM_REQUESTLEAVETEAM);
     }
-
-    return {};
 }
 
 corof::awaitable<> Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)

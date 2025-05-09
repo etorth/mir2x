@@ -165,7 +165,7 @@ class ServerMap final: public ServerObject
         corof::awaitable<> onActivate() override;
 
     private:
-        void loadNPChar();
+        corof::awaitable<> loadNPChar();
 
     private:
         void    addGridUID(uint64_t, int, int, bool);

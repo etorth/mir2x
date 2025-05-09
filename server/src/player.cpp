@@ -2104,7 +2104,7 @@ corof::awaitable<std::optional<SDTeamMemberList>> Player::pullTeamMemberList()
         switch(const auto rmpk = co_await m_actorPod->send(m_teamLeader, AM_QUERYTEAMMEMBERLIST); rmpk.type()){
             case AM_TEAMMEMBERLIST:
                 {
-                    const auto sdTML = mpk.deserialize<SDTeamMemberList>();
+                    const auto sdTML = rmpk.deserialize<SDTeamMemberList>();
                     fflassert(sdTML.hasMember(UID())); // keep this function read only
                     co_return sdTML;
                 }
@@ -2133,12 +2133,12 @@ corof::awaitable<std::optional<SDTeamMemberList>> Player::pullTeamMemberList()
             switch(const auto mpk = co_await m_actorPod->send(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER); mpk.type()){
                 case AM_TEAMPLAYER:
                     {
-                        sdTML->memberList.at(i) = mpk.deserialize<SDTeamPlayer>();
+                        sdTML.memberList.at(i) = mpk.deserialize<SDTeamPlayer>();
                         break;
                     }
                 default:
                     {
-                        throw fflvalue(mpkName(mpk.type()));
+                        throw fflvalue(mpk.str());
                     }
             }
         }

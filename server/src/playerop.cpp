@@ -502,7 +502,6 @@ corof::awaitable<> Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
         m_teamMemberList.erase(std::remove(m_teamMemberList.begin(), m_teamMemberList.end(), mpk.from()), m_teamMemberList.end());
         co_await reportTeamMemberList();
     }
-    return {};
 }
 
 corof::awaitable<> Player::on_AM_QUERYTEAMPLAYER(const ActorMsgPack &mpk)

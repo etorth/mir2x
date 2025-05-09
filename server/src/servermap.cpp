@@ -488,97 +488,80 @@ ServerMap::ServerMap(uint64_t argMapUID)
     }
 }
 
-void ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
         case AM_PICKUP:
             {
-                on_AM_PICKUP(rstMPK);
-                break;
+                return on_AM_PICKUP(rstMPK);
             }
         case AM_DROPITEM:
             {
-                on_AM_DROPITEM(rstMPK);
-                break;
+                return on_AM_DROPITEM(rstMPK);
             }
         case AM_TRYLEAVE:
             {
-                on_AM_TRYLEAVE(rstMPK);
-                break;
+                return on_AM_TRYLEAVE(rstMPK);
             }
         case AM_UPDATEHP:
             {
-                on_AM_UPDATEHP(rstMPK);
-                break;
+                return on_AM_UPDATEHP(rstMPK);
             }
         case AM_DEADFADEOUT:
             {
-                on_AM_DEADFADEOUT(rstMPK);
-                break;
+                return on_AM_DEADFADEOUT(rstMPK);
             }
         case AM_ACTION:
             {
-                on_AM_ACTION(rstMPK);
-                break;
+                return on_AM_ACTION(rstMPK);
             }
         case AM_BADACTORPOD:
             {
-                on_AM_BADACTORPOD(rstMPK);
-                break;
+                return on_AM_BADACTORPOD(rstMPK);
             }
         case AM_TRYJUMP:
             {
-                on_AM_TRYJUMP(rstMPK);
-                break;
+                return on_AM_TRYJUMP(rstMPK);
             }
         case AM_TRYMOVE:
             {
-                on_AM_TRYMOVE(rstMPK);
-                break;
+                return on_AM_TRYMOVE(rstMPK);
             }
         case AM_PATHFIND:
             {
-                on_AM_PATHFIND(rstMPK);
-                break;
+                return on_AM_PATHFIND(rstMPK);
             }
         case AM_TRYMAPSWITCH:
             {
-                on_AM_TRYMAPSWITCH(rstMPK);
-                break;
+                return on_AM_TRYMAPSWITCH(rstMPK);
             }
         case AM_TRYSPACEMOVE:
             {
-                on_AM_TRYSPACEMOVE(rstMPK);
-                break;
+                return on_AM_TRYSPACEMOVE(rstMPK);
             }
         case AM_CASTFIREWALL:
             {
-                on_AM_CASTFIREWALL(rstMPK);
-                break;
+                return on_AM_CASTFIREWALL(rstMPK);
             }
         case AM_QUERYCOCOUNT:
             {
-                on_AM_QUERYCOCOUNT(rstMPK);
-                break;
+                return on_AM_QUERYCOCOUNT(rstMPK);
             }
         case AM_OFFLINE:
             {
-                on_AM_OFFLINE(rstMPK);
-                break;
+                return on_AM_OFFLINE(rstMPK);
             }
         case AM_REMOTECALL:
             {
-                on_AM_REMOTECALL(rstMPK);
-                break;
+                return on_AM_REMOTECALL(rstMPK);
             }
         case AM_STRIKEFIXEDLOCDAMAGE:
             {
-                on_AM_STRIKEFIXEDLOCDAMAGE(rstMPK);
-                break;
+                return on_AM_STRIKEFIXEDLOCDAMAGE(rstMPK);
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpkName(rstMPK.type()));
+                throw fflvalue(rstMPK.str());
             }
     }
 }
@@ -1233,21 +1216,21 @@ void ServerMap::updateMapGridGroundItem()
     }
 }
 
-void ServerMap::onActivate()
+corof::awaitable<> ServerMap::onActivate()
 {
-    ServerObject::onActivate();
+    co_await ServerObject::onActivate();
     m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
 
-    loadNPChar();
+    co_await loadNPChar();
 
     m_luaRunner = std::make_unique<ServerMap::LuaThreadRunner>(this);
     m_luaRunner->spawn(m_mainScriptThreadKey, "return main()");
 }
 
-void ServerMap::loadNPChar()
+corof::awaitable<> ServerMap::loadNPChar()
 {
     if(g_serverArgParser->sharedConfig().disableNPCSpawn){
-        return;
+        co_return;
     }
 
     const auto cfgScriptPath = g_serverArgParser->slave ? std::string{}: g_serverConfigureWindow->getConfig().scriptPath;
@@ -1292,35 +1275,32 @@ void ServerMap::loadNPChar()
 
             if(uidf::peerIndex(UID())){
                 m_npcList.emplace(sdINPC.npcName, NPCharOp{});
-                m_actorPod->send(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize<SDInitCharObject>(sdINPC)}, [sdINPC, this](const ActorMsgPack &mpk)
-                {
-                    switch(mpk.type()){
-                        case AM_UID:
-                            {
-                                auto amUID = mpk.conv<AMUID>();
-                                auto &npc = m_npcList[sdINPC.npcName];
+                switch(const auto mpk = co_await m_actorPod->send(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize<SDInitCharObject>(sdINPC)}); mpk.type()){
+                    case AM_UID:
+                        {
+                            auto amUID = mpk.conv<AMUID>();
+                            auto &npc = m_npcList[sdINPC.npcName];
 
-                                npc.uid = amUID.uid;
-                                for(auto &op: npc.ops){
-                                    if(op){
-                                        op(amUID.uid);
-                                    }
+                            npc.uid = amUID.uid;
+                            for(auto &op: npc.ops){
+                                if(op){
+                                    op(amUID.uid);
                                 }
-                                return;
                             }
-                        default:
-                            {
-                                auto &npc = m_npcList[sdINPC.npcName];
-                                npc.uid = 0;
-                                for(auto &op: npc.ops){
-                                    if(op){
-                                        op(0);
-                                    }
+                            co_return;
+                        }
+                    default:
+                        {
+                            auto &npc = m_npcList[sdINPC.npcName];
+                            npc.uid = 0;
+                            for(auto &op: npc.ops){
+                                if(op){
+                                    op(0);
                                 }
-                                return;
                             }
-                    }
-                });
+                            co_return;
+                        }
+                }
             }
             else{
                 // servermap is also on master server
