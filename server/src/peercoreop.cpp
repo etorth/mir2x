@@ -16,6 +16,7 @@ extern PeerConfig *g_peerConfig;
 corof::awaitable<> PeerCore::on_AM_PEERCONFIG(const ActorMsgPack &mpk)
 {
     g_peerConfig->setConfig(mpk.deserialize<SDPeerConfig>());
+    return {};
 }
 
 corof::awaitable<> PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
@@ -27,7 +28,7 @@ corof::awaitable<> PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
 
     if(!uidsf::isLocalUID(amPLM.mapUID)){
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-        return;
+        return {};
     }
 
     if(auto [loaded, newLoad] = loadMap(amPLM.mapUID); loaded){
@@ -43,4 +44,5 @@ corof::awaitable<> PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
     else{
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
     }
+    return {};
 }

@@ -42,23 +42,20 @@ std::pair<bool, bool> PeerCore::loadMap(uint64_t mapUID)
     return {true, true};
 }
 
-void PeerCore::onActorMsg(const ActorMsgPack &mpk)
+corof::awaitable<> PeerCore::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_PEERCONFIG:
             {
-                on_AM_PEERCONFIG(mpk);
-                break;
+                return on_AM_PEERCONFIG(mpk);
             }
         case AM_PEERLOADMAP:
             {
-                on_AM_PEERLOADMAP(mpk);
-                break;
+                return on_AM_PEERLOADMAP(mpk);
             }
         default:
             {
-                g_server->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(mpk.type()));
-                break;
+                throw fflvalue(mpkName(mpk.type()));
             }
     }
 }

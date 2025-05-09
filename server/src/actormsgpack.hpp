@@ -231,7 +231,7 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
        }
 
     public:
-       std::string str(std::optional<uint64_t> toOpt) const
+       std::string str(std::optional<uint64_t> toOpt = std::nullopt) const
        {
            return str_printf("{type:%s, from:%s, %sseqID:%llu, respID:%llu, size:%llu}",
                    mpkName(type()),

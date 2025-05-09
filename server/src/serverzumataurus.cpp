@@ -23,43 +23,43 @@ corof::awaitable<> ServerZumaTaurus::runAICoro()
 
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             m_inViewCOList.erase(targetUID);
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
             setStandMode(true);
-            if(co_await coro_inDCCastRange(targetUID, hellFireMR.castRange)){
-                co_await coro_attackUID(targetUID, hellFireDC);
+            if(co_await inDCCastRange(targetUID, hellFireMR.castRange)){
+                co_await attackUID(targetUID, hellFireDC);
             }
-            else if((lastFireWallTime.diff_sec() >= fireWallCoolDownTime) && (co_await coro_inDCCastRange(targetUID, fireWallMR.castRange))){
-                co_await coro_attackUID(targetUID, fireWallDC);
+            else if((lastFireWallTime.diff_sec() >= fireWallCoolDownTime) && (co_await inDCCastRange(targetUID, fireWallMR.castRange))){
+                co_await attackUID(targetUID, fireWallDC);
                 lastFireWallTime.reset();
             }
             else{
-                co_await coro_trackUID(targetUID, {});
+                co_await trackUID(targetUID, {});
             }
         }
 
         else if(masterUID()){
             setStandMode(true);
-            co_await coro_followMaster();
+            co_await followMaster();
         }
-        co_await corof::async_wait(200);
+        co_await asyncWait(200);
     }
 
     goDie();
 }
 
-void ServerZumaTaurus::onAMAttack(const ActorMsgPack &mpk)
+corof::awaitable<> ServerZumaTaurus::onAMAttack(const ActorMsgPack &mpk)
 {
     if(m_standMode){
-        Monster::onAMAttack(mpk);
+        co_await Monster::onAMAttack(mpk);
     }
 }
 

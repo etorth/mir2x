@@ -10,18 +10,18 @@ corof::awaitable<> ServerCannibalPlant::runAICoro()
     std::optional<uint64_t> idleTime;
 
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
             idleTime.reset();
             setStandMode(true);
-            co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+            co_await attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
         }
         else if(!idleTime.has_value()){
             idleTime = hres_tstamp().to_sec();
@@ -29,7 +29,7 @@ corof::awaitable<> ServerCannibalPlant::runAICoro()
         else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
             setStandMode(false);
         }
-        co_await corof::async_wait(200);
+        co_await asyncWait(200);
     }
 
     goDie();

@@ -12,9 +12,9 @@ ServerLuaObject::ServerLuaObject(uint32_t luaObjIndex)
     : ServerObject(uidf::getServerLuaObjectUID(luaObjIndex))
 {}
 
-void ServerLuaObject::onActivate()
+corof::awaitable<> ServerLuaObject::onActivate()
 {
-    ServerObject::onActivate();
+    co_await ServerObject::onActivate();
     m_luaRunner = std::make_unique<ServerLuaObject::LuaThreadRunner>(this);
 }
 

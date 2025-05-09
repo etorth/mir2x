@@ -138,7 +138,7 @@ class Player final: public BattleObject
         }
 
     protected:
-        void operateNet(uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> operateNet(uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
         corof::awaitable<> onActorMsg(const ActorMsgPack &);
@@ -223,7 +223,7 @@ class Player final: public BattleObject
         void reportStand();
         void reportHealth();
         void reportNextStrike();
-        void reportTeamMemberList();
+        corof::awaitable<> reportTeamMemberList();
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t) override;
         void reportOffline(uint64_t, uint64_t);
@@ -234,7 +234,7 @@ class Player final: public BattleObject
         virtual void reportAction(uint64_t, uint64_t, const ActionNode &);
 
     protected:
-        void pullTeamMemberList(std::function<void(std::optional<SDTeamMemberList>)>);
+        corof::awaitable<std::optional<SDTeamMemberList>> pullTeamMemberList();
 
     protected:
         void dispatchOffline();
@@ -256,13 +256,13 @@ class Player final: public BattleObject
         bool MotionValid(const ActionNode &);
 
     protected:
-        void onCMActionMove    (CMAction);
-        void onCMActionMine    (CMAction);
-        void onCMActionStand   (CMAction);
-        void onCMActionSpell   (CMAction);
-        void onCMActionSpinKick(CMAction);
-        void onCMActionAttack  (CMAction);
-        void onCMActionPickUp  (CMAction);
+        corof::awaitable<> onCMActionMove    (CMAction);
+        corof::awaitable<> onCMActionMine    (CMAction);
+        corof::awaitable<> onCMActionStand   (CMAction);
+        corof::awaitable<> onCMActionSpell   (CMAction);
+        corof::awaitable<> onCMActionSpinKick(CMAction);
+        corof::awaitable<> onCMActionAttack  (CMAction);
+        corof::awaitable<> onCMActionPickUp  (CMAction);
 
     private:
         void postNetMessage(uint8_t, const void *, size_t, uint64_t = 0);

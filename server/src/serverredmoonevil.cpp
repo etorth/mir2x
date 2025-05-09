@@ -5,7 +5,7 @@
 corof::awaitable<> ServerRedMoonEvil::runAICoro()
 {
     while(m_sdHealth.hp > 0){
-        co_await corof::async_wait(2000);
+        co_await asyncWait(2000);
     }
 
     goDie();

@@ -1,4 +1,5 @@
 #pragma once
+#include <type_traits>
 #include <queue>
 #include <atomic>
 #include "uidf.hpp"
@@ -115,20 +116,41 @@ class ServerObject
         }
 
     public:
-        auto defer(std::function<void()> cmd)
+        template<typename Func> void defer(Func && func) // func() -> void
         {
-            m_stateTrigger.install([cmd = std::move(cmd)]() -> bool
+            m_stateTrigger.install([func = std::forward<Func>(func)]() -> bool
             {
-                cmd();
+                using ReturnType = decltype(func());
+
+                if constexpr (std::is_void_v<ReturnType>){
+                    func();
+                }
+                else if constexpr (std::is_same_v<ReturnType, corof::awaitable<>>){
+                    func().resume();
+                }
+                else{
+                    static_assert(false);
+                }
                 return true;
             });
         }
 
-        auto addDelay(uint64_t delayTick, std::function<void(bool)> cmd)
+        template<typename Func> auto addDelay(uint64_t tick, Func && func)
         {
-            return m_actorPod->createWaitToken(delayTick, [cmd = std::move(cmd)](const ActorMsgPack &mpk)
+            return m_actorPod->createWaitToken(tick, [func = std::forward<Func>(func)](const ActorMsgPack &mpk)
             {
-                cmd(mpk.type() == AM_TIMEOUT);
+                const bool timeout = (mpk.type() == AM_TIMEOUT);
+                using ReturnType = decltype(func(timeout));
+
+                if constexpr (std::is_void_v<ReturnType>){
+                    func(timeout);
+                }
+                else if constexpr (std::is_same_v<ReturnType, corof::awaitable<>>){
+                    func(timeout).resume();
+                }
+                else{
+                    static_assert(false);
+                }
             });
         }
 

@@ -8,7 +8,7 @@
 #include "serverargparser.hpp"
 
 extern ServerArgParser *g_serverArgParser;
-void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
 {
     CMAction cmA;
     std::memcpy(&cmA, pBuf, sizeof(cmA));
@@ -21,19 +21,20 @@ void Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
         // we may need to filter some actions to anti-cheat, dispatch in onCMActionXXXX(cmA) if legeal
 
         switch(to_d(cmA.action.type)){
-            case ACTION_STAND   : onCMActionStand   (cmA); return;
-            case ACTION_MOVE    : onCMActionMove    (cmA); return;
-            case ACTION_MINE    : onCMActionMine    (cmA); return;
-            case ACTION_ATTACK  : onCMActionAttack  (cmA); return;
-            case ACTION_SPELL   : onCMActionSpell   (cmA); return;
-            case ACTION_PICKUP  : onCMActionPickUp  (cmA); return;
-            case ACTION_SPINKICK: onCMActionSpinKick(cmA); return;
-            default             :                          return;
+            case ACTION_STAND   : return onCMActionStand   (cmA);
+            case ACTION_MOVE    : return onCMActionMove    (cmA);
+            case ACTION_MINE    : return onCMActionMine    (cmA);
+            case ACTION_ATTACK  : return onCMActionAttack  (cmA);
+            case ACTION_SPELL   : return onCMActionSpell   (cmA);
+            case ACTION_PICKUP  : return onCMActionPickUp  (cmA);
+            case ACTION_SPINKICK: return onCMActionSpinKick(cmA);
+            default             : break;
         }
     }
+    return {};
 }
 
-void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
 {
     CMQueryCORecord stCMQCOR;
     std::memcpy(&stCMQCOR, pBuf, sizeof(stCMQCOR));
@@ -53,58 +54,61 @@ void Player::net_CM_QUERYCORECORD(uint8_t, const uint8_t *pBuf, size_t, uint64_t
             reportDeadUID(stCMQCOR.AimUID);
         }
     }
+    return {};
 }
 
-void Player::net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRRSI = ClientMsg::conv<CMRequestRetrieveSecuredItem>(buf);
     removeSecuredItem(cmRRSI.itemID, cmRRSI.seqID);
+    return {};
 }
 
-void Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRSM = ClientMsg::conv<CMRequestSpaceMove>(buf);
     if(cmRSM.mapUID == mapUID()){
-        requestSpaceMove(cmRSM.X, cmRSM.Y, false, [this]()
-        {
+        if(co_await requestSpaceMove(cmRSM.X, cmRSM.Y, false)){
             dbUpdateMapGLoc();
-        });
+        }
     }
     else{
-        requestMapSwitch(cmRSM.mapUID, cmRSM.X, cmRSM.Y, false, [this]()
-        {
+        if(co_await requestMapSwitch(cmRSM.mapUID, cmRSM.X, cmRSM.Y, false)){
             dbUpdateMapGLoc();
-        });
+        }
     }
 }
 
-void Player::net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRMD = ClientMsg::conv<CMRequestMagicDamage>(buf);
     dispatchAttackDamage(cmRMD.aimUID, DBCOM_MAGICID(u8"物理攻击"), 0);
+    return {};
 }
 
-void Player::net_CM_REQUESTADDEXP(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTADDEXP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRAE = ClientMsg::conv<CMRequestAddExp>(buf);
     gainExp(to_d(cmRAE.addExp));
+    return {};
 }
 
-void Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTKILLPETS(uint8_t, const uint8_t *, size_t, uint64_t)
 {
     RequestKillPets();
+    return {};
 }
 
-void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmPU = ClientMsg::conv<CMPickUp>(buf);
     if(cmPU.mapUID != mapUID()){
-        return;
+        co_return;
     }
 
     if(!(cmPU.x == X() && cmPU.y == Y())){
         reportStand();
-        return;
+        co_return;
     }
 
     const auto fnPostPickUpError = [this](uint32_t itemID)
@@ -117,7 +121,7 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 
     if(m_pickUpLock){
         fnPostPickUpError(0);
-        return;
+        co_return;
     }
 
     AMPickUp amPU;
@@ -127,52 +131,47 @@ void Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, uint64_t)
     amPU.availableWeight = 500;
 
     m_pickUpLock = true;
-    m_actorPod->send(mapUID(), {AM_PICKUP, amPU}, [fnPostPickUpError, this](const ActorMsgPack &mpk)
-    {
-        if(!m_pickUpLock){
-            throw fflerror("pick up lock released before get response");
-        }
+    const auto pickUpLockSg = sgf::guard([this]() noexcept { m_pickUpLock = false; });
 
-        m_pickUpLock = false;
-        switch(mpk.type()){
-            case AM_PICKUPITEMLIST:
-                {
-                    auto sdPUIL = cerealf::deserialize<SDPickUpItemList>(mpk.data(), mpk.size());
-                    for(auto &item: sdPUIL.itemList){
-                        fflassert(item);
-                        const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+    switch(const auto mpk = co_await m_actorPod->send(mapUID(), {AM_PICKUP, amPU}); mpk.type()){
+        case AM_PICKUPITEMLIST:
+            {
+                auto sdPUIL = cerealf::deserialize<SDPickUpItemList>(mpk.data(), mpk.size());
+                for(auto &item: sdPUIL.itemList){
+                    fflassert(item);
+                    const auto &ir = DBCOM_ITEMRECORD(item.itemID);
 
-                        fflassert(ir);
-                        if(item.isGold()){
-                            setGold(m_sdItemStorage.gold + item.count);
-                        }
-                        else{
-                            addInventoryItem(std::move(item), false);
-                        }
+                    fflassert(ir);
+                    if(item.isGold()){
+                        setGold(m_sdItemStorage.gold + item.count);
                     }
-
-                    if(sdPUIL.failedItemID){
-                        fnPostPickUpError(sdPUIL.failedItemID);
+                    else{
+                        addInventoryItem(std::move(item), false);
                     }
-                    break;
                 }
-            default:
-                {
-                    break;
+
+                if(sdPUIL.failedItemID){
+                    fnPostPickUpError(sdPUIL.failedItemID);
                 }
-        }
-    });
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
 }
 
-void Player::net_CM_PING(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_PING(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
 {
     SMPing smP;
     std::memset(&smP, 0, sizeof(smP));
     smP.Tick = ((CMPing *)(pBuf))->Tick; // strict-aliasing issue
     postNetMessage(SM_PING, smP);
+    return {};
 }
 
-void Player::net_CM_QUERYMAPBASEUID(uint8_t, const uint8_t *buf, size_t size, uint64_t respID)
+corof::awaitable<> Player::net_CM_QUERYMAPBASEUID(uint8_t, const uint8_t *buf, size_t size, uint64_t respID)
 {
     const auto cmQMBUID = ClientMsg::conv<CMQueryMapBaseUID>(buf, size);
     if(DBCOM_MAPRECORD(cmQMBUID.mapID)){
@@ -185,14 +184,16 @@ void Player::net_CM_QUERYMAPBASEUID(uint8_t, const uint8_t *buf, size_t size, ui
     else{
         postNetMessage(SM_ERROR, respID);
     }
+    return {};
 }
 
-void Player::net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_QUERYGOLD(uint8_t, const uint8_t *, size_t, uint64_t)
 {
     reportGold();
+    return {};
 }
 
-void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen, uint64_t)
+corof::awaitable<> Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen, uint64_t)
 {
     const auto cmNPCE = ClientMsg::conv<CMNPCEvent>(buf, bufLen);
     m_actorPod->post(cmNPCE.uid, {AM_NPCEVENT, cerealf::serialize(SDNPCEvent
@@ -211,9 +212,10 @@ void Player::net_CM_NPCEVENT(uint8_t, const uint8_t *buf, size_t bufLen, uint64_
             return {};
         }(),
     })});
+    return {};
 }
 
-void Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmQSIL = ClientMsg::conv<CMQuerySellItemList>(buf);
     AMQuerySellItemList amQSIL;
@@ -221,9 +223,10 @@ void Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf, size_t, uint6
     std::memset(&amQSIL, 0, sizeof(amQSIL));
     amQSIL.itemID = cmQSIL.itemID;
     m_actorPod->post(cmQSIL.npcUID, {AM_QUERYSELLITEMLIST, amQSIL});
+    return {};
 }
 
-void Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmQUIDB = ClientMsg::conv<CMQueryUIDBuff>(buf);
     if(cmQUIDB.uid == UID()){
@@ -247,9 +250,10 @@ void Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size_t, uint64_t)
                 }
         }
     }
+    return {};
 }
 
-void Player::net_CM_QUERYPLAYERNAME(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_QUERYPLAYERNAME(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmQPN = ClientMsg::conv<CMQueryPlayerName>(buf);
     if(cmQPN.uid == UID()){
@@ -263,9 +267,10 @@ void Player::net_CM_QUERYPLAYERNAME(uint8_t, const uint8_t *buf, size_t, uint64_
     else if(uidf::isPlayer(cmQPN.uid)){
         m_actorPod->post(cmQPN.uid, AM_QUERYPLAYERNAME);
     }
+    return {};
 }
 
-void Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmQPWLD = ClientMsg::conv<CMQueryPlayerWLDesp>(buf);
     if(cmQPWLD.uid == UID()){
@@ -286,9 +291,10 @@ void Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf, size_t, uint6
     else{
         throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQPWLD.uid), uidf::getUIDTypeCStr(cmQPWLD.uid));
     }
+    return {};
 }
 
-void Player::net_CM_QUERYCHATPEERLIST(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> Player::net_CM_QUERYCHATPEERLIST(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmQPCL = ClientMsg::conv<CMQueryChatPeerList>(buf);
     const auto input = cmQPCL.input.to_str();
@@ -299,9 +305,10 @@ void Player::net_CM_QUERYCHATPEERLIST(uint8_t, const uint8_t *buf, size_t, uint6
     else{
         postNetMessage(SM_OK, cerealf::serialize(dbQueryChatPeerList(input, true, true)), respID);
     }
+    return {};
 }
 
-void Player::net_CM_QUERYCHATMESSAGE(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> Player::net_CM_QUERYCHATMESSAGE(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmQCM = ClientMsg::conv<CMQueryChatMessage>(buf);
     if(auto msgOpt = dbQueryChatMessage(cmQCM.msgid); msgOpt.has_value()){
@@ -310,9 +317,10 @@ void Player::net_CM_QUERYCHATMESSAGE(uint8_t, const uint8_t *buf, size_t, uint64
     else{
         postNetMessage(SM_ERROR, respID);
     }
+    return {};
 }
 
-void Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t respID)
+corof::awaitable<> Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t respID)
 {
     fflassert(bufSize >= sizeof(CMChatMessageHeader), bufSize);
 
@@ -381,9 +389,11 @@ void Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_t bufSize, uin
         .timestamp = tstamp,
 
     }), respID);
+
+    return {};
 }
 
-void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto fnPostNetMessage = [respID, this](int notif)
     {
@@ -400,22 +410,22 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
 
     if(sdCPID == cpid()){
         fnPostNetMessage(AF_INVALID);
-        return;
+        return {};
     }
 
     if(!dbHasPlayer(sdCPID.id())){
         fnPostNetMessage(AF_INVALID);
-        return;
+        return {};
     }
 
     if(findFriendChatPeer(sdCPID)){
         fnPostNetMessage(AF_EXIST);
-        return;
+        return {};
     }
 
     if(dbIsBlocked(sdCPID.id(), dbid())){
         fnPostNetMessage(AF_BLOCKED);
-        return;
+        return {};
     }
 
     const auto fnForwardSystemMessage = [&sdCPID, this](const std::string xmlChatMsg)
@@ -455,12 +465,12 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
                     }
                     fnForwardSystemMessage(str_printf(R"###(<layout><par>%s已经添加你为好友。</par></layout>)###", to_cstr(m_name)));
                 }
-                return;
+                return {};
             }
         case FR_REJECT:
             {
                 fnPostNetMessage(AF_REJECTED);
-                return;
+                return {};
             }
         default:
             {
@@ -497,24 +507,24 @@ void Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t resp
                     SYS_AFRESP, to_llu(cpid().asU64()),
                     SYS_AFRESP, to_llu(cpid().asU64())));
                 }
-                return;
+                return {};
             }
     }
 }
 
-void Player::net_CM_ACCEPTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> Player::net_CM_ACCEPTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmAAF = ClientMsg::conv<CMAcceptAddFriend>(buf);
     const SDChatPeerID sdCPID(cmAAF.cpid);
 
     if(sdCPID == cpid()){
         postNetMessage(SM_ERROR, respID);
-        return;
+        return {};
     }
 
     if(!dbHasPlayer(sdCPID.id())){
         postNetMessage(SM_ERROR, respID);
-        return;
+        return {};
     }
 
     const auto notif = dbAddFriend(sdCPID.id(), dbid());
@@ -523,47 +533,51 @@ void Player::net_CM_ACCEPTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_
     if(notif == AF_ACCEPTED){
         forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDACCEPTED, cerealf::serialize(dbLoadChatPeer(cpid().asU64()).value()));
     }
+
+    return {};
 }
 
-void Player::net_CM_REJECTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> Player::net_CM_REJECTADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmRAF = ClientMsg::conv<CMRejectAddFriend>(buf);
     const SDChatPeerID sdCPID(cmRAF.cpid);
 
     if(sdCPID == cpid()){
         postNetMessage(SM_ERROR, respID);
-        return;
+        return {};
     }
 
     if(!dbHasPlayer(sdCPID.id())){
         postNetMessage(SM_ERROR, respID);
-        return;
+        return {};
     }
 
     postNetMessage(SM_OK, respID);
     forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_ADDFRIENDREJECTED, cerealf::serialize(dbLoadChatPeer(cpid().asU64()).value()));
+    return {};
 }
 
-void Player::net_CM_BLOCKPLAYER(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> Player::net_CM_BLOCKPLAYER(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmBP = ClientMsg::conv<CMBlockPlayer>(buf);
     const SDChatPeerID sdCPID(cmBP.cpid);
 
     if(sdCPID == cpid()){
         postNetMessage(SM_ERROR, respID);
-        return;
+        return {};
     }
 
     if(!dbHasPlayer(sdCPID.id())){
         postNetMessage(SM_ERROR, respID);
-        return;
+        return {};
     }
 
     dbBlockPlayer(dbid(), sdCPID.id());
     postNetMessage(SM_OK, respID);
+    return {};
 }
 
-void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmB = ClientMsg::conv<CMBuy>(buf);
     if(uidf::getUIDType(cmB.npcUID) != UID_NPC){
@@ -576,111 +590,111 @@ void Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint64_t)
     amB.itemID = cmB.itemID;
     amB.seqID  = cmB.seqID;
     amB.count  = cmB.count;
-    m_actorPod->send(cmB.npcUID, {AM_BUY, amB}, [cmB, this](const ActorMsgPack &mpk)
+
+    const auto mpk = co_await m_actorPod->send(cmB.npcUID, {AM_BUY, amB});
+
+    const auto fnPostBuyError = [&cmB, &mpk, this](int buyError)
     {
-        const auto fnPostBuyError = [&cmB, &mpk, this](int buyError)
-        {
-            SMBuyError smBE;
-            std::memset(&smBE, 0, sizeof(smBE));
+        SMBuyError smBE;
+        std::memset(&smBE, 0, sizeof(smBE));
 
-            smBE.npcUID = mpk.from();
-            smBE.itemID = cmB.itemID;
-            smBE. seqID = cmB. seqID;
-            smBE. error =   buyError;
-            postNetMessage(SM_BUYERROR, smBE);
-        };
+        smBE.npcUID = mpk.from();
+        smBE.itemID = cmB.itemID;
+        smBE. seqID = cmB. seqID;
+        smBE. error =   buyError;
+        postNetMessage(SM_BUYERROR, smBE);
+    };
 
-        switch(mpk.type()){
-            case AM_BUYCOST:
-                {
-                    uint32_t lackItemID = 0;
-                    const auto sdBC = cerealf::deserialize<SDBuyCost>(mpk.data(), mpk.size());
+    switch(mpk.type()){
+        case AM_BUYCOST:
+            {
+                uint32_t lackItemID = 0;
+                const auto sdBC = cerealf::deserialize<SDBuyCost>(mpk.data(), mpk.size());
 
-                    if(cmB.itemID != sdBC.item.itemID || cmB.seqID != sdBC.item.seqID){
-                        throw fflerror("item asked and sold are not same: buyItemID = %llu, buySeqID = %llu, soldItemID = %llu, soldSeqID = %llu", to_llu(cmB.itemID), to_llu(cmB.seqID), to_llu(sdBC.item.itemID), to_llu(sdBC.item.seqID));
-                    }
+                if(cmB.itemID != sdBC.item.itemID || cmB.seqID != sdBC.item.seqID){
+                    throw fflerror("item asked and sold are not same: buyItemID = %llu, buySeqID = %llu, soldItemID = %llu, soldSeqID = %llu", to_llu(cmB.itemID), to_llu(cmB.seqID), to_llu(sdBC.item.itemID), to_llu(sdBC.item.seqID));
+                }
 
-                    for(const auto &costItem: sdBC.costList){
-                        if(costItem.isGold()){
-                            if(m_sdItemStorage.gold < costItem.count){
-                                lackItemID = costItem.itemID;
-                                break;
-                            }
-                        }
-                        else if(!hasInventoryItem(costItem.itemID, 0, costItem.count)){
+                for(const auto &costItem: sdBC.costList){
+                    if(costItem.isGold()){
+                        if(m_sdItemStorage.gold < costItem.count){
                             lackItemID = costItem.itemID;
                             break;
                         }
                     }
-
-                    if(lackItemID){
-                        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-                        fnPostBuyError(BUYERR_INSUFFCIENT);
+                    else if(!hasInventoryItem(costItem.itemID, 0, costItem.count)){
+                        lackItemID = costItem.itemID;
+                        break;
                     }
-                    else{
-                        for(const auto &costItem: sdBC.costList){
-                            if(costItem.isGold()){
-                                setGold(m_sdItemStorage.gold - costItem.count);
-                            }
-                            else{
-                                removeInventoryItem(costItem.itemID, 0, costItem.count);
-                            }
-                        }
+                }
 
-                        const auto &ir = DBCOM_ITEMRECORD(sdBC.item.itemID);
-                        if(!ir){
-                            throw fflerror("bad item: itemID = %llu", to_llu(sdBC.item.itemID));
-                        }
-
-                        if(ir.packable()){
-                            size_t doneCount = 0;
-                            while(doneCount < sdBC.item.count){
-                                const auto currCount = std::min<size_t>(SYS_INVGRIDMAXHOLD, sdBC.item.count - doneCount);
-                                doneCount += addInventoryItem(SDItem
-                                {
-                                    .itemID = sdBC.item.itemID,
-                                    .count = currCount,
-                                }, false).count;
-                            }
+                if(lackItemID){
+                    m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+                    fnPostBuyError(BUYERR_INSUFFCIENT);
+                }
+                else{
+                    for(const auto &costItem: sdBC.costList){
+                        if(costItem.isGold()){
+                            setGold(m_sdItemStorage.gold - costItem.count);
                         }
                         else{
-                            addInventoryItem(sdBC.item, false);
-                        }
-                        m_actorPod->post(mpk.fromAddr(), AM_OK);
-
-                        if(!ir.packable()){
-                            SMBuySucceed smBS;
-                            std::memset(&smBS, 0, sizeof(smBS));
-
-                            smBS.npcUID = mpk.from();
-                            smBS.itemID = sdBC.item.itemID;
-                            smBS. seqID = sdBC.item.seqID;
-                            postNetMessage(SM_BUYSUCCEED, smBS);
+                            removeInventoryItem(costItem.itemID, 0, costItem.count);
                         }
                     }
-                    return;
-                }
-            case AM_BUYERROR:
-                {
-                    SMBuyError smBE;
-                    std::memset(&smBE, 0, sizeof(smBE));
 
-                    smBE.npcUID = cmB.npcUID;
-                    smBE.itemID = cmB.itemID;
-                    smBE. seqID = cmB. seqID;
-                    smBE. error = mpk.conv<AMBuyError>().error;
-                    postNetMessage(SM_BUYERROR, smBE);
-                    return;
+                    const auto &ir = DBCOM_ITEMRECORD(sdBC.item.itemID);
+                    if(!ir){
+                        throw fflerror("bad item: itemID = %llu", to_llu(sdBC.item.itemID));
+                    }
+
+                    if(ir.packable()){
+                        size_t doneCount = 0;
+                        while(doneCount < sdBC.item.count){
+                            const auto currCount = std::min<size_t>(SYS_INVGRIDMAXHOLD, sdBC.item.count - doneCount);
+                            doneCount += addInventoryItem(SDItem
+                            {
+                                .itemID = sdBC.item.itemID,
+                                .count = currCount,
+                            }, false).count;
+                        }
+                    }
+                    else{
+                        addInventoryItem(sdBC.item, false);
+                    }
+                    m_actorPod->post(mpk.fromAddr(), AM_OK);
+
+                    if(!ir.packable()){
+                        SMBuySucceed smBS;
+                        std::memset(&smBS, 0, sizeof(smBS));
+
+                        smBS.npcUID = mpk.from();
+                        smBS.itemID = sdBC.item.itemID;
+                        smBS. seqID = sdBC.item.seqID;
+                        postNetMessage(SM_BUYSUCCEED, smBS);
+                    }
                 }
-            default:
-                {
-                    throw fflreach();
-                }
-        }
-    });
+                break;
+            }
+        case AM_BUYERROR:
+            {
+                SMBuyError smBE;
+                std::memset(&smBE, 0, sizeof(smBE));
+
+                smBE.npcUID = cmB.npcUID;
+                smBE.itemID = cmB.itemID;
+                smBE. seqID = cmB. seqID;
+                smBE. error = mpk.conv<AMBuyError>().error;
+                postNetMessage(SM_BUYERROR, smBE);
+                break;
+            }
+        default:
+            {
+                throw fflvalue(mpkName(mpk.type()));
+            }
+    }
 }
 
-void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmREW = ClientMsg::conv<CMRequestEquipWear>(buf);
     const auto fnPostEquipError = [&cmREW, this](int equipError)
@@ -697,29 +711,29 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t, uint64
     const auto &ir = DBCOM_ITEMRECORD(cmREW.itemID);
     if(!ir){
         fnPostEquipError(EQWERR_BADITEM);
-        return;
+        return {};
     }
 
     const auto wltype = to_d(cmREW.wltype);
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
         fnPostEquipError(EQWERR_BADWLTYPE);
-        return;
+        return {};
     }
 
     if(!ir.wearable(wltype)){
         fnPostEquipError(EQWERR_BADWLTYPE);
-        return;
+        return {};
     }
 
     const auto item = findInventoryItem(cmREW.itemID, cmREW.seqID);
     if(!item){
         fnPostEquipError(EQWERR_NOITEM);
-        return;
+        return {};
     }
 
     if(!canWear(cmREW.itemID, wltype)){
         fnPostEquipError(EQWERR_INSUFF);
-        return;
+        return {};
     }
 
     const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
@@ -750,9 +764,11 @@ void Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, size_t, uint64
             });
         }
     }
+
+    return {};
 }
 
-void Player::net_CM_REQUESTEQUIPBELT(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTEQUIPBELT(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmREB = ClientMsg::conv<CMRequestEquipBelt>(buf);
     const auto fnPostEquipError = [&cmREB, this](int equipError)
@@ -769,24 +785,24 @@ void Player::net_CM_REQUESTEQUIPBELT(uint8_t, const uint8_t *buf, size_t, uint64
     const auto &ir = DBCOM_ITEMRECORD(cmREB.itemID);
     if(!ir){
         fnPostEquipError(EQBERR_BADITEM);
-        return;
+        return {};
     }
 
     if(!ir.beltable()){
         fnPostEquipError(EQBERR_BADITEMTYPE);
-        return;
+        return {};
     }
 
     const auto slot = to_d(cmREB.slot);
     if(!(slot >= 0 && slot < 6)){
         fnPostEquipError(EQBERR_BADSLOT);
-        return;
+        return {};
     }
 
     const auto item = findInventoryItem(cmREB.itemID, cmREB.seqID);
     if(!item){
         fnPostEquipError(EQBERR_NOITEM);
-        return;
+        return {};
     }
 
     const auto currItem = m_sdItemStorage.belt.list.at(slot);
@@ -807,9 +823,11 @@ void Player::net_CM_REQUESTEQUIPBELT(uint8_t, const uint8_t *buf, size_t, uint64
     if(currItem){
         addInventoryItem(currItem, false);
     }
+
+    return {};
 }
 
-void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRGW = ClientMsg::conv<CMRequestGrabWear>(buf);
     const auto wltype = to_d(cmRGW.wltype);
@@ -824,7 +842,7 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t, uint64_
     const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
     if(!currItem){
         fnPostGrabError(GWERR_NOITEM);
-        return;
+        return {};
     }
 
     // server doesn not track if item is grabbed or in inventory
@@ -847,9 +865,11 @@ void Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, size_t, uint64_
         cbp->second();
         m_onWLOff.erase(cbp);
     }
+
+    return {};
 }
 
-void Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRGB = ClientMsg::conv<CMRequestGrabBelt>(buf);
     const auto fnPostGrabError = [&cmRGB, this](int grabError)
@@ -863,7 +883,7 @@ void Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t, uint64_
     const auto currItem = m_sdItemStorage.belt.list.at(cmRGB.slot);
     if(!currItem){
         fnPostGrabError(GBERR_NOITEM);
-        return;
+        return {};
     }
 
     // server doesn not track if item is grabbed or in inventory
@@ -880,13 +900,15 @@ void Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, size_t, uint64_
         .slot = to_d(cmRGB.slot),
         .item = addedItem,
     }));
+
+    return {};
 }
 
-void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRJT = ClientMsg::conv<CMRequestJoinTeam>(buf);
     if(!uidf::isPlayer(cmRJT.uid)){
-        return;
+        return {};
     }
 
     if(cmRJT.uid == UID()){
@@ -918,17 +940,19 @@ void Player::net_CM_REQUESTJOINTEAM(uint8_t, const uint8_t *buf, size_t, uint64_
             },
         })});
     }
+
+    return {};
 }
 
-void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRLT = ClientMsg::conv<CMRequestLeaveTeam>(buf);
     if(!uidf::isPlayer(cmRLT.uid)){
-        return;
+        return {};
     }
 
     if(!m_teamLeader){
-        return;
+        return {};
     }
 
     if(m_teamLeader == UID()){
@@ -951,9 +975,11 @@ void Player::net_CM_REQUESTLEAVETEAM(uint8_t, const uint8_t *buf, size_t, uint64
     else if(cmRLT.uid == UID()){
         m_actorPod->post(m_teamLeader, AM_REQUESTLEAVETEAM);
     }
+
+    return {};
 }
 
-void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmDI = ClientMsg::conv<CMDropItem>(buf);
     auto dropItem = [&cmDI, this]() -> SDItem
@@ -983,9 +1009,11 @@ void Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
         .y = Y(),
         .item = std::move(dropItem),
     })});
+
+    return {};
 }
 
-void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmCI = ClientMsg::conv<CMConsumeItem>(buf);
     fflassert((SDItem
@@ -1012,9 +1040,11 @@ void Player::net_CM_CONSUMEITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
     if(consumed){
         removeInventoryItem(cmCI.itemID, cmCI.seqID, cmCI.count);
     }
+
+    return {};
 }
 
-void Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmMI = ClientMsg::conv<CMMakeItem>(buf);
     fflassert(cmMI.count >= 1, cmMI.count);
@@ -1035,15 +1065,18 @@ void Player::net_CM_MAKEITEM(uint8_t, const uint8_t *buf, size_t, uint64_t)
 
         done += item.count;
     }
+
+    return {};
 }
 
-void Player::net_CM_SETMAGICKEY(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_SETMAGICKEY(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmSMK = ClientMsg::conv<CMSetMagicKey>(buf);
     dbUpdateMagicKey(cmSMK.magicID, cmSMK.key);
+    return {};
 }
 
-void Player::net_CM_SETRUNTIMECONFIG(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_SETRUNTIMECONFIG(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmSRC = ClientMsg::conv<CMSetRuntimeConfig>(buf);
 
@@ -1053,17 +1086,21 @@ void Player::net_CM_SETRUNTIMECONFIG(uint8_t, const uint8_t *buf, size_t, uint64
     if(m_sdPlayerConfig.runtimeConfig.setConfig(cmSRC.type, cmSRC.buf.as_sv())){
         dbUpdateRuntimeConfig();
     }
+
+    return {};
 }
 
-void Player::net_CM_REQUESTLATESTCHATMESSAGE(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_REQUESTLATESTCHATMESSAGE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRLCM = ClientMsg::conv<CMRequestLatestChatMessage>(buf);
     if(!cmRLCM.cpidList.empty()){
         postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(dbRetrieveLatestChatMessage(as_span(cmRLCM.cpidList.data, cmRLCM.cpidList.size), cmRLCM.limitCount, cmRLCM.includeSend, cmRLCM.includeRecv)));
     }
+
+    return {};
 }
 
-void Player::net_CM_CREATECHATGROUP(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> Player::net_CM_CREATECHATGROUP(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmCCG = ClientMsg::conv<CMCreateChatGroup>(buf);
     const auto sdBuf = cerealf::serialize(dbCreateChatGroup(cmCCG.name.as_sv().data(), as_span(cmCCG.list.data, cmCCG.list.size)));
@@ -1073,5 +1110,7 @@ void Player::net_CM_CREATECHATGROUP(uint8_t, const uint8_t *buf, size_t, uint64_
             forwardNetPackage(uidf::getPlayerUID(memberDBID), SM_CREATECHATGROUP, sdBuf);
         }
     }
+
     postNetMessage(SM_OK, sdBuf, respID);
+    return {};
 }

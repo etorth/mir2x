@@ -22,30 +22,35 @@ corof::awaitable<> ServerShipwreckLord::runAICoro()
     constexpr uint64_t pushCoolTime = 5;
 
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
-            if(co_await coro_inDCCastRange(targetUID, phyMR.castRange)){
-                co_await coro_attackUID(targetUID, phyDC);
+            if(co_await inDCCastRange(targetUID, phyMR.castRange)){
+                co_await attackUID(targetUID, phyDC);
             }
-            else if(lastPushTime.diff_sec() >= pushCoolTime && (co_await coro_inDCCastRange(targetUID, pushMR.castRange))){
-                co_await coro_attackUID(targetUID, pushDC);
+            else if(lastPushTime.diff_sec() >= pushCoolTime && (co_await inDCCastRange(targetUID, pushMR.castRange))){
+                co_await attackUID(targetUID, pushDC);
                 lastPushTime.reset();
             }
             else{
-                const auto [targetMapID, targetGX, targetGY] = co_await coro_getCOGLoc(targetUID);
-                if(mapID() == targetMapID){
-                    if(mathf::LDistance2<int>(targetGX, targetGY, X(), Y()) < followDistance * followDistance){
-                        co_await coro_trackUID(targetUID, {});
+                const auto coLocOpt = co_await getCOLocation(targetUID);
+                if(!coLocOpt.has_value()){
+                    continue;
+                }
+
+                const auto &coLoc = coLocOpt.value();
+                if(mapUID() == coLoc.mapUID){
+                    if(mathf::LDistance2<int>(coLoc.x, coLoc.y, X(), Y()) < followDistance * followDistance){
+                        co_await trackUID(targetUID, {});
                     }
                     else{
-                        co_await coro_jumpUID(targetUID);
+                        co_await jumpUID(targetUID);
                     }
                 }
                 else{
@@ -54,7 +59,7 @@ corof::awaitable<> ServerShipwreckLord::runAICoro()
                 }
             }
         }
-        co_await corof::async_wait(1000);
+        co_await asyncWait(1000);
     }
 
     goDie();

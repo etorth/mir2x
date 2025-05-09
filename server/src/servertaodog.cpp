@@ -10,18 +10,18 @@ corof::awaitable<> ServerTaoDog::runAICoro()
     std::optional<uint64_t> idleTime;
 
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
             idleTime.reset();
             setStandMode(true);
-            co_await coro_trackAttackUID(targetUID);
+            co_await trackAttackUID(targetUID);
         }
 
         else{
@@ -33,10 +33,10 @@ corof::awaitable<> ServerTaoDog::runAICoro()
             }
 
             if(m_actorPod->checkUIDValid(masterUID())){
-                co_await coro_followMaster();
+                co_await followMaster();
             }
             else{
-                co_await corof::async_wait(200);
+                co_await asyncWait(200);
             }
         }
     }
@@ -133,20 +133,20 @@ corof::awaitable<bool> ServerTaoDog::attackUID(uint64_t targetUID, int dcType)
     });
 }
 
-void ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
+corof::awaitable<> ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAttack>();
     if(amA.UID == UID()){
-        return;
+        co_return;
     }
 
     if(m_dead.get()){
         notifyDead(amA.UID);
-        return;
+        co_return;
     }
 
     setStandMode(true);
-    Monster::onAMAttack(mpk);
+    co_await Monster::onAMAttack(mpk);
 }
 
 DamageNode ServerTaoDog::getAttackDamage(int dc, int modifierID) const

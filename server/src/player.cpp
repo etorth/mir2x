@@ -71,22 +71,22 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
             *closed = true;
         });
 
-        getPlayer()->pullTeamMemberList([closed, onDone](std::optional<SDTeamMemberList> sdTML)
-        {
-            if(*closed){
-                return;
-            }
-            else{
-                onDone.popOnClose();
-            }
-
-            if(sdTML.has_value()){
-                onDone(sol::as_table(sdTML.value().getUIDList()));
-            }
-            else{
-                onDone();
-            }
-        });
+        // getPlayer()->pullTeamMemberList([closed, onDone](std::optional<SDTeamMemberList> sdTML)
+        // {
+        //     if(*closed){
+        //         return;
+        //     }
+        //     else{
+        //         onDone.popOnClose();
+        //     }
+        //
+        //     if(sdTML.has_value()){
+        //         onDone(sol::as_table(sdTML.value().getUIDList()));
+        //     }
+        //     else{
+        //         onDone();
+        //     }
+        // });
     });
 
     bindFunction("_RSVD_NAME_runQuestTrigger", [this](uint64_t questUID, int triggerType, sol::variadic_args args)
@@ -322,168 +322,168 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         getPlayer()->postNetMessage(SM_QUESTDESPLIST, cerealf::serialize(sdQDL));
     });
 
-    bindFunctionCoop("_RSVD_NAME_spaceMove", [this](LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY)
-    {
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
-        {
-            *closed = true;
-        });
+    // bindFunctionCoop("_RSVD_NAME_spaceMove", [this](LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY)
+    // {
+    //     auto closed = std::make_shared<bool>(false);
+    //     onDone.pushOnClose([closed]()
+    //     {
+    //         *closed = true;
+    //     });
+    //
+    //     const auto &mr = DBCOM_MAPRECORD(argMapID);
+    //     fflassert(mr, argMapID);
+    //
+    //     fflassert(argX >= 0, argX);
+    //     fflassert(argY >= 0, argY);
+    //
+    //     if(to_u32(argMapID) == getPlayer()->mapID()){
+    //         getPlayer()->requestSpaceMove(argX, argY, false, [closed, onDone, this]()
+    //         {
+    //             if(*closed){
+    //                 return;
+    //             }
+    //             else{
+    //                 onDone.popOnClose();
+    //             }
+    //             onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
+    //         },
+    //
+    //         [closed, onDone]()
+    //         {
+    //             if(*closed){
+    //                 return;
+    //             }
+    //             else{
+    //                 onDone.popOnClose();
+    //             }
+    //             onDone();
+    //         });
+    //     }
+    //     else{
+    //         getPlayer()->requestMapSwitch(uidsf::getMapBaseUID(argMapID), argX, argY, false, [closed, onDone, this]()
+    //         {
+    //             if(*closed){
+    //                 return;
+    //             }
+    //             else{
+    //                 onDone.popOnClose();
+    //             }
+    //             onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
+    //         },
+    //
+    //         [closed, onDone]()
+    //         {
+    //             if(*closed){
+    //                 return;
+    //             }
+    //             else{
+    //                 onDone.popOnClose();
+    //             }
+    //             onDone();
+    //         });
+    //     }
+    // });
 
-        const auto &mr = DBCOM_MAPRECORD(argMapID);
-        fflassert(mr, argMapID);
+    // bindFunctionCoop("_RSVD_NAME_randomMove", [this](LuaCoopResumer onDone)
+    // {
+    //     const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
+    //     {
+    //         const int startDir = pathf::getRandDir();
+    //         for(int i = 0; i < 8; ++i){
+    //             if(const auto [newX, newY] = pathf::getFrontGLoc(getPlayer()->X(), getPlayer()->Y(), pathf::getNextDir(startDir, i)); getPlayer()->mapBin()->groundValid(newX, newY)){
+    //                 return {{newX, newY}};
+    //             }
+    //         }
+    //         return {};
+    //     }();
+    //
+    //     if(newGLoc.has_value()){
+    //         auto closed = std::make_shared<bool>(false);
+    //         onDone.pushOnClose([closed]()
+    //         {
+    //             *closed = true;
+    //         });
+    //
+    //         const auto [newX, newY] = newGLoc.value();
+    //         getPlayer()->requestMove(newX, newY, SYS_DEFSPEED, false, false, [closed, oldX = getPlayer()->X(), oldY = getPlayer()->Y(), onDone, this]()
+    //         {
+    //             if(*closed){
+    //                 return;
+    //             }
+    //             else{
+    //                 onDone.popOnClose();
+    //             }
+    //
+    //             // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
+    //             // but here need to sendback the forced move since it's driven by server
+    //
+    //             getPlayer()->reportAction(getPlayer()->UID(), getPlayer()->mapUID(), ActionMove
+    //             {
+    //                 .speed = SYS_DEFSPEED,
+    //                 .x = oldX,
+    //                 .y = oldY,
+    //                 .aimX = getPlayer()->X(),
+    //                 .aimY = getPlayer()->Y(),
+    //             });
+    //
+    //             onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
+    //         },
+    //
+    //         [closed, onDone]()
+    //         {
+    //             if(*closed){
+    //                 return;
+    //             }
+    //             else{
+    //                 onDone.popOnClose();
+    //             }
+    //             onDone();
+    //         });
+    //     }
+    //     else{
+    //         onDone();
+    //     }
+    // });
 
-        fflassert(argX >= 0, argX);
-        fflassert(argY >= 0, argY);
-
-        if(to_u32(argMapID) == getPlayer()->mapID()){
-            getPlayer()->requestSpaceMove(argX, argY, false, [closed, onDone, this]()
-            {
-                if(*closed){
-                    return;
-                }
-                else{
-                    onDone.popOnClose();
-                }
-                onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
-            },
-
-            [closed, onDone]()
-            {
-                if(*closed){
-                    return;
-                }
-                else{
-                    onDone.popOnClose();
-                }
-                onDone();
-            });
-        }
-        else{
-            getPlayer()->requestMapSwitch(uidsf::getMapBaseUID(argMapID), argX, argY, false, [closed, onDone, this]()
-            {
-                if(*closed){
-                    return;
-                }
-                else{
-                    onDone.popOnClose();
-                }
-                onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
-            },
-
-            [closed, onDone]()
-            {
-                if(*closed){
-                    return;
-                }
-                else{
-                    onDone.popOnClose();
-                }
-                onDone();
-            });
-        }
-    });
-
-    bindFunctionCoop("_RSVD_NAME_randomMove", [this](LuaCoopResumer onDone)
-    {
-        const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
-        {
-            const int startDir = pathf::getRandDir();
-            for(int i = 0; i < 8; ++i){
-                if(const auto [newX, newY] = pathf::getFrontGLoc(getPlayer()->X(), getPlayer()->Y(), pathf::getNextDir(startDir, i)); getPlayer()->mapBin()->groundValid(newX, newY)){
-                    return {{newX, newY}};
-                }
-            }
-            return {};
-        }();
-
-        if(newGLoc.has_value()){
-            auto closed = std::make_shared<bool>(false);
-            onDone.pushOnClose([closed]()
-            {
-                *closed = true;
-            });
-
-            const auto [newX, newY] = newGLoc.value();
-            getPlayer()->requestMove(newX, newY, SYS_DEFSPEED, false, false, [closed, oldX = getPlayer()->X(), oldY = getPlayer()->Y(), onDone, this]()
-            {
-                if(*closed){
-                    return;
-                }
-                else{
-                    onDone.popOnClose();
-                }
-
-                // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
-                // but here need to sendback the forced move since it's driven by server
-
-                getPlayer()->reportAction(getPlayer()->UID(), getPlayer()->mapUID(), ActionMove
-                {
-                    .speed = SYS_DEFSPEED,
-                    .x = oldX,
-                    .y = oldY,
-                    .aimX = getPlayer()->X(),
-                    .aimY = getPlayer()->Y(),
-                });
-
-                onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
-            },
-
-            [closed, onDone]()
-            {
-                if(*closed){
-                    return;
-                }
-                else{
-                    onDone.popOnClose();
-                }
-                onDone();
-            });
-        }
-        else{
-            onDone();
-        }
-    });
-
-    bindFunctionCoop("_RSVD_NAME_queryQuestTriggerList", [this](LuaCoopResumer onDone, int triggerType)
-    {
-        fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
-        fflassert(triggerType <  SYS_ON_END  , triggerType);
-
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
-        {
-            *closed = true;
-        });
-
-        AMQueryQuestTriggerList amQQTL;
-        std::memset(&amQQTL, 0, sizeof(amQQTL));
-
-        amQQTL.type = triggerType;
-
-        getPlayer()->m_actorPod->send(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [closed, onDone, this](const ActorMsgPack &rmpk)
-        {
-            if(*closed){
-                return;
-            }
-            else{
-                onDone.popOnClose();
-            }
-
-            switch(rmpk.type()){
-                case AM_OK:
-                    {
-                        onDone(rmpk.deserialize<std::vector<uint64_t>>());
-                        break;
-                    }
-                default:
-                    {
-                        onDone();
-                        break;
-                    }
-            }
-        });
-    });
+    // bindFunctionCoop("_RSVD_NAME_queryQuestTriggerList", [this](LuaCoopResumer onDone, int triggerType)
+    // {
+    //     fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
+    //     fflassert(triggerType <  SYS_ON_END  , triggerType);
+    //
+    //     auto closed = std::make_shared<bool>(false);
+    //     onDone.pushOnClose([closed]()
+    //     {
+    //         *closed = true;
+    //     });
+    //
+    //     AMQueryQuestTriggerList amQQTL;
+    //     std::memset(&amQQTL, 0, sizeof(amQQTL));
+    //
+    //     amQQTL.type = triggerType;
+    //
+    //     getPlayer()->m_actorPod->send(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [closed, onDone, this](const ActorMsgPack &rmpk)
+    //     {
+    //         if(*closed){
+    //             return;
+    //         }
+    //         else{
+    //             onDone.popOnClose();
+    //         }
+    //
+    //         switch(rmpk.type()){
+    //             case AM_OK:
+    //                 {
+    //                     onDone(rmpk.deserialize<std::vector<uint64_t>>());
+    //                     break;
+    //                 }
+    //             default:
+    //                 {
+    //                     onDone();
+    //                     break;
+    //                 }
+    //         }
+    //     });
+    // });
 
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "player.lua"
@@ -518,193 +518,159 @@ Player::Player(const SDInitPlayer &initParam)
     dbLoadPlayerConfig();
 }
 
-void Player::onActivate()
+corof::awaitable<> Player::onActivate()
 {
-    BattleObject::onActivate();
+    co_await BattleObject::onActivate();
     m_luaRunner = std::make_unique<Player::LuaThreadRunner>(this);
     m_luaRunner->spawn(m_threadKey++, "_RSVD_NAME_setupQuests()");
 }
 
-void Player::onActorMsg(const ActorMsgPack &rstMPK)
+corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
 {
-    switch(rstMPK.type()){
+    switch(mpk.type()){
         case AM_BADACTORPOD:
             {
-                on_AM_BADACTORPOD(rstMPK);
-                break;
+                return on_AM_BADACTORPOD(mpk);
             }
         case AM_NOTIFYNEWCO:
             {
-                on_AM_NOTIFYNEWCO(rstMPK);
-                break;
+                return on_AM_NOTIFYNEWCO(mpk);
             }
         case AM_QUERYHEALTH:
             {
-                on_AM_QUERYHEALTH(rstMPK);
-                break;
+                return on_AM_QUERYHEALTH(mpk);
             }
         case AM_CHECKMASTER:
             {
-                on_AM_CHECKMASTER(rstMPK);
-                break;
+                return on_AM_CHECKMASTER(mpk);
             }
         case AM_MAPSWITCHTRIGGER:
             {
-                on_AM_MAPSWITCHTRIGGER(rstMPK);
-                break;
+                return on_AM_MAPSWITCHTRIGGER(mpk);
             }
         case AM_QUERYLOCATION:
             {
-                on_AM_QUERYLOCATION(rstMPK);
-                break;
+                return on_AM_QUERYLOCATION(mpk);
             }
         case AM_QUERYFRIENDTYPE:
             {
-                on_AM_QUERYFRIENDTYPE(rstMPK);
-                break;
+                return on_AM_QUERYFRIENDTYPE(mpk);
             }
         case AM_EXP:
             {
-                on_AM_EXP(rstMPK);
-                break;
+                return on_AM_EXP(mpk);
             }
         case AM_ADDBUFF:
             {
-                on_AM_ADDBUFF(rstMPK);
-                break;
+                return on_AM_ADDBUFF(mpk);
             }
         case AM_REMOVEBUFF:
             {
-                on_AM_REMOVEBUFF(rstMPK);
-                break;
+                return on_AM_REMOVEBUFF(mpk);
             }
         case AM_MISS:
             {
-                on_AM_MISS(rstMPK);
-                break;
+                return on_AM_MISS(mpk);
             }
         case AM_HEAL:
             {
-                on_AM_HEAL(rstMPK);
-                break;
+                return on_AM_HEAL(mpk);
             }
         case AM_ACTION:
             {
-                on_AM_ACTION(rstMPK);
-                break;
+                return on_AM_ACTION(mpk);
             }
         case AM_ATTACK:
             {
-                on_AM_ATTACK(rstMPK);
-                break;
+                return on_AM_ATTACK(mpk);
             }
         case AM_DEADFADEOUT:
             {
-                on_AM_DEADFADEOUT(rstMPK);
-                break;
+                return on_AM_DEADFADEOUT(mpk);
             }
         case AM_BINDCHANNEL:
             {
-                on_AM_BINDCHANNEL(rstMPK);
-                break;
+                return on_AM_BINDCHANNEL(mpk);
             }
         case AM_SENDPACKAGE:
             {
-                on_AM_SENDPACKAGE(rstMPK);
-                break;
+                return on_AM_SENDPACKAGE(mpk);
             }
         case AM_RECVPACKAGE:
             {
-                on_AM_RECVPACKAGE(rstMPK);
-                break;
+                return on_AM_RECVPACKAGE(mpk);
             }
         case AM_QUERYUIDBUFF:
             {
-                on_AM_QUERYUIDBUFF(rstMPK);
-                break;
+                return on_AM_QUERYUIDBUFF(mpk);
             }
         case AM_QUERYCORECORD:
             {
-                on_AM_QUERYCORECORD(rstMPK);
-                break;
+                return on_AM_QUERYCORECORD(mpk);
             }
         case AM_BADCHANNEL:
             {
-                on_AM_BADCHANNEL(rstMPK);
-                break;
+                return on_AM_BADCHANNEL(mpk);
             }
         case AM_OFFLINE:
             {
-                on_AM_OFFLINE(rstMPK);
-                break;
+                return on_AM_OFFLINE(mpk);
             }
         case AM_QUERYPLAYERNAME:
             {
-                on_AM_QUERYPLAYERNAME(rstMPK);
-                break;
+                return on_AM_QUERYPLAYERNAME(mpk);
             }
         case AM_QUERYPLAYERWLDESP:
             {
-                on_AM_QUERYPLAYERWLDESP(rstMPK);
-                break;
+                return on_AM_QUERYPLAYERWLDESP(mpk);
             }
         case AM_REMOVEGROUNDITEM:
             {
-                on_AM_REMOVEGROUNDITEM(rstMPK);
-                break;
+                return on_AM_REMOVEGROUNDITEM(mpk);
             }
         case AM_CORECORD:
             {
-                on_AM_CORECORD(rstMPK);
-                break;
+                return on_AM_CORECORD(mpk);
             }
         case AM_NOTIFYDEAD:
             {
-                on_AM_NOTIFYDEAD(rstMPK);
-                break;
+                return on_AM_NOTIFYDEAD(mpk);
             }
         case AM_REMOTECALL:
             {
-                on_AM_REMOTECALL(rstMPK);
-                break;
+                return on_AM_REMOTECALL(mpk);
             }
         case AM_REQUESTJOINTEAM:
             {
-                on_AM_REQUESTJOINTEAM(rstMPK);
-                break;
+                return on_AM_REQUESTJOINTEAM(mpk);
             }
         case AM_REQUESTLEAVETEAM:
             {
-                on_AM_REQUESTLEAVETEAM(rstMPK);
-                break;
+                return on_AM_REQUESTLEAVETEAM(mpk);
             }
         case AM_QUERYTEAMPLAYER:
             {
-                on_AM_QUERYTEAMPLAYER(rstMPK);
-                break;
+                return on_AM_QUERYTEAMPLAYER(mpk);
             }
         case AM_QUERYTEAMMEMBERLIST:
             {
-                on_AM_QUERYTEAMMEMBERLIST(rstMPK);
-                break;
+                return on_AM_QUERYTEAMMEMBERLIST(mpk);
             }
         case AM_TEAMUPDATE:
             {
-                on_AM_TEAMUPDATE(rstMPK);
-                break;
+                return on_AM_TEAMUPDATE(mpk);
             }
         default:
             {
-                g_server->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(rstMPK.type()));
-                break;
+                throw fflvalue(mpk.str());
             }
     }
 }
 
-void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, uint64_t respID)
+corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, uint64_t respID)
 {
     switch(nType){
-#define _support_cm(cm) case cm: net_##cm(nType, pData, nDataLen, respID); break
+#define _support_cm(cm) case cm: return net_##cm(nType, pData, nDataLen, respID)
         _support_cm(CM_ACTION                    );
         _support_cm(CM_BUY                       );
         _support_cm(CM_ADDFRIEND                 );
@@ -743,7 +709,7 @@ void Player::operateNet(uint8_t nType, const uint8_t *pData, size_t nDataLen, ui
         _support_cm(CM_CREATECHATGROUP           );
         default:
             {
-                throw fflerror("unsupported client message: %s", ClientMsg(nType).name().c_str());
+                throw fflvalue(ClientMsg(nType).name());
             }
 #undef _support_cm
     }
@@ -815,7 +781,7 @@ bool Player::goDie()
     }
     m_dead.set(true);
 
-    addDelay(2 * 1000, [this](){ goGhost(); });
+    addDelay(2 * 1000, [this](bool){ goGhost(); });
     return true;
 }
 
@@ -1027,7 +993,7 @@ void Player::postNetMessage(uint8_t headCode, const void *buf, size_t bufLen, ui
     }
 }
 
-void Player::onCMActionStand(CMAction stCMA)
+corof::awaitable<> Player::onCMActionStand(CMAction stCMA)
 {
     int nX = stCMA.action.x;
     int nY = stCMA.action.y;
@@ -1041,16 +1007,13 @@ void Player::onCMActionStand(CMAction stCMA)
         switch(estimateHop(nX, nY)){
             case 1:
                 {
-                    requestMove(nX, nY, SYS_MAXSPEED, false, false,
-                    [this, stCMA]()
-                    {
-                        onCMActionStand(stCMA);
-                    },
-                    [this]()
-                    {
+                    if(co_await requestMove(nX, nY, SYS_MAXSPEED, false, false)){
+                        co_await onCMActionStand(stCMA);
+                    }
+                    else{
                         reportStand();
-                    });
-                    return;
+                    }
+                    break;
                 }
             case 0:
             default:
@@ -1060,13 +1023,13 @@ void Player::onCMActionStand(CMAction stCMA)
                     }
 
                     reportStand();
-                    return;
+                    break;
                 }
         }
     }
 }
 
-void Player::onCMActionMove(CMAction stCMA)
+corof::awaitable<> Player::onCMActionMove(CMAction stCMA)
 {
     // server won't do any path finding
     // client should sent action with only one-hop movement
@@ -1079,38 +1042,33 @@ void Player::onCMActionMove(CMAction stCMA)
     switch(estimateHop(nX0, nY0)){
         case 0:
             {
-                requestMove(nX1, nY1, moveSpeed(), false, false, [this]()
-                {
+                if(co_await requestMove(nX1, nY1, moveSpeed(), false, false)){
                     dbUpdateMapGLoc();
-                },
-
-                [this]()
-                {
+                }
+                else{
                     reportStand();
-                });
-                return;
+                }
+                break;
             }
         case 1:
             {
-                requestMove(nX0, nY0, SYS_MAXSPEED, false, false, [this, stCMA]()
-                {
-                    onCMActionMove(stCMA);
-                },
-                [this]()
-                {
+                if(co_await requestMove(nX0, nY0, SYS_MAXSPEED, false, false)){
+                    co_await onCMActionMove(stCMA);
+                }
+                else{
                     reportStand();
-                });
-                return;
+                }
+                break;
             }
         default:
             {
                 reportStand();
-                return;
+                break;
             }
     }
 }
 
-void Player::onCMActionMine(CMAction stCMA)
+corof::awaitable<> Player::onCMActionMine(CMAction stCMA)
 {
     // server won't do any path finding
     // client should sent action with only one-hop movement
@@ -1119,7 +1077,7 @@ void Player::onCMActionMine(CMAction stCMA)
     switch(mathf::LDistance2(mine.x, mine.y, X(), Y())){
         case 0:
             {
-                return;
+                break;
             }
         case 1:
         case 2:
@@ -1133,203 +1091,208 @@ void Player::onCMActionMine(CMAction stCMA)
                         .count  = 1,
                     }, false);
                 }
-                return;
+                break;
             }
         default:
             {
-                return;
+                break;
+            }
+    }
+
+    return {};
+}
+
+corof::awaitable<> Player::onCMActionAttack(CMAction stCMA)
+{
+    const auto coLocOpt = co_await getCOLocation(stCMA.action.aimUID);
+    if(!coLocOpt.has_value()){
+        co_return;
+    }
+
+    const auto &coLoc = coLocOpt.value();
+
+    int nX0 = stCMA.action.x;
+    int nY0 = stCMA.action.y;
+
+    int nDCType = stCMA.action.extParam.attack.magicID;
+    uint64_t nAimUID = stCMA.action.aimUID;
+
+    if(coLoc.mapUID != mapUID()){
+        co_return;
+    }
+
+    switch(nDCType){
+        case DBCOM_MAGICID(u8"烈火剑法"):
+        case DBCOM_MAGICID(u8"翔空剑法"):
+        case DBCOM_MAGICID(u8"莲月剑法"):
+        case DBCOM_MAGICID(u8"半月弯刀"):
+        case DBCOM_MAGICID(u8"十方斩"  ):
+        case DBCOM_MAGICID(u8"攻杀剑术"):
+        case DBCOM_MAGICID(u8"刺杀剑术"):
+        case DBCOM_MAGICID(u8"物理攻击"):
+            {
+                switch(estimateHop(nX0, nY0)){
+                    case 0:
+                        {
+                            if(const auto aimDir = pathf::getOffDir(X(), Y(), coLoc.x, coLoc.y); pathf::dirValid(aimDir)){
+                                m_direction = aimDir;
+                                dispatchAction(makeActionStand());
+
+                                // don't need to send direction change back to client
+                                // it has already turned
+                            }
+
+                            switch(mathf::LDistance2(nX0, nY0, coLoc.x, coLoc.y)){
+                                case 1:
+                                case 2:
+                                    {
+                                        const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
+
+                                        // client reports 攻杀技术 but server need to validate if it's scheduled
+                                        // if not scheduled then dispatch 物理攻击 instead, this is for client anti-cheat
+                                        dispatchAction(ActionAttack
+                                        {
+                                            .speed = stCMA.action.speed,
+                                            .x = stCMA.action.x,
+                                            .y = stCMA.action.y,
+                                            .aimUID = stCMA.action.aimUID,
+                                            .extParam
+                                            {
+                                                .magicID = [nDCType, this]() -> uint32_t
+                                                {
+                                                    if(to_u32(nDCType) == DBCOM_MAGICID(u8"攻杀剑术") && !m_nextStrike){
+                                                        return DBCOM_MAGICID(u8"物理攻击");
+                                                    }
+                                                    else{
+                                                        return nDCType;
+                                                    }
+                                                }(),
+                                                .modifierID = to_u32(modifierID),
+                                            },
+                                        });
+
+                                        std::vector<uint64_t> aimUIDList;
+                                        switch(nDCType){
+                                            case DBCOM_MAGICID(u8"莲月剑法"):
+                                                {
+                                                    aimUIDList.push_back(nAimUID);
+                                                    aimUIDList.push_back(nAimUID); // attack twice
+                                                    break;
+                                                }
+                                            case DBCOM_MAGICID(u8"半月弯刀"):
+                                                {
+                                                    scoped_alloc::svobuf_wrapper<std::tuple<int, int>, 3> aimGridList;
+                                                    for(int d: {-1, 0, 1}){
+                                                        aimGridList.c.push_back(pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(Direction(), d)));
+                                                    }
+
+                                                    for(const auto &[uid, coLoc]: m_inViewCOList){
+                                                        if(std::find(aimGridList.c.begin(), aimGridList.c.end(), std::make_tuple(coLoc.x, coLoc.y)) != aimGridList.c.end()){
+                                                            aimUIDList.push_back(uid);
+                                                        }
+                                                    }
+                                                    break;
+                                                }
+                                            case DBCOM_MAGICID(u8"十方斩"):
+                                                {
+                                                    for(const auto &[uid, coLoc]: m_inViewCOList){
+                                                        if(mathf::CDistance<int>(X(), Y(), coLoc.x, coLoc.y) <= 1){
+                                                            aimUIDList.push_back(uid);
+                                                        }
+                                                    }
+                                                    break;
+                                                }
+                                            case DBCOM_MAGICID(u8"刺杀剑术"):
+                                                {
+                                                    std::array<std::tuple<int, int>, 2> aimGridList
+                                                    {
+                                                        pathf::getFrontGLoc(X(), Y(), Direction(), 1),
+                                                        pathf::getFrontGLoc(X(), Y(), Direction(), 2),
+                                                    };
+
+                                                    for(const auto &[uid, coLoc]: m_inViewCOList){
+                                                        if(std::find(aimGridList.begin(), aimGridList.end(), std::make_tuple(coLoc.x, coLoc.y)) != aimGridList.end()){
+                                                            aimUIDList.push_back(uid);
+                                                        }
+                                                    }
+                                                    break;
+                                                }
+                                            case DBCOM_MAGICID(u8"翔空剑法"):
+                                            case DBCOM_MAGICID(u8"攻杀剑术"):
+                                            case DBCOM_MAGICID(u8"烈火剑法"):
+                                            case DBCOM_MAGICID(u8"物理攻击"):
+                                            default:
+                                                {
+                                                    aimUIDList.push_back(nAimUID);
+                                                    break;
+                                                }
+                                        }
+
+                                        for(const auto uid: aimUIDList){
+                                            if(buffID){
+                                                sendBuff(uid, 0, buffID);
+                                            }
+                                            dispatchAttackDamage(uid, nDCType, 0);
+                                        }
+
+                                        if(m_nextStrike){
+                                            m_nextStrike = false;
+                                        }
+                                        else{
+                                            m_nextStrike = (mathf::rand<int>(0, 2) == 0);
+                                        }
+
+                                        if(m_nextStrike){
+                                            reportNextStrike();
+                                        }
+                                        co_return;
+                                    }
+                                default:
+                                    {
+                                        co_return;
+                                    }
+                            }
+                            co_return;
+                        }
+                    case 1:
+                        {
+                            if(co_await requestMove(nX0, nY0, SYS_MAXSPEED, false, false)){
+                                co_await onCMActionAttack(stCMA);
+                            }
+                            else{
+                                reportStand();
+                            }
+                            co_return;
+                        }
+                    default:
+                        {
+                            co_return;
+                        }
+                }
+                co_return;
+            }
+        default:
+            {
+                co_return;
             }
     }
 }
 
-void Player::onCMActionAttack(CMAction stCMA)
-{
-    getCOLocation(stCMA.action.aimUID, [this, stCMA](const COLocation &rstLocation)
-    {
-        int nX0 = stCMA.action.x;
-        int nY0 = stCMA.action.y;
-
-        int nDCType = stCMA.action.extParam.attack.magicID;
-        uint64_t nAimUID = stCMA.action.aimUID;
-
-        if(rstLocation.mapUID != mapUID()){
-            return;
-        }
-
-        switch(nDCType){
-            case DBCOM_MAGICID(u8"烈火剑法"):
-            case DBCOM_MAGICID(u8"翔空剑法"):
-            case DBCOM_MAGICID(u8"莲月剑法"):
-            case DBCOM_MAGICID(u8"半月弯刀"):
-            case DBCOM_MAGICID(u8"十方斩"  ):
-            case DBCOM_MAGICID(u8"攻杀剑术"):
-            case DBCOM_MAGICID(u8"刺杀剑术"):
-            case DBCOM_MAGICID(u8"物理攻击"):
-                {
-                    switch(estimateHop(nX0, nY0)){
-                        case 0:
-                            {
-                                if(const auto aimDir = pathf::getOffDir(X(), Y(), rstLocation.x, rstLocation.y); pathf::dirValid(aimDir)){
-                                    m_direction = aimDir;
-                                    dispatchAction(makeActionStand());
-
-                                    // don't need to send direction change back to client
-                                    // it has already turned
-                                }
-
-                                switch(mathf::LDistance2(nX0, nY0, rstLocation.x, rstLocation.y)){
-                                    case 1:
-                                    case 2:
-                                        {
-                                            const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
-
-                                            // client reports 攻杀技术 but server need to validate if it's scheduled
-                                            // if not scheduled then dispatch 物理攻击 instead, this is for client anti-cheat
-                                            dispatchAction(ActionAttack
-                                            {
-                                                .speed = stCMA.action.speed,
-                                                .x = stCMA.action.x,
-                                                .y = stCMA.action.y,
-                                                .aimUID = stCMA.action.aimUID,
-                                                .extParam
-                                                {
-                                                    .magicID = [nDCType, this]() -> uint32_t
-                                                    {
-                                                        if(to_u32(nDCType) == DBCOM_MAGICID(u8"攻杀剑术") && !m_nextStrike){
-                                                            return DBCOM_MAGICID(u8"物理攻击");
-                                                        }
-                                                        else{
-                                                            return nDCType;
-                                                        }
-                                                    }(),
-                                                    .modifierID = to_u32(modifierID),
-                                                },
-                                            });
-
-                                            std::vector<uint64_t> aimUIDList;
-                                            switch(nDCType){
-                                                case DBCOM_MAGICID(u8"莲月剑法"):
-                                                    {
-                                                        aimUIDList.push_back(nAimUID);
-                                                        aimUIDList.push_back(nAimUID); // attack twice
-                                                        break;
-                                                    }
-                                                case DBCOM_MAGICID(u8"半月弯刀"):
-                                                    {
-                                                        scoped_alloc::svobuf_wrapper<std::tuple<int, int>, 3> aimGridList;
-                                                        for(int d: {-1, 0, 1}){
-                                                            aimGridList.c.push_back(pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(Direction(), d)));
-                                                        }
-
-                                                        for(const auto &[uid, coLoc]: m_inViewCOList){
-                                                            if(std::find(aimGridList.c.begin(), aimGridList.c.end(), std::make_tuple(coLoc.x, coLoc.y)) != aimGridList.c.end()){
-                                                                aimUIDList.push_back(uid);
-                                                            }
-                                                        }
-                                                        break;
-                                                    }
-                                                case DBCOM_MAGICID(u8"十方斩"):
-                                                    {
-                                                        for(const auto &[uid, coLoc]: m_inViewCOList){
-                                                            if(mathf::CDistance<int>(X(), Y(), coLoc.x, coLoc.y) <= 1){
-                                                                aimUIDList.push_back(uid);
-                                                            }
-                                                        }
-                                                        break;
-                                                    }
-                                                case DBCOM_MAGICID(u8"刺杀剑术"):
-                                                    {
-                                                        std::array<std::tuple<int, int>, 2> aimGridList
-                                                        {
-                                                            pathf::getFrontGLoc(X(), Y(), Direction(), 1),
-                                                            pathf::getFrontGLoc(X(), Y(), Direction(), 2),
-                                                        };
-
-                                                        for(const auto &[uid, coLoc]: m_inViewCOList){
-                                                            if(std::find(aimGridList.begin(), aimGridList.end(), std::make_tuple(coLoc.x, coLoc.y)) != aimGridList.end()){
-                                                                aimUIDList.push_back(uid);
-                                                            }
-                                                        }
-                                                        break;
-                                                    }
-                                                case DBCOM_MAGICID(u8"翔空剑法"):
-                                                case DBCOM_MAGICID(u8"攻杀剑术"):
-                                                case DBCOM_MAGICID(u8"烈火剑法"):
-                                                case DBCOM_MAGICID(u8"物理攻击"):
-                                                default:
-                                                    {
-                                                        aimUIDList.push_back(nAimUID);
-                                                        break;
-                                                    }
-                                            }
-
-                                            for(const auto uid: aimUIDList){
-                                                if(buffID){
-                                                    sendBuff(uid, 0, buffID);
-                                                }
-                                                dispatchAttackDamage(uid, nDCType, 0);
-                                            }
-
-                                            if(m_nextStrike){
-                                                m_nextStrike = false;
-                                            }
-                                            else{
-                                                m_nextStrike = (mathf::rand<int>(0, 2) == 0);
-                                            }
-
-                                            if(m_nextStrike){
-                                                reportNextStrike();
-                                            }
-                                            return;
-                                        }
-                                    default:
-                                        {
-                                            return;
-                                        }
-                                }
-                                return;
-                            }
-                        case 1:
-                            {
-                                requestMove(nX0, nY0, SYS_MAXSPEED, false, false,
-                                [this, stCMA]()
-                                {
-                                    onCMActionAttack(stCMA);
-                                },
-                                [this]()
-                                {
-                                    reportStand();
-                                });
-                                return;
-                            }
-                        default:
-                            {
-                                return;
-                            }
-                    }
-                    return;
-                }
-            default:
-                {
-                    return;
-                }
-        }
-    });
-}
-
-void Player::onCMActionSpinKick(CMAction cmA)
+corof::awaitable<> Player::onCMActionSpinKick(CMAction cmA)
 {
     fflassert(cmA.action.type == ACTION_SPINKICK);
     dispatchAction(cmA.action);
+    return {};
 }
 
-void Player::onCMActionPickUp(CMAction cmA)
+corof::awaitable<> Player::onCMActionPickUp(CMAction cmA)
 {
     fflassert(cmA.action.type == ACTION_PICKUP);
     dispatchAction(cmA.action);
+    return {};
 }
 
-void Player::onCMActionSpell(CMAction cmA)
+corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
 {
     fflassert(cmA.action.type == ACTION_SPELL);
     const auto magicID = cmA.action.extParam.spell.magicID;
@@ -1358,37 +1321,31 @@ void Player::onCMActionSpell(CMAction cmA)
                                     sendBuff(cmA.action.aimUID, 0, buffID);
                                 }
                                 else{
-                                    checkFriend(cmA.action.aimUID, [magicID, cmA, buffID, this](int friendType)
-                                    {
-                                        const auto &br = DBCOM_BUFFRECORD(buffID);
-                                        fflassert(br);
-
-                                        switch(friendType){
-                                            case FT_FRIEND:
-                                                {
-                                                    if(br.favor >= 0){
-                                                        sendBuff(cmA.action.aimUID, 0, buffID);
-                                                    }
-                                                    return;
-                                                }
-                                            case FT_ENEMY:
-                                                {
-                                                    if(br.favor <= 0){
-                                                        sendBuff(cmA.action.aimUID, 0, buffID);
-                                                    }
-                                                    return;
-                                                }
-                                            case FT_NEUTRAL:
-                                                {
+                                    switch(const auto friendType = co_await checkFriend(cmA.action.aimUID); friendType){
+                                        case FT_FRIEND:
+                                            {
+                                                if(br.favor >= 0){
                                                     sendBuff(cmA.action.aimUID, 0, buffID);
-                                                    return;
                                                 }
-                                            default:
-                                                {
-                                                    return;
+                                                co_return;
+                                            }
+                                        case FT_ENEMY:
+                                            {
+                                                if(br.favor <= 0){
+                                                    sendBuff(cmA.action.aimUID, 0, buffID);
                                                 }
-                                        }
-                                    });
+                                                co_return;
+                                            }
+                                        case FT_NEUTRAL:
+                                            {
+                                                sendBuff(cmA.action.aimUID, 0, buffID);
+                                                co_return;
+                                            }
+                                        default:
+                                            {
+                                                co_return;
+                                            }
+                                    }
                                 }
                                 break;
                             }
@@ -1413,15 +1370,19 @@ void Player::onCMActionSpell(CMAction cmA)
                 // the ACTION_SPELL creates the magic
 
                 if(cmA.action.aimUID){
-                    getCOLocation(cmA.action.aimUID, [this, cmA](const COLocation &coLoc)
-                    {
-                        const auto ld = mathf::LDistance<float>(coLoc.x, coLoc.y, cmA.action.x, cmA.action.y);
-                        const auto delay = ld * 100;
+                    const auto coLocOpt = co_await getCOLocation(cmA.action.aimUID);
 
-                        addDelay(delay, [cmA, this]()
-                        {
-                            dispatchAttackDamage(cmA.action.aimUID, cmA.action.extParam.spell.magicID, 0);
-                        });
+                    if(!coLocOpt.has_value()){
+                        co_return;
+                    }
+
+                    const auto &coLoc = coLocOpt.value();
+                    const auto ld = mathf::LDistance<float>(coLoc.x, coLoc.y, cmA.action.x, cmA.action.y);
+                    const auto delay = ld * 100;
+
+                    addDelay(delay, [cmA, this](bool)
+                    {
+                        dispatchAttackDamage(cmA.action.aimUID, cmA.action.extParam.spell.magicID, 0);
                     });
                 }
                 break;
@@ -1439,10 +1400,10 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.Y       = cmA.action.y;
                 smFM.AimUID  = cmA.action.aimUID;
 
-                addDelay(1400, [this, smFM]()
+                addDelay(1400, [this, smFM](bool)
                 {
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
-                    addDelay(300, [smFM, this]()
+                    addDelay(300, [smFM, this](bool)
                     {
                         dispatchAttackDamage(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"), 0);
                     });
@@ -1459,10 +1420,10 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.Magic = magicID;
                 smFM.Speed = MagicSpeed();
 
-                addDelay(800, [this, smFM]()
+                addDelay(800, [this, smFM](bool)
                 {
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
-                    addDelay(10000, [this]()
+                    addDelay(10000, [this](bool)
                     {
                         SMBuff smB;
                         std::memset(&smB, 0, sizeof(smB));
@@ -1490,14 +1451,14 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.AimX   = nFrontX;
                 smFM.AimY   = nFrontY;
 
-                addDelay(600, [this, magicID, smFM]()
+                addDelay(600, [magicID, smFM, thisptr = this](this auto, bool) -> corof::awaitable<>
                 {
                     for(int i = 0; i < g_serverArgParser->sharedConfig().summonCount; ++i){
                         if(to_u32(magicID) == DBCOM_MAGICID(u8"召唤骷髅")){
-                            addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
+                            co_await thisptr->addMonster(DBCOM_MONSTERID(u8"变异骷髅"), smFM.AimX, smFM.AimY, false);
                         }
                         else{
-                            addMonster(DBCOM_MONSTERID(u8"超强骷髅"), smFM.AimX, smFM.AimY, false);
+                            co_await thisptr->addMonster(DBCOM_MONSTERID(u8"超强骷髅"), smFM.AimX, smFM.AimY, false);
                         }
                     }
 
@@ -1520,17 +1481,17 @@ void Player::onCMActionSpell(CMAction cmA)
                 smFM.AimX  = nFrontX;
                 smFM.AimY  = nFrontY;
 
-                addDelay(1000, [this, smFM]()
+                addDelay(1000, [smFM, thisptr = this](this auto, bool) -> corof::awaitable<>
                 {
                     for(int i = 0; i < g_serverArgParser->sharedConfig().summonCount; ++i){
-                        addMonster(DBCOM_MONSTERID(u8"神兽"), smFM.AimX, smFM.AimY, false);
+                        co_await thisptr->addMonster(DBCOM_MONSTERID(u8"神兽"), smFM.AimX, smFM.AimY, false);
                     }
                 });
                 break;
             }
         case DBCOM_MAGICID(u8"火墙"):
             {
-                addDelay(550, [this, cmA, node]()
+                addDelay(550, [this, cmA, node](bool)
                 {
                     AMCastFireWall amCFW;
                     std::memset(&amCFW, 0, sizeof(amCFW));
@@ -1625,7 +1586,7 @@ void Player::onCMActionSpell(CMAction cmA)
                         amSFLD.x = pathGX;
                         amSFLD.y = pathGY;
                         amSFLD.damage = getAttackDamage(magicID, 0);
-                        addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this]()
+                        addDelay(550 + mathf::CDistance(X(), Y(), amSFLD.x, amSFLD.y) * 100, [amSFLD, castMapID = mapID(), this](bool)
                         {
                             if(castMapID == mapID()){
                                 m_actorPod->post(mapUID(), {AM_STRIKEFIXEDLOCDAMAGE, amSFLD});
@@ -1710,14 +1671,12 @@ void Player::reportSecuredItemList()
     }));
 }
 
-void Player::reportTeamMemberList()
+corof::awaitable<> Player::reportTeamMemberList()
 {
-    pullTeamMemberList([this](std::optional<SDTeamMemberList> sdTML)
-    {
-        if(sdTML.has_value()){
-            postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTML.value()));
-        }
-    });
+    const auto sdTMLOpt = co_await pullTeamMemberList();
+    if(sdTMLOpt.has_value()){
+        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTMLOpt.value()));
+    }
 }
 
 corof::awaitable<int> Player::checkFriend(uint64_t targetUID)
@@ -2135,76 +2094,55 @@ bool Player::consumePotion(uint32_t itemID)
     return false;
 }
 
-void Player::pullTeamMemberList(std::function<void(std::optional<SDTeamMemberList>)> fnHandle)
+corof::awaitable<std::optional<SDTeamMemberList>> Player::pullTeamMemberList()
 {
-    if(!fnHandle){
-        return;
-    }
-
     if(!m_teamLeader){
-        fnHandle(SDTeamMemberList{});
-        return;
+        co_return SDTeamMemberList{};
     }
 
     if(m_teamLeader != UID()){
-        m_actorPod->send(m_teamLeader, AM_QUERYTEAMMEMBERLIST, [fnHandle, this](const ActorMsgPack &mpk)
-        {
-            switch(mpk.type()){
-                case AM_TEAMMEMBERLIST:
-                    {
-                        const auto sdTML = mpk.deserialize<SDTeamMemberList>();
-                        fflassert(sdTML.hasMember(UID())); // keep this function read only
-                        fnHandle(sdTML);
-                        break;
-                    }
-                default:
-                    {
-                        fnHandle({});
-                        break;
-                    }
-            }
-        });
-        return;
+        switch(const auto rmpk = co_await m_actorPod->send(m_teamLeader, AM_QUERYTEAMMEMBERLIST); rmpk.type()){
+            case AM_TEAMMEMBERLIST:
+                {
+                    const auto sdTML = mpk.deserialize<SDTeamMemberList>();
+                    fflassert(sdTML.hasMember(UID())); // keep this function read only
+                    co_return sdTML;
+                }
+            default:
+                {
+                    co_return std::nullopt;
+                }
+        }
     }
 
-    auto cnter = std::make_shared<size_t>(0);
-    auto sdTML = std::make_shared<SDTeamMemberList>();
+    SDTeamMemberList sdTML;
 
-    sdTML->teamLeader = m_teamLeader;
-    sdTML->memberList.resize(m_teamMemberList.size());
+    sdTML.teamLeader = m_teamLeader;
+    sdTML.memberList.resize(m_teamMemberList.size());
 
     for(size_t i = 0; i < m_teamMemberList.size(); ++i){
         if(m_teamMemberList.at(i) == UID()){
-            sdTML->memberList[i] = SDTeamPlayer
+            sdTML.memberList[i] = SDTeamPlayer
             {
                 .uid = UID(),
                 .level = level(),
                 .name = name(),
             };
-
-            if(++(*cnter) == m_teamMemberList.size()){
-                fnHandle(*sdTML);
-            }
         }
         else{
-            m_actorPod->send(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER, [i, cnter, sdTML, memberCount = m_teamMemberList.size(), fnHandle, this](const ActorMsgPack &mpk)
-            {
-                switch(mpk.type()){
-                    case AM_TEAMPLAYER:
-                        {
-                            sdTML->memberList.at(i) = mpk.deserialize<SDTeamPlayer>();
-                            break;
-                        }
-                    default:
-                        {
-                            break;
-                        }
-                }
-
-                if(++(*cnter) == memberCount){
-                    fnHandle(*sdTML);
-                }
-            });
+            switch(const auto mpk = co_await m_actorPod->send(m_teamMemberList.at(i), AM_QUERYTEAMPLAYER); mpk.type()){
+                case AM_TEAMPLAYER:
+                    {
+                        sdTML->memberList.at(i) = mpk.deserialize<SDTeamPlayer>();
+                        break;
+                    }
+                default:
+                    {
+                        throw fflvalue(mpkName(mpk.type()));
+                    }
+            }
         }
     }
+
+    co_return sdTML;
 }

@@ -10,21 +10,26 @@ corof::awaitable<> ServerEvilCentipede::runAICoro()
     std::optional<uint64_t> idleTime;
 
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
-            const auto [targetMapID, targetX, targetY] = co_await coro_getCOGLoc(targetUID);
-            if(inView(targetMapID, targetX, targetY)){
+            const auto coLocOpt = co_await getCOLocation(targetUID);
+            if(!coLocOpt.has_value()){
+                continue;
+            }
+
+            const auto &coLoc = coLocOpt.value();
+            if(inView(coLoc.mapUID, coLoc.x, coLoc.y)){
                 idleTime.reset();
                 setStandMode(true);
-                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
-                    co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+                if(mathf::CDistance<int>(coLoc.x, coLoc.y, X(), Y()) <= 1){
+                    co_await attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
                 }
             }
             else{
@@ -39,7 +44,7 @@ corof::awaitable<> ServerEvilCentipede::runAICoro()
         else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
             setStandMode(false);
         }
-        co_await corof::async_wait(200);
+        co_await asyncWait(200);
     }
 
     goDie();

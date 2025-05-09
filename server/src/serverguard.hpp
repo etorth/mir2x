@@ -1,4 +1,5 @@
 #pragma once
+#include "corof.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
@@ -19,9 +20,10 @@ class ServerGuard: public Monster
         corof::awaitable<int> checkFriend(uint64_t) override;
 
     protected:
-        void onAMAttack(const ActorMsgPack &) override
+        corof::awaitable<> onAMAttack(const ActorMsgPack &) override
         {
             // serverguard won't get any damage
+            return {};
         }
 
     protected:

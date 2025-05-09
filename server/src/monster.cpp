@@ -430,7 +430,7 @@ corof::awaitable<> Monster::runAICoro()
         }
 
         // always wait
-        co_await corof::async_wait(200);
+        co_await asyncWait(200);
     }
 
     goDie();
@@ -1017,7 +1017,7 @@ corof::awaitable<uint64_t> Monster::searchNearestTarget()
     seen.reserve(m_inViewCOList.size() + 8);
 
     while(const auto targetUID = fnSearchNearestUID(seen)){
-        switch(const auto friendType = co_await checkFriend(targetUID)){
+        switch(co_await checkFriend(targetUID)){
             case FT_ENEMY:
                 {
                     co_return targetUID;
@@ -1115,7 +1115,7 @@ corof::awaitable<int> Monster::checkFriend_ctrlByPlayer(uint64_t targetUID)
                                     co_return FT_NEUTRAL;
                                 }
                                 else{
-                                    co_return queryPlayerFriend(masterUID(), finalMasterUID);
+                                    co_return co_await queryPlayerFriend(masterUID(), finalMasterUID);
                                 }
                             }
                         default:
@@ -1130,7 +1130,7 @@ corof::awaitable<int> Monster::checkFriend_ctrlByPlayer(uint64_t targetUID)
             }
         case UID_PLY:
             {
-                co_return queryPlayerFriend(masterUID(), targetUID);
+                co_return co_await queryPlayerFriend(masterUID(), targetUID);
             }
         default:
             {
@@ -1149,7 +1149,7 @@ corof::awaitable<int> Monster::checkFriend(uint64_t targetUID)
     }
 
     if(!masterUID()){
-        co_return checkFriend_ctrlByMonster(targetUID);
+        co_return co_await checkFriend_ctrlByMonster(targetUID);
     }
 
     // has a master
@@ -1166,11 +1166,11 @@ corof::awaitable<int> Monster::checkFriend(uint64_t targetUID)
         switch(uidf::getUIDType(finalMasterUID)){
             case UID_PLY:
                 {
-                    co_return checkFriend_ctrlByPlayer(targetUID);
+                    co_return co_await checkFriend_ctrlByPlayer(targetUID);
                 }
             case UID_MON:
                 {
-                    co_return checkFriend_ctrlByMonster(targetUID);
+                    co_return co_await checkFriend_ctrlByMonster(targetUID);
                 }
             default:
                 {
@@ -1209,7 +1209,7 @@ corof::awaitable<int> Monster::queryPlayerFriend(uint64_t fromUID, uint64_t targ
                         }
                     default:
                         {
-                            co_return fflvalue(amFT.Type);
+                            throw fflvalue(amFT.Type);
                         }
                 }
             }
@@ -1230,65 +1230,63 @@ bool Monster::hasPlayerNeighbor() const
     return false;
 }
 
-void Monster::onAMAttack(const ActorMsgPack &mpk)
+corof::awaitable<> Monster::onAMAttack(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAttack>();
     if(amA.UID == UID()){
-        return;
+        co_return;
     }
 
     if(m_dead.get()){
         notifyDead(amA.UID);
-        return;
+        co_return;
     }
 
-    checkFriend(amA.UID, [amA, this](int friendType)
-    {
-        switch(friendType){
-            case FT_ENEMY:
-                {
-                    if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
-                        switch(uidf::getUIDType(amA.UID)){
-                            case UID_MON:
-                            case UID_PLY:
-                                {
-                                    AMMiss amM;
-                                    std::memset(&amM, 0, sizeof(amM));
+    switch(const auto friendType = co_await checkFriend(amA.UID); friendType){
+        case FT_ENEMY:
+            {
+                if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
+                    switch(uidf::getUIDType(amA.UID)){
+                        case UID_MON:
+                        case UID_PLY:
+                            {
+                                AMMiss amM;
+                                std::memset(&amM, 0, sizeof(amM));
 
-                                    amM.UID = amA.UID;
-                                    m_actorPod->post(amA.UID, {AM_MISS, amM});
-                                    return;
-                                }
-                            default:
-                                {
-                                    return;
-                                }
-                        }
+                                amM.UID = amA.UID;
+                                m_actorPod->post(amA.UID, {AM_MISS, amM});
+                                co_return;
+                            }
+                        default:
+                            {
+                                co_return;
+                            }
                     }
-
-                    addOffenderDamage(amA.UID, amA.damage);
-                    dispatchAction(ActionHitted
-                    {
-                        .direction = Direction(),
-                        .x = X(),
-                        .y = Y(),
-                        .fromUID = amA.UID,
-                    });
-
-                    struckDamage(amA.UID, amA.damage);
-                    return;
                 }
-            default:
+
+                addOffenderDamage(amA.UID, amA.damage);
+                dispatchAction(ActionHitted
                 {
-                    return;
-                }
-        }
-    });
+                    .direction = Direction(),
+                    .x = X(),
+                    .y = Y(),
+                    .fromUID = amA.UID,
+                });
+
+                struckDamage(amA.UID, amA.damage);
+                co_return;
+            }
+        default:
+            {
+                co_return;
+            }
+    }
 }
 
-void Monster::onAMMasterHitted(const ActorMsgPack &)
+corof::awaitable<> Monster::onAMMasterHitted(const ActorMsgPack &)
 {
     // do nothing by default
+    co_return;
 }
 
 void Monster::dispatchOffenderExp()
@@ -1458,7 +1456,7 @@ corof::awaitable<bool> Monster::validTarget(uint64_t targetUID)
         co_return false;
     }
 
-    if(mathf::LDistance2<int>(X(), Y(), locX, locY) > viewDistance * viewDistance){
+    if(mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y) > viewDistance * viewDistance){
         co_return false;
     }
     co_return true;

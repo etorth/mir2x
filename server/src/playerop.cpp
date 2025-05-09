@@ -19,6 +19,7 @@ corof::awaitable<> Player::on_AM_BADACTORPOD(const ActorMsgPack &rstMPK)
     AMBadActorPod amBAP;
     std::memcpy(&amBAP, rstMPK.data(), sizeof(amBAP));
     reportDeadUID(amBAP.UID);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
@@ -36,18 +37,20 @@ corof::awaitable<> Player::on_AM_BINDCHANNEL(const ActorMsgPack &rstMPK)
     m_actorPod->bindNet(m_channID.value());
 
     postOnlineOK();
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_SENDPACKAGE(const ActorMsgPack &mpk)
 {
     const auto sdSP = mpk.deserialize<SDSendPackage>();
     postNetMessage(sdSP.type, sdSP.buf.empty() ? nullptr : sdSP.buf.data(), sdSP.buf.size(), 0);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
-    operateNet(amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
+    co_await operateNet(amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
     freeActorDataPackage(&(amRP.package));
 }
 
@@ -55,7 +58,7 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
     if(amA.UID == UID()){
-        return;
+        co_return;
     }
 
     const auto [dstX, dstY] = [&amA]() -> std::tuple<int, int>
@@ -96,7 +99,7 @@ corof::awaitable<> Player::on_AM_ACTION(const ActorMsgPack &rstMPK)
     });
 
     if(distChanged){
-        m_buffList.updateAura(amA.UID);
+        co_await m_buffList.updateAura(amA.UID);
     }
 
     if(addedInView > 0){
@@ -118,11 +121,13 @@ corof::awaitable<> Player::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
         // currently just dispatch through map
         dispatchAction(amNNCO.UID, makeActionStand());
     }
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_QUERYHEALTH(const ActorMsgPack &rmpk)
 {
     m_actorPod->post(rmpk.fromAddr(), {AM_HEALTH, cerealf::serialize(m_sdHealth)});
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
@@ -131,6 +136,7 @@ corof::awaitable<> Player::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
     std::memcpy(&amQCOR, rstMPK.data(), sizeof(amQCOR));
 
     reportCO(amQCOR.UID);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
@@ -141,10 +147,10 @@ corof::awaitable<> Player::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
     }
 
     if(amMST.mapUID == mapUID()){
-        requestSpaceMove(amMST.X, amMST.Y, false);
+        co_await requestSpaceMove(amMST.X, amMST.Y, false);
     }
     else{
-        requestMapSwitch(amMST.mapUID, amMST.X, amMST.Y, false);
+        co_await requestMapSwitch(amMST.mapUID, amMST.X, amMST.Y, false);
     }
 }
 
@@ -160,18 +166,19 @@ corof::awaitable<> Player::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
     amL.Direction = Direction();
 
     m_actorPod->post(rstMPK.fromAddr(), {AM_LOCATION, amL});
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_ATTACK(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAttack>();
     if(amA.UID != UID()){
-        return;
+        return {};
     }
 
     if(m_dead.get()){
         notifyDead(amA.UID);
-        return;
+        return {};
     }
 
     if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
@@ -184,11 +191,11 @@ corof::awaitable<> Player::on_AM_ATTACK(const ActorMsgPack &mpk)
 
                     amM.UID = amA.UID;
                     m_actorPod->post(amA.UID, {AM_MISS, amM});
-                    return;
+                    return {};
                 }
             default:
                 {
-                    return;
+                    return {};
                 }
         }
     }
@@ -213,6 +220,7 @@ corof::awaitable<> Player::on_AM_ATTACK(const ActorMsgPack &mpk)
         .y = Y(),
         .fromUID = amA.UID,
     });
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
@@ -231,51 +239,49 @@ corof::awaitable<> Player::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 
         postNetMessage(SM_DEADFADEOUT, smDFO);
     }
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_ADDBUFF(const ActorMsgPack &mpk)
 {
     const auto amAB = mpk.conv<AMAddBuff>();
     fflassert(amAB.id);
-    fflassert(DBCOM_BUFFRECORD(amAB.id));
 
-    checkFriend(amAB.fromUID, [amAB, this](int friendType)
-    {
-        const auto &br = DBCOM_BUFFRECORD(amAB.id);
-        fflassert(br);
+    const auto &br = DBCOM_BUFFRECORD(amAB.id);
+    fflassert(br);
 
-        switch(friendType){
-            case FT_FRIEND:
-                {
-                    if(br.favor >= 0){
-                        addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
-                    }
-                    return;
-                }
-            case FT_ENEMY:
-                {
-                    if(br.favor <= 0){
-                        addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
-                    }
-                    return;
-                }
-            case FT_NEUTRAL:
-                {
+    switch(const auto friendType = co_await checkFriend(amAB.fromUID); friendType){
+        case FT_FRIEND:
+            {
+                if(br.favor >= 0){
                     addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
-                    return;
                 }
-            default:
-                {
-                    return;
+                break;
+            }
+        case FT_ENEMY:
+            {
+                if(br.favor <= 0){
+                    addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
                 }
-        }
-    });
+                break;
+            }
+        case FT_NEUTRAL:
+            {
+                addBuff(amAB.fromUID, amAB.fromBuffSeq, amAB.id);
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
 }
 
 corof::awaitable<> Player::on_AM_REMOVEBUFF(const ActorMsgPack &mpk)
 {
     const auto amRB = mpk.conv<AMRemoveBuff>();
     removeFromBuff(amRB.fromUID, amRB.fromBuffSeq, true);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_EXP(const ActorMsgPack &mpk)
@@ -284,14 +290,16 @@ corof::awaitable<> Player::on_AM_EXP(const ActorMsgPack &mpk)
     if(!m_slaveList.contains(mpk.from()) && uidf::isMonster(mpk.from())){
         m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_KILL, %llu)", to_llu(uidf::getMonsterID(mpk.from()))));
     }
+
     gainExp(amE.exp);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_MISS(const ActorMsgPack &mpk)
 {
     const auto amM = mpk.conv<AMMiss>();
     if(amM.UID != UID()){
-        return;
+        return {};
     }
 
     SMMiss smM;
@@ -299,6 +307,7 @@ corof::awaitable<> Player::on_AM_MISS(const ActorMsgPack &mpk)
 
     smM.UID = amM.UID;
     dispatchNetPackage(true, SM_MISS, smM);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_HEAL(const ActorMsgPack &mpk)
@@ -307,6 +316,7 @@ corof::awaitable<> Player::on_AM_HEAL(const ActorMsgPack &mpk)
     if(amH.mapUID == mapUID()){
         updateHealth(amH.addHP, amH.addMP);
     }
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
@@ -322,6 +332,7 @@ corof::awaitable<> Player::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 
     m_channID = 0;
     goOffline();
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
@@ -330,6 +341,7 @@ corof::awaitable<> Player::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
     std::memcpy(&amO, rstMPK.data(), sizeof(amO));
 
     reportOffline(amO.UID, amO.mapUID);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
@@ -339,6 +351,7 @@ corof::awaitable<> Player::on_AM_QUERYUIDBUFF(const ActorMsgPack &mpk)
         .uid = UID(),
         .idList = m_buffList.getIDList(),
     }));
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_QUERYPLAYERNAME(const ActorMsgPack &mpk)
@@ -349,6 +362,7 @@ corof::awaitable<> Player::on_AM_QUERYPLAYERNAME(const ActorMsgPack &mpk)
         .name = name(),
         .nameColor = nameColor(),
     }));
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &mpk)
@@ -363,19 +377,19 @@ corof::awaitable<> Player::on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &mpk)
             .hairColor = m_hairColor,
         },
     }, true));
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &mpk)
 {
     const auto amQFT = mpk.conv<AMQueryFriendType>();
-    checkFriend(amQFT.UID, [this, mpk](int friendType)
-    {
-        AMFriendType amFT;
-        std::memset(&amFT, 0, sizeof(amFT));
+    const auto friendType = co_await checkFriend(amQFT.UID);
 
-        amFT.Type = friendType;
-        m_actorPod->post(mpk.fromAddr(), {AM_FRIENDTYPE, amFT});
-    });
+    AMFriendType amFT;
+    std::memset(&amFT, 0, sizeof(amFT));
+
+    amFT.Type = friendType;
+    m_actorPod->post(mpk.fromAddr(), {AM_FRIENDTYPE, amFT});
 }
 
 corof::awaitable<> Player::on_AM_REMOVEGROUNDITEM(const ActorMsgPack &rstMPK)
@@ -390,6 +404,7 @@ corof::awaitable<> Player::on_AM_REMOVEGROUNDITEM(const ActorMsgPack &rstMPK)
     smRGI.DBID = amRGI.DBID;
 
     postNetMessage(SM_REMOVEGROUNDITEM, smRGI);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_CORECORD(const ActorMsgPack &mpk)
@@ -421,11 +436,14 @@ corof::awaitable<> Player::on_AM_CORECORD(const ActorMsgPack &mpk)
                 break;
             }
     }
+
     postNetMessage(SM_CORECORD, smCOR);
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_NOTIFYDEAD(const ActorMsgPack &)
 {
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
@@ -452,12 +470,14 @@ corof::awaitable<> Player::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 
     m_slaveList.insert(rstMPK.from());
     m_actorPod->post(rstMPK.fromAddr(), {AM_CHECKMASTEROK, amCMOK});
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();
     m_luaRunner->spawn(m_threadKey++, mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
@@ -467,6 +487,7 @@ corof::awaitable<> Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
     {
         .player = sdRJT.player, // can forward player's friend to the team leader
     }));
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
@@ -479,8 +500,9 @@ corof::awaitable<> Player::on_AM_REQUESTLEAVETEAM(const ActorMsgPack &mpk)
         }
 
         m_teamMemberList.erase(std::remove(m_teamMemberList.begin(), m_teamMemberList.end(), mpk.from()), m_teamMemberList.end());
-        reportTeamMemberList();
+        co_await reportTeamMemberList();
     }
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_QUERYTEAMPLAYER(const ActorMsgPack &mpk)
@@ -491,48 +513,44 @@ corof::awaitable<> Player::on_AM_QUERYTEAMPLAYER(const ActorMsgPack &mpk)
         .level = level(),
         .name = name(),
     })});
+    return {};
 }
 
 corof::awaitable<> Player::on_AM_TEAMUPDATE(const ActorMsgPack &mpk)
 {
-    m_actorPod->send(mpk.from(), AM_QUERYTEAMMEMBERLIST, [this](const ActorMsgPack &rmpk)
-    {
-        switch(rmpk.type()){
-            case AM_TEAMMEMBERLIST:
-                {
-                    const auto sdTML = rmpk.deserialize<SDTeamMemberList>();
-                    if(sdTML.hasMember(UID())){
-                        fflassert(sdTML.teamLeader == rmpk.from());
-                    }
-
-                    if(sdTML.hasMember(UID())){
-                        m_teamLeader = rmpk.from();
-                        m_teamMemberList.clear();
-                        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTML));
-                    }
-                    else{
-                        m_teamLeader = 0;
-                        m_teamMemberList.clear();
-                        postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
-                    }
-
-                    break;
+    switch(const auto rmpk = co_await m_actorPod->send(mpk.from(), AM_QUERYTEAMMEMBERLIST); rmpk.type()){
+        case AM_TEAMMEMBERLIST:
+            {
+                const auto sdTML = rmpk.deserialize<SDTeamMemberList>();
+                if(sdTML.hasMember(UID())){
+                    fflassert(sdTML.teamLeader == rmpk.from());
                 }
-            default:
-                {
+
+                if(sdTML.hasMember(UID())){
+                    m_teamLeader = rmpk.from();
+                    m_teamMemberList.clear();
+                    postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(sdTML));
+                }
+                else{
                     m_teamLeader = 0;
                     m_teamMemberList.clear();
                     postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
-                    break;
                 }
-        }
-    });
+
+                break;
+            }
+        default:
+            {
+                m_teamLeader = 0;
+                m_teamMemberList.clear();
+                postNetMessage(SM_TEAMMEMBERLIST, cerealf::serialize(SDTeamMemberList{}));
+                break;
+            }
+    }
 }
 
 corof::awaitable<> Player::on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &mpk)
 {
-    pullTeamMemberList([mpk, this](std::optional<SDTeamMemberList> sdTML)
-    {
-        m_actorPod->post(mpk.fromAddr(), {AM_TEAMMEMBERLIST, cerealf::serialize(sdTML.value())});
-    });
+    const auto sdTML = co_await pullTeamMemberList();
+    m_actorPod->post(mpk.fromAddr(), {AM_TEAMMEMBERLIST, cerealf::serialize(sdTML.value())});
 }

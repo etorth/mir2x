@@ -166,7 +166,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
 
         fflassert(monsterID);
-        getNPChar()->postAddMonster(monsterID);
+        getNPChar()->postAddMonster(monsterID).resume();
     });
 
     bindFunction("dbSetGKey", [this](std::string key, sol::object obj)
@@ -389,9 +389,9 @@ void NPChar::reportCO(uint64_t)
 {
 }
 
-void NPChar::onActivate()
+corof::awaitable<> NPChar::onActivate()
 {
-    CharObject::onActivate();
+    co_await CharObject::onActivate();
     m_luaRunner = std::make_unique<NPChar::LuaThreadRunner>(this);
 }
 
@@ -497,7 +497,7 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
     }));
 }
 
-void NPChar::postAddMonster(uint32_t monsterID)
+corof::awaitable<> NPChar::postAddMonster(uint32_t monsterID)
 {
     SDInitCharObject sdICO = SDInitMonster
     {
@@ -509,81 +509,68 @@ void NPChar::postAddMonster(uint32_t monsterID)
         .direction = DIR_BEGIN,
     };
 
-    m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}, [](const ActorMsgPack &rmpk)
-    {
-        switch(rmpk.type()){
-            case AM_UID:
-                {
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-    });
-}
-
-void NPChar::onActorMsg(const ActorMsgPack &mpk)
-{
-    switch(mpk.type()){
-        case AM_OFFLINE:
+    switch(const auto rmpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}); rmpk.type()){
+        case AM_UID:
             {
-                break;
-            }
-        case AM_BUY:
-            {
-                on_AM_BUY(mpk);
-                break;
-            }
-        case AM_ATTACK:
-            {
-                on_AM_ATTACK(mpk);
-                break;
-            }
-        case AM_ACTION:
-            {
-                on_AM_ACTION(mpk);
-                break;
-            }
-        case AM_NPCEVENT:
-            {
-                on_AM_NPCEVENT(mpk);
-                break;
-            }
-        case AM_NOTIFYNEWCO:
-            {
-                on_AM_NOTIFYNEWCO(mpk);
-                break;
-            }
-        case AM_QUERYCORECORD:
-            {
-                on_AM_QUERYCORECORD(mpk);
-                break;
-            }
-        case AM_QUERYLOCATION:
-            {
-                on_AM_QUERYLOCATION(mpk);
-                break;
-            }
-        case AM_QUERYSELLITEMLIST:
-            {
-                on_AM_QUERYSELLITEMLIST(mpk);
-                break;
-            }
-        case AM_REMOTECALL:
-            {
-                on_AM_REMOTECALL(mpk);
-                break;
-            }
-        case AM_BADACTORPOD:
-            {
-                on_AM_BADACTORPOD(mpk);
                 break;
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpkName(mpk.type()));
+                break;
+            }
+    }
+}
+
+corof::awaitable<> NPChar::onActorMsg(const ActorMsgPack &mpk)
+{
+    switch(mpk.type()){
+        case AM_OFFLINE:
+            {
+                return {};
+            }
+        case AM_BUY:
+            {
+                return on_AM_BUY(mpk);
+            }
+        case AM_ATTACK:
+            {
+                return on_AM_ATTACK(mpk);
+            }
+        case AM_ACTION:
+            {
+                return on_AM_ACTION(mpk);
+            }
+        case AM_NPCEVENT:
+            {
+                return on_AM_NPCEVENT(mpk);
+            }
+        case AM_NOTIFYNEWCO:
+            {
+                return on_AM_NOTIFYNEWCO(mpk);
+            }
+        case AM_QUERYCORECORD:
+            {
+                return on_AM_QUERYCORECORD(mpk);
+            }
+        case AM_QUERYLOCATION:
+            {
+                return on_AM_QUERYLOCATION(mpk);
+            }
+        case AM_QUERYSELLITEMLIST:
+            {
+                return on_AM_QUERYSELLITEMLIST(mpk);
+            }
+        case AM_REMOTECALL:
+            {
+                return on_AM_REMOTECALL(mpk);
+            }
+        case AM_BADACTORPOD:
+            {
+                return on_AM_BADACTORPOD(mpk);
+            }
+        default:
+            {
+                throw fflvalue(mpkName(mpk.type()));
             }
     }
 }

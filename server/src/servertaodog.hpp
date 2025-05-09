@@ -58,13 +58,14 @@ class ServerTaoDog final: public ServerTaoSummon
         corof::awaitable<bool> attackUID(uint64_t, int) override;
 
     protected:
-        void onAMMasterHitted(const ActorMsgPack &) override
+        corof::awaitable<> onAMMasterHitted(const ActorMsgPack &) override
         {
             setStandMode(true);
+            return {};
         }
 
     protected:
-        void onAMAttack(const ActorMsgPack &) override;
+        corof::awaitable<> onAMAttack(const ActorMsgPack &) override;
 
     protected:
         DamageNode getAttackDamage(int, int) const override;

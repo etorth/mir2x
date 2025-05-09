@@ -12,20 +12,20 @@ corof::awaitable<> ServerSandCactus::runAICoro()
 
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
-            if(co_await coro_inDCCastRange(targetUID, mr.castRange)){
-                co_await coro_attackUID(targetUID, magicID);
+            if(co_await inDCCastRange(targetUID, mr.castRange)){
+                co_await attackUID(targetUID, magicID);
             }
         }
-        co_await corof::async_wait(200);
+        co_await asyncWait(200);
     }
 
     goDie();

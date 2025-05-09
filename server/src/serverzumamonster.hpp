@@ -57,13 +57,14 @@ class ServerZumaMonster final: public Monster
         }
 
     protected:
-        void onAMMasterHitted(const ActorMsgPack &) override
+        corof::awaitable<> onAMMasterHitted(const ActorMsgPack &) override
         {
             setStandMode(true);
+            return {};
         }
 
     protected:
-        void onAMAttack(const ActorMsgPack &) override;
+        corof::awaitable<> onAMAttack(const ActorMsgPack &) override;
 
     protected:
         bool canMove(bool checkMoveLock) const override

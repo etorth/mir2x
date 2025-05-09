@@ -21,26 +21,26 @@ corof::awaitable<> ServerWoomaTaurus::runAICoro()
 
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
-            if(co_await coro_inDCCastRange(targetUID, lightMR.castRange)){
-                co_await coro_attackUID(targetUID, lightMagicID);
+            if(co_await inDCCastRange(targetUID, lightMR.castRange)){
+                co_await attackUID(targetUID, lightMagicID);
             }
-            else if(co_await coro_inDCCastRange(targetUID, thunderMR.castRange)){
-                if(co_await coro_attackUID(targetUID, thunderMagicID)){
+            else if(co_await inDCCastRange(targetUID, thunderMR.castRange)){
+                if(co_await attackUID(targetUID, thunderMagicID)){
                     for(const auto &[uid, coLoc]: m_inViewCOList){
                         if(uid == targetUID){
                             continue;
                         }
 
-                        switch(co_await coro_checkFriend(uid)){
+                        switch(co_await checkFriend(uid)){
                             case FT_ENEMY:
                                 {
                                     sendThunderBolt(uid);
@@ -55,16 +55,16 @@ corof::awaitable<> ServerWoomaTaurus::runAICoro()
                 }
             }
             else{
-                co_await coro_trackUID(targetUID, {});
+                co_await trackUID(targetUID, {});
             }
         }
         else if(masterUID()){
-            co_await coro_followMaster();
+            co_await followMaster();
         }
         else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await coro_randomMove();
+            co_await randomMove();
         }
-        co_await corof::async_wait(200);
+        co_await asyncWait(200);
     }
 
     goDie();

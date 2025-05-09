@@ -15,7 +15,7 @@ class ServerBugbatMaggot final: public Monster
         {}
 
     protected:
-        void addBat();
+        corof::awaitable<> addBat();
 
     protected:
         corof::awaitable<> runAICoro() override;

@@ -58,7 +58,7 @@ corof::awaitable<> Monster::on_AM_ADDBUFF(const ActorMsgPack &mpk)
     const auto &br = DBCOM_BUFFRECORD(amAB.id);
     fflassert(br);
 
-    switch(const auto friendType = co_await checkFriend(amAB.fromUID)){
+    switch(const auto friendType = co_await checkFriend(amAB.fromUID); friendType){
         case FT_FRIEND:
             {
                 if(br.favor >= 0){
@@ -104,7 +104,7 @@ corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
 {
     const auto amA = rstMPK.conv<AMAction>();
     if(amA.UID == UID()){
-        return;
+        co_return;
     }
 
     const auto [dstX, dstY] = [&amA]() -> std::tuple<int, int>
@@ -145,7 +145,7 @@ corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
     }();
 
     if(distChanged){
-        m_buffList.updateAura(amA.UID);
+        co_await m_buffList.updateAura(amA.UID);
     }
 
     // if sent is a player and is removed from this inview CO list
@@ -170,15 +170,17 @@ corof::awaitable<> Monster::on_AM_NOTIFYNEWCO(const ActorMsgPack &rstMPK)
         // currently just dispatch through map
         dispatchAction(makeActionStand());
     }
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_ATTACK(const ActorMsgPack &mpk)
 {
-    onAMAttack(mpk);
+    co_await onAMAttack(mpk);
 }
 
 corof::awaitable<> Monster::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &)
 {
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
@@ -193,26 +195,31 @@ corof::awaitable<> Monster::on_AM_QUERYLOCATION(const ActorMsgPack &rstMPK)
     amL.Direction = Direction();
 
     m_actorPod->post(rstMPK.fromAddr(), {AM_LOCATION, amL});
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_UPDATEHP(const ActorMsgPack &)
 {
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_BADACTORPOD(const ActorMsgPack &)
 {
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
 {
     const auto amDFO = mpk.conv<AMDeadFadeOut>();
     m_inViewCOList.erase(amDFO.UID);
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_NOTIFYDEAD(const ActorMsgPack &rstMPK)
 {
     const auto amND = rstMPK.conv<AMNotifyDead>();
     m_inViewCOList.erase(amND.UID);
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
@@ -225,16 +232,19 @@ corof::awaitable<> Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
             && amO.UID == masterUID()){
         goDie();
     }
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 {
     m_actorPod->post(rstMPK.fromAddr(), AM_OK);
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_QUERYHEALTH(const ActorMsgPack &rmpk)
 {
     m_actorPod->post(rmpk.fromAddr(), {AM_HEALTH, cerealf::serialize(m_sdHealth)});
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_QUERYMASTER(const ActorMsgPack &mpk)
@@ -244,52 +254,52 @@ corof::awaitable<> Monster::on_AM_QUERYMASTER(const ActorMsgPack &mpk)
 
     amUID.uid = masterUID() ? masterUID() : UID();
     m_actorPod->post(mpk.fromAddr(), {AM_UID, amUID});
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_QUERYFINALMASTER(const ActorMsgPack &mpk)
 {
-    queryFinalMaster(UID(), [this, mpk](uint64_t finalMasterUID)
-    {
-        AMUID amUID;
-        std::memset(&amUID, 0, sizeof(amUID));
+    const auto finalMasterUID = co_await queryFinalMaster(UID());
+    AMUID amUID;
+    std::memset(&amUID, 0, sizeof(amUID));
 
-        amUID.uid = finalMasterUID;
-        m_actorPod->post(mpk.fromAddr(), {AM_UID, amUID});
-    });
+    amUID.uid = finalMasterUID;
+    m_actorPod->post(mpk.fromAddr(), {AM_UID, amUID});
 }
 
-corof::awaitable<> Monster::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &mpk)
 {
     AMQueryFriendType amQFT;
-    std::memcpy(&amQFT, rstMPK.data(), sizeof(amQFT));
+    std::memcpy(&amQFT, mpk.data(), sizeof(amQFT));
 
-    checkFriend(amQFT.UID, [this, rstMPK](int nFriendType)
-    {
-        AMFriendType amFT;
-        std::memset(&amFT, 0, sizeof(amFT));
+    const auto friendType = co_await checkFriend(amQFT.UID);
 
-        amFT.Type = nFriendType;
-        m_actorPod->post(rstMPK.fromAddr(), {AM_FRIENDTYPE, amFT});
-    });
+    AMFriendType amFT;
+    std::memset(&amFT, 0, sizeof(amFT));
+
+    amFT.Type = friendType;
+    m_actorPod->post(mpk.fromAddr(), {AM_FRIENDTYPE, amFT});
 }
 
-corof::awaitable<> Monster::on_AM_QUERYNAMECOLOR(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_QUERYNAMECOLOR(const ActorMsgPack &mpk)
 {
     AMNameColor amNC;
     std::memset(&amNC, 0, sizeof(amNC));
 
     amNC.Color = 'W';
-    m_actorPod->post(rstMPK.fromAddr(), {AM_NAMECOLOR, amNC});
+    m_actorPod->post(mpk.fromAddr(), {AM_NAMECOLOR, amNC});
+    return {};
 }
 
-corof::awaitable<> Monster::on_AM_MASTERKILL(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_MASTERKILL(const ActorMsgPack &mpk)
 {
-    if(masterUID() && (rstMPK.from() == masterUID())){
+    if(masterUID() && (mpk.from() == masterUID())){
         goDie();
     }
+    return {};
 }
 
 corof::awaitable<> Monster::on_AM_MASTERHITTED(const ActorMsgPack &mpk)
 {
-    onAMMasterHitted(mpk);
+    co_await onAMMasterHitted(mpk);
 }

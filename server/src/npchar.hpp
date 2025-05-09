@@ -99,7 +99,7 @@ class NPChar final: public CharObject
         // for messages NPChar -> Player (then Player may react) we use uidExecute()
         void postSell(uint64_t);
         void postXMLLayout(uint64_t, std::string, std::string);
-        void postAddMonster(uint32_t);
+        corof::awaitable<> postAddMonster(uint32_t);
         void postInvOpCost(uint64_t, int, uint32_t, uint32_t, size_t);
         void postStartInput(uint64_t, std::string, std::string, bool);
         void postStartInvOp(uint64_t, int, std::string, std::string, std::vector<std::u8string>);

@@ -6,23 +6,23 @@ corof::awaitable<> ServerZumaMonster::runAICoro()
     std::optional<uint64_t> idleTime;
 
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
             idleTime.reset();
             setStandMode(true);
-            co_await coro_trackAttackUID(targetUID);
+            co_await trackAttackUID(targetUID);
         }
 
         else if(masterUID()){
             setStandMode(true);
-            co_await coro_followMaster();
+            co_await followMaster();
         }
 
         else{
@@ -33,15 +33,15 @@ corof::awaitable<> ServerZumaMonster::runAICoro()
                 setStandMode(false);
             }
         }
-        co_await corof::async_wait(200);
+        co_await asyncWait(200);
     }
 
     goDie();
 }
 
-void ServerZumaMonster::onAMAttack(const ActorMsgPack &mpk)
+corof::awaitable<> ServerZumaMonster::onAMAttack(const ActorMsgPack &mpk)
 {
     if(m_standMode){
-        Monster::onAMAttack(mpk);
+        co_await Monster::onAMAttack(mpk);
     }
 }

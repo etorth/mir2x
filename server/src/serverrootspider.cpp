@@ -17,12 +17,12 @@ corof::awaitable<> ServerRootSpider::runAICoro()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
@@ -42,11 +42,11 @@ corof::awaitable<> ServerRootSpider::runAICoro()
                     .y = Y(),
                 });
 
-                co_await corof::async_wait(300);
+                co_await asyncWait(300);
                 addBombSpider();
             }
         }
-        co_await corof::async_wait(2000);
+        co_await asyncWait(2000);
     }
 
     goDie();

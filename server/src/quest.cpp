@@ -191,49 +191,49 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
         query.exec();
     });
 
-    bindFunctionCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
-    {
-        fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
-        fflassert(triggerType <  SYS_ON_END  , triggerType);
-
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
-        {
-            *closed = true;
-        });
-
-        AMModifyQuestTriggerType amMQTT;
-        std::memset(&amMQTT, 0, sizeof(amMQTT));
-
-        amMQTT.type = triggerType;
-        amMQTT.enable = enable;
-
-        m_actorPod->send(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [closed, onDone, this](const ActorMsgPack &rmpk)
-        {
-            if(*closed){
-                return;
-            }
-            else{
-                onDone.popOnClose();
-            }
-
-            // expected an reply
-            // this makes sure when modifyQuestTriggerType() returns, the trigger has already been enabled/disabled
-
-            switch(rmpk.type()){
-                case AM_OK:
-                    {
-                        onDone(true);
-                        break;
-                    }
-                default:
-                    {
-                        onDone();
-                        break;
-                    }
-            }
-        });
-    });
+    // bindFunctionCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
+    // {
+    //     fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
+    //     fflassert(triggerType <  SYS_ON_END  , triggerType);
+    //
+    //     auto closed = std::make_shared<bool>(false);
+    //     onDone.pushOnClose([closed]()
+    //     {
+    //         *closed = true;
+    //     });
+    //
+    //     AMModifyQuestTriggerType amMQTT;
+    //     std::memset(&amMQTT, 0, sizeof(amMQTT));
+    //
+    //     amMQTT.type = triggerType;
+    //     amMQTT.enable = enable;
+    //
+    //     m_actorPod->send(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [closed, onDone, this](const ActorMsgPack &rmpk)
+    //     {
+    //         if(*closed){
+    //             return;
+    //         }
+    //         else{
+    //             onDone.popOnClose();
+    //         }
+    //
+    //         // expected an reply
+    //         // this makes sure when modifyQuestTriggerType() returns, the trigger has already been enabled/disabled
+    //
+    //         switch(rmpk.type()){
+    //             case AM_OK:
+    //                 {
+    //                     onDone(true);
+    //                     break;
+    //                 }
+    //             default:
+    //                 {
+    //                     onDone();
+    //                     break;
+    //                 }
+    //         }
+    //     });
+    // });
 
     bindFunction("_RSVD_NAME_closeQuestState", [this](uint64_t uid, const char *fsm)
     {
@@ -302,9 +302,9 @@ Quest::Quest(const SDInitQuest &initQuest)
     }
 }
 
-void Quest::onActivate()
+corof::awaitable<> Quest::onActivate()
 {
-    ServerObject::onActivate();
+    co_await ServerObject::onActivate();
     m_actorPod->post(uidf::getServiceCoreUID(), {AM_REGISTERQUEST, cerealf::serialize(SDRegisterQuest
     {
         .name = getQuestName(),

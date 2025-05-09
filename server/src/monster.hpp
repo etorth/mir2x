@@ -224,8 +224,8 @@ class Monster: public BattleObject
         bool hasPlayerNeighbor() const;
 
     protected:
-        virtual void onAMAttack      (const ActorMsgPack &);
-        virtual void onAMMasterHitted(const ActorMsgPack &);
+        virtual corof::awaitable<> onAMAttack      (const ActorMsgPack &);
+        virtual corof::awaitable<> onAMMasterHitted(const ActorMsgPack &);
 
     protected:
         void dispatchOffenderExp();

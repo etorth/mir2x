@@ -1,14 +1,11 @@
 #include "sysconst.hpp"
 #include "serverbugbatmaggot.hpp"
 
-void ServerBugbatMaggot::addBat()
+corof::awaitable<> ServerBugbatMaggot::addBat()
 {
-    addMonster(DBCOM_MONSTERID(u8"蝙蝠"), X(), Y() - 1, false, [this](uint64_t uid)
-    {
-        if(uid){
-            m_batUIDList.insert(uid);
-        }
-    });
+    if(const auto uid = co_await addMonster(DBCOM_MONSTERID(u8"蝙蝠"), X(), Y() - 1, false)){
+        m_batUIDList.insert(uid);
+    }
 }
 
 corof::awaitable<> ServerBugbatMaggot::runAICoro()
@@ -30,10 +27,10 @@ corof::awaitable<> ServerBugbatMaggot::runAICoro()
                 .y = Y(),
             });
 
-            co_await corof::async_wait(600);
-            addBat();
+            co_await asyncWait(600);
+            co_await addBat();
         }
-        co_await corof::async_wait(2000);
+        co_await asyncWait(2000);
     }
 
     goDie();

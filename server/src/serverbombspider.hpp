@@ -14,27 +14,30 @@ class ServerBombSpider final: public Monster
         {
             uint64_t targetUID = 0;
             while(m_sdHealth.hp > 0){
-                if(targetUID && !(co_await coro_validTarget(targetUID))){
+                if(targetUID && !(co_await validTarget(targetUID))){
                     targetUID = 0;
                 }
 
                 if(!targetUID){
-                    targetUID = co_await coro_pickTarget();
+                    targetUID = co_await pickTarget();
                 }
 
-                if(targetUID){
-                    const auto [targetMapID, targetGX, targetGY] = co_await coro_getCOGLoc(targetUID);
-                    if((mapID() != targetMapID) || (mathf::LDistance2<int>(X(), Y(), targetGX, targetGY) <= 1)){
-                        break; // goDie
-                    }
-                    else{
-                        co_await coro_trackUID(targetUID, {});
-                    }
-                }
-                else{
+                if(!targetUID){
                     break; // goDie
                 }
-                co_await corof::async_wait(200);
+
+                const auto coLocOpt = co_await getCOLocation(targetUID);
+                if(!coLocOpt.has_value()){
+                    continue;
+                }
+
+                const auto &coLoc = coLocOpt.value();
+                if((mapID() != coLoc.mapUID) || (mathf::LDistance2<int>(X(), Y(), coLoc.x, coLoc.y) <= 1)){
+                    break; // goDie
+                }
+
+                co_await trackUID(targetUID, {});
+                co_await asyncWait(200);
             }
 
             goDie();
