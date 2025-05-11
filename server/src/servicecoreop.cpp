@@ -58,7 +58,7 @@ corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
 
         amLMOK.newLoad = newLoad;
         m_actorPod->post(mpk.fromAddr(), {AM_LOADMAPOK, amLMOK});
-    },
+    }
     else{
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
     }
