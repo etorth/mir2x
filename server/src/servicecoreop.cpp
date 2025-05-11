@@ -21,7 +21,7 @@ extern Server *g_server;
 corof::awaitable<> ServiceCore::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();
-    operateNet(amRP.channID, amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
+    co_await operateNet(amRP.channID, amRP.package.type, amRP.package.buf(), amRP.package.size, amRP.package.resp);
     freeActorDataPackage(&(amRP.package));
 }
 
@@ -29,6 +29,7 @@ corof::awaitable<> ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
 {
     const auto sdRQ = mpk.deserialize<SDRegisterQuest>();
     m_questList[mpk.from()] = sdRQ;
+    return {};
 }
 
 corof::awaitable<> ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
@@ -51,19 +52,16 @@ corof::awaitable<> ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
 corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
 {
     const auto amLM = mpk.conv<AMLoadMap>();
-    requestLoadMap(amLM.mapUID, [mpk, this](bool newLoad)
-    {
+    if(const auto [loaded, newLoad] = co_await requestLoadMap(amLM.mapUID); loaded){
         AMLoadMapOK amLMOK;
         std::memset(&amLMOK, 0, sizeof(amLMOK));
 
         amLMOK.newLoad = newLoad;
         m_actorPod->post(mpk.fromAddr(), {AM_LOADMAPOK, amLMOK});
     },
-
-    [mpk, this]()
-    {
+    else{
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-    });
+    }
 }
 
 corof::awaitable<> ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)

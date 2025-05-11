@@ -23,123 +23,107 @@ ServiceCore::ServiceCore()
     : PeerCore()
 {}
 
-void ServiceCore::onActorMsg(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
         case AM_BADCHANNEL:
             {
-                on_AM_BADCHANNEL(mpk);
-                break;
+                return on_AM_BADCHANNEL(mpk);
             }
         case AM_REGISTERQUEST:
             {
-                on_AM_REGISTERQUEST(mpk);
-                break;
+                return on_AM_REGISTERQUEST(mpk);
             }
         case AM_RECVPACKAGE:
             {
-                on_AM_RECVPACKAGE(mpk);
-                break;
+                return on_AM_RECVPACKAGE(mpk);
             }
         case AM_QUERYMAPLIST:
             {
-                on_AM_QUERYMAPLIST(mpk);
-                break;
+                return on_AM_QUERYMAPLIST(mpk);
             }
         case AM_QUERYCOCOUNT:
             {
-                on_AM_QUERYCOCOUNT(mpk);
-                break;
+                return on_AM_QUERYCOCOUNT(mpk);
             }
         case AM_LOADMAP:
             {
-                on_AM_LOADMAP(mpk);
-                break;
+                return on_AM_LOADMAP(mpk);
             }
         case AM_MODIFYQUESTTRIGGERTYPE:
             {
-                on_AM_MODIFYQUESTTRIGGERTYPE(mpk);
-                break;
+                return on_AM_MODIFYQUESTTRIGGERTYPE(mpk);
             }
         case AM_QUERYQUESTTRIGGERLIST:
             {
-                on_AM_QUERYQUESTTRIGGERLIST(mpk);
-                break;
+                return on_AM_QUERYQUESTTRIGGERLIST(mpk);
             }
         case AM_QUERYQUESTUID:
             {
-                on_AM_QUERYQUESTUID(mpk);
-                break;
+                return on_AM_QUERYQUESTUID(mpk);
             }
         case AM_QUERYQUESTUIDLIST:
             {
-                on_AM_QUERYQUESTUIDLIST(mpk);
-                break;
+                return on_AM_QUERYQUESTUIDLIST(mpk);
             }
         default:
             {
-                g_server->addLog(LOGTYPE_WARNING, "Unsupported message: %s", mpkName(mpk.type()));
-                break;
+                throw fflvalue(mpk.str());
             }
     }
 }
 
-void ServiceCore::operateNet(uint32_t channID, uint8_t cmType, const uint8_t *buf, size_t bufSize, uint64_t respID)
+corof::awaitable<> ServiceCore::operateNet(uint32_t channID, uint8_t cmType, const uint8_t *buf, size_t bufSize, uint64_t respID)
 {
     switch(cmType){
         case CM_LOGIN:
             {
-                net_CM_LOGIN(channID, cmType, buf, bufSize, respID);
-                break;
+                return net_CM_LOGIN(channID, cmType, buf, bufSize, respID);
             }
         case CM_ONLINE:
             {
-                net_CM_ONLINE(channID, cmType, buf, bufSize, respID);
-                break;
+                return net_CM_ONLINE(channID, cmType, buf, bufSize, respID);
             }
         case CM_QUERYCHAR:
             {
-                net_CM_QUERYCHAR(channID, cmType, buf, bufSize, respID);
-                break;
+                return net_CM_QUERYCHAR(channID, cmType, buf, bufSize, respID);
             }
         case CM_CREATECHAR:
             {
-                net_CM_CREATECHAR(channID, cmType, buf, bufSize, respID);
-                break;
+                return net_CM_CREATECHAR(channID, cmType, buf, bufSize, respID);
             }
         case CM_DELETECHAR:
             {
-                net_CM_DELETECHAR(channID, cmType, buf, bufSize, respID);
-                break;
+                return net_CM_DELETECHAR(channID, cmType, buf, bufSize, respID);
             }
         case CM_CREATEACCOUNT:
             {
-                net_CM_CREATEACCOUNT(channID, cmType, buf, bufSize, respID);
-                break;
+                return net_CM_CREATEACCOUNT(channID, cmType, buf, bufSize, respID);
             }
         case CM_CHANGEPASSWORD:
             {
-                net_CM_CHANGEPASSWORD(channID, cmType, buf, bufSize, respID);
-                break;
+                return net_CM_CHANGEPASSWORD(channID, cmType, buf, bufSize, respID);
             }
         default:
             {
-                throw fflerror("unknown client message unhandled: %s", to_cstr(ClientMsg(cmType).name()));
+                throw fflvalue(ClientMsg(cmType).name());
             }
     }
 }
 
-void ServiceCore::onActivate()
+corof::awaitable<> ServiceCore::onActivate()
 {
-    ServerObject::onActivate();
+    co_await ServerObject::onActivate();
     m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
 
     for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
         if(g_serverArgParser->masterConfig().preloadMapCheck(mapID)){
-            requestLoadMap(uidsf::getMapBaseUID(mapID), [mapID](bool)
-            {
+            if(const auto [loaded, _] = co_await requestLoadMap(uidsf::getMapBaseUID(mapID)); loaded){
                 g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
-            });
+            }
+            else{
+                throw fflerror("failed to load map %s", to_cstr(DBCOM_MAPRECORD(mapID).name));
+            }
         }
     }
 

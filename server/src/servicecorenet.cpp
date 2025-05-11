@@ -103,18 +103,18 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
     const auto dbidOpt = findDBID(channID);
     if(!dbidOpt.has_value()){
         fnOnlineError(ONLINEERR_NOLOGIN);
-        return {};
+        co_return;
     }
 
     if(dbidOpt.value().second){
         fnOnlineError(ONLINEERR_MULTIONLINE);
-        return {};
+        co_return;
     }
 
     auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value().first));
     if(!queryChar.executeStep()){
         fnOnlineError(ONLINEERR_NOCHAR);
-        return {};
+        co_return;
     }
 
     const int mapID = queryChar.getColumn("fld_map");
@@ -141,8 +141,7 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         .hairColor = queryChar.getColumn("fld_haircolor"),
     };
 
-    const auto [loaded, _] = co_await requestLoadMap(mapUID, [sdICO, channID, fnOnlineError, this](bool)
-    {
+    if(const auto [loaded, _] = co_await requestLoadMap(mapUID); loaded){
         if(m_addCO->addCO(sdICO)){
             m_dbidList[channID].second = true;
         }
@@ -150,7 +149,10 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
             m_dbidList[channID].second = false;
             fnOnlineError(ONLINEERR_AMERROR);
         }
-    });
+    }
+    else{
+        throw fflerror("failed to load map: %s", uidf::getUIDString(mapUID).c_str());
+    }
 }
 
 corof::awaitable<> ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)

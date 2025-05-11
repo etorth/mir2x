@@ -2,6 +2,7 @@
 #include "pathf.hpp"
 #include "fflerror.hpp"
 #include "raiitimer.hpp"
+#include "friendtype.hpp"
 #include "servertaodog.hpp"
 
 corof::awaitable<> ServerTaoDog::runAICoro()
@@ -105,7 +106,7 @@ corof::awaitable<bool> ServerTaoDog::attackUID(uint64_t targetUID, int dcType)
     });
 
     uidList.insert(targetUID);
-    addDelay(550, [dcType, modifierID, uidList, this]()
+    addDelay(550, [dcType, modifierID, uidList, this](bool) -> corof::awaitable<>
     {
         AMAttack amA;
         std::memset(&amA, 0, sizeof(amA));

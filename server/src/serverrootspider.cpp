@@ -2,15 +2,13 @@
 #include "sysconst.hpp"
 #include "serverrootspider.hpp"
 
-void ServerRootSpider::addBombSpider()
+corof::awaitable<> ServerRootSpider::addBombSpider()
 {
     const auto [spawnGX, spawnGY] = pathf::getFrontGLoc(X(), Y(), Direction() + 3, 1);
-    addMonster(DBCOM_MONSTERID(u8"爆裂蜘蛛"), spawnGX, spawnGY, false, [this](uint64_t uid)
-    {
-        if(uid){
-            m_childUIDList.insert(uid);
-        }
-    });
+    const auto uid = co_await addMonster(DBCOM_MONSTERID(u8"爆裂蜘蛛"), spawnGX, spawnGY, false);
+    if(uid){
+        m_childUIDList.insert(uid);
+    }
 }
 
 corof::awaitable<> ServerRootSpider::runAICoro()
@@ -43,7 +41,7 @@ corof::awaitable<> ServerRootSpider::runAICoro()
                 });
 
                 co_await asyncWait(300);
-                addBombSpider();
+                co_await addBombSpider();
             }
         }
         co_await asyncWait(2000);

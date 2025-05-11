@@ -15,7 +15,7 @@ class ServerRootSpider final: public Monster
         {}
 
     protected:
-        void addBombSpider();
+        corof::awaitable<> addBombSpider();
 
     protected:
         corof::awaitable<> runAICoro() override;

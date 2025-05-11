@@ -45,7 +45,7 @@ asio::awaitable<void> ServerPeer::writer()
 
         if(m_currSendQ.empty()){
             asio::error_code ec;
-            co_await m_timer.asyncWait(asio::redirect_error(asio::use_awaitable, ec));
+            co_await m_timer.async_wait(asio::redirect_error(asio::use_awaitable, ec));
             if(ec && (ec != asio::error::operation_aborted)){
                 throw std::system_error(ec);
             }
