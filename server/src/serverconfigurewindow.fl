@@ -206,8 +206,8 @@ m_window->hide();}
         m_clientPort->deactivate();
     }
 
-    m_slavePort->value(std::to_string(g_serverArgParser->masterConfig().peerPort.first).c_str());
-    if(!g_serverArgParser->masterConfig().peerPort.second){
+    m_slavePort->value(std::to_string(g_serverArgParser->peerPort.first).c_str());
+    if(!g_serverArgParser->peerPort.second){
         m_slavePort->deactivate();
     }
 
