@@ -173,7 +173,7 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(uint64_t map
     m_loadMapPendingOps.try_emplace(mapUID);
 
     const auto mpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID)), {AM_PEERLOADMAP, amPLM});
-    const bool loaded= (mpk.type() == AM_PEERLOADMAPOK);
+    const bool loaded = (mpk.type() == AM_PEERLOADMAPOK);
 
     if(loaded){
         m_mapList.insert(mapUID);
@@ -185,7 +185,7 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(uint64_t map
     }
 
     m_loadMapPendingOps.erase(mapUID); // won't keep record of bad load
-    co_return {loaded, true};        // second parameter is ignored if load failed
+    co_return {loaded, true};          // second parameter is ignored if load failed
 }
 
 std::optional<std::pair<uint32_t, bool>> ServiceCore::findDBID(uint32_t channID) const
