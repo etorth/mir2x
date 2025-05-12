@@ -46,7 +46,9 @@ corof::awaitable<> ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
             throw fflerror("Need larger map list size in AMMapList");
         }
     }
+
     m_actorPod->post(rstMPK.fromAddr(), {AM_MAPLIST, amML});
+    return {};
 }
 
 corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
@@ -64,9 +66,9 @@ corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
     }
 }
 
-corof::awaitable<> ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &mpk)
 {
-    const auto amQCOC = rstMPK.conv<AMQueryCOCount>();
+    const auto amQCOC = mpk.conv<AMQueryCOCount>();
     const auto checkCount = [&amQCOC, this]()
     {
         if(amQCOC.mapUID){
@@ -83,73 +85,51 @@ corof::awaitable<> ServiceCore::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     switch(checkCount){
         case 0:
             {
-                m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
-                return;
+                m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+                co_return;
             }
         case 1:
             {
-                m_actorPod->send(amQCOC.mapUID, {AM_QUERYCOCOUNT, amQCOC}, [this, rstMPK](const ActorMsgPack &rstRMPK)
-                {
-                    switch(rstRMPK.type()){
-                        case AM_COCOUNT:
-                            {
-                                m_actorPod->post(rstMPK.fromAddr(), {AM_COCOUNT, rstRMPK.data(), rstRMPK.size()});
-                                return;
-                            }
-                        case AM_ERROR:
-                        default:
-                            {
-                                m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
-                                return;
-                            }
-                    }
-                });
-                return;
+                switch(const auto rmpk = co_await m_actorPod->send(amQCOC.mapUID, {AM_QUERYCOCOUNT, amQCOC}); rmpk.type()){
+                    case AM_COCOUNT:
+                        {
+                            m_actorPod->post(mpk.fromAddr(), {AM_COCOUNT, rmpk.data(), rmpk.size()});
+                            co_return;
+                        }
+                    case AM_ERROR:
+                    default:
+                        {
+                            m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+                            co_return;
+                        }
+                }
             }
         default:
             {
-                struct SharedState
-                {
-                    bool   error = false;
-                    size_t count = 0;
-                    int    check = 0;
-                };
-
-                auto sharedState = std::make_shared<SharedState>();
-                sharedState->check = to_d(m_mapList.size());
-
-                auto fnOnResp = [sharedState, this, rstMPK](const ActorMsgPack &rstRMPK)
-                {
-                    switch(rstRMPK.type()){
+                size_t coCount = 0;
+                for(const auto mapUID: m_mapList){
+                    switch(const auto rmpk = co_await m_actorPod->send(mapUID, {AM_QUERYCOCOUNT, amQCOC}); rmpk.type()){
                         case AM_COCOUNT:
                             {
-                                if(!sharedState->error){
-                                    auto amCOC = rstRMPK.conv<AMCOCount>();
-                                    if(sharedState->check == 1){
-                                        amCOC.Count += sharedState->count;
-                                        m_actorPod->post(rstMPK.fromAddr(), {AM_COCOUNT, amCOC});
-                                    }
-                                    else{
-                                        sharedState->check--;
-                                        sharedState->count += to_d(amCOC.Count);
-                                    }
-                                }
-                                return;
+                                const auto amCOC = rmpk.conv<AMCOCount>();
+                                coCount += amCOC.Count;
+                                break;
                             }
                         case AM_ERROR:
                         default:
                             {
-                                sharedState->error = true;
-                                m_actorPod->post(rstMPK.fromAddr(), AM_ERROR);
-                                return;
+                                m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+                                co_return;
                             }
                     }
-                };
-
-                for(const auto mapUID: m_mapList){
-                    m_actorPod->post(mapUID, {AM_QUERYCOCOUNT, amQCOC}, fnOnResp);
                 }
-                return;
+
+                AMCOCount amCOC;
+                std::memset(&amCOC, 0, sizeof(amCOC));
+
+                amCOC.Count = coCount;
+                m_actorPod->post(mpk.fromAddr(), {AM_COCOUNT, amCOC});
+                break;
             }
     }
 }
@@ -171,6 +151,7 @@ corof::awaitable<> ServiceCore::on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack 
     // give an response
     // helps quest side to confirm that enable/disable is done
     m_actorPod->post(mpk.fromAddr(), AM_OK);
+    return {};
 }
 
 corof::awaitable<> ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &mpk)
@@ -186,6 +167,7 @@ corof::awaitable<> ServiceCore::on_AM_QUERYQUESTTRIGGERLIST(const ActorMsgPack &
     }
 
     m_actorPod->post(mpk.fromAddr(), {AM_OK, cerealf::serialize(uidList)});
+    return {};
 }
 
 corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
@@ -205,6 +187,7 @@ corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUID(const ActorMsgPack &mpk)
 
     amUID.uid = questUID;
     m_actorPod->post(mpk.fromAddr(), {AM_UID, amUID});
+    return {};
 }
 
 corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
@@ -217,10 +200,12 @@ corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
     }
 
     m_actorPod->post(mpk.fromAddr(), {AM_UIDLIST, cerealf::serialize(uidList)});
+    return {};
 }
 
 corof::awaitable<> ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();
     m_dbidList.erase(amBC.channID);
+    return {};
 }

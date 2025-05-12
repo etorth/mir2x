@@ -170,7 +170,7 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(uint64_t map
     std::memset(&amPLM, 0, sizeof(amPLM));
     amPLM.mapUID = mapUID;
 
-    m_loadMapPendingOps.emplace(mapUID, {});
+    m_loadMapPendingOps.try_emplace(mapUID);
 
     const auto mpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID)), {AM_PEERLOADMAP, amPLM});
     const bool loaded= (mpk.type() == AM_PEERLOADMAPOK);
