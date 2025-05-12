@@ -457,12 +457,7 @@ namespace corof
         public:
             auto operator co_await() &&
             {
-                if(m_handle){
-                    return AwaitableAsAwaiter(m_handle);
-                }
-                else{
-                    throw std::runtime_error("coroutine handle is empty");
-                }
+                return AwaitableAsAwaiter(m_handle);
             }
 
         public:
