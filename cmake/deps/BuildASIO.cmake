@@ -1,6 +1,5 @@
 INCLUDE(ExternalProject)
 
-# SET(MIR2X_ASIO_GIT_TAG "master")
 SET(MIR2X_ASIO_GIT_TAG "asio-1-30-2")
 ExternalProject_Add(
     asio
