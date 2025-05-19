@@ -86,6 +86,16 @@ Monster::Monster(
     m_sdHealth.maxMP = getMR().mp;
 }
 
+corof::awaitable<> Monster::onActivate()
+{
+    co_await CharObject::onActivate();
+    if(masterUID()){
+        if(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type() != AM_CHECKMASTEROK){
+            goDie();
+        }
+    }
+}
+
 bool Monster::randomTurn()
 {
     for(int i = 0, startDir = pathf::getRandDir(); i < 8; ++i){

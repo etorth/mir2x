@@ -186,15 +186,7 @@ class Monster: public BattleObject
         corof::awaitable<bool> moveOneStepNeighbor(int, int);
 
     public:
-        corof::awaitable<> onActivate() override
-        {
-            co_await CharObject::onActivate();
-            if(masterUID()){
-                if(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type() != AM_CHECKMASTEROK){
-                    goDie();
-                }
-            }
-        }
+        corof::awaitable<> onActivate() override;
 
     protected:
         bool canMove(bool)   const override;
