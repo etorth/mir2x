@@ -16,14 +16,17 @@ class ServerTaoSummon: public Monster
         corof::awaitable<> onActivate() override
         {
             fflassert(masterUID());
-            co_await CharObject::onActivate();
+            co_await BattleObject::onActivate();
 
             switch(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type()){
                 case AM_CHECKMASTEROK:
                     {
                         const auto amCMOK = mpk.conv<AMCheckMasterOK>();
+
                         m_masterSC[0] = amCMOK.sc[0];
                         m_masterSC[1] = amCMOK.sc[1];
+
+                        co_await runAICoro();
                         break;
                     }
                 default:

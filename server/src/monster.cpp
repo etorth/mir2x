@@ -92,6 +92,7 @@ corof::awaitable<> Monster::onActivate()
     if(masterUID()){
         if(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type() != AM_CHECKMASTEROK){
             goDie();
+            co_return;
         }
     }
     co_await runAICoro();
