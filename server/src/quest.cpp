@@ -191,7 +191,7 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
         query.exec();
     });
 
-    // bindFunctionCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
+    // bindCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
     // {
     //     fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
     //     fflassert(triggerType <  SYS_ON_END  , triggerType);

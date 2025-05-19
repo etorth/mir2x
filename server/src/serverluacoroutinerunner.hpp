@@ -6,6 +6,7 @@
 #include <sol/sol.hpp>
 #include "sysconst.hpp"
 #include "luaf.hpp"
+#include "corof.hpp"
 #include "totype.hpp"
 #include "serverluamodule.hpp"
 
@@ -354,7 +355,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         };
 
     public:
-        template<typename Func> void bindFunctionCoop(std::string funcName, Func && func)
+        template<typename Func> void bindCoop(std::string funcName, Func && func)
         {
             fflassert(str_haschar(funcName));
             bindFunction(funcName + SYS_COOP, [funcName, this](auto && func)

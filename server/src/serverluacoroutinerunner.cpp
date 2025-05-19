@@ -135,7 +135,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
-    // bindFunctionCoop("_RSVD_NAME_remoteCall", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args)
+    // bindCoop("_RSVD_NAME_remoteCall", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args)
     // {
     //     fflassert(uid != m_actorPod->UID());
     //

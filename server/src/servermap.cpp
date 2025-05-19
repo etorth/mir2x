@@ -215,7 +215,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         }
     });
 
-    bindFunctionCoop("_RSVD_NAME_getNPCharUID", [this](LuaCoopResumer onDone, std::string npcName)
+    bindCoop("_RSVD_NAME_getNPCharUID", [this](LuaCoopResumer onDone, std::string npcName)
     {
         auto mapPtr = getServerMap();
         auto p = mapPtr->m_npcList.find(npcName);

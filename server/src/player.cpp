@@ -63,7 +63,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         }
     });
 
-    bindFunctionCoop("_RSVD_NAME_getTeamMemberList", [this](LuaCoopResumer onDone)
+    bindCoop("_RSVD_NAME_getTeamMemberList", [this](LuaCoopResumer onDone)
     {
         auto closed = std::make_shared<bool>(false);
         onDone.pushOnClose([closed]()
@@ -322,7 +322,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         getPlayer()->postNetMessage(SM_QUESTDESPLIST, cerealf::serialize(sdQDL));
     });
 
-    // bindFunctionCoop("_RSVD_NAME_spaceMove", [this](LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY)
+    // bindCoop("_RSVD_NAME_spaceMove", [this](LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY)
     // {
     //     auto closed = std::make_shared<bool>(false);
     //     onDone.pushOnClose([closed]()
@@ -384,7 +384,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
     //     }
     // });
 
-    // bindFunctionCoop("_RSVD_NAME_randomMove", [this](LuaCoopResumer onDone)
+    // bindCoop("_RSVD_NAME_randomMove", [this](LuaCoopResumer onDone)
     // {
     //     const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
     //     {
@@ -445,7 +445,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
     //     }
     // });
 
-    // bindFunctionCoop("_RSVD_NAME_queryQuestTriggerList", [this](LuaCoopResumer onDone, int triggerType)
+    // bindCoop("_RSVD_NAME_queryQuestTriggerList", [this](LuaCoopResumer onDone, int triggerType)
     // {
     //     fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
     //     fflassert(triggerType <  SYS_ON_END  , triggerType);

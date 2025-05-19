@@ -15,7 +15,7 @@ extern ServerArgParser *g_serverArgParser;
 ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
     : ServerLuaCoroutineRunner(serverObject->m_actorPod)
 {
-    // bindFunctionCoop("_RSVD_NAME_queryQuestUID", [this](LuaCoopResumer onDone, std::string questName)
+    // bindCoop("_RSVD_NAME_queryQuestUID", [this](LuaCoopResumer onDone, std::string questName)
     // {
     //     auto closed = std::make_shared<bool>(false);
     //     onDone.pushOnClose([closed]()
@@ -58,7 +58,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
     //     });
     // });
 
-    // bindFunctionCoop("_RSVD_NAME_queryQuestUIDList", [this](LuaCoopResumer onDone)
+    // bindCoop("_RSVD_NAME_queryQuestUIDList", [this](LuaCoopResumer onDone)
     // {
     //     auto closed = std::make_shared<bool>(false);
     //     onDone.pushOnClose([closed]()
@@ -91,7 +91,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
     //     });
     // });
     //
-    // bindFunctionCoop("_RSVD_NAME_loadMap", [this](LuaCoopResumer onDone, std::string mapName)
+    // bindCoop("_RSVD_NAME_loadMap", [this](LuaCoopResumer onDone, std::string mapName)
     // {
     //     fflassert(str_haschar(mapName));
     //
