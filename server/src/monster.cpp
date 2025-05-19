@@ -88,12 +88,13 @@ Monster::Monster(
 
 corof::awaitable<> Monster::onActivate()
 {
-    co_await CharObject::onActivate();
+    co_await BattleObject::onActivate();
     if(masterUID()){
         if(const auto mpk = co_await m_actorPod->send(masterUID(), AM_CHECKMASTER); mpk.type() != AM_CHECKMASTEROK){
             goDie();
         }
     }
+    co_await runAICoro();
 }
 
 bool Monster::randomTurn()
