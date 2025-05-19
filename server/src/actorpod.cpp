@@ -129,7 +129,7 @@ uint64_t ActorPod::rollSeqID()
 std::pair<uint64_t, uint64_t> ActorPod::createWaitToken(uint64_t tick, std::function<void(const ActorMsgPack &)> op)
 {
     const auto seqID = rollSeqID();
-    const auto empOK = m_respondCBList.emplace(seqID, std::move(op)); // prepare cb before request timeout
+    const auto empOK = m_respondCBList.try_emplace(seqID, std::move(op)); // prepare cb before request timeout
 
     fflassert(empOK.second);
     return
