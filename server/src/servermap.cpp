@@ -215,49 +215,46 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         }
     });
 
-    // bindCoop("_RSVD_NAME_getNPCharUID", [this](LuaCoopResumer onDone, std::string npcName)
-    // {
-    //     auto mapPtr = getServerMap();
-    //     auto p = mapPtr->m_npcList.find(npcName);
-    //
-    //     if(p == mapPtr->m_npcList.end()){
-    //         onDone();
-    //         return;
-    //     }
-    //
-    //     if(p->second.uid.has_value()){
-    //         if(p->second.uid.value()){
-    //             onDone(p->second.uid.value());
-    //         }
-    //         else{
-    //             onDone(); // load tried but failed
-    //         }
-    //         return;
-    //     }
-    //
-    //     auto closed = std::make_shared<bool>(false);
-    //     onDone.pushOnClose([closed]()
-    //     {
-    //         *closed = true;
-    //     });
-    //
-    //     p->second.ops.push_back([closed, onDone](uint64_t uid)
-    //     {
-    //         if(*closed){
-    //             return;
-    //         }
-    //         else{
-    //             onDone.popOnClose();
-    //         }
-    //
-    //         if(uid){
-    //             onDone(uid);
-    //         }
-    //         else{
-    //             onDone();
-    //         }
-    //     });
-    // });
+    bindCoop("_RSVD_NAME_getNPCharUID", [thisptr = this](this auto, LuaCoopResumer onDone, std::string npcName) -> corof::awaitable<>
+    {
+        auto mapPtr = thisptr->getServerMap();
+        auto p = mapPtr->m_npcList.find(npcName);
+
+        if(p == mapPtr->m_npcList.end()){
+            onDone();
+            return {};
+        }
+
+        if(p->second.uid.has_value()){
+            if(p->second.uid.value()){
+                onDone(p->second.uid.value());
+            }
+            else{
+                onDone(); // load tried but failed
+            }
+            return {};
+        }
+
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed](){ *closed = true; });
+
+        p->second.ops.push_back([closed, onDone](uint64_t uid)
+        {
+            if(*closed){
+                return;
+            }
+
+            onDone.popOnClose();
+            if(uid){
+                onDone(uid);
+            }
+            else{
+                onDone();
+            }
+        });
+
+        return {};
+    });
 
     bindFunction("getMonsterCount", [this](sol::variadic_args args) -> int
     {

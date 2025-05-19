@@ -66,10 +66,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
     bindCoop("_RSVD_NAME_getTeamMemberList", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
     {
         bool closed = false;
-        onDone.pushOnClose([&closed]()
-        {
-            closed = true;
-        });
+        onDone.pushOnClose([&closed](){ closed = true; });
 
         const auto sdTMLOpt = co_await thisptr->getPlayer()->pullTeamMemberList();
         if(closed){
@@ -318,128 +315,98 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         getPlayer()->postNetMessage(SM_QUESTDESPLIST, cerealf::serialize(sdQDL));
     });
 
-    // bindCoop("_RSVD_NAME_spaceMove", [this](LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY)
-    // {
-    //     auto closed = std::make_shared<bool>(false);
-    //     onDone.pushOnClose([closed]()
-    //     {
-    //         *closed = true;
-    //     });
-    //
-    //     const auto &mr = DBCOM_MAPRECORD(argMapID);
-    //     fflassert(mr, argMapID);
-    //
-    //     fflassert(argX >= 0, argX);
-    //     fflassert(argY >= 0, argY);
-    //
-    //     if(to_u32(argMapID) == getPlayer()->mapID()){
-    //         getPlayer()->requestSpaceMove(argX, argY, false, [closed, onDone, this]()
-    //         {
-    //             if(*closed){
-    //                 return;
-    //             }
-    //             else{
-    //                 onDone.popOnClose();
-    //             }
-    //             onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
-    //         },
-    //
-    //         [closed, onDone]()
-    //         {
-    //             if(*closed){
-    //                 return;
-    //             }
-    //             else{
-    //                 onDone.popOnClose();
-    //             }
-    //             onDone();
-    //         });
-    //     }
-    //     else{
-    //         getPlayer()->requestMapSwitch(uidsf::getMapBaseUID(argMapID), argX, argY, false, [closed, onDone, this]()
-    //         {
-    //             if(*closed){
-    //                 return;
-    //             }
-    //             else{
-    //                 onDone.popOnClose();
-    //             }
-    //             onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
-    //         },
-    //
-    //         [closed, onDone]()
-    //         {
-    //             if(*closed){
-    //                 return;
-    //             }
-    //             else{
-    //                 onDone.popOnClose();
-    //             }
-    //             onDone();
-    //         });
-    //     }
-    // });
+    bindCoop("_RSVD_NAME_spaceMove", [thisptr = this](this auto, LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY) -> corof::awaitable<>
+    {
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
 
-    // bindCoop("_RSVD_NAME_randomMove", [this](LuaCoopResumer onDone)
-    // {
-    //     const auto newGLoc = [this]() -> std::optional<std::array<int, 2>>
-    //     {
-    //         const int startDir = pathf::getRandDir();
-    //         for(int i = 0; i < 8; ++i){
-    //             if(const auto [newX, newY] = pathf::getFrontGLoc(getPlayer()->X(), getPlayer()->Y(), pathf::getNextDir(startDir, i)); getPlayer()->mapBin()->groundValid(newX, newY)){
-    //                 return {{newX, newY}};
-    //             }
-    //         }
-    //         return {};
-    //     }();
-    //
-    //     if(newGLoc.has_value()){
-    //         auto closed = std::make_shared<bool>(false);
-    //         onDone.pushOnClose([closed]()
-    //         {
-    //             *closed = true;
-    //         });
-    //
-    //         const auto [newX, newY] = newGLoc.value();
-    //         getPlayer()->requestMove(newX, newY, SYS_DEFSPEED, false, false, [closed, oldX = getPlayer()->X(), oldY = getPlayer()->Y(), onDone, this]()
-    //         {
-    //             if(*closed){
-    //                 return;
-    //             }
-    //             else{
-    //                 onDone.popOnClose();
-    //             }
-    //
-    //             // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
-    //             // but here need to sendback the forced move since it's driven by server
-    //
-    //             getPlayer()->reportAction(getPlayer()->UID(), getPlayer()->mapUID(), ActionMove
-    //             {
-    //                 .speed = SYS_DEFSPEED,
-    //                 .x = oldX,
-    //                 .y = oldY,
-    //                 .aimX = getPlayer()->X(),
-    //                 .aimY = getPlayer()->Y(),
-    //             });
-    //
-    //             onDone(getPlayer()->mapID(), getPlayer()->X(), getPlayer()->Y());
-    //         },
-    //
-    //         [closed, onDone]()
-    //         {
-    //             if(*closed){
-    //                 return;
-    //             }
-    //             else{
-    //                 onDone.popOnClose();
-    //             }
-    //             onDone();
-    //         });
-    //     }
-    //     else{
-    //         onDone();
-    //     }
-    // });
+        const auto &mr = DBCOM_MAPRECORD(argMapID);
+        fflassert(mr, argMapID);
+
+        fflassert(argX >= 0, argX);
+        fflassert(argY >= 0, argY);
+
+        if(to_u32(argMapID) == thisptr->getPlayer()->mapID()){
+            const auto moved = co_await thisptr->getPlayer()->requestSpaceMove(argX, argY, false);
+            if(closed){
+                co_return;
+            }
+
+            onDone.popOnClose();
+            if(moved){
+                onDone(thisptr->getPlayer()->mapID(), thisptr->getPlayer()->X(), thisptr->getPlayer()->Y());
+            }
+            else{
+                onDone();
+            }
+        }
+        else{
+            const auto switched = co_await thisptr->getPlayer()->requestMapSwitch(uidsf::getMapBaseUID(argMapID), argX, argY, false);
+            if(closed){
+                co_return;
+            }
+
+            onDone.popOnClose();
+            if(switched){
+                onDone(thisptr->getPlayer()->mapID(), thisptr->getPlayer()->X(), thisptr->getPlayer()->Y());
+            }
+            else{
+                onDone();
+            }
+        }
+    });
+
+    bindCoop("_RSVD_NAME_randomMove", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
+    {
+        const auto newGLoc = [thisptr]() -> std::optional<std::array<int, 2>>
+        {
+            const int startDir = pathf::getRandDir();
+            for(int i = 0; i < 8; ++i){
+                if(const auto [newX, newY] = pathf::getFrontGLoc(thisptr->getPlayer()->X(), thisptr->getPlayer()->Y(), pathf::getNextDir(startDir, i)); thisptr->getPlayer()->mapBin()->groundValid(newX, newY)){
+                    return {{newX, newY}};
+                }
+            }
+            return {};
+        }();
+
+        if(!newGLoc.has_value()){
+            onDone();
+            co_return;
+        }
+
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        const auto oldX = thisptr->getPlayer()->X();
+        const auto oldY = thisptr->getPlayer()->Y();
+        const auto [newX, newY] = newGLoc.value();
+
+        const auto moved = co_await thisptr->getPlayer()->requestMove(newX, newY, SYS_DEFSPEED, false, false);
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+
+        // player doesn't sendback its move to client in requestMove() because player's move usually driven by client
+        // but here need to sendback the forced move since it's driven by server
+
+        if(moved){
+            thisptr->getPlayer()->reportAction(thisptr->getPlayer()->UID(), thisptr->getPlayer()->mapUID(), ActionMove
+            {
+                .speed = SYS_DEFSPEED,
+                .x = oldX,
+                .y = oldY,
+                .aimX = thisptr->getPlayer()->X(),
+                .aimY = thisptr->getPlayer()->Y(),
+            });
+
+            onDone(thisptr->getPlayer()->mapID(), thisptr->getPlayer()->X(), thisptr->getPlayer()->Y());
+        }
+        else{
+            onDone();
+        }
+    });
 
     bindCoop("_RSVD_NAME_queryQuestTriggerList", [thisptr = this](this auto, LuaCoopResumer onDone, int triggerType) -> corof::awaitable<>
     {
