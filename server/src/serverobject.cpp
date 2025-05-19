@@ -15,119 +15,98 @@ extern ServerArgParser *g_serverArgParser;
 ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
     : ServerLuaCoroutineRunner(serverObject->m_actorPod)
 {
-    // bindCoop("_RSVD_NAME_queryQuestUID", [this](LuaCoopResumer onDone, std::string questName)
-    // {
-    //     auto closed = std::make_shared<bool>(false);
-    //     onDone.pushOnClose([closed]()
-    //     {
-    //         *closed = true;
-    //     });
-    //
-    //     m_actorPod->post(uidf::getServiceCoreUID(), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
-    //     {
-    //         .name = std::move(questName),
-    //     })},
-    //
-    //     [closed, onDone](const ActorMsgPack &rmpk)
-    //     {
-    //         if(*closed){
-    //             return;
-    //         }
-    //         else{
-    //             onDone.popOnClose();
-    //         }
-    //
-    //         switch(rmpk.type()){
-    //             case AM_UID:
-    //                 {
-    //                     const auto amUID = rmpk.conv<AMUID>();
-    //                     if(amUID.uid){
-    //                         onDone(amUID.uid);
-    //                     }
-    //                     else{
-    //                         onDone();
-    //                     }
-    //                     break;
-    //                 }
-    //             default:
-    //                 {
-    //                     onDone();
-    //                     break;
-    //                 }
-    //         }
-    //     });
-    // });
+    bindCoop("_RSVD_NAME_queryQuestUID", [thisptr = this](this auto, LuaCoopResumer onDone, std::string questName) -> corof::awaitable<>
+    {
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
 
-    // bindCoop("_RSVD_NAME_queryQuestUIDList", [this](LuaCoopResumer onDone)
-    // {
-    //     auto closed = std::make_shared<bool>(false);
-    //     onDone.pushOnClose([closed]()
-    //     {
-    //         *closed = true;
-    //     });
-    //
-    //     m_actorPod->send(uidf::getServiceCoreUID(), AM_QUERYQUESTUIDLIST, [closed, onDone](const ActorMsgPack &rmpk)
-    //     {
-    //         if(*closed){
-    //             return;
-    //         }
-    //         else{
-    //             onDone.popOnClose();
-    //         }
-    //
-    //         switch(rmpk.type()){
-    //             case AM_UIDLIST:
-    //                 {
-    //                     const auto uidList = rmpk.deserialize<SDUIDList>();
-    //                     onDone(sol::as_table(uidList));
-    //                     break;
-    //                 }
-    //             default:
-    //                 {
-    //                     onDone();
-    //                     break;
-    //                 }
-    //         }
-    //     });
-    // });
-    //
-    // bindCoop("_RSVD_NAME_loadMap", [this](LuaCoopResumer onDone, std::string mapName)
-    // {
-    //     fflassert(str_haschar(mapName));
-    //
-    //     auto closed = std::make_shared<bool>(false);
-    //     onDone.pushOnClose([closed, this]()
-    //     {
-    //         *closed = true;
-    //     });
-    //
-    //     AMLoadMap amLM;
-    //     std::memset(&amLM, 0, sizeof(AMLoadMap));
-    //
-    //     amLM.mapUID = uidsf::getMapBaseUID(DBCOM_MAPID(to_u8cstr(mapName)));
-    //     m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [closed, amLM, onDone, this](const ActorMsgPack &mpk)
-    //     {
-    //         if(*closed){
-    //             return;
-    //         }
-    //         else{
-    //             onDone.popOnClose();
-    //         }
-    //
-    //         switch(mpk.type()){
-    //             case AM_LOADMAPOK:
-    //                 {
-    //                     onDone(amLM.mapUID);
-    //                     break;
-    //                 }
-    //             default:
-    //                 {
-    //                     onDone();
-    //                     break;
-    //                 }
-    //         }
-    //     });
-    // });
+        const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_QUERYQUESTUID, cerealf::serialize(SDQueryQuestUID
+        {
+            .name = std::move(questName),
+        })});
+
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        switch(rmpk.type()){
+            case AM_UID:
+                {
+                    const auto amUID = rmpk.template conv<AMUID>();
+                    if(amUID.uid){
+                        onDone(amUID.uid);
+                    }
+                    else{
+                        onDone();
+                    }
+                    break;
+                }
+            default:
+                {
+                    onDone();
+                    break;
+                }
+        }
+    });
+
+    bindCoop("_RSVD_NAME_queryQuestUIDList", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
+    {
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), AM_QUERYQUESTUIDLIST);
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+
+        switch(rmpk.type()){
+            case AM_UIDLIST:
+                {
+                    const auto uidList = rmpk.template deserialize<SDUIDList>();
+                    onDone(sol::as_table(uidList));
+                    break;
+                }
+            default:
+                {
+                    onDone();
+                    break;
+                }
+        }
+    });
+
+    bindCoop("_RSVD_NAME_loadMap", [thisptr = this](this auto, LuaCoopResumer onDone, std::string mapName) -> corof::awaitable<>
+    {
+        fflassert(str_haschar(mapName));
+
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        AMLoadMap amLM;
+        std::memset(&amLM, 0, sizeof(AMLoadMap));
+        amLM.mapUID = uidsf::getMapBaseUID(DBCOM_MAPID(to_u8cstr(mapName)));
+
+        const auto mpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM});
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        switch(mpk.type()){
+            case AM_LOADMAPOK:
+                {
+                    onDone(amLM.mapUID);
+                    break;
+                }
+            default:
+                {
+                    onDone();
+                    break;
+                }
+        }
+    });
 }
 
 ServerObject::ServerObject(uint64_t uid)
