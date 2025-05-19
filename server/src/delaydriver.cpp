@@ -11,13 +11,30 @@ static thread_local bool t_delayThreadFlag = false; // use bool since only has 1
 
 DelayDriver::DelayDriver()
     : m_context(std::make_unique<asio::io_context>(1))
+    , m_holder(*m_context, std::chrono::steady_clock::time_point::max())
 {
     fflassert(!isDelayThread());
+    m_holder.async_wait([this](std::error_code ec)
+    {
+        if(ec){
+            if(ec == asio::error::operation_aborted){
+
+            }
+            else{
+                throw std::system_error(ec);
+            }
+        }
+        else{
+            throw fflerror("unexpected timeout");
+        }
+    });
+
     try{
         m_thread = std::thread([this]()
         {
             t_delayThreadFlag = true;
             m_context->run();
+            g_server->addLog(LOGTYPE_INFO, "Delay driver thread has exited");
         });
     }
     catch(const std::exception &e){
@@ -31,6 +48,7 @@ DelayDriver::DelayDriver()
 DelayDriver::~DelayDriver()
 {
     try{
+        m_holder.cancel();
         if(m_context){
             m_context->stop();
         }

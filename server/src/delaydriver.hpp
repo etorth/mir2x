@@ -18,6 +18,9 @@ class DelayDriver
         std::unique_ptr<asio::io_context> m_context;
 
     private:
+        asio::steady_timer m_holder;
+
+    private:
         uint64_t m_seqID = 1;
 
     private:
