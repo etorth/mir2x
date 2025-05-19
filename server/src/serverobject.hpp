@@ -135,7 +135,7 @@ class ServerObject
             });
         }
 
-        template<typename Func> auto addDelay(uint64_t tick, Func && func)
+        template<typename Func> auto addDelay(uint64_t tick, Func && func) // func(bool timeout)
         {
             return m_actorPod->createWaitToken(tick, [func = std::forward<Func>(func)](const ActorMsgPack &mpk)
             {

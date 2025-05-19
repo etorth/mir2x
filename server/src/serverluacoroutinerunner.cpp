@@ -330,14 +330,16 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         const auto threadKey   = m_currRunner->key;
         const auto threadSeqID = m_currRunner->seqID;
 
-        const auto delayKey = m_actorPod->getSO()->addDelay(msec, [threadKey, threadSeqID, this](bool)
+        const auto delayKey = m_actorPod->getSO()->addDelay(msec, [threadKey, threadSeqID, this](bool timeout)
         {
-            if(auto runnerPtr = hasKey(threadKey, threadSeqID)){
-                // first pop the onclose function
-                // otherwise the resume() will call it if the resume reaches end of code
-                fflassert(!runnerPtr->onClose.empty());
-                runnerPtr->onClose.pop();
-                resumeRunner(runnerPtr);
+            if(timeout){
+                if(auto runnerPtr = hasKey(threadKey, threadSeqID)){
+                    // first pop the onclose function
+                    // otherwise the resume() will call it if the resume reaches end of code
+                    fflassert(!runnerPtr->onClose.empty());
+                    runnerPtr->onClose.pop();
+                    resumeRunner(runnerPtr);
+                }
             }
         });
 
