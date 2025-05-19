@@ -135,77 +135,69 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
-    // bindCoop("_RSVD_NAME_remoteCall", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args)
-    // {
-    //     fflassert(uid != m_actorPod->UID());
-    //
-    //     auto closed = std::make_shared<bool>(false);
-    //     onDone.pushOnClose([closed]()
-    //     {
-    //         *closed = true;
-    //     });
-    //
-    //     m_actorPod->post(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
-    //     {
-    //         .code = code,
-    //         .args = luaf::buildLuaVar(args),
-    //     })},
-    //
-    //     [code, closed, s, uid, onDone](const ActorMsgPack &mpk)
-    //     {
-    //         // even thread is closed, we still exam the remote call result to detect error
-    //         // but will not resume the thread anymore since it's already closed
-    //
-    //         // pretty differnt than other close ops
-    //         // normally onClose does real clean work, but here onClose only setup flags
-    //
-    //         if(!(*closed)){
-    //             onDone.popOnClose();
-    //         }
-    //
-    //         switch(mpk.type()){
-    //             case AM_SDBUFFER:
-    //                 {
-    //                     // TODO shall we check if s still valid ?
-    //                     // coroutine can be closed when the remote call is still in progress, tried looks still fine to access s
-    //
-    //                     auto sdRCR = mpk.deserialize<SDRemoteCallResult>();
-    //                     if(sdRCR.error.empty()){
-    //                         std::vector<sol::object> resList;
-    //                         for(auto & var: sdRCR.varList){
-    //                             resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
-    //                         }
-    //
-    //                         if(!(*closed)){
-    //                             onDone(SYS_EXECDONE, sol::as_args(resList));
-    //                         }
-    //                     }
-    //                     else{
-    //                         // don't need to handle remote call error, peer side has reported the error
-    //                         // _RSVD_NAME_uidExecute always returns valid result from remote peer to lua layer if not throw
-    //                         fflassert(sdRCR.varList.empty(), sdRCR.error, sdRCR.varList);
-    //                         g_server->addLog(LOGTYPE_WARNING, "Error detected in remote call: %s", concatCode(code).c_str());
-    //                         for(const auto &line: sdRCR.error){
-    //                             g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
-    //                         }
-    //                         throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(uid)));
-    //                     }
-    //                     break;
-    //                 }
-    //             case AM_BADACTORPOD:
-    //                 {
-    //                     if(!(*closed)){
-    //                         onDone(SYS_EXECBADUID);
-    //                     }
-    //                     break;
-    //                 }
-    //             default:
-    //                 {
-    //                     throw fflerror("lua call failed in %s: %s", to_cstr(uidf::getUIDString(uid)), mpkName(mpk.type()));
-    //                 }
-    //         }
-    //     });
-    // });
+    bindCoop("_RSVD_NAME_remoteCall", [thisptr = this](this auto, LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args) -> corof::awaitable<>
+    {
+        fflassert(uid != thisptr->m_actorPod->UID());
+
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        const auto mpk = co_await thisptr->m_actorPod->send(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
+        {
+            .code = code,
+            .args = luaf::buildLuaVar(args),
+        })});
+
+        if(closed){
+            // even thread is closed, we still exam the remote call result to detect error
+            // but will not resume the thread anymore since it's already closed
+        }
+        else{
+            onDone.popOnClose();
+        }
+
+        switch(mpk.type()){
+            case AM_SDBUFFER:
+                {
+                    // TODO shall we check if s still valid ?
+                    // coroutine can be closed when the remote call is still in progress, tried looks still fine to access s
+
+                    auto sdRCR = mpk.template deserialize<SDRemoteCallResult>();
+                    if(sdRCR.error.empty()){
+                        std::vector<sol::object> resList;
+                        for(auto & var: sdRCR.varList){
+                            resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
+                        }
+
+                        if(!closed){
+                            onDone(SYS_EXECDONE, sol::as_args(resList));
+                        }
+                    }
+                    else{
+                        // don't need to handle remote call error, peer side has reported the error
+                        // _RSVD_NAME_uidExecute always returns valid result from remote peer to lua layer if not throw
+                        fflassert(sdRCR.varList.empty(), sdRCR.error, sdRCR.varList);
+                        g_server->addLog(LOGTYPE_WARNING, "Error detected in remote call: %s", concatCode(code).c_str());
+                        for(const auto &line: sdRCR.error){
+                            g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                        }
+                        throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(uid)));
+                    }
+                    break;
+                }
+            case AM_BADACTORPOD:
+                {
+                    if(!closed){
+                        onDone(SYS_EXECBADUID);
+                    }
+                    break;
+                }
+            default:
+                {
+                    throw fflerror("lua call failed in %s: %s", to_cstr(uidf::getUIDString(uid)), mpk.str().c_str());
+                }
+        }
+    });
 
     bindFunction("postNotify", [this](uint64_t uid, uint64_t dstThreadKey, uint64_t dstThreadSeqID, sol::variadic_args args)
     {

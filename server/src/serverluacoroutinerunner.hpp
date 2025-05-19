@@ -314,44 +314,20 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         }
 
     private:
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...));
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...) const );
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, LuaCoopState, Args...));
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, LuaCoopState, Args...) const );
+        template<typename Lambda, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(corof::awaitable<> (*)(Lambda, LuaCoopResumer, Args...));
+        template<typename Lambda, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(corof::awaitable<> (*)(Lambda, LuaCoopResumer, LuaCoopState, Args...));
 
-        template<typename Lambda, typename Ret                                 > static void _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer));
-        template<typename Lambda, typename Ret                                 > static void _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer) const);
-        template<typename Lambda, typename Ret, typename Arg2, typename... Args> static Arg2 _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer, Arg2, Args...));
-        template<typename Lambda, typename Ret, typename Arg2, typename... Args> static Arg2 _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer, Arg2, Args...) const );
+        template<typename Lambda                                 > static void _extractLambdaThirdArgHelper(corof::awaitable<> (*)(Lambda, LuaCoopResumer));
+        template<typename Lambda, typename Arg2, typename... Args> static Arg2 _extractLambdaThirdArgHelper(corof::awaitable<> (*)(Lambda, LuaCoopResumer, Arg2, Args...));
 
         template<typename Lambda> struct _extractLambdaUserArgsAsTuple
         {
-            using type = decltype(_extractLambdaUserArgsHelper(&Lambda::operator()));
+            using type = decltype(_extractLambdaUserArgsHelper(&Lambda:: template operator()<Lambda>));
         };
 
-        template<typename Ret, typename... Args> struct _extractLambdaUserArgsAsTuple<Ret(*)(LuaCoopResumer, Args...)>
+        template<typename Lambda> struct _extractLambdaThirdArg
         {
-            using type = std::tuple<Args...>;
-        };
-
-        template<typename Ret, typename... Args> struct _extractLambdaUserArgsAsTuple<Ret(*)(LuaCoopResumer, LuaCoopState, Args...)>
-        {
-            using type = std::tuple<Args...>;
-        };
-
-        template<typename Lambda> struct _extractLambdaSecondArg
-        {
-            using type = decltype(_extractLambdaSecondArgHelper(&Lambda::operator()));
-        };
-
-        template<typename Ret> struct _extractLambdaSecondArg<Ret(*)(LuaCoopResumer)>
-        {
-            using type = void;
-        };
-
-        template<typename Ret, typename Arg2, typename... Args> struct _extractLambdaSecondArg<Ret(*)(LuaCoopResumer, Arg2, Args...)>
-        {
-            using type = Arg2;
+            using type = decltype(_extractLambdaThirdArgHelper(&Lambda:: template operator()<Lambda>));
         };
 
     public:
@@ -360,7 +336,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
             fflassert(str_haschar(funcName));
             bindFunction(funcName + SYS_COOP, [funcName, this](auto && func)
             {
-                return [funcName, func = std::function(std::forward<Func>(func)), this](typename _extractLambdaUserArgsAsTuple<Func>::type args, sol::function cb, sol::this_state s)
+                return [funcName, func = std::forward<Func>(func), this](typename _extractLambdaUserArgsAsTuple<Func>::type args, sol::function cb, sol::this_state s)
                 {
                     if(!m_currRunner){
                         throw fflerror("calling %s() without a spawned runner", to_cstr(funcName));
@@ -369,11 +345,11 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                     fflassert(s.lua_state());
                     const LuaCoopCallDoneFlag doneFlag;
 
-                    if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaSecondArg<Func>::type>){
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, doneFlag), LuaCoopState(s)), std::move(args)));
+                    if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaThirdArg<Func>::type>){
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, doneFlag), LuaCoopState(s)), std::move(args))).resume();
                     }
                     else{
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, doneFlag)), std::move(args)));
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, doneFlag)), std::move(args))).resume();
                     }
                 };
             }(std::forward<Func>(func)));

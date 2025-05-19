@@ -63,30 +63,26 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         }
     });
 
-    bindCoop("_RSVD_NAME_getTeamMemberList", [this](LuaCoopResumer onDone)
+    bindCoop("_RSVD_NAME_getTeamMemberList", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
     {
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
+        bool closed = false;
+        onDone.pushOnClose([&closed]()
         {
-            *closed = true;
+            closed = true;
         });
 
-        // getPlayer()->pullTeamMemberList([closed, onDone](std::optional<SDTeamMemberList> sdTML)
-        // {
-        //     if(*closed){
-        //         return;
-        //     }
-        //     else{
-        //         onDone.popOnClose();
-        //     }
-        //
-        //     if(sdTML.has_value()){
-        //         onDone(sol::as_table(sdTML.value().getUIDList()));
-        //     }
-        //     else{
-        //         onDone();
-        //     }
-        // });
+        const auto sdTMLOpt = co_await thisptr->getPlayer()->pullTeamMemberList();
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        if(sdTMLOpt.has_value()){
+            onDone(sol::as_table(sdTMLOpt.value().getUIDList()));
+        }
+        else{
+            onDone();
+        }
     });
 
     bindFunction("_RSVD_NAME_runQuestTrigger", [this](uint64_t questUID, int triggerType, sol::variadic_args args)
@@ -445,45 +441,37 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
     //     }
     // });
 
-    // bindCoop("_RSVD_NAME_queryQuestTriggerList", [this](LuaCoopResumer onDone, int triggerType)
-    // {
-    //     fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
-    //     fflassert(triggerType <  SYS_ON_END  , triggerType);
-    //
-    //     auto closed = std::make_shared<bool>(false);
-    //     onDone.pushOnClose([closed]()
-    //     {
-    //         *closed = true;
-    //     });
-    //
-    //     AMQueryQuestTriggerList amQQTL;
-    //     std::memset(&amQQTL, 0, sizeof(amQQTL));
-    //
-    //     amQQTL.type = triggerType;
-    //
-    //     getPlayer()->m_actorPod->send(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL}, [closed, onDone, this](const ActorMsgPack &rmpk)
-    //     {
-    //         if(*closed){
-    //             return;
-    //         }
-    //         else{
-    //             onDone.popOnClose();
-    //         }
-    //
-    //         switch(rmpk.type()){
-    //             case AM_OK:
-    //                 {
-    //                     onDone(rmpk.deserialize<std::vector<uint64_t>>());
-    //                     break;
-    //                 }
-    //             default:
-    //                 {
-    //                     onDone();
-    //                     break;
-    //                 }
-    //         }
-    //     });
-    // });
+    bindCoop("_RSVD_NAME_queryQuestTriggerList", [thisptr = this](this auto, LuaCoopResumer onDone, int triggerType) -> corof::awaitable<>
+    {
+        fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
+        fflassert(triggerType <  SYS_ON_END  , triggerType);
+
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        AMQueryQuestTriggerList amQQTL;
+        std::memset(&amQQTL, 0, sizeof(amQQTL));
+        amQQTL.type = triggerType;
+
+        const auto rmpk = co_await thisptr->getPlayer()->m_actorPod->send(uidf::getServiceCoreUID(), {AM_QUERYQUESTTRIGGERLIST, amQQTL});
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        switch(rmpk.type()){
+            case AM_OK:
+                {
+                    onDone(rmpk.template deserialize<std::vector<uint64_t>>());
+                    break;
+                }
+            default:
+                {
+                    onDone();
+                    break;
+                }
+        }
+    });
 
     pfrCheck(execRawString(BEGIN_LUAINC(char)
 #include "player.lua"
