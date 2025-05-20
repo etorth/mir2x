@@ -206,7 +206,7 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
                     // if found a detached actor
                     // the actor pointer must already be null
                     if(mailboxPtr->actor){
-                        throw fflerror("detached mailbox has non-null actor pointer: ActorPod = %p, ActorPod::UID() = %llu", to_cvptr(mailboxPtr->actor), to_llu(uid));
+                        throw fflerror("detached mailbox has non-null actor pointer: ActorPod %p, UID %s", to_cvptr(mailboxPtr->actor), to_cstr(uidf::getUIDString(uid)));
                     }
                     return;
                 }
@@ -224,7 +224,7 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
                     // only check this consistancy when grabbed the lock
                     // otherwise other thread may change the actor pointer to null at any time
                     if(mailboxPtr->actor != actorPtr){
-                        throw fflerror("different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %llu", to_cvptr(actorPtr), to_cvptr(mailboxPtr->actor), to_llu(uid));
+                        throw fflerror("different actors (%p, %p) have the same UID: %s", to_cvptr(actorPtr), to_cvptr(mailboxPtr->actor), to_cstr(uidf::getUIDString(uid)));
                     }
 
                     // do everything before we detach the mailbox
@@ -251,7 +251,7 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
                     // remember any thread can't detach a mailbox before grab it
                     // if the returned value is not current thread id, means there is severe logic error
                     if(const auto detachWorkerId = mailboxPtr->schedLock.detach(); detachWorkerId != workerId){
-                        throw fflerror("locked actor flips to invalid status: ActorPod = %p, ActorPod::UID() = %llu, status = %d", to_cvptr(actorPtr), to_llu(uid), workerId);
+                        throw fflerror("locked actor flips to invalid status: ActorPod %p, UID %s, status %d", to_cvptr(actorPtr), to_cstr(uidf::getUIDString(uid)), workerId);
                     }
                     return;
                 }
@@ -285,7 +285,7 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
                     // and we know it's not public threads accessing, then must be actor threads
 
                     if(!isActorThread(lockType)){
-                        throw fflerror("invalid actor status: ActorPod = %p, ActorPod::UID() = %llu, status = %d", to_cvptr(actorPtr), to_llu(uid), lockType);
+                        throw fflerror("invalid actor status: ActorPod %p, UID %s, status %d", to_cvptr(actorPtr), to_cstr(uidf::getUIDString(uid)), lockType);
                     }
 
                     // inside actor threads
@@ -302,7 +302,7 @@ void ActorPool::detach(const ActorPod *actorPtr, std::function<void()> fnAtExit)
                         // the lock is grabed already by current actor thread, check the consistancy
                         // only check it when current thread grabs the lock, otherwise other thread may change it to null at any time
                         if(mailboxPtr->actor != actorPtr){
-                            throw fflerror("different actors with same UID: ActorPod = (%p, %p), ActorPod::UID() = %llu", to_cvptr(actorPtr), to_cvptr(mailboxPtr->actor), to_llu(uid));
+                            throw fflerror("different actors (%p, %p) has the same UID: %s", to_cvptr(actorPtr), to_cvptr(mailboxPtr->actor), to_cstr(uidf::getUIDString(uid)));
                         }
 
                         // this is from inside the actor's actor thread
@@ -339,7 +339,7 @@ void ActorPool::detach(const Receiver *receiverPtr)
     const std::lock_guard<std::mutex> lockGuard(m_receiverLock);
     if(auto p = m_receiverList.find(receiverPtr->UID()); p != m_receiverList.end()){
         if(p->second != receiverPtr){
-            throw fflerror("different receivers with same UID: Receiver = (%p, %p), Receiver::UID() = %llu", to_cvptr(receiverPtr), to_cvptr(p->second), to_llu(receiverPtr->UID()));
+            throw fflerror("different receivers (%p, %p) has the same UID: %s", to_cvptr(receiverPtr), to_cvptr(p->second), to_cstr(uidf::getUIDString(receiverPtr->UID())));
         }
         m_receiverList.erase(p);
     }
@@ -743,7 +743,7 @@ void ActorPool::runOneMailboxBucket(int bucketId)
             }
 
             if(!mailboxPtr->schedLock.detached()){
-                throw fflerror("clear mailbox while it's not detached: uid = %llu", to_llu(mailboxPtr->uid));
+                throw fflerror("clear mailbox while it's not detached: uid %s", to_cstr(uidf::getUIDString(mailboxPtr->uid)));
             }
 
             if(mailboxPtr->atExit){
@@ -945,7 +945,7 @@ bool ActorPool::isActorThread(int workerId) const
 ActorMonitor ActorPool::getActorMonitor(uint64_t uid) const
 {
     if(isActorThread()){
-        throw fflerror("querying actor monitor inside actor thread: WorkerID = %d, UID = %llu", getWorkerID(), to_llu(uid));
+        throw fflerror("querying actor monitor inside actor thread: WorkerID %d, UID %s", getWorkerID(), to_cstr(uidf::getUIDString(uid)));
     }
 
     const auto &subBucketCRef = getSubBucket(uid);
@@ -961,7 +961,7 @@ ActorMonitor ActorPool::getActorMonitor(uint64_t uid) const
 std::vector<ActorMonitor> ActorPool::getActorMonitor() const
 {
     if(isActorThread()){
-        throw fflerror("querying actor monitor inside actor thread: WorkerID = %d", getWorkerID());
+        throw fflerror("querying actor monitor inside actor thread: WorkerID %d", getWorkerID());
     }
 
     size_t actorCount = 0;
@@ -1022,7 +1022,7 @@ std::pair<ActorPool::MailboxSubBucket::RLockGuard, ActorPool::Mailbox *> ActorPo
 ActorPodMonitor ActorPool::getPodMonitor(uint64_t uid) const
 {
     if(isActorThread()){
-        throw fflerror("querying actor pod monitor inside actor thread: WorkerID = %d, UID = %llu", getWorkerID(), to_llu(uid));
+        throw fflerror("querying actor pod monitor inside actor thread: WorkerID %d, UID %s", getWorkerID(), to_cstr(uidf::getUIDString(uid)));
     }
 
     const auto &subBucketCRef = getSubBucket(uid);
