@@ -107,6 +107,10 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
                 }
         }
     });
+
+    pfrCheck(execRawString(BEGIN_LUAINC(char)
+#include "serverobject.lua"
+    END_LUAINC()));
 }
 
 ServerObject::ServerObject(uint64_t uid)
