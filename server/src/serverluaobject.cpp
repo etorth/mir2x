@@ -27,7 +27,7 @@ corof::awaitable<> ServerLuaObject::onActorMsg(const ActorMsgPack &mpk)
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpkName(mpk.type()));
+                throw fflvalue(mpk.str(UID()));
             }
     }
 }
