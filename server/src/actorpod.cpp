@@ -53,7 +53,7 @@ ActorPod::~ActorPod()
 void ActorPod::innHandler(const ActorMsgPack &mpk)
 {
     if(g_serverArgParser->sharedConfig().traceActorMessage){
-        g_server->addLog(LOGTYPE_INFO, "%s <- %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
+        g_server->addLog(LOGTYPE_TRACE, "%s <- %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
     }
 
     if(mpk.respID()){
@@ -165,7 +165,7 @@ std::optional<uint64_t> ActorPod::doPost(const std::pair<uint64_t, uint64_t> &ad
 
     const auto seqID = waitResp ? rollSeqID() : UINT64_C(0);
     if(g_serverArgParser->sharedConfig().traceActorMessage){
-        g_server->addLog(LOGTYPE_INFO, "%s -> %s", to_cstr(uidf::getUIDString(UID())), to_cstr(ActorMsgPack(mbuf, UID(), seqID, respID).str(uid)));
+        g_server->addLog(LOGTYPE_TRACE, "%s -> %s", to_cstr(uidf::getUIDString(UID())), to_cstr(ActorMsgPack(mbuf, UID(), seqID, respID).str(uid)));
     }
 
     m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;

@@ -52,15 +52,16 @@ void Server::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
     }
 
     if(!g_serverArgParser->slave){
-        const int logType = std::get<0>(typeLoc);
-        {
-            const std::lock_guard<std::mutex> lockGuard(m_logLock);
-            for(const auto &line: multiLine){
-                m_logBuf.push_back((char)(logType));
-                m_logBuf.insert(m_logBuf.end(), line.c_str(), line.c_str() + line.size() + 1); // add extra '\0'
+        if(const int logType = std::get<0>(typeLoc); logType != Log::LOGTYPEV_TRACE){
+            {
+                const std::lock_guard<std::mutex> lockGuard(m_logLock);
+                for(const auto &line: multiLine){
+                    m_logBuf.push_back((char)(logType));
+                    m_logBuf.insert(m_logBuf.end(), line.c_str(), line.c_str() + line.size() + 1); // add extra '\0'
+                }
             }
+            notifyGUI("FlushBrowser");
         }
-        notifyGUI("FlushBrowser");
     }
 
     for(const auto &line: multiLine){

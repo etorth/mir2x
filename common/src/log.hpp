@@ -32,6 +32,7 @@ class Log final
             LOGTYPEV_INFO    = 0,
             LOGTYPEV_WARNING = 1,
             LOGTYPEV_FATAL   = 2,
+            LOGTYPEV_TRACE   = 3,
         };
 
     public:
@@ -78,6 +79,7 @@ class Log final
                 case LOGTYPEV_INFO   : return INFO;
                 case LOGTYPEV_WARNING: return WARNING;
                 case LOGTYPEV_FATAL  : return FATAL;
+                case LOGTYPEV_TRACE  : return DEBUG; // message only goes to log file, not to console or gui
                 default              : throw fflerror("invalid log type: %d", type);
             }
         }
@@ -94,3 +96,4 @@ class Log final
 #define LOGTYPE_INFO    {Log::LOGTYPEV_INFO   , __FILE__, __LINE__, __PRETTY_FUNCTION__}
 #define LOGTYPE_WARNING {Log::LOGTYPEV_WARNING, __FILE__, __LINE__, __PRETTY_FUNCTION__}
 #define LOGTYPE_FATAL   {Log::LOGTYPEV_FATAL  , __FILE__, __LINE__, __PRETTY_FUNCTION__}
+#define LOGTYPE_TRACE   {Log::LOGTYPEV_TRACE  , __FILE__, __LINE__, __PRETTY_FUNCTION__}

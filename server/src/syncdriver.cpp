@@ -26,7 +26,7 @@ ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint64_t r
     }
 
     if(g_serverArgParser->sharedConfig().traceActorMessage){
-        g_server->addLog(LOGTYPE_INFO, "%s -> %s", to_cstr(uidf::getUIDString(UID())), to_cstr(ActorMsgPack(mb, UID(), m_currID, resp).str(uid)));
+        g_server->addLog(LOGTYPE_TRACE, "%s -> %s", to_cstr(uidf::getUIDString(UID())), to_cstr(ActorMsgPack(mb, UID(), m_currID, resp).str(uid)));
     }
 
     if(!g_actorPool->postMessage(uid, {mb, UID(), m_currID, resp})){
