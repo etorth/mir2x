@@ -56,11 +56,6 @@ class ActorPod final
         std::array<std::function<corof::awaitable<>(const ActorMsgPack &)>, AM_END> m_msgOpList;
 
     private:
-        // actorpool automatically send METRONOME to actor
-        // this can control the freq if we want to setup actor in standby/active mode, zero or negative means not send METRONOME
-        double m_updateFreq;
-
-    private:
         // used by rollSeqID()
         // to create unique proper ID for an message expcecting response
         uint64_t m_nextSeqID = 1;
@@ -75,7 +70,7 @@ class ActorPod final
         uint32_t m_channID = 0;
 
     public:
-        explicit ActorPod(uint64_t, ServerObject *, double);
+        explicit ActorPod(uint64_t, ServerObject *);
 
     public:
         ~ActorPod();
@@ -106,33 +101,6 @@ class ActorPod final
         ActorPodMonitor dumpPodMonitor() const
         {
             return m_podMonitor;
-        }
-
-    public:
-        void setMetronomeFreq(double freq)
-        {
-            // TODO enhance it to do more check
-            // should only call this function inside message handler
-            m_updateFreq = regMetronomeFreq(freq);
-        }
-
-        double getMetronomeFreq() const
-        {
-            return m_updateFreq;
-        }
-
-    private:
-        static double regMetronomeFreq(double freq)
-        {
-            if(freq <= 0.0){
-                return -1.0;
-            }
-            else if(freq < DBL_EPSILON){
-                return DBL_EPSILON;
-            }
-            else{
-                return freq;
-            }
         }
 
     public:

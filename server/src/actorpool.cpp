@@ -796,7 +796,7 @@ void ActorPool::launch()
     m_actorNetDriver->closeAcceptor();
     if(g_serverArgParser->slave){
         m_peerCore = std::make_unique<PeerCore>();
-        m_peerCore->activate(-1.0);
+        m_peerCore->activate();
         g_server->loadMapBinDB();
         launchPool();
     }
@@ -910,7 +910,7 @@ void ActorPool::launchBalance()
     launchPool();
 
     m_peerCore = std::make_unique<ServiceCore>();
-    m_peerCore->activate(-1.0);
+    m_peerCore->activate();
 
     const auto clientPort = g_serverConfigureWindow->getConfig().clientPort;
 

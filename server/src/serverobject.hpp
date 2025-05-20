@@ -54,7 +54,7 @@ class ServerObject
         }
 
     public:
-        uint64_t activate(double metronomeFreq = 10.0);
+        uint64_t activate();
 
     protected:
         virtual corof::awaitable<> onActivate()

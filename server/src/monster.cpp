@@ -435,10 +435,6 @@ corof::awaitable<> Monster::runAICoro()
         }
         else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
             co_await randomMove();
-            m_actorPod->setMetronomeFreq(10);
-        }
-        else{
-            m_actorPod->setMetronomeFreq(1); // don't set freq as 0, the UpdateCoro is driven by METRONOME
         }
 
         // always wait

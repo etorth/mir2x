@@ -17,7 +17,7 @@ extern Server *g_server;
 extern ActorPool *g_actorPool;
 extern ServerArgParser *g_serverArgParser;
 
-ActorPod::ActorPod(uint64_t uid, ServerObject *serverObject, double updateFreq)
+ActorPod::ActorPod(uint64_t uid, ServerObject *serverObject)
     : m_UID([uid]() -> uint64_t
       {
           fflassert(uid);
@@ -27,7 +27,6 @@ ActorPod::ActorPod(uint64_t uid, ServerObject *serverObject, double updateFreq)
           return uid;
       }())
     , m_SO(serverObject)
-    , m_updateFreq(regMetronomeFreq(updateFreq))
 {
     registerOp(AM_ACTIVATE, [thisptr = this]([[maybe_unused]] this auto self, const ActorMsgPack &) -> corof::awaitable<>
     {
