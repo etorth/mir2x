@@ -53,7 +53,7 @@ ActorPod::~ActorPod()
 void ActorPod::innHandler(const ActorMsgPack &mpk)
 {
     if(g_serverArgParser->sharedConfig().traceActorMessage){
-        g_server->addLog(LOGTYPE_DEBUG, "%s <- %s : (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+        g_server->addLog(LOGTYPE_INFO, "%s <- %s : (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
     }
 
     if(mpk.respID()){
@@ -162,7 +162,7 @@ std::optional<uint64_t> ActorPod::doPost(const std::pair<uint64_t, uint64_t> &ad
 
     const auto seqID = waitResp ? rollSeqID() : UINT64_C(0);
     if(g_serverArgParser->sharedConfig().traceActorMessage){
-        g_server->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(seqID), to_llu(respID));
+        g_server->addLog(LOGTYPE_INFO, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(seqID), to_llu(respID));
     }
 
     m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;
@@ -215,7 +215,7 @@ void ActorPod::PrintMonitor() const
         const uint64_t nSendCount = m_podMonitor.amProcMonitorList[nIndex].sendCount;
         const uint64_t nRecvCount = m_podMonitor.amProcMonitorList[nIndex].recvCount;
         if(nSendCount || nRecvCount){
-            g_server->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
+            g_server->addLog(LOGTYPE_INFO, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
         }
     }
 }

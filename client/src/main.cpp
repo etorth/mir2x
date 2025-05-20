@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
         g_log->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
     }
     catch(...){
-        g_log->addLog(LOGTYPE_FATAL, "Caught unknown exception, exit...");
+        g_log->addLog(LOGTYPE_FATAL, "Caught unknown exception");
     }
     return 0;
 }

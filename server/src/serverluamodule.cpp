@@ -142,15 +142,14 @@ ServerLuaModule::ServerLuaModule()
     END_LUAINC()));
 }
 
-void ServerLuaModule::addLogString(int nLogType, const char8_t *logInfo)
+void ServerLuaModule::addLogString(int logType, const char8_t *logInfo)
 {
     // any time if you call addLog() or addLogString() in lua module
     // this will get printed in the server GUI console
 
-    switch(nLogType){
-        case 0  : g_server->addLog(LOGTYPE_INFO   , "%s", to_cstr(logInfo)); return;
-        case 1  : g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(logInfo)); return;
-        case 2  : g_server->addLog(LOGTYPE_FATAL  , "%s", to_cstr(logInfo)); return;
-        default : g_server->addLog(LOGTYPE_DEBUG  , "%s", to_cstr(logInfo)); return;
+    switch(logType){
+        case 0 : g_server->addLog(LOGTYPE_INFO   , "%s", to_cstr(logInfo)); return;
+        case 1 : g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(logInfo)); return;
+        default: g_server->addLog(LOGTYPE_FATAL  , "%s", to_cstr(logInfo)); return;
     }
 }

@@ -450,12 +450,12 @@ void Client::sendSMsgLog(uint8_t headCode)
 
 void Client::PrintMonitor() const
 {
-    g_log->addLog(LOGTYPE_DEBUG, "Client runs %llu msec", to_llu(m_clientTimer.diff_msec()));
+    g_log->addLog(LOGTYPE_INFO, "Client runs %llu msec", to_llu(m_clientTimer.diff_msec()));
     for(size_t nIndex = 0; nIndex < SM_END; ++nIndex){
         uint64_t nProcTick  = m_clientMonitor.SMProcMonitorList[nIndex].procTick / 1000000;
         uint64_t nRecvCount = m_clientMonitor.SMProcMonitorList[nIndex].recvCount;
         if(nRecvCount > 0){
-            g_log->addLog(LOGTYPE_DEBUG, "%s: recvCount = %llu, procTick = %llumsec", ServerMsg(nIndex).name().c_str(), to_llu(nRecvCount), to_llu(nProcTick));
+            g_log->addLog(LOGTYPE_INFO, "%s: recvCount = %llu, procTick = %llumsec", ServerMsg(nIndex).name().c_str(), to_llu(nRecvCount), to_llu(nProcTick));
         }
     }
 }
