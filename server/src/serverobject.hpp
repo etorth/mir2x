@@ -101,20 +101,6 @@ class ServerObject
             }
         }
 
-        corof::awaitable<bool> asyncWait(const std::pair<uint64_t, uint64_t> &token)
-        {
-            switch(const auto mpk = co_await m_actorPod->waitToken(token); mpk.type()){
-                case AM_TIMEOUT:
-                    {
-                        co_return true;
-                    }
-                default:
-                    {
-                        co_return false;
-                    }
-            }
-        }
-
     public:
         template<typename Func> void defer(Func && func) // func() -> void
         {

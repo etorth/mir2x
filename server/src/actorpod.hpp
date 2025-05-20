@@ -19,7 +19,7 @@ class ActorPod final
         friend class ActorPool;
 
     private:
-        template<bool Overwrite, bool ErrorIfTryOverwrite> struct RegisterContinuationAwaiter
+        template<bool AllowOverwrite> struct RegisterContinuationAwaiter
         {
             ActorPod *         const actor;
             std::optional<int> const seqID;
@@ -32,14 +32,12 @@ class ActorPod final
             void await_suspend(std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type> handle)
             {
                 if(seqID.has_value()){
-                    if constexpr(Overwrite){
+                    if constexpr(AllowOverwrite){
                         actor->m_respondCBList.insert_or_assign(seqID.value(), handle);
                     }
                     else{
                         if(!actor->m_respondCBList.try_emplace(seqID.value(), handle).second){
-                            if constexpr(ErrorIfTryOverwrite){
-                                throw fflerror("%s: already have a continuation: %llu", to_cstr(uidf::getUIDString(actor->UID())), to_llu(seqID.value()));
-                            }
+                            throw fflerror("%s: seqID %llu already has a continuation", to_cstr(uidf::getUIDString(actor->UID())), to_llu(seqID.value()));
                         }
                     }
                 }
@@ -176,7 +174,7 @@ class ActorPod final
     public:
         corof::awaitable<ActorMsgPack> send(const std::pair<uint64_t, uint64_t> &addr, ActorMsgBuf mbuf)
         {
-            co_await RegisterContinuationAwaiter<false, true>
+            co_await RegisterContinuationAwaiter<false>
             {
                 .actor = this,
                 .seqID = doPost(addr, std::move(mbuf), true),
@@ -185,33 +183,33 @@ class ActorPod final
 
         corof::awaitable<ActorMsgPack> send(uint64_t addr, ActorMsgBuf mbuf)
         {
-            co_await RegisterContinuationAwaiter<false, true>
+            co_await RegisterContinuationAwaiter<false>
             {
                 .actor = this,
                 .seqID = doPost({addr, 0}, std::move(mbuf), true),
             };
         }
 
+    private:
+        std::pair<uint64_t, uint64_t> doCreateWaitToken(uint64_t, std::function<void(const ActorMsgPack &)>);
+
     public:
-        std::pair<uint64_t, uint64_t> createWaitToken(uint64_t, std::function<void(const ActorMsgPack &)>);
+        std::pair<uint64_t, uint64_t> createWaitToken(uint64_t tick, std::function<void(const ActorMsgPack &)> op)
+        {
+            fflassert(op);
+            return doCreateWaitToken(tick, std::move(op));
+        }
+
+    public:
         bool cancelWaitToken(const std::pair<uint64_t, uint64_t> &);
 
     public:
         corof::awaitable<ActorMsgPack> wait(uint64_t tick)
         {
-            co_await RegisterContinuationAwaiter<true, false>
+            co_await RegisterContinuationAwaiter<true>
             {
                 .actor = this,
-                .seqID = createWaitToken(tick, nullptr).second,
-            };
-        }
-
-        corof::awaitable<ActorMsgPack> waitToken(const std::pair<uint64_t, uint64_t> &token)
-        {
-            co_await RegisterContinuationAwaiter<false, false>
-            {
-                .actor = this,
-                .seqID = token.second,
+                .seqID = doCreateWaitToken(tick, nullptr).second,
             };
         }
 };
