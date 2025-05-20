@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <type_traits>
+#include "totype.hpp"
 #include "actormsg.hpp"
 
 class ActorMsgBuf final
@@ -64,5 +65,11 @@ class ActorMsgBuf final
         size_t size() const
         {
             return m_size;
+        }
+
+    public:
+        std::string str() const
+        {
+            return str_printf("{type:%s, size:%llu}", mpkName(type()), to_llu(size()));
         }
 };

@@ -31,7 +31,7 @@ void Receiver::pushMessage(ActorMsgPack mpk)
     m_condition.notify_all();
 }
 
-size_t Receiver::wait(uint32_t timeout)
+size_t Receiver::wait(uint64_t timeout)
 {
     std::unique_lock<std::mutex> lockGuard(m_lock);
     const auto fnPred = [this, origLen = m_messageList.size()]() -> bool

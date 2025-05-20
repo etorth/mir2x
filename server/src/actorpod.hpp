@@ -21,8 +21,8 @@ class ActorPod final
     private:
         template<bool AllowOverwrite> struct RegisterContinuationAwaiter
         {
-            ActorPod *         const actor;
-            std::optional<int> const seqID;
+            ActorPod *              const actor;
+            std::optional<uint64_t> const seqID;
 
             bool await_ready() const
             {

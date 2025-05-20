@@ -35,7 +35,7 @@ class Receiver
         void pushMessage(ActorMsgPack);
 
     public:
-        size_t wait(uint32_t = 0);
+        size_t wait(uint64_t = 0);
 
     public:
         std::vector<ActorMsgPack> pop();

@@ -53,7 +53,7 @@ ActorPod::~ActorPod()
 void ActorPod::innHandler(const ActorMsgPack &mpk)
 {
     if(g_serverArgParser->sharedConfig().traceActorMessage){
-        g_server->addLog(LOGTYPE_INFO, "%s <- %s : (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+        g_server->addLog(LOGTYPE_INFO, "%s <- %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
     }
 
     if(mpk.respID()){
@@ -71,7 +71,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
                         }
                     }
                     else{
-                        throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): coroutine not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+                    throw fflerror("%s <- %s: coroutine is not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
                     }
                 },
 
@@ -81,7 +81,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
                         op(mpk);
                     }
                     else{
-                        throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): coroutine not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+                        throw fflerror("%s <- %s: callback is not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
                     }
                 },
             },
@@ -90,7 +90,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
             m_respondCBList.erase(p);
         }
         else{
-            throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): no corresponding coroutine", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+            throw fflerror("%s <- %s: no corresponding coroutine exists", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
         }
     }
     else{
@@ -149,20 +149,20 @@ std::optional<uint64_t> ActorPod::doPost(const std::pair<uint64_t, uint64_t> &ad
     const auto respID = addr.second;
 
     if(!uid){
-        throw fflerror("%s -> NONE: (type: %s, seqID: 0, respID: %llu): Try to send message to an empty address", to_cstr(uidf::getUIDString(UID())), mpkName(mbuf.type()), to_llu(respID));
+        throw fflerror("%s -> ZERO: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mbuf.str()));
     }
 
     if(uid == UID()){
-        throw fflerror("%s -> %s: (type: %s, seqID: 0, respID: %llu): Try to send message to itself", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
+        throw fflerror("%s -> SELF: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mbuf.str()));
     }
 
     if(!mbuf){
-        throw fflerror("%s -> %s: (type: AM_NONE, seqID: 0, respID: %llu): Try to send an empty message", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), to_llu(respID));
+        throw fflerror("%s -> %s: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), to_cstr(mbuf.str()));
     }
 
     const auto seqID = waitResp ? rollSeqID() : UINT64_C(0);
     if(g_serverArgParser->sharedConfig().traceActorMessage){
-        g_server->addLog(LOGTYPE_INFO, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(seqID), to_llu(respID));
+        g_server->addLog(LOGTYPE_INFO, "%s -> %s", to_cstr(uidf::getUIDString(UID())), to_cstr(ActorMsgPack(mbuf, UID(), seqID, respID).str(uid)));
     }
 
     m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;

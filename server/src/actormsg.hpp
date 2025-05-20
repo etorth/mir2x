@@ -270,8 +270,8 @@ struct AMBadActorPod
 {
     int      Type;
     uint64_t from;
-    uint32_t ID;
-    uint32_t Respond;
+    uint64_t ID;
+    uint64_t Respond;
     uint64_t UID;
 };
 
