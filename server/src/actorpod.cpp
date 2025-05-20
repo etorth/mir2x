@@ -96,13 +96,16 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
     else{
         m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
         {
-            raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
-            if(const auto &mpkFunc = m_msgOpList.at(mpk.type())){
-                mpkFunc(mpk).resume();
-            }
-            else{
-                m_SO->onActorMsg(mpk).resume();
-            }
+            [mpk = mpk, thisptr = this](this auto) -> corof::awaitable<> // save mpk into coroutine state
+            {
+                const raii_timer tickTimer(std::addressof(thisptr->m_podMonitor.amProcMonitorList[mpk.type()].procTick));
+                if(const auto &mpkFunc = thisptr->m_msgOpList.at(mpk.type())){
+                    co_await mpkFunc(mpk);
+                }
+                else{
+                    co_await thisptr->m_SO->onActorMsg(mpk);
+                }
+            }().resume();
         }
     }
 
