@@ -21,24 +21,22 @@ class ActorPod final
     private:
         template<bool AllowOverwrite> struct RegisterContinuationAwaiter
         {
-            ActorPod *              const actor;
-            std::optional<uint64_t> const seqID;
+            ActorPod * const actor;
+            uint64_t   const seqID;
 
-            bool await_ready() const
+            bool await_ready() const noexcept
             {
-                return !seqID.has_value();
+                return false;
             }
 
             void await_suspend(std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type> handle)
             {
-                if(seqID.has_value()){
-                    if constexpr(AllowOverwrite){
-                        actor->m_respondCBList.insert_or_assign(seqID.value(), handle);
-                    }
-                    else{
-                        if(!actor->m_respondCBList.try_emplace(seqID.value(), handle).second){
-                            throw fflerror("%s: seqID %llu already has a continuation", to_cstr(uidf::getUIDString(actor->UID())), to_llu(seqID.value()));
-                        }
+                if constexpr(AllowOverwrite){
+                    actor->m_respondCBList.insert_or_assign(seqID, handle);
+                }
+                else{
+                    if(!actor->m_respondCBList.try_emplace(seqID, handle).second){
+                        throw fflerror("%s: seqID %llu already has a continuation", to_cstr(uidf::getUIDString(actor->UID())), to_llu(seqID));
                     }
                 }
             }
@@ -142,20 +140,25 @@ class ActorPod final
     public:
         corof::awaitable<ActorMsgPack> send(const std::pair<uint64_t, uint64_t> &addr, ActorMsgBuf mbuf)
         {
-            co_await RegisterContinuationAwaiter<false>
-            {
-                .actor = this,
-                .seqID = doPost(addr, std::move(mbuf), true),
-            };
+            if(const auto seqIDOpt = doPost(addr, std::move(mbuf), true); seqIDOpt.has_value()){
+                co_await RegisterContinuationAwaiter<false>
+                {
+                    .actor = this,
+                    .seqID = seqIDOpt.value(),
+                };
+
+                // no return statement here
+                // return_value() called explicitly by innHandler()
+            }
+            else{
+                co_return ActorMsgPack{AM_BADACTORPOD};
+            }
         }
 
+    public:
         corof::awaitable<ActorMsgPack> send(uint64_t addr, ActorMsgBuf mbuf)
         {
-            co_await RegisterContinuationAwaiter<false>
-            {
-                .actor = this,
-                .seqID = doPost({addr, 0}, std::move(mbuf), true),
-            };
+            co_return co_await send({addr, 0}, std::move(mbuf));
         }
 
     private:
