@@ -141,6 +141,6 @@ function main()
         if not rc then
             fatalPrintf('addMonCo failed: %s', argDefault(errMsg, 'unknown error'))
         end
-        asyncWait(1000 * 5)
+        pause(1000 * 5)
     end
 end
