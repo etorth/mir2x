@@ -293,6 +293,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         void resume(uint64_t, uint64_t = 0);
 
     public:
+        void close (const std::pair<uint64_t, uint64_t> &kp) { close (kp.first, kp.second); }
+        void resume(const std::pair<uint64_t, uint64_t> &kp) { resume(kp.first, kp.second); }
+
+    public:
         LuaThreadHandle *hasKey(uint64_t, uint64_t = 0);
         LuaThreadHandle *hasKeyPair(const std::pair<uint64_t, uint64_t> &kp)
         {

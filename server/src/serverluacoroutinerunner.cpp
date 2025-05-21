@@ -397,18 +397,19 @@ ServerLuaCoroutineRunner::LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint
 
 void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
 {
-    if(auto eqr = m_runnerList.equal_range(key); eqr.first != eqr.second){
-        for(auto p = eqr.first;; ++p){
-            if(seqID == 0){
-                p = m_runnerList.erase(p);
-            }
-            else if(seqID == p->second.seqID){
-                m_runnerList.erase(p);
-                return;
-            }
-            else{
-                ++p;
-            }
+    auto eqr = m_runnerList.equal_range(key);
+    auto itr = eqr.first;
+
+    while(itr != eqr.second){
+        if(seqID == 0){
+            itr = m_runnerList.erase(itr);
+        }
+        else if(seqID == itr->second.seqID){
+            m_runnerList.erase(itr);
+            return;
+        }
+        else{
+            itr++;
         }
     }
 }
