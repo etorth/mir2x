@@ -616,7 +616,7 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             }
         default:
             {
-                throw fflvalue(mpk.str());
+                throw fflvalue(mpk.str(UID()));
             }
     }
 }
