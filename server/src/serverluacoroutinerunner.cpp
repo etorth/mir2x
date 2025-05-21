@@ -302,11 +302,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
         m_currRunner->needNotify = true;
         if(timeout > 0){
-            const auto threadKey = m_currRunner->key;
-            const auto threadSeqID = m_currRunner->seqID;
-            const auto delayKey = m_actorPod->getSO()->addDelay(timeout, [threadKey, threadSeqID, this](bool)
+            const auto kp = m_currRunner->keyPair();
+            const auto delayKey = m_actorPod->getSO()->addDelay(timeout, [kp, this](bool)
             {
-                if(auto runner = hasKey(threadKey, threadSeqID)){
+                if(auto runner = hasKeyPair(kp)){
                     runner->onClose.pop();
                     runner->needNotify = false;
                     resumeRunner(runner);
@@ -328,13 +327,11 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
     bindYielding("_RSVD_NAME_pauseYielding", [this](uint64_t msec)
     {
-        const auto threadKey   = m_currRunner->key;
-        const auto threadSeqID = m_currRunner->seqID;
-
-        const auto delayKey = m_actorPod->getSO()->addDelay(msec, [threadKey, threadSeqID, this](bool timeout)
+        const auto kp = m_currRunner->keyPair();
+        const auto delayKey = m_actorPod->getSO()->addDelay(msec, [kp, this](bool timeout)
         {
             if(timeout){
-                if(auto runnerPtr = hasKey(threadKey, threadSeqID)){
+                if(auto runnerPtr = hasKeyPair(kp)){
                     // first pop the onclose function
                     // otherwise the resume() will call it if the resume reaches end of code
                     fflassert(!runnerPtr->onClose.empty());
@@ -565,8 +562,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     // backup key and comletion handler
     // runnerPtr->onDone can invalidate runnerPtr, althrough this is no encouraged
 
-    const auto threadKey = runnerPtr->key;
-    const auto threadSeqID = runnerPtr->seqID;
+    const auto kp = runnerPtr->keyPair();
     const auto onDoneFunc = std::move(runnerPtr->onDone);
 
     if(onDoneFunc){
@@ -590,5 +586,5 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
         }
     }
 
-    close(threadKey, threadSeqID);
+    close(kp);
 }
