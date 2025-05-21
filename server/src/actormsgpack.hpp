@@ -236,7 +236,7 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
            return str_printf("{type:%s, from:%s, %sseqID:%llu, respID:%llu, size:%llu}",
                    mpkName(type()),
                    to_cstr(uidf::getUIDString(from())),
-                   to_cstr(toOpt.has_value() ? str_printf("to:%s, ", to_cstr(uidf::getUIDString(toOpt.value()))) : ""),
+                   toOpt.has_value() ? str_printf("to:%s, ", to_cstr(uidf::getUIDString(toOpt.value()))).c_str() : "",
                    to_llu(seqID()),
                    to_llu(respID()),
                    to_llu(size()));
