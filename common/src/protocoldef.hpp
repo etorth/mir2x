@@ -417,19 +417,23 @@ template<typename... Ts> struct VarDispatcher: Ts...
 template<typename T> class ValueKeeper final
 {
     private:
-        T &m_ref;
-        T  m_oldValue;
+        T & m_ref;
+        T   m_oldValue;
 
     public:
-        template<typename K> ValueKeeper(T &keep, K &&k)
+        template<typename K> ValueKeeper(T& keep, K&& k)
             : m_ref(keep)
             , m_oldValue(keep)
         {
-            m_ref = k;
+            m_ref = std::forward<K>(k);
         }
 
         ~ValueKeeper()
         {
-            m_ref = m_oldValue;
+            m_ref = std::move(m_oldValue);
         }
+
+    public:
+        ValueKeeper            (const ValueKeeper &) = delete;
+        ValueKeeper & operator=(const ValueKeeper &) = delete;
 };

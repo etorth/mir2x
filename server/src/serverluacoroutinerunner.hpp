@@ -244,6 +244,11 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                     onClose.pop();
                 }
             }
+
+            std::pair<uint64_t, uint64_t> keyPair() const
+            {
+                return {key, seqID};
+            }
         };
 
     protected:
@@ -289,6 +294,10 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
     public:
         LuaThreadHandle *hasKey(uint64_t, uint64_t = 0);
+        LuaThreadHandle *hasKeyPair(const std::pair<uint64_t, uint64_t> &kp)
+        {
+            return hasKey(kp.first, kp.second);
+        }
 
     private:
         void resumeRunner(LuaThreadHandle *, std::optional<std::pair<std::string, luaf::luaVar>> = {});

@@ -1,5 +1,6 @@
 #include <memory>
 #include <iterator>
+#include "sgf.hpp"
 #include "luaf.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"
@@ -545,28 +546,15 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     // this difference has been propogated to remote caller side by pfr serialization
     // this difference should be handled by caller side
 
-    struct KeepRunner final
-    {
-        LuaThreadHandle * & refRunner;
-        LuaThreadHandle *   oldRunner;
-
-        KeepRunner(LuaThreadHandle * &runner, LuaThreadHandle *newRunner)
-            : refRunner(runner)
-            , oldRunner(runner)
-        {
-            refRunner = newRunner;
-        }
-
-        ~KeepRunner()
-        {
-            refRunner = oldRunner;
-        }
-    };
-
     const auto pfr = [&]()
     {
-        const KeepRunner keep(m_currRunner, runnerPtr);
-        return codeOpt.has_value() ? runnerPtr->callback(codeOpt.value().first, luaf::buildLuaObj(sol::state_view(runnerPtr->runner.state()), codeOpt.value().second)) : runnerPtr->callback();
+        const ValueKeeper keep(m_currRunner, runnerPtr);
+        if(codeOpt.has_value()){
+            return runnerPtr->callback(codeOpt.value().first, luaf::buildLuaObj(sol::state_view(runnerPtr->runner.state()), codeOpt.value().second));
+        }
+        else{
+            return runnerPtr->callback();
+        }
     }();
 
     if(runnerPtr->callback){
