@@ -13,22 +13,21 @@
 
 extern Server *g_server;
 
-LuaCoopResumer::LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, void *currRunner, sol::function callback, const LuaCoopCallDoneFlag &doneFlag)
+LuaCoopResumer::LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, void *currRunner, sol::function callback)
     : m_luaRunner(luaRunner)
     , m_currRunner(currRunner)
     , m_callback(std::move(callback))
-    , m_doneFlag(doneFlag)
 {
     fflassert(m_luaRunner);
     fflassert(m_currRunner);
 }
 
 LuaCoopResumer::LuaCoopResumer(const LuaCoopResumer & resumer)
-    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, resumer.m_callback, resumer.m_doneFlag)
+    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, resumer.m_callback)
 {}
 
 LuaCoopResumer::LuaCoopResumer(LuaCoopResumer && resumer)
-    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, std::move(resumer.m_callback), resumer.m_doneFlag /* always copy doneFlag */)
+    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, std::move(resumer.m_callback))
 {}
 
 void LuaCoopResumer::pushOnClose(std::function<void()> fnOnClose) const
@@ -41,9 +40,11 @@ void LuaCoopResumer::popOnClose() const
     static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(m_currRunner)->onClose.pop();
 }
 
-void LuaCoopResumer::resumeRunner(ServerLuaCoroutineRunner *luaRunner, void *currRunner)
+void LuaCoopResumer::resumeYieldedRunner(ServerLuaCoroutineRunner *luaRunner, void *handle)
 {
-    luaRunner->resumeRunner(static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(currRunner));
+    if(auto currRunner = static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(handle); currRunner->needResume){
+        luaRunner->resumeRunner(static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(currRunner));
+    }
 }
 
 ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)

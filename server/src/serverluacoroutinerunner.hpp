@@ -5,44 +5,11 @@
 #include <type_traits>
 #include <sol/sol.hpp>
 #include "sysconst.hpp"
+#include "sgf.hpp"
 #include "luaf.hpp"
 #include "corof.hpp"
 #include "totype.hpp"
 #include "serverluamodule.hpp"
-
-class LuaCoopCallDoneFlag final
-{
-    private:
-        std::shared_ptr<bool> m_flag;
-
-    public:
-        LuaCoopCallDoneFlag()
-            : m_flag(std::make_shared<bool>(false))
-        {}
-
-        LuaCoopCallDoneFlag(const LuaCoopCallDoneFlag &arg)
-            : m_flag(arg.m_flag)
-        {}
-
-    public:
-        ~LuaCoopCallDoneFlag()
-        {
-            *m_flag = true;
-        }
-
-    public:
-        LuaCoopCallDoneFlag(LuaCoopCallDoneFlag &&) = delete;
-
-    public:
-        LuaCoopCallDoneFlag & operator = (const LuaCoopCallDoneFlag & ) = delete;
-        LuaCoopCallDoneFlag & operator = (      LuaCoopCallDoneFlag &&) = delete;
-
-    public:
-        operator bool () const
-        {
-            return *m_flag;
-        }
-};
 
 class ServerLuaCoroutineRunner;
 class LuaCoopResumer final
@@ -56,11 +23,8 @@ class LuaCoopResumer final
     private:
         sol::function m_callback;
 
-    private:
-        const LuaCoopCallDoneFlag m_doneFlag;
-
     public:
-        LuaCoopResumer(ServerLuaCoroutineRunner *, void *, sol::function, const LuaCoopCallDoneFlag &);
+        LuaCoopResumer(ServerLuaCoroutineRunner *, void *, sol::function);
 
     public:
         LuaCoopResumer(const LuaCoopResumer & );
@@ -77,9 +41,7 @@ class LuaCoopResumer final
         template<typename... Args> void operator () (Args && ... args) const
         {
             m_callback(std::forward<Args>(args)...);
-            if(m_doneFlag){
-                resumeRunner(m_luaRunner, m_currRunner);
-            }
+            resumeYieldedRunner(m_luaRunner, m_currRunner);
         }
 
     public:
@@ -87,7 +49,7 @@ class LuaCoopResumer final
         void  popOnClose()                      const;
 
     private:
-        static void resumeRunner(ServerLuaCoroutineRunner *, void *); // resolve dependency
+        static void resumeYieldedRunner(ServerLuaCoroutineRunner *, void *); // resolve dependency
 };
 
 class LuaCoopState final
@@ -150,6 +112,9 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
             // consume coroutine result
             // forward pfr to issuer as a special case
+            // if needResume is true, means the lua layer has been yielded
+
+            bool needResume = false;
             std::function<void(const sol::protected_function_result &)> onDone;
 
             // thread can be closed when
@@ -356,13 +321,15 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                     }
 
                     fflassert(s.lua_state());
-                    const LuaCoopCallDoneFlag doneFlag;
+
+                    m_currRunner->needResume = false;
+                    const auto callDoneSg = sgf::guard([this](){ m_currRunner->needResume = true; });
 
                     if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaThirdArg<Func>::type>){
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, doneFlag), LuaCoopState(s)), std::move(args))).resume();
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb), LuaCoopState(s)), std::move(args))).resume();
                     }
                     else{
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, doneFlag)), std::move(args))).resume();
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb)), std::move(args))).resume();
                     }
                 };
             }(std::forward<Func>(func)));
