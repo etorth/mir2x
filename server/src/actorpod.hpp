@@ -158,7 +158,7 @@ class ActorPod final
     public:
         corof::awaitable<ActorMsgPack> send(uint64_t addr, ActorMsgBuf mbuf)
         {
-            co_return co_await send({addr, 0}, std::move(mbuf));
+            return send({addr, 0}, std::move(mbuf));
         }
 
     private:

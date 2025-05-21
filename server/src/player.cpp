@@ -358,18 +358,17 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
 
     bindCoop("_RSVD_NAME_randomMove", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
     {
-        const auto newGLoc = [thisptr]() -> std::optional<std::array<int, 2>>
+        const auto newGLocOpt = [thisptr]() -> std::optional<std::pair<int, int>>
         {
-            const int startDir = pathf::getRandDir();
-            for(int i = 0; i < 8; ++i){
+            for(int startDir = pathf::getRandDir(), i = 0; i < 8; ++i){
                 if(const auto [newX, newY] = pathf::getFrontGLoc(thisptr->getPlayer()->X(), thisptr->getPlayer()->Y(), pathf::getNextDir(startDir, i)); thisptr->getPlayer()->mapBin()->groundValid(newX, newY)){
-                    return {{newX, newY}};
+                    return std::make_pair(newX, newY);
                 }
             }
-            return {};
+            return std::nullopt;
         }();
 
-        if(!newGLoc.has_value()){
+        if(!newGLocOpt.has_value()){
             onDone();
             co_return;
         }
@@ -379,7 +378,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
 
         const auto oldX = thisptr->getPlayer()->X();
         const auto oldY = thisptr->getPlayer()->Y();
-        const auto [newX, newY] = newGLoc.value();
+        const auto [newX, newY] = newGLocOpt.value();
 
         const auto moved = co_await thisptr->getPlayer()->requestMove(newX, newY, SYS_DEFSPEED, false, false);
         if(closed){
