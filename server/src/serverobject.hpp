@@ -87,9 +87,9 @@ class ServerObject
         }
 
     public:
-        corof::awaitable<bool> asyncWait(uint64_t tick)
+        corof::awaitable<bool> asyncWait(uint64_t tick, std::pair<uint64_t, uint64_t> * tokenPtr = nullptr)
         {
-            switch(const auto mpk = co_await m_actorPod->wait(tick); mpk.type()){
+            switch(const auto mpk = co_await m_actorPod->wait(tick, tokenPtr); mpk.type()){
                 case AM_TIMEOUT:
                     {
                         co_return true;
@@ -140,7 +140,7 @@ class ServerObject
             });
         }
 
-        void removeDelay(const std::pair<uint64_t, uint64_t> &token)
+        void cancelDelay(const std::pair<uint64_t, uint64_t> &token)
         {
             m_actorPod->cancelWaitToken(token);
         }

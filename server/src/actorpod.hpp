@@ -175,12 +175,21 @@ class ActorPod final
         void cancelWaitToken(const std::pair<uint64_t, uint64_t> &);
 
     public:
-        corof::awaitable<ActorMsgPack> wait(uint64_t tick)
+        corof::awaitable<ActorMsgPack> wait(uint64_t tick, std::pair<uint64_t, uint64_t> * tokenPtr = nullptr)
         {
+            // don't introduce waitToken()
+            // we need to immediately await a token before scheduled AM_TIMEOUT comes
+
+            const auto token = doCreateWaitToken(tick, nullptr);
+
+            if(tokenPtr){
+                *tokenPtr = token;
+            }
+
             co_await RegisterContinuationAwaiter<true>
             {
                 .actor = this,
-                .seqID = doCreateWaitToken(tick, nullptr).second,
+                .seqID = token.second,
             };
         }
 };

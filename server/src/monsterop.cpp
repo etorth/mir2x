@@ -155,6 +155,10 @@ corof::awaitable<> Monster::on_AM_ACTION(const ActorMsgPack &rstMPK)
         dispatchAction(amA.UID, makeActionStand());
         if(uidf::isPlayer(amA.UID)){
             dispatchHealth(amA.UID);
+            if(m_idleWaitToken.has_value()){
+                m_actorPod->cancelWaitToken(m_idleWaitToken.value());
+                m_idleWaitToken.reset();
+            }
         }
     }
 }

@@ -315,7 +315,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
             m_currRunner->onClose.push([delayKey, this]()
             {
-                m_actorPod->getSO()->removeDelay(delayKey);
+                m_actorPod->getSO()->cancelDelay(delayKey);
             });
         }
         return sol::make_object(sol::state_view(s), sol::nil);
@@ -344,7 +344,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
         m_currRunner->onClose.push([delayKey, this]()
         {
-            m_actorPod->getSO()->removeDelay(delayKey);
+            m_actorPod->getSO()->cancelDelay(delayKey);
         });
     });
 

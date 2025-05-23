@@ -64,7 +64,7 @@ class Monster: public BattleObject
         AStarCache m_astarCache;
 
     protected:
-        corof::awaitable<> m_updateCoro;
+        std::optional<std::pair<uint64_t, uint64_t>> m_idleWaitToken {};
 
     public:
         Monster(uint32_t,           // monster id

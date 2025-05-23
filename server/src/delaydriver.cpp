@@ -95,7 +95,13 @@ uint64_t DelayDriver::add(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_
             }
         }
 
-        iter->second.expires_after(std::chrono::milliseconds(tick));
+        if(tick){
+            iter->second.expires_after(std::chrono::milliseconds(tick));
+        }
+        else{
+            iter->second.expires_at(std::chrono::steady_clock::time_point::max());
+        }
+
         iter->second.async_wait([fromAddr, seq, this](std::error_code ec)
         {
             if(ec){
