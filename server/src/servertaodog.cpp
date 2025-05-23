@@ -37,9 +37,11 @@ corof::awaitable<> ServerTaoDog::runAICoro()
                 co_await followMaster();
             }
             else{
-                co_await asyncWait(200);
+                break;
             }
         }
+
+        co_await asyncWait(1000);
     }
 
     goDie();
