@@ -17,6 +17,8 @@
 #include "raiitimer.hpp"
 #include "actormsgpack.hpp"
 #include "actormonitor.hpp"
+#include "delaydriver.hpp"
+#include "actornetdriver.hpp"
 #include "parallel_hashmap/phmap.h"
 
 class ActorPod;
@@ -564,8 +566,15 @@ class ActorPool final
         void detach(const ActorPod *, std::function<void()>);
 
     public:
-        size_t peerCount() const;
-        size_t peerIndex() const;
+        size_t peerCount() const
+        {
+            return m_actorNetDriver->peerCount();
+        }
+
+        size_t peerIndex() const
+        {
+            return m_actorNetDriver->peerIndex();
+        }
 
     public:
         bool checkUIDValid(uint64_t) const;
@@ -633,6 +642,13 @@ class ActorPool final
         std::pair<MailboxSubBucket::RLockGuard, Mailbox *> tryGetRLockedMailboxPtr(uint64_t);
 
     public:
-        uint64_t requestTimeout(const std::pair<uint64_t, uint64_t> &, uint64_t);
-        bool cancelTimeout(uint64_t);
+        uint64_t requestTimeout(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_t tick)
+        {
+            return m_delayDriver->add(fromAddr, tick);
+        }
+
+        void cancelTimeout(uint64_t key)
+        {
+            m_delayDriver->remove(key);
+        }
 };

@@ -13,7 +13,6 @@ DelayDriver::DelayDriver()
     : m_context(std::make_unique<asio::io_context>(1))
     , m_holder(*m_context, std::chrono::steady_clock::time_point::max())
 {
-    fflassert(!isDelayThread());
     m_holder.async_wait([this](std::error_code ec)
     {
         if(ec){
@@ -47,11 +46,18 @@ DelayDriver::DelayDriver()
 
 DelayDriver::~DelayDriver()
 {
+    // if(isDelayThread()){
+    //     g_server->addFatal("Destroy delay driver in delay thread");
+    // }
+
     try{
-        m_holder.cancel();
-        if(m_context){
-            m_context->stop();
-        }
+        asio::post(m_context->get_executor(), [this]()
+        {
+            m_holder.cancel();
+            for(auto &[_, timer]: m_timerList){
+                timer.cancel();
+            }
+        });
 
         if(m_thread.joinable()){
             m_thread.join();
@@ -72,59 +78,59 @@ bool DelayDriver::isDelayThread()
 
 uint64_t DelayDriver::add(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_t tick)
 {
-    uint64_t seq;
-    timer_map::iterator iter;
+    const auto seq = m_seqID.fetch_add(1);
+    asio::post(m_context->get_executor(), [fromAddr, tick, seq, this]()
     {
-        const std::lock_guard lockGuard(m_lock);
-        seq = m_seqID++;
-
-        if(m_nodeList.empty()){
-            iter = m_timerList.emplace(seq, asio::steady_timer(*m_context)).first;
-        }
-        else{
-            timer_node node = std::move(m_nodeList.back());
-            m_nodeList.pop_back();
-
-            node.key() = seq;
-            iter = m_timerList.insert(std::move(node)).position;
-        }
-    }
-
-    iter->second.expires_after(std::chrono::milliseconds(tick));
-    iter->second.async_wait([fromAddr, seq, this](std::error_code ec)
-    {
-        if(ec){
-            if(ec == asio::error::operation_aborted){
-                Dispatcher().post(fromAddr, AM_CANCEL);
-                recycleTimer(seq);
+        timer_map::iterator iter;
+        {
+            if(m_nodeList.empty()){
+                iter = m_timerList.emplace(seq, asio::steady_timer(*m_context)).first;
             }
             else{
-                throw std::system_error(ec);
+                timer_node node = std::move(m_nodeList.back());
+                m_nodeList.pop_back();
+
+                node.key() = seq;
+                iter = m_timerList.insert(std::move(node)).position;
             }
         }
-        else{
-            Dispatcher().post(fromAddr, AM_TIMEOUT);
-            recycleTimer(seq);
-        }
+
+        iter->second.expires_after(std::chrono::milliseconds(tick));
+        iter->second.async_wait([fromAddr, seq, this](std::error_code ec)
+        {
+            if(ec){
+                if(ec == asio::error::operation_aborted){
+                    Dispatcher().post(fromAddr, AM_CANCEL);
+                    recycleTimer(seq);
+                }
+                else{
+                    throw std::system_error(ec);
+                }
+            }
+            else{
+                Dispatcher().post(fromAddr, AM_TIMEOUT);
+                recycleTimer(seq);
+            }
+        });
     });
     return seq;
 }
 
-bool DelayDriver::remove(uint64_t seq)
+void DelayDriver::remove(uint64_t seq)
 {
     if(seq){
-        const std::lock_guard lockGuard(m_lock);
-        if(auto p = m_timerList.find(seq); p != m_timerList.end()){
-            p->second.cancel();
-            return true;
-        }
+        asio::post(m_context->get_executor(), [seq, this]()
+        {
+            if(auto p = m_timerList.find(seq); p != m_timerList.end()){
+                p->second.cancel();
+            }
+        });
     }
-    return false;
 }
 
 void DelayDriver::recycleTimer(uint64_t seq)
 {
-    const std::lock_guard lockGuard(m_lock);
+    fflassert(isDelayThread());
     if(auto p = m_timerList.find(seq); p != m_timerList.end()){
         m_nodeList.push_back(m_timerList.extract(p));
     }

@@ -172,7 +172,7 @@ class ActorPod final
         }
 
     public:
-        bool cancelWaitToken(const std::pair<uint64_t, uint64_t> &);
+        void cancelWaitToken(const std::pair<uint64_t, uint64_t> &);
 
     public:
         corof::awaitable<ActorMsgPack> wait(uint64_t tick)

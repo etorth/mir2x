@@ -1034,23 +1034,3 @@ ActorPodMonitor ActorPool::getPodMonitor(uint64_t uid) const
     }
     return {};
 }
-
-size_t ActorPool::peerCount() const
-{
-    return m_actorNetDriver->peerCount();
-}
-
-size_t ActorPool::peerIndex() const
-{
-    return m_actorNetDriver->peerIndex();
-}
-
-uint64_t ActorPool::requestTimeout(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_t tick)
-{
-    return m_delayDriver->add(fromAddr, tick);
-}
-
-bool ActorPool::cancelTimeout(uint64_t key)
-{
-    return m_delayDriver->remove(key);
-}

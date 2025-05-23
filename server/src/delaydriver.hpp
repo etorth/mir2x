@@ -21,10 +21,9 @@ class DelayDriver
         asio::steady_timer m_holder;
 
     private:
-        uint64_t m_seqID = 1;
+        std::atomic<uint64_t> m_seqID {1};
 
     private:
-        std::mutex m_lock;
         std::thread m_thread;
 
     private:
@@ -42,7 +41,7 @@ class DelayDriver
 
     public:
         uint64_t add(const std::pair<uint64_t, uint64_t> &, uint64_t);
-        bool remove(uint64_t);
+        void remove(uint64_t);
 
     private:
         void recycleTimer(uint64_t);

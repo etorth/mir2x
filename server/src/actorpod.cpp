@@ -141,9 +141,9 @@ std::pair<uint64_t, uint64_t> ActorPod::doCreateWaitToken(uint64_t tick, std::fu
     };
 }
 
-bool ActorPod::cancelWaitToken(const std::pair<uint64_t, uint64_t> &token)
+void ActorPod::cancelWaitToken(const std::pair<uint64_t, uint64_t> &token)
 {
-    return g_actorPool->cancelTimeout(token.first);
+    g_actorPool->cancelTimeout(token.first);
 }
 
 std::optional<uint64_t> ActorPod::doPost(const std::pair<uint64_t, uint64_t> &addr, ActorMsgBuf mbuf, bool waitResp)
