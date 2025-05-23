@@ -1,7 +1,9 @@
 #include "pathf.hpp"
 #include "fflerror.hpp"
+#include "serverargparser.hpp"
 #include "serveranthealer.hpp"
 
+extern ServerArgParser *g_serverArgParser;
 void ServerAntHealer::sendHeal(uint64_t uid)
 {
     fflassert(uid);
@@ -63,7 +65,14 @@ corof::awaitable<> ServerAntHealer::runAICoro()
                 sendHeal(targetUID);
             }
         }
-        co_await asyncWait(1000);
+
+        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
+            co_await asyncWait(1000);
+        }
+        else{
+            m_idleWaitToken.emplace();
+            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
+        }
     }
 
     goDie();

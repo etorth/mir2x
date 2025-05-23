@@ -55,7 +55,14 @@ corof::awaitable<> ServerRebornZombie::runAICoro()
                 setStandMode(false);
             }
         }
-        co_await asyncWait(200);
+
+        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
+            co_await asyncWait(1000);
+        }
+        else{
+            m_idleWaitToken.emplace();
+            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
+        }
     }
 
     goDie();

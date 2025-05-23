@@ -61,10 +61,17 @@ corof::awaitable<> ServerWoomaTaurus::runAICoro()
         else if(masterUID()){
             co_await followMaster();
         }
-        else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
+        else{
             co_await randomMove();
         }
-        co_await asyncWait(200);
+
+        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
+            co_await asyncWait(1000);
+        }
+        else{
+            m_idleWaitToken.emplace();
+            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
+        }
     }
 
     goDie();

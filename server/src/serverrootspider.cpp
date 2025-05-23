@@ -1,7 +1,9 @@
 #include "pathf.hpp"
 #include "sysconst.hpp"
+#include "serverargparser.hpp"
 #include "serverrootspider.hpp"
 
+extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> ServerRootSpider::addBombSpider()
 {
     const auto [spawnGX, spawnGY] = pathf::getFrontGLoc(X(), Y(), Direction() + 3, 1);
@@ -44,7 +46,14 @@ corof::awaitable<> ServerRootSpider::runAICoro()
                 co_await addBombSpider();
             }
         }
-        co_await asyncWait(2000);
+
+        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
+            co_await asyncWait(1000);
+        }
+        else{
+            m_idleWaitToken.emplace();
+            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
+        }
     }
 
     goDie();
