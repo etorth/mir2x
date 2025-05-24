@@ -276,57 +276,6 @@ namespace corof
 
 namespace corof
 {
-    class entrance
-    {
-        private:
-            struct EntrancePromiseFinalAwaiter
-            {
-                bool await_ready  ()       const noexcept { return false; }
-                void await_suspend(auto h) const noexcept { h.destroy() ; }
-                void await_resume ()       const noexcept {}
-            };
-
-        public:
-            struct promise_type
-            {
-                entrance get_return_object()
-                {
-                    return entrance(std::coroutine_handle<promise_type>::from_promise(*this));
-                }
-
-                std::suspend_always       initial_suspend() noexcept { return {}; }
-                EntrancePromiseFinalAwaiter final_suspend() noexcept { return {}; }
-
-                void return_void() {}
-                void unhandled_exception()
-                {
-                    std::rethrow_exception(std::current_exception());
-                }
-            };
-
-        private:
-            std::coroutine_handle<promise_type> m_handle;
-
-        public:
-            entrance() = default;
-
-        private:
-            explicit entrance(std::coroutine_handle<promise_type> h)
-                : m_handle(h)
-            {}
-
-        public:
-            void operator()() &&
-            {
-                if(m_handle){
-                    m_handle.resume();
-                }
-            }
-    };
-}
-
-namespace corof
-{
     namespace _details
     {
         struct awaitable_promise_with_void
