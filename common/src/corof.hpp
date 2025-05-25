@@ -305,20 +305,32 @@ namespace corof
                     friend class AwaitableAsAwaiter;
 
                 private:
-                    struct AwaitablePromiseFinalAwaiter
+                    class AwaitablePromiseFinalAwaiter
                     {
-                        bool await_ready() const noexcept
-                        {
-                            return false;
-                        }
+                        private:
+                            std::coroutine_handle<promise_type> m_handle = nullptr;
 
-                        void await_suspend(std::coroutine_handle<promise_type> handle) noexcept
-                        {
-                            handle.promise().m_continuation.resume();
-                            handle.destroy();
-                        }
+                        public:
+                            AwaitablePromiseFinalAwaiter() = default;
 
-                        void await_resume() const noexcept {}
+                        public:
+                            ~AwaitablePromiseFinalAwaiter()
+                            {
+                                m_handle.destroy();
+                            }
+
+                        public:
+                            constexpr bool await_ready() const noexcept
+                            {
+                                return false;
+                            }
+
+                            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> handle) noexcept
+                            {
+                                return (m_handle = handle).promise().m_continuation;
+                            }
+
+                            constexpr void await_resume() const noexcept {}
                     };
 
                 private:
@@ -356,10 +368,10 @@ namespace corof
                         return !m_handle;
                     }
 
-                    void await_suspend(std::coroutine_handle<> h) noexcept
+                    std::coroutine_handle<> await_suspend(std::coroutine_handle<> h) noexcept
                     {
                         m_handle.promise().m_continuation = h;
-                        m_handle.resume();
+                        return m_handle;
                     }
 
                     auto await_resume()
@@ -413,7 +425,7 @@ namespace corof
             void resume()
             {
                 if(m_handle){
-                    AwaitableAsAwaiter(m_handle).await_suspend(std::noop_coroutine());
+                    AwaitableAsAwaiter(m_handle).await_suspend(std::noop_coroutine()).resume();
                 }
             }
 
