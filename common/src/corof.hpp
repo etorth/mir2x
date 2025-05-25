@@ -316,6 +316,17 @@ namespace corof
                         public:
                             ~AwaitablePromiseFinalAwaiter()
                             {
+                                // put coroutine handle in final awaiter
+                                // instead of inside corof::awaitable, because we have code like
+                                //
+                                //      co_await on_AM_MSG();
+                                //
+                                // if put coroutine handle inside corof::awaitable
+                                // it destructs after this line, however inside on_AM_MSG() we may wait some resp messges
+                                //
+                                // we have registered the handle to actor resp handler list
+                                // we can not let the coroutine handle in corof::awaitable destroy itself when above line returns
+                                // instead we can safely destroy it only when whole function body finishes
                                 m_handle.destroy();
                             }
 
@@ -327,6 +338,9 @@ namespace corof
 
                             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> handle) noexcept
                             {
+                                // gcc (till 15.1) has problem to support symmetric transfer
+                                // if optimization level is O2 or less, it doesn't do TCO (tail call optimization)
+                                // check: https://godbolt.org/z/ac57Tzorf
                                 return (m_handle = handle).promise().m_continuation;
                             }
 
