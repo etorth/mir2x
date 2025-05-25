@@ -2,9 +2,7 @@
 #include "servermsg.hpp"
 #include "friendtype.hpp"
 #include "serverwoomataurus.hpp"
-#include "serverargparser.hpp"
 
-extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> ServerWoomaTaurus::runAICoro()
 {
     const auto   lightMagicID = DBCOM_MAGICID(u8"沃玛教主_电光");
@@ -65,13 +63,7 @@ corof::awaitable<> ServerWoomaTaurus::runAICoro()
             co_await randomMove();
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

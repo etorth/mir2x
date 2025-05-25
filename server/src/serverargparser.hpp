@@ -81,13 +81,13 @@ class ServerArgParser
             bool disableNPCSpawn;                       // "--disable-npc-spawn"
 
             bool disableMapScript;                      // "--disable-map-script"
+            bool disableMonsterIdleWait;                // "--disable-monster-idle-wait"
 
             bool showStrikeGrid;                        // "--show-strike-grid"
-            bool forceMonsterRandomMove;                // "--force-monster-random-move"
 
             template<typename Archive> void serialize(Archive & ar)
             {
-                ar(logicalFPS, summonCount, lightMasterServer, disableLearnMagicCheckJob, disableLearnMagicCheckLevel, disableLearnMagicCheckPrior, traceActorMessage, traceActorMessageCount, enableUniqueActorMessageID, disablePetSpawn, disableGuardSpawn, disableMonsterSpawn, disableNPCSpawn, disableMapScript, showStrikeGrid, forceMonsterRandomMove);
+                ar(logicalFPS, summonCount, lightMasterServer, disableLearnMagicCheckJob, disableLearnMagicCheckLevel, disableLearnMagicCheckPrior, traceActorMessage, traceActorMessageCount, enableUniqueActorMessageID, disablePetSpawn, disableGuardSpawn, disableMonsterSpawn, disableNPCSpawn, disableMapScript, disableMonsterIdleWait, showStrikeGrid);
             }
         };
 
@@ -169,8 +169,8 @@ class ServerArgParser
                       .disableMonsterSpawn         = (argf::parseInteger<bool>(parseString(parser, "--disable-monster-spawn",           this->slave, argf::OPT, argf::BAN, true, true), "disable-monster-spawn",           argf::checkPass<bool>, false, true).first),
                       .disableNPCSpawn             = (argf::parseInteger<bool>(parseString(parser, "--disable-npc-spawn",               this->slave, argf::OPT, argf::BAN, true, true), "disable-npc-spawn",               argf::checkPass<bool>, false, true).first),
                       .disableMapScript            = (argf::parseInteger<bool>(parseString(parser, "--disable-map-script",              this->slave, argf::OPT, argf::BAN, true, true), "disable-map-script",              argf::checkPass<bool>, false, true).first),
+                      .disableMonsterIdleWait      = (argf::parseInteger<bool>(parseString(parser, "--disable-monster-idle-wait",       this->slave, argf::OPT, argf::BAN, true, true), "disable-monster-idle-wait",       argf::checkPass<bool>, false, true).first),
                       .showStrikeGrid              = (argf::parseInteger<bool>(parseString(parser, "--show-strike-grid",                this->slave, argf::OPT, argf::BAN, true, true), "show-strike-grid",                argf::checkPass<bool>, false, true).first),
-                      .forceMonsterRandomMove      = (argf::parseInteger<bool>(parseString(parser, "--force-monster-random-move",       this->slave, argf::OPT, argf::BAN, true, true), "force-monster-random-move",       argf::checkPass<bool>, false, true).first),
                   });
 
                   if(this->slave){

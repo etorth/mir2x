@@ -3,9 +3,7 @@
 #include "dbcomid.hpp"
 #include "raiitimer.hpp"
 #include "serversandghost.hpp"
-#include "serverargparser.hpp"
 
-extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> ServerSandGhost::runAICoro()
 {
     uint64_t targetUID = 0;
@@ -43,10 +41,8 @@ corof::awaitable<> ServerSandGhost::runAICoro()
                 targetUID = 0;
             }
         }
-        else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            if(m_standMode){
-                co_await randomMove();
-            }
+        else if(m_standMode){
+            co_await randomMove();
         }
         else if(!idleTime.has_value()){
             idleTime = hres_tstamp().to_sec();
@@ -55,13 +51,7 @@ corof::awaitable<> ServerSandGhost::runAICoro()
             setStandMode(false);
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

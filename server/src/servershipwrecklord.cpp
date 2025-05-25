@@ -1,8 +1,6 @@
 #include "fflerror.hpp"
-#include "serverargparser.hpp"
 #include "servershipwrecklord.hpp"
 
-extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> ServerShipwreckLord::runAICoro()
 {
     const auto  phyDC = DBCOM_MAGICID(u8"物理攻击");
@@ -62,13 +60,7 @@ corof::awaitable<> ServerShipwreckLord::runAICoro()
             }
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

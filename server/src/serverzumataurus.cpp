@@ -51,13 +51,7 @@ corof::awaitable<> ServerZumaTaurus::runAICoro()
             co_await followMaster();
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

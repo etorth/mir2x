@@ -216,6 +216,9 @@ class Monster: public BattleObject
         bool hasPlayerNeighbor() const;
 
     protected:
+        virtual corof::awaitable<bool> asyncIdleWait(uint64_t);
+
+    protected:
         virtual corof::awaitable<> onAMAttack      (const ActorMsgPack &);
         virtual corof::awaitable<> onAMMasterHitted(const ActorMsgPack &);
 

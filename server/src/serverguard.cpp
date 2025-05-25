@@ -3,11 +3,9 @@
 #include "dbcomid.hpp"
 #include "friendtype.hpp"
 #include "server.hpp"
-#include "serverargparser.hpp"
 #include "serverguard.hpp"
 
 extern Server *g_server;
-extern ServerArgParser *g_serverArgParser;
 ServerGuard::ServerGuard(const SDInitGuard &sdIG)
     : Monster
       {
@@ -70,13 +68,7 @@ corof::awaitable<> ServerGuard::runAICoro()
             }
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

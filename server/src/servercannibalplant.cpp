@@ -2,10 +2,8 @@
 #include "mathf.hpp"
 #include "dbcomid.hpp"
 #include "raiitimer.hpp"
-#include "serverargparser.hpp"
 #include "servercannibalplant.hpp"
 
-extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> ServerCannibalPlant::runAICoro()
 {
     uint64_t targetUID = 0;
@@ -32,13 +30,7 @@ corof::awaitable<> ServerCannibalPlant::runAICoro()
             setStandMode(false);
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

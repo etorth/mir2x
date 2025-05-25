@@ -1,9 +1,7 @@
 #include "pathf.hpp"
 #include "raiitimer.hpp"
-#include "serverargparser.hpp"
 #include "serverminotaurguardian.hpp"
 
-extern ServerArgParser *g_serverArgParser;
 ServerMinotaurGuardian::ServerMinotaurGuardian(uint32_t monID, uint64_t argMapUID, int argX, int argY, int argDir, uint64_t argMasterUID)
     : Monster(monID, argMapUID, argX, argY, argDir, argMasterUID)
 {
@@ -61,13 +59,7 @@ corof::awaitable<> ServerMinotaurGuardian::runAICoro()
             co_await randomMove();
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

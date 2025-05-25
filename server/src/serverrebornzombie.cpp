@@ -3,9 +3,7 @@
 #include "dbcomid.hpp"
 #include "raiitimer.hpp"
 #include "serverrebornzombie.hpp"
-#include "serverargparser.hpp"
 
-extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> ServerRebornZombie::runAICoro()
 {
     uint64_t targetUID = 0;
@@ -42,10 +40,8 @@ corof::awaitable<> ServerRebornZombie::runAICoro()
                 targetUID = 0;
             }
         }
-        else if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            if(m_standMode){
-                co_await randomMove();
-            }
+        else if(m_standMode){
+            co_await randomMove();
         }
         else{
             if(!idleTime.has_value()){
@@ -56,13 +52,7 @@ corof::awaitable<> ServerRebornZombie::runAICoro()
             }
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

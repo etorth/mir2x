@@ -1,8 +1,6 @@
 #include "sysconst.hpp"
-#include "serverargparser.hpp"
 #include "serverbugbatmaggot.hpp"
 
-extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> ServerBugbatMaggot::addBat()
 {
     if(const auto uid = co_await addMonster(DBCOM_MONSTERID(u8"蝙蝠"), X(), Y() - 1, false)){
@@ -31,15 +29,10 @@ corof::awaitable<> ServerBugbatMaggot::runAICoro()
 
             co_await asyncWait(600);
             co_await addBat();
+            continue;
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(2000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

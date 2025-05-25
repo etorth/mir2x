@@ -437,13 +437,7 @@ corof::awaitable<> Monster::runAICoro()
             co_await randomMove();
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();
@@ -1241,6 +1235,22 @@ bool Monster::hasPlayerNeighbor() const
         }
     }
     return false;
+}
+
+corof::awaitable<bool> Monster::asyncIdleWait(uint64_t tick)
+{
+    fflassert(tick > 0);
+
+    if(g_serverArgParser->sharedConfig().disableMonsterIdleWait){
+        return asyncWait(tick);
+    }
+
+    if(hasPlayerNeighbor()){
+        return asyncWait(tick);
+    }
+
+    m_idleWaitToken.emplace();
+    return asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
 }
 
 corof::awaitable<> Monster::onAMAttack(const ActorMsgPack &mpk)

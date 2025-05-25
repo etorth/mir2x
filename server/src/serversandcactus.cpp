@@ -1,9 +1,7 @@
 #include "pathf.hpp"
 #include "raiitimer.hpp"
-#include "serverargparser.hpp"
 #include "serversandcactus.hpp"
 
-extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> ServerSandCactus::runAICoro()
 {
     const auto magicID = DBCOM_MAGICID(u8"沙漠树魔_喷刺");
@@ -28,13 +26,7 @@ corof::awaitable<> ServerSandCactus::runAICoro()
             }
         }
 
-        if(g_serverArgParser->sharedConfig().forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await asyncWait(1000);
-        }
-        else{
-            m_idleWaitToken.emplace();
-            co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
-        }
+        co_await asyncIdleWait(1000);
     }
 
     goDie();
