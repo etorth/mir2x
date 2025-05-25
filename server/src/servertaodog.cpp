@@ -108,23 +108,23 @@ corof::awaitable<bool> ServerTaoDog::attackUID(uint64_t targetUID, int dcType)
     });
 
     uidList.insert(targetUID);
-    addDelay(550, [dcType, modifierID, uidList, this](bool) -> corof::awaitable<>
+    addDelay(550, [dcType, modifierID, uidList, thisptr = this](this auto, bool) -> corof::awaitable<>
     {
         AMAttack amA;
         std::memset(&amA, 0, sizeof(amA));
 
-        amA.UID = UID();
-        amA.mapUID = mapUID();
+        amA.UID = thisptr->UID();
+        amA.mapUID = thisptr->mapUID();
 
-        amA.X = X();
-        amA.Y = Y();
-        amA.damage = getAttackDamage(dcType, modifierID);
+        amA.X = thisptr->X();
+        amA.Y = thisptr->Y();
+        amA.damage = thisptr->getAttackDamage(dcType, modifierID);
 
         for(const auto uid: uidList){
-            switch(co_await checkFriend(uid)){
+            switch(co_await thisptr->checkFriend(uid)){
                 case FT_ENEMY:
                     {
-                        m_actorPod->post(uid, {AM_ATTACK, amA});
+                        thisptr->m_actorPod->post(uid, {AM_ATTACK, amA});
                         break;
                     }
                 default:
@@ -134,6 +134,7 @@ corof::awaitable<bool> ServerTaoDog::attackUID(uint64_t targetUID, int dcType)
             }
         }
     });
+    co_return true;
 }
 
 corof::awaitable<> ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
