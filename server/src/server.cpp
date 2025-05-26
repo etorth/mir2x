@@ -194,6 +194,8 @@ bool Server::createAccountCharacter(const char *id, const char *charName, bool g
 
         if(DBCOM_ITEMRECORD(item.itemID).isWeapon()){
             item.extAttrList.insert(SDItem::build_EA_DC(100));
+            item.extAttrList.insert(SDItem::build_EA_MC(100));
+            item.extAttrList.insert(SDItem::build_EA_SC(100));
         }
 
         fflassert(item);
