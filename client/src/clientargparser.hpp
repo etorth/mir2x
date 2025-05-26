@@ -10,6 +10,7 @@ struct ClientArgParser
     const bool disableProfiler;         // "--disable-profiler"
     const bool disableVersionCheck;     // "--disable-version-check"
     const bool disableAudio;            // "--disable-audio"
+    const bool disableIME;              // "--disable-ime"
     const bool disableTypesetCache;     // "--disable-typeset-cache"
     const bool traceMove;               // "--trace-move"
     const bool drawUID;                 // "--draw-uid"
@@ -46,6 +47,7 @@ struct ClientArgParser
         : disableProfiler      (argf::parseInteger<bool>(parseString(parser, "--disable-profiler",         argf::OPT, true), "disable-profiler",         argf::checkPass<bool>, false, true).first)
         , disableVersionCheck  (argf::parseInteger<bool>(parseString(parser, "--disable-version-check",    argf::OPT, true), "disable-version-check",    argf::checkPass<bool>, false, true).first)
         , disableAudio         (argf::parseInteger<bool>(parseString(parser, "--disable-audio",            argf::OPT, true), "disable-audio",            argf::checkPass<bool>, false, true).first)
+        , disableIME           (argf::parseInteger<bool>(parseString(parser, "--disable-ime",              argf::OPT, true), "disable-ime",              argf::checkPass<bool>, false, true).first)
         , disableTypesetCache  (argf::parseInteger<bool>(parseString(parser, "--disable-typeset-cache",    argf::OPT, true), "disable-typeset-cache",    argf::checkPass<bool>, false, true).first)
         , traceMove            (argf::parseInteger<bool>(parseString(parser, "--trace-move",               argf::OPT, true), "trace-move",               argf::checkPass<bool>, false, true).first)
         , drawUID              (argf::parseInteger<bool>(parseString(parser, "--draw-uid",                 argf::OPT, true), "draw-uid",                 argf::checkPass<bool>, false, true).first)

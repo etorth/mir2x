@@ -11,7 +11,6 @@
 #include "inventoryboard.hpp"
 
 extern Client *g_client;
-extern IMEBoard *g_imeBoard;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 

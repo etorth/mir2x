@@ -25,7 +25,6 @@
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
-extern IMEBoard *g_imeBoard;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 

@@ -11,11 +11,13 @@
 #include "strf.hpp"
 #include "bevent.hpp"
 #include "xmltypeset.hpp"
+#include "clientargparser.hpp"
 
 extern Log *g_log;
 extern FontexDB *g_fontexDB;
 extern IMEBoard *g_imeBoard;
 extern SDLDevice *g_sdlDevice;
+extern ClientArgParser *g_clientArgParser;
 
 LayoutBoard::LayoutBoard(
         Widget::VarDir argDir,
@@ -620,7 +622,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid)
                                 setupStartY(m_cursorLoc.par);
                             };
 
-                            if(m_imeEnabled && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
+                            if(!g_clientArgParser->disableIME && m_imeEnabled && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [fnInsertString, this](std::string s)
                                 {
                                     fnInsertString(std::move(s));

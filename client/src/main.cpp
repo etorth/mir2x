@@ -81,9 +81,12 @@ int main(int argc, char *argv[])
         g_bgmDB           = new BGMusicDB(5);
         g_seffDB          = new SoundEffectDB(128);
         g_client          = new Client();       // loads fontex resource
-        g_imeBoard        = new IMEBoard(DIR_UPLEFT, 0, 0);
-        g_notifyBoard     = new NotifyBoard(DIR_UPLEFT, 0, 0, 10240, 0, 15, 0, colorf::RED + colorf::A_SHF(255), 0, 5);
 
+        if(!g_clientArgParser->disableIME){
+            g_imeBoard = new IMEBoard(DIR_UPLEFT, 0, 0);
+        }
+
+        g_notifyBoard = new NotifyBoard(DIR_UPLEFT, 0, 0, 10240, 0, 15, 0, colorf::RED + colorf::A_SHF(255), 0, 5);
         g_client->mainLoop();
     }
     catch(const std::exception &e){

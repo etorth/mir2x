@@ -7,6 +7,7 @@
 #include "soundeffectdb.hpp"
 #include "pngtexoffdb.hpp"
 #include "imeboard.hpp"
+#include "clientargparser.hpp"
 #include "processcreatechar.hpp"
 
 extern Client *g_client;
@@ -16,6 +17,7 @@ extern BGMusicDB *g_bgmDB;
 extern SoundEffectDB *g_seffDB;
 extern PNGTexDB *g_progUseDB;
 extern PNGTexOffDB *g_selectCharDB;
+extern ClientArgParser *g_clientArgParser;
 
 ProcessCreateChar::ProcessCreateChar()
     : Process()
@@ -66,7 +68,9 @@ ProcessCreateChar::ProcessCreateChar()
       }
 {
     g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040001));
-    g_imeBoard->dropFocus();
+    if(!g_clientArgParser->disableIME){
+        g_imeBoard->dropFocus();
+    }
 }
 
 ProcessCreateChar::~ProcessCreateChar()
@@ -79,7 +83,9 @@ void ProcessCreateChar::update(double fUpdateTime)
 {
     m_aniTime += fUpdateTime;
     m_notifyBoard.update(fUpdateTime);
-    g_imeBoard->update(fUpdateTime);
+    if(!g_clientArgParser->disableIME){
+        g_imeBoard->update(fUpdateTime);
+    }
 
     if(const uint32_t frameCount = charFrameCount(m_job, m_activeGender); frameCount > 0){
         if(const auto currAbsFrame = absFrame(); ((currAbsFrame % frameCount) == 0) && (m_lastStartAbsFrame != currAbsFrame)){
@@ -119,7 +125,9 @@ void ProcessCreateChar::draw() const
     m_submit.draw();
     m_exit  .draw();
 
-    g_imeBoard->draw();
+    if(!g_clientArgParser->disableIME){
+        g_imeBoard->draw();
+    }
 
     const int notifX = (800 - m_notifyBoard.pw()) / 2;
     const int notifY = (600 - m_notifyBoard. h()) / 2;
@@ -135,13 +143,16 @@ void ProcessCreateChar::draw() const
 void ProcessCreateChar::processEvent(const SDL_Event &event)
 {
     bool tookEvent = false;
-    tookEvent |= g_imeBoard->processEvent(event, !tookEvent);
-    tookEvent |= m_warrior  .processEvent(event, !tookEvent);
-    tookEvent |= m_wizard   .processEvent(event, !tookEvent);
-    tookEvent |= m_taoist   .processEvent(event, !tookEvent);
-    tookEvent |= m_submit   .processEvent(event, !tookEvent);
-    tookEvent |= m_exit     .processEvent(event, !tookEvent);
-    tookEvent |= m_nameBox  .processEvent(event, !tookEvent);
+    if(!g_clientArgParser->disableIME){
+        tookEvent |= g_imeBoard->processEvent(event, !tookEvent);
+    }
+
+    tookEvent |= m_warrior.processEvent(event, !tookEvent);
+    tookEvent |= m_wizard .processEvent(event, !tookEvent);
+    tookEvent |= m_taoist .processEvent(event, !tookEvent);
+    tookEvent |= m_submit .processEvent(event, !tookEvent);
+    tookEvent |= m_exit   .processEvent(event, !tookEvent);
+    tookEvent |= m_nameBox.processEvent(event, !tookEvent);
 
     if(!tookEvent){
         switch(event.type){
