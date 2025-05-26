@@ -1242,15 +1242,18 @@ corof::awaitable<bool> Monster::asyncIdleWait(uint64_t tick)
     fflassert(tick > 0);
 
     if(g_serverArgParser->sharedConfig().disableMonsterIdleWait){
-        return asyncWait(tick);
+        co_return co_await asyncWait(tick);
     }
 
     if(hasPlayerNeighbor()){
-        return asyncWait(tick);
+        co_return co_await asyncWait(tick);
     }
 
     m_idleWaitToken.emplace();
-    return asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
+    const auto timeout = co_await asyncWait(0, std::addressof(m_idleWaitToken.value())); // infinite wait till cancel
+
+    m_idleWaitToken.reset();
+    co_return timeout;
 }
 
 corof::awaitable<> Monster::onAMAttack(const ActorMsgPack &mpk)
