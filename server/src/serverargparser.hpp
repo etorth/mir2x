@@ -155,7 +155,7 @@ class ServerArgParser
 
                   std::unique_ptr<const MasterSharedConfig> configPtr(new MasterSharedConfig
                   {
-                      .logicalFPS                  = (argf::parseInteger<int> (parseString(parser, "--logical-fps",                     this->slave, argf::OPT, argf::BAN            ), "logical-fps",                     argf::checkPositive,            10).first),
+                      .logicalFPS                  = (argf::parseInteger<int> (parseString(parser, "--logical-fps",                     this->slave, argf::OPT, argf::BAN            ), "logical-fps",                     argf::checkPositive,             1).first),
                       .summonCount                 = (argf::parseInteger<int> (parseString(parser, "--summon-count",                    this->slave, argf::OPT, argf::BAN            ), "summon-count",                    argf::checkPositive,             1).first),
                       .lightMasterServer           = (argf::parseInteger<bool>(parseString(parser, "--light-master-server",             this->slave, argf::OPT, argf::BAN, true, true), "light-master-server",             argf::checkPass<bool>, false, true).first),
                       .disableLearnMagicCheckJob   = (argf::parseInteger<bool>(parseString(parser, "--disable-learn-magic-check-job",   this->slave, argf::OPT, argf::BAN, true, true), "disable-learn-magic-check-job",   argf::checkPass<bool>, false, true).first),
