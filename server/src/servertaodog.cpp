@@ -102,8 +102,10 @@ corof::awaitable<bool> ServerTaoDog::attackUID(uint64_t targetUID, int dcType)
     std::unordered_set<uint64_t> uidList;
     foreachInViewCO([&mr, &coLoc, &uidList, this](const COLocation &inViewCOLoc)
     {
-        if(pathf::inDCCastRange(mr.castRange, X(), Y(), inViewCOLoc.x, inViewCOLoc.y)){
-            uidList.insert(inViewCOLoc.uid);
+        for(int d = 0; d <= mr.castRange.distance; ++d){
+            if(const auto [attackGX, attackGY] = pathf::getFrontGLoc(X(), Y(), Direction(), d); (inViewCOLoc.mapUID == mapUID()) && (inViewCOLoc.x == attackGX) && (inViewCOLoc.y == attackGY)){
+                uidList.insert(inViewCOLoc.uid);
+            }
         }
     });
 
