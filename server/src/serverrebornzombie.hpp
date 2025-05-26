@@ -8,12 +8,12 @@ class ServerRebornZombie final: public Monster
         bool m_standMode = false;
 
     public:
-        ServerRebornZombie(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
-            : Monster(monID, mapPtr, argX, argY, argDir, 0)
+        ServerRebornZombie(uint32_t monID, uint64_t argMapUID, int argX, int argY, int argDir)
+            : Monster(monID, argMapUID, argX, argY, argDir, 0)
         {}
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         ActionNode makeActionStand() const override

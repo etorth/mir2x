@@ -63,7 +63,7 @@ class ProcessRun: public Process
         const uint64_t m_myHeroUID;
 
     private:
-        uint32_t m_mapID = 0;
+        uint64_t m_mapUID = 0;
         Mir2xMapData m_mir2xMapData;
 
     private:
@@ -149,7 +149,7 @@ class ProcessRun: public Process
         void scrollMap();
 
     private:
-        void loadMap(uint32_t, int, int);
+        void loadMap(uint64_t, int, int);
 
     public:
         ProcessRun(const SMOnlineOK &);
@@ -161,9 +161,14 @@ class ProcessRun: public Process
             return PROCESSID_RUN;
         }
 
+        uint64_t mapUID() const
+        {
+            return m_mapUID;
+        }
+
         uint32_t mapID() const
         {
-            return m_mapID;
+            return uidf::getMapID(mapUID());
         }
 
     public:
@@ -193,9 +198,9 @@ class ProcessRun: public Process
         }
 
     public:
-        bool onMap(uint32_t id, int nX, int nY) const
+        bool onMap(uint64_t argMapUID, int nX, int nY) const
         {
-            return (mapID() == id) && m_mir2xMapData.validC(nX, nY);
+            return (mapUID() == argMapUID) && m_mir2xMapData.validC(nX, nY);
         }
 
         bool onMap(int x, int y) const
@@ -356,12 +361,12 @@ class ProcessRun: public Process
         std::optional<double> oneStepCost(const ClientPathFinder *, bool, int, int, int, int, int, int) const;
 
     private:
-        std::tuple<int, int> getRandLoc(uint32_t);
+        std::tuple<int, int> getRandLoc(uint32_t, size_t = 0);
 
     public:
         void requestKillPets();
         void requestAddExp(uint64_t);
-        bool requestSpaceMove(uint32_t, int, int);
+        bool requestSpaceMove(uint64_t, int, int);
 
     public:
         void queryCORecord(uint64_t) const;
@@ -371,6 +376,9 @@ class ProcessRun: public Process
         void queryUIDBuff(uint64_t) const;
         void queryPlayerWLDesp(uint64_t) const;
         void queryInvOp(int, uint32_t, uint32_t) const;
+
+    public:
+        void queryMapBaseUID(uint32_t, std::function<void(uint64_t)>) const;
 
     public:
         auto getWidget(this auto && self, const std::string_view &widgetName)
@@ -455,9 +463,9 @@ class ProcessRun: public Process
         void requestLatestChatMessage(const std::vector<uint64_t> &, size_t, bool, bool);
 
     public:
-        std::tuple<uint32_t, int, int> getMap() const
+        std::tuple<uint64_t, int, int> getMap() const
         {
-            return {m_mapID, m_mir2xMapData.w(), m_mir2xMapData.h()};
+            return {m_mapUID, m_mir2xMapData.w(), m_mir2xMapData.h()};
         }
 
         const auto &getCOList() const

@@ -12,6 +12,7 @@ enum SMType: uint8_t
     SM_OK     = 1,
     SM_ERROR,
     SM_PING,
+    SM_UID,
     SM_LOGINOK,
     SM_LOGINERROR,
     SM_CREATEACCOUNTOK,
@@ -94,6 +95,11 @@ struct SMPing
     uint32_t Tick;
 };
 
+struct SMUID
+{
+    uint64_t uid;
+};
+
 struct SMLoginError
 {
     uint8_t error;
@@ -136,9 +142,11 @@ struct SMOnlineOK
 {
     uint64_t uid;
     StaticBuffer<128> name;
+
     uint8_t gender : 1;
     uint8_t job    : 3;
-    uint32_t mapID;
+
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -150,14 +158,15 @@ struct SMOnlineError
 struct SMAction
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
 struct SMCORecord
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
+
     ActionNode action;
 
     struct _SMCORecord_Monster
@@ -193,7 +202,7 @@ struct SMNotifyDead
 struct SMDeadFadeOut
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     uint32_t X;
     uint32_t Y;
@@ -219,7 +228,7 @@ struct SMMiss
 struct SMCastMagic
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     uint8_t Magic;
     uint8_t MagicParam;
@@ -236,7 +245,7 @@ struct SMCastMagic
 struct SMOffline
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 };
 
 struct SMPickUpError
@@ -355,6 +364,7 @@ namespace
         _RSVD_register_servermsg(SM_OK,                  3                               );
         _RSVD_register_servermsg(SM_ERROR,               3                               );
         _RSVD_register_servermsg(SM_PING,                2, sizeof(SMPing)               );
+        _RSVD_register_servermsg(SM_UID,                 2, sizeof(SMUID)                );
         _RSVD_register_servermsg(SM_LOGINOK,             0                               );
         _RSVD_register_servermsg(SM_LOGINERROR,          1, sizeof(SMLoginError)         );
         _RSVD_register_servermsg(SM_CREATEACCOUNTOK,     0                               );

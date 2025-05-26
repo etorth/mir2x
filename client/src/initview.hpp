@@ -19,7 +19,6 @@
 #include <SDL2/SDL.h>
 #include <functional>
 #include "bevent.hpp"
-#include "xmlconf.hpp"
 #include "sdldevice.hpp"
 
 class InitView final
@@ -82,49 +81,46 @@ class InitView final
     private:
         int donePercent() const
         {
-            size_t taskWeigthSum = 0;
+            size_t taskWeightSum = 0;
             for(const auto &[weight, task]: m_taskList){
                 fflassert(weight);
-                taskWeigthSum += weight;
+                taskWeightSum += weight;
             }
-            return to_d(std::lround(to_f(m_doneWeight.load()) * 100.0 / taskWeigthSum));
+            return to_d(std::lround(to_f(m_doneWeight.load()) * 100.0 / taskWeightSum));
         }
 
     private:
-        template<typename T> void loadDB(size_t taskWeight, const XMLConf *xmlConfPtr, T *dbPtr, const char *nodePath)
+        template<typename T> void loadDB(size_t taskWeight, T *dbPtr, const std::string &resPath, const std::string &dbPath)
         {
             fflassert(taskWeight);
-            fflassert(xmlConfPtr);
             fflassert(dbPtr);
-            fflassert(str_haschar(nodePath));
+
+            fflassert(str_haschar(resPath));
+            fflassert(str_haschar(dbPath));
 
             if(m_hasError){
                 return;
             }
 
-            bool hasError = true;
-            addIVLog(LOGIV_INFO, "[%03d%%]Loading %s", donePercent(), nodePath);
+            const auto fullPath = std::filesystem::path(resPath) / dbPath;
+            const auto fileName = fullPath.filename().string();
 
-            if(auto nodePtr = xmlConfPtr->getXMLNode(nodePath)){
-                if(auto dbPath = nodePtr->GetText()){
-                    if(dbPtr->load(dbPath)){
-                        hasError = false;
-                        m_doneWeight += taskWeight;
-                        addIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", donePercent(), nodePath);
-                    }
-                    else{
-                        addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: %s", donePercent(), nodePath, dbPath);
-                    }
-                }
-                else{
-                    addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: Invalid node in configuration", donePercent(), nodePath);
-                }
+            std::string errstr;
+            addIVLog(LOGIV_INFO, "[%03d%%]Loading %s", donePercent(), to_cstr(fileName));
+            try{
+                dbPtr->load(fullPath.string().c_str());
+                m_doneWeight += taskWeight;
+                addIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", donePercent(), to_cstr(fileName));
             }
-            else{
-                addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: No node found in configuration", donePercent(), nodePath);
+            catch(const std::exception &e){
+                errstr = str_haschar(e.what()) ? e.what() : "unknown error";
+            }
+            catch(...){
+                errstr = "unknown error";
             }
 
-            if(hasError){
+            if(!errstr.empty()){
+                addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: %s", donePercent(), to_cstr(fileName), to_cstr(errstr));
                 m_hasError = true;
             }
         }

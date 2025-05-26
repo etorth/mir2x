@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "totype.hpp"
 #include "uidf.hpp"
+#include "uidsf.hpp"
 #include "npchar.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
@@ -17,35 +18,13 @@
 #include "mapbindb.hpp"
 #include "servermap.hpp"
 #include "charobject.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "rotatecoord.hpp"
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
-#include "serverguard.hpp"
-#include "servertaodog.hpp"
-#include "servertaoskeleton.hpp"
-#include "servertaoskeletonext.hpp"
-#include "servercannibalplant.hpp"
-#include "serverbugbatmaggot.hpp"
-#include "servermonstertree.hpp"
-#include "serverdualaxeskeleton.hpp"
-#include "servereviltentacle.hpp"
-#include "serversandcactus.hpp"
-#include "serversandghost.hpp"
-#include "serverrebornzombie.hpp"
-#include "serveranthealer.hpp"
-#include "serverwoomataurus.hpp"
-#include "serverevilcentipede.hpp"
-#include "serverzumamonster.hpp"
-#include "serverzumataurus.hpp"
-#include "serverbombspider.hpp"
-#include "serverrootspider.hpp"
-#include "serverredmoonevil.hpp"
-#include "servershipwrecklord.hpp"
-#include "serverminotaurguardian.hpp"
 
 extern MapBinDB *g_mapBinDB;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -64,7 +43,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 
     bindFunction("getMapSize", [this]()
     {
-        return sol::as_returns(std::vector<int>{getServerMap()->W(), getServerMap()->H()});
+        return sol::as_returns(std::vector<size_t>{getServerMap()->mapBin()->w(), getServerMap()->mapBin()->h()});
     });
 
     bindFunction("getCanThroughGridCount", [this, gridCount = to_d(-1)]() mutable -> int
@@ -74,9 +53,9 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         }
 
         gridCount = 0;
-        for(int x = 0; x < getServerMap()->W(); ++x){
-            for(int y = 0; y < getServerMap()->H(); ++y){
-                if(getServerMap()->groundValid(x, y)){
+        for(int x = 0; x < to_d(getServerMap()->mapBin()->w()); ++x){
+            for(int y = 0; y < to_d(getServerMap()->mapBin()->h()); ++y){
+                if(getServerMap()->mapBin()->groundValid(x, y)){
                     gridCount++;
                 }
             }
@@ -88,10 +67,10 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
     {
         std::array<int, 2> loc;
         while(true){
-            const int x = std::rand() % getServerMap()->W();
-            const int y = std::rand() % getServerMap()->H();
+            const int x = mathf::rand() % getServerMap()->mapBin()->w();
+            const int y = mathf::rand() % getServerMap()->mapBin()->h();
 
-            if(getServerMap()->groundValid(x, y)){
+            if(getServerMap()->mapBin()->groundValid(x, y)){
                 loc[0] = x;
                 loc[1] = y;
                 break;
@@ -113,8 +92,8 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                             true,
                             0,
                             0,
-                            getServerMap()->W(),
-                            getServerMap()->H(),
+                            getServerMap()->mapBin()->w(),
+                            getServerMap()->mapBin()->h(),
                         };
                     }
                 case 4:
@@ -143,14 +122,14 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         int roiW = regionW;
         int roiH = regionH;
 
-        if(!mathf::rectangleOverlapRegion<int>(0, 0, getServerMap()->W(), getServerMap()->H(), roiX, roiY, roiW, roiH)){
+        if(!mathf::rectangleOverlapRegion<int>(0, 0, getServerMap()->mapBin()->w(), getServerMap()->mapBin()->h(), roiX, roiY, roiW, roiH)){
             throw fflerror("invalid region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name), regionX, regionY, regionW, regionH);
         }
 
         int count = 0;
         for(int yi = roiY; yi < roiY + roiH; ++yi){
             for(int xi = roiX; xi < roiX + roiW; ++xi){
-                if(getServerMap()->groundValid(xi, yi)){
+                if(getServerMap()->mapBin()->groundValid(xi, yi)){
                     count++;
                 }
             }
@@ -175,8 +154,8 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                             true,
                             0,
                             0,
-                            getServerMap()->W(),
-                            getServerMap()->H(),
+                            getServerMap()->mapBin()->w(),
+                            getServerMap()->mapBin()->h(),
                         };
                     }
                 case 4:
@@ -197,7 +176,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             }
         }();
 
-        // randGLoc doesn't check CO's on map, only check groundValid()
+        // randGLoc doesn't check CO's on map, only check mapBin()->groundValid()
         // given region should have been checked by countGLoc to make sure it has valid grid
 
         // give a maximal loop count
@@ -236,14 +215,45 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         }
     });
 
-    bindFunction("getNPCharUID", [this](std::string npcName, sol::this_state s) -> sol::object
+    bindCoop("_RSVD_NAME_getNPCharUID", [thisptr = this](this auto, LuaCoopResumer onDone, std::string npcName) -> corof::awaitable<>
     {
-        for(const auto [uid, npcPtr]: getServerMap()->m_npcList){
-            if(npcPtr->getNPCName() == npcName){
-                return luaf::buildLuaObj(sol::state_view(s), lua_Integer(uid));
-            }
+        auto mapPtr = thisptr->getServerMap();
+        auto p = mapPtr->m_npcList.find(npcName);
+
+        if(p == mapPtr->m_npcList.end()){
+            onDone();
+            return {};
         }
-        return luaf::buildLuaObj(sol::state_view(s), luaf::luaNil{});
+
+        if(p->second.uid.has_value()){
+            if(p->second.uid.value()){
+                onDone(p->second.uid.value());
+            }
+            else{
+                onDone(); // load tried but failed
+            }
+            return {};
+        }
+
+        auto closed = std::make_shared<bool>(false);
+        onDone.pushOnClose([closed](){ *closed = true; });
+
+        p->second.ops.push_back([closed, onDone](uint64_t uid)
+        {
+            if(*closed){
+                return;
+            }
+
+            onDone.popOnClose();
+            if(uid){
+                onDone(uid);
+            }
+            else{
+                onDone();
+            }
+        });
+
+        return {};
     });
 
     bindFunction("getMonsterCount", [this](sol::variadic_args args) -> int
@@ -279,7 +289,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 
     bindFunction("addMonster", [this](sol::object monInfo, sol::variadic_args args) -> uint64_t
     {
-        const auto fnGetMonsterUID = [](const Monster *monPtr) -> uint64_t
+        const auto fnGetMonsterUID = [](const CharObject *monPtr) -> uint64_t
         {
             return monPtr ? monPtr->UID() : 0;
         };
@@ -302,7 +312,15 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             switch(argList.size()){
                 case 0:
                     {
-                        return fnGetMonsterUID(getServerMap()->addMonster(monID, 0, -1, -1, false));
+                        return fnGetMonsterUID(getServerMap()->m_addCO->addCO(SDInitMonster
+                        {
+                            .monsterID = monID,
+                            .mapUID = getServerMap()->UID(),
+                            .x = -1,
+                            .y = -1,
+                            .strictLoc = false,
+                            .direction = DIR_BEGIN,
+                        }));
                     }
                 case 2:
                     {
@@ -312,7 +330,15 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 
                             const auto nX = argList[0].as<int>();
                             const auto nY = argList[1].as<int>();
-                            return fnGetMonsterUID(getServerMap()->addMonster(monID, 0, nX, nY, false));
+                            return fnGetMonsterUID(getServerMap()->m_addCO->addCO(SDInitMonster
+                            {
+                                .monsterID = monID,
+                                .mapUID = getServerMap()->UID(),
+                                .x = nX,
+                                .y = nY,
+                                .strictLoc = false,
+                                .direction = DIR_BEGIN,
+                            }));
                         }
                         break;
                     }
@@ -326,7 +352,15 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                             const auto nX = argList[0].as<int >();
                             const auto nY = argList[1].as<int >();
                             const auto bStrictLoc = argList[2].as<bool>();
-                            return fnGetMonsterUID(getServerMap()->addMonster(monID, 0, nX, nY, bStrictLoc));
+                            return fnGetMonsterUID(getServerMap()->m_addCO->addCO(SDInitMonster
+                            {
+                                .monsterID = monID,
+                                .mapUID = getServerMap()->UID(),
+                                .x = nX,
+                                .y = nY,
+                                .strictLoc = bStrictLoc,
+                                .direction = DIR_BEGIN,
+                            }));
                         }
                         break;
                     }
@@ -339,18 +373,49 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         return fnGetMonsterUID(nullptr);
     });
 
-    bindFunction("addGuard", [this](std::string type, int x, int y, int direction) -> bool
+    bindFunction("addGuard", [this](sol::object monInfo, int x, int y, int direction) -> uint64_t
     {
-        const uint32_t monID = DBCOM_MONSTERID(to_u8cstr(type));
-        if(!monID){
-            return false;
+        // we don't need uid of added guard
+        // this is a function, not a coroutine like addMonster
+
+        const uint32_t monsterID = [&monInfo]() -> uint32_t
+        {
+            if(monInfo.is<int>()){
+                return monInfo.as<int>();
+            }
+
+            else if(monInfo.is<std::string>()){
+                return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
+            }
+
+            else{
+                throw fflerror("invalid argument: addGuard()");
+            }
+        }();
+
+        if(monsterID){
+            if(auto coPtr = getServerMap()->m_addCO->addCO(SDInitGuard
+            {
+                .monsterID = monsterID,
+                .mapUID = getServerMap()->UID(),
+                .x = x,
+                .y = y,
+                .strictLoc = false,
+                .direction = direction,
+            })){
+                return coPtr->UID();
+            }
         }
-        return getServerMap()->addGuard(monID, x, y, direction);
+        return 0;
     });
+
+    pfrCheck(execRawString(BEGIN_LUAINC(char)
+#include "servermap.lua"
+    END_LUAINC()));
 
     pfrCheck(execFile([this]() -> std::string
     {
-        const auto configScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+        const auto configScriptPath = g_serverArgParser->slave ? std::string{} : g_serverConfigureWindow->getConfig().scriptPath;
         const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
 
         const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
@@ -364,10 +429,6 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         }
         throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
     }().c_str()));
-
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "servermap.lua"
-    END_LUAINC()));
 }
 
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMaxStep, int argCheckCO)
@@ -391,34 +452,30 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMa
     fflassert(maxStep() <= 3, maxStep());
 }
 
-ServerMap::ServerMap(uint32_t mapID)
-    : ServerObject(uidf::getMapBaseUID(mapID))
-    , m_ID(mapID)
-    , m_mir2xMapData([mapID]()
+ServerMap::ServerMap(uint64_t argMapUID)
+    : ServerObject(argMapUID)
+    , m_mapBin([argMapUID]()
       {
-          Mir2xMapData data;
-          if(auto p = g_mapBinDB->retrieve(mapID)){
-              data = *p;
+          if(auto p = g_mapBinDB->retrieve(uidf::getMapID(argMapUID))){
+              return p;
           }
-
-          if(!data.valid()){
-              throw fflerror("load map failed: ID = %d, Name = %s", to_d(mapID), to_cstr(DBCOM_MAPRECORD(mapID).name));
-          }
-          return data;
+          throw fflerror("failed to load map: mapID %d, name %s", to_d(uidf::getMapID(argMapUID)), to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name));
       }())
 {
-    m_gridList.resize(W() * H());
-    for(const auto &entry: DBCOM_MAPRECORD(mapID).mapSwitchList){
+    m_gridList.resize(mapBin()->w() * mapBin()->h());
+    for(const auto &entry: DBCOM_MAPRECORD(ID()).mapSwitchList){
         if(true
                 && entry.w > 0
                 && entry.h > 0
-                && validC(entry.x, entry.y)){
+                && mapBin()->validC(entry.x, entry.y)){
 
             for(int nW = 0; nW < entry.w; ++nW){
                 for(int nH = 0; nH < entry.h; ++nH){
-                    getGrid(entry.x + nW, entry.y + nH).mapID   = DBCOM_MAPID(entry.endName);
-                    getGrid(entry.x + nW, entry.y + nH).switchX = entry.endX;
-                    getGrid(entry.x + nW, entry.y + nH).switchY = entry.endY;
+                    if(const auto mapID = DBCOM_MAPID(entry.endName)){
+                        getGrid(entry.x + nW, entry.y + nH).mapUID  = uidsf::getMapBaseUID(mapID);
+                        getGrid(entry.x + nW, entry.y + nH).switchX = entry.endX;
+                        getGrid(entry.x + nW, entry.y + nH).switchY = entry.endY;
+                    }
                 }
             }
         }
@@ -428,119 +485,87 @@ ServerMap::ServerMap(uint32_t mapID)
     }
 }
 
-void ServerMap::operateAM(const ActorMsgPack &rstMPK)
+corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
         case AM_PICKUP:
             {
-                on_AM_PICKUP(rstMPK);
-                break;
+                return on_AM_PICKUP(rstMPK);
             }
         case AM_DROPITEM:
             {
-                on_AM_DROPITEM(rstMPK);
-                break;
+                return on_AM_DROPITEM(rstMPK);
             }
         case AM_TRYLEAVE:
             {
-                on_AM_TRYLEAVE(rstMPK);
-                break;
+                return on_AM_TRYLEAVE(rstMPK);
             }
         case AM_UPDATEHP:
             {
-                on_AM_UPDATEHP(rstMPK);
-                break;
+                return on_AM_UPDATEHP(rstMPK);
             }
         case AM_DEADFADEOUT:
             {
-                on_AM_DEADFADEOUT(rstMPK);
-                break;
+                return on_AM_DEADFADEOUT(rstMPK);
             }
         case AM_ACTION:
             {
-                on_AM_ACTION(rstMPK);
-                break;
+                return on_AM_ACTION(rstMPK);
             }
         case AM_BADACTORPOD:
             {
-                on_AM_BADACTORPOD(rstMPK);
-                break;
+                return on_AM_BADACTORPOD(rstMPK);
             }
         case AM_TRYJUMP:
             {
-                on_AM_TRYJUMP(rstMPK);
-                break;
+                return on_AM_TRYJUMP(rstMPK);
             }
         case AM_TRYMOVE:
             {
-                on_AM_TRYMOVE(rstMPK);
-                break;
+                return on_AM_TRYMOVE(rstMPK);
             }
         case AM_PATHFIND:
             {
-                on_AM_PATHFIND(rstMPK);
-                break;
+                return on_AM_PATHFIND(rstMPK);
             }
         case AM_TRYMAPSWITCH:
             {
-                on_AM_TRYMAPSWITCH(rstMPK);
-                break;
-            }
-        case AM_METRONOME:
-            {
-                on_AM_METRONOME(rstMPK);
-                break;
+                return on_AM_TRYMAPSWITCH(rstMPK);
             }
         case AM_TRYSPACEMOVE:
             {
-                on_AM_TRYSPACEMOVE(rstMPK);
-                break;
+                return on_AM_TRYSPACEMOVE(rstMPK);
             }
         case AM_CASTFIREWALL:
             {
-                on_AM_CASTFIREWALL(rstMPK);
-                break;
-            }
-        case AM_ADDCO:
-            {
-                on_AM_ADDCO(rstMPK);
-                break;
+                return on_AM_CASTFIREWALL(rstMPK);
             }
         case AM_QUERYCOCOUNT:
             {
-                on_AM_QUERYCOCOUNT(rstMPK);
-                break;
+                return on_AM_QUERYCOCOUNT(rstMPK);
             }
         case AM_OFFLINE:
             {
-                on_AM_OFFLINE(rstMPK);
-                break;
+                return on_AM_OFFLINE(rstMPK);
             }
         case AM_REMOTECALL:
             {
-                on_AM_REMOTECALL(rstMPK);
-                break;
+                return on_AM_REMOTECALL(rstMPK);
             }
         case AM_STRIKEFIXEDLOCDAMAGE:
             {
-                on_AM_STRIKEFIXEDLOCDAMAGE(rstMPK);
-                break;
+                return on_AM_STRIKEFIXEDLOCDAMAGE(rstMPK);
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpkName(rstMPK.type()));
+                throw fflvalue(rstMPK.str());
             }
     }
 }
 
-bool ServerMap::groundValid(int nX, int nY) const
-{
-    return m_mir2xMapData.validC(nX, nY) && m_mir2xMapData.cell(nX, nY).land.canThrough();
-}
-
 bool ServerMap::canMove(bool bCheckCO, bool bCheckLock, int nX, int nY) const
 {
-    if(groundValid(nX, nY)){
+    if(mapBin()->groundValid(nX, nY)){
         if(bCheckCO){
             for(auto nUID: getUIDList(nX, nY)){
                 if(auto nType = uidf::getUIDType(nUID); nType == UID_PLY || nType == UID_MON){
@@ -662,7 +687,7 @@ std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool chec
     int roiW = regionW;
     int roiH = regionH;
 
-    if(!mathf::rectangleOverlapRegion<int>(0, 0, W(), H(), roiX, roiY, roiW, roiH)){
+    if(!mathf::rectangleOverlapRegion<int>(0, 0, mapBin()->w(), mapBin()->h(), roiX, roiY, roiW, roiH)){
         throw fflerror("invalid region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(ID()).name), regionX, regionY, regionW, regionH);
     }
 
@@ -680,7 +705,7 @@ std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool chec
         const int currX = rc.x();
         const int currY = rc.y();
 
-        if(in(ID(), currX, currY) && canMove(checkCO, checkLock, currX, currY)){
+        if(in(UID(), currX, currY) && canMove(checkCO, checkLock, currX, currY)){
             return std::make_tuple(currX, currY);
         }
 
@@ -693,28 +718,28 @@ std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool chec
 
 std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool checkLock, int checkCount) const
 {
-    return getRCValidGrid(checkCO, checkLock, checkCount, 0, 0, W(), H());
+    return getRCValidGrid(checkCO, checkLock, checkCount, 0, 0, mapBin()->w(), mapBin()->h());
 }
 
 std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool checkLock, int checkCount, int startX, int startY) const
 {
-    return getRCGLoc(checkCO, checkLock, checkCount, startX, startY, 0, 0, W(), H());
+    return getRCGLoc(checkCO, checkLock, checkCount, startX, startY, 0, 0, mapBin()->w(), mapBin()->h());
 }
 
 std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool checkLock, int checkCount, int regionX, int regionY, int regionW, int regionH) const
 {
     fflassert(regionW > 0);
     fflassert(regionH > 0);
-    return getRCGLoc(checkCO, checkLock, checkCount, regionX + std::rand() % regionW, regionY + std::rand() % regionH, regionX, regionY, regionW, regionH);
+    return getRCGLoc(checkCO, checkLock, checkCount, regionX + mathf::rand() % regionW, regionY + mathf::rand() % regionH, regionX, regionY, regionW, regionH);
 }
 
 void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
 {
-    if(!validC(nX, nY)){
+    if(!mapBin()->validC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
-    if(bForce || groundValid(nX, nY)){
+    if(bForce || mapBin()->groundValid(nX, nY)){
         if(!hasGridUID(uid, nX, nY)){
             getUIDList(nX, nY).push_back(uid);
         }
@@ -723,7 +748,7 @@ void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
 
 bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
 {
-    if(!validC(nX, nY)){
+    if(!mapBin()->validC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
@@ -733,7 +758,7 @@ bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
 
 bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
 {
-    if(!validC(nX, nY)){
+    if(!mapBin()->validC(nX, nY)){
         throw fflerror("invalid location: (%d, %d)", nX, nY);
     }
 
@@ -768,7 +793,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
     if(true
             && nW > 0
             && nH > 0
-            && mathf::rectangleOverlapRegion(0, 0, W(), H(), nX0, nY0, nW, nH)){
+            && mathf::rectangleOverlapRegion<int>(0, 0, mapBin()->w(), mapBin()->h(), nX0, nY0, nW, nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -778,7 +803,7 @@ bool ServerMap::DoCenterCircle(int nCX0, int nCY0, int nCR, bool bPriority, cons
             const int nX = rc.x();
             const int nY = rc.y();
 
-            if(validC(nX, nY)){
+            if(mapBin()->validC(nX, nY)){
                 if(mathf::LDistance2(nX, nY, nCX0, nCY0) <= (nCR - 1) * (nCR - 1)){
                     if(!fnOP){
                         return false;
@@ -806,7 +831,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
     if(true
             && nW > 0
             && nH > 0
-            && mathf::rectangleOverlapRegion(0, 0, W(), H(), nX0, nY0, nW, nH)){
+            && mathf::rectangleOverlapRegion<int>(0, 0, mapBin()->w(), mapBin()->h(), nX0, nY0, nW, nH)){
 
         // get the clip region over the map
         // if no valid region we won't do the rest
@@ -816,7 +841,7 @@ bool ServerMap::DoCenterSquare(int nCX, int nCY, int nW, int nH, bool bPriority,
             const int nX = rc.x();
             const int nY = rc.y();
 
-            if(validC(nX, nY)){
+            if(mapBin()->validC(nX, nY)){
                 if(!fnOP){
                     return false;
                 }
@@ -837,7 +862,7 @@ bool ServerMap::hasGridItemID(uint32_t itemID, int x, int y) const
 
 size_t ServerMap::getGridItemIDCount(uint32_t itemID, int x, int y) const
 {
-    if(!validC(x, y)){
+    if(!mapBin()->validC(x, y)){
         return 0;
     }
 
@@ -853,7 +878,7 @@ size_t ServerMap::getGridItemIDCount(uint32_t itemID, int x, int y) const
 void ServerMap::addGridItem(SDItem item, int x, int y, bool post)
 {
     fflassert(item);
-    fflassert(groundValid(x, y));
+    fflassert(mapBin()->groundValid(x, y));
 
     getGridItemList(x, y).push_back(DroppedItemNode
     {
@@ -870,7 +895,7 @@ void ServerMap::addGridItem(SDItem item, int x, int y, bool post)
 void ServerMap::addGridItemID(uint32_t itemID, int x, int y, bool post)
 {
     fflassert(DBCOM_ITEMRECORD(itemID));
-    fflassert(groundValid(x, y));
+    fflassert(mapBin()->groundValid(x, y));
 
     getGridItemList(x, y).push_back(DroppedItemNode
     {
@@ -914,11 +939,11 @@ SDGroundItemIDList ServerMap::getGroundItemIDList(int x, int y, size_t r)
     // an invalid center can cover valid grids
 
     SDGroundItemIDList groundItemIDList;
-    groundItemIDList.mapID = ID();
+    groundItemIDList.mapUID = UID();
 
     doCircle(x, y, r, [&groundItemIDList, this](int x, int y) -> bool
     {
-        if(groundValid(x, y)){
+        if(mapBin()->groundValid(x, y)){
             groundItemIDList.gridItemIDList.push_back(SDGroundItemIDList::GridItemIDList
             {
                 .x = x,
@@ -933,12 +958,12 @@ SDGroundItemIDList ServerMap::getGroundItemIDList(int x, int y, size_t r)
 
 void ServerMap::postGridItemIDList(int x, int y)
 {
-    fflassert(groundValid(x, y));
+    fflassert(mapBin()->groundValid(x, y));
     const auto sdBuf = cerealf::serialize(getGroundItemIDList(x, y, 1), true);
 
     doCircle(x, y, 20, [&sdBuf, this](int x, int y) -> bool
     {
-        if(groundValid(x, y)){
+        if(mapBin()->groundValid(x, y)){
             doUIDList(x, y, [&sdBuf, this](uint64_t uid) -> bool
             {
                 if(uidf::getUIDType(uid) == UID_PLY){
@@ -953,7 +978,7 @@ void ServerMap::postGridItemIDList(int x, int y)
 
 void ServerMap::postGroundItemIDList(uint64_t uid, int x, int y)
 {
-    fflassert(groundValid(x, y));
+    fflassert(mapBin()->groundValid(x, y));
     fflassert(uidf::getUIDType(uid) == UID_PLY);
     forwardNetPackage(uid, SM_GROUNDITEMIDLIST, cerealf::serialize(getGroundItemIDList(x, y, 20)));
 }
@@ -966,11 +991,11 @@ SDGroundFireWallList ServerMap::getGroundFireWallList(int x, int y, size_t r)
     // an invalid center can cover valid grids
 
     SDGroundFireWallList groundFireWallList;
-    groundFireWallList.mapID = ID();
+    groundFireWallList.mapUID = UID();
 
     doCircle(x, y, r, [&groundFireWallList, this](int x, int y) -> bool
     {
-        if(groundValid(x, y)){
+        if(mapBin()->groundValid(x, y)){
             for(auto p = getGrid(x, y).fireWallList.begin(); p != getGrid(x, y).fireWallList.end();){
                 if(hres_tstamp().to_msec() >= p->startTime + p->duration){
                     p = getGrid(x, y).fireWallList.erase(p);
@@ -994,12 +1019,12 @@ SDGroundFireWallList ServerMap::getGroundFireWallList(int x, int y, size_t r)
 
 void ServerMap::postGridFireWallList(int x, int y)
 {
-    fflassert(groundValid(x, y));
+    fflassert(mapBin()->groundValid(x, y));
     const auto sdBuf = cerealf::serialize(getGroundFireWallList(x, y, 1), true);
 
     doCircle(x, y, 20, [&sdBuf, this](int x, int y) -> bool
     {
-        if(groundValid(x, y)){
+        if(mapBin()->groundValid(x, y)){
             doUIDList(x, y, [&sdBuf, this](uint64_t uid) -> bool
             {
                 if(uidf::getUIDType(uid) == UID_PLY){
@@ -1014,7 +1039,7 @@ void ServerMap::postGridFireWallList(int x, int y)
 
 void ServerMap::postGroundFireWallList(uint64_t uid, int x, int y)
 {
-    fflassert(groundValid(x, y));
+    fflassert(mapBin()->groundValid(x, y));
     fflassert(uidf::getUIDType(uid) == UID_PLY);
     forwardNetPackage(uid, SM_GROUNDFIREWALLLIST, cerealf::serialize(getGroundFireWallList(x, y, 20)));
 }
@@ -1022,8 +1047,8 @@ void ServerMap::postGroundFireWallList(uint64_t uid, int x, int y)
 int ServerMap::getMonsterCount(uint32_t monsterID)
 {
     int result = 0;
-    for(int nX = 0; nX < W(); ++nX){
-        for(int nY = 0; nY < H(); ++nY){
+    for(int nX = 0; nX < to_d(mapBin()->w()); ++nX){
+        for(int nY = 0; nY < to_d(mapBin()->h()); ++nY){
             for(auto nUID: getUIDList(nX, nY)){
                 if(uidf::getUIDType(nUID) == UID_MON){
                     if(monsterID){
@@ -1047,11 +1072,11 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
     amNNCO.UID = nUID;
     doCircle(nX, nY, 20, [this, amNNCO](int nX, int nY) -> bool
     {
-        if(true || validC(nX, nY)){
+        if(true || mapBin()->validC(nX, nY)){
             doUIDList(nX, nY, [this, amNNCO](uint64_t nUID)
             {
                 if(nUID != amNNCO.UID){
-                    m_actorPod->forward(nUID, {AM_NOTIFYNEWCO, amNNCO});
+                    m_actorPod->post(nUID, {AM_NOTIFYNEWCO, amNNCO});
                 }
                 return false;
             });
@@ -1060,388 +1085,13 @@ void ServerMap::notifyNewCO(uint64_t nUID, int nX, int nY)
     });
 }
 
-Monster *ServerMap::addMonster(uint32_t nMonsterID, uint64_t nMasterUID, int nHintX, int nHintY, bool bStrictLoc)
-{
-    if(uidf::getUIDType(nMasterUID) == UID_PLY){
-        if(g_serverArgParser->disablePetSpawn){
-            return nullptr;
-        }
-    }
-    else{
-        if(g_serverArgParser->disableMonsterSpawn){
-            return nullptr;
-        }
-    }
-
-    if(!validC(nHintX, nHintY)){
-        if(bStrictLoc){
-            return nullptr;
-        }
-
-        nHintX = std::rand() % W();
-        nHintY = std::rand() % H();
-    }
-
-    if(const auto loc = getRCValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
-        const auto [nDstX, nDstY] = loc.value();
-        Monster *monsterPtr = nullptr;
-        switch(nMonsterID){
-            case DBCOM_MONSTERID(u8"变异骷髅"):
-                {
-                    monsterPtr = new ServerTaoSkeleton
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"超强骷髅"):
-                {
-                    monsterPtr = new ServerTaoSkeletonExt
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"神兽"):
-                {
-                    monsterPtr = new ServerTaoDog
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP, // TODO face its master
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"食人花"):
-                {
-                    monsterPtr = new ServerCannibalPlant
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"角蝇"):
-                {
-                    monsterPtr = new ServerBugbatMaggot
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"蝙蝠"):
-                {
-                    monsterPtr = new Monster
-                    {
-                        nMonsterID,
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_LEFT, // direction for initial gfx when born
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"栗子树"):
-            case DBCOM_MONSTERID(u8"圣诞树"):
-            case DBCOM_MONSTERID(u8"圣诞树1"):
-                {
-                    monsterPtr = new ServerMonsterTree
-                    {
-                        nMonsterID,
-                        this,
-                        nDstX,
-                        nDstY,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"沙漠树魔"):
-                {
-                    monsterPtr = new ServerSandCactus
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"掷斧骷髅"):
-                {
-                    monsterPtr = new ServerDualAxeSkeleton
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"触角神魔"):
-            case DBCOM_MONSTERID(u8"爆毒神魔"):
-                {
-                    monsterPtr = new ServerEvilTentacle
-                    {
-                        nMonsterID,
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"沙鬼"):
-                {
-                    monsterPtr = new ServerSandGhost
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"僵尸_1"):
-            case DBCOM_MONSTERID(u8"僵尸_2"):
-            case DBCOM_MONSTERID(u8"腐僵"):
-                {
-                    monsterPtr = new ServerRebornZombie
-                    {
-                        nMonsterID,
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"蚂蚁道士"):
-                {
-                    monsterPtr = new ServerAntHealer
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"沃玛教主"):
-                {
-                    monsterPtr = new ServerWoomaTaurus
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"触龙神"):
-                {
-                    monsterPtr = new ServerEvilCentipede
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"祖玛雕像"):
-            case DBCOM_MONSTERID(u8"祖玛卫士"):
-                {
-                    monsterPtr = new ServerZumaMonster
-                    {
-                        nMonsterID,
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"祖玛教主"):
-                {
-                    monsterPtr = new ServerZumaTaurus
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"爆裂蜘蛛"):
-                {
-                    monsterPtr = new ServerBombSpider
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"幻影蜘蛛"):
-                {
-                    monsterPtr = new ServerRootSpider
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"赤月恶魔"):
-                {
-                    monsterPtr = new ServerRedMoonEvil
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"霸王教主"):
-                {
-                    monsterPtr = new ServerShipwreckLord
-                    {
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            case DBCOM_MONSTERID(u8"潘夜左护卫"):
-            case DBCOM_MONSTERID(u8"潘夜右护卫"):
-                {
-                    monsterPtr = new ServerMinotaurGuardian
-                    {
-                        nMonsterID,
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                        nMasterUID,
-                    };
-                    break;
-                }
-            default:
-                {
-                    monsterPtr = new Monster
-                    {
-                        nMonsterID,
-                        this,
-                        nDstX,
-                        nDstY,
-                        DIR_UP,
-                        nMasterUID,
-                    };
-                    break;
-                }
-        }
-
-        monsterPtr->activate();
-        return monsterPtr;
-    }
-    return nullptr;
-}
-
-ServerGuard *ServerMap::addGuard(uint32_t monID, int x, int y, int direction)
-{
-    fflassert(monID);
-    fflassert(validC(x, y));
-
-    if(g_serverArgParser->disableGuardSpawn){
-        return nullptr;
-    }
-
-    auto guardPtr = new ServerGuard
-    {
-        monID,
-        this,
-        x,
-        y,
-        direction,
-    };
-
-    guardPtr->activate();
-    return guardPtr;
-}
-
-NPChar *ServerMap::addNPChar(const SDInitNPChar &initParam)
-{
-    if(g_serverArgParser->disableNPCSpawn){
-        return nullptr;
-    }
-
-    try{
-        auto npcPtr = new NPChar(this, initParam);
-        m_npcList[npcPtr->UID()] = npcPtr;
-        npcPtr->activate();
-        return npcPtr;
-    }
-    catch(const std::exception &e){
-        g_monoServer->addLog(LOGTYPE_WARNING, "failed to ServerMap::addNPChar: %s", e.what());
-        return nullptr;
-    }
-    catch(...){
-        g_monoServer->addLog(LOGTYPE_WARNING, "failed to ServerMap::addNPChar");
-        return nullptr;
-    }
-}
-
-Player *ServerMap::addPlayer(const SDInitPlayer &initPlayer)
-{
-    int nHintX = initPlayer.x;
-    int nHintY = initPlayer.y;
-    bool bStrictLoc = false;
-
-    if(!validC(nHintX, nHintY)){
-        if(bStrictLoc){
-            return nullptr;
-        }
-
-        nHintX = std::rand() % W();
-        nHintY = std::rand() % H();
-    }
-
-    if(const auto loc = getRCValidGrid(false, false, to_d(bStrictLoc), nHintX, nHintY); loc.has_value()){
-        auto playerPtr = new Player
-        {
-            initPlayer,
-            this,
-        };
-
-        playerPtr->activate();
-        return playerPtr;
-    }
-    return nullptr;
-}
-
 int ServerMap::checkPathGrid(int argX, int argY) const
 {
-    if(!m_mir2xMapData.validC(argX, argY)){
+    if(!mapBin()->validC(argX, argY)){
         return PF_NONE;
     }
 
-    if(!m_mir2xMapData.cell(argX, argY).land.canThrough()){
+    if(!mapBin()->cell(argX, argY).land.canThrough()){
         return PF_OBSTACLE;
     }
 
@@ -1484,7 +1134,7 @@ void ServerMap::updateMapGridFireWall()
                 std::memset(&amA, 0, sizeof(amA));
 
                 amA.UID = p->uid;
-                amA.mapID = UID();
+                amA.mapUID = UID();
                 amA.X = nX;
                 amA.Y = nY;
 
@@ -1502,7 +1152,7 @@ void ServerMap::updateMapGridFireWall()
                             case UID_PLY:
                             case UID_MON:
                                 {
-                                    m_actorPod->forward(uid, {AM_ATTACK, amA});
+                                    m_actorPod->post(uid, {AM_ATTACK, amA});
                                     break;
                                 }
                             default:
@@ -1563,18 +1213,24 @@ void ServerMap::updateMapGridGroundItem()
     }
 }
 
-void ServerMap::onActivate()
+corof::awaitable<> ServerMap::onActivate()
 {
-    ServerObject::onActivate();
-    loadNPChar();
+    co_await ServerObject::onActivate();
+    m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
+
+    co_await loadNPChar();
 
     m_luaRunner = std::make_unique<ServerMap::LuaThreadRunner>(this);
     m_luaRunner->spawn(m_mainScriptThreadKey, "return main()");
 }
 
-void ServerMap::loadNPChar()
+corof::awaitable<> ServerMap::loadNPChar()
 {
-    const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath;
+    if(g_serverArgParser->sharedConfig().disableNPCSpawn){
+        co_return;
+    }
+
+    const auto cfgScriptPath = g_serverArgParser->slave ? std::string{}: g_serverConfigureWindow->getConfig().scriptPath;
     const auto scriptPath = cfgScriptPath.empty() ? std::string("script/npc") : (cfgScriptPath + "/npc");
 
     // npc script file has format:
@@ -1594,24 +1250,63 @@ void ServerMap::loadNPChar()
     for(const auto &fileName: filesys::getFileList(scriptPath.c_str(), false, expr.c_str())){
         std::match_results<std::string::const_iterator> result;
         if(std::regex_match(fileName.begin(), fileName.end(), result, regExpr)){
-            SDInitNPChar initNPChar
+            SDInitNPChar sdINPC
             {
                 .fullScriptName = scriptPath + "/" + fileName,
-                .mapID = ID(),
+                .mapUID = UID(),
             };
 
             for(int i = 0; const auto &m: result){
                 switch(i++){
-                    case 1 : initNPChar.npcName =           m.str() ; break;
-                    case 2 : initNPChar.x       = std::stoi(m.str()); break;
-                    case 3 : initNPChar.y       = std::stoi(m.str()); break;
-                    case 4 : initNPChar.gfxDir  = std::stoi(m.str()); break;
-                    case 5 : initNPChar.lookID  = std::stoi(m.str()); break;
-                    default:                                        ; break;
+                    case 1 : sdINPC.npcName =           m.str() ; break;
+                    case 2 : sdINPC.x       = std::stoi(m.str()); break;
+                    case 3 : sdINPC.y       = std::stoi(m.str()); break;
+                    case 4 : sdINPC.gfxDir  = std::stoi(m.str()); break;
+                    case 5 : sdINPC.lookID  = std::stoi(m.str()); break;
+                    default:                                    ; break;
                 }
             }
 
-            addNPChar(initNPChar);
+            // spawn NPC on master server, even servermap itself can spawn COs
+            // because npc needs access to database
+
+            if(uidf::peerIndex(UID())){
+                m_npcList.emplace(sdINPC.npcName, NPCharOp{});
+                switch(const auto mpk = co_await m_actorPod->send(uidf::getServiceCoreUID(), {AM_ADDCO, cerealf::serialize<SDInitCharObject>(sdINPC)}); mpk.type()){
+                    case AM_UID:
+                        {
+                            auto amUID = mpk.conv<AMUID>();
+                            auto &npc = m_npcList[sdINPC.npcName];
+
+                            npc.uid = amUID.uid;
+                            for(auto &op: npc.ops){
+                                if(op){
+                                    op(amUID.uid);
+                                }
+                            }
+                            co_return;
+                        }
+                    default:
+                        {
+                            auto &npc = m_npcList[sdINPC.npcName];
+                            npc.uid = 0;
+                            for(auto &op: npc.ops){
+                                if(op){
+                                    op(0);
+                                }
+                            }
+                            co_return;
+                        }
+                }
+            }
+            else{
+                // servermap is also on master server
+                // spawn NPC locally
+
+                if(const auto npcPtr = m_addCO->addCO(sdINPC)){
+                    m_npcList[sdINPC.npcName].uid = npcPtr->UID();
+                }
+            }
         }
         else{
             throw fflvalue(fileName);

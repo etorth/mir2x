@@ -1,5 +1,4 @@
 #pragma once
-#include <asio.hpp>
 #include <cstdint>
 #include <array>
 #include <tuple>
@@ -7,8 +6,8 @@
 #include <thread>
 #include <queue>
 #include <cstdint>
+#include <asio.hpp>
 #include "uidf.hpp"
-#include "channel.hpp"
 #include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "dispatcher.hpp"
@@ -32,19 +31,16 @@ class NetDriver final
             // used when post messages that need xor compression
             std::vector<uint8_t> encodeBuf;
 
-            // channel
             // only asio thread can access it
-            // actor thread access it through asio::post(access_handler)
+            // actor thread access it through asio::post(access_handler), except channPtr->notify()
             std::shared_ptr<Channel> channPtr;
         };
 
     private:
-        unsigned int m_port = 0;
+        asio::ip::port_type m_port = 0;
 
     private:
-        asio::io_service        *m_io       = nullptr;
-        asio::ip::tcp::endpoint *m_endPoint = nullptr;
-        asio::ip::tcp::acceptor *m_acceptor = nullptr;
+        std::unique_ptr<asio::io_context> m_context;
 
     private:
         std::thread m_thread;
@@ -68,7 +64,7 @@ class NetDriver final
         void launch(uint32_t);
 
     public:
-        // these functions are provided to actor thread
+        // these functions are provided to actor threads
         // actor thread send/receive message by these interfaces
         // actor thread can invalidate channel by calling close(channID), asio loop can invalidate by catching exception
         // but no method to check channel is valid, after actor thread invalidate it, actor thread should keep flag to prevent access an invalidated channel
@@ -77,12 +73,12 @@ class NetDriver final
         void post(uint32_t, uint8_t, const void *, size_t, uint64_t);   // post message to a channel
 
     private:
-        void acceptNewConnection();
+        asio::awaitable<void> listener();
 
     private:
-        void doRelease();
         void doClose(uint32_t);
+        void doRelease();
 
     private:
-        std::array<std::tuple<const uint8_t *, size_t>, 2> encodePostBuf(uint8_t, const void *, size_t, uint64_t, std::vector<uint8_t> &);
+        static std::array<std::tuple<const uint8_t *, size_t>, 2> encodePostBuf(uint8_t, const void *, size_t, uint64_t, std::vector<uint8_t> &);
 };

@@ -4,10 +4,14 @@
 
 #include "mathf.hpp"
 #include "dbcomid.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
+#include "peerconfig.hpp"
 #include "dropitemconfig.hpp"
+#include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 
+extern PeerConfig *g_peerConfig;
+extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
 struct InnDropItemConfig final
@@ -86,27 +90,45 @@ const std::map<int, std::vector<DropItemConfig>> &getMonsterDropItemConfigList(u
 std::vector<SDItem> getMonsterDropItemList(uint32_t monsterID)
 {
     std::vector<SDItem> itemList;
-    const auto serverConfig = g_serverConfigureWindow->getConfig();
+    const auto [dropRate, goldRate] = []() -> std::tuple<double, double>
+    {
+        if(g_serverArgParser->slave){
+            const auto sdPC = g_peerConfig->getConfig();
+            return
+            {
+                sdPC.dropRate,
+                sdPC.goldRate,
+            };
+        }
+        else{
+            const auto confg = g_serverConfigureWindow->getConfig();
+            return
+            {
+                confg.dropRate,
+                confg.goldRate,
+            };
+        }
+    }();
+
+    fflassert(dropRate >= 0.0);
+    fflassert(goldRate >= 0.0);
 
     for(const auto &[group, dropItemList]: getMonsterDropItemConfigList(monsterID)){
         for(const auto &dropItem: dropItemList){
-            const auto adjProbRecip = [&dropItem, &serverConfig]() -> int
+            const auto adjProbRecip = [&dropItem, dropRate]() -> int
             {
                 if(dropItem.probRecip <= 0){
                     return 0;
                 }
-
-                fflassert(serverConfig.dropRate >= 0.0);
-                return std::max<int>(1, std::lround(dropItem.probRecip / serverConfig.dropRate));
+                return std::max<int>(1, std::lround(dropItem.probRecip / dropRate));
             }();
 
-            if((dropItem.probRecip > 0) && ((std::rand() % adjProbRecip) == 0)){
+            if((dropItem.probRecip > 0) && ((mathf::rand() % adjProbRecip) == 0)){
                 const auto &ir = DBCOM_ITEMRECORD(dropItem.itemID);
                 fflassert(ir);
 
                 if(ir.isGold()){
-                    fflassert(serverConfig.goldRate >= 0.0);
-                    const auto adjGold = std::max<size_t>(1, std::lround(dropItem.count * serverConfig.goldRate));
+                    const auto adjGold = std::max<size_t>(1, std::lround(dropItem.count * goldRate));
                     for(const auto &goldItem: SDItem::buildGoldItem(adjGold)){
                         itemList.push_back(SDItem
                         {

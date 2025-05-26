@@ -1,10 +1,10 @@
 #include "uidf.hpp"
 #include "receiver.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 Receiver::Receiver()
     : m_uid(uidf::buildReceiverUID())
@@ -18,7 +18,7 @@ Receiver::~Receiver()
         g_actorPool->detach(this);
     }
     catch(...){
-        g_monoServer->propagateException();
+        g_server->propagateException();
     }
 }
 
@@ -31,7 +31,7 @@ void Receiver::pushMessage(ActorMsgPack mpk)
     m_condition.notify_all();
 }
 
-size_t Receiver::wait(uint32_t timeout)
+size_t Receiver::wait(uint64_t timeout)
 {
     std::unique_lock<std::mutex> lockGuard(m_lock);
     const auto fnPred = [this, origLen = m_messageList.size()]() -> bool

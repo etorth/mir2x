@@ -57,10 +57,7 @@ class NPChar final: public CharObject
         std::unordered_map<uint64_t, uint64_t> m_xmlLayoutSeqIDList;
 
     public:
-        NPChar(const ServerMap *, const SDInitNPChar &initNPChar);
-
-    public:
-        bool update() override;
+        NPChar(const SDInitNPChar &initNPChar);
 
     public:
         void reportCO(uint64_t) override;
@@ -76,23 +73,23 @@ class NPChar final: public CharObject
         }
 
     protected:
-        void onActivate() override;
+        corof::awaitable<> onActivate() override;
 
     public:
         bool goDie() override;
         bool goGhost() override;
 
     private:
-        void on_AM_BUY(const ActorMsgPack &);
-        void on_AM_ATTACK(const ActorMsgPack &);
-        void on_AM_ACTION(const ActorMsgPack &);
-        void on_AM_NPCEVENT(const ActorMsgPack &);
-        void on_AM_NOTIFYNEWCO(const ActorMsgPack &);
-        void on_AM_BADACTORPOD(const ActorMsgPack &);
-        void on_AM_QUERYCORECORD(const ActorMsgPack &);
-        void on_AM_QUERYLOCATION(const ActorMsgPack &);
-        void on_AM_REMOTECALL(const ActorMsgPack &);
-        void on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
+        corof::awaitable<> on_AM_BUY(const ActorMsgPack &);
+        corof::awaitable<> on_AM_ATTACK(const ActorMsgPack &);
+        corof::awaitable<> on_AM_ACTION(const ActorMsgPack &);
+        corof::awaitable<> on_AM_NPCEVENT(const ActorMsgPack &);
+        corof::awaitable<> on_AM_NOTIFYNEWCO(const ActorMsgPack &);
+        corof::awaitable<> on_AM_BADACTORPOD(const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYCORECORD(const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYLOCATION(const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOTECALL(const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYSELLITEMLIST(const ActorMsgPack &);
 
     private:
         void sendRemoteCall(uint64_t, uint64_t, const std::string &);
@@ -102,13 +99,13 @@ class NPChar final: public CharObject
         // for messages NPChar -> Player (then Player may react) we use uidExecute()
         void postSell(uint64_t);
         void postXMLLayout(uint64_t, std::string, std::string);
-        void postAddMonster(uint32_t);
+        corof::awaitable<> postAddMonster(uint32_t);
         void postInvOpCost(uint64_t, int, uint32_t, uint32_t, size_t);
         void postStartInput(uint64_t, std::string, std::string, bool);
         void postStartInvOp(uint64_t, int, std::string, std::string, std::vector<std::u8string>);
 
     public:
-        void operateAM(const ActorMsgPack &) override;
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     protected:
         virtual std::set<uint32_t> getDefaultSellItemIDList() const;

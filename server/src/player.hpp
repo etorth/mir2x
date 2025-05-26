@@ -6,7 +6,7 @@
 #include <optional>
 #include <type_traits>
 #include "totype.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "battleobject.hpp"
 #include "combatnode.hpp"
 
@@ -97,13 +97,13 @@ class Player final: public BattleObject
         std::unordered_map<int, std::vector<sol::function>> m_scriptEventTriggerList;
 
     public:
-        Player(const SDInitPlayer &, const ServerMap *);
+        Player(const SDInitPlayer &);
 
     public:
         ~Player() = default;
 
     public:
-        void onActivate() override;
+        corof::awaitable<> onActivate() override;
 
     protected:
         uint32_t exp() const
@@ -137,106 +137,104 @@ class Player final: public BattleObject
             return 5;
         }
 
-        bool update() override;
+    protected:
+        corof::awaitable<> operateNet(uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
-        void operateNet(uint8_t, const uint8_t *, size_t, uint64_t);
-
-    protected:
-        void operateAM(const ActorMsgPack &);
+        corof::awaitable<> onActorMsg(const ActorMsgPack &);
 
     private:
-        void on_AM_EXP                (const ActorMsgPack &);
-        void on_AM_ADDBUFF            (const ActorMsgPack &);
-        void on_AM_REMOVEBUFF         (const ActorMsgPack &);
-        void on_AM_MISS               (const ActorMsgPack &);
-        void on_AM_HEAL               (const ActorMsgPack &);
-        void on_AM_GIFT               (const ActorMsgPack &);
-        void on_AM_ACTION             (const ActorMsgPack &);
-        void on_AM_ATTACK             (const ActorMsgPack &);
-        void on_AM_OFFLINE            (const ActorMsgPack &);
-        void on_AM_CORECORD           (const ActorMsgPack &);
-        void on_AM_METRONOME          (const ActorMsgPack &);
-        void on_AM_MAPSWITCHTRIGGER   (const ActorMsgPack &);
-        void on_AM_SENDPACKAGE        (const ActorMsgPack &);
-        void on_AM_RECVPACKAGE        (const ActorMsgPack &);
-        void on_AM_BADCHANNEL         (const ActorMsgPack &);
-        void on_AM_NOTIFYDEAD         (const ActorMsgPack &);
-        void on_AM_NOTIFYNEWCO        (const ActorMsgPack &);
-        void on_AM_QUERYHEALTH        (const ActorMsgPack &);
-        void on_AM_DEADFADEOUT        (const ActorMsgPack &);
-        void on_AM_BADACTORPOD        (const ActorMsgPack &);
-        void on_AM_BINDCHANNEL        (const ActorMsgPack &);
-        void on_AM_CHECKMASTER        (const ActorMsgPack &);
-        void on_AM_QUERYCORECORD      (const ActorMsgPack &);
-        void on_AM_QUERYLOCATION      (const ActorMsgPack &);
-        void on_AM_QUERYFRIENDTYPE    (const ActorMsgPack &);
-        void on_AM_REMOVEGROUNDITEM   (const ActorMsgPack &);
-        void on_AM_QUERYUIDBUFF       (const ActorMsgPack &);
-        void on_AM_QUERYPLAYERNAME    (const ActorMsgPack &);
-        void on_AM_QUERYPLAYERWLDESP  (const ActorMsgPack &);
-        void on_AM_REMOTECALL         (const ActorMsgPack &);
-        void on_AM_REQUESTJOINTEAM    (const ActorMsgPack &);
-        void on_AM_REQUESTLEAVETEAM   (const ActorMsgPack &);
-        void on_AM_QUERYTEAMPLAYER    (const ActorMsgPack &);
-        void on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &);
-        void on_AM_TEAMUPDATE         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_EXP                (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ADDBUFF            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOVEBUFF         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MISS               (const ActorMsgPack &);
+        corof::awaitable<> on_AM_HEAL               (const ActorMsgPack &);
+        corof::awaitable<> on_AM_GIFT               (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ACTION             (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ATTACK             (const ActorMsgPack &);
+        corof::awaitable<> on_AM_OFFLINE            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CORECORD           (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MAPSWITCHTRIGGER   (const ActorMsgPack &);
+        corof::awaitable<> on_AM_SENDPACKAGE        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_RECVPACKAGE        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_BADCHANNEL         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_NOTIFYDEAD         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_NOTIFYNEWCO        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYHEALTH        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_DEADFADEOUT        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_BADACTORPOD        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_BINDCHANNEL        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CHECKMASTER        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYCORECORD      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYLOCATION      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYFRIENDTYPE    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOVEGROUNDITEM   (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYUIDBUFF       (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYPLAYERNAME    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYPLAYERWLDESP  (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOTECALL         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REQUESTJOINTEAM    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REQUESTLEAVETEAM   (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYTEAMPLAYER    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &);
+        corof::awaitable<> on_AM_TEAMUPDATE         (const ActorMsgPack &);
 
     private:
-        void net_CM_ACTION                    (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_BUY                       (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_ADDFRIEND                 (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_ACCEPTADDFRIEND           (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REJECTADDFRIEND           (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_BLOCKPLAYER               (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_CHATMESSAGE               (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_CONSUMEITEM               (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_DROPITEM                  (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_MAKEITEM                  (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_NPCEVENT                  (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_PICKUP                    (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_PING                      (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_QUERYCORECORD             (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_QUERYGOLD                 (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_QUERYPLAYERNAME           (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_QUERYPLAYERWLDESP         (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_QUERYCHATPEERLIST         (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_QUERYCHATMESSAGE          (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_QUERYSELLITEMLIST         (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_QUERYUIDBUFF              (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTEQUIPBELT          (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTEQUIPWEAR          (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTGRABBELT           (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTGRABWEAR           (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTJOINTEAM           (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTKILLPETS           (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTLATESTCHATMESSAGE  (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTLEAVETEAM          (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTMAGICDAMAGE        (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_REQUESTSPACEMOVE          (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_SETMAGICKEY               (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_SETRUNTIMECONFIG          (uint8_t, const uint8_t *, size_t, uint64_t);
-        void net_CM_CREATECHATGROUP           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_ACTION                    (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_BUY                       (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_ADDFRIEND                 (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_ACCEPTADDFRIEND           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REJECTADDFRIEND           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_BLOCKPLAYER               (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CHATMESSAGE               (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CONSUMEITEM               (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_DROPITEM                  (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_MAKEITEM                  (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_NPCEVENT                  (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_PICKUP                    (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_PING                      (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYCORECORD             (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYMAPBASEUID           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYGOLD                 (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYPLAYERNAME           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYPLAYERWLDESP         (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYCHATPEERLIST         (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYCHATMESSAGE          (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYSELLITEMLIST         (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_QUERYUIDBUFF              (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTADDEXP             (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTEQUIPBELT          (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTEQUIPWEAR          (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTGRABBELT           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTGRABWEAR           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTJOINTEAM           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTKILLPETS           (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTLATESTCHATMESSAGE  (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTLEAVETEAM          (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTMAGICDAMAGE        (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_REQUESTSPACEMOVE          (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_SETMAGICKEY               (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_SETRUNTIMECONFIG          (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CREATECHATGROUP           (uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
         void reportGold();
         void reportStand();
         void reportHealth();
         void reportNextStrike();
-        void reportTeamMemberList();
+        corof::awaitable<> reportTeamMemberList();
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t) override;
-        void reportOffline(uint64_t, uint32_t);
+        void reportOffline(uint64_t, uint64_t);
         void reportRemoveItem(uint32_t, uint32_t, size_t);
         void reportSecuredItemList();
 
     protected:
-        virtual void reportAction(uint64_t, uint32_t, const ActionNode &);
+        virtual void reportAction(uint64_t, uint64_t, const ActionNode &);
 
     protected:
-        void pullTeamMemberList(std::function<void(std::optional<SDTeamMemberList>)>);
+        corof::awaitable<std::optional<SDTeamMemberList>> pullTeamMemberList();
 
     protected:
         void dispatchOffline();
@@ -258,13 +256,13 @@ class Player final: public BattleObject
         bool MotionValid(const ActionNode &);
 
     protected:
-        void onCMActionMove    (CMAction);
-        void onCMActionMine    (CMAction);
-        void onCMActionStand   (CMAction);
-        void onCMActionSpell   (CMAction);
-        void onCMActionSpinKick(CMAction);
-        void onCMActionAttack  (CMAction);
-        void onCMActionPickUp  (CMAction);
+        corof::awaitable<> onCMActionMove    (CMAction);
+        corof::awaitable<> onCMActionMine    (CMAction);
+        corof::awaitable<> onCMActionStand   (CMAction);
+        corof::awaitable<> onCMActionSpell   (CMAction);
+        corof::awaitable<> onCMActionSpinKick(CMAction);
+        corof::awaitable<> onCMActionAttack  (CMAction);
+        corof::awaitable<> onCMActionPickUp  (CMAction);
 
     private:
         void postNetMessage(uint8_t, const void *, size_t, uint64_t = 0);
@@ -287,7 +285,7 @@ class Player final: public BattleObject
 
         template<typename T> void postNetMessage(uint8_t headCode, const T &t, uint64_t respID = 0)
         {
-            static_assert(std::is_trivially_copyable_v<T>);
+            static_assert(std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>);
             postNetMessage(headCode, &t, sizeof(t), respID);
         }
 
@@ -394,7 +392,7 @@ class Player final: public BattleObject
         SDChatPeer dbCreateChatGroup(const char *, const std::span<const uint32_t> &);
 
     protected:
-        void checkFriend(uint64_t, std::function<void(int)>) override;
+        corof::awaitable<int> checkFriend(uint64_t) override;
 
     private:
         void postExp();

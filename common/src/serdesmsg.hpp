@@ -17,6 +17,21 @@
 #include "sditem.hpp"
 #include "sdruntimeconfig.hpp"
 
+struct SDSendPackage
+{
+    //              SDSendPackage
+    // used for SO ---------------> player -> client
+    // msg sent by server has no response field
+
+    uint8_t type = 0;
+    std::vector<uint8_t> buf;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(type, buf);
+    }
+};
+
 struct SDInitQuest
 {
     uint32_t questID = 0;
@@ -28,6 +43,23 @@ struct SDInitQuest
     }
 };
 
+struct SDInitGuard
+{
+    uint32_t monsterID = 0;
+
+    uint64_t mapUID = 0;
+    int x = 0;
+    int y = 0;
+    bool strictLoc = false;
+
+    int direction = DIR_NONE;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(monsterID, mapUID, x, y, strictLoc, direction);
+    }
+};
+
 struct SDInitPlayer
 {
     uint32_t dbid = 0;
@@ -36,9 +68,12 @@ struct SDInitPlayer
     std::string name {};
     uint32_t nameColor = 0;
 
+    uint64_t mapUID = 0;
+
     int x = 0;
     int y = 0;
-    uint32_t mapID = 0;
+
+    bool strictLoc = false;
 
     int hp = 0;
     int mp = 0;
@@ -53,7 +88,7 @@ struct SDInitPlayer
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(dbid, channID, name, nameColor, x, y, mapID, hp, mp, exp, gold, gender, job, hair, hairColor);
+        ar(dbid, channID, name, nameColor, mapUID, x, y, strictLoc, hp, mp, exp, gold, gender, job, hair, hairColor);
     }
 };
 
@@ -63,16 +98,41 @@ struct SDInitNPChar
     std::string npcName {};
     std::string fullScriptName {};
 
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
+
     int x = 0;
     int y = 0;
+
+    bool strictLoc = false;
+
     int gfxDir = 0;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(lookID, npcName, fullScriptName, mapID, x, y, gfxDir);
+        ar(lookID, npcName, fullScriptName, mapUID, x, y, strictLoc, gfxDir);
     }
 };
+
+struct SDInitMonster
+{
+    uint32_t monsterID = 0;
+
+    uint64_t mapUID = 0;
+    int x = 0;
+    int y = 0;
+
+    bool strictLoc = false;
+    int  direction = DIR_NONE;
+
+    uint64_t masterUID = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(monsterID, mapUID, x, y, strictLoc, direction, masterUID);
+    }
+};
+
+using SDInitCharObject = std::variant<SDInitGuard, SDInitPlayer, SDInitNPChar, SDInitMonster>;
 
 struct SDQuestTriggerLevelUp
 {
@@ -554,8 +614,8 @@ struct SDUIDWLDesp
 
 struct SDStartGameScene
 {
-    uint64_t uid   = 0;
-    uint32_t mapID = 0;
+    uint64_t uid    = 0;
+    uint64_t mapUID = 0;
 
     int x = -1;
     int y = -1;
@@ -567,7 +627,7 @@ struct SDStartGameScene
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, mapID, x, y, direction, desp, name);
+        ar(uid, mapUID, x, y, direction, desp, name);
     }
 };
 
@@ -668,17 +728,17 @@ struct SDGroundItemIDList
         }
     };
 
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
     std::vector<GridItemIDList> gridItemIDList;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(mapID, gridItemIDList);
+        ar(mapUID, gridItemIDList);
     }
 
     void clear()
     {
-        mapID = 0;
+        mapUID = 0;
         gridItemIDList.clear();
     }
 };
@@ -697,12 +757,12 @@ struct SDGridFireWall
 
 struct SDGroundFireWallList
 {
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
     std::vector<SDGridFireWall> fireWallList;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(mapID, fireWallList);
+        ar(mapUID, fireWallList);
     }
 };
 
@@ -825,7 +885,7 @@ struct SDNPCEvent
 {
     int x = 0;
     int y = 0;
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
 
     std::string path {};
     std::string event {};
@@ -833,7 +893,7 @@ struct SDNPCEvent
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(x, y, mapID, path, event, value);
+        ar(x, y, mapUID, path, event, value);
     }
 };
 
@@ -864,6 +924,17 @@ struct SDTaggedValMap
     int sum() const
     {
         return std::accumulate(valMap.begin(), valMap.end(), 0, [](const auto x, const auto y){ return x + y.second; });
+    }
+};
+
+struct SDPeerConfig
+{
+    double dropRate = 1.0f;
+    double goldRate = 1.0f;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(dropRate, goldRate);
     }
 };
 
@@ -1091,6 +1162,35 @@ struct SDTeamMemberList
             return uidList;
         }
         return {};
+    }
+};
+
+struct SDSysSlavePeerPort
+{
+    int port = 0;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(port);
+    }
+};
+
+struct SDSysSlavePeerList
+{
+    std::map<size_t, std::pair<std::string, uint32_t>> list;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(list);
+    }
+};
+
+struct SDSysPeerIndex
+{
+    size_t index {};
+    std::string masterConfig {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(index, masterConfig);
     }
 };
 

@@ -6,7 +6,7 @@
 class SyncDriver final
 {
     private:
-        uint32_t m_currID = 1;
+        uint64_t m_currID = 1;
 
     private:
         Receiver m_receiver;
@@ -26,5 +26,5 @@ class SyncDriver final
         }
 
     public:
-        ActorMsgPack forward(uint64_t, const ActorMsgBuf &, uint32_t = 0, uint32_t = 0);
+        ActorMsgPack forward(uint64_t, const ActorMsgBuf &, uint64_t = 0, uint64_t = 0);
 };

@@ -6,7 +6,7 @@
 #include "zsdb.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
-#include "argparser.hpp"
+#include "argf.hpp"
 
 static void cmd_help()
 {
@@ -20,7 +20,7 @@ static void cmd_help()
     std::printf("--input-file-name-regex\n");
 }
 
-static void cmd_create_db(const arg_parser &cmd)
+static void cmd_create_db(const argf::parser &cmd)
 {
     const auto outputFileName = [&cmd]() -> std::string
     {
@@ -91,7 +91,7 @@ static void cmd_create_db(const arg_parser &cmd)
     ZSDB::buildDB(outputFileName.c_str(), inputFileNameRegex.c_str(), inputDirName.c_str(), inputDictName.c_str(), compressThreshold);
 }
 
-static void cmd_list(const arg_parser &cmd)
+static void cmd_list(const argf::parser &cmd)
 {
     auto dbFileName = [&cmd]() -> std::string
     {
@@ -128,7 +128,7 @@ static void cmd_list(const arg_parser &cmd)
     }
 }
 
-static void cmd_uncomp_db(const arg_parser &cmd)
+static void cmd_uncomp_db(const argf::parser &cmd)
 {
     const auto dbFileName = [&cmd]() -> std::string
     {
@@ -169,7 +169,7 @@ static void cmd_uncomp_db(const arg_parser &cmd)
 
 int main(int argc, char *argv[])
 {
-    arg_parser cmd(argc, argv);
+    argf::parser cmd(argc, argv);
     if(cmd.has_option("help")){
         cmd_help();
     }

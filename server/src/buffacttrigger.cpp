@@ -1,14 +1,43 @@
 #include "fflerror.hpp"
 #include "battleobject.hpp"
 #include "dbcomid.hpp"
+#include "corof.hpp"
 #include "buffacttrigger.hpp"
 
-void BaseBuffActTrigger::checkTimedTrigger()
+BaseBuffActTrigger::BaseBuffActTrigger(BaseBuff *argBuff, size_t argBuffActOff)
+    : BaseBuffAct(argBuff, argBuffActOff)
 {
+    fflassert(getBAR().isTrigger());
     if(getBAREF().trigger.on & BATGR_TIME){
-        for(const auto neededCount = std::lround(getBuff()->accuTime() * getBAREF().trigger.tps / 1000.0); m_tpsCount < neededCount; ++m_tpsCount){
-            runOnTrigger(BATGR_TIME);
-        }
+        const auto tick = 1000L / getBAREF().trigger.tps;
+        const auto tgrCount = [this]()
+        {
+            switch(getBAREF().duration){
+                case BADUR_UNLIMITED: return -1;
+                case BADUR_INSTANT  : return  0;
+                default             : return getBAREF().duration * getBAREF().trigger.tps;
+            }
+        }();
+
+        getBuff()->getBO()->defer([bo = getBuff()->getBO(), key = actKey(), tick, tgrCount](this auto) -> corof::awaitable<>
+        {
+            if(auto tgrPtr = dynamic_cast<BaseBuffActTrigger *>(bo->m_buffList.hasBuffAct(key))){
+                co_await tgrPtr->runOnTrigger(BATGR_TIME);
+            }
+            else{
+                co_return;
+            }
+
+            for(int i = 1; tgrCount < 0 || i < tgrCount; ++i){
+                co_await bo->asyncWait(tick);
+                if(auto tgrPtr = dynamic_cast<BaseBuffActTrigger *>(bo->m_buffList.hasBuffAct(key))){
+                    co_await tgrPtr->runOnTrigger(BATGR_TIME);
+                }
+                else{
+                    co_return;
+                }
+            }
+        });
     }
 }
 
@@ -50,7 +79,10 @@ template<uint32_t INDEX> class BuffActTrigger: public IndexedBuffActTrigger<INDE
         {}
 
     protected:
-        void runOnTrigger(int) override {}
+        corof::awaitable<> runOnTrigger(int) override
+        {
+            co_return;
+        }
 };
 
 #define _decl_named_buff_act_trigger(name) template<> class BuffActTrigger<DBCOM_BUFFACTID(name)>: public IndexedBuffActTrigger<DBCOM_BUFFACTID(name)> \
@@ -67,10 +99,10 @@ template<uint32_t INDEX> class BuffActTrigger: public IndexedBuffActTrigger<INDE
         {} \
  \
     protected: \
-        void runOnTrigger(int) override; \
+               corof::awaitable<> runOnTrigger(int) override; \
 }; \
  \
-void  BuffActTrigger<DBCOM_BUFFACTID(name)>::runOnTrigger
+corof::awaitable<>  BuffActTrigger<DBCOM_BUFFACTID(name)>::runOnTrigger
 
 // define all triggers here
 // macros usage:
@@ -87,6 +119,7 @@ _decl_named_buff_act_trigger(u8"HP持续")(int trigger)
         const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().trigger.arg);
         getBuff()->getBO()->updateHealth(value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxHP() / 100.0));
     }
+    return {};
 }
 
 _decl_named_buff_act_trigger(u8"MP持续")(int trigger)
@@ -95,6 +128,7 @@ _decl_named_buff_act_trigger(u8"MP持续")(int trigger)
         const auto [value, percentage] = std::get<BuffValuePercentage>(getBAREF().trigger.arg);
         getBuff()->getBO()->updateHealth(0, value + std::lround(percentage * getBuff()->getBO()->getHealth().getMaxMP() / 100.0));
     }
+    return {};
 }
 
 _decl_named_buff_act_trigger(u8"HP移动伤害")(int trigger)
@@ -102,11 +136,13 @@ _decl_named_buff_act_trigger(u8"HP移动伤害")(int trigger)
     if(trigger & BATGR_MOVE){
         getBuff()->getBO()->updateHealth(-1 * std::get<int>(getBAREF().trigger.arg));
     }
+    return {};
 }
 
 _decl_named_buff_act_trigger(u8"MP移动伤害")(int)
 {
     getBuff()->getBO()->updateHealth(0, -1);
+    return {};
 }
 
 #undef _decl_named_buff_act_trigger

@@ -5,12 +5,12 @@
 class ServerWoomaTaurus final: public Monster
 {
     public:
-        ServerWoomaTaurus(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : Monster(DBCOM_MONSTERID(u8"沃玛教主"), mapPtr, argX, argY, argDir, masterUID)
+        ServerWoomaTaurus(uint64_t argMapUID, int argX, int argY, int argDir, uint64_t masterUID)
+            : Monster(DBCOM_MONSTERID(u8"沃玛教主"), argMapUID, argX, argY, argDir, masterUID)
         {}
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         DamageNode getAttackDamage(int dc, int) const override

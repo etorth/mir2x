@@ -10,15 +10,15 @@ class ServerBugbatMaggot final: public Monster
         std::unordered_set<uint64_t> m_batUIDList;
 
     public:
-        ServerBugbatMaggot(ServerMap *mapPtr, int argX, int argY)
-            : Monster(DBCOM_MONSTERID(u8"角蝇"), mapPtr, argX, argY, DIR_BEGIN, 0)
+        ServerBugbatMaggot(uint64_t argMapUID, int argX, int argY)
+            : Monster(DBCOM_MONSTERID(u8"角蝇"), argMapUID, argX, argY, DIR_BEGIN, 0)
         {}
 
     protected:
-        void addBat();
+        corof::awaitable<> addBat();
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         ActionNode makeActionStand() const override

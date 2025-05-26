@@ -8,7 +8,7 @@
 class NetIO final
 {
     private:
-        asio::io_service        m_io;
+        asio::io_context        m_io;
         asio::ip::tcp::resolver m_resolver;
         asio::ip::tcp::socket   m_socket;
 
@@ -45,7 +45,7 @@ class NetIO final
         }
 
     public:
-        void start(const char *, const char *, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)>);
+        void start(const std::string &, const std::string &, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)>);
 
     public:
         void poll()
@@ -55,7 +55,7 @@ class NetIO final
 
         void stop()
         {
-            m_io.post([this]()
+            asio::post(m_io, [this]()
             {
                 shutdown();
             });

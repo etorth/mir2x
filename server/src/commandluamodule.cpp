@@ -1,13 +1,13 @@
 #include "luaf.hpp"
 #include "actorpool.hpp"
 #include "serdesmsg.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "syncdriver.hpp"
 #include "serverluamodule.hpp"
 #include "serverluaobject.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 CommandLuaModule::CommandLuaModule(uint32_t cwid)
     : ServerLuaModule()
@@ -51,7 +51,7 @@ CommandLuaModule::CommandLuaModule(uint32_t cwid)
                         else{
                             fflassert(sdRCR.varList.empty(), sdRCR.error, sdRCR.varList);
                             for(const auto &line: sdRCR.error){
-                                g_monoServer->addCWLogString(CWID(), 2, ">>>", line.c_str());
+                                g_server->addCWLogString(CWID(), 2, ">>>", line.c_str());
                             }
                         }
                         return sol::as_returns(resList);
@@ -67,14 +67,14 @@ CommandLuaModule::CommandLuaModule(uint32_t cwid)
             }
         }
         catch(const std::exception &e){
-            g_monoServer->addCWLogString(CWID(), 2, ">>>", e.what());
+            g_server->addCWLogString(CWID(), 2, ">>>", e.what());
         }
         catch(...){
-            g_monoServer->addCWLogString(CWID(), 2, ">>>", "unknown error");
+            g_server->addCWLogString(CWID(), 2, ">>>", "unknown error");
         }
 
         return sol::as_returns(resList);
     });
 
-    g_monoServer->regLuaExport(this, cwid);
+    g_server->regLuaExport(this, cwid);
 }

@@ -30,10 +30,9 @@ class PNGTexOffDB: public innDB<uint32_t, PNGTexOffElement>
         {}
 
     public:
-        bool load(const char *texOffDBName)
+        void load(const char *texOffDBName)
         {
             m_zsdbPtr = std::make_unique<ZSDB>(texOffDBName);
-            return true;
         }
 
     public:

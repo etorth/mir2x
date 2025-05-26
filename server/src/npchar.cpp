@@ -15,12 +15,12 @@
 #include "fflerror.hpp"
 #include "serdesmsg.hpp"
 #include "friendtype.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverpasswordwindow.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern DBPod *g_dbPod;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerPasswordWindow *g_serverPasswordWindow;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -166,7 +166,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
 
         fflassert(monsterID);
-        getNPChar()->postAddMonster(monsterID);
+        getNPChar()->postAddMonster(monsterID).resume();
     });
 
     bindFunction("dbSetGKey", [this](std::string key, sol::object obj)
@@ -350,23 +350,23 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
     )###"));
 }
 
-NPChar::NPChar(const ServerMap *mapCPtr, const SDInitNPChar &initNPChar)
+NPChar::NPChar(const SDInitNPChar &sdINPC)
     : CharObject
       {
-          mapCPtr,
-          uidf::buildNPCUID(initNPChar.lookID),
+          uidf::buildNPCUID(sdINPC.lookID, 0),
+          sdINPC.mapUID,
 
-          initNPChar.x,
-          initNPChar.y,
-          initNPChar.gfxDir + DIR_BEGIN, // NPC gfx dir, may not be the 8-dir, but should be in DIR_BEGIN + [0, 8)
+          sdINPC.x,
+          sdINPC.y,
+          sdINPC.gfxDir + DIR_BEGIN, // NPC gfx dir, may not be the 8-dir, but should be in DIR_BEGIN + [0, 8)
       }
-    , m_npcName(initNPChar.npcName)
-    , m_initScriptName(initNPChar.fullScriptName)
+    , m_npcName(sdINPC.npcName)
+    , m_initScriptName(sdINPC.fullScriptName)
 {}
 
 uint64_t NPChar::rollXMLSeqID(uint64_t uid)
 {
-    const auto added = static_cast<uint64_t>(std::rand());
+    const auto added = static_cast<uint64_t>(mathf::rand());
     if(auto p = m_xmlLayoutSeqIDList.find(uid); p != m_xmlLayoutSeqIDList.end()){
         return p->second += added;
     }
@@ -385,18 +385,13 @@ std::optional<uint64_t> NPChar::getXMLSeqID(uint64_t uid) const
     }
 }
 
-bool NPChar::update()
-{
-    return true;
-}
-
 void NPChar::reportCO(uint64_t)
 {
 }
 
-void NPChar::onActivate()
+corof::awaitable<> NPChar::onActivate()
 {
-    CharObject::onActivate();
+    co_await CharObject::onActivate();
     m_luaRunner = std::make_unique<NPChar::LuaThreadRunner>(this);
 }
 
@@ -502,102 +497,80 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
     }));
 }
 
-void NPChar::postAddMonster(uint32_t monsterID)
+corof::awaitable<> NPChar::postAddMonster(uint32_t monsterID)
 {
-    fflassert(monsterID);
-
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_MON;
-    amACO.x = X();
-    amACO.y = Y() + 1;
-    amACO.mapID = mapID();
-    amACO.strictLoc = false;
-
-    amACO.monster.monsterID = monsterID;
-    amACO.monster.masterUID = 0;
-
-    m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rmpk)
+    SDInitCharObject sdICO = SDInitMonster
     {
-        switch(rmpk.type()){
-            case AM_UID:
-                {
-                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
-                        return;
-                    }
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-        g_monoServer->addLog(LOGTYPE_WARNING, "NPC failed to add monster");
-    });
-}
+        .monsterID = monsterID,
+        .mapUID = mapUID(),
+        .x = X(),
+        .y = Y() + 1,
+        .strictLoc = false,
+        .direction = DIR_BEGIN,
+    };
 
-void NPChar::operateAM(const ActorMsgPack &mpk)
-{
-    switch(mpk.type()){
-        case AM_OFFLINE:
-        case AM_METRONOME:
+    switch(const auto rmpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}); rmpk.type()){
+        case AM_UID:
             {
-                break;
-            }
-        case AM_BUY:
-            {
-                on_AM_BUY(mpk);
-                break;
-            }
-        case AM_ATTACK:
-            {
-                on_AM_ATTACK(mpk);
-                break;
-            }
-        case AM_ACTION:
-            {
-                on_AM_ACTION(mpk);
-                break;
-            }
-        case AM_NPCEVENT:
-            {
-                on_AM_NPCEVENT(mpk);
-                break;
-            }
-        case AM_NOTIFYNEWCO:
-            {
-                on_AM_NOTIFYNEWCO(mpk);
-                break;
-            }
-        case AM_QUERYCORECORD:
-            {
-                on_AM_QUERYCORECORD(mpk);
-                break;
-            }
-        case AM_QUERYLOCATION:
-            {
-                on_AM_QUERYLOCATION(mpk);
-                break;
-            }
-        case AM_QUERYSELLITEMLIST:
-            {
-                on_AM_QUERYSELLITEMLIST(mpk);
-                break;
-            }
-        case AM_REMOTECALL:
-            {
-                on_AM_REMOTECALL(mpk);
-                break;
-            }
-        case AM_BADACTORPOD:
-            {
-                on_AM_BADACTORPOD(mpk);
                 break;
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpkName(mpk.type()));
+                break;
+            }
+    }
+}
+
+corof::awaitable<> NPChar::onActorMsg(const ActorMsgPack &mpk)
+{
+    switch(mpk.type()){
+        case AM_OFFLINE:
+            {
+                return {};
+            }
+        case AM_BUY:
+            {
+                return on_AM_BUY(mpk);
+            }
+        case AM_ATTACK:
+            {
+                return on_AM_ATTACK(mpk);
+            }
+        case AM_ACTION:
+            {
+                return on_AM_ACTION(mpk);
+            }
+        case AM_NPCEVENT:
+            {
+                return on_AM_NPCEVENT(mpk);
+            }
+        case AM_NOTIFYNEWCO:
+            {
+                return on_AM_NOTIFYNEWCO(mpk);
+            }
+        case AM_QUERYCORECORD:
+            {
+                return on_AM_QUERYCORECORD(mpk);
+            }
+        case AM_QUERYLOCATION:
+            {
+                return on_AM_QUERYLOCATION(mpk);
+            }
+        case AM_QUERYSELLITEMLIST:
+            {
+                return on_AM_QUERYSELLITEMLIST(mpk);
+            }
+        case AM_REMOTECALL:
+            {
+                return on_AM_REMOTECALL(mpk);
+            }
+        case AM_BADACTORPOD:
+            {
+                return on_AM_BADACTORPOD(mpk);
+            }
+        default:
+            {
+                throw fflvalue(mpkName(mpk.type()));
             }
     }
 }
@@ -653,7 +626,7 @@ void NPChar::fillSellItemList()
             }
         }
         else{
-            const auto fillSize = std::max<size_t>(itemListRef.size(), 20 + std::rand() % 5);
+            const auto fillSize = std::max<size_t>(itemListRef.size(), 20 + mathf::rand() % 5);
             while(itemListRef.size() < fillSize){
                 const uint32_t seqID = itemListRef.empty() ? 1 : (itemListRef.rbegin()->first + 1);
                 const auto item = createSellItem(itemID, seqID);

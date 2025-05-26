@@ -6,7 +6,6 @@
 
 #include "log.hpp"
 #include "client.hpp"
-#include "xmlconf.hpp"
 #include "initview.hpp"
 #include "sysconst.hpp"
 #include "pngtexdb.hpp"
@@ -27,7 +26,6 @@
 #include "clientargparser.hpp"
 
 extern Log *g_log;
-extern XMLConf *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
 extern NotifyBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
@@ -130,36 +128,10 @@ void Client::eventDelay(double fDelayMS)
 
 void Client::initASIO()
 {
-    // this function will run in another thread
-    // make sure there is no data race
+    const auto ipStr = g_clientArgParser->serverIP;
+    const auto portStr = std::to_string(g_clientArgParser->serverPort.first);
 
-    // TODO
-    // may need lock here since g_xmlConf may used in main thread also
-    const auto ipStr = []()-> std::string
-    {
-        if(!g_clientArgParser->serverIP.empty()){
-            return g_clientArgParser->serverIP;
-        }
-
-        if(auto nodePtr = g_xmlConf->getXMLNode("/root/network/server/ip"); nodePtr && nodePtr->GetText()){
-            return std::string(nodePtr->GetText());
-        }
-        return "127.0.0.1";
-    }();
-
-    const auto portStr = []()-> std::string
-    {
-        if(!g_clientArgParser->serverPort.empty()){
-            return g_clientArgParser->serverPort;
-        }
-
-        if(auto nodePtr = g_xmlConf->getXMLNode("/root/network/server/port"); nodePtr && nodePtr->GetText()){
-            return std::string(nodePtr->GetText());
-        }
-        return "5000";
-    }();
-
-    m_netIO.start(ipStr.c_str(), portStr.c_str(), [this](uint8_t headCode, const uint8_t *pData, size_t nDataLen, uint64_t respID)
+    m_netIO.start(ipStr, portStr, [this](uint8_t headCode, const uint8_t *pData, size_t nDataLen, uint64_t respID)
     {
         // core should handle on fully recieved message from the serer
         // previously there are two steps (HC, Body) seperately handled, error-prone
@@ -478,12 +450,12 @@ void Client::sendSMsgLog(uint8_t headCode)
 
 void Client::PrintMonitor() const
 {
-    g_log->addLog(LOGTYPE_DEBUG, "Client runs %llu msec", to_llu(m_clientTimer.diff_msec()));
+    g_log->addLog(LOGTYPE_INFO, "Client runs %llu msec", to_llu(m_clientTimer.diff_msec()));
     for(size_t nIndex = 0; nIndex < SM_END; ++nIndex){
         uint64_t nProcTick  = m_clientMonitor.SMProcMonitorList[nIndex].procTick / 1000000;
         uint64_t nRecvCount = m_clientMonitor.SMProcMonitorList[nIndex].recvCount;
         if(nRecvCount > 0){
-            g_log->addLog(LOGTYPE_DEBUG, "%s: recvCount = %llu, procTick = %llumsec", ServerMsg(nIndex).name().c_str(), to_llu(nRecvCount), to_llu(nProcTick));
+            g_log->addLog(LOGTYPE_INFO, "%s: recvCount = %llu, procTick = %llumsec", ServerMsg(nIndex).name().c_str(), to_llu(nRecvCount), to_llu(nProcTick));
         }
     }
 }

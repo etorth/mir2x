@@ -191,7 +191,7 @@ void MiniMapBoard::drawMiniMapTexture() const
         return;
     }
 
-    const auto [mapID, mapW, mapH] = m_processRun->getMap();
+    const auto [mapUID, mapW, mapH] = m_processRun->getMap();
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(mapTexPtr);
     const auto fnGetMPLoc = [mapW, mapH, texW, texH](const std::tuple<int, int> &loc) -> std::tuple<int, int>
     {
@@ -285,8 +285,8 @@ int MiniMapBoard::getFrameSize() const
 
 SDL_Texture *MiniMapBoard::getMiniMapTexture() const
 {
-    [[maybe_unused]] const auto [mapID, mapW, mapH] = m_processRun->getMap();
-    if(const auto miniMapIDOpt = DBCOM_MAPRECORD(mapID).miniMapID; miniMapIDOpt.has_value()){
+    [[maybe_unused]] const auto [mapUID, mapW, mapH] = m_processRun->getMap();
+    if(const auto miniMapIDOpt = DBCOM_MAPRECORD(uidf::getMapID(mapUID)).miniMapID; miniMapIDOpt.has_value()){
         return g_progUseDB->retrieve(miniMapIDOpt.value());
     }
     return nullptr;
@@ -303,7 +303,7 @@ std::tuple<int, int> MiniMapBoard::mouseOnMapGLoc(int xOff, int yOff) const
     auto mapTexPtr = getMiniMapTexture();
     fflassert(mapTexPtr);
 
-    const auto [mapID, mapW, mapH] = m_processRun->getMap();
+    const auto [mapUID, mapW, mapH] = m_processRun->getMap();
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(mapTexPtr);
     const auto fnGetMPLoc = [mapW, mapH, texW, texH](const std::tuple<int, int> &loc) -> std::tuple<int, int>
     {

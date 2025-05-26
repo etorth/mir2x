@@ -87,7 +87,6 @@ LuaModule::LuaModule()
     execString("LOGTYPE_INFO    = 0");
     execString("LOGTYPE_WARNING = 1");
     execString("LOGTYPE_FATAL   = 2");
-    execString("LOGTYPE_DEBUG   = 3");
 
     execString("UID_NONE  = %d", UID_NONE );
     execString("UID_BEGIN = %d", UID_BEGIN);

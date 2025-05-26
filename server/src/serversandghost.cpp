@@ -3,33 +3,36 @@
 #include "dbcomid.hpp"
 #include "raiitimer.hpp"
 #include "serversandghost.hpp"
-#include "serverargparser.hpp"
 
-extern ServerArgParser *g_serverArgParser;
-corof::eval_poller<> ServerSandGhost::updateCoroFunc()
+corof::awaitable<> ServerSandGhost::runAICoro()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
 
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
-            const auto [targetMapID, targetX, targetY] = co_await coro_getCOGLoc(targetUID);
-            if(inView(targetMapID, targetX, targetY)){
+            const auto coLocOpt = co_await getCOLocation(targetUID);
+            if(!coLocOpt.has_value()){
+                continue;
+            }
+
+            const auto &coLoc = coLocOpt.value();
+            if(inView(coLoc.mapUID, coLoc.x, coLoc.y)){
                 idleTime.reset();
                 setStandMode(true);
-                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 1){
-                    co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+                if(mathf::CDistance<int>(coLoc.x, coLoc.y, X(), Y()) <= 1){
+                    co_await attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
                 }
                 else{
-                    co_await coro_trackUID(targetUID, DBCOM_MAGICRECORD(u8"物理攻击").castRange);
+                    co_await trackUID(targetUID, DBCOM_MAGICRECORD(u8"物理攻击").castRange);
                 }
             }
             else{
@@ -38,10 +41,8 @@ corof::eval_poller<> ServerSandGhost::updateCoroFunc()
                 targetUID = 0;
             }
         }
-        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
-            if(m_standMode){
-                co_await coro_randomMove();
-            }
+        else if(m_standMode){
+            co_await randomMove();
         }
         else if(!idleTime.has_value()){
             idleTime = hres_tstamp().to_sec();
@@ -49,7 +50,8 @@ corof::eval_poller<> ServerSandGhost::updateCoroFunc()
         else if(hres_tstamp().to_sec() - idleTime.value() > 30ULL){
             setStandMode(false);
         }
-        co_await corof::async_wait(200);
+
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

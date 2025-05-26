@@ -1,4 +1,5 @@
 #pragma once
+#include "corof.hpp"
 #include "dbcomid.hpp"
 #include "monster.hpp"
 
@@ -10,21 +11,22 @@ class ServerGuard: public Monster
         const int m_standDirection;
 
     public:
-        ServerGuard(uint32_t, ServerMap *, int, int, int);
+        ServerGuard(const SDInitGuard &);
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     private:
-        void checkFriend(uint64_t, std::function<void(int)>) override;
+        corof::awaitable<int> checkFriend(uint64_t) override;
 
     protected:
-        void onAMAttack(const ActorMsgPack &) override
+        corof::awaitable<> onAMAttack(const ActorMsgPack &) override
         {
             // serverguard won't get any damage
+            return {};
         }
 
     protected:
-        bool canMove()   const override;
-        bool canAttack() const override;
+        bool canMove(bool)   const override;
+        bool canAttack(bool) const override;
 };

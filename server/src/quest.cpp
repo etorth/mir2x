@@ -4,10 +4,10 @@
 #include "quest.hpp"
 #include "dbpod.hpp"
 #include "filesys.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 
 extern DBPod *g_dbPod;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
     : ServerObject::LuaThreadRunner(quest)
@@ -191,48 +191,42 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
         query.exec();
     });
 
-    bindFunctionCoop("_RSVD_NAME_modifyQuestTriggerType", [this](LuaCoopResumer onDone, int triggerType, bool enable)
+    bindCoop("_RSVD_NAME_modifyQuestTriggerType", [thisptr = this](this auto, LuaCoopResumer onDone, int triggerType, bool enable) -> corof::awaitable<>
     {
         fflassert(triggerType >= SYS_ON_BEGIN, triggerType);
         fflassert(triggerType <  SYS_ON_END  , triggerType);
 
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
-        {
-            *closed = true;
-        });
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
 
         AMModifyQuestTriggerType amMQTT;
         std::memset(&amMQTT, 0, sizeof(amMQTT));
-
         amMQTT.type = triggerType;
         amMQTT.enable = enable;
 
-        m_actorPod->forward(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT}, [closed, onDone, this](const ActorMsgPack &rmpk)
-        {
-            if(*closed){
-                return;
-            }
-            else{
-                onDone.popOnClose();
-            }
+        const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_MODIFYQUESTTRIGGERTYPE, amMQTT});
 
-            // expected an reply
-            // this makes sure when modifyQuestTriggerType() returns, the trigger has already been enabled/disabled
+        if(closed){
+            co_return;
+        }
 
-            switch(rmpk.type()){
-                case AM_OK:
-                    {
-                        onDone(true);
-                        break;
-                    }
-                default:
-                    {
-                        onDone();
-                        break;
-                    }
-            }
-        });
+        onDone.popOnClose();
+
+        // expected an reply
+        // this makes sure when modifyQuestTriggerType() returns, the trigger has already been enabled/disabled
+
+        switch(rmpk.type()){
+            case AM_OK:
+                {
+                    onDone(true);
+                    break;
+                }
+            default:
+                {
+                    onDone();
+                    break;
+                }
+        }
     });
 
     bindFunction("_RSVD_NAME_closeQuestState", [this](uint64_t uid, const char *fsm)
@@ -268,7 +262,7 @@ void Quest::LuaThreadRunner::closeQuestState(uint64_t uid, const char *fsm, cons
         //
         // this prevents any possibility of resuming the thread after this function call
 
-        getQuest()->addDelay(0, [threadKey = p->second, this]()
+        getQuest()->defer([threadKey = p->second, this]()
         {
             close(threadKey);
         });
@@ -302,10 +296,10 @@ Quest::Quest(const SDInitQuest &initQuest)
     }
 }
 
-void Quest::onActivate()
+corof::awaitable<> Quest::onActivate()
 {
-    ServerObject::onActivate();
-    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_REGISTERQUEST, cerealf::serialize(SDRegisterQuest
+    co_await ServerObject::onActivate();
+    m_actorPod->post(uidf::getServiceCoreUID(), {AM_REGISTERQUEST, cerealf::serialize(SDRegisterQuest
     {
         .name = getQuestName(),
     })});
@@ -319,23 +313,16 @@ void Quest::onActivate()
     m_luaRunner->spawn(m_mainScriptThreadKey, filesys::readFile(m_scriptName.c_str()));
 }
 
-void Quest::operateAM(const ActorMsgPack &mpk)
+corof::awaitable<> Quest::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
-        case AM_METRONOME:
-            {
-                on_AM_METRONOME(mpk);
-                break;
-            }
         case AM_REMOTECALL:
             {
-                on_AM_REMOTECALL(mpk);
-                break;
+                return on_AM_REMOTECALL(mpk);
             }
         case AM_RUNQUESTTRIGGER:
             {
-                on_AM_RUNQUESTTRIGGER(mpk);
-                break;
+                return on_AM_RUNQUESTTRIGGER(mpk);
             }
         default:
             {

@@ -10,7 +10,7 @@ ExternalProject_Add(
 
     GIT_REPOSITORY "https://github.com/lz4/lz4.git"
     GIT_TAG        "dev"
-  
+
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/lz4"
     BUILD_IN_SOURCE TRUE
 

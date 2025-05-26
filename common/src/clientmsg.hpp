@@ -32,6 +32,7 @@ enum CMType: uint8_t
     CM_REQUESTSPACEMOVE,
     CM_REQUESTMAGICDAMAGE,
     CM_PICKUP,
+    CM_QUERYMAPBASEUID,
     CM_QUERYGOLD,
     CM_QUERYUIDBUFF,
     CM_QUERYPLAYERNAME,
@@ -96,7 +97,7 @@ struct CMDeleteChar
 struct CMAction
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -118,7 +119,7 @@ struct CMRequestRetrieveSecuredItem
 
 struct CMRequestSpaceMove
 {
-    uint32_t mapID;
+    uint64_t mapUID;
     uint16_t X;
     uint16_t Y;
 };
@@ -133,6 +134,11 @@ struct CMPickUp
 {
     uint16_t x;
     uint16_t y;
+    uint64_t mapUID;
+};
+
+struct CMQueryMapBaseUID
+{
     uint32_t mapID;
 };
 
@@ -334,6 +340,7 @@ namespace
         _RSVD_register_clientmsg(CM_REQUESTSPACEMOVE,           1, sizeof(CMRequestSpaceMove)          );
         _RSVD_register_clientmsg(CM_REQUESTMAGICDAMAGE,         1, sizeof(CMRequestMagicDamage)        );
         _RSVD_register_clientmsg(CM_PICKUP,                     1, sizeof(CMPickUp)                    );
+        _RSVD_register_clientmsg(CM_QUERYMAPBASEUID,            1, sizeof(CMQueryMapBaseUID)           );
         _RSVD_register_clientmsg(CM_QUERYGOLD,                  0                                      );
         _RSVD_register_clientmsg(CM_QUERYUIDBUFF,               1, sizeof(CMQueryUIDBuff)              );
         _RSVD_register_clientmsg(CM_QUERYPLAYERNAME,            1, sizeof(CMQueryPlayerName)           );

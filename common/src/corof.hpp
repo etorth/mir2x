@@ -46,7 +46,7 @@ namespace corof
 
         struct eval_poller_promise_with_void: public _details::eval_poller_base_promise
         {
-            void return_void(){}
+            void return_void() {}
         };
 
         template<typename T> struct eval_poller_promise_with_type: public _details::eval_poller_base_promise
@@ -272,4 +272,180 @@ namespace corof
         }
         co_return count;
     }
+}
+
+namespace corof
+{
+    namespace _details
+    {
+        struct awaitable_promise_with_void
+        {
+            void return_void() {}
+        };
+
+        template<typename T> struct awaitable_promise_with_type
+        {
+            std::optional<T> m_result;
+            void return_value(T t)
+            {
+                m_result = std::move(t);
+            }
+        };
+    }
+
+    template<typename T = void> class [[nodiscard]] awaitable
+    {
+        private:
+            class AwaitableAsAwaiter;
+
+        public:
+            class promise_type: public std::conditional_t<std::is_void_v<T>, _details::awaitable_promise_with_void, _details::awaitable_promise_with_type<T>>
+            {
+                private:
+                    friend class AwaitableAsAwaiter;
+
+                private:
+                    class AwaitablePromiseFinalAwaiter
+                    {
+                        private:
+                            std::coroutine_handle<promise_type> m_handle = nullptr;
+
+                        public:
+                            AwaitablePromiseFinalAwaiter() = default;
+
+                        public:
+                            ~AwaitablePromiseFinalAwaiter()
+                            {
+                                // put coroutine handle in final awaiter
+                                // instead of inside corof::awaitable, because we have code like
+                                //
+                                //      co_await on_AM_MSG();
+                                //
+                                // if put coroutine handle inside corof::awaitable
+                                // it destructs after this line, however inside on_AM_MSG() we may wait some resp messges
+                                //
+                                // we have registered the handle to actor resp handler list
+                                // we can not let the coroutine handle in corof::awaitable destroy itself when above line returns
+                                // instead we can safely destroy it only when whole function body finishes
+                                m_handle.destroy();
+                            }
+
+                        public:
+                            constexpr bool await_ready() const noexcept
+                            {
+                                return false;
+                            }
+
+                            std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> handle) noexcept
+                            {
+                                // gcc (till 15.1) has problem to support symmetric transfer
+                                // if optimization level is O2 or less, it doesn't do TCO (tail call optimization)
+                                // check: https://godbolt.org/z/ac57Tzorf
+                                return (m_handle = handle).promise().m_continuation;
+                            }
+
+                            constexpr void await_resume() const noexcept {}
+                    };
+
+                private:
+                    std::coroutine_handle<> m_continuation;
+
+                public:
+                    awaitable get_return_object() noexcept
+                    {
+                        return awaitable(std::coroutine_handle<promise_type>::from_promise(*this));
+                    }
+
+                    std::suspend_always        initial_suspend() const noexcept { return {}; }
+                    AwaitablePromiseFinalAwaiter final_suspend() const noexcept { return {}; }
+
+                    void unhandled_exception()
+                    {
+                        std::rethrow_exception(std::current_exception());
+                    }
+            };
+
+        private:
+            class AwaitableAsAwaiter
+            {
+                private:
+                    std::coroutine_handle<promise_type> m_handle;
+
+                public:
+                    explicit AwaitableAsAwaiter(std::coroutine_handle<promise_type> h)
+                        : m_handle(h)
+                    {}
+
+                public:
+                    bool await_ready() const noexcept
+                    {
+                        return !m_handle;
+                    }
+
+                    std::coroutine_handle<> await_suspend(std::coroutine_handle<> h) noexcept
+                    {
+                        m_handle.promise().m_continuation = h;
+                        return m_handle;
+                    }
+
+                    auto await_resume()
+                    {
+                        if constexpr(std::is_void_v<T>){
+                            return;
+                        }
+                        else{
+                            return m_handle.promise().m_result.value();
+                        }
+                    }
+            };
+
+        private:
+            std::coroutine_handle<promise_type> m_handle;
+
+        public:
+            explicit awaitable(std::coroutine_handle<awaitable::promise_type> h)
+                : m_handle(h)
+            {}
+
+        public:
+            awaitable()
+                : m_handle(nullptr)
+            {}
+
+        public:
+            awaitable(awaitable && other) noexcept
+            {
+                std::swap(m_handle, other.m_handle);
+            }
+
+        public:
+            awaitable & operator = (awaitable && other) noexcept
+            {
+                std::swap(m_handle, other.m_handle);
+                return *this;
+            }
+
+        public:
+            awaitable              (const awaitable &) = delete;
+            awaitable & operator = (const awaitable &) = delete;
+
+        public:
+            auto operator co_await() &&
+            {
+                return AwaitableAsAwaiter(m_handle);
+            }
+
+        public:
+            void resume()
+            {
+                if(m_handle){
+                    AwaitableAsAwaiter(m_handle).await_suspend(std::noop_coroutine()).resume();
+                }
+            }
+
+            bool empty() const
+            {
+                return !m_handle;
+            }
+    };
 }

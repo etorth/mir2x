@@ -2,38 +2,37 @@
 #include <atomic>
 #include <cinttypes>
 
+#include "protocoldef.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "actorpod.hpp"
 #include "actorpool.hpp"
 #include "raiitimer.hpp"
-#include "monoserver.hpp"
+#include "netdriver.hpp"
+#include "serverobject.hpp"
+#include "server.hpp"
 #include "serverargparser.hpp"
 
+extern Server *g_server;
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
 extern ServerArgParser *g_serverArgParser;
 
-ActorPod::ActorPod(uint64_t uid,
-        ServerObject *serverObject,
-        std::function<void()> fnTrigger,
-        std::function<void(const ActorMsgPack &)> fnOperation,
-        double updateFreq,
-        uint64_t expireTime)
+ActorPod::ActorPod(uint64_t uid, ServerObject *serverObject)
     : m_UID([uid]() -> uint64_t
       {
           fflassert(uid);
-          fflassert(uidf::getUIDType(uid) != UID_RCV);
+          fflassert(uidf::getUIDType(uid) != UID_RCV  , uid, uidf::getUIDString(uid));
           fflassert(uidf::getUIDType(uid) >= UID_BEGIN, uid, uidf::getUIDString(uid));
           fflassert(uidf::getUIDType(uid) <  UID_END  , uid, uidf::getUIDString(uid));
           return uid;
       }())
     , m_SO(serverObject)
-    , m_trigger(std::move(fnTrigger))
-    , m_operation(std::move(fnOperation))
-    , m_updateFreq(regMetronomeFreq(updateFreq))
-    , m_expireTime(expireTime)
-{}
+{
+    registerOp(AM_ACTIVATE, [thisptr = this]([[maybe_unused]] this auto self, const ActorMsgPack &) -> corof::awaitable<>
+    {
+        return thisptr->m_SO->onActivate();
+    });
+}
 
 ActorPod::~ActorPod()
 {
@@ -47,106 +46,80 @@ ActorPod::~ActorPod()
         g_actorPool->detach(this, nullptr);
     }
     catch(...){
-        g_monoServer->propagateException();
+        g_server->propagateException();
     }
 }
 
 void ActorPod::innHandler(const ActorMsgPack &mpk)
 {
-    if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s <- %s : (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
-    }
-
-    if(m_expireTime){
-        while(!m_respondCBList.empty()){
-            if(hres_tstamp().to_nsec() >= m_respondCBList.begin()->second.expireTime){
-                // everytime when we received the new MPK we check if there is handler the timeout
-                // also this time get counted into the monitor entry
-                m_podMonitor.amProcMonitorList[AM_TIMEOUT].recvCount++;
-                {
-                    raii_timer stTimer(&(m_podMonitor.amProcMonitorList[AM_TIMEOUT].procTick));
-                    m_respondCBList.begin()->second.op(AM_TIMEOUT);
-                }
-                m_respondCBList.erase(m_respondCBList.begin());
-                continue;
-            }
-
-            // std::map<ID, Handler> keeps order in ID number
-            // ID number is the Resp() of the responding messages
-            //
-            // and we guarantee "ID1 < ID2" => "ExpireTime1 <= ExpireTime2"
-            // so if we get first non-expired handler, means the rest are all not expired
-            break;
-        }
+    if(g_serverArgParser->sharedConfig().traceActorMessage){
+        g_server->addLog(LOGTYPE_TRACE, "%s <- %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
     }
 
     if(mpk.respID()){
-        // try to find the response handler for current responding message
-        // 1.     find it, good
-        // 2. not find it: 1. didn't register for it, we must prevent this at sending
-        //                 2. repsonse is too late ooops and the handler has already be deleted
         if(auto p = m_respondCBList.find(mpk.respID()); p != m_respondCBList.end()){
-            if(p->second.op){
-                m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
+            std::visit(VarDispatcher
+            {
+                [&mpk, this](std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type> &handle)
                 {
-                    raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
-                    p->second.op(mpk);
-                }
-            }
-            else{
-                throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): Response handler not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
-            }
+                    if(handle){
+                        m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
+                        {
+                            raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
+                            handle.promise().return_value(mpk);
+                            handle.resume();
+                        }
+                    }
+                    else{
+                        throw fflerror("%s <- %s: coroutine is not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
+                    }
+                },
+
+                [&mpk, this](std::function<void(const ActorMsgPack &)> &op)
+                {
+                    if(op){
+                        op(mpk);
+                    }
+                    else{
+                        throw fflerror("%s <- %s: callback is not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
+                    }
+                },
+            },
+
+            p->second);
             m_respondCBList.erase(p);
         }
         else{
-            // should only caused by deletion of timeout
-            // do nothing for this case, don't take this as an error
+            throw fflerror("%s <- %s: no corresponding coroutine exists", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
         }
     }
     else{
-        // this is not a responding message
-        // use default message handling operation
-        if(const auto &mpkFunc = m_msgOpList.at(mpk.type()) ? m_msgOpList.at(mpk.type()) : m_operation){
-            m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
+        m_podMonitor.amProcMonitorList[mpk.type()].recvCount++;
+        {
+            [mpk = mpk, thisptr = this](this auto) -> corof::awaitable<> // save mpk into coroutine state
             {
-                raii_timer stTimer(&(m_podMonitor.amProcMonitorList[mpk.type()].procTick));
-                mpkFunc(mpk);
-            }
-        }
-        else{
-            // shoud I make it fatal?
-            // we may get a lot warning message here
-            throw fflerror("%s <- %s : (type: %s, seqID: %llu, respID: %llu): Message handler not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(mpk.from())), mpkName(mpk.type()), to_llu(mpk.seqID()), to_llu(mpk.respID()));
+                const raii_timer tickTimer(std::addressof(thisptr->m_podMonitor.amProcMonitorList[mpk.type()].procTick));
+                if(const auto &mpkFunc = thisptr->m_msgOpList.at(mpk.type())){
+                    co_await mpkFunc(mpk);
+                }
+                else{
+                    co_await thisptr->m_SO->onActorMsg(mpk);
+                }
+            }().resume();
         }
     }
 
     // trigger is for all types of messages
     // currently we don't take trigger time into consideration
-
-    if(m_trigger){
+    {
         raii_timer stTimer(&(m_podMonitor.triggerMonitor.procTick));
-        m_trigger();
+        m_SO->afterActorMsg();
     }
 }
 
 uint64_t ActorPod::rollSeqID()
 {
-    // NOTE we have to use increasing seqID for one pod to support timeout
-    // previously we reset m_nextSeqID when m_respondCBList is empty, as following:
-    //
-    //     if(m_respondCBList.empty){
-    //         m_nextSeqID = 1;
-    //     }
-    //     else{
-    //         m_nextSeqID++;
-    //     }
-    //     return m_nextSeqID;
-    //
-    // This implementation has bug when we support timeout:
-    // when we sent a message and wait its response but timed out, we remove the respond callback from m_respondCBList
-    // then m_respondCBList can be empty if we reset m_nextSeqID, however the responding actor message can come after the m_nextSeqID reset
-
-    if(g_serverArgParser->enableUniqueActorMessageID){
+    if(g_serverArgParser->sharedConfig().enableUniqueActorMessageID){
         static std::atomic<uint64_t> s_nextSeqID {1}; // shared by all ActorPod
         return s_nextSeqID.fetch_add(1);
     }
@@ -155,75 +128,58 @@ uint64_t ActorPod::rollSeqID()
     }
 }
 
-bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID)
+std::pair<uint64_t, uint64_t> ActorPod::doCreateWaitToken(uint64_t tick, std::function<void(const ActorMsgPack &)> op)
 {
-    if(!uid){
-        throw fflerror("%s -> NONE: (type: %s, seqID: 0, respID: %llu): Try to send message to an empty address", to_cstr(uidf::getUIDString(UID())), mpkName(mbuf.type()), to_llu(respID));
-    }
+    const auto seqID = rollSeqID();
+    const auto empOK = m_respondCBList.try_emplace(seqID, std::move(op)); // prepare cb before request timeout
 
-    if(uid == UID()){
-        throw fflerror("%s -> %s: (type: %s, seqID: 0, respID: %llu): Try to send message to itself", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
-    }
-
-    if(!mbuf){
-        throw fflerror("%s -> %s: (type: AM_NONE, seqID: 0, respID: %llu): Try to send an empty message", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), to_llu(respID));
-    }
-
-    if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: 0, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
-    }
-
-    m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;
-    return g_actorPool->postMessage(uid, {mbuf, UID(), 0, respID});
+    fflassert(empOK.second);
+    return
+    {
+        g_actorPool->requestTimeout({UID(), seqID}, tick),
+        seqID,
+    };
 }
 
-bool ActorPod::forward(uint64_t uid, const ActorMsgBuf &mbuf, uint64_t respID, std::function<void(const ActorMsgPack &)> opr)
+void ActorPod::cancelWaitToken(const std::pair<uint64_t, uint64_t> &token)
 {
+    g_actorPool->cancelTimeout(token.first);
+}
+
+std::optional<uint64_t> ActorPod::doPost(const std::pair<uint64_t, uint64_t> &addr, ActorMsgBuf mbuf, bool waitResp)
+{
+    const auto uid = addr.first;
+    const auto respID = addr.second;
+
     if(!uid){
-        throw fflerror("%s -> NONE: (type: %s, seqID: 0, respID: %llu): Try to send message to an empty address", to_cstr(uidf::getUIDString(UID())), mpkName(mbuf.type()), to_llu(respID));
+        throw fflerror("%s -> ZERO: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mbuf.str()));
     }
 
     if(uid == UID()){
-        throw fflerror("%s -> %s: (type: %s, seqID: 0, respID: %llu): Try to send message to itself", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
+        throw fflerror("%s -> SELF: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mbuf.str()));
     }
 
     if(!mbuf){
-        throw fflerror("%s -> %s: (type: AM_NONE, seqID: 0, respID: %llu): Try to send an empty message", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), to_llu(respID));
+        throw fflerror("%s -> %s: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), to_cstr(mbuf.str()));
     }
 
-    if(!opr){
-        throw fflerror("%s -> %s: (type: %s, seqID: NA, respID: %llu): Response handler not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(respID));
-    }
-
-    const auto seqID = rollSeqID();
-    if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, seqID: %llu, respID: %llu)", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), mpkName(mbuf.type()), to_llu(seqID), to_llu(respID));
+    const auto seqID = waitResp ? rollSeqID() : UINT64_C(0);
+    if(g_serverArgParser->sharedConfig().traceActorMessage){
+        g_server->addLog(LOGTYPE_TRACE, "%s -> %s", to_cstr(uidf::getUIDString(UID())), to_cstr(ActorMsgPack(mbuf, UID(), seqID, respID).str(uid)));
     }
 
     m_podMonitor.amProcMonitorList[mbuf.type()].sendCount++;
     if(g_actorPool->postMessage(uid, {mbuf, UID(), seqID, respID})){
-        if(m_respondCBList.try_emplace(seqID, hres_tstamp().to_nsec() + m_expireTime, std::move(opr)).second){
-            return true;
-        }
-        throw fflerror("failed to register response handler for posted message: %s", mpkName(mbuf.type()));
+        return seqID;
     }
     else{
-        // respond the response handler here
-        // if post failed, it can only be the UID is detached
-        if(opr){
-            m_podMonitor.amProcMonitorList[AM_BADACTORPOD].recvCount++;
-            {
-                raii_timer stTimer(&(m_podMonitor.amProcMonitorList[AM_BADACTORPOD].procTick));
-                opr(AM_BADACTORPOD);
-            }
-        }
-        return false;
+        return std::nullopt;
     }
 }
 
-void ActorPod::attach(std::function<void()> fnAtStart)
+void ActorPod::attach()
 {
-    g_actorPool->attach(this, std::move(fnAtStart));
+    g_actorPool->attach(this);
 }
 
 void ActorPod::detach(std::function<void()> fnAtExit) const
@@ -262,7 +218,35 @@ void ActorPod::PrintMonitor() const
         const uint64_t nSendCount = m_podMonitor.amProcMonitorList[nIndex].sendCount;
         const uint64_t nRecvCount = m_podMonitor.amProcMonitorList[nIndex].recvCount;
         if(nSendCount || nRecvCount){
-            g_monoServer->addLog(LOGTYPE_DEBUG, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
+            g_server->addLog(LOGTYPE_INFO, "UID: %s %s: procTick %llu ms, sendCount %llu, recvCount %llu", uidf::getUIDString(UID()).c_str(), mpkName(nIndex), to_llu(nProcTick), to_llu(nSendCount), to_llu(nRecvCount));
         }
+    }
+}
+
+void ActorPod::postNet(uint32_t channID, uint8_t headCode, const void *buf, size_t bufSize, uint64_t respID)
+{
+    fflassert(channID);
+    g_actorPool->m_netDriver->post(channID, headCode, buf, bufSize, respID);
+}
+
+void ActorPod::postNet(uint8_t headCode, const void *buf, size_t bufSize, uint64_t respID)
+{
+    fflassert(m_channID);
+    g_actorPool->m_netDriver->post(m_channID, headCode, buf, bufSize, respID);
+}
+
+void ActorPod::bindNet(uint32_t channID)
+{
+    fflassert(!m_channID, m_channID);
+
+    m_channID = channID;
+    g_actorPool->m_netDriver->bindPlayer(channID, UID());
+}
+
+void ActorPod::closeNet()
+{
+    if(m_channID){
+        g_actorPool->m_netDriver->close(m_channID);
+        m_channID = 0;
     }
 }

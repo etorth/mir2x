@@ -6,6 +6,7 @@
 #include "actionnode.hpp"
 #include "dbcomid.hpp"
 #include "clientmonster.hpp"
+#include "uidf.hpp"
 #include "mathf.hpp"
 #include "pathf.hpp"
 #include "raiitimer.hpp"
@@ -61,7 +62,7 @@ ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
     , m_mouseGridLoc(DIR_UPLEFT, 0, 0, u8"", 0, 15, 0, colorf::RGBA(0XFF, 0X00, 0X00, 0X00))
     , m_teamFlag(5)
 {
-    loadMap(smOOK.mapID, smOOK.action.x, smOOK.action.y);
+    loadMap(smOOK.mapUID, smOOK.action.x, smOOK.action.y);
     m_coList.insert_or_assign(m_myHeroUID, std::unique_ptr<ClientCreature>(new MyHero
     {
         m_myHeroUID,
@@ -729,17 +730,17 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 }
 
-void ProcessRun::loadMap(uint32_t newMapID, int centerGX, int centerGY)
+void ProcessRun::loadMap(uint64_t newMapUID, int centerGX, int centerGY)
 {
-    fflassert(newMapID > 0);
-    fflassert(mapID() != newMapID, mapID(), newMapID);
+    fflassert(uidf::isMap(newMapUID));
+    fflassert(mapUID() != newMapUID, mapUID(), newMapUID);
 
-    const auto lastMapID = mapID();
+    const auto lastMapUID = mapUID();
     ModalStringBoard loadStringBoard;
 
-    const auto fnSetDoneRatio = [&loadStringBoard, newMapID](int ratio)
+    const auto fnUpdateLoadRatio = [&loadStringBoard, newMapUID](int ratio)
     {
-        const std::string mapName = to_cstr(DBCOM_MAPRECORD(newMapID).name);
+        const std::string mapName = to_cstr(DBCOM_MAPRECORD(uidf::getMapID(newMapUID)).name);
         loadStringBoard.loadXML(str_printf
         (
             u8R"###( <layout>                                     )###""\n"
@@ -750,25 +751,21 @@ void ProcessRun::loadMap(uint32_t newMapID, int centerGX, int centerGY)
             mapName.substr(0, mapName.find('_')).c_str(),
             mathf::bound<int>(ratio, 0, 100)
         ));
-
-        if(ratio >= 100){
-            loadStringBoard.setDone();
-        }
+        loadStringBoard.drawScreen(true);
     };
 
-    const auto fnLoadMap = [newMapID, &fnSetDoneRatio, centerGX, centerGY, this]()
+    g_sdlDevice->stopSoundEffect();
+    fnUpdateLoadRatio(0);
     {
-        const auto mapBinPtr = g_mapBinDB->retrieve(newMapID);
+        const auto mapBinPtr = g_mapBinDB->retrieve(uidf::getMapID(newMapUID));
         fflassert(mapBinPtr);
-        fnSetDoneRatio(30);
+        fnUpdateLoadRatio(30);
 
-        m_mapID = newMapID;
+        m_mapUID = newMapUID;
         m_mir2xMapData = *mapBinPtr;
         m_groundItemIDList.clear();
-        fnSetDoneRatio(40);
+        fnUpdateLoadRatio(40);
 
-        // don't use getRenererSize() here
-        // SDLDevice::getRenererSize() doesn't have lock protection
         const int winW = 1200;
         const int winH = 1200;
 
@@ -781,41 +778,31 @@ void ProcessRun::loadMap(uint32_t newMapID, int centerGX, int centerGY)
         int doneGridCount = 0;
         const int totalGridCount = (y1 - y0 + 1) * (x1 - x0 + 1);
 
-        // TODO the g_mapDB->retrieve() calls g_sdlDevice->createPNGTexture()
-        // SDL2 is not thread safe, the ModalStringBoard calls g_sdlDevice->present() can crash the data
-
         for(int y = y0; y < y1; ++y){
             for(int x = x0; x <= x1; ++x){
                 if(m_mir2xMapData.validC(x, y)){
-                    // if((x % 2 == 0) && (y % 2 == 0)){
-                    //     if(const auto &tile = m_mir2xMapData.tile(x, y); tile.valid){
-                    //         g_mapDB->retrieve(tile.texID);
-                    //     }
-                    // }
-                    //
-                    // for(const int i: {0, 1}){
-                    //     if(const auto &obj = m_mir2xMapData.cell(x, y).obj[i]; obj.valid){
-                    //         g_mapDB->retrieve(obj.texID);
-                    //     }
-                    // }
+                    if((x % 2 == 0) && (y % 2 == 0)){
+                        if(const auto &tile = m_mir2xMapData.tile(x, y); tile.valid){
+                            g_mapDB->retrieve(tile.texID);
+                        }
+                    }
+
+                    for(const int i: {0, 1}){
+                        if(const auto &obj = m_mir2xMapData.cell(x, y).obj[i]; obj.valid){
+                            g_mapDB->retrieve(obj.texID);
+                        }
+                    }
                 }
 
                 if(const auto currRatio = to_d(std::lround(to_f(doneGridCount++ * (100 - 40)) / totalGridCount)); currRatio > lastRatio){
                     lastRatio = currRatio;
-                    fnSetDoneRatio(40 + currRatio);
+                    fnUpdateLoadRatio(40 + currRatio);
                 }
             }
         }
-        fnSetDoneRatio(100);
-    };
+    }
 
-    g_sdlDevice->stopSoundEffect();
-
-    fnSetDoneRatio(0);
-    auto loadThread = std::async(std::launch::async, fnLoadMap);
-    loadStringBoard.waitDone();
-    loadThread.get();
-
+    fnUpdateLoadRatio(100);
     if(auto boardPtr = dynamic_cast<MiniMapBoard *>(getWidget("MiniMapBoard"))){
         if(boardPtr->show()){
             if(boardPtr->getMiniMapTexture()){
@@ -828,8 +815,8 @@ void ProcessRun::loadMap(uint32_t newMapID, int centerGX, int centerGY)
         }
     }
 
-    const auto lastBGMIDOpt = DBCOM_MAPRECORD(lastMapID).bgmID;
-    const auto  newBGMIDOpt = DBCOM_MAPRECORD( newMapID).bgmID;
+    const auto lastBGMIDOpt = DBCOM_MAPRECORD(uidf::isMap(lastMapUID) ? uidf::getMapID(lastMapUID): 0).bgmID;
+    const auto  newBGMIDOpt = DBCOM_MAPRECORD(                          uidf::getMapID( newMapUID)   ).bgmID;
 
     if(lastBGMIDOpt != newBGMIDOpt){
         g_sdlDevice->stopBGM();
@@ -990,7 +977,7 @@ bool ProcessRun::luaCommand(const char *luaCmdString)
         return false;
     }
 
-    const auto callResult = m_luaModule.execString(luaCmdString);
+    const auto callResult = m_luaModule.execString("%s", luaCmdString);
     if(callResult.valid()){
         return true;
     }
@@ -1279,23 +1266,25 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
     {
         int locX = 0;
         int locY = 0;
+
         uint32_t argMapID = 0;
+        uint64_t argMapUID = 0;
 
         const std::vector<sol::object> argList(args.begin(), args.end());
         switch(argList.size()){
             case 0:
                 {
-                    argMapID = mapID();
-                    std::tie(locX, locY) = getRandLoc(mapID());
+                    argMapUID = mapUID();
+                    std::tie(locX, locY) = getRandLoc(uidf::getMapID(mapUID()));
                     break;
                 }
             case 1:
                 {
-                    if(!argList[0].is<int>()){
+                    if(!argList[0].is<lua_Integer>()){
                         throw fflerror("invalid arguments: moveTo(mapID: int)");
                     }
 
-                    argMapID = argList[0].as<int>();
+                    argMapID = to_u32(argList[0].as<int>());
                     std::tie(locX, locY) = getRandLoc(argMapID);
                     break;
                 }
@@ -1305,18 +1294,18 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                         throw fflerror("invalid arguments: moveTo(x: int, y: int)");
                     }
 
-                    argMapID = mapID();
+                    argMapUID = mapUID();
                     locX  = argList[0].as<int>();
                     locY  = argList[1].as<int>();
                     break;
                 }
             case 3:
                 {
-                    if(!(argList[0].is<int>() && argList[1].is<int>() && argList[2].is<int>())){
+                    if(!(argList[0].is<lua_Integer>() && argList[1].is<int>() && argList[2].is<int>())){
                         throw fflerror("invalid arguments: moveTo(mapID: int, x: int, y: int)");
                     }
 
-                    argMapID = argList[0].as<int>();
+                    argMapID = to_u32(argList[0].as<int>());
                     locX = argList[1].as<int>();
                     locY = argList[2].as<int>();
                     break;
@@ -1327,11 +1316,24 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                 }
         }
 
-        if(requestSpaceMove(argMapID, locX, locY)){
-            addCBLog(CBLOG_SYS, u8"Move request (mapName = %s, x = %d, y = %d) sent", to_cstr(DBCOM_MAPRECORD(argMapID).name), locX, locY);
+        const auto fnRequestSpaceMove = [locX, locY, this](uint64_t argMapUID)
+        {
+            if(requestSpaceMove(argMapUID, locX, locY)){
+                addCBLog(CBLOG_SYS, u8"Move request (mapName = %s, x = %d, y = %d) sent", to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name), locX, locY);
+            }
+            else{
+                addCBLog(CBLOG_ERR, u8"Move request (mapName = %s, x = %d, y = %d) failed", to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name), locX, locY);
+            }
+        };
+
+        if(argMapUID){
+            fnRequestSpaceMove(argMapUID);
+        }
+        else if(argMapID){
+            queryMapBaseUID(argMapID, fnRequestSpaceMove);
         }
         else{
-            addCBLog(CBLOG_ERR, u8"Move request (mapName = %s, x = %d, y = %d) failed", to_cstr(DBCOM_MAPRECORD(argMapID).name), locX, locY);
+            addCBLog(CBLOG_ERR, u8"Move request failed: No map provided");
         }
     });
 
@@ -1600,7 +1602,7 @@ void ProcessRun::centerMyHero()
     }
 }
 
-std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID)
+std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID, size_t tryCount)
 {
     std::shared_ptr<Mir2xMapData> newPtr;
     const auto mapBinPtr = [reqMapID, &newPtr, this]() -> const Mir2xMapData *
@@ -1619,21 +1621,21 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID)
         throw fflerror("failed to find map with mapID = %llu", to_llu(reqMapID));
     }
 
-    while(true){
+    for(size_t i = 0; (tryCount == 0) || (i < tryCount); ++i){
         const int nX = std::rand() % mapBinPtr->w();
         const int nY = std::rand() % mapBinPtr->h();
 
-        if(mapBinPtr->validC(nX, nY) && mapBinPtr->cell(nX, nY).land.canThrough()){
+        if(mapBinPtr->groundValid(nX, nY)){
             return {nX, nY};
         }
     }
 
-    throw fflreach();
+    throw fflerror("can not find a valid location on mapID %llu by %zu tries", to_llu(reqMapID), tryCount);
 }
 
-bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
+bool ProcessRun::requestSpaceMove(uint64_t nMapUID, int nX, int nY)
 {
-    const auto mapBinPtr = g_mapBinDB->retrieve(nMapID);
+    const auto mapBinPtr = g_mapBinDB->retrieve(uidf::getMapID(nMapUID));
     if(!mapBinPtr){
         return false;
     }
@@ -1645,9 +1647,9 @@ bool ProcessRun::requestSpaceMove(uint32_t nMapID, int nX, int nY)
     CMRequestSpaceMove cmRSM;
     std::memset(&cmRSM, 0, sizeof(cmRSM));
 
-    cmRSM.mapID = nMapID;
-    cmRSM.X     = nX;
-    cmRSM.Y     = nY;
+    cmRSM.mapUID = nMapUID;
+    cmRSM.X      = nX;
+    cmRSM.Y      = nY;
 
     g_client->send({CM_REQUESTSPACEMOVE, cmRSM});
     return true;
@@ -2282,7 +2284,7 @@ void ProcessRun::requestPickUp()
 
     cmPU.x = x;
     cmPU.y = y;
-    cmPU.mapID = mapID();
+    cmPU.mapUID = mapUID();
     g_client->send({CM_PICKUP, cmPU});
 }
 
@@ -2315,6 +2317,36 @@ void ProcessRun::queryUIDBuff(uint64_t uid) const
                 throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
             }
     }
+}
+
+void ProcessRun::queryMapBaseUID(uint32_t mapID, std::function<void(uint64_t)> op) const
+{
+    fflassert(mapID);
+
+    CMQueryMapBaseUID cmQMBUID;
+    std::memset(&cmQMBUID, 0, sizeof(cmQMBUID));
+
+    cmQMBUID.mapID = mapID;
+    g_client->send({CM_QUERYMAPBASEUID, cmQMBUID}, [op = std::move(op)](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    {
+        switch(headCode){
+            case SM_UID:
+                {
+                    const auto smUID = ServerMsg::conv<SMUID>(buf, bufSize);
+                    if(op){
+                        op(smUID.uid);
+                    }
+                    break;
+                }
+            default:
+                {
+                    if(op){
+                        op(0);
+                    }
+                    break;
+                }
+        }
+    });
 }
 
 void ProcessRun::queryPlayerWLDesp(uint64_t uid) const

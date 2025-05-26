@@ -15,28 +15,30 @@
 #include "filesys.hpp"
 #include "message.hpp"
 #include "monster.hpp"
+#include "uidsf.hpp"
 #include "mapbindb.hpp"
 #include "fflerror.hpp"
-#include "netdriver.hpp"
 #include "serdesmsg.hpp"
 #include "actorpool.hpp"
 #include "syncdriver.hpp"
 #include "mainwindow.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "dispatcher.hpp"
 #include "servicecore.hpp"
 #include "commandwindow.hpp"
+#include "serverargparser.hpp"
+#include "serverconfigurewindow.hpp"
 
 extern Log *g_log;
 extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
 extern ActorPool *g_actorPool;
-extern NetDriver *g_netDriver;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern MainWindow *g_mainWindow;
+extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
-void MonoServer::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
+void Server::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
 {
     std::string s;
     str_format(format, s);
@@ -49,23 +51,28 @@ void MonoServer::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
         multiLine.push_back(std::move(logLine));
     }
 
-    if(const int logType = std::get<0>(typeLoc); logType != Log::LOGTYPEV_DEBUG){
-        {
-            const std::lock_guard<std::mutex> lockGuard(m_logLock);
-            for(const auto &line: multiLine){
-                m_logBuf.push_back((char)(logType));
-                m_logBuf.insert(m_logBuf.end(), line.c_str(), line.c_str() + line.size() + 1); // add extra '\0'
+    if(!g_serverArgParser->slave){
+        if(const int logType = std::get<0>(typeLoc); logType != Log::LOGTYPEV_TRACE){
+            {
+                const std::lock_guard<std::mutex> lockGuard(m_logLock);
+                for(const auto &line: multiLine){
+                    m_logBuf.push_back((char)(logType));
+                    m_logBuf.insert(m_logBuf.end(), line.c_str(), line.c_str() + line.size() + 1); // add extra '\0'
+                }
             }
+            notifyGUI("FlushBrowser");
         }
-        notifyGUI("FlushBrowser");
     }
 
     for(const auto &line: multiLine){
         g_log->addLog(typeLoc, "%s", line.c_str());
+        if(g_serverArgParser->slave){
+            std::cout << line << std::endl;
+        }
     }
 }
 
-void MonoServer::addCWLogString(uint32_t cwID, int logType, const char *prompt, const char *log)
+void Server::addCWLogString(uint32_t cwID, int logType, const char *prompt, const char *log)
 {
     if(!str_haschar(prompt)){
         prompt = "";
@@ -87,12 +94,12 @@ void MonoServer::addCWLogString(uint32_t cwID, int logType, const char *prompt, 
     }
 }
 
-bool MonoServer::hasDatabase() const
+bool Server::hasDatabase() const
 {
     return g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table')###").executeStep();
 }
 
-bool MonoServer::hasCharacter(const char *charName) const
+bool Server::hasCharacter(const char *charName) const
 {
     if(!str_haschar(charName)){
         throw fflerror("invalid char name: %s", to_cstr(charName));
@@ -100,7 +107,7 @@ bool MonoServer::hasCharacter(const char *charName) const
     return g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_char where fld_name = '%s')###", charName).executeStep();
 }
 
-int MonoServer::createAccount(const char *id, const char *password)
+int Server::createAccount(const char *id, const char *password)
 {
     if(!(str_haschar(id) && (str_haschar(password)))){
         throw fflerror("bad account: id = %s, password = %s", to_cstr(id), to_cstr(password));
@@ -118,7 +125,7 @@ int MonoServer::createAccount(const char *id, const char *password)
     return CRTACCERR_NONE;
 }
 
-bool MonoServer::createAccountCharacter(const char *id, const char *charName, bool gender, int job)
+bool Server::createAccountCharacter(const char *id, const char *charName, bool gender, int job)
 {
     fflassert(str_haschar(id));
     fflassert(str_haschar(charName));
@@ -224,7 +231,7 @@ bool MonoServer::createAccountCharacter(const char *id, const char *charName, bo
     return true;
 }
 
-void MonoServer::createDefaultDatabase()
+void Server::createDefaultDatabase()
 {
     const char8_t *defSQLCmdList[]
     {
@@ -406,7 +413,7 @@ void MonoServer::createDefaultDatabase()
     addLog(LOGTYPE_INFO, "Create default sqlite3 database done");
 }
 
-void MonoServer::CreateDBConnection()
+void Server::createDBConnection()
 {
     const char *dbName = "mir2x.db3";
     g_dbPod->launch(dbName);
@@ -419,50 +426,92 @@ void MonoServer::CreateDBConnection()
     addLog(LOGTYPE_INFO, "Connect to database %s successfully", dbName);
 }
 
-void MonoServer::LoadMapBinDB()
+void Server::loadMapBinDB()
 {
-    std::string szMapPath = g_serverConfigureWindow->getConfig().mapPath;
+    const auto mapPath = []() -> std::string
+    {
+        if(g_serverArgParser->slave){
+            return "map/mapbin.zsdb";
+        }
+        else{
+            return g_serverConfigureWindow->getConfig().mapPath;
+        }
+    }();
 
-    if(!g_mapBinDB->load(szMapPath.c_str())){
+    if(!g_mapBinDB->load(mapPath.c_str())){
         throw fflerror("Failed to load mapbindb");
     }
 }
 
-void MonoServer::StartServiceCore()
+void Server::mainLoop()
 {
-    g_actorPool->launchPool();
-
-    m_serviceCore = new ServiceCore();
-    m_serviceCore->activate(-1.0);
+    if(g_serverArgParser->slave){
+        m_hasExcept.wait(false);
+    }
+    else{
+        // gui event loop
+        // Fl::wait() automatically calls Fl::unlock()
+        while(Fl::wait() > 0){
+            switch((uintptr_t)(Fl::thread_message())){
+                case 0:
+                    {
+                        // FLTK will send 0 automatically
+                        // to update the widgets and handle events
+                        //
+                        // if main loop or child thread need to flush
+                        // call Fl::awake(0) to force Fl::wait() to terminate
+                        break;
+                    }
+                case 2:
+                    {
+                        // propagate all exceptions to main thread
+                        // then log it in main thread and request restart
+                        //
+                        // won't handle exception in threads
+                        // all threads need to call Fl::awake(2) to propagate exception(s) caught
+                        try{
+                            g_server->checkException();
+                        }
+                        catch(const std::exception &e){
+                            std::string firstExceptStr;
+                            g_server->logException(e, &firstExceptStr);
+                            g_server->restart(firstExceptStr);
+                        }
+                        break;
+                    }
+                case 1:
+                default:
+                    {
+                        // pase the gui requests in the queue
+                        // designed to send Fl::awake(1) to notify gui
+                        g_server->parseNotifyGUIQ();
+                        break;
+                    }
+            }
+        }
+    }
 }
 
-void MonoServer::StartNetwork()
+void Server::launch()
 {
-    g_netDriver->launch(g_serverConfigureWindow->getConfig().listenPort);
+    createDBConnection();
+    loadMapBinDB();
+    g_actorPool->launch();
 }
 
-void MonoServer::Launch()
-{
-    CreateDBConnection();
-    LoadMapBinDB();
-
-    StartServiceCore();
-    StartNetwork();
-}
-
-void MonoServer::propagateException() noexcept
+void Server::propagateException() noexcept
 {
     // TODO
     // add multi-thread protection
     try{
         if(!std::current_exception()){
-            addLog(LOGTYPE_WARNING, "call MonoServer::propagateException() without exception captured");
+            addLog(LOGTYPE_WARNING, "call Server::propagateException() without exception captured");
             return;
         }
 
         // we do have an exception
         // but may not be std::exception, nest it...
-        std::throw_with_nested(fflerror("rethrow in MonoServer::propagateException()"));
+        std::throw_with_nested(fflerror("rethrow in Server::propagateException()"));
     }
     catch(...){
         // must have one exception...
@@ -472,14 +521,14 @@ void MonoServer::propagateException() noexcept
     }
 }
 
-void MonoServer::checkException()
+void Server::checkException()
 {
     if(m_currException){
         std::rethrow_exception(m_currException);
     }
 }
 
-void MonoServer::logException(const std::exception &except, std::string *strPtr) noexcept
+void Server::logException(const std::exception &except, std::string *strPtr) noexcept
 {
     addLog(LOGTYPE_WARNING, "%s", except.what());
     try{
@@ -496,7 +545,7 @@ void MonoServer::logException(const std::exception &except, std::string *strPtr)
     }
 }
 
-void MonoServer::restart(const std::string &msg)
+void Server::restart(const std::string &msg)
 {
     // TODO: FLTK multi-threading support is weak, see:
     // http://www.fltk.org/doc-1.3/advanced.html#advanced_multithreading
@@ -521,76 +570,28 @@ void MonoServer::restart(const std::string &msg)
     }
 }
 
-bool MonoServer::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool strictLoc)
+bool Server::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool strictLoc)
 {
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
+    addLog(LOGTYPE_INFO, "Try to add monster, monsterID %llu.", to_llu(monsterID));
 
-    amACO.type = UID_MON;
-    amACO.x = x;
-    amACO.y = y;
-    amACO.mapID = mapID;
-    amACO.strictLoc = strictLoc;
+    const auto mapUID = uidsf::getMapBaseUID(mapID);
+    const auto peerIndex = uidf::peerIndex(mapUID);
 
-    amACO.monster.monsterID = monsterID;
-    amACO.monster.masterUID = 0;
-    addLog(LOGTYPE_INFO, "Try to add monster, monsterID = %llu", to_llu(monsterID));
-
-    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); stRMPK.type()){
-        case AM_UID:
-            {
-                if(const auto amUID = stRMPK.conv<AMUID>(); amUID.UID){
-                    addLog(LOGTYPE_INFO, "Add monster succeeds");
-                    return true;
-                }
-                break;
-            }
-        default:
-            {
-                break;
-            }
-    }
-
-    addLog(LOGTYPE_WARNING, "Add monster failed");
-    return false;
-}
-
-bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID, int x, int y, int gfxDir, const char *fullScriptName)
-{
-    fflassert(mapID);
-    fflassert(x >= 0);
-    fflassert(y >= 0);
-
-    fflassert(str_haschar(npcName));
-    fflassert(str_haschar(fullScriptName));
-    fflassert(filesys::hasFile(fullScriptName), fullScriptName);
-
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type  = UID_NPC;
-    amACO.mapID = mapID;
-    amACO.x = x;
-    amACO.y = y;
-    amACO.strictLoc = false;
-
-    amACO.buf.assign(cerealf::serialize(SDInitNPChar
+    SDInitCharObject sdICO = SDInitMonster
     {
-        .lookID = lookID,
-        .npcName = npcName,
-        .fullScriptName = fullScriptName,
-        .mapID = mapID,
+        .monsterID = monsterID,
+        .mapUID = mapUID,
         .x = x,
         .y = y,
-        .gfxDir = gfxDir,
-    }));
+        .strictLoc = strictLoc,
+        .direction = DIR_BEGIN, // monster may ignore
+    };
 
-    addLog(LOGTYPE_INFO, "Try to add NPC, script: %s", to_cstr(fullScriptName));
-    switch(auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, 0, 0); rmpk.type()){
+    switch(auto rmpk = SyncDriver().forward(uidf::getPeerCoreUID(peerIndex), {AM_ADDCO, cerealf::serialize(sdICO)}, 0, 0); rmpk.type()){
         case AM_UID:
             {
-                if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
-                    addLog(LOGTYPE_INFO, "Add NPC succeeds");
+                if(const auto amUID = rmpk.conv<AMUID>(); amUID.uid){
+                    addLog(LOGTYPE_INFO, "Add monster succeeds.");
                     return true;
                 }
                 break;
@@ -601,25 +602,26 @@ bool MonoServer::addNPChar(const char *npcName, uint16_t lookID, uint32_t mapID,
             }
     }
 
-    addLog(LOGTYPE_WARNING, "Add NPC failed");
+    addLog(LOGTYPE_WARNING, "Add monster failed.");
     return false;
 }
 
-bool MonoServer::loadMap(const std::string &mapName)
+bool Server::loadMap(const std::string &mapName)
 {
-    AMLoadMap amLM;
-    std::memset(&amLM, 0, sizeof(amLM));
-
-    amLM.mapID = DBCOM_MAPID(to_u8cstr(mapName));
-    if(amLM.mapID == 0){
+    const auto mapID = DBCOM_MAPID(to_u8cstr(mapName));
+    if(mapID == 0){
         addLog(LOGTYPE_WARNING, "Invalid map name: %s", to_cstr(mapName));
         return false;
     }
 
+    AMLoadMap amLM;
+    std::memset(&amLM, 0, sizeof(amLM));
+
+    amLM.mapUID = uidsf::getMapBaseUID(mapID);
     switch(const auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
         case AM_LOADMAPOK:
             {
-                addLog(LOGTYPE_INFO, "Load map %s: uid = %s", to_cstr(mapName), uidf::getUIDString(uidf::getMapBaseUID(amLM.mapID)).c_str());
+                addLog(LOGTYPE_INFO, "Load map %s: uid = %s", to_cstr(mapName), uidf::getUIDString(amLM.mapUID).c_str());
                 return true;
             }
         default:
@@ -630,7 +632,7 @@ bool MonoServer::loadMap(const std::string &mapName)
     }
 }
 
-std::vector<int> MonoServer::getMapList()
+std::vector<int> Server::getMapList()
 {
     switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), AM_QUERYMAPLIST); stRMPK.type()){
         case AM_MAPLIST:
@@ -656,48 +658,32 @@ std::vector<int> MonoServer::getMapList()
     }
 }
 
-sol::optional<int> MonoServer::getMonsterCount(int nMonsterID, int nMapID)
+sol::optional<size_t> Server::getMonsterCount(uint32_t argMonsterID, uint64_t argMapUID)
 {
-    // I have two ways to implement this function
-    //  1. getMapList() / GetMapUID() / GetMapAddress() / QueryMonsterCount()
-    //  2. send QueryMonsterCount to ServiceCore, ServiceCore queries all maps and return the sum
-    // currently using method-2
+    // argMonsterID : 0 means check all types
+    // argMapUID    : 0 means check all monsters
 
-    if(true
-            && nMapID     >= 0      // 0 means check all
-            && nMonsterID >= 0){    // 0 means check all types
+    AMQueryCOCount amQCOC;
+    std::memset(&amQCOC, 0, sizeof(amQCOC));
 
-        // OK we send request to service core
-        // and poll the result here till we get the sum
+    amQCOC.mapUID               = argMapUID;
+    amQCOC.Check.Monster        = true;
+    amQCOC.CheckParam.MonsterID = argMonsterID;
 
-        AMQueryCOCount amQCOC;
-        std::memset(&amQCOC, 0, sizeof(amQCOC));
-
-        amQCOC.mapID                = to_u32(nMapID);
-        amQCOC.Check.Monster        = true;
-        amQCOC.CheckParam.MonsterID = to_u32(nMonsterID);
-
-        switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
-            case AM_COCOUNT:
-                {
-                    AMCOCount amCOC;
-                    std::memcpy(&amCOC, stRMPK.data(), sizeof(amCOC));
-
-                    // may overflow
-                    // should put some check here
-                    return sol::optional<int>(to_d(amCOC.Count));
-                }
-            case AM_ERROR:
-            default:
-                {
-                    break;
-                }
-        }
+    switch(auto stRMPK = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_QUERYCOCOUNT, amQCOC}); stRMPK.type()){
+        case AM_COCOUNT:
+            {
+                return stRMPK.conv<AMCOCount>().Count;
+            }
+        case AM_ERROR:
+        default:
+            {
+                return std::nullopt;
+            }
     }
-    return sol::optional<int>();
 }
 
-void MonoServer::notifyGUI(std::string notifStr)
+void Server::notifyGUI(std::string notifStr)
 {
     if(!notifStr.empty()){
         {
@@ -708,7 +694,7 @@ void MonoServer::notifyGUI(std::string notifStr)
     }
 }
 
-void MonoServer::parseNotifyGUIQ()
+void Server::parseNotifyGUIQ()
 {
     const auto fnGetTokenList = [](const std::string &cmdStr) -> std::deque<std::string>
     {
@@ -796,12 +782,12 @@ void MonoServer::parseNotifyGUIQ()
         }
 
         if(fnCheckFront({"flushbrowser", "FlushBrowser", "FLUSHBROWSER"})){
-            g_monoServer->FlushBrowser();
+            g_server->FlushBrowser();
             continue;
         }
 
         if(fnCheckFront({"flushcwbrowser", "FlushCWBrowser", "FLUSHCWBROWSER"})){
-            g_monoServer->FlushCWBrowser();
+            g_server->FlushCWBrowser();
             continue;
         }
 
@@ -822,11 +808,11 @@ void MonoServer::parseNotifyGUIQ()
             continue;
         }
 
-        g_monoServer->addLog(LOGTYPE_WARNING, "Unsupported notification: %s", tokenList.front().c_str());
+        g_server->addLog(LOGTYPE_WARNING, "Unsupported notification: %s", tokenList.front().c_str());
     }
 }
 
-void MonoServer::FlushBrowser()
+void Server::FlushBrowser()
 {
     std::lock_guard<std::mutex> stLockGuard(m_logLock);
     {
@@ -839,7 +825,7 @@ void MonoServer::FlushBrowser()
     }
 }
 
-void MonoServer::FlushCWBrowser()
+void Server::FlushCWBrowser()
 {
     std::lock_guard<std::mutex> stLockGuard(m_CWLogLock);
     {
@@ -869,7 +855,7 @@ void MonoServer::FlushCWBrowser()
     }
 }
 
-uint64_t MonoServer::sleepExt(uint64_t tickCount)
+uint64_t Server::sleepExt(uint64_t tickCount)
 {
     const auto enterTime = std::chrono::steady_clock::now();
     const auto excptTime = enterTime + std::chrono::milliseconds(tickCount);
@@ -889,7 +875,7 @@ uint64_t MonoServer::sleepExt(uint64_t tickCount)
     return 0;
 }
 
-void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
+void Server::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
 {
     if(!(modulePtr && nCWID)){
         throw fflerror("invalid argument: module = %p, window ID = %llu", to_cvptr(modulePtr), to_llu(nCWID));
@@ -926,13 +912,25 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     });
 
     // register command countMonster(monsterID, mapID)
-    modulePtr->bindFunction("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> int
+    modulePtr->bindFunction("countMonster", [this, nCWID](int nMonsterID, int nMapID) -> lua_Integer
     {
-        auto nRet = getMonsterCount(nMonsterID, nMapID).value_or(-1);
-        if(nRet < 0){
-            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
+        if(nMonsterID <= 0){
+            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed: invalid argument: MonsterID");
+            return -1;
         }
-        return nRet;
+
+        if(nMapID <= 0){
+            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed: invalid argument: MapID");
+            return -1;
+        }
+
+        auto nRet = getMonsterCount(to_u32(nMonsterID), uidsf::getMapBaseUID(nMapID));
+        if(!nRet.has_value()){
+            addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
+            return -1;
+        }
+
+        return (lua_Integer)(nRet.value());
     });
 
     // register command addMonster
@@ -1027,6 +1025,6 @@ void MonoServer::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     });
 
     modulePtr->pfrCheck(modulePtr->execRawString(BEGIN_LUAINC(char)
-#include "monoserver.lua"
+#include "server.lua"
     END_LUAINC()));
 }

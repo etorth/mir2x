@@ -5,43 +5,11 @@
 #include <type_traits>
 #include <sol/sol.hpp>
 #include "sysconst.hpp"
+#include "sgf.hpp"
 #include "luaf.hpp"
+#include "corof.hpp"
 #include "totype.hpp"
 #include "serverluamodule.hpp"
-
-class LuaCoopCallDoneFlag final
-{
-    private:
-        std::shared_ptr<bool> m_flag;
-
-    public:
-        LuaCoopCallDoneFlag()
-            : m_flag(std::make_shared<bool>(false))
-        {}
-
-        LuaCoopCallDoneFlag(const LuaCoopCallDoneFlag &arg)
-            : m_flag(arg.m_flag)
-        {}
-
-    public:
-        ~LuaCoopCallDoneFlag()
-        {
-            *m_flag = true;
-        }
-
-    public:
-        LuaCoopCallDoneFlag(LuaCoopCallDoneFlag &&) = delete;
-
-    public:
-        LuaCoopCallDoneFlag & operator = (const LuaCoopCallDoneFlag & ) = delete;
-        LuaCoopCallDoneFlag & operator = (      LuaCoopCallDoneFlag &&) = delete;
-
-    public:
-        operator bool () const
-        {
-            return *m_flag;
-        }
-};
 
 class ServerLuaCoroutineRunner;
 class LuaCoopResumer final
@@ -55,11 +23,8 @@ class LuaCoopResumer final
     private:
         sol::function m_callback;
 
-    private:
-        const LuaCoopCallDoneFlag m_doneFlag;
-
     public:
-        LuaCoopResumer(ServerLuaCoroutineRunner *, void *, sol::function, const LuaCoopCallDoneFlag &);
+        LuaCoopResumer(ServerLuaCoroutineRunner *, void *, sol::function);
 
     public:
         LuaCoopResumer(const LuaCoopResumer & );
@@ -76,9 +41,7 @@ class LuaCoopResumer final
         template<typename... Args> void operator () (Args && ... args) const
         {
             m_callback(std::forward<Args>(args)...);
-            if(m_doneFlag){
-                resumeRunner(m_luaRunner, m_currRunner);
-            }
+            resumeYieldedRunner(m_luaRunner, m_currRunner);
         }
 
     public:
@@ -86,7 +49,7 @@ class LuaCoopResumer final
         void  popOnClose()                      const;
 
     private:
-        static void resumeRunner(ServerLuaCoroutineRunner *, void *); // resolve dependency
+        static void resumeYieldedRunner(ServerLuaCoroutineRunner *, void *); // resolve dependency
 };
 
 class LuaCoopState final
@@ -149,6 +112,9 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
 
             // consume coroutine result
             // forward pfr to issuer as a special case
+            // if needResume is true, means the lua layer has been yielded
+
+            bool needResume = false;
             std::function<void(const sol::protected_function_result &)> onDone;
 
             // thread can be closed when
@@ -243,6 +209,11 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                     onClose.pop();
                 }
             }
+
+            std::pair<uint64_t, uint64_t> keyPair() const
+            {
+                return {key, seqID};
+            }
         };
 
     protected:
@@ -287,7 +258,15 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         void resume(uint64_t, uint64_t = 0);
 
     public:
+        void close (const std::pair<uint64_t, uint64_t> &kp) { close (kp.first, kp.second); }
+        void resume(const std::pair<uint64_t, uint64_t> &kp) { resume(kp.first, kp.second); }
+
+    public:
         LuaThreadHandle *hasKey(uint64_t, uint64_t = 0);
+        LuaThreadHandle *hasKeyPair(const std::pair<uint64_t, uint64_t> &kp)
+        {
+            return hasKey(kp.first, kp.second);
+        }
 
     private:
         void resumeRunner(LuaThreadHandle *, std::optional<std::pair<std::string, luaf::luaVar>> = {});
@@ -313,62 +292,44 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
         }
 
     private:
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...));
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, Args...) const );
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, LuaCoopState, Args...));
-        template<typename Lambda, typename Ret, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(Ret (Lambda::*)(LuaCoopResumer, LuaCoopState, Args...) const );
+        template<typename Lambda, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(corof::awaitable<> (*)(Lambda, LuaCoopResumer, Args...));
+        template<typename Lambda, typename... Args> static std::tuple<Args...> _extractLambdaUserArgsHelper(corof::awaitable<> (*)(Lambda, LuaCoopResumer, LuaCoopState, Args...));
 
-        template<typename Lambda, typename Ret                                 > static void _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer));
-        template<typename Lambda, typename Ret                                 > static void _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer) const);
-        template<typename Lambda, typename Ret, typename Arg2, typename... Args> static Arg2 _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer, Arg2, Args...));
-        template<typename Lambda, typename Ret, typename Arg2, typename... Args> static Arg2 _extractLambdaSecondArgHelper(Ret (Lambda::*)(LuaCoopResumer, Arg2, Args...) const );
+        template<typename Lambda                                 > static void _extractLambdaThirdArgHelper(corof::awaitable<> (*)(Lambda, LuaCoopResumer));
+        template<typename Lambda, typename Arg2, typename... Args> static Arg2 _extractLambdaThirdArgHelper(corof::awaitable<> (*)(Lambda, LuaCoopResumer, Arg2, Args...));
 
         template<typename Lambda> struct _extractLambdaUserArgsAsTuple
         {
-            using type = decltype(_extractLambdaUserArgsHelper(&Lambda::operator()));
+            using type = decltype(_extractLambdaUserArgsHelper(&Lambda:: template operator()<Lambda>));
         };
 
-        template<typename Ret, typename... Args> struct _extractLambdaUserArgsAsTuple<Ret(*)(LuaCoopResumer, Args...)>
+        template<typename Lambda> struct _extractLambdaThirdArg
         {
-            using type = std::tuple<Args...>;
-        };
-
-        template<typename Ret, typename... Args> struct _extractLambdaUserArgsAsTuple<Ret(*)(LuaCoopResumer, LuaCoopState, Args...)>
-        {
-            using type = std::tuple<Args...>;
-        };
-
-        template<typename Lambda> struct _extractLambdaSecondArg
-        {
-            using type = decltype(_extractLambdaSecondArgHelper(&Lambda::operator()));
-        };
-
-        template<typename Ret> struct _extractLambdaSecondArg<Ret(*)(LuaCoopResumer)>
-        {
-            using type = void;
-        };
-
-        template<typename Ret, typename Arg2, typename... Args> struct _extractLambdaSecondArg<Ret(*)(LuaCoopResumer, Arg2, Args...)>
-        {
-            using type = Arg2;
+            using type = decltype(_extractLambdaThirdArgHelper(&Lambda:: template operator()<Lambda>));
         };
 
     public:
-        template<typename Func> void bindFunctionCoop(std::string funcName, Func && func)
+        template<typename Func> void bindCoop(std::string funcName, Func && func)
         {
             fflassert(str_haschar(funcName));
-            bindFunction(funcName + SYS_COOP, [this](auto && func)
+            bindFunction(funcName + SYS_COOP, [funcName, this](auto && func)
             {
-                return [func = std::function(std::forward<Func>(func)), this](typename _extractLambdaUserArgsAsTuple<Func>::type args, sol::function cb, sol::this_state s)
+                return [funcName, func = std::forward<Func>(func), this](typename _extractLambdaUserArgsAsTuple<Func>::type args, sol::function cb, sol::this_state s)
                 {
-                    fflassert(s.lua_state());
-                    const LuaCoopCallDoneFlag doneFlag;
+                    if(!m_currRunner){
+                        throw fflerror("calling %s() without a spawned runner", to_cstr(funcName));
+                    }
 
-                    if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaSecondArg<Func>::type>){
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, doneFlag), LuaCoopState(s)), std::move(args)));
+                    fflassert(s.lua_state());
+
+                    m_currRunner->needResume = false;
+                    const auto callDoneSg = sgf::guard([this](){ m_currRunner->needResume = true; });
+
+                    if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaThirdArg<Func>::type>){
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb), LuaCoopState(s)), std::move(args))).resume();
                     }
                     else{
-                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb, doneFlag)), std::move(args)));
+                        std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb)), std::move(args))).resume();
                     }
                 };
             }(std::forward<Func>(func)));

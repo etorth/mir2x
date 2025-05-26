@@ -5,7 +5,7 @@ ExternalProject_Add(
 
     GIT_REPOSITORY "https://github.com/kimwalisch/libpopcnt.git"
     GIT_TAG        "master"
-  
+
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/libpopcnt"
     INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/libpopcnt/build"
 

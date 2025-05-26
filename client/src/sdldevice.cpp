@@ -11,7 +11,6 @@
 #include "totype.hpp"
 #include "rawbuf.hpp"
 #include "colorf.hpp"
-#include "xmlconf.hpp"
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
@@ -20,7 +19,6 @@
 #include "scopedalloc.hpp"
 
 extern Log *g_log;
-extern XMLConf *g_xmlConf;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
@@ -703,7 +701,7 @@ void SDLDevice::createMainWindow()
 
     const auto winFlag = []() -> Uint32
     {
-        switch(g_xmlConf->to_d("root/window/screenMode").value_or(-1)){
+        switch(g_clientArgParser->screenMode){
             case  1: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP;
             case  2: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
             default: return SDL_WINDOW_RESIZABLE;

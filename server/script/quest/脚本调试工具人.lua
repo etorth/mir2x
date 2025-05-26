@@ -56,6 +56,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
                     <par></par>
                     <par><event id="npc_test_script">测试脚本</event></par>
                     <par><event id="npc_test_switch_map" args="{'比奇县_0',390,400}" close="1">测试地图切换</event></par>
+                    <par><event id="npc_test_random_move" close="1">狂奔</event></par>
                     <par>%s</par>
                     <par><event id="%s" close="1">退出</event></par>
                 </layout>
@@ -80,6 +81,22 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
             ]=])
 
             plyapi.addItem(uid, '制魔宝玉')
+        end,
+
+        npc_test_random_move = function(uid, value)
+            local i = 1
+            while i < 10000 do
+                local done, firstRes = pcall(uidRemoteCall, uid, [=[ return randomMove() ]=])
+                if done then
+                    if firstRes ~= nil then
+                        i = i + 1
+                        pause(200)
+                    end
+                else
+                    addLog(LOGTYPE_WARNING, 'randomMove(%d) failed: %s', uid, firstRes)
+                    break
+                end
+            end
         end,
     })
 ]])

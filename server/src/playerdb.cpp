@@ -2,10 +2,10 @@
 #include "luaf.hpp"
 #include "dbpod.hpp"
 #include "player.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 
 extern DBPod *g_dbPod;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
 luaf::luaVar Player::dbGetVar(const std::string &var)
 {
@@ -71,7 +71,9 @@ void Player::dbUpdateExp()
 
 void Player::dbUpdateMapGLoc()
 {
-    g_dbPod->exec(u8R"###( update tbl_char set fld_map = %d, fld_mapx = %d, fld_mapy = %d where fld_dbid = %llu )###", to_d(mapID()), X(), Y(), to_llu(dbid()));
+    if(uidf::isBaseMap(mapUID())){
+        g_dbPod->exec(u8R"###( update tbl_char set fld_map = %d, fld_mapx = %d, fld_mapy = %d where fld_dbid = %llu )###", to_d(mapID()), X(), Y(), to_llu(dbid()));
+    }
 }
 
 void Player::dbUpdateHealth()

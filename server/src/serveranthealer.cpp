@@ -16,14 +16,14 @@ void ServerAntHealer::sendHeal(uint64_t uid)
             AMHeal amH;
             std::memset(&amH, 0, sizeof(amH));
 
-            amH.mapID = mapID();
+            amH.mapUID = mapUID();
             amH.x = X();
             amH.y = Y();
 
             amH.addHP = 10;
             amH.addMP =  5;
 
-            m_actorPod->forward(p->first, {AM_HEAL, amH});
+            m_actorPod->post(p->first, {AM_HEAL, amH});
             dispatchAction(ActionAttack
             {
                 .speed = attackSpeed(),
@@ -39,7 +39,7 @@ void ServerAntHealer::sendHeal(uint64_t uid)
     }
 }
 
-corof::eval_poller<> ServerAntHealer::updateCoroFunc()
+corof::awaitable<> ServerAntHealer::runAICoro()
 {
     while(m_sdHealth.hp > 0){
         if(m_sdHealth.hp < m_sdHealth.maxHP){
@@ -56,16 +56,18 @@ corof::eval_poller<> ServerAntHealer::updateCoroFunc()
             });
 
             updateHealth(20);
+            co_await asyncWait(1000);
+            continue;
         }
-        else{
-            const auto targetUID = co_await coro_pickHealTarget();
-            if(targetUID && m_inViewCOList.count(targetUID)){
-                sendHeal(targetUID);
-            }
+
+        if(const auto targetUID = co_await pickHealTarget(); targetUID && m_inViewCOList.count(targetUID)){
+            sendHeal(targetUID);
+            co_await asyncWait(1000);
+            continue;
         }
-        co_await corof::async_wait(1000);
+
+        co_await asyncIdleWait(1000);
     }
 
     goDie();
-    co_return;
 }

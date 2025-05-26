@@ -643,8 +643,8 @@ bool ClientMonster::motionValid(const std::unique_ptr<MotionNode> &motionPtr) co
             && motionPtr->direction <  DIR_END
 
             && m_processRun
-            && m_processRun->onMap(m_processRun->mapID(), motionPtr->x,    motionPtr->y)
-            && m_processRun->onMap(m_processRun->mapID(), motionPtr->endX, motionPtr->endY)
+            && m_processRun->onMap(m_processRun->mapUID(), motionPtr->x,    motionPtr->y)
+            && m_processRun->onMap(m_processRun->mapUID(), motionPtr->endX, motionPtr->endY)
 
             && motionPtr->speed >= SYS_MINSPEED
             && motionPtr->speed <= SYS_MAXSPEED

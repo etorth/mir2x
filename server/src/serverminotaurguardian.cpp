@@ -2,13 +2,13 @@
 #include "raiitimer.hpp"
 #include "serverminotaurguardian.hpp"
 
-ServerMinotaurGuardian::ServerMinotaurGuardian(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t argMasterUID)
-    : Monster(monID, mapPtr, argX, argY, argDir, argMasterUID)
+ServerMinotaurGuardian::ServerMinotaurGuardian(uint32_t monID, uint64_t argMapUID, int argX, int argY, int argDir, uint64_t argMasterUID)
+    : Monster(monID, argMapUID, argX, argY, argDir, argMasterUID)
 {
     fflassert(isMonster(u8"潘夜左护卫") || isMonster(u8"潘夜右护卫"));
 }
 
-corof::eval_poller<> ServerMinotaurGuardian::updateCoroFunc()
+corof::awaitable<> ServerMinotaurGuardian::runAICoro()
 {
     const auto [shortDC, longDC] = [this]() -> std::tuple<uint32_t, uint32_t>
     {
@@ -36,26 +36,30 @@ corof::eval_poller<> ServerMinotaurGuardian::updateCoroFunc()
 
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
-            if(co_await coro_inDCCastRange(targetUID, DBCOM_MAGICRECORD(shortDC).castRange)){
-                co_await coro_attackUID(targetUID, shortDC);
+            if(co_await inDCCastRange(targetUID, DBCOM_MAGICRECORD(shortDC).castRange)){
+                co_await attackUID(targetUID, shortDC);
             }
-            else if(co_await coro_inDCCastRange(targetUID, DBCOM_MAGICRECORD(longDC).castRange)){
-                co_await coro_attackUID(targetUID, longDC);
+            else if(co_await inDCCastRange(targetUID, DBCOM_MAGICRECORD(longDC).castRange)){
+                co_await attackUID(targetUID, longDC);
             }
             else{
-                co_await coro_trackUID(targetUID, {});
+                co_await trackUID(targetUID, {});
             }
         }
-        co_await corof::async_wait(200);
+        else{
+            co_await randomMove();
+        }
+
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

@@ -30,24 +30,24 @@ class BaseBuffAct
         static BaseBuffAct *createBuffAct(BaseBuff *, size_t);
 
     public:
+        auto getBuff(this auto && self)
+        {
+            return self.m_buff;
+        }
+
+    public:
         uint32_t id() const
         {
             return m_id;
         }
 
-    public:
-        BaseBuff * getBuff()
+        size_t actOff() const
         {
-            return m_buff;
-        }
-
-        const BaseBuff *getBuff() const
-        {
-            return m_buff;
+            return m_actOff;
         }
 
     public:
-        virtual bool done() const; // if duration has passed
+        std::pair<uint64_t, size_t> actKey() const;
 
     public:
         const BuffRecord & getBR() const;

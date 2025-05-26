@@ -24,10 +24,9 @@ class PNGTexDB: public innDB<uint32_t, PNGTexElement>
         {}
 
     public:
-        bool load(const char *texDBName)
+        void load(const char *texDBName)
         {
             m_zsdbPtr = std::make_unique<ZSDB>(texDBName);
-            return true;
         }
 
     public:

@@ -1,27 +1,30 @@
 #include "servereviltentacle.hpp"
-#include "serverargparser.hpp"
 
-extern ServerArgParser *g_serverArgParser;
-corof::eval_poller<> ServerEvilTentacle::updateCoroFunc()
+corof::awaitable<> ServerEvilTentacle::runAICoro()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
-            const auto [targetMapID, targetX, targetY] = co_await coro_getCOGLoc(targetUID);
-            if(inView(targetMapID, targetX, targetY)){
-                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) <= 3){
-                    co_await coro_trackAttackUID(targetUID);
+            const auto coLocOpt = co_await getCOLocation(targetUID);
+            if(!coLocOpt.has_value()){
+                continue;
+            }
+
+            const auto &coLoc = coLocOpt.value();
+            if(inView(coLoc.mapUID, coLoc.x, coLoc.y)){
+                if(mathf::CDistance<int>(coLoc.x, coLoc.y, X(), Y()) <= 3){
+                    co_await trackAttackUID(targetUID);
                 }
                 else{
-                    co_await coro_jumpAttackUID(targetUID);
+                    co_await jumpAttackUID(targetUID);
                 }
             }
             else{
@@ -29,10 +32,11 @@ corof::eval_poller<> ServerEvilTentacle::updateCoroFunc()
                 m_inViewCOList.erase(targetUID);
             }
         }
-        else if(g_serverArgParser->forceMonsterRandomMove || hasPlayerNeighbor()){
-            co_await coro_randomMove();
+        else{
+            co_await randomMove();
         }
-        co_await corof::async_wait(200);
+
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

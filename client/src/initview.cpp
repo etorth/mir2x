@@ -18,10 +18,11 @@
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
 #include "pngtexoffdb.hpp"
+#include "clientargparser.hpp"
 
-extern Log       *g_log;
-extern XMLConf   *g_xmlConf;
+extern Log *g_log;
 extern SDLDevice *g_sdlDevice;
+extern ClientArgParser *g_clientArgParser;
 
 extern EmojiDB       *g_emojiDB;
 extern BGMusicDB     *g_bgmDB;
@@ -47,23 +48,23 @@ InitView::InitView(uint8_t fontSize)
     : m_fontSize(fontSize)
     , m_taskList
       {
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_progUseDB,    "root/texture/progUseDB"   ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_itemDB,       "root/texture/itemDB"      ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_mapDB,        "root/texture/mapDB"       ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_fontexDB,     "root/font/fontexDB"       ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_heroDB,       "root/texture/heroDB"      ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_hairDB,       "root/texture/hairDB"      ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_monsterDB,    "root/texture/monsterDB"   ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_weaponDB,     "root/texture/weaponDB"    ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_helmetDB,     "root/texture/helmetDB"    ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_magicDB,      "root/texture/magicDB"     ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_equipDB,      "root/texture/equipDB"     ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_standNPCDB,   "root/texture/standNPCDB"  ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_selectCharDB, "root/texture/selectCharDB"); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_mapBinDB,     "root/map/mapBinDB"        ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_emojiDB,      "root/emoji/emojiDB"       ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_bgmDB,        "root/sound/bgmDB"         ); }},
-          {1, [this](size_t weight){ loadDB(weight, g_xmlConf, g_seffDB,       "root/sound/seffDB"        ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_progUseDB,    g_clientArgParser->resPath, "texture/proguse.zsdb"   ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_itemDB,       g_clientArgParser->resPath, "texture/item.zsdb"      ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_mapDB,        g_clientArgParser->resPath, "texture/map.zsdb"       ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_heroDB,       g_clientArgParser->resPath, "texture/hero.zsdb"      ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_hairDB,       g_clientArgParser->resPath, "texture/hair.zsdb"      ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_monsterDB,    g_clientArgParser->resPath, "texture/monster.zsdb"   ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_weaponDB,     g_clientArgParser->resPath, "texture/weapon.zsdb"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_helmetDB,     g_clientArgParser->resPath, "texture/helmet.zsdb"    ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_magicDB,      g_clientArgParser->resPath, "texture/magic.zsdb"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_equipDB,      g_clientArgParser->resPath, "texture/equip.zsdb"     ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_standNPCDB,   g_clientArgParser->resPath, "texture/npc.zsdb"       ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_selectCharDB, g_clientArgParser->resPath, "texture/selectchar.zsdb"); }},
+          {1, [this](size_t weight){ loadDB(weight, g_fontexDB,     g_clientArgParser->resPath, "font/fontex.zsdb"       ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_mapBinDB,     g_clientArgParser->resPath, "map/mapbin.zsdb"        ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_emojiDB,      g_clientArgParser->resPath, "emoji/emoji.zsdb"       ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_bgmDB,        g_clientArgParser->resPath, "sound/bgm.zsdb"         ); }},
+          {1, [this](size_t weight){ loadDB(weight, g_seffDB,       g_clientArgParser->resPath, "sound/seff.zsdb"        ); }},
       }
 {
     const Rawbuf boardData
@@ -184,8 +185,7 @@ void InitView::addIVLog(int logType, const char *format, ...)
     switch(logType){
         case LOGIV_INFO   : g_log->addLog(LOGTYPE_INFO,    "%s", logStr.c_str()); break;
         case LOGIV_WARNING: g_log->addLog(LOGTYPE_WARNING, "%s", logStr.c_str()); break;
-        case LOGIV_FATAL  : g_log->addLog(LOGTYPE_FATAL,   "%s", logStr.c_str()); break;
-        default: throw fflreach();
+        default           : g_log->addLog(LOGTYPE_FATAL,   "%s", logStr.c_str()); break;
     }
 
     {

@@ -7,20 +7,29 @@
 
 enum ActorMsgPackType: int
 {
-    AM_NONE  = 0,
-    AM_BEGIN = 1,
-    AM_OK    = 1,
+    AM_NONE = 0,
+
+    AM_SYS_BEGIN     = 1,
+    AM_SYS_PEERINDEX = 1,
+    AM_SYS_LAUNCH,
+    AM_SYS_LAUNCHED,
+    AM_SYS_SLAVEPEERPORT,
+    AM_SYS_SLAVEPEERLIST,
+    AM_SYS_END,
+
+    AM_BEGIN = AM_SYS_END,
+    AM_OK    = AM_BEGIN,
     AM_ERROR,
     AM_BADACTORPOD,
     AM_BADCHANNEL,
     AM_SDBUFFER,
     AM_REMOTECALL,
-    AM_TIMEOUT,
     AM_UID,
     AM_UIDLIST,
+    AM_TIMEOUT,
+    AM_CANCEL,
     AM_PING,
-    AM_LOGIN,
-    AM_METRONOME,
+    AM_ACTIVATE,
     AM_TRYJUMP,
     AM_ALLOWJUMP,
     AM_REJECTJUMP,
@@ -43,10 +52,11 @@ enum ActorMsgPackType: int
     AM_LEAVEERROR,      // step-3. CO -> ServerMap  : Co rejects  to take the leave permission
     AM_FINISHLEAVE,     // step-4. ServerMap -> CO  : server map has finished the leave, leave-event broadcasted, CO can broadcast for new location
     AM_LOGINOK,
-    AM_LOGINQUERYDB,
     AM_SENDPACKAGE,
     AM_RECVPACKAGE,
     AM_ADDCO,
+    AM_ADDMAP,
+    AM_ADDMAPOK,
     AM_BINDCHANNEL,
     AM_ACTION,
     AM_QUERYMAPLIST,
@@ -57,9 +67,10 @@ enum ActorMsgPackType: int
     AM_REJECTMAPSWITCH,
     AM_MAPSWITCHOK,
     AM_MAPSWITCHERROR,
+    AM_PEERLOADMAP,
+    AM_PEERLOADMAPOK,
     AM_LOADMAP,
     AM_LOADMAPOK,
-    AM_LOADMAPERROR,
     AM_QUERYLOCATION,
     AM_QUERYSELLITEMLIST,
     AM_LOCATION,
@@ -74,6 +85,7 @@ enum ActorMsgPackType: int
     AM_QUERYPLAYERNAME,
     AM_QUERYPLAYERWLDESP,
     AM_COCOUNT,
+    AM_PEERCONFIG,
     AM_ADDBUFF,
     AM_REMOVEBUFF,
     AM_EXP,
@@ -124,12 +136,142 @@ enum ActorMsgPackType: int
     AM_END,
 };
 
+inline const char *mpkName(int type)
+{
+#define _add_mpk_type_case(t) case t: return #t;
+    switch(type){
+        _add_mpk_type_case(AM_NONE)
+        _add_mpk_type_case(AM_SYS_PEERINDEX)
+        _add_mpk_type_case(AM_SYS_LAUNCH)
+        _add_mpk_type_case(AM_SYS_LAUNCHED)
+        _add_mpk_type_case(AM_SYS_SLAVEPEERPORT)
+        _add_mpk_type_case(AM_SYS_SLAVEPEERLIST)
+        _add_mpk_type_case(AM_OK)
+        _add_mpk_type_case(AM_ERROR)
+        _add_mpk_type_case(AM_BADACTORPOD)
+        _add_mpk_type_case(AM_BADCHANNEL)
+        _add_mpk_type_case(AM_SDBUFFER)
+        _add_mpk_type_case(AM_REMOTECALL)
+        _add_mpk_type_case(AM_UID)
+        _add_mpk_type_case(AM_UIDLIST)
+        _add_mpk_type_case(AM_TIMEOUT)
+        _add_mpk_type_case(AM_CANCEL)
+        _add_mpk_type_case(AM_PING)
+        _add_mpk_type_case(AM_ACTIVATE)
+        _add_mpk_type_case(AM_TRYJUMP)
+        _add_mpk_type_case(AM_ALLOWJUMP)
+        _add_mpk_type_case(AM_REJECTJUMP)
+        _add_mpk_type_case(AM_JUMPOK)
+        _add_mpk_type_case(AM_JUMPERROR)
+        _add_mpk_type_case(AM_TRYMOVE)
+        _add_mpk_type_case(AM_ALLOWMOVE)
+        _add_mpk_type_case(AM_REJECTMOVE)
+        _add_mpk_type_case(AM_MOVEOK)
+        _add_mpk_type_case(AM_MOVEERROR)
+        _add_mpk_type_case(AM_TRYSPACEMOVE)
+        _add_mpk_type_case(AM_ALLOWSPACEMOVE)
+        _add_mpk_type_case(AM_REJECTSPACEMOVE)
+        _add_mpk_type_case(AM_SPACEMOVEOK)
+        _add_mpk_type_case(AM_SPACEMOVEERROR)
+        _add_mpk_type_case(AM_TRYLEAVE)
+        _add_mpk_type_case(AM_ALLOWLEAVE)
+        _add_mpk_type_case(AM_REJECTLEAVE)
+        _add_mpk_type_case(AM_LEAVEOK)
+        _add_mpk_type_case(AM_LEAVEERROR)
+        _add_mpk_type_case(AM_FINISHLEAVE)
+        _add_mpk_type_case(AM_LOGINOK)
+        _add_mpk_type_case(AM_SENDPACKAGE)
+        _add_mpk_type_case(AM_RECVPACKAGE)
+        _add_mpk_type_case(AM_ADDCO)
+        _add_mpk_type_case(AM_ADDMAP)
+        _add_mpk_type_case(AM_ADDMAPOK)
+        _add_mpk_type_case(AM_BINDCHANNEL)
+        _add_mpk_type_case(AM_ACTION)
+        _add_mpk_type_case(AM_QUERYMAPLIST)
+        _add_mpk_type_case(AM_MAPLIST)
+        _add_mpk_type_case(AM_MAPSWITCHTRIGGER)
+        _add_mpk_type_case(AM_TRYMAPSWITCH)
+        _add_mpk_type_case(AM_ALLOWMAPSWITCH)
+        _add_mpk_type_case(AM_REJECTMAPSWITCH)
+        _add_mpk_type_case(AM_MAPSWITCHOK)
+        _add_mpk_type_case(AM_MAPSWITCHERROR)
+        _add_mpk_type_case(AM_PEERLOADMAP)
+        _add_mpk_type_case(AM_PEERLOADMAPOK)
+        _add_mpk_type_case(AM_LOADMAP)
+        _add_mpk_type_case(AM_LOADMAPOK)
+        _add_mpk_type_case(AM_QUERYLOCATION)
+        _add_mpk_type_case(AM_QUERYSELLITEMLIST)
+        _add_mpk_type_case(AM_LOCATION)
+        _add_mpk_type_case(AM_PATHFIND)
+        _add_mpk_type_case(AM_PATHFINDOK)
+        _add_mpk_type_case(AM_ATTACK)
+        _add_mpk_type_case(AM_UPDATEHP)
+        _add_mpk_type_case(AM_DEADFADEOUT)
+        _add_mpk_type_case(AM_QUERYUIDBUFF)
+        _add_mpk_type_case(AM_QUERYCORECORD)
+        _add_mpk_type_case(AM_QUERYCOCOUNT)
+        _add_mpk_type_case(AM_QUERYPLAYERNAME)
+        _add_mpk_type_case(AM_QUERYPLAYERWLDESP)
+        _add_mpk_type_case(AM_COCOUNT)
+        _add_mpk_type_case(AM_PEERCONFIG)
+        _add_mpk_type_case(AM_ADDBUFF)
+        _add_mpk_type_case(AM_REMOVEBUFF)
+        _add_mpk_type_case(AM_EXP)
+        _add_mpk_type_case(AM_MISS)
+        _add_mpk_type_case(AM_HEAL)
+        _add_mpk_type_case(AM_QUERYHEALTH)
+        _add_mpk_type_case(AM_HEALTH)
+        _add_mpk_type_case(AM_DROPITEM)
+        _add_mpk_type_case(AM_SHOWDROPITEM)
+        _add_mpk_type_case(AM_NOTIFYDEAD)
+        _add_mpk_type_case(AM_OFFLINE)
+        _add_mpk_type_case(AM_PICKUP)
+        _add_mpk_type_case(AM_PICKUPITEMLIST)
+        _add_mpk_type_case(AM_REMOVEGROUNDITEM)
+        _add_mpk_type_case(AM_CORECORD)
+        _add_mpk_type_case(AM_NOTIFYNEWCO)
+        _add_mpk_type_case(AM_CHECKMASTER)
+        _add_mpk_type_case(AM_CHECKMASTEROK)
+        _add_mpk_type_case(AM_QUERYMASTER)
+        _add_mpk_type_case(AM_QUERYFINALMASTER)
+        _add_mpk_type_case(AM_QUERYFRIENDTYPE)
+        _add_mpk_type_case(AM_FRIENDTYPE)
+        _add_mpk_type_case(AM_CASTFIREWALL)
+        _add_mpk_type_case(AM_STRIKEFIXEDLOCDAMAGE)
+        _add_mpk_type_case(AM_QUERYNAMECOLOR)
+        _add_mpk_type_case(AM_NAMECOLOR)
+        _add_mpk_type_case(AM_MASTERKILL)
+        _add_mpk_type_case(AM_MASTERHITTED)
+        _add_mpk_type_case(AM_NPCEVENT)
+        _add_mpk_type_case(AM_NPCERROR)
+        _add_mpk_type_case(AM_BUY)
+        _add_mpk_type_case(AM_BUYCOST)
+        _add_mpk_type_case(AM_BUYERROR)
+        _add_mpk_type_case(AM_MODIFYQUESTTRIGGERTYPE)
+        _add_mpk_type_case(AM_QUERYQUESTUID)
+        _add_mpk_type_case(AM_QUERYQUESTUIDLIST)
+        _add_mpk_type_case(AM_QUERYQUESTTRIGGERLIST)
+        _add_mpk_type_case(AM_QUERYTEAMMEMBERLIST)
+        _add_mpk_type_case(AM_QUERYTEAMPLAYER)
+        _add_mpk_type_case(AM_TEAMPLAYER)
+        _add_mpk_type_case(AM_TEAMUPDATE)
+        _add_mpk_type_case(AM_TEAMMEMBERLIST)
+        _add_mpk_type_case(AM_RUNQUESTTRIGGER)
+        _add_mpk_type_case(AM_SENDNOTIFY)
+        _add_mpk_type_case(AM_REGISTERQUEST)
+        _add_mpk_type_case(AM_REQUESTJOINTEAM)
+        _add_mpk_type_case(AM_REQUESTLEAVETEAM)
+        default: return "AM_UNKNOWN";
+    }
+#undef _add_mpk_type_case
+}
+
 struct AMBadActorPod
 {
     int      Type;
     uint64_t from;
-    uint32_t ID;
-    uint32_t Respond;
+    uint64_t ID;
+    uint64_t Respond;
     uint64_t UID;
 };
 
@@ -152,8 +294,7 @@ struct AMAllowLeave
 
 struct AMLeaveOK
 {
-    uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -161,9 +302,10 @@ struct AMAddCharObject
 {
     int type;
 
+    uint64_t mapUID;
     int x;
     int y;
-    uint32_t mapID;
+
     bool strictLoc;
 
     struct _monsterType
@@ -198,18 +340,6 @@ struct AMAddCharObject
     StaticBuffer<256> buf;
 };
 
-struct AMLogin
-{
-    uint32_t DBID;
-    uint64_t UID;
-    uint32_t SID;
-    uint32_t mapID;
-    uint64_t Key;
-
-    int X;
-    int Y;
-};
-
 struct AMTrySpaceMove
 {
     int X;
@@ -231,14 +361,14 @@ struct AMAllowSpaceMove
 struct AMSpaceMoveOK
 {
     uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
 struct AMTryMove
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -253,7 +383,7 @@ struct AMTryMove
 struct AMAllowMove
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -265,7 +395,7 @@ struct AMAllowMove
 struct AMMoveOK
 {
     uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -290,21 +420,8 @@ struct AMAllowJump
 struct AMJumpOK
 {
     uint64_t uid;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
-};
-
-struct AMLoginQueryDB
-{
-    uint32_t channID;
-
-    uint32_t DBID;
-    uint32_t mapID;
-    int      MapX;
-    int      MapY;
-    int      Level;
-    int      JobID;
-    int      Direction;
 };
 
 struct AMSendPackage
@@ -326,7 +443,7 @@ struct AMBindChannel
 struct AMAction
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 };
 
@@ -337,9 +454,7 @@ struct AMMapList
 
 struct AMMapSwitchTrigger
 {
-    uint32_t mapID;
-    uint64_t UID;
-
+    uint64_t mapUID;
     int X;
     int Y;
 };
@@ -353,39 +468,44 @@ struct AMTryMapSwitch
 
 struct AMAllowMapSwitch
 {
-    void *Ptr;
-
     int X;
     int Y;
 };
 
 struct AMMapSwitchOK
 {
-    uint64_t uid;
-    uint32_t mapID;
     ActionNode action;
+};
+
+struct AMPeerLoadMap
+{
+    uint64_t mapUID;
+};
+
+struct AMPeerLoadMapOK
+{
+    uint8_t newLoad;
 };
 
 struct AMLoadMap
 {
-    uint32_t mapID;
-    bool     activateMap;
+    uint64_t mapUID;
 };
 
 struct AMLoadMapOK
 {
-    uint64_t uid;
+    uint8_t newLoad;
 };
 
 struct AMUID
 {
-    uint64_t UID;
+    uint64_t uid;
 };
 
 struct AMQueryLocation
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 };
 
 struct AMQuerySellItemList
@@ -396,7 +516,7 @@ struct AMQuerySellItemList
 struct AMLocation
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -406,7 +526,7 @@ struct AMLocation
 struct AMPathFind
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int CheckCO;
     int MaxStep;
@@ -422,7 +542,7 @@ struct AMPathFind
 struct AMPathFindOK
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     struct _Point
     {
@@ -434,7 +554,7 @@ struct AMPathFindOK
 struct AMAttack
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -445,7 +565,7 @@ struct AMAttack
 struct AMUpdateHP
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -457,7 +577,7 @@ struct AMUpdateHP
 struct AMDeadFadeOut
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -470,7 +590,7 @@ struct AMQueryCORecord
 
 struct AMQueryCOCount
 {
-    uint32_t mapID;
+    uint64_t mapUID;
     struct _Check
     {
         bool NPC;
@@ -489,7 +609,7 @@ struct AMQueryCOCount
 
 struct AMCOCount
 {
-    uint32_t Count;
+    size_t Count;
 };
 
 struct AMAddBuff
@@ -517,7 +637,7 @@ struct AMMiss
 
 struct AMHeal
 {
-    uint32_t mapID;
+    uint64_t mapUID;
     int x;
     int y;
 
@@ -533,7 +653,7 @@ struct AMNotifyDead
 struct AMOffline
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
 
     int X;
     int Y;
@@ -558,7 +678,7 @@ struct AMRemoveGroundItem
 struct AMCORecord
 {
     uint64_t UID;
-    uint32_t mapID;
+    uint64_t mapUID;
     ActionNode action;
 
     // instantiation of anonymous struct is supported in C11

@@ -11,8 +11,8 @@ RotateCoord::RotateCoord(int centerX, int centerY, int startX, int startY, int w
     , m_stopX(startX + w - 1)
     , m_stopY(startY + h - 1)
 {
-    fflassert(w > 0);
-    fflassert(h > 0);
+    fflassert(w > 0, w, h);
+    fflassert(h > 0, h, h);
 
     // simpler case
     // center point is inside the rectangle

@@ -5,11 +5,12 @@
 #include "serdesmsg.hpp"
 #include "actormsgpack.hpp"
 
-void NPChar::on_AM_ATTACK(const ActorMsgPack &)
+corof::awaitable<> NPChar::on_AM_ATTACK(const ActorMsgPack &)
 {
+    return {};
 }
 
-void NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAction>();
     switch(uidf::getUIDType(amA.UID)){
@@ -17,16 +18,16 @@ void NPChar::on_AM_ACTION(const ActorMsgPack &mpk)
             {
                 m_luaRunner->spawn(amA.UID, str_printf("_RSVD_NAME_trigger(SYS_ON_APPEAR, %llu)", to_llu(amA.UID)));
                 dispatchAction(amA.UID, makeActionStand());
-                break;
+                return {};
             }
         default:
             {
-                break;
+                return {};
             }
     }
 }
 
-void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
 {
     fflassert(mpk.from());
     auto sdNPCE = mpk.deserialize<SDNPCEvent>();
@@ -43,21 +44,21 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
             || sdNPCE.event == SYS_EXIT
             || sdNPCE.event == SYS_NPCERROR){
         m_luaRunner->close(mpk.from());
-        return;
+        return {};
     }
 
     // can be SYS_ENTER or scritp event
     // script event defines like text button pressed etc
 
-    if(sdNPCE.mapID != mapID() || mathf::LDistance2(sdNPCE.x, sdNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
+    if(sdNPCE.mapUID != mapUID() || mathf::LDistance2(sdNPCE.x, sdNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
         AMNPCError amNPCE;
         std::memset(&amNPCE, 0, sizeof(amNPCE));
 
         amNPCE.errorID = NPCE_TOOFAR;
-        m_actorPod->forward(mpk.from(), {AM_NPCERROR, amNPCE});
+        m_actorPod->post(mpk.from(), {AM_NPCERROR, amNPCE});
 
         m_luaRunner->close(mpk.from());
-        return;
+        return {};
     }
 
     // last call stack may have not been done yet
@@ -74,39 +75,43 @@ void NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
                 sdNPCE.event.empty() ? "nil" : luaf::quotedLuaString(sdNPCE.event).c_str(),
 
                 sdNPCE.value.has_value() ? luaf::quotedLuaString(sdNPCE.value.value()).c_str() : "nil"));
+    return {};
 }
 
-void NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_NOTIFYNEWCO(const ActorMsgPack &mpk)
 {
     if(uidf::getUIDType(mpk.from()) == UID_PLY){
         dispatchAction(mpk.from(), makeActionStand());
     }
+    return {};
 }
 
-void NPChar::on_AM_QUERYCORECORD(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_QUERYCORECORD(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.conv<AMQueryCORecord>().UID;
     if(uidf::getUIDType(fromUID) != UID_PLY){
         throw fflerror("NPC get AMQueryCORecord from %s", uidf::getUIDTypeCStr(fromUID));
     }
     dispatchAction(fromUID, makeActionStand());
+    return {};
 }
 
-void NPChar::on_AM_QUERYLOCATION(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_QUERYLOCATION(const ActorMsgPack &mpk)
 {
     AMLocation amL;
     std::memset(&amL, 0, sizeof(amL));
 
     amL.UID       = UID();
-    amL.mapID     = mapID();
+    amL.mapUID    = mapUID();
     amL.X         = X();
     amL.Y         = Y();
     amL.Direction = Direction();
 
-    m_actorPod->forward(mpk.from(), {AM_LOCATION, amL}, mpk.seqID());
+    m_actorPod->post(mpk.fromAddr(), {AM_LOCATION, amL});
+    return {};
 }
 
-void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
 {
     // 
     // query all selling items for one specified itemID
@@ -133,28 +138,31 @@ void NPChar::on_AM_QUERYSELLITEMLIST(const ActorMsgPack &mpk)
         }
     }
     forwardNetPackage(mpk.from(), SM_SELLITEMLIST, cerealf::serialize(sdSIL, true));
+    return {};
 }
 
-void NPChar::on_AM_REMOTECALL(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_REMOTECALL(const ActorMsgPack &mpk)
 {
     auto sdRC = mpk.deserialize<SDRemoteCall>();
     m_luaRunner->spawn(mpk.from(), mpk.fromAddr(), std::move(sdRC.code), std::move(sdRC.args));
+    return {};
 }
 
-void NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_BADACTORPOD(const ActorMsgPack &mpk)
 {
     const auto amBAP = mpk.conv<AMBadActorPod>();
     m_luaRunner->close(amBAP.UID);
+    return {};
 }
 
-void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
+corof::awaitable<> NPChar::on_AM_BUY(const ActorMsgPack &mpk)
 {
     const auto fnSendBuyError = [&mpk, this](int buyError)
     {
         AMBuyError amBE;
         std::memset(&amBE, 0, sizeof(amBE));
         amBE.error = buyError;
-        m_actorPod->forward(mpk.from(), {AM_BUYERROR, amBE});
+        m_actorPod->post(mpk.fromAddr(), {AM_BUYERROR, amBE});
     };
 
     const auto amB = mpk.conv<AMBuy>();
@@ -170,18 +178,18 @@ void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
     auto p = m_sellItemList.find(amB.itemID);
     if(p == m_sellItemList.end()){
         fnSendBuyError(BUYERR_BADITEM);
-        return;
+        co_return;
     }
 
     auto q = p->second.find(ir.packable() ? 0 : amB.seqID);
     if(q == p->second.end()){
         fnSendBuyError(BUYERR_SOLDOUT);
-        return;
+        co_return;
     }
 
     if(q->second.locked){
         fnSendBuyError(BUYERR_LOCKED);
-        return;
+        co_return;
     }
 
     SDBuyCost sdBC;
@@ -193,7 +201,7 @@ void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
         q->second.locked = true;
     }
 
-    m_actorPod->forward(mpk.from(), {AM_BUYCOST, cerealf::serialize(sdBC)}, mpk.seqID(), [amB, this](const ActorMsgPack &rmpk)
+    const auto rmpk = co_await m_actorPod->send(mpk.fromAddr(), {AM_BUYCOST, cerealf::serialize(sdBC)});
     {
         const auto &ir = DBCOM_ITEMRECORD(amB.itemID);
         if(!ir){
@@ -223,16 +231,16 @@ void NPChar::on_AM_BUY(const ActorMsgPack &mpk)
                     if(!ir.packable()){
                         p->second.erase(q);
                     }
-                    return;
+                    co_return;
                 }
             case AM_ERROR:
                 {
-                    return;
+                     co_return;
                 }
             default:
                 {
-                    return;
+                    co_return;
                 }
         }
-    });
+    }
 }

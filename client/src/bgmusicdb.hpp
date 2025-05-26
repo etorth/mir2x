@@ -29,10 +29,9 @@ class BGMusicDB: public innDB<uint32_t, BGMusicElement>
         virtual ~BGMusicDB() = default;
 
     public:
-        bool load(const char *bgmDBName)
+        void load(const char *bgmDBName)
         {
             m_zsdbPtr = std::make_unique<ZSDB>(bgmDBName);
-            return true;
         }
 
     public:

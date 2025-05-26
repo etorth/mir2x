@@ -32,7 +32,7 @@ class Log final
             LOGTYPEV_INFO    = 0,
             LOGTYPEV_WARNING = 1,
             LOGTYPEV_FATAL   = 2,
-            LOGTYPEV_DEBUG   = 3,
+            LOGTYPEV_TRACE   = 3,
         };
 
     public:
@@ -53,14 +53,14 @@ class Log final
             g3::initializeLogging(m_worker.get());
             std::future<std::string> logFileNameFeature = m_handler->call(&g3::FileSink::fileName);
 
-            std::cout << "* This is the initialization of Log functionality"           << std::endl;
-            std::cout << "* For info/debug/warning/fatal messages."                    << std::endl;
+            std::cout << "* This is the initialization of Log functionality, pid " << getpid() << std::endl;
+            std::cout << "* For info/debug/warning/fatal messages"                             << std::endl;
 
             m_logFileName = logFileNameFeature.get();
 
-            std::cout << "* Log file: [" << m_logFileName << "]"                       << std::endl;
-            std::cout << "* Log functionality established!"                            << std::endl;
-            std::cout << "* All messges will be redirected to the log after this line" << std::endl;
+            std::cout << "* Log file: [" << m_logFileName << "]"                               << std::endl;
+            std::cout << "* Log functionality established"                                     << std::endl;
+            std::cout << "* All messges will be redirected to the log after this line"         << std::endl;
         }
 
     public:
@@ -79,13 +79,13 @@ class Log final
                 case LOGTYPEV_INFO   : return INFO;
                 case LOGTYPEV_WARNING: return WARNING;
                 case LOGTYPEV_FATAL  : return FATAL;
-                case LOGTYPEV_DEBUG  : return DEBUG;
+                case LOGTYPEV_TRACE  : return DEBUG; // message only goes to log file, not to console or gui
                 default              : throw fflerror("invalid log type: %d", type);
             }
         }
 
     public:
-        void addLog(const LogTypeLoc &typeLoc, const char *format, ...)
+        void addLog(const LogTypeLoc &typeLoc, const char *format, ...) STR_PRINTF_CHECK_FORMAT(3)
         {
             std::string logLine;
             str_format(format, logLine);
@@ -96,4 +96,4 @@ class Log final
 #define LOGTYPE_INFO    {Log::LOGTYPEV_INFO   , __FILE__, __LINE__, __PRETTY_FUNCTION__}
 #define LOGTYPE_WARNING {Log::LOGTYPEV_WARNING, __FILE__, __LINE__, __PRETTY_FUNCTION__}
 #define LOGTYPE_FATAL   {Log::LOGTYPEV_FATAL  , __FILE__, __LINE__, __PRETTY_FUNCTION__}
-#define LOGTYPE_DEBUG   {Log::LOGTYPEV_DEBUG  , __FILE__, __LINE__, __PRETTY_FUNCTION__}
+#define LOGTYPE_TRACE   {Log::LOGTYPEV_TRACE  , __FILE__, __LINE__, __PRETTY_FUNCTION__}

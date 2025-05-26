@@ -2,26 +2,27 @@
 #include "pathf.hpp"
 #include "fflerror.hpp"
 #include "raiitimer.hpp"
+#include "friendtype.hpp"
 #include "servertaodog.hpp"
 
-corof::eval_poller<> ServerTaoDog::updateCoroFunc()
+corof::awaitable<> ServerTaoDog::runAICoro()
 {
     uint64_t targetUID = 0;
     std::optional<uint64_t> idleTime;
 
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
             idleTime.reset();
             setStandMode(true);
-            co_await coro_trackAttackUID(targetUID);
+            co_await trackAttackUID(targetUID);
         }
 
         else{
@@ -33,157 +34,125 @@ corof::eval_poller<> ServerTaoDog::updateCoroFunc()
             }
 
             if(m_actorPod->checkUIDValid(masterUID())){
-                co_await coro_followMaster();
+                co_await followMaster();
             }
             else{
-                co_await corof::async_wait(200);
+                break;
             }
         }
+
+        co_await asyncWait(1000);
     }
 
     goDie();
 }
 
-void ServerTaoDog::attackUID(uint64_t targetUID, int dcType, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> ServerTaoDog::attackUID(uint64_t targetUID, int dcType)
 {
     fflassert(to_u32(dcType) == DBCOM_MAGICID(u8"神兽_喷火"));
-    if(!canAttack()){
-        if(onError){
-            onError();
-        }
-        return;
+    if(!canAttack(true)){
+        co_return false;
     }
 
     if(!dcValid(dcType, true)){
-        if(onError){
-            onError();
-        }
-        return;
+        co_return false;
     }
 
     m_attackLock = true;
-    getCOLocation(targetUID, [this, dcType, targetUID, onOK, onError](const COLocation &coLoc)
+    const auto attckLockSg = sgf::guard([this]() noexcept { m_attackLock = false; });
+
+    const auto coLocOpt = co_await getCOLocation(targetUID);
+    if(!coLocOpt.has_value()){
+        co_return false;
+    }
+
+    const auto & coLoc = coLocOpt.value();
+    const auto &mr = DBCOM_MAGICRECORD(dcType);
+
+    if(!pathf::inDCCastRange(mr.castRange, X(), Y(), coLoc.x, coLoc.y)){
+        co_return false;
+    }
+
+    if(const auto newDir = pathf::getOffDir(X(), Y(), coLoc.x, coLoc.y); pathf::dirValid(newDir)){
+        m_direction = newDir;
+    }
+
+    if(!canAttack(false)){
+        co_return false;
+    }
+
+    const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
+    dispatchAction(ActionAttack
     {
-        fflassert(m_attackLock);
-        m_attackLock = false;
-
-        const auto &mr = DBCOM_MAGICRECORD(dcType);
-        if(!pathf::inDCCastRange(mr.castRange, X(), Y(), coLoc.x, coLoc.y)){
-            if(onError){
-                onError();
-            }
-            return;
-        }
-
-        if(const auto newDir = pathf::getOffDir(X(), Y(), coLoc.x, coLoc.y); pathf::dirValid(newDir)){
-            m_direction = newDir;
-        }
-
-        if(!canAttack()){
-            if(onError){
-                onError();
-            }
-            return;
-        }
-
-        const auto [buffID, modifierID] = m_buffList.rollAttackModifier();
-        dispatchAction(ActionAttack
+        .speed = attackSpeed(),
+        .x = X(),
+        .y = Y(),
+        .aimUID = targetUID,
+        .extParam
         {
-            .speed = attackSpeed(),
-            .x = X(),
-            .y = Y(),
-            .aimUID = targetUID,
-            .extParam
-            {
-                .magicID = to_u32(dcType),
-                .modifierID = to_u32(modifierID),
-            },
-        });
+            .magicID = to_u32(dcType),
+            .modifierID = to_u32(modifierID),
+        },
+    });
 
-        if(buffID){
-            sendBuff(buffID, 0, buffID);
-        }
+    if(buffID){
+        sendBuff(buffID, 0, buffID);
+    }
 
-        addDelay(550, [dcType, modifierID, this]()
-        {
-            std::vector<std::tuple<int, int>> gridList;
-            for(const auto r: {1, 2}){
-                if(const auto [attackGX, attackGY] = pathf::getFrontGLoc(X(), Y(), Direction(), r); m_map->groundValid(attackGX, attackGY)){
-                    gridList.push_back({attackGX, attackGY});
-                }
-            }
-
-            if(gridList.empty()){
-                return;
-            }
-
-            AMAttack amA;
-            std::memset(&amA, 0, sizeof(amA));
-
-            amA.UID = UID();
-            amA.mapID = m_map->UID();
-
-            amA.X = X();
-            amA.Y = Y();
-            amA.damage = getAttackDamage(dcType, modifierID);
-
-            foreachInViewCO([amA, gridList, this](const COLocation &inViewCOLoc)
-            {
-                if(std::find(gridList.begin(), gridList.end(), std::make_tuple(inViewCOLoc.x, inViewCOLoc.y)) == gridList.end()){
-                    return;
-                }
-
-                queryFinalMaster(UID(), [inViewCOLoc, amA, this](uint64_t selfFinalMaster)
-                {
-                    queryFinalMaster(inViewCOLoc.uid, [inViewCOLoc, selfFinalMaster, amA, this](uint64_t enemyFinalMaster)
-                    {
-                        if(selfFinalMaster == enemyFinalMaster){
-                            return;
-                        }
-
-                        if(uidf::getUIDType(enemyFinalMaster) == UID_MON){
-                            m_actorPod->forward(inViewCOLoc.uid, {AM_ATTACK, amA});
-                            return;
-                        }
-
-                        // TODO
-                        // need more check
-                    });
-
-                });
-            });
-        });
-
-        if(onOK){
-            onOK();
-        }
-    },
-
-    [this, targetUID, onError]()
+    std::unordered_set<uint64_t> uidList;
+    foreachInViewCO([&mr, &coLoc, &uidList, this](const COLocation &inViewCOLoc)
     {
-        m_attackLock = false;
-        m_inViewCOList.erase(targetUID);
-
-        if(onError){
-            onError();
+        for(int d = 0; d <= mr.castRange.distance; ++d){
+            if(const auto [attackGX, attackGY] = pathf::getFrontGLoc(X(), Y(), Direction(), d); (inViewCOLoc.mapUID == mapUID()) && (inViewCOLoc.x == attackGX) && (inViewCOLoc.y == attackGY)){
+                uidList.insert(inViewCOLoc.uid);
+            }
         }
     });
+
+    uidList.insert(targetUID);
+    addDelay(550, [dcType, modifierID, uidList, thisptr = this](this auto, bool) -> corof::awaitable<>
+    {
+        AMAttack amA;
+        std::memset(&amA, 0, sizeof(amA));
+
+        amA.UID = thisptr->UID();
+        amA.mapUID = thisptr->mapUID();
+
+        amA.X = thisptr->X();
+        amA.Y = thisptr->Y();
+        amA.damage = thisptr->getAttackDamage(dcType, modifierID);
+
+        for(const auto uid: uidList){
+            switch(co_await thisptr->checkFriend(uid)){
+                case FT_ENEMY:
+                    {
+                        thisptr->m_actorPod->post(uid, {AM_ATTACK, amA});
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+            }
+        }
+    });
+    co_return true;
 }
 
-void ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
+corof::awaitable<> ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAttack>();
     if(amA.UID == UID()){
-        return;
+        co_return;
     }
 
     if(m_dead.get()){
         notifyDead(amA.UID);
-        return;
+        co_return;
     }
 
     setStandMode(true);
-    Monster::onAMAttack(mpk);
+    co_await Monster::onAMAttack(mpk);
 }
 
 DamageNode ServerTaoDog::getAttackDamage(int dc, int modifierID) const

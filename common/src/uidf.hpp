@@ -13,6 +13,21 @@
 // 62 - 59 : type field, supports 16 types
 // 58 - 00 :
 
+namespace uidf
+{
+    constexpr size_t uidTypeBits()
+    {
+        return 4;
+    }
+
+    constexpr size_t peerIndexBits()
+    {
+        return 4;
+    }
+
+    size_t peerIndex(uint64_t);
+}
+
 enum UIDType: int
 {
     UID_NONE  = 0,
@@ -29,7 +44,7 @@ enum UIDType: int
 
     UID_END,
 };
-static_assert(UID_END <= 16);
+static_assert(UID_END <= (1uz << uidf::uidTypeBits()));
 
 namespace uidf
 {
@@ -40,17 +55,19 @@ namespace uidf
 
 namespace uidf
 {
-    uint64_t buildMapUID(uint32_t);
-    uint64_t buildNPCUID(uint32_t);
-    uint64_t buildMonsterUID(uint32_t);
+    uint64_t buildMapUID    (uint32_t, size_t /* peerIndex */);
+    uint64_t buildNPCUID    (uint32_t, size_t /* peerIndex */);
+    uint64_t buildMonsterUID(uint32_t, size_t /* peerIndex */);
+
     uint64_t buildReceiverUID();
 
+    uint64_t getPeerCoreUID(size_t);
     uint64_t getServiceCoreUID();
     uint64_t getServerLuaObjectUID(uint32_t);
 
     uint64_t getQuestUID(uint32_t);
     uint64_t getPlayerUID(uint32_t);
-    uint64_t getMapBaseUID(uint32_t);
+    uint64_t getMapBaseUID(uint32_t, size_t /* peerIndex */);
 }
 
 namespace uidf
@@ -62,10 +79,11 @@ namespace uidf
     uint32_t getQuestID(uint64_t);
     uint32_t getMonsterID(uint64_t);
 
-    uint32_t getMapSeq(uint64_t);
-    uint32_t getNPCSeq(uint64_t);
-    uint32_t getMonsterSeq(uint64_t);
+    uint64_t getMapSeq(uint64_t);
+    uint64_t getNPCSeq(uint64_t);
+    uint64_t getMonsterSeq(uint64_t);
 
+    uint64_t getPeerCoreSeq(uint64_t);
     uint64_t getReceiverSeq(uint64_t);
 }
 
@@ -76,6 +94,9 @@ namespace uidf
     bool isQuest(uint64_t);
     bool isNPChar(uint64_t);
     bool isReceiver(uint64_t);
+
+    bool isMap(uint64_t);
+    bool isBaseMap(uint64_t);
 
     bool isMonster(uint64_t);
     bool isMonster(uint64_t, uint32_t);

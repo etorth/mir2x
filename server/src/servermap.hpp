@@ -11,6 +11,7 @@
 #include "totype.hpp"
 #include "sysconst.hpp"
 #include "serdesmsg.hpp"
+#include "enableaddco.hpp"
 #include "mir2xmapdata.hpp"
 #include "serverobject.hpp"
 #include "lochashtable.hpp"
@@ -54,6 +55,7 @@ class ServerMap final: public ServerObject
 
     private:
         friend class ServerPathFinder;
+        friend class ServerMap::LuaThreadRunner;
 
     private:
         struct FireWallMagicNode
@@ -84,13 +86,13 @@ class ServerMap final: public ServerObject
             std::vector<DroppedItemNode> itemList;
             std::vector<FireWallMagicNode> fireWallList;
 
-            uint32_t mapID   =  0;
+            uint64_t mapUID  =  0;
             int      switchX = -1;
             int      switchY = -1;
 
             bool empty() const
             {
-                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapID == 0);
+                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0);
             }
 
             bool hasUID(uint64_t uid) const
@@ -99,12 +101,20 @@ class ServerMap final: public ServerObject
             }
         };
 
-    private:
-        const uint32_t     m_ID;
-        const Mir2xMapData m_mir2xMapData;
+        struct NPCharOp
+        {
+            std::optional<uint64_t> uid;
+            std::vector<std::function<void(uint64_t)>> ops;
+        };
 
     private:
-        std::unordered_map<uint64_t, const NPChar *> m_npcList;
+        std::unique_ptr<EnableAddCO> m_addCO;
+
+    private:
+        std::shared_ptr<Mir2xMapData> m_mapBin;
+
+    private:
+        std::unordered_map<std::string, NPCharOp> m_npcList;
 
     private:
         std::vector<MapGrid> m_gridList;
@@ -119,25 +129,31 @@ class ServerMap final: public ServerObject
         std::unique_ptr<ServerMap::LuaThreadRunner> m_luaRunner;
 
     private:
-        void operateAM(const ActorMsgPack &);
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     public:
-        ServerMap(uint32_t);
+        ServerMap(uint64_t);
 
     private:
         ~ServerMap() = default;
 
     public:
-        uint32_t ID() const { return m_ID; }
-
-    public:
-        bool in(uint32_t nMapID, int nX, int nY) const
+        const Mir2xMapData *mapBin() const
         {
-            return (nMapID == m_ID) && validC(nX, nY);
+            return m_mapBin.get();
         }
 
     public:
-        bool groundValid(int, int) const;
+        uint32_t ID() const
+        {
+            return uidf::getMapID(UID());
+        }
+
+    public:
+        bool in(uint64_t argMapUID, int argX, int argY) const
+        {
+            return (argMapUID == UID()) && mapBin()->validC(argX, argY);
+        }
 
     protected:
         bool canMove(bool, bool, int, int) const;
@@ -146,38 +162,10 @@ class ServerMap final: public ServerObject
         std::optional<double> oneStepCost(int, int, int, int, int, int, int) const;
 
     public:
-        const Mir2xMapData &getMapData() const
-        {
-            return m_mir2xMapData;
-        }
-
-    public:
-        int W() const
-        {
-            return m_mir2xMapData.w();
-        }
-
-        int H() const
-        {
-            return m_mir2xMapData.h();
-        }
-
-    public:
-        bool validC(int nX, int nY) const
-        {
-            return m_mir2xMapData.validC(nX, nY);
-        }
-
-        bool validP(int nX, int nY) const
-        {
-            return m_mir2xMapData.validP(nX, nY);
-        }
-
-    public:
-        void onActivate() override;
+        corof::awaitable<> onActivate() override;
 
     private:
-        void loadNPChar();
+        corof::awaitable<> loadNPChar();
 
     private:
         void    addGridUID(uint64_t, int, int, bool);
@@ -196,23 +184,13 @@ class ServerMap final: public ServerObject
         void notifyNewCO(uint64_t, int, int);
 
     private:
-        Player *addPlayer(const SDInitPlayer &);
-        NPChar *addNPChar(const SDInitNPChar &);
-
-    private:
-        Monster *addMonster(uint32_t, uint64_t, int, int, bool);
-
-    private:
-        ServerGuard *addGuard(uint32_t, int, int, int);
-
-    private:
         int getMonsterCount(uint32_t);
 
     private:
         auto & getGrid(this auto && self, int x, int y)
         {
-            fflassert(self.validC(x, y));
-            return self.m_gridList.at(x + y * self.W());
+            fflassert(self.mapBin()->validC(x, y));
+            return self.m_gridList.at(x + y * self.mapBin()->w());
         }
 
     private:
@@ -295,7 +273,7 @@ class ServerMap final: public ServerObject
     private:
         template<std::predicate<uint64_t> F> bool doUIDList(int x, int y, const F &func)
         {
-            if(!validC(x, y)){
+            if(!mapBin()->validC(x, y)){
                 return false;
             }
 
@@ -316,10 +294,10 @@ class ServerMap final: public ServerObject
             int x0 = cx0 - r + 1;
             int y0 = cy0 - r + 1;
 
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, self.W(), self.H(), x0, y0, doW, doH)){
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion<int>(0, 0, self.mapBin()->w(), self.mapBin()->h(), x0, y0, doW, doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(self.validC(x, y)){
+                        if(self.mapBin()->validC(x, y)){
                             if(mathf::LDistance2(x, y, cx0, cy0) <= (r - 1) * (r - 1)){
                                 if(f(x, y)){
                                     return true;
@@ -334,10 +312,10 @@ class ServerMap final: public ServerObject
 
         template<std::predicate<int, int> F> bool doSquare(this auto && self, int x0, int y0, int doW, int doH, const F &f)
         {
-            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion(0, 0, self.W(), self.H(), x0, y0, doW, doH)){
+            if((doW > 0) && (doH > 0) && mathf::rectangleOverlapRegion<int>(0, 0, self.mapBin()->w(), self.mapBin()->h(), x0, y0, doW, doH)){
                 for(int x = x0; x < x0 + doW; ++x){
                     for(int y = y0; y < y0 + doH; ++y){
-                        if(self.validC(x, y)){
+                        if(self.mapBin()->validC(x, y)){
                             if(f(x, y)){
                                 return true;
                             }
@@ -352,23 +330,21 @@ class ServerMap final: public ServerObject
         bool DoCenterSquare(int, int, int, int, bool, const std::function<bool(int, int)> &);
 
     private:
-        void on_AM_ACTION              (const ActorMsgPack &);
-        void on_AM_PICKUP              (const ActorMsgPack &);
-        void on_AM_OFFLINE             (const ActorMsgPack &);
-        void on_AM_TRYJUMP             (const ActorMsgPack &);
-        void on_AM_TRYMOVE             (const ActorMsgPack &);
-        void on_AM_TRYLEAVE            (const ActorMsgPack &);
-        void on_AM_PATHFIND            (const ActorMsgPack &);
-        void on_AM_UPDATEHP            (const ActorMsgPack &);
-        void on_AM_METRONOME           (const ActorMsgPack &);
-        void on_AM_BADACTORPOD         (const ActorMsgPack &);
-        void on_AM_DEADFADEOUT         (const ActorMsgPack &);
-        void on_AM_DROPITEM            (const ActorMsgPack &);
-        void on_AM_TRYMAPSWITCH        (const ActorMsgPack &);
-        void on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
-        void on_AM_TRYSPACEMOVE        (const ActorMsgPack &);
-        void on_AM_CASTFIREWALL        (const ActorMsgPack &);
-        void on_AM_ADDCO               (const ActorMsgPack &);
-        void on_AM_REMOTECALL          (const ActorMsgPack &);
-        void on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
+        corof::awaitable<> on_AM_ACTION              (const ActorMsgPack &);
+        corof::awaitable<> on_AM_PICKUP              (const ActorMsgPack &);
+        corof::awaitable<> on_AM_OFFLINE             (const ActorMsgPack &);
+        corof::awaitable<> on_AM_TRYJUMP             (const ActorMsgPack &);
+        corof::awaitable<> on_AM_TRYMOVE             (const ActorMsgPack &);
+        corof::awaitable<> on_AM_TRYLEAVE            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_PATHFIND            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_UPDATEHP            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_BADACTORPOD         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_DEADFADEOUT         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_DROPITEM            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_TRYMAPSWITCH        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_TRYSPACEMOVE        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CASTFIREWALL        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOTECALL          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_STRIKEFIXEDLOCDAMAGE(const ActorMsgPack &);
 };

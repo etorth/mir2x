@@ -9,8 +9,8 @@ class ServerZumaTaurus final: public Monster
         bool m_standMode = false;
 
     public:
-        ServerZumaTaurus(ServerMap *mapPtr, int argX, int argY, uint64_t masterUID)
-            : Monster(DBCOM_MONSTERID(u8"祖玛教主"), mapPtr, argX, argY, DIR_BEGIN, masterUID)
+        ServerZumaTaurus(uint64_t argMapUID, int argX, int argY, uint64_t masterUID)
+            : Monster(DBCOM_MONSTERID(u8"祖玛教主"), argMapUID, argX, argY, DIR_BEGIN, masterUID)
         {}
 
     public:
@@ -39,7 +39,7 @@ class ServerZumaTaurus final: public Monster
         }
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         ActionNode makeActionStand() const override
@@ -60,20 +60,21 @@ class ServerZumaTaurus final: public Monster
         }
 
     protected:
-        void attackUID(uint64_t, int, std::function<void()>, std::function<void()>) override;
+        corof::awaitable<bool> attackUID(uint64_t, int) override;
 
     protected:
-        void onAMMasterHitted(const ActorMsgPack &) override
+        corof::awaitable<> onAMMasterHitted(const ActorMsgPack &) override
         {
             setStandMode(true);
+            return {};
         }
 
     protected:
-        void onAMAttack(const ActorMsgPack &) override;
+        corof::awaitable<> onAMAttack(const ActorMsgPack &) override;
 
     protected:
-        bool canMove() const override
+        bool canMove(bool checkMoveLock) const override
         {
-            return m_standMode && Monster::canMove();
+            return m_standMode && Monster::canMove(checkMoveLock);
         }
 };

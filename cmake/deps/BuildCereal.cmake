@@ -4,8 +4,7 @@ ExternalProject_Add(
     cereal
 
     GIT_REPOSITORY "https://github.com/USCiLab/cereal.git"
-    # GIT_TAG        "master"
-    GIT_TAG        "v1.3.0"
+    GIT_TAG        "v1.3.2"
   
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/cereal"
 

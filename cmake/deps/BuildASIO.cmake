@@ -1,13 +1,13 @@
 INCLUDE(ExternalProject)
 
+SET(MIR2X_ASIO_GIT_TAG "asio-1-30-2")
 ExternalProject_Add(
     asio
 
     GIT_REPOSITORY "https://github.com/chriskohlhoff/asio.git"
-    # GIT_TAG        "master"
-    GIT_TAG        "asio-1-10-8"
+    GIT_TAG        "${MIR2X_ASIO_GIT_TAG}"
 
-    SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/asio"
+    SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/asio/${MIR2X_ASIO_GIT_TAG}"
 
     CONFIGURE_COMMAND ""
     BUILD_COMMAND ""
@@ -17,6 +17,6 @@ ExternalProject_Add(
 )
 
 ADD_COMPILE_DEFINITIONS(ASIO_STANDALONE)
-SET(ASIO_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/asio/asio/include")
+SET(ASIO_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/asio/${MIR2X_ASIO_GIT_TAG}/asio/include")
 INCLUDE_DIRECTORIES(SYSTEM ${ASIO_INCLUDE_DIRS})
 ADD_DEPENDENCIES(mir2x_3rds asio)

@@ -1,6 +1,7 @@
 #pragma once
 #include <mutex>
 #include <queue>
+#include <atomic>
 #include <vector>
 #include <cstdint>
 #include <exception>
@@ -17,7 +18,7 @@
 
 class ServiceCore;
 class ServerObject;
-class MonoServer final
+class Server final
 {
     private:
         std::mutex m_logLock;
@@ -35,6 +36,7 @@ class MonoServer final
         ServiceCore *m_serviceCore = nullptr;
 
     private:
+        std::atomic_flag m_hasExcept;
         std::exception_ptr m_currException;
 
     private:
@@ -49,19 +51,22 @@ class MonoServer final
         void FlushCWBrowser();
 
     public:
-        MonoServer() = default;
-       ~MonoServer() = default;
+        Server() = default;
+       ~Server() = default;
 
     public:
-        void ReadHC();
+       void mainLoop();
 
-        void Launch();
+    public:
+        void launch();
         void restart(const std::string & = {});
 
     private:
         void RunASIO();
-        void CreateDBConnection();
-        void LoadMapBinDB();
+        void createDBConnection();
+
+    public:
+        void loadMapBinDB();
 
     private:
         bool hasDatabase() const;
@@ -85,14 +90,10 @@ class MonoServer final
     public:
         void addLog(const Log::LogTypeLoc &, const char *, ...);
 
-    private:
-        void StartNetwork();
-        void StartServiceCore();
-
     public:
         bool loadMap(const std::string &);
         std::vector<int> getMapList();
-        sol::optional<int> getMonsterCount(int, int);
+        sol::optional<size_t> getMonsterCount(uint32_t, uint64_t);
 
     public:
         bool addMonster(uint32_t,       // monster id
@@ -100,15 +101,6 @@ class MonoServer final
                 int,                    // x
                 int,                    // y
                 bool);                  // use strict loc
-
-    public:
-        bool addNPChar(const char *,    // NPC name
-                uint16_t,               // look id
-                uint32_t,               // map id
-                int,                    // map x
-                int,                    // map y
-                int,                    // NPC gfx dir, may not be 8-dir
-                const char *);          // NPC script full name
 
     public:
         uint32_t getCurrTick() const

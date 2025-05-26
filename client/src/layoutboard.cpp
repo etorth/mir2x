@@ -201,7 +201,7 @@ void LayoutBoard::loadXML(const char *xmlString, size_t parLimit)
     }
 
     if(rootElem->FirstAttribute()){
-        g_log->addLog(LOGTYPE_WARNING, "Layout XML doesn't accept attributes, ignored.");
+        g_log->addLog(LOGTYPE_WARNING, "Layout XML doesn't accept attributes, ignored");
     }
 
     size_t addedParCount = 0;
@@ -747,10 +747,10 @@ void LayoutBoard::drawCursorBlink(int drawDstX, int drawDstY) const
             const auto tokenPtr = par->tpset->getToken(m_cursorLoc.x, m_cursorLoc.y);
             return
             {
-                par->margin[2] + tokenPtr->Box.State.X - tokenPtr->Box.State.W1,
-                par->startY    + tokenPtr->Box.State.Y,
+                par->margin[2] + tokenPtr->box.state.x - tokenPtr->box.state.w1,
+                par->startY    + tokenPtr->box.state.y,
 
-                par->tpset->getToken(std::max<int>(0, m_cursorLoc.x - 1), m_cursorLoc.y)->Box.Info.H,
+                par->tpset->getToken(std::max<int>(0, m_cursorLoc.x - 1), m_cursorLoc.y)->box.info.h,
             };
         }
         else{
@@ -760,10 +760,10 @@ void LayoutBoard::drawCursorBlink(int drawDstX, int drawDstY) const
             const auto tokenPtr = par->tpset->getToken(m_cursorLoc.x - 1, m_cursorLoc.y);
             return
             {
-                par->margin[2] + tokenPtr->Box.State.X + tokenPtr->Box.Info.W + tokenPtr->Box.State.W2 - m_cursorWidth,
-                par->startY    + tokenPtr->Box.State.Y,
+                par->margin[2] + tokenPtr->box.state.x + tokenPtr->box.info.w + tokenPtr->box.state.w2 - m_cursorWidth,
+                par->startY    + tokenPtr->box.state.y,
 
-                tokenPtr->Box.Info.H,
+                tokenPtr->box.info.h,
             };
         }
     }();

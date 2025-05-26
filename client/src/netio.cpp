@@ -239,7 +239,7 @@ void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize, uint64_t 
     }
 }
 
-void NetIO::start(const char *ipStr, const char *portStr, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)> msgHandler)
+void NetIO::start(const std::string &ipStr, const std::string &portStr, std::function<void(uint8_t, const uint8_t *, size_t, uint64_t)> msgHandler)
 {
     fflassert(str_haschar(  ipStr));
     fflassert(str_haschar(portStr));
@@ -247,7 +247,7 @@ void NetIO::start(const char *ipStr, const char *portStr, std::function<void(uin
     fflassert(msgHandler);
     m_msgHandler = std::move(msgHandler);
 
-    asio::async_connect(m_socket, m_resolver.resolve({ipStr, portStr}), [this](std::error_code ec, asio::ip::tcp::resolver::iterator)
+    asio::async_connect(m_socket, m_resolver.resolve(ipStr, portStr), [this](std::error_code ec, const asio::ip::tcp::endpoint &)
     {
         if(ec){
             throw fflerror("network error: %s", ec.message().c_str());

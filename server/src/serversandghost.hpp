@@ -8,12 +8,12 @@ class ServerSandGhost final: public Monster
         bool m_standMode = false;
 
     public:
-        ServerSandGhost(ServerMap *mapPtr, int argX, int argY, int argDir)
-            : Monster(DBCOM_MONSTERID(u8"沙鬼"), mapPtr, argX, argY, argDir, 0)
+        ServerSandGhost(uint64_t argMapUID, int argX, int argY, int argDir)
+            : Monster(DBCOM_MONSTERID(u8"沙鬼"), argMapUID, argX, argY, argDir, 0)
         {}
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         ActionNode makeActionStand() const override

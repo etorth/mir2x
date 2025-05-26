@@ -1,39 +1,14 @@
 #include "sysconst.hpp"
 #include "serverbugbatmaggot.hpp"
 
-void ServerBugbatMaggot::addBat()
+corof::awaitable<> ServerBugbatMaggot::addBat()
 {
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_MON;
-    amACO.x = X();
-    amACO.y = Y() - 1;
-    amACO.mapID = mapID();
-    amACO.strictLoc = false;
-
-    amACO.monster.monsterID = DBCOM_MONSTERID(u8"蝙蝠");
-    amACO.monster.masterUID = 0;
-
-    m_actorPod->forward(m_map->UID(), {AM_ADDCO, amACO}, [this](const ActorMsgPack &rmpk)
-    {
-        switch(rmpk.type()){
-            case AM_UID:
-                {
-                    if(const auto amUID = rmpk.conv<AMUID>(); amUID.UID){
-                        m_batUIDList.insert(amUID.UID);
-                    }
-                    return;
-                }
-            default:
-                {
-                    return;
-                }
-        }
-    });
+    if(const auto uid = co_await addMonster(DBCOM_MONSTERID(u8"蝙蝠"), X(), Y() - 1, false)){
+        m_batUIDList.insert(uid);
+    }
 }
 
-corof::eval_poller<> ServerBugbatMaggot::updateCoroFunc()
+corof::awaitable<> ServerBugbatMaggot::runAICoro()
 {
     while(m_sdHealth.hp > 0){
         for(auto p = m_batUIDList.begin(); p != m_batUIDList.end();){
@@ -52,10 +27,12 @@ corof::eval_poller<> ServerBugbatMaggot::updateCoroFunc()
                 .y = Y(),
             });
 
-            co_await corof::async_wait(600);
-            addBat();
+            co_await asyncWait(600);
+            co_await addBat();
+            continue;
         }
-        co_await corof::async_wait(2000);
+
+        co_await asyncIdleWait(1000);
     }
 
     goDie();

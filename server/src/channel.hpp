@@ -1,11 +1,11 @@
 #pragma once
-#include <asio.hpp>
 #include <mutex>
 #include <concepts>
 #include <memory>
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
+#include <asio.hpp>
 #include "strf.hpp"
 #include "clientmsg.hpp"
 #include "dispatcher.hpp"
@@ -23,7 +23,7 @@ class ChannelError: public std::exception
             : m_channID(channID)
         {}
 
-        ChannelError(uint32_t channID, const char *format, ...)
+        ChannelError(uint32_t channID, const char *format, ...) STR_PRINTF_CHECK_FORMAT(3)
             : m_channID(channID)
         {
             str_format(format, m_what);
@@ -32,7 +32,7 @@ class ChannelError: public std::exception
     public:
         const char *what() const noexcept override
         {
-            return m_what.empty() ? "ChannelError: unknown error" : m_what.c_str();
+            return m_what.empty() ? "unknown channel error" : m_what.c_str();
         }
 
     public:
@@ -46,15 +46,6 @@ class NetDriver;
 class Channel final: public std::enable_shared_from_this<Channel>
 {
     private:
-        enum ChannStateType: int
-        {
-            CS_NONE     = 0,
-            CS_RUNNING  = 1,
-            CS_STOPPED  = 2, // stopped by exception
-            CS_RELEASED = 3, // socket has been closed, AM_BADCHANNEL has been sent
-        };
-
-    private:
         friend class NetDriver;
 
     private:
@@ -64,14 +55,14 @@ class Channel final: public std::enable_shared_from_this<Channel>
         const uint32_t m_id;
 
     private:
-        int m_state = CS_NONE;
+        asio::steady_timer m_timer;
 
     private:
         Dispatcher m_dispatcher;
 
     private:
         // for read channel packets
-        // only asio thread accesses it
+        // only asio main loop thread can access it
         uint8_t m_readSBuf[64];
         std::optional<uint64_t> m_respIDOpt;
 
@@ -81,15 +72,9 @@ class Channel final: public std::enable_shared_from_this<Channel>
 
     private:
         std::vector<uint8_t> m_readDBuf;
-        std::vector<uint8_t> m_decodeBuf;
 
     private:
         uint64_t m_playerUID = 0;
-
-    private:
-        // m_flushFlag indicates there is procedure accessing m_currSendQ in asio thread
-        // it prevents more than one procedure from accessing m_currSendQ
-        bool m_flushFlag = false;
 
     private:
         std::mutex &m_nextQLock; // ref to NetDriver::m_channList[channID]::lock
@@ -99,20 +84,12 @@ class Channel final: public std::enable_shared_from_this<Channel>
         std::vector<uint8_t> &m_nextSendQ; // ref to NetDriver::m_channList[channID]::sendBuf
 
     public:
-        Channel(asio::io_service *, uint32_t, std::mutex &, std::vector<uint8_t> &);
-
-    public:
-        ~Channel();
+        Channel(asio::ip::tcp::socket, uint32_t, std::mutex &, std::vector<uint8_t> &);
 
     private:
         uint32_t id() const
         {
             return m_id;
-        }
-
-        auto &socket()
-        {
-            return m_socket;
         }
 
     private:
@@ -127,32 +104,25 @@ class Channel final: public std::enable_shared_from_this<Channel>
         }
 
     private:
-        void checkErrcode(std::error_code ec)
+        void notify()
+        {
+            asio::post(m_timer.get_executor(), [this]{ m_timer.cancel(); });
+        }
+
+    private:
+        void checkErrcode(const asio::error_code &ec) const
         {
             if(ec){
-                m_state = CS_STOPPED;
-                throw ChannelError(id(), "network error on channel %d: %s", id(), ec.message().c_str());
+                throw ChannelError(id(), "%s", ec.message().c_str());
             }
         }
 
     private:
-        void afterReadPacketHeadCode();
-
-    private:
-        void doReadPacketHeadCode();
-        void doReadPacketResp();
-
-        void doReadPacketBodySize();
-        void doReadPacketBody(size_t, size_t);
-
-    private:
-        void doSendPack();
+        asio::awaitable<void> reader();
+        asio::awaitable<void> writer();
 
     private:
         bool forwardActorMessage(uint8_t, const uint8_t *, size_t, uint64_t);
-
-    private:
-        void flushSendQ();
 
     private:
         void close();
@@ -170,38 +140,18 @@ class Channel final: public std::enable_shared_from_this<Channel>
             m_clientMsg = new (&m_clientMsgBuf) ClientMsg(headCode);
         }
 
-    private:
-        template<std::unsigned_integral T, std::invocable<T> F> void doReadVLInteger(size_t offset, F fnOp)
+        template<std::unsigned_integral T> asio::awaitable<T> readVLInteger()
         {
-            switch(m_state){
-                case CS_RUNNING:
-                    {
-                        asio::async_read(m_socket, asio::buffer(m_readSBuf + offset, 1), [offset, fnOp, channPtr = shared_from_this(), this](std::error_code ec, size_t)
-                        {
-                            checkErrcode(ec);
-
-                            if(m_readSBuf[offset] & 0x80){
-                                if(offset + 1 >= (sizeof(T) * 8 + 6) / 7){
-                                    throw fflerror("variant packet size uses more than %zu bytes", offset + 1);
-                                }
-                                else{
-                                    doReadVLInteger<T>(offset + 1, fnOp);
-                                }
-                            }
-                            else{
-                                fnOp(msgf::decodeLength<T>(m_readSBuf, offset + 1));
-                            }
-                        });
-                        return;
-                    }
-                case CS_STOPPED:
-                    {
-                        return;
-                    }
-                default:
-                    {
-                        throw fflvalue(m_state);
-                    }
+            size_t offset = 0;
+            for(size_t offset = 0; offset < (sizeof(T) * 8 + 6) / 7; ++offset){
+                co_await asio::async_read(m_socket, asio::buffer(m_readSBuf + offset, 1), asio::deferred);
+                if(!(m_readSBuf[offset] & 0x80)){
+                    co_return msgf::decodeLength<T>(m_readSBuf, offset + 1);
+                }
             }
+            throw fflerror("variant packet size uses more than %zu bytes", offset);
         }
+
+    private:
+        asio::awaitable<std::tuple<const uint8_t *, size_t>> readPacketBody(size_t, size_t);
 };

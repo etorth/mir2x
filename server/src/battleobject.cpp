@@ -2,22 +2,26 @@
 #include <cinttypes>
 #include "pathf.hpp"
 #include "uidf.hpp"
+#include "sgf.hpp"
+#include "uidsf.hpp"
 #include "totype.hpp"
 #include "player.hpp"
 #include "dbcomid.hpp"
+#include "mapbindb.hpp"
 #include "monster.hpp"
 #include "mathf.hpp"
 #include "servertaodog.hpp"
 #include "fflerror.hpp"
 #include "actorpod.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "charobject.hpp"
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
 #include "buff.hpp"
 #include "bufflist.hpp"
 
-extern MonoServer *g_monoServer;
+extern MapBinDB *g_mapBinDB;
+extern Server *g_server;
 
 BattleObject::LuaThreadRunner::LuaThreadRunner(BattleObject *battleObjectPtr)
     : CharObject::LuaThreadRunner(battleObjectPtr)
@@ -56,7 +60,7 @@ BattleObject::BOPathFinder::BOPathFinder(const BattleObject *boPtr, int checkCO)
 
 int BattleObject::BOPathFinder::getGrid(int nX, int nY) const
 {
-    if(!m_BO->GetServerMap()->validC(nX, nY)){
+    if(!m_BO->mapBin()->validC(nX, nY)){
         return PF_NONE;
     }
 
@@ -68,17 +72,14 @@ int BattleObject::BOPathFinder::getGrid(int nX, int nY) const
 }
 
 BattleObject::BattleObject(
-        const ServerMap *mapCPtr,
-        uint64_t         uid,
-        int              mapX,
-        int              mapY,
-        int              direction)
-    : CharObject(mapCPtr, uid, mapX, mapY, direction)
-    , m_moveLock(false)
-    , m_attackLock(false)
+        uint64_t uid,
+        uint64_t argMapUID,
+        int      mapX,
+        int      mapY,
+        int      direction)
+    : CharObject(uid, argMapUID, mapX, mapY, direction)
     , m_lastAction(ACTION_NONE)
 {
-    fflassert(m_map);
     m_lastActionTime.fill(0);
     m_stateTrigger.install([ptimer = std::make_shared<hres_timer>(), this]() mutable -> bool
     {
@@ -90,25 +91,22 @@ BattleObject::BattleObject(
     });
 }
 
-bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> BattleObject::requestJump(int nX, int nY, int nDirection)
 {
-    if(!m_map->groundValid(nX, nY)){
+    if(!mapBin()->groundValid(nX, nY)){
         throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), nX, nY);
     }
 
     if(X() == nX && Y() == nY){
-        if(onError){
-            onError();
-        }
-        return false;
+        co_return false;
     }
 
-    if(!canMove()){
-        if(onError){
-            onError();
-        }
-        return false;
+    if(!canMove(true)){
+        co_return false;
     }
+
+    m_moveLock = true;
+    const auto moveLockSg = sgf::guard([this]() noexcept { m_moveLock = false; });
 
     AMTryJump amTJ;
     std::memset(&amTJ, 0, sizeof(amTJ));
@@ -118,97 +116,72 @@ bool BattleObject::requestJump(int nX, int nY, int nDirection, std::function<voi
     amTJ.EndX = nX;
     amTJ.EndY = nY;
 
-    m_moveLock = true;
-    return m_actorPod->forward(mapUID(), {AM_TRYJUMP, amTJ}, [this, nX, nY, nDirection, onOK, onError](const ActorMsgPack &rmpk)
-    {
-        fflassert(m_moveLock);
-        m_moveLock = false;
-
-        // handle jump, CO may be dead
-        // need to check if current CO can jump
-
-        switch(rmpk.type()){
-            case AM_ALLOWJUMP:
-                {
-                    if(!canMove()){
-                        m_actorPod->forward(rmpk.from(), AM_JUMPERROR, rmpk.seqID());
-                        if(onError){
-                            onError();
-                        }
-                        return;
-                    }
-
-                    const auto oldX = m_X;
-                    const auto oldY = m_Y;
-                    const auto amAJ = rmpk.conv<AMAllowJump>();
-
-                    m_X = amAJ.EndX;
-                    m_Y = amAJ.EndY;
-
-                    if(pathf::dirValid(nDirection)){
-                        m_direction = nDirection;
-                    }
-                    else{
-                        m_direction = pathf::getOffDir(oldX, oldY, X(), Y());
-                    }
-
-                    AMJumpOK amJOK;
-                    std::memset(&amJOK, 0, sizeof(amJOK));
-
-                    amJOK.uid = UID();
-                    amJOK.mapID = mapID();
-                    amJOK.action = ActionJump
-                    {
-                        .direction = Direction(),
-                        .x = X(),
-                        .y = Y(),
-                    };
-
-                    m_actorPod->forward(rmpk.from(), {AM_JUMPOK, amJOK}, rmpk.seqID());
-                    trimInViewCO();
-
-                    if(isPlayer()){
-                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
-                    }
-
-                    m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnBOMove();
-                    m_buffList.dispatchAura();
-
-                    if(onOK){
-                        onOK();
-                    }
-                    return;
+    switch(const auto rmpk = co_await m_actorPod->send(mapUID(), {AM_TRYJUMP, amTJ}); rmpk.type()){
+        case AM_ALLOWJUMP:
+            {
+                if(!canMove(false)){
+                    m_actorPod->post(rmpk.fromAddr(), AM_JUMPERROR);
+                    co_return false;
                 }
-            default:
-                {
-                    if(onError){
-                        onError();
-                    }
-                    return;
+
+                const auto oldX = m_X;
+                const auto oldY = m_Y;
+                const auto amAJ = rmpk.conv<AMAllowJump>();
+
+                m_X = amAJ.EndX;
+                m_Y = amAJ.EndY;
+
+                if(pathf::dirValid(nDirection)){
+                    m_direction = nDirection;
                 }
-        }
-    });
+                else{
+                    m_direction = pathf::getOffDir(oldX, oldY, X(), Y());
+                }
+
+                AMJumpOK amJOK;
+                std::memset(&amJOK, 0, sizeof(amJOK));
+
+                amJOK.uid = UID();
+                amJOK.mapUID = mapUID();
+                amJOK.action = ActionJump
+                {
+                    .direction = Direction(),
+                    .x = X(),
+                    .y = Y(),
+                };
+
+                m_actorPod->post(rmpk.fromAddr(), {AM_JUMPOK, amJOK});
+                trimInViewCO();
+
+                if(isPlayer()){
+                    dynamic_cast<Player *>(this)->notifySlaveGLoc();
+                }
+
+                co_await m_buffList.runOnTrigger(BATGR_MOVE);
+                co_await m_buffList.runOnBOMove();
+                co_await m_buffList.dispatchAura();
+
+                co_return true;
+            }
+        default:
+            {
+                co_return false;
+            }
+    }
 }
 
-bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove, bool removeMonster, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove, bool removeMonster)
 {
-    if(!m_map->groundValid(dstX, dstY)){
+    if(!mapBin()->groundValid(dstX, dstY)){
         throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), dstX, dstY);
     }
 
-    if(!canMove()){
-        if(onError){
-            onError();
-        }
-        return false;
+    if(!canMove(true)){
+        co_return false;
     }
 
     if(estimateHop(dstX, dstY) != 1){
-        if(onError){
-            onError();
-        }
-        return false;
+        co_return false;
     }
 
     if(removeMonster){
@@ -227,10 +200,7 @@ bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove
                     case PF_OCCUPIED:
                     default:
                         {
-                            if(onError){
-                                onError();
-                            }
-                            return false;
+                            co_return false;
                         }
                 }
                 break;
@@ -246,21 +216,21 @@ bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove
 
                 if(!oneStepCost(nullptr, 2, nXm, nYm, Direction(), dstX, dstY).has_value()){
                     if(!allowHalfMove){
-                        if(onError){
-                            onError();
-                        }
-                        return false;
+                        co_return false;
                     }
                 }
                 break;
             }
     }
 
+    m_moveLock = true;
+    const auto moveLockSg = sgf::guard([this]() noexcept { m_moveLock = false; });
+
     AMTryMove amTM;
     std::memset(&amTM, 0, sizeof(amTM));
 
     amTM.UID           = UID();
-    amTM.mapID         = mapID();
+    amTM.mapUID        = mapUID();
     amTM.X             = X();
     amTM.Y             = Y();
     amTM.EndX          = dstX;
@@ -268,105 +238,86 @@ bool BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove
     amTM.AllowHalfMove = allowHalfMove;
     amTM.RemoveMonster = removeMonster;
 
-    m_moveLock = true;
-    return m_actorPod->forward(mapUID(), {AM_TRYMOVE, amTM}, [this, dstX, dstY, speed, onOK, onError](const ActorMsgPack &rmpk)
-    {
-        fflassert(m_moveLock);
-        m_moveLock = false;
+    switch(const auto rmpk = co_await m_actorPod->send(mapUID(), {AM_TRYMOVE, amTM}); rmpk.type()){
+        case AM_ALLOWMOVE:
+            {
+                // since we may allow half move
+                // servermap permitted dst may not be (dstX, dstY)
 
-        // handle move, CO may be dead
-        // need to check if current CO can move
+                const auto amAM = rmpk.conv<AMAllowMove>();
+                fflassert(mapBin()->validC(amAM.EndX, amAM.EndY));
 
-        switch(rmpk.type()){
-            case AM_ALLOWMOVE:
-                {
-                    // since we may allow half move
-                    // servermap permitted dst may not be (dstX, dstY)
-
-                    const auto amAM = rmpk.conv<AMAllowMove>();
-                    fflassert(m_map->validC(amAM.EndX, amAM.EndY));
-
-                    if(!canMove()){
-                        m_actorPod->forward(rmpk.from(), AM_MOVEERROR, rmpk.seqID());
-                        if(onError){
-                            onError();
-                        }
-                        return;
-                    }
-
-                    const auto oldX = m_X;
-                    const auto oldY = m_Y;
-
-                    m_X = amAM.EndX;
-                    m_Y = amAM.EndY;
-
-                    m_direction = pathf::getOffDir(oldX, oldY, X(), Y());
-
-                    AMMoveOK amMOK;
-                    std::memset(&amMOK, 0, sizeof(amMOK));
-                    amMOK.uid = UID();
-                    amMOK.mapID = mapID();
-                    amMOK.action = ActionMove
-                    {
-                        .speed = speed,
-                        .x = oldX,
-                        .y = oldY,
-                        .aimX = X(),
-                        .aimY = Y(),
-                    };
-
-                    m_actorPod->forward(rmpk.from(), {AM_MOVEOK, amMOK}, rmpk.seqID());
-                    trimInViewCO();
-
-                    // here firstly we make map to boardcast the ActionMove
-                    // then if BO is a player, notify all its slaves with ActionStand
-
-                    // however the order of these two actions reaches neighbor can switch
-                    // from neighbor's view it firstly get an ActionStand but location changed, then get an ActionMove but destination is current location
-
-                    if(isPlayer()){
-                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
-                    }
-
-                    m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnBOMove();
-                    m_buffList.dispatchAura();
-
-                    if(onOK){
-                        onOK();
-                    }
-                    return;
+                if(!canMove(false)){
+                    m_actorPod->post(rmpk.fromAddr(), AM_MOVEERROR);
+                    co_return false;
                 }
-            default:
+
+                const auto oldX = m_X;
+                const auto oldY = m_Y;
+
+                m_X = amAM.EndX;
+                m_Y = amAM.EndY;
+
+                m_direction = pathf::getOffDir(oldX, oldY, X(), Y());
+
+                AMMoveOK amMOK;
+                std::memset(&amMOK, 0, sizeof(amMOK));
+                amMOK.uid = UID();
+                amMOK.mapUID = mapUID();
+                amMOK.action = ActionMove
                 {
-                    if(onError){
-                        onError();
-                    }
-                    return;
+                    .speed = speed,
+                    .x = oldX,
+                    .y = oldY,
+                    .aimX = X(),
+                    .aimY = Y(),
+                };
+
+                m_actorPod->post(rmpk.fromAddr(), {AM_MOVEOK, amMOK});
+                trimInViewCO();
+
+                // here firstly we make map to boardcast the ActionMove
+                // then if BO is a player, notify all its slaves with ActionStand
+
+                // however the order of these two actions reaches neighbor can switch
+                // from neighbor's view it firstly get an ActionStand but location changed, then get an ActionMove but destination is current location
+
+                if(isPlayer()){
+                    dynamic_cast<Player *>(this)->notifySlaveGLoc();
                 }
-        }
-    });
+
+                co_await m_buffList.runOnTrigger(BATGR_MOVE);
+                co_await m_buffList.runOnBOMove();
+                co_await m_buffList.dispatchAura();
+
+                co_return true;
+            }
+        default:
+            {
+                co_return false;
+            }
+    }
 }
 
-bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool strictMove)
 {
     if(strictMove){
-        if(!m_map->groundValid(locX, locY)){
+        if(!mapBin()->groundValid(locX, locY)){
             throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(mapID()), locX, locY);
         }
     }
     else{
-        if(!m_map->validC(locX, locY)){
+        if(!mapBin()->validC(locX, locY)){
             throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(mapID()), locX, locY);
         }
     }
 
-    if(!canMove()){
-        if(onError){
-            onError();
-        }
-        return false;
+    if(!canMove(true)){
+        co_return false;
     }
+
+    m_moveLock = true;
+    const auto moveLockSg = sgf::guard([this]() noexcept { m_moveLock = false; });
 
     AMTrySpaceMove amTSM;
     std::memset(&amTSM, 0, sizeof(amTSM));
@@ -377,267 +328,158 @@ bool BattleObject::requestSpaceMove(int locX, int locY, bool strictMove, std::fu
     amTSM.EndY = locY;
     amTSM.StrictMove = strictMove;
 
-    m_moveLock = true;
-    return m_actorPod->forward(mapUID(), {AM_TRYSPACEMOVE, amTSM}, [this, onOK, onError](const ActorMsgPack &rmpk)
-    {
-        fflassert(m_moveLock);
-        m_moveLock = false;
-
-        // handle move, CO can be dead already
-        // check if current CO can move even we checked before
-
-        switch(rmpk.type()){
-            case AM_ALLOWSPACEMOVE:
-                {
-                    if(!canMove()){
-                        m_actorPod->forward(rmpk.from(), AM_SPACEMOVEERROR, rmpk.seqID());
-                        if(onError){
-                            onError();
-                        }
-                        return;
-                    }
-
-                    // setup new map
-                    // don't use the requested location
-                    const auto amASM = rmpk.conv<AMAllowSpaceMove>();
-
-                    const auto oldX = m_X;
-                    const auto oldY = m_Y;
-
-                    m_X = amASM.EndX;
-                    m_Y = amASM.EndY;
-
-                    AMSpaceMoveOK amSMOK;
-                    std::memset(&amSMOK, 0, sizeof(amSMOK));
-
-                    amSMOK.uid = UID();
-                    amSMOK.mapID = mapID();
-                    amSMOK.action = ActionSpaceMove
-                    {
-                        .direction = Direction(),
-                        .x = oldX,
-                        .y = oldY,
-                        .aimX = X(),
-                        .aimY = Y(),
-                    };
-
-                    m_actorPod->forward(rmpk.from(), {AM_SPACEMOVEOK, amSMOK}, rmpk.seqID());
-                    trimInViewCO();
-
-                    if(isPlayer()){
-                        dynamic_cast<Player *>(this)->reportAction(UID(), mapID(), amSMOK.action);
-                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
-                    }
-
-                    m_buffList.runOnTrigger(BATGR_MOVE);
-                    m_buffList.runOnBOMove();
-                    m_buffList.dispatchAura();
-
-                    if(onOK){
-                        onOK();
-                    }
-                    break;
+    switch(const auto rmpk = co_await m_actorPod->send(mapUID(), {AM_TRYSPACEMOVE, amTSM}); rmpk.type()){
+        case AM_ALLOWSPACEMOVE:
+            {
+                if(!canMove(false)){
+                    m_actorPod->post(rmpk.fromAddr(), AM_SPACEMOVEERROR);
+                    co_return false;
                 }
-            default:
+
+                // setup new map
+                // don't use the requested location
+                const auto amASM = rmpk.conv<AMAllowSpaceMove>();
+
+                const auto oldX = m_X;
+                const auto oldY = m_Y;
+
+                m_X = amASM.EndX;
+                m_Y = amASM.EndY;
+
+                AMSpaceMoveOK amSMOK;
+                std::memset(&amSMOK, 0, sizeof(amSMOK));
+
+                amSMOK.uid = UID();
+                amSMOK.mapUID = mapUID();
+                amSMOK.action = ActionSpaceMove
                 {
-                    if(onError){
-                        onError();
-                    }
-                    break;
+                    .direction = Direction(),
+                    .x = oldX,
+                    .y = oldY,
+                    .aimX = X(),
+                    .aimY = Y(),
+                };
+
+                m_actorPod->post(rmpk.fromAddr(), {AM_SPACEMOVEOK, amSMOK});
+                trimInViewCO();
+
+                if(isPlayer()){
+                    dynamic_cast<Player *>(this)->reportAction(UID(), mapUID(), amSMOK.action);
+                    dynamic_cast<Player *>(this)->notifySlaveGLoc();
                 }
-        }
-    });
+
+                co_await m_buffList.runOnTrigger(BATGR_MOVE);
+                co_await m_buffList.runOnBOMove();
+                co_await m_buffList.dispatchAura();
+
+                co_return true;
+            }
+        default:
+            {
+                co_return false;
+            }
+    }
 }
 
-bool BattleObject::requestMapSwitch(uint32_t argMapID, int locX, int locY, bool strictMove, std::function<void()> onOK, std::function<void()> onError)
+corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int locX, int locY, bool strictMove)
 {
-    if(argMapID == mapID()){
-        throw fflerror("request to switch on same map: mapID = %llu", to_llu(argMapID));
+    if(argMapUID == mapUID()){
+        throw fflerror("request to switch on same map: mapUID %llu", to_llu(argMapUID));
     }
 
     if(locX < 0 || locY < 0){
-        throw fflerror("invalid argument: mapID = %llu, locX = %d, locY = %d", to_llu(argMapID), locX, locY);
+        throw fflerror("invalid argument: mapUID %llu, locX %d, locY %d", to_llu(argMapUID), locX, locY);
     }
 
-    if(!canMove()){
-        if(onError){
-            onError();
-        }
-        return false;
+    if(!canMove(true)){
+        co_return false;
     }
+
+    m_moveLock = true;
+    const auto moveLockSg = sgf::guard([this]() noexcept { m_moveLock = false; });
 
     AMLoadMap amLM;
     std::memset(&amLM, 0, sizeof(amLM));
+    amLM.mapUID = argMapUID;
 
-    amLM.mapID = argMapID;
-    return m_actorPod->forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}, [argMapID, locX, locY, strictMove, onOK, onError, this](const ActorMsgPack &mpk)
+    const auto mpk = co_await m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM});
+    if(mpk.type() != AM_LOADMAPOK){
+        co_return false;
+    }
+
+    AMTryMapSwitch amTMS;
+    std::memset(&amTMS, 0, sizeof(amTMS));
+    amTMS.X = locX;
+    amTMS.Y = locY;
+    amTMS.strictMove = strictMove;
+
+    const auto rmpk = co_await m_actorPod->send(argMapUID, {AM_TRYMAPSWITCH, amTMS});
+    if(rmpk.type() != AM_ALLOWMAPSWITCH){
+        co_return false;
+    }
+
+    auto mapSwitchErrorSg = sgf::guard([rmpk, this]()
     {
-        switch(mpk.type()){
-            case AM_LOADMAPOK:
-                {
-                    AMTryMapSwitch amTMS;
-                    std::memset(&amTMS, 0, sizeof(amTMS));
-
-                    amTMS.X = locX;
-                    amTMS.Y = locY;
-                    amTMS.strictMove = strictMove;
-
-                    // send request to the new map
-                    // if request rejected then it stays in current map
-
-                    m_moveLock = true;
-                    m_actorPod->forward(uidf::getMapBaseUID(argMapID), {AM_TRYMAPSWITCH, amTMS}, [mpk, onOK, onError, this](const ActorMsgPack &rmpk)
-                    {
-                        fflassert(m_moveLock);
-                        m_moveLock = false;
-
-                        switch(rmpk.type()){
-                            case AM_ALLOWMAPSWITCH:
-                                {
-                                    // new map accepts this switch request
-                                    // new map will guarantee to outlive current object
-
-                                    if(!canMove()){
-                                        m_actorPod->forward(rmpk.from(), AM_MAPSWITCHERROR, rmpk.seqID());
-                                        if(onError){
-                                            onError();
-                                        }
-                                        return;
-                                    }
-
-                                    const auto amAMS = rmpk.conv<AMAllowMapSwitch>();
-                                    const auto newMapPtr = static_cast<const ServerMap *>(amAMS.Ptr);
-
-                                    if(!(true && newMapPtr
-                                              && newMapPtr->ID()
-                                              && newMapPtr->UID()
-                                              && newMapPtr->validC(amAMS.X, amAMS.Y))){
-
-                                        // fake map
-                                        // invalid argument, this is not good place to call onError()
-
-                                        m_actorPod->forward(rmpk.from(), AM_MAPSWITCHERROR, rmpk.seqID());
-                                        if(onError){
-                                            onError();
-                                        }
-                                        return;
-                                    }
-
-                                    AMTryLeave amTL;
-                                    std::memset(&amTL, 0, sizeof(amTL));
-
-                                    amTL.X = X();
-                                    amTL.Y = Y();
-
-                                    // current map respond for the leave request
-                                    // dangerous here, we should keep m_map always valid
-
-                                    m_moveLock = true;
-                                    m_actorPod->forward(m_map->UID(), {AM_TRYLEAVE, amTL}, [this, rmpk, onOK, onError](const ActorMsgPack &leavermpk)
-                                    {
-                                        fflassert(m_moveLock);
-                                        m_moveLock = false;
-
-                                        const auto amAMS = rmpk.conv<AMAllowMapSwitch>();
-                                        const auto newMapPtr = static_cast<const ServerMap *>(amAMS.Ptr);
-
-                                        switch(leavermpk.type()){
-                                            case AM_ALLOWLEAVE:
-                                                {
-                                                    if(!canMove()){
-                                                        m_actorPod->forward(rmpk.from(), AM_MAPSWITCHERROR, rmpk.seqID());
-                                                        m_actorPod->forward(leavermpk.from(), AM_LEAVEERROR, leavermpk.seqID());
-                                                        if(onError){
-                                                            onError();
-                                                        }
-                                                        return;
-                                                    }
-
-                                                    m_map = newMapPtr;
-                                                    m_X = amAMS.X;
-                                                    m_Y = amAMS.Y;
-
-                                                    AMLeaveOK amLOK;
-                                                    std::memset(&amLOK, 0, sizeof(amLOK));
-
-                                                    amLOK.uid = UID();
-                                                    amLOK.mapID = mapID();
-                                                    amLOK.action = makeActionStand();
-
-                                                    m_moveLock = true;
-                                                    m_actorPod->forward(leavermpk.from(), {AM_LEAVEOK, amLOK}, leavermpk.seqID(), [rmpk, onOK, this](const ActorMsgPack &finishrmpk)
-                                                    {
-                                                        fflassert(m_moveLock);
-                                                        m_moveLock = false;
-
-                                                        switch(finishrmpk.type()){
-                                                            case AM_FINISHLEAVE:
-                                                            default:
-                                                                {
-                                                                    // no matter what returned form server map, we always call onOK
-                                                                    // because the map switch has already been done
-
-                                                                    AMMapSwitchOK amMSOK;
-                                                                    std::memset(&amMSOK, 0, sizeof(amMSOK));
-
-                                                                    amMSOK.uid = UID();
-                                                                    amMSOK.mapID = mapID();
-                                                                    amMSOK.action = makeActionStand();
-                                                                    m_actorPod->forward(m_map->UID(), {AM_MAPSWITCHOK, amMSOK}, rmpk.seqID());
-
-                                                                    trimInViewCO();
-                                                                    if(isPlayer()){
-                                                                        dynamic_cast<Player *>(this)->reportStand();
-                                                                        dynamic_cast<Player *>(this)->notifySlaveGLoc();
-                                                                    }
-
-                                                                    m_buffList.runOnTrigger(BATGR_MOVE);
-                                                                    m_buffList.runOnBOMove();
-                                                                    m_buffList.dispatchAura();
-
-                                                                    if(onOK){
-                                                                        onOK();
-                                                                    }
-                                                                    return;
-                                                                }
-                                                        }
-                                                    });
-                                                    return;
-                                                }
-                                            default:
-                                                {
-                                                    m_actorPod->forward(newMapPtr->UID(), AM_MAPSWITCHERROR, rmpk.seqID());
-                                                    if(onError){
-                                                        onError();
-                                                    }
-                                                    return;
-                                                }
-                                        }
-                                    });
-                                    return;
-                                }
-                            default:
-                                {
-                                    // do nothing
-                                    // new map reject this switch request
-                                    if(onError){
-                                        onError();
-                                    }
-                                    return;
-                                }
-                        }
-                    });
-                    return;
-                }
-            default:
-                {
-                    if(onError){
-                        onError();
-                    }
-                    return;
-                }
-        }
+        m_actorPod->post(rmpk.fromAddr(), AM_MAPSWITCHERROR);
     });
+
+    if(!canMove(false)){
+        co_return false;
+    }
+
+    AMTryLeave amTL;
+    std::memset(&amTL, 0, sizeof(amTL));
+    amTL.X = X();
+    amTL.Y = Y();
+
+    const auto leavermpk = co_await m_actorPod->send(mapUID(), {AM_TRYLEAVE, amTL});
+    if(leavermpk.type() != AM_ALLOWLEAVE){
+        co_return false;
+    }
+
+    auto leaveErrorSg = sgf::guard([leavermpk, this]()
+    {
+        m_actorPod->post(leavermpk.fromAddr(), AM_LEAVEERROR);
+    });
+
+    if(!canMove(false)){
+        co_return false;
+    }
+
+    const auto amAMS = rmpk.conv<AMAllowMapSwitch>();
+
+    m_mapUID = argMapUID;
+    m_mapBinPtr = g_mapBinDB->retrieve(uidf::getMapID(argMapUID));
+
+    m_X = amAMS.X;
+    m_Y = amAMS.Y;
+
+    AMLeaveOK amLOK;
+    std::memset(&amLOK, 0, sizeof(amLOK));
+    amLOK.mapUID = mapUID(); // send new map UID to old map intentionally
+    amLOK.action = makeActionStand();
+
+    leaveErrorSg.dismiss();
+    co_await m_actorPod->send(leavermpk.fromAddr(), {AM_LEAVEOK, amLOK}); // wait till the old map finishes leave
+
+    AMMapSwitchOK amMSOK;
+    std::memset(&amMSOK, 0, sizeof(amMSOK));
+    amMSOK.action = makeActionStand();
+
+    mapSwitchErrorSg.dismiss();
+    m_actorPod->post({mapUID(), rmpk.seqID()}, {AM_MAPSWITCHOK, amMSOK});
+
+    trimInViewCO();
+    if(isPlayer()){
+        dynamic_cast<Player *>(this)->reportStand();
+        dynamic_cast<Player *>(this)->notifySlaveGLoc();
+    }
+
+    co_await m_buffList.runOnTrigger(BATGR_MOVE);
+    co_await m_buffList.runOnBOMove();
+    co_await m_buffList.dispatchAura();
+
+    co_return true;
 }
 
 bool BattleObject::canAct() const
@@ -655,15 +497,15 @@ bool BattleObject::canAct() const
                             switch(uidf::getMonsterID(UID())){
                                 case DBCOM_MONSTERID(u8"变异骷髅"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 600;
+                                        return g_server->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 600;
                                     }
                                 case DBCOM_MONSTERID(u8"神兽"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
+                                        return g_server->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
                                     }
                                 case DBCOM_MONSTERID(u8"食人花"):
                                     {
-                                        return g_monoServer->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
+                                        return g_server->getCurrTick() > m_lastActionTime.at(ACTION_SPAWN) + 400;
                                     }
                                 default:
                                     {
@@ -686,14 +528,30 @@ bool BattleObject::canAct() const
     return true;
 }
 
-bool BattleObject::canMove() const
+bool BattleObject::canMove(bool checkMoveLock) const
 {
-    return canAct() && !m_moveLock;
+    if(!canAct()){
+        return false;
+    }
+
+    if(!checkMoveLock){
+        return true;
+    }
+
+    return !m_moveLock;
 }
 
-bool BattleObject::canAttack() const
+bool BattleObject::canAttack(bool checkAttackLock) const
 {
-    return canAct() && !m_attackLock;
+    if(!canAct()){
+        return false;
+    }
+
+    if(!checkAttackLock){
+        return true;
+    }
+
+    return !m_moveLock;
 }
 
 std::optional<std::tuple<int, int, int>> BattleObject::oneStepReach(int dir, int maxDistance) const
@@ -704,7 +562,7 @@ std::optional<std::tuple<int, int, int>> BattleObject::oneStepReach(int dir, int
     std::optional<std::tuple<int, int, int>> result;
     for(int d = 1; d <= maxDistance; ++d){
         const auto [dstX, dstY] = pathf::getFrontGLoc(X(), Y(), dir, d);
-        if(!m_map->groundValid(dstX, dstY)){
+        if(!mapBin()->groundValid(dstX, dstY)){
             break;
         }
         result = std::make_tuple(dstX, dstY, d);
@@ -730,13 +588,13 @@ void BattleObject::dispatchAttackDamage(uint64_t nUID, int nDC, int modifierID)
         std::memset(&amA, 0, sizeof(amA));
 
         amA.UID   = UID();
-        amA.mapID = mapID();
+        amA.mapUID = mapUID();
 
         amA.X = X();
         amA.Y = Y();
 
         amA.damage = getAttackDamage(nDC, modifierID);
-        m_actorPod->forward(nUID, {AM_ATTACK, amA});
+        m_actorPod->post(nUID, {AM_ATTACK, amA});
     }
 }
 
@@ -758,35 +616,34 @@ int BattleObject::Speed(int nSpeedType) const
     }
 }
 
-void BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
+corof::awaitable<uint64_t> BattleObject::addMonster(uint32_t monsterID, int x, int y, bool strictLoc)
 {
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_MON;
-    amACO.x = x;
-    amACO.y = y;
-    amACO.mapID = m_map->ID();
-    amACO.strictLoc = strictLoc;
-
-    amACO.monster.monsterID = monsterID;
-    amACO.monster.masterUID = UID();
-
-    m_actorPod->forward(uidf::getServiceCoreUID(), {AM_ADDCO, amACO}, [](const ActorMsgPack &rstRMPK)
+    const SDInitCharObject sdICO = SDInitMonster
     {
-        switch(rstRMPK.type()){
-            default:
-                {
-                    break;
-                }
-        }
-    });
+        .monsterID = monsterID,
+        .mapUID = mapUID(),
+        .x = x,
+        .y = y,
+        .strictLoc = strictLoc,
+        .direction = DIR_BEGIN, // monster may ignore
+        .masterUID = UID(),
+    };
+
+    switch(const auto rmpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID())), {AM_ADDCO, cerealf::serialize(sdICO)}); rmpk.type()){
+        case AM_UID:
+            {
+                co_return rmpk.conv<AMUID>().uid;
+            }
+        default:
+            {
+                co_return 0;
+            }
+    }
 }
 
 int BattleObject::estimateHop(int nX, int nY)
 {
-    fflassert(m_map);
-    if(!m_map->validC(nX, nY)){
+    if(!mapBin()->validC(nX, nY)){
         return -1;
     }
 
@@ -823,12 +680,11 @@ int BattleObject::estimateHop(int nX, int nY)
 
 int BattleObject::checkPathGrid(int argX, int argY) const
 {
-    fflassert(m_map);
-    if(!m_map->getMapData().validC(argX, argY)){
+    if(!mapBin()->validC(argX, argY)){
         return PF_NONE;
     }
 
-    if(!m_map->getMapData().cell(argX, argY).land.canThrough()){
+    if(!mapBin()->cell(argX, argY).land.canThrough()){
         return PF_OBSTACLE;
     }
 
@@ -896,7 +752,7 @@ std::vector<pathf::PathNode> BattleObject::getValidChaseGrid(int nX, int nY, int
 {
     std::vector<pathf::PathNode> result;
     for(const auto &node: getChaseGrid(nX, nY, nDLen)){
-        if(m_map->groundValid(node.X, node.Y)){
+        if(mapBin()->groundValid(node.X, node.Y)){
             result.push_back(node);
         }
     }
@@ -907,7 +763,7 @@ void BattleObject::getValidChaseGrid(int nX, int nY, int nDLen, scoped_alloc::sv
 {
     buf.c.clear();
     for(const auto &node: getChaseGrid(nX, nY, nDLen)){
-        if(m_map->groundValid(node.X, node.Y)){
+        if(mapBin()->groundValid(node.X, node.Y)){
             buf.c.push_back(node);
         }
     }
@@ -985,7 +841,7 @@ std::optional<double> BattleObject::oneStepCost(const BattleObject::BOPathFinder
 void BattleObject::setLastAction(int type)
 {
     m_lastAction = type;
-    m_lastActionTime.at(type) = g_monoServer->getCurrTick();
+    m_lastActionTime.at(type) = g_server->getCurrTick();
 }
 
 bool BattleObject::isOffender(uint64_t nUID)
@@ -998,29 +854,39 @@ bool BattleObject::isOffender(uint64_t nUID)
     return false;
 }
 
-void BattleObject::queryHealth(uint64_t uid, std::function<void(uint64_t, SDHealth)> fnOp)
+corof::awaitable<std::optional<SDHealth>> BattleObject::queryHealth(uint64_t uid)
 {
-    fflassert(uid);
-    m_actorPod->forward(uid, AM_QUERYHEALTH, [uid, fnOp = std::move(fnOp)](const ActorMsgPack &rmpk)
+    switch(const auto rmpk = co_await m_actorPod->send(uid, AM_QUERYHEALTH); rmpk.type()){
+        case AM_HEALTH:
+            {
+                co_return rmpk.deserialize<SDHealth>();
+            }
+        default:
+            {
+                co_return std::nullopt;
+            }
+    }
+}
+
+corof::awaitable<uint64_t> BattleObject::queryFinalMaster(uint64_t targetUID)
+{
+    const auto fnQuery = [thisptr = this](this auto, uint64_t targetUID) -> corof::awaitable<uint64_t>
     {
-        switch(rmpk.type()){
-            case AM_HEALTH:
+        switch(const auto rmpk = co_await thisptr->m_actorPod->send(targetUID, AM_QUERYFINALMASTER); rmpk.type()){
+            case AM_UID:
                 {
-                    fnOp(uid, rmpk.deserialize<SDHealth>());
-                    break;
+                    co_return rmpk. template conv<AMUID>().uid;
                 }
             default:
                 {
-                    fnOp(0, {});
-                    break;
+                    if(thisptr->isMonster() && (targetUID == dynamic_cast<Monster *>(thisptr)->masterUID())){
+                        thisptr->goDie();
+                    }
+                    co_return 0;
                 }
         }
-    });
-}
+    };
 
-void BattleObject::queryFinalMaster(uint64_t targetUID, std::function<void(uint64_t)> fnOp)
-{
-    fflassert(targetUID);
     switch(uidf::getUIDType(targetUID)){
         case UID_MON:
             {
@@ -1028,80 +894,39 @@ void BattleObject::queryFinalMaster(uint64_t targetUID, std::function<void(uint6
                 // monsters not tameable means wizard can't tame it
                 // but can be created by GM command, or buy from monster merchant
 
-                const auto fnQuery = [this, fnOp](uint64_t targetUID)
-                {
-                    m_actorPod->forward(targetUID, AM_QUERYFINALMASTER, [this, targetUID, fnOp](const ActorMsgPack &rmpk)
-                    {
-                        switch(rmpk.type()){
-                            case AM_UID:
-                                {
-                                    const auto amUID = rmpk.conv<AMUID>();
-                                    if(fnOp){
-                                        fnOp(amUID.UID);
-                                    }
-                                    return;
-                                }
-                            default:
-                                {
-                                    if(fnOp){
-                                        fnOp(0);
-                                    }
-
-                                    if(isMonster()){
-                                        if(targetUID == dynamic_cast<Monster *>(this)->masterUID()){
-                                            goDie();
-                                        }
-                                    }
-                                    return;
-                                }
-                        }
-                    });
-                };
-
                 if(targetUID == UID()){
                     if(const auto masterUID = dynamic_cast<Monster *>(this)->masterUID()){
                         switch(uidf::getUIDType(masterUID)){
                             case UID_PLY:
                                 {
-                                    if(fnOp){
-                                        fnOp(masterUID);
-                                    }
-                                    return;
+                                    co_return masterUID;
                                 }
                             case UID_MON:
                                 {
-                                    fnQuery(masterUID);
-                                    return;
+                                    co_return co_await fnQuery(masterUID);
                                 }
                             default:
                                 {
-                                    throw fflreach();
+                                    throw fflvalue(uidf::getUIDString(masterUID));
                                 }
                         }
                     }
                     else{
-                        if(fnOp){
-                            fnOp(UID());
-                        }
-                        return;
+                        co_return UID();
                     }
                 }
                 else{
-                    fnQuery(targetUID);
-                    return;
+                    co_return co_await fnQuery(targetUID);
                 }
             }
         case UID_PLY:
         case UID_NPC:
             {
-                if(fnOp){
-                    fnOp(targetUID);
-                }
-                return;
+                co_return targetUID;
             }
         default:
             {
-                throw fflerror("invalid uid: %s", to_cstr(uidf::getUIDString(targetUID)));
+                throw fflvalue(uidf::getUIDString(targetUID));
             }
     }
 }
@@ -1120,22 +945,14 @@ void BattleObject::dispatchBuffIDList()
     }
 }
 
-void BattleObject::updateBuffList()
-{
-    if(m_buffList.update()){
-        dispatchBuffIDList();
-    }
-}
-
 void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
 {
-    if(auto buffp = m_buffList.hasBuffSeq(buffSeq)){
+    if(auto buffp = m_buffList.hasBuff(buffSeq)){
         const auto fromUID = buffp->fromUID();
-        m_buffList.erase(buffSeq);
+        m_buffList.removeBuff(buffSeq);
 
         AMRemoveBuff amRB;
         std::memset(&amRB, 0, sizeof(amRB));
-
         amRB.fromUID = UID();
         amRB.fromBuffSeq = buffSeq;
 
@@ -1144,7 +961,7 @@ void BattleObject::removeBuff(uint64_t buffSeq, bool dispatch)
                 case UID_PLY:
                 case UID_MON:
                     {
-                        m_actorPod->forward(uid, {AM_REMOVEBUFF, amRB});
+                        m_actorPod->post(uid, {AM_REMOVEBUFF, amRB});
                         break;
                     }
                 default:
@@ -1179,12 +996,15 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
 {
     const auto fnAddBuff = [fromUID, fromBuffSeq, buffID, this]() -> BaseBuff *
     {
-        if(auto buff = m_buffList.addBuff(std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, m_buffList.rollSeqID(buffID)))){
+        auto buffSeqID = m_buffList.rollSeqID(buffID);
+        auto buffPtr   = std::make_unique<BaseBuff>(this, fromUID, fromBuffSeq, buffID, buffSeqID);
+
+        if(auto buff = m_buffList.addBuff(std::move(buffPtr))){
             for(const auto paura: buff->getAuraList()){
-                paura->dispatch();
                 if(paura->getBAR().aura.self){
                     addBuff(buff->fromUID(), buff->buffSeq(), DBCOM_BUFFID(paura->getBAR().aura.buff));
                 }
+                [paura]() -> corof::awaitable<> { co_await paura->dispatch(); }().resume();
             }
 
             if(buff->getBR().icon.show){
@@ -1198,21 +1018,26 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
     // NOTE currently only *replace* buff added by self
     // can not remove/override buffs added by other person to avoid cheating
 
-    if(const auto &br = DBCOM_BUFFRECORD(buffID); br){
-        auto pbuffList = m_buffList.hasBuff(br.name);
-        auto pbuffListFromUID = m_buffList.hasFromBuff(fromUID, fromBuffSeq, buffID);
-
-        fflassert(pbuffList.size() >= pbuffListFromUID.size());
-        if(to_d(pbuffList.size()) < br.stackCount + 1){
-            return fnAddBuff();
-        }
-        else if(!pbuffListFromUID.empty() && br.stackReplace){
-            // total number has reach max stack count
-            // but there are buffs from fromUID and can replace, remove the oldest and add new buff
-            m_buffList.erase(pbuffListFromUID.front()->buffSeq());
-            return fnAddBuff();
-        }
+    const auto &br = DBCOM_BUFFRECORD(buffID);
+    if(!br){
+        return nullptr;
     }
+
+    const auto pbuffList = m_buffList.hasBuff(br.name);
+    if(to_d(pbuffList.size()) < br.stackCount + 1){
+        return fnAddBuff();
+    }
+
+    // total number has reach max stack count
+    // check if there are buffs from fromUID and can replace, remove the oldest and add new buff
+    const auto pbuffListFromUID = m_buffList.hasFromBuff(fromUID, fromBuffSeq, buffID);
+    fflassert(pbuffList.size() >= pbuffListFromUID.size());
+
+    if(!pbuffListFromUID.empty() && br.stackReplace){
+        m_buffList.removeBuff(pbuffListFromUID.front()->buffSeq());
+        return fnAddBuff();
+    }
+
     return nullptr;
 }
 
@@ -1275,5 +1100,5 @@ void BattleObject::sendBuff(uint64_t uid, uint64_t fromBuffSeq, uint32_t buffID)
     amAB.id = buffID;
     amAB.fromUID = UID();
     amAB.fromBuffSeq = fromBuffSeq;
-    m_actorPod->forward(uid, {AM_ADDBUFF, amAB});
+    m_actorPod->post(uid, {AM_ADDBUFF, amAB});
 }

@@ -175,7 +175,7 @@ void InputLine::drawEx(int dstX, int dstY, int srcX, int srcY, int srcW, int src
         }
 
         const auto pToken = m_tpset.getToken(m_cursor - 1, 0);
-        return pToken->Box.State.W1 + pToken->Box.State.X + pToken->Box.Info.W;
+        return pToken->box.state.w1 + pToken->box.state.x + pToken->box.info.w;
     }();
 
     int cursorW = m_cursorWidth;

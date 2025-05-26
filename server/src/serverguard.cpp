@@ -2,39 +2,52 @@
 #include "fflerror.hpp"
 #include "dbcomid.hpp"
 #include "friendtype.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverguard.hpp"
 
-extern MonoServer *g_monoServer;
-ServerGuard::ServerGuard(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir)
-    : Monster(monID, mapPtr, argX, argY, argDir, 0)
-    , m_standX(argX)
-    , m_standY(argY)
-    , m_standDirection(argDir)
+extern Server *g_server;
+ServerGuard::ServerGuard(const SDInitGuard &sdIG)
+    : Monster
+      {
+          sdIG.monsterID,
+          sdIG.mapUID,
+          sdIG.x,
+          sdIG.y,
+          sdIG.direction,
+          0,
+      }
+    , m_standX(sdIG.x)
+    , m_standY(sdIG.y)
+    , m_standDirection(sdIG.direction)
 {
     fflassert(uidf::isGuardMode(UID()));
 }
 
-corof::eval_poller<> ServerGuard::updateCoroFunc()
+corof::awaitable<> ServerGuard::runAICoro()
 {
     uint64_t targetUID = 0;
     while(m_sdHealth.hp > 0){
-        if(targetUID && !(co_await coro_validTarget(targetUID))){
+        if(targetUID && !(co_await validTarget(targetUID))){
             targetUID = 0;
         }
 
         if(!targetUID){
-            targetUID = co_await coro_pickTarget();
+            targetUID = co_await pickTarget();
         }
 
         if(targetUID){
-            const auto [targetMapID, targetX, targetY] = co_await coro_getCOGLoc(targetUID);
-            if(inView(targetMapID, targetX, targetY)){
-                if(mathf::CDistance<int>(targetX, targetY, X(), Y()) == 1){
-                    co_await coro_attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
+            const auto coLocOpt = co_await getCOLocation(targetUID);
+            if(!coLocOpt.has_value()){
+                continue;
+            }
+
+            const auto &coLoc = coLocOpt.value();
+            if(inView(coLoc.mapUID, coLoc.x, coLoc.y)){
+                if(mathf::CDistance<int>(coLoc.x, coLoc.y, X(), Y()) == 1){
+                    co_await attackUID(targetUID, DBCOM_MAGICID(u8"物理攻击"));
                 }
                 else{
-                    co_await coro_jumpAttackUID(targetUID);
+                    co_await jumpAttackUID(targetUID);
                 }
             }
             else{
@@ -51,16 +64,17 @@ corof::eval_poller<> ServerGuard::updateCoroFunc()
                 }
             }
             else{
-                co_await coro_jumpGLoc(m_standX, m_standY, m_standDirection);
+                co_await requestJump(m_standX, m_standY, m_standDirection);
             }
         }
-        co_await corof::async_wait(200);
+
+        co_await asyncIdleWait(1000);
     }
 
     goDie();
 }
 
-void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
+corof::awaitable<int> ServerGuard::checkFriend(uint64_t targetUID)
 {
     fflassert(targetUID);
     fflassert(targetUID != UID());
@@ -69,54 +83,39 @@ void ServerGuard::checkFriend(uint64_t targetUID, std::function<void(int)> fnOp)
         case UID_MON:
             {
                 if(uidf::isGuardMode(targetUID)){
-                    if(fnOp){
-                        fnOp(FT_FRIEND);
-                    }
-                    return;
+                    co_return FT_FRIEND;
                 }
 
                 if(uidf::isNeutralMode(targetUID)){
-                    if(fnOp){
-                        fnOp(FT_NEUTRAL);
-                    }
-                    return;
+                    co_return FT_NEUTRAL;
                 }
 
-                if(fnOp){
-                    fnOp(FT_ENEMY);
-                }
-                return;
+                co_return FT_ENEMY;
             }
         case UID_PLY:
             {
-                if(fnOp){
-                    fnOp(FT_NEUTRAL);
-                }
-                return;
+                co_return FT_NEUTRAL;
             }
         default:
             {
-                if(fnOp){
-                    fnOp(FT_FRIEND);
-                }
-                return;
+                co_return FT_FRIEND;
             }
     }
 }
 
-bool ServerGuard::canMove() const
+bool ServerGuard::canMove(bool checkMoveLock) const
 {
-    return BattleObject::canMove();
+    return BattleObject::canMove(checkMoveLock);
 }
 
-bool ServerGuard::canAttack() const
+bool ServerGuard::canAttack(bool checkAttackLock) const
 {
-    if(!BattleObject::canAttack()){
+    if(!BattleObject::canAttack(checkAttackLock)){
         return false;
     }
 
     if(m_lastAction != ACTION_ATTACK){
         return true;
     }
-    return g_monoServer->getCurrTick() >= m_lastActionTime.at(ACTION_ATTACK) + getMR().attackWait;
+    return g_server->getCurrTick() >= m_lastActionTime.at(ACTION_ATTACK) + getMR().attackWait;
 }

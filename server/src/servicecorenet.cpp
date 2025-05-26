@@ -1,32 +1,32 @@
 #include "jobf.hpp"
+#include "uidf.hpp"
+#include "uidsf.hpp"
 #include "mathf.hpp"
 #include "dbpod.hpp"
 #include "idstrf.hpp"
 #include "dbcomid.hpp"
-#include "netdriver.hpp"
 #include "servermap.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "dispatcher.hpp"
 #include "protocoldef.hpp"
 #include "servicecore.hpp"
 #include "actorpool.hpp"
 
 extern DBPod *g_dbPod;
-extern NetDriver *g_netDriver;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ActorPool *g_actorPool;
 
-void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmL = ClientMsg::conv<CMLogin>(buf);
-    const auto fnLoginError = [channID, &cmL, respID](int error)
+    const auto fnLoginError = [channID, &cmL, respID, this](int error)
     {
         SMLoginError smLE;
         std::memset(&smLE, 0, sizeof(smLE));
 
         smLE.error = error;
-        g_netDriver->post(channID, SM_LOGINERROR, &smLE, sizeof(smLE), respID);
-        g_monoServer->addLog(LOGTYPE_WARNING, "Login account failed: id = %s, ec = %d", cmL.id.as_cstr(), error);
+        m_actorPod->postNet(channID, SM_LOGINERROR, &smLE, sizeof(smLE), respID);
+        g_server->addLog(LOGTYPE_WARNING, "Login account failed: id = %s, ec = %d", cmL.id.as_cstr(), error);
     };
 
     // don't check id/password by idstrf here
@@ -35,7 +35,7 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
     auto queryAccount = g_dbPod->createQuery("select fld_dbid from tbl_account where fld_account = '%s' and fld_password = '%s'", cmL.id.as_cstr(), cmL.password.as_cstr());
     if(!queryAccount.executeStep()){
         fnLoginError(LOGINERR_NOACCOUNT);
-        return;
+        return {};
     }
 
     const auto dbid = check_cast<uint32_t, unsigned>(queryAccount.getColumn("fld_dbid"));
@@ -48,34 +48,35 @@ void ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const uint8_t *buf, si
 
         if(existDBID.first == dbid){
             fnLoginError(LOGINERR_MULTILOGIN);
-            return;
+            return {};
         }
     }
 
     m_dbidList[channID] = std::make_pair(dbid, false);
-    g_netDriver->post(channID, SM_LOGINOK, nullptr, 0, respID);
+    m_actorPod->postNet(channID, SM_LOGINOK, nullptr, 0, respID);
+    return {};
 }
 
-void ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
 {
-    const auto fnQueryCharError = [channID, respID](int error)
+    const auto fnQueryCharError = [channID, respID, this](int error)
     {
         SMQueryCharError smQCE;
         std::memset(&smQCE, 0, sizeof(smQCE));
         smQCE.error = error;
-        g_netDriver->post(channID, SM_QUERYCHARERROR, &smQCE, sizeof(smQCE), respID);
+        m_actorPod->postNet(channID, SM_QUERYCHARERROR, &smQCE, sizeof(smQCE), respID);
     };
 
     const auto dbidOpt = findDBID(channID);
     if(!dbidOpt.has_value()){
         fnQueryCharError(QUERYCHARERR_NOLOGIN);
-        return;
+        return {};
     }
 
     auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value().first));
     if(!queryChar.executeStep()){
         fnQueryCharError(QUERYCHARERR_NOCHAR);
-        return;
+        return {};
     }
 
     SMQueryCharOK smQCOK;
@@ -85,60 +86,51 @@ void ServiceCore::net_CM_QUERYCHAR(uint32_t channID, uint8_t, const uint8_t *, s
     smQCOK.gender = queryChar.getColumn("fld_gender");
     smQCOK.job = queryChar.getColumn("fld_job");
     smQCOK.exp = queryChar.getColumn("fld_exp");
-    g_netDriver->post(channID, SM_QUERYCHAROK, &smQCOK, sizeof(smQCOK), respID);
+    m_actorPod->postNet(channID, SM_QUERYCHAROK, &smQCOK, sizeof(smQCOK), respID);
+    return {};
 }
 
-void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size_t, uint64_t respID)
 {
-    const auto fnOnlineError = [channID, respID](int error)
+    const auto fnOnlineError = [channID, respID, this](int error)
     {
         SMOnlineError smOE;
         std::memset(&smOE, 0, sizeof(smOE));
         smOE.error = error;
-        g_netDriver->post(channID, SM_ONLINEERROR, &smOE, sizeof(smOE), respID);
+        m_actorPod->postNet(channID, SM_ONLINEERROR, &smOE, sizeof(smOE), respID);
     };
 
     const auto dbidOpt = findDBID(channID);
     if(!dbidOpt.has_value()){
         fnOnlineError(ONLINEERR_NOLOGIN);
-        return;
+        co_return;
     }
 
     if(dbidOpt.value().second){
         fnOnlineError(ONLINEERR_MULTIONLINE);
-        return;
+        co_return;
     }
 
     auto queryChar = g_dbPod->createQuery("select * from tbl_char where fld_dbid = %llu", to_llu(dbidOpt.value().first));
     if(!queryChar.executeStep()){
         fnOnlineError(ONLINEERR_NOCHAR);
-        return;
+        co_return;
     }
 
-    const auto expectedUID = uidf::getPlayerUID(dbidOpt.value().first);
-    fflassert(!g_actorPool->checkUIDValid(expectedUID));
-
     const int mapID = queryChar.getColumn("fld_map");
-    const int mapX = queryChar.getColumn("fld_mapx");
-    const int mapY = queryChar.getColumn("fld_mapy");
+    const int mapX  = queryChar.getColumn("fld_mapx");
+    const int mapY  = queryChar.getColumn("fld_mapy");
 
-    const auto mapPtr = retrieveMap(mapID);
-    fflassert(mapPtr);
-    fflassert(mapPtr->in(mapID, mapX, mapY));
-
-    AMAddCharObject amACO;
-    std::memset(&amACO, 0, sizeof(amACO));
-
-    amACO.type = UID_PLY;
-    amACO.buf.assign(cerealf::serialize(SDInitPlayer
+    const uint64_t mapUID = uidsf::getMapBaseUID(mapID); // same mapID always maps to same UID
+    SDInitCharObject sdICO = SDInitPlayer
     {
         .dbid      = dbidOpt.value().first,
         .channID   = channID,
         .name      = queryChar.getColumn("fld_name"),
         .nameColor = queryChar.getColumn("fld_namecolor"),
+        .mapUID    = mapUID,
         .x         = mapX,
         .y         = mapY,
-        .mapID     = to_u32(mapID),
         .hp        = queryChar.getColumn("fld_hp"),
         .mp        = queryChar.getColumn("fld_mp"),
         .exp       = queryChar.getColumn("fld_exp"),
@@ -147,42 +139,30 @@ void ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const uint8_t *, size
         .job       = queryChar.getColumn("fld_job"),
         .hair      = queryChar.getColumn("fld_hair"),
         .hairColor = queryChar.getColumn("fld_haircolor"),
-    }));
+    };
 
-    m_dbidList[channID].second = true;
-    m_actorPod->forward(mapPtr->UID(), {AM_ADDCO, amACO}, [channID, expectedUID, fnOnlineError, this](const ActorMsgPack &rmpk)
-    {
-        fflassert(findDBID(channID).has_value());
-        fflassert(findDBID(channID).value().second);
-
-        switch(rmpk.type()){
-            case AM_UID:
-                {
-                    // don't need to send ONLINEOK here
-                    // will be sent by Player actor with more parameters, not here
-
-                    const auto amUID = rmpk.conv<AMUID>();
-                    fflassert(amUID.UID == expectedUID);
-                    return;
-                }
-            default:
-                {
-                    fnOnlineError(ONLINEERR_AMERROR);
-                    m_dbidList[channID].second = false;
-                    return;
-                }
+    if(const auto [loaded, _] = co_await requestLoadMap(mapUID); loaded){
+        if(m_addCO->addCO(sdICO)){
+            m_dbidList[channID].second = true;
         }
-    });
+        else{
+            m_dbidList[channID].second = false;
+            fnOnlineError(ONLINEERR_AMERROR);
+        }
+    }
+    else{
+        throw fflerror("failed to load map: %s", uidf::getUIDString(mapUID).c_str());
+    }
 }
 
-void ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
-    const auto fnCreateAccountError = [channID, respID](int error)
+    const auto fnCreateAccountError = [channID, respID, this](int error)
     {
         SMCreateAccountError smCAE;
         std::memset(&smCAE, 0, sizeof(smCAE));
         smCAE.error = error;
-        g_netDriver->post(channID, SM_CREATEACCOUNTERROR, &smCAE, sizeof(smCAE), respID);
+        m_actorPod->postNet(channID, SM_CREATEACCOUNTERROR, &smCAE, sizeof(smCAE), respID);
     };
 
     const auto cmCA = ClientMsg::conv<CMCreateAccount>(buf);
@@ -191,31 +171,32 @@ void ServiceCore::net_CM_CREATEACCOUNT(uint32_t channID, uint8_t, const uint8_t 
 
     if(!idstrf::isEmail(id.c_str())){
         fnCreateAccountError(CRTACCERR_BADACCOUNT);
-        return;
+        return {};
     }
 
     if(!idstrf::isPassword(password.c_str())){
         fnCreateAccountError(CRTACCERR_BADPASSWORD);
-        return;
+        return {};
     }
 
     if(g_dbPod->createQuery(u8R"###( select fld_dbid from tbl_account where fld_account ='%s' )###", id.c_str()).executeStep()){
         fnCreateAccountError(CRTACCERR_ACCOUNTEXIST);
-        return;
+        return {};
     }
 
     g_dbPod->exec(u8R"###( insert into tbl_account(fld_account, fld_password) values ('%s', '%s') )###", id.c_str(), password.c_str());
-    g_netDriver->post(channID, SM_CREATEACCOUNTOK, nullptr, 0, respID);
+    m_actorPod->postNet(channID, SM_CREATEACCOUNTOK, nullptr, 0, respID);
+    return {};
 }
 
-void ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
-    const auto fnChangePasswordError= [channID, respID](int error)
+    const auto fnChangePasswordError= [channID, respID, this](int error)
     {
         SMChangePasswordError smCPE;
         std::memset(&smCPE, 0, sizeof(smCPE));
         smCPE.error = error;
-        g_netDriver->post(channID, SM_CHANGEPASSWORDERROR, &smCPE, sizeof(smCPE), respID);
+        m_actorPod->postNet(channID, SM_CHANGEPASSWORDERROR, &smCPE, sizeof(smCPE), respID);
     };
 
     const auto cmCP = ClientMsg::conv<CMChangePassword>(buf);
@@ -225,17 +206,17 @@ void ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t
 
     if(!idstrf::isEmail(id.c_str())){
         fnChangePasswordError(CHGPWDERR_BADACCOUNT);
-        return;
+        return {};
     }
 
     if(!idstrf::isPassword(password.c_str())){
         fnChangePasswordError(CHGPWDERR_BADPASSWORD);
-        return;
+        return {};
     }
 
     if(!idstrf::isPassword(passwordNew.c_str())){
         fnChangePasswordError(CHGPWDERR_BADNEWPASSWORD);
-        return;
+        return {};
     }
 
     auto query = g_dbPod->createQuery(
@@ -247,19 +228,20 @@ void ServiceCore::net_CM_CHANGEPASSWORD(uint32_t channID, uint8_t, const uint8_t
 
     if(!query.executeStep()){
         fnChangePasswordError(CHGPWDERR_BADACCOUNTPASSWORD);
-        return;
+        return {};
     }
-    g_netDriver->post(channID, SM_CHANGEPASSWORDOK, nullptr, 0, respID);
+    m_actorPod->postNet(channID, SM_CHANGEPASSWORDOK, nullptr, 0, respID);
+    return {};
 }
 
-void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
-    const auto fnDeleteCharError = [channID, respID](int error)
+    const auto fnDeleteCharError = [channID, respID, this](int error)
     {
         SMDeleteCharError smDCE;
         std::memset(&smDCE, 0, sizeof(smDCE));
         smDCE.error = error;
-        g_netDriver->post(channID, SM_DELETECHARERROR, &smDCE, sizeof(smDCE), respID);
+        m_actorPod->postNet(channID, SM_DELETECHARERROR, &smDCE, sizeof(smDCE), respID);
     };
 
     const auto cmDC = ClientMsg::conv<CMDeleteChar>(buf);
@@ -267,19 +249,19 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
 
     if(!dbidOpt.has_value()){
         fnDeleteCharError(DELCHARERR_NOLOGIN);
-        return;
+        return {};
     }
 
     auto queryPassword = g_dbPod->createQuery(u8R"###( select * from tbl_account where fld_dbid = %llu and fld_password = '%s' )###", to_llu(dbidOpt.value().first), cmDC.password.as_cstr());
     if(!queryPassword.executeStep()){
         fnDeleteCharError(DELCHARERR_BADPASSWORD);
-        return;
+        return {};
     }
 
     auto query = g_dbPod->createQuery(u8R"###( delete from tbl_char where fld_dbid = %llu returning fld_dbid )###", to_llu(dbidOpt.value().first));
     if(!query.executeStep()){
         fnDeleteCharError(DELCHARERR_NOCHAR);
-        return;
+        return {};
     }
 
     const auto dbidDeleted = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
@@ -397,41 +379,42 @@ void ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, const uint8_t *bu
 
     // we don't move items in tbl_secureditemlist to tbl_inventory because tbl_secureditemlist has password
     // otherwise people can get secured items by just deleting char
-    g_netDriver->post(channID, SM_DELETECHAROK, nullptr, 0, respID);
+    m_actorPod->postNet(channID, SM_DELETECHAROK, nullptr, 0, respID);
+    return {};
 }
 
-void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmCC = ClientMsg::conv<CMCreateChar>(buf);
-    const auto fnCreateCharError = [channID, respID](int error)
+    const auto fnCreateCharError = [channID, respID, this](int error)
     {
         SMCreateCharError smCCE;
         std::memset(&smCCE, 0, sizeof(smCCE));
         smCCE.error = error;
-        g_netDriver->post(channID, SM_CREATECHARERROR, &smCCE, sizeof(smCCE), respID);
+        m_actorPod->postNet(channID, SM_CREATECHARERROR, &smCCE, sizeof(smCCE), respID);
     };
 
     const auto dbidOpt = findDBID(channID);
     if(!dbidOpt.has_value()){
         fnCreateCharError(CRTCHARERR_NOLOGIN);
-        return;
+        return {};
     }
 
     const auto name = cmCC.name.to_str();
     if(!idstrf::isCharName(name.c_str())){
         fnCreateCharError(CRTCHARERR_BADNAME);
-        return;
+        return {};
     }
 
     auto query = g_dbPod->createQuery(u8R"###(select fld_dbid, fld_name from tbl_char where fld_dbid = %llu or fld_name = '%s')###", to_llu(dbidOpt.value().first), name.c_str());
     if(query.executeStep()){
         if(const auto existDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")); existDBID == dbidOpt.value().first){
             fnCreateCharError(CRTCHARERR_CHAREXIST);
-            return;
+            return {};
         }
         else{
             fnCreateCharError(CRTCHARERR_NAMEEXIST);
-            return;
+            return {};
         }
     }
 
@@ -452,8 +435,8 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
             120
         );
 
-        g_netDriver->post(channID, SM_CREATECHAROK, nullptr, 0, respID);
-        return;
+        m_actorPod->postNet(channID, SM_CREATECHAROK, nullptr, 0, respID);
+        return {};
     }
     catch(const std::exception &e){
         dbError = e.what();
@@ -463,5 +446,6 @@ void ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, const uint8_t *bu
     }
 
     fnCreateCharError(CRTCHARERR_DBERROR);
-    g_monoServer->addLog(LOGTYPE_WARNING, "Create char failed: %s", dbError.c_str());
+    g_server->addLog(LOGTYPE_WARNING, "Create char failed: %s", dbError.c_str());
+    return {};
 }

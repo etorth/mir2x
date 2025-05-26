@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 #include <cstdint>
+#include <unordered_set>
 #include <unordered_map>
 #include "totype.hpp"
 #include "fflerror.hpp"
@@ -17,4 +18,5 @@ struct LocHashHelper
     }
 };
 
+/*                */ using LocHashSet   = std::unordered_set<std::tuple<int, int>,    LocHashHelper>;
 template<typename T> using LocHashTable = std::unordered_map<std::tuple<int, int>, T, LocHashHelper>;

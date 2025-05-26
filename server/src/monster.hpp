@@ -64,11 +64,11 @@ class Monster: public BattleObject
         AStarCache m_astarCache;
 
     protected:
-        corof::eval_poller<> m_updateCoro;
+        std::optional<std::pair<uint64_t, uint64_t>> m_idleWaitToken {};
 
     public:
         Monster(uint32_t,           // monster id
-                const ServerMap *,  // server map
+                uint64_t,           // server map uid
                 int,                // map x
                 int,                // map y
                 int,                // direction
@@ -84,35 +84,34 @@ class Monster: public BattleObject
         }
 
     protected:
-       // don't expose it to public
-       // master may change by time or by magic
-       uint64_t masterUID() const
-       {
-           return m_masterUID;
-       }
+        // don't expose it to public
+        // master may change by time or by magic
+        uint64_t masterUID() const
+        {
+            return m_masterUID;
+        }
 
     protected:
         void SearchViewRange();
-        bool update() override;
 
     protected:
-        virtual corof::eval_poller<> updateCoroFunc();
+        virtual corof::awaitable<> runAICoro();
 
     protected:
-        bool randomMove();
         bool randomTurn();
-        void followMaster(std::function<void()>, std::function<void()>);
+        virtual corof::awaitable<bool> randomMove();
+        virtual corof::awaitable<bool> moveForward();
+        virtual corof::awaitable<bool> followMaster();
 
     protected:
-        void searchNearestTarget(std::function<void(uint64_t)>);
-        void searchNearestTargetHelper(std::unordered_set<uint64_t>, std::function<void(uint64_t)>);
+        corof::awaitable<uint64_t> searchNearestTarget();
 
     protected:
-        virtual void jumpUID       (uint64_t,              std::function<void()>, std::function<void()>);
-        virtual void trackUID      (uint64_t, DCCastRange, std::function<void()>, std::function<void()>);
-        virtual void attackUID     (uint64_t,         int, std::function<void()>, std::function<void()>);
-        virtual void jumpAttackUID (uint64_t,              std::function<void()>, std::function<void()>);
-        virtual void trackAttackUID(uint64_t,              std::function<void()>, std::function<void()>);
+        virtual corof::awaitable<bool> jumpUID       (uint64_t             );
+        virtual corof::awaitable<bool> trackUID      (uint64_t, DCCastRange);
+        virtual corof::awaitable<bool> attackUID     (uint64_t,         int);
+        virtual corof::awaitable<bool> jumpAttackUID (uint64_t             );
+        virtual corof::awaitable<bool> trackAttackUID(uint64_t             );
 
     protected:
         bool dcValid(int, bool);
@@ -124,108 +123,82 @@ class Monster: public BattleObject
         DamageNode getAttackDamage(int, int) const override;
 
     private:
-        void on_AM_EXP             (const ActorMsgPack &);
-        void on_AM_MISS            (const ActorMsgPack &);
-        void on_AM_HEAL            (const ActorMsgPack &);
-        void on_AM_ATTACK          (const ActorMsgPack &);
-        void on_AM_ADDBUFF         (const ActorMsgPack &);
-        void on_AM_REMOVEBUFF      (const ActorMsgPack &);
-        void on_AM_ACTION          (const ActorMsgPack &);
-        void on_AM_OFFLINE         (const ActorMsgPack &);
-        void on_AM_UPDATEHP        (const ActorMsgPack &);
-        void on_AM_METRONOME       (const ActorMsgPack &);
-        void on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
-        void on_AM_MASTERKILL      (const ActorMsgPack &);
-        void on_AM_MASTERHITTED    (const ActorMsgPack &);
-        void on_AM_NOTIFYDEAD      (const ActorMsgPack &);
-        void on_AM_BADACTORPOD     (const ActorMsgPack &);
-        void on_AM_CHECKMASTER     (const ActorMsgPack &);
-        void on_AM_QUERYMASTER     (const ActorMsgPack &);
-        void on_AM_QUERYHEALTH     (const ActorMsgPack &);
-        void on_AM_DEADFADEOUT     (const ActorMsgPack &);
-        void on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
-        void on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
-        void on_AM_QUERYCORECORD   (const ActorMsgPack &);
-        void on_AM_QUERYLOCATION   (const ActorMsgPack &);
-        void on_AM_QUERYNAMECOLOR  (const ActorMsgPack &);
-        void on_AM_QUERYFRIENDTYPE (const ActorMsgPack &);
-        void on_AM_QUERYFINALMASTER(const ActorMsgPack &);
+        corof::awaitable<> on_AM_EXP             (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MISS            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_HEAL            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ATTACK          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ADDBUFF         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_REMOVEBUFF      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_ACTION          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_OFFLINE         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_UPDATEHP        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
+        corof::awaitable<> on_AM_MASTERKILL      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_MASTERHITTED    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_NOTIFYDEAD      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_BADACTORPOD     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CHECKMASTER     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYMASTER     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYHEALTH     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_DEADFADEOUT     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_NOTIFYNEWCO     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYUIDBUFF    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYCORECORD   (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYLOCATION   (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYNAMECOLOR  (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYFRIENDTYPE (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYFINALMASTER(const ActorMsgPack &);
 
     protected:
-        void operateAM(const ActorMsgPack &);
+        corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     protected:
         void reportCO(uint64_t) override;
 
     protected:
-        bool moveOneStep(int, int, std::function<void()>, std::function<void()>);
+        corof::awaitable<bool> moveOneStep(int, int);
 
     protected:
-        virtual void pickTarget(std::function<void(uint64_t)>);
+        virtual corof::awaitable<bool> validTarget(uint64_t);
+
+    protected:
+        virtual corof::awaitable<uint64_t> pickTarget();
+        virtual corof::awaitable<uint64_t> pickHealTarget();
+
+    protected:
         virtual int  getAttackMagic(uint64_t) const;
 
     protected:
         int FindPathMethod();
 
     protected:
-        void checkFriend(uint64_t, std::function<void(int)>) override;
-        void queryPlayerFriend(uint64_t, uint64_t, std::function<void(int)>);
+        corof::awaitable<int> checkFriend(uint64_t) override;
+        corof::awaitable<int> queryPlayerFriend(uint64_t, uint64_t);
 
     private:
-        void checkFriend_ctrlByPlayer (uint64_t, std::function<void(int)>);
-        void checkFriend_ctrlByMonster(uint64_t, std::function<void(int)>);
+        corof::awaitable<int> checkFriend_ctrlByPlayer (uint64_t);
+        corof::awaitable<int> checkFriend_ctrlByMonster(uint64_t);
 
     protected:
-        void queryMaster(uint64_t, std::function<void(uint64_t)>);
-
-    protected:
-        bool moveOneStepAStar   (int, int, std::function<void()>, std::function<void()>);
-        bool moveOneStepGreedy  (int, int, std::function<void()>, std::function<void()>);
-        bool moveOneStepCombine (int, int, std::function<void()>, std::function<void()>);
-        bool moveOneStepNeighbor(int, int, std::function<void()>, std::function<void()>);
+        corof::awaitable<bool> moveOneStepAStar   (int, int);
+        corof::awaitable<bool> moveOneStepGreedy  (int, int);
+        corof::awaitable<bool> moveOneStepCombine (int, int);
+        corof::awaitable<bool> moveOneStepNeighbor(int, int);
 
     public:
-        void onActivate() override
-        {
-            CharObject::onActivate();
-            if(!masterUID()){
-                return;
-            }
-
-            m_actorPod->forward(masterUID(), {AM_CHECKMASTER}, [this](const ActorMsgPack &rstRMPK)
-            {
-                if(rstRMPK.type() != AM_CHECKMASTEROK){
-                    goDie();
-                }
-            });
-        }
+        corof::awaitable<> onActivate() override;
 
     protected:
-        bool canMove()   const override;
-        bool canAttack() const override;
+        bool canMove(bool)   const override;
+        bool canAttack(bool) const override;
 
     protected:
         virtual bool goDie();
         virtual bool goGhost();
 
     protected:
-        virtual corof::eval_poller<bool>     coro_randomMove();
-        virtual corof::eval_poller<bool>     coro_moveForward();
-        virtual corof::eval_poller<bool>     coro_followMaster();
-        virtual corof::eval_poller<bool>     coro_needHeal(uint64_t);
-        virtual corof::eval_poller<uint64_t> coro_pickTarget();
-        virtual corof::eval_poller<uint64_t> coro_pickHealTarget();
-        virtual corof::eval_poller<int>      coro_checkFriend(uint64_t);
-        virtual corof::eval_poller<bool>     coro_trackUID(uint64_t, DCCastRange);
-        virtual corof::eval_poller<bool>     coro_attackUID(uint64_t, int);
-        virtual corof::eval_poller<bool>     coro_jumpGLoc(int, int, int);
-        virtual corof::eval_poller<bool>     coro_jumpUID(uint64_t);
-        virtual corof::eval_poller<bool>     coro_jumpAttackUID(uint64_t);
-        virtual corof::eval_poller<bool>     coro_trackAttackUID(uint64_t);
-        virtual corof::eval_poller<bool>     coro_inDCCastRange(uint64_t, DCCastRange);
-        virtual corof::eval_poller<bool>     coro_validTarget(uint64_t);
-        virtual corof::eval_poller<std::optional<SDHealth>> coro_queryHealth(uint64_t);
-        virtual corof::eval_poller<std::tuple<uint32_t, int, int>> coro_getCOGLoc(uint64_t);
+        virtual corof::awaitable<bool> needHeal(uint64_t);
+        virtual corof::awaitable<bool> inDCCastRange(uint64_t, DCCastRange);
 
     public:
         const auto &getMR() const
@@ -243,8 +216,11 @@ class Monster: public BattleObject
         bool hasPlayerNeighbor() const;
 
     protected:
-        virtual void onAMAttack      (const ActorMsgPack &);
-        virtual void onAMMasterHitted(const ActorMsgPack &);
+        virtual corof::awaitable<bool> asyncIdleWait(uint64_t);
+
+    protected:
+        virtual corof::awaitable<> onAMAttack      (const ActorMsgPack &);
+        virtual corof::awaitable<> onAMMasterHitted(const ActorMsgPack &);
 
     protected:
         void dispatchOffenderExp();

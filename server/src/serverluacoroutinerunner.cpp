@@ -1,33 +1,33 @@
 #include <memory>
 #include <iterator>
+#include "sgf.hpp"
 #include "luaf.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "actorpod.hpp"
 #include "serdesmsg.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverobject.hpp"
 #include "serverluacoroutinerunner.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 
-LuaCoopResumer::LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, void *currRunner, sol::function callback, const LuaCoopCallDoneFlag &doneFlag)
+LuaCoopResumer::LuaCoopResumer(ServerLuaCoroutineRunner *luaRunner, void *currRunner, sol::function callback)
     : m_luaRunner(luaRunner)
     , m_currRunner(currRunner)
     , m_callback(std::move(callback))
-    , m_doneFlag(doneFlag)
 {
     fflassert(m_luaRunner);
     fflassert(m_currRunner);
 }
 
 LuaCoopResumer::LuaCoopResumer(const LuaCoopResumer & resumer)
-    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, resumer.m_callback, resumer.m_doneFlag)
+    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, resumer.m_callback)
 {}
 
 LuaCoopResumer::LuaCoopResumer(LuaCoopResumer && resumer)
-    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, std::move(resumer.m_callback), resumer.m_doneFlag /* always copy doneFlag */)
+    : LuaCoopResumer(resumer.m_luaRunner, resumer.m_currRunner, std::move(resumer.m_callback))
 {}
 
 void LuaCoopResumer::pushOnClose(std::function<void()> fnOnClose) const
@@ -40,9 +40,11 @@ void LuaCoopResumer::popOnClose() const
     static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(m_currRunner)->onClose.pop();
 }
 
-void LuaCoopResumer::resumeRunner(ServerLuaCoroutineRunner *luaRunner, void *currRunner)
+void LuaCoopResumer::resumeYieldedRunner(ServerLuaCoroutineRunner *luaRunner, void *handle)
 {
-    luaRunner->resumeRunner(static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(currRunner));
+    if(auto currRunner = static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(handle); currRunner->needResume){
+        luaRunner->resumeRunner(static_cast<ServerLuaCoroutineRunner::LuaThreadHandle *>(currRunner));
+    }
 }
 
 ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
@@ -52,10 +54,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
           fflassert(podPtr); return podPtr;
       }())
 {
-    m_actorPod->registerOp(AM_SENDNOTIFY, [this](const ActorMsgPack &mpk)
+    m_actorPod->registerOp(AM_SENDNOTIFY, [thisptr = this](this auto, const ActorMsgPack &mpk) -> corof::awaitable<>
     {
         auto sdSN = mpk.deserialize<SDSendNotify>();
-        auto runnerPtr = hasKey(sdSN.key, sdSN.seqID);
+        auto runnerPtr = thisptr->hasKey(sdSN.key, sdSN.seqID);
 
         if(runnerPtr){
             // notify is from variadic_args, which may contain tailing nil
@@ -72,24 +74,25 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             if(sdSN.waitConsume){
                 if(runnerPtr && runnerPtr->needNotify){
                     runnerPtr->needNotify = false;
-                    resumeRunner(runnerPtr);
+                    thisptr->resumeRunner(runnerPtr);
                 }
-                m_actorPod->forward(mpk.fromAddr(), AM_OK);
+                thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
             }
             else{
-                m_actorPod->forward(mpk.fromAddr(), AM_OK);
+                thisptr->m_actorPod->post(mpk.fromAddr(), AM_OK);
                 if(runnerPtr && runnerPtr->needNotify){
                     runnerPtr->needNotify = false;
-                    resumeRunner(runnerPtr);
+                    thisptr->resumeRunner(runnerPtr);
                 }
             }
         }
         else{
             if(runnerPtr && runnerPtr->needNotify){
                 runnerPtr->needNotify = false;
-                resumeRunner(runnerPtr);
+                thisptr->resumeRunner(runnerPtr);
             }
         }
+        return {};
     });
 
     bindFunction("getUID", [this]() -> uint64_t
@@ -128,82 +131,74 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 }
 
                 for(const auto &line: error){
-                    g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                    g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                 }
             }
         });
     });
 
-    bindFunctionCoop("_RSVD_NAME_remoteCall", [this](LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args)
+    bindCoop("_RSVD_NAME_remoteCall", [thisptr = this](this auto, LuaCoopResumer onDone, LuaCoopState s, uint64_t uid, std::string code, sol::object args) -> corof::awaitable<>
     {
-        fflassert(uid != m_actorPod->UID());
+        fflassert(uid != thisptr->m_actorPod->UID());
 
-        auto closed = std::make_shared<bool>(false);
-        onDone.pushOnClose([closed]()
-        {
-            *closed = true;
-        });
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
 
-        m_actorPod->forward(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
+        const auto mpk = co_await thisptr->m_actorPod->send(uid, {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
         {
             .code = code,
             .args = luaf::buildLuaVar(args),
-        })},
+        })});
 
-        [code, closed, s, uid, onDone](const ActorMsgPack &mpk)
-        {
+        if(closed){
             // even thread is closed, we still exam the remote call result to detect error
             // but will not resume the thread anymore since it's already closed
+        }
+        else{
+            onDone.popOnClose();
+        }
 
-            // pretty differnt than other close ops
-            // normally onClose does real clean work, but here onClose only setup flags
+        switch(mpk.type()){
+            case AM_SDBUFFER:
+                {
+                    // TODO shall we check if s still valid ?
+                    // coroutine can be closed when the remote call is still in progress, tried looks still fine to access s
 
-            if(!(*closed)){
-                onDone.popOnClose();
-            }
-
-            switch(mpk.type()){
-                case AM_SDBUFFER:
-                    {
-                        // TODO shall we check if s still valid ?
-                        // coroutine can be closed when the remote call is still in progress, tried looks still fine to access s
-
-                        auto sdRCR = mpk.deserialize<SDRemoteCallResult>();
-                        if(sdRCR.error.empty()){
-                            std::vector<sol::object> resList;
-                            for(auto & var: sdRCR.varList){
-                                resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
-                            }
-
-                            if(!(*closed)){
-                                onDone(SYS_EXECDONE, sol::as_args(resList));
-                            }
+                    auto sdRCR = mpk.template deserialize<SDRemoteCallResult>();
+                    if(sdRCR.error.empty()){
+                        std::vector<sol::object> resList;
+                        for(auto & var: sdRCR.varList){
+                            resList.emplace_back(luaf::buildLuaObj(s.getView(), std::move(var)));
                         }
-                        else{
-                            // don't need to handle remote call error, peer side has reported the error
-                            // _RSVD_NAME_uidExecute always returns valid result from remote peer to lua layer if not throw
-                            fflassert(sdRCR.varList.empty(), sdRCR.error, sdRCR.varList);
-                            g_monoServer->addLog(LOGTYPE_WARNING, "Error detected in remote call: %s", concatCode(code).c_str());
-                            for(const auto &line: sdRCR.error){
-                                g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
-                            }
-                            throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(uid)));
+
+                        if(!closed){
+                            onDone(SYS_EXECDONE, sol::as_args(resList));
                         }
-                        break;
                     }
-                case AM_BADACTORPOD:
-                    {
-                        if(!(*closed)){
-                            onDone(SYS_EXECBADUID);
+                    else{
+                        // don't need to handle remote call error, peer side has reported the error
+                        // _RSVD_NAME_uidExecute always returns valid result from remote peer to lua layer if not throw
+                        fflassert(sdRCR.varList.empty(), sdRCR.error, sdRCR.varList);
+                        g_server->addLog(LOGTYPE_WARNING, "Error detected in remote call: %s", concatCode(code).c_str());
+                        for(const auto &line: sdRCR.error){
+                            g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                         }
-                        break;
+                        throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(uid)));
                     }
-                default:
-                    {
-                        throw fflerror("lua call failed in %s: %s", to_cstr(uidf::getUIDString(uid)), mpkName(mpk.type()));
+                    break;
+                }
+            case AM_BADACTORPOD:
+                {
+                    if(!closed){
+                        onDone(SYS_EXECBADUID);
                     }
-            }
-        });
+                    break;
+                }
+            default:
+                {
+                    throw fflerror("lua call failed in %s: %s", to_cstr(uidf::getUIDString(uid)), mpk.str().c_str());
+                }
+        }
     });
 
     bindFunction("postNotify", [this](uint64_t uid, uint64_t dstThreadKey, uint64_t dstThreadSeqID, sol::variadic_args args)
@@ -215,7 +210,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
             argList.emplace_back(luaf::buildLuaVar(sol::object(arg)));
         }
 
-        m_actorPod->forward(uid, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
+        m_actorPod->post(uid, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
         {
             .key = dstThreadKey,
             .seqID = dstThreadSeqID,
@@ -224,61 +219,61 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         })});
     });
 
-    bindFunction(std::string("_RSVD_NAME_sendNotify") + SYS_COOP, [this](uint64_t questUID, uint64_t dstThreadKey, uint64_t dstThreadSeqID, sol::variadic_args args)
-    {
-        fflassert(uidf::isQuest(questUID), uidf::getUIDString(questUID));
-        fflassert(dstThreadKey > 0);
-        fflassert(args.size() >= 1, args.size());
-        fflassert(args.begin()[args.size() - 1].is<sol::function>());
-
-        const auto threadKey = m_currRunner->key;
-        const auto threadSeqID = m_currRunner->seqID;
-        const auto onDone = args.begin()[args.size() - 1].as<sol::function>();
-
-        fflassert(onDone);
-
-        auto closed = std::make_shared<bool>(false);
-        m_currRunner->onClose.push([closed]()
-        {
-            *closed = true;
-        });
-
-        const LuaCoopCallDoneFlag callDoneFlag;
-        m_actorPod->forward(questUID, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
-        {
-            .key = dstThreadKey,
-            .seqID = dstThreadSeqID,
-            .varList = luaf::vargBuildLuaVarList(args, 0, args.size() - 1),
-            .waitConsume = false,
-        })},
-
-        [closed, callDoneFlag, onDone, threadKey, threadSeqID, this](const ActorMsgPack &mpk)
-        {
-            if(*closed){
-                return;
-            }
-            else if(const auto runnerPtr = hasKey(threadKey, threadSeqID)){
-                runnerPtr->onClose.pop();
-            }
-
-            switch(mpk.type()){
-                case AM_OK:
-                    {
-                        onDone(SYS_EXECDONE);
-                        break;
-                    }
-                default:
-                    {
-                        onDone();
-                        break;
-                    }
-            }
-
-            if(callDoneFlag){
-                resume(threadKey, threadSeqID);
-            }
-        });
-    });
+    // bindFunction(std::string("_RSVD_NAME_sendNotify") + SYS_COOP, [this](uint64_t questUID, uint64_t dstThreadKey, uint64_t dstThreadSeqID, sol::variadic_args args)
+    // {
+    //     fflassert(uidf::isQuest(questUID), uidf::getUIDString(questUID));
+    //     fflassert(dstThreadKey > 0);
+    //     fflassert(args.size() >= 1, args.size());
+    //     fflassert(args.begin()[args.size() - 1].is<sol::function>());
+    //
+    //     const auto threadKey = m_currRunner->key;
+    //     const auto threadSeqID = m_currRunner->seqID;
+    //     const auto onDone = args.begin()[args.size() - 1].as<sol::function>();
+    //
+    //     fflassert(onDone);
+    //
+    //     auto closed = std::make_shared<bool>(false);
+    //     m_currRunner->onClose.push([closed]()
+    //     {
+    //         *closed = true;
+    //     });
+    //
+    //     const LuaCoopCallDoneFlag callDoneFlag;
+    //     m_actorPod->post(questUID, {AM_SENDNOTIFY, cerealf::serialize(SDSendNotify
+    //     {
+    //         .key = dstThreadKey,
+    //         .seqID = dstThreadSeqID,
+    //         .varList = luaf::vargBuildLuaVarList(args, 0, args.size() - 1),
+    //         .waitConsume = false,
+    //     })},
+    //
+    //     [closed, callDoneFlag, onDone, threadKey, threadSeqID, this](const ActorMsgPack &mpk)
+    //     {
+    //         if(*closed){
+    //             return;
+    //         }
+    //         else if(const auto runnerPtr = hasKey(threadKey, threadSeqID)){
+    //             runnerPtr->onClose.pop();
+    //         }
+    //
+    //         switch(mpk.type()){
+    //             case AM_OK:
+    //                 {
+    //                     onDone(SYS_EXECDONE);
+    //                     break;
+    //                 }
+    //             default:
+    //                 {
+    //                     onDone();
+    //                     break;
+    //                 }
+    //         }
+    //
+    //         if(callDoneFlag){
+    //             resume(threadKey, threadSeqID);
+    //         }
+    //     });
+    // });
 
     bindFunction("_RSVD_NAME_pickNotify", [this](uint64_t maxCount, sol::this_state s)
     {
@@ -308,11 +303,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
         m_currRunner->needNotify = true;
         if(timeout > 0){
-            const auto threadKey = m_currRunner->key;
-            const auto threadSeqID = m_currRunner->seqID;
-            const auto delayKey = m_actorPod->getSO()->addDelay(timeout, [threadKey, threadSeqID, this]()
+            const auto kp = m_currRunner->keyPair();
+            const auto delayKey = m_actorPod->getSO()->addDelay(timeout, [kp, this](bool)
             {
-                if(auto runner = hasKey(threadKey, threadSeqID)){
+                if(auto runner = hasKeyPair(kp)){
                     runner->onClose.pop();
                     runner->needNotify = false;
                     resumeRunner(runner);
@@ -321,7 +315,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
             m_currRunner->onClose.push([delayKey, this]()
             {
-                m_actorPod->getSO()->removeDelay(delayKey);
+                m_actorPod->getSO()->cancelDelay(delayKey);
             });
         }
         return sol::make_object(sol::state_view(s), sol::nil);
@@ -334,23 +328,23 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
 
     bindYielding("_RSVD_NAME_pauseYielding", [this](uint64_t msec)
     {
-        const auto threadKey   = m_currRunner->key;
-        const auto threadSeqID = m_currRunner->seqID;
-
-        const auto delayKey = m_actorPod->getSO()->addDelay(msec, [threadKey, threadSeqID, this]()
+        const auto kp = m_currRunner->keyPair();
+        const auto delayKey = m_actorPod->getSO()->addDelay(msec, [kp, this](bool timeout)
         {
-            if(auto runnerPtr = hasKey(threadKey, threadSeqID)){
-                // first pop the onclose function
-                // otherwise the resume() will call it if the resume reaches end of code
-                fflassert(!runnerPtr->onClose.empty());
-                runnerPtr->onClose.pop();
-                resumeRunner(runnerPtr);
+            if(timeout){
+                if(auto runnerPtr = hasKeyPair(kp)){
+                    // first pop the onclose function
+                    // otherwise the resume() will call it if the resume reaches end of code
+                    fflassert(!runnerPtr->onClose.empty());
+                    runnerPtr->onClose.pop();
+                    resumeRunner(runnerPtr);
+                }
             }
         });
 
         m_currRunner->onClose.push([delayKey, this]()
         {
-            m_actorPod->getSO()->removeDelay(delayKey);
+            m_actorPod->getSO()->cancelDelay(delayKey);
         });
     });
 
@@ -401,18 +395,19 @@ ServerLuaCoroutineRunner::LuaThreadHandle *ServerLuaCoroutineRunner::hasKey(uint
 
 void ServerLuaCoroutineRunner::close(uint64_t key, uint64_t seqID)
 {
-    if(auto eqr = m_runnerList.equal_range(key); eqr.first != eqr.second){
-        for(auto p = eqr.first;; ++p){
-            if(seqID == 0){
-                p = m_runnerList.erase(p);
-            }
-            else if(seqID == p->second.seqID){
-                m_runnerList.erase(p);
-                return;
-            }
-            else{
-                ++p;
-            }
+    auto eqr = m_runnerList.equal_range(key);
+    auto itr = eqr.first;
+
+    while(itr != eqr.second){
+        if(seqID == 0){
+            itr = m_runnerList.erase(itr);
+        }
+        else if(seqID == itr->second.seqID){
+            m_runnerList.erase(itr);
+            return;
+        }
+        else{
+            itr++;
         }
     }
 }
@@ -434,7 +429,7 @@ std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, std:
                 fflassert(varList.empty(), error, varList);
             }
 
-            m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+            m_actorPod->post(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
                 .error = std::move(error),
                 .varList = std::move(varList),
@@ -487,7 +482,7 @@ std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, std:
     [closed, reqAddr, this]()
     {
         if(*closed){
-            m_actorPod->forward(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
+            m_actorPod->post(reqAddr, {AM_SDBUFFER, cerealf::serialize(SDRemoteCallResult
             {
                 .varList
                 {
@@ -550,28 +545,15 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     // this difference has been propogated to remote caller side by pfr serialization
     // this difference should be handled by caller side
 
-    struct KeepRunner final
-    {
-        LuaThreadHandle * & refRunner;
-        LuaThreadHandle *   oldRunner;
-
-        KeepRunner(LuaThreadHandle * &runner, LuaThreadHandle *newRunner)
-            : refRunner(runner)
-            , oldRunner(runner)
-        {
-            refRunner = newRunner;
-        }
-
-        ~KeepRunner()
-        {
-            refRunner = oldRunner;
-        }
-    };
-
     const auto pfr = [&]()
     {
-        const KeepRunner keep(m_currRunner, runnerPtr);
-        return codeOpt.has_value() ? runnerPtr->callback(codeOpt.value().first, luaf::buildLuaObj(sol::state_view(runnerPtr->runner.state()), codeOpt.value().second)) : runnerPtr->callback();
+        const ValueKeeper keep(m_currRunner, runnerPtr);
+        if(codeOpt.has_value()){
+            return runnerPtr->callback(codeOpt.value().first, luaf::buildLuaObj(sol::state_view(runnerPtr->runner.state()), codeOpt.value().second));
+        }
+        else{
+            return runnerPtr->callback();
+        }
     }();
 
     if(runnerPtr->callback){
@@ -581,8 +563,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
     // backup key and comletion handler
     // runnerPtr->onDone can invalidate runnerPtr, althrough this is no encouraged
 
-    const auto threadKey = runnerPtr->key;
-    const auto threadSeqID = runnerPtr->seqID;
+    const auto kp = runnerPtr->keyPair();
     const auto onDoneFunc = std::move(runnerPtr->onDone);
 
     if(onDoneFunc){
@@ -592,7 +573,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
         std::vector<std::string> error;
         if(pfrCheck(pfr, [&error](const std::string &s){ error.push_back(s); })){
             if(pfr.return_count() > 0){
-                g_monoServer->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
+                g_server->addLog(LOGTYPE_WARNING, "Dropped result: %s", to_cstr(str_any(luaf::pfrBuildLuaVarList(pfr))));
             }
         }
         else{
@@ -601,10 +582,10 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
             }
 
             for(const auto &line: error){
-                g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
+                g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
             }
         }
     }
 
-    close(threadKey, threadSeqID);
+    close(kp);
 }

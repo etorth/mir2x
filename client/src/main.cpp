@@ -1,7 +1,6 @@
 #include <cstdio>
 #include "log.hpp"
 #include "client.hpp"
-#include "xmlconf.hpp"
 #include "pngtexdb.hpp"
 #include "fontexdb.hpp"
 #include "mapbindb.hpp"
@@ -35,7 +34,6 @@ BGMusicDB       *g_bgmDB           = nullptr; // database for bgm, contains .MP3
 SoundEffectDB   *g_seffDB          = nullptr; // database for sound effect, contains .WAV
 MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
-XMLConf         *g_xmlConf         = nullptr; // for client configure XML parsing
 SDLDevice       *g_sdlDevice       = nullptr; // for SDL hardware device
 IMEBoard        *g_imeBoard        = nullptr; //
 NotifyBoard     *g_notifyBoard     = nullptr;
@@ -45,7 +43,7 @@ int main(int argc, char *argv[])
 {
     std::srand((unsigned int)std::time(nullptr));
     try{
-        arg_parser cmdParser(argc, argv);
+        argf::parser cmdParser(argc, argv);
         g_clientArgParser = new ClientArgParser(cmdParser);
 
         if(g_clientArgParser->disableProfiler){
@@ -64,7 +62,6 @@ int main(int argc, char *argv[])
     }
 
     try{
-        g_xmlConf         = new XMLConf();
         g_sdlDevice       = new SDLDevice();
         g_progUseDB       = new PNGTexDB(1024);
         g_itemDB          = new PNGTexDB(1024);
@@ -93,7 +90,7 @@ int main(int argc, char *argv[])
         g_log->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
     }
     catch(...){
-        g_log->addLog(LOGTYPE_FATAL, "Caught unknown exception, exit...");
+        g_log->addLog(LOGTYPE_FATAL, "Caught unknown exception");
     }
     return 0;
 }

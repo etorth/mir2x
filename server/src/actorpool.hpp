@@ -12,24 +12,34 @@
 #include <cstdint>
 #include <shared_mutex>
 #include <unordered_map>
+#include <iostream>
 #include "uidf.hpp"
 #include "raiitimer.hpp"
 #include "actormsgpack.hpp"
 #include "actormonitor.hpp"
+#include "delaydriver.hpp"
+#include "actornetdriver.hpp"
 #include "parallel_hashmap/phmap.h"
 
 class ActorPod;
+class NetDriver;
 class Receiver;
 class Dispatcher;
 class SyncDriver;
+class DelayDriver;
+class ActorNetDriver;
+class PeerCore;
 
 class ActorPool final
 {
     private:
         friend class ActorPod;
+        friend class NetDriver;
         friend class Receiver;
         friend class Dispatcher;
         friend class SyncDriver;
+        friend class DelayDriver;
+        friend class ActorNetDriver;
 
     public:
         struct UIDComper
@@ -331,15 +341,15 @@ class ActorPool final
                 MailboxMutex &m_mutexRef;
 
             public:
-                MailboxLock(MailboxMutex &rstMutex, int nWorkerID)
+                MailboxLock(MailboxMutex &m, int workerID)
                     : m_expected(MAILBOX_READY)
                     , m_workerID(MAILBOX_ERROR)
-                    , m_mutexRef(rstMutex)
+                    , m_mutexRef(m)
                 {
                     // need to save the worker id
                     // since the mailbox may get detached quietly
-                    if(m_mutexRef.m_status.compare_exchange_strong(m_expected, nWorkerID)){
-                        m_workerID = nWorkerID;
+                    if(m_mutexRef.m_status.compare_exchange_strong(m_expected, workerID)){
+                        m_workerID = workerID;
                     }
                 }
 
@@ -351,14 +361,18 @@ class ActorPool final
                             if(m_expected != MAILBOX_DETACHED){
                                 // big error here and should never happen
                                 // someone stolen the mailbox without accquire the lock
-                                std::abort();
+                                std::cerr << "MailboxLock::dtor failure" << std::endl;
+                                std::terminate();
                             }
                         }
                     }
                 }
 
-                MailboxLock(const MailboxLock &) = delete;
-                MailboxLock &operator = (MailboxLock) = delete;
+            public:
+                MailboxLock              (      MailboxLock &&) = delete;
+                MailboxLock              (const MailboxLock & ) = delete;
+                MailboxLock & operator = (      MailboxLock &&) = delete;
+                MailboxLock & operator = (const MailboxLock & ) = delete;
 
             public:
                 bool locked() const
@@ -387,12 +401,15 @@ class ActorPool final
             std::vector<std::pair<ActorMsgPack, uint64_t>> currQ;
             std::vector<std::pair<ActorMsgPack, uint64_t>> nextQ;
 
-            std::function<void()> atStart;
             std::function<void()> atExit;
 
             // pool can automatically send METRONOME to actorpod
             // this record last send time, in ms
             uint64_t lastUpdateTime = 0;
+
+            // put ctor in actorpool.cpp
+            // ActorPod is incomplete type in actorpool.hpp
+            Mailbox(ActorPod *, bool);
 
             // put a monitor structure and always maintain it
             // then no need to acquire schedLock to dump the monitor
@@ -417,10 +434,6 @@ class ActorPool final
                     to_u32(monitor.messagePending.load()),
                 };
             }
-
-            // put ctor in actorpool.cpp
-            // ActorPod is incomplete type in actorpool.hpp
-            Mailbox(ActorPod *, std::function<void()>);
         };
 
         struct MailboxSubBucket
@@ -457,9 +470,6 @@ class ActorPool final
             UIDQueue uidQPending;
             std::array<MailboxSubBucket, m_subBucketCount> subBucketList;
         };
-
-    private:
-        const uint32_t m_logicFPS;
 
     private:
         std::atomic<size_t> m_countRunning {0};
@@ -520,11 +530,19 @@ class ActorPool final
         };
 
     private:
+        std::unique_ptr<PeerCore> m_peerCore;
+
+    private:
         std::mutex m_receiverLock;
         std::unordered_map<uint64_t, Receiver *> m_receiverList;
 
+    private:
+        std::unique_ptr<NetDriver> m_netDriver;
+        std::unique_ptr<DelayDriver> m_delayDriver;
+        std::unique_ptr<ActorNetDriver> m_actorNetDriver;
+
     public:
-        ActorPool(int, int);
+        ActorPool(int);
 
     public:
         ~ActorPool();
@@ -540,27 +558,51 @@ class ActorPool final
         bool isActorThread(int) const;
 
     private:
+        void attach(ActorPod *);
         void attach(Receiver *);
-        void attach(ActorPod *, std::function<void()>);
 
     private:
         void detach(const Receiver *);
         void detach(const ActorPod *, std::function<void()>);
 
     public:
-        void launchPool();
+        size_t peerCount() const
+        {
+            return m_actorNetDriver->peerCount();
+        }
+
+        size_t peerIndex() const
+        {
+            return m_actorNetDriver->peerIndex();
+        }
+
+    public:
         bool checkUIDValid(uint64_t) const;
+
+    public:
+        void launch();  // --launch-+-closeAcceptor
+                        //          |
+                        //          +-launchBalance-+-launchPool
+                        //                          |
+                        //                          +-launchNet
+    private:
+        void launchBalance();
+
+    private:
+        void launchPool();
+        void launchNet(int);
 
     private:
         uint64_t GetInnActorUID();
 
     private:
         bool postMessage(uint64_t, ActorMsgPack);
+        bool postLocalMessage(uint64_t, ActorMsgPack);
 
     private:
         void runOneUID(uint64_t);
-        bool runOneMailbox(Mailbox *, bool, uint64_t);
-        void runOneMailboxBucket(int, uint64_t);
+        bool runOneMailbox(Mailbox *); // return false if mailbox detached
+        void runOneMailboxBucket(int);
 
     private:
         void clearOneMailbox(Mailbox *);
@@ -598,4 +640,15 @@ class ActorPool final
     private:
         Mailbox *tryGetMailboxPtr(uint64_t);
         std::pair<MailboxSubBucket::RLockGuard, Mailbox *> tryGetRLockedMailboxPtr(uint64_t);
+
+    public:
+        uint64_t requestTimeout(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_t tick)
+        {
+            return m_delayDriver->add(fromAddr, tick);
+        }
+
+        void cancelTimeout(uint64_t key)
+        {
+            m_delayDriver->remove(key);
+        }
 };

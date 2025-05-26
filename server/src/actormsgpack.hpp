@@ -3,10 +3,14 @@
 #include <cstdint>
 #include <utility>
 #include <type_traits>
+#include <optional>
 #include "cerealf.hpp"
+#include "uidf.hpp"
+#include "strf.hpp"
 #include "fflerror.hpp"
 #include "actormsg.hpp"
 #include "actormsgbuf.hpp"
+#include "totype.hpp"
 
 template<size_t SBUFSIZE = 64> class InnActorMsgPack final
 {
@@ -191,120 +195,52 @@ template<size_t SBUFSIZE = 64> class InnActorMsgPack final
        {
            return m_respID;
        }
-};
 
-inline const char *mpkName(int type)
-{
-#define _add_mpk_type_case(t) case t: return #t;
-    switch(type){
-        _add_mpk_type_case(AM_NONE)
-        _add_mpk_type_case(AM_OK)
-        _add_mpk_type_case(AM_ERROR)
-        _add_mpk_type_case(AM_BADACTORPOD)
-        _add_mpk_type_case(AM_BADCHANNEL)
-        _add_mpk_type_case(AM_SDBUFFER)
-        _add_mpk_type_case(AM_REMOTECALL)
-        _add_mpk_type_case(AM_TIMEOUT)
-        _add_mpk_type_case(AM_UID)
-        _add_mpk_type_case(AM_UIDLIST)
-        _add_mpk_type_case(AM_PING)
-        _add_mpk_type_case(AM_LOGIN)
-        _add_mpk_type_case(AM_METRONOME)
-        _add_mpk_type_case(AM_TRYJUMP)
-        _add_mpk_type_case(AM_ALLOWJUMP)
-        _add_mpk_type_case(AM_REJECTJUMP)
-        _add_mpk_type_case(AM_JUMPOK)
-        _add_mpk_type_case(AM_JUMPERROR)
-        _add_mpk_type_case(AM_TRYMOVE)
-        _add_mpk_type_case(AM_ALLOWMOVE)
-        _add_mpk_type_case(AM_REJECTMOVE)
-        _add_mpk_type_case(AM_MOVEOK)
-        _add_mpk_type_case(AM_MOVEERROR)
-        _add_mpk_type_case(AM_TRYSPACEMOVE)
-        _add_mpk_type_case(AM_ALLOWSPACEMOVE)
-        _add_mpk_type_case(AM_REJECTSPACEMOVE)
-        _add_mpk_type_case(AM_SPACEMOVEOK)
-        _add_mpk_type_case(AM_SPACEMOVEERROR)
-        _add_mpk_type_case(AM_TRYLEAVE)
-        _add_mpk_type_case(AM_ALLOWLEAVE)
-        _add_mpk_type_case(AM_REJECTLEAVE)
-        _add_mpk_type_case(AM_LEAVEOK)
-        _add_mpk_type_case(AM_LEAVEERROR)
-        _add_mpk_type_case(AM_FINISHLEAVE)
-        _add_mpk_type_case(AM_LOGINOK)
-        _add_mpk_type_case(AM_LOGINQUERYDB)
-        _add_mpk_type_case(AM_SENDPACKAGE)
-        _add_mpk_type_case(AM_RECVPACKAGE)
-        _add_mpk_type_case(AM_ADDCO)
-        _add_mpk_type_case(AM_BINDCHANNEL)
-        _add_mpk_type_case(AM_ACTION)
-        _add_mpk_type_case(AM_QUERYMAPLIST)
-        _add_mpk_type_case(AM_MAPLIST)
-        _add_mpk_type_case(AM_MAPSWITCHTRIGGER)
-        _add_mpk_type_case(AM_TRYMAPSWITCH)
-        _add_mpk_type_case(AM_ALLOWMAPSWITCH)
-        _add_mpk_type_case(AM_REJECTMAPSWITCH)
-        _add_mpk_type_case(AM_MAPSWITCHOK)
-        _add_mpk_type_case(AM_MAPSWITCHERROR)
-        _add_mpk_type_case(AM_LOADMAP)
-        _add_mpk_type_case(AM_LOADMAPOK)
-        _add_mpk_type_case(AM_LOADMAPERROR)
-        _add_mpk_type_case(AM_QUERYLOCATION)
-        _add_mpk_type_case(AM_QUERYSELLITEMLIST)
-        _add_mpk_type_case(AM_LOCATION)
-        _add_mpk_type_case(AM_PATHFIND)
-        _add_mpk_type_case(AM_PATHFINDOK)
-        _add_mpk_type_case(AM_ATTACK)
-        _add_mpk_type_case(AM_UPDATEHP)
-        _add_mpk_type_case(AM_DEADFADEOUT)
-        _add_mpk_type_case(AM_QUERYUIDBUFF)
-        _add_mpk_type_case(AM_QUERYCORECORD)
-        _add_mpk_type_case(AM_QUERYCOCOUNT)
-        _add_mpk_type_case(AM_QUERYPLAYERWLDESP)
-        _add_mpk_type_case(AM_COCOUNT)
-        _add_mpk_type_case(AM_ADDBUFF)
-        _add_mpk_type_case(AM_REMOVEBUFF)
-        _add_mpk_type_case(AM_EXP)
-        _add_mpk_type_case(AM_MISS)
-        _add_mpk_type_case(AM_HEAL)
-        _add_mpk_type_case(AM_QUERYHEALTH)
-        _add_mpk_type_case(AM_HEALTH)
-        _add_mpk_type_case(AM_DROPITEM)
-        _add_mpk_type_case(AM_SHOWDROPITEM)
-        _add_mpk_type_case(AM_NOTIFYDEAD)
-        _add_mpk_type_case(AM_OFFLINE)
-        _add_mpk_type_case(AM_PICKUP)
-        _add_mpk_type_case(AM_PICKUPITEMLIST)
-        _add_mpk_type_case(AM_REMOVEGROUNDITEM)
-        _add_mpk_type_case(AM_CORECORD)
-        _add_mpk_type_case(AM_NOTIFYNEWCO)
-        _add_mpk_type_case(AM_CHECKMASTER)
-        _add_mpk_type_case(AM_CHECKMASTEROK)
-        _add_mpk_type_case(AM_QUERYMASTER)
-        _add_mpk_type_case(AM_QUERYFINALMASTER)
-        _add_mpk_type_case(AM_QUERYFRIENDTYPE)
-        _add_mpk_type_case(AM_FRIENDTYPE)
-        _add_mpk_type_case(AM_CASTFIREWALL)
-        _add_mpk_type_case(AM_STRIKEFIXEDLOCDAMAGE)
-        _add_mpk_type_case(AM_QUERYNAMECOLOR)
-        _add_mpk_type_case(AM_NAMECOLOR)
-        _add_mpk_type_case(AM_MASTERKILL)
-        _add_mpk_type_case(AM_MASTERHITTED)
-        _add_mpk_type_case(AM_NPCEVENT)
-        _add_mpk_type_case(AM_NPCERROR)
-        _add_mpk_type_case(AM_BUY)
-        _add_mpk_type_case(AM_BUYCOST)
-        _add_mpk_type_case(AM_BUYERROR)
-        _add_mpk_type_case(AM_MODIFYQUESTTRIGGERTYPE)
-        _add_mpk_type_case(AM_QUERYQUESTUID)
-        _add_mpk_type_case(AM_QUERYQUESTUIDLIST)
-        _add_mpk_type_case(AM_QUERYQUESTTRIGGERLIST)
-        _add_mpk_type_case(AM_RUNQUESTTRIGGER)
-        _add_mpk_type_case(AM_SENDNOTIFY)
-        _add_mpk_type_case(AM_REGISTERQUEST)
-        default: return "AM_UNKNOWN";
-    }
-#undef _add_mpk_type_case
-}
+    public:
+       ActorMsgBuf msgBuf() const
+       {
+           return ActorMsgBuf(type(), data(), size());
+       }
+
+    public:
+       template<class Archive> void save(Archive & ar) const
+       {
+           ar(m_type, m_from, m_seqID, m_respID);
+           ar(size());
+           ar(cereal::binary_data(data(), size()));
+       }
+
+       template<class Archive> void load(Archive & ar)
+       {
+           ar(m_type, m_from, m_seqID, m_respID);
+
+           size_t size = 0;
+           ar(size);
+
+           if(size <= SBUFSIZE){
+               m_sbufSize = size;
+               m_dbufSize = 0;
+               ar(cereal::binary_data(m_sbuf, size));
+           }
+           else{
+               m_sbufSize = 0;
+               m_dbufSize = size;
+               m_dbuf = new uint8_t[size];
+               ar(cereal::binary_data(m_dbuf, size));
+           }
+       }
+
+    public:
+       std::string str(std::optional<uint64_t> toOpt = std::nullopt) const
+       {
+           return str_printf("{type:%s, from:%s, %sseqID:%llu, respID:%llu, size:%llu}",
+                   mpkName(type()),
+                   to_cstr(uidf::getUIDString(from())),
+                   toOpt.has_value() ? str_printf("to:%s, ", to_cstr(uidf::getUIDString(toOpt.value()))).c_str() : "",
+                   to_llu(seqID()),
+                   to_llu(respID()),
+                   to_llu(size()));
+       }
+};
 
 using ActorMsgPack = InnActorMsgPack<64>;

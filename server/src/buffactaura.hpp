@@ -4,6 +4,7 @@
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "buffact.hpp"
+#include "corof.hpp"
 
 class BaseBuff;
 class BaseBuffActAura: public BaseBuffAct
@@ -18,8 +19,8 @@ class BaseBuffActAura: public BaseBuffAct
         BaseBuffActAura(BaseBuff *, size_t);
 
     public:
-        void dispatch();
-        void transmit(uint64_t);
+        corof::awaitable<> dispatch();
+        corof::awaitable<> transmit(uint64_t);
 
     public:
         uint32_t getAuraBuffID() const

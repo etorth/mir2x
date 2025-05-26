@@ -11,7 +11,7 @@
 struct COLocation
 {
     uint64_t uid = 0;
-    uint32_t mapID = 0;
+    uint64_t mapUID = 0;
 
     int x = -1;
     int y = -1;
@@ -34,7 +34,8 @@ class CharObject: public ServerObject
         };
 
     protected:
-        const ServerMap * m_map;
+        uint64_t m_mapUID;
+        std::shared_ptr<Mir2xMapData> m_mapBinPtr;
 
     protected:
         std::unordered_map<uint64_t, COLocation> m_inViewCOList;
@@ -49,11 +50,11 @@ class CharObject: public ServerObject
 
     public:
         CharObject(
-                const ServerMap *,  // server map
-                uint64_t,           // uid
-                int,                // map x
-                int,                // map y
-                int);               // direction
+                uint64_t, // uid
+                uint64_t, // server map uid
+                int,      // map x
+                int,      // map y
+                int);     // direction
 
     public:
         ~CharObject() = default;
@@ -75,23 +76,26 @@ class CharObject: public ServerObject
             return m_direction;
         }
 
+    public:
         uint32_t mapID() const
         {
-            return m_map ? m_map->ID() : 0;
+            return uidf::getMapID(m_mapUID);
         }
 
         uint64_t mapUID() const
         {
-            return m_map->UID();
+            return m_mapUID;
+        }
+
+        const Mir2xMapData *mapBin() const
+        {
+            return m_mapBinPtr.get();
         }
 
     public:
-        virtual bool update() = 0;
-
-    public:
-        void onActivate() override
+        corof::awaitable<> onActivate() override
         {
-            ServerObject::onActivate();
+            co_await ServerObject::onActivate();
             dispatchAction(ActionSpawn
             {
                 .direction = Direction(),
@@ -108,20 +112,18 @@ class CharObject: public ServerObject
         virtual void dispatchAction(uint64_t, const ActionNode &);
 
     protected:
-        void getCOLocation(uint64_t, std::function<void(const COLocation &)>, std::function<void()> = []{});
-
-    protected:
-        void addMonster(uint32_t, int, int, bool);
+        corof::awaitable<std::optional<COLocation>> getCOLocation(uint64_t);
 
     protected:
         virtual bool goDie()   = 0;
         virtual bool goGhost() = 0;
 
     protected:
-        bool inView(uint32_t, int, int) const;
+        bool inView(uint64_t, int, int) const;
 
     protected:
         void trimInViewCO();
+        bool removeInViewCO(uint64_t);
         int  updateInViewCO(const COLocation &, bool = false);
         void foreachInViewCO(std::function<void(const COLocation &)>);
 

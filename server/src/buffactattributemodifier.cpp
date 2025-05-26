@@ -1,11 +1,11 @@
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "dbcomid.hpp"
 #include "battleobject.hpp"
 #include "buff.hpp"
 #include "buffact.hpp"
 #include "buffactattributemodifier.hpp"
 
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 BaseBuffActAttributeModifier::BaseBuffActAttributeModifier(BaseBuff *argBuff, size_t argBuffActOff)
     : BaseBuffAct(argBuff, argBuffActOff)
     , m_onDone([this]() -> std::function<void()>
@@ -109,7 +109,7 @@ BaseBuffActAttributeModifier::~BaseBuffActAttributeModifier()
     }
 
     if(!errInfo.empty()){
-        g_monoServer->addLog(LOGTYPE_FATAL, "Attribute modifier callback failed: %s", to_cstr(errInfo));
+        g_server->addLog(LOGTYPE_FATAL, "Attribute modifier callback failed: %s", to_cstr(errInfo));
     }
 }
 

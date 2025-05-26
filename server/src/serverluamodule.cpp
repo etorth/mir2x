@@ -1,9 +1,10 @@
 #include "uidf.hpp"
+#include "mathf.hpp"
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
 #include "mapbindb.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "serverargparser.hpp"
 #include "serverluamodule.hpp"
 #include "serverconfigurewindow.hpp"
@@ -11,7 +12,7 @@
 extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
@@ -27,15 +28,15 @@ ServerLuaModule::ServerLuaModule()
             R"###(     disableNPCSpawn     = %s,    )###"
             R"###( })                               )###",
 
-            to_boolcstr(g_serverArgParser->disableMapScript   ),
-            to_boolcstr(g_serverArgParser->disablePetSpawn    ),
-            to_boolcstr(g_serverArgParser->disableGuardSpawn  ),
-            to_boolcstr(g_serverArgParser->disableMonsterSpawn),
-            to_boolcstr(g_serverArgParser->disableNPCSpawn    )));
+            to_boolcstr(g_serverArgParser->sharedConfig().disableMapScript   ),
+            to_boolcstr(g_serverArgParser->sharedConfig().disablePetSpawn    ),
+            to_boolcstr(g_serverArgParser->sharedConfig().disableGuardSpawn  ),
+            to_boolcstr(g_serverArgParser->sharedConfig().disableMonsterSpawn),
+            to_boolcstr(g_serverArgParser->sharedConfig().disableNPCSpawn    )));
 
     pfrCheck(execString("package.path = package.path .. ';%s/?.lua'", []() -> std::string
     {
-        if(const auto cfgScriptPath = g_serverConfigureWindow->getConfig().scriptPath; cfgScriptPath.empty()){
+        if(const auto cfgScriptPath = g_serverArgParser->slave ? std::string{} : g_serverConfigureWindow->getConfig().scriptPath; cfgScriptPath.empty()){
             return "script";
         }
         else{
@@ -58,8 +59,8 @@ ServerLuaModule::ServerLuaModule()
         const auto fnGetRandGLoc = [](const auto dataCPtr) -> std::array<int, 2>
         {
             while(true){
-                const int x = std::rand() % dataCPtr->w();
-                const int y = std::rand() % dataCPtr->h();
+                const int x = mathf::rand() % dataCPtr->w();
+                const int y = mathf::rand() % dataCPtr->h();
 
                 if(dataCPtr->validC(x, y) && dataCPtr->cell(x, y).land.canThrough()){
                     return {x, y};
@@ -90,7 +91,7 @@ ServerLuaModule::ServerLuaModule()
     bindFunction("dbExecString", [](std::string cmd)
     {
         fflassert(!cmd.empty());
-        g_dbPod->exec(to_cstr(cmd));
+        g_dbPod->exec("%s", to_cstr(cmd));
     });
 
     bindFunction("dbQueryString", [](std::string query, sol::this_state s)
@@ -141,15 +142,14 @@ ServerLuaModule::ServerLuaModule()
     END_LUAINC()));
 }
 
-void ServerLuaModule::addLogString(int nLogType, const char8_t *logInfo)
+void ServerLuaModule::addLogString(int logType, const char8_t *logInfo)
 {
     // any time if you call addLog() or addLogString() in lua module
     // this will get printed in the server GUI console
 
-    switch(nLogType){
-        case 0  : g_monoServer->addLog(LOGTYPE_INFO   , "%s", to_cstr(logInfo)); return;
-        case 1  : g_monoServer->addLog(LOGTYPE_WARNING, "%s", to_cstr(logInfo)); return;
-        case 2  : g_monoServer->addLog(LOGTYPE_FATAL  , "%s", to_cstr(logInfo)); return;
-        default : g_monoServer->addLog(LOGTYPE_DEBUG  , "%s", to_cstr(logInfo)); return;
+    switch(logType){
+        case 0 : g_server->addLog(LOGTYPE_INFO   , "%s", to_cstr(logInfo)); return;
+        case 1 : g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(logInfo)); return;
+        default: g_server->addLog(LOGTYPE_FATAL  , "%s", to_cstr(logInfo)); return;
     }
 }

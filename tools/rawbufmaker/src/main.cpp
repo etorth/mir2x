@@ -3,7 +3,7 @@
 #include <fstream>
 #include <cinttypes>
 #include "rawbuf.hpp"
-#include "argparser.hpp"
+#include "argf.hpp"
 
 static int cmd_help()
 {
@@ -13,7 +13,7 @@ static int cmd_help()
     return 0;
 }
 
-static int cmd_create_hex(const argh::parser &cmd)
+static int cmd_create_hex(const argf::parser &cmd)
 {
     auto szInFileName = [&cmd]() -> std::string
     {
@@ -43,7 +43,7 @@ static int cmd_create_hex(const argh::parser &cmd)
 int main(int argc, char *argv[])
 {
     try{
-        arg_parser cmd(argc, argv);
+        argf::parser cmd(argc, argv);
         if(cmd.has_option("help")){
             return cmd_help();
         }

@@ -71,7 +71,7 @@ class DBPod final
         }
 
     public:
-        int exec(const char *format, ...)
+        int exec(const char *format, ...) STR_PRINTF_CHECK_FORMAT(2)
         {
             checkDBEx();
             std::string s;

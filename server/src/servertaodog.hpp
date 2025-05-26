@@ -8,8 +8,8 @@ class ServerTaoDog final: public ServerTaoSummon
         bool m_standMode = false;
 
     public:
-        ServerTaoDog(ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : ServerTaoSummon(DBCOM_MONSTERID(u8"神兽"), mapPtr, argX, argY, argDir, masterUID)
+        ServerTaoDog(uint64_t argMapUID, int argX, int argY, int argDir, uint64_t masterUID)
+            : ServerTaoSummon(DBCOM_MONSTERID(u8"神兽"), argMapUID, argX, argY, argDir, masterUID)
         {}
 
     public:
@@ -34,7 +34,7 @@ class ServerTaoDog final: public ServerTaoSummon
         }
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         ActionNode makeActionStand() const override
@@ -55,16 +55,17 @@ class ServerTaoDog final: public ServerTaoSummon
         }
 
     protected:
-        void attackUID(uint64_t, int, std::function<void()>, std::function<void()>) override;
+        corof::awaitable<bool> attackUID(uint64_t, int) override;
 
     protected:
-        void onAMMasterHitted(const ActorMsgPack &) override
+        corof::awaitable<> onAMMasterHitted(const ActorMsgPack &) override
         {
             setStandMode(true);
+            return {};
         }
 
     protected:
-        void onAMAttack(const ActorMsgPack &) override;
+        corof::awaitable<> onAMAttack(const ActorMsgPack &) override;
 
     protected:
         DamageNode getAttackDamage(int, int) const override;

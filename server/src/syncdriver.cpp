@@ -1,16 +1,17 @@
 #include <cinttypes>
 #include "uidf.hpp"
+#include "totype.hpp"
 #include "fflerror.hpp"
 #include "actorpool.hpp"
-#include "monoserver.hpp"
+#include "server.hpp"
 #include "syncdriver.hpp"
 #include "serverargparser.hpp"
 
 extern ActorPool *g_actorPool;
-extern MonoServer *g_monoServer;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 
-ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint32_t resp, uint32_t timeout)
+ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint64_t resp, uint64_t timeout)
 {
     // don't use in actor thread
     // because we can use actor send message directly
@@ -24,8 +25,8 @@ ActorMsgPack SyncDriver::forward(uint64_t uid, const ActorMsgBuf &mb, uint32_t r
         m_currID = 1;
     }
 
-    if(g_serverArgParser->traceActorMessage){
-        g_monoServer->addLog(LOGTYPE_DEBUG, "%s -> %s: (type: %s, ID: %llu, Resp: %llu)", uidf::getUIDString(UID()).c_str(), uidf::getUIDString(uid).c_str(), mpkName(mb.type()), to_llu(m_currID), to_llu(resp));
+    if(g_serverArgParser->sharedConfig().traceActorMessage){
+        g_server->addLog(LOGTYPE_TRACE, "%s -> %s", to_cstr(uidf::getUIDString(UID())), to_cstr(ActorMsgPack(mb, UID(), m_currID, resp).str(uid)));
     }
 
     if(!g_actorPool->postMessage(uid, {mb, UID(), m_currID, resp})){

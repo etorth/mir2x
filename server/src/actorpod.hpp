@@ -1,10 +1,13 @@
 #pragma once
-#include <map>
 #include <array>
 #include <string>
 #include <cfloat>
+#include <variant>
+#include <coroutine>
 #include <functional>
+#include <unordered_map>
 
+#include "corof.hpp"
 #include "actormsgbuf.hpp"
 #include "actormsgpack.hpp"
 #include "actormonitor.hpp"
@@ -16,15 +19,29 @@ class ActorPod final
         friend class ActorPool;
 
     private:
-        struct RespondCallback
+        template<bool AllowOverwrite> struct RegisterContinuationAwaiter
         {
-            uint64_t expireTime;
-            std::function<void(const ActorMsgPack &)> op;
+            ActorPod * const actor;
+            uint64_t   const seqID;
 
-            RespondCallback(uint64_t argExpireTime, std::function<void(const ActorMsgPack &)> argOp)
-                : expireTime(argExpireTime)
-                , op(std::move(argOp))
-            {}
+            bool await_ready() const noexcept
+            {
+                return false;
+            }
+
+            void await_suspend(std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type> handle)
+            {
+                if constexpr(AllowOverwrite){
+                    actor->m_respondCBList.insert_or_assign(seqID, handle);
+                }
+                else{
+                    if(!actor->m_respondCBList.try_emplace(seqID, handle).second){
+                        throw fflerror("%s: seqID %llu already has a continuation", to_cstr(uidf::getUIDString(actor->UID())), to_llu(seqID));
+                    }
+                }
+            }
+
+            void await_resume() const noexcept {}
         };
 
     private:
@@ -34,63 +51,24 @@ class ActorPod final
         ServerObject * const m_SO;
 
     private:
-        // trigger is only for state update, so it won't accept any parameters w.r.t
-        // message or time or xxx
-        //
-        // it will be invoked every time when message handling finished
-        // for actors the only chance to update their state is via message driving.
-        //
-        // conceptually one actor could have more than one trigger
-        // for that we should register / de-register those triggers to m_trigger
-        // most likely here we use StateHook::Execute();
-        //
-        // trigger is provided at initialization and never change
-        const std::function<void()> m_trigger;
-
-        // handler to handle every informing messages
-        // informing messges means we didn't register an handler for it
-        // this handler is provided at the initialization time and never change
-        const std::function<void(const ActorMsgPack &)> m_operation;
-        std::array<std::function<void(const ActorMsgPack &)>, AM_END> m_msgOpList;
-
-    private:
-        // actorpool automatically send METRONOME to actor
-        // this can control the freq if we want to setup actor in standby/active mode, zero or negative means not send METRONOME
-        double m_updateFreq;
+        std::array<std::function<corof::awaitable<>(const ActorMsgPack &)>, AM_END> m_msgOpList;
 
     private:
         // used by rollSeqID()
         // to create unique proper ID for an message expcecting response
         uint64_t m_nextSeqID = 1;
 
-        // for expire time check in nanoseconds
-        // zero expire time means we never expire any handler for current pod
-        // we can put argument to specify the expire time of each handler but not necessary
-        const uint64_t m_expireTime;
-
-        // use std::map instead of std::unordered_map
-        //
-        // 1. we have to scan the map every time when new message comes to remove expired ones
-        //    std::unordered_map is slow for scan the entire map
-        //    I can maintain another std::priority_queue based on expire time
-        //    but it's hard to remove those entry which executed before expire from the queue
-        //
-        // 2. std::map keeps entries in order by Resp number
-        //    Resp number gives strict order of expire time, excellent feature by std::map
-        //    then when checking expired ones, we start from std::map::begin() and stop at the fist non-expired one
-        std::map<uint64_t, RespondCallback> m_respondCBList;
+    private:
+        std::unordered_map<uint64_t, std::variant<std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type>, std::function<void(const ActorMsgPack &)>>> m_respondCBList;
 
     private:
         ActorPodMonitor m_podMonitor;
 
+    private:
+        uint32_t m_channID = 0;
+
     public:
-        explicit ActorPod(
-                uint64_t,                                   // UID
-                ServerObject *,                             // SO
-                std::function<void()>,                      // trigger
-                std::function<void(const ActorMsgPack &)>,  // msgHandler
-                double,                                     // metronome frequency in HZ
-                uint64_t);                                  // timeout in nanoseconds
+        explicit ActorPod(uint64_t, ServerObject *);
 
     public:
         ~ActorPod();
@@ -102,40 +80,13 @@ class ActorPod final
         void innHandler(const ActorMsgPack &);
 
     public:
-        bool forward(uint64_t nUID, const ActorMsgBuf &mbuf)
-        {
-            return forward(nUID, mbuf, 0);
-        }
-
-    public:
-        bool forward(uint64_t nUID, const ActorMsgBuf &mbuf, std::function<void(const ActorMsgPack &)> fnOPR)
-        {
-            return forward(nUID, mbuf, 0, std::move(fnOPR));
-        }
-
-    public:
-        bool forward(uint64_t, const ActorMsgBuf &, uint64_t);
-        bool forward(uint64_t, const ActorMsgBuf &, uint64_t, std::function<void(const ActorMsgPack &)>);
-
-    public:
-        bool forward(const std::pair<uint64_t, uint64_t> &respAddr, const ActorMsgBuf &mbuf)
-        {
-            return forward(respAddr.first, mbuf, respAddr.second);
-        }
-
-        bool forward(const std::pair<uint64_t, uint64_t> &respAddr, const ActorMsgBuf &mbuf, std::function<void(const ActorMsgPack &)> fnOPR)
-        {
-            return forward(respAddr.first, mbuf, respAddr.second, std::move(fnOPR));
-        }
-
-    public:
         uint64_t UID() const
         {
             return m_UID;
         }
 
     public:
-        void attach(std::function<void()>);
+        void attach();
         void detach(std::function<void()>) const;
 
     public:
@@ -151,43 +102,94 @@ class ActorPod final
         }
 
     public:
-        void setMetronomeFreq(double freq)
-        {
-            // TODO enhance it to do more check
-            // should only call this function inside message handler
-            m_updateFreq = regMetronomeFreq(freq);
-        }
-
-        double getMetronomeFreq() const
-        {
-            return m_updateFreq;
-        }
-
-    private:
-        static double regMetronomeFreq(double freq)
-        {
-            if(freq <= 0.0){
-                return -1.0;
-            }
-            else if(freq < DBL_EPSILON){
-                return DBL_EPSILON;
-            }
-            else{
-                return freq;
-            }
-        }
-
-    public:
         ServerObject *getSO() const
         {
             return m_SO;
         }
 
     public:
-        void registerOp(int type, std::function<void(const ActorMsgPack &)> op)
+        void registerOp(int type, std::function<corof::awaitable<>(const ActorMsgPack &)> op)
         {
             if(op){
                 m_msgOpList.at(type) = std::move(op);
             }
+        }
+
+    public:
+        void postNet(          uint8_t, const void *, size_t, uint64_t);
+        void postNet(uint32_t, uint8_t, const void *, size_t, uint64_t);
+
+    public:
+        void  bindNet(uint32_t);
+        void closeNet();
+
+    private:
+        std::optional<uint64_t> doPost(const std::pair<uint64_t, uint64_t> &, ActorMsgBuf, bool);
+
+    public:
+        bool post(const std::pair<uint64_t, uint64_t> &addr, ActorMsgBuf mbuf)
+        {
+            return doPost(addr, std::move(mbuf), false).has_value();
+        }
+
+        bool post(uint64_t addr, ActorMsgBuf mbuf)
+        {
+            return post({addr, 0}, std::move(mbuf));
+        }
+
+    public:
+        corof::awaitable<ActorMsgPack> send(std::pair<uint64_t, uint64_t> addr, ActorMsgBuf mbuf)
+        {
+            if(const auto seqIDOpt = doPost(addr, std::move(mbuf), true); seqIDOpt.has_value()){
+                co_await RegisterContinuationAwaiter<false>
+                {
+                    .actor = this,
+                    .seqID = seqIDOpt.value(),
+                };
+
+                // no return statement here
+                // return_value() called explicitly by innHandler()
+            }
+            else{
+                co_return ActorMsgPack{AM_BADACTORPOD};
+            }
+        }
+
+    public:
+        corof::awaitable<ActorMsgPack> send(uint64_t addr, ActorMsgBuf mbuf)
+        {
+            return send({addr, 0}, std::move(mbuf));
+        }
+
+    private:
+        std::pair<uint64_t, uint64_t> doCreateWaitToken(uint64_t, std::function<void(const ActorMsgPack &)>);
+
+    public:
+        std::pair<uint64_t, uint64_t> createWaitToken(uint64_t tick, std::function<void(const ActorMsgPack &)> op)
+        {
+            fflassert(op);
+            return doCreateWaitToken(tick, std::move(op));
+        }
+
+    public:
+        void cancelWaitToken(const std::pair<uint64_t, uint64_t> &);
+
+    public:
+        corof::awaitable<ActorMsgPack> wait(uint64_t tick, std::pair<uint64_t, uint64_t> * tokenPtr = nullptr)
+        {
+            // don't introduce waitToken()
+            // we need to immediately await a token before scheduled AM_TIMEOUT comes
+
+            const auto token = doCreateWaitToken(tick, nullptr);
+
+            if(tokenPtr){
+                *tokenPtr = token;
+            }
+
+            co_await RegisterContinuationAwaiter<true>
+            {
+                .actor = this,
+                .seqID = token.second,
+            };
         }
 };

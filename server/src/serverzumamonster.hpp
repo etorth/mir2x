@@ -8,8 +8,8 @@ class ServerZumaMonster final: public Monster
         bool m_standMode = false;
 
     public:
-        ServerZumaMonster(uint32_t monID, ServerMap *mapPtr, int argX, int argY, int argDir, uint64_t masterUID)
-            : Monster(monID, mapPtr, argX, argY, argDir, masterUID)
+        ServerZumaMonster(uint32_t monID, uint64_t argMapUID, int argX, int argY, int argDir, uint64_t masterUID)
+            : Monster(monID, argMapUID, argX, argY, argDir, masterUID)
         {
             fflassert(isMonster(u8"祖玛雕像") || isMonster(u8"祖玛卫士"));
         }
@@ -36,7 +36,7 @@ class ServerZumaMonster final: public Monster
         }
 
     protected:
-        corof::eval_poller<> updateCoroFunc() override;
+        corof::awaitable<> runAICoro() override;
 
     protected:
         ActionNode makeActionStand() const override
@@ -57,17 +57,18 @@ class ServerZumaMonster final: public Monster
         }
 
     protected:
-        void onAMMasterHitted(const ActorMsgPack &) override
+        corof::awaitable<> onAMMasterHitted(const ActorMsgPack &) override
         {
             setStandMode(true);
+            return {};
         }
 
     protected:
-        void onAMAttack(const ActorMsgPack &) override;
+        corof::awaitable<> onAMAttack(const ActorMsgPack &) override;
 
     protected:
-        bool canMove() const override
+        bool canMove(bool checkMoveLock) const override
         {
-            return m_standMode && Monster::canMove();
+            return m_standMode && Monster::canMove(checkMoveLock);
         }
 };

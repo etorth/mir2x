@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0304
+version 1.0308
 header_name {.hpp}
 code_name {.cpp}
 decl {\#include <cmath>} {public global
@@ -20,7 +20,25 @@ decl {\#include "totype.hpp"} {private local
 decl {\#include "strf.hpp"} {private local
 }
 
+decl {\#include "uidf.hpp"} {private local
+}
+
+decl {\#include "uidsf.hpp"} {private local
+}
+
 decl {\#include "filesys.hpp"} {private local
+}
+
+decl {\#include "serdesmsg.hpp"} {private local
+}
+
+decl {\#include "dispatcher.hpp"} {private local
+}
+
+decl {\#include "serverargparser.hpp"} {private local
+}
+
+decl {extern ServerArgParser *g_serverArgParser;} {private local
 }
 
 class ServerConfig {} {
@@ -28,9 +46,7 @@ class ServerConfig {} {
   }
   decl {std::string scriptPath = "script";} {public local
   }
-  decl {int maxMonster = 5000;} {public local
-  }
-  decl {int maxPlayer = 5000;} {public local
+  decl {int maxPlayerCount = 5000;} {public local
   }
   decl {double experienceRate = 1.0;} {public local
   }
@@ -38,7 +54,9 @@ class ServerConfig {} {
   }
   decl {double goldRate = 1.0;} {public local
   }
-  decl {int listenPort = 5000;} {public local
+  decl {int clientPort = 5000;} {public local
+  }
+  decl {int slavePort = 6000;} {public local
   }
 }
 
@@ -50,31 +68,11 @@ class ServerConfigureWindow {} {
   Function {ServerConfigureWindow()} {} {
     Fl_Window m_window {
       label ConfigureWindow
-      xywh {48 119 625 360} type Double modal visible
+      xywh {547 190 570 360} type Double modal visible
     } {
-      Fl_Value_Input m_maxPlayerCount {
-        label {Maximal Player: }
-        xywh {172 146 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
-      }
       Fl_Input m_mapFullName {
-        label {Map Path: }
-        xywh {172 20 273 24} textfont 4
-      }
-      Fl_Input m_scriptFullName {
-        label {Script Path: }
-        xywh {172 61 273 24} textfont 4
-      }
-      Fl_Value_Input m_equipmentRate {
-        label {Drop Rate: }
-        xywh {172 221 60 24} minimum 1024 maximum 10000 value 1 textfont 4
-      }
-      Fl_Value_Input m_m_experienceRate {
-        label {Exprience Rate: }
-        xywh {172 183 60 24} minimum 1024 maximum 10000 value 1 textfont 4
-      }
-      Fl_Value_Input m_goldRate {
-        label {Gold Rate: }
-        xywh {172 259 60 24} minimum 1024 maximum 10000 value 1 textfont 4
+        label {Map Path:}
+        xywh {150 20 300 25}
       }
       Fl_Button {} {
         label {@fileopen}
@@ -109,24 +107,14 @@ class ServerConfigureWindow {} {
             }
     }
 }}
-        xywh {451 20 26 23}
+        xywh {450 20 30 25}
         code0 {\#include <string>}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
       }
-      Fl_Value_Input m_maxMonsterCount {
-        label {Maximal Monster: }
-        xywh {172 108 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
-      }
-      Fl_Button {} {
-        label OK
-        callback {applyConfig();
-m_window->hide();}
-        xywh {523 315 70 25}
-      }
-      Fl_Value_Input m_port {
-        label {Listen Port: }
-        xywh {171 298 60 24} minimum 1024 maximum 10000 value 5000 textfont 4
+      Fl_Input m_scriptFullName {
+        label {Script Path:}
+        xywh {150 60 300 25}
       }
       Fl_Button {} {
         label {@fileopen}
@@ -157,26 +145,73 @@ m_window->hide();}
             }
     }
 }}
-        xywh {451 61 26 23}
+        xywh {450 60 30 25}
         code0 {\#include <string>}
         code1 {\#include <FL/Fl_Native_File_Chooser.H>}
         code2 {\#include <FL/fl_ask.H>}
       }
-      Fl_Button {} {
-        label Apply
-        callback {applyConfig();}
-        xywh {447 315 70 25}
+      Fl_Input m_maxPlayerCount {
+        label {Maximal Player:}
+        xywh {150 100 60 25} type Int
+      }
+      Fl_Input m_experienceRate {
+        label {Experience Rate:}
+        xywh {150 140 60 25} type Float
+      }
+      Fl_Input m_dropRate {
+        label {Drop Rate:}
+        xywh {150 180 60 25} type Float
+      }
+      Fl_Input m_goldRate {
+        label {Gold Rate:}
+        xywh {150 220 60 25} type Float
+      }
+      Fl_Input m_clientPort {
+        label {Client Port:}
+        xywh {150 260 60 25} type Int
+      }
+      Fl_Input m_slavePort {
+        label {SlavePort:}
+        xywh {150 300 60 25} type Int
       }
       Fl_Button {} {
         label Cancel
         callback {m_window->hide();}
-        xywh {371 315 70 25}
+        xywh {300 315 70 25}
+      }
+      Fl_Button {} {
+        label Apply
+        callback {applyConfig();}
+        xywh {380 315 70 25}
+      }
+      Fl_Button {} {
+        label OK
+        callback {applyConfig();
+m_window->hide();}
+        xywh {460 315 70 25}
       }
     }
     code {// set up the default map path
 {
-    m_mapFullName->value("map/mapbin.zsdb");
-    m_scriptFullName->value("script");
+    ServerConfig defConfg {};
+    m_mapFullName->value(defConfg.mapPath.c_str());
+    m_scriptFullName->value(defConfg.scriptPath.c_str());
+    m_maxPlayerCount->value(std::to_string(defConfg.maxPlayerCount).c_str());
+    m_experienceRate->value(str_printf("%.2f", defConfg.experienceRate).c_str());
+    m_dropRate->value(str_printf("%.2f", defConfg.dropRate).c_str());
+    m_goldRate->value(str_printf("%.2f", defConfg.goldRate).c_str());
+
+    m_clientPort->value(std::to_string(g_serverArgParser->masterConfig().clientPort.first).c_str());
+    if(!g_serverArgParser->masterConfig().clientPort.second){
+        m_clientPort->deactivate();
+    }
+
+    m_slavePort->value(std::to_string(g_serverArgParser->peerPort.first).c_str());
+    if(!g_serverArgParser->peerPort.second){
+        m_slavePort->deactivate();
+    }
+
+    applyConfig();
 }} {}
   }
   Function {showAll()} {} {
@@ -188,7 +223,8 @@ m_window->hide();}
   } {
     code {// setup all entries, validate before assigning
 {
-        std::lock_guard<std::mutex> lockGuard(m_configLock);
+    {
+        const std::lock_guard<std::mutex> lockGuard(m_configLock);
         const auto fnAssignPath = [](const char *val, const char *usage, std::string &dst)
         {
             if(str_haschar(val)){
@@ -207,33 +243,52 @@ m_window->hide();}
         fnAssignPath(m_mapFullName->value(), "map path", m_config.mapPath);
         fnAssignPath(m_scriptFullName->value(), "script path", m_config.scriptPath);
 
-        const auto fnAssignPositiveInteger = [](double f, const char *usage, int &dst)
+        const auto fnAssignPositiveInteger = [](const char *value, const char *usage, int &dst)
         {
-            if(f >= 0.0){
-                dst = std::lround(std::floor(f));
+            try{
+                if(const int val = std::stoi(value); val > 0){
+                    dst = val;
+                    return;
+                }
+                else{
+                    fl_alert("Invalid %s: %d", usage, val);
+                }
             }
-            else{
-                fl_alert("invalid %s: %f", to_cstr(usage), f);
-            }
+            catch(...){}
+            fl_alert("Invalid %s: %s", usage, to_cstr(value));
         };
 
-        fnAssignPositiveInteger(m_maxMonsterCount->value(), "maximal monster", m_config.maxMonster);
-        fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayer);
-        fnAssignPositiveInteger(m_port->value(), "listen port", m_config.listenPort);
+        fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayerCount);
+        fnAssignPositiveInteger(m_clientPort->value(), "client port", m_config.clientPort);
+        fnAssignPositiveInteger(m_slavePort->value(), "slave port", m_config.slavePort);
 
-        const auto fnAssignPositiveDouble = [](double f, const char *usage, double &dst)
+        const auto fnAssignPositiveDouble = [](const char *value, const char *usage, double &dst)
         {
-            if(f >= 0.0){
-                dst = f;
+            try{
+                if(const double val = std::stod(value); val >= 0){
+                    dst = val;
+                    return;
+                }
+                else{
+                    fl_alert("Invalid %s: %f", usage, val);
+                }
             }
-            else{
-                fl_alert("invalid %s: %f", to_cstr(usage), f);
-            }
+            catch(...){}
+            fl_alert("Invalid %s: %s", usage, to_cstr(value));
         };
 
-        fnAssignPositiveDouble(m_m_experienceRate->value(), "experience rate", m_config.experienceRate);
-        fnAssignPositiveDouble(m_equipmentRate->value(), "drop rate", m_config.dropRate);
+        fnAssignPositiveDouble(m_experienceRate->value(), "experience rate", m_config.experienceRate);
+        fnAssignPositiveDouble(m_dropRate->value(), "drop rate", m_config.dropRate);
         fnAssignPositiveDouble(m_goldRate->value(), "gold rate", m_config.goldRate);
+    }
+
+    for(size_t i = 1; i <= uidsf::peerCount(); ++i){
+        Dispatcher().post(uidf::getPeerCoreUID(i), {AM_PEERCONFIG, cerealf::serialize(SDPeerConfig
+        {
+            .dropRate = m_config.dropRate,
+            .goldRate = m_config.goldRate,
+        })});
+    }
 }} {}
   }
   Function {getConfig() const} {return_type ServerConfig
