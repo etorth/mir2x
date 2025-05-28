@@ -1,143 +1,255 @@
-#include <cinttypes>
-#include <chrono>
 #include "fflerror.hpp"
-#include "server.hpp"
 #include "actormsg.hpp"
-#include "delaydriver.hpp"
 #include "dispatcher.hpp"
+#include "server.hpp"
+#include "delaydriver.hpp"
 
 extern Server *g_server;
 static thread_local bool t_delayThreadFlag = false; // use bool since only has 1 net thread
-
-DelayDriver::DelayDriver()
-    : m_context(std::make_unique<asio::io_context>(1))
-    , m_holder(*m_context, std::chrono::steady_clock::time_point::max())
-{
-    m_holder.async_wait([this](std::error_code ec)
-    {
-        if(ec){
-            if(ec == asio::error::operation_aborted){
-
-            }
-            else{
-                throw std::system_error(ec);
-            }
-        }
-        else{
-            throw fflerror("unexpected timeout");
-        }
-    });
-
-    try{
-        m_thread = std::thread([this]()
-        {
-            t_delayThreadFlag = true;
-            m_context->run();
-            g_server->addLog(LOGTYPE_INFO, "Delay driver thread has exited");
-        });
-    }
-    catch(const std::exception &e){
-        throw fflerror("failed to launch delay driver: %s", e.what());
-    }
-    catch(...){
-        throw fflerror("failed to launch delay driver: unknown error");
-    }
-}
-
-DelayDriver::~DelayDriver()
-{
-    // if(isDelayThread()){
-    //     g_server->addFatal("Destroy delay driver in delay thread");
-    // }
-
-    try{
-        asio::post(m_context->get_executor(), [this]()
-        {
-            m_holder.cancel();
-            for(auto &[_, timer]: m_timerList){
-                timer.cancel();
-            }
-        });
-
-        if(m_thread.joinable()){
-            m_thread.join();
-        }
-    }
-    catch(const std::exception &e){
-        g_server->addLog(LOGTYPE_WARNING, "Failed when release delay driver: %s", e.what());
-    }
-    catch(...){
-        g_server->addLog(LOGTYPE_WARNING, "Failed when release delay driver: unknown error");
-    }
-}
 
 bool DelayDriver::isDelayThread()
 {
     return t_delayThreadFlag;
 }
 
-uint64_t DelayDriver::add(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_t tick)
-{
-    const auto seq = m_seqID.fetch_add(1);
-    asio::post(m_context->get_executor(), [fromAddr, tick, seq, this]()
-    {
-        timer_map::iterator iter;
-        {
-            if(m_nodeList.empty()){
-                iter = m_timerList.emplace(seq, asio::steady_timer(*m_context)).first;
-            }
-            else{
-                timer_node node = std::move(m_nodeList.back());
-                m_nodeList.pop_back();
+DelayDriver::DelayDriver()
+    : m_worker([this]()
+      {
+          t_delayThreadFlag = true;
 
-                node.key() = seq;
-                iter = m_timerList.insert(std::move(node)).position;
-            }
+          std::vector<std::pair<uint64_t, uint64_t>>   timeoutArgs;
+          std::vector<std::pair<uint64_t, uint64_t>> cancelledArgs;
+
+          while(true){
+              timeoutArgs  .clear();
+              cancelledArgs.clear();
+              {
+                  std::unique_lock lock(m_mutex);
+
+                  if(m_timers.empty()) m_cond.wait      (lock,                          [this](){ return m_stopRequested || !m_timers.empty() || !m_cancelledTimerArgs.empty(); });
+                  else                 m_cond.wait_until(lock, m_timers.begin()->first, [this](){ return m_stopRequested ||                      !m_cancelledTimerArgs.empty(); });
+
+                  if(m_stopRequested){
+                      break;
+                  }
+
+                  for(const auto now = std::chrono::steady_clock::now(); !m_timers.empty() && m_timers.begin()->first <= now;){
+                      timeoutArgs.push_back(m_timers.begin()->second.cbArg);
+                      m_timerNodes.push_back(std::move(m_timers.extract(m_timers.begin())));
+                      m_timerIdNodes.push_back(std::move(m_timerIds.extract(m_timerNodes.back().mapped().seqID)));
+                  }
+
+                  std::swap(cancelledArgs, m_cancelledTimerArgs);
+              }
+
+              for(const auto &cbArg: timeoutArgs){
+                  onTimerCallback(cbArg, true);
+              }
+
+              for(const auto &cbArg: cancelledArgs){
+                  onTimerCallback(cbArg, false);
+              }
+          }
+
+          // pool has been stopped
+          // outside can not add/cancel timers
+
+          for(const auto &cbArg: m_cancelledTimerArgs){
+              onTimerCallback(cbArg, false);
+          }
+
+          for(const auto &timer: m_timers){
+              onTimerCallback(timer.second.cbArg, false);
+          }
+      })
+{}
+
+DelayDriver::~DelayDriver()
+{
+    try{
+        forceStop();
+    }
+    catch(const std::exception &e){
+        g_server->addFatal("DelayDriver::dtor: %s", e.what());
+    }
+    catch(...){
+        g_server->addFatal("DelayDriver::dtor: unknown exception");
+    }
+}
+
+uint64_t DelayDriver::addTimer(const std::pair<uint64_t, uint64_t> &cbArg, uint64_t msec)
+{
+    uint64_t seqID;
+    bool needReschedule;
+
+    const auto expireAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(msec);
+    {
+        const std::unique_lock lock(m_mutex);
+        if(m_stopRequested){
+            return 0;
         }
 
-        if(tick){
-            iter->second.expires_after(std::chrono::milliseconds(tick));
+        if(m_seqID % 2){
+            seqID = m_seqID = (m_seqID + 2);
         }
         else{
-            iter->second.expires_at(std::chrono::steady_clock::time_point::max());
+            seqID = m_seqID = (m_seqID + 1);
         }
 
-        iter->second.async_wait([fromAddr, seq, this](std::error_code ec)
-        {
-            if(ec){
-                if(ec == asio::error::operation_aborted){
-                    Dispatcher().post(fromAddr, AM_CANCEL);
-                    recycleTimer(seq);
-                }
-                else{
-                    throw std::system_error(ec);
-                }
-            }
-            else{
-                Dispatcher().post(fromAddr, AM_TIMEOUT);
-                recycleTimer(seq);
-            }
-        });
-    });
-    return seq;
+        needReschedule = m_timers.empty() || (expireAt < m_timers.begin()->first);
+
+        timer_map::iterator iter;
+        if(m_timerNodes.empty()){
+            iter = m_timers.emplace(expireAt, TimerEntry{seqID, cbArg});
+        }
+        else{
+            m_timerNodes.back().key() = expireAt;
+            m_timerNodes.back().mapped() = TimerEntry{seqID, cbArg};
+
+            iter = m_timers.insert(std::move(m_timerNodes.back()));
+            m_timerNodes.pop_back();
+        }
+
+        if(m_timerIdNodes.empty()){
+            m_timerIds.emplace(seqID, iter);
+        }
+        else{
+            m_timerIdNodes.back().key() = seqID;
+            m_timerIdNodes.back().mapped() = iter;
+
+            m_timerIds.insert(std::move(m_timerIdNodes.back()));
+            m_timerIdNodes.pop_back();
+        }
+    }
+
+    if(needReschedule){
+        m_cond.notify_one();
+    }
+    return seqID;
 }
 
-void DelayDriver::cancel(uint64_t seq)
+uint64_t DelayDriver::addWaiter(const std::pair<uint64_t, uint64_t> &cbArg)
 {
-    if(seq){
-        asio::post(m_context->get_executor(), [seq, this]()
-        {
-            if(auto p = m_timerList.find(seq); p != m_timerList.end()){
-                p->second.cancel();
-            }
-        });
+    uint64_t seqID;
+    {
+        const std::unique_lock lock(m_mutex);
+        if(m_stopRequested){
+            return 0;
+        }
+
+        if(m_seqID % 2){
+            seqID = m_seqID = (m_seqID + 1);
+        }
+        else{
+            seqID = m_seqID = (m_seqID + 2);
+        }
+
+        waiter_map::iterator iter;
+        if(m_waiterNodes.empty()){
+            iter = m_waiters.emplace(seqID, cbArg).first;
+        }
+        else{
+            m_waiterNodes.back().key() = seqID;
+            m_waiterNodes.back().mapped() = cbArg;
+
+            iter = m_waiters.insert(std::move(m_waiterNodes.back())).position;
+            m_waiterNodes.pop_back();
+        }
+    }
+    return seqID;
+}
+
+void DelayDriver::requestStop()
+{
+    fflassert(!isDelayThread());
+    forceStop();
+}
+
+void DelayDriver::onTimerCallback(const std::pair<uint64_t, uint64_t> &cbArg, bool timeout)
+{
+    Dispatcher().post(cbArg, timeout ? AM_TIMEOUT : AM_CANCEL);
+}
+
+void DelayDriver::forceStop()
+{
+    {
+        const std::unique_lock lock(m_mutex);
+        if(m_stopRequested){
+            return;
+        }
+        else{
+            m_stopRequested = true;
+        }
+    }
+    m_cond.notify_all();
+
+    if(m_worker.joinable()){
+        m_worker.join();
     }
 }
 
-void DelayDriver::recycleTimer(uint64_t seq)
+std::optional<bool> DelayDriver::cancelTimer(uint64_t id, bool triggerInPlace)
 {
-    fflassert(isDelayThread());
-    if(auto p = m_timerList.find(seq); p != m_timerList.end()){
-        m_nodeList.push_back(m_timerList.extract(p));
+    bool found = false;
+    std::pair<uint64_t, uint64_t> cbArg;
+    {
+        const std::unique_lock lock(m_mutex);
+        if(m_stopRequested){
+            return std::nullopt;
+        }
+
+        if(auto p = m_timerIds.find(id); p != m_timerIds.end()){
+            found = true;
+            cbArg = p->second->second.cbArg;
+
+            m_timerNodes  .push_back(std::move(m_timers  .extract(p->second)));
+            m_timerIdNodes.push_back(std::move(m_timerIds.extract(p)));
+
+            if(!triggerInPlace){
+                m_cancelledTimerArgs.push_back(cbArg);
+            }
+        }
     }
+
+    if(found){
+        if(triggerInPlace){
+            onTimerCallback(cbArg, false);
+        }
+        else{
+            m_cond.notify_one();
+        }
+    }
+    return found;
+}
+
+std::optional<bool> DelayDriver::cancelWaiter(uint64_t id, bool triggerInPlace)
+{
+    bool found = false;
+    std::pair<uint64_t, uint64_t> cbArg;
+    {
+        const std::unique_lock lock(m_mutex);
+        if(m_stopRequested){
+            return std::nullopt;
+        }
+
+        if(auto p = m_waiters.find(id); p != m_waiters.end()){
+            found = true;
+            cbArg = p->second;
+
+            m_waiterNodes.push_back(std::move(m_waiters.extract(p)));
+            if(!triggerInPlace){
+                m_cancelledTimerArgs.push_back(cbArg);
+            }
+        }
+    }
+
+    if(found){
+        if(triggerInPlace){
+            onTimerCallback(cbArg, false);
+        }
+        else{
+            m_cond.notify_one();
+        }
+    }
+    return found;
 }
