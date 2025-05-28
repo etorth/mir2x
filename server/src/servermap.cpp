@@ -1223,7 +1223,9 @@ corof::awaitable<> ServerMap::onActivate()
     co_await loadNPChar();
 
     m_luaRunner = std::make_unique<ServerMap::LuaThreadRunner>(this);
-    m_luaRunner->spawn(m_mainScriptThreadKey, "return main()");
+    if(!g_serverArgParser->sharedConfig().disableMapScript){
+        m_luaRunner->spawn(m_mainScriptThreadKey, "return main()");
+    }
 }
 
 corof::awaitable<> ServerMap::loadNPChar()
