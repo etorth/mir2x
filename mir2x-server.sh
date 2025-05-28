@@ -21,7 +21,7 @@ echo "Profiling result generated at: ${LOG_DIR}"
     env             \
     CPUPROFILE=${LOG_DIR}/mir2x-server.log  \
     LD_PRELOAD="/usr/lib/libprofiler.so"    \
-    ./monoserver                            \
+    ./server                                \
 )
 
-google-pprof --svg ${BIN_DIR}/monoserver ${LOG_DIR}/mir2x-server.log > ${LOG_DIR}/mir2x-server.svg
+google-pprof --svg ${BIN_DIR}/server ${LOG_DIR}/mir2x-server.log > ${LOG_DIR}/mir2x-server.svg
