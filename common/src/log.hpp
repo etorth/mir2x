@@ -91,6 +91,14 @@ class Log final
             str_format(format, logLine);
             LogCapture(std::get<1>(typeLoc), std::get<2>(typeLoc), std::get<3>(typeLoc), getLevel(std::get<0>(typeLoc))).capturef("%s", logLine.c_str());
         }
+
+        [[noreturn]] void addFatal(const char *format, ...) STR_PRINTF_CHECK_FORMAT(2)
+        {
+            std::string logLine;
+            str_format(format, logLine);
+            LogCapture(__FILE__, __LINE__, __PRETTY_FUNCTION__, FATAL).capturef("%s", logLine.c_str()); // TODO
+            std::terminate();
+        }
 };
 
 #define LOGTYPE_INFO    {Log::LOGTYPEV_INFO   , __FILE__, __LINE__, __PRETTY_FUNCTION__}

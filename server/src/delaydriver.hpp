@@ -41,7 +41,7 @@ class DelayDriver
 
     public:
         uint64_t add(const std::pair<uint64_t, uint64_t> &, uint64_t);
-        void remove(uint64_t);
+        void cancel(uint64_t);
 
     private:
         void recycleTimer(uint64_t);

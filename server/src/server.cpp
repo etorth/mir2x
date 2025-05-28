@@ -38,6 +38,41 @@ extern MainWindow *g_mainWindow;
 extern ServerArgParser *g_serverArgParser;
 extern ServerConfigureWindow *g_serverConfigureWindow;
 
+void Server::addFatal(const char *format, ...)
+{
+    std::string s;
+    str_format(format, s);
+
+    std::string logLine;
+    std::stringstream errStream(s);
+    std::vector<std::string> multiLine;
+
+    while(std::getline(errStream, logLine, '\n')){
+        multiLine.push_back(std::move(logLine));
+    }
+
+    if(!g_serverArgParser->slave){
+        {
+            const std::lock_guard<std::mutex> lockGuard(m_logLock);
+            for(const auto &line: multiLine){
+                m_logBuf.push_back((char)(Log::LOGTYPEV_FATAL));
+                m_logBuf.insert(m_logBuf.end(), line.c_str(), line.c_str() + line.size() + 1); // add extra '\0'
+            }
+        }
+        notifyGUI("FlushBrowser");
+    }
+
+    for(size_t i = 0; i + 1 < multiLine.size(); ++i){
+        g_log->addLog(LOGTYPE_FATAL, "%s", multiLine.at(i).c_str());
+        if(g_serverArgParser->slave){
+            std::cerr << multiLine.at(i) << std::endl;
+        }
+    }
+
+    std::cerr << multiLine.back() << std::endl;
+    g_log->addFatal("%s", multiLine.back().c_str());
+}
+
 void Server::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
 {
     std::string s;

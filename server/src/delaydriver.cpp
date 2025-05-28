@@ -122,7 +122,7 @@ uint64_t DelayDriver::add(const std::pair<uint64_t, uint64_t> &fromAddr, uint64_
     return seq;
 }
 
-void DelayDriver::remove(uint64_t seq)
+void DelayDriver::cancel(uint64_t seq)
 {
     if(seq){
         asio::post(m_context->get_executor(), [seq, this]()

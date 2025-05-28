@@ -88,6 +88,9 @@ class Server final
         void addCWLogString(uint32_t, int, const char *, const char *);
 
     public:
+        [[noreturn]] void addFatal(const char *, ...);
+
+    public:
         void addLog(const Log::LogTypeLoc &, const char *, ...);
 
     public:

@@ -649,6 +649,6 @@ class ActorPool final
 
         void cancelTimeout(uint64_t key)
         {
-            m_delayDriver->remove(key);
+            m_delayDriver->cancel(key);
         }
 };

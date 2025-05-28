@@ -413,22 +413,24 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
 #include "servermap.lua"
     END_LUAINC()));
 
-    pfrCheck(execFile([this]() -> std::string
-    {
-        const auto configScriptPath = g_serverArgParser->slave ? std::string{} : g_serverConfigureWindow->getConfig().scriptPath;
-        const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
+    if(!g_serverArgParser->sharedConfig().disableMapScript){
+        pfrCheck(execFile([this]() -> std::string
+        {
+            const auto configScriptPath = g_serverArgParser->slave ? std::string{} : g_serverConfigureWindow->getConfig().scriptPath;
+            const auto scriptPath = configScriptPath.empty() ? std::string("script/map") : (configScriptPath + "/map");
 
-        const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
-        if(filesys::hasFile(scriptName.c_str())){
-            return scriptName;
-        }
+            const auto scriptName = str_printf("%s/%s.lua", scriptPath.c_str(), to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
+            if(filesys::hasFile(scriptName.c_str())){
+                return scriptName;
+            }
 
-        const auto defaultScriptName = scriptPath + "/default.lua";
-        if(filesys::hasFile(defaultScriptName.c_str())){
-            return defaultScriptName;
-        }
-        throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
-    }().c_str()));
+            const auto defaultScriptName = scriptPath + "/default.lua";
+            if(filesys::hasFile(defaultScriptName.c_str())){
+                return defaultScriptName;
+            }
+            throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
+        }().c_str()));
+    }
 }
 
 ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMaxStep, int argCheckCO)
