@@ -19,10 +19,12 @@ class DelayDriver
             std::pair<uint64_t, uint64_t> cbArg;
         };
 
+        using clock_type = std::chrono::steady_clock;
+
         using waiter_map  = std::unordered_map<uint64_t, std::pair<uint64_t, uint64_t>>;
         using waiter_node = waiter_map::node_type;
 
-        using timer_map  = std::multimap<std::chrono::steady_clock::time_point, TimerEntry>;
+        using timer_map  = std::multimap<clock_type::time_point, TimerEntry>;
         using timer_node = timer_map::node_type;
 
         using timer_id_map  = std::map<uint64_t, timer_map::iterator>;

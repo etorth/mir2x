@@ -26,14 +26,24 @@ DelayDriver::DelayDriver()
               {
                   std::unique_lock lock(m_mutex);
 
-                  if(m_timers.empty()) m_cond.wait      (lock,                          [this](){ return m_stopRequested || !m_timers.empty() || !m_cancelledTimerArgs.empty(); });
-                  else                 m_cond.wait_until(lock, m_timers.begin()->first, [this](){ return m_stopRequested ||                      !m_cancelledTimerArgs.empty(); });
+                  if(m_timers.empty()){
+                      m_cond.wait(lock, [this]()
+                      {
+                          return m_stopRequested || !m_timers.empty() || !m_cancelledTimerArgs.empty();
+                      });
+                  }
+                  else{
+                      m_cond.wait_until(lock, m_timers.begin()->first, [this]()
+                      {
+                          return m_stopRequested || !m_cancelledTimerArgs.empty();
+                      });
+                  }
 
                   if(m_stopRequested){
                       break;
                   }
 
-                  for(const auto now = std::chrono::steady_clock::now(); !m_timers.empty() && m_timers.begin()->first <= now;){
+                  for(const auto now = clock_type::now(); !m_timers.empty() && m_timers.begin()->first <= now;){
                       timeoutArgs.push_back(m_timers.begin()->second.cbArg);
                       m_timerNodes.push_back(std::move(m_timers.extract(m_timers.begin())));
                       m_timerIdNodes.push_back(std::move(m_timerIds.extract(m_timerNodes.back().mapped().seqID)));
@@ -82,7 +92,7 @@ uint64_t DelayDriver::addTimer(const std::pair<uint64_t, uint64_t> &cbArg, uint6
     uint64_t seqID;
     bool needReschedule;
 
-    const auto expireAt = std::chrono::steady_clock::now() + std::chrono::milliseconds(msec);
+    const auto expireAt = clock_type::now() + std::chrono::milliseconds(msec);
     {
         const std::unique_lock lock(m_mutex);
         if(m_stopRequested){
