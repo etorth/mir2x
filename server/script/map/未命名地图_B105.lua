@@ -1,3 +1,3 @@
 function main()
-    addMonster('蝴蝶虫')
+    addMonster('半兽勇士')
 end
