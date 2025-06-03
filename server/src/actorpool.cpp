@@ -835,19 +835,17 @@ void ActorPool::launchPool()
             // for any other thread this will NOT get assigned
             t_workerID = bucketId;
             try{
-                raii_timer timer;
+                hres_timer timer;
                 uint64_t lastUpdateTime = 0;
                 const uint64_t maxUpdateWaitTime = 1000ULL / logicalFPS;
 
-                std::vector<uint64_t> uidList;
-                uidList.reserve(2048);
+                UIDVec uidList;
+                uidList.vec.reserve(2048);
 
                 const _details::AutoCounter autoCounter(m_countRunning);
                 while(true){
                     if(!uidList.empty()){
-                        for(const auto uid: uidList){
-                            runOneUID(uid);
-                        }
+                        uidList.for_each([this](uint64_t uid){ runOneUID(uid); });
                         uidList.clear();
                     }
                     else{
@@ -857,10 +855,10 @@ void ActorPool::launchPool()
                             lastUpdateTime = currTime;
                         }
 
-                        for(int i = 0; i < to_d(m_bucketList.size()) * 32; ++i){
-                            const int currBucketId = (bucketId + i) % to_d(m_bucketList.size());
-                            const size_t maxPopCount = (currBucketId == bucketId) ? 0 : 4;
-                            if(m_bucketList[currBucketId].uidQPending.try_pop(uidList, maxPopCount) && !uidList.empty()){
+                        for(size_t i = 0; i < m_bucketList.size() * 32; ++i){
+                            const size_t currBucketId = (bucketId + i) % m_bucketList.size();
+                            const size_t maxPop = (currBucketId == static_cast<size_t>(bucketId)) ? 0 : 16;
+                            if(m_bucketList[currBucketId].uidQPending.try_pop(uidList, maxPop) && !uidList.empty()){
                                 break;
                             }
                         }

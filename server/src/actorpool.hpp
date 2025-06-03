@@ -42,82 +42,149 @@ class ActorPool final
         friend class ActorNetDriver;
 
     public:
-        struct UIDComper
+        struct UIDVec
         {
-            bool operator () (uint64_t x, uint64_t y) const
+            size_t begin = 0;
+            std::vector<uint64_t> vec {};
+
+            template<typename Func> void for_each(Func &&fn) const
             {
-                return uidf::getUIDType(x) > uidf::getUIDType(y);
+                for(size_t i = begin; i < vec.size(); ++i){
+                    fn(vec.at(i));
+                }
+            }
+
+            void clear()
+            {
+                begin = 0;
+                vec.clear();
+            }
+
+            bool empty() const noexcept
+            {
+                return begin >= vec.size();
+            }
+
+            size_t size() const noexcept
+            {
+                if(empty()){
+                    return 0;
+                }
+                else{
+                    return vec.size() - begin;
+                }
+            }
+
+            uint64_t pop_front()
+            {
+                return vec.at(begin++);
+            }
+
+            void push_back(uint64_t uid)
+            {
+                vec.push_back(uid);
+            }
+
+            void swap(UIDVec &other)
+            {
+                vec.swap(other.vec);
+                std::swap(begin, other.begin);
             }
         };
 
-        class UIDPriorityQueue
+        class UIDSet
         {
             private:
-                struct UIDPQImpl: public std::priority_queue<uint64_t, std::vector<uint64_t>, UIDComper>
-                {
-                    UIDPQImpl()
-                    {
-                        this->c.reserve(2048);
-                    }
-
-                    void uidSwap(std::vector<uint64_t> &uidList)
-                    {
-                        std::swap(uidList, this->c);
-                    }
-                };
-
-            private:
-                UIDPQImpl m_PQ;
-                phmap::flat_hash_set<uint64_t> m_uidSet;
+                std::unordered_set<uint64_t> m_set;
+                std::vector<std::unordered_set<uint64_t>::node_type> m_setNodes;
 
             public:
-                uint64_t pick_top()
+                bool contains(uint64_t uid) const
                 {
-                    const auto uidTop = m_PQ.top();
-                    m_PQ.pop();
-
-                    m_uidSet.erase(uidTop);
-                    return uidTop;
+                    return m_set.contains(uid);
                 }
 
-                void pick_top(std::vector<uint64_t> &uidList, size_t maxPop)
+                bool erase(uint64_t uid)
                 {
-                    uidList.clear();
-                    if(maxPop > 0){
-                        for(size_t i = 0; i < maxPop; ++i){
-                            if(empty()){
-                                break;
-                            }
-                            uidList.push_back(pick_top());
-                        }
+                    if(auto p = m_set.find(uid); p != m_set.end()){
+                        m_setNodes.push_back(m_set.extract(p));
+                        return true;
                     }
-                    else{
-                        m_PQ.uidSwap(uidList);
-                        m_uidSet.clear();
-                    }
+                    return false;
                 }
 
-            public:
-                bool empty() const
+                bool insert(uint64_t uid)
                 {
-                    return m_PQ.empty();
-                }
-
-                size_t size() const
-                {
-                    return m_PQ.size();
-                }
-
-            public:
-                bool push(uint64_t uid)
-                {
-                    if(m_uidSet.contains(uid)){
+                    if(m_set.contains(uid)){
                         return false;
                     }
 
-                    m_PQ.push(uid);
-                    m_uidSet.insert(uid);
+                    if(m_setNodes.empty()){
+                        m_set.insert(uid);
+                    }
+                    else{
+                        m_setNodes.back().value() = uid;
+                        m_set.insert(std::move(m_setNodes.back()));
+                        m_setNodes.pop_back();
+                    }
                     return true;
+                }
+
+                void clear()
+                {
+                    while(!m_set.empty()){
+                        m_setNodes.push_back(m_set.extract(m_set.begin()));
+                    }
+                }
+        };
+
+        class UniqUIDVec
+        {
+            private:
+                UIDVec m_uidVec;
+                UIDSet m_uidSet;
+
+            public:
+                uint64_t pop_front() // assume not empty
+                {
+                    const auto uidFront = m_uidVec.pop_front();
+                    m_uidSet.erase(uidFront);
+                    return uidFront;
+                }
+
+                void pop_front(UIDVec &uidList, size_t maxPick)
+                {
+                    if(maxPick == 0 || maxPick >= m_uidVec.size()){
+                        m_uidVec.swap(uidList);
+                        m_uidSet.clear();
+                    }
+                    else{
+                        uidList.clear();
+                        for(size_t i = 0; i < maxPick; ++i){
+                            uidList.push_back(pop_front());
+                        }
+                    }
+                }
+
+            public:
+                bool push_back(uint64_t uid)
+                {
+                    if(m_uidSet.insert(uid)){
+                        m_uidVec.push_back(uid);
+                        return true;
+                    }
+                    return false;
+                }
+
+            public:
+                bool empty() const noexcept
+                {
+                    return m_uidVec.empty();
+                }
+
+                size_t size() const noexcept
+                {
+                    return m_uidVec.size();
                 }
         };
 
@@ -162,7 +229,7 @@ class ActorPool final
         {
             private:
                 bool m_closed = false;
-                UIDPriorityQueue m_uidQ;
+                UniqUIDVec m_uidUVec;
 
             private:
                 mutable std::mutex m_lock;
@@ -180,7 +247,7 @@ class ActorPool final
                         if(!lockGuard){
                             return false;
                         }
-                        added = m_uidQ.push(uid);
+                        added = m_uidUVec.push_back(uid);
                     }
 
                     if(added){
@@ -189,14 +256,14 @@ class ActorPool final
                     return true;
                 }
 
-                bool try_pop(std::vector<uint64_t> &uidList, size_t maxPop)
+                bool try_pop(UIDVec &uidList, size_t maxPick)
                 {
                     TryLockGuard<decltype(m_lock)> lockGuard(m_lock);
-                    if(!lockGuard || m_uidQ.empty()){
+                    if(!lockGuard || m_uidUVec.empty()){
                         return false;
                     }
 
-                    m_uidQ.pick_top(uidList, maxPop);
+                    m_uidUVec.pop_front(uidList, maxPick);
                     return true;
                 }
 
@@ -206,7 +273,7 @@ class ActorPool final
                     bool added = false;
                     {
                         std::lock_guard<decltype(m_lock)> lockGuard(m_lock);
-                        added = m_uidQ.push(uid);
+                        added = m_uidUVec.push_back(uid);
                     }
 
                     if(added){
@@ -214,34 +281,34 @@ class ActorPool final
                     }
                 }
 
-                void pop(std::vector<uint64_t> &uidList, size_t maxPop, uint64_t msec, int &ec)
+                void pop(UIDVec &uidList, size_t maxPick, uint64_t msec, int &ec)
                 {
                     std::unique_lock<decltype(m_lock)> lockGuard(m_lock);
                     if(msec > 0){
                         const bool wait_res = m_cond.wait_for(lockGuard, std::chrono::milliseconds(msec), [this]() -> bool
                         {
-                            return m_closed || !m_uidQ.empty();
+                            return m_closed || !m_uidUVec.empty();
                         });
 
                         if(wait_res){
                             // pred returns true
                             // means either not expired, or even expired but the pred evals to true now
 
-                            // when queue is closed AND there are still tasks in m_uidQ
+                            // when queue is closed AND there are still tasks in m_uidUVec
                             // what I should do ???
 
-                            // currently I returns the task pending in the m_uidQ
+                            // currently I returns the task pending in the m_uidUVec
                             // so a UIDQueue can be closed but you can still pop task from it
 
-                            if(!m_uidQ.empty()){
+                            if(!m_uidUVec.empty()){
                                 ec = E_DONE;
-                                m_uidQ.pick_top(uidList, maxPop);
+                                m_uidUVec.pop_front(uidList, maxPick);
                             }
                             else if(m_closed){
                                 ec = E_QCLOSED;
                             }
                             else{
-                                // UIDQueue is not closed and m_uidQ is empty
+                                // UIDQueue is not closed and m_uidUVec is empty
                                 // then pred evals to true, can only be time expired
                                 ec = E_TIMEOUT;
                             }
@@ -252,22 +319,22 @@ class ActorPool final
                             // 1. the time has been expired
                             // 2. the pred still returns false, means:
                             //      1. queue is not closed, and
-                            //      2. m_uidQ is still empty
+                            //      2. m_uidUVec is still empty
                             ec = E_TIMEOUT;
                         }
                     }
                     else{
                         m_cond.wait(lockGuard, [this]() -> bool
                         {
-                            return m_closed || !m_uidQ.empty();
+                            return m_closed || !m_uidUVec.empty();
                         });
 
-                        // when there is task in m_uidQ
+                        // when there is task in m_uidUVec
                         // we always firstly pick & return the task before report E_CLOSED
 
-                        if(!m_uidQ.empty()){
+                        if(!m_uidUVec.empty()){
                             ec = E_DONE;
-                            m_uidQ.pick_top(uidList, maxPop);
+                            m_uidUVec.pop_front(uidList, maxPick);
                         }
                         else{
                             ec = E_QCLOSED;
@@ -288,7 +355,7 @@ class ActorPool final
                 size_t size_hint() const
                 {
                     std::lock_guard<decltype(m_lock)> lockGuard(m_lock);
-                    return m_uidQ.size();
+                    return m_uidUVec.size();
                 }
         };
 
