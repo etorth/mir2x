@@ -10035,7 +10035,7 @@ class MainWindow {} {
             xywh {0 0 36 21} divider
           }
           MenuItem {} {
-            label {Function Profiler}
+            label {Function Profiler  }
             callback {// show profiler window
 {
     extern ProfilerWindow *g_profilerWindow;
