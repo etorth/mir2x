@@ -308,32 +308,20 @@ namespace corof
                     class AwaitablePromiseFinalAwaiter
                     {
                         private:
-                            std::coroutine_handle<promise_type> m_handle = nullptr;
+                            const promise_type * const m_promise;
 
                         public:
-                            AwaitablePromiseFinalAwaiter() = default;
+                            AwaitablePromiseFinalAwaiter(const promise_type *promise) noexcept
+                                : m_promise(promise)
+                            {}
 
                         public:
-                            ~AwaitablePromiseFinalAwaiter()
+                            ~AwaitablePromiseFinalAwaiter() = default;
+
+                        public:
+                            bool await_ready() const noexcept
                             {
-                                // put coroutine handle in final awaiter
-                                // instead of inside corof::awaitable, because we have code like
-                                //
-                                //      co_await on_AM_MSG();
-                                //
-                                // if put coroutine handle inside corof::awaitable
-                                // it destructs after this line, however inside on_AM_MSG() we may wait some resp messges
-                                //
-                                // we have registered the handle to actor resp handler list
-                                // we can not let the coroutine handle in corof::awaitable destroy itself when above line returns
-                                // instead we can safely destroy it only when whole function body finishes
-                                m_handle.destroy();
-                            }
-
-                        public:
-                            constexpr bool await_ready() const noexcept
-                            {
-                                return false;
+                                return m_promise->m_autoDestruct;
                             }
 
                             std::coroutine_handle<> await_suspend(std::coroutine_handle<promise_type> handle) noexcept
@@ -341,14 +329,21 @@ namespace corof
                                 // gcc (till 15.1) has problem to support symmetric transfer
                                 // if optimization level is O2 or less, it doesn't do TCO (tail call optimization)
                                 // check: https://godbolt.org/z/ac57Tzorf
-                                return (m_handle = handle).promise().m_continuation;
+                                return handle.promise().m_continuation;
                             }
 
                             constexpr void await_resume() const noexcept {}
                     };
 
                 private:
+                    bool m_autoDestruct = false;
                     std::coroutine_handle<> m_continuation;
+
+                public:
+                    void enableAutoDestruct() noexcept
+                    {
+                        m_autoDestruct = true;
+                    }
 
                 public:
                     awaitable get_return_object() noexcept
@@ -356,8 +351,8 @@ namespace corof
                         return awaitable(std::coroutine_handle<promise_type>::from_promise(*this));
                     }
 
-                    std::suspend_always        initial_suspend() const noexcept { return {}; }
-                    AwaitablePromiseFinalAwaiter final_suspend() const noexcept { return {}; }
+                    auto initial_suspend() const noexcept { return std::suspend_always{}; }
+                    auto   final_suspend() const noexcept { return AwaitablePromiseFinalAwaiter{this}; }
 
                     void unhandled_exception()
                     {
@@ -371,10 +366,22 @@ namespace corof
                 private:
                     std::coroutine_handle<promise_type> m_handle;
 
+                private:
+                    const bool m_destroyHandle;
+
                 public:
-                    explicit AwaitableAsAwaiter(std::coroutine_handle<promise_type> h)
+                    explicit AwaitableAsAwaiter(std::coroutine_handle<promise_type> h, bool destroyHandle) noexcept
                         : m_handle(h)
+                        , m_destroyHandle(destroyHandle)
                     {}
+
+                public:
+                    ~AwaitableAsAwaiter()
+                    {
+                        if(m_handle && m_destroyHandle){
+                            m_handle.destroy();
+                        }
+                    }
 
                 public:
                     bool await_ready() const noexcept
@@ -432,14 +439,15 @@ namespace corof
         public:
             auto operator co_await() &&
             {
-                return AwaitableAsAwaiter(m_handle);
+                return AwaitableAsAwaiter(m_handle, true);
             }
 
         public:
             void resume()
             {
                 if(m_handle){
-                    AwaitableAsAwaiter(m_handle).await_suspend(std::noop_coroutine()).resume();
+                    m_handle.promise().enableAutoDestruct();
+                    AwaitableAsAwaiter(m_handle, false).await_suspend(std::noop_coroutine()).resume();
                 }
             }
 
