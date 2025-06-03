@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 #include <optional>
 #include <coroutine>
 #include <exception>
@@ -296,13 +297,13 @@ namespace corof
     template<typename T = void> class [[nodiscard]] awaitable
     {
         private:
-            class AwaitableAsAwaiter;
+            class AwaitableToAwaiter;
 
         public:
             class promise_type: public std::conditional_t<std::is_void_v<T>, _details::awaitable_promise_with_void, _details::awaitable_promise_with_type<T>>
             {
                 private:
-                    friend class AwaitableAsAwaiter;
+                    friend class AwaitableToAwaiter;
 
                 private:
                     class AwaitablePromiseFinalAwaiter
@@ -340,12 +341,6 @@ namespace corof
                     std::coroutine_handle<> m_continuation;
 
                 public:
-                    void enableAutoDestruct() noexcept
-                    {
-                        m_autoDestruct = true;
-                    }
-
-                public:
                     awaitable get_return_object() noexcept
                     {
                         return awaitable(std::coroutine_handle<promise_type>::from_promise(*this));
@@ -361,7 +356,7 @@ namespace corof
             };
 
         private:
-            class AwaitableAsAwaiter
+            class AwaitableToAwaiter
             {
                 private:
                     std::coroutine_handle<promise_type> m_handle;
@@ -370,13 +365,22 @@ namespace corof
                     const bool m_destroyHandle;
 
                 public:
-                    explicit AwaitableAsAwaiter(std::coroutine_handle<promise_type> h, bool destroyHandle) noexcept
+                    explicit AwaitableToAwaiter(std::coroutine_handle<promise_type> h, bool destroyHandle) noexcept
                         : m_handle(h)
                         , m_destroyHandle(destroyHandle)
-                    {}
+                    {
+                        if(m_handle && !m_destroyHandle){
+                            // final_suspend() becomes a std::suspend_never
+                            // used only for awaitable that started by awaitable::resume()
+                            //
+                            // for awaitable started by co_await
+                            // handle will be destroyed by the AwaitableToAwaiter::dtor()
+                            m_handle.promise().m_autoDestruct = true;
+                        }
+                    }
 
                 public:
-                    ~AwaitableAsAwaiter()
+                    ~AwaitableToAwaiter()
                     {
                         if(m_handle && m_destroyHandle){
                             m_handle.destroy();
@@ -439,15 +443,14 @@ namespace corof
         public:
             auto operator co_await() &&
             {
-                return AwaitableAsAwaiter(m_handle, true);
+                return AwaitableToAwaiter(std::exchange(m_handle, nullptr), true);
             }
 
         public:
             void resume()
             {
                 if(m_handle){
-                    m_handle.promise().enableAutoDestruct();
-                    AwaitableAsAwaiter(m_handle, false).await_suspend(std::noop_coroutine()).resume();
+                    AwaitableToAwaiter(std::exchange(m_handle, nullptr), false).await_suspend(std::noop_coroutine()).resume();
                 }
             }
 
