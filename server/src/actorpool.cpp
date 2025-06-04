@@ -857,53 +857,52 @@ void ActorPool::launchPool()
                             lastUpdateTime = currTime;
                         }
 
-                        // try to pop pending UIDs
-                        // to keep thread busy, we may steal UIDs from other buckets if allowed
-                        {
-                            logScopedProfiler("uidQPop");
-                            if(g_serverArgParser->actorPoolThreadSteal > 0){
-                                for(size_t i = 0; i < m_bucketList.size() * 32; ++i){
-                                    const auto currBucketId = (bucketId + i) % m_bucketList.size();
-                                    const auto pickAllPending = (currBucketId == static_cast<size_t>(bucketId));
+                        if(g_serverArgParser->actorPoolThreadSteal > 0){
+                            logScopedProfiler("uidQPopFast");
 
-                                    if(pickAllPending) m_bucketList[currBucketId].uidQPending.try_pop(uidList, 0);
-                                    else               m_bucketList[currBucketId].uidQPending.try_pop(uidList, g_serverArgParser->actorPoolThreadSteal);
+                            for(size_t i = 0; i < m_bucketList.size() * 32; ++i){
+                                const auto currBucketId = (bucketId + i) % m_bucketList.size();
+                                const auto pickAllPending = (currBucketId == static_cast<size_t>(bucketId));
 
-                                    if(!uidList.empty()){
-                                        break;
-                                    }
-                                }
-                            }
+                                if(pickAllPending) m_bucketList[currBucketId].uidQPending.try_pop(uidList, 0);
+                                else               m_bucketList[currBucketId].uidQPending.try_pop(uidList, g_serverArgParser->actorPoolThreadSteal);
 
-                            if(uidList.empty()){
-                                int ec = 0;
-                                const uint64_t exptUpdateTime = lastUpdateTime + maxUpdateWaitTime;
-
-                                if(currTime >= exptUpdateTime){
-                                    ec = E_TIMEOUT;
-                                }
-                                else{
-                                    m_bucketList[bucketId].uidQPending.pop(uidList, 0, exptUpdateTime - currTime, ec);
-                                }
-
-                                if(ec == E_QCLOSED){
+                                if(!uidList.empty()){
                                     break;
                                 }
-                                else if(ec == E_TIMEOUT){
-                                    // didn't get any pending UID
-                                    // when reach here, current thread needs to update its dedicated bucket
+                            }
+                        }
 
-                                    // do nothing here
-                                    // hold on for next loop
+                        if(uidList.empty()){
+                            logScopedProfiler("uidQPop");
+
+                            int ec = 0;
+                            const uint64_t exptUpdateTime = lastUpdateTime + maxUpdateWaitTime;
+
+                            if(currTime >= exptUpdateTime){
+                                ec = E_TIMEOUT;
+                            }
+                            else{
+                                m_bucketList[bucketId].uidQPending.pop(uidList, 0, exptUpdateTime - currTime, ec);
+                            }
+
+                            if(ec == E_QCLOSED){
+                                break;
+                            }
+                            else if(ec == E_TIMEOUT){
+                                // didn't get any pending UID
+                                // when reach here, current thread needs to update its dedicated bucket
+
+                                // do nothing here
+                                // hold on for next loop
+                            }
+                            else if(ec == E_DONE){
+                                if(uidList.empty()){
+                                    throw fflerror("taskQ returns E_DONE with empty uid list");
                                 }
-                                else if(ec == E_DONE){
-                                    if(uidList.empty()){
-                                        throw fflerror("taskQ returns E_DONE with empty uid list");
-                                    }
-                                }
-                                else{
-                                    throw fflerror("uidQPending[bucketId %d].pop() returns invalid result: %d", bucketId, ec);
-                                }
+                            }
+                            else{
+                                throw fflerror("uidQPending[bucketId %d].pop() returns invalid result: %d", bucketId, ec);
                             }
                         }
                     }
