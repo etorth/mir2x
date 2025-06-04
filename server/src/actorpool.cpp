@@ -429,7 +429,7 @@ bool ActorPool::postLocalMessage(uint64_t uid, ActorMsgPack msg)
     // every dedicated actor thread can handle UID outside of its bucket
 
     {
-        logScopedProfiler("pushUIDQPending");
+        logScopedProfiler("uidQPush");
         if(!g_serverArgParser->disableRandomPushPending){
             const auto bucketCount = to_d(m_bucketList.size());
             for(int i = 0; i < bucketCount; ++i){
@@ -857,47 +857,53 @@ void ActorPool::launchPool()
                             lastUpdateTime = currTime;
                         }
 
-                        if(g_serverArgParser->actorPoolThreadSteal > 0){
-                            for(size_t i = 0; i < m_bucketList.size() * 32; ++i){
-                                const auto currBucketId = (bucketId + i) % m_bucketList.size();
-                                const auto pickAllPending = (currBucketId == static_cast<size_t>(bucketId));
+                        // try to pop pending UIDs
+                        // to keep thread busy, we may steal UIDs from other buckets if allowed
+                        {
+                            logScopedProfiler("uidQPop");
+                            if(g_serverArgParser->actorPoolThreadSteal > 0){
+                                for(size_t i = 0; i < m_bucketList.size() * 32; ++i){
+                                    const auto currBucketId = (bucketId + i) % m_bucketList.size();
+                                    const auto pickAllPending = (currBucketId == static_cast<size_t>(bucketId));
 
-                                if(pickAllPending) m_bucketList[currBucketId].uidQPending.try_pop(uidList, 0);
-                                else               m_bucketList[currBucketId].uidQPending.try_pop(uidList, g_serverArgParser->actorPoolThreadSteal);
+                                    if(pickAllPending) m_bucketList[currBucketId].uidQPending.try_pop(uidList, 0);
+                                    else               m_bucketList[currBucketId].uidQPending.try_pop(uidList, g_serverArgParser->actorPoolThreadSteal);
 
-                                if(!uidList.empty()){
+                                    if(!uidList.empty()){
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if(uidList.empty()){
+                                int ec = 0;
+                                const uint64_t exptUpdateTime = lastUpdateTime + maxUpdateWaitTime;
+
+                                if(currTime >= exptUpdateTime){
+                                    ec = E_TIMEOUT;
+                                }
+                                else{
+                                    m_bucketList[bucketId].uidQPending.pop(uidList, 0, exptUpdateTime - currTime, ec);
+                                }
+
+                                if(ec == E_QCLOSED){
                                     break;
                                 }
-                            }
-                        }
+                                else if(ec == E_TIMEOUT){
+                                    // didn't get any pending UID
+                                    // when reach here, current thread needs to update its dedicated bucket
 
-                        if(uidList.empty()){
-                            int ec = 0;
-                            const uint64_t exptUpdateTime = lastUpdateTime + maxUpdateWaitTime;
-                            if(currTime < exptUpdateTime){
-                                m_bucketList[bucketId].uidQPending.pop(uidList, 0, exptUpdateTime - currTime, ec);
-                            }
-                            else{
-                                ec = E_TIMEOUT;
-                            }
-
-                            if(ec == E_QCLOSED){
-                                break;
-                            }
-                            else if(ec == E_TIMEOUT){
-                                // didn't get any pending UID
-                                // and when reach here we are sure the thread needs to update the whole mailbox by METRONOME
-
-                                // do nothing here
-                                // hold for next loop
-                            }
-                            else if(ec == E_DONE){
-                                if(uidList.empty()){
-                                    throw fflerror("taskQ returns E_DONE with empty uid list");
+                                    // do nothing here
+                                    // hold on for next loop
                                 }
-                            }
-                            else{
-                                throw fflerror("uidQPending[bucketId = %d].pop() returns invalid result: %d", bucketId, ec);
+                                else if(ec == E_DONE){
+                                    if(uidList.empty()){
+                                        throw fflerror("taskQ returns E_DONE with empty uid list");
+                                    }
+                                }
+                                else{
+                                    throw fflerror("uidQPending[bucketId %d].pop() returns invalid result: %d", bucketId, ec);
+                                }
                             }
                         }
                     }
