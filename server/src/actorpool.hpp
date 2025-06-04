@@ -154,12 +154,12 @@ class ActorPool final
 
                 void pop_front(UIDVec &uidList, size_t maxPick)
                 {
+                    uidList.clear();
                     if(maxPick == 0 || maxPick >= m_uidVec.size()){
                         m_uidVec.swap(uidList);
                         m_uidSet.clear();
                     }
                     else{
-                        uidList.clear();
                         for(size_t i = 0; i < maxPick; ++i){
                             uidList.push_back(pop_front());
                         }
