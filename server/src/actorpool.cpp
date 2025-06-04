@@ -716,7 +716,7 @@ void ActorPool::runOneMailboxBucket(int bucketId)
             // we only need to collect mailboxList cache when grow happens
             // this is not that much
 
-            logScopedProfiler("refreshMailboxListCache");
+            logScopedProfiler("refreshMailboxCachedList");
 
             const auto cachedSize = currMailboxListCache.size();
             const MailboxSubBucket::RLockGuard lockGuard(currSubBucket.lock);
