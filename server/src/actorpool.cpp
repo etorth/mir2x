@@ -430,10 +430,12 @@ bool ActorPool::postLocalMessage(uint64_t uid, ActorMsgPack msg)
 
     {
         logScopedProfiler("pushUIDQPending");
-        const auto bucketCount = to_d(m_bucketList.size());
-        for(int i = 0; i < bucketCount; ++i){
-            if(m_bucketList.at((bucketId + i) % bucketCount).uidQPending.try_push(uid)){
-                return true;
+        if(!g_serverArgParser->disableRandomPushPending){
+            const auto bucketCount = to_d(m_bucketList.size());
+            for(int i = 0; i < bucketCount; ++i){
+                if(m_bucketList.at((bucketId + i) % bucketCount).uidQPending.try_push(uid)){
+                    return true;
+                }
             }
         }
 
@@ -855,11 +857,17 @@ void ActorPool::launchPool()
                             lastUpdateTime = currTime;
                         }
 
-                        for(size_t i = 0; i < m_bucketList.size() * 32; ++i){
-                            const size_t currBucketId = (bucketId + i) % m_bucketList.size();
-                            const size_t maxPop = (currBucketId == static_cast<size_t>(bucketId)) ? 0 : 16;
-                            if(m_bucketList[currBucketId].uidQPending.try_pop(uidList, maxPop) && !uidList.empty()){
-                                break;
+                        if(g_serverArgParser->actorPoolThreadSteal > 0){
+                            for(size_t i = 0; i < m_bucketList.size() * 32; ++i){
+                                const auto currBucketId = (bucketId + i) % m_bucketList.size();
+                                const auto pickAllPending = (currBucketId == static_cast<size_t>(bucketId));
+
+                                if(pickAllPending) m_bucketList[currBucketId].uidQPending.try_pop(uidList, 0);
+                                else               m_bucketList[currBucketId].uidQPending.try_pop(uidList, g_serverArgParser->actorPoolThreadSteal);
+
+                                if(!uidList.empty()){
+                                    break;
+                                }
                             }
                         }
 

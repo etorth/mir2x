@@ -15,8 +15,10 @@ class ServerArgParser
 
         const bool slave;                               // "--slave"
         const bool disableProfiler;                     // "--disable-profiler"
+        const bool disableRandomPushPending;            // "--disable-random-push-pending"
 
         const int actorPoolThread;                      // "--actor-pool-thread"
+        const int actorPoolThreadSteal;                 // "--actor-pool-thread-steal"
         const std::pair<int, bool> peerPort;            // "--peer-port"
 
     public:
@@ -124,10 +126,12 @@ class ServerArgParser
     public:
         ServerArgParser(const argf::parser &parser)
             // master & slave
-            : slave          (argf::parseInteger<bool>(parseString(parser, "--slave",             true,        argf::BAN, argf::OPT, true, true), "slave",             argf::checkPass<bool>,           false, true).first)
-            , disableProfiler(argf::parseInteger<bool>(parseString(parser, "--disable-profiler",  this->slave, argf::OPT, argf::OPT, true, true), "disable-profiler",  argf::checkPass<bool>,           false, true).first)
-            , actorPoolThread(argf::parseInteger<int> (parseString(parser, "--actor-pool-thread", this->slave, argf::OPT, argf::OPT            ), "actor-pool-thread", argf::checkPositive,             cpuCount() ).first)
-            ,        peerPort(argf::parseInteger<int> (parseString(parser, "--peer-port",         this->slave, argf::OPT, argf::OPT            ), "peer-port",         argf::checkUserListenPort(true), this->slave ? 0 : argf::defVal::masterPeerPort))
+            : slave                   (argf::parseInteger<bool>(parseString(parser, "--slave",                       true,        argf::BAN, argf::OPT, true, true), "slave",                       argf::checkPass<bool>,           false, true).first)
+            , disableProfiler         (argf::parseInteger<bool>(parseString(parser, "--disable-profiler",            this->slave, argf::OPT, argf::OPT, true, true), "disable-profiler",            argf::checkPass<bool>,           false, true).first)
+            , disableRandomPushPending(argf::parseInteger<bool>(parseString(parser, "--disable-random-push-pending", this->slave, argf::OPT, argf::OPT, true, true), "disable-random-push-pending", argf::checkPass<bool>,           false, true).first)
+            , actorPoolThread         (argf::parseInteger<int> (parseString(parser, "--actor-pool-thread",           this->slave, argf::OPT, argf::OPT            ), "actor-pool-thread",           argf::checkPositive,             cpuCount() ).first)
+            , actorPoolThreadSteal    (argf::parseInteger<int> (parseString(parser, "--actor-pool-thread-steal",     this->slave, argf::OPT, argf::OPT            ), "actor-pool-thread-steal",     argf::checkNonNegative,          32         ).first)
+            , peerPort                (argf::parseInteger<int> (parseString(parser, "--peer-port",                   this->slave, argf::OPT, argf::OPT            ), "peer-port",                   argf::checkUserListenPort(true), this->slave ? 0 : argf::defVal::masterPeerPort))
 
             // slave only
             , m_slaveOnlyConfig
