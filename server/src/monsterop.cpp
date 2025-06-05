@@ -241,7 +241,7 @@ corof::awaitable<> Monster::on_AM_OFFLINE(const ActorMsgPack &rstMPK)
 
 corof::awaitable<> Monster::on_AM_CHECKMASTER(const ActorMsgPack &rstMPK)
 {
-    m_actorPod->post(rstMPK.fromAddr(), AM_OK);
+    m_actorPod->post(rstMPK.fromAddr(), AM_CHECKMASTEROK);
     return {};
 }
 
