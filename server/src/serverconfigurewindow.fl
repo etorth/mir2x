@@ -1,0 +1,299 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0308
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include <cmath>} {public global
+}
+
+decl {\#include <mutex>} {public global
+}
+
+decl {\#include <string>} {public global
+}
+
+decl {\#include <algorithm>} {public global
+}
+
+decl {\#include "totype.hpp"} {private local
+}
+
+decl {\#include "strf.hpp"} {private local
+}
+
+decl {\#include "uidf.hpp"} {private local
+}
+
+decl {\#include "uidsf.hpp"} {private local
+}
+
+decl {\#include "filesys.hpp"} {private local
+}
+
+decl {\#include "serdesmsg.hpp"} {private local
+}
+
+decl {\#include "dispatcher.hpp"} {private local
+}
+
+decl {\#include "serverargparser.hpp"} {private local
+}
+
+decl {extern ServerArgParser *g_serverArgParser;} {private local
+}
+
+class ServerConfig {} {
+  decl {std::string mapPath = "map/mapbin.zsdb";} {public local
+  }
+  decl {std::string scriptPath = "script";} {public local
+  }
+  decl {int maxPlayerCount = 5000;} {public local
+  }
+  decl {double experienceRate = 1.0;} {public local
+  }
+  decl {double dropRate = 1.0;} {public local
+  }
+  decl {double goldRate = 1.0;} {public local
+  }
+  decl {int clientPort = 5000;} {public local
+  }
+  decl {int slavePort = 6000;} {public local
+  }
+}
+
+class ServerConfigureWindow {} {
+  decl {mutable std::mutex m_configLock;} {private local
+  }
+  decl {ServerConfig m_config;} {private local
+  }
+  Function {ServerConfigureWindow()} {} {
+    Fl_Window m_window {
+      label ConfigureWindow
+      xywh {547 190 570 360} type Double modal visible
+    } {
+      Fl_Input m_mapFullName {
+        label {Map Path:}
+        xywh {150 20 300 25}
+      }
+      Fl_Button {} {
+        label {@fileopen}
+        callback {{
+    Fl_Native_File_Chooser stFileChooser;
+    stFileChooser.title("Load Map Database File...");
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_FILE);
+
+    char szMatchedFileNames[] =
+        "MAPDBN\\t*.ZIP\\n"
+        ;
+
+    stFileChooser.filter(szMatchedFileNames);
+    stFileChooser.directory(".");
+
+    switch(stFileChooser.show()){
+        case -1:
+            {
+                fl_alert("%s", stFileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
+        default:
+            {
+                std::string szPath = stFileChooser.filename();
+                std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
+
+                m_mapFullName->value(szPath.c_str());
+            }
+    }
+}}
+        xywh {450 20 30 25}
+        code0 {\#include <string>}
+        code1 {\#include <FL/Fl_Native_File_Chooser.H>}
+        code2 {\#include <FL/fl_ask.H>}
+      }
+      Fl_Input m_scriptFullName {
+        label {Script Path:}
+        xywh {150 60 300 25}
+      }
+      Fl_Button {} {
+        label {@fileopen}
+        callback {{
+    Fl_Native_File_Chooser stFileChooser;
+    stFileChooser.title("Load Map Script Path...");
+    stFileChooser.options(Fl_Native_File_Chooser::NO_OPTIONS);
+    stFileChooser.type(Fl_Native_File_Chooser::BROWSE_DIRECTORY);
+
+    stFileChooser.directory(".");
+
+    switch(stFileChooser.show()){
+        case -1:
+            {
+                fl_alert("%s", stFileChooser.errmsg());
+                break;
+            }
+        case 1:
+            {
+                break;
+            }
+        default:
+            {
+                std::string szPath = stFileChooser.filename();
+                std::replace(szPath.begin(), szPath.end(), '\\\\', '/');
+
+                m_scriptFullName->value(szPath.c_str());
+            }
+    }
+}}
+        xywh {450 60 30 25}
+        code0 {\#include <string>}
+        code1 {\#include <FL/Fl_Native_File_Chooser.H>}
+        code2 {\#include <FL/fl_ask.H>}
+      }
+      Fl_Input m_maxPlayerCount {
+        label {Maximal Player:}
+        xywh {150 100 60 25} type Int
+      }
+      Fl_Input m_experienceRate {
+        label {Experience Rate:}
+        xywh {150 140 60 25} type Float
+      }
+      Fl_Input m_dropRate {
+        label {Drop Rate:}
+        xywh {150 180 60 25} type Float
+      }
+      Fl_Input m_goldRate {
+        label {Gold Rate:}
+        xywh {150 220 60 25} type Float
+      }
+      Fl_Input m_clientPort {
+        label {Client Port:}
+        xywh {150 260 60 25} type Int
+      }
+      Fl_Input m_slavePort {
+        label {SlavePort:}
+        xywh {150 300 60 25} type Int
+      }
+      Fl_Button {} {
+        label Cancel
+        callback {m_window->hide();}
+        xywh {300 315 70 25}
+      }
+      Fl_Button {} {
+        label Apply
+        callback {applyConfig();}
+        xywh {380 315 70 25}
+      }
+      Fl_Button {} {
+        label OK
+        callback {applyConfig();
+m_window->hide();}
+        xywh {460 315 70 25}
+      }
+    }
+    code {// set up the default map path
+{
+    ServerConfig defConfg {};
+    m_mapFullName->value(defConfg.mapPath.c_str());
+    m_scriptFullName->value(defConfg.scriptPath.c_str());
+    m_maxPlayerCount->value(std::to_string(defConfg.maxPlayerCount).c_str());
+    m_experienceRate->value(str_printf("%.2f", defConfg.experienceRate).c_str());
+    m_dropRate->value(str_printf("%.2f", defConfg.dropRate).c_str());
+    m_goldRate->value(str_printf("%.2f", defConfg.goldRate).c_str());
+
+    m_clientPort->value(std::to_string(g_serverArgParser->masterConfig().clientPort.first).c_str());
+    if(!g_serverArgParser->masterConfig().clientPort.second){
+        m_clientPort->deactivate();
+    }
+
+    m_slavePort->value(std::to_string(g_serverArgParser->peerPort.first).c_str());
+    if(!g_serverArgParser->peerPort.second){
+        m_slavePort->deactivate();
+    }
+
+    applyConfig();
+}} {}
+  }
+  Function {showAll()} {} {
+    code {{
+    m_window->show();
+}} {}
+  }
+  Function {applyConfig()} {return_type void
+  } {
+    code {// setup all entries, validate before assigning
+{
+    {
+        const std::lock_guard<std::mutex> lockGuard(m_configLock);
+        const auto fnAssignPath = [](const char *val, const char *usage, std::string &dst)
+        {
+            if(str_haschar(val)){
+                if(filesys::hasFile(val)){
+                    dst = val;
+                }
+                else{
+                    fl_alert("invalid %s: %s", to_cstr(usage), to_cstr(val));
+                }
+            }
+            else{
+                dst.clear();
+            }
+        };
+
+        fnAssignPath(m_mapFullName->value(), "map path", m_config.mapPath);
+        fnAssignPath(m_scriptFullName->value(), "script path", m_config.scriptPath);
+
+        const auto fnAssignPositiveInteger = [](const char *value, const char *usage, int &dst)
+        {
+            try{
+                if(const int val = std::stoi(value); val > 0){
+                    dst = val;
+                    return;
+                }
+                else{
+                    fl_alert("Invalid %s: %d", usage, val);
+                }
+            }
+            catch(...){}
+            fl_alert("Invalid %s: %s", usage, to_cstr(value));
+        };
+
+        fnAssignPositiveInteger(m_maxPlayerCount->value(), "maximal player", m_config.maxPlayerCount);
+        fnAssignPositiveInteger(m_clientPort->value(), "client port", m_config.clientPort);
+        fnAssignPositiveInteger(m_slavePort->value(), "slave port", m_config.slavePort);
+
+        const auto fnAssignPositiveDouble = [](const char *value, const char *usage, double &dst)
+        {
+            try{
+                if(const double val = std::stod(value); val >= 0){
+                    dst = val;
+                    return;
+                }
+                else{
+                    fl_alert("Invalid %s: %f", usage, val);
+                }
+            }
+            catch(...){}
+            fl_alert("Invalid %s: %s", usage, to_cstr(value));
+        };
+
+        fnAssignPositiveDouble(m_experienceRate->value(), "experience rate", m_config.experienceRate);
+        fnAssignPositiveDouble(m_dropRate->value(), "drop rate", m_config.dropRate);
+        fnAssignPositiveDouble(m_goldRate->value(), "gold rate", m_config.goldRate);
+    }
+
+    for(size_t i = 1; i <= uidsf::peerCount(); ++i){
+        Dispatcher().post(uidf::getPeerCoreUID(i), {AM_PEERCONFIG, cerealf::serialize(SDPeerConfig
+        {
+            .dropRate = m_config.dropRate,
+            .goldRate = m_config.goldRate,
+        })});
+    }
+}} {}
+  }
+  Function {getConfig() const} {return_type ServerConfig
+  } {
+    code {std::lock_guard<std::mutex> lockGuard(m_configLock);
+return m_config;} {}
+  }
+}

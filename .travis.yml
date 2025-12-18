@@ -1,0 +1,55 @@
+language: c++
+dist: focal
+
+addons:
+    apt:
+        packages:
+            - cmake
+            - gcc-10
+            - g++-10
+            - liblua5.3-dev
+            - libsqlite3-dev
+            - libfltk1.3-dev
+            - libsdl2-dev
+            - libsdl2-image-dev
+            - libsdl2-ttf-dev
+            - libsdl2-gfx-dev
+            - libpng-dev
+            - fluid
+    coverity_scan:
+        project:
+            name: "etorth/mir2x"
+        build_command_prepend: "mkdir -p build && cd build && cmake .. -DCMAKE_C_COMPILER=gcc-10 -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install"
+        build_command: "make"
+        branch_pattern: master
+        notification_email: anhonghe@gmail.com
+
+script:
+    - mkdir -p build
+    - cd build
+    - cmake --version
+    - cmake .. -DCMAKE_C_COMPILER=gcc-10 -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install
+    - make -j $(nproc)
+    - make -j $(nproc) install
+
+notifications:
+    email: false
+
+cache:
+    directories:
+        - .git/lfs
+
+git:
+    lfs_skip_smudge: true
+
+install:
+    - git lfs pull
+
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "ezhHgaXLQC90/loQNSwjg5KQ2Zs6HZ9KnnT/ni3SGnKEJKbksckp8FlrHToJATJsIlYaKLuzolDhpFQ2YyG6tu/cf0perPiIxLJ0NzrZpIRJ62sxW8oL5q5+L04cusZ3Btb7622jaZyPWZFawnKUTj6t2LA1qjpWGg6+3gdAbbCTOy7UHJ1o8k/o9Jm21EL4+72xm1c3PJa64jHH6iYNl0W1fJ2wk9cgps2imxBJlvkvctP0PpwtoA1lqfi/LSDPdZVv/+S65BwdYz4Eu7xaHJ5+FkQQvc6zPGEQJ6mYbX4DC1AIdm7uhH9APzL3VKnDfwkAXVRiDr7dmEWzXpWGzaDPHZtNS6MGVgzz8mRiHNpruKpCcjlH1ACs4v+Ql4/0XYNh4wjYa/OUfpQ4mpbt8fbid6933xzE7Qstrx4vu56R4QaUv3QGlsq8DCxOPNuNudzCIWQlfZHloh5jUDLQZZLPUNb9NeOJMOHSSo9BhSElNFOvtCQOtQNvY6ZKlmgHwyJIGJTuMpu1y5PcXwsQ4AGvy2yOR5+ukUAIWj7irqGckEKirkm+SLwEz75Id/iaDd5UHkl8homLWa/2YZy6Ls72oBtzMAZKdkacXopvCRKJYs7942kCcj+VdKFWEwkyTnhHvpaiQjf67kS3bX/qiJ+5kqbAFLp4k90FSt6ZuNg="
+
+before_install:
+    - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-

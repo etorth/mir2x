@@ -1,0 +1,203 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0304
+header_name {.hpp}
+code_name {.cpp}
+decl {\#include <string>} {private local
+}
+
+decl {\#include <cstdint>} {private local
+}
+
+decl {\#include <cstring>} {private local
+}
+
+decl {\#include "mir2xmapdata.hpp"} {public global
+}
+
+decl {\#include "strf.hpp"} {public global
+}
+
+decl {\#include "editormap.hpp"} {public global
+}
+
+decl {\#include "layerviewwindow.hpp"} {private local
+}
+
+class LayerBrowserWindow {} {
+  Function {LayerBrowserWindow()} {} {
+    Fl_Window m_window {
+      private xywh {68 94 555 605} type Double labelfont 4
+      code0 {\#include <FL/fl_ask.H>} visible
+    } {
+      Fl_Menu_Bar m_menuBar {
+        private xywh {0 0 600 20} box FLAT_BOX labelfont 4 textfont 4
+      } {
+        Submenu {} {
+          label Layer
+          xywh {0 0 62 20} labelfont 4
+        } {
+          MenuItem {} {
+            label {Merge        }
+            callback {{
+    // export all selected layers to the editor
+    extern LayerViewWindow *g_layerViewWindow;
+    g_layerViewWindow->showAll();
+}}
+            xywh {0 0 30 20} labelfont 4 divider
+            code0 {\#include "layerviewwindow.hpp"}
+          }
+          MenuItem {} {
+            label Export
+            xywh {0 0 30 20} labelfont 4
+          }
+          MenuItem {} {
+            label {Export All}
+            xywh {10 10 30 20} labelfont 4 divider
+          }
+          MenuItem {} {
+            label Exit
+            xywh {0 0 30 20} shortcut 0x40071 labelfont 4
+          }
+        }
+        Submenu {} {
+          label Import
+          xywh {10 10 62 20} labelfont 4
+        } {
+          MenuItem m_menuItemImportAttribute {
+            label {Attribute              }
+            xywh {10 10 30 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem m_menuItemImportLight {
+            label Light
+            xywh {20 20 30 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem m_menuItemImportTile {
+            label Tile
+            xywh {10 10 30 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem m_menuItemImportObjectGround {
+            label {Object Ground}
+            xywh {20 20 30 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemImportObjectOverGround0 {
+            label {Object Over Ground 0}
+            xywh {30 30 30 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemImportObjectOverGround1 {
+            label {Object Over Ground 1}
+            xywh {40 40 30 20} type Toggle value 1 labelfont 4
+          }
+          MenuItem m_menuItemImportObjectSky {
+            label {Object SKy}
+            xywh {50 50 30 20} type Toggle value 1 labelfont 4 divider
+          }
+          MenuItem {} {
+            label Import
+            callback {{
+    // get data from editor map
+    extern EditorMap g_editorMap;
+    addEntry(g_editorMap.exportLayer());
+}}
+            xywh {20 20 30 20} shortcut 0x40069 labelfont 4
+          }
+        }
+      }
+      Fl_Browser m_browser {
+        callback {{
+    // open current layer when clicking
+    // if more than one entries selected only open first one
+    extern LayerViewWindow *g_layerViewWindow;
+    if(Fl::event_clicks()){
+        g_layerViewWindow->showAll();
+    }
+    
+    // always issue redraw
+    // because editor window always show focused item
+    g_layerViewWindow->redrawAll();
+}}
+        private xywh {0 20 555 570} type Hold labelfont 4 textfont 4
+      }
+      Fl_Box m_statusBar {
+        xywh {0 590 555 15} labelfont 4 labelsize 10 align 20
+      }
+    }
+    code {{
+	// give an initial value of status bar
+	addFootLog("Version 0.0.1");
+}} {}
+  }
+  Function {showAll()} {return_type void
+  } {
+    code {{
+	m_window->show();
+}} {}
+  }
+  Function {addFootLog(const char *log)} {return_type void
+  } {
+    code {{
+        if(str_haschar(log)){
+            m_statusBar->copy_label(log);
+        }
+        else{
+            m_statusBar->copy_label("Version: 0.0.1");
+        }
+        m_window->redraw();
+}} {}
+  }
+  Function {addEntry(Mir2xMapData data)} {return_type void
+  } {
+    code {{
+    // add an entry to the browser
+    // update the tatus bar and redraw
+    if(data.valid()){
+        auto pdata = new Mir2xMapData();
+        *pdata = std::move(data);
+        m_browser->add(str_printf("layer: %zu x %zu", pdata->w(), pdata->h()).c_str(), pdata);
+    }
+    m_window->redraw();
+}} {}
+  }
+  Function {importAttribute()} {return_type bool
+  } {
+    code {{
+    return m_menuItemImportAttribute->value();
+}} {}
+  }
+  Function {importLight()} {return_type bool
+  } {
+    code {{
+    return m_menuItemImportLight->value();
+}} {}
+  }
+  Function {importTile()} {return_type bool
+  } {
+    code {{
+    return m_menuItemImportTile->value();
+}} {}
+  }
+  Function {importObject(int depthType)} {return_type bool
+  } {
+    code {{
+    switch(depthType){
+        case OBJD_GROUND     : return m_menuItemImportObjectGround     ->value();
+        case OBJD_OVERGROUND0: return m_menuItemImportObjectOverGround0->value();
+        case OBJD_OVERGROUND1: return m_menuItemImportObjectOverGround1->value();
+        case OBJD_SKY        : return m_menuItemImportObjectSky        ->value();
+        default              : return false;
+    }
+}} {}
+  }
+  Function {getLayer()} {return_type {const Mir2xMapData *}
+  } {
+    code {{
+    // export current focused layer
+    // if select more than one layer return fisrt layer
+    for(int i = 1; i <= m_browser->size(); ++i){
+        if(m_browser->selected(i)){
+            return (const Mir2xMapData *)(m_browser->data(i));
+        }
+    }
+    return nullptr;
+}} {}
+  }
+}

@@ -1,0 +1,40 @@
+INCLUDE(ExternalProject)
+
+IF(WIN32 AND MSVC)
+    MESSAGE(STATUS "lua build skipped on windows platform, use vcpkg")
+    RETURN()
+ENDIF()
+
+ExternalProject_Add(
+    lua
+
+    URL "https://www.lua.org/ftp/lua-5.4.8.tar.gz"
+    URL_HASH SHA256=4f18ddae154e793e46eeab727c59ef1c0c0c2b744e7b94219710d76f530629ae
+
+    DOWNLOAD_NAME "lua"
+    DOWNLOAD_EXTRACT_TIMESTAMP 0
+
+    SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/lua"
+    BUILD_IN_SOURCE TRUE
+
+    CONFIGURE_COMMAND ""
+    BUILD_COMMAND make all
+    INSTALL_COMMAND make install INSTALL_TOP=${MIR2X_3RD_PARTY_DIR}/lua/install
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+
+    LOG_BUILD 1
+    LOG_CONFIGURE 1
+    LOG_INSTALL 1
+)
+
+SET(LUA_INCLUDE_DIRS "${MIR2X_3RD_PARTY_DIR}/lua/install/include")
+IF(WIN32)
+    SET(LUA_LIBRARIES lua_static)
+ELSE()
+    SET(LUA_LIBRARIES "${CMAKE_STATIC_LIBRARY_PREFIX}lua${CMAKE_STATIC_LIBRARY_SUFFIX}")
+ENDIF()
+
+INCLUDE_DIRECTORIES(SYSTEM ${LUA_INCLUDE_DIRS})
+LINK_DIRECTORIES(${MIR2X_3RD_PARTY_DIR}/lua/install/lib)
+ADD_DEPENDENCIES(mir2x_3rds lua)
