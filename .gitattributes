@@ -1,3 +1,10 @@
 *.cpp text eof=lf
 *.hpp text eof=lf
 *.txt text eof=lf
+
+# Force all text files to use LF on commit
+* text eol=lf
+
+# Keep binary files (like .exe or .so) as-is
+*.exe binary
+*.so  binary
