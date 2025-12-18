@@ -4,6 +4,46 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
+bool CheckBox::evalBoolGetter(const CheckBox::BoolGetter &getter, const Widget *widget)
+{
+    return std::visit(VarDispatcher
+    {
+        [      ](const std::function<bool(              )> &func){ return func(      ); },
+        [widget](const std::function<bool(const Widget *)> &func){ return func(widget); },
+        [widget](const auto &)
+        {
+            return dynamic_cast<const CheckBox *>(widget)->m_innVal;
+        },
+    },
+    getter);
+}
+
+void CheckBox::evalBoolSetter(CheckBox::BoolSetter &setter, Widget *widget, bool value)
+{
+    std::visit(VarDispatcher
+    {
+        [value       ](std::function<void(          bool)> &func){ func(        value); },
+        [value,widget](std::function<void(Widget *, bool)> &func){ func(widget, value); },
+        [value,widget](auto &)
+        {
+            dynamic_cast<CheckBox *>(widget)->m_innVal = value;
+        },
+    },
+    setter);
+}
+
+void CheckBox::evalTriggerFunc(CheckBox::TriggerFunc &trigger, Widget *widget, bool value)
+{
+    std::visit(VarDispatcher
+    {
+        [value        ](std::function<void(          bool)> &func){ func(        value); },
+        [value, widget](std::function<void(Widget *, bool)> &func){ func(widget, value); },
+
+        [](auto &){},
+    },
+    trigger);
+}
+
 CheckBox::CheckBox(CheckBox::InitArgs args)
     : Widget
       {{
@@ -127,41 +167,18 @@ bool CheckBox::processEventDefault(const SDL_Event &event, bool valid, Widget::R
 
 void CheckBox::toggle()
 {
-    setter(!getter());
-    std::visit(VarDispatcher
-    {
-        [this](std::function<void(          bool)> &func){ func(      getter()); },
-        [this](std::function<void(Widget *, bool)> &func){ func(this, getter()); },
+    const bool value = !getter();
+    setter(value);
 
-        [](auto &){},
-    },
-    m_valOnChange);
+    CheckBox::evalTriggerFunc(m_valOnChange, this, value);
 }
 
 bool CheckBox::getter() const
 {
-    return std::visit(VarDispatcher
-    {
-        [    ](const std::function<bool(              )> &func){ return func(    ); },
-        [this](const std::function<bool(const Widget *)> &func){ return func(this); },
-        [this](const auto &)
-        {
-            return m_innVal;
-        },
-    },
-    m_valGetter);
+    return CheckBox::evalBoolGetter(m_valGetter, this);
 }
 
 void CheckBox::setter(bool value)
 {
-    std::visit(VarDispatcher
-    {
-        [value      ](std::function<void(          bool)> &func){ func(      value); },
-        [value, this](std::function<void(Widget *, bool)> &func){ func(this, value); },
-        [value, this](auto &)
-        {
-            m_innVal = value;
-        },
-    },
-    m_valSetter);
+    CheckBox::evalBoolSetter(m_valSetter, this, value);
 }

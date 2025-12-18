@@ -20,6 +20,11 @@ class CheckBox: public Widget
                                         std::function<void(bool)>,
                                         std::function<void(Widget *, bool)>>;
 
+    public:
+        static bool evalBoolGetter (const CheckBox::BoolGetter  &, const Widget *);
+        static void evalBoolSetter (      CheckBox::BoolSetter  &,       Widget *, bool);
+        static void evalTriggerFunc(      CheckBox::TriggerFunc &,       Widget *, bool);
+
     private:
         struct InitArgs final
         {
