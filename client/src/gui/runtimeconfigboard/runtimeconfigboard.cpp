@@ -173,86 +173,65 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                       {
                           {&m_pageSystem_resolution, DIR_UPLEFT, 0, 0, false},
 
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, nullptr, nullptr, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); reportRuntimeConfig(RTCFG_FULLSCREEN); }, u8"全屏显示", 1, 12, 0, colorf::WHITE_A255) , DIR_UPLEFT, 0, 40, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, nullptr, nullptr, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); reportRuntimeConfig(RTCFG_SHOWFPS   ); }, u8"显示FPS" , 1, 12, 0, colorf::WHITE_A255) , DIR_UPLEFT, 0, 65, true},
+                          {new CheckLabel{{.label{.text=u8"全屏显示"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_FULLSCREEN); }}}, DIR_UPLEFT, 0, 40, true},
+                          {new CheckLabel{{.label{.text=u8"显示FPS"     , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_SHOWFPS   ); }}}, DIR_UPLEFT, 0, 65, true},
+                          {new CheckLabel{{.label{.text=u8"使用内置拼音", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_PINYIN    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_PINYIN    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_PINYIN    ); }}}, DIR_UPLEFT, 0, 90, true},
 
                           {new CheckLabel
-                          {
-                              DIR_UPLEFT,
-                              0,
-                              0,
+                          {{
+                              .label
+                              {
+                                  .text = u8"背景音乐",
+                                  .font{1, 12},
+                              },
 
-                              false,
-                              8,
-
-                              colorf::RGBA(231, 231, 189, 128),
-                              16,
-                              16,
-
-                              [this](const Widget *)
+                              .getter = [this]
                               {
                                   return SDRuntimeConfig_getConfig<RTCFG_BGM>(m_sdRuntimeConfig);
                               },
 
-                              [this](Widget *, bool value)
+                              .setter = [this](bool value)
                               {
                                   SDRuntimeConfig_setConfig<RTCFG_BGM>(m_sdRuntimeConfig, value);
                               },
 
-                              [this](Widget *, bool value)
+                              .onChange = [this](bool value)
                               {
                                   reportRuntimeConfig(RTCFG_BGM);
                                   m_pageSystem_musicSlider.setActive(value);
                               },
+                          }},
+                          DIR_UPLEFT, 0, 125, true},
 
-                              u8"背景音乐",
-                              1,
-                              12,
-                              0,
-                              colorf::WHITE_A255,
-                          },
-                          DIR_UPLEFT, 0, 100, true},
-
-                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 125, false},
+                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 150, false},
 
                           {new CheckLabel
-                          {
-                              DIR_UPLEFT,
-                              0,
-                              0,
+                          {{
+                              .label
+                              {
+                                  .text = u8"动作声效",
+                                  .font{1, 12},
+                              },
 
-                              false,
-                              8,
-
-                              colorf::RGBA(231, 231, 189, 128),
-                              16,
-                              16,
-
-                              [this](const Widget *)
+                              .getter = [this]
                               {
                                   return SDRuntimeConfig_getConfig<RTCFG_SEFF>(m_sdRuntimeConfig);
                               },
 
-                              [this](Widget *, bool value)
+                              .setter = [this](bool value)
                               {
                                   SDRuntimeConfig_setConfig<RTCFG_SEFF>(m_sdRuntimeConfig, value);
                               },
 
-                              [this](Widget *, bool value)
+                              .onChange = [this](bool value)
                               {
                                   reportRuntimeConfig(RTCFG_SEFF);
                                   m_pageSystem_soundEffectSlider.setActive(value);
                               },
+                          }},
+                          DIR_UPLEFT, 0,  185, true},
 
-                              u8"动作声效",
-                              1,
-                              12,
-                              0,
-                              colorf::WHITE_A255,
-                          },
-                          DIR_UPLEFT, 0,  160, true},
-
-                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 185, false},
+                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 210, false},
                       },
                   }},
                   true,
@@ -282,21 +261,21 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                       .childList
                       {
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许私聊        >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许私聊        >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许私聊        ); }, u8"允许私聊"        , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT,   0,   0, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许白字聊天    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许白字聊天    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许白字聊天    ); }, u8"允许白字聊天"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT,   0,  25, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许地图聊天    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许地图聊天    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许地图聊天    ); }, u8"允许地图聊天"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT,   0,  50, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许行会聊天    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许行会聊天    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许行会聊天    ); }, u8"允许行会聊天"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT,   0,  75, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许全服聊天    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许全服聊天    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许全服聊天    ); }, u8"允许全服聊天"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT,   0, 100, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许加入队伍    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许加入队伍    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许加入队伍    ); }, u8"允许加入队伍"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200,   0, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许加入行会    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许加入行会    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许加入行会    ); }, u8"允许加入行会"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200,  25, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许回生术      >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许回生术      >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许回生术      ); }, u8"允许回生术"      , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200,  50, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许天地合一    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许天地合一    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许天地合一    ); }, u8"允许天地合一"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200,  75, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许交易        >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许交易        >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许交易        ); }, u8"允许交易"        , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200, 100, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许添加好友    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许添加好友    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许添加好友    ); }, u8"允许添加好友"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200, 125, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许行会召唤    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许行会召唤    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许行会召唤    ); }, u8"允许行会召唤"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200, 150, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许行会杀人提示>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许行会杀人提示>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许行会杀人提示); }, u8"允许行会杀人提示", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200, 175, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许拜师        >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许拜师        >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许拜师        ); }, u8"允许拜师"        , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200, 200, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_允许好友上线提示>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_允许好友上线提示>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_允许好友上线提示); }, u8"允许好友上线提示", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 200, 225, true},
+                          {new CheckLabel{{.label{.text=u8"允许私聊"        , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许私聊        >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许私聊        >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许私聊        ); }}}, DIR_UPLEFT,   0,   0, true},
+                          {new CheckLabel{{.label{.text=u8"允许白字聊天"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许白字聊天    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许白字聊天    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许白字聊天    ); }}}, DIR_UPLEFT,   0,  25, true},
+                          {new CheckLabel{{.label{.text=u8"允许地图聊天"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许地图聊天    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许地图聊天    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许地图聊天    ); }}}, DIR_UPLEFT,   0,  50, true},
+                          {new CheckLabel{{.label{.text=u8"允许行会聊天"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许行会聊天    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许行会聊天    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许行会聊天    ); }}}, DIR_UPLEFT,   0,  75, true},
+                          {new CheckLabel{{.label{.text=u8"允许全服聊天"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许全服聊天    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许全服聊天    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许全服聊天    ); }}}, DIR_UPLEFT,   0, 100, true},
+                          {new CheckLabel{{.label{.text=u8"允许加入队伍"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许加入队伍    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许加入队伍    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许加入队伍    ); }}}, DIR_UPLEFT, 200,   0, true},
+                          {new CheckLabel{{.label{.text=u8"允许加入行会"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许加入行会    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许加入行会    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许加入行会    ); }}}, DIR_UPLEFT, 200,  25, true},
+                          {new CheckLabel{{.label{.text=u8"允许回生术"      , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许回生术      >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许回生术      >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许回生术      ); }}}, DIR_UPLEFT, 200,  50, true},
+                          {new CheckLabel{{.label{.text=u8"允许天地合一"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许天地合一    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许天地合一    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许天地合一    ); }}}, DIR_UPLEFT, 200,  75, true},
+                          {new CheckLabel{{.label{.text=u8"允许交易"        , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许交易        >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许交易        >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许交易        ); }}}, DIR_UPLEFT, 200, 100, true},
+                          {new CheckLabel{{.label{.text=u8"允许添加好友"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许添加好友    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许添加好友    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许添加好友    ); }}}, DIR_UPLEFT, 200, 125, true},
+                          {new CheckLabel{{.label{.text=u8"允许行会召唤"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许行会召唤    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许行会召唤    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许行会召唤    ); }}}, DIR_UPLEFT, 200, 150, true},
+                          {new CheckLabel{{.label{.text=u8"允许行会杀人提示", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许行会杀人提示>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许行会杀人提示>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许行会杀人提示); }}}, DIR_UPLEFT, 200, 175, true},
+                          {new CheckLabel{{.label{.text=u8"允许拜师"        , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许拜师        >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许拜师        >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许拜师        ); }}}, DIR_UPLEFT, 200, 200, true},
+                          {new CheckLabel{{.label{.text=u8"允许好友上线提示", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_允许好友上线提示>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_允许好友上线提示>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_允许好友上线提示); }}}, DIR_UPLEFT, 200, 225, true},
                       },
                   }},
                   true,
@@ -390,20 +369,20 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                       .childList
                       {
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_强制攻击    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_强制攻击    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_强制攻击    ); }, u8"强制攻击"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0,   0, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_显示体力变化>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_显示体力变化>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_显示体力变化); }, u8"显示体力变化", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0,  25, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_满血不显血  >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_满血不显血  >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_满血不显血  ); }, u8"满血不显血"  , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0,  50, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_显示血条    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_显示血条    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_显示血条    ); }, u8"显示血条"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0,  75, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_数字显血    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_数字显血    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_数字显血    ); }, u8"数字显血"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 100, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_综合数字显示>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_综合数字显示>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_综合数字显示); }, u8"综合数字显示", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 125, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_标记攻击目标>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_标记攻击目标>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_标记攻击目标); }, u8"标记攻击目标", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 150, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_单击解除锁定>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_单击解除锁定>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_单击解除锁定); }, u8"单击解除锁定", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 175, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_显示BUFF图标>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_显示BUFF图标>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_显示BUFF图标); }, u8"显示BUFF图标", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 200, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_显示BUFF计时>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_显示BUFF计时>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_显示BUFF计时); }, u8"显示BUFF计时", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 225, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_显示角色名字>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_显示角色名字>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_显示角色名字); }, u8"显示角色名字", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 250, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_关闭组队血条>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_关闭组队血条>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_关闭组队血条); }, u8"关闭组队血条", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 275, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_队友染色    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_队友染色    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_队友染色    ); }, u8"队友染色"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 300, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_显示队友位置>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_显示队友位置>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_显示队友位置); }, u8"显示队友位置", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 325, true},
+                          {new CheckLabel{{.label{.text=u8"强制攻击"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_强制攻击    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_强制攻击    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_强制攻击    ); }}}, DIR_UPLEFT, 0,   0, true},
+                          {new CheckLabel{{.label{.text=u8"显示体力变化", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_显示体力变化>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_显示体力变化>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_显示体力变化); }}}, DIR_UPLEFT, 0,  25, true},
+                          {new CheckLabel{{.label{.text=u8"满血不显血"  , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_满血不显血  >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_满血不显血  >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_满血不显血  ); }}}, DIR_UPLEFT, 0,  50, true},
+                          {new CheckLabel{{.label{.text=u8"显示血条"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_显示血条    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_显示血条    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_显示血条    ); }}}, DIR_UPLEFT, 0,  75, true},
+                          {new CheckLabel{{.label{.text=u8"数字显血"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_数字显血    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_数字显血    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_数字显血    ); }}}, DIR_UPLEFT, 0, 100, true},
+                          {new CheckLabel{{.label{.text=u8"综合数字显示", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_综合数字显示>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_综合数字显示>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_综合数字显示); }}}, DIR_UPLEFT, 0, 125, true},
+                          {new CheckLabel{{.label{.text=u8"标记攻击目标", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_标记攻击目标>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_标记攻击目标>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_标记攻击目标); }}}, DIR_UPLEFT, 0, 150, true},
+                          {new CheckLabel{{.label{.text=u8"单击解除锁定", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_单击解除锁定>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_单击解除锁定>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_单击解除锁定); }}}, DIR_UPLEFT, 0, 175, true},
+                          {new CheckLabel{{.label{.text=u8"显示BUFF图标", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_显示BUFF图标>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_显示BUFF图标>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_显示BUFF图标); }}}, DIR_UPLEFT, 0, 200, true},
+                          {new CheckLabel{{.label{.text=u8"显示BUFF计时", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_显示BUFF计时>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_显示BUFF计时>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_显示BUFF计时); }}}, DIR_UPLEFT, 0, 225, true},
+                          {new CheckLabel{{.label{.text=u8"显示角色名字", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_显示角色名字>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_显示角色名字>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_显示角色名字); }}}, DIR_UPLEFT, 0, 250, true},
+                          {new CheckLabel{{.label{.text=u8"关闭组队血条", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_关闭组队血条>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_关闭组队血条>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_关闭组队血条); }}}, DIR_UPLEFT, 0, 275, true},
+                          {new CheckLabel{{.label{.text=u8"队友染色"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_队友染色    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_队友染色    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_队友染色    ); }}}, DIR_UPLEFT, 0, 300, true},
+                          {new CheckLabel{{.label{.text=u8"显示队友位置", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_显示队友位置>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_显示队友位置>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_显示队友位置); }}}, DIR_UPLEFT, 0, 325, true},
                       },
                   }},
                   true,
@@ -418,11 +397,11 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                       .childList
                       {
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_持续盾      >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_持续盾      >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_持续盾      ); }, u8"持续盾"      , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0,   0, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_持续移花接木>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_持续移花接木>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_持续移花接木); }, u8"持续移花接木", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0,  25, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_持续金刚    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_持续金刚    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_持续金刚    ); }, u8"持续金刚"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0,  50, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_持续破血    >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_持续破血    >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_持续破血    ); }, u8"持续破血"    , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 100, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_持续铁布衫  >(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_持续铁布衫  >(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_持续铁布衫  ); }, u8"持续铁布衫"  , 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 125, true},
+                          {new CheckLabel{{.label{.text=u8"持续盾"      , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_持续盾      >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_持续盾      >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_持续盾      ); }}}, DIR_UPLEFT, 0,   0, true},
+                          {new CheckLabel{{.label{.text=u8"持续移花接木", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_持续移花接木>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_持续移花接木>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_持续移花接木); }}}, DIR_UPLEFT, 0,  25, true},
+                          {new CheckLabel{{.label{.text=u8"持续金刚"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_持续金刚    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_持续金刚    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_持续金刚    ); }}}, DIR_UPLEFT, 0,  50, true},
+                          {new CheckLabel{{.label{.text=u8"持续破血"    , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_持续破血    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_持续破血    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_持续破血    ); }}}, DIR_UPLEFT, 0, 100, true},
+                          {new CheckLabel{{.label{.text=u8"持续铁布衫"  , .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_持续铁布衫  >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_持续铁布衫  >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_持续铁布衫  ); }}}, DIR_UPLEFT, 0, 125, true},
                       },
                   }},
                   true,
@@ -437,10 +416,10 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                       .childList
                       {
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_自动喝红>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_自动喝红>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_自动喝红); }, u8"自动喝红", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0,  0, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_保持满血>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_保持满血>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_保持满血); }, u8"保持满血", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 25, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_自动喝蓝>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_自动喝蓝>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_自动喝蓝); }, u8"自动喝蓝", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 50, true},
-                          {new CheckLabel(DIR_UPLEFT, 0, 0, true, 8, colorf::RGBA(231, 231, 189, 128), 16, 16, [this](const Widget *){ return SDRuntimeConfig_getConfig<RTCFG_保持满蓝>(m_sdRuntimeConfig); }, [this](Widget *, bool value){ SDRuntimeConfig_setConfig<RTCFG_保持满蓝>(m_sdRuntimeConfig, value); }, [this](Widget *, bool){ reportRuntimeConfig(RTCFG_保持满蓝); }, u8"保持满蓝", 1, 12, 0, colorf::WHITE_A255), DIR_UPLEFT, 0, 75, true},
+                          {new CheckLabel{{.label{.text=u8"自动喝红", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_自动喝红>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_自动喝红>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_自动喝红); }}}, DIR_UPLEFT, 0,  0, true},
+                          {new CheckLabel{{.label{.text=u8"保持满血", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_保持满血>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_保持满血>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_保持满血); }}}, DIR_UPLEFT, 0, 25, true},
+                          {new CheckLabel{{.label{.text=u8"自动喝蓝", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_自动喝蓝>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_自动喝蓝>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_自动喝蓝); }}}, DIR_UPLEFT, 0, 50, true},
+                          {new CheckLabel{{.label{.text=u8"保持满蓝", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_保持满蓝>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_保持满蓝>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_保持满蓝); }}}, DIR_UPLEFT, 0, 75, true},
 
                           {new TextInput(DIR_UPLEFT, 0, 0, u8"等待", u8"秒", 3, 3, true, 50, 20), DIR_UPLEFT, 0, 110, true},
                       },

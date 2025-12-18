@@ -778,20 +778,10 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
 
                           {
                               new CheckBox
-                              {
-                                  DIR_UPLEFT,
-                                  0,
-                                  0,
-
-                                  FriendItem::HEIGHT / 3,
-                                  FriendItem::HEIGHT / 3,
-
-                                  colorf::RGB(231, 231, 189) + colorf::A_SHF(128),
-
-                                  nullptr,
-                                  nullptr,
-                                  nullptr,
-                              },
+                              {{
+                                  .w = FriendItem::HEIGHT / 3,
+                                  .h = FriendItem::HEIGHT / 3,
+                              }},
                               true,
                           });
                       }

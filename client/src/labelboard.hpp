@@ -4,9 +4,9 @@
 #include <cstdint>
 #include <SDL2/SDL.h>
 
+#include "lalign.hpp"
 #include "colorf.hpp"
 #include "widget.hpp"
-#include "lalign.hpp"
 #include "xmltypeset.hpp"
 
 class LabelBoard: public Widget
@@ -46,8 +46,14 @@ class LabelBoard: public Widget
         void setFont(uint8_t);
         void setFontSize(uint8_t);
         void setFontStyle(uint8_t);
-        void setFontColor(uint32_t);
-        void setImageMaskColor(uint32_t);
+
+    public:
+        void setFontColor(Widget::VarU32);
+        void setImageMaskColor(Widget::VarU32);
+
+    public:
+        uint32_t   color() const { return m_tpset.  color(); }
+        uint32_t bgColor() const { return m_tpset.bgColor(); }
 
     public:
         void clear()

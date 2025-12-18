@@ -4,64 +4,40 @@
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
-CheckBox::CheckBox(dir8_t argDir,
-        int argX,
-        int argY,
-        int argW,
-        int argH,
-
-        uint32_t argColor,
-
-        std::function<bool(const Widget *      )> argValGetter,
-        std::function<void(      Widget *, bool)> argValSetter,
-        std::function<void(      Widget *, bool)> argValOnChange,
-
-        Widget *argParent,
-        bool    argAutoDelete)
-
+CheckBox::CheckBox(CheckBox::InitArgs args)
     : Widget
-      ({
-          .dir = argDir,
+      {{
+          .dir = std::move(args.dir),
 
-          .x = argX,
-          .y = argY,
-          .w = argW,
-          .h = argH,
+          .x = std::move(args.x),
+          .y = std::move(args.y),
 
-          .parent
-          {
-              .widget = argParent,
-              .autoDelete = argAutoDelete,
-          }
-      })
+          .parent = std::move(args.parent),
+      }}
 
-    , m_color(argColor)
+    , m_color(std::move(args.color))
 
-    , m_valGetter  (std::move(argValGetter  ))
-    , m_valSetter  (std::move(argValSetter  ))
-    , m_valOnChange(std::move(argValOnChange))
+    , m_valGetter  (std::move(args.getter  ))
+    , m_valSetter  (std::move(args.setter  ))
+    , m_valOnChange(std::move(args.onChange))
 
     , m_img
       {{
           .dir = DIR_NONE,
-          .x = [this](const Widget *){ return w() / 2; },
-          .y = [this](const Widget *){ return h() / 2; },
 
-          .texLoadFunc = [](const Widget *) -> SDL_Texture *
-          {
-              return g_progUseDB->retrieve(0X00000480);
-          },
+          .x = [this]{ return w() / 2; },
+          .y = [this]{ return h() / 2; },
 
-          .blendMode = SDL_BLENDMODE_NONE,
+          .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000480); },
           .parent{this},
       }}
 
     , m_box
       {{
-          .w = [this](const Widget *){ return w(); },
-          .h = [this](const Widget *){ return h(); },
+          .w = [this]{ return w(); },
+          .h = [this]{ return h(); },
 
-          .drawFunc = [this](const Widget *, int drawDstX, int drawDstY)
+          .drawFunc = [this](int drawDstX, int drawDstY)
           {
               // +----1----+
               // |        ||
@@ -70,8 +46,8 @@ CheckBox::CheckBox(dir8_t argDir,
               // |----6---+|
               // +----3----+
 
-              const auto  solidColor = m_color;
-              const auto shadowColor = colorf::maskRGB(m_color) + colorf::A_SHF(colorf::A(m_color) / 2);
+              const auto  solidColor = Widget::evalU32(m_color, this);
+              const auto shadowColor = colorf::maskRGB(solidColor) + colorf::A_SHF(colorf::A(solidColor) / 2);
 
               g_sdlDevice->drawLine( solidColor, drawDstX +       0, drawDstY +       0, drawDstX + w() - 1, drawDstY +       0); // 1
               g_sdlDevice->drawLine( solidColor, drawDstX + w() - 1, drawDstY +       0, drawDstX + w() - 1, drawDstY + h() - 1); // 2
@@ -84,20 +60,18 @@ CheckBox::CheckBox(dir8_t argDir,
           .parent{this},
       }}
 {
-    m_img.setShow([this](const Widget *){ return getter(); });
+    m_img.setShow([this]{ return getter(); });
+    setSize([argW = std::move(args.w), this]{ return Widget::evalSizeOpt(argW, this, [this]{ return std::max<int>({m_img.w(), m_img.h(), 16}); }); },
+            [argH = std::move(args.h), this]{ return Widget::evalSizeOpt(argH, this, [this]{ return std::max<int>({m_img.w(), m_img.h(), 16}); }); });
 }
 
 bool CheckBox::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
-    if(!valid){
-        return consumeFocus(false);
-    }
-
-    if(!show()){
-        return consumeFocus(false);
-    }
-
     if(!m.calibrate(this)){
+        return consumeFocus(false);
+    }
+
+    if(!valid){
         return consumeFocus(false);
     }
 
@@ -154,28 +128,40 @@ bool CheckBox::processEventDefault(const SDL_Event &event, bool valid, Widget::R
 void CheckBox::toggle()
 {
     setter(!getter());
-    if(m_valOnChange){
-        m_valOnChange(this, getter());
-    }
+    std::visit(VarDispatcher
+    {
+        [this](std::function<void(          bool)> &func){ func(      getter()); },
+        [this](std::function<void(Widget *, bool)> &func){ func(this, getter()); },
+
+        [](auto &){},
+    },
+    m_valOnChange);
 }
 
 bool CheckBox::getter() const
 {
-    if(m_valGetter){
-        return m_valGetter(this);
-    }
-    else{
-        return m_innVal;
-    }
+    return std::visit(VarDispatcher
+    {
+        [    ](const std::function<bool(              )> &func){ return func(    ); },
+        [this](const std::function<bool(const Widget *)> &func){ return func(this); },
+        [this](const auto &)
+        {
+            return m_innVal;
+        },
+    },
+    m_valGetter);
 }
 
 void CheckBox::setter(bool value)
 {
-    if(!m_valGetter){
-        m_innVal = value;
-    }
-
-    if(m_valSetter){
-        m_valSetter(this, value);
-    }
+    std::visit(VarDispatcher
+    {
+        [value      ](std::function<void(          bool)> &func){ func(      value); },
+        [value, this](std::function<void(Widget *, bool)> &func){ func(this, value); },
+        [value, this](auto &)
+        {
+            m_innVal = value;
+        },
+    },
+    m_valSetter);
 }

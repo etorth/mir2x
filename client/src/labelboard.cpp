@@ -75,14 +75,14 @@ void LabelBoard::setFontStyle(uint8_t argFontStyle)
     m_tpset.updateGfx();
 }
 
-void LabelBoard::setFontColor(uint32_t argFontColor)
+void LabelBoard::setFontColor(Widget::VarU32 argFontColor)
 {
-    m_tpset.setFontColor(argFontColor);
+    m_tpset.setFontColor(std::move(argFontColor));
 }
 
-void LabelBoard::setImageMaskColor(uint32_t argColor)
+void LabelBoard::setImageMaskColor(Widget::VarU32 argColor)
 {
-    m_tpset.setImageMaskColor(argColor);
+    m_tpset.setImageMaskColor(std::move(argColor));
 }
 
 void LabelBoard::drawDefault(Widget::ROIMap m) const

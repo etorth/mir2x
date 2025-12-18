@@ -97,8 +97,9 @@ template<int, typename T> bool SDRuntimeConfig_setConfig(      SDRuntimeConfig &
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SEFF, bool, true)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SEFFVALUE, float, 0.50f)
 
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SHOWFPS   , bool, false)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_FULLSCREEN, bool, false)
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SHOWFPS   , bool, false)
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_PINYIN    , bool, false)
 
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_ATTACKMODE, int, 0)
     /**/
