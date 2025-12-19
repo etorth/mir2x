@@ -87,31 +87,22 @@ TextInput::TextInput(
       }}
 
     , m_input
-      {
-          DIR_UPLEFT,
-          0,
-          0,
+      {{
+          .w = argInputW,
+          .h = argInputH,
 
-          argInputW,
-          argInputH,
+          .enableIME = std::move(argIMEEnabled),
+          .font
+          {
+              .id = 1,
+              .size = 12,
+          },
 
-          argIMEEnabled,
+          .onTab = std::move(argOnTab),
+          .onCR  = std::move(argOnCR),
 
-          1,
-          12,
-          0,
-          colorf::WHITE_A255,
-
-          2,
-          colorf::WHITE_A255,
-
-          argOnTab,
-          argOnCR,
-          nullptr,
-
-          this,
-          false,
-      }
+          .parent{this},
+      }}
 {
     const int maxH = std::max<int>({m_labelFirst.h(), m_imageBg.h(), m_labelSecond.h()});
 

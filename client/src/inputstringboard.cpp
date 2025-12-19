@@ -79,35 +79,28 @@ InputStringBoard::InputStringBoard(
       }}
 
     , m_input
-      {
-          DIR_UPLEFT,
-          [this]{ return m_inputBg.dx(); },
-          [this]{ return m_inputBg.dy(); },
+      {{
+          .x = [this]{ return m_inputBg.dx(); },
+          .y = [this]{ return m_inputBg.dy(); },
 
-          [this]{ return m_inputBg.w(); },
-          [this]{ return m_inputBg.h(); },
+          .w = [this]{ return m_inputBg.w(); },
+          .h = [this]{ return m_inputBg.h(); },
 
-          argSecurity,
+          .security = std::move(argSecurity),
+          .font
+          {
+              .id = 1,
+              .size = 14,
+          },
 
-          1,
-          14,
-          0,
-
-          colorf::WHITE_A255,
-
-          2,
-          colorf::WHITE_A255,
-
-          nullptr,
-          [this]()
+          .onCR = [this]
           {
               inputLineDone();
               setShow(false);
           },
 
-          this,
-          false,
-      }
+          .parent{this},
+      }}
 
     , m_yesButton
       {{

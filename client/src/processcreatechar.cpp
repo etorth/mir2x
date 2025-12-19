@@ -28,30 +28,25 @@ ProcessCreateChar::ProcessCreateChar()
     , m_exit   {{.x = 554, .y = 549, .texIDList{.off = 0X0D000020, .on = 0X0D000021, .down = 0X0D000022}, .onTrigger = [this](Widget *, int){ onExit  ();          }}}
 
     , m_nameBox
-      {
-          DIR_UPLEFT,
-          355,
-          520,
-          85,
-          15,
+      {{
+          .x = 355,
+          .y = 520,
 
-          true,
+          .w = 85,
+          .h = 15,
 
-          1,
-          12,
+          .enableIME = true,
+          .font
+          {
+              .id = 1,
+              .size = 12,
+          },
 
-          0,
-          colorf::WHITE_A255,
-
-          1,
-          colorf::WHITE_A255,
-
-          nullptr,
-          [this]()
+          .onCR = [this]
           {
               onSubmit();
           },
-      }
+      }}
 
     , m_notifyBoard
       {

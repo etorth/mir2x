@@ -8,6 +8,34 @@
 class InputLine: public Widget
 {
     protected:
+        struct CursorArgs final
+        {
+            Widget::VarSize w = 2;
+            Widget::VarU32 color = colorf::WHITE_A255;
+        };
+
+        struct InitArgs final
+        {
+            Widget::VarDir dir = DIR_UPLEFT;
+            Widget::VarInt x = 0;
+            Widget::VarInt y = 0;
+
+            Widget::VarSizeOpt w = 0;
+            Widget::VarSizeOpt h = 0;
+
+            Widget::VarBool enableIME = false;
+
+            Widget::FontConfig font {};
+            InputLine::CursorArgs cursor {};
+
+            std::function<void()>            onTab    = nullptr;
+            std::function<void()>            onCR     = nullptr;
+            std::function<void(std::string)> onChange = nullptr;
+
+            Widget::WADPair parent {};
+        };
+
+    protected:
         Widget::VarBool m_imeEnabled;
 
     protected:
@@ -17,9 +45,8 @@ class InputLine: public Widget
         int m_cursor = 0;
 
     protected:
-        int            m_cursorWidth;
-        Widget::VarU32 m_cursorColor;
-        double         m_cursorBlink = 0.0;
+        double m_cursorBlink = 0.0;
+        InputLine::CursorArgs m_cursorArgs;
 
     protected:
         std::function<void()>            m_onTab;
@@ -27,31 +54,7 @@ class InputLine: public Widget
         std::function<void(std::string)> m_onChange;
 
     public:
-        InputLine(
-                Widget::VarDir,
-                Widget::VarInt,
-                Widget::VarInt,
-
-                Widget::VarSizeOpt,
-                Widget::VarSizeOpt,
-
-                Widget::VarBool,
-
-                uint8_t = 0,
-                uint8_t = 10,
-                uint8_t = 0,
-
-                Widget::VarU32 = colorf::WHITE_A255,
-
-                int            = 2,
-                Widget::VarU32 = colorf::WHITE_A255,
-
-                std::function<void()>            = nullptr,
-                std::function<void()>            = nullptr,
-                std::function<void(std::string)> = nullptr,
-
-                Widget * = nullptr,
-                bool     = false);
+        InputLine(InputLine::InitArgs);
 
     public:
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;

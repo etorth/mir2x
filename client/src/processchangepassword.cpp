@@ -21,122 +21,124 @@ ProcessChangePassword::ProcessChangePassword()
     , m_LBNewPwd       {{.label = u8"新密码"  , .font{.id = 1, .size = 15}}}
     , m_LBNewPwdConfirm{{.label = u8"确认密码", .font{.id = 1, .size = 15}}}
     , m_boxID
-      {
-          DIR_LEFT,
-          m_x + 129 + 6, // offset + start of box in gfx + offset for input char
-          m_y +  79,
-          186,
-          28,
+      {{
+          .dir = DIR_LEFT,
 
-          false,
+          .x = m_x + 129 + 6, // offset + start of box in gfx + offset for input char
+          .y = m_y +  79,
 
-          2,
-          15,
-          0,
-          colorf::WHITE_A255,
+          .w = 186,
+          .h =  28,
 
-          2,
-          colorf::WHITE_A255,
+          .font
+          {
+              .id = 2,
+              .size = 15,
+          },
 
-          [this]()
+          .onTab = [this]
           {
               m_boxID           .setFocus(false);
               m_boxPwd          .setFocus(true );
               m_boxNewPwd       .setFocus(true );
               m_boxNewPwdConfirm.setFocus(false);
           },
-          [this]()
+
+          .onCR = [this]
           {
               doPostPasswordChange();
           },
-      }
-	, m_boxPwd
-      {
-          DIR_LEFT,
-          m_x + 129 + 6,
-          m_y + 126,
-          186,
-          28,
-          true,
+      }}
 
-          2,
-          15,
-          0,
-          colorf::WHITE_A255,
+    , m_boxPwd
+      {{
+          .dir = DIR_LEFT,
 
-          2,
-          colorf::WHITE_A255,
+          .x = m_x + 129 + 6,
+          .y = m_y + 126,
 
-          [this]()
+          .w = 186,
+          .h =  28,
+
+          .font
+          {
+              .id = 2,
+              .size = 15,
+          },
+
+          .onTab = [this]
           {
               m_boxID           .setFocus(false);
               m_boxPwd          .setFocus(false);
               m_boxNewPwd       .setFocus(false);
               m_boxNewPwdConfirm.setFocus(true );
           },
-          [this]()
+
+          .onCR = [this]
           {
               doPostPasswordChange();
           },
-      }
-	, m_boxNewPwd
-      {
-          DIR_LEFT,
-          m_x + 129 + 6,
-          m_y + 173,
-          186,
-          28,
-          true,
+      }}
 
-          2,
-          15,
-          0,
-          colorf::WHITE_A255,
+    , m_boxNewPwd
+      {{
+          .dir = DIR_LEFT,
 
-          2,
-          colorf::WHITE_A255,
+          .x = m_x + 129 + 6,
+          .y = m_y + 173,
 
-          [this]()
+          .w = 186,
+          .h =  28,
+
+          .font
+          {
+              .id = 2,
+              .size = 15,
+          },
+
+          .onTab = [this]
           {
               m_boxID           .setFocus(true );
               m_boxPwd          .setFocus(false);
               m_boxNewPwd       .setFocus(false);
               m_boxNewPwdConfirm.setFocus(false);
           },
-          [this]()
+
+          .onCR = [this]
           {
               doPostPasswordChange();
           },
-      }
-	, m_boxNewPwdConfirm
-      {
-          DIR_LEFT,
-          m_x + 129 + 6,
-          m_y + 220,
-          186,
-          28,
-          true,
+      }}
 
-          2,
-          15,
-          0,
-          colorf::WHITE_A255,
+    , m_boxNewPwdConfirm
+      {{
+          .dir = DIR_LEFT,
 
-          2,
-          colorf::WHITE_A255,
+          .x = m_x + 129 + 6,
+          .y = m_y + 220,
 
-          [this]()
+          .w = 186,
+          .h =  28,
+
+          .font
+          {
+              .id = 2,
+              .size = 15,
+          },
+
+          .onTab = [this]
           {
               m_boxID           .setFocus(true );
               m_boxPwd          .setFocus(false);
               m_boxNewPwd       .setFocus(false);
               m_boxNewPwdConfirm.setFocus(false);
           },
-          [this]()
+
+          .onCR = [this]
           {
               doPostPasswordChange();
           },
-      }
+      }}
 
     , m_LBCheckID           {{.font{.id = 0, .size = 15, .color = colorf::RGBA(0xFF, 0X00, 0X00, 0XFF)}}}
     , m_LBCheckPwd          {{.font{.id = 0, .size = 15, .color = colorf::RGBA(0xFF, 0X00, 0X00, 0XFF)}}}

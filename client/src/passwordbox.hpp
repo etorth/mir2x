@@ -6,70 +6,66 @@
 class PasswordBox: public InputLine
 {
     private:
-        bool m_security;
+        using CursorArgs = InputLine::CursorArgs;
+
+    private:
+        struct InitArgs final
+        {
+            Widget::VarDir dir = DIR_UPLEFT;
+            Widget::VarInt x = 0;
+            Widget::VarInt y = 0;
+
+            Widget::VarSizeOpt w = 0;
+            Widget::VarSizeOpt h = 0;
+
+            Widget::VarBool security = true;
+
+            Widget::FontConfig font {};
+            PasswordBox::CursorArgs cursor {};
+
+            std::function<void()>            onTab    = nullptr;
+            std::function<void()>            onCR     = nullptr;
+            std::function<void(std::string)> onChange = nullptr;
+
+            Widget::WADPair parent {};
+        };
+
+    private:
+        Widget::VarBool m_security;
+
+    private:
         std::string m_passwordString;
 
     public:
-        PasswordBox(
-                Widget::VarDir argDir,
-                Widget::VarInt argX,
-                Widget::VarInt argY,
-
-                Widget::VarSizeOpt argW,
-                Widget::VarSizeOpt argH,
-
-                bool argSecurity = true,
-
-                uint8_t argFont      =  0,
-                uint8_t argFontSize  = 10,
-                uint8_t argFontStyle =  0,
-
-                Widget::VarU32 argFontColor = colorf::WHITE_A255,
-
-                int            argCursorWidth = 2,
-                Widget::VarU32 argCursorColor = colorf::WHITE_A255,
-
-                std::function<void()> argOnTab    = nullptr,
-                std::function<void()> argOnReturn = nullptr,
-
-                Widget *argParent     = nullptr,
-                bool    argAutoDelete = false)
-
+        PasswordBox(PasswordBox::InitArgs args)
             : InputLine
-              {
-                  std::move(argDir),
-                  std::move(argX),
-                  std::move(argY),
-                  std::move(argW),
-                  std::move(argH),
+              {{
+                  .dir = std::move(args.dir),
 
-                  false,
+                  .x = std::move(args.x),
+                  .y = std::move(args.y),
 
-                  argFont,
-                  argFontSize,
-                  argFontStyle,
+                  .w = std::move(args.w),
+                  .h = std::move(args.h),
 
-                  std::move(argFontColor),
+                  .font = std::move(args.font),
+                  .cursor = std::move(args.cursor),
 
-                  argCursorWidth,
-                  std::move(argCursorColor),
+                  .onTab    = std::move(args.onTab),
+                  .onCR     = std::move(args.onCR),
+                  .onChange = std::move(args.onChange),
 
-                  std::move(argOnTab),
-                  std::move(argOnReturn),
-                  nullptr,
+                  .parent = std::move(args.parent),
+              }}
 
-                  argParent,
-                  argAutoDelete,
-              }
-
-            , m_security(argSecurity)
+            , m_security(std::move(args.security))
         {}
 
     public:
         bool processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m) override
         {
             const auto result = InputLine::processEventDefault(event, valid, m);
-            if(m_security){
+            if(security()){
                 const auto inputString = getRawString();
                 if(inputString.size() + 1 == m_passwordString.size()){
                     // delete one char
@@ -93,7 +89,7 @@ class PasswordBox: public InputLine
     public:
         std::string getPasswordString() const
         {
-            return m_security ? m_passwordString : getRawString();
+            return security() ? m_passwordString : getRawString();
         }
 
         void clear() override
@@ -103,8 +99,13 @@ class PasswordBox: public InputLine
         }
 
     public:
-        void setSecurity(bool security)
+        void setSecurity(Widget::VarBool argSecurity)
         {
-            m_security = security;
+            m_security = std::move(argSecurity);
+        }
+
+        bool security() const
+        {
+            return Widget::evalBool(m_security, this);
         }
 };

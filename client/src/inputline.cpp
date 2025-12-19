@@ -12,65 +12,40 @@ extern IMEBoard *g_imeBoard;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
-InputLine::InputLine(
-        Widget::VarDir argDir,
-        Widget::VarInt argX,
-        Widget::VarInt argY,
-
-        Widget::VarSizeOpt argW,
-        Widget::VarSizeOpt argH,
-
-        Widget::VarBool argIMEEnabled,
-
-        uint8_t argFont,
-        uint8_t argFontSize,
-        uint8_t argFontStyle,
-
-        Widget::VarU32 argFontColor,
-
-        int            argCursorWidth,
-        Widget::VarU32 argCursorColor,
-
-        std::function<void()>            argOnTab,
-        std::function<void()>            argOnCR,
-        std::function<void(std::string)> argOnChange,
-
-        Widget *argParent,
-        bool    argAutoDelete)
-
+InputLine::InputLine(InputLine::InitArgs args)
     : Widget
       {{
-          .dir = std::move(argDir),
+          .dir = std::move(args.dir),
 
-          .x = std::move(argX),
-          .y = std::move(argY),
-          .w = std::move(argW),
-          .h = std::move(argH),
+          .x = std::move(args.x),
+          .y = std::move(args.y),
 
-          .parent
-          {
-              .widget = argParent,
-              .autoDelete = argAutoDelete,
-          }
+          .w = std::move(args.w),
+          .h = std::move(args.h),
+
+          .parent = std::move(args.parent),
       }}
 
-    , m_imeEnabled(std::move(argIMEEnabled))
+    , m_imeEnabled(std::move(args.enableIME))
     , m_tpset
       {
           0,
           LALIGN_LEFT,
           false,
-          argFont,
-          argFontSize,
-          argFontStyle,
-          std::move(argFontColor),
-      }
-    , m_cursorWidth(argCursorWidth)
-    , m_cursorColor(std::move(argCursorColor))
 
-    , m_onTab   (std::move(argOnTab))
-    , m_onCR    (std::move(argOnCR))
-    , m_onChange(std::move(argOnChange))
+          args.font.id,
+          args.font.size,
+          args.font.style,
+
+          std::move(args.font.color),
+          std::move(args.font.bgColor),
+      }
+
+    , m_cursorArgs(std::move(args.cursor))
+
+    , m_onTab   (std::move(args.onTab))
+    , m_onCR    (std::move(args.onCR))
+    , m_onChange(std::move(args.onChange))
 {}
 
 bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
@@ -254,11 +229,11 @@ void InputLine::drawDefault(Widget::ROIMap m) const
         return pToken->box.state.w1 + pToken->box.state.x + pToken->box.info.w;
     }();
 
-    int cursorW = m_cursorWidth;
+    int cursorW = Widget::evalSizeOpt(m_cursorArgs.w, this, []{ return 2; });
     int cursorH = std::max<int>(m_tpset.ph(), h());
 
     if(mathf::rectangleOverlapRegion(m.x, m.y, m.ro->w, m.ro->h, cursorX, cursorY, cursorW, cursorH)){
-        g_sdlDevice->fillRectangle(Widget::evalU32(m_cursorColor, this), cursorX, cursorY, cursorW, cursorH);
+        g_sdlDevice->fillRectangle(Widget::evalU32(m_cursorArgs.color, this), cursorX, cursorY, cursorW, cursorH);
     }
 
     if(g_clientArgParser->debugDrawInputLine){

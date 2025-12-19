@@ -74,33 +74,27 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
       }}
 
     , input
-      {
-          DIR_UPLEFT,
-          3 + SearchInputLine::ICON_MARGIN + SearchInputLine::ICON_WIDTH + SearchInputLine::GAP,
-          3,
+      {{
+          .x = 3 + SearchInputLine::ICON_MARGIN + SearchInputLine::ICON_WIDTH + SearchInputLine::GAP,
+          .y = 3,
 
-          SearchInputLine::WIDTH  - 3 * 2 - SearchInputLine::ICON_MARGIN - SearchInputLine::ICON_WIDTH - SearchInputLine::GAP,
-          SearchInputLine::HEIGHT - 3 * 2,
+          .w = SearchInputLine::WIDTH  - 3 * 2 - SearchInputLine::ICON_MARGIN - SearchInputLine::ICON_WIDTH - SearchInputLine::GAP,
+          .h = SearchInputLine::HEIGHT - 3 * 2,
 
-          true,
+          .enableIME = true,
+          .font
+          {
+              .id = 1,
+              .size = 14,
+          },
 
-          1,
-          14,
-
-          0,
-          colorf::WHITE_A255,
-
-          2,
-          colorf::WHITE_A255,
-
-          nullptr,
-          [this]()
+          .onCR = [this]()
           {
               hasParent<SearchPage>()->candidates.setShow(true);
               hasParent<SearchPage>()->autocompletes.setShow(false);
           },
 
-          [this](std::string query)
+          .onChange = [this](std::string query)
           {
               hint.setShow(query.empty());
 
@@ -150,9 +144,8 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
               }
           },
 
-          this,
-          false,
-      }
+          .parent{this},
+      }}
 
     , hint
       {{

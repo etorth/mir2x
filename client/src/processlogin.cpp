@@ -34,76 +34,60 @@ ProcessLogin::ProcessLogin()
         , m_button4{{.x = 600, .y = 536, .texIDList{.off = 0X0000000E, .on = 0X0000000F, .down = 0X00000010}, .onTrigger = [this](Widget *, int){ doLogin();          }, .parent{&m_canvas}}}
 
 	, m_idBox
-          {
-              DIR_UPLEFT,
-              159,
-              540,
+          {{
+              .x = 159,
+              .y = 540,
 
-              146,
-              18,
+              .w = 146,
+              .h =  18,
 
-              false,
+              .font
+              {
+                  .id = 2,
+                  .size = 18,
+              },
 
-              2,
-              18,
-              0,
-
-              colorf::WHITE_A255,
-
-              2,
-              colorf::WHITE_A255,
-
-              [this]()
+              .onTab = [this]
               {
                   m_idBox      .setFocus(false);
                   m_passwordBox.setFocus(true);
               },
 
-              [this]()
+              .onCR = [this]
               {
                   doLogin();
               },
 
-              nullptr,
-
-              &m_canvas,
-              false,
-          }
+              .parent{&m_canvas},
+          }}
 
 	, m_passwordBox
-          {
-              DIR_UPLEFT,
-              409,
-              540,
+          {{
+              .x = 409,
+              .y = 540,
 
-              146,
-              18,
+              .w = 146,
+              .h =  18,
 
-              true,
+              .font
+              {
+                  .id = 2,
+                  .size = 18,
+              },
 
-              2,
-              18,
-              0,
-
-              colorf::WHITE_A255,
-
-              2,
-              colorf::WHITE_A255,
-
-              [this]()
+              .onTab = [this]
               {
                   m_idBox      .setFocus(true);
                   m_passwordBox.setFocus(false);
               },
 
-              [this]()
+              .onCR = [this]
               {
                   doLogin();
               },
 
-              &m_canvas,
-              false,
-          }
+              .parent{&m_canvas},
+          }}
 
     , m_buildSignature
       {{
