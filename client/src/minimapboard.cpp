@@ -1,12 +1,11 @@
 #include <array>
-#include "client.hpp"
+#include "maprecord.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
+#include "processrun.hpp"
 #include "textboard.hpp"
 #include "minimapboard.hpp"
 #include "marginwrapper.hpp"
-#include "maprecord.hpp"
-#include "processrun.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
@@ -392,7 +391,7 @@ bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
 
                             m_mapImage_dx += event.motion.xrel;
                             m_mapImage_dy += event.motion.yrel;
-                            normalizeMapImagePLoc();
+                            fixMapImagePLoc();
 
                             return consumeFocus(true);
                         }
@@ -423,7 +422,8 @@ void MiniMapBoard::flipExtended()
     m_buttonAutoCenter.setOff();
 
     if(!m_autoCenter){
-        normalizeMapImagePLoc();
+        fixMapImagePLoc();
+        m_autoCenter = true;
     }
 }
 
@@ -543,10 +543,10 @@ void MiniMapBoard::zoomOnCanvasAt(int onCanvasPX, int onCanvasPY, double zoomFac
     m_autoCenter = false;
     m_mapImage_dx = oldDX + (std::get<0>(onImgOldPLoc) - onImgNewPX);
     m_mapImage_dy = oldDY + (std::get<1>(onImgOldPLoc) - onImgNewPY);
-    normalizeMapImagePLoc();
+    fixMapImagePLoc();
 }
 
-void MiniMapBoard::normalizeMapImagePLoc()
+void MiniMapBoard::fixMapImagePLoc()
 {
     fflassert(getMiniMapTexture());
     fflassert(!m_autoCenter);
