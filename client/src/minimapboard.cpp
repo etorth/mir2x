@@ -332,6 +332,7 @@ bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     took |= m_buttonAlpha     .processEvent(event, valid && !took, m.create(m_buttonAlpha     .roi(this)));
     took |= m_buttonExtend    .processEvent(event, valid && !took, m.create(m_buttonExtend    .roi(this)));
     took |= m_buttonAutoCenter.processEvent(event, valid && !took, m.create(m_buttonAutoCenter.roi(this)));
+    took |= m_buttonConfig    .processEvent(event, valid && !took, m.create(m_buttonConfig    .roi(this)));
 
     if(took){
         return true;
@@ -511,7 +512,7 @@ void MiniMapBoard::drawCanvas(int drawDstX, int drawDstY)
                 },
             }};
 
-            textWrapper.draw({.dir{DIR_DOWNRIGHT}, .x{mousePX}, .y{mousePY}});
+            drawAsChild(&textWrapper, DIR_DOWNRIGHT, mousePX - drawDstX, mousePY - drawDstY, Widget::ROIMap{.x = drawDstX, .y = drawDstY, .ro = m_canvas.roi()});
         }
     }
 }
