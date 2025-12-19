@@ -18,9 +18,9 @@ CheckLabel::CheckLabel(CheckLabel::InitArgs args)
           .w = std::move(args.box.w),
           .h = std::move(args.box.h),
 
-          .color = [bc = std::move(args.box.color), this] -> uint32_t
+          .color = [bcolor = std::move(args.box.color), this] -> uint32_t
           {
-              if(const auto color = Widget::evalU32(bc, this); m_enableHoverColor){
+              if(const auto color = Widget::evalU32(bcolor, this); m_hoverColor){
                   return colorf::modRGBA(color, colorf::RGBA(0XFF, 0, 0, 0XFF));
               }
               else{
@@ -28,42 +28,38 @@ CheckLabel::CheckLabel(CheckLabel::InitArgs args)
               }
           },
 
-          .getter = [g = std::move(args.getter), this](const Widget *box)
+          .getter = [getter = std::move(args.getter), this] -> CheckLabel::BoolGetter
           {
-              return std::visit(VarDispatcher
-              {
-                  [    ](const std::function<bool(              )> &func){ return func(    ); },
-                  [this](const std::function<bool(const Widget *)> &func){ return func(this); },
-                  [box ](const auto &)
+              if(CheckLabel::hasBoolGetter(getter)){
+                  return [getter = std::move(getter), this]
                   {
-                      return dynamic_cast<const CheckBox *>(box)->getter();
-                  },
-              }, g);
-          },
+                      return CheckLabel::evalBoolGetter(getter, this);
+                  };
+              }
+              else return nullptr;
+          }(),
 
-          .setter = [s = std::move(args.setter), this](Widget *box, bool value)
+          .setter = [setter = std::move(args.setter), this] -> CheckLabel::BoolSetter
           {
-              std::visit(VarDispatcher
-              {
-                  [value      ](std::function<void(          bool)> &func){ func(      value); },
-                  [value, this](std::function<void(Widget *, bool)> &func){ func(this, value); },
-                  [value, box ](auto &)
+              if(CheckLabel::hasBoolSetter(setter)){
+                  return [setter = std::move(setter), this](bool value) mutable
                   {
-                      dynamic_cast<CheckBox *>(box)->setter(value);
-                  },
-              }, s);
-          },
+                      CheckLabel::evalBoolSetter(setter, this, value);
+                  };
+                }
+                else return nullptr;
+          }(),
 
-          .onChange = [c = std::move(args.onChange), this](Widget *, bool value)
+          .onChange = [trigger = std::move(args.onChange), this] -> CheckLabel::TriggerFunc
           {
-              std::visit(VarDispatcher
-              {
-                  [value      ](std::function<void(          bool)> &func){ func(      value); },
-                  [value, this](std::function<void(Widget *, bool)> &func){ func(this, value); },
-
-                  [](auto &){},
-              }, c);
-          },
+              if(CheckLabel::hasTriggerFunc(trigger)){
+                  return [trigger = std::move(trigger), this](bool value) mutable
+                  {
+                      CheckLabel::evalTriggerFunc(trigger, this, value);
+                  };
+              }
+              else return nullptr;
+          }(),
 
           .parent{this},
       }}
@@ -77,9 +73,9 @@ CheckLabel::CheckLabel(CheckLabel::InitArgs args)
               .size = args.label.font.size,
               .style = args.label.font.style,
 
-              .color = [fc = std::move(args.label.font.color), this] -> uint32_t
+              .color = [fcolor = std::move(args.label.font.color), this] -> uint32_t
               {
-                  if(const auto color = Widget::evalU32(fc, this); m_enableHoverColor){
+                  if(const auto color = Widget::evalU32(fcolor, this); m_hoverColor){
                       return colorf::modRGBA(color, colorf::RGBA(0XFF, 0, 0, 0XFF));
                   }
                   else{
@@ -118,7 +114,7 @@ bool CheckLabel::processEventDefault(const SDL_Event &event, bool valid, Widget:
     }
 
     if(!valid){
-        m_enableHoverColor = false;
+        m_hoverColor = false;
         return consumeFocus(false);
     }
 
@@ -128,7 +124,7 @@ bool CheckLabel::processEventDefault(const SDL_Event &event, bool valid, Widget:
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:
             {
-                m_enableHoverColor = m.in(SDLDeviceHelper::getEventPLoc(event).value());
+                m_hoverColor = m.in(SDLDeviceHelper::getEventPLoc(event).value());
                 break;
             }
         default:

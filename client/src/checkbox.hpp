@@ -25,6 +25,10 @@ class CheckBox: public Widget
         static void evalBoolSetter (      CheckBox::BoolSetter  &,       Widget *, bool);
         static void evalTriggerFunc(      CheckBox::TriggerFunc &,       Widget *, bool);
 
+        static bool hasBoolGetter (const CheckBox::BoolGetter  &);
+        static bool hasBoolSetter (const CheckBox::BoolSetter  &);
+        static bool hasTriggerFunc(const CheckBox::TriggerFunc &);
+
     private:
         struct InitArgs final
         {
@@ -80,4 +84,8 @@ class CheckBox: public Widget
     public:
         bool getter(    ) const;
         void setter(bool);
+
+    public:
+        bool rawGetter(    ) const;
+        void rawSetter(bool);
 };

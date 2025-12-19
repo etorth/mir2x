@@ -8,12 +8,9 @@ bool CheckBox::evalBoolGetter(const CheckBox::BoolGetter &getter, const Widget *
 {
     return std::visit(VarDispatcher
     {
-        [      ](const std::function<bool(              )> &func){ return func(      ); },
-        [widget](const std::function<bool(const Widget *)> &func){ return func(widget); },
-        [widget](const auto &)
-        {
-            return dynamic_cast<const CheckBox *>(widget)->m_innVal;
-        },
+        [widget](const std::function<bool(              )> &func){ return func ? func(      ) : dynamic_cast<const CheckBox *>(widget)->rawGetter(); },
+        [widget](const std::function<bool(const Widget *)> &func){ return func ? func(widget) : dynamic_cast<const CheckBox *>(widget)->rawGetter(); },
+        [widget](const auto                                &    ){ return                       dynamic_cast<const CheckBox *>(widget)->rawGetter(); },
     },
     getter);
 }
@@ -22,12 +19,9 @@ void CheckBox::evalBoolSetter(CheckBox::BoolSetter &setter, Widget *widget, bool
 {
     std::visit(VarDispatcher
     {
-        [value       ](std::function<void(          bool)> &func){ func(        value); },
-        [value,widget](std::function<void(Widget *, bool)> &func){ func(widget, value); },
-        [value,widget](auto &)
-        {
-            dynamic_cast<CheckBox *>(widget)->m_innVal = value;
-        },
+        [value, widget](std::function<void(          bool)> &func){ func ? func(        value) : dynamic_cast<CheckBox *>(widget)->rawSetter(value); },
+        [value, widget](std::function<void(Widget *, bool)> &func){ func ? func(widget, value) : dynamic_cast<CheckBox *>(widget)->rawSetter(value); },
+        [value, widget](auto                                &    ){                              dynamic_cast<CheckBox *>(widget)->rawSetter(value); },
     },
     setter);
 }
@@ -36,10 +30,43 @@ void CheckBox::evalTriggerFunc(CheckBox::TriggerFunc &trigger, Widget *widget, b
 {
     std::visit(VarDispatcher
     {
-        [value        ](std::function<void(          bool)> &func){ func(        value); },
-        [value, widget](std::function<void(Widget *, bool)> &func){ func(widget, value); },
+        [value        ](std::function<void(          bool)> &func){ if(func){ func(        value); }},
+        [value, widget](std::function<void(Widget *, bool)> &func){ if(func){ func(widget, value); }},
 
         [](auto &){},
+    },
+    trigger);
+}
+
+bool CheckBox::hasBoolGetter(const CheckBox::BoolGetter &getter)
+{
+    return std::visit(VarDispatcher
+    {
+        [](const std::function<bool(              )> &func){ return !!func;  },
+        [](const std::function<bool(const Widget *)> &func){ return !!func;  },
+        [](const auto &){ return false; },
+    },
+    getter);
+}
+
+bool CheckBox::hasBoolSetter(const CheckBox::BoolSetter &setter)
+{
+    return std::visit(VarDispatcher
+    {
+        [](const std::function<void(          bool)> &func){ return !!func;  },
+        [](const std::function<void(Widget *, bool)> &func){ return !!func;  },
+        [](const auto &){ return false; },
+    },
+    setter);
+}
+
+bool CheckBox::hasTriggerFunc(const CheckBox::TriggerFunc &trigger)
+{
+    return std::visit(VarDispatcher
+    {
+        [](const std::function<void(          bool)> &func){ return !!func;  },
+        [](const std::function<void(Widget *, bool)> &func){ return !!func;  },
+        [](const auto &){ return false; },
     },
     trigger);
 }
@@ -181,4 +208,14 @@ bool CheckBox::getter() const
 void CheckBox::setter(bool value)
 {
     CheckBox::evalBoolSetter(m_valSetter, this, value);
+}
+
+bool CheckBox::rawGetter() const
+{
+    return m_innVal;
+}
+
+void CheckBox::rawSetter(bool value)
+{
+    m_innVal = value;
 }

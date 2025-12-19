@@ -12,6 +12,14 @@ class CheckLabel: public Widget
         using BoolSetter  = CheckBox::BoolSetter;
         using TriggerFunc = CheckBox::TriggerFunc;
 
+        constexpr static auto evalBoolGetter  = CheckBox::evalBoolGetter;
+        constexpr static auto evalBoolSetter  = CheckBox::evalBoolSetter;
+        constexpr static auto evalTriggerFunc = CheckBox::evalTriggerFunc;
+
+        constexpr static auto hasBoolGetter  = CheckBox::hasBoolGetter;
+        constexpr static auto hasBoolSetter  = CheckBox::hasBoolSetter;
+        constexpr static auto hasTriggerFunc = CheckBox::hasTriggerFunc;
+
     protected:
         struct BoxArgs final
         {
@@ -40,15 +48,15 @@ class CheckLabel: public Widget
             CheckLabel::  BoxArgs   box {};
             CheckLabel::LabelArgs label {};
 
-            CheckBox::BoolGetter  getter   = nullptr; // self is CheckLabel, not CheckBox
-            CheckBox::BoolSetter  setter   = nullptr;
-            CheckBox::TriggerFunc onChange = nullptr;
+            CheckLabel::BoolGetter  getter   = nullptr; // widget is CheckLabel
+            CheckLabel::BoolSetter  setter   = nullptr;
+            CheckLabel::TriggerFunc onChange = nullptr;
 
             Widget::WADPair parent {};
         };
 
     private:
-        bool m_enableHoverColor = false;
+        bool m_hoverColor = false;
 
     private:
         CheckBox m_box;
