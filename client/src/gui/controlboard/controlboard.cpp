@@ -63,7 +63,10 @@ ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     , m_cmdBoard
       {{
           .canEdit = true,
-          .enableIME = true,
+          .enableIME = [this]
+          {
+              return m_processRun->getRuntimeConfig<RTCFG_PINYIN>();
+          },
 
           .font
           {

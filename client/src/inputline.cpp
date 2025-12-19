@@ -20,7 +20,7 @@ InputLine::InputLine(
         Widget::VarSizeOpt argW,
         Widget::VarSizeOpt argH,
 
-        bool argIMEEnabled,
+        Widget::VarBool argIMEEnabled,
 
         uint8_t argFont,
         uint8_t argFontSize,
@@ -54,7 +54,7 @@ InputLine::InputLine(
           }
       }}
 
-    , m_imeEnabled(argIMEEnabled)
+    , m_imeEnabled(std::move(argIMEEnabled))
     , m_tpset
       {
           0,
@@ -146,7 +146,7 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                     default:
                         {
                             const char keyChar = SDLDeviceHelper::getKeyChar(event, true);
-                            if(!g_clientArgParser->disableIME && m_imeEnabled && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
+                            if(!g_clientArgParser->disableIME && Widget::evalBool(m_imeEnabled, this) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [this](std::string s)
                                 {
                                     m_tpset.insertUTF8String(m_cursor, 0, s.c_str());

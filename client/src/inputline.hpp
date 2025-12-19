@@ -8,7 +8,7 @@
 class InputLine: public Widget
 {
     protected:
-        bool m_imeEnabled = true;
+        Widget::VarBool m_imeEnabled;
 
     protected:
         XMLTypeset m_tpset;
@@ -35,7 +35,7 @@ class InputLine: public Widget
                 Widget::VarSizeOpt,
                 Widget::VarSizeOpt,
 
-                bool,
+                Widget::VarBool,
 
                 uint8_t = 0,
                 uint8_t = 10,

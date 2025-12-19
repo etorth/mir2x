@@ -27,10 +27,10 @@ class LayoutBoard: public Widget
             // dynamic margin is not supported since which requires gfx-update
             Widget::IntMargin margin {};
 
-            bool canSelect  = false;
-            bool canEdit    = false;
-            bool enableIME  = false;
-            bool canThrough = false;
+            Widget::VarBool canSelect  = false;
+            Widget::VarBool canEdit    = false;
+            Widget::VarBool enableIME  = false;
+            /**/       bool canThrough = false; // static attribute
 
             Widget::FontConfig font {};
 
@@ -107,9 +107,9 @@ class LayoutBoard: public Widget
         GfxShapeBoard m_cursorClip;
 
     private:
-        bool m_canSelect;
-        bool m_canEdit;
-        bool m_imeEnabled;
+        Widget::VarBool m_canSelect;
+        Widget::VarBool m_canEdit;
+        Widget::VarBool m_imeEnabled;
 
     private:
         int m_cursorWidth;
@@ -195,7 +195,7 @@ class LayoutBoard: public Widget
         void clear()
         {
             m_parNodeList.clear();
-            if(m_canEdit){
+            if(Widget::evalBool(m_canEdit, this)){
                 loadXML("<layout><par></par></layout>");
                 m_cursorLoc.par = 0;
                 m_cursorLoc.x   = 0;

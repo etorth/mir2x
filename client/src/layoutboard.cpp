@@ -35,7 +35,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
                   maxW = std::max<int>(maxW, node.margin[2] + node.tpset->pw() + node.margin[3]);
               }
 
-              if(m_canEdit){
+              if(Widget::evalBool(m_canEdit, this)){
                   maxW = std::max<int>(maxW, m_cursorWidth);
               }
               return maxW;
@@ -44,7 +44,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
           .h = [this]
           {
               if(empty()){
-                  if(m_canEdit){
+                  if(Widget::evalBool(m_canEdit, this)){
                       throw fflerror("editable layout shall have at least one par");
                   }
                   return 0;
@@ -53,7 +53,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
               const auto &backNode = m_parNodeList.back();
               /* */ auto lastPerHeight = backNode.tpset->ph();
 
-              if(m_canEdit){
+              if(Widget::evalBool(m_canEdit, this)){
                     lastPerHeight = std::max<int>(lastPerHeight, backNode.tpset->getDefaultFontHeight());
               }
               return backNode.startY + lastPerHeight + backNode.margin[1];
@@ -101,9 +101,9 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
           .parent{this},
       }}
 
-    , m_canSelect(args.canSelect)
-    , m_canEdit(args.canEdit)
-    , m_imeEnabled(args.enableIME)
+    , m_canSelect (std::move(args.canSelect))
+    , m_canEdit   (std::move(args.canEdit  ))
+    , m_imeEnabled(std::move(args.enableIME))
 
     , m_cursorWidth(args.cursor.width)
     , m_cursorColor(std::move(args.cursor.color))
@@ -117,7 +117,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
         loadXML(args.initXML, args.parLimit);
     }
 
-    if(m_canEdit){
+    if(Widget::evalBool(m_canEdit, this)){
         if(empty()){
             loadXML("<layout><par></par></layout>");
         }
@@ -425,7 +425,7 @@ void LayoutBoard::drawDefault(Widget::ROIMap m) const
         node.tpset->draw({.x=dstXCrop, .y=dstYCrop, .ro{srcXCrop - node.margin[2], srcYCrop - node.startY, srcWCrop, srcHCrop}});
     }
 
-    if(m_canEdit && focus()){
+    if(Widget::evalBool(m_canEdit, this) && focus()){
         Widget::drawDefault(m); // draw cursor
     }
 }
@@ -462,7 +462,7 @@ void LayoutBoard::setFontBGColor(Widget::VarU32 argFontBGColor)
 
 void LayoutBoard::setLineWidth(int argLineWidth)
 {
-    const auto cursorOff = m_canEdit ? ithParIterator(m_cursorLoc.par)->tpset->cursorLoc2Off(m_cursorLoc.x, m_cursorLoc.y) : -1;
+    const auto cursorOff = Widget::evalBool(m_canEdit, this) ? ithParIterator(m_cursorLoc.par)->tpset->cursorLoc2Off(m_cursorLoc.x, m_cursorLoc.y) : -1;
     m_parNodeConfig.lineWidth = argLineWidth;
 
     for(auto &node: m_parNodeList){
@@ -470,7 +470,7 @@ void LayoutBoard::setLineWidth(int argLineWidth)
     }
 
     setupStartY(0);
-    if(m_canEdit){
+    if(Widget::evalBool(m_canEdit, this)){
         std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->cursorOff2Loc(cursorOff);
         if(m_onCursorMove){
             m_onCursorMove();
@@ -495,7 +495,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                     return false;
                 }
 
-                if(!m_canEdit){
+                if(!Widget::evalBool(m_canEdit, this)){
                     return false;
                 }
 
@@ -634,7 +634,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                                 }
                             };
 
-                            if(!g_clientArgParser->disableIME && m_imeEnabled && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
+                            if(!g_clientArgParser->disableIME && Widget::evalBool(m_imeEnabled, this) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [fnInsertString, this](std::string s)
                                 {
                                     fnInsertString(std::move(s));
@@ -733,7 +733,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
 
 void LayoutBoard::drawCursorBlink(int drawDstX, int drawDstY) const
 {
-    if(!m_canEdit){
+    if(!Widget::evalBool(m_canEdit, this)){
         return;
     }
 
