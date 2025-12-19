@@ -20,20 +20,20 @@
 mir2x is an experimental project that verifies actor-model based parallelism for MMORPG, it's c/s based with various platforms supported and contains all need components for game players and developers:
 
   - client
-  - monoserver
+  - server
   - pkgviewer
   - animaker
   - mapeditor
 
 ### Notes
-- This repo fully uses C++20 coroutine to implement actor model, developer needs a compiler supports c++20 to build.
+- This repo uses C++ coroutine to implement actor model, requires compiler to support c++23.
 - This repo uses classic v1.45 mir2 as a reference implementation, you can try the original game:
   - Install [win-xp](https://github.com/etorth/winxp-zh) to host and run the game server/client, tested on real machine or virtualbox machine.
   - Install server/client from [mir2-v1.45](https://github.com/etorth/CBWCQ3).
   - Change screen resolution to 16bit mode to run the game.
 
 ### Public Server
-- Check the tutorial [here](https://github.com/etorth/mir2x/wiki/Host-your-monoserver-on-Oracle-Cloud) for how to run the ```monoserver``` with Oracle Cloud as a public server.
+- Check the tutorial [here](https://github.com/etorth/mir2x/wiki/Host-your-monoserver-on-Oracle-Cloud) for how to run the ```server``` with Oracle Cloud as a public server.
 - You can try the public test server ```192.9.241.118``` by
   ```shell
   client --server-ip=192.9.241.118 # not maintained recently
@@ -62,7 +62,7 @@ If running on WSL/WSL2, check the following to configure PulseAudio to support s
 
 ### Building from source
 
-mir2x game is developed for Linux-only environment, however I finished all coding and testing with Windows WSL, please refer [here](https://github.com/etorth/mir2x/wiki/How-to-compile-and-run-on-windows) how to setup and run everything on windows. mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++20 to run. Mir2x needs some pre-installed packages before compile:
+mir2x game is developed mainly in WSL2, please refer [here](https://github.com/etorth/mir2x/wiki/How-to-compile-and-run-on-windows) how to setup and run everything on windows. mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++20 to run. Mir2x needs some pre-installed packages before compile:
 
 ```sh
 libsdl2-compat-dev # legacy libsdl2-dev package has bugs
@@ -86,7 +86,7 @@ $ make
 $ make install
 ```
 ### First time run
-To start the monoserver, find a linux machine to host the monoserver, I tried to host it on ```Oracle Cloud Infrastructure```, it works perfectly with the ```always-free``` plan. Click menu server/launch to start the service before start client:
+To start the monoserver, find a linux machine to host the server, I tried to host it on ```Oracle Cloud Infrastructure```, it works perfectly with the ```always-free``` plan. Click menu server/launch to start the service before start client:
 
 ```sh
 $ cd mir2x/b/install/server
@@ -135,7 +135,6 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
 * [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
-* [libpng](https://github.com/etorth/libpng-apng-support) - The official PNG reference library patched with APNG support.
 * [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation.
 * [SQLiteCpp](https://github.com/SRombauts/SQLiteCpp) - SQLiteC++ (SQLiteCpp) is a smart and easy to use C++ SQLite3 wrapper.
 
