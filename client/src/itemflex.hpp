@@ -18,7 +18,7 @@ class ItemFlex: public Widget
             bool v = true;
             Widget::VarSize itemSpace = 0;
 
-            std::initializer_list<std::pair<Widget *, bool>> childList = {};
+            std::initializer_list<std::pair<Widget *, bool>> childList {};
             Widget::WADPair parent {};
         };
 
@@ -27,7 +27,6 @@ class ItemFlex: public Widget
 
     private:
         Widget::VarSize m_itemSpace;
-        std::vector<Widget *> m_origChildList;
 
     public:
         ItemFlex(ItemFlex::InitArgs args)
@@ -41,6 +40,13 @@ class ItemFlex: public Widget
                   .w =  args.v ? std::move(args.fixed) : Widget::VarSizeOpt{},
                   .h = !args.v ? std::move(args.fixed) : Widget::VarSizeOpt{},
 
+                  .attrs
+                  {
+                      .inst
+                      {
+                          .moveOnFocus = false,
+                      },
+                  },
                   .parent = std::move(args.parent),
               }}
 
@@ -55,62 +61,41 @@ class ItemFlex: public Widget
     public:
         void addChild(Widget *argWidget, bool argAutoDelete) override
         {
-            m_origChildList.push_back(argWidget);
-            if(m_vbox){
-                addChildAt(argWidget, DIR_UPLEFT, 0, [this](const Widget *self)
+            if(!argWidget){
+                return;
+            }
+
+            const auto fnGetOffset = [argWidget, this]
+            {
+                int offset = 0;
+                int itemSpace = Widget::evalSize(m_itemSpace, this);
+
+                foreachChild([argWidget, &offset, itemSpace, this](const Widget *child, bool)
                 {
-                    const int itemSpace = std::max<int>(0, Widget::evalSize(m_itemSpace, this));
-                    int offset = 0;
-
-                    for(auto widget: m_origChildList){
-                        if(widget == self){
-                            break;
-                        }
-
-                        if(!widget->show()){
-                            continue;
-                        }
-
-                        offset += widget->h();
-                        offset += itemSpace;
+                    if(child == argWidget){
+                        return true;
                     }
 
-                    return offset;
-                },
-
-                argAutoDelete);
-            }
-            else{
-                addChildAt(argWidget, DIR_UPLEFT, [this](const Widget *self)
-                {
-                    const int itemSpace = std::max<int>(0, Widget::evalSize(m_itemSpace, this));
-                    int offset = 0;
-
-                    for(auto widget: m_origChildList){
-                        if(widget == self){
-                            break;
-                        }
-
-                        if(!widget->show()){
-                            continue;
-                        }
-
-                        offset += widget->w();
-                        offset += itemSpace;
+                    if(!child->show()){
+                        return false;
                     }
 
-                    return offset;
-                },
+                    offset += (m_vbox ? child->h() : child->w());
+                    offset += itemSpace;
 
-                0,
-                argAutoDelete);
-            }
+                    return false;
+                });
+
+                return offset;
+            };
+
+            Widget::addChildAt(argWidget, DIR_UPLEFT, m_vbox ? Widget::VarInt(0) : fnGetOffset,
+                                                     !m_vbox ? Widget::VarInt(0) : fnGetOffset, argAutoDelete);
         }
 
-    public:
-        void removeChildElement(Widget::ChildElement &argChild, bool argTrigger) override
+    private:
+        void addChildAt(Widget *, WidgetTreeNode::VarDir, WidgetTreeNode::VarInt, WidgetTreeNode::VarInt, bool) override
         {
-            std::erase(m_origChildList, argChild.widget);
-            Widget::removeChildElement(argChild, argTrigger);
+            throw fflerror("ItemFlex::addChildAt");
         }
 };

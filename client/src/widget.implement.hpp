@@ -157,6 +157,38 @@ auto WidgetTreeNode::hasDescendant(this auto && self, std::invocable<const Widge
     return nullptr;
 }
 
+auto WidgetTreeNode::prevChild(this auto && self, uint64_t childID) -> check_const_cond_out_ptr_t<decltype(self), Widget>
+{
+    for(auto p = self.m_childList.rbegin(); p != self.m_childList.rend(); ++p){
+        if(p->widget && (p->widget->id() == childID)){
+            ++p;
+            for(; p != self.m_childList.rend(); ++p){
+                if(p->widget){
+                    return p->widget;
+                }
+            }
+            return nullptr;
+        }
+    }
+    throw fflerror("can not find child %llu", to_llu(childID));
+}
+
+auto WidgetTreeNode::nextChild(this auto && self, uint64_t childID) -> check_const_cond_out_ptr_t<decltype(self), Widget>
+{
+    for(auto p = self.m_childList.begin(); p != self.m_childList.end(); ++p){
+        if(p->widget && (p->widget->id() == childID)){
+            ++p;
+            for(; p != self.m_childList.end(); ++p){
+                if(p->widget){
+                    return p->widget;
+                }
+            }
+            return nullptr;
+        }
+    }
+    throw fflerror("can not find child %llu", to_llu(childID));
+}
+
 template<std::derived_from<Widget> T> auto WidgetTreeNode::hasParent(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), T>
 {
     for(auto p = self.parent(); p; p = p->parent()){
@@ -222,6 +254,19 @@ template<typename T> T Widget::evalGetter(const Widget::VarGetter<T> &varGetter,
     varGetter);
 }
 
+template<typename Func> Widget::VarInt Widget::transform(Widget::VarInt varInt, Func && func)
+{
+    if(varInt.index() == 0){
+        return func(std::get<int>(varInt));
+    }
+    else{
+        return [varInt = std::move(varInt), func = std::decay_t<Func>(std::forward<Func>(func))](const Widget *widget)
+        {
+            return func(Widget::evalInt(varInt, widget, nullptr));
+        };
+    }
+}
+
 template<typename Func> Widget::VarSize Widget::transform(Widget::VarSize varSize, Func && func)
 {
     if(varSize.index() == 0){
@@ -230,7 +275,7 @@ template<typename Func> Widget::VarSize Widget::transform(Widget::VarSize varSiz
     else{
         return [varSize = std::move(varSize), func = std::decay_t<Func>(std::forward<Func>(func))](const Widget *widget)
         {
-            return func(std::get<std::function<int(const Widget *)>>(varSize)(widget));
+            return func(Widget::evalSize(varSize, widget, nullptr));
         };
     }
 }

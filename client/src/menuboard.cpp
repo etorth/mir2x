@@ -137,7 +137,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
             {{
                 .w = [this]
                 {
-                    if(m_canvas.varW().has_value()){
+                    if(m_canvas.varWOpt().has_value()){
                         return m_canvas.w();
                     }
 

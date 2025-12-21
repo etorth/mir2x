@@ -28,11 +28,21 @@ class WidgetTreeNode // tree concept, used by class Widget only
         template<typename IN, typename OUT                  > using check_const_cond_out_ptr_t = check_const_cond_t<IN, const OUT *, OUT *>;
 
     private:
-        template<typename T> using VarTypeHelper = std::variant<
+        template<typename T> using VarTypeHelperBase = std::variant<
             T,
             std::function<T()>,
             std::function<T(const Widget *)>,
             std::function<T(const Widget *, const void *)>>;
+
+        template<typename T> struct VarTypeHelper: public VarTypeHelperBase<T>
+        {
+            bool fixed() const
+            {
+                return this->index() == 0;
+            }
+
+            using VarTypeHelperBase<T>::VarTypeHelperBase;
+        };
 
     private:
         using alias_VarDir         = VarTypeHelper<       dir8_t>;
@@ -172,6 +182,10 @@ class WidgetTreeNode // tree concept, used by class Widget only
         auto hasChild     (this auto && self, std::invocable<const Widget *, bool> auto) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
         auto hasDescendant(this auto && self, uint64_t                                 ) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
         auto hasDescendant(this auto && self, std::invocable<const Widget *, bool> auto) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
+
+    public:
+        auto prevChild(this auto && self, uint64_t) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
+        auto nextChild(this auto && self, uint64_t) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
 
     public:
         template<std::derived_from<Widget> T> auto hasParent(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), T>;
@@ -336,6 +350,7 @@ class Widget: public WidgetTreeNode
         template<typename T> static T evalGetter(const Widget::VarGetter<T> &, const Widget *, const void * = nullptr);
 
     public:
+        template<typename Func> static VarInt     transform(VarInt    , Func &&);
         template<typename Func> static VarSize    transform(VarSize   , Func &&);
         template<typename Func> static VarSizeOpt transform(VarSizeOpt, Func &&);
 
@@ -431,8 +446,8 @@ class Widget: public WidgetTreeNode
         virtual int h() const;
 
     public:
-        const auto &varW() const { return m_w; }
-        const auto &varH() const { return m_h; }
+        const auto &varWOpt() const { return m_w; }
+        const auto &varHOpt() const { return m_h; }
 
     public:
         int maxChildCoverWExcept(const Widget *) const;
