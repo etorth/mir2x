@@ -93,20 +93,4 @@ class IMEBoard: public Widget
 
     private:
         size_t totalLabelWidth() const;
-
-    public:
-        bool active() const
-        {
-            return m_active;
-        }
-
-        void setActive(bool active)
-        {
-            m_active = active;
-        }
-
-        bool switchActive()
-        {
-            return m_active = !m_active;
-        }
 };

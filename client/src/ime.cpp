@@ -1,3 +1,5 @@
+#include <filesystem>
+#include <fstream>
 #include <vector>
 #include <atomic>
 #include <thread>
@@ -33,6 +35,14 @@ struct _IME_Instance final
 
     _IME_Instance()
     {
+        // suppress warning message: open libpinyin/conf/user.conf failed.
+        // create libpinyin/data/user.conf if not exists
+
+        if(const std::filesystem::path conf = "libpinyin/conf/user.conf"; !std::filesystem::exists(conf)){
+            std::filesystem::create_directories(conf.parent_path());
+            std::ofstream{conf};
+        }
+
         context = pinyin_init("libpinyin/data", "libpinyin/conf");
         fflassert(context);
 
