@@ -36,8 +36,8 @@ class ItemBox: public Widget
                   .x = std::move(args.x),
                   .y = std::move(args.y),
 
-                  .w =  args.v ? std::move(args.fixed) : Widget::VarSizeOpt{},
-                  .h = !args.v ? std::move(args.fixed) : Widget::VarSizeOpt{},
+                  .w =  args.v ? std::move(args.fixed) : Widget::VarSize([this]{ return calcFlexSize(); }),
+                  .h = !args.v ? std::move(args.fixed) : Widget::VarSize([this]{ return calcFlexSize(); }),
 
                   .attrs
                   {
@@ -63,7 +63,7 @@ class ItemBox: public Widget
             }
 
             if(firstChild){
-                calcOffset(firstChild);
+                updateOffset(firstChild);
             }
         }
 
@@ -72,7 +72,7 @@ class ItemBox: public Widget
         {
             if(argWidget){
                 Widget::addChild(argWidget, argAutoDelete);
-                calcOffset(argWidget);
+                updateOffset(argWidget);
             }
         }
 
@@ -81,7 +81,7 @@ class ItemBox: public Widget
         {
             if(auto child = hasChild(childID)){
                 child->flipShow();
-                calcOffset(child);
+                updateOffset(child);
             }
         }
 
@@ -91,7 +91,7 @@ class ItemBox: public Widget
             throw fflerror("ItemBox::addChildAt");
         }
 
-        void calcOffset(Widget *child)
+        void updateOffset(Widget *child)
         {
             fflassert(child);
             fflassert(hasChild(child->id()));
@@ -106,7 +106,7 @@ class ItemBox: public Widget
                 }
 
                 if(found){
-                    if(w->show()){
+                    if(w->localShow()){
                         if(lastShow){
                             w->moveAt(DIR_UPLEFT, m_vbox ? 0 : (lastShow->dx() + lastShow->w() + itemSpace),
                                                  !m_vbox ? 0 : (lastShow->dy() + lastShow->h() + itemSpace));
@@ -117,9 +117,29 @@ class ItemBox: public Widget
                     }
                 }
 
-                if(w->show()){
+                if(w->localShow()){
                     lastShow = w;
                 }
             });
+        }
+
+        int calcFlexSize() const
+        {
+            const Widget *lastShow = nullptr;
+            foreachChild(false, [&lastShow](const Widget *w, bool) -> bool
+            {
+                if(w->localShow()){
+                    lastShow = w;
+                }
+                return lastShow;
+            });
+
+            if(lastShow){
+                if(m_vbox) return lastShow->dy() + lastShow->h();
+                else       return lastShow->dx() + lastShow->w();
+            }
+            else{
+                return 0;
+            }
         }
 };
