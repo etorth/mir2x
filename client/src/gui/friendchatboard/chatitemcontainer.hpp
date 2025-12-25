@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "serdesmsg.hpp"
 #include "widget.hpp"
-#include "itemflex.hpp"
+#include "itembox.hpp"
 #include "chatitem.hpp"
 #include "labelboard.hpp"
 #include "layoutboard.hpp"
@@ -22,7 +22,7 @@ struct ChatItemContainer: public Widget
     // when scroll we can only move canvas inside this container
     // no need to move chat item one by one
 
-    ItemFlex canvas;
+    ItemBox canvas;
 
     LabelBoard nomsg; // show when there is no chat message
     LayoutBoard ops;  // all kinds of ops, including block strangers, add friends, etc

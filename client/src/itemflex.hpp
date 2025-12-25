@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 #include <utility>
 #include <initializer_list>
 #include "widget.hpp"

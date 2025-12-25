@@ -32,5 +32,5 @@ class IME
         std::string input() const;
         std::string result() const;
         std::string sentence() const;
-        std::vector<std::string> candidateList() const;
+        std::vector<std::string> candidates() const;
 };

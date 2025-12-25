@@ -21,7 +21,7 @@ struct _IME_Instance final
     std::string prefix;
 
     std::optional<size_t> selection;
-    std::vector<std::string> candidateList;
+    std::vector<std::string> candidates;
     std::vector<std::pair<std::string, int>> stk; // (sentence, start)
 
     bool done;
@@ -47,11 +47,11 @@ struct _IME_Instance final
         fflassert(context);
 
         pinyin_set_options(context,
-                (guint32)PINYIN_INCOMPLETE  |
-                (guint32)PINYIN_CORRECT_ALL |
-                (guint32)USE_DIVIDED_TABLE  |
-                (guint32)USE_RESPLIT_TABLE  |
-                (guint32)DYNAMIC_ADJUST);
+                static_cast<guint32>(PINYIN_INCOMPLETE ) |
+                static_cast<guint32>(PINYIN_CORRECT_ALL) |
+                static_cast<guint32>(USE_DIVIDED_TABLE ) |
+                static_cast<guint32>(USE_RESPLIT_TABLE ) |
+                static_cast<guint32>(DYNAMIC_ADJUST    ));
 
         instance = pinyin_alloc_instance(context);
         fflassert(instance);
@@ -69,9 +69,11 @@ struct _IME_Instance final
 
                 if(input.empty()){
                     prefix.clear();
-                    selection.reset();
-                    stk.clear();
-                    candidateList.clear();
+
+                    selection .reset();
+                    candidates.clear();
+                    stk       .clear();
+
                     pinyin_reset(instance);
                     continue;
                 }
@@ -114,7 +116,7 @@ struct _IME_Instance final
                     pinyin_guess_sentence_with_prefix(instance, prefix.c_str());
                 }
 
-                candidateList.clear();
+                candidates.clear();
                 pinyin_guess_candidates(instance, stk.empty() ? 0 : stk.back().second, SORT_BY_PHRASE_LENGTH_AND_PINYIN_LENGTH_AND_FREQUENCY);
 
                 guint num = 0;
@@ -127,7 +129,7 @@ struct _IME_Instance final
                     const char *word = nullptr;
                     pinyin_get_candidate_string(instance, candidate, &word);
 
-                    candidateList.emplace_back(word);
+                    candidates.emplace_back(word);
                 }
             }
         });
@@ -148,6 +150,28 @@ struct _IME_Instance final
 
         pinyin_save(context);
         pinyin_fini(context);
+    }
+
+    // return true if input pinyin string is complete, i.e.
+    //
+    //   complete: nihaoya
+    // incomplete: nihaoy, nhya
+    //
+    // we skip the training and saving if input is incomplete
+    bool is_input_complete_pinyin()
+    {
+        size_t i = 0;
+        size_t length = pinyin_get_parsed_input_length(instance);
+
+        for(; i < length; ++i){
+            ChewingKey *key = nullptr;
+            if(pinyin_get_pinyin_key(instance, i, &key) && key){
+                if(pinyin_get_pinyin_is_incomplete(instance, key)){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 };
 
@@ -269,9 +293,9 @@ std::string IME::sentence() const
     return imePtr->stk.back().first;
 }
 
-std::vector<std::string> IME::candidateList() const
+std::vector<std::string> IME::candidates() const
 {
     const auto imePtr = asIMEPtr(m_instance);
     const std::lock_guard<std::mutex> lock(imePtr->mtx);
-    return imePtr->candidateList;
+    return imePtr->candidates;
 }

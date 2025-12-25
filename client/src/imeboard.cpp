@@ -92,7 +92,7 @@ void IMEBoard::updateDefault(double)
     // problem of callback is not by IME, it's by SDL
     // SDL texture creation is not thread-safe, if we add callback like onCandidateListChanged, we can't allocate texture inside
 
-    if(const auto currCandidateList = m_ime.candidateList(); currCandidateList == m_candidateList){
+    if(const auto currCandidateList = m_ime.candidates(); currCandidateList == m_candidateList){
         if(m_ime.empty()){
             dropFocus();
         }
