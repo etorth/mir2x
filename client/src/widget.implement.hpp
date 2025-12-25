@@ -101,7 +101,7 @@ void WidgetTreeNode::clearChild(std::invocable<const Widget *, bool> auto f)
     for(auto &child: m_childList){
         if(child.widget){
             if(f(child.widget, child.autoDelete)){
-                removeChildElement(child, true);
+                doRemoveChild(child, true);
             }
         }
     }

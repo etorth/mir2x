@@ -76,6 +76,18 @@ class ItemBox: public Widget
             }
         }
 
+        void removeChild(Widget *argWidget, bool argTriggerDelete) override
+        {
+            if(argWidget){
+                auto nextWidget = nextChild(argWidget->id());
+                Widget::removeChild(argWidget, argTriggerDelete);
+
+                if(nextWidget){
+                    updateOffset(nextWidget);
+                }
+            }
+        }
+
     public:
         void flipChildShow(uint64_t childID)
         {

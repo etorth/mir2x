@@ -109,14 +109,14 @@ void WidgetTreeNode::removeChild(Widget *argWidget, bool argTriggerDelete)
     if(argWidget){
         for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
             if(p->widget == argWidget){
-                removeChildElement(*p, argTriggerDelete);
+                doRemoveChild(*p, argTriggerDelete);
                 return;
             }
         }
     }
 }
 
-void WidgetTreeNode::removeChildElement(WidgetTreeNode::ChildElement &argElement, bool argTriggerDelete)
+void WidgetTreeNode::doRemoveChild(WidgetTreeNode::ChildElement &argElement, bool argTriggerDelete)
 {
     if(auto widptr = argElement.widget){
         widptr->m_parent = nullptr;

@@ -157,15 +157,15 @@ class WidgetTreeNode // tree concept, used by class Widget only
             clearChild([](const Widget *, bool){ return true; });
         }
 
-    protected:
-        virtual void removeChildElement(WidgetTreeNode::ChildElement &, bool);
+    private:
+        void doRemoveChild(WidgetTreeNode::ChildElement &, bool);
 
     public:
         virtual void purge();
         virtual void removeChild(Widget *, bool);
 
     private:
-        virtual void doAddChild(Widget *, bool) final;
+        void doAddChild(Widget *, bool);
 
     public:
         virtual void addChild  (Widget *, bool);
