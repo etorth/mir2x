@@ -52,18 +52,18 @@ class ItemBox: public Widget
             , m_vbox(args.v)
             , m_itemSpace(std::move(args.itemSpace))
         {
-            Widget *firstChild = nullptr;
+            Widget *firstWidget = nullptr;
             for(auto [widget, autoDelete]: args.childList){
                 if(widget){
-                    if(!firstChild){
-                        firstChild = widget;
+                    if(!firstWidget){
+                        firstWidget = widget;
                     }
                     Widget::addChild(widget, autoDelete);
                 }
             }
 
-            if(firstChild){
-                updateOffset(firstChild);
+            if(firstWidget){
+                updateOffsetFrom(firstWidget);
             }
         }
 
@@ -72,7 +72,7 @@ class ItemBox: public Widget
         {
             if(argWidget){
                 Widget::addChild(argWidget, argAutoDelete);
-                updateOffset(argWidget);
+                updateOffsetFrom(argWidget);
             }
         }
 
@@ -83,7 +83,7 @@ class ItemBox: public Widget
                 Widget::removeChild(argWidget, argTriggerDelete);
 
                 if(nextWidget){
-                    updateOffset(nextWidget);
+                    updateOffsetFrom(nextWidget);
                 }
             }
         }
@@ -93,7 +93,15 @@ class ItemBox: public Widget
         {
             if(auto child = hasChild(childID)){
                 child->flipShow();
-                updateOffset(child);
+                updateOffsetFrom(child);
+            }
+        }
+
+    public:
+        void updateOffset()
+        {
+            if(auto firstWidget = firstChild()){
+                updateOffsetFrom(firstWidget);
             }
         }
 
@@ -103,7 +111,7 @@ class ItemBox: public Widget
             throw fflerror("ItemBox::addChildAt");
         }
 
-        void updateOffset(Widget *child)
+        void updateOffsetFrom(Widget *child)
         {
             fflassert(child);
             fflassert(hasChild(child->id()));
