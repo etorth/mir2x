@@ -9,6 +9,7 @@ class GfxResizeBoard: public Widget
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
+
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 

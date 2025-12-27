@@ -8,6 +8,7 @@ class GfxCropBoard: public Widget
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
+
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
@@ -39,6 +40,7 @@ class GfxCropBoard: public Widget
             : Widget
               {{
                   .dir = std::move(args.dir),
+
                   .x = std::move(args.x),
                   .y = std::move(args.y),
 
@@ -174,6 +176,7 @@ class GfxCropBoard: public Widget
         std::vector<std::string> dumpTreeExt() const override
         {
             std::vector<std::string> attrs;
+
             if(const auto widget = gfxWidget()){
                 attrs.push_back(str_printf(R"("gfxWidget":{"name":"%s","id":%llu})", widget->name(), to_llu(widget->id())));
             }
