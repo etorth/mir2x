@@ -85,7 +85,7 @@ class ImageBoard: public Widget
         }
 
     private:
-        static std::pair<bool, int> getHFlipRotatePair(bool hflip, bool vflip, int rotate)
+        static std::pair<bool, int> getHFlipRotatePair(bool hflip, bool vflip, int rotate) // h/v flip first, then rotate
         {
             if     (hflip && vflip) return {false, (((rotate + 2) % 4) + 4) % 4};
             else if(hflip         ) return { true, (((rotate    ) % 4) + 4) % 4};
@@ -97,5 +97,11 @@ class ImageBoard: public Widget
         SDL_Texture *getTexture() const
         {
             return Widget::evalTexLoadFunc(m_loadFunc, this);
+        }
+
+    public:
+        bool transposed() const
+        {
+            return m_rotate % 2;
         }
 };

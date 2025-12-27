@@ -4,7 +4,11 @@
 #include "gfxresizeboard.hpp"
 
 //   texID: 0X00000460
-//   up and down side has 2 pixels border, but use 3 pixels border for simplicity
+//
+//   up and down side borders are of 2 pixels
+//
+//      1. use 3 pixels in GfxResizeBoard for simplicity and makes dark/light pixel not repeat
+//      2. getInputROI() still uses 2 pixel border for blank area inside
 //
 //   |<-3->|             v
 //   +-----------------  -
@@ -52,4 +56,7 @@ class TexInputBackground: public Widget
 
     public:
         TexInputBackground(TexInputBackground::InitArgs);
+
+    public:
+        Widget::ROI gfxInputROI() const;
 };

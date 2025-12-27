@@ -143,10 +143,10 @@ class GfxResizeBoard: public Widget
         {
             return Widget::ROI
             {
-                .x = margin(2),
-                .y = margin(0),
-                .w = m_resize.w(this),
-                .h = m_resize.h(this),
+                .x = margin(2) + m_vr.x(this),
+                .y = margin(0) + m_vr.y(this),
+                .w =         m_resize.w(this),
+                .h =         m_resize.h(this),
             };
         }
 

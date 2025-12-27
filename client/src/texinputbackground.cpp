@@ -48,3 +48,14 @@ TexInputBackground::TexInputBackground(TexInputBackground::InitArgs args)
           .parent{this},
       }}
 {}
+
+Widget::ROI TexInputBackground::gfxInputROI() const
+{
+    auto v = m_img.transposed();
+    auto r = m_resize.gfxResizeROI();
+
+    (v ? r.x : r.y) -= 1;
+    (v ? r.w : r.h) += 2;
+
+    return r;
+}
