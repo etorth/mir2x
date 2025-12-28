@@ -1,3 +1,4 @@
+#pragma once
 #include "widget.hpp"
 #include "imageboard.hpp"
 #include "gfxresizeboard.hpp"

@@ -421,7 +421,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                           {new CheckLabel{{.label{.text=u8"自动喝蓝", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_自动喝蓝>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_自动喝蓝>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_自动喝蓝); }}}, DIR_UPLEFT, 0, 50, true},
                           {new CheckLabel{{.label{.text=u8"保持满蓝", .font{1, 12}}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_保持满蓝>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_保持满蓝>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_保持满蓝); }}}, DIR_UPLEFT, 0, 75, true},
 
-                          {new TextInput(DIR_UPLEFT, 0, 0, u8"等待", u8"秒", 3, 3, true, 50, 20), DIR_UPLEFT, 0, 110, true},
+                          {new TextInput{{.labelFirst=u8"等待", .labelSecond=u8"秒", .font{1, 12}, .inputSize{50, 20}}}, DIR_UPLEFT, 0, 110, true},
                       },
                   }},
                   true,

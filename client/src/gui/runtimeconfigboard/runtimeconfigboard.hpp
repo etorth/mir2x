@@ -24,7 +24,6 @@ class ProcessRun;
 class RuntimeConfigBoard: public Widget
 {
     private:
-        friend class TextInput;
         friend class PullMenu;
         friend class LabelSliderBar;
         friend class MenuPage;
