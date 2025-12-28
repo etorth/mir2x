@@ -49,13 +49,18 @@ TexInputBackground::TexInputBackground(TexInputBackground::InitArgs args)
       }}
 {}
 
-Widget::ROI TexInputBackground::gfxInputROI() const
+Widget::ROI TexInputBackground::getInputROI() const
 {
-    auto v = m_img.transposed();
     auto r = m_resize.gfxResizeROI();
 
-    (v ? r.x : r.y) -= 1;
-    (v ? r.w : r.h) += 2;
+    (v() ? r.x : r.y) -= 1;
+    (v() ? r.w : r.h) += 2;
 
     return r;
+}
+
+void TexInputBackground::setInputSize(Widget::VarSize2D size)
+{
+    setSize([this, size]{ return size.w(this) + ( v() ? 4 : 6); },
+            [this, size]{ return size.h(this) + (!v() ? 4 : 6); });
 }

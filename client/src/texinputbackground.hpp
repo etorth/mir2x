@@ -1,14 +1,13 @@
 #include "widget.hpp"
 #include "imageboard.hpp"
-#include "gfxdupboard.hpp"
 #include "gfxresizeboard.hpp"
 
 //   texID: 0X00000460
 //
-//   up and down side borders are of 2 pixels
+//   up and down side borders are of 2 pixels:
 //
-//      1. use 3 pixels in GfxResizeBoard for simplicity and makes dark/light pixel not repeat
-//      2. getInputROI() still uses 2 pixel border for blank area inside
+//      1. use 3 pixels in GfxResizeBoard resize ROI then dark/light pixel doesn't repeat
+//      2. getInputROI() still uses 2 pixel border for input area inside
 //
 //   |<-3->|             v
 //   +-----------------  -
@@ -46,7 +45,6 @@ class TexInputBackground: public Widget
             Widget::VarSize h = 0;
 
             bool v = true;
-
             Widget::WADPair parent {};
         };
 
@@ -58,5 +56,14 @@ class TexInputBackground: public Widget
         TexInputBackground(TexInputBackground::InitArgs);
 
     public:
-        Widget::ROI gfxInputROI() const;
+        bool v() const noexcept
+        {
+            return m_img.transposed();
+        }
+
+    public:
+        Widget::ROI getInputROI() const;
+
+    public:
+        void setInputSize(Widget::VarSize2D); // overwrites size
 };

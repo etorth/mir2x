@@ -12,7 +12,11 @@ struct ROI final
 
     Widget::IntSize2D size() const noexcept
     {
-        return {std::max<int>(w, 0), std::max<int>(h, 0)};
+        return
+        {
+            std::max<int>(w, 0),
+            std::max<int>(h, 0),
+        };
     }
 
     bool empty() const noexcept

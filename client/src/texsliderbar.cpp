@@ -7,6 +7,7 @@ TexSliderBar::TexSliderBar(TexSliderBar::InitArgs args)
     : TexSlider
       {{
           .bar = std::move(args.bar),
+
           .index = args.index,
           .value = args.value,
 
@@ -14,12 +15,9 @@ TexSliderBar::TexSliderBar(TexSliderBar::InitArgs args)
           .parent = std::move(args.parent),
       }}
 
-    , m_imgSlot
+    , m_bg
       {{
-          .texLoadFunc = []{ return g_progUseDB->retrieve(0X00000460); },
-
-          .vflip = vbar(),
-          .rotate = vbar() ? 1 : 0,
+          .v = vbar(),
       }}
 
     , m_imgBar
@@ -36,47 +34,22 @@ TexSliderBar::TexSliderBar(TexSliderBar::InitArgs args)
           },
       }}
 
-    , m_bg
-      {{
-          .w = std::nullopt,
-          .h = std::nullopt,
-      }}
-
-    , m_slot
-      {{
-          .getter = &m_imgSlot,
-          .vr
-          {
-              /* x */  vbar() ? 0 : 3,
-              /* y */ !vbar() ? 0 : 3,
-              /* w */  vbar() ? m_imgSlot.w() : m_imgSlot.w() - 6,
-              /* h */ !vbar() ? m_imgSlot.h() : m_imgSlot.h() - 6,
-          },
-
-          .resize = Widget::VarSize2D{[this] -> Widget::IntSize2D
-          {
-              const auto roi = getBarROI(0, 0);
-              return
-              {
-                  vbar() ? m_imgSlot.w() : roi.w,
-                 !vbar() ? m_imgSlot.h() : roi.h,
-              };
-          }},
-
-          .parent{&m_bg},
-      }}
-
     , m_bar
       {{
-          .x =  vbar() ? 2 : 3,
-          .y = !vbar() ? 2 : 3,
+          .x = [this]{ return m_bg.getInputROI().x; },
+          .y = [this]{ return m_bg.getInputROI().y; },
 
-          .w = [this]{ return  vbar() ? m_imgBar.w() : (getBarROI(0, 0).w  * getValue()); },
-          .h = [this]{ return !vbar() ? m_imgBar.h() : (getBarROI(0, 0).h  * getValue()); },
+          .w = [this]{ return m_bg.getInputROI().w * ( vbar() ? 1.0f : getValue()); },
+          .h = [this]{ return m_bg.getInputROI().h * (!vbar() ? 1.0f : getValue()); },
 
           .getter = &m_imgBar,
           .parent{&m_bg},
       }}
 {
+    m_bg.setInputSize(Widget::VarSize2D([this]
+    {
+        return getBarROI(0, 0).size();
+    }));
+
     setBarBgWidget(m_bar.dx(), m_bar.dy(), &m_bg, false);
 }
