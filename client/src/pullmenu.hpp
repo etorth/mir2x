@@ -9,9 +9,17 @@
 #include "trigfxbutton.hpp"
 #include "gfxcropboard.hpp"
 
-
 class PullMenu: public Widget
 {
+    private:
+        struct InitArgs final
+        {
+            Widget::VarDir dir = DIR_UPLEFT;
+
+            Widget::VarInt x = 0;
+            Widget::VarInt y = 0;
+        };
+
     private:
         LabelBoard   m_label;
         GfxCropBoard m_labelCrop;

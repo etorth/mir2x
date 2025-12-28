@@ -16,10 +16,10 @@ extern SDLDevice *g_sdlDevice;
 
 ProcessChangePassword::ProcessChangePassword()
 	: Process()
-    , m_LBID           {{.label = u8"账号"    , .font{.id = 1, .size = 15}}}
-    , m_LBPwd          {{.label = u8"密码"    , .font{.id = 1, .size = 15}}}
-    , m_LBNewPwd       {{.label = u8"新密码"  , .font{.id = 1, .size = 15}}}
-    , m_LBNewPwdConfirm{{.label = u8"确认密码", .font{.id = 1, .size = 15}}}
+    , m_LBID           {{.label = u8"账号"    , .font{.size = 15}}}
+    , m_LBPwd          {{.label = u8"密码"    , .font{.size = 15}}}
+    , m_LBNewPwd       {{.label = u8"新密码"  , .font{.size = 15}}}
+    , m_LBNewPwdConfirm{{.label = u8"确认密码", .font{.size = 15}}}
     , m_boxID
       {{
           .dir = DIR_LEFT,

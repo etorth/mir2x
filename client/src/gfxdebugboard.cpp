@@ -362,7 +362,7 @@ GfxDebugBoard::GfxDebugBoard(GfxDebugBoard::InitArgs args)
               return str_printf("TEX (%d, %d)", SDLDeviceHelper::getTextureWidth(m_img.getTexture(), 0), SDLDeviceHelper::getTextureHeight(m_img.getTexture(), 0));
           },
 
-          .font{.id = 1, .size = 10},
+          .font{.size = 10},
           .parent{&m_srcWidget},
       }}
 
@@ -376,7 +376,7 @@ GfxDebugBoard::GfxDebugBoard(GfxDebugBoard::InitArgs args)
               return str_printf("IMG (%d, %d)", m_img.w(), m_img.h());
           },
 
-          .font{.id = 1, .size = 10},
+          .font{.size = 10},
           .parent{&m_srcWidget},
       }}
 
@@ -391,7 +391,7 @@ GfxDebugBoard::GfxDebugBoard(GfxDebugBoard::InitArgs args)
               return str_printf("ROI (%d, %d, %d, %d)", r.x, r.y, r.w, r.h);
           },
 
-          .font{.id = 1, .size = 10},
+          .font{.size = 10},
           .parent{&m_srcWidget},
       }}
 
@@ -402,7 +402,7 @@ GfxDebugBoard::GfxDebugBoard(GfxDebugBoard::InitArgs args)
 
           // set textFunc later
 
-          .font{.id = 1, .size = 10},
+          .font{.size = 10},
           .parent{&m_srcWidget},
       }}
 
@@ -413,7 +413,7 @@ GfxDebugBoard::GfxDebugBoard(GfxDebugBoard::InitArgs args)
 
           // set textFunc later
 
-          .font{.id = 1, .size = 10},
+          .font{.size = 10},
           .parent{&m_srcWidget},
       }}
 

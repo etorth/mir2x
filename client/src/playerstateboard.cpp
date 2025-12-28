@@ -126,7 +126,7 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
 
     const auto fnDrawLabel = [m, this](int labelX, int labelY, const std::u8string &s, uint32_t color = colorf::WHITE)
     {
-        LabelBoard{{.label = s.c_str(), .font{.id = 1, .size = 12, .color = colorf::maskRGB(color) + colorf::A_SHF(255)}}}.draw({.dir=DIR_NONE, .x{m.x + labelX}, .y{m.y + labelY}});
+        LabelBoard{{.label = s.c_str(), .font{.color = colorf::maskRGB(color) + colorf::A_SHF(255)}}}.draw({.dir=DIR_NONE, .x{m.x + labelX}, .y{m.y + labelY}});
     };
 
     const auto myHeroPtr = m_processRun->getMyHero();
@@ -182,15 +182,15 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
     fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.dcHit));
     fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dcDodge));
 
-    LabelBoard{{.label = str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str(), .font{.id = 1, .size = 12}}}.draw({.x{m.x +  21}, .y{m.y + 317}});
-    LabelBoard{{.label = str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str(), .font{.id = 1, .size = 12}}}.draw({.x{m.x + 130}, .y{m.y + 317}});
-    LabelBoard{{.label = str_printf(u8"魔法 %d - %d", combatNode. mc[0], combatNode. mc[1]).c_str(), .font{.id = 1, .size = 12}}}.draw({.x{m.x +  21}, .y{m.y + 345}});
-    LabelBoard{{.label = str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str(), .font{.id = 1, .size = 12}}}.draw({.x{m.x + 130}, .y{m.y + 345}});
-    LabelBoard{{.label = str_printf(u8"道术 %d - %d", combatNode. sc[0], combatNode. sc[1]).c_str(), .font{.id = 1, .size = 12}}}.draw({.x{m.x + 233}, .y{m.y + 345}});
+    LabelBoard{{.label = str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str()}}.draw({.x{m.x +  21}, .y{m.y + 317}});
+    LabelBoard{{.label = str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str()}}.draw({.x{m.x + 130}, .y{m.y + 317}});
+    LabelBoard{{.label = str_printf(u8"魔法 %d - %d", combatNode. mc[0], combatNode. mc[1]).c_str()}}.draw({.x{m.x +  21}, .y{m.y + 345}});
+    LabelBoard{{.label = str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str()}}.draw({.x{m.x + 130}, .y{m.y + 345}});
+    LabelBoard{{.label = str_printf(u8"道术 %d - %d", combatNode. sc[0], combatNode. sc[1]).c_str()}}.draw({.x{m.x + 233}, .y{m.y + 345}});
 
-    LabelBoard{{.label = u8"攻击元素", .font{.id = 1, .size = 12}}}.draw({.x{m.x + 10}, .y{m.y + 376}});
-    LabelBoard{{.label = u8"防御元素", .font{.id = 1, .size = 12}}}.draw({.x{m.x + 10}, .y{m.y + 406}});
-    LabelBoard{{.label = u8"弱点元素", .font{.id = 1, .size = 12}}}.draw({.x{m.x + 10}, .y{m.y + 436}});
+    LabelBoard{{.label = u8"攻击元素",}}.draw({.x{m.x + 10}, .y{m.y + 376}});
+    LabelBoard{{.label = u8"防御元素",}}.draw({.x{m.x + 10}, .y{m.y + 406}});
+    LabelBoard{{.label = u8"弱点元素",}}.draw({.x{m.x + 10}, .y{m.y + 436}});
 
     for(int i = MET_BEGIN; i < MET_END; ++i){
         const auto [dcElem, acElem] = [i, &combatNode]() -> std::array<int, 2>
@@ -218,16 +218,16 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
 
         if(dcElem > 0){
             g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X06000010 + to_u32(i - MET_BEGIN)), elemGridX, elemGridY[0]);
-            LabelBoard{{.label = str_printf(u8"%+d", dcElem).c_str(), .font{.id = 1, .size = 12, .color = colorf::GREEN_A255}}}.draw({.x=elemGridX + 20, .y=elemGridY[0] + 1});
+            LabelBoard{{.label = str_printf(u8"%+d", dcElem).c_str(), .font{.color = colorf::GREEN_A255}}}.draw({.x=elemGridX + 20, .y=elemGridY[0] + 1});
         }
 
         if(acElem > 0){
             g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X06000010 + to_u32(i - MET_BEGIN)), elemGridX, elemGridY[1]);
-            LabelBoard{{.label = str_printf(u8"%+d", acElem).c_str(), .font{.id = 1, .size = 12, .color = colorf::GREEN_A255}}}.draw({.x=elemGridX + 20, .y=elemGridY[1] + 1});
+            LabelBoard{{.label = str_printf(u8"%+d", acElem).c_str(), .font{.color = colorf::GREEN_A255}}}.draw({.x=elemGridX + 20, .y=elemGridY[1] + 1});
         }
         else if(acElem < 0){
             g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X06000020 + to_u32(i - MET_BEGIN)), elemGridX, elemGridY[2]);
-            LabelBoard{{.label = str_printf(u8"%+d", acElem).c_str(), .font{.id = 1, .size = 12, .color = colorf::RED_A255}}}.draw({.x=elemGridX + 20, .y=elemGridY[2] + 1});
+            LabelBoard{{.label = str_printf(u8"%+d", acElem).c_str(), .font{.color = colorf::RED_A255}}}.draw({.x=elemGridX + 20, .y=elemGridY[2] + 1});
         }
     }
 
@@ -235,7 +235,7 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
         g_sdlDevice->drawTexture(texPtr, m.x + m_equipCharX + dx, m.y + m_equipCharY + dy);
     }
 
-    LabelBoard{{.label = to_u8cstr(myHeroPtr->getName()), .font{.id = 1, .size = 12, .color = myHeroPtr->getNameColor() | 0XFF}}}.draw({.dir=DIR_NONE, .x=m.x + 164, .y=m.y + 38});
+    LabelBoard{{.label = to_u8cstr(myHeroPtr->getName()), .font{.color = myHeroPtr->getNameColor() | 0XFF}}}.draw({.dir=DIR_NONE, .x=m.x + 164, .y=m.y + 38});
     if(const auto dressItemID = myHeroPtr->getWLItem(WLG_DRESS).itemID){
         if(const auto dressGfxID = DBCOM_ITEMRECORD(dressItemID).pkgGfxID; dressGfxID >= 0){
             if(auto [texPtr, dx, dy] = g_equipDB->retrieve(to_u32(dressGfxID) | 0X01000000); texPtr){
@@ -324,7 +324,7 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
     for(int i = 0; i < 9; ++i){
         if(mathf::pointInRectangle(mouseX, mouseY, m.x + labelGridX, m.y + labelGridY + labelGridD * i, labelGridW, labelGridH)){
             g_sdlDevice->fillRectangle(colorf::RGBA(0, 100, 0, 100), m.x + labelGridX, m.y + labelGridY + labelGridD * i, labelGridW, labelGridH);
-            const LabelBoard labelNameBoard{{.label = labelName[i], .font{.id = 1, .size = 12}}};
+            const LabelBoard labelNameBoard{{.label = labelName[i]}};
             g_sdlDevice->fillRectangle(colorf::RGBA(0, 100, 0, 200), mouseX - labelNameBoard.w(), mouseY - labelNameBoard.h(), labelNameBoard.w(), labelNameBoard.h());
             labelNameBoard.draw({.dir=DIR_DOWNRIGHT, .x=mouseX, .y=mouseY});
         }

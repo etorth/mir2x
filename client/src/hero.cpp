@@ -274,7 +274,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     }
 
     if(isTeamLeader()){
-        LabelBoard amLeader{{.label = u8"我是队长", .font{.id = 1, .size = 12, .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
+        LabelBoard amLeader{{.label = u8"我是队长", .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
         amLeader.draw({.x=startX, .y=startY, .ro{0, 0, amLeader.w(), amLeader.h()}});
     }
 }

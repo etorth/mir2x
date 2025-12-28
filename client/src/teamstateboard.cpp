@@ -212,7 +212,7 @@ void TeamStateBoard::drawDefault(Widget::ROIMap m) const
         const int texRepeatEndY = texRepeatStartY + m_texRepeatH;
         g_sdlDevice->drawTexture(texPtr, remapXDiff, remapYDiff + texRepeatStartY + neededRepeatTexH, 0, texRepeatEndY, texW, texH - texRepeatEndY);
 
-        LabelBoard header{{.label = m_showCandidateList ? u8"申请加入" : u8"当前队伍", .font{.id = 1, .size = 12, .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
+        LabelBoard header{{.label = m_showCandidateList ? u8"申请加入" : u8"当前队伍", .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
         header.draw({.dir=DIR_NONE, .x{remapXDiff + w() / 2}, .y{remapYDiff + 57}});
     }
 

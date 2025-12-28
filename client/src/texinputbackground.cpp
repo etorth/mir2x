@@ -3,6 +3,17 @@
 
 extern PNGTexDB *g_progUseDB;
 
+Widget::ROI TexInputBackground::fromInputROI(bool v, Widget::ROI r)
+{
+    r.x -= ( v ? 2 : 3);
+    r.y -= (!v ? 2 : 3);
+
+    r.w += ( v ? 4 : 6);
+    r.h += (!v ? 4 : 6);
+
+    return r;
+}
+
 TexInputBackground::TexInputBackground(TexInputBackground::InitArgs args)
     : Widget
       {{
@@ -59,8 +70,14 @@ Widget::ROI TexInputBackground::getInputROI() const
     return r;
 }
 
-void TexInputBackground::setInputSize(Widget::VarSize2D size)
+void TexInputBackground::setInputSize(Widget::VarSize2D argSize)
 {
-    setSize([this, size]{ return size.w(this) + ( v() ? 4 : 6); },
-            [this, size]{ return size.h(this) + (!v() ? 4 : 6); });
+    setSize([this, argSize]{ return argSize.w(this) + ( v() ? 4 : 6); },
+            [this, argSize]{ return argSize.h(this) + (!v() ? 4 : 6); });
+}
+
+void TexInputBackground::setInputSize(Widget::VarSize argW, Widget::VarSize argH)
+{
+    setSize([this, argW = std::move(argW)]{ return Widget::evalSize(argW, this) + ( v() ? 4 : 6); },
+            [this, argH = std::move(argH)]{ return Widget::evalSize(argH, this) + (!v() ? 4 : 6); });
 }

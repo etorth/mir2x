@@ -1,7 +1,6 @@
 #pragma once
-#include <initializer_list>
 #include "widget.hpp"
-#include "buttonbase.hpp"
+#include "trigfxbutton.hpp"
 
 // menu button to expand a menu board
 // this gui system does not support menubar and submenu
@@ -14,37 +13,25 @@
 // |  Save     CTRL+S  |
 // +-------------------+
 
-class MenuButton: public Widget
+class MenuButton: public TrigfxButton
 {
     private:
-        const std::array<int, 4> m_margin;
+        struct InitArgs final
+        {
+            Widget::VarDir dir = DIR_UPLEFT;
+
+            Widget::VarInt x = 0;
+            Widget::VarInt y = 0;
+
+            Widget::WADPair gfxWidget {};
+            Widget::WADPair menuBoard {};
+            Widget::WADPair    parent {};
+        };
 
     private:
         Widget *m_gfxWidget;
         Widget *m_menuBoard;
 
-    private:
-        ButtonBase m_button;
-
     public:
-        MenuButton(dir8_t,
-                int,
-                int,
-
-                std::pair<Widget *, bool>,
-                std::pair<Widget *, bool>,
-
-                std::array<int, 4> = {},
-
-                Widget * = nullptr,
-                bool     = false);
-
-    private:
-        void updateMenuButtonSize();
-
-    public:
-        void drawDefault(Widget::ROIMap) const override;
-
-    public:
-        bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
+        MenuButton(MenuButton::InitArgs);
 };

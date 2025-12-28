@@ -256,8 +256,8 @@ class Widget: public WidgetTreeNode
 
         struct FontConfig final
         {
-            uint8_t id    =  0; // default font
-            uint8_t size  = 10;
+            uint8_t id    =  1; // default font
+            uint8_t size  = 12;
             uint8_t style =  0;
 
             Widget::VarU32   color = colorf::WHITE_A255;

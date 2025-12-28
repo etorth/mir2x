@@ -292,8 +292,8 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                 6,
 
                 {
-                    {new LabelBoard{{.label = u8"引用" , .font{.id = 1, .size = 12}, .attrs{.data = std::make_any<std::string>("引用")}}}, false, true},
-                    {new LabelBoard{{.label = u8"复制" , .font{.id = 1, .size = 12}, .attrs{.data = std::make_any<std::string>("复制")}}}, false, true},
+                    {new LabelBoard{{.label=u8"引用", .attrs{.data = std::make_any<std::string>("引用")}}}, false, true},
+                    {new LabelBoard{{.label=u8"复制", .attrs{.data = std::make_any<std::string>("复制")}}}, false, true},
                 },
 
                 [this](Widget *item) // create new menu board whenever click a new chat item

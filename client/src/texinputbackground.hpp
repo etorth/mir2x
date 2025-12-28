@@ -34,6 +34,9 @@ class TexInputBackground: public Widget
         constexpr static int MIN_WIDTH  = 6; // because tex has border pixels
         constexpr static int MIN_HEIGHT = 6;
 
+    public:
+        static Widget::ROI fromInputROI(bool, Widget::ROI);
+
     private:
         struct InitArgs final
         {
@@ -66,5 +69,6 @@ class TexInputBackground: public Widget
         Widget::ROI getInputROI() const;
 
     public:
-        void setInputSize(Widget::VarSize2D); // overwrites size
+        void setInputSize(Widget::VarSize2D);
+        void setInputSize(Widget::VarSize, Widget::VarSize);
 };
