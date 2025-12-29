@@ -160,28 +160,26 @@ PullMenu::PullMenu(
       }}
 
     , m_menuList
-      {
-          DIR_UPLEFT,
-          0,
-          0,
+      {{
 
-          [this](const Widget *)
+          .fixed = [this]{ return m_menuTitleCrop.w(); },
+          .margin
           {
-              return m_menuTitleCrop.w();
+              5,
+              5,
+              5,
+              5,
           },
 
-          {5, 5, 5, 5},
+          .corner = 3,
+          .itemSpace = 6,
+          .separatorSpace = 7,
 
-          3,
-          6,
-          7,
+          .itemList = argMenuList,
+          .onClick = std::move(argOnClickMenu),
 
-          argMenuList,
-          std::move(argOnClickMenu),
-
-          this,
-          false,
-      }
+          .parent{this},
+      }}
 {
     m_menuList.setShow(false);
     const int maxHeight = std::max<int>({m_labelCrop.h(), m_menuTitleBackground.h(), m_button.h()});

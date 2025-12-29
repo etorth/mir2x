@@ -1,0 +1,60 @@
+#pragma once
+#include "widget.hpp"
+#include "itempair.hpp"
+#include "trigfxbutton.hpp"
+#include "marginwrapper.hpp"
+#include "gfxshapeboard.hpp"
+
+class MenuItem: public Widget
+{
+    public:
+        constexpr static int INDICATOR_W = 9;
+        constexpr static int INDICATOR_H = 5;
+
+    private:
+        struct ItemSizeArgs final
+        {
+            Widget::VarSizeOpt w = std::nullopt;
+            Widget::VarSizeOpt h = std::nullopt;
+        };
+
+        struct InitArgs final
+        {
+            Widget::VarDir dir = DIR_UPLEFT;
+
+            Widget::VarInt x = 0;
+            Widget::VarInt y = 0;
+
+            Widget::VarMargin  margin {};
+            MenuItem::ItemSizeArgs itemSize {};
+
+            Widget::WADPair gfxWidget {};
+            Widget::WADPair subWidget {};
+
+            Widget::VarBool showIndicator = false;
+            Widget::VarBool showSeparator = false;
+
+            Widget::WADPair parent {};
+        };
+
+    private:
+        Widget *m_subWidget;
+
+    private:
+        Widget m_gfxWidgetCrop;
+        GfxShapeBoard m_indicator; // a small triangle indicates submenu exists
+
+    private:
+        ItemPair m_canvas;
+        MarginWrapper m_wrapper;
+
+    private:
+        TrigfxButton m_button;
+
+    public:
+        MenuItem(MenuItem::InitArgs);
+
+    public:
+        void drawDefault(Widget::ROIMap m) const override;
+        bool processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m) override;
+};

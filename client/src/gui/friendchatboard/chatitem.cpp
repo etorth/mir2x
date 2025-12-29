@@ -279,24 +279,27 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
             }
 
             chatPage->addChildAt((chatPage->menu = new MenuBoard
-            {
-                DIR_UPLEFT,
-                0,
-                0,
-                200,
+            {{
+                .fixed = 200,
+                .margin
+                {
+                    5,
+                    5,
+                    5,
+                    5,
+                },
 
-                {5, 5, 5, 5},
+                .corner = 3,
+                .itemSpace = 5,
+                .separatorSpace = 6,
 
-                3,
-                5,
-                6,
-
+                .itemList
                 {
                     {new LabelBoard{{.label=u8"引用", .attrs{.data = std::make_any<std::string>("引用")}}}, false, true},
                     {new LabelBoard{{.label=u8"复制", .attrs{.data = std::make_any<std::string>("复制")}}}, false, true},
                 },
 
-                [this](Widget *item) // create new menu board whenever click a new chat item
+                .onClick = [this](Widget *item) // create new menu board whenever click a new chat item
                 {
                     if(const auto op = std::any_cast<std::string>(item->data()); op == "引用"){
                         std::string textStr = message.getText();
@@ -311,7 +314,7 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                         hasParent<ChatPage>()->enableChatRef(msgID.value(), "<layout>" + xmlf::toParString("%s：%s", name.getText().c_str(), textStr.c_str()) + "</layout>");
                     }
                 },
-            }),
+            }}),
 
             DIR_UPLEFT,
             event.button.x - (m.x - m.ro->x),

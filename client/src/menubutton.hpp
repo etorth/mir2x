@@ -8,9 +8,9 @@
 // +--------+
 // |  Proj  |             <--- menu button
 // +--------+----------+
-// |  Open     CTRL+O  |  <--- menu board
-// +-------------------+
-// |  Save     CTRL+S  |
+// |  Open     CTRL+O  |  <--- menu item --+
+// +-------------------+                   |
+// |  Save     CTRL+S  |  <--- menu item --+- menu board
 // +-------------------+
 
 class MenuButton: public TrigfxButton

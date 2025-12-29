@@ -5,74 +5,51 @@
 
 extern SDLDevice *g_sdlDevice;
 
-MenuBoard::MenuBoard(
-        Widget::VarDir argDir,
-        Widget::VarInt argX,
-        Widget::VarInt argY,
-
-        Widget::VarSizeOpt argVarW,
-        Widget::IntMargin argMargin,
-
-        int argCorner,
-        int argItemSpace,
-        int argSeperatorSpace,
-
-        std::initializer_list<std::tuple<Widget *, bool, bool>> argMenuItemList,
-        std::function<void(Widget *)> argOnClickMenu,
-
-        Widget *argParent,
-        bool    argAutoDelete)
-
+MenuBoard::MenuBoard(MenuBoard::InitArgs args)
     : Widget
       {{
-          .dir = std::move(argDir),
+          .dir = std::move(args.dir),
 
-          .x = std::move(argX),
-          .y = std::move(argY),
+          .x = std::move(args.x),
+          .y = std::move(args.y),
 
           .w = std::nullopt,
           .h = std::nullopt,
 
-          .parent
-          {
-              .widget = argParent,
-              .autoDelete = argAutoDelete,
-          }
+          .parent = std::move(args.parent),
       }}
 
-    , m_itemSpace     (std::max<int>(0, argItemSpace     ))
-    , m_separatorSpace(std::max<int>(0, argSeperatorSpace))
+    , m_itemSpace     (std::move(args.itemSpace     ))
+    , m_separatorSpace(std::move(args.separatorSpace))
 
-    , m_onClickMenu(std::move(argOnClickMenu))
+    , m_onClickMenu(std::move(args.onClick))
     , m_canvas
       {{
-          .fixed = Widget::transform(std::move(argVarW), [argMargin, this](int w)
+          .fixed = Widget::transform(std::move(args.fixed), [left = args.margin.left, right = args.margin.right, this](int w)
           {
-              return std::max<int>(0, w - argMargin.left - argMargin.right);
+              return w - Widget::evalSize(left, this) - Widget::evalSize(right, this);
           }),
       }}
 
     , m_wrapper
       {{
           .wrapped{&m_canvas},
-          .margin
-          {
-              .up    = argMargin[0],
-              .down  = argMargin[1],
-              .left  = argMargin[2],
-              .right = argMargin[3],
-          },
+          .margin = std::move(args.margin),
 
-          .bgDrawFunc = [argCorner](const Widget *self, int dstDrawX, int dstDrawY)
+          .bgDrawFunc = [corner = args.corner](const Widget *self, int dstDrawX, int dstDrawY)
           {
-              g_sdlDevice->fillRectangle(colorf::BLACK_A255, dstDrawX, dstDrawY, self->w(), self->h(), std::max<int>(0, argCorner));
-              g_sdlDevice->drawRectangle(colorf:: GREY_A255, dstDrawX, dstDrawY, self->w(), self->h(), std::max<int>(0, argCorner));
+              const int w = self->w();
+              const int h = self->h();
+              const int c = Widget::evalSize(corner, self);
+
+              g_sdlDevice->fillRectangle(colorf::BLACK_A255, dstDrawX, dstDrawY, w, h, c);
+              g_sdlDevice->drawRectangle(colorf:: GREY_A255, dstDrawX, dstDrawY, w, h, c);
           },
           .parent{this},
       }}
 {
     moveFront(&m_wrapper);
-    for(auto [widget, addSeparator, autoDelete]: argMenuItemList){
+    for(auto [widget, addSeparator, autoDelete]: args.itemList){
         appendMenu(widget, addSeparator, autoDelete);
     }
 }
@@ -94,7 +71,7 @@ int MenuBoard::upperItemSpace(const Widget *argWidget) const
         return 0;
     }
     else{
-        return m_itemSpace / 2;
+        return Widget::evalSize(m_itemSpace, this) / 2;
     }
 }
 
@@ -115,7 +92,7 @@ int MenuBoard::lowerItemSpace(const Widget *argWidget) const
         return 0; // separator space not included
     }
     else{
-        return m_itemSpace - m_itemSpace / 2;
+        return (Widget::evalSize(m_itemSpace, this) + 1) / 2;
     }
 }
 
@@ -155,7 +132,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
 
                 .h = [argWidget, argAddSeparator, this]
                 {
-                    return upperItemSpace(argWidget) + argWidget->h() + lowerItemSpace(argWidget) + (argAddSeparator ? m_separatorSpace : 0);
+                    return upperItemSpace(argWidget) + argWidget->h() + lowerItemSpace(argWidget) + (argAddSeparator ? Widget::evalSize(m_separatorSpace, this) : 0);
                 },
 
                 .drawFunc = [argWidget, argAddSeparator, this](const Widget *self, int drawDstX, int drawDstY)
@@ -170,7 +147,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
 
                         const int drawXStart = drawDstX + drawXOff;
                         const int drawXEnd   = drawDstX + self->w() - drawXOff;
-                        const int drawY      = drawDstY + upperItemSpace(argWidget) + argWidget->h() + m_separatorSpace / 2;
+                        const int drawY      = drawDstY + upperItemSpace(argWidget) + argWidget->h() + Widget::evalSize(m_separatorSpace, this) / 2;
 
                         g_sdlDevice->drawLine(colorf::WHITE + colorf::A_SHF(100), drawXStart, drawY, drawXEnd, drawY);
                     }
@@ -225,10 +202,7 @@ void MenuBoard::appendMenu(Widget *argWidget, bool argAddSeparator, bool argAuto
                                         return self->consumeFocus(true);
                                     }
                                     else{
-                                        if(m_onClickMenu){
-                                            m_onClickMenu(menuWidget);
-                                        }
-
+                                        MenuBoard::evalClickCBFunc(m_onClickMenu, menuWidget);
                                         setFocus(false);
                                         setShow(false);
                                         return true;

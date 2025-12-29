@@ -1,46 +1,67 @@
 #pragma once
 #include <vector>
+#include <variant>
 #include <functional>
 #include <initializer_list>
 #include "widget.hpp"
 #include "itembox.hpp"
 #include "marginwrapper.hpp"
-#include "gfxshapeboard.hpp"
 
 class MenuBoard: public Widget
 {
+    public:
+        using ClickCBFunc = std::variant<std::nullptr_t, std::function<void()>, std::function<void(Widget *)>>;
+
+    public:
+        static void evalClickCBFunc(const ClickCBFunc &cbFunc, Widget *widget)
+        {
+            std::visit(VarDispatcher
+            {
+                [      ](const std::function<void(        )> &f){ if(f){ f(      ); }},
+                [widget](const std::function<void(Widget *)> &f){ if(f){ f(widget); }},
+
+                [](const auto &){},
+            },
+            cbFunc);
+        }
+
     private:
-        const int m_itemSpace;
-        const int m_separatorSpace;
+        struct InitArgs final
+        {
+            Widget::VarDir dir = DIR_UPLEFT;
+
+            Widget::VarInt x = 0;
+            Widget::VarInt y = 0;
+
+            Widget::VarSizeOpt fixed = std::nullopt;
+            Widget::VarMargin margin = {};
+
+            Widget::VarSize         corner = 0;
+            Widget::VarSize      itemSpace = 0;
+            Widget::VarSize separatorSpace = 0;
+
+            std::initializer_list<std::tuple<Widget *, bool, bool>> itemList {};
+            MenuBoard::ClickCBFunc onClick = nullptr;
+
+            Widget::WADPair parent {};
+        };
+
+    private:
+        const Widget::VarSize m_itemSpace;
+        const Widget::VarSize m_separatorSpace;
 
     private:
         std::vector<std::pair<Widget *, bool>> m_itemList;
 
     private:
-        std::function<void(Widget *)> m_onClickMenu;
+        MenuBoard::ClickCBFunc m_onClickMenu;
 
     private:
         ItemBox m_canvas; // holding all menu items
         MarginWrapper m_wrapper;
 
     public:
-        MenuBoard(
-                Widget::VarDir,
-                Widget::VarInt,
-                Widget::VarInt,
-
-                Widget::VarSizeOpt,
-                Widget::IntMargin = {},
-
-                int = 0,
-                int = 0,
-                int = 0,
-
-                std::initializer_list<std::tuple<Widget *, bool, bool>> = {},
-                std::function<void(Widget *)> = nullptr,
-
-                Widget * = nullptr,
-                bool     = false);
+        MenuBoard(MenuBoard::InitArgs);
 
     private:
         int upperItemSpace(const Widget *) const; // separator space not included
