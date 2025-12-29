@@ -50,9 +50,6 @@ class TrigfxButton: public ButtonBase
     public:
         void drawDefault(Widget::ROIMap) const override;
 
-    private:
-        void initButtonSize();
-
     public:
         void setGfxList(const std::array<const Widget *, 3> &gfxList)
         {

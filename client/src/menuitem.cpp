@@ -2,7 +2,6 @@
 #include "menuitem.hpp"
 
 extern SDLDevice *g_sdlDevice;
-
 MenuItem::MenuItem(MenuItem::InitArgs args)
     : Widget
       {{
@@ -14,17 +13,42 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
           .w = std::nullopt,
           .h = std::nullopt,
 
+          .childList
+          {
+              {
+                  .widget = new TrigfxButton
+                  {{
+                      .onOverIn  = [this]{ if(m_subWidget){ m_subWidget->setShow(true ); }},
+                      .onOverOut = [this]{ if(m_subWidget){ m_subWidget->setShow(false); }},
+                  }},
+                  .autoDelete = true,
+              },
+
+              {
+                  .widget = args.subWidget.widget,
+                  .autoDelete = args.subWidget.autoDelete,
+              },
+          },
+
           .attrs
           {
               .type
               {
-                  .canSetSize = false,
+                  .canSetSize  = false,
+                  .canAddChild = false,
+              },
+
+              .inst
+              {
+                  .moveOnFocus = false,
               },
           },
           .parent = std::move(args.parent),
       }}
 
     , m_subWidget(args.subWidget.widget)
+    , m_gfxButton(fflcheck(dynamic_cast<TrigfxButton *>(firstChild())))
+
     , m_gfxWidgetCrop
       {{
           .w = args.itemSize.w.value_or([gfxWidget=fflcheck(args.gfxWidget.widget)]{ return gfxWidget->w(); }),
@@ -84,22 +108,20 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
               g_sdlDevice->fillRectangle(colorf::BLACK_A255, dstDrawX, dstDrawY, self->w(), self->h());
           },
       }}
+{
+    m_gfxButton->setGfxList(
+    {
+        &m_wrapper,
+        &m_wrapper,
+        &m_wrapper,
+    });
 
-    , m_button
-      {{
-          .gfxList
-          {
-              &m_wrapper,
-              &m_wrapper,
-              &m_wrapper,
-          },
-
-          .onOverIn  = [this]{ if(m_subWidget){ m_subWidget->setShow(true ); }},
-          .onOverOut = [this]{ if(m_subWidget){ m_subWidget->setShow(false); }},
-
-          .parent{this},
-      }}
-{}
+    if(m_subWidget){
+        m_subWidget->moveAt(DIR_UPLEFT,
+                [this]{ return m_gfxButton->dx() + m_gfxButton->w(); },
+                [this]{ return m_gfxButton->dy()                   ; });
+    }
+}
 
 void MenuItem::drawDefault(Widget::ROIMap m) const
 {
@@ -107,8 +129,8 @@ void MenuItem::drawDefault(Widget::ROIMap m) const
         return;
     }
 
-    if(m_button.show()){
-        drawChild(&m_button, m);
+    if(m_gfxButton->show()){
+        drawChild(m_gfxButton, m);
     }
 
     if(m_subWidget && m_subWidget->show()){
@@ -122,8 +144,8 @@ bool MenuItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
         return false;
     }
 
-    if(m_button.show()){
-        return m_button.processEventParent(event, valid, m);
+    if(m_gfxButton->show()){
+        return m_gfxButton->processEventParent(event, valid, m);
     }
 
     if(m_subWidget && m_subWidget->show()){

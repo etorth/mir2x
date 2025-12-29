@@ -80,7 +80,7 @@ void WidgetTreeNode::execDeath() noexcept
     onDeath();
 }
 
-void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete)
+void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete, bool ignoreCanAddChild)
 {
     fflassert(argWidget);
     WidgetTreeNode *treeNode = argWidget;
@@ -89,18 +89,23 @@ void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete)
         treeNode->m_parent->removeChild(argWidget, false);
     }
 
-    treeNode->m_parent = static_cast<Widget *>(this);
-    m_childList.emplace_back(argWidget, argAutoDelete);
+    if(ignoreCanAddChild || static_cast<Widget *>(this)->m_attrs.type.canAddChild){
+        treeNode->m_parent = static_cast<Widget *>(this);
+        m_childList.emplace_back(argWidget, argAutoDelete); // only place to add child to m_childList
+    }
+    else{
+        throw fflerror("widget %s forbids adding child", name());
+    }
 }
 
 void WidgetTreeNode::addChild(Widget *argWidget, bool argAutoDelete)
 {
-    doAddChild(argWidget, argAutoDelete);
+    doAddChild(argWidget, argAutoDelete, false);
 }
 
 void WidgetTreeNode::addChildAt(Widget *argWidget, WidgetTreeNode::VarDir argDir, WidgetTreeNode::VarInt argX, WidgetTreeNode::VarInt argY, bool argAutoDelete)
 {
-    doAddChild(argWidget, argAutoDelete);
+    doAddChild(argWidget, argAutoDelete, false);
     argWidget->moveAt(std::move(argDir), std::move(argX), std::move(argY));
 }
 
@@ -465,7 +470,8 @@ Widget::Widget(Widget::InitArgs args)
 {
     for(auto &[childPtr, offDir, offX, offY, autoDelete]: args.childList){
         if(childPtr){
-            addChildAt(childPtr, std::move(offDir), std::move(offX), std::move(offY), autoDelete);
+            doAddChild(childPtr, autoDelete, true);
+            childPtr->moveAt(std::move(offDir), std::move(offX), std::move(offY));
         }
     }
 }

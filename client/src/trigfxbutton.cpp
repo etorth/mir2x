@@ -32,7 +32,27 @@ TrigfxButton::TrigfxButton(TrigfxButton::InitArgs args)
 
     , m_gfxList(args.gfxList)
 {
-    initButtonSize();
+    setSize([this]
+    {
+        int maxW = 0;
+        for(const auto &p: m_gfxList){
+            if(p){
+                maxW = std::max<int>(p->w(), maxW);
+            }
+        }
+        return maxW;
+    },
+
+    [this]
+    {
+        int maxH = 0;
+        for(const auto &p: m_gfxList){
+            if(p){
+                maxH = std::max<int>(p->h(), maxH);
+            }
+        }
+        return maxH;
+    });
 }
 
 void TrigfxButton::drawDefault(Widget::ROIMap m) const
@@ -46,18 +66,4 @@ void TrigfxButton::drawDefault(Widget::ROIMap m) const
         m.y += m_offset[getState()][1];
         gfxPtr->draw(m);
     }
-}
-
-void TrigfxButton::initButtonSize()
-{
-    int maxW = 0;
-    int maxH = 0;
-
-    for(const auto &p: m_gfxList){
-        maxW = std::max<int>(p->w(), maxW);
-        maxH = std::max<int>(p->h(), maxH);
-    }
-
-    setW(maxW);
-    setH(maxH);
 }

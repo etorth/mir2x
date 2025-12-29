@@ -165,7 +165,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
         virtual void removeChild(Widget *, bool);
 
     private:
-        void doAddChild(Widget *, bool);
+        void doAddChild(Widget *, bool, bool);
 
     public:
         virtual void addChild  (Widget *, bool);
@@ -194,9 +194,10 @@ class WidgetTreeNode // tree concept, used by class Widget only
 class Widget: public WidgetTreeNode
 {
     private:
-        using WidgetTreeNode::check_const_cond_out_ptr_t;
+        friend class WidgetTreeNode;
 
-    public:
+    private:
+        using WidgetTreeNode::check_const_cond_out_ptr_t;
 
     public:
         using WidgetTreeNode::VarDir;
@@ -276,7 +277,8 @@ class Widget: public WidgetTreeNode
     public:
         struct TypeAttrs final // per class attributes
         {
-            const bool canSetSize = true;
+            const bool canSetSize  = true;
+            const bool canAddChild = true;
         };
 
         struct InstAttrs final // per instance attributes

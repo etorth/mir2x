@@ -38,7 +38,8 @@ class MenuItem: public Widget
         };
 
     private:
-        Widget *m_subWidget;
+        Widget       *m_subWidget;
+        TrigfxButton *m_gfxButton;
 
     private:
         Widget m_gfxWidgetCrop;
@@ -47,9 +48,6 @@ class MenuItem: public Widget
     private:
         ItemPair m_canvas;
         MarginWrapper m_wrapper;
-
-    private:
-        TrigfxButton m_button;
 
     public:
         MenuItem(MenuItem::InitArgs);
