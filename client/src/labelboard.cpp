@@ -12,8 +12,8 @@ LabelBoard::LabelBoard(LabelBoard::InitArgs args)
           .x = std::move(args.x),
           .y = std::move(args.y),
 
-          .w = [this]{ return m_initDone ? (m_tpset.px() + m_tpset.pw()) : 0; },
-          .h = [this]{ return m_initDone ? (m_tpset.py() + m_tpset.ph()) : 0; },
+          .w = 0, // use override w() and h()
+          .h = 0,
 
           .attrs
           {
@@ -39,7 +39,6 @@ LabelBoard::LabelBoard(LabelBoard::InitArgs args)
       }
 {
     setText(u8"%s", args.label ? args.label : u8"");
-    m_initDone = true;
 }
 
 void LabelBoard::setText(const char8_t *format, ...)

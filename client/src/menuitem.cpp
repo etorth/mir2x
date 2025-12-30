@@ -18,9 +18,21 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
               {
                   .widget = new TrigfxButton
                   {{
-                      .onOverIn  = [this]{ if(m_subWidget){ m_subWidget->setShow(true ); }},
-                      .onOverOut = [this]{ if(m_subWidget){ m_subWidget->setShow(false); }},
+                      .onOverIn = [expandOn = args.expandOnHover, this]
+                      {
+                          if(m_subWidget && Widget::evalBool(expandOn, this)){
+                              m_subWidget->setShow(true);
+                          }
+                      },
+
+                      .onOverOut = [expandOn = args.expandOnHover, this]
+                      {
+                          if(m_subWidget && Widget::evalBool(expandOn, this)){
+                              m_subWidget->setShow(false);
+                          }
+                      },
                   }},
+
                   .autoDelete = true,
               },
 
@@ -70,8 +82,8 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
 
     , m_indicator
       {{
-           .w = MenuItem::INDICATOR_W,
-           .h = MenuItem::INDICATOR_H,
+           .w = [showInd = args.showIndicator, this]{ return Widget::evalBool(showInd, this) ? MenuItem::INDICATOR_W : 0; },
+           .h = [showInd = args.showIndicator, this]{ return Widget::evalBool(showInd, this) ? MenuItem::INDICATOR_H : 0; },
 
            .drawFunc = [](int dstDrawX, int dstDrawY)
            {
@@ -103,9 +115,23 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
       {{
           .wrapped{&m_canvas},
           .margin = std::move(args.margin),
-          .bgDrawFunc = [](const Widget *self, int dstDrawX, int dstDrawY)
+          .bgDrawFunc = [showSep = std::move(args.showSeparator), this](int dstDrawX, int dstDrawY)
           {
-              g_sdlDevice->fillRectangle(colorf::BLACK_A255, dstDrawX, dstDrawY, self->w(), self->h());
+              switch(m_gfxButton->getState()){
+                  case BEVENT_OFF: g_sdlDevice->fillRectangle(colorf:: GREY_A255, dstDrawX, dstDrawY, w(), h()); break;
+                  default        : g_sdlDevice->fillRectangle(colorf::BLACK_A255, dstDrawX, dstDrawY, w(), h()); break;
+              }
+
+              if(Widget::evalBool(showSep, this)){
+                  const int  width = w();
+                  const int dwidth = width >= 8 ? 4 : 0;
+
+                  const int lineX1 = dstDrawX             + dwidth;
+                  const int lineX2 = dstDrawX + width - 1 - dwidth;
+
+                  const int lineY = dstDrawY + h() - 1;
+                  g_sdlDevice->drawLine(colorf::BLUE_A255, lineX1, lineY, lineX2, lineY);
+              }
           },
       }}
 {
@@ -118,8 +144,8 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
 
     if(m_subWidget){
         m_subWidget->moveAt(DIR_UPLEFT,
-                [this]{ return m_gfxButton->dx() + m_gfxButton->w(); },
-                [this]{ return m_gfxButton->dy()                   ; });
+                [d = args.subWidget.dir, this]{ return m_gfxButton->dx() + Widget::xSizeOff(d, m_gfxButton->w() + 1); },
+                [d = args.subWidget.dir, this]{ return m_gfxButton->dy() + Widget::ySizeOff(d, m_gfxButton->h() + 1); });
     }
 }
 

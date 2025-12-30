@@ -27,9 +27,6 @@ class LabelBoard: public Widget
         };
 
     private:
-        bool m_initDone = false;
-
-    private:
         XMLTypeset m_tpset;
 
     public:
@@ -79,4 +76,8 @@ class LabelBoard: public Widget
 
     public:
         void drawDefault(Widget::ROIMap) const override;
+
+    public:
+        int w() const override { return m_tpset.px() + m_tpset.pw(); }
+        int h() const override { return m_tpset.py() + m_tpset.ph(); }
 };

@@ -157,10 +157,10 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
               flipAlpha();
 
               if(m_alphaOn){
-                  m_buttonAlpha.setTexID({0X09000011, 0X09000011, 0X09000011});
+                  m_buttonAlpha.setTexIDList({0X09000011, 0X09000011, 0X09000011});
               }
               else{
-                  m_buttonAlpha.setTexID({0X09000010, 0X09000010, 0X09000010});
+                  m_buttonAlpha.setTexIDList({0X09000010, 0X09000010, 0X09000010});
               }
           },
       }}
@@ -183,10 +183,10 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
               flipExtended();
 
               if(m_extended){
-                  m_buttonExtend.setTexID({0X09000021, 0X09000021, 0X09000021});
+                  m_buttonExtend.setTexIDList({0X09000021, 0X09000021, 0X09000021});
               }
               else{
-                  m_buttonExtend.setTexID({0X09000020, 0X09000020, 0X09000020});
+                  m_buttonExtend.setTexIDList({0X09000020, 0X09000020, 0X09000020});
               }
           },
       }}
@@ -209,10 +209,10 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
               flipAutoCenter();
 
               if(m_autoCenter){
-                  m_buttonAutoCenter.setTexID({0X09000031, 0X09000031, 0X09000031});
+                  m_buttonAutoCenter.setTexIDList({0X09000031, 0X09000031, 0X09000031});
               }
               else{
-                  m_buttonAutoCenter.setTexID({0X09000030, 0X09000030, 0X09000030});
+                  m_buttonAutoCenter.setTexIDList({0X09000030, 0X09000030, 0X09000030});
               }
           },
       }}
@@ -233,10 +233,10 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
               }
 
               if(m_autoCenter){
-                  m_buttonConfig.setTexID({0X09000041, 0X09000041, 0X09000041});
+                  m_buttonConfig.setTexIDList({0X09000041, 0X09000041, 0X09000041});
               }
               else{
-                  m_buttonConfig.setTexID({0X09000040, 0X09000040, 0X09000040});
+                  m_buttonConfig.setTexIDList({0X09000040, 0X09000040, 0X09000040});
               }
           },
       }}

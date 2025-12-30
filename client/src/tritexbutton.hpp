@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
 #include <functional>
+#include "sdldevice.hpp"
 #include "buttonbase.hpp"
+#include "imageboard.hpp"
 
 class TritexButton: public ButtonBase
 {
@@ -30,13 +32,21 @@ class TritexButton: public ButtonBase
         };
 
     private:
+        using TritexIDFunc = std::variant<std::nullptr_t,
+                                          std::function<std::optional<uint32_t>(                   )>,
+                                          std::function<std::optional<uint32_t>(                int)>,
+                                          std::function<std::optional<uint32_t>(const Widget *, int)>>;
+
+    private:
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
+            TritexButton::TritexIDFunc texIDFunc {};
             TritexButton::TritexIDList texIDList {};
+
             TritexButton::SeffIDList seff {};
 
             TritexButton::OverCBFunc onOverIn  = nullptr;
@@ -53,21 +63,26 @@ class TritexButton: public ButtonBase
 
             bool onClickDone = true;
             bool radioMode   = false;
-            bool alterColor  = true;
 
-            Widget::InitAttrs attrs {};
+            Widget::VarU32 alterColor = colorf::RGBA(255, 200, 255, 255);
+
+            Widget::InstAttrs attrs {};
             Widget::WADPair  parent {};
         };
 
     private:
+        TritexButton::TritexIDFunc m_texIDFunc;
         TritexButton::TritexIDList m_texIDList;
+
+    private:
+        const Widget::VarU32 m_alterColor;
 
     private:
         double m_accuBlinkTime = 0.0;
         std::optional<std::tuple<unsigned, unsigned, unsigned>> m_blinkTime = {}; // {off, on} in ms
 
     private:
-        const bool m_alterColor;
+        ImageBoard m_img;
 
     public:
         TritexButton(TritexButton::InitArgs);
@@ -76,9 +91,15 @@ class TritexButton: public ButtonBase
         void drawDefault(Widget::ROIMap) const override;
 
     public:
-        void setTexID(const TritexButton::TritexIDList &texIDList)
+        void setTexIDList(const TritexButton::TritexIDList &texIDList)
         {
+            m_texIDFunc = nullptr;
             m_texIDList = texIDList;
+        }
+
+        void setTexIDFunc(TritexButton::TritexIDFunc texIDFunc)
+        {
+            m_texIDFunc = std::move(texIDFunc);
         }
 
         void setBlinkTime(unsigned offTime, unsigned onTime, unsigned activeTotalTime = 0)
@@ -103,4 +124,12 @@ class TritexButton: public ButtonBase
                 }
             }
         }
+
+    private:
+        SDL_Texture *evalGfxTexture     (std::optional<int> = std::nullopt) const;
+        SDL_Texture *evalGfxTextureValid(                                 ) const; // search the first valid Texture
+
+    public:
+        int w() const override { return SDLDeviceHelper::getTextureWidth (evalGfxTextureValid(), 0); }
+        int h() const override { return SDLDeviceHelper::getTextureHeight(evalGfxTextureValid(), 0); }
 };

@@ -134,7 +134,7 @@ SkillBoard::SkillBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent
 
                   .onClickDone = false,
                   .radioMode = true,
-                  .alterColor = false,
+                  .alterColor = colorf::RGBA(255, 200, 255, 255),
 
                   .parent{this},
               }});

@@ -2,37 +2,25 @@
 #include "menubutton.hpp"
 
 MenuButton::MenuButton(MenuButton::InitArgs args)
-    : TrigfxButton
+    : MenuItem
       {{
           .dir = std::move(args.dir),
 
           .x = std::move(args.x),
           .y = std::move(args.y),
 
-          .gfxList
+          .margin = std::move(args.margin),
+          .itemSize = std::move(args.itemSize),
+
+          .gfxWidget = std::move(args.gfxWidget),
+          .subWidget
           {
-              args.gfxWidget.widget,
-              args.gfxWidget.widget,
-              args.gfxWidget.widget,
+              .dir = DIR_DOWNLEFT,
+              .widget = args.subWidget.widget,
+              .autoDelete = args.subWidget.autoDelete,
           },
 
-          .onTrigger = [this](int)
-          {
-              if(m_menuBoard){
-                  m_menuBoard->flipShow();
-              }
-          },
-
-          .offXOnClick = 1,
-          .offYOnClick = 1,
-          .onClickDone = false,
-
+          .expandOnHover = std::move(args.expandOnHover),
           .parent = std::move(args.parent),
       }}
-
-    , m_gfxWidget(args.gfxWidget.widget)
-    , m_menuBoard(args.menuBoard.widget)
-{
-    if(m_gfxWidget) addChild(m_gfxWidget, args.gfxWidget.autoDelete); // for lifetime management only
-    if(m_menuBoard) addChild(m_menuBoard, args.menuBoard.autoDelete); // ...
-}
+{}

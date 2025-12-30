@@ -11,11 +11,20 @@ class MenuItem: public Widget
         constexpr static int INDICATOR_W = 9;
         constexpr static int INDICATOR_H = 5;
 
-    private:
+    public:
         struct ItemSizeArgs final
         {
             Widget::VarSizeOpt w = std::nullopt;
             Widget::VarSizeOpt h = std::nullopt;
+        };
+
+    private:
+        struct SubWidgetArgs final
+        {
+            dir8_t dir = DIR_UPRIGHT;
+
+            Widget *widget     = nullptr;
+            bool    autoDelete = false;
         };
 
         struct InitArgs final
@@ -25,14 +34,15 @@ class MenuItem: public Widget
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
-            Widget::VarMargin  margin {};
+            Widget::VarMargin margin {};
             MenuItem::ItemSizeArgs itemSize {};
 
-            Widget::WADPair gfxWidget {};
-            Widget::WADPair subWidget {};
+            Widget::WADPair         gfxWidget {};
+            MenuItem::SubWidgetArgs subWidget {};
 
             Widget::VarBool showIndicator = false;
             Widget::VarBool showSeparator = false;
+            Widget::VarBool expandOnHover = false;
 
             Widget::WADPair parent {};
         };

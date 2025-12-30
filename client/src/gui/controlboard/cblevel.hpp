@@ -1,23 +1,18 @@
 #pragma once
-#include <functional>
 #include "widget.hpp"
-#include "bevent.hpp"
-#include "textboard.hpp"
-#include "imageboard.hpp"
-#include "buttonbase.hpp"
+#include "trigfxbutton.hpp"
 
 class ProcessRun;
-class CBLevel: public ButtonBase
+class CBLevel: public TrigfxButton
 {
     protected:
-        using ButtonBase::TriggerCBFunc;
+        using TrigfxButton::TriggerCBFunc;
 
     private:
         ProcessRun *m_processRun;
 
     private:
-        ImageBoard m_image;
-        TextBoard  m_level;
+        Widget m_canvas;
 
     public:
         CBLevel(

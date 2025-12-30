@@ -120,7 +120,7 @@ InputStringBoard::InputStringBoard(
               setShow(false);
           },
 
-          .alterColor = false,
+          .alterColor = colorf::RGBA(255, 200, 255, 255),
           .parent{this},
       }}
 
@@ -142,7 +142,7 @@ InputStringBoard::InputStringBoard(
               m_input.clear();
           },
 
-          .alterColor = false,
+          .alterColor = colorf::RGBA(255, 200, 255, 255),
           .parent{this},
       }}
 {

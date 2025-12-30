@@ -622,9 +622,9 @@ void InventoryBoard::startInvOp(SDStartInvOp sdSIOP)
 {
     m_sdInvOp = std::move(sdSIOP);
     switch(m_sdInvOp.invOp){
-        case INVOP_TRADE : m_invOpButton.setTexID({0X000000B3, 0X000000B3, 0X000000B4}); return;
-        case INVOP_SECURE: m_invOpButton.setTexID({0X000000B5, 0X000000B5, 0X000000B6}); return;
-        case INVOP_REPAIR: m_invOpButton.setTexID({0X000000B1, 0X000000B1, 0X000000B2}); return;
+        case INVOP_TRADE : m_invOpButton.setTexIDList({0X000000B3, 0X000000B3, 0X000000B4}); return;
+        case INVOP_SECURE: m_invOpButton.setTexIDList({0X000000B5, 0X000000B5, 0X000000B6}); return;
+        case INVOP_REPAIR: m_invOpButton.setTexIDList({0X000000B1, 0X000000B1, 0X000000B2}); return;
         default: throw fflreach();
     }
 }

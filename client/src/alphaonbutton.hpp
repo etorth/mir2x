@@ -1,17 +1,13 @@
 #pragma once
-#include <cstdint>
-#include <functional>
-#include "pngtexdb.hpp"
-#include "sdldevice.hpp"
-#include "buttonbase.hpp"
 #include "imageboard.hpp"
+#include "trigfxbutton.hpp"
 
-class AlphaOnButton: public ButtonBase
+class AlphaOnButton: public TrigfxButton
 {
     protected:
-        using ButtonBase::   OverCBFunc;
-        using ButtonBase::  ClickCBFunc;
-        using ButtonBase::TriggerCBFunc;
+        using TrigfxButton::   OverCBFunc;
+        using TrigfxButton::  ClickCBFunc;
+        using TrigfxButton::TriggerCBFunc;
 
     private:
         struct InitArgs final
@@ -41,17 +37,14 @@ class AlphaOnButton: public ButtonBase
         };
 
     private:
-        Widget::VarU32 m_modColor;
-        Widget::VarU32 m_downTexID;
-
-    private:
         const int m_onOffX;
         const int m_onOffY;
         const int m_onRadius;
 
     private:
-        ImageBoard m_on;
         ImageBoard m_down;
+        Widget     m_on;  // hold cover
+        Widget     m_off; // placeholder for off state, no gfx effect
 
     public:
         AlphaOnButton(AlphaOnButton::InitArgs);

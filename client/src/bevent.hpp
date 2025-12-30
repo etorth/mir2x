@@ -2,7 +2,8 @@
 
 enum MouseInGfxButtonStateType: int
 {
-    BEVENT_OFF = 0,
+    BEVENT_BEGIN = 0,
+    BEVENT_OFF   = 0,
     BEVENT_ON,
     BEVENT_DOWN,
 };

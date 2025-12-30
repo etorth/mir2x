@@ -399,8 +399,10 @@ class Widget: public WidgetTreeNode
     public:
         explicit Widget(Widget::InitArgs);
 
+    private:
+        static int sizeOff(int, int);
+
     public:
-        static int  sizeOff(   int, int);
         static int xSizeOff(dir8_t, int);
         static int ySizeOff(dir8_t, int);
 

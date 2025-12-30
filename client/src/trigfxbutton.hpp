@@ -12,6 +12,12 @@ class TrigfxButton: public ButtonBase
         using ButtonBase::TriggerCBFunc;
         using ButtonBase::SeffIDList;
 
+    public:
+        using TrigfxFunc = std::variant<std::nullptr_t,
+                                        std::function<const Widget *(                   )>,
+                                        std::function<const Widget *(                int)>,
+                                        std::function<const Widget *(const Widget *, int)>>;
+
     private:
         struct InitArgs final
         {
@@ -19,7 +25,9 @@ class TrigfxButton: public ButtonBase
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
+            TrigfxButton::TrigfxFunc      gfxFunc {};
             std::array<const Widget *, 3> gfxList {};
+
             TrigfxButton::SeffIDList seff {};
 
             TrigfxButton::OverCBFunc onOverIn  = nullptr;
@@ -37,11 +45,12 @@ class TrigfxButton: public ButtonBase
             bool onClickDone = true;
             bool radioMode   = false;
 
-            Widget::InitAttrs attrs {};
+            Widget::InstAttrs attrs {};
             Widget::WADPair  parent {};
         };
 
     private:
+        TrigfxButton::TrigfxFunc      m_gfxFunc;
         std::array<const Widget *, 3> m_gfxList;
 
     public:
@@ -51,8 +60,21 @@ class TrigfxButton: public ButtonBase
         void drawDefault(Widget::ROIMap) const override;
 
     public:
+        void setGfxFunc(TrigfxButton::TrigfxFunc gfxFunc)
+        {
+            m_gfxFunc = gfxFunc;
+        }
+
         void setGfxList(const std::array<const Widget *, 3> &gfxList)
         {
             m_gfxList = gfxList;
         }
+
+    private:
+        const Widget *evalGfxWidget     (std::optional<int> = std::nullopt) const;
+        const Widget *evalGfxWidgetValid(                                 ) const; // search the first valid gfx pointer
+
+    public:
+        int w() const override { if(auto gfxPtr = evalGfxWidgetValid()){ return gfxPtr->w(); } else { return 0; }}
+        int h() const override { if(auto gfxPtr = evalGfxWidgetValid()){ return gfxPtr->h(); } else { return 0; }}
 };

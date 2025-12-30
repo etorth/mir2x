@@ -1,4 +1,5 @@
 #include <functional>
+#include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "buttonbase.hpp"
 #include "sdldevice.hpp"
@@ -14,10 +15,19 @@ ButtonBase::ButtonBase(ButtonBase::InitArgs args)
 
           .x = std::move(args.x),
           .y = std::move(args.y),
+
           .w = std::move(args.w),
           .h = std::move(args.h),
 
-          .attrs = std::move(args.attrs),
+          .attrs
+          {
+              .type
+              {
+                  .canSetSize  = false,
+                  .canAddChild = false,
+              },
+              .inst = std::move(args.attrs),
+          },
           .parent = std::move(args.parent),
       }}
 

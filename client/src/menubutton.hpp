@@ -1,9 +1,9 @@
 #pragma once
-#include "widget.hpp"
+#include "menuitem.hpp"
 #include "trigfxbutton.hpp"
 
 // menu button to expand a menu board
-// this gui system does not support menubar and submenu
+// this gui system does not support menubar
 //
 // +--------+
 // |  Proj  |             <--- menu button
@@ -13,8 +13,11 @@
 // |  Save     CTRL+S  |  <--- menu item --+- menu board
 // +-------------------+
 
-class MenuButton: public TrigfxButton
+class MenuButton: public MenuItem
 {
+    private:
+        using ItemSizeArgs = MenuItem::ItemSizeArgs;
+
     private:
         struct InitArgs final
         {
@@ -23,14 +26,15 @@ class MenuButton: public TrigfxButton
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
-            Widget::WADPair gfxWidget {};
-            Widget::WADPair menuBoard {};
-            Widget::WADPair    parent {};
-        };
+            Widget::VarMargin margin {};
+            MenuButton::ItemSizeArgs itemSize {};
 
-    private:
-        Widget *m_gfxWidget;
-        Widget *m_menuBoard;
+            Widget::WADPair gfxWidget {};
+            Widget::WADPair subWidget {};
+
+            Widget::VarBool expandOnHover = false;
+            Widget::WADPair parent {};
+        };
 
     public:
         MenuButton(MenuButton::InitArgs);

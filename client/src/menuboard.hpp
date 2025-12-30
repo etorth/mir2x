@@ -10,7 +10,9 @@
 class MenuBoard: public Widget
 {
     public:
-        using ClickCBFunc = std::variant<std::nullptr_t, std::function<void()>, std::function<void(Widget *)>>;
+        using ClickCBFunc = std::variant<std::nullptr_t,
+                                         std::function<void(        )>,
+                                         std::function<void(Widget *)>>;
 
     public:
         static void evalClickCBFunc(const ClickCBFunc &cbFunc, Widget *widget)

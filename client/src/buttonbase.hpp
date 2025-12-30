@@ -1,19 +1,10 @@
-// basic button class to handle event logic only
-// 1. no draw
-// 2. no texture id field
-//
-// I support two callbacks only: off->on and on->click
-// this class ask user to configure whether the on->click is triggered
-// at the PRESS or RELEASE event.
-
 #pragma once
 #include <cstdint>
+#include <variant>
 #include <functional>
-
-#include "widget.hpp"
+#include "bevent.hpp"
 #include "sysconst.hpp"
-#include "pngtexdb.hpp"
-#include "sdldevice.hpp"
+#include "widget.hpp"
 
 class ButtonBase: public Widget
 {
@@ -57,39 +48,30 @@ class ButtonBase: public Widget
             bool onClickDone = true;
             bool radioMode   = false;
 
-            Widget::InitAttrs attrs {};
+            Widget::InstAttrs attrs {};
             Widget::WADPair  parent {};
         };
 
     private:
         class InnButtonState final
         {
-            // encapsulate it as a class
-            // don't let button class to manipulate m_state directly
             private:
                 int m_state[2]
                 {
                     BEVENT_OFF,
-                    BEVENT_OFF,
+                        BEVENT_OFF,
                 };
 
             public:
-                void setState(int state)
+                void setState(int state) noexcept
                 {
                     m_state[0] = m_state[1];
                     m_state[1] = state;
                 }
 
             public:
-                int getState() const
-                {
-                    return m_state[1];
-                }
-
-                int getLastState() const
-                {
-                    return m_state[0];
-                }
+                int getState()     const noexcept { return m_state[1]; }
+                int getPrevState() const noexcept { return m_state[0]; }
         };
 
     private:
@@ -125,7 +107,7 @@ class ButtonBase: public Widget
 
     public:
         int     getState() const { return m_state.    getState(); }
-        int getLastState() const { return m_state.getLastState(); }
+        int getPrevState() const { return m_state.getPrevState(); }
 
     public:
         void setState(int state)

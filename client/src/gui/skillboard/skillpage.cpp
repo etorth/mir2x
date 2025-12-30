@@ -1,4 +1,5 @@
 #include "sdldevice.hpp"
+#include "pngtexdb.hpp"
 #include "skillpage.hpp"
 #include "skillboard.hpp"
 #include "magiciconbutton.hpp"

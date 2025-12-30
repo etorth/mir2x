@@ -1,3 +1,4 @@
+#include "pngtexdb.hpp"
 #include "imageboard.hpp"
 #include "baseframeboard.hpp"
 
@@ -63,10 +64,7 @@ BaseFrameBoard::BaseFrameBoard(BaseFrameBoard::InitArgs args)
 
           .attrs
           {
-              .inst
-              {
-                  .moveOnFocus = false,
-              }
+              .moveOnFocus = false,
           },
           .parent{this},
       }}
