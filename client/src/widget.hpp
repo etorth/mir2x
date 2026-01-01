@@ -11,7 +11,6 @@
 #include <cstdint>
 #include <optional>
 #include <type_traits>
-#include <initializer_list>
 #include <SDL2/SDL.h>
 #include "mathf.hpp"
 #include "colorf.hpp"
@@ -399,12 +398,7 @@ class Widget: public WidgetTreeNode
     public:
         explicit Widget(Widget::InitArgs);
 
-    private:
-        static int sizeOff(int, int);
-
-    public:
-        static int xSizeOff(dir8_t, int);
-        static int ySizeOff(dir8_t, int);
+#include "widget.sizeoff.hpp"
 
     public:
         virtual void update       (double) final;
@@ -519,6 +513,9 @@ class Widget: public WidgetTreeNode
 
     public:
         virtual std::string dumpTree() const final;
+        virtual void        dumpJsonFile(const char *) const final;
+
+    private:
         virtual std::vector<std::string> dumpTreeExt() const { return {}; }
 };
 

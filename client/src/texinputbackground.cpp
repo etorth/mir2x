@@ -14,6 +14,15 @@ Widget::ROI TexInputBackground::fromInputROI(bool v, Widget::ROI r)
     return r;
 }
 
+Widget::IntSize2D TexInputBackground::borderSize(bool v)
+{
+    return
+    {
+         v ? 4 : 6,
+        !v ? 4 : 6,
+    };
+}
+
 TexInputBackground::TexInputBackground(TexInputBackground::InitArgs args)
     : Widget
       {{

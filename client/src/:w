@@ -67,7 +67,6 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
           .onTrigger = [this](int)
           {
               m_menuBoard.flipShow();
-              m_menuBoard.setFocus(m_menuBoard.show());
           },
       }}
 
@@ -108,8 +107,21 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
 
     , m_menuButton
       {{
-          .x = [this]{ return m_titleBg.rdx(this) + m_titleBg.getInputROI().x; },
-          .y = [this]{ return m_titleBg.rdy(this) + m_titleBg.getInputROI().y; },
+          .x = [this]
+          {
+              const auto r = m_titleBg.getInputROI();
+              const auto x = m_titleBg.rdx(this) + r.x;
+
+              return x;
+          },
+
+          .y = [this]
+          {
+              const auto r = m_titleBg.getInputROI();
+              const auto y = m_titleBg.rdy(this) + r.y;
+
+              return y;
+          },
 
           .itemSize
           {
@@ -120,7 +132,7 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
           .gfxWidget{&m_title},
           .subWidget{&m_menuBoard},
 
-          .bgColor = colorf::GREY + colorf::A_SHF(64),
+          .bgColor = colorf::BLUE_A255,
           .parent{this},
       }}
 {}

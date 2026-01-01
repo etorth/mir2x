@@ -31,6 +31,11 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
                               m_subWidget->setShow(false);
                           }
                       },
+
+                      .onTrigger = [onClick = std::move(args.onClick), gfxWidget = args.gfxWidget.widget](int)
+                      {
+                          MenuItem::evalClickCBFunc(onClick, gfxWidget);
+                      },
                   }},
 
                   .autoDelete = true,
@@ -115,22 +120,21 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
       {{
           .wrapped{&m_canvas},
           .margin = std::move(args.margin),
-          .bgDrawFunc = [showSep = std::move(args.showSeparator), this](int dstDrawX, int dstDrawY)
+          .bgDrawFunc = [bgColor = std::move(args.bgColor), showSep = std::move(args.showSeparator), this](int dstDrawX, int dstDrawY)
           {
-              switch(m_gfxButton->getState()){
-                  case BEVENT_OFF: g_sdlDevice->fillRectangle(colorf:: GREY_A255, dstDrawX, dstDrawY, w(), h()); break;
-                  default        : g_sdlDevice->fillRectangle(colorf::BLACK_A255, dstDrawX, dstDrawY, w(), h()); break;
+              if(m_gfxButton->getState() != BEVENT_OFF){
+                  g_sdlDevice->fillRectangle(Widget::evalU32(bgColor, this), dstDrawX, dstDrawY, w(), h());
               }
 
               if(Widget::evalBool(showSep, this)){
                   const int  width = w();
-                  const int dwidth = width >= 8 ? 4 : 0;
+                  const int dwidth = width >= 4 ? 2 : 0;
 
                   const int lineX1 = dstDrawX             + dwidth;
                   const int lineX2 = dstDrawX + width - 1 - dwidth;
 
                   const int lineY = dstDrawY + h() - 1;
-                  g_sdlDevice->drawLine(colorf::BLUE_A255, lineX1, lineY, lineX2, lineY);
+                  g_sdlDevice->drawLine(colorf::GREY + colorf::A_SHF(128), lineX1, lineY, lineX2, lineY);
               }
           },
       }}
@@ -143,9 +147,10 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
     });
 
     if(m_subWidget){
+        m_subWidget->setShow(false);
         m_subWidget->moveAt(DIR_UPLEFT,
-                [d = args.subWidget.dir, this]{ return m_gfxButton->dx() + Widget::xSizeOff(d, m_gfxButton->w() + 1); },
-                [d = args.subWidget.dir, this]{ return m_gfxButton->dy() + Widget::ySizeOff(d, m_gfxButton->h() + 1); });
+                [d = args.subWidget.dir, this]{ return m_gfxButton->dx() + Widget::xSizeOff(d, [this]{ return m_gfxButton->w() + 1; }); },
+                [d = args.subWidget.dir, this]{ return m_gfxButton->dy() + Widget::ySizeOff(d, [this]{ return m_gfxButton->h() + 1; }); });
     }
 }
 
@@ -171,7 +176,9 @@ bool MenuItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
     }
 
     if(m_gfxButton->show()){
-        return m_gfxButton->processEventParent(event, valid, m);
+        if(m_gfxButton->processEventParent(event, valid, m)){
+            return true;
+        }
     }
 
     if(m_subWidget && m_subWidget->show()){

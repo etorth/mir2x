@@ -1,34 +1,48 @@
 #pragma once
-#include <tuple>
-#include <functional>
 #include "widget.hpp"
 #include "menuboard.hpp"
+#include "menubutton.hpp"
 #include "imageboard.hpp"
-#include "gfxresizeboard.hpp"
+#include "itemflex.hpp"
 #include "labelboard.hpp"
 #include "trigfxbutton.hpp"
 #include "gfxcropboard.hpp"
+#include "texinputbackground.hpp"
 
 class PullMenu: public Widget
 {
     private:
+        struct LabelCropArgs final
+        {
+            const char8_t *text = nullptr;
+
+            Widget::VarSizeOpt w = std::nullopt;
+            Widget::VarSizeOpt h = std::nullopt;
+        };
+
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
 
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
+
+            PullMenu::LabelCropArgs label {};
+            PullMenu::LabelCropArgs title {};
+
+            std::vector<MenuBoard::AddItemArgs> itemList {};
+            MenuItem::ClickCBFunc onClick = nullptr;
+
+            Widget::WADPair parent {};
         };
 
     private:
-        LabelBoard   m_label;
-        GfxCropBoard m_labelCrop;
+        LabelBoard   m_tips;
+        GfxCropBoard m_tipsCrop;
 
     private:
-        ImageBoard     m_menuTitleImage;
-        GfxResizeBoard m_menuTitleBackground;
-        LabelBoard     m_menuTitle;
-        GfxCropBoard   m_menuTitleCrop;
+        LabelBoard         m_title; // crop by MenuButton
+        TexInputBackground m_titleBg;
 
     private:
         ImageBoard m_imgOff;
@@ -39,42 +53,24 @@ class PullMenu: public Widget
         TrigfxButton m_button;
 
     private:
-        MenuBoard m_menuList;
+        ItemFlex m_flex; // hold label/bg/button
+
+    private:
+        MenuBoard  m_menuBoard;
+        MenuButton m_menuButton;
 
     public:
-        PullMenu(dir8_t,
-                int,
-                int,
-
-                const char8_t *, // label text
-                int,             // label width
-
-                int, // title background width
-                int, // title background height
-
-                std::initializer_list<std::tuple<Widget *, bool, bool>>,
-                std::function<void(Widget *)>,
-
-                Widget * = nullptr,
-                bool     = false);
+        PullMenu(PullMenu::InitArgs);
 
     public:
-        void drawDefault(Widget::ROIMap) const override;
-
-    public:
-        bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
-
-    public:
-        LabelBoard *getMenuTitle()
-        {
-            return &m_menuTitle;
-        }
+        auto getTips (this auto && self) { return std::addressof(self.m_tips ); }
+        auto getTitle(this auto && self) { return std::addressof(self.m_title); }
 
     public:
         void setFocus(bool argFocus) override
         {
             if(!argFocus){
-                m_menuList.setShow(false);
+                m_menuBoard.setShow(false);
             }
             return Widget::setFocus(argFocus);
         }

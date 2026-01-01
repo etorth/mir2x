@@ -2,30 +2,21 @@
 #include <vector>
 #include <variant>
 #include <functional>
-#include <initializer_list>
 #include "widget.hpp"
 #include "itembox.hpp"
-#include "marginwrapper.hpp"
+#include "menuitem.hpp"
 
 class MenuBoard: public Widget
 {
     public:
-        using ClickCBFunc = std::variant<std::nullptr_t,
-                                         std::function<void(        )>,
-                                         std::function<void(Widget *)>>;
-
-    public:
-        static void evalClickCBFunc(const ClickCBFunc &cbFunc, Widget *widget)
+        struct AddItemArgs final
         {
-            std::visit(VarDispatcher
-            {
-                [      ](const std::function<void(        )> &f){ if(f){ f(      ); }},
-                [widget](const std::function<void(Widget *)> &f){ if(f){ f(widget); }},
+            Widget::WADPair gfxWidget {};
+            Widget::WADPair subWidget {};
 
-                [](const auto &){},
-            },
-            cbFunc);
-        }
+            Widget::VarBool showIndicator = false;
+            Widget::VarBool showSeparator = false;
+        };
 
     private:
         struct InitArgs final
@@ -35,15 +26,15 @@ class MenuBoard: public Widget
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
-            Widget::VarSizeOpt fixed = std::nullopt;
+            Widget::VarSizeOpt fixed = std::nullopt; // margin not included
             Widget::VarMargin margin = {};
 
             Widget::VarSize         corner = 0;
             Widget::VarSize      itemSpace = 0;
             Widget::VarSize separatorSpace = 0;
 
-            std::initializer_list<std::tuple<Widget *, bool, bool>> itemList {};
-            MenuBoard::ClickCBFunc onClick = nullptr;
+            std::vector<MenuBoard::AddItemArgs> itemList {};
+            MenuItem::ClickCBFunc onClick = nullptr;
 
             Widget::WADPair parent {};
         };
@@ -53,22 +44,14 @@ class MenuBoard: public Widget
         const Widget::VarSize m_separatorSpace;
 
     private:
-        std::vector<std::pair<Widget *, bool>> m_itemList;
-
-    private:
-        MenuBoard::ClickCBFunc m_onClickMenu;
+        MenuItem::ClickCBFunc m_onClickMenu;
 
     private:
         ItemBox m_canvas; // holding all menu items
-        MarginWrapper m_wrapper;
 
     public:
         MenuBoard(MenuBoard::InitArgs);
 
-    private:
-        int upperItemSpace(const Widget *) const; // separator space not included
-        int lowerItemSpace(const Widget *) const; // ...
-
     public:
-        void appendMenu(Widget *, bool, bool);
+        void addMenu(MenuBoard::AddItemArgs);
 };

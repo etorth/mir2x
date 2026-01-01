@@ -92,6 +92,8 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                         case BEVENT_OFF:
                             {
                                 setState(BEVENT_ON);
+                                setFocus(true);
+
                                 onBadEvent();
                                 break;
                             }
@@ -102,6 +104,8 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                                 }
                                 else{
                                     setState(BEVENT_ON);
+                                    setFocus(true);
+
                                     onClick(true, event.button.clicks);
                                     if(m_onClickDone){
                                         onTrigger(event.button.clicks);
@@ -114,7 +118,7 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                                 break;
                             }
                     }
-                    return consumeFocus(true);
+                    return true;
                 }
                 else if(m_radioMode){
                     return consumeFocus(false);
@@ -134,12 +138,16 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                         case BEVENT_OFF:
                             {
                                 setState(BEVENT_DOWN);
+                                setFocus(true);
+
                                 onBadEvent();
                                 break;
                             }
                         case BEVENT_ON:
                             {
                                 setState(BEVENT_DOWN);
+                                setFocus(true);
+
                                 onClick(false, event.button.clicks);
                                 if(!m_onClickDone){
                                     onTrigger(event.button.clicks);
@@ -151,7 +159,7 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                                 break;
                             }
                     }
-                    return consumeFocus(true);
+                    return true;
                 }
                 else if(m_radioMode){
                     return consumeFocus(false);
@@ -171,6 +179,7 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                         case BEVENT_OFF:
                             {
                                 setState(BEVENT_ON);
+                                setFocus(true);
                                 onOverIn();
                                 break;
                             }
@@ -185,6 +194,7 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                                 }
                                 else{
                                     setState(BEVENT_ON);
+                                    setFocus(true);
                                     onBadEvent();
                                 }
                                 break;
@@ -194,7 +204,7 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                                 break;
                             }
                     }
-                    return consumeFocus(true);
+                    return true;
                 }
                 else if(m_radioMode){
                     if(getState() == BEVENT_ON){

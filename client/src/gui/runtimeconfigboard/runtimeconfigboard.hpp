@@ -74,5 +74,5 @@ class RuntimeConfigBoard: public Widget
         }
 
     public:
-        void updateWindowSizeLabel(int, int, bool);
+        void updateWindowSize(int, int, bool);
 };

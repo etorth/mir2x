@@ -12,6 +12,24 @@ class MenuItem: public Widget
         constexpr static int INDICATOR_H = 5;
 
     public:
+        using ClickCBFunc = std::variant<std::nullptr_t,
+                                         std::function<void(        )>,
+                                         std::function<void(Widget *)>>;
+
+    public:
+        static void evalClickCBFunc(const ClickCBFunc &cbFunc, Widget *widget)
+        {
+            std::visit(VarDispatcher
+            {
+                [      ](const std::function<void(        )> &f){ if(f){ f(      ); }},
+                [widget](const std::function<void(Widget *)> &f){ if(f){ f(widget); }},
+
+                [](const auto &){},
+            },
+            cbFunc);
+        }
+
+    public:
         struct ItemSizeArgs final
         {
             Widget::VarSizeOpt w = std::nullopt;
@@ -35,7 +53,7 @@ class MenuItem: public Widget
             Widget::VarInt y = 0;
 
             Widget::VarMargin margin {};
-            MenuItem::ItemSizeArgs itemSize {};
+            MenuItem::ItemSizeArgs itemSize {}; // margin not included
 
             Widget::WADPair         gfxWidget {};
             MenuItem::SubWidgetArgs subWidget {};
@@ -43,6 +61,9 @@ class MenuItem: public Widget
             Widget::VarBool showIndicator = false;
             Widget::VarBool showSeparator = false;
             Widget::VarBool expandOnHover = false;
+
+            Widget::VarU32 bgColor = 0U;
+            MenuItem::ClickCBFunc onClick = nullptr;
 
             Widget::WADPair parent {};
         };
@@ -61,6 +82,17 @@ class MenuItem: public Widget
 
     public:
         MenuItem(MenuItem::InitArgs);
+
+    public:
+        auto gfxWidget(this auto &&self)
+        {
+            return self.m_gfxWidgetCrop.firstChild();
+        }
+
+        auto subWidget(this auto &&self)
+        {
+            return self.m_subWidget;
+        }
 
     public:
         void drawDefault(Widget::ROIMap m) const override;

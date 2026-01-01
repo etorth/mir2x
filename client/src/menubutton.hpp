@@ -27,12 +27,14 @@ class MenuButton: public MenuItem
             Widget::VarInt y = 0;
 
             Widget::VarMargin margin {};
-            MenuButton::ItemSizeArgs itemSize {};
+            MenuButton::ItemSizeArgs itemSize {}; // margin not included
 
             Widget::WADPair gfxWidget {};
             Widget::WADPair subWidget {};
 
             Widget::VarBool expandOnHover = false;
+            Widget::VarU32  bgColor = 0U;
+
             Widget::WADPair parent {};
         };
 

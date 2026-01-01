@@ -21,6 +21,16 @@ MenuButton::MenuButton(MenuButton::InitArgs args)
           },
 
           .expandOnHover = std::move(args.expandOnHover),
+
+          .bgColor = std::move(args.bgColor),
+          .onClick = [this]
+          {
+              if(subWidget()){
+                  subWidget()->flipShow();
+                  subWidget()->setFocus(subWidget()->show());
+              }
+          },
+
           .parent = std::move(args.parent),
       }}
 {}

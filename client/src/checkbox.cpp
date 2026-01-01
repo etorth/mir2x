@@ -150,8 +150,9 @@ bool CheckBox::processEventDefault(const SDL_Event &event, bool valid, Widget::R
         case SDL_MOUSEBUTTONDOWN:
             {
                 if(m.in(event.button.x, event.button.y)){
+                    setFocus(true);
                     toggle();
-                    return consumeFocus(true);
+                    return true;
                 }
                 else{
                     return consumeFocus(false);
@@ -172,8 +173,9 @@ bool CheckBox::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                         case SDLK_SPACE:
                         case SDLK_RETURN:
                             {
+                                setFocus(true);
                                 toggle();
-                                return consumeFocus(true);
+                                return true;
                             }
                         default:
                             {

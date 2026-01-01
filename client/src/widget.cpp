@@ -1,5 +1,5 @@
 #include <atomic>
-#include "mathf.hpp"
+#include <fstream>
 #include "pathf.hpp"
 #include "widget.hpp"
 
@@ -85,16 +85,16 @@ void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete, bool igno
     fflassert(argWidget);
     WidgetTreeNode *treeNode = argWidget;
 
-    if(treeNode->m_parent){
-        treeNode->m_parent->removeChild(argWidget, false);
-    }
-
     if(ignoreCanAddChild || static_cast<Widget *>(this)->m_attrs.type.canAddChild){
+        if(treeNode->m_parent){
+            treeNode->m_parent->removeChild(argWidget, false);
+        }
+
         treeNode->m_parent = static_cast<Widget *>(this);
         m_childList.emplace_back(argWidget, argAutoDelete); // only place to add child to m_childList
     }
     else{
-        throw fflerror("widget %s forbids adding child", name());
+        throw fflerror("widget %s forbids to add child", name());
     }
 }
 
@@ -476,43 +476,6 @@ Widget::Widget(Widget::InitArgs args)
     }
 }
 
-int Widget::sizeOff(int size, int index)
-{
-    /**/ if(index <  0) return        0;
-    else if(index == 0) return size / 2;
-    else                return size - 1;
-}
-
-int Widget::xSizeOff(dir8_t argDir, int argW)
-{
-    switch(argDir){
-        case DIR_UPLEFT   : return sizeOff(argW, -1);
-        case DIR_UP       : return sizeOff(argW,  0);
-        case DIR_UPRIGHT  : return sizeOff(argW,  1);
-        case DIR_RIGHT    : return sizeOff(argW,  1);
-        case DIR_DOWNRIGHT: return sizeOff(argW,  1);
-        case DIR_DOWN     : return sizeOff(argW,  0);
-        case DIR_DOWNLEFT : return sizeOff(argW, -1);
-        case DIR_LEFT     : return sizeOff(argW, -1);
-        default           : return sizeOff(argW,  0);
-    }
-}
-
-int Widget::ySizeOff(dir8_t argDir, int argH)
-{
-    switch(argDir){
-        case DIR_UPLEFT   : return sizeOff(argH, -1);
-        case DIR_UP       : return sizeOff(argH, -1);
-        case DIR_UPRIGHT  : return sizeOff(argH, -1);
-        case DIR_RIGHT    : return sizeOff(argH,  0);
-        case DIR_DOWNRIGHT: return sizeOff(argH,  1);
-        case DIR_DOWN     : return sizeOff(argH,  1);
-        case DIR_DOWNLEFT : return sizeOff(argH,  1);
-        case DIR_LEFT     : return sizeOff(argH,  0);
-        default           : return sizeOff(argH,  0);
-    }
-}
-
 void Widget::update(double fUpdateTime)
 {
     if(m_attrs.inst.update){
@@ -596,7 +559,7 @@ bool Widget::processEventDefault(const SDL_Event &event, bool valid, Widget::ROI
         }
     });
 
-    if(m_attrs.inst.moveOnFocus){
+    if(focusedWidgetID && m_attrs.inst.moveOnFocus){
         if(auto widget = hasChild(focusedWidgetID)){
             moveBack(widget);
         }
@@ -643,8 +606,8 @@ void Widget::drawAsChild(const Widget *gfxWidget, dir8_t gfxDir, int gfxDx, int 
 
     gfxWidget->draw(m.create(Widget::ROI
     {
-        .x = gfxDx - xSizeOff(gfxDir, gfxWidget->w()),
-        .y = gfxDy - ySizeOff(gfxDir, gfxWidget->h()),
+        .x = gfxDx - xSizeOff(gfxDir, [gfxWidget]{ return gfxWidget->w(); }),
+        .y = gfxDy - ySizeOff(gfxDir, [gfxWidget]{ return gfxWidget->h(); }),
 
         .w = gfxWidget->w(),
         .h = gfxWidget->h(),
@@ -722,12 +685,12 @@ int Widget::maxChildCoverHExcept(const Widget *except) const
 
 int Widget::dx() const
 {
-    return Widget::evalInt(m_x.first, this) + m_x.second - xSizeOff(Widget::evalDir(m_dir, this), w());
+    return Widget::evalInt(m_x.first, this) + m_x.second - xSizeOff(Widget::evalDir(m_dir, this), [this]{ return w(); });
 }
 
 int Widget::dy() const
 {
-    return Widget::evalInt(m_y.first, this) + m_y.second - ySizeOff(Widget::evalDir(m_dir, this), h());
+    return Widget::evalInt(m_y.first, this) + m_y.second - ySizeOff(Widget::evalDir(m_dir, this), [this]{ return h(); });
 }
 
 static int _rd_helper(const Widget *a, const Widget *b, const auto func)
@@ -1050,4 +1013,57 @@ std::string Widget::dumpTree() const
     }
 
     return str_printf("{%s}", str_join(attrs, ",").c_str());
+}
+
+void Widget::dumpJsonFile(const char *path) const
+{
+    const auto json = dumpTree();
+
+    std::ofstream ofs(path);
+
+    int indent = 0;
+    bool inString = false;
+
+    for(size_t i = 0; i < json.length(); ++i){
+        const char c = json[i];
+
+        if(c == '"' && (i == 0 || json[i - 1] != '\\')){
+            inString = !inString;
+        }
+
+        if(!inString){
+            if(c == '{' || c == '['){
+                ofs << c;
+                ofs << '\n';
+                indent++;
+                ofs << std::string(indent * 4, ' ');
+            }
+
+            else if(c == '}' || c == ']'){
+                ofs << '\n';
+                indent--;
+                ofs << std::string(indent * 4, ' ');
+                ofs << c;
+            }
+
+            else if(c == ','){
+                ofs << c;
+                ofs << '\n';
+                ofs << std::string(indent * 4, ' ');
+            }
+
+            else if(c == ':'){
+                ofs << c;
+                ofs << ' ';
+            }
+
+            else if(c != ' '){
+                ofs << c;
+            }
+        }
+
+        else{
+            ofs << c;
+        }
+    }
 }

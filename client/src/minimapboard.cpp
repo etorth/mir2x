@@ -249,6 +249,7 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
           .y = [this]{ return h() - 1; },
 
           .v = false,
+          .align = ItemAlign::CENTER,
           .itemSpace = 1,
 
           .childList

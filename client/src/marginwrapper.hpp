@@ -1,8 +1,4 @@
 #pragma once
-#include <variant>
-#include <cstddef>
-#include <functional>
-#include <type_traits>
 #include "widget.hpp"
 #include "gfxshapeboard.hpp"
 
@@ -27,6 +23,9 @@ class MarginWrapper: public Widget
         };
 
     private:
+        Widget *m_canvas; // the unique child
+
+    private:
         Widget::VarMargin m_margin;
 
     private:
@@ -45,15 +44,43 @@ class MarginWrapper: public Widget
                   .x = std::move(args.x),
                   .y = std::move(args.y),
 
+                  .w = std::nullopt,
+                  .h = std::nullopt,
+
+                  .childList
+                  {
+                      {
+                          .widget = new Widget
+                          {{
+                              .attrs
+                              {
+                                  .inst
+                                  {
+                                      .moveOnFocus = false,
+                                  }
+                              }
+                          }},
+                          .autoDelete = true,
+                      },
+                  },
+
                   .attrs
                   {
+                      .type
+                      {
+                          .canSetSize  = false,
+                          .canAddChild = false,
+                      },
                       .inst = std::move(args.attrs),
                   },
                   .parent = std::move(args.parent),
               }}
 
-            , m_margin(std::move(args.margin))
+            , m_canvas(firstChild())
+
+            , m_margin (std::move(args.margin))
             , m_wrapped(std::move(args.wrapped))
+
             , m_bgBoard(Widget::hasDrawFunc(args.bgDrawFunc) ? new GfxShapeBoard
               {{
                   .w = [this]{ return w(); },
@@ -72,34 +99,20 @@ class MarginWrapper: public Widget
 
               }} : nullptr)
         {
-            setSize([this]{ return (m_wrapped.widget ? m_wrapped.widget->w() : 0) + Widget::evalSize(m_margin[2], this) + Widget::evalSize(m_margin[3], this); },
-                    [this]{ return (m_wrapped.widget ? m_wrapped.widget->h() : 0) + Widget::evalSize(m_margin[0], this) + Widget::evalSize(m_margin[1], this); });
-
             if(m_bgBoard){
-                Widget::addChild(m_bgBoard, true);
+                m_canvas->addChild(m_bgBoard, true);
             }
 
-            doSetWrapped();
+            if(m_wrapped.widget){
+                doSetWrapped();
+            }
 
             if(m_fgBoard){
-                Widget::addChild(m_fgBoard, true);
+                m_canvas->addChild(m_fgBoard, true);
             }
-        }
 
-    public:
-        void drawDefault(Widget::ROIMap m) const override
-        {
-            if(m_bgBoard        && m_bgBoard       ->show()) drawChild(m_bgBoard       , m);
-            if(m_wrapped.widget && m_wrapped.widget->show()) drawChild(m_wrapped.widget, m);
-            if(m_fgBoard        && m_fgBoard       ->show()) drawChild(m_fgBoard       , m);
-        }
-
-        bool processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m) override
-        {
-            if(m_wrapped.widget && m_wrapped.widget->show()){
-                return m_wrapped.widget->processEventParent(event, valid, m);
-            }
-            return false;
+            m_canvas->setSize([this]{ return (m_wrapped.widget ? m_wrapped.widget->w() : 0) + Widget::evalSize(m_margin[2], this) + Widget::evalSize(m_margin[3], this); },
+                              [this]{ return (m_wrapped.widget ? m_wrapped.widget->h() : 0) + Widget::evalSize(m_margin[0], this) + Widget::evalSize(m_margin[1], this); });
         }
 
     public:
@@ -109,14 +122,10 @@ class MarginWrapper: public Widget
         }
 
     public:
-        void addChild  (Widget *,                                                 bool) override { throw fflvalue(name()); }
-        void addChildAt(Widget *, Widget::VarDir, Widget::VarInt, Widget::VarInt, bool) override { throw fflvalue(name()); }
-
-    public:
         void setWrapped(Widget *widget, bool autoDelete)
         {
             if(m_wrapped.widget){
-                removeChild(m_wrapped.widget, true);
+                m_canvas->removeChild(m_wrapped.widget, m_wrapped.widget != widget); // same widget may change autoDelete
             }
 
             m_wrapped = Widget::WADPair{.widget = widget, .autoDelete = autoDelete};
@@ -126,7 +135,7 @@ class MarginWrapper: public Widget
     private:
         void doSetWrapped()
         {
-            Widget::addChildAt(m_wrapped.widget, DIR_UPLEFT, [this]
+            m_canvas->addChildAt(m_wrapped.widget, DIR_UPLEFT, [this]
             {
                 return Widget::evalSize(m_margin[2], this);
             },

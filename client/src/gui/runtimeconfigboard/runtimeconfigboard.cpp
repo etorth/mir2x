@@ -86,33 +86,37 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
       }}
 
     , m_pageSystem_resolution
-      {
-          DIR_UPLEFT,
-          0,
-          0,
-
-          u8"分辨率",
-          40,
-
-          80,
-          24,
-
+      {{
+          .label
           {
-              {new LabelBoard{{.label = u8"800×600" , .attrs{.data = std::pair<int, int>( 800, 600)}}}, false, true},
-              {new LabelBoard{{.label = u8"960×600" , .attrs{.data = std::pair<int, int>( 960, 600)}}}, false, true},
-              {new LabelBoard{{.label = u8"1024×768", .attrs{.data = std::pair<int, int>(1024, 768)}}}, false, true},
-              {new LabelBoard{{.label = u8"1280×720", .attrs{.data = std::pair<int, int>(1280, 720)}}}, false, true},
-              {new LabelBoard{{.label = u8"1280×768", .attrs{.data = std::pair<int, int>(1280, 768)}}}, false, true},
-              {new LabelBoard{{.label = u8"1280×800", .attrs{.data = std::pair<int, int>(1280, 800)}}}, false, true},
+              .text = u8"分辨率",
+              .w = 40,
           },
 
-          [this](Widget *widgetPtr)
+          .title
           {
-              const auto [w, h] = std::any_cast<std::pair<int, int>>(widgetPtr->data());
+              .text = u8"???",
+              .w = 80,
+              .h = 24,
+          },
+
+          .itemList
+          {
+              {{new LabelBoard{{.label = u8"800×600" , .attrs{.data = std::pair<int, int>( 800, 600)}}}, true}},
+              {{new LabelBoard{{.label = u8"960×600" , .attrs{.data = std::pair<int, int>( 960, 600)}}}, true}},
+              {{new LabelBoard{{.label = u8"1024×768", .attrs{.data = std::pair<int, int>(1024, 768)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×720", .attrs{.data = std::pair<int, int>(1280, 720)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×768", .attrs{.data = std::pair<int, int>(1280, 768)}}}, true}},
+              {{new LabelBoard{{.label = u8"1280×800", .attrs{.data = std::pair<int, int>(1280, 800)}}}, true}},
+          },
+
+          .onClick = [this](Widget *widget)
+          {
+              const auto [w, h] = std::any_cast<std::pair<int, int>>(widget->data());
               g_sdlDevice->setWindowSize(w, h);
-              updateWindowSizeLabel(w, h, true);
+              updateWindowSize(w, h, true);
           },
-      }
+      }}
 
     , m_pageSystem_musicSlider
       {
@@ -565,12 +569,12 @@ void RuntimeConfigBoard::reportRuntimeConfig(int rtCfg)
     g_client->send({CM_SETRUNTIMECONFIG, cmSRC});
 }
 
-void RuntimeConfigBoard::updateWindowSizeLabel(int w, int h, bool saveConfig)
+void RuntimeConfigBoard::updateWindowSize(int w, int h, bool saveConfig)
 {
     fflassert(w >= 0, w, h);
     fflassert(h >= 0, w, h);
 
-    m_pageSystem_resolution.getMenuTitle()->setText(str_printf(u8"%d×%d", w, h).c_str());
+    m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", w, h).c_str());
     if(saveConfig){
         SDRuntimeConfig_setConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig, std::make_pair(w, h));
         reportRuntimeConfig(RTCFG_WINDOWSIZE);

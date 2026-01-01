@@ -24,8 +24,4 @@ class ItemPair: public Widget
 
     public:
         ItemPair(ItemPair::InitArgs);
-
-    private:
-        void addChild  (Widget *, bool)                                                                         override { throw fflerror("ItemPair::addChild"  ); }
-        void addChildAt(Widget *, WidgetTreeNode::VarDir, WidgetTreeNode::VarInt, WidgetTreeNode::VarInt, bool) override { throw fflerror("ItemPair::addChildAt"); }
 };

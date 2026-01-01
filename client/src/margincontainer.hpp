@@ -131,12 +131,12 @@ class MarginContainer: public Widget
 
                 [this]
                 {
-                    return Widget::xSizeOff(Widget::evalDir(m_contained.dir, this), w());
+                    return Widget::xSizeOff(Widget::evalDir(m_contained.dir, this), [this]{ return w(); });
                 },
 
                 [this]
                 {
-                    return Widget::ySizeOff(Widget::evalDir(m_contained.dir, this), h());
+                    return Widget::ySizeOff(Widget::evalDir(m_contained.dir, this), [this]{ return h(); });
                 },
 
                 m_contained.autoDelete);

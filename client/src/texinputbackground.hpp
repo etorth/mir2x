@@ -37,6 +37,9 @@ class TexInputBackground: public Widget
     public:
         static Widget::ROI fromInputROI(bool, Widget::ROI);
 
+    public:
+        static Widget::IntSize2D borderSize(bool);
+
     private:
         struct InitArgs final
         {

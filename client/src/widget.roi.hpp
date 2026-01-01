@@ -428,8 +428,8 @@ struct ROIMap final
         }
 
         if(dir != DIR_UPLEFT){
-            x  -= xSizeOff(dir, ro->w);
-            y  -= ySizeOff(dir, ro->h);
+            x  -= xSizeOff(dir, [row = ro->w]{ return row; });
+            y  -= ySizeOff(dir, [roh = ro->h]{ return roh; });
             dir = DIR_UPLEFT;
         }
 
@@ -459,8 +459,8 @@ struct ROIMap final
         }
 
         if(dir != DIR_UPLEFT){
-            x  -= xSizeOff(dir, ro->w);
-            y  -= ySizeOff(dir, ro->h);
+            x  -= xSizeOff(dir, [row = ro->w]{ return row; });
+            y  -= ySizeOff(dir, [roh = ro->h]{ return roh; });
             dir = DIR_UPLEFT;
         }
 
