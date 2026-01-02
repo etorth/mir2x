@@ -358,8 +358,44 @@ template<typename T> bool Widget::execCheckFunc(const Widget::VarCheckFunc<T> &v
 
 auto Widget::focusedChild(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), Widget>
 {
-    if(self.firstChild() && self.firstChild()->focus()){
-        return self.firstChild();
+    check_const_cond_out_ptr_t<decltype(self), Widget> focusedWidget = nullptr;
+    self.foreachChild([&focusedWidget, &self](auto widget, bool)
+    {
+        if(widget->focus()){
+            if(focusedWidget){
+                throw fflerror("%s has multiple focused child: %s and %s", self.name(), focusedWidget->name(), widget->name());
+            }
+            else{
+                focusedWidget = widget;
+            }
+        }
+    });
+
+    if(self.m_attrs.inst.focus){
+        if(focusedWidget){
+            throw fflerror("%s and its child %s has focus simutaneously", self.name(), focusedWidget->name());
+        }
+        return std::addressof(self);
+    }
+
+    else if(focusedWidget){
+        return focusedWidget;
+    }
+
+    else{
+        return nullptr;
+    }
+}
+
+auto Widget::focusedDescendant(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), Widget>
+{
+    if(auto widget = self.focusedChild()){
+        if(widget == std::addressof(self)){
+            return std::addressof(self);
+        }
+        else{
+            return widget->focusedDescendant();
+        }
     }
     return nullptr;
 }

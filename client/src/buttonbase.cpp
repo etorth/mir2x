@@ -179,7 +179,6 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                         case BEVENT_OFF:
                             {
                                 setState(BEVENT_ON);
-                                setFocus(true);
                                 onOverIn();
                                 break;
                             }
@@ -194,7 +193,6 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                                 }
                                 else{
                                     setState(BEVENT_ON);
-                                    setFocus(true);
                                     onBadEvent();
                                 }
                                 break;

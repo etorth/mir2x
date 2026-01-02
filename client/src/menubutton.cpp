@@ -26,8 +26,8 @@ MenuButton::MenuButton(MenuButton::InitArgs args)
           .onClick = [this]
           {
               if(subWidget()){
+                  subWidget()->setFocus(!subWidget()->show());
                   subWidget()->flipShow();
-                  subWidget()->setFocus(subWidget()->show());
               }
           },
 

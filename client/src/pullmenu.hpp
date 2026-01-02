@@ -67,11 +67,5 @@ class PullMenu: public Widget
         auto getTitle(this auto && self) { return std::addressof(self.m_title); }
 
     public:
-        void setFocus(bool argFocus) override
-        {
-            if(!argFocus){
-                m_menuBoard.setShow(false);
-            }
-            return Widget::setFocus(argFocus);
-        }
+        void setFocus(bool) override;
 };

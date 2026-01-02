@@ -449,6 +449,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
         R"###( </layout>                                                )###""\n"
     );
 
+    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
+    updateWindowSize(rendererW, rendererH, false);
+
     // 1.0f -> SDL_MIX_MAXVOLUME
     // SDL_mixer initial sound/music volume is SDL_MIX_MAXVOLUME
 
@@ -489,18 +492,11 @@ bool RuntimeConfigBoard::processEventDefault(const SDL_Event &event, bool valid,
         return consumeFocus(false);
     }
 
-    for(auto widgetPtr:
-    {
-        static_cast<Widget *>(&m_leftMenu),
-        static_cast<Widget *>(&m_frameBoard),
-        static_cast<Widget *>(&m_pageSystem),
-        static_cast<Widget *>(&m_pageSocial),
-        static_cast<Widget *>(&m_pageGameConfig),
-    }){
-        if(widgetPtr->processEventParent(event, valid, m)){
-            return true;
-        }
-    }
+    if(m_leftMenu      .processEventParent(event, valid, m)){ return true; }
+    if(m_frameBoard    .processEventParent(event, valid, m)){ return true; }
+    if(m_pageSystem    .processEventParent(event, valid, m)){ return true; }
+    if(m_pageSocial    .processEventParent(event, valid, m)){ return true; }
+    if(m_pageGameConfig.processEventParent(event, valid, m)){ return true; }
 
     switch(event.type){
         case SDL_KEYDOWN:
@@ -514,20 +510,15 @@ bool RuntimeConfigBoard::processEventDefault(const SDL_Event &event, bool valid,
         case SDL_MOUSEMOTION:
             {
                 if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(event.motion.x, event.motion.y) || focus())){
-                    const auto remapXDiff = m.x - m.ro->x;
-                    const auto remapYDiff = m.y - m.ro->y;
-
-                    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
-                    const int maxX = rendererW - w();
-                    const int maxY = rendererH - h();
-
-                    const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + event.motion.xrel));
-                    const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + event.motion.yrel));
-
-                    moveBy(newX - remapXDiff, newY - remapYDiff);
+                    if(const auto par = parent()){
+                        moveBy(event.motion.xrel, event.motion.yrel, par->roi());
+                    }
+                    else{
+                        moveBy(event.motion.xrel, event.motion.yrel, Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
+                    }
                     return consumeFocus(true);
                 }
-		return false;
+                return false;
             }
         case SDL_MOUSEBUTTONUP:
         case SDL_MOUSEBUTTONDOWN:

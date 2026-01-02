@@ -66,8 +66,8 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
 
           .onTrigger = [this](int)
           {
+              m_menuBoard.setFocus(!m_menuBoard.show());
               m_menuBoard.flipShow();
-              m_menuBoard.setFocus(m_menuBoard.show());
           },
       }}
 
@@ -124,3 +124,15 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
           .parent{this},
       }}
 {}
+
+void PullMenu::setFocus(bool argFocus)
+{
+    const auto oldFocus = focus();
+    const auto newFocus = argFocus;
+
+    Widget::setFocus(argFocus);
+
+    if(oldFocus && !newFocus){
+        m_menuBoard.setShow(false);
+    }
+}

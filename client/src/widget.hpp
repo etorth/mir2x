@@ -120,10 +120,8 @@ class WidgetTreeNode // tree concept, used by class Widget only
             return m_id;
         }
 
-        const char *name() const
-        {
-            return typeid(*this).name();
-        }
+    public:
+        virtual const char *name() const = 0;
 
     public:
         template<std::invocable<const Widget *, bool, const Widget *, bool> F> void sort(F);
@@ -282,7 +280,8 @@ class Widget: public WidgetTreeNode
 
         struct InstAttrs final // per instance attributes
         {
-            std::any data {};
+            std::string name {};
+            std::any    data {};
 
             Widget::VarBool show = true;
             Widget::VarBool active = true;
@@ -471,18 +470,31 @@ class Widget: public WidgetTreeNode
         }
 
     public:
+        const char *name() const override
+        {
+            if(m_attrs.inst.name.empty()){
+                return typeid(*this).name();
+            }
+            else{
+                return m_attrs.inst.name.c_str();
+            }
+        }
+
         auto & data(this auto && self)
         {
             return self.m_attrs.inst.data;
         }
 
     public:
-        virtual bool focus() const;
+        bool      focus() const;
+        bool localFocus() const;
+        void  flipFocus();
+
         virtual void setFocus(bool);
         virtual bool consumeFocus(bool, Widget * = nullptr) final;
 
-    public:
-        auto focusedChild(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
+        auto focusedChild     (this auto && self) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
+        auto focusedDescendant(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
 
     public:
         bool       show() const;

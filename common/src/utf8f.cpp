@@ -30,21 +30,21 @@ uint32_t utf8f::peekUTF8Code(const char *utf8String)
     return code;
 }
 
-std::string utf8f::peekUTF8Str(const char *utf8String)
+std::string utf8f::peekUTF8Str(const char *utf8Begin, const char *utf8End)
 {
-    fflassert(str_haschar(utf8String));
-    const size_t size = std::strlen(utf8String);
+    fflassert(str_haschar(utf8Begin));
+    const size_t size = utf8End ? (utf8End - utf8Begin) : std::strlen(utf8Begin);
 
-    auto p = utf8String;
+    auto p = utf8Begin;
     try{
-        utf8::advance(p, 1, utf8String + size);
+        utf8::advance(p, 1, utf8Begin + size);
     }
     catch(...){
         throw fflerror("failed to peek the first utf8 code");
     }
 
-    fflassert(p - utf8String <= 4);
-    return std::string(utf8String, p - utf8String);
+    fflassert(p - utf8Begin <= 4);
+    return std::string(utf8Begin, p - utf8Begin);
 }
 
 std::vector<int> utf8f::buildUTF8Off(const char *utf8String)

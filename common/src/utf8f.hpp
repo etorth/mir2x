@@ -6,8 +6,8 @@
 
 namespace utf8f
 {
-    uint32_t peekUTF8Code(const char *);
-    std::string peekUTF8Str(const char *); // pick one UTF-8 character and return as string
+    uint32_t    peekUTF8Code(const char *);
+    std::string peekUTF8Str (const char *, const char * = nullptr); // pick one UTF-8 character and return as string
 
     std::vector<int> buildUTF8Off(const char *);
 

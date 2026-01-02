@@ -1,5 +1,6 @@
 #include <atomic>
 #include <fstream>
+#include "utf8f.hpp"
 #include "pathf.hpp"
 #include "widget.hpp"
 
@@ -745,27 +746,59 @@ int Widget::rdy(const Widget* other) const
 
 bool Widget::focus() const
 {
-    bool hasFocus = false;
-    foreachChild([&hasFocus](const Widget * widget, bool) -> bool
-    {
-        return hasFocus = widget->focus();
-    });
+    return focusedChild();
+}
 
-    if(hasFocus){
-        return true;
-    }
-
+bool Widget::localFocus() const
+{
     return m_attrs.inst.focus;
+}
+
+void Widget::flipFocus()
+{
+    setFocus(!focus());
 }
 
 void Widget::setFocus(bool argFocus)
 {
-    foreachChild([](Widget * widget, bool)
-    {
-        widget->setFocus(false);
-    });
+    if(auto focusedWidget = focusedChild()){
+        if(focusedWidget == this){
+            if(argFocus){
+                return;
+            }
+            else{
+                m_attrs.inst.focus = false;
+                return;
+            }
+        }
+        else{
+            if(argFocus){
+                focusedWidget->setFocus(false);
+                m_attrs.inst.focus = true;
+                return;
+            }
+            else{
+                focusedWidget->setFocus(false);
+                return;
+            }
+        }
+    }
+    else{
+        // current widget and all its children not focused
+        // need to check if its parent has focus
 
-    m_attrs.inst.focus = argFocus;
+        if(argFocus){
+            for(auto par = parent(); par; par = par->parent()){
+                par->setFocus(false);
+            }
+
+            m_attrs.inst.focus = true;
+            return;
+        }
+        else{
+            return;
+        }
+    }
 }
 
 // focus helper
@@ -784,37 +817,43 @@ void Widget::setFocus(bool argFocus)
 //
 //     return p->consumeFocus(...)
 
-bool Widget::consumeFocus(bool argFocus, Widget *child)
+bool Widget::consumeFocus(bool argFocus, Widget *descendant)
 {
     if(argFocus){
-        if(child){
-            if(hasChild(child->id())){
-                if(child->focus()){
-                    // don't setup here
-                    // when we setup focus in a deep call, this preserve focus of deep sub-widget
+        if(descendant){
+            if(hasDescendant(descendant->id())){
+                if(auto focusedWidget = focusedDescendant()){
+                    if(focusedWidget == descendant){
+                        return true;
+                    }
+                    else{
+                        focusedWidget->setFocus(true); // will clean focus of descendant's all ancestors
+                        return true;
+                    }
                 }
                 else{
-                    setFocus(false);
-                    child->setFocus(true);
+                    descendant->setFocus(true);
+                    return true;
                 }
             }
             else{
-                throw fflerror("widget has no child: %p", to_cvptr(child));
+                throw fflerror("widget has no descendant: %s", descendant->name());
             }
         }
         else{
             setFocus(true);
+            return true;
         }
     }
     else{
-        if(child){
-            throw fflerror("unexpected child: %p", to_cvptr(child));
+        if(descendant){
+            throw fflerror("unexpected descendant: %s", descendant->name());
         }
         else{
             setFocus(false);
+            return false;
         }
     }
-    return argFocus;
 }
 
 bool Widget::show() const
@@ -997,6 +1036,7 @@ std::string Widget::dumpTree() const
     attrs.push_back(str_printf(R"("active":%s)", to_boolcstr(active())));
     attrs.push_back(str_printf(R"("localActive":%s)", to_boolcstr(localActive())));
     attrs.push_back(str_printf(R"("focus":%s)", to_boolcstr(focus())));
+    attrs.push_back(str_printf(R"("localFocus":%s)", to_boolcstr(localFocus())));
 
     if(!m_childList.empty()){
         std::vector<std::string> childAttrs;
@@ -1019,51 +1059,56 @@ void Widget::dumpJsonFile(const char *path) const
 {
     const auto json = dumpTree();
 
-    std::ofstream ofs(path);
-
     int indent = 0;
     bool inString = false;
 
-    for(size_t i = 0; i < json.length(); ++i){
-        const char c = json[i];
+    std::ofstream ofs(path);
 
-        if(c == '"' && (i == 0 || json[i - 1] != '\\')){
+    std::string lc; // last character
+    std::string cc; // curr character
+
+    for(size_t begin = 0; begin < json.size();){
+        lc = std::move(cc);
+        cc = utf8f::peekUTF8Str(json.data() + begin, json.data() + json.length());
+        begin += cc.length();
+
+        if(cc == "\"" && (begin == 0 || lc != "\\")){
             inString = !inString;
         }
 
         if(!inString){
-            if(c == '{' || c == '['){
-                ofs << c;
+            if(cc == "{" || cc == "["){
+                ofs << cc;
                 ofs << '\n';
                 indent++;
                 ofs << std::string(indent * 4, ' ');
             }
 
-            else if(c == '}' || c == ']'){
+            else if(cc == "}" || cc == "]"){
                 ofs << '\n';
                 indent--;
                 ofs << std::string(indent * 4, ' ');
-                ofs << c;
+                ofs << cc;
             }
 
-            else if(c == ','){
-                ofs << c;
+            else if(cc == ","){
+                ofs << cc;
                 ofs << '\n';
                 ofs << std::string(indent * 4, ' ');
             }
 
-            else if(c == ':'){
-                ofs << c;
+            else if(cc == ":"){
+                ofs << cc;
                 ofs << ' ';
             }
 
-            else if(c != ' '){
-                ofs << c;
+            else if(cc != " "){
+                ofs << cc;
             }
         }
 
         else{
-            ofs << c;
+            ofs << cc;
         }
     }
 }

@@ -42,6 +42,8 @@ MenuBoard::MenuBoard(MenuBoard::InitArgs args)
                   .canSetSize  = false,
                   .canAddChild = false,
               },
+
+              .inst = std::move(args.attrs),
           },
 
           .parent = std::move(args.parent),

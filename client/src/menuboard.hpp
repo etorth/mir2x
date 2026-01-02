@@ -1,7 +1,5 @@
 #pragma once
 #include <vector>
-#include <variant>
-#include <functional>
 #include "widget.hpp"
 #include "itembox.hpp"
 #include "menuitem.hpp"
@@ -36,7 +34,8 @@ class MenuBoard: public Widget
             std::vector<MenuBoard::AddItemArgs> itemList {};
             MenuItem::ClickCBFunc onClick = nullptr;
 
-            Widget::WADPair parent {};
+            Widget::InstAttrs attrs {};
+            Widget::WADPair  parent {};
         };
 
     private:
