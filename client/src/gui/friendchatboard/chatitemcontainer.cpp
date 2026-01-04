@@ -48,12 +48,9 @@ ChatItemContainer::ChatItemContainer(
               return -1 * to_dround((self->h() - this->h()) * FriendChatBoard::getParentBoard(this)->m_uiPageList[UIPage_CHAT].slider->getValue());
           },
 
-          .fixed = [this](const Widget *)
-          {
-              return w();
-          },
-
+          .fixed = [this]{ return w(); },
           .itemSpace = ChatItemContainer::ITEM_SPACE,
+
           .parent{this},
       }}
 
@@ -96,7 +93,7 @@ ChatItemContainer::ChatItemContainer(
     , nomsgBox
       {{
           .w = [this]{ return canvas.w(); },
-          .h = [this]{ return nomsg.h() + 2 * ChatItemContainer::BACKGROUND_MARGIN; },
+          .h = [this]{ return nomsg .h() + 2 * ChatItemContainer::BACKGROUND_MARGIN; },
 
           .contained
           {
@@ -160,13 +157,13 @@ ChatItemContainer::ChatItemContainer(
         return !FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
     });
 
-    canvas.addChild(&nomsgBox, false);
-    canvas.addChild(&  opsBox, false);
+    canvas.addItem(&nomsgBox, false);
+    canvas.addItem(&  opsBox, false);
 }
 
 void ChatItemContainer::clearChatItem()
 {
-    canvas.clearChild([this](const Widget *child, bool)
+    canvas.clearItem([this](const Widget *child, bool)
     {
         return child != &nomsgBox && child != &opsBox;
     });
@@ -179,7 +176,7 @@ int ChatItemContainer::chatItemMaxWidth() const
 
 bool ChatItemContainer::hasChatItem() const
 {
-    return canvas.foreachChild([this](const Widget *widget, bool)
+    return canvas.foreachItem([this](const Widget *widget, bool)
     {
         return widget != &nomsgBox && widget != &opsBox;
     });
@@ -243,9 +240,9 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         },
     }};
 
-    canvas.removeChild(    &opsBox, false);
-    canvas.   addChild(chatItemBox, true );
-    canvas.   addChild(    &opsBox, false);
+    canvas.removeItem(opsBox.id(), false);
+    canvas.   addItem(chatItemBox, true );
+    canvas.   addItem(    &opsBox, false);
 
     if(sdCM.from.group()){
         ops.loadXML(R"###(<layout><par>GROUP</par></layout>)###");

@@ -24,8 +24,8 @@ struct FontexElement
 // key & 0X00000000FFFFFFFF) >>  0: utf8 code or long text encode
 
 // use lower 4 bytes as utf8 code or long text encode
-// when it's: 0XFFXXXXXX: long text encode
-//            0XXXXXXXXX: ottherwise, it's utf8 code with length <= 4
+// when it's: 0xFFXXXXXX: long text encode
+//            0xXXXXXXXX: otherwise, it's utf8 code with length <= 4
 
 class FontexDB: public innDB<uint64_t, FontexElement>
 {

@@ -3,9 +3,8 @@
 #include <list>
 #include <utility>
 #include <vector>
+#include <string>
 #include <concepts>
-#include <tuple>
-#include <array>
 #include <functional>
 #include <variant>
 #include <cstdint>
@@ -14,14 +13,21 @@
 #include <SDL2/SDL.h>
 #include "mathf.hpp"
 #include "colorf.hpp"
-#include "lalign.hpp"
-#include "bevent.hpp"
 #include "fflerror.hpp"
 #include "protocoldef.hpp"
 
 class Widget;        // size concept
 class WidgetTreeNode // tree concept, used by class Widget only
 {
+    private:
+        struct BaseAttrs final
+        {
+            const bool    addChild = true;
+            const bool removeChild = true;
+
+            const std::string name {};
+        };
+
     private:
         template<typename IN, typename OUT_1, typename OUT_2> using check_const_cond_t         = std::conditional_t<std::is_const_v<std::remove_reference_t<IN>>, OUT_1, OUT_2>;
         template<typename IN, typename OUT                  > using check_const_cond_out_ptr_t = check_const_cond_t<IN, const OUT *, OUT *>;
@@ -98,6 +104,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
 
     private:
         Widget *m_parent;
+        WidgetTreeNode::BaseAttrs m_attrs; // don't use Widget::m_attrs since in dtor we need to access it
 
     private:
         std::list<WidgetTreeNode::ChildElement> m_childList; // widget shall NOT access this list directly
@@ -106,7 +113,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
         std::vector<Widget *> m_delayList;
 
     private:
-        WidgetTreeNode(Widget * = nullptr, bool = false); // can only be constructed by Widget::Widget()
+        WidgetTreeNode(WidgetTreeNode::WADPair, WidgetTreeNode::BaseAttrs); // can only be constructed by Widget::Widget()
 
     public:
         virtual ~WidgetTreeNode();
@@ -121,7 +128,15 @@ class WidgetTreeNode // tree concept, used by class Widget only
         }
 
     public:
-        virtual const char *name() const = 0;
+        const char *name() const
+        {
+            if(m_attrs.name.empty()){
+                return typeid(*this).name();
+            }
+            else{
+                return m_attrs.name.c_str();
+            }
+        }
 
     public:
         template<std::invocable<const Widget *, bool, const Widget *, bool> F> void sort(F);
@@ -147,19 +162,20 @@ class WidgetTreeNode // tree concept, used by class Widget only
         auto firstChild(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
         auto  lastChild(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
 
+    private:
+        void doClearChild(std::invocable<const Widget *, bool> auto, bool);
+
     public:
-        void clearChild(std::invocable<const Widget *, bool> auto);
-        void clearChild()
-        {
-            clearChild([](const Widget *, bool){ return true; });
-        }
+        inline void clearChild(std::invocable<const Widget *, bool> auto);
+        inline void clearChild();
 
     private:
-        void doRemoveChild(WidgetTreeNode::ChildElement &, bool);
+        void doRemoveChild(uint64_t, bool, bool);
+        void doRemoveChildElement(WidgetTreeNode::ChildElement &, bool, bool);
 
     public:
         virtual void purge();
-        virtual void removeChild(Widget *, bool);
+        virtual void removeChild(uint64_t, bool);
 
     private:
         void doAddChild(Widget *, bool, bool);
@@ -274,8 +290,10 @@ class Widget: public WidgetTreeNode
     public:
         struct TypeAttrs final // per class attributes
         {
-            const bool canSetSize  = true;
-            const bool canAddChild = true;
+            const bool setSize = true;
+
+            const bool    addChild = true;
+            const bool removeChild = true;
         };
 
         struct InstAttrs final // per instance attributes
@@ -470,16 +488,6 @@ class Widget: public WidgetTreeNode
         }
 
     public:
-        const char *name() const override
-        {
-            if(m_attrs.inst.name.empty()){
-                return typeid(*this).name();
-            }
-            else{
-                return m_attrs.inst.name.c_str();
-            }
-        }
-
         auto & data(this auto && self)
         {
             return self.m_attrs.inst.data;

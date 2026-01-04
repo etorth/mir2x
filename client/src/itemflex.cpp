@@ -32,8 +32,9 @@ ItemFlex::ItemFlex(ItemFlex::InitArgs args)
           {
               .type
               {
-                  .canSetSize  = false,
-                  .canAddChild = false,
+                  .setSize = false,
+                  .addChild = false,
+                  .removeChild = false,
               },
           },
 
@@ -72,7 +73,7 @@ void ItemFlex::addItem(Widget *argWidget, bool argAutoDelete)
                 return true;
             }
 
-            if(!child->show()){
+            if(!child->localShow()){
                 return false;
             }
 
@@ -123,6 +124,35 @@ void ItemFlex::addItem(Widget *argWidget, bool argAutoDelete)
     m_canvas->addChildAt(argWidget, std::move(d), std::move(x), std::move(y), argAutoDelete);
 }
 
+void ItemFlex::removeItem(uint64_t argChildID, bool argTriggerAutoDelete)
+{
+    if(!argChildID){
+        return;
+    }
+
+    m_canvas->removeChild(argChildID, argTriggerAutoDelete);
+}
+
+bool ItemFlex::hasShowItem() const
+{
+    return m_canvas->foreachChild([](const Widget *child, bool)
+    {
+        return child->localShow();
+    });
+}
+
+void ItemFlex::flipItemShow(uint64_t childID)
+{
+    if(auto child = m_canvas->hasChild(childID)){
+        child->flipShow();
+    }
+}
+
+void ItemFlex::buildLayout()
+{
+    // empty function
+}
+
 int ItemFlex::canvasW() const
 {
     if(m_vbox){
@@ -131,7 +161,7 @@ int ItemFlex::canvasW() const
             int maxW = 0;
             m_canvas->foreachChild([&maxW](const Widget *child, bool)
             {
-                if(child->show()){
+                if(child->localShow()){
                     maxW = std::max<int>(maxW, child->w());
                 }
             });
@@ -139,16 +169,7 @@ int ItemFlex::canvasW() const
         });
     }
     else{
-        const Widget *lastWidget = nullptr;
-        m_canvas->foreachChild(false, [&lastWidget](const Widget *child, bool) -> bool
-        {
-            if(child->show()){
-                lastWidget = child;
-            }
-            return lastWidget;
-        });
-
-        if(lastWidget){
+        if(const auto lastWidget = lastShowChild()){
             return lastWidget->dx() + lastWidget->w();
         }
         else{
@@ -165,7 +186,7 @@ int ItemFlex::canvasH() const
             int maxH = 0;
             m_canvas->foreachChild([&maxH](const Widget *child, bool)
             {
-                if(child->show()){
+                if(child->localShow()){
                     maxH = std::max<int>(maxH, child->h());
                 }
             });
@@ -173,20 +194,24 @@ int ItemFlex::canvasH() const
         });
     }
     else{
-        const Widget *lastWidget = nullptr;
-        m_canvas->foreachChild(false, [&lastWidget](const Widget *child, bool) -> bool
-        {
-            if(child->show()){
-                lastWidget = child;
-            }
-            return lastWidget;
-        });
-
-        if(lastWidget){
+        if(const auto lastWidget = lastShowChild()){
             return lastWidget->dy() + lastWidget->h();
         }
         else{
             return 0;
         }
     }
+}
+
+const Widget *ItemFlex::lastShowChild() const
+{
+    const Widget *lastWidget = nullptr;
+    m_canvas->foreachChild(false, [&lastWidget](const Widget *child, bool) -> bool
+    {
+        if(child->localShow()){
+            lastWidget = child;
+        }
+        return lastWidget;
+    });
+    return lastWidget;
 }

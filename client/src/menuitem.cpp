@@ -51,8 +51,8 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
           {
               .type
               {
-                  .canSetSize  = false,
-                  .canAddChild = false,
+                  .setSize  = false,
+                  .addChild = false,
               },
 
               .inst

@@ -1,32 +1,43 @@
 #include <utf8.h>
 #include <cstring>
 #include <cstdint>
-#include <cinttypes>
-#include <stdexcept>
 #include "strf.hpp"
 #include "utf8f.hpp"
 #include "fflerror.hpp"
 
-uint32_t utf8f::peekUTF8Code(const char *utf8String)
+// uint32_t utf8f::peekUTF8Code(const char *utf8Begin, const char *utf8End)
+// {
+//     fflassert(str_haschar(utf8Begin));
+//     const size_t size = utf8End ? (utf8End - utf8Begin) : std::strlen(utf8Begin);
+//
+//     try{
+//         return std::bit_cast<uint32_t>(utf8::peek_next(utf8Begin, utf8Begin + size));
+//     }
+//     catch(...){
+//         throw fflerror("failed to peek the first utf8 code");
+//     }
+// }
+
+uint32_t utf8f::peekUTF8Code(const char *utf8Begin, const char *utf8End)
 {
     // seems utf8::peek_next() is not what I need here
     // what it returns?
 
-    fflassert(str_haschar(utf8String));
-    const size_t size = std::strlen(utf8String);
+    fflassert(str_haschar(utf8Begin));
+    const size_t size = utf8End ? (utf8End - utf8Begin) : std::strlen(utf8Begin);
 
-    auto p = utf8String;
+    auto p = utf8Begin;
     try{
-        utf8::advance(p, 1, utf8String + size);
+        utf8::advance(p, 1, utf8Begin + size);
     }
     catch(...){
         throw fflerror("failed to peek the first utf8 code");
     }
 
-    fflassert(p - utf8String <= 4);
+    fflassert(p - utf8Begin <= 4);
 
     uint32_t code = 0;
-    std::memcpy(&code, utf8String, p - utf8String);
+    std::memcpy(&code, utf8Begin, p - utf8Begin);
     return code;
 }
 

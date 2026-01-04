@@ -45,7 +45,7 @@ ChatItem::ChatItem(
           {
               .type
               {
-                  .canSetSize = false,
+                  .setSize = false,
               },
 
               .inst
@@ -274,7 +274,7 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
 
         if(auto chatPage = hasParent<ChatPage>()){
             if(chatPage->menu){
-                chatPage->removeChild(chatPage->menu, true);
+                chatPage->removeChild(chatPage->menu->id(), true);
                 chatPage->menu = nullptr;
             }
 
@@ -336,7 +336,7 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
 
         if(auto chatPage = hasParent<ChatPage>()){
             if(chatPage->menu){
-                chatPage->removeChild(chatPage->menu, true);
+                chatPage->removeChild(chatPage->menu->id(), true);
                 chatPage->menu = nullptr;
             }
         }

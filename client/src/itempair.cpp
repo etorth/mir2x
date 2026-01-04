@@ -111,7 +111,7 @@ ItemPair::ItemPair(ItemPair::InitArgs args)
 
           .attrs
           {
-              .type {.canSetSize  = false},
+              .type {.setSize  = false},
               .inst {.moveOnFocus = false},
           },
 

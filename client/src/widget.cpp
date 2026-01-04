@@ -4,16 +4,20 @@
 #include "pathf.hpp"
 #include "widget.hpp"
 
-WidgetTreeNode::WidgetTreeNode(Widget *argParent, bool argAutoDelete)
+WidgetTreeNode::WidgetTreeNode(WidgetTreeNode::WADPair argParent, WidgetTreeNode::BaseAttrs argAttrs)
     : m_id([]
       {
           static std::atomic<uint64_t> s_widgetSeqID = 1;
           return s_widgetSeqID.fetch_add(1);
       }())
-    , m_parent(argParent)
+
+    , m_parent(argParent.widget)
+    , m_attrs(argAttrs)
 {
     if(m_parent){
-        m_parent->addChild(static_cast<Widget *>(this), argAutoDelete);
+        // has to use static_cast, since *this* may has not been fully constructed yet
+        // which causes dynamic_cast to fail
+        m_parent->addChild(static_cast<Widget *>(this), argParent.autoDelete);
     }
 }
 
@@ -26,10 +30,10 @@ WidgetTreeNode::~WidgetTreeNode()
     // which causes double free
 
     if(m_parent){
-        m_parent->removeChild(static_cast<Widget *>(this), false);
+        m_parent->doRemoveChild(id(), false, true);
     }
 
-    clearChild();
+    doClearChild([](const Widget *, bool){ return true; }, true);
     for(auto widget: m_delayList){
         delete widget;
     }
@@ -81,56 +85,32 @@ void WidgetTreeNode::execDeath() noexcept
     onDeath();
 }
 
-void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete, bool ignoreCanAddChild)
+void WidgetTreeNode::doRemoveChild(uint64_t argChildID, bool argTriggerDelete, bool ignoreCanRemoveChild)
 {
-    fflassert(argWidget);
-    WidgetTreeNode *treeNode = argWidget;
-
-    if(ignoreCanAddChild || static_cast<Widget *>(this)->m_attrs.type.canAddChild){
-        if(treeNode->m_parent){
-            treeNode->m_parent->removeChild(argWidget, false);
-        }
-
-        treeNode->m_parent = static_cast<Widget *>(this);
-        m_childList.emplace_back(argWidget, argAutoDelete); // only place to add child to m_childList
-    }
-    else{
-        throw fflerror("widget %s forbids to add child", name());
-    }
-}
-
-void WidgetTreeNode::addChild(Widget *argWidget, bool argAutoDelete)
-{
-    doAddChild(argWidget, argAutoDelete, false);
-}
-
-void WidgetTreeNode::addChildAt(Widget *argWidget, WidgetTreeNode::VarDir argDir, WidgetTreeNode::VarInt argX, WidgetTreeNode::VarInt argY, bool argAutoDelete)
-{
-    doAddChild(argWidget, argAutoDelete, false);
-    argWidget->moveAt(std::move(argDir), std::move(argX), std::move(argY));
-}
-
-void WidgetTreeNode::removeChild(Widget *argWidget, bool argTriggerDelete)
-{
-    if(argWidget){
+    if(argChildID){
         for(auto p = m_childList.begin(); p != m_childList.end(); ++p){
-            if(p->widget == argWidget){
-                doRemoveChild(*p, argTriggerDelete);
+            if(p->widget && (p->widget->id() == argChildID)){
+                doRemoveChildElement(*p, argTriggerDelete, ignoreCanRemoveChild);
                 return;
             }
         }
     }
 }
 
-void WidgetTreeNode::doRemoveChild(WidgetTreeNode::ChildElement &argElement, bool argTriggerDelete)
+void WidgetTreeNode::doRemoveChildElement(WidgetTreeNode::ChildElement &argElement, bool argTriggerDelete, bool ignoreCanRemoveChild)
 {
     if(auto widptr = argElement.widget){
-        widptr->m_parent = nullptr;
-        argElement.widget = nullptr;
+        if(ignoreCanRemoveChild || m_attrs.removeChild){
+            widptr->m_parent = nullptr;
+            argElement.widget = nullptr;
 
-        if(argElement.autoDelete && argTriggerDelete){
-            widptr->execDeath();
-            m_delayList.push_back(widptr);
+            if(argElement.autoDelete && argTriggerDelete){
+                widptr->execDeath();
+                m_delayList.push_back(widptr);
+            }
+        }
+        else{
+            throw fflerror("widget %s forbids to remove child", name());
         }
     }
 }
@@ -155,6 +135,46 @@ void WidgetTreeNode::purge()
     {
         return x.widget == nullptr;
     });
+}
+
+void WidgetTreeNode::removeChild(uint64_t argChildID, bool argTriggerDelete)
+{
+    doRemoveChild(argChildID, argTriggerDelete, false);
+}
+
+void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete, bool ignoreCanAddChild)
+{
+    // don't call argWidget->mem_func
+    // argWidget may not be fully construcuted yet
+
+    // when Widget is constructed with parent not null
+    // stack: Widget::Widget() -> Widget::WidgetTreeNode() -> parent->addChild(Widget *)
+
+    fflassert(argWidget);
+    WidgetTreeNode *treeNode = argWidget;
+
+    if(ignoreCanAddChild || m_attrs.addChild){
+        if(treeNode->m_parent){
+            treeNode->m_parent->removeChild(treeNode->id(), false);
+        }
+
+        treeNode->m_parent = static_cast<Widget *>(this);
+        m_childList.emplace_back(argWidget, argAutoDelete); // only place to add child to m_childList
+    }
+    else{
+        throw fflerror("widget %s forbids to add child", name());
+    }
+}
+
+void WidgetTreeNode::addChild(Widget *argWidget, bool argAutoDelete)
+{
+    doAddChild(argWidget, argAutoDelete, false);
+}
+
+void WidgetTreeNode::addChildAt(Widget *argWidget, WidgetTreeNode::VarDir argDir, WidgetTreeNode::VarInt argX, WidgetTreeNode::VarInt argY, bool argAutoDelete)
+{
+    doAddChild(argWidget, argAutoDelete, false);
+    argWidget->moveAt(std::move(argDir), std::move(argX), std::move(argY));
 }
 
 dir8_t Widget::evalDir(const Widget::VarDir &varDir, const Widget *widget, const void *arg)
@@ -459,11 +479,22 @@ void Widget::execDrawFunc(const Widget::VarDrawFunc &varDrawFunc, const Widget *
 }
 
 Widget::Widget(Widget::InitArgs args)
-    : WidgetTreeNode(args.parent.widget, args.parent.autoDelete)
+    : WidgetTreeNode
+      {
+          std::move(args.parent),
+          {
+              args.attrs.type.   addChild,
+              args.attrs.type.removeChild,
+
+              std::move(args.attrs.inst.name),
+          },
+      }
+
     , m_dir(std::move(args.dir))
 
     , m_x(std::make_pair(std::move(args.x), 0))
     , m_y(std::make_pair(std::move(args.y), 0))
+
     , m_w(std::move(args.w))
     , m_h(std::move(args.h))
 
@@ -997,7 +1028,7 @@ void Widget::moveAt(Widget::VarDir argDir, Widget::VarInt argX, Widget::VarInt a
 
 void Widget::setW(Widget::VarSizeOpt argSize)
 {
-    if(m_attrs.type.canSetSize){
+    if(m_attrs.type.setSize){
         m_w = std::move(argSize);
     }
     else{
@@ -1007,7 +1038,7 @@ void Widget::setW(Widget::VarSizeOpt argSize)
 
 void Widget::setH(Widget::VarSizeOpt argSize)
 {
-    if(m_attrs.type.canSetSize){
+    if(m_attrs.type.setSize){
         m_h = std::move(argSize);
     }
     else{

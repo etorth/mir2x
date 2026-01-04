@@ -9,44 +9,27 @@ ImageBoard::ImageBoard(ImageBoard::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
+
           .x = std::move(args.x),
           .y = std::move(args.y),
+
           .parent = args.parent,
       }}
 
     , m_varW(std::move(args.w))
     , m_varH(std::move(args.h))
+
     , m_varColor(std::move(args.modColor))
     , m_varBlendMode(std::move(args.blendMode))
+
     , m_loadFunc(std::move(args.texLoadFunc))
     , m_xformPair(getHFlipRotatePair(args.hflip, args.vflip, args.rotate))
 {
+    const auto varTexW = m_varW.value_or([this]{ return SDLDeviceHelper::getTextureWidth (getTexture(), 0); });
+    const auto varTexH = m_varH.value_or([this]{ return SDLDeviceHelper::getTextureHeight(getTexture(), 0); });
 
-    int texW = 0;
-    int texH = 0;
-
-    if(auto texPtr = getTexture()){
-        std::tie(texW, texH) = SDLDeviceHelper::getTextureSize(texPtr);
-    }
-
-    const auto varTexW = m_varW.has_value() ? m_varW : Widget::VarSizeOpt([this](const Widget *)
-    {
-        if(auto texPtr = getTexture()){
-            return SDLDeviceHelper::getTextureWidth(texPtr);
-        }
-        return 0;
-    });
-
-    const auto varTexH = m_varH.has_value() ? m_varH : Widget::VarSizeOpt([this](const Widget *)
-    {
-        if(auto texPtr = getTexture()){
-            return SDLDeviceHelper::getTextureHeight(texPtr);
-        }
-        return 0;
-    });
-
-    setW((m_rotate % 2 == 0) ? varTexW : varTexH);
-    setH((m_rotate % 2 == 0) ? varTexH : varTexW);
+    setSize((m_rotate % 2 == 0) ? varTexW : varTexH,
+            (m_rotate % 2 == 0) ? varTexH : varTexW);
 }
 
 void ImageBoard::drawDefault(Widget::ROIMap m) const

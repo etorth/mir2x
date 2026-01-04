@@ -96,15 +96,25 @@ auto WidgetTreeNode::lastChild(this auto && self) -> check_const_cond_out_ptr_t<
     return nullptr;
 }
 
-void WidgetTreeNode::clearChild(std::invocable<const Widget *, bool> auto f)
+void WidgetTreeNode::doClearChild(std::invocable<const Widget *, bool> auto f, bool ignoreCanRemoveChild)
 {
     for(auto &child: m_childList){
         if(child.widget){
             if(f(child.widget, child.autoDelete)){
-                doRemoveChild(child, true);
+                doRemoveChildElement(child, true, ignoreCanRemoveChild);
             }
         }
     }
+}
+
+void WidgetTreeNode::clearChild(std::invocable<const Widget *, bool> auto f)
+{
+    doClearChild(f, false);
+}
+
+void WidgetTreeNode::clearChild()
+{
+    clearChild([](const Widget *, bool){ return true; });
 }
 
 auto WidgetTreeNode::hasChild(this auto && self, uint64_t argID) -> check_const_cond_out_ptr_t<decltype(self), Widget>

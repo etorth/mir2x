@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 #include <initializer_list>
+#include <concepts>
 #include "widget.hpp"
 #include "itemalign.hpp"
 
@@ -31,6 +32,8 @@ class ItemFlex: public Widget
 
     private:
         Widget *m_canvas;
+
+    private:
         Widget::VarSize m_itemSpace;
         Widget::VarSizeOpt m_fixedEdgeSize;
 
@@ -38,9 +41,42 @@ class ItemFlex: public Widget
         ItemFlex(ItemFlex::InitArgs);
 
     public:
-        void addItem(Widget *, bool);
+        void    addItem(Widget *, bool);
+        void removeItem(uint64_t, bool);
+
+    public:
+        bool hasShowItem() const;
+        void flipItemShow(uint64_t);
+
+    public:
+        void buildLayout(); // empty function
+
+    public:
+        void clearItem(std::invocable<const Widget *, bool> auto f)
+        {
+            m_canvas->clearChild(f);
+        }
+
+        void clearItem()
+        {
+            clearItem([](const Widget *, bool){ return true; });
+        }
+
+    public:
+        auto foreachItem(this auto && self, bool forward, auto func)
+        {
+            return self.m_canvas->foreachChild(forward, func);
+        }
+
+        auto foreachItem(this auto && self, auto func)
+        {
+            return self.foreachItem(true, func);
+        }
 
     private:
         int canvasW() const;
         int canvasH() const;
+
+    private:
+        const Widget *lastShowChild() const;
 };

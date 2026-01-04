@@ -63,7 +63,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
           {
               .type
               {
-                  .canSetSize = false,
+                  .setSize = false,
               },
           },
           .parent = std::move(args.parent),

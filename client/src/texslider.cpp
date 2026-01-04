@@ -53,6 +53,9 @@ TexSlider::TexSlider(TexSlider::InitArgs args)
                       {{
                           .texLoadFunc = [index = args.index, this] -> SDL_Texture *
                           {
+                              // if ImageBoard::ctor() calls texLoadFunc when constructing, it can trigger UB
+                              // because sliderState() requires *this* to be fully constructed
+
                               switch(sliderState()){
                                   case BEVENT_ON:
                                   case BEVENT_DOWN:

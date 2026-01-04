@@ -39,8 +39,8 @@ MenuBoard::MenuBoard(MenuBoard::InitArgs args)
           {
               .type
               {
-                  .canSetSize  = false,
-                  .canAddChild = false,
+                  .setSize  = false,
+                  .addChild = false,
               },
 
               .inst = std::move(args.attrs),
@@ -70,7 +70,7 @@ void MenuBoard::addMenu(MenuBoard::AddItemArgs args)
         return;
     }
 
-    m_canvas.addChild(new MenuItem
+    m_canvas.addItem(new MenuItem
     {{
         .margin
         {

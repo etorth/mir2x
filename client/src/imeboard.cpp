@@ -105,7 +105,7 @@ void IMEBoard::updateDefault(double)
     }
     else{
         for(auto &p: m_boardList){
-            this->removeChild(p.get(), false);
+            this->removeChild(p->id(), false);
         }
 
         m_boardList.clear();
@@ -354,7 +354,7 @@ void IMEBoard::drawDefault(Widget::ROIMap m) const
 void IMEBoard::gainFocus(std::string prefix, std::string input, Widget *pwidget, std::function<void(std::string)> onCommit)
 {
     for(auto &p: m_boardList){
-        this->removeChild(p.get(), false);
+        this->removeChild(p->id(), false);
     }
 
     m_boardList.clear();
@@ -376,7 +376,7 @@ void IMEBoard::gainFocus(std::string prefix, std::string input, Widget *pwidget,
 void IMEBoard::dropFocus()
 {
     for(auto &p: m_boardList){
-        this->removeChild(p.get(), false);
+        this->removeChild(p->id(), false);
     }
 
     m_boardList.clear();

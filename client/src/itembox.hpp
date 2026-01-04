@@ -1,7 +1,10 @@
 #pragma once
 #include <utility>
+#include <concepts>
 #include <initializer_list>
 #include "widget.hpp"
+#include "itemalign.hpp"
+#include "margincontainer.hpp"
 
 class ItemBox: public Widget
 {
@@ -9,12 +12,15 @@ class ItemBox: public Widget
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
+
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
             Widget::VarSizeOpt fixed = std::nullopt; // the other side to flexible edge
 
             bool v = true;
+            ItemAlign align = ItemAlign::UPLEFT;
+
             Widget::VarSize itemSpace = 0;
 
             std::initializer_list<std::pair<Widget *, bool>> childList {};
@@ -23,143 +29,86 @@ class ItemBox: public Widget
 
     private:
         const bool m_vbox;
+        const ItemAlign m_align;
+
+    private:
+        Widget *m_canvas;
 
     private:
         Widget::VarSize m_itemSpace;
+        Widget::VarSizeOpt m_fixedEdgeSize;
+
+    private:
+        int m_itemSpaceEval = 0;
+        int m_fixedEdgeSizeEval = 0;
+        int m_flexibleEdgeSizeEval = 0;
 
     public:
-        ItemBox(ItemBox::InitArgs args)
-            : Widget
-              {{
-                  .dir = std::move(args.dir),
+        ItemBox(ItemBox::InitArgs);
 
-                  .x = std::move(args.x),
-                  .y = std::move(args.y),
+    public:
+        void    addItem(Widget *, bool);
+        void removeItem(uint64_t, bool);
 
-                  .w =  args.v ? std::move(args.fixed) : Widget::VarSize([this]{ return calcFlexSize(); }),
-                  .h = !args.v ? std::move(args.fixed) : Widget::VarSize([this]{ return calcFlexSize(); }),
+    public:
+        bool hasShowItem() const;
+        void flipItemShow(uint64_t);
 
-                  .attrs
-                  {
-                      .inst
-                      {
-                          .moveOnFocus = false,
-                      },
-                  },
-                  .parent = std::move(args.parent),
-              }}
+    public:
+        void buildLayout(); // recalculate everything
 
-            , m_vbox(args.v)
-            , m_itemSpace(std::move(args.itemSpace))
+    public:
+        void clearItem(std::invocable<const Widget *, bool> auto func)
         {
-            Widget *firstWidget = nullptr;
-            for(auto [widget, autoDelete]: args.childList){
-                if(widget){
-                    if(!firstWidget){
-                        firstWidget = widget;
-                    }
-                    Widget::addChild(widget, autoDelete);
+            m_canvas->foreachChild([func, this](auto container, bool)
+            {
+                const bool match = container->foreachChild([func](auto item, bool autoDelete)
+                {
+                    return func(item, autoDelete);
+                });
+
+                if(match){
+                    dynamic_cast<MarginContainer *>(container)->clearContained();
+                    m_canvas->removeChild(container->id(), true);
                 }
-            }
+            });
+        }
 
-            if(firstWidget){
-                updateOffsetFrom(firstWidget);
-            }
+        void clearItem()
+        {
+            clearItem([](const Widget *, bool){ return true; });
         }
 
     public:
-        void addChild(Widget *argWidget, bool argAutoDelete) override
+        auto foreachItem(this auto && self, bool forward, auto func)
         {
-            if(argWidget){
-                Widget::addChild(argWidget, argAutoDelete);
-                updateOffsetFrom(argWidget);
-            }
+            return self.m_canvas->foreachChild(forward, [func](auto container, bool)
+            {
+                return container->foreachChild([func](auto item, bool autoDelete)
+                {
+                    return func(item, autoDelete);
+                });
+            });
         }
 
-        void removeChild(Widget *argWidget, bool argTriggerDelete) override
+        auto foreachItem(this auto && self, auto func)
         {
-            if(argWidget){
-                auto nextWidget = nextChild(argWidget->id());
-                Widget::removeChild(argWidget, argTriggerDelete);
-
-                if(nextWidget){
-                    updateOffsetFrom(nextWidget);
-                }
-            }
-        }
-
-    public:
-        void flipChildShow(uint64_t childID)
-        {
-            if(auto child = hasChild(childID)){
-                child->flipShow();
-                updateOffsetFrom(child);
-            }
-        }
-
-    public:
-        void updateOffset()
-        {
-            if(auto firstWidget = firstChild()){
-                updateOffsetFrom(firstWidget);
-            }
+            return self.foreachItem(true, func);
         }
 
     private:
-        void addChildAt(Widget *, WidgetTreeNode::VarDir, WidgetTreeNode::VarInt, WidgetTreeNode::VarInt, bool) override
-        {
-            throw fflerror("ItemBox::addChildAt");
-        }
+        void updateMarginContainers();
 
-        void updateOffsetFrom(Widget *child)
-        {
-            fflassert(child);
-            fflassert(hasChild(child->id()));
+        void updateFlexEdgeSize();
+        void updateFixedEdgeSize();
 
-            bool found = false;
-            Widget *lastShow = nullptr;
+        void updateFlexEdgeOffset(const Widget *);
+        void updateFixedEdgeOffset();
 
-            foreachChild([itemSpace = Widget::evalSize(m_itemSpace, this), child, &found, &lastShow, this](Widget *w, bool)
-            {
-                if(w == child){
-                    found = true;
-                }
+    private:
+        const Widget *firstShowContainer() const { return findShowContainer(true ); }
+        const Widget * lastShowContainer() const { return findShowContainer(false); }
 
-                if(found){
-                    if(w->localShow()){
-                        if(lastShow){
-                            w->moveAt(DIR_UPLEFT, m_vbox ? 0 : (lastShow->dx() + lastShow->w() + itemSpace),
-                                                 !m_vbox ? 0 : (lastShow->dy() + lastShow->h() + itemSpace));
-                        }
-                        else{
-                            w->moveAt(DIR_UPLEFT, 0, 0);
-                        }
-                    }
-                }
-
-                if(w->localShow()){
-                    lastShow = w;
-                }
-            });
-        }
-
-        int calcFlexSize() const
-        {
-            const Widget *lastShow = nullptr;
-            foreachChild(false, [&lastShow](const Widget *w, bool) -> bool
-            {
-                if(w->localShow()){
-                    lastShow = w;
-                }
-                return lastShow;
-            });
-
-            if(lastShow){
-                if(m_vbox) return lastShow->dy() + lastShow->h();
-                else       return lastShow->dx() + lastShow->w();
-            }
-            else{
-                return 0;
-            }
-        }
+    private:
+        const Widget *findShowContainer(bool foward) const;
 };

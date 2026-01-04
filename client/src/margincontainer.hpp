@@ -29,8 +29,12 @@ class MarginContainer: public Widget
             Widget::VarDrawFunc bgDrawFunc = nullptr;
             Widget::VarDrawFunc fgDrawFunc = nullptr;
 
-            Widget::WADPair parent {};
+            Widget::InstAttrs attrs {};
+            Widget::WADPair  parent {};
         };
+
+    private:
+        Widget *m_canvas; // the unique child
 
     private:
         ContainedWidget m_contained;
@@ -47,11 +51,44 @@ class MarginContainer: public Widget
 
                   .x = std::move(args.x),
                   .y = std::move(args.y),
-                  .w = std::move(args.w),
-                  .h = std::move(args.h),
 
+                  .w = std::nullopt,
+                  .h = std::nullopt,
+
+                  .childList
+                  {
+                      {
+                          .widget = new Widget
+                          {{
+                              .w = std::move(args.w),
+                              .h = std::move(args.h),
+
+                              .attrs
+                              {
+                                  .inst
+                                  {
+                                      .moveOnFocus = false,
+                                  }
+                              }
+                          }},
+                          .autoDelete = true,
+                      },
+                  },
+
+                  .attrs
+                  {
+                      .type
+                      {
+                          .setSize = false,
+                          .addChild = false,
+                          .removeChild = false,
+                      },
+                      .inst = std::move(args.attrs),
+                  },
                   .parent = std::move(args.parent),
               }}
+
+            , m_canvas(firstChild())
 
             , m_contained(std::move(args.contained))
             , m_bgBoard(Widget::hasDrawFunc(args.bgDrawFunc) ? new GfxShapeBoard
@@ -73,30 +110,16 @@ class MarginContainer: public Widget
               }} : nullptr)
         {
             if(m_bgBoard){
-                Widget::addChild(m_bgBoard, true);
+                m_canvas->addChild(m_bgBoard, true);
             }
 
-            doSetContained();
+            if(m_contained.widget){
+                doSetContained();
+            }
 
             if(m_fgBoard){
-                Widget::addChild(m_fgBoard, true);
+                m_canvas->addChild(m_fgBoard, true);
             }
-        }
-
-    public:
-        void drawDefault(Widget::ROIMap m) const override
-        {
-            if(m_bgBoard          && m_bgBoard         ->show()) drawChild(m_bgBoard         , m);
-            if(m_contained.widget && m_contained.widget->show()) drawChild(m_contained.widget, m);
-            if(m_fgBoard          && m_fgBoard         ->show()) drawChild(m_fgBoard         , m);
-        }
-
-        bool processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m) override
-        {
-            if(m_contained.widget){
-                return m_contained.widget->processEventParent(event, valid, m);
-            }
-            return false;
         }
 
     public:
@@ -106,25 +129,29 @@ class MarginContainer: public Widget
         }
 
     public:
-        void addChild  (Widget *,                                                 bool) override { throw fflvalue(name()); }
-        void addChildAt(Widget *, Widget::VarDir, Widget::VarInt, Widget::VarInt, bool) override { throw fflvalue(name()); }
-
-    public:
         void setContained(Widget::VarDir argDir, Widget *argWidget, bool argAutoDelete)
         {
             if(m_contained.widget){
-                removeChild(m_contained.widget, true);
+                m_canvas->removeChild(m_contained.widget->id(), m_contained.widget != argWidget); // same widget may change autoDelete
             }
 
             m_contained = ContainedWidget{.dir = std::move(argDir), .widget = argWidget, .autoDelete = argAutoDelete};
             doSetContained();
         }
 
+        void clearContained()
+        {
+            if(m_contained.widget){
+                m_canvas->removeChild(m_contained.widget->id(), true);
+                m_contained = ContainedWidget{};
+            }
+        }
+
     private:
         void doSetContained()
         {
             if(m_contained.widget){
-                Widget::addChildAt(m_contained.widget, [this]
+                m_canvas->addChildAt(m_contained.widget, [this]
                 {
                     return Widget::evalDir(m_contained.dir, this);
                 },

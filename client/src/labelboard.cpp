@@ -19,7 +19,7 @@ LabelBoard::LabelBoard(LabelBoard::InitArgs args)
           {
               .type
               {
-                  .canSetSize = false,
+                  .setSize = false,
               },
               .inst = std::move(args.attrs),
           },

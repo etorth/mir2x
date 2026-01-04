@@ -145,7 +145,7 @@ std::optional<uint64_t> ChatPage::refopt() const
 void ChatPage::enableChatRef(uint64_t refMsgID, std::string xmlStr)
 {
     if(chatref){
-        removeChild(chatref, true);
+        removeChild(chatref->id(), true);
     }
     chatref = ChatPage::createChatItemRef(refMsgID, std::move(xmlStr), this, true);
 }
@@ -153,7 +153,7 @@ void ChatPage::enableChatRef(uint64_t refMsgID, std::string xmlStr)
 void ChatPage::disableChatRef()
 {
     if(chatref){
-        removeChild(chatref, true);
+        removeChild(chatref->id(), true);
         chatref = nullptr;
     }
 }
@@ -225,7 +225,7 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid, Widget::R
 
                 if(m.in(event.button.x, event.button.y)){
                     if(menu){
-                        removeChild(menu, true);
+                        removeChild(menu->id(), true);
                         menu = nullptr;
                     }
                     return consumeFocus(true);

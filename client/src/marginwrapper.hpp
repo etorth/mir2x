@@ -68,8 +68,9 @@ class MarginWrapper: public Widget
                   {
                       .type
                       {
-                          .canSetSize  = false,
-                          .canAddChild = false,
+                          .setSize = false,
+                          .addChild = false,
+                          .removeChild = false,
                       },
                       .inst = std::move(args.attrs),
                   },
@@ -122,29 +123,39 @@ class MarginWrapper: public Widget
         }
 
     public:
-        void setWrapped(Widget *widget, bool autoDelete)
+        void setWrapped(Widget *argWidget, bool argAutoDelete)
         {
             if(m_wrapped.widget){
-                m_canvas->removeChild(m_wrapped.widget, m_wrapped.widget != widget); // same widget may change autoDelete
+                m_canvas->removeChild(m_wrapped.widget->id(), m_wrapped.widget != argWidget); // same widget may change autoDelete
             }
 
-            m_wrapped = Widget::WADPair{.widget = widget, .autoDelete = autoDelete};
+            m_wrapped = Widget::WADPair{.widget = argWidget, .autoDelete = argAutoDelete};
             doSetWrapped();
+        }
+
+        void clearWrapped()
+        {
+            if(m_wrapped.widget){
+                m_canvas->removeChild(m_wrapped.widget->id(), true);
+                m_wrapped = Widget::WADPair{};
+            }
         }
 
     private:
         void doSetWrapped()
         {
-            m_canvas->addChildAt(m_wrapped.widget, DIR_UPLEFT, [this]
-            {
-                return Widget::evalSize(m_margin[2], this);
-            },
+            if(m_wrapped.widget){
+                m_canvas->addChildAt(m_wrapped.widget, DIR_UPLEFT, [this]
+                {
+                    return Widget::evalSize(m_margin[2], this);
+                },
 
-            [this]
-            {
-                return Widget::evalSize(m_margin[0], this);
-            },
+                [this]
+                {
+                    return Widget::evalSize(m_margin[0], this);
+                },
 
-            m_wrapped.autoDelete);
+                m_wrapped.autoDelete);
+            }
         }
 };
