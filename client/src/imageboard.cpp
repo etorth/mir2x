@@ -16,17 +16,14 @@ ImageBoard::ImageBoard(ImageBoard::InitArgs args)
           .parent = args.parent,
       }}
 
-    , m_varW(std::move(args.w))
-    , m_varH(std::move(args.h))
-
     , m_varColor(std::move(args.modColor))
     , m_varBlendMode(std::move(args.blendMode))
 
     , m_loadFunc(std::move(args.texLoadFunc))
     , m_xformPair(getHFlipRotatePair(args.hflip, args.vflip, args.rotate))
 {
-    const auto varTexW = m_varW.value_or([this]{ return SDLDeviceHelper::getTextureWidth (getTexture(), 0); });
-    const auto varTexH = m_varH.value_or([this]{ return SDLDeviceHelper::getTextureHeight(getTexture(), 0); });
+    const auto varTexW = args.w.value_or([this]{ return SDLDeviceHelper::getTextureWidth (getTexture(), 0); });
+    const auto varTexH = args.h.value_or([this]{ return SDLDeviceHelper::getTextureHeight(getTexture(), 0); });
 
     setSize((m_rotate % 2 == 0) ? varTexW : varTexH,
             (m_rotate % 2 == 0) ? varTexH : varTexW);

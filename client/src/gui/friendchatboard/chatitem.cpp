@@ -7,39 +7,16 @@
 
 extern SDLDevice *g_sdlDevice;
 
-ChatItem::ChatItem(
-        Widget::VarDir argDir,
-        Widget::VarInt argX,
-        Widget::VarInt argY,
-
-        int  argMaxWidth,
-        bool argPending,
-
-        /**/  std::optional<uint64_t> argMsgID,
-        const std::optional<uint64_t> argMsgRefID,
-
-        const char8_t *argNameStr,
-        const char8_t *argMessageStr,
-        const char8_t *argMessageRefStr,
-
-        std::function<SDL_Texture *(const Widget *)> argLoadImageFunc,
-        std::function<void         (      Widget *)> argAfterResizeFunc,
-
-        bool argShowName,
-        bool argAvatarLeft,
-        std::optional<uint32_t> argBGColor,
-
-        Widget *argParent,
-        bool argAutoDelete)
-
+ChatItem::ChatItem(ChatItem::InitArgs args)
     : Widget
       {{
-          .dir = std::move(argDir),
+          .dir = std::move(args.dir),
 
-          .x = std::move(argX),
-          .y = std::move(argY),
-          .w = {},
-          .h = {},
+          .x = std::move(args.x),
+          .y = std::move(args.y),
+
+          .w = std::nullopt,
+          .h = std::nullopt,
 
           .attrs
           {
@@ -47,54 +24,40 @@ ChatItem::ChatItem(
               {
                   .setSize = false,
               },
-
-              .inst
-              {
-                  .afterResize = std::move(argAfterResizeFunc),
-              },
           },
 
-          .parent
-          {
-              .widget = argParent,
-              .autoDelete = argAutoDelete,
-          }
+          .parent = std::move(args.parent),
       }}
 
-    , pending(argPending)
-    , msgID(argMsgID)
-    , showName(argShowName)
-    , avatarLeft(argAvatarLeft)
-    , bgColor(std::move(argBGColor))
+    , pending(args.pending)
+    , msgID  (args.msgID  )
+
+    , showName  (args.showName  )
+    , avatarLeft(args.avatarLeft)
+
+    , bgColor(std::move(args.bgColor))
 
     , avatar
       {{
           .w = ChatItem::AVATAR_WIDTH,
           .h = ChatItem::AVATAR_HEIGHT,
 
-          .texLoadFunc = std::move(argLoadImageFunc),
+          .texLoadFunc = std::move(args.texLoadFunc),
       }}
 
     , name
       {{
-          .label = argNameStr,
+          .label = args.name,
           .font
           {
-              .id = 1,
               .size = 10,
           },
       }}
 
     , message
       {{
-          .lineWidth = std::max<int>(1, argMaxWidth - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN * 2),
-          .initXML = to_cstr(argMessageStr),
-
-          .font
-          {
-              .id = 1,
-              .size = 12,
-          },
+          .lineWidth = std::max<int>(1, args.maxWidth - ChatItem::AVATAR_WIDTH - ChatItem::GAP - ChatItem::TRIANGLE_WIDTH - ChatItem::MESSAGE_MARGIN * 2),
+          .initXML   = to_cstr(args.message),
 
           .onClickText = [this](const std::unordered_map<std::string, std::string> &attrList, int event)
           {
@@ -141,7 +104,7 @@ ChatItem::ChatItem(
 
           .drawFunc = [this](const Widget *, int drawDstX, int drawDstY)
           {
-              const uint32_t drawBGColor = bgColor.value_or([this]
+              const uint32_t drawBGColor = Widget::evalU32Opt(bgColor, this, [this]
               {
                   if(avatarLeft){
                       return colorf::RED + colorf::A_SHF(128);
@@ -152,7 +115,7 @@ ChatItem::ChatItem(
                   else{
                       return colorf::GREEN + colorf::A_SHF(128);
                   }
-              }());
+              });
 
               g_sdlDevice->fillRectangle(
                       drawBGColor,
@@ -192,7 +155,7 @@ ChatItem::ChatItem(
           },
       }}
 
-    , msgref(argMsgRefID.has_value() ? new ChatItemRef
+    , msgref(args.msgRefID.has_value() ? new ChatItemRef
       {
           DIR_UPLEFT,
           0,
@@ -202,8 +165,9 @@ ChatItem::ChatItem(
           false,
           false,
 
-          argMsgRefID.value(),
-          to_cstr(argMessageRefStr),
+          args.msgRefID.value(),
+          to_cstr(args.messageRef),
+
       } : nullptr)
 {
     if(avatarLeft){

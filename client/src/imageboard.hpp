@@ -44,10 +44,6 @@ class ImageBoard: public Widget
         };
 
     private:
-        Widget::VarSizeOpt m_varW;
-        Widget::VarSizeOpt m_varH;
-
-    private:
         Widget::VarU32 m_varColor;
         Widget::VarBlendMode m_varBlendMode;
 

@@ -269,6 +269,26 @@ int Widget::evalSizeOpt(const Widget::VarSizeOpt &varSizeOpt, const Widget *widg
     }
 }
 
+int Widget::evalU32Opt(const Widget::VarU32Opt &varU32Opt, const Widget *widget, const auto &f)
+{
+    if(varU32Opt.has_value()){
+        return evalU32(varU32Opt.value(), widget, nullptr);
+    }
+    else{
+        return f();
+    }
+}
+
+int Widget::evalU32Opt(const Widget::VarU32Opt &varU32Opt, const Widget *widget, const void *arg, const auto &f)
+{
+    if(varU32Opt.has_value()){
+        return evalU32(varU32Opt.value(), widget, arg);
+    }
+    else{
+        return f();
+    }
+}
+
 template<typename T> T Widget::evalGetter(const Widget::VarGetter<T> &varGetter, const Widget *widget, const void *arg)
 {
     return std::visit(VarDispatcher

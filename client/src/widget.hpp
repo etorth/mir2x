@@ -75,6 +75,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
 
     protected:
         using VarIntOpt  = std::optional<VarInt>;
+        using VarU32Opt  = std::optional<VarU32>;
         using VarSizeOpt = std::optional<VarSize>;
 
     protected:
@@ -233,6 +234,7 @@ class Widget: public WidgetTreeNode
         using WidgetTreeNode::VarInt;
         using WidgetTreeNode::VarIntOpt;
         using WidgetTreeNode::VarU32;
+        using WidgetTreeNode::VarU32Opt;
         using WidgetTreeNode::VarDecimal;
         using WidgetTreeNode::VarSize;
         using WidgetTreeNode::VarSizeOpt;
@@ -381,6 +383,10 @@ class Widget: public WidgetTreeNode
         static int evalSizeOpt(const Widget::VarSizeOpt &, const Widget *, const void *, const auto &);
 
     public:
+        static int evalU32Opt(const Widget::VarU32Opt &, const Widget *,               const auto &);
+        static int evalU32Opt(const Widget::VarU32Opt &, const Widget *, const void *, const auto &);
+
+    public:
         template<typename T> static T evalGetter(const Widget::VarGetter<T> &, const Widget *, const void * = nullptr);
 
     public:
@@ -477,8 +483,10 @@ class Widget: public WidgetTreeNode
         virtual int h() const;
 
     public:
-        const auto &varWOpt() const { return m_w; }
-        const auto &varHOpt() const { return m_h; }
+        bool varWOpt  () const { return !m_w.has_value(); }
+        bool varHOpt  () const { return !m_h.has_value(); }
+        bool varWFixed() const { return  m_w.has_value() && m_w->fixed(); }
+        bool varHFixed() const { return  m_h.has_value() && m_h->fixed(); }
 
     public:
         int maxChildCoverWExcept(const Widget *) const;

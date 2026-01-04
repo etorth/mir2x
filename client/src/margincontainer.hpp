@@ -52,17 +52,14 @@ class MarginContainer: public Widget
                   .x = std::move(args.x),
                   .y = std::move(args.y),
 
-                  .w = std::nullopt,
-                  .h = std::nullopt,
+                  .w = std::move(args.w),
+                  .h = std::move(args.h),
 
                   .childList
                   {
                       {
                           .widget = new Widget
                           {{
-                              .w = std::move(args.w),
-                              .h = std::move(args.h),
-
                               .attrs
                               {
                                   .inst
@@ -80,7 +77,6 @@ class MarginContainer: public Widget
                   {
                       .type
                       {
-                          .setSize = false,
                           .addChild = false,
                           .removeChild = false,
                       },
@@ -94,8 +90,8 @@ class MarginContainer: public Widget
             , m_contained(std::move(args.contained))
             , m_bgBoard(Widget::hasDrawFunc(args.bgDrawFunc) ? new GfxShapeBoard
               {{
-                  .w = [this]{ return w(); },
-                  .h = [this]{ return h(); },
+                  .w = [this]{ return m_canvas->w(); },
+                  .h = [this]{ return m_canvas->h(); },
 
                   .drawFunc = std::move(args.bgDrawFunc),
 
@@ -103,8 +99,8 @@ class MarginContainer: public Widget
 
             , m_fgBoard(Widget::hasDrawFunc(args.fgDrawFunc) ? new GfxShapeBoard
               {{
-                  .w = [this]{ return w(); },
-                  .h = [this]{ return h(); },
+                  .w = [this]{ return m_canvas->w(); },
+                  .h = [this]{ return m_canvas->h(); },
 
                   .drawFunc = std::move(args.fgDrawFunc),
 
@@ -121,6 +117,28 @@ class MarginContainer: public Widget
             if(m_fgBoard){
                 m_canvas->addChild(m_fgBoard, true);
             }
+
+            m_canvas->setSize([this]
+            {
+                if(varWOpt()){
+                    if(m_contained.widget){
+                        return m_contained.widget->w();
+                    }
+                    return 0;
+                }
+                return w();
+            },
+
+            [this]
+            {
+                if(varHOpt()){
+                    if(m_contained.widget){
+                        return m_contained.widget->h();
+                    }
+                    return 0;
+                }
+                return h();
+            });
         }
 
     public:
@@ -157,20 +175,11 @@ class MarginContainer: public Widget
         void doSetContained()
         {
             if(m_contained.widget){
-                m_canvas->addChildAt(m_contained.widget, [this]
-                {
-                    return Widget::evalDir(m_contained.dir, this);
-                },
+                m_canvas->addChildAt(m_contained.widget,
 
-                [this]
-                {
-                    return Widget::xSizeOff(Widget::evalDir(m_contained.dir, this), [this]{ return w(); });
-                },
-
-                [this]
-                {
-                    return Widget::ySizeOff(Widget::evalDir(m_contained.dir, this), [this]{ return h(); });
-                },
+                [this]{ return                  Widget::evalDir(m_contained.dir, this)                                  ; },
+                [this]{ return Widget::xSizeOff(Widget::evalDir(m_contained.dir, this), [this]{ return m_canvas->w(); }); },
+                [this]{ return Widget::ySizeOff(Widget::evalDir(m_contained.dir, this), [this]{ return m_canvas->h(); }); },
 
                 m_contained.autoDelete);
             }

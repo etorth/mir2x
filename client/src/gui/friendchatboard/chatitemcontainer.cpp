@@ -30,6 +30,26 @@ ChatItemContainer::ChatItemContainer(
           .w = std::move(argW),
           .h = std::move(argH),
 
+          .attrs
+          {
+              .inst
+              {
+                  .afterResize = [this](Widget *)
+                  {
+                      canvas.foreachItem([this](Widget *chatItemBox, bool)
+                      {
+                          auto chatItemWidget = dynamic_cast<MarginContainer *>(chatItemBox)->contained();
+                          auto chatItem       = dynamic_cast<ChatItem *>(chatItemWidget);
+
+                          chatItem->setMaxWidth(chatItemMaxWidth());
+                      });
+
+                      Widget::afterResizeDefault();
+                  },
+              },
+
+          },
+
           .parent
           {
               .widget = argParent,
@@ -150,38 +170,22 @@ void ChatItemContainer::clearChatItem(bool keepNomsg)
 void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(const ChatItem *)> fnOp)
 {
     auto chatItem = new ChatItem
-    {
-        DIR_UPLEFT,
-        0,
-        0,
-        chatItemMaxWidth(), // cannot auto-stretch
+    {{
+        .maxWidth =  chatItemMaxWidth(), // cannot auto-stretch
+        .pending  = !sdCM.seq.has_value(),
 
-        !sdCM.seq.has_value(),
+        .msgID    = sdCM.seq.has_value() ? std::make_optional(sdCM.seq.value().id) : std::nullopt,
+        .msgRefID = sdCM.refer,
 
-        sdCM.seq.has_value() ? std::make_optional(sdCM.seq.value().id) : std::nullopt,
-        sdCM.refer,
+        .name = u8"...",
+        .message = to_u8cstr(cerealf::deserialize<std::string>(sdCM.message)),
+        .messageRef = sdCM.refer.has_value() ? u8"<layout><par>...</par></layout>" : nullptr,
 
-        to_u8cstr("..."),
-        to_u8cstr(cerealf::deserialize<std::string>(sdCM.message)),
-        sdCM.refer.has_value() ? u8"<layout><par>...</par></layout>" : nullptr,
+        .texLoadFunc = []{ return g_progUseDB->retrieve(0X010007CF); },
 
-        [](const Widget *)
-        {
-            return g_progUseDB->retrieve(0X010007CF);
-        },
-
-        [this](Widget *self)
-        {
-            if(auto chatItem = dynamic_cast<ChatItem *>(self)){
-                chatItem->setMaxWidth(chatItemMaxWidth());
-            }
-        },
-
-        sdCM.from != FriendChatBoard::getParentBoard(this)->m_processRun->getMyHeroChatPeer().cpid(),
-        sdCM.from != FriendChatBoard::getParentBoard(this)->m_processRun->getMyHeroChatPeer().cpid(),
-
-        {},
-    };
+        .showName   = sdCM.from != FriendChatBoard::getParentBoard(this)->m_processRun->getMyHeroChatPeer().cpid(),
+        .avatarLeft = sdCM.from != FriendChatBoard::getParentBoard(this)->m_processRun->getMyHeroChatPeer().cpid(),
+    }};
 
     auto chatItemBox = new MarginContainer
     {{

@@ -35,3 +35,9 @@ public:
 public:
     inline auto foreachItem(this auto &&, bool, auto);
     inline auto foreachItem(this auto &&,       auto);
+
+protected:
+    void afterResizeDefault() override
+    {
+        buildLayout();
+    }

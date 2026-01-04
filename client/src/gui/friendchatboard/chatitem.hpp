@@ -67,6 +67,32 @@ struct ChatItem: public Widget
 
     constexpr static int REF_GAP = 10;
 
+    struct InitArgs
+    {
+        Widget::VarDir dir = DIR_UPLEFT;
+
+        Widget::VarInt x = 0;
+        Widget::VarInt y = 0;
+
+        int  maxWidth = 100;
+        bool pending  = true;
+
+        std::optional<uint64_t>    msgID = std::nullopt;
+        std::optional<uint64_t> msgRefID = std::nullopt;
+
+        const char8_t *name       = nullptr;
+        const char8_t *message    = nullptr;
+        const char8_t *messageRef = nullptr;
+
+        Widget::VarTexLoadFunc texLoadFunc = nullptr;
+        Widget::VarU32Opt      bgColor     = std::nullopt;
+
+        bool showName   = true;
+        bool avatarLeft = true;
+
+        Widget::WADPair parent {};
+    };
+
     bool pending = true;
     double accuTime = 0.0;
 
@@ -76,7 +102,7 @@ struct ChatItem: public Widget
 
     const bool showName;
     const bool avatarLeft;
-    const std::optional<uint32_t> bgColor;
+    const Widget::VarU32Opt bgColor;
 
     ImageBoard avatar;
     LabelBoard name;
@@ -86,30 +112,7 @@ struct ChatItem: public Widget
 
     ChatItemRef * const msgref = nullptr;
 
-    ChatItem(
-            Widget::VarDir,
-            Widget::VarInt,
-            Widget::VarInt,
-
-            int,
-            bool,
-
-            std::optional<uint64_t>,
-            std::optional<uint64_t>,
-
-            const char8_t *,
-            const char8_t *,
-            const char8_t *,
-
-            std::function<SDL_Texture *(const Widget *)>,
-            std::function<void         (      Widget *)>,
-
-            bool,
-            bool,
-            std::optional<uint32_t>,
-
-            Widget * = nullptr,
-            bool     = false);
+    ChatItem(ChatItem::InitArgs);
 
     void setMaxWidth(int);
     void updateDefault(double) override;
