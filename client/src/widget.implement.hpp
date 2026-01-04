@@ -4,6 +4,10 @@ auto WidgetTreeNode::parent(this auto && self, unsigned level) -> check_const_co
     for(; p && (level > 0); level--){
         p = p->m_parent;
     }
+
+    if(p && p->m_dead){
+        throw fflerror("accessing dead widget: %s", p->name());
+    }
     return p;
 }
 
@@ -76,6 +80,22 @@ template<typename SELF> auto WidgetTreeNode::foreachChild(this SELF && self, std
     }
 }
 
+template<typename SELF> auto WidgetTreeNode::foreachChild(this SELF && self, bool forward, std::invocable<check_const_cond_out_ptr_t<SELF, Widget>> auto f) -> std::conditional_t<std::is_same_v<std::invoke_result_t<decltype(f), Widget *>, bool>, bool, void>
+{
+    return self.foreachChild(forward, [&f](auto widget, bool)
+    {
+        return f(widget);
+    });
+}
+
+template<typename SELF> auto WidgetTreeNode::foreachChild(this SELF && self, std::invocable<check_const_cond_out_ptr_t<SELF, Widget>> auto f) -> std::conditional_t<std::is_same_v<std::invoke_result_t<decltype(f), Widget *>, bool>, bool, void>
+{
+    return self.foreachChild([&f](auto widget, bool)
+    {
+        return f(widget);
+    });
+}
+
 auto WidgetTreeNode::firstChild(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), Widget>
 {
     for(auto &child: self.m_childList){
@@ -107,14 +127,17 @@ void WidgetTreeNode::doClearChild(std::invocable<const Widget *, bool> auto f, b
     }
 }
 
-void WidgetTreeNode::clearChild(std::invocable<const Widget *, bool> auto f)
+void WidgetTreeNode::doClearChild(std::invocable<const Widget *> auto f, bool ignoreCanRemoveChild)
 {
-    doClearChild(f, false);
+    doClearChild([&f](const Widget *child, bool){ return f(child); }, ignoreCanRemoveChild);
 }
+
+void WidgetTreeNode::clearChild(std::invocable<const Widget *, bool> auto f){ doClearChild(f, false); }
+void WidgetTreeNode::clearChild(std::invocable<const Widget *      > auto f){ doClearChild(f, false); }
 
 void WidgetTreeNode::clearChild()
 {
-    clearChild([](const Widget *, bool){ return true; });
+    clearChild([](const Widget *){ return true; });
 }
 
 auto WidgetTreeNode::hasChild(this auto && self, uint64_t argID) -> check_const_cond_out_ptr_t<decltype(self), Widget>
@@ -135,6 +158,11 @@ auto WidgetTreeNode::hasChild(this auto && self, std::invocable<const Widget *, 
         }
     }
     return nullptr;
+}
+
+auto WidgetTreeNode::hasChild(this auto && self, std::invocable<const Widget *> auto f) -> check_const_cond_out_ptr_t<decltype(self), Widget>
+{
+    return self.hasChild([&f](const Widget *child, bool){ return f(child); });
 }
 
 auto WidgetTreeNode::hasDescendant(this auto && self, uint64_t argID) -> check_const_cond_out_ptr_t<decltype(self), Widget>
@@ -165,6 +193,11 @@ auto WidgetTreeNode::hasDescendant(this auto && self, std::invocable<const Widge
         }
     }
     return nullptr;
+}
+
+auto WidgetTreeNode::hasDescendant(this auto && self, std::invocable<const Widget *> auto f) -> check_const_cond_out_ptr_t<decltype(self), Widget>
+{
+    return self.hasDescendant([&f](const Widget *child, bool){ return f(child); });
 }
 
 auto WidgetTreeNode::prevChild(this auto && self, uint64_t childID) -> check_const_cond_out_ptr_t<decltype(self), Widget>

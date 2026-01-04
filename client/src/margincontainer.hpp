@@ -67,6 +67,7 @@ class MarginContainer: public Widget
                               {
                                   .inst
                                   {
+                                      .name = "Canvas",
                                       .moveOnFocus = false,
                                   }
                               }
@@ -128,6 +129,11 @@ class MarginContainer: public Widget
             return self.m_contained.widget;
         }
 
+        auto containedPair(this auto && self) -> std::pair<std::conditional_t<std::is_const_v<std::remove_reference_t<decltype(self)>>, const Widget *, Widget *>, bool>
+        {
+            return {self.m_contained.widget, self.m_contained.autoDelete};
+        }
+
     public:
         void setContained(Widget::VarDir argDir, Widget *argWidget, bool argAutoDelete)
         {
@@ -139,10 +145,10 @@ class MarginContainer: public Widget
             doSetContained();
         }
 
-        void clearContained()
+        void clearContained(bool argTriggerAutoDelete)
         {
             if(m_contained.widget){
-                m_canvas->removeChild(m_contained.widget->id(), true);
+                m_canvas->removeChild(m_contained.widget->id(), argTriggerAutoDelete);
                 m_contained = ContainedWidget{};
             }
         }

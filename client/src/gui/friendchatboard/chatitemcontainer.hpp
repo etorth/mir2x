@@ -41,10 +41,9 @@ struct ChatItemContainer: public Widget
             Widget * = nullptr,
             bool     = false);
 
-    void clearChatItem();
-    int  chatItemMaxWidth() const;
-    void append(const SDChatMessage &, std::function<void(const ChatItem *)>);
-
-    bool hasChatItem() const;
+    int chatItemMaxWidth() const;
     const SDChatPeer &getChatPeer() const;
+
+    void clearChatItem(bool);
+    void append(const SDChatMessage &, std::function<void(const ChatItem *)>);
 };

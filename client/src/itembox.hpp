@@ -44,20 +44,29 @@ class ItemBox: public Widget
 
     private:
         const Widget *findShowContainer(bool foward) const;
+
+    private:
+        void doRemoveContainer(const MarginContainer *);
 };
 
 void ItemBox::clearItem(std::invocable<const Widget *, bool> auto func)
 {
     m_canvas->foreachChild([func, this](auto container, bool)
     {
-        const bool match = container->foreachChild([func](auto item, bool autoDelete)
-        {
-            return func(item, autoDelete);
-        });
+        if(auto mc = dynamic_cast<MarginContainer *>(container)){
+            if(const auto [item, autoDelete] = mc->containedPair(); func(item, autoDelete)){
+                mc->clearContained(true);
+            }
+        }
+    });
 
-        if(match){
-            dynamic_cast<MarginContainer *>(container)->clearContained();
-            m_canvas->removeChild(container->id(), true);
+    // update offset
+    // doRemoveContainer does offset update
+
+    m_canvas->foreachChild([this](auto container, bool)
+    {
+        if(auto mc = dynamic_cast<MarginContainer *>(container); !mc->contained()){
+            doRemoveContainer(mc);
         }
     });
 }
@@ -71,10 +80,8 @@ auto ItemBox::foreachItem(this auto && self, bool forward, auto func)
 {
     return self.m_canvas->foreachChild(forward, [func](auto container, bool)
     {
-        return container->foreachChild([func](auto item, bool autoDelete)
-        {
-            return func(item, autoDelete);
-        });
+        const auto [item, autoDelete] = dynamic_cast<MarginContainer *>(container)->containedPair();
+        return func(item, autoDelete);
     });
 }
 

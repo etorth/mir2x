@@ -2,6 +2,7 @@
 #include <fstream>
 #include "utf8f.hpp"
 #include "pathf.hpp"
+#include "totype.hpp"
 #include "widget.hpp"
 
 WidgetTreeNode::WidgetTreeNode(WidgetTreeNode::WADPair argParent, WidgetTreeNode::BaseAttrs argAttrs)
@@ -101,11 +102,37 @@ void WidgetTreeNode::doRemoveChildElement(WidgetTreeNode::ChildElement &argEleme
 {
     if(auto widptr = argElement.widget){
         if(ignoreCanRemoveChild || m_attrs.removeChild){
+
+            // only reset parent of argElement.widget
+            // for all children of argElement.widget, they still points to argElement.widget
+            //
+            // if children of argElement.widget tries to access argElement.widget
+            // it can crashes, i.e
+            //
+            //     Widget *A;
+            //     Widget  C; // locally constructed;
+            //     {
+            //              A = new Widget {};
+            //         auto B = new Widget {};
+            //
+            //         A->addChild( B, true );
+            //         B->addChild(&C, false);
+            //     }
+            //
+            //     A->clearChild();
+            //
+            // after A->clearChild(), B->m_parent is nullptr, and B has been pushed to A->m_delayList, we don't know when it will be purged
+            // but C.m_parent still points to B, then accessing C.m_parent can be a UB
+            //
+            // when we calling A->remove(B), can we reset all children of B's m_parent to nullptr? NO
+            // we delete all children of B when B::dtor is called, de-link here requires we explicitly delete C's all siblings
+
             widptr->m_parent = nullptr;
             argElement.widget = nullptr;
 
             if(argElement.autoDelete && argTriggerDelete){
                 widptr->execDeath();
+                widptr->m_dead = true;
                 m_delayList.push_back(widptr);
             }
         }
@@ -1058,6 +1085,7 @@ std::string Widget::dumpTree() const
 
     attrs.push_back(str_printf(R"("id":%llu)", to_llu(id())));
     attrs.push_back(str_printf(R"("name":"%s")", name()));
+    attrs.push_back(str_printf(R"("type":"%s")", type()));
     attrs.push_back(str_printf(R"("dx":%d)", dx()));
     attrs.push_back(str_printf(R"("dy":%d)", dy()));
     attrs.push_back(str_printf(R"("w":%d)", w()));

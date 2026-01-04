@@ -59,8 +59,6 @@ ChatItemContainer::ChatItemContainer(
           .label = u8"没有任何聊天记录，现在就开始聊天吧！",
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::GREY_A255,
           },
       }}
@@ -69,12 +67,6 @@ ChatItemContainer::ChatItemContainer(
       {{
           .lineWidth = 300,
           .initXML = "<layout><par>...</par></layout>",
-
-          .font
-          {
-              .id = 1,
-              .size = 12,
-          },
 
           .onClickText = [this](const std::unordered_map<std::string, std::string> &attrList, int event)
           {
@@ -131,42 +123,7 @@ ChatItemContainer::ChatItemContainer(
           },
       }}
 {
-    nomsgBox.setShow([this](const Widget *) -> bool
-    {
-        return !hasChatItem();
-    });
-
-    opsBox.setShow([this](const Widget *) -> bool
-    {
-        if(!hasChatItem()){
-            return false;
-        }
-
-        if(getChatPeer().special()){
-            return false;
-        }
-
-        if(getChatPeer().group()){
-            return false;
-        }
-
-        if(getChatPeer().player() && getChatPeer().id == FriendChatBoard::getParentBoard(this)->m_processRun->getMyHeroDBID()){
-            return false;
-        }
-
-        return !FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
-    });
-
     canvas.addItem(&nomsgBox, false);
-    canvas.addItem(&  opsBox, false);
-}
-
-void ChatItemContainer::clearChatItem()
-{
-    canvas.clearItem([this](const Widget *child, bool)
-    {
-        return child != &nomsgBox && child != &opsBox;
-    });
 }
 
 int ChatItemContainer::chatItemMaxWidth() const
@@ -174,17 +131,20 @@ int ChatItemContainer::chatItemMaxWidth() const
     return canvas.w() - ChatItem::TRIANGLE_WIDTH - ChatItem::GAP - ChatItem::AVATAR_WIDTH;
 }
 
-bool ChatItemContainer::hasChatItem() const
-{
-    return canvas.foreachItem([this](const Widget *widget, bool)
-    {
-        return widget != &nomsgBox && widget != &opsBox;
-    });
-}
-
 const SDChatPeer &ChatItemContainer::getChatPeer() const
 {
     return hasParent<ChatPage>()->peer;
+}
+
+void ChatItemContainer::clearChatItem(bool keepNomsg)
+{
+    canvas.clearItem([keepNomsg, this](const Widget *item, bool)
+    {
+        if(keepNomsg){
+            return item != &nomsgBox;
+        }
+        return true;
+    });
 }
 
 void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(const ChatItem *)> fnOp)
@@ -240,12 +200,13 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         },
     }};
 
-    canvas.removeItem(opsBox.id(), false);
-    canvas.   addItem(chatItemBox, true );
-    canvas.   addItem(    &opsBox, false);
+    canvas.removeItem(nomsgBox.id(), false);
+    canvas.removeItem(  opsBox.id(), false);
+
+    canvas.addItem(chatItemBox, true);
 
     if(sdCM.from.group()){
-        ops.loadXML(R"###(<layout><par>GROUP</par></layout>)###");
+        ops.loadXML(R"###(<layout><par>信息来源于群消息，请保护隐私。</par></layout>)###");
     }
     else if(sdCM.from.player()){
         ops.loadXML(R"###(<layout><par>对方不是你的好友，你可以<event id="添加">添加</event>对方为好友，或者<event id="屏蔽">屏蔽</event>对方的消息。</par></layout>)###");
@@ -309,5 +270,26 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
                 });
             }
         });
+    }
+
+    const bool needOps = [this]
+    {
+        if(getChatPeer().special()){
+            return false;
+        }
+
+        if(getChatPeer().group()){
+            return false;
+        }
+
+        if(getChatPeer().player() && getChatPeer().id == FriendChatBoard::getParentBoard(this)->m_processRun->getMyHeroDBID()){
+            return false;
+        }
+
+        return !FriendChatBoard::getParentBoard(this)->findFriendChatPeer(getChatPeer().cpid());
+    }();
+
+    if(needOps){
+        canvas.addItem(&opsBox, false);
     }
 }

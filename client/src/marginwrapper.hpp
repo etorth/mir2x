@@ -56,6 +56,7 @@ class MarginWrapper: public Widget
                               {
                                   .inst
                                   {
+                                      .name = "Canvas",
                                       .moveOnFocus = false,
                                   }
                               }
@@ -122,6 +123,11 @@ class MarginWrapper: public Widget
             return self.m_wrapped.widget;
         }
 
+        auto wrappedPair(this auto && self) -> std::pair<std::conditional_t<std::is_const_v<std::remove_reference_t<decltype(self)>>, const Widget *, Widget *>, bool>
+        {
+            return {self.m_wrapped.widget, self.m_wrapped.autoDelete};
+        }
+
     public:
         void setWrapped(Widget *argWidget, bool argAutoDelete)
         {
@@ -133,10 +139,10 @@ class MarginWrapper: public Widget
             doSetWrapped();
         }
 
-        void clearWrapped()
+        void clearWrapped(bool argTriggerAutoDelete)
         {
             if(m_wrapped.widget){
-                m_canvas->removeChild(m_wrapped.widget->id(), true);
+                m_canvas->removeChild(m_wrapped.widget->id(), argTriggerAutoDelete);
                 m_wrapped = Widget::WADPair{};
             }
         }

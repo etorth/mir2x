@@ -1259,7 +1259,7 @@ void FriendChatBoard::setUIPage(int uiPage)
 void FriendChatBoard::loadChatPage()
 {
     auto chatPage = dynamic_cast<ChatPage *>(m_uiPageList[UIPage_CHAT].page);
-    chatPage->chat.clearChatItem();
+    chatPage->chat.clearChatItem(true);
 
     for(const auto &elem: m_friendMessageList){
         if(elem.cpid == chatPage->peer.cpid()){

@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstdint>
 #include <cstring>
+#include <cinttypes>
 #include <stdexcept>
 #include <string_view>
 #include "staticbuffer.hpp"

@@ -103,6 +103,9 @@ class WidgetTreeNode // tree concept, used by class Widget only
         mutable bool m_inLoop = false;
 
     private:
+        bool m_dead = false; // access to this widget is UB if true
+
+    private:
         Widget *m_parent;
         WidgetTreeNode::BaseAttrs m_attrs; // don't use Widget::m_attrs since in dtor we need to access it
 
@@ -128,10 +131,15 @@ class WidgetTreeNode // tree concept, used by class Widget only
         }
 
     public:
+        const char *type() const
+        {
+            return typeid(*this).name();
+        }
+
         const char *name() const
         {
             if(m_attrs.name.empty()){
-                return typeid(*this).name();
+                return type();
             }
             else{
                 return m_attrs.name.c_str();
@@ -145,8 +153,12 @@ class WidgetTreeNode // tree concept, used by class Widget only
         // complicated function signature, means
         // auto foreachChild(bool, std::invocable<      Widget *, bool> auto f)       -> std::result_type_t<decltype(f),       Widget *, bool>
         // auto foreachChild(bool, std::invocable<const Widget *, bool> auto f) const -> std::result_type_t<decltype(f), const Widget *, bool>
+        // auto foreachChild(bool, std::invocable<      Widget *      > auto f)       -> std::result_type_t<decltype(f),       Widget *      >
+        // auto foreachChild(bool, std::invocable<const Widget *      > auto f) const -> std::result_type_t<decltype(f), const Widget *      >
         template<typename SELF> auto foreachChild(this SELF &&, bool, std::invocable<check_const_cond_out_ptr_t<SELF, Widget>, bool> auto f) -> std::conditional_t<std::is_same_v<std::invoke_result_t<decltype(f), Widget *, bool>, bool>, bool, void>;
         template<typename SELF> auto foreachChild(this SELF &&,       std::invocable<check_const_cond_out_ptr_t<SELF, Widget>, bool> auto f) -> std::conditional_t<std::is_same_v<std::invoke_result_t<decltype(f), Widget *, bool>, bool>, bool, void>;
+        template<typename SELF> auto foreachChild(this SELF &&, bool, std::invocable<check_const_cond_out_ptr_t<SELF, Widget>      > auto f) -> std::conditional_t<std::is_same_v<std::invoke_result_t<decltype(f), Widget *      >, bool>, bool, void>;
+        template<typename SELF> auto foreachChild(this SELF &&,       std::invocable<check_const_cond_out_ptr_t<SELF, Widget>      > auto f) -> std::conditional_t<std::is_same_v<std::invoke_result_t<decltype(f), Widget *      >, bool>, bool, void>;
 
     private:
         void execDeath() noexcept;
@@ -164,9 +176,11 @@ class WidgetTreeNode // tree concept, used by class Widget only
 
     private:
         void doClearChild(std::invocable<const Widget *, bool> auto, bool);
+        void doClearChild(std::invocable<const Widget *      > auto, bool);
 
     public:
         inline void clearChild(std::invocable<const Widget *, bool> auto);
+        inline void clearChild(std::invocable<const Widget *      > auto);
         inline void clearChild();
 
     private:
@@ -193,8 +207,10 @@ class WidgetTreeNode // tree concept, used by class Widget only
     public:
         auto hasChild     (this auto && self, uint64_t                                 ) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
         auto hasChild     (this auto && self, std::invocable<const Widget *, bool> auto) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
+        auto hasChild     (this auto && self, std::invocable<const Widget *      > auto) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
         auto hasDescendant(this auto && self, uint64_t                                 ) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
         auto hasDescendant(this auto && self, std::invocable<const Widget *, bool> auto) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
+        auto hasDescendant(this auto && self, std::invocable<const Widget *      > auto) -> check_const_cond_out_ptr_t<decltype(self), Widget>;
 
     public:
         auto prevChild(this auto && self, uint64_t) -> check_const_cond_out_ptr_t<decltype(self), Widget>;

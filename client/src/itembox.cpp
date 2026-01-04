@@ -21,6 +21,7 @@ ItemBox::ItemBox(ItemBox::InitArgs args)
                       {
                           .inst
                           {
+                              .name = "Canvas",
                               .moveOnFocus = false,
                           },
                       },
@@ -93,8 +94,14 @@ void ItemBox::addItem(Widget *argWidget, bool argAutoDelete)
     const auto widgetFlexEdge  = m_vbox ? widgetH : widgetW;
     const auto widgetFixedEdge = m_vbox ? widgetW : widgetH;
 
-    m_flexibleEdgeSizeEval += m_itemSpaceEval; // update to new widget start position
-    if(widgetFixedEdge > m_fixedEdgeSizeEval){
+    if(hasShowItem()){
+        m_flexibleEdgeSizeEval += m_itemSpaceEval; // update to new widget start position
+    }
+    else{
+        fflassert(m_flexibleEdgeSizeEval == 0);
+    }
+
+    if(!m_fixedEdgeSize.has_value() && (widgetFixedEdge > m_fixedEdgeSizeEval)){
         m_fixedEdgeSizeEval = widgetFixedEdge;
     }
 
@@ -150,6 +157,11 @@ void ItemBox::addItem(Widget *argWidget, bool argAutoDelete)
             .widget = argWidget,
             .autoDelete = argAutoDelete,
         },
+
+        .attrs
+        {
+            .name = "ItemContainer",
+        },
     }},
 
     true);
@@ -176,39 +188,8 @@ void ItemBox::removeItem(uint64_t argItemID, bool argTriggerAutoDelete)
         return;
     }
 
-    const auto widgetShow = container->localShow();
-    const auto nextContainer = m_canvas->nextChild(container->id());
-
-    const auto widgetW = widgetShow ? container->contained()->w() : 0;
-    const auto widgetH = widgetShow ? container->contained()->h() : 0;
-
-    const auto widgetFlexEdge  = m_vbox ? widgetH : widgetW;
-    const auto widgetFixedEdge = m_vbox ? widgetW : widgetH;
-
-    container->removeChild(container->contained()->id(), argTriggerAutoDelete);
-    m_canvas ->removeChild(container->id(), true);
-
-    if(!widgetShow){
-        return;
-    }
-
-    if(hasShowItem()){
-        m_flexibleEdgeSizeEval -= widgetFlexEdge;
-        m_flexibleEdgeSizeEval -= m_itemSpaceEval;
-
-        if(nextContainer){
-            updateFlexEdgeOffset(nextContainer);
-        }
-
-        if(widgetFixedEdge >= m_fixedEdgeSizeEval){
-            updateFixedEdgeSize();
-            updateFixedEdgeOffset();
-        }
-    }
-    else{
-        m_fixedEdgeSizeEval = 0;
-        m_flexibleEdgeSizeEval = 0;
-    }
+    container->clearContained(argTriggerAutoDelete);
+    doRemoveContainer(container);
 }
 
 bool ItemBox::hasShowItem() const
@@ -221,24 +202,33 @@ void ItemBox::flipItemShow(uint64_t childID)
     if(auto child = m_canvas->hasDescendant(childID)){
         if(auto container = dynamic_cast<MarginContainer *>(child->parent())){
 
-            bool fixedEdgeChanged = false;
+            bool needUpdateFixedEdgeSize   = false;
+            bool needUpdateFixedEdgeOffset = false;
+
             if(container->localShow()){
-                if((m_vbox ? container->w() : container->h()) >= m_fixedEdgeSizeEval){ // actually cannot be greater
-                    updateFixedEdgeSize();
-                    fixedEdgeChanged = true;
+                if(!m_fixedEdgeSize.has_value() && (m_vbox ? container->w() : container->h()) >= m_fixedEdgeSizeEval){ // actually cannot be greater
+                    needUpdateFixedEdgeSize = true;
+                    needUpdateFixedEdgeOffset = true;
                 }
             }
             else{
-                if(const auto fixedEdge = m_vbox ? container->w() : container->h(); fixedEdge > m_fixedEdgeSizeEval){
-                    m_fixedEdgeSizeEval = fixedEdge;
-                    fixedEdgeChanged = true;
+                if(!m_fixedEdgeSize.has_value()){
+                    if(const auto fixedEdge = m_vbox ? container->w() : container->h(); fixedEdge > m_fixedEdgeSizeEval){
+                        m_fixedEdgeSizeEval = fixedEdge;
+                        needUpdateFixedEdgeOffset = true;
+                    }
                 }
             }
 
             container->flipShow();
-            if(fixedEdgeChanged && (m_align != ItemAlign::UPLEFT)){
+            if(needUpdateFixedEdgeSize){
+                updateFixedEdgeSize();
+            }
+
+            if(needUpdateFixedEdgeOffset && (m_align != ItemAlign::UPLEFT)){
                 updateFixedEdgeOffset();
             }
+
             updateFlexEdgeOffset(container);
         }
     }
@@ -292,6 +282,9 @@ void ItemBox::updateFlexEdgeSize()
 
 void ItemBox::updateFixedEdgeSize()
 {
+    // always re-evaluate fixed edge size
+    // if m_fixedEdgeSize has value, don't call this function except in buildLayout(), which re-evaluates everything
+
     if(m_fixedEdgeSize.has_value()){
         m_fixedEdgeSizeEval = Widget::evalSize(m_fixedEdgeSize.value(), this);
     }
@@ -378,4 +371,49 @@ const Widget *ItemBox::findShowContainer(bool forward) const
         return container;
     });
     return container;
+}
+
+void ItemBox::doRemoveContainer(const MarginContainer *container)
+{
+    if(!container){
+        return;
+    }
+
+    fflassert(!container->contained());
+    fflassert(m_canvas->hasChild(container->id()));
+
+    const auto widgetShow = container->localShow();
+    const auto nextContainer = m_canvas->nextChild(container->id());
+
+    const auto widgetW = widgetShow ? container->w() : 0;
+    const auto widgetH = widgetShow ? container->h() : 0;
+
+    const auto widgetFlexEdge  = m_vbox ? widgetH : widgetW;
+    const auto widgetFixedEdge = m_vbox ? widgetW : widgetH;
+
+    m_canvas->removeChild(container->id(), true);
+
+    if(!widgetShow){
+        return;
+    }
+
+    if(hasShowItem()){
+        m_flexibleEdgeSizeEval -= widgetFlexEdge;
+        m_flexibleEdgeSizeEval -= m_itemSpaceEval;
+
+        if(nextContainer){
+            updateFlexEdgeOffset(nextContainer);
+        }
+
+        if(!m_fixedEdgeSize.has_value() && (widgetFixedEdge >= m_fixedEdgeSizeEval)){
+            updateFixedEdgeSize();
+            updateFixedEdgeOffset();
+        }
+    }
+    else{
+        if(!m_fixedEdgeSize.has_value()){
+            m_fixedEdgeSizeEval = 0;
+        }
+        m_flexibleEdgeSizeEval = 0;
+    }
 }
