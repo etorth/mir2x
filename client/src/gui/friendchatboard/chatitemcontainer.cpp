@@ -41,7 +41,11 @@ ChatItemContainer::ChatItemContainer(
                           auto chatItemWidget = dynamic_cast<MarginContainer *>(chatItemBox)->contained();
                           auto chatItem       = dynamic_cast<ChatItem *>(chatItemWidget);
 
-                          chatItem->setMaxWidth(chatItemMaxWidth());
+                          // can be nomsgBox or opsBox
+
+                          if(chatItem){
+                              chatItem->setMaxWidth(chatItemMaxWidth());
+                          }
                       });
 
                       Widget::afterResizeDefault();
