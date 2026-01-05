@@ -133,7 +133,7 @@ CBMiddle::CBMiddle(
           .texIDList
           {
               .on   = 0X00000028,
-              .down = 0X00000029,
+              .down = 0X00000029, // invalid texID
           },
 
           .onTrigger = [this](Widget *, int clickCount)

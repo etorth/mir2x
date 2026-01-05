@@ -46,19 +46,24 @@ TritexButton::TritexButton(TritexButton::InitArgs args)
       {{
           .texLoadFunc = [this]
           {
-              return evalGfxTextureValid();
+              return evalGfxTexture();
           },
 
-          .modColor = [alterColor = std::move(args.alterColor), this]
+          .modColor = [modColor = std::move(args.modColor), this]
           {
               if(!active()){
                   return colorf::RGBA(128, 128, 128, 255);
               }
-              else if(getState() != BEVENT_OFF){
-                  return Widget::evalU32(alterColor, this);
+
+              if(modColor.has_value()){
+                  return Widget::evalU32(modColor.value(), this);
               }
-              else{
-                  return colorf::RGBA(255, 255, 255, 255);
+
+              switch(getState()){
+                  case BEVENT_OFF : return colorf::RGBA(255, 255, 255, 255);
+                  case BEVENT_ON  : return colorf::RGBA(255, 200, 255, 255);
+                  case BEVENT_DOWN: return colorf::RGBA(200, 150, 150, 255);
+                  default: std::unreachable();
               }
           },
 

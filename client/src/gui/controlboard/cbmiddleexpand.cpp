@@ -106,7 +106,7 @@ CBMiddleExpand::CBMiddleExpand(
           .texIDList
           {
               .on   = 0X00000028,
-              .down = 0X00000029,
+              .down = 0X00000029, // invalid texID
           },
 
           .onTrigger = [this](Widget *, int clickCount)
@@ -120,8 +120,8 @@ CBMiddleExpand::CBMiddleExpand(
 
     , m_buttonEmoji
       {{
-          .x = [this]{ return w() - 90; },
-          .y = 87,
+          .x = [this]{ return w() - 94; },
+          .y = [this]{ return h() - 44; },
 
           .texIDList
           {
@@ -134,8 +134,8 @@ CBMiddleExpand::CBMiddleExpand(
 
     , m_buttonMute
       {{
-          .x = [this]{ return w() - 55; },
-          .y = 87,
+          .x = [this]{ return w() - 54; },
+          .y = [this]{ return h() - 44; },
 
           .texIDList
           {

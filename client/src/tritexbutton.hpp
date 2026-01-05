@@ -64,7 +64,7 @@ class TritexButton: public ButtonBase
             bool onClickDone = true;
             bool radioMode   = false;
 
-            Widget::VarU32 alterColor = colorf::RGBA(255, 200, 255, 255);
+            Widget::VarU32Opt modColor = std::nullopt;
 
             Widget::InstAttrs attrs {};
             Widget::WADPair  parent {};
@@ -75,7 +75,7 @@ class TritexButton: public ButtonBase
         TritexButton::TritexIDList m_texIDList;
 
     private:
-        const Widget::VarU32 m_alterColor;
+        const Widget::VarU32 m_modColor;
 
     private:
         double m_accuBlinkTime = 0.0;
