@@ -43,3 +43,8 @@ TextBoard::TextBoard(TextBoard::InitArgs args)
         throw fflerror("invalid font: %hhu", m_font.id);
     }
 }
+
+std::tuple<std::string, std::string> TextBoard::fontName() const
+{
+    return g_fontexDB->fontName(m_font.id);
+}

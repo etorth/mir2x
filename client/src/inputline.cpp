@@ -46,6 +46,7 @@ InputLine::InputLine(InputLine::InitArgs args)
     , m_onTab   (std::move(args.onTab))
     , m_onCR    (std::move(args.onCR))
     , m_onChange(std::move(args.onChange))
+    , m_validate(std::move(args.validate))
 {}
 
 bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)

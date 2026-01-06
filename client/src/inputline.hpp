@@ -7,13 +7,14 @@
 
 class InputLine: public Widget
 {
-    protected:
+    public:
         struct CursorArgs final
         {
             Widget::VarSize w = 2;
             Widget::VarU32 color = colorf::WHITE_A255;
         };
 
+    private:
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
@@ -31,6 +32,7 @@ class InputLine: public Widget
             std::function<void()>            onTab    = nullptr;
             std::function<void()>            onCR     = nullptr;
             std::function<void(std::string)> onChange = nullptr;
+            std::function<bool(std::string)> validate = nullptr;
 
             Widget::WADPair parent {};
         };
@@ -52,6 +54,7 @@ class InputLine: public Widget
         std::function<void()>            m_onTab;
         std::function<void()>            m_onCR;
         std::function<void(std::string)> m_onChange;
+        std::function<bool(std::string)> m_validate;
 
     public:
         InputLine(InputLine::InitArgs);

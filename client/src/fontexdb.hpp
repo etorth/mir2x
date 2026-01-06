@@ -123,6 +123,29 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             return !findFontData(font).empty();
         }
 
+        size_t fontCount() const
+        {
+            return m_entryList.size();
+        }
+
+        std::tuple<std::string, std::string> fontName(uint8_t font)
+        {
+            if(!hasFont(font)){
+                throw fflerror("invalid font index: %u", to_u(font));
+            }
+
+            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+                const auto familyName = TTF_FontFaceFamilyName(ttfPtr);
+                const auto  styleName = TTF_FontFaceStyleName (ttfPtr);
+
+                fflassert(str_haschar(familyName));
+                fflassert(str_haschar( styleName));
+
+                return {familyName, styleName};
+            }
+            throw fflerror("failed to load font: %u", to_u(font));
+        }
+
     public:
         std::optional<std::tuple<FontexElement, size_t>> loadResource(uint64_t) override;
 

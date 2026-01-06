@@ -1,4 +1,5 @@
 #pragma once
+#include <tuple>
 #include <string>
 #include <cstdint>
 #include <variant>
@@ -59,6 +60,9 @@ class TextBoard: public Widget
         {
             m_textFunc = std::move(argTextFunc);
         }
+
+    public:
+        std::tuple<std::string, std::string> fontName() const;
 
     public:
         std::string getText() const
