@@ -182,15 +182,15 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
     fnDrawLabel(279, 97 + 24 * 7, str_printf(u8"%d", combatNode.dcHit));
     fnDrawLabel(279, 97 + 24 * 8, str_printf(u8"%d", combatNode.dcDodge));
 
-    LabelBoard{{.label = str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str()}}.draw({.x{m.x +  21}, .y{m.y + 317}});
-    LabelBoard{{.label = str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str()}}.draw({.x{m.x + 130}, .y{m.y + 317}});
-    LabelBoard{{.label = str_printf(u8"魔法 %d - %d", combatNode. mc[0], combatNode. mc[1]).c_str()}}.draw({.x{m.x +  21}, .y{m.y + 345}});
-    LabelBoard{{.label = str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str()}}.draw({.x{m.x + 130}, .y{m.y + 345}});
-    LabelBoard{{.label = str_printf(u8"道术 %d - %d", combatNode. sc[0], combatNode. sc[1]).c_str()}}.draw({.x{m.x + 233}, .y{m.y + 345}});
+    LabelBoard{{.label = str_printf(u8"攻击 %d - %d", combatNode. dc[0], combatNode. dc[1]).c_str(), .font{9, 15}}}.draw({.x{m.x +  21}, .y{m.y + 317}});
+    LabelBoard{{.label = str_printf(u8"防御 %d - %d", combatNode. ac[0], combatNode. ac[1]).c_str(), .font{9, 15}}}.draw({.x{m.x + 130}, .y{m.y + 317}});
+    LabelBoard{{.label = str_printf(u8"魔法 %d - %d", combatNode. mc[0], combatNode. mc[1]).c_str(), .font{9, 15}}}.draw({.x{m.x +  21}, .y{m.y + 345}});
+    LabelBoard{{.label = str_printf(u8"魔防 %d - %d", combatNode.mac[0], combatNode.mac[1]).c_str(), .font{9, 15}}}.draw({.x{m.x + 130}, .y{m.y + 345}});
+    LabelBoard{{.label = str_printf(u8"道术 %d - %d", combatNode. sc[0], combatNode. sc[1]).c_str(), .font{9, 15}}}.draw({.x{m.x + 233}, .y{m.y + 345}});
 
-    LabelBoard{{.label = u8"攻击元素",}}.draw({.x{m.x + 10}, .y{m.y + 376}});
-    LabelBoard{{.label = u8"防御元素",}}.draw({.x{m.x + 10}, .y{m.y + 406}});
-    LabelBoard{{.label = u8"弱点元素",}}.draw({.x{m.x + 10}, .y{m.y + 436}});
+    LabelBoard{{.label = u8"攻击元素", .font{9, 15}}}.draw({.x{m.x + 10}, .y{m.y + 376}});
+    LabelBoard{{.label = u8"防御元素", .font{9, 15}}}.draw({.x{m.x + 10}, .y{m.y + 406}});
+    LabelBoard{{.label = u8"弱点元素", .font{9, 15}}}.draw({.x{m.x + 10}, .y{m.y + 436}});
 
     for(int i = MET_BEGIN; i < MET_END; ++i){
         const auto [dcElem, acElem] = [i, &combatNode]() -> std::array<int, 2>
@@ -419,14 +419,8 @@ void PlayerStateBoard::drawItemHoverText(int wltype) const
     const LayoutBoard hoverTextBoard
     {{
         .lineWidth = 200,
+
         .initXML = to_cstr(item.getXMLLayout().c_str()),
-
-        .font
-        {
-            .id = 1,
-            .size = 12,
-        },
-
         .lineAlign = LALIGN_JUSTIFY,
     }};
 
