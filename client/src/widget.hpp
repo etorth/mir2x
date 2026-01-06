@@ -288,8 +288,19 @@ class Widget: public WidgetTreeNode
 
         struct FontConfig final
         {
-            uint8_t id    =  1; // default font
-            uint8_t size  = 12;
+            // fontex has WenQuanYi Song bitmap font support
+            // but to avoid bitmap zoom in/out, use specified pt in filename, i.e.
+            //
+            //     id: 09, pt 15, filename 09_WenQuanYi_Bitmap_Song_15_px.TTF
+            //     id: 10, pt 15, filename 0A_WenQuanYi_Bitmap_Song_15_px.TTF
+            //     id: 11, pt 15, filename 0B_WenQuanYi_Bitmap_Song_15_px.TTF
+            //     id: 12, pt 18, filename 0C_WenQuanYi_Bitmap_Song_18_px.TTF
+            //     id: 13, pt 18, filename 0D_WenQuanYi_Bitmap_Song_18_px.TTF
+            //
+            // when using id 11, please use pt 15 only
+
+            uint8_t id    = 11; // default font
+            uint8_t size  = 15;
             uint8_t style =  0;
 
             Widget::VarU32   color = colorf::WHITE_A255;
