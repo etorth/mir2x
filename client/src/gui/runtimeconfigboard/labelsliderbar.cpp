@@ -32,11 +32,6 @@ LabelSliderBar::LabelSliderBar(
     , m_label
       {{
           .label = argLabel,
-          .font
-          {
-              .id = 1,
-              .size = 12,
-          },
       }}
 
     , m_labelCrop

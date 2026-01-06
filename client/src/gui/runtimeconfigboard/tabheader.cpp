@@ -40,11 +40,6 @@ TabHeader::TabHeader(
     , m_label
       {{
           .label = argLabel,
-          .font
-          {
-              .id = 1,
-              .size = 14,
-          },
       }}
 
     , m_button

@@ -60,12 +60,6 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           .y = m_leftMenuBackground.dy() + m_leftMenuBackground.h() / 2,
 
           .lineWidth = to_dround(m_leftMenuBackground.w() * 0.7),
-          .font
-          {
-              .id = 1,
-              .size = 14,
-          },
-
           .onClickText = [this](const std::unordered_map<std::string, std::string> &attrList, int event)
           {
               if(event == BEVENT_RELEASE){

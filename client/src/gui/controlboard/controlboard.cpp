@@ -51,12 +51,6 @@ ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     , m_processRun(argProc)
     , m_logBoard
       {{
-          .font
-          {
-              .id = 1,
-              .size = 12,
-          },
-
           .lineAlign = LALIGN_JUSTIFY,
       }}
 
@@ -66,12 +60,6 @@ ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .enableIME = [this]
           {
               return m_processRun->getRuntimeConfig<RTCFG_PINYIN>();
-          },
-
-          .font
-          {
-              .id = 1,
-              .size = 12,
           },
 
           .lineAlign = LALIGN_JUSTIFY,

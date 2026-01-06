@@ -20,8 +20,6 @@ class IMEBoard: public Widget
 
             Widget::FontConfig font
             {
-                .id = 1,
-                .size = 12,
                 .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
             };
 

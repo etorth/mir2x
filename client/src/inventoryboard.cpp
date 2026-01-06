@@ -536,14 +536,8 @@ void InventoryBoard::drawItemHoverText(const PackBin &bin) const
     const LayoutBoard hoverTextBoard
     {{
         .lineWidth = 200,
+
         .initXML = to_cstr(bin.item.getXMLLayout().c_str()),
-
-        .font
-        {
-            .id = 1,
-            .size = 12,
-        },
-
         .lineAlign = LALIGN_JUSTIFY,
     }};
 
