@@ -30,6 +30,8 @@ class PullMenu: public Widget
             PullMenu::LabelCropArgs label {};
             PullMenu::LabelCropArgs title {};
 
+            Widget::VarBool showButton = false;
+
             std::vector<MenuBoard::AddItemArgs> itemList {};
             MenuItem::ClickCBFunc onClick = nullptr;
 

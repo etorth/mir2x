@@ -291,6 +291,8 @@ class Widget: public WidgetTreeNode
             // fontex has WenQuanYi Song bitmap font support
             // but to avoid bitmap zoom in/out, use specified pt in filename, i.e.
             //
+            //     id: 07, pt 12, filename 07_fusion-pixel-12px-monospaced-zh_hans.TTF
+            //     id: 08, pt 12, filename 08_fusion-pixel-12px-proportional-zh_hans.TTF
             //     id: 09, pt 15, filename 09_WenQuanYi_Bitmap_Song_15_px.TTF
             //     id: 10, pt 15, filename 0A_WenQuanYi_Bitmap_Song_15_px.TTF
             //     id: 11, pt 15, filename 0B_WenQuanYi_Bitmap_Song_15_px.TTF

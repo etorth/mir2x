@@ -69,6 +69,11 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
               m_menuBoard.setFocus(!m_menuBoard.show());
               m_menuBoard.flipShow();
           },
+
+          .attrs
+          {
+              .show = std::move(args.showButton),
+          },
       }}
 
     , m_flex
