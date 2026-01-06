@@ -107,12 +107,6 @@ NPCChatBoard::NPCChatBoard(
               return h() / 2;
           },
 
-          .font
-          {
-              .id = 1,
-              .size = 12,
-          },
-
           .lineAlign = LALIGN_JUSTIFY,
 
           .onClickText = [this](const std::unordered_map<std::string, std::string> &attrList, int event)
