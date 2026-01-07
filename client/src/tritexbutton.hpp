@@ -7,12 +7,6 @@
 
 class TritexButton: public ButtonBase
 {
-    protected:
-        using ButtonBase::SeffIDList;
-        using ButtonBase::OverCBFunc;
-        using ButtonBase::ClickCBFunc;
-        using ButtonBase::TriggerCBFunc;
-
     private:
         struct TritexIDList final
         {
@@ -47,13 +41,13 @@ class TritexButton: public ButtonBase
             TritexButton::TritexIDFunc texIDFunc {};
             TritexButton::TritexIDList texIDList {};
 
-            TritexButton::SeffIDList seff {};
+            Button::SeffIDList seff {};
 
-            TritexButton::OverCBFunc onOverIn  = nullptr;
-            TritexButton::OverCBFunc onOverOut = nullptr;
+            Button::OverCBFunc onOverIn  = nullptr;
+            Button::OverCBFunc onOverOut = nullptr;
 
-            TritexButton::ClickCBFunc onClick = nullptr;
-            TritexButton::TriggerCBFunc onTrigger = nullptr;
+            Button::ClickCBFunc onClick = nullptr;
+            Button::TriggerCBFunc onTrigger = nullptr;
 
             int offXOnOver = 0;
             int offYOnOver = 0;

@@ -4,11 +4,6 @@
 
 class AlphaOnButton: public TrigfxButton
 {
-    protected:
-        using TrigfxButton::   OverCBFunc;
-        using TrigfxButton::  ClickCBFunc;
-        using TrigfxButton::TriggerCBFunc;
-
     private:
         struct InitArgs final
         {
@@ -25,11 +20,11 @@ class AlphaOnButton: public TrigfxButton
             Widget::VarU32 modColor  = colorf::WHITE_A255;
             Widget::VarU32 downTexID = 0U;
 
-            AlphaOnButton::OverCBFunc onOverIn  = nullptr;
-            AlphaOnButton::OverCBFunc onOverOut = nullptr;
+            Button::OverCBFunc onOverIn  = nullptr;
+            Button::OverCBFunc onOverOut = nullptr;
 
-            AlphaOnButton::ClickCBFunc onClick = nullptr;
-            AlphaOnButton::TriggerCBFunc onTrigger = nullptr;
+            Button::ClickCBFunc onClick = nullptr;
+            Button::TriggerCBFunc onTrigger = nullptr;
 
             bool triggerOnDone = true;
 

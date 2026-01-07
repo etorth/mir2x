@@ -7,12 +7,6 @@
 class TrigfxButton: public ButtonBase
 {
     public:
-        using ButtonBase::   OverCBFunc;
-        using ButtonBase::  ClickCBFunc;
-        using ButtonBase::TriggerCBFunc;
-        using ButtonBase::SeffIDList;
-
-    public:
         using TrigfxFunc = std::variant<std::nullptr_t,
                                         std::function<const Widget *(                   )>,
                                         std::function<const Widget *(                int)>,
@@ -28,13 +22,13 @@ class TrigfxButton: public ButtonBase
             TrigfxButton::TrigfxFunc      gfxFunc {};
             std::array<const Widget *, 3> gfxList {};
 
-            TrigfxButton::SeffIDList seff {};
+            Button::SeffIDList seff {};
 
-            TrigfxButton::OverCBFunc onOverIn  = nullptr;
-            TrigfxButton::OverCBFunc onOverOut = nullptr;
+            Button::OverCBFunc onOverIn  = nullptr;
+            Button::OverCBFunc onOverOut = nullptr;
 
-            TrigfxButton::ClickCBFunc onClick = nullptr;
-            TrigfxButton::TriggerCBFunc onTrigger = nullptr;
+            Button::ClickCBFunc onClick = nullptr;
+            Button::TriggerCBFunc onTrigger = nullptr;
 
             int offXOnOver = 0;
             int offYOnOver = 0;

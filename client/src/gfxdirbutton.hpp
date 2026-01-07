@@ -4,9 +4,6 @@
 
 class GfxDirButton: public TrigfxButton
 {
-    public:
-        using TriggerCBFunc = TrigfxButton::TriggerCBFunc;
-
     private:
         struct TriangleArgs final
         {
@@ -37,7 +34,7 @@ class GfxDirButton: public TrigfxButton
             GfxDirButton::TriangleArgs triangle {};
             GfxDirButton::FrameArgs frame {};
 
-            TrigfxButton::TriggerCBFunc onTrigger = nullptr;
+            Button::TriggerCBFunc onTrigger = nullptr;
             Widget::WADPair parent {};
         };
 

@@ -5,9 +5,6 @@
 class ProcessRun;
 class CBLevel: public TrigfxButton
 {
-    protected:
-        using TrigfxButton::TriggerCBFunc;
-
     private:
         ProcessRun *m_processRun;
 
@@ -21,7 +18,7 @@ class CBLevel: public TrigfxButton
                 Widget::VarInt,
 
                 ProcessRun *,
-                CBLevel::TriggerCBFunc,
+                Button::TriggerCBFunc,
 
                 Widget * = nullptr,
                 bool     = false);

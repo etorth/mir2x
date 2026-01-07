@@ -13,7 +13,7 @@ CBLevel::CBLevel(
         Widget::VarInt argY,
 
         ProcessRun *argProc,
-        CBLevel::TriggerCBFunc argOnClick,
+        Button::TriggerCBFunc argOnClick,
 
         Widget *argParent,
         bool    argAutoDelete)

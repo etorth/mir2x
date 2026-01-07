@@ -228,15 +228,7 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
 
 void ButtonBase::onOverIn()
 {
-    std::visit(VarDispatcher
-    {
-        [    ](std::function<void(        )> &f){ if(f){f(    );} },
-        [this](std::function<void(Widget *)> &f){ if(f){f(this);} },
-
-        [](auto &){},
-
-    }, m_onOverIn);
-
+    Button::evalOverCBFunc(m_onOverIn, this);
     if(m_seff.onOverIn.has_value()){
         g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seff.onOverIn.value())));
     }
@@ -244,15 +236,7 @@ void ButtonBase::onOverIn()
 
 void ButtonBase::onOverOut()
 {
-    std::visit(VarDispatcher
-    {
-        [    ](std::function<void(        )> &f){ if(f){f(    );} },
-        [this](std::function<void(Widget *)> &f){ if(f){f(this);} },
-
-        [](auto &){},
-
-    }, m_onOverOut);
-
+    Button::evalOverCBFunc(m_onOverOut, this);
     if(m_seff.onOverOut.has_value()){
         g_sdlDevice->playSoundEffect(g_seffDB->retrieve((m_seff.onOverOut.value())));
     }
@@ -260,15 +244,7 @@ void ButtonBase::onOverOut()
 
 void ButtonBase::onClick(bool clickDone, int clickCount)
 {
-    std::visit(VarDispatcher
-    {
-        [      clickDone, clickCount](std::function<void(          bool, int)> &f){ if(f){f(      clickDone, clickCount);} },
-        [this, clickDone, clickCount](std::function<void(Widget *, bool, int)> &f){ if(f){f(this, clickDone, clickCount);} },
-
-        [](auto &){},
-
-    }, m_onClick);
-
+    Button::evalClickCBFunc(m_onClick, this, clickDone, clickCount);
     if(clickDone){
         // pressed button released
     }
@@ -279,21 +255,9 @@ void ButtonBase::onClick(bool clickDone, int clickCount)
     }
 }
 
-void ButtonBase::evalTriggerCBFunc(const TriggerCBFunc &func, Widget *widget, int clickCount)
-{
-    std::visit(VarDispatcher
-    {
-        [        clickCount](const std::function<void(          int)> &f){ if(f){f(        clickCount);} },
-        [widget, clickCount](const std::function<void(Widget *, int)> &f){ if(f){f(widget, clickCount);} },
-
-        [](auto &){},
-
-    }, func);
-}
-
 void ButtonBase::onTrigger(int clickCount)
 {
-    ButtonBase::evalTriggerCBFunc(m_onTrigger, this, clickCount);
+    Button::evalTriggerCBFunc(m_onTrigger, this, clickCount);
 }
 
 void ButtonBase::onBadEvent()

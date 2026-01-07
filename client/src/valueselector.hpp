@@ -39,8 +39,8 @@ class ValueSelector: public Widget
 
             Widget::VarBool finizeOnChange = true;
 
-            GfxDirButton::TriggerCBFunc   upTrigger = nullptr;
-            GfxDirButton::TriggerCBFunc downTrigger = nullptr;
+            Button::TriggerCBFunc   upTrigger = nullptr;
+            Button::TriggerCBFunc downTrigger = nullptr;
 
             Widget::WADPair parent {};
         };

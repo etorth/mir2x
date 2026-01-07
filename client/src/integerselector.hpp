@@ -33,8 +33,8 @@ class IntegerSelector: public ValueSelector
             IntegerSelector:: InputArgs  input {};
             IntegerSelector::ButtonArgs button {};
 
-            GfxDirButton::TriggerCBFunc   upTrigger = nullptr;
-            GfxDirButton::TriggerCBFunc downTrigger = nullptr;
+            Button::TriggerCBFunc   upTrigger = nullptr;
+            Button::TriggerCBFunc downTrigger = nullptr;
 
             Widget::VarGetter<std::pair<int, int>> range {};
 

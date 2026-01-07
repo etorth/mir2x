@@ -5,23 +5,10 @@
 #include "bevent.hpp"
 #include "sysconst.hpp"
 #include "widget.hpp"
+#include "button.hpp"
 
 class ButtonBase: public Widget
 {
-    public:
-        using    OverCBFunc = std::variant<std::nullptr_t, std::function<void(         )>, std::function<void(Widget *           )>>;
-        using   ClickCBFunc = std::variant<std::nullptr_t, std::function<void(bool, int)>, std::function<void(Widget *, bool, int)>>;
-        using TriggerCBFunc = std::variant<std::nullptr_t, std::function<void(      int)>, std::function<void(Widget *,       int)>>;
-
-        static void evalTriggerCBFunc(const TriggerCBFunc &, Widget *, int);
-
-        struct SeffIDList
-        {
-            std::optional<uint32_t> onOverIn  = {};
-            std::optional<uint32_t> onOverOut = {};
-            std::optional<uint32_t> onClick   = 0X01020000 + 105;
-        };
-
     private:
         struct InitArgs
         {
@@ -33,13 +20,13 @@ class ButtonBase: public Widget
             Widget::VarSizeOpt w = 0;
             Widget::VarSizeOpt h = 0;
 
-            OverCBFunc onOverIn  = nullptr;
-            OverCBFunc onOverOut = nullptr;
+            Button::OverCBFunc onOverIn  = nullptr;
+            Button::OverCBFunc onOverOut = nullptr;
 
-            ClickCBFunc onClick = nullptr;
-            TriggerCBFunc onTrigger = nullptr;
+            Button::ClickCBFunc onClick = nullptr;
+            Button::TriggerCBFunc onTrigger = nullptr;
 
-            SeffIDList seff {};
+            Button::SeffIDList seff {};
 
             int offXOnOver = 0;
             int offYOnOver = 0;
@@ -84,18 +71,18 @@ class ButtonBase: public Widget
         const bool m_radioMode;
 
     protected:
-        const ButtonBase::SeffIDList m_seff;
+        const Button::SeffIDList m_seff;
 
     protected:
         const int m_offset[3][2];
 
     protected:
-        ButtonBase::OverCBFunc m_onOverIn;
-        ButtonBase::OverCBFunc m_onOverOut;
+        Button::OverCBFunc m_onOverIn;
+        Button::OverCBFunc m_onOverOut;
 
     protected:
-        ButtonBase::ClickCBFunc m_onClick;
-        ButtonBase::TriggerCBFunc m_onTrigger;
+        Button::ClickCBFunc m_onClick;
+        Button::TriggerCBFunc m_onTrigger;
 
     public:
         ButtonBase(ButtonBase::InitArgs);

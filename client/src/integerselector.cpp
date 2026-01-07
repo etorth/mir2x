@@ -30,11 +30,11 @@ IntegerSelector::IntegerSelector(IntegerSelector::InitArgs args)
 
               if(val < max){
                   setValue(std::to_string(val + 1).c_str());
-                  ButtonBase::evalTriggerCBFunc(tgr, this, clicks);
+                  Button::evalTriggerCBFunc(tgr, this, clicks);
               }
               else if(val > max){
                   setValue(std::to_string(max).c_str());
-                  ButtonBase::evalTriggerCBFunc(tgr, this, clicks);
+                  Button::evalTriggerCBFunc(tgr, this, clicks);
               }
           },
 
@@ -45,11 +45,11 @@ IntegerSelector::IntegerSelector(IntegerSelector::InitArgs args)
 
               if(val > min){
                   setValue(std::to_string(val - 1).c_str());
-                  ButtonBase::evalTriggerCBFunc(tgr, this, clicks);
+                  Button::evalTriggerCBFunc(tgr, this, clicks);
               }
               else if(val < min){
                   setValue(std::to_string(min).c_str());
-                  ButtonBase::evalTriggerCBFunc(tgr, this, clicks);
+                  Button::evalTriggerCBFunc(tgr, this, clicks);
               }
           },
 
