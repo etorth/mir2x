@@ -1,4 +1,7 @@
+#include "sdldevice.hpp"
 #include "valueselector.hpp"
+
+extern SDLDevice *g_sdlDevice;
 
 ValueSelector::ValueSelector(ValueSelector::InitArgs args)
     : Widget
@@ -8,7 +11,7 @@ ValueSelector::ValueSelector(ValueSelector::InitArgs args)
           .x = std::move(args.x),
           .y = std::move(args.y),
 
-          .w = std::move(args.w),
+          .w = 0,
           .h = std::move(args.h),
 
           .parent = std::move(args.parent),
@@ -17,36 +20,35 @@ ValueSelector::ValueSelector(ValueSelector::InitArgs args)
     , m_input
       {{
           .w = std::move(args.input.w),
-          .h = std::move(args.h),
+          .h = [this]{ return h(); },
 
           .enableIME = std::move(args.input.enableIME),
 
           .font   = std::move(args.input.font),
           .cursor = std::move(args.input.cursor),
-
-          .onCR = [this]
-          {
-          },
-
-          .validate = []
-          {
-
-          },
       }}
 
     , m_up
       {{
-          .w = [this]
-          {
-
-          },
-
+          .w = std::move(args.button.w),
           .h = [this]{ return h() / 2; },
 
           .triangle
           {
               .dir = DIR_UP,
+
+              .w = [](const Widget *self){ return self->w() / 2; },
+              .h = [](const Widget *self){ return self->h() / 2; },
+
+              .color = colorf::GREY_A255,
           },
+
+          .frame
+          {
+              .color = colorf::GREY_A255,
+          },
+
+          .onTrigger = std::move(args.upTrigger),
       }}
 
     , m_down
@@ -57,7 +59,19 @@ ValueSelector::ValueSelector(ValueSelector::InitArgs args)
           .triangle
           {
               .dir = DIR_DOWN,
+
+              .w = [](const Widget *self){ return self->w() / 2; },
+              .h = [](const Widget *self){ return self->h() / 2; },
+
+              .color = colorf::GREY_A255,
           },
+
+          .frame
+          {
+              .color = colorf::GREY_A255,
+          },
+
+          .onTrigger = std::move(args.downTrigger),
       }}
 
     , m_vflex
@@ -71,23 +85,30 @@ ValueSelector::ValueSelector(ValueSelector::InitArgs args)
 
     , m_hflex
       {{
+          .v = false,
+          .headSpace = 2,
+
           .childList
           {
               {&m_input, false},
               {&m_vflex, false},
           },
+
+          .parent{this},
       }}
 
     , m_frame
       {{
-          .w = [this]{ return w(); },
-          .h = [this]{ return h(); },
+          .w = [this]{ return m_hflex.w(); },
+          .h = [this]{ return m_hflex.h(); },
 
-          .drawFunc = [this](Widget::ROIMap roiMap) const
+          .drawFunc = [](const Widget *self, int dstDrawX, int dstDrawY)
           {
-              colorf::drawFrame(0, 0, w(), h(), colorf::GRAY_A255, 2, roiMap);
+              g_sdlDevice->drawRectangle(colorf::GREY_A255, dstDrawX, dstDrawY, self->w(), self->h());
           },
 
-          .parent = Widget::WADPair{&m_hflex, false},
+          .parent{this},
       }}
-{}
+{
+    setW([this]{ return m_hflex.w(); });
+}

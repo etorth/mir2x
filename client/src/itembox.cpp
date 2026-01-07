@@ -45,13 +45,15 @@ ItemBox::ItemBox(ItemBox::InitArgs args)
 
     , m_vbox(args.v)
     , m_align(args.align)
-
     , m_canvas(firstChild())
+
+    , m_headSpace(std::move(args.headSpace))
     , m_itemSpace(std::move(args.itemSpace))
+    , m_tailSpace(std::move(args.tailSpace))
     , m_fixedEdgeSize(std::move(args.fixed))
 {
-    m_canvas->setSize([this]{ return  m_vbox ? m_fixedEdgeSizeEval : m_flexibleEdgeSizeEval; },
-                      [this]{ return !m_vbox ? m_fixedEdgeSizeEval : m_flexibleEdgeSizeEval; });
+    m_canvas->setSize([this]{ return  m_vbox ? m_fixedEdgeSizeEval : (m_headSpaceEval + m_flexibleEdgeSizeEval + m_tailSpaceEval); },
+                      [this]{ return !m_vbox ? m_fixedEdgeSizeEval : (m_headSpaceEval + m_flexibleEdgeSizeEval + m_tailSpaceEval); });
 
     for(auto [widget, autoDelete]: args.childList){
         if(widget){
@@ -113,24 +115,24 @@ void ItemBox::addItem(Widget *argWidget, bool argAutoDelete)
         case ItemAlign::UPLEFT:
             {
                 d = DIR_UPLEFT;
-                x =  m_vbox ? 0 : m_flexibleEdgeSizeEval;
-                y = !m_vbox ? 0 : m_flexibleEdgeSizeEval;
+                x =  m_vbox ? 0 : m_headSpaceEval + m_flexibleEdgeSizeEval;
+                y = !m_vbox ? 0 : m_headSpaceEval + m_flexibleEdgeSizeEval;
 
                 break;
             }
         case ItemAlign::DOWNRIGHT:
             {
                 d =  m_vbox ? DIR_UPRIGHT : DIR_DOWNLEFT;
-                x =  m_vbox ? m_fixedEdgeSizeEval - 1 : m_flexibleEdgeSizeEval;
-                y = !m_vbox ? m_fixedEdgeSizeEval - 1 : m_flexibleEdgeSizeEval;
+                x =  m_vbox ? m_fixedEdgeSizeEval - 1 : m_headSpaceEval + m_flexibleEdgeSizeEval;
+                y = !m_vbox ? m_fixedEdgeSizeEval - 1 : m_headSpaceEval + m_flexibleEdgeSizeEval;
 
                 break;
             }
         case ItemAlign::CENTER:
             {
                 d =  m_vbox ? DIR_UP : DIR_LEFT;
-                x =  m_vbox ? m_fixedEdgeSizeEval / 2 : m_flexibleEdgeSizeEval;
-                y = !m_vbox ? m_fixedEdgeSizeEval / 2 : m_flexibleEdgeSizeEval;
+                x =  m_vbox ? m_fixedEdgeSizeEval / 2 : m_headSpaceEval + m_flexibleEdgeSizeEval;
+                y = !m_vbox ? m_fixedEdgeSizeEval / 2 : m_headSpaceEval + m_flexibleEdgeSizeEval;
 
                 break;
             }
@@ -236,7 +238,10 @@ void ItemBox::flipItemShow(uint64_t childID)
 
 void ItemBox::buildLayout()
 {
+    m_headSpaceEval = Widget::evalSize(m_headSpace, this);
     m_itemSpaceEval = Widget::evalSize(m_itemSpace, this);
+    m_tailSpaceEval = Widget::evalSize(m_tailSpace, this);
+
     if(const auto firstShow = firstShowContainer()){
         updateMarginContainers();
 

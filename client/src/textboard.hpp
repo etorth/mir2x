@@ -22,7 +22,9 @@ class TextBoard: public Widget
             Widget::FontConfig font {};
 
             Widget::VarBlendMode blendMode = SDL_BLENDMODE_BLEND;
-            Widget::WADPair parent {};
+
+            Widget::InstAttrs attrs {};
+            Widget::WADPair  parent {};
         };
 
     private:

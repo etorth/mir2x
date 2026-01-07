@@ -11,7 +11,9 @@ private:
         bool v = true;
         ItemAlign align = ItemAlign::UPLEFT;
 
+        Widget::VarSize headSpace = 0;
         Widget::VarSize itemSpace = 0;
+        Widget::VarSize tailSpace = 0;
 
         std::initializer_list<std::pair<Widget *, bool>> childList {};
         Widget::WADPair parent {};

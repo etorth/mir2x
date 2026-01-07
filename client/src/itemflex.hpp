@@ -17,7 +17,11 @@ class ItemFlex: public Widget
         Widget *m_canvas;
 
     private:
+        Widget::VarSize m_headSpace;
         Widget::VarSize m_itemSpace;
+        Widget::VarSize m_tailSpace;
+
+    private:
         Widget::VarSizeOpt m_fixedEdgeSize;
 
     public:

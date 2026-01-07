@@ -279,16 +279,21 @@ void ButtonBase::onClick(bool clickDone, int clickCount)
     }
 }
 
-void ButtonBase::onTrigger(int clickCount)
+void ButtonBase::evalTriggerCBFunc(const TriggerCBFunc &func, Widget *widget, int clickCount)
 {
     std::visit(VarDispatcher
     {
-        [      clickCount](std::function<void(          int)> &f){ if(f){f(      clickCount);} },
-        [this, clickCount](std::function<void(Widget *, int)> &f){ if(f){f(this, clickCount);} },
+        [        clickCount](const std::function<void(          int)> &f){ if(f){f(        clickCount);} },
+        [widget, clickCount](const std::function<void(Widget *, int)> &f){ if(f){f(widget, clickCount);} },
 
         [](auto &){},
 
-    }, m_onTrigger);
+    }, func);
+}
+
+void ButtonBase::onTrigger(int clickCount)
+{
+    ButtonBase::evalTriggerCBFunc(m_onTrigger, this, clickCount);
 }
 
 void ButtonBase::onBadEvent()

@@ -12,6 +12,10 @@ TextBoard::TextBoard(TextBoard::InitArgs args)
           .w = {},
           .h = {},
 
+          .attrs
+          {
+              .inst = std::move(args.attrs),
+          },
           .parent = std::move(args.parent),
       }}
 

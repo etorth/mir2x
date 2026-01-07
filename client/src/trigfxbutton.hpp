@@ -6,7 +6,7 @@
 
 class TrigfxButton: public ButtonBase
 {
-    protected:
+    public:
         using ButtonBase::   OverCBFunc;
         using ButtonBase::  ClickCBFunc;
         using ButtonBase::TriggerCBFunc;

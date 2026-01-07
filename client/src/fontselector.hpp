@@ -1,10 +1,15 @@
 #pragma once
 #include "widget.hpp"
 #include "pullmenu.hpp"
+#include "textboard.hpp"
+#include "gfxshapeboard.hpp"
 #include "integerselector.hpp"
 
 class FontSelector: public Widget
 {
+    private:
+        constexpr static int GAP = 10;
+
     private:
         struct InitArgs final
         {
@@ -20,6 +25,14 @@ class FontSelector: public Widget
         PullMenu        m_widget;
         PullMenu        m_font;
         IntegerSelector m_size;
+
+    private:
+        TextBoard m_english;
+        TextBoard m_chinese;
+
+    private:
+        ItemFlex m_vflex;
+        GfxShapeBoard m_vflexFrame;
 
     public:
         FontSelector(FontSelector::InitArgs);

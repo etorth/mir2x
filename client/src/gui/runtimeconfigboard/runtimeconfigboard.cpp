@@ -9,6 +9,7 @@
 #include "soundeffectdb.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
+#include "fontselector.hpp"
 
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
@@ -228,6 +229,27 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                           DIR_UPLEFT, 0,  185, true},
 
                           {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 210, false},
+                      },
+                  }},
+                  true,
+              },
+
+              {
+                  u8"外观",
+                  new Widget
+                  {{
+                      .w = {},
+                      .h = {},
+
+                      .childList
+                      {
+                          {
+                              .widget = new FontSelector
+                              {{
+
+                              }},
+                              .autoDelete = true,
+                          }
                       },
                   }},
                   true,

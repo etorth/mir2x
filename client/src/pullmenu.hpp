@@ -70,4 +70,16 @@ class PullMenu: public Widget
 
     public:
         void setFocus(bool) override;
+
+    public:
+        Widget::IntSize2D fixedSize() const
+        {
+            return{m_flex.w(), m_flex.h()};
+        }
+
+    public:
+        void addMenu(MenuBoard::AddItemArgs args)
+        {
+            m_menuBoard.addMenu(std::move(args));
+        }
 };

@@ -18,11 +18,18 @@ class ItemBox: public Widget
         Widget *m_canvas;
 
     private:
+        Widget::VarSize m_headSpace;
         Widget::VarSize m_itemSpace;
+        Widget::VarSize m_tailSpace;
+
+    private:
         Widget::VarSizeOpt m_fixedEdgeSize;
 
     private:
+        int m_headSpaceEval = 0;
         int m_itemSpaceEval = 0;
+        int m_tailSpaceEval = 0;
+
         int m_fixedEdgeSizeEval = 0;
         int m_flexibleEdgeSizeEval = 0;
 

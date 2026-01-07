@@ -43,9 +43,11 @@ ItemFlex::ItemFlex(ItemFlex::InitArgs args)
 
     , m_vbox(args.v)
     , m_align(args.align)
-
     , m_canvas(firstChild())
+
+    , m_headSpace(std::move(args.headSpace))
     , m_itemSpace(std::move(args.itemSpace))
+    , m_tailSpace(std::move(args.tailSpace))
     , m_fixedEdgeSize(std::move(args.fixed))
 {
     m_canvas->setSize([this]{ return canvasW(); },
@@ -64,7 +66,7 @@ void ItemFlex::addItem(Widget *argWidget, bool argAutoDelete)
 
     const auto fnGetOffset = [argWidget, this]
     {
-        int offset = 0;
+        int offset    = Widget::evalSize(m_headSpace, this);
         int itemSpace = Widget::evalSize(m_itemSpace, this);
 
         m_canvas->foreachChild([argWidget, &offset, itemSpace, this](const Widget *child, bool)
@@ -170,10 +172,10 @@ int ItemFlex::canvasW() const
     }
     else{
         if(const auto lastWidget = lastShowChild()){
-            return lastWidget->dx() + lastWidget->w();
+            return lastWidget->dx() + lastWidget->w()  + Widget::evalSize(m_tailSpace, this);
         }
         else{
-            return 0;
+            return Widget::evalSize(m_headSpace, this) + Widget::evalSize(m_tailSpace, this);
         }
     }
 }
@@ -195,10 +197,10 @@ int ItemFlex::canvasH() const
     }
     else{
         if(const auto lastWidget = lastShowChild()){
-            return lastWidget->dy() + lastWidget->h();
+            return lastWidget->dy() + lastWidget->h()  + Widget::evalSize(m_tailSpace, this);
         }
         else{
-            return 0;
+            return Widget::evalSize(m_headSpace, this) + Widget::evalSize(m_tailSpace, this);
         }
     }
 }

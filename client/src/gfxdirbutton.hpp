@@ -1,9 +1,12 @@
 #pragma once
-#include "gfxtriangle.hpp"
 #include "trigfxbutton.hpp"
+#include "gfxshapeboard.hpp"
 
 class GfxDirButton: public TrigfxButton
 {
+    public:
+        using TriggerCBFunc = TrigfxButton::TriggerCBFunc;
+
     private:
         struct TriangleArgs final
         {

@@ -1,5 +1,8 @@
 #pragma once
 #include "widget.hpp"
+#include "itemflex.hpp"
+#include "inputline.hpp"
+#include "gfxdirbutton.hpp"
 #include "gfxshapeboard.hpp"
 
 class ValueSelector: public Widget
@@ -29,10 +32,17 @@ class ValueSelector: public Widget
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
+            Widget::VarSize h = 0;
+
             ValueSelector::InputArgs   input {};
             ValueSelector::ButtonArgs button {};
 
-            Widget::VarBool finizeOnChange;
+            Widget::VarBool finizeOnChange = true;
+
+            GfxDirButton::TriggerCBFunc   upTrigger = nullptr;
+            GfxDirButton::TriggerCBFunc downTrigger = nullptr;
+
+            Widget::WADPair parent {};
         };
 
     private:
@@ -42,6 +52,24 @@ class ValueSelector: public Widget
         GfxDirButton m_up;
         GfxDirButton m_down;
 
+    private:
+        ItemFlex m_vflex;
+        ItemFlex m_hflex;
+
+    private:
+        GfxShapeBoard m_frame;
+
     public:
-        ValueSelector();
+        std::string getValue() const
+        {
+            return m_input.getRawString();
+        }
+
+        void setValue(std::string value)
+        {
+            m_input.setInput(value.c_str());
+        }
+
+    public:
+        ValueSelector(ValueSelector::InitArgs);
 };
