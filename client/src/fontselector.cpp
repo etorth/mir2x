@@ -122,12 +122,16 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
 
     , m_english
       {{
-          .textFunc = "The quick brown fox jumps over the lazy dog.",
+          .lineWidth = FontSelector::LAYOUT_WIDTH,
+          .initXML = "<layout><par>The quick brown fox jumps over the lazy dog.</par></layout>",
+          .lineAlign = LALIGN_JUSTIFY,
       }}
 
     , m_chinese
       {{
-          .textFunc = "快速的棕色狐狸跳过了懒狗。",
+          .lineWidth = FontSelector::LAYOUT_WIDTH,
+          .initXML = "<layout><par>快速的棕色狐狸跳过了懒狗。</par></layout>",
+          .lineAlign = LALIGN_JUSTIFY,
       }}
 
     , m_vflex
@@ -141,6 +145,8 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
                   m_size              .h(),
               });
           },
+
+          .fixed = FontSelector::LAYOUT_WIDTH,
 
           .headSpace = 3,
           .itemSpace = 2,
@@ -189,5 +195,10 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
             m_font.addMenu({.gfxWidget{fontEntry, true}});
             foundFont++;
         }
+    }
+
+    if(const auto val = m_size.getInt(); val.has_value()){
+        m_english.setFontSize(val.value());
+        m_chinese.setFontSize(val.value());
     }
 }

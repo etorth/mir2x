@@ -165,8 +165,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   u8"系统",
                   new Widget
                   {{
-                      .w = {},
-                      .h = {},
+                      .w = std::nullopt,
+                      .h = std::nullopt,
 
                       .childList
                       {
@@ -238,8 +238,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   u8"外观",
                   new Widget
                   {{
-                      .w = {},
-                      .h = {},
+                      .w = std::nullopt,
+                      .h = std::nullopt,
 
                       .childList
                       {
@@ -274,8 +274,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   u8"社交",
                   new Widget
                   {{
-                      .w = {},
-                      .h = {},
+                      .w = std::nullopt,
+                      .h = std::nullopt,
 
                       .childList
                       {
@@ -303,8 +303,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   u8"好友",
                   new Widget
                   {{
-                      .w = {},
-                      .h = {},
+                      .w = std::nullopt,
+                      .h = std::nullopt,
 
                       .childList
                       {
@@ -382,8 +382,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   u8"常用",
                   new Widget
                   {{
-                      .w = {},
-                      .h = {},
+                      .w = std::nullopt,
+                      .h = std::nullopt,
 
                       .childList
                       {
@@ -410,8 +410,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   u8"辅助",
                   new Widget
                   {{
-                      .w = {},
-                      .h = {},
+                      .w = std::nullopt,
+                      .h = std::nullopt,
 
                       .childList
                       {
@@ -429,8 +429,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   u8"保护",
                   new Widget
                   {{
-                      .w = {},
-                      .h = {},
+                      .w = std::nullopt,
+                      .h = std::nullopt,
 
                       .childList
                       {

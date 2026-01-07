@@ -1,7 +1,7 @@
 #pragma once
 #include "widget.hpp"
 #include "pullmenu.hpp"
-#include "textboard.hpp"
+#include "layoutboard.hpp"
 #include "gfxshapeboard.hpp"
 #include "integerselector.hpp"
 
@@ -9,6 +9,7 @@ class FontSelector: public Widget
 {
     private:
         constexpr static int GAP = 10;
+        constexpr static int LAYOUT_WIDTH = 328;
 
     private:
         struct InitArgs final
@@ -27,8 +28,8 @@ class FontSelector: public Widget
         IntegerSelector m_size;
 
     private:
-        TextBoard m_english;
-        TextBoard m_chinese;
+        LayoutBoard m_english;
+        LayoutBoard m_chinese;
 
     private:
         ItemFlex m_vflex;
