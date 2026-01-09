@@ -30,7 +30,8 @@ class PullMenu: public Widget
             PullMenu::LabelCropArgs label {};
             PullMenu::LabelCropArgs title {};
 
-            Widget::VarBool showButton = false;
+            Widget::VarBool   showButton = false;
+            Widget::VarSizeOpt menuFixed = std::nullopt; // menu item width, margin not included
 
             std::vector<MenuBoard::AddItemArgs> itemList {};
             MenuItem::ClickCBFunc onClick = nullptr;

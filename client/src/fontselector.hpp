@@ -9,7 +9,7 @@ class FontSelector: public Widget
 {
     private:
         constexpr static int GAP = 10;
-        constexpr static int LAYOUT_WIDTH = 328;
+        constexpr static int LAYOUT_WIDTH = 410;
 
     private:
         struct InitArgs final

@@ -94,7 +94,7 @@ PullMenu::PullMenu(PullMenu::InitArgs args)
 
     , m_menuBoard
       {{
-          .fixed = [this]{ return m_titleBg.getInputROI().w; },
+          .fixed = std::move(args.menuFixed),
           .margin
           {
               5,

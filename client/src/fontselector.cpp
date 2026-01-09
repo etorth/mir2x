@@ -33,6 +33,7 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
               .text = u8"选择控件",
           },
 
+          .menuFixed = 80,
           .itemList
           {
               {
@@ -74,6 +75,8 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
           {
               .text = u8"选择字体",
           },
+
+          .menuFixed = 250,
 
           .onClick = [this](Widget *item)
           {

@@ -122,18 +122,23 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
           .margin = std::move(args.margin),
           .bgDrawFunc = [bgColor = std::move(args.bgColor), showSep = std::move(args.showSeparator), this](int dstDrawX, int dstDrawY)
           {
+              std::optional<int> wopt;
+              std::optional<int> hopt;
+
               if(m_gfxButton->getState() != BEVENT_OFF){
-                  g_sdlDevice->fillRectangle(Widget::evalU32(bgColor, this), dstDrawX, dstDrawY, w(), h());
+                  wopt = w();
+                  hopt = h();
+                  g_sdlDevice->fillRectangle(Widget::evalU32(bgColor, this), dstDrawX, dstDrawY, wopt.value(), hopt.value());
               }
 
               if(Widget::evalBool(showSep, this)){
-                  const int  width = w();
+                  const int  width = wopt.value_or(w());
                   const int dwidth = width >= 4 ? 2 : 0;
 
                   const int lineX1 = dstDrawX             + dwidth;
                   const int lineX2 = dstDrawX + width - 1 - dwidth;
 
-                  const int lineY = dstDrawY + h() - 1;
+                  const int lineY = dstDrawY + hopt.value_or(h()) - 1;
                   g_sdlDevice->drawLine(colorf::GREY + colorf::A_SHF(128), lineX1, lineY, lineX2, lineY);
               }
           },
