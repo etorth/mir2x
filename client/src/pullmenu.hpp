@@ -34,7 +34,7 @@ class PullMenu: public Widget
             Widget::VarSizeOpt menuFixed = std::nullopt; // menu item width, margin not included
 
             std::vector<MenuBoard::AddItemArgs> itemList {};
-            MenuItem::ClickCBFunc onClick = nullptr;
+            Menu::ClickCBFunc onClick = nullptr;
 
             Widget::WADPair parent {};
         };

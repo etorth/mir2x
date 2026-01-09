@@ -16,9 +16,6 @@
 class MenuButton: public MenuItem
 {
     private:
-        using ItemSizeArgs = MenuItem::ItemSizeArgs;
-
-    private:
         struct InitArgs final
         {
             Widget::VarDir dir = DIR_UPLEFT;
@@ -27,7 +24,7 @@ class MenuButton: public MenuItem
             Widget::VarInt y = 0;
 
             Widget::VarMargin margin {};
-            MenuButton::ItemSizeArgs itemSize {}; // margin not included
+            Menu::ItemSize  itemSize {}; // margin not included
 
             Widget::WADPair gfxWidget {};
             Widget::WADPair subWidget {};

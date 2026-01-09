@@ -70,6 +70,16 @@ void MenuBoard::addMenu(MenuBoard::AddItemArgs args)
         return;
     }
 
+    int addItemWidth = args.gfxWidget.widget->w();
+    int maxItemWidth = 0;
+
+    m_canvas.foreachItem([&maxItemWidth](const Widget *widget, bool)
+    {
+        if(auto item = dynamic_cast<const MenuItem *>(widget); item->localShow()){
+            maxItemWidth = std::max<int>(maxItemWidth, item->getItemWidth());
+        }
+    });
+
     m_canvas.addItem(new MenuItem
     {{
         .margin
@@ -100,9 +110,7 @@ void MenuBoard::addMenu(MenuBoard::AddItemArgs args)
 
         .itemSize
         {
-            // use gfxWidget.widget->w()
-            // causes menu item width not aligned
-            .w = std::nullopt,
+            .w = std::max<int>(addItemWidth, maxItemWidth),
 
             // don't use
             //
@@ -131,10 +139,27 @@ void MenuBoard::addMenu(MenuBoard::AddItemArgs args)
         .bgColor = colorf::GREY + colorf::A_SHF(128),
         .onClick = [itemCB = m_onClickMenu, this](Widget *widget)
         {
-            MenuItem::evalClickCBFunc(itemCB, widget); // widget is gfxWidget
+            Menu::evalClickCBFunc(itemCB, widget); // widget is gfxWidget
             flipShow();
         },
     }},
 
     true);
+
+    // ItemBox can not provide the ability that:
+    //
+    //    adding a new item can resize all previously added items if needed
+    //    items in ItemBox are independent
+    //
+    // this needs explicit implementation here
+
+    if(addItemWidth > maxItemWidth){
+        m_canvas.foreachItem([addItemWidth](Widget *widget, bool)
+        {
+            if(auto item = dynamic_cast<MenuItem *>(widget); item->localShow()){
+                item->setItemWidth(addItemWidth);
+            }
+        });
+        m_canvas.buildLayout();
+    }
 }

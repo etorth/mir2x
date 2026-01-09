@@ -32,7 +32,7 @@ class MenuBoard: public Widget
             Widget::VarSize separatorSpace = 0;
 
             std::vector<MenuBoard::AddItemArgs> itemList {};
-            MenuItem::ClickCBFunc onClick = nullptr;
+            Menu::ClickCBFunc onClick = nullptr;
 
             Widget::InstAttrs attrs {};
             Widget::WADPair  parent {};
@@ -43,7 +43,7 @@ class MenuBoard: public Widget
         const Widget::VarSize m_separatorSpace;
 
     private:
-        MenuItem::ClickCBFunc m_onClickMenu;
+        Menu::ClickCBFunc m_onClickMenu;
 
     private:
         ItemBox m_canvas; // holding all menu items

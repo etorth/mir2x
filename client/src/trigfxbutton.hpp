@@ -64,6 +64,11 @@ class TrigfxButton: public ButtonBase
             m_gfxList = gfxList;
         }
 
+        void setGfxList(const Widget *gfxWidget)
+        {
+            m_gfxList = {gfxWidget, gfxWidget, gfxWidget};
+        }
+
     private:
         const Widget *evalGfxWidget     (std::optional<int> = std::nullopt) const;
         const Widget *evalGfxWidgetValid(                                 ) const; // search the first valid gfx pointer

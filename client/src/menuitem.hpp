@@ -1,4 +1,5 @@
 #pragma once
+#include "menu.hpp"
 #include "widget.hpp"
 #include "itempair.hpp"
 #include "trigfxbutton.hpp"
@@ -10,31 +11,6 @@ class MenuItem: public Widget
     public:
         constexpr static int INDICATOR_W = 9;
         constexpr static int INDICATOR_H = 5;
-
-    public:
-        using ClickCBFunc = std::variant<std::nullptr_t,
-                                         std::function<void(        )>,
-                                         std::function<void(Widget *)>>;
-
-    public:
-        static void evalClickCBFunc(const ClickCBFunc &cbFunc, Widget *widget)
-        {
-            std::visit(VarDispatcher
-            {
-                [      ](const std::function<void(        )> &f){ if(f){ f(      ); }},
-                [widget](const std::function<void(Widget *)> &f){ if(f){ f(widget); }},
-
-                [](const auto &){},
-            },
-            cbFunc);
-        }
-
-    public:
-        struct ItemSizeArgs final
-        {
-            Widget::VarSizeOpt w = std::nullopt;
-            Widget::VarSizeOpt h = std::nullopt;
-        };
 
     private:
         struct SubWidgetArgs final
@@ -53,7 +29,7 @@ class MenuItem: public Widget
             Widget::VarInt y = 0;
 
             Widget::VarMargin margin {};
-            MenuItem::ItemSizeArgs itemSize {}; // margin not included
+            Menu::ItemSize  itemSize {}; // margin not included
 
             Widget::WADPair         gfxWidget {};
             MenuItem::SubWidgetArgs subWidget {};
@@ -63,7 +39,7 @@ class MenuItem: public Widget
             Widget::VarBool expandOnHover = false;
 
             Widget::VarU32 bgColor = 0U;
-            MenuItem::ClickCBFunc onClick = nullptr;
+            Menu::ClickCBFunc onClick = nullptr;
 
             Widget::WADPair parent {};
         };
@@ -71,6 +47,9 @@ class MenuItem: public Widget
     private:
         Widget       *m_subWidget;
         TrigfxButton *m_gfxButton;
+
+    private:
+        Menu::ItemSize m_itemSize;
 
     private:
         Widget m_gfxWidgetCrop;
@@ -93,6 +72,14 @@ class MenuItem: public Widget
         {
             return self.m_subWidget;
         }
+
+    public:
+        void setItemWidth (Widget::VarSizeOpt argItemWidth ){ m_itemSize.w = std::move(argItemWidth ); }
+        void setItemHeight(Widget::VarSizeOpt argItemHeight){ m_itemSize.h = std::move(argItemHeight); }
+
+    public:
+        int getItemWidth () const { return m_gfxWidgetCrop.w(); }
+        int getItemHeight() const { return m_gfxWidgetCrop.h(); }
 
     public:
         void drawDefault(Widget::ROIMap m) const override;

@@ -32,9 +32,9 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
                           }
                       },
 
-                      .onTrigger = [onClick = std::move(args.onClick), gfxWidget = args.gfxWidget.widget](int)
+                      .onTrigger = [onClick = std::move(args.onClick), gfxWidget = fflcheck(args.gfxWidget.widget)](int)
                       {
-                          MenuItem::evalClickCBFunc(onClick, gfxWidget);
+                          Menu::evalClickCBFunc(onClick, gfxWidget);
                       },
                   }},
 
@@ -66,10 +66,28 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
     , m_subWidget(args.subWidget.widget)
     , m_gfxButton(fflcheck(dynamic_cast<TrigfxButton *>(firstChild())))
 
+    , m_itemSize(std::move(args.itemSize))
     , m_gfxWidgetCrop
       {{
-          .w = args.itemSize.w.value_or([gfxWidget=fflcheck(args.gfxWidget.widget)]{ return gfxWidget->w(); }),
-          .h = args.itemSize.h.value_or([gfxWidget=fflcheck(args.gfxWidget.widget)]{ return gfxWidget->h(); }),
+          .w = [this]
+          {
+              if(m_itemSize.w.has_value()){
+                  return Widget::evalSize(m_itemSize.w.value(), this); // make sure eval with this, not &m_gfxWidgetCrop
+              }
+              else{
+                  return gfxWidget()->w();
+              }
+          },
+
+          .h = [this]
+          {
+              if(m_itemSize.h.has_value()){
+                  return Widget::evalSize(m_itemSize.h.value(), this); // make sure eval with this, not &m_gfxWidgetCrop
+              }
+              else{
+                  return gfxWidget()->h();
+              }
+          },
 
           .childList
           {
@@ -144,13 +162,7 @@ MenuItem::MenuItem(MenuItem::InitArgs args)
           },
       }}
 {
-    m_gfxButton->setGfxList(
-    {
-        &m_wrapper,
-        &m_wrapper,
-        &m_wrapper,
-    });
-
+    m_gfxButton->setGfxList(&m_wrapper);
     if(m_subWidget){
         m_subWidget->setShow(false);
         m_subWidget->moveAt(DIR_UPLEFT,
