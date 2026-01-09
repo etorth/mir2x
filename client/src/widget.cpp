@@ -416,6 +416,34 @@ SDL_BlendMode Widget::evalBlendMode(const Widget::VarBlendMode &varBlendMode, co
     varBlendMode);
 }
 
+SDL_Texture *Widget::evalTexLoadFunc(const Widget::VarTexLoadFunc &varTexLoadFunc, const Widget *widget, const void *arg)
+{
+    return std::visit(VarDispatcher
+    {
+        [](SDL_Texture *varg)
+        {
+            return varg;
+        },
+
+        [](const std::function<SDL_Texture *()> &varg)
+        {
+            return varg ? varg() : nullptr;
+        },
+
+        [widget](const std::function<SDL_Texture *(const Widget *)> &varg)
+        {
+            return varg ? varg(widget) : nullptr;
+        },
+
+        [widget, arg](const std::function<SDL_Texture *(const Widget *, const void *)> &varg)
+        {
+            return varg ? varg(widget, arg) : nullptr;
+        },
+    },
+
+    varTexLoadFunc);
+}
+
 std::string Widget::evalStrFunc(const Widget::VarStrFunc &varStrFunc, const Widget *widget, const void *arg)
 {
     return std::visit(VarDispatcher
@@ -444,32 +472,32 @@ std::string Widget::evalStrFunc(const Widget::VarStrFunc &varStrFunc, const Widg
     varStrFunc);
 }
 
-SDL_Texture *Widget::evalTexLoadFunc(const Widget::VarTexLoadFunc &varTexLoadFunc, const Widget *widget, const void *arg)
+std::string_view Widget::evalStrViewFunc(const Widget::VarStrViewFunc &varStrViewFunc, const Widget *widget, const void *arg)
 {
     return std::visit(VarDispatcher
     {
-        [](SDL_Texture *varg)
+        [](const std::string_view &varg)
         {
             return varg;
         },
 
-        [](const std::function<SDL_Texture *()> &varg)
+        [](const std::function<std::string_view()> &varg)
         {
-            return varg ? varg() : nullptr;
+            return varg ? varg() : std::string_view();
         },
 
-        [widget](const std::function<SDL_Texture *(const Widget *)> &varg)
+        [widget](const std::function<std::string_view(const Widget *)> &varg)
         {
-            return varg ? varg(widget) : nullptr;
+            return varg ? varg(widget) : std::string_view();
         },
 
-        [widget, arg](const std::function<SDL_Texture *(const Widget *, const void *)> &varg)
+        [widget, arg](const std::function<std::string_view(const Widget *, const void *)> &varg)
         {
-            return varg ? varg(widget, arg) : nullptr;
+            return varg ? varg(widget, arg) : std::string_view();
         },
     },
 
-    varTexLoadFunc);
+    varStrViewFunc);
 }
 
 bool Widget::hasDrawFunc(const Widget::VarDrawFunc &varDrawFunc)

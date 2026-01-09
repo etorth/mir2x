@@ -710,7 +710,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                     takeEvent |= fnHandleEvent(&node, valid && !takeEvent);
                 }
 
-                if(!takeEvent && event.type != SDL_MOUSEMOTION){
+                if(valid && !takeEvent && event.type != SDL_MOUSEMOTION){
                     takeEvent = m.in(eventPX, eventPY);
                 }
 

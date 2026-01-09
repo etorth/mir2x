@@ -272,15 +272,15 @@ CBLeft::CBLeft(
 
     , m_mapGLocFull
       {{
-          .textFunc = [this](const Widget *)
+          .textFunc = [this]
           {
               return getMapGLocStr();
           },
 
           .font
           {
-              .id = 1,
-              .size = 12,
+              .id = 10,
+              .size = 15,
           },
       }}
 

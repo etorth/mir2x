@@ -116,7 +116,7 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
               }
           },
 
-          .range = std::make_pair(5, 20),
+          .range = std::make_pair(5, 25),
           .parent{this},
       }}
 
