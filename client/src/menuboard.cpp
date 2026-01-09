@@ -100,7 +100,16 @@ void MenuBoard::addMenu(MenuBoard::AddItemArgs args)
 
         .itemSize
         {
-            .w = [this]{ return m_canvas.w(); },
+            // use gfxWidget.widget->w()
+            // causes menu item width not aligned
+            .w = std::nullopt,
+
+            // don't use
+            //
+            //      .w = [this]{ return m_canvas.w(); },
+            //
+            // here, because m_canvas.w() is 0 at this moment
+            // if add menu in this way, it causes all added MenuItem::itemSize as 0
         },
 
         .gfxWidget = std::move(args.gfxWidget),
@@ -128,4 +137,5 @@ void MenuBoard::addMenu(MenuBoard::AddItemArgs args)
     }},
 
     true);
+    m_canvas.buildLayout();
 }
