@@ -137,5 +137,4 @@ void MenuBoard::addMenu(MenuBoard::AddItemArgs args)
     }},
 
     true);
-    m_canvas.buildLayout();
 }
