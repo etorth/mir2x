@@ -67,17 +67,23 @@ class TextBoard: public Widget
         std::tuple<std::string, std::string> fontName() const;
 
     public:
-        std::string getText() const
+        Widget::VarStr getVStr() const
         {
             return Widget::evalStrFunc(m_textFunc, this);
         }
 
     public:
-        bool empty() const
+        std::string getText() const
         {
-            return getText().empty();
+            return getVStr().str();
         }
 
+        bool empty() const
+        {
+            return getVStr().empty();
+        }
+
+    public:
         void drawDefault(Widget::ROIMap m) const override
         {
             return m_image.draw(m);

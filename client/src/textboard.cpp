@@ -26,11 +26,11 @@ TextBoard::TextBoard(TextBoard::InitArgs args)
       {{
           .texLoadFunc = [this]() -> SDL_Texture *
           {
-              if(const auto text = getText(); text.empty()){
+              if(const auto s = getVStr(); s.empty()){
                   return nullptr;
               }
               else{
-                  return g_fontexDB->retrieve(m_font.id, m_font.size, m_font.style, text.c_str());
+                  return g_fontexDB->retrieve(m_font.id, m_font.size, m_font.style, s.c_str());
               }
           },
 

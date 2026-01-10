@@ -8,6 +8,7 @@
 #include <functional>
 #include <variant>
 #include <cstdint>
+#include <cstring>
 #include <optional>
 #include <type_traits>
 #include <SDL2/SDL.h>
@@ -56,8 +57,6 @@ class WidgetTreeNode // tree concept, used by class Widget only
         using alias_VarDecimal     = VarTypeHelper<float>;
         using alias_VarSize        = VarTypeHelper<int>;
         using alias_VarBool        = VarTypeHelper<bool>;
-        using alias_VarStrFunc     = VarTypeHelper<std::string>;
-        using alias_VarStrViewFunc = VarTypeHelper<std::string_view>;
         using alias_VarBlendMode   = VarTypeHelper<SDL_BlendMode>;
         using alias_VarTexLoadFunc = VarTypeHelper<SDL_Texture *>;
 
@@ -70,8 +69,6 @@ class WidgetTreeNode // tree concept, used by class Widget only
         struct VarDecimal    : public alias_VarDecimal    { using alias_VarDecimal    ::alias_VarDecimal    ; };
         struct VarSize       : public alias_VarSize       { using alias_VarSize       ::alias_VarSize       ; };
         struct VarBool       : public alias_VarBool       { using alias_VarBool       ::alias_VarBool       ; };
-        struct VarStrFunc    : public alias_VarStrFunc    { using alias_VarStrFunc    ::alias_VarStrFunc    ; };
-        struct VarStrViewFunc: public alias_VarStrViewFunc{ using alias_VarStrViewFunc::alias_VarStrViewFunc; };
         struct VarBlendMode  : public alias_VarBlendMode  { using alias_VarBlendMode  ::alias_VarBlendMode  ; };
         struct VarTexLoadFunc: public alias_VarTexLoadFunc{ using alias_VarTexLoadFunc::alias_VarTexLoadFunc; };
 
@@ -243,10 +240,8 @@ class Widget: public WidgetTreeNode
         using WidgetTreeNode::VarBool;
         using WidgetTreeNode::VarBlendMode;
         using WidgetTreeNode::VarTexLoadFunc;
-        using WidgetTreeNode::VarStrFunc;
-        using WidgetTreeNode::VarStrViewFunc;
 
-    public:
+#include "widget.varstr.hpp"
 #include "widget.offset2d.hpp"
 #include "widget.size2d.hpp"
 
@@ -392,8 +387,6 @@ class Widget: public WidgetTreeNode
         static bool             evalBool       (const Widget::VarBool        &, const Widget *, const void * = nullptr);
         static SDL_BlendMode    evalBlendMode  (const Widget::VarBlendMode   &, const Widget *, const void * = nullptr);
         static SDL_Texture *    evalTexLoadFunc(const Widget::VarTexLoadFunc &, const Widget *, const void * = nullptr);
-        static std::string      evalStrFunc    (const Widget::VarStrFunc     &, const Widget *, const void * = nullptr);
-        static std::string_view evalStrViewFunc(const Widget::VarStrViewFunc &, const Widget *, const void * = nullptr);
 
     public:
         static int evalSizeOpt(const Widget::VarSizeOpt &, const Widget *,               const auto &);

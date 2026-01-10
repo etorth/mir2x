@@ -444,60 +444,19 @@ SDL_Texture *Widget::evalTexLoadFunc(const Widget::VarTexLoadFunc &varTexLoadFun
     varTexLoadFunc);
 }
 
-std::string Widget::evalStrFunc(const Widget::VarStrFunc &varStrFunc, const Widget *widget, const void *arg)
+Widget::VarStr Widget::evalStrFunc(const Widget::VarStrFunc &varStrFunc, const Widget *widget, const void *arg)
 {
     return std::visit(VarDispatcher
     {
-        [](const std::string &varg)
-        {
-            return varg;
-        },
+        [](const        char *varg) -> Widget::VarStr { return varg; },
+        [](const std::string &varg) -> Widget::VarStr { return varg; },
 
-        [](const std::function<std::string()> &varg)
-        {
-            return varg ? varg() : std::string();
-        },
-
-        [widget](const std::function<std::string(const Widget *)> &varg)
-        {
-            return varg ? varg(widget) : std::string();
-        },
-
-        [widget, arg](const std::function<std::string(const Widget *, const void *)> &varg)
-        {
-            return varg ? varg(widget, arg) : std::string();
-        },
+        [           ](const std::function<Widget::VarStr(                            )> &f) -> Widget::VarStr { return f ? f(           ) : nullptr; },
+        [widget     ](const std::function<Widget::VarStr(const Widget *              )> &f) -> Widget::VarStr { return f ? f(widget     ) : nullptr; },
+        [widget, arg](const std::function<Widget::VarStr(const Widget *, const void *)> &f) -> Widget::VarStr { return f ? f(widget, arg) : nullptr; },
     },
 
     varStrFunc);
-}
-
-std::string_view Widget::evalStrViewFunc(const Widget::VarStrViewFunc &varStrViewFunc, const Widget *widget, const void *arg)
-{
-    return std::visit(VarDispatcher
-    {
-        [](const std::string_view &varg)
-        {
-            return varg;
-        },
-
-        [](const std::function<std::string_view()> &varg)
-        {
-            return varg ? varg() : std::string_view();
-        },
-
-        [widget](const std::function<std::string_view(const Widget *)> &varg)
-        {
-            return varg ? varg(widget) : std::string_view();
-        },
-
-        [widget, arg](const std::function<std::string_view(const Widget *, const void *)> &varg)
-        {
-            return varg ? varg(widget, arg) : std::string_view();
-        },
-    },
-
-    varStrViewFunc);
 }
 
 bool Widget::hasDrawFunc(const Widget::VarDrawFunc &varDrawFunc)

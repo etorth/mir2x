@@ -185,7 +185,11 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
             const auto [name, style] = g_fontexDB->fontName(font);
             auto fontEntry = new TextBoard
             {{
-                 .textFunc = name + " " + style,
+                 .textFunc = [s = name + " " + style]
+                 {
+                     return s.c_str();
+                 },
+
                  .attrs
                  {
                      .data = to_d(font),
