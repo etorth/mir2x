@@ -4,6 +4,7 @@
 #include "xmltypeset.hpp"
 #include "notifyboard.hpp"
 
+/*
 LocalSpeakBoard::LocalSpeakBoard(
         Widget::VarDir argDir,
         Widget::VarInt argX,
@@ -142,3 +143,4 @@ int LocalSpeakBoard::pw() const
     }
     return maxW;
 }
+*/
