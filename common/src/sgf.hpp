@@ -2,6 +2,7 @@
 #include <utility>
 #include <type_traits>
 #include <iostream>
+#include <functional>
 
 namespace sgf // scope_guard
 {

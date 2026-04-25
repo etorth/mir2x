@@ -39,7 +39,6 @@ void logProfiling(const std::function<void(const std::string &)> &dump)
         long long longest;
     };
 
-    long long totalTime = 0;
     long long totalCount = 0;
     std::vector<logEntry> logEntryList;
 
@@ -60,7 +59,6 @@ void logProfiling(const std::function<void(const std::string &)> &dump)
             continue;
         }
 
-        totalTime += entry.total;
         totalCount += entry.count;
         logEntryList.push_back(entry);
     }
