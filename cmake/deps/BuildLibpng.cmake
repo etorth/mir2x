@@ -6,7 +6,7 @@ INCLUDE(ExternalProject)
 ExternalProject_Add(
     zlib
 
-    URL "https://www.zlib.net/zlib-1.3.1.tar.gz"
+    URL "https://www.zlib.net/zlib-1.3.2.tar.gz"
     DOWNLOAD_NAME "zlib"
     DOWNLOAD_EXTRACT_TIMESTAMP 0
 

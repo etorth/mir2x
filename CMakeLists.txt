@@ -207,6 +207,10 @@ FIND_PACKAGE(PkgConfig REQUIRED)
 FIND_PACKAGE(OpenGL    REQUIRED)
 FIND_PACKAGE(FLTK      REQUIRED)
 
+# for libfltk1.4-dev
+PKG_CHECK_MODULES(CAIRO REQUIRED cairo)
+INCLUDE_DIRECTORIES(${CAIRO_INCLUDE_DIRS})
+
 # TODO
 # appveyor says "can find make command"
 # use vcpkg to get lz4, but for linux still use github to get lz4
