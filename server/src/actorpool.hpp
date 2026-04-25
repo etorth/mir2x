@@ -558,38 +558,6 @@ class ActorPool final
         }
 
     private:
-        template<size_t AVG_LEN = 16> class AvgTimer
-        {
-            private:
-                std::atomic<long> m_currSum;
-
-            private:
-                size_t m_curr;
-                std::array<long, AVG_LEN> m_array;
-
-            public:
-                AvgTimer()
-                    : m_currSum{0}
-                    , m_curr(0)
-                {
-                    static_assert(AVG_LEN > 0);
-                    m_array.fill(0);
-                }
-
-            public:
-                void push(long newTime)
-                {
-                    m_curr = ((m_curr + 1) % m_array.size());
-                    m_currSum.fetch_add(newTime - m_array[m_curr]);
-                }
-
-                long getAvgTime() const
-                {
-                    return m_currSum.load() / m_array.size();
-                }
-        };
-
-    private:
         std::unique_ptr<PeerCore> m_peerCore;
 
     private:
