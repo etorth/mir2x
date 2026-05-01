@@ -25,7 +25,7 @@ namespace zcompf
         dst.clear();
         dst.resize(maxDstSize);
 
-        const int compSize = LZ4_compress_default(reinterpret_cast<const char *>(src.data()), reinterpret_cast<char *>(dst.data()), srcSize * sizeof(T), maxDstSize);
+        const int compSize = LZ4_compress_default(reinterpret_cast<const char *>(src), reinterpret_cast<char *>(dst.data()), srcSize * sizeof(T), maxDstSize);
         if(compSize <= 0){
             throw fflerror("LZ4_compress_default() return error code: %d", compSize);
         }

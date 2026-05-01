@@ -3,6 +3,9 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
 #include <g3log/g3log.hpp>
 #include <g3log/logworker.hpp>
 
