@@ -1,1 +1,8 @@
 build
+
+# macOS local build dir — track only the operator scripts and HOWTO
+b/*/
+b/*
+!b/HOWTO.md
+!b/run-client.sh
+!b/run-server.sh
