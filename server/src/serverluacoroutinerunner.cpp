@@ -293,7 +293,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 m_actorPod->getSO()->cancelDelay(delayKey);
             });
         }
-        return sol::make_object(sol::state_view(s), sol::nil);
+        return sol::make_object(sol::state_view(s), sol::lua_nil);
     });
 
     bindFunction("clearNotify", [this]()

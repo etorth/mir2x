@@ -284,10 +284,10 @@ LuaModule::LuaModule()
             if(const auto name = DBCOM_ITEMRECORD(arg.as<lua_Integer>()).name; str_haschar(name)){
                 return sol::object(sol::state_view(s), sol::in_place_type<std::string>, std::string(to_cstr(name)));
             }
-            return sol::make_object(sol::state_view(s), sol::nil);
+            return sol::make_object(sol::state_view(s), sol::lua_nil);
         }
-        else if(arg == sol::nil){
-            return sol::make_object(sol::state_view(s), sol::nil);
+        else if(arg == sol::lua_nil){
+            return sol::make_object(sol::state_view(s), sol::lua_nil);
         }
         else{
             throw fflerror("invalid argument type: %s", luaf::luaObjTypeString(arg).c_str());
@@ -305,7 +305,7 @@ LuaModule::LuaModule()
         if(const auto name = DBCOM_MONSTERRECORD(monsterID).name; str_haschar(name)){
             return sol::object(sv, sol::in_place_type<std::string>, std::string(to_cstr(name)));
         }
-        return sol::make_object(sv, sol::nil);
+        return sol::make_object(sv, sol::lua_nil);
     });
 
     bindFunction("getMonsterID", [](std::string monsterName) -> int

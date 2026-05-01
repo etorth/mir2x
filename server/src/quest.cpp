@@ -33,13 +33,13 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
     bindFunction("_RSVD_NAME_setQuestDesp", [this](uint64_t uid, sol::object despTable, std::string fsm, sol::object desp)
     {
         fflassert(str_haschar(fsm));
-        fflassert(desp.is<std::string>() || (desp == sol::nil), luaf::luaObjTypeString(desp));
+        fflassert(desp.is<std::string>() || (desp == sol::lua_nil), luaf::luaObjTypeString(desp));
 
         const auto dbName = getQuest()->getQuestDBName();
         const auto dbid = uidf::getPlayerDBID(uid);
         const auto timestamp = hres_tstamp().to_nsec();
 
-        if(despTable == sol::nil){
+        if(despTable == sol::lua_nil){
             g_dbPod->exec(
                 u8R"###( insert into %s(fld_dbid, fld_timestamp, fld_desp) )###"
                 u8R"###( values                                            )###"
@@ -103,7 +103,7 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
 
         auto queryStatement = g_dbPod->createQuery(u8R"###(select %s from %s where fld_dbid=%llu and %s is not null)###", fieldName.c_str(), dbName.c_str(), to_llu(dbid), fieldName.c_str());
         if(!queryStatement.executeStep()){
-            return sol::make_object(sv, sol::nil);
+            return sol::make_object(sv, sol::lua_nil);
         }
         return luaf::buildLuaObj(sol::state_view(s), cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0)));
     });
@@ -117,7 +117,7 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
         fflassert(str_haschar(fieldName));
         fflassert(fieldName.starts_with("fld_"));
 
-        if(obj == sol::nil){
+        if(obj == sol::lua_nil){
             g_dbPod->exec(
                 u8R"###( insert into %s(fld_dbid, fld_timestamp, %s) )###"
                 u8R"###( values                                      )###"

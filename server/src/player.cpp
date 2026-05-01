@@ -48,7 +48,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
             return luaf::buildLuaObj(sol::state_view(s), item.asLuaVar());
         }
         else{
-            return sol::make_object(sol::state_view(s), sol::nil);
+            return sol::make_object(sol::state_view(s), sol::lua_nil);
         }
     });
 
@@ -59,7 +59,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
             return sol::object(sv, sol::in_place_type<lua_Integer>, getPlayer()->m_teamLeader);
         }
         else{
-            return sol::make_object(sv, sol::nil);
+            return sol::make_object(sv, sol::lua_nil);
         }
     });
 

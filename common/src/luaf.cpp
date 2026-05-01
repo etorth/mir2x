@@ -170,7 +170,7 @@ std::string luaf::luaObjTypeString(const sol::object &obj)
 
 sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaNil)
 {
-    return sol::make_object(sv, sol::nil);
+    return sol::make_object(sv, sol::lua_nil);
 }
 
 sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaVar v)
@@ -239,7 +239,7 @@ luaf::luaVar luaf::buildLuaVar(luaf::luaVarWrapper w)
 
 luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
 {
-    if(obj == sol::nil){
+    if(obj == sol::lua_nil){
         return luaNil();
     }
     else if(obj.is<lua_Integer>()){
@@ -255,7 +255,7 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
         return obj.as<std::string>();
     }
     else if(obj.is<sol::table>()){
-        if(obj.as<sol::table>()[sol::metatable_key] != sol::nil){
+        if(obj.as<sol::table>()[sol::metatable_key] != sol::lua_nil){
             throw fflerror("can't build from table with metatable");
         }
 
