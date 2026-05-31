@@ -263,7 +263,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
                         tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
 
                         if(xmlDoc.Parse(xmlStr.c_str()) != tinyxml2::XML_SUCCESS){
-                            throw fflerror("tinyxml2::XMLDocument::Parse() failed: %s", xmlStr.c_str());
+                            throw fflpanic("tinyxml2::XMLDocument::Parse() failed: {}", xmlStr.c_str());
                         }
 
                         fflassert(xmlf::checkNodeName(xmlDoc.FirstChild(), "layout"));

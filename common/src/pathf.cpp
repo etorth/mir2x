@@ -49,7 +49,7 @@ namespace
     template<typename T, size_t N> size_t findNearestPoint(const T (&d)[N], int x, int y)
     {
         if(x == 0 && y == 0){
-            throw fflerror("invalid direction (x = 0, y = 0)");
+            throw fflpanic("invalid direction (x = 0, y = 0)");
         }
 
         size_t index = -1;
@@ -101,7 +101,7 @@ std::tuple<int, int> pathf::getDir4Off(int dirIndex, int d)
     if(dirIndex >= 0 && dirIndex < 4){
         return {to_d(std::lround(g_dir4Off[dirIndex][0] * d)), to_d(std::lround(g_dir4Off[dirIndex][1] * d))};
     }
-    throw fflerror("direction index is not in [0, 4): %d", dirIndex);
+    throw fflpanic("direction index is not in [0, 4): {}", dirIndex);
 }
 
 std::tuple<int, int> pathf::getDir8Off(int dirIndex, int d)
@@ -109,7 +109,7 @@ std::tuple<int, int> pathf::getDir8Off(int dirIndex, int d)
     if(dirIndex >= 0 && dirIndex < 8){
         return {to_d(std::lround(g_dir8Off[dirIndex][0] * d)), to_d(std::lround(g_dir8Off[dirIndex][1] * d))};
     }
-    throw fflerror("direction index is not in [0, 8): %d", dirIndex);
+    throw fflpanic("direction index is not in [0, 8): {}", dirIndex);
 }
 
 std::tuple<int, int> pathf::getDir16Off(int dirIndex, int d)
@@ -117,13 +117,13 @@ std::tuple<int, int> pathf::getDir16Off(int dirIndex, int d)
     if(dirIndex >= 0 && dirIndex < 16){
         return {to_d(std::lround(g_dir16Off[dirIndex][0] * d)), to_d(std::lround(g_dir16Off[dirIndex][1] * d))};
     }
-    throw fflerror("direction index is not in [0, 16): %d", dirIndex);
+    throw fflpanic("direction index is not in [0, 16): {}", dirIndex);
 }
 
 std::tuple<int, int> pathf::getDirOff(int x, int y, int distance)
 {
     if(x == 0 && y == 0){
-        throw fflerror("invalid direction (x = 0, y = 0)");
+        throw fflpanic("invalid direction (x = 0, y = 0)");
     }
 
     const double r = to_df(distance) / std::sqrt(1.0 * x * x + 1.0 * y * y);
@@ -214,7 +214,7 @@ void pathf::AStarPathFinder::expand_f()
         if(const auto p = m_parentSet_f.find(currNode.node); p != m_parentSet_f.end()){
             return p->second;
         }
-        throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
+        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
     }();
 
     while(!m_cost_PQ_f.empty()){
@@ -292,7 +292,7 @@ void pathf::AStarPathFinder::expand_r()
         if(const auto p = m_parentSet_r.find(currNode.node); p != m_parentSet_r.end()){
             return p->second;
         }
-        throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
+        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
     }();
 
     while(!m_cost_PQ_r.empty()){
@@ -475,7 +475,7 @@ std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
             currNode = p->second;
         }
 
-        throw fflerror("intermiediate node has no parent: (%d, %d, %s)", currNode.x, currNode.y, pathf::dirName(currNode.dir));
+        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", to_d(currNode.x), to_d(currNode.y), pathf::dirName(currNode.dir));
     };
 
     std::vector<pathf::PathNode> result;

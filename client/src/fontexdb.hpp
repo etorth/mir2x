@@ -131,7 +131,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         std::tuple<std::string, std::string> fontName(uint8_t font)
         {
             if(!hasFont(font)){
-                throw fflerror("invalid font index: %u", to_u(font));
+                throw fflpanic("invalid font index: {}", to_u(font));
             }
 
             if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
@@ -143,7 +143,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
 
                 return {familyName, styleName};
             }
-            throw fflerror("failed to load font: %u", to_u(font));
+            throw fflpanic("failed to load font: {}", to_u(font));
         }
 
     public:
@@ -180,7 +180,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }();
 
             if(currIndex > 0X00FFFFFF){
-                throw fflerror("long text count exceeds limit: %llu", to_llu(currIndex));
+                throw fflpanic("long text count exceeds limit: {}", to_llu(currIndex));
             }
 
             const auto encodedIndex = currIndex | UINT32_C(0XFF000000);

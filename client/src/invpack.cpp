@@ -33,7 +33,7 @@ void InvPack::add(SDItem item, bool playSound)
                 return;
             }
             else{
-                throw fflerror("adding overlapping item exceeds SYS_INVGRIDMAXHOLD: %s", to_cstr(item.str()));
+                throw fflpanic("adding overlapping item exceeds SYS_INVGRIDMAXHOLD: {}", to_cstr(item.str()));
             }
         }
     }
@@ -87,7 +87,7 @@ int InvPack::update(SDItem item)
 {
     fflassert(item);
     if(item.seqID <= 0){
-        throw fflerror("udpate item with zero seqID: %s", to_cstr(item.str()));
+        throw fflpanic("udpate item with zero seqID: {}", to_cstr(item.str()));
     }
 
     for(auto &bin: m_packBinList){
@@ -140,7 +140,7 @@ std::tuple<int, int> InvPack::getPackBinSize(uint32_t itemID)
             (itemPH + (SYS_INVGRIDPH - 1)) / SYS_INVGRIDPH,
         };
     }
-    throw fflerror("can't find size: itemID = %llu", to_llu(itemID));
+    throw fflpanic("can't find size: itemID = {}", to_llu(itemID));
 }
 
 PackBin InvPack::makePackBin(SDItem item)

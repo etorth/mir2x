@@ -454,7 +454,7 @@ bool ClientMonster::parseAction(const ActionNode &action)
 
     for(const auto &m: m_motionQueue){
         if(m->type == MOTION_MON_DIE){
-            throw fflerror("Found MOTION_MON_DIE in pending motion queue");
+            throw fflpanic("Found MOTION_MON_DIE in pending motion queue");
         }
     }
 
@@ -478,7 +478,7 @@ bool ClientMonster::onActionDie(const ActionNode &action)
     const auto [endX, endY, endDir] = motionEndGLoc().at(1);
     for(auto &node: makeWalkMotionQueue(endX, endY, action.x, action.y, SYS_MAXSPEED)){
         if(!(node && motionValid(node))){
-            throw fflerror("current motion node is invalid");
+            throw fflpanic("current motion node is invalid");
         }
         m_forcedMotionQueue.push_back(std::move(node));
     }
@@ -542,7 +542,7 @@ bool ClientMonster::onActionHitted(const ActionNode &action)
 
 bool ClientMonster::onActionTransf(const ActionNode &)
 {
-    throw fflerror("unexpected ACTION_TRANSF to uid: %s", uidf::getUIDString(UID()).c_str());
+    throw fflpanic("unexpected ACTION_TRANSF to uid: {}", uidf::getUIDString(UID()).c_str());
 }
 
 bool ClientMonster::onActionSpaceMove(const ActionNode &action)
@@ -588,7 +588,7 @@ bool ClientMonster::onActionMove(const ActionNode &action)
 bool ClientMonster::onActionSpawn(const ActionNode &action)
 {
     if(!m_forcedMotionQueue.empty()){
-        throw fflerror("found motion before spawn: %s", uidf::getUIDString(UID()).c_str());
+        throw fflpanic("found motion before spawn: {}", uidf::getUIDString(UID()).c_str());
     }
 
     m_currMotion = std::unique_ptr<MotionNode>(new MotionNode

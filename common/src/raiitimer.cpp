@@ -20,7 +20,7 @@ hres_tstamp::hres_tstamp()
     QueryPerformanceCounter(&m_tstamp); // after winxp this function always succeed
 #else
     if(clock_gettime(CLOCK_MONOTONIC, &m_tstamp)) [[unlikely]] {
-        throw fflerror("clock_gettime(CLOCK_MONOTONIC) failed");
+        throw fflpanic("clock_gettime(CLOCK_MONOTONIC) failed");
     }
 #endif
 }
@@ -50,12 +50,12 @@ uint64_t hres_tstamp::localtime()
 #else
     struct timespec ts;
     if(clock_gettime(CLOCK_REALTIME, &ts)) [[unlikely]] {
-        throw fflerror("clock_gettime(CLOCK_REALTIME) failed");
+        throw fflpanic("clock_gettime(CLOCK_REALTIME) failed");
     }
 
     struct tm buf;
     if(localtime_r(&ts.tv_sec, &buf) != &buf) [[unlikely]] {
-        throw fflerror("localtime_r(%llu, %p) failed", to_llu(ts.tv_sec), to_cvptr(&buf));
+        throw fflpanic("localtime_r({}, {:p}) failed", to_llu(ts.tv_sec), to_cvptr(&buf));
     }
 
     const uint64_t year        = buf.tm_year + 1900;

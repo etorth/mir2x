@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
     if(argc < 2){
-        throw fflerror("Usage: mapinfo map1 map2 ... mapN");
+        throw fflpanic("Usage: mapinfo map1 map2 ... mapN");
     }
 
     for(int i = 1; i < argc; ++i){

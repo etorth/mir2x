@@ -91,7 +91,7 @@ class DBPod final
         void checkDBEx() const
         {
             if(!m_dbPtr){
-                throw fflerror("no SQLite3 database opened");
+                throw fflpanic("no SQLite3 database opened");
             }
         }
 };

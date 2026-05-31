@@ -105,7 +105,7 @@ class PodMonitorTable: public Fl_TableImpl
                 case 2: return "SEND";
                 case 3: return "RECV";
                 case 4: return "RECV_AVG";
-                default: throw fflerror("invalid col: %d", col);
+                default: throw fflpanic("invalid col: {}", col);
             }
         }
 };

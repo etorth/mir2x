@@ -8,7 +8,7 @@ class RecursionDetector final
             : m_flag(flag)
         {
             if(m_flag){
-                throw fflerror("recursion detected in %s::%s", type, func);
+                throw fflpanic("recursion detected in {}::{}", type, func);
             }
             else{
                 m_flag = true;

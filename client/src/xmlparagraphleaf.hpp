@@ -56,11 +56,11 @@ class XMLParagraphLeaf
         auto & utf8CharOff(this auto && self)
         {
             if(self.type() != LEAF_UTF8STR){
-                throw fflerror("leaf is not an utf8 string");
+                throw fflpanic("leaf is not an utf8 string");
             }
 
             if(self.m_utf8CharOff.empty()){
-                throw fflerror("utf8 token off doesn't initialized");
+                throw fflpanic("utf8 token off doesn't initialized");
             }
 
             return self.m_utf8CharOff;
@@ -85,7 +85,7 @@ class XMLParagraphLeaf
         uint64_t imageU64Key() const
         {
             if(type() != LEAF_IMAGE){
-                throw fflerror("leaf is not an image");
+                throw fflpanic("leaf is not an image");
             }
             return m_u64Key;
         }
@@ -93,7 +93,7 @@ class XMLParagraphLeaf
         uint32_t emojiU32Key() const
         {
             if(type() != LEAF_EMOJI){
-                throw fflerror("leaf is not an emoji");
+                throw fflpanic("leaf is not an emoji");
             }
             return m_u64Key;
         }

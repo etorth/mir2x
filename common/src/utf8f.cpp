@@ -14,7 +14,7 @@
 //         return std::bit_cast<uint32_t>(utf8::peek_next(utf8Begin, utf8Begin + size));
 //     }
 //     catch(...){
-//         throw fflerror("failed to peek the first utf8 code");
+//         throw fflpanic("failed to peek the first utf8 code");
 //     }
 // }
 
@@ -31,7 +31,7 @@ uint32_t utf8f::peekUTF8Code(const char *utf8Begin, const char *utf8End)
         utf8::advance(p, 1, utf8Begin + size);
     }
     catch(...){
-        throw fflerror("failed to peek the first utf8 code");
+        throw fflpanic("failed to peek the first utf8 code");
     }
 
     fflassert(p - utf8Begin <= 4);
@@ -51,7 +51,7 @@ std::string utf8f::peekUTF8Str(const char *utf8Begin, const char *utf8End)
         utf8::advance(p, 1, utf8Begin + size);
     }
     catch(...){
-        throw fflerror("failed to peek the first utf8 code");
+        throw fflpanic("failed to peek the first utf8 code");
     }
 
     fflassert(p - utf8Begin <= 4);

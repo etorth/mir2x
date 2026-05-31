@@ -154,7 +154,7 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                 amA.action = amSMOK.action;
 
                 if(!removeGridUID(fromUID, amTSM.X, amTSM.Y)){
-                    throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), amTSM.X, amTSM.Y);
+                    throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", to_llu(fromUID), amTSM.X, amTSM.Y);
                 }
 
                 std::unordered_set<uint64_t> seenUIDList;
@@ -280,7 +280,7 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                 amA.action = amJOK.action;
 
                 if(!hasGridUID(fromUID, amTJ.X, amTJ.Y)){
-                    throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), amTJ.X, amTJ.Y);
+                    throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", to_llu(fromUID), amTJ.X, amTJ.Y);
                 }
 
                 removeGridUID(fromUID, amTJ.X, amTJ.Y);
@@ -518,7 +518,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
 
                 // leave last cell
                 if(!removeGridUID(amTM.UID, amTM.X, amTM.Y)){
-                    throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(amTM.UID), amTM.X, amTM.Y);
+                    throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", to_llu(amTM.UID), amTM.X, amTM.Y);
                 }
 
                 std::unordered_set<uint64_t> seenUIDList;
@@ -622,7 +622,7 @@ corof::awaitable<> ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
     amA.action = amLOK.action;
 
     if(!removeGridUID(fromUID, amTL.X, amTL.Y)){
-        throw fflerror("CO location error: (UID = %llu, X = %d, Y = %d)", to_llu(fromUID), amTL.X, amTL.Y);
+        throw fflpanic("CO location error: (UID = {}, X = {}, Y = {})", to_llu(fromUID), amTL.X, amTL.Y);
     }
 
     // broadcast new CO location to leaving map

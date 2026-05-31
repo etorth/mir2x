@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
     }
 
     if(argc != 1 + 3 /* parameters listed above */){
-        throw fflerror("run \"%s\" without parameter to show supported options", argv[0]);
+        throw fflpanic("run \"{}\" without parameter to show supported options", argv[0]);
     }
 
     npcGen(argv[1], argv[2], argv[3]);

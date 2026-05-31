@@ -44,7 +44,7 @@ static void cmd_create_db(const argf::parser &cmd)
         }
 
         if(cmd["input-file-name-regex"] || cmd("input-file-name-regex").str().empty()){
-            throw fflerror("input-file-name-regex requires an argument");
+            throw fflpanic("input-file-name-regex requires an argument");
         }
         return cmd("input-file-name-regex").str();
     }();
@@ -56,7 +56,7 @@ static void cmd_create_db(const argf::parser &cmd)
         }
 
         if(cmd["input-dir"] || cmd("input-dir").str().empty()){
-            throw fflerror("input-dir requires an argument");
+            throw fflpanic("input-dir requires an argument");
         }
         return cmd("input-dir").str();
     }();
@@ -68,7 +68,7 @@ static void cmd_create_db(const argf::parser &cmd)
         }
 
         if(cmd["input-dict"] || cmd("input-dict").str().empty()){
-            throw fflerror("input-dict requires an argument");
+            throw fflpanic("input-dict requires an argument");
         }
         return cmd("input-dict").str();
     }();
@@ -80,7 +80,7 @@ static void cmd_create_db(const argf::parser &cmd)
         }
 
         if(cmd["compress-threshold"] || cmd("compress-threshold").str().empty()){
-            throw fflerror("compress-threshold requires an argument");
+            throw fflpanic("compress-threshold requires an argument");
         }
 
         double threshold;
@@ -96,7 +96,7 @@ static void cmd_list(const argf::parser &cmd)
     auto dbFileName = [&cmd]() -> std::string
     {
         if(cmd["list"] || cmd("list").str().empty()){
-            throw fflerror("option list requires an argument");
+            throw fflpanic("option list requires an argument");
         }
 
         return cmd("list").str();
@@ -114,7 +114,7 @@ static void cmd_list(const argf::parser &cmd)
         if(auto regexStr = cmd("data-name-regex").str(); !regexStr.empty()){
             return regexStr;
         }
-        throw fflerror("option --data-name-regex requires an argument");
+        throw fflpanic("option --data-name-regex requires an argument");
     }();
 
     std::regex fileNameReg(regexStr.empty() ? ".*" : regexStr.c_str());
@@ -133,7 +133,7 @@ static void cmd_uncomp_db(const argf::parser &cmd)
     const auto dbFileName = [&cmd]() -> std::string
     {
         if(cmd["decomp-db"] || cmd("decomp-db").str().empty()){
-            throw fflerror("option --decomp-db requires an argument");
+            throw fflpanic("option --decomp-db requires an argument");
         }
         return cmd("decomp-db").str();
     }();
@@ -160,7 +160,7 @@ static void cmd_uncomp_db(const argf::parser &cmd)
 
             auto fptr = make_fileptr(fileName, "wb");
             if(std::fwrite(readBuf.data(), readBuf.size(), 1, fptr.get()) != 1){
-                throw fflerror("failed to write to file: %s, err = %s", fileName, std::strerror(errno));
+                throw fflpanic("failed to write to file: {}, err = {}", fileName, std::strerror(errno));
             }
             std::printf("%-32s %8zu -> %8zu [%3d%%] %8llu\n", entry.fileName, entry.length, readBuf.size(), to_d(entry.length * 100 / readBuf.size()), to_llu(entry.attribute));
         }

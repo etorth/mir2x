@@ -456,7 +456,7 @@ class ServerMsg final: public msgf::MsgBase
                 return *attPtr;
             }
             else{
-                throw fflerror("message not registered: %02d", (int)(headCode()));
+                throw fflpanic("message not registered: {:02d}", (int)(headCode()));
             }
         }
 
@@ -472,7 +472,7 @@ class ServerMsg final: public msgf::MsgBase
             static_assert(std::is_trivially_copyable_v<T>);
 
             if(bufLen && bufLen != sizeof(T)){
-                throw fflerror("invalid buffer length");
+                throw fflpanic("invalid buffer length");
             }
 
             T t;

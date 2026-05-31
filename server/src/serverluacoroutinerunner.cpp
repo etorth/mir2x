@@ -183,7 +183,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                         for(const auto &line: sdRCR.error){
                             g_server->addLog(LOGTYPE_WARNING, "%s", to_cstr(line));
                         }
-                        throw fflerror("lua call failed in %s", to_cstr(uidf::getUIDString(uid)));
+                        throw fflpanic("lua call failed in {}", to_cstr(uidf::getUIDString(uid)));
                     }
                     break;
                 }
@@ -196,7 +196,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 }
             default:
                 {
-                    throw fflerror("lua call failed in %s: %s", to_cstr(uidf::getUIDString(uid)), mpk.str().c_str());
+                    throw fflpanic("lua call failed in {}: {}", to_cstr(uidf::getUIDString(uid)), mpk.str().c_str());
                 }
         }
     });

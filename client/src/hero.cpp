@@ -42,7 +42,7 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     });
 
     if(!parseAction(action)){
-        throw fflerror("failed to parse action");
+        throw fflpanic("failed to parse action");
     }
 }
 
@@ -1539,7 +1539,7 @@ ClientCreature::TargetBox Hero::getTargetBox() const
 const SDItem &Hero::getWLItem(int wltype) const
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("invalid wltype: %d", wltype);
+        throw fflpanic("invalid wltype: {}", wltype);
     }
     return m_sdWLDesp.wear.getWLItem(wltype);
 }
@@ -1547,7 +1547,7 @@ const SDItem &Hero::getWLItem(int wltype) const
 bool Hero::setWLItem(int wltype, SDItem item, bool playSound)
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("invalid wear/look type: %d", wltype);
+        throw fflpanic("invalid wear/look type: {}", wltype);
     }
 
     if(item.itemID == 0){
@@ -1556,12 +1556,12 @@ bool Hero::setWLItem(int wltype, SDItem item, bool playSound)
     }
 
     if(!item){
-        throw fflerror("invalid itemID: %llu", to_llu(item.itemID));
+        throw fflpanic("invalid itemID: {}", to_llu(item.itemID));
     }
 
     const auto &ir = DBCOM_ITEMRECORD(item.itemID);
     if(!ir){
-        throw fflerror("invalid itemID: %llu", to_llu(item.itemID));
+        throw fflpanic("invalid itemID: {}", to_llu(item.itemID));
     }
 
     switch(wltype){

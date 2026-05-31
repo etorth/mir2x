@@ -5,6 +5,7 @@
 #include <string_view>
 #include <cstring>
 #include <type_traits>
+#include "totype.hpp"
 #include "cerealf.hpp"
 #include "fflerror.hpp"
 #include "conceptf.hpp"
@@ -36,11 +37,11 @@ template<size_t Capacity> struct StaticBuffer
     {
         if(length > 0){
             if(!data){
-                throw fflerror("null data pointer while data length is non-zero: %zu", length);
+                throw fflpanic("null data pointer while data length is non-zero: {}", length);
             }
 
             if(length > capacity()){
-                throw fflerror("data length %zu exceeds buffer capacity: %zu", length, capacity());
+                throw fflpanic("data length {} exceeds buffer capacity: {}", length, capacity());
             }
 
             std::memcpy(this->data, data, length);
@@ -148,3 +149,13 @@ template<size_t Capacity> struct StaticBuffer
     }
 };
 static_assert(std::is_trivially_copyable_v<StaticBuffer<128>>);
+
+template<size_t StaticBufferCapacity> const char *to_cstr(const StaticBuffer<StaticBufferCapacity> &buf)
+{
+    return to_cstr(reinterpret_cast<const char *>(buf.data));
+}
+
+template<size_t StaticBufferCapacity> const char8_t *to_u8cstr(const StaticBuffer<StaticBufferCapacity> &buf)
+{
+    return to_u8cstr(reinterpret_cast<const char8_t *>(buf.data));
+}

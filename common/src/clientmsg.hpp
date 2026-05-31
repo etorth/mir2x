@@ -8,6 +8,7 @@
 #include "staticbuffer.hpp"
 #include "actionnode.hpp"
 #include "staticvector.hpp"
+#include "totype.hpp"
 
 enum CMType: uint8_t
 {
@@ -398,7 +399,7 @@ class ClientMsg final: public msgf::MsgBase
                 return *attPtr;
             }
             else{
-                throw fflerror("message not registered: %02d", (int)(headCode()));
+                throw fflpanic("message not registered: {:02d}", (int)(headCode()));
             }
         }
 
@@ -413,7 +414,7 @@ class ClientMsg final: public msgf::MsgBase
         {
             static_assert(std::is_trivially_copyable_v<T>);
             if(bufLen && bufLen != sizeof(T)){
-                throw fflerror("invalid buffer length");
+                throw fflpanic("invalid buffer length");
             }
 
             T t;
@@ -434,11 +435,11 @@ struct ClientMsgBuf final
         , size(argSize)
     {
         if(headCode & 0x80){
-            throw fflerror("invalid head code 0x%02x", (int)(headCode));
+            throw fflpanic("invalid head code 0x{:02x}", (int)(headCode));
         }
 
         if(!ClientMsg(headCode).checkData(data, size)){
-            throw fflerror("invalid data size, data %p, size %zu", (const void *)(data), size);
+            throw fflpanic("invalid data size, data {:p}, size {}", to_cvptr(data), size);
         }
     }
 
@@ -480,7 +481,7 @@ struct ClientMsgBuf final
             return t;
         }
         else{
-            throw fflerror("failed to deserialize %zu bytes into %zu buffer", size, sizeof(T));
+            throw fflpanic("failed to deserialize {} bytes into {} buffer", size, sizeof(T));
         }
     }
 };

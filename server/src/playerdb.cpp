@@ -141,7 +141,7 @@ void Player::dbRemoveInventoryItem(uint32_t itemID, uint32_t seqID)
     // means won't support remove more than 1 item in database per call
 
     if(!(DBCOM_ITEMRECORD(itemID) && seqID > 0)){
-        throw fflerror("invalid arguments: itemID = %llu, seqID = %llu", to_llu(itemID), to_llu(seqID));
+        throw fflpanic("invalid arguments: itemID = {}, seqID = {}", to_llu(itemID), to_llu(seqID));
     }
     g_dbPod->exec("delete from tbl_inventory where fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu", to_llu(dbid()), to_llu(itemID), to_llu(seqID));
 }
@@ -197,7 +197,7 @@ SDItem Player::dbRetrieveSecuredItem(uint32_t itemID, uint32_t seqID)
         fflassert(!query.executeStep());
         return item;
     }
-    throw fflerror("can't find item: itemID = %llu, seqID = %llu", to_llu(itemID), to_llu(seqID));
+    throw fflpanic("can't find item: itemID = {}, seqID = {}", to_llu(itemID), to_llu(seqID));
 }
 
 std::vector<SDItem> Player::dbLoadSecuredItemList() const
@@ -321,7 +321,7 @@ std::optional<SDChatPeer> Player::dbLoadChatPeer(uint64_t argCPID)
         }
     }
     else{
-        throw fflerror("invalid cpid: 0x%016llx", to_llu(argCPID));
+        throw fflpanic("invalid cpid: 0x{:016x}", to_llu(argCPID));
     }
 }
 
@@ -464,7 +464,7 @@ void Player::dbLoadBelt()
     while(query.executeStep()){
         const auto index = check_cast<size_t, unsigned>(query.getColumn("fld_belt"));
         if(index >= 6){
-            throw fflerror("invalid belt slot: %zu", index);
+            throw fflpanic("invalid belt slot: {}", index);
         }
 
         const auto itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid"));
@@ -472,7 +472,7 @@ void Player::dbLoadBelt()
         if(true
                 && typeStr != u8"恢复药水"
                 && typeStr != u8"传送卷轴"){
-            throw fflerror("invalid item type to belt slot");
+            throw fflpanic("invalid item type to belt slot");
         }
 
         SDItem item
@@ -489,7 +489,7 @@ void Player::dbLoadBelt()
 void Player::dbUpdateBeltItem(size_t slot, const SDItem &item)
 {
     if(slot >= 6){
-        throw fflerror("invalid belt slot: %zu", slot);
+        throw fflpanic("invalid belt slot: {}", slot);
     }
 
     fflassert(item);
@@ -497,7 +497,7 @@ void Player::dbUpdateBeltItem(size_t slot, const SDItem &item)
     if(true
             && typeStr != u8"恢复药水"
             && typeStr != u8"传送卷轴"){
-        throw fflerror("invalid item type to belt slot");
+        throw fflpanic("invalid item type to belt slot");
     }
 
     g_dbPod->exec(
@@ -514,7 +514,7 @@ void Player::dbUpdateBeltItem(size_t slot, const SDItem &item)
 void Player::dbRemoveBeltItem(size_t slot)
 {
     if(slot >= 6){
-        throw fflerror("invalid belt slot: %zu", slot);
+        throw fflpanic("invalid belt slot: {}", slot);
     }
     g_dbPod->exec("delete from tbl_belt where fld_dbid = %llu and fld_belt = %zu", to_llu(dbid()), slot);
 }
@@ -546,7 +546,7 @@ void Player::dbLoadWear()
         };
 
         if(!DBCOM_ITEMRECORD(item.itemID).wearable(wltype)){
-            throw fflerror("invalid item type to wear grid");
+            throw fflpanic("invalid item type to wear grid");
         }
 
         fflassert(item);
@@ -557,12 +557,12 @@ void Player::dbLoadWear()
 void Player::dbUpdateWearItem(int wltype, const SDItem &item)
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("bad wltype: %d", wltype);
+        throw fflpanic("bad wltype: {}", wltype);
     }
 
     fflassert(item);
     if(!DBCOM_ITEMRECORD(item.itemID).wearable(wltype)){
-        throw fflerror("invalid item type to wear grid");
+        throw fflpanic("invalid item type to wear grid");
     }
 
     // only save itemID and wltype
@@ -587,7 +587,7 @@ void Player::dbUpdateWearItem(int wltype, const SDItem &item)
 void Player::dbRemoveWearItem(int wltype)
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("bad wltype: %d", wltype);
+        throw fflpanic("bad wltype: {}", wltype);
     }
     g_dbPod->exec("delete from tbl_wear where fld_dbid = %llu and fld_wear = %llu", to_llu(dbid()), to_llu(wltype));
 }
@@ -704,7 +704,7 @@ std::tuple<uint64_t, uint64_t> Player::dbSaveChatMessage(const SDChatPeerID &fro
         return {to_u64(query.getColumn("fld_id").getInt64()), tstamp};
     }
     else{
-        throw fflerror("failed to insert chat message to database");
+        throw fflpanic("failed to insert chat message to database");
     }
 }
 
@@ -796,7 +796,7 @@ std::string Player::dbGetPlayerName(uint32_t argDBID)
     if(query.executeStep()){
         return query.getColumn("fld_name");
     }
-    throw fflerror("invalid dbid: %llu", to_llu(argDBID));
+    throw fflpanic("invalid dbid: {}", to_llu(argDBID));
 }
 
 bool Player::dbIsFriend(uint32_t argDBID, uint32_t argFriendDBID)
@@ -926,6 +926,6 @@ SDChatPeer Player::dbCreateChatGroup(const char *name, const std::span<const uin
         return groupCP;
     }
     else{
-        throw fflerror("failed to create a group");
+        throw fflpanic("failed to create a group");
     }
 }

@@ -46,11 +46,11 @@ ClientNPC::ClientNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     : ClientCreature(uid, proc)
 {
     if(type() != UID_NPC){
-        throw fflerror("uid type: %s", uidf::getUIDString(UID()).c_str());
+        throw fflpanic("uid type: {}", uidf::getUIDString(UID()).c_str());
     }
 
     if(!parseAction(action)){
-        throw fflerror("invalid NPC action");
+        throw fflpanic("invalid NPC action");
     }
 }
 
@@ -202,7 +202,7 @@ bool ClientNPC::parseAction(const ActionNode &action)
                 }
             default:
                 {
-                    throw fflerror("invalid action node: type = %d", action.type);
+                    throw fflpanic("invalid action node: type = {}", action.type);
                 }
         }
     }();
@@ -251,7 +251,7 @@ bool ClientNPC::update(double ms)
             }
         default:
             {
-                throw fflerror("invalid motion: %d", m_currMotion->type);
+                throw fflpanic("invalid motion: {}", m_currMotion->type);
             }
     }
 }

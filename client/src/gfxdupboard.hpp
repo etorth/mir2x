@@ -58,7 +58,7 @@ class GfxDupBoard: public Widget
                 return gfxPtr->roi();
             }
             else{
-                throw fflerror("gfxCropROI");
+                throw fflpanic("gfxCropROI");
             }
         }
 

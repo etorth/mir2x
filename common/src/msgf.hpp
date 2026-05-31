@@ -23,7 +23,7 @@ namespace msgf
         const size_t dataLen;
 
         MsgAttribute(const char *argName, int argType, size_t argLen = 0)
-            : name(str_haschar(argName) ? argName : throw fflerror("invalid argument"))
+            : name(str_haschar(argName) ? argName : throw fflpanic("invalid argument"))
             , type(argType)
             , dataLen(argLen)
         {
@@ -35,7 +35,7 @@ namespace msgf
                     {
                         // empty, shouldn't have any content
                         if(dataLen){
-                            throw fflerror("invalid dataLen: %zu", dataLen);
+                            throw fflpanic("invalid dataLen: {}", dataLen);
                         }
                         break;
                     }
@@ -44,7 +44,7 @@ namespace msgf
                         // not empty, fixed size, compressed
                         // support maxCompLen = 0b_1111111_1111111_1111111_1111111, abort if bigger than it
                         if(!(dataLen > 0 && dataLen < (1uz << 4 * 7))){
-                            throw fflerror("invalid dataLen: %zu", dataLen);
+                            throw fflpanic("invalid dataLen: {}", dataLen);
                         }
                         break;
                     }
@@ -53,7 +53,7 @@ namespace msgf
                         // not empty, fixed size, not compressed
                         // used for small messages that even xor compress is too much
                         if(!dataLen){
-                            throw fflerror("invalid dataLen: %zu", dataLen);
+                            throw fflpanic("invalid dataLen: {}", dataLen);
                         }
                         break;
                     }
@@ -62,13 +62,13 @@ namespace msgf
                         // not empty, not fixed size, not compressed
                         // dataLen should be zero to indicate it's not fixed size message
                         if(dataLen){
-                            throw fflerror("invalid dataLen: %zu", dataLen);
+                            throw fflpanic("invalid dataLen: {}", dataLen);
                         }
                         break;
                     }
                 default:
                     {
-                        throw fflerror("invalid message type: %d", type);
+                        throw fflpanic("invalid message type: {}", type);
                     }
             }
         }
@@ -201,7 +201,7 @@ namespace msgf
         }
 
         if(length > 0){
-            throw fflerror("buffer can not hold length bits, bufSize %zu, length %zu", bufSize, length);
+            throw fflpanic("buffer can not hold length bits, bufSize {}, length {}", bufSize, length);
         }
         return bytes;
     }
@@ -216,7 +216,7 @@ namespace msgf
         T length = 0;
         for(size_t i = 0; i < bufSize; ++i){
             if(const T nextLength = (length << 7) | (buf[bufSize - 1 - i] & 0x7f); nextLength < length){
-                throw fflerror("decode length overflows: %s", str_any(std::vector<uint8_t>(buf, buf + bufSize)).c_str());
+                throw fflpanic("decode length overflows: {}", str_any(std::vector<uint8_t>(buf, buf + bufSize)).c_str());
             }
             else{
                 length = nextLength;

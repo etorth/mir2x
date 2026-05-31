@@ -43,7 +43,7 @@ corof::awaitable<> ServiceCore::net_CM_LOGIN(uint32_t channID, uint8_t, const ui
 
     for(const auto &[existChannID, existDBID]: m_dbidList){
         if(existChannID == channID){
-            throw fflerror("internal error: channID reused before recycle: %d", to_d(channID));
+            throw fflpanic("internal error: channID reused before recycle: {}", to_d(channID));
         }
 
         if(existDBID.first == dbid){
@@ -151,7 +151,7 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         }
     }
     else{
-        throw fflerror("failed to load map: %s", uidf::getUIDString(mapUID).c_str());
+        throw fflpanic("failed to load map: {}", uidf::getUIDString(mapUID).c_str());
     }
 }
 

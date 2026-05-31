@@ -28,10 +28,10 @@ template<conceptf::TriviallyCopyable T, size_t Capacity> struct StaticVector
         return Capacity;
     }
 
-    /**/  T &front()       { if(empty()){ throw fflerror("empty vector"); } return data[0]; }
-    const T &front() const { if(empty()){ throw fflerror("empty vector"); } return data[0]; }
-    /**/  T & back()       { if(empty()){ throw fflerror("empty vector"); } return data[size - 1]; }
-    const T & back() const { if(empty()){ throw fflerror("empty vector"); } return data[size - 1]; }
+    /**/  T &front()       { if(empty()){ throw fflpanic("empty vector"); } return data[0]; }
+    const T &front() const { if(empty()){ throw fflpanic("empty vector"); } return data[0]; }
+    /**/  T & back()       { if(empty()){ throw fflpanic("empty vector"); } return data[size - 1]; }
+    const T & back() const { if(empty()){ throw fflpanic("empty vector"); } return data[size - 1]; }
 
     /**/  T *begin()       noexcept { return data; }
     const T *begin() const noexcept { return data; }
@@ -41,7 +41,7 @@ template<conceptf::TriviallyCopyable T, size_t Capacity> struct StaticVector
     void push(const T &t)
     {
         if(size >= capacity()){
-            throw fflerror("capacity exceeds");
+            throw fflpanic("capacity exceeds");
         }
         else{
             data[size++] = t;
@@ -54,18 +54,18 @@ template<conceptf::TriviallyCopyable T, size_t Capacity> struct StaticVector
             size--;
         }
         else{
-            throw fflerror("emtpy vector");
+            throw fflpanic("emtpy vector");
         }
     }
 
     template<class InputIt> void assign(InputIt first, InputIt last)
     {
         if(const auto inputsize = std::distance(first, last); inputsize < 0){
-            throw fflerror("invalid range");
+            throw fflpanic("invalid range");
         }
 
         else if((size_t)(inputsize) > capacity()){
-            throw fflerror("size of range %zu exceeds capacity %zu", (size_t)(inputsize), capacity());
+            throw fflpanic("size of range {} exceeds capacity {}", (size_t)(inputsize), capacity());
         }
         else{
             size = inputsize;

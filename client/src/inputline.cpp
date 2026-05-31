@@ -161,7 +161,7 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
 
                     const auto [cursorX, cursorY] = m_tpset.locCursor(eventX, eventY);
                     if(cursorY != 0){
-                        throw fflerror("cursor locates at wrong line");
+                        throw fflpanic("cursor locates at wrong line");
                     }
 
                     m_cursor = cursorX;

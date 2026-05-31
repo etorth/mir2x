@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
     }
 
     if(argc != 1 + 9 /* parameters listed above */){
-        throw fflerror("run \"%s\" without parameter to show supported options", argv[0]);
+        throw fflpanic("run \"{}\" without parameter to show supported options", argv[0]);
     }
 
     printCodeLine

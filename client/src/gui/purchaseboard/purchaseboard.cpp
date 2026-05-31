@@ -192,7 +192,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
               }
 
               if(seqID != 0){
-                  throw fflerror("unexpected seqID = %llu", to_llu(seqID));
+                  throw fflpanic("unexpected seqID = {}", to_llu(seqID));
               }
 
               auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"));
@@ -556,7 +556,7 @@ void PurchaseBoard::drawExt1(Widget::ROIMap m) const
     }
 
     if(m_ext1Page >= ext1PageCount){
-        throw fflerror("invalid ext1Page: ext1Page = %d, listSize = %zu", m_ext1Page, m_sdSellItemList.list.size());
+        throw fflpanic("invalid ext1Page: ext1Page = {}, listSize = {}", m_ext1Page, m_sdSellItemList.list.size());
     }
 
     const auto remapX = m.x - m.ro->x;
@@ -573,7 +573,7 @@ void PurchaseBoard::drawExt1(Widget::ROIMap m) const
             const auto &sellItem = m_sdSellItemList.list.at(i);
             const auto &ir = DBCOM_ITEMRECORD(sellItem.item.itemID);
             if(!ir){
-                throw fflerror("bad item in sell list: itemID = %llu, seqID = %llu", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
+                throw fflpanic("bad item in sell list: itemID = {}, seqID = {}", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
             }
 
             constexpr int rightStartX = m_ext1GridArea.x;
@@ -636,7 +636,7 @@ void PurchaseBoard::drawExt2(Widget::ROIMap m) const
 
     const auto [extItemID, extSeqID] = getExtSelectedItemSeqID();
     if(extSeqID){
-        throw fflerror("unexpected extSeqID: %llu", to_llu(extSeqID));
+        throw fflpanic("unexpected extSeqID: {}", to_llu(extSeqID));
     }
 
     drawChild(&m_buttonExt2Close , m);
@@ -649,7 +649,7 @@ void PurchaseBoard::drawExt2(Widget::ROIMap m) const
     const auto &sellItem = m_sdSellItemList.list.at(0);
     const auto &ir = DBCOM_ITEMRECORD(sellItem.item.itemID);
     if(!ir){
-        throw fflerror("bad item in sell list: itemID = %llu, seqID = %llu", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
+        throw fflpanic("bad item in sell list: itemID = {}, seqID = {}", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
     }
 
     drawItemInGrid(ir.type, ir.pkgGfxID, m_ext2GridArea.x, m_ext2GridArea.y, m);
@@ -695,7 +695,7 @@ std::tuple<uint32_t, uint32_t> PurchaseBoard::getExtSelectedItemSeqID() const
 size_t PurchaseBoard::getItemPrice(int itemIndex) const
 {
     if(!(itemIndex >= 0 && itemIndex < to_d(m_sdSellItemList.list.size()))){
-        throw fflerror("invalid argument: itemIndex = %d", itemIndex);
+        throw fflpanic("invalid argument: itemIndex = {}", itemIndex);
     }
 
     for(const auto &costItem: m_sdSellItemList.list.at(itemIndex).costList){

@@ -159,7 +159,7 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
     setShow(false);
     auto texPtr = g_progUseDB->retrieve(0X0000001B);
     if(!texPtr){
-        throw fflerror("no valid inventory frame texture");
+        throw fflpanic("no valid inventory frame texture");
     }
 
     setW(SDLDeviceHelper::getTextureWidth (texPtr));

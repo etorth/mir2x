@@ -74,11 +74,11 @@ ServerLuaModule::ServerLuaModule()
                 return sol::as_returns(fnGetRandGLoc(dataCPtr));
             }
             else{
-                throw fflerror("map %s has no valid mir2x data", to_cstr(mapName));
+                throw fflpanic("map {} has no valid mir2x data", to_cstr(mapName));
             }
         }
         else{
-            throw fflerror("invalid map name: %s", to_cstr(mapName));
+            throw fflpanic("invalid map name: {}", to_cstr(mapName));
         }
     });
 
@@ -124,13 +124,13 @@ ServerLuaModule::ServerLuaModule()
                         }
                     default:
                         {
-                            throw fflerror("column type not supported: %d", column.getType());
+                            throw fflpanic("column type not supported: {}", column.getType());
                         }
                 }
             }
 
             if(rowResult.size() != to_uz(queryStatement.getColumnCount())){
-                throw fflerror("failed to parse query result row: missing column");
+                throw fflpanic("failed to parse query result row: missing column");
             }
             queryResult.push_back(std::move(rowResult));
         }

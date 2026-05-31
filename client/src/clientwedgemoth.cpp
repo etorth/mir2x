@@ -27,7 +27,7 @@ ClientWedgeMoth::ClientWedgeMoth(uint64_t uid, ProcessRun *proc, const ActionNod
             }
         default:
             {
-                throw fflerror("invalid initial action: %s", actionName(action.type));
+                throw fflpanic("invalid initial action: {}", actionName(action.type));
             }
     }
 }

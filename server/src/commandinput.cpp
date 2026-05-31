@@ -173,11 +173,11 @@ void CommandInput::postExecLuaString(const std::string &code)
                     return m_window->getLuaModule()->execString("asyncEval(%s)", luaf::quotedLuaString(code).c_str());
                 }
                 else{
-                    throw fflerror("actor pool not running");
+                    throw fflpanic("actor pool not running");
                 }
             }
             else{
-                throw fflerror("invalid eval mode: %s", to_cstr(m_window->getEvalMode()));
+                throw fflpanic("invalid eval mode: {}", to_cstr(m_window->getEvalMode()));
             }
         };
 

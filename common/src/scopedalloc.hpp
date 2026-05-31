@@ -75,13 +75,13 @@ namespace scoped_alloc
         if(!posix_memalign(&aligned_ptr, Alignment, byte_count_aligned)){
             return {static_cast<char *>(aligned_ptr), byte_count_aligned};
         }
-        throw fflerror("posix_memalign(..., alignment = %zu, byte_count = %zu, byte_count_aligned = %zu) failed", Alignment, byte_count, byte_count_aligned);
+        throw fflpanic("posix_memalign(..., alignment = {}, byte_count = {}, byte_count_aligned = {}) failed", Alignment, byte_count, byte_count_aligned);
 #else
         aligned_ptr = aligned_alloc(Alignment, byte_count_aligned);
         if(aligned_ptr){
             return {static_cast<char *>(aligned_ptr), byte_count_aligned};
         }
-        throw fflerror("aligned_alloc(alignment = %zu, byte_count = %zu, byte_count_aligned = %zu) failed", Alignment, byte_count, byte_count_aligned);
+        throw fflpanic("aligned_alloc(alignment = {}, byte_count = {}, byte_count_aligned = {}) failed", Alignment, byte_count, byte_count_aligned);
 #endif
     }
 
@@ -94,7 +94,7 @@ namespace scoped_alloc
     template<size_t Alignment> aligned_buf<Alignment> alloc_aligned(size_t byte_count)
     {
         if(byte_count == 0){
-            throw fflerror("bad argument: byte_count = 0");
+            throw fflpanic("bad argument: byte_count = 0");
         }
 
         // NOTICE: we either use alloc_overalign() or use the general operator new()
@@ -158,7 +158,7 @@ namespace scoped_alloc
                 m_size = buf.size;
 
                 if(!(m_buf && m_size)){
-                    throw fflerror("failed to allocate dynamic_buf");
+                    throw fflpanic("failed to allocate dynamic_buf");
                 }
             }
 
@@ -196,7 +196,7 @@ namespace scoped_alloc
             {
                 static_assert(check_alignment(BufAlignment) && (BufAlignment >= Alignment), "bad aligned_buf alignment");
                 if(!(buf.buf && buf.size)){
-                    throw fflerror("empty aligned_buf");
+                    throw fflpanic("empty aligned_buf");
                 }
 
                 m_cursor = buf.buf;
@@ -220,7 +220,7 @@ namespace scoped_alloc
             aligned_buf<Alignment> get_buf_ex() const
             {
                 if(!has_buf()){
-                    throw fflerror("no valid buffer attached to arena_interf");
+                    throw fflpanic("no valid buffer attached to arena_interf");
                 }
                 return get_buf();
             }
@@ -338,7 +338,7 @@ namespace scoped_alloc
                 //       detect_outlive() invokes undefined behavior if assertion failed
 #ifdef SCOPED_ALLOC_THROW_OVERLIVE
                 if(!(in_buf(m_cursor))){
-                    throw fflerror("allocator has outlived arena_interf");
+                    throw fflpanic("allocator has outlived arena_interf");
                 }
 #else
                 assert(in_buf(m_cursor) && "allocator has outlived arena_interf");
@@ -440,12 +440,12 @@ namespace scoped_alloc
             void alloc(size_t byte_count)
             {
                 if(byte_count == 0){
-                    throw fflerror("invalid allocation: byte_count = 0");
+                    throw fflpanic("invalid allocation: byte_count = 0");
                 }
 
                 if(this->has_buf()){
 #ifdef SCOPED_ALLOC_DISABLE_DYNAMIC_ARENA_REALLOC
-                    throw fflerror("dynamic_arena has buffer attached");
+                    throw fflpanic("dynamic_arena has buffer attached");
 #else
                     scoped_alloc::free_aligned(this->get_buf().buf);
 #endif
@@ -527,7 +527,7 @@ namespace scoped_alloc
             void alloc(size_t n)
             {
                 if(m_arena.has_buf()){
-                    throw fflerror("arena buffer has already been allocated");
+                    throw fflpanic("arena buffer has already been allocated");
                 }
 
                 // estimate memory usage
@@ -847,7 +847,7 @@ namespace scoped_alloc
                     const auto found = std::lower_bound(prime_table, prime_table_end, (unsigned long long)(n));
 
                     if(found == prime_table_end){
-                        throw fflerror("invalid size to reserve: %zu", n);
+                        throw fflpanic("invalid size to reserve: {}", n);
                     }
                     return (size_t)(*found);
                 }();
@@ -933,7 +933,7 @@ namespace scoped_alloc
 
                 c.reserve(BufSize);
                 if(c.capacity() > BufSize){
-                    throw fflerror("allocate initial buffer dynamically");
+                    throw fflpanic("allocate initial buffer dynamically");
                 }
             }
 

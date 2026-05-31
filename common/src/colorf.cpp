@@ -100,5 +100,5 @@ uint32_t colorf::string2RGBA(const char *color)
         }
         throw fflreach();
     }
-    throw fflerror("invalid color string: %s", color);
+    throw fflpanic("invalid color string: {}", color);
 }

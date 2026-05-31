@@ -251,7 +251,7 @@ namespace mathf
     template<mathf::arithmetic T> bool intervalOverlapRegion(T nfX1, T nfW1, T *nfX2, T *nfW2)
     {
         if(!(nfX2 && nfW2)){
-            throw fflerror("invalid arguments");
+            throw fflpanic("invalid arguments");
         }
 
         if(!intervalOverlap(nfX1, nfW1, *nfX2, *nfW2)){

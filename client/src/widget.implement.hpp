@@ -6,7 +6,7 @@ auto WidgetTreeNode::parent(this auto && self, unsigned level) -> check_const_co
     }
 
     if(p && p->m_dead){
-        throw fflerror("accessing dead widget: %s", p->name());
+        throw fflpanic("accessing dead widget: {}", p->name());
     }
     return p;
 }
@@ -213,7 +213,7 @@ auto WidgetTreeNode::prevChild(this auto && self, uint64_t childID) -> check_con
             return nullptr;
         }
     }
-    throw fflerror("can not find child %llu", to_llu(childID));
+    throw fflpanic("can not find child {}", to_llu(childID));
 }
 
 auto WidgetTreeNode::nextChild(this auto && self, uint64_t childID) -> check_const_cond_out_ptr_t<decltype(self), Widget>
@@ -229,7 +229,7 @@ auto WidgetTreeNode::nextChild(this auto && self, uint64_t childID) -> check_con
             return nullptr;
         }
     }
-    throw fflerror("can not find child %llu", to_llu(childID));
+    throw fflpanic("can not find child {}", to_llu(childID));
 }
 
 template<std::derived_from<Widget> T> auto WidgetTreeNode::hasParent(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), T>
@@ -426,7 +426,7 @@ auto Widget::focusedChild(this auto && self) -> check_const_cond_out_ptr_t<declt
     {
         if(widget->focus()){
             if(focusedWidget){
-                throw fflerror("%s has multiple focused child: %s and %s", self.name(), focusedWidget->name(), widget->name());
+                throw fflpanic("{} has multiple focused child: {} and {}", self.name(), focusedWidget->name(), widget->name());
             }
             else{
                 focusedWidget = widget;
@@ -436,7 +436,7 @@ auto Widget::focusedChild(this auto && self) -> check_const_cond_out_ptr_t<declt
 
     if(self.m_attrs.inst.focus){
         if(focusedWidget){
-            throw fflerror("%s and its child %s has focus simutaneously", self.name(), focusedWidget->name());
+            throw fflpanic("{} and its child {} has focus simutaneously", self.name(), focusedWidget->name());
         }
         return std::addressof(self);
     }

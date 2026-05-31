@@ -18,7 +18,7 @@ CommandLuaModule::CommandLuaModule(uint32_t cwid)
         std::vector<sol::object> resList;
         try{
             if(!g_actorPool->running()){
-                throw fflerror("actor pool is not running");
+                throw fflpanic("actor pool is not running");
             }
 
             if(!sloCreated){
@@ -28,7 +28,7 @@ CommandLuaModule::CommandLuaModule(uint32_t cwid)
             }
 
             if(!g_actorPool->checkUIDValid(uidf::getServerLuaObjectUID(CWID()))){
-                throw fflerror("no SLO bind to current command window: %d", CWID());
+                throw fflpanic("no SLO bind to current command window: {}", CWID());
             }
 
             switch(const auto rmpk = SyncDriver().forward(uidf::getServerLuaObjectUID(CWID()), {AM_REMOTECALL, cerealf::serialize(SDRemoteCall
@@ -58,11 +58,11 @@ CommandLuaModule::CommandLuaModule(uint32_t cwid)
                     }
                 case AM_BADACTORPOD:
                     {
-                        throw fflerror("can not reach SLO");
+                        throw fflpanic("can not reach SLO");
                     }
                 default:
                     {
-                        throw fflerror("invalid message type: %s", mpkName(rmpk.type()));
+                        throw fflpanic("invalid message type: {}", mpkName(rmpk.type()));
                     }
             }
         }

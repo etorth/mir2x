@@ -106,7 +106,7 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
         setH(SDLDeviceHelper::getTextureHeight(texPtr));
     }
     else{
-        throw fflerror("no valid player status board frame texture");
+        throw fflpanic("no valid player status board frame texture");
     }
 }
 

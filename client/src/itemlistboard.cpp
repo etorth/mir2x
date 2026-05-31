@@ -106,7 +106,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *argParent, bool argAuto
         setH(SDLDeviceHelper::getTextureHeight(texPtr));
     }
     else{
-        throw fflerror("no valid purchase status board frame texture");
+        throw fflpanic("no valid purchase status board frame texture");
     }
 }
 

@@ -1780,7 +1780,7 @@ bool Player::setHealth(std::optional<int> hp, std::optional<int> mp, std::option
 void Player::setWLItem(int wltype, SDItem item)
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("bad wltype: %d", wltype);
+        throw fflpanic("bad wltype: {}", wltype);
     }
 
     m_sdItemStorage.wear.setWLItem(wltype, item);

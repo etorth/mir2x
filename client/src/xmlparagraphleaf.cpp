@@ -15,11 +15,11 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     : m_node([pNode]()
       {
           if(pNode == nullptr){
-              throw fflerror("invalid argument: (nullptr)");
+              throw fflpanic("invalid argument: (nullptr)");
           }
 
           if(!xmlf::checkValidLeaf(pNode)){
-              throw fflerror("invalid argument: not a valid XMParagraph leaf");
+              throw fflpanic("invalid argument: not a valid XMParagraph leaf");
           }
           return pNode;
       }())
@@ -27,7 +27,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
       {
           if(xmlf::checkTextLeaf(xmlNode())){
               if(!utf8::is_valid(xmlNode()->Value(), xmlNode()->Value() + std::strlen(xmlNode()->Value()))){
-                  throw fflerror("not a utf8 string: %s", xmlNode()->Value());
+                  throw fflpanic("not a utf8 string: {}", xmlNode()->Value());
               }
               return LEAF_UTF8STR;
           }
@@ -40,7 +40,7 @@ XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
               return LEAF_IMAGE;
           }
 
-          throw fflerror("invalid argument: node type not recognized");
+          throw fflpanic("invalid argument: node type not recognized");
       }())
     , m_u64Key([this]() -> uint64_t
       {
@@ -113,7 +113,7 @@ int XMLParagraphLeaf::markEvent(int event)
             }
         default:
             {
-                throw fflerror("invalid event: %d", event);
+                throw fflpanic("invalid event: {}", event);
             }
     }
 }
@@ -121,11 +121,11 @@ int XMLParagraphLeaf::markEvent(int event)
 uint32_t XMLParagraphLeaf::peekUTF8Code(int leafOff) const
 {
     if(leafOff >= length()){
-        throw fflerror("provided LeafOff exceeds leaf length: %d", length());
+        throw fflpanic("provided LeafOff exceeds leaf length: {}", length());
     }
 
     if(type() != LEAF_UTF8STR){
-        throw fflerror("try peek utf8 code from a leaf with type: %d", type());
+        throw fflpanic("try peek utf8 code from a leaf with type: {}", type());
     }
 
     return utf8f::peekUTF8Code(xmlNode()->Value() + utf8CharOff()[leafOff]);
@@ -142,7 +142,7 @@ std::optional<uint32_t> XMLParagraphLeaf::color() const
             case BEVENT_ON  : return colorf::GREEN   + colorf::A_SHF(255);
             case BEVENT_OFF : return colorf::YELLOW  + colorf::A_SHF(255);
             case BEVENT_DOWN: return colorf::MAGENTA + colorf::A_SHF(255);
-            default: throw fflerror("invalid leaf event: %d", m_event);
+            default: throw fflpanic("invalid leaf event: {}", m_event);
         }
     }
     return {};
@@ -160,7 +160,7 @@ std::optional<uint8_t> XMLParagraphLeaf::font() const
             return to_u8(val);
         }
         else{
-            throw fflerror("invalid font index, not an uint8_t: %d", val);
+            throw fflpanic("invalid font index, not an uint8_t: {}", val);
         }
     }
     return {};
@@ -173,7 +173,7 @@ std::optional<uint8_t> XMLParagraphLeaf::fontSize() const
             return to_u8(val);
         }
         else{
-            throw fflerror("invalid font size, not an uint8_t: %d", val);
+            throw fflpanic("invalid font size, not an uint8_t: {}", val);
         }
     }
     return {};
@@ -186,7 +186,7 @@ std::optional<uint8_t> XMLParagraphLeaf::fontStyle() const
             return to_u8(val);
         }
         else{
-            throw fflerror("invalid font style, not an uint8_t: %d", val);
+            throw fflpanic("invalid font style, not an uint8_t: {}", val);
         }
     }
     return {};

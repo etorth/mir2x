@@ -63,7 +63,7 @@ class ClientCreature
             , m_nameBoard{{.label=u8"ClientCreature"}}
         {
             if(!(m_UID && m_processRun)){
-                throw fflerror("invalid argument: UID = %llu, processRun = %p", to_llu(m_UID), to_cvptr(m_processRun));
+                throw fflpanic("invalid argument: UID = {}, processRun = {:p}", to_llu(m_UID), to_cvptr(m_processRun));
             }
         }
 
@@ -127,7 +127,7 @@ class ClientCreature
             if(m_currMotion){
                 return m_currMotion.get();
             }
-            throw fflerror("creature has no current motion: %p", to_cvptr(this));
+            throw fflpanic("creature has no current motion: {:p}", to_cvptr(this));
         }
 
     public:
@@ -142,7 +142,7 @@ class ClientCreature
             if(const int count = getFrameCount(motionPtr); count > 0){
                 return count;
             }
-            throw fflerror("invalid arguments: motion %d, direction %d", motionPtr->type, motionPtr->direction);
+            throw fflpanic("invalid arguments: motion {}, direction {}", motionPtr->type, motionPtr->direction);
         }
 
     protected:

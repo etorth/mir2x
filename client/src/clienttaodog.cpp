@@ -91,7 +91,7 @@ ClientTaoDog::ClientTaoDog(uint64_t uid, ProcessRun *proc, const ActionNode &act
             }
         default:
             {
-                throw fflerror("Taodog get invalid initial action: %s", actionName(action.type));
+                throw fflpanic("Taodog get invalid initial action: {}", actionName(action.type));
             }
     }
 }

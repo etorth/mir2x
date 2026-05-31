@@ -110,7 +110,7 @@ class Fl_TableImpl: public Fl_Table_Row
             if(checkRow(row)){
                 return;
             }
-            throw fflerror("invalid row: %d", row);
+            throw fflpanic("invalid row: {}", row);
         }
 
         void checkColEx(int col) const
@@ -118,7 +118,7 @@ class Fl_TableImpl: public Fl_Table_Row
             if(checkCol(col)){
                 return;
             }
-            throw fflerror("invalid col: %d", col);
+            throw fflpanic("invalid col: {}", col);
         }
 
     public:

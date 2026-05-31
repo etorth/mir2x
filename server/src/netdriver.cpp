@@ -91,7 +91,7 @@ asio::awaitable<void> NetDriver::listener()
         auto sock = co_await acceptor.async_accept(asio::redirect_error(asio::use_awaitable, ec));
         if(ec){
             acceptor.close();
-            throw fflerror("acceptor error: %s", ec.message().c_str());
+            throw fflpanic("acceptor error: {}", ec.message().c_str());
         }
 
         if(m_channelIDList.empty()){
@@ -199,7 +199,7 @@ void NetDriver::post(uint32_t channID, uint8_t headCode, const void *buf, size_t
     fflassert(ServerMsg(headCode).checkData(buf, bufSize));
 
     if(headCode >= 0x80){
-        throw fflerror("invalid head code %02d", to_d(headCode));
+        throw fflpanic("invalid head code {:02d}", to_d(headCode));
     }
 
     // post current message to sendBuf, which links to Channel::m_nextSendQ

@@ -96,12 +96,12 @@ class NetIO final
             asio::async_read(m_socket, asio::buffer(m_readSBuf + offset, 1), [offset, fnOp, this](std::error_code ec, size_t)
             {
                 if(ec){
-                    throw fflerror("network error: %s", ec.message().c_str());
+                    throw fflpanic("network error: {}", ec.message().c_str());
                 }
 
                 if(m_readSBuf[offset] & 0x80){
                     if(offset + 1 >= (sizeof(T) * 8 + 6) / 7){
-                        throw fflerror("variant packet size uses more than %zu bytes", offset + 1);
+                        throw fflpanic("variant packet size uses more than {} bytes", offset + 1);
                     }
                     else{
                         doReadVLInteger<T>(offset + 1, fnOp);

@@ -80,7 +80,7 @@ class PasswordBox: public InputLine
                 }
 
                 else if(inputString.size() != m_passwordString.size()){
-                    throw fflerror("password box input error");
+                    throw fflpanic("password box input error");
                 }
             }
             return result;

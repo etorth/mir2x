@@ -262,7 +262,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
         }
 
         if(npcGfxType.count(gfxType) == 0){
-            throw fflerror("can't find gfx for gfxType %d", gfxType);
+            throw fflpanic("can't find gfx for gfxType {}", gfxType);
         }
 
         // NPC don't respect DIR_XXX
@@ -281,7 +281,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
             }
 
             if(dirMap.empty()){
-                throw fflerror("empty frame seq record");
+                throw fflpanic("empty frame seq record");
             }
             return dirMap;
         }();
@@ -291,7 +291,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
         for(const auto &p: frameSeqMap){
             const int encodeMotion = p.first.at(1) - MOTION_NPC_STAND;
             if(encodeMotion < 0){
-                throw fflerror("invalid NPC motion: %d", encodeMotion);
+                throw fflpanic("invalid NPC motion: {}", encodeMotion);
             }
 
             const int frameStart = p.second.start;
@@ -300,7 +300,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
             for(int frame = 0; frame < frameCount; ++frame){
                 const int gfxId = lookId * 100 + frameStart + frame;
                 if(!(package.setIndex(gfxId))){
-                    throw fflerror("gfx table is wrong");
+                    throw fflpanic("gfx table is wrong");
                 }
 
                 const auto imgInfo = package.currImageInfo();

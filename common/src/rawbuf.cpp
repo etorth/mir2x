@@ -28,7 +28,7 @@ std::vector<uint8_t> Rawbuf::buildBuf(const char *fileName)
 
         readBuf.resize(readFileSize);
         if(std::fread(readBuf.data(), readFileSize, 1, fp) != 1){
-            throw fflerror("failed to read file %s: %s", fileName, std::strerror(errno));
+            throw fflpanic("failed to read file {}: {}", fileName, std::strerror(errno));
         }
     }
 
@@ -44,7 +44,7 @@ void Rawbuf::buildBinFile(const char *inFileName, const char *outFileName)
     auto fp   = fptr.get();
 
     if(std::fwrite(compBuf.data(), compBuf.size(), 1, fp) != 1){
-        throw fflerror("failed to write compressed data to file %s: %s", outFileName, std::strerror(errno));
+        throw fflpanic("failed to write compressed data to file {}: {}", outFileName, std::strerror(errno));
     }
 }
 

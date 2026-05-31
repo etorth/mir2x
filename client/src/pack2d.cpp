@@ -6,7 +6,7 @@
 bool Pack2D::occupied(int x, int y) const
 {
     if(!((x >= 0) && (x < to_d(w())) && (y >= 0))){
-        throw fflerror("invalid arguments: x = %d, y = %d", x, y);
+        throw fflpanic("invalid arguments: x = {}, y = {}", x, y);
     }
 
     if(y >= to_d(m_packMap.size())){

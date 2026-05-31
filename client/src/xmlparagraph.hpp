@@ -48,7 +48,7 @@ class XMLParagraph
         auto & leaf(this auto && self, int leafIndex)
         {
             if(!self.leafValid(leafIndex)){
-                throw fflerror("invalid leaf index: %d", leafIndex);
+                throw fflpanic("invalid leaf index: {}", leafIndex);
             }
             return self.m_leafList[leafIndex];
         }
@@ -66,7 +66,7 @@ class XMLParagraph
         auto & backLeaf(this auto && self)
         {
             if(self.m_leafList.empty()){
-                throw fflerror("no leaf");
+                throw fflpanic("no leaf");
             }
             return self.m_leafList.back();
         }

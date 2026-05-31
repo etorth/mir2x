@@ -25,7 +25,7 @@ inline auto make_fileptr_helper(const char *path, const char *mode)
         // avoid pass standard lib's function pointer
         return std::unique_ptr<std::FILE, decltype(fileptr_deleter)>(fp, fileptr_deleter);
     }
-    throw fflerror("failed to open file: [%p] \"%s\", mode: [%p] \"%s\", errno: [%d] \"%s\"", to_cvptr(path), to_cstr(path), to_cvptr(mode), to_cstr(mode), to_d(errno), std::strerror(errno));
+    throw fflpanic("failed to open file: [{:p}] \"{}\", mode: [{:p}] \"{}\", errno: [{}] \"{}\"", to_cvptr(path), to_cstr(path), to_cvptr(mode), to_cstr(mode), to_d(errno), std::strerror(errno));
 }
 
 inline auto make_fileptr(const char *path, const char *mode)
@@ -64,13 +64,13 @@ inline size_t tell_fileptr(fileptr_t &fptr)
     if(const auto loc = std::ftell(fptr.get()); loc >= 0){
         return to_uz(loc);
     }
-    throw fflerror("failed to ftell file: err = %s", std::strerror(errno));
+    throw fflpanic("failed to ftell file: err = {}", std::strerror(errno));
 }
 
 inline void seek_fileptr(fileptr_t &fptr, size_t offset, int origin)
 {
     if(std::fseek(fptr.get(), check_cast<long>(offset), origin)){
-        throw fflerror("failed to seek file: offset = %zu, origin = %s, err = %s", offset, [origin]() -> const char *
+        throw fflpanic("failed to seek file: offset = {}, origin = {}, err = {}", offset, [origin]() -> const char *
         {
             switch(origin){
                 case SEEK_SET: return "SEEK_SET";
@@ -99,7 +99,7 @@ inline void read_fileptr(fileptr_t &fptr, void *data, size_t size)
     fflassert(size > 0);
 
     if(std::fread(data, size, 1, fptr.get()) != 1){
-        throw fflerror("failed to read file: data = %p, size = %zu, err = %s", to_cvptr(data), size, std::strerror(errno));
+        throw fflpanic("failed to read file: data = {:p}, size = {}, err = {}", to_cvptr(data), size, std::strerror(errno));
     }
 }
 
@@ -128,7 +128,7 @@ template<typename C> C read_fileptr(fileptr_t &fptr)
     const auto size = size_fileptr(fptr);
 
     if(size % sizeof(typename C::value_type)){
-        throw fflerror("file size alignment error: file size %zu, element size %zu", size, sizeof(C::value_type));
+        throw fflpanic("file size alignment error: file size {}, element size {}", size, sizeof(C::value_type));
     }
 
     C c;
@@ -143,7 +143,7 @@ inline void write_fileptr(fileptr_t &fptr, const void *data, size_t size)
     fflassert(size > 0);
 
     if(std::fwrite(data, size, 1, fptr.get()) != 1){
-        throw fflerror("failed to write file: data = %p, size = %zu, err = %s", to_cvptr(data), size, std::strerror(errno));
+        throw fflpanic("failed to write file: data = {:p}, size = {}, err = {}", to_cvptr(data), size, std::strerror(errno));
     }
 }
 

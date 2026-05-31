@@ -387,7 +387,7 @@ struct ROIMap final
             return ro->empty();
         }
         else{
-            throw fflerror("ro empty");
+            throw fflpanic("ro empty");
         }
     }
 
@@ -402,7 +402,7 @@ struct ROIMap final
             return Widget::ROI{x, y, ro->w, ro->h}.in(pixelX, pixelY);
         }
         else{
-            throw fflerror("ro empty");
+            throw fflpanic("ro empty");
         }
     }
 
@@ -423,7 +423,7 @@ struct ROIMap final
                 ro = widget->roi();
             }
             else{
-                throw fflerror("invalid widget");
+                throw fflpanic("invalid widget");
             }
         }
 
@@ -455,7 +455,7 @@ struct ROIMap final
     Widget::ROIMap & crop(const Widget::ROI &r)
     {
         if(!ro.has_value()){
-            throw fflerror("ro empty");
+            throw fflpanic("ro empty");
         }
 
         if(dir != DIR_UPLEFT){

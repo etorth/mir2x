@@ -290,7 +290,7 @@ LuaModule::LuaModule()
             return sol::make_object(sol::state_view(s), sol::nil);
         }
         else{
-            throw fflerror("invalid argument type: %s", luaf::luaObjTypeString(arg).c_str());
+            throw fflpanic("invalid argument type: {}", luaf::luaObjTypeString(arg).c_str());
         }
     });
 
@@ -347,7 +347,7 @@ LuaModule::LuaModule()
             case 1:
                 {
                     if(!argList[0].is<int>()){
-                        throw fflerror("Invalid argument: randString(length: int, [alphabet: string])");
+                        throw fflpanic("Invalid argument: randString(length: int, [alphabet: string])");
                     }
 
                     length = argList[0].as<int>();
@@ -358,7 +358,7 @@ LuaModule::LuaModule()
             case 2:
                 {
                     if(!(argList[0].is<int>() && argList[1].is<std::string>())){
-                        throw fflerror("Invalid argument: randString(length: int, [alphabet: string])");
+                        throw fflpanic("Invalid argument: randString(length: int, [alphabet: string])");
                     }
 
                     length = argList[0].as<int>();
@@ -367,7 +367,7 @@ LuaModule::LuaModule()
                 }
             default:
                 {
-                    throw fflerror("Invalid argument: randString(length: int, [alphabet: string])");
+                    throw fflpanic("Invalid argument: randString(length: int, [alphabet: string])");
                 }
         }
 
@@ -383,7 +383,7 @@ LuaModule::LuaModule()
                 }
                 return alphabet.substr(0, 3) + "...";
             }();
-            throw fflerror("Invalid argument: randString(length = %d, alphabe = \'%s\')", length, reportAlphabet.c_str());
+            throw fflpanic("Invalid argument: randString(length = {}, alphabe = \'{}\')", length, reportAlphabet.c_str());
         }
 
         std::string result;

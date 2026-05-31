@@ -191,7 +191,7 @@ void ControlBoard::addParLog(const char *log)
 void ControlBoard::addLog(int logType, const char *log)
 {
     if(!log){
-        throw fflerror("null log string");
+        throw fflpanic("null log string");
     }
 
     switch(logType){
@@ -223,7 +223,7 @@ void ControlBoard::addLog(int logType, const char *log)
     }();
 
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
-        throw fflerror("parse xml template failed: %s", xmlString);
+        throw fflpanic("parse xml template failed: {}", xmlString);
     }
 
     // to support <, >, / in xml string

@@ -27,7 +27,7 @@ ActorPod::ActorPod(ServerObject *serverObject)
     registerOp(AM_ACTIVATE, [thisptr = this](this auto, const ActorMsgPack &) -> corof::awaitable<>
     {
         if(thisptr->m_SO->m_activated){
-            throw fflerror("ServerObject has been activated twice: %s", to_cstr(uidf::getUIDString(thisptr->UID())));
+            throw fflpanic("ServerObject has been activated twice: {}", to_cstr(uidf::getUIDString(thisptr->UID())));
         }
 
         co_await thisptr->m_SO->onActivate();
@@ -83,7 +83,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
                         }
                     }
                     else{
-                        throw fflerror("%s <- %s: coroutine is not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
+                        throw fflpanic("{} <- {}: coroutine is not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
                     }
                 },
 
@@ -93,7 +93,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
                         op(mpk);
                     }
                     else{
-                        throw fflerror("%s <- %s: callback is not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
+                        throw fflpanic("{} <- {}: callback is not executable", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
                     }
                 },
             },
@@ -102,7 +102,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
             m_respondCBList.erase(p);
         }
         else{
-            throw fflerror("%s <- %s: no corresponding coroutine exists", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
+            throw fflpanic("{} <- {}: no corresponding coroutine exists", to_cstr(uidf::getUIDString(UID())), to_cstr(mpk.str(UID())));
         }
     }
     else{
@@ -164,15 +164,15 @@ std::optional<uint64_t> ActorPod::doPost(const std::pair<uint64_t, uint64_t> &ad
     const auto respID = addr.second;
 
     if(!uid){
-        throw fflerror("%s -> ZERO: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mbuf.str()));
+        throw fflpanic("{} -> ZERO: {}", to_cstr(uidf::getUIDString(UID())), to_cstr(mbuf.str()));
     }
 
     if(uid == UID()){
-        throw fflerror("%s -> SELF: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(mbuf.str()));
+        throw fflpanic("{} -> SELF: {}", to_cstr(uidf::getUIDString(UID())), to_cstr(mbuf.str()));
     }
 
     if(!mbuf){
-        throw fflerror("%s -> %s: %s", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), to_cstr(mbuf.str()));
+        throw fflpanic("{} -> {}: {}", to_cstr(uidf::getUIDString(UID())), to_cstr(uidf::getUIDString(uid)), to_cstr(mbuf.str()));
     }
 
     const auto seqID = waitResp ? rollSeqID() : UINT64_C(0);
@@ -218,7 +218,7 @@ void ActorPod::detach(std::function<void()> fnAtExit) const
 bool ActorPod::checkUIDValid(uint64_t uid)
 {
     if(!uid){
-        throw fflerror("invalid zero UID");
+        throw fflpanic("invalid zero UID");
     }
     return g_actorPool->checkUIDValid(uid);
 }

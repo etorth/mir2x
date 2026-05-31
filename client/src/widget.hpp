@@ -276,7 +276,7 @@ class Widget: public WidgetTreeNode
                     case 1 : return self.down;
                     case 2 : return self.left;
                     case 3 : return self.right;
-                    default: throw fflerror("invalid margin index: %zu", i);
+                    default: throw fflpanic("invalid margin index: {}", i);
                 }
             }
         };

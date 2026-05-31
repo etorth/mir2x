@@ -91,7 +91,7 @@ ClientZumaMonster::ClientZumaMonster(uint64_t uid, ProcessRun *proc, const Actio
             }
         default:
             {
-                throw fflerror("invalid action: %s", actionName(action));
+                throw fflpanic("invalid action: {}", actionName(action));
             }
     }
 }

@@ -162,7 +162,7 @@ class XMLTypeset // means XMLParagraph typeset
             if(lineValid(argLine)){
                 return m_lineList[argLine].content.size();
             }
-            throw fflerror("invalid line specified: %d >= %d", argLine, lineCount());
+            throw fflpanic("invalid line specified: {} >= {}", argLine, lineCount());
         }
 
     public:
@@ -186,7 +186,7 @@ class XMLTypeset // means XMLParagraph typeset
         std::tuple<int, int> firstTokenLoc() const
         {
             if(empty()){
-                throw fflerror("empty typeset");
+                throw fflpanic("empty typeset");
             }
             return {0, 0};
         }
@@ -194,7 +194,7 @@ class XMLTypeset // means XMLParagraph typeset
         std::tuple<int, int> lastTokenLoc() const
         {
             if(empty()){
-                throw fflerror("empty board");
+                throw fflpanic("empty board");
             }
             return {lineTokenCount(lineCount() - 1) - 1, lineCount() - 1};
         }
@@ -222,7 +222,7 @@ class XMLTypeset // means XMLParagraph typeset
             if(leafValid(leafIndex)){
                 return m_leaf2TokenLoc.at(leafIndex);
             }
-            throw fflerror("invalid leaf: %d", leafIndex);
+            throw fflpanic("invalid leaf: {}", leafIndex);
         }
 
     public:
@@ -370,7 +370,7 @@ class XMLTypeset // means XMLParagraph typeset
         auto getToken(this auto && self, int argX, int argY)
         {
             if(!self.tokenLocValid(argX, argY)){
-                throw fflerror("invalid token location: (%d, %d)", argX, argY);
+                throw fflpanic("invalid token location: ({}, {})", argX, argY);
             }
             return std::addressof(self.m_lineList[argY].content[argX]);
         }
@@ -379,11 +379,11 @@ class XMLTypeset // means XMLParagraph typeset
         auto GetLineBackToken(this auto && self, int argLine)
         {
             if(!self.lineValid(argLine)){
-                throw fflerror("invalid line: %d", argLine);
+                throw fflpanic("invalid line: {}", argLine);
             }
 
             if(self.lineTokenCount(argLine) == 0){
-                throw fflerror("invalie empty line: %d", argLine);
+                throw fflpanic("invalie empty line: {}", argLine);
             }
 
             return self.getToken(self.lineTokenCount(argLine) - 1, argLine);
@@ -393,11 +393,11 @@ class XMLTypeset // means XMLParagraph typeset
         auto GetBackToken(this auto && self)
         {
             if(self.lineCount() == 0){
-                throw fflerror("empty board");
+                throw fflpanic("empty board");
             }
 
             if(self.lineTokenCount(self.lineCount() - 1) == 0){
-                throw fflerror("invalie empty line: %d", self.lineCount() - 1);
+                throw fflpanic("invalie empty line: {}", self.lineCount() - 1);
             }
 
             return self.GetLineBackToken(self.lineCount() - 1);

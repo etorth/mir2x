@@ -43,7 +43,7 @@ WidgetTreeNode::~WidgetTreeNode()
 void WidgetTreeNode::moveFront(const Widget *widget)
 {
     if(m_inLoop){
-        throw fflerror("can not modify child list while in loop");
+        throw fflpanic("can not modify child list while in loop");
     }
 
     auto pivot = std::find_if(m_childList.begin(), m_childList.end(), [widget](const auto &x)
@@ -52,7 +52,7 @@ void WidgetTreeNode::moveFront(const Widget *widget)
     });
 
     if(pivot == m_childList.end()){
-        throw fflerror("can not find child widget");
+        throw fflpanic("can not find child widget");
     }
 
     std::rotate(m_childList.begin(), pivot, std::next(pivot));
@@ -61,7 +61,7 @@ void WidgetTreeNode::moveFront(const Widget *widget)
 void WidgetTreeNode::moveBack(const Widget *widget)
 {
     if(m_inLoop){
-        throw fflerror("can not modify child list while in loop");
+        throw fflpanic("can not modify child list while in loop");
     }
 
     auto pivot = std::find_if(m_childList.begin(), m_childList.end(), [widget](const auto &x)
@@ -70,7 +70,7 @@ void WidgetTreeNode::moveBack(const Widget *widget)
     });
 
     if(pivot == m_childList.end()){
-        throw fflerror("can not find child widget");
+        throw fflpanic("can not find child widget");
     }
 
     std::rotate(pivot, std::next(pivot), m_childList.end());
@@ -137,7 +137,7 @@ void WidgetTreeNode::doRemoveChildElement(WidgetTreeNode::ChildElement &argEleme
             }
         }
         else{
-            throw fflerror("widget %s forbids to remove child", name());
+            throw fflpanic("widget {} forbids to remove child", name());
         }
     }
 }
@@ -145,7 +145,7 @@ void WidgetTreeNode::doRemoveChildElement(WidgetTreeNode::ChildElement &argEleme
 void WidgetTreeNode::purge()
 {
     if(m_inLoop){
-        throw fflerror("can not modify child list while in loop");
+        throw fflpanic("can not modify child list while in loop");
     }
 
     foreachChild([](Widget *widget, bool)
@@ -189,7 +189,7 @@ void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete, bool igno
         m_childList.emplace_back(argWidget, argAutoDelete); // only place to add child to m_childList
     }
     else{
-        throw fflerror("widget %s forbids to add child", name());
+        throw fflpanic("widget {} forbids to add child", name());
     }
 }
 
@@ -584,7 +584,7 @@ bool Widget::processEventDefault(const SDL_Event &event, bool valid, Widget::ROI
             const bool takenEvent = widget->processEventParent(event, validEvent, m);
 
             if(!validEvent && takenEvent){
-                throw fflerror("widget %s takes invalid event", widget->name());
+                throw fflpanic("widget {} takes invalid event", widget->name());
             }
 
             // it's possible that a widget takes event but doesn't get focus
@@ -767,7 +767,7 @@ static int _rd_helper(const Widget *a, const Widget *b, const auto func)
         return offa - offb;
     }
 
-    throw fflerror("widgets from different trees: %p vs %p", to_cvptr(a), to_cvptr(b));
+    throw fflpanic("widgets from different trees: {:p} vs {:p}", to_cvptr(a), to_cvptr(b));
 }
 
 
@@ -882,7 +882,7 @@ bool Widget::consumeFocus(bool argFocus, Widget *descendant)
                 }
             }
             else{
-                throw fflerror("widget has no descendant: %s", descendant->name());
+                throw fflpanic("widget has no descendant: {}", descendant->name());
             }
         }
         else{
@@ -892,7 +892,7 @@ bool Widget::consumeFocus(bool argFocus, Widget *descendant)
     }
     else{
         if(descendant){
-            throw fflerror("unexpected descendant: %s", descendant->name());
+            throw fflpanic("unexpected descendant: {}", descendant->name());
         }
         else{
             setFocus(false);
@@ -1046,7 +1046,7 @@ void Widget::setW(Widget::VarSizeOpt argSize)
         m_w = std::move(argSize);
     }
     else{
-        throw fflerror("can not resize %s", name());
+        throw fflpanic("can not resize {}", name());
     }
 }
 
@@ -1056,7 +1056,7 @@ void Widget::setH(Widget::VarSizeOpt argSize)
         m_h = std::move(argSize);
     }
     else{
-        throw fflerror("can not resize %s", name());
+        throw fflpanic("can not resize {}", name());
     }
 }
 

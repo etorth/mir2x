@@ -20,7 +20,7 @@ extern ClientArgParser *g_clientArgParser;
 void XMLTypeset::setTokenBoxWordSpace(int argLine)
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     int nW1 = m_wordSpace / 2;
@@ -45,7 +45,7 @@ void XMLTypeset::setTokenBoxWordSpace(int argLine)
 int XMLTypeset::LineFullWidth(int argLine) const
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     int nWidth = 0;
@@ -67,7 +67,7 @@ int XMLTypeset::LineFullWidth(int argLine) const
 int XMLTypeset::LineRawWidth(int argLine, bool bWithWordSpace) const
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     switch(lineTokenCount(argLine)){
@@ -108,11 +108,11 @@ int XMLTypeset::LineRawWidth(int argLine, bool bWithWordSpace) const
 bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLine)
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     if(tokenLine.empty()){
-        throw fflerror("empty token line");
+        throw fflpanic("empty token line");
     }
 
     if(m_lineWidth <= 0){
@@ -149,7 +149,7 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
 void XMLTypeset::LinePadding(int argLine)
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 }
 
@@ -164,17 +164,17 @@ void XMLTypeset::LineDistributedPadding(int)
 void XMLTypeset::LineJustifyPadding(int argLine)
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     if(lineAlign() != LALIGN_JUSTIFY){
-        throw fflerror("do line justify-padding while board align is configured as: %d", lineAlign());
+        throw fflpanic("do line justify-padding while board align is configured as: {}", lineAlign());
     }
 
     switch(lineTokenCount(argLine)){
         case 0:
             {
-                throw fflerror("empty line detected: %d", argLine);
+                throw fflpanic("empty line detected: {}", argLine);
             }
         case 1:
             {
@@ -187,14 +187,14 @@ void XMLTypeset::LineJustifyPadding(int argLine)
     }
 
     if(MaxLineWidth() == 0){
-        throw fflerror("do line justify-padding while board is configured as infinite single line mode");
+        throw fflpanic("do line justify-padding while board is configured as infinite single line mode");
     }
 
     // we allow to exceeds the line limitation..
     // when there is a huge token inderted to current line, but only for this exception
 
     if((LineRawWidth(argLine, true) > MaxLineWidth()) && (lineTokenCount(argLine) > 1)){
-        throw fflerror("line raw width exceeds the fixed max line width: %d", MaxLineWidth());
+        throw fflpanic("line raw width exceeds the fixed max line width: {}", MaxLineWidth());
     }
 
     const auto fnLeafPadding = [this, y = argLine](const auto &fnCheckToken) -> int
@@ -286,13 +286,13 @@ void XMLTypeset::LineJustifyPadding(int argLine)
         return;
     }
 
-    throw fflerror("can't do padding to width: %d", MaxLineWidth());
+    throw fflpanic("can't do padding to width: {}", MaxLineWidth());
 }
 
 void XMLTypeset::resetOneLine(int argLine, bool bCREnd)
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     // some tokens may have non-zero W1/W2 when reach here
@@ -318,7 +318,7 @@ void XMLTypeset::resetOneLine(int argLine, bool bCREnd)
                 }
             default:
                 {
-                    throw fflerror("invalid line align: %d", lineAlign());
+                    throw fflpanic("invalid line align: {}", lineAlign());
                 }
         }
     }();
@@ -354,7 +354,7 @@ void XMLTypeset::resetOneLine(int argLine, bool bCREnd)
 void XMLTypeset::setLineTokenStartX(int argLine)
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     int nLineStartX = 0;
@@ -412,11 +412,11 @@ int XMLTypeset::LineIntervalMaxH2(int argLine, int nIntervalStartX, int nInterva
     //  W1/W2 won't count for here, as shown
 
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     if(nIntervalWidth == 0){
-        throw fflerror("zero-length interval provided");
+        throw fflpanic("zero-length interval provided");
     }
 
     int nMaxH2 = -1;
@@ -450,11 +450,11 @@ int XMLTypeset::LineIntervalMaxH2(int argLine, int nIntervalStartX, int nInterva
 int XMLTypeset::LineTokenBestY(int argLine, int nTokenX, int nTokenWidth, int nTokenHeight) const
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     if(nTokenWidth <= 0 || nTokenHeight <= 0){
-        throw fflerror("invalid token size: width = %d, height = %d", nTokenWidth, nTokenHeight);
+        throw fflpanic("invalid token size: width = {}, height = {}", nTokenWidth, nTokenHeight);
     }
 
     if(argLine == 0){
@@ -521,7 +521,7 @@ int XMLTypeset::LineNewStartY(int argLine)
     //
 
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     if(argLine == 0){
@@ -533,7 +533,7 @@ int XMLTypeset::LineNewStartY(int argLine)
     }
 
     if(lineTokenCount(argLine) == 0){
-        throw fflerror("empty line detected: %d", argLine);
+        throw fflpanic("empty line detected: {}", argLine);
     }
 
     int nCurrentY = -1;
@@ -566,7 +566,7 @@ int XMLTypeset::LineNewStartY(int argLine)
 void XMLTypeset::setLineTokenStartY(int argLine)
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     m_lineList[argLine].startY = to_d(LineNewStartY(argLine));
@@ -580,7 +580,7 @@ void XMLTypeset::checkDefaultFontEx() const
 {
     const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::peekUTF8Code("0"));
     if(!g_fontexDB->retrieve(u64key)){
-        throw fflerror("invalid default font: font = %d, fontsize = %d", to_d(m_font), to_d(m_fontSize));
+        throw fflpanic("invalid default font: font = {}, fontsize = {}", to_d(m_font), to_d(m_fontSize));
     }
 }
 
@@ -602,17 +602,17 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t nFont, uint8_t nFontSize
             stToken.utf8char.key = nU64Key;
             return stToken;
         }
-        throw fflerror("SDL_QueryTexture(%p) failed", to_cvptr(pTexture));
+        throw fflpanic("SDL_QueryTexture({:p}) failed", to_cvptr(pTexture));
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
     if(g_fontexDB->retrieve(nU64Key)){
-        throw fflerror("can't find texture for UTF8: %" PRIX32, nUTF8Code);
+        throw fflpanic("can't find texture for UTF8: {:X}", nUTF8Code);
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, utf8f::peekUTF8Code("0"));
     if(g_fontexDB->retrieve(nU64Key)){
-        throw fflerror("invalid font style: %" PRIX8, nFontStyle);
+        throw fflpanic("invalid font style: {:X}", nFontStyle);
     }
 
     // invalid font given
@@ -631,9 +631,9 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t nFont, uint8_t nFontSize
             stToken.utf8char.key = nU64Key;
             return stToken;
         }
-        throw fflerror("SDL_QueryTexture(%p) failed", to_cvptr(pTexture));
+        throw fflpanic("SDL_QueryTexture({:p}) failed", to_cvptr(pTexture));
     }
-    throw fflerror("fallback to default font failed: font: %d -> %d, fontsize: %d -> %d", to_d(nFont), to_d(m_font), to_d(nFontSize), to_d(m_fontSize));
+    throw fflpanic("fallback to default font failed: font: {} -> {}, fontsize: {} -> {}", to_d(nFont), to_d(m_font), to_d(nFontSize), to_d(m_fontSize));
 }
 
 TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
@@ -649,7 +649,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
     int frameCount = -1;
 
     if(((emoji << 8) >> 8) != emoji){
-        throw fflerror("invalid emoji key: %llu", to_llu(emoji));
+        throw fflpanic("invalid emoji key: {}", to_llu(emoji));
     }
 
     emoji <<= 8;
@@ -681,11 +681,11 @@ TOKEN XMLTypeset::createToken(int leafIndex, int leafOff) const
             }
         case LEAF_IMAGE:
             {
-                throw fflerror("not supported yet");
+                throw fflpanic("not supported yet");
             }
         default:
             {
-                throw fflerror("invalid type: %d", rstLeaf.type());
+                throw fflpanic("invalid type: {}", rstLeaf.type());
             }
     }
 }
@@ -703,11 +703,11 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, std::
     }
     else{
         if(leafOff != 0){
-            throw fflerror("pick up token in middle of non-wrap leaf");
+            throw fflpanic("pick up token in middle of non-wrap leaf");
         }
 
         if(m_paragraph->leaf(leafIndex).type() != LEAF_UTF8STR){
-            throw fflerror("non-text leaf node has wrap attribute disabled");
+            throw fflpanic("non-text leaf node has wrap attribute disabled");
         }
 
         for(int i = 0; i < m_paragraph->leaf(leafIndex).length(); ++i){
@@ -729,7 +729,7 @@ void XMLTypeset::buildTypeset(int x, int y)
 {
     for(int line = 0; line < y; ++line){
         if(lineEmpty(line)){
-            throw fflerror("line %d is empty", line);
+            throw fflpanic("line {} is empty", line);
         }
     }
 
@@ -785,7 +785,7 @@ void XMLTypeset::buildTypeset(int x, int y)
         m_lineList.resize(currLine + 1);
 
         if(!addRawTokenLine(currLine, tokenList)){
-            throw fflerror("insert token to a new line failed: line = %d", currLine);
+            throw fflpanic("insert token to a new line failed: line = {}", currLine);
         }
 
         if(leafOff == 0){
@@ -800,14 +800,14 @@ void XMLTypeset::buildTypeset(int x, int y)
 std::tuple<int, int> XMLTypeset::leafLocInXMLParagraph(int tokenX, int tokenY) const
 {
     if(!tokenLocValid(tokenX, tokenY)){
-        throw fflerror("invalid token location: (%d, %d)", tokenX, tokenY);
+        throw fflpanic("invalid token location: ({}, {})", tokenX, tokenY);
     }
 
     const int leafIndex = getToken(tokenX, tokenY)->leaf;
     const auto [startTokenX, startTokenY] = leafTokenLoc(leafIndex);
 
     if(getToken(startTokenX, startTokenY)->leaf != leafIndex){
-        throw fflerror("invalid start token location");
+        throw fflpanic("invalid start token location");
     }
 
     if(tokenY == startTokenY){
@@ -840,7 +840,7 @@ void XMLTypeset::resetBoardPixelRegion()
 
     for(int argLine = 0; lineValid(argLine); ++argLine){
         if(!lineTokenCount(argLine)){
-            throw fflerror("found empty line in XMLTypeset: line = %d", argLine);
+            throw fflpanic("found empty line in XMLTypeset: line = {}", argLine);
         }
 
         nMaxPX = std::max<int>(nMaxPX, LineReachMaxX(argLine));
@@ -858,11 +858,11 @@ void XMLTypeset::resetBoardPixelRegion()
 std::tuple<int, int> XMLTypeset::prevTokenLoc(int nX, int nY) const
 {
     if(!tokenLocValid(nX, nY)){
-        throw fflerror("invalid token location: (%d, %d)", nX, nY);
+        throw fflpanic("invalid token location: ({}, {})", nX, nY);
     }
 
     if(nX == 0 && nY == 0){
-        throw fflerror("try find token before (0, 0)");
+        throw fflpanic("try find token before (0, 0)");
     }
 
     if(nX > 0){
@@ -876,11 +876,11 @@ std::tuple<int, int> XMLTypeset::prevTokenLoc(int nX, int nY) const
 std::tuple<int, int> XMLTypeset::nextTokenLoc(int nX, int nY) const
 {
     if(!tokenLocValid(nX, nY)){
-        throw fflerror("invalid token location: (%d, %d)", nX, nY);
+        throw fflpanic("invalid token location: ({}, {})", nX, nY);
     }
 
     if(std::tie(nX, nY) == lastTokenLoc()){
-        throw fflerror("try find token location after (%d, %d)", nX, nY);
+        throw fflpanic("try find token location after ({}, {})", nX, nY);
     }
 
     if(nX + 1 >= lineTokenCount(nY)){
@@ -894,12 +894,12 @@ std::tuple<int, int> XMLTypeset::nextTokenLoc(int nX, int nY) const
 std::tuple<int, int> XMLTypeset::prevCursorLoc(int nX, int nY) const
 {
     if(!cursorLocValid(nX, nY)){
-        throw fflerror("invalid cursor location: (%d, %d)", nX, nY);
+        throw fflpanic("invalid cursor location: ({}, {})", nX, nY);
     }
 
     if(nY == 0){
         if(nX == 0){
-            throw fflerror("try find cursor location before (0, 0)");
+            throw fflpanic("try find cursor location before (0, 0)");
         }
         else{
             return {nX - 1, nY};
@@ -918,11 +918,11 @@ std::tuple<int, int> XMLTypeset::prevCursorLoc(int nX, int nY) const
 std::tuple<int, int> XMLTypeset::nextCursorLoc(int nX, int nY) const
 {
     if(!cursorLocValid(nX, nY)){
-        throw fflerror("invalid cursor location: (%d, %d)", nX, nY);
+        throw fflpanic("invalid cursor location: ({}, {})", nX, nY);
     }
 
     if(std::tie(nX, nY) == lastCursorLoc()){
-        throw fflerror("try find cursor location after (%d, %d)", nX, nY);
+        throw fflpanic("try find cursor location after ({}, {})", nX, nY);
     }
 
     if(nX >= lineTokenCount(nY)){
@@ -936,7 +936,7 @@ std::tuple<int, int> XMLTypeset::nextCursorLoc(int nX, int nY) const
 void XMLTypeset::deleteToken(int x, int y, int tokenCount)
 {
     if(!tokenLocValid(x, y)){
-        throw fflerror("invalid token location: (%d, %d)", x, y);
+        throw fflpanic("invalid token location: ({}, {})", x, y);
     }
 
     if(tokenCount <= 0){
@@ -972,7 +972,7 @@ void XMLTypeset::deleteToken(int x, int y, int tokenCount)
 size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
 {
     if(!cursorLocValid(x, y)){
-        throw fflerror("invalid cursor location: (%d, %d)", x, y);
+        throw fflpanic("invalid cursor location: ({}, {})", x, y);
     }
 
     const std::string xmlText = xmlf::toParString("%s", text);
@@ -1021,7 +1021,7 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
     size_t addedCount = 0;
     if(prevLeaf == currLeaf){
         if(m_paragraph->leaf(prevLeaf).type() != LEAF_UTF8STR){
-            throw fflerror("only UTF8 leaf can have length great than 1");
+            throw fflpanic("only UTF8 leaf can have length great than 1");
         }
 
         const auto [leafIndex, leafOff] = leafLocInXMLParagraph(x, y);
@@ -1245,7 +1245,7 @@ std::string XMLTypeset::getText() const
                 }
             default:
                 {
-                    throw fflerror("invalid leaf type: %d", leafType);
+                    throw fflpanic("invalid leaf type: {}", leafType);
                 }
         }
     }
@@ -1255,7 +1255,7 @@ std::string XMLTypeset::getText() const
 int XMLTypeset::GetTokenWordSpace(int nX, int nY) const
 {
     if(!tokenLocValid(nX, nY)){
-        throw fflerror("invalid token location: (%d, %d)", nX, nY);
+        throw fflpanic("invalid token location: ({}, {})", nX, nY);
     }
     return m_wordSpace;
 }
@@ -1263,11 +1263,11 @@ int XMLTypeset::GetTokenWordSpace(int nX, int nY) const
 int XMLTypeset::LineReachMaxX(int argLine) const
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     if(lineTokenCount(argLine) == 0){
-        throw fflerror("invalie empty line: %d", argLine);
+        throw fflpanic("invalie empty line: {}", argLine);
     }
 
     auto pToken = GetLineBackToken(argLine);
@@ -1277,7 +1277,7 @@ int XMLTypeset::LineReachMaxX(int argLine) const
 int XMLTypeset::LineReachMaxY(int argLine) const
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
     return m_lineList[argLine].startY + LineMaxHk(argLine, 2);
 }
@@ -1285,11 +1285,11 @@ int XMLTypeset::LineReachMaxY(int argLine) const
 int XMLTypeset::LineReachMinX(int argLine) const
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     if(lineTokenCount(argLine) == 0){
-        throw fflerror("invalie empty line: %d", argLine);
+        throw fflpanic("invalie empty line: {}", argLine);
     }
 
     return getToken(0, argLine)->box.state.x;
@@ -1298,7 +1298,7 @@ int XMLTypeset::LineReachMinX(int argLine) const
 int XMLTypeset::LineReachMinY(int argLine) const
 {
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
     return m_lineList[argLine].startY - LineMaxHk(argLine, 1) + 1;
 }
@@ -1309,11 +1309,11 @@ int XMLTypeset::LineMaxHk(int argLine, int k) const
     // nHk = 2: get MaxH2
 
     if(!lineValid(argLine)){
-        throw fflerror("invalid line: %d", argLine);
+        throw fflpanic("invalid line: {}", argLine);
     }
 
     if(k != 1 && k != 2){
-        throw fflerror("invalid argument k: %d", k);
+        throw fflpanic("invalid argument k: {}", k);
     }
 
     int nCurrMaxHk = 0;
@@ -1404,7 +1404,7 @@ std::tuple<int, int> XMLTypeset::cursorOff2Loc(int argCursorOff) const
 bool XMLTypeset::locInToken(int xOffPixel, int yOffPixel, const TOKEN *pToken, bool withPadding)
 {
     if(!pToken){
-        throw fflerror("null token pointer");
+        throw fflpanic("null token pointer");
     }
 
     const int startX = pToken->box.state.x - (withPadding ? pToken->box.state.w1 : 0);
@@ -1423,7 +1423,7 @@ std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool wit
 
     const auto [cursorX, cursorY] = locCursor(xOffPixel, yOffPixel);
     if(!cursorLocValid(cursorX, cursorY)){
-        throw fflerror("invalid cursor location: (%d, %d)", cursorX, cursorY);
+        throw fflpanic("invalid cursor location: ({}, {})", cursorX, cursorY);
     }
 
     for(const int tokenX: {cursorX - 1, cursorX, cursorX + 1}){
@@ -1441,7 +1441,7 @@ std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool wit
 bool XMLTypeset::blankToken(int x, int y) const
 {
     if(!tokenLocValid(x, y)){
-        throw fflerror("invalid token location: x = %d, y = %d", x, y);
+        throw fflpanic("invalid token location: x = {}, y = {}", x, y);
     }
 
     const auto tokenPtr = getToken(x, y);

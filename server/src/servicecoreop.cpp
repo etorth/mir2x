@@ -43,7 +43,7 @@ corof::awaitable<> ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
             amML.MapList[nIndex++] = uidf::getMapID(mapUID);
         }
         else{
-            throw fflerror("Need larger map list size in AMMapList");
+            throw fflpanic("Need larger map list size in AMMapList");
         }
     }
 

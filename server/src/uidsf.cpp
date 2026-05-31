@@ -40,7 +40,7 @@ size_t uidsf::pickPeerIndex(int uidType, std::optional<size_t> seedOpt)
             }
         default:
             {
-                throw fflerror("invalid uid type %d", uidType);
+                throw fflpanic("invalid uid type {}", uidType);
             }
     }
 }

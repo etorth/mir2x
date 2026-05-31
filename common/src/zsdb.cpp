@@ -17,7 +17,7 @@ static constexpr int g_compLevel = 3;
 static std::vector<uint8_t> compressDataBuf(const uint8_t *dataBuf, size_t dataLen, ZSTD_CCtx *cctxPtr, const ZSTD_CDict *cdictPtr)
 {
     if(!(dataBuf && dataLen)){
-        throw fflerror("invalid arguments: dataBuf = %p, dataLen = %zu", to_cvptr(dataBuf), dataLen);
+        throw fflpanic("invalid arguments: dataBuf = {:p}, dataLen = {}", to_cvptr(dataBuf), dataLen);
     }
 
     size_t rc = 0;
@@ -34,7 +34,7 @@ static std::vector<uint8_t> compressDataBuf(const uint8_t *dataBuf, size_t dataL
     }
 
     if(ZSTD_isError(rc)){
-        throw fflerror("failed to compress file: %s", ZSTD_getErrorName(rc));
+        throw fflpanic("failed to compress file: {}", ZSTD_getErrorName(rc));
     }
 
     result.resize(rc);
@@ -44,18 +44,18 @@ static std::vector<uint8_t> compressDataBuf(const uint8_t *dataBuf, size_t dataL
 static std::vector<uint8_t> decompressDataBuf(const uint8_t *dataBuf, size_t dataLen, ZSTD_DCtx *dctxPtr, const ZSTD_DDict *ddictPtr)
 {
     if(!(dataBuf && dataLen)){
-        throw fflerror("invalid arguments: dataBuf = %p, dataLen = %zu", to_cvptr(dataBuf), dataLen);
+        throw fflpanic("invalid arguments: dataBuf = {:p}, dataLen = {}", to_cvptr(dataBuf), dataLen);
     }
 
     std::vector<uint8_t> result;
     switch(auto origSize = ZSTD_getFrameContentSize(dataBuf, dataLen)){
         case ZSTD_CONTENTSIZE_ERROR:
             {
-                throw fflerror("ZSTD_CONTENTSIZE_UNKNOWN");
+                throw fflpanic("ZSTD_CONTENTSIZE_UNKNOWN");
             }
         case ZSTD_CONTENTSIZE_UNKNOWN:
             {
-                throw fflerror("ZSTD_CONTENTSIZE_ERROR");
+                throw fflpanic("ZSTD_CONTENTSIZE_ERROR");
             }
         default:
             {
@@ -76,7 +76,7 @@ static std::vector<uint8_t> decompressDataBuf(const uint8_t *dataBuf, size_t dat
     }
 
     if(ZSTD_isError(rc)){
-        throw fflerror("failed to compress file: %s", ZSTD_getErrorName(rc));
+        throw fflpanic("failed to compress file: {}", ZSTD_getErrorName(rc));
     }
 
     result.resize(rc);
@@ -86,7 +86,7 @@ static std::vector<uint8_t> decompressDataBuf(const uint8_t *dataBuf, size_t dat
 static std::vector<uint8_t> readFileData(const char *filePath)
 {
     if(!filePath){
-        throw fflerror("invalid filePath: (null)");
+        throw fflpanic("invalid filePath: (null)");
     }
 
     auto fp = make_fileptr(filePath, "rb");
@@ -96,7 +96,7 @@ static std::vector<uint8_t> readFileData(const char *filePath)
 
     std::vector<uint8_t> dataBuf(fileSize, 0);
     if(std::fread(dataBuf.data(), fileSize, 1, fp.get()) != 1){
-        throw fflerror("failed to read file: %s, err = %s", filePath, std::strerror(errno));
+        throw fflpanic("failed to read file: {}, err = {}", filePath, std::strerror(errno));
     }
     return dataBuf;
 }
@@ -104,16 +104,16 @@ static std::vector<uint8_t> readFileData(const char *filePath)
 static std::vector<uint8_t> readFileOffData(std::FILE *fp, size_t dataOff, size_t dataLen)
 {
     if(!fp){
-        throw fflerror("invalid argument: fp = nullptr");
+        throw fflpanic("invalid argument: fp = nullptr");
     }
 
     std::vector<uint8_t> readBuf(dataLen);
     if(std::fseek(fp, dataOff, SEEK_SET)){
-        throw fflerror("failed to seek file: err = %s", std::strerror(errno));
+        throw fflpanic("failed to seek file: err = {}", std::strerror(errno));
     }
 
     if(std::fread(readBuf.data(), readBuf.size(), 1, fp) != 1){
-        throw fflerror("failed to read file: err = %s", std::strerror(errno));
+        throw fflpanic("failed to read file: err = {}", std::strerror(errno));
     }
     return readBuf;
 }
@@ -122,7 +122,7 @@ static std::vector<uint8_t> decompFileOffData(std::FILE *fp, size_t dataOff, siz
 {
     const auto compBuf = readFileOffData(fp, dataOff, dataLen);
     if(compBuf.empty()){
-        throw fflerror("failed to read file offset block");
+        throw fflpanic("failed to read file offset block");
     }
     return decompressDataBuf(compBuf.data(), compBuf.size(), dctxPtr, ddictPtr);
 }
@@ -144,11 +144,11 @@ ZSDB::ZSDB(const char *filePath)
 {
     m_DCtx = ZSTD_createDCtx();
     if(!m_DCtx){
-        throw fflerror("failed to create decompress context");
+        throw fflpanic("failed to create decompress context");
     }
 
     if(const auto headerBuf = readFileOffData(m_fp.get(), 0, sizeof(ZSDBHeader)); headerBuf.empty()){
-        throw fflerror("failed to load zsdb header");
+        throw fflpanic("failed to load zsdb header");
     }
     else{
         std::memcpy(&m_header, headerBuf.data(), sizeof(m_header));
@@ -158,12 +158,12 @@ ZSDB::ZSDB(const char *filePath)
         const auto offset = check_cast<size_t>(m_header.dictOffset);
         const auto length = check_cast<size_t>(m_header.dictLength);
         if(const auto dictBuf = decompFileOffData(m_fp.get(), offset, length, m_DCtx, m_DDict); dictBuf.empty()){
-            throw fflerror("failed to load data at (off = %zu, length = %zu)", offset, length);
+            throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
             m_DDict = ZSTD_createDDict(dictBuf.data(), dictBuf.size());
             if(!m_DDict){
-                throw fflerror("create decompression dictory failed");
+                throw fflpanic("create decompression dictory failed");
             }
         }
     }
@@ -172,11 +172,11 @@ ZSDB::ZSDB(const char *filePath)
         const auto offset = check_cast<size_t>(m_header.entryOffset);
         const auto length = check_cast<size_t>(m_header.entryLength);
         if(const auto entryBuf = decompFileOffData(m_fp.get(), offset, length, m_DCtx, m_DDict); entryBuf.empty()){
-            throw fflerror("failed to load data at (off = %zu, length = %zu)", offset, length);
+            throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
             if(entryBuf.size() != (1 + m_header.entryNum) * sizeof(InnEntry)){
-                throw fflerror("zsdb database file corrupted");
+                throw fflpanic("zsdb database file corrupted");
             }
 
             const auto *headPtr = (InnEntry *)(entryBuf.data());
@@ -185,7 +185,7 @@ ZSDB::ZSDB(const char *filePath)
 
             const auto errEntry = getErrorEntry();
             if(std::memcmp(&m_entryList.back(), &errEntry, sizeof(InnEntry))){
-                throw fflerror("zsdb database file corrupted");
+                throw fflpanic("zsdb database file corrupted");
             }
             m_entryList.pop_back();
         }
@@ -195,7 +195,7 @@ ZSDB::ZSDB(const char *filePath)
         const auto offset = check_cast<size_t>(m_header.fileNameOffset);
         const auto length = check_cast<size_t>(m_header.fileNameLength);
         if(const auto fileNameBuf = decompFileOffData(m_fp.get(), offset, length, m_DCtx, nullptr); fileNameBuf.empty()){
-            throw fflerror("failed to load data at (off = %zu, length = %zu)", offset, length);
+            throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
             const auto *headPtr = (char *)(fileNameBuf.data());
@@ -214,7 +214,7 @@ ZSDB::~ZSDB()
 const char *ZSDB::decomp(const char *fileName, size_t checkLen, std::vector<uint8_t> *dstBuf)
 {
     if(!str_haschar(fileName)){
-        throw fflerror("invalid arguments: %s", fileName);
+        throw fflpanic("invalid arguments: {}", fileName);
     }
 
     auto p = std::lower_bound(m_entryList.cbegin(), m_entryList.cend(), fileName, [this, checkLen](const InnEntry &lhs, const char *rhs) -> bool
@@ -282,7 +282,7 @@ std::vector<ZSDB::Entry> ZSDB::getEntryList() const
 void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *dataPath, const char *dictPath, double compRatio)
 {
     if(!(str_haschar(savePath) && str_haschar(dataPath))){
-        throw fflerror("invalid arguments: savePath = %s, dataPath = %s", to_cstr(savePath), to_cstr(dataPath));
+        throw fflpanic("invalid arguments: savePath = {}, dataPath = {}", to_cstr(savePath), to_cstr(dataPath));
     }
 
     ZSTD_CDict *cdictPtr = nullptr;
@@ -291,18 +291,18 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
     if(str_haschar(dictPath)){
         cdictBuf = readFileData(dictPath);
         if(cdictBuf.empty()){
-            throw fflerror("dict file is empty: %s", dictPath);
+            throw fflpanic("dict file is empty: {}", dictPath);
         }
 
         cdictPtr = ZSTD_createCDict(cdictBuf.data(), cdictBuf.size(), g_compLevel);
         if(!cdictPtr){
-            throw fflerror("failed to create dict: %s", dictPath);
+            throw fflpanic("failed to create dict: {}", dictPath);
         }
     }
 
     ZSTD_CCtx *cctxPtr = ZSTD_createCCtx();
     if(!cctxPtr){
-        throw fflerror("failed to create ZSTD_CCtx");
+        throw fflpanic("failed to create ZSTD_CCtx");
     }
 
     std::vector<char> fileNameBuf;
@@ -384,18 +384,18 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
 
     auto fp = make_fileptr(savePath, "wb");
     if(std::fwrite(&header, sizeof(header), 1, fp.get()) != 1){
-        throw fflerror("failed to save zsdb header: %s", savePath);
+        throw fflpanic("failed to save zsdb header: {}", savePath);
     }
 
     if(std::fwrite(entryCompBuf.data(), entryCompBuf.size(), 1, fp.get()) != 1){
-        throw fflerror("failed to save zsdb entry buffer: %s", savePath);
+        throw fflpanic("failed to save zsdb entry buffer: {}", savePath);
     }
 
     if(std::fwrite(fileNameCompBuf.data(), fileNameCompBuf.size(), 1, fp.get()) != 1){
-        throw fflerror("failed to save zsdb file name buffer: %s", savePath);
+        throw fflpanic("failed to save zsdb file name buffer: {}", savePath);
     }
 
     if(std::fwrite(streamBuf.data(), streamBuf.size(), 1, fp.get()) != 1){
-        throw fflerror("failed to save zsdb stream buffer: %s", savePath);
+        throw fflpanic("failed to save zsdb stream buffer: {}", savePath);
     }
 }

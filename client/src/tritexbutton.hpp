@@ -20,7 +20,7 @@ class TritexButton: public ButtonBase
                     case  0: return self.off;
                     case  1: return self.on;
                     case  2: return self.down;
-                    default: throw fflerror("index out of range: %zu", index);
+                    default: throw fflpanic("index out of range: {}", index);
                 }
             }
         };
