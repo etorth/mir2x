@@ -141,7 +141,7 @@ inline const char *to_cstr(const std::u8string_view &s)
 
 template<size_t StaticBufferCapacity> const char *to_cstr(const StaticBuffer<StaticBufferCapacity> &buf)
 {
-    return to_cstr((const char *)(buf.buf));
+    return to_cstr((const char *)(buf.data));
 }
 
 // cast char buf to char8_t buf
@@ -182,7 +182,7 @@ inline const char8_t *to_u8cstr(const std::string &s)
 
 template<size_t StaticBufferCapacity> const char8_t *to_u8cstr(const StaticBuffer<StaticBufferCapacity> &buf)
 {
-    return to_u8cstr((const char8_t *)(buf.buf));
+    return to_u8cstr((const char8_t *)(buf.data));
 }
 
 inline const char *to_boolcstr(bool b)
