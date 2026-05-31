@@ -231,6 +231,8 @@ class Hero: public CreatureMovable
     public:
         uint32_t static faceGfxID(bool argGender, int argJob)
         {
-            return UINT32_C(0X02000000) + to_u32(jobf::jobGfxIndex(argJob).front().value() * 2 + (argGender ? 0 : 1));
+            const auto jobIndexList = jobf::jobGfxIndex(argJob);
+            fflassert(!jobIndexList.empty());
+            return UINT32_C(0X02000000) + to_u32(jobIndexList.front() * 2 + (argGender ? 0 : 1));
         }
 };

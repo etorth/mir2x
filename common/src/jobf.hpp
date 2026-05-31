@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include <string>
-#include <optional>
 #include <inplace_vector>
 #include "totype.hpp"
 #include "fflerror.hpp"
@@ -35,12 +34,11 @@ namespace jobf
 
     inline auto jobGfxIndex(int job)
     {
-        std::inplace_vector<std::optional<int>, 3> result;
+        std::inplace_vector<int, 3> result;
 
         if(job & JOB_WARRIOR) result.push_back(0);
         if(job & JOB_TAOIST ) result.push_back(1);
         if(job & JOB_WIZARD ) result.push_back(2);
-        if(result.empty()) result.push_back(std::nullopt);
 
         return result;
     }

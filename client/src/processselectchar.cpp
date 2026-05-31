@@ -198,12 +198,7 @@ void ProcessSelectChar::drawCharName() const
         xmlStr += str_printf(u8R"###(     <par color='RGB(237,226,200)'>角色：%s</par> )###""\n", to_cstr(name));
         xmlStr += str_printf(u8R"###(     <par color='RGB(175,196,175)'>等级：%d</par> )###""\n", to_d(SYS_LEVEL(exp)));
         for(const auto jobStr: jobf::jobName(m_smChar.value().job)){
-            if(jobStr){
-                xmlStr += str_printf(u8R"###( <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobStr));
-            }
-            else{
-                break;
-            }
+            xmlStr += str_printf(u8R"###( <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobStr));
         }
         xmlStr += str_printf(u8R"###( </layout> )###""\n");
 
@@ -262,9 +257,9 @@ std::optional<uint32_t> ProcessSelectChar::charGfxBaseID() const
 {
     if(m_smChar.has_value() && !m_smChar.value().name.empty()){
         const bool gender = m_smChar.value().gender;
-        const auto jobIndexOpt = jobf::jobGfxIndex(m_smChar.value().job).front();
+        const auto jobIndexList = jobf::jobGfxIndex(m_smChar.value().job);
 
-        fflassert(jobIndexOpt.has_value());
+        fflassert(!jobIndexList.empty());
         fflassert(m_charAni >= 0);
         fflassert(m_charAni <  4);
 
@@ -276,7 +271,7 @@ std::optional<uint32_t> ProcessSelectChar::charGfxBaseID() const
         // 00 - 04: max = 32   frame
 
         return 0
-            + (to_u32(jobIndexOpt.value()) << 10)
+            + (to_u32(jobIndexList.front()) << 10)
             + (to_u32(gender             ) <<  9)
             + (to_u32(m_charAni          ) <<  5);
     }
@@ -381,7 +376,10 @@ void ProcessSelectChar::switchCharGfx()
 
     if(m_charAni == 1){
         const int offGender = to_d(m_smChar.value().gender);
-        const int offJob = jobf::jobGfxIndex(m_smChar.value().job).front().value();
+        const auto jobIndexList = jobf::jobGfxIndex(m_smChar.value().job);
+
+        fflassert(!jobIndexList.empty());
+        const int offJob = jobIndexList.front();
 
         const uint32_t seffID = UINT32_C(0X00010000) // base
             | (to_u32(offGender) << 4)               //

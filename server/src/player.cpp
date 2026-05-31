@@ -1918,13 +1918,8 @@ bool Player::consumeBook(uint32_t itemID)
     if(!g_serverArgParser->sharedConfig().disableLearnMagicCheckJob){
         bool hasJob = false;
         for(const auto jobstr: jobf::jobName(job())){
-            if(jobstr){
-                if(to_u8sv(jobstr) == mr.req.job){
-                    hasJob = true;
-                }
-            }
-            else{
-                break;
+            if(to_u8sv(jobstr) == mr.req.job){
+                hasJob = true;
             }
         }
 
