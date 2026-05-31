@@ -63,6 +63,11 @@ void ProcessSelectChar::on_SM_DELETECHARERROR(const uint8_t *buf, size_t)
                 m_notifyBoard.addLog(u8"没有角色可以删除");
                 return;
             }
+        case DELCHARERR_DBERROR:
+            {
+                m_notifyBoard.addLog(u8"删除角色失败，请稍后重试");
+                return;
+            }
         default:
             {
                 throw fflreach();
