@@ -614,16 +614,16 @@ void Player::dbAddMagicExp(uint32_t magicID, size_t exp)
 {
     fflassert(DBCOM_MAGICRECORD(magicID));
     if(exp > 0){
-        g_dbPod->exec("update tbl_learnedmagiclist set fld_exp = fld_exp + %llu where fld_dbid = %llu and fld_magic = %zu", to_llu(dbid()), to_llu(magicID), exp);
+        g_dbPod->exec("update tbl_learnedmagiclist set fld_exp = fld_exp + %llu where fld_dbid = %llu and fld_magicid = %llu", to_llu(exp), to_llu(dbid()), to_llu(magicID));
     }
 }
 
 void Player::dbLoadLearnedMagic()
 {
     // tbl_learnedmagiclist:
-    // +----------+-----------+---------+
-    // | fld_dbid | fld_magic | fld_exp |
-    // +----------+-----------+---------+
+    // +----------+-------------+---------+
+    // | fld_dbid | fld_magicid | fld_exp |
+    // +----------+-------------+---------+
     // |<----primary key----->|
 
     m_sdLearnedMagicList.clear();
