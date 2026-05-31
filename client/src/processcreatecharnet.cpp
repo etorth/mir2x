@@ -18,6 +18,18 @@ void ProcessCreateChar::on_SM_CREATECHARERROR(const uint8_t *buf, size_t)
                 m_notifyBoard.addLog(u8"无效的角色名");
                 break;
             }
+        case CRTCHARERR_BADGENDER:
+            {
+                setGUIActive(true);
+                m_notifyBoard.addLog(u8"无效的角色性别");
+                break;
+            }
+        case CRTCHARERR_BADJOB:
+            {
+                setGUIActive(true);
+                m_notifyBoard.addLog(u8"无效的角色职业");
+                break;
+            }
         case CRTCHARERR_CHAREXIST:
             {
                 setGUIActive(true);

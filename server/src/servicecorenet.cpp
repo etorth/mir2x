@@ -406,6 +406,16 @@ corof::awaitable<> ServiceCore::net_CM_CREATECHAR(uint32_t channID, uint8_t, con
         return {};
     }
 
+    if(cmCC.gender > 1){
+        fnCreateCharError(CRTCHARERR_BADGENDER);
+        return {};
+    }
+
+    if(!jobf::jobValid(cmCC.job)){
+        fnCreateCharError(CRTCHARERR_BADJOB);
+        return {};
+    }
+
     auto query = g_dbPod->createQuery(u8R"###(select fld_dbid, fld_name from tbl_char where fld_dbid = %llu or fld_name = '%s')###", to_llu(dbidOpt.value().first), name.c_str());
     if(query.executeStep()){
         if(const auto existDBID = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid")); existDBID == dbidOpt.value().first){

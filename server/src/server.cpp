@@ -287,7 +287,7 @@ void Server::createDefaultDatabase()
         u8R"###(     fld_name           text    not null,                                )###"
         u8R"###(     fld_namecolor      integer default 0,                               )###"
         u8R"###(     fld_gender         integer not null check(fld_gender in (0, 1)),    )###"
-        u8R"###(     fld_job            integer not null,                                )###"
+        u8R"###(     fld_job            integer not null check(fld_job >= 1 and fld_job < 8), )###"
         u8R"###(     fld_map            integer not null,                                )###"
         u8R"###(     fld_mapx           integer not null,                                )###"
         u8R"###(     fld_mapy           integer not null,                                )###"
