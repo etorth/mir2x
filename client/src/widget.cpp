@@ -543,10 +543,10 @@ void Widget::updateDefault(double fUpdateTime)
 bool Widget::processEvent(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(m_attrs.inst.processEvent){
-        return m_attrs.inst.processEvent(this, event, valid, m);
+        return m_attrs.inst.processEvent(this, event, valid && active(), m);
     }
     else{
-        return processEventDefault(event, valid, m);
+        return processEventDefault(event, valid && active(), m);
     }
 }
 
