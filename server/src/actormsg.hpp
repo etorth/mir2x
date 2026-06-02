@@ -137,6 +137,8 @@ enum ActorMsgPackType: int
     AM_REGISTERQUEST,
     AM_REQUESTJOINTEAM,
     AM_REQUESTLEAVETEAM,
+    AM_PLAYERSAY,
+    AM_PLAYERBROADCAST,
     AM_END,
 };
 
@@ -269,10 +271,24 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_REGISTERQUEST)
         _add_mpk_type_case(AM_REQUESTJOINTEAM)
         _add_mpk_type_case(AM_REQUESTLEAVETEAM)
+        _add_mpk_type_case(AM_PLAYERSAY)
+        _add_mpk_type_case(AM_PLAYERBROADCAST)
         default: return "AM_UNKNOWN";
     }
 #undef _add_mpk_type_case
 }
+
+struct AMPlayerSay
+{
+    uint64_t uid;
+    char content[128];
+};
+
+struct AMPlayerBroadcast
+{
+    uint64_t uid;
+    char content[128];
+};
 
 struct AMBadActorPod
 {

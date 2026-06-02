@@ -79,6 +79,7 @@ class ServiceCore final: public PeerCore
         corof::awaitable<> on_AM_QUERYQUESTTRIGGERLIST (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYQUESTUID         (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYQUESTUIDLIST     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_PLAYERBROADCAST       (const ActorMsgPack &);
 
     private:
         corof::awaitable<> net_CM_LOGIN         (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);

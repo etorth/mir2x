@@ -412,6 +412,50 @@ corof::awaitable<> Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_
     return {};
 }
 
+corof::awaitable<> Player::net_CM_PLAYERSAY(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
+{
+    const auto cmPS = ClientMsg::conv<CMPlayerSay>(buf, bufSize);
+    if(!str_haschar(cmPS.content)){
+        return {};
+    }
+
+    AMPlayerSay amPS;
+    std::memset(&amPS, 0, sizeof(amPS));
+
+    amPS.uid = UID();
+    std::memcpy(amPS.content, cmPS.content, sizeof(amPS.content));
+
+    SMPlayerSay smPS;
+    std::memset(&smPS, 0, sizeof(smPS));
+
+    smPS.uid = amPS.uid;
+    std::memcpy(smPS.content, amPS.content, sizeof(smPS.content));
+    postNetMessage(SM_PLAYERSAY, smPS);
+
+    for(const auto &[uid, coLoc]: m_inViewCOList){
+        if(uidf::getUIDType(coLoc.uid) == UID_PLY){
+            m_actorPod->post(uid, {AM_PLAYERSAY, amPS});
+        }
+    }
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_PLAYERBROADCAST(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
+{
+    const auto cmPB = ClientMsg::conv<CMPlayerBroadcast>(buf, bufSize);
+    if(!str_haschar(cmPB.content)){
+        return {};
+    }
+
+    AMPlayerBroadcast amPB;
+    std::memset(&amPB, 0, sizeof(amPB));
+
+    amPB.uid = UID();
+    std::memcpy(amPB.content, cmPB.content, sizeof(amPB.content));
+    m_actorPod->post(uidf::getServiceCoreUID(), {AM_PLAYERBROADCAST, amPB});
+    return {};
+}
+
 corof::awaitable<> Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto fnPostNetMessage = [respID, this](int notif)

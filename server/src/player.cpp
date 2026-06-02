@@ -521,6 +521,14 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_TEAMUPDATE(mpk);
             }
+        case AM_PLAYERSAY:
+            {
+                return on_AM_PLAYERSAY(mpk);
+            }
+        case AM_PLAYERBROADCAST:
+            {
+                return on_AM_PLAYERBROADCAST(mpk);
+            }
         default:
             {
                 throw fflvalue(mpk.str(UID()));
@@ -539,6 +547,8 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_REJECTADDFRIEND           );
         _support_cm(CM_BLOCKPLAYER               );
         _support_cm(CM_CHATMESSAGE               );
+        _support_cm(CM_PLAYERSAY                 );
+        _support_cm(CM_PLAYERBROADCAST           );
         _support_cm(CM_CONSUMEITEM               );
         _support_cm(CM_DROPITEM                  );
         _support_cm(CM_MAKEITEM                  );

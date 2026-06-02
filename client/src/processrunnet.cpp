@@ -91,6 +91,25 @@ void ProcessRun::on_SM_CHATMESSAGELIST(const uint8_t *buf, size_t bufSize)
     dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->getButton("FriendChat")->setBlinkTime(100, 100, 5000);
 }
 
+void ProcessRun::on_SM_PLAYERSAY(const uint8_t *buf, size_t bufSize)
+{
+    const auto smPS = ServerMsg::conv<SMPlayerSay>(buf, bufSize);
+    if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPS.uid)); playerPtr){
+        playerPtr->addPlayerSay(smPS.content);
+    }
+}
+
+void ProcessRun::on_SM_PLAYERBROADCAST(const uint8_t *buf, size_t bufSize)
+{
+    const auto smPB = ServerMsg::conv<SMPlayerBroadcast>(buf, bufSize);
+    if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPB.uid)); playerPtr){
+        addCBLog(CBLOG_SYS, u8"%s: %s", playerPtr->getName().c_str(), smPB.content);
+    }
+    else{
+        addCBLog(CBLOG_SYS, u8"%s", smPB.content);
+    }
+}
+
 void ProcessRun::on_SM_LEARNEDMAGICLIST(const uint8_t *buf, size_t bufSize)
 {
     const auto sdLML = cerealf::deserialize<SDLearnedMagicList>(buf, bufSize);

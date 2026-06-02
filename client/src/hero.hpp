@@ -6,6 +6,7 @@
 #include "serdesmsg.hpp"
 #include "jobf.hpp"
 #include "creaturemovable.hpp"
+#include "playersayboard.hpp"
 
 struct HeroFrameGfxSeq final
 {
@@ -38,6 +39,9 @@ class Hero: public CreatureMovable
         SDWLDesp m_sdWLDesp;
 
     protected:
+        PlayerSayBoard m_playerSayBoard;
+
+    protected:
         std::unordered_set<uint32_t> m_swingMagicList;
 
     public:
@@ -51,6 +55,9 @@ class Hero: public CreatureMovable
 
     public:
         void drawFrame(int, int, int, int, bool) override;
+
+    public:
+        void addPlayerSay(const std::string &);
 
     public:
         bool onHorse() const

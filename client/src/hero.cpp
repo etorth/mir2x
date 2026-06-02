@@ -32,6 +32,9 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     , m_onHorse(false)
     , m_gender(argGender)
     , m_job(argJob)
+    , m_playerSayBoard
+      {{
+      }}
 {
     m_currMotion.reset(new MotionNode
     {
@@ -277,11 +280,18 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         LabelBoard amLeader{{.label = u8"我是队长", .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
         amLeader.draw({.x=startX, .y=startY, .ro{0, 0, amLeader.w(), amLeader.h()}});
     }
+
+    if(!m_playerSayBoard.empty()){
+        const int boardX = startX + 24 - m_playerSayBoard.w() / 2;
+        const int boardY = startY - 70 - m_playerSayBoard.h();
+        m_playerSayBoard.drawRoot({.x = boardX, .y = boardY});
+    }
 }
 
 bool Hero::update(double ms)
 {
     updateAttachMagic(ms);
+    m_playerSayBoard.update(ms);
     const CallOnExitHelper motionOnUpdate([lastSeqFrameID = m_currMotion->getSeqFrameID(), this]()
     {
         m_currMotion->runTrigger();
@@ -428,6 +438,11 @@ bool Hero::update(double ms)
                 return updateMotion(true);
             }
     }
+}
+
+void Hero::addPlayerSay(const std::string &message)
+{
+    m_playerSayBoard.addSay(message);
 }
 
 bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const

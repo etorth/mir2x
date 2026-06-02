@@ -47,6 +47,32 @@ corof::awaitable<> Player::on_AM_SENDPACKAGE(const ActorMsgPack &mpk)
     return {};
 }
 
+corof::awaitable<> Player::on_AM_PLAYERSAY(const ActorMsgPack &mpk)
+{
+    const auto amPS = mpk.conv<AMPlayerSay>();
+
+    SMPlayerSay smPS;
+    std::memset(&smPS, 0, sizeof(smPS));
+
+    smPS.uid = amPS.uid;
+    std::memcpy(smPS.content, amPS.content, sizeof(smPS.content));
+    postNetMessage(SM_PLAYERSAY, smPS);
+    return {};
+}
+
+corof::awaitable<> Player::on_AM_PLAYERBROADCAST(const ActorMsgPack &mpk)
+{
+    const auto amPB = mpk.conv<AMPlayerBroadcast>();
+
+    SMPlayerBroadcast smPB;
+    std::memset(&smPB, 0, sizeof(smPB));
+
+    smPB.uid = amPB.uid;
+    std::memcpy(smPB.content, amPB.content, sizeof(smPB.content));
+    postNetMessage(SM_PLAYERBROADCAST, smPB);
+    return {};
+}
+
 corof::awaitable<> Player::on_AM_RECVPACKAGE(const ActorMsgPack &mpk)
 {
     /* const */ auto amRP = mpk.conv<AMRecvPackage>();

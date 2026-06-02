@@ -265,6 +265,8 @@ class ProcessRun: public Process
         _support_sm(SM_QUESTDESPUPDATE);
         _support_sm(SM_QUESTDESPLIST);
         _support_sm(SM_CHATMESSAGELIST);
+        _support_sm(SM_PLAYERSAY);
+        _support_sm(SM_PLAYERBROADCAST);
         _support_sm(SM_CREATECHATGROUP);
         _support_sm(SM_ADDFRIENDACCEPTED);
         _support_sm(SM_ADDFRIENDREJECTED);

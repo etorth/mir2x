@@ -55,6 +55,8 @@ enum CMType: uint8_t
     CM_REJECTADDFRIEND,
     CM_BLOCKPLAYER,
     CM_CHATMESSAGE,
+    CM_PLAYERSAY,
+    CM_PLAYERBROADCAST,
     CM_REQUESTEQUIPWEAR,
     CM_REQUESTGRABWEAR,
     CM_REQUESTEQUIPBELT,
@@ -175,6 +177,16 @@ struct CMChatMessageHeader
     uint64_t toCPID;
     uint64_t hasRef :  1;
     uint64_t refID  : 63;
+};
+
+struct CMPlayerSay
+{
+    char content[128];
+};
+
+struct CMPlayerBroadcast
+{
+    char content[128];
 };
 
 struct CMQueryChatMessage
@@ -372,6 +384,8 @@ namespace
         _RSVD_register_clientmsg(CM_REJECTADDFRIEND,            1, sizeof(CMRejectAddFriend)           );
         _RSVD_register_clientmsg(CM_BLOCKPLAYER,                1, sizeof(CMBlockPlayer)               );
         _RSVD_register_clientmsg(CM_CHATMESSAGE,                3                                      );
+        _RSVD_register_clientmsg(CM_PLAYERSAY,                  1, sizeof(CMPlayerSay)                 );
+        _RSVD_register_clientmsg(CM_PLAYERBROADCAST,            1, sizeof(CMPlayerBroadcast)           );
         _RSVD_register_clientmsg(CM_REQUESTEQUIPWEAR,           1, sizeof(CMRequestEquipWear)          );
         _RSVD_register_clientmsg(CM_REQUESTGRABWEAR,            1, sizeof(CMRequestGrabWear)           );
         _RSVD_register_clientmsg(CM_REQUESTEQUIPBELT,           1, sizeof(CMRequestEquipBelt)          );

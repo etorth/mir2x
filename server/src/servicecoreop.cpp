@@ -203,6 +203,17 @@ corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
     return {};
 }
 
+corof::awaitable<> ServiceCore::on_AM_PLAYERBROADCAST(const ActorMsgPack &mpk)
+{
+    const auto amPB = mpk.conv<AMPlayerBroadcast>();
+    for(const auto &entry: m_dbidList){
+        if(entry.second.second){
+            m_actorPod->post(uidf::getPlayerUID(entry.second.first), {AM_PLAYERBROADCAST, amPB});
+        }
+    }
+    return {};
+}
+
 corof::awaitable<> ServiceCore::on_AM_BADCHANNEL(const ActorMsgPack &mpk)
 {
     const auto amBC = mpk.conv<AMBadChannel>();

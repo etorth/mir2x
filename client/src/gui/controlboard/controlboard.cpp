@@ -1,8 +1,12 @@
+#include <algorithm>
+#include <cstring>
 #include "log.hpp"
+#include "client.hpp"
 #include "controlboard.hpp"
 #include "processrun.hpp"
 
 extern Log *g_log;
+extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
 
 ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
@@ -270,7 +274,7 @@ void ControlBoard::onInputDone()
         return;
     }
 
-    const std::string fullXML = m_cmdBoard.getXML();
+    // const std::string fullXML = m_cmdBoard.getXML();
     const std::string fullStr = str_trim(m_cmdBoard.getText(), true, false);
 
     m_cmdBoard.clear();
@@ -283,9 +287,20 @@ void ControlBoard::onInputDone()
         m_middleExpand.onCmdCR();
     }
 
+    if(fullStr.empty()){
+        return;
+    }
+
     switch(fullStr[0]){
         case '!': // broadcast
             {
+                const std::string content = str_trim(fullStr.substr(1), true, false);
+                if(!content.empty()){
+                    CMPlayerBroadcast cmPB;
+                    std::memset(&cmPB, 0, sizeof(cmPB));
+                    std::memcpy(cmPB.content, content.data(), std::min<size_t>(content.size(), sizeof(cmPB.content) - 1));
+                    g_client->send({CM_PLAYERBROADCAST, cmPB});
+                }
                 break;
             }
         case '@': // user command
@@ -304,7 +319,11 @@ void ControlBoard::onInputDone()
             }
         default: // normal talk
             {
-                addXMLLog(fullXML.c_str());
+                // addXMLLog(fullXML.c_str());
+                CMPlayerSay cmPS;
+                std::memset(&cmPS, 0, sizeof(cmPS));
+                std::memcpy(cmPS.content, fullStr.data(), std::min<size_t>(fullStr.size(), sizeof(cmPS.content) - 1));
+                g_client->send({CM_PLAYERSAY, cmPS});
                 break;
             }
     }

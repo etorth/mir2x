@@ -66,6 +66,10 @@ corof::awaitable<> ServiceCore::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_QUERYQUESTUIDLIST(mpk);
             }
+        case AM_PLAYERBROADCAST:
+            {
+                return on_AM_PLAYERBROADCAST(mpk);
+            }
         default:
             {
                 throw fflvalue(mpk.str());

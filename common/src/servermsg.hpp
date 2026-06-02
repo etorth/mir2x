@@ -84,6 +84,8 @@ enum SMType: uint8_t
     SM_QUESTDESPUPDATE,
     SM_QUESTDESPLIST,
     SM_CHATMESSAGELIST,
+    SM_PLAYERSAY,
+    SM_PLAYERBROADCAST,
     SM_END,
 };
 
@@ -347,6 +349,18 @@ struct SMTeamError
     uint8_t error;
 };
 
+struct SMPlayerSay
+{
+    uint64_t uid;
+    char content[128];
+};
+
+struct SMPlayerBroadcast
+{
+    uint64_t uid;
+    char content[128];
+};
+
 #pragma pack(pop)
 
 namespace
@@ -436,6 +450,8 @@ namespace
         _RSVD_register_servermsg(SM_QUESTDESPUPDATE,     3                               );
         _RSVD_register_servermsg(SM_QUESTDESPLIST,       3                               );
         _RSVD_register_servermsg(SM_CHATMESSAGELIST,     3                               );
+        _RSVD_register_servermsg(SM_PLAYERSAY,           1, sizeof(SMPlayerSay)          );
+        _RSVD_register_servermsg(SM_PLAYERBROADCAST,     1, sizeof(SMPlayerBroadcast)    );
 
 #undef _RSVD_register_servermsg
         return result;
