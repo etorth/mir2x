@@ -13,7 +13,7 @@ auto WidgetTreeNode::parent(this auto && self, unsigned level) -> check_const_co
 
 template<std::invocable<const Widget *, bool, const Widget *, bool> F> void WidgetTreeNode::sort(F f)
 {
-    m_childList.sort(m_childList.begin(), m_childList.end(), [&f](const auto &x, const auto &y)
+    m_childList.sort([&f](const auto &x, const auto &y)
     {
         if(x.widget && y.widget){
             return f(x.widget, x.autoDelete, y.widget, y.autoDelete);
@@ -390,9 +390,9 @@ template<typename T> bool Widget::hasCheckFunc(const Widget::VarCheckFunc<T> &va
 {
     return std::visit(VarDispatcher
     {
-        [](const std::function<void(                        const T &)> &varg) -> bool { return !!varg; },
-        [](const std::function<void(const Widget *,         const T &)> &varg) -> bool { return !!varg; },
-        [](const std::function<void(const Widget *, void *, const T &)> &varg) -> bool { return !!varg; },
+        [](const std::function<bool(                        const T &)> &varg) -> bool { return !!varg; },
+        [](const std::function<bool(const Widget *,         const T &)> &varg) -> bool { return !!varg; },
+        [](const std::function<bool(const Widget *, void *, const T &)> &varg) -> bool { return !!varg; },
 
         [](std::nullptr_t){ return false; },
     },
