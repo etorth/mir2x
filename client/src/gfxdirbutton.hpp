@@ -7,7 +7,7 @@ class GfxDirButton: public TrigfxButton
     private:
         struct TriangleArgs final
         {
-            Widget::VarDir dir = DIR_UPLEFT;
+            Widget::VarDir dir = DIR_UP;
 
             Widget::VarSizeOpt w = std::nullopt;
             Widget::VarSizeOpt h = std::nullopt;
