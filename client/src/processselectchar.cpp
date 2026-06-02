@@ -161,7 +161,7 @@ void ProcessSelectChar::onDelete()
 {
     if(hasChar()){
         m_deleteInput.setShow(true);
-        m_deleteInput.waitInput(u8"<layout><par>删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。</par></layout>", [this](std::u8string inputString)
+        m_deleteInput.waitInput(u8"<layout><par>删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。</par></layout>", true, [this](std::u8string inputString)
         {
             CMDeleteChar cmDC;
             std::memset(&cmDC, 0, sizeof(cmDC));

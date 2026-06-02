@@ -656,8 +656,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
 
                                   auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"));
 
-                                  inputBoardPtr->setSecurity(false);
-                                  inputBoardPtr->waitInput(u8"<layout><par>请输入你要建立的群名称</par></layout>", [dbidList, this](std::u8string inputString)
+                                  inputBoardPtr->waitInput(u8"<layout><par>请输入你要建立的群名称</par></layout>", false, [dbidList, this](std::u8string inputString)
                                   {
                                       if(inputString.empty()){
                                           m_processRun->addCBLog(CBLOG_ERR, u8"无效输入:%s", to_cstr(inputString));

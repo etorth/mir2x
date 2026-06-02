@@ -48,11 +48,5 @@ class InputStringBoard: public Widget
         }
 
     public:
-        void waitInput(std::u8string, std::function<void(std::u8string)>);
-
-    public:
-        void setSecurity(bool security)
-        {
-            m_input.setSecurity(security);
-        }
+        void waitInput(std::u8string, bool, std::function<void(std::u8string)>);
 };
