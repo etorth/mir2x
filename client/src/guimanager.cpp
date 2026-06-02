@@ -77,7 +77,6 @@ GUIManager::GUIManager(ProcessRun *argProc)
     , m_purchaseBoard
       {
           argProc,
-          this,
       }
 
     , m_teamStateBoard
@@ -169,7 +168,7 @@ void GUIManager::drawDefault(Widget::ROIMap m) const
     m_controlBoard.drawRoot({});
 
     if(m_purchaseBoard.show()){
-        drawChild(&m_purchaseBoard, m);
+        m_purchaseBoard.drawRoot({});
     }
 
     Widget::drawDefault(m);
@@ -184,6 +183,7 @@ void GUIManager::drawDefault(Widget::ROIMap m) const
 void GUIManager::updateDefault(double fUpdateTime)
 {
     Widget::updateDefault(fUpdateTime);
+    m_purchaseBoard.update(fUpdateTime);
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
     if(!g_clientArgParser->disableIME){
@@ -233,6 +233,7 @@ bool GUIManager::processEventDefault(const SDL_Event &event, bool valid, Widget:
 
     tookEvent |= Widget::processEventDefault(event, valid && !tookEvent, m);
 
+    fnProcEventRoot(&m_purchaseBoard);
     fnProcEventRoot(&m_controlBoard);
     fnProcEventRoot(&m_NPCChatBoard);
     fnProcEventRoot(&m_miniMapBoard);

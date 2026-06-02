@@ -994,18 +994,18 @@ void Widget::moveBy(Widget::VarInt argDX, Widget::VarInt argDY)
 {
     const auto fnOp = [](std::pair<Widget::VarInt, int> &offset, Widget::VarInt update)
     {
-        if(update.index() == 0){
+        if(update.fixed()){
             offset.second += std::get<int>(update);
         }
-        else if(offset.first.index() == 0){
+        else if(offset.first.fixed()){
             offset.second += std::get<int>(offset.first);
             offset.first   = std::move(update);
         }
         else{
             offset.first = [u = std::move(offset.first), v = std::move(update)](const Widget *widgetPtr)
             {
-                return std::get<std::function<int(const Widget *)>>(u)(widgetPtr)
-                     + std::get<std::function<int(const Widget *)>>(v)(widgetPtr);
+                return Widget::evalInt(u, widgetPtr)
+                     + Widget::evalInt(v, widgetPtr);
             };
         }
     };
