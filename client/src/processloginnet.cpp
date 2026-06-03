@@ -14,12 +14,12 @@ void ProcessLogin::on_SM_LOGINERROR(const uint8_t *buf, size_t)
     switch(smLE.error){
         case LOGINERR_NOACCOUNT:
             {
-                m_notifyBoard.addLog(u8"无效的账号或密码");
+                m_notifyBoard.addMessage(u8"无效的账号或密码");
                 return;
             }
         case LOGINERR_MULTILOGIN:
             {
-                m_notifyBoard.addLog(u8"该账号已经登录");
+                m_notifyBoard.addMessage(u8"该账号已经登录");
                 return;
             }
         default:

@@ -15,7 +15,7 @@ void ProcessSelectChar::on_SM_QUERYCHAROK(const uint8_t *buf, size_t)
     m_notifyBoard.clear();
 
     if(m_smChar.value().name.empty()){
-        m_notifyBoard.addLog(u8"请先创建游戏角色");
+        m_notifyBoard.addMessage(u8"请先创建游戏角色");
     }
     else if(g_clientArgParser->autoLogin){
         onStart();
@@ -31,7 +31,7 @@ void ProcessSelectChar::on_SM_QUERYCHARERROR(const uint8_t *buf, size_t)
                 m_smChar.emplace();
                 m_smChar.value().name.clear();
 
-                m_notifyBoard.addLog(u8"请先创建游戏角色");
+                m_notifyBoard.addMessage(u8"请先创建游戏角色");
                 break;
             }
         case QUERYCHARERR_NOLOGIN:
@@ -46,7 +46,7 @@ void ProcessSelectChar::on_SM_DELETECHAROK(const uint8_t *, size_t)
 {
     m_smChar.emplace();
     m_smChar.value().name.clear();
-    m_notifyBoard.addLog(u8"删除角色成功");
+    m_notifyBoard.addMessage(u8"删除角色成功");
 }
 
 void ProcessSelectChar::on_SM_DELETECHARERROR(const uint8_t *buf, size_t)
@@ -55,17 +55,17 @@ void ProcessSelectChar::on_SM_DELETECHARERROR(const uint8_t *buf, size_t)
     switch(smDCE.error){
         case DELCHARERR_BADPASSWORD:
             {
-                m_notifyBoard.addLog(u8"密码错误");
+                m_notifyBoard.addMessage(u8"密码错误");
                 return;
             }
         case DELCHARERR_NOCHAR:
             {
-                m_notifyBoard.addLog(u8"没有角色可以删除");
+                m_notifyBoard.addMessage(u8"没有角色可以删除");
                 return;
             }
         case DELCHARERR_DBERROR:
             {
-                m_notifyBoard.addLog(u8"删除角色失败，请稍后重试");
+                m_notifyBoard.addMessage(u8"删除角色失败，请稍后重试");
                 return;
             }
         default:
@@ -91,12 +91,12 @@ void ProcessSelectChar::on_SM_ONLINEERROR(const uint8_t *buf, size_t)
     switch(smOE.error){
         case ONLINEERR_NOCHAR:
             {
-                m_notifyBoard.addLog(u8"先创建角色以运行游戏");
+                m_notifyBoard.addMessage(u8"先创建角色以运行游戏");
                 return;
             }
         case ONLINEERR_MULTIONLINE:
             {
-                m_notifyBoard.addLog(u8"请勿频繁登录");
+                m_notifyBoard.addMessage(u8"请勿频繁登录");
                 return;
             }
         default:

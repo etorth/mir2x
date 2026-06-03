@@ -34,6 +34,15 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     , m_job(argJob)
     , m_playerSayBoard
       {{
+          .width = 160,
+          .corner = 3,
+          .font = 0,
+          .fontSize = 12,
+          .fontStyle = 0,
+          .fontColor = colorf::RGBA(0XFF, 0XFF, 0XE0, 0XFF),
+          .showTime = 5000,
+          .entryLimit = 3,
+          .align = ItemAlign::UPLEFT,
       }}
 {
     m_currMotion.reset(new MotionNode
@@ -442,7 +451,11 @@ bool Hero::update(double ms)
 
 void Hero::addPlayerSay(const std::string &message)
 {
-    m_playerSayBoard.addSay(message);
+    if(message.empty()){
+        return;
+    }
+
+    m_playerSayBoard.addMessage(std::u8string(reinterpret_cast<const char8_t *>(message.c_str())));
 }
 
 bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const

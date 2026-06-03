@@ -43,24 +43,20 @@ ProcessSelectChar::ProcessSelectChar()
       }}
 
     , m_notifyBoard
-      {
-          DIR_NONE,
-          [this]{ return m_canvas.w() / 2; },
-          [this]{ return m_canvas.h() / 2; },
-          0, // single line
-
-          1,
-          15,
-          0,
-
-          colorf::YELLOW_A255,
-
-          5000,
-          1,
-
-          &m_canvas,
-          false,
-      }
+      {{
+          .dir = DIR_NONE,
+          .x = [this]{ return m_canvas.w() / 2; },
+          .y = [this]{ return m_canvas.h() / 2; },
+          .width = 0,
+          .font = 1,
+          .fontSize = 15,
+          .fontStyle = 0,
+          .fontColor = colorf::YELLOW_A255,
+          .showTime = 5000,
+          .entryLimit = 1,
+          .align = ItemAlign::CENTER,
+          .parent{&m_canvas},
+      }}
 
     , m_deleteInput
       {
@@ -75,7 +71,7 @@ ProcessSelectChar::ProcessSelectChar()
     m_create.setShow([this]{ return hasChar(); });
     m_delete.setShow([this]{ return hasChar(); });
 
-    m_notifyBoard.addLog(u8"正在下载游戏角色");
+    m_notifyBoard.addMessage(u8"正在下载游戏角色");
 
     g_client->send(CM_QUERYCHAR);
     g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040002));
@@ -131,14 +127,14 @@ void ProcessSelectChar::onStart()
 {
     if(m_smChar.has_value()){
         if(m_smChar.value().name.empty()){
-            m_notifyBoard.addLog(u8"请先创建游戏角色");
+            m_notifyBoard.addMessage(u8"请先创建游戏角色");
         }
         else{
             g_client->send(CM_ONLINE);
         }
     }
     else{
-        m_notifyBoard.addLog(u8"正在下载游戏角色");
+        m_notifyBoard.addMessage(u8"正在下载游戏角色");
     }
 }
 
@@ -149,11 +145,11 @@ void ProcessSelectChar::onCreate()
             g_client->requestProcess(PROCESSID_CREATECHAR);
         }
         else{
-            m_notifyBoard.addLog(u8"一个账号只能创建一个游戏角色");
+            m_notifyBoard.addMessage(u8"一个账号只能创建一个游戏角色");
         }
     }
     else{
-        m_notifyBoard.addLog(u8"正在下载游戏角色");
+        m_notifyBoard.addMessage(u8"正在下载游戏角色");
     }
 }
 
@@ -166,7 +162,7 @@ void ProcessSelectChar::onDelete()
             CMDeleteChar cmDC;
             std::memset(&cmDC, 0, sizeof(cmDC));
             if(inputString.empty() || inputString.size() > SYS_PWDSIZE){
-                m_notifyBoard.addLog(u8"无效的密码");
+                m_notifyBoard.addMessage(u8"无效的密码");
             }
             else{
                 cmDC.password.assign(inputString);
@@ -176,7 +172,7 @@ void ProcessSelectChar::onDelete()
         });
     }
     else{
-        m_notifyBoard.addLog(u8"此账号没有角色");
+        m_notifyBoard.addMessage(u8"此账号没有角色");
     }
 }
 

@@ -5,7 +5,7 @@
 #include "raiitimer.hpp"
 #include "labelboard.hpp"
 #include "inputline.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 
@@ -28,7 +28,7 @@ class ProcessCreateChar: public Process
         InputLine m_nameBox;
 
     private:
-        NotifyBoard m_notifyBoard;
+        MessageStackBoard m_notifyBoard;
 
     private:
         double m_aniTime = 0.0;

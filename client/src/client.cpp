@@ -20,14 +20,14 @@
 #include "processcreateaccount.hpp"
 #include "processchangepassword.hpp"
 #include "pngtexoffdb.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "buildconfig.hpp"
 #include "processlogin.hpp"
 #include "clientargparser.hpp"
 
 extern Log *g_log;
 extern SDLDevice *g_sdlDevice;
-extern NotifyBoard *g_notifyBoard;
+extern MessageStackBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
 
 Client::Client()
@@ -442,12 +442,12 @@ void Client::switchProcess(int oldID, int newID)
 
 void Client::sendCMsgLog(uint8_t headCode)
 {
-    g_notifyBoard->addLog(u8"[%08.3f] ← %s", (float)(SDL_GetTicks()) / 1000.0f, ClientMsg(headCode).name().c_str());
+    g_notifyBoard->addMessage(str_printf(u8"[%08.3f] ← %s", (float)(SDL_GetTicks()) / 1000.0f, ClientMsg(headCode).name().c_str()));
 }
 
 void Client::sendSMsgLog(uint8_t headCode)
 {
-    g_notifyBoard->addLog(u8"[%08.3f] → %s", (float)(SDL_GetTicks()) / 1000.0f, ServerMsg(headCode).name().c_str());
+    g_notifyBoard->addMessage(str_printf(u8"[%08.3f] → %s", (float)(SDL_GetTicks()) / 1000.0f, ServerMsg(headCode).name().c_str()));
 }
 
 void Client::PrintMonitor() const

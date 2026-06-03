@@ -21,7 +21,7 @@
 #include "processrun.hpp"
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "gui/npcchatboard/npcchatboard.hpp"
 #include "modalstringboard.hpp"
 #include "fflerror.hpp"
@@ -41,7 +41,7 @@ extern PNGTexDB *g_progUseDB;
 extern BGMusicDB *g_bgmDB;
 extern SoundEffectDB *g_seffDB;
 extern PNGTexDB *g_itemDB;
-extern NotifyBoard *g_notifyBoard;
+extern MessageStackBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
 
 ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
@@ -543,9 +543,9 @@ void ProcessRun::draw() const
             }
     }
 
-    // draw NotifyBoard
+    // draw message stack board
     if(false){
-        const int w = std::max<int>(g_notifyBoard->pw() + 10, 160);
+        const int w = std::max<int>(g_notifyBoard->w() + 10, 160);
         const int h = g_notifyBoard->h();
         const int x = 0;
         const int y = g_sdlDevice->getRendererHeight() - h - 133;
