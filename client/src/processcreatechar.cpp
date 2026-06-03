@@ -54,10 +54,12 @@ ProcessCreateChar::ProcessCreateChar()
           .x = 0,
           .y = 0,
           .width = 0,
-          .font = 1,
-          .fontSize = 15,
-          .fontStyle = 0,
-          .fontColor = colorf::YELLOW + colorf::A_SHF(255),
+          .font
+          {
+              .id = 1,
+              .size = 15,
+              .color = colorf::YELLOW + colorf::A_SHF(255),
+          },
           .showTime = 5000,
           .entryLimit = 10,
           .align = ItemAlign::CENTER,

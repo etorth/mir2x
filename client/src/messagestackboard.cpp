@@ -25,10 +25,7 @@ MessageStackBoard::MessageStackBoard(MessageStackBoard::InitArgs args)
 
     , m_width(args.width)
     , m_corner(args.corner)
-    , m_font(args.font)
-    , m_fontSize(args.fontSize)
-    , m_fontStyle(args.fontStyle)
-    , m_fontColor(std::move(args.fontColor))
+    , m_font(std::move(args.font))
     , m_showTime(args.showTime)
     , m_entryLimit(args.entryLimit)
     , m_margin(std::move(args.margin))
@@ -49,7 +46,7 @@ void MessageStackBoard::addXMLMessage(const std::u8string &xml)
     }
 
     auto message = std::make_unique<Message>();
-    message->typeset = std::make_unique<XMLTypeset>(m_width, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
+    message->typeset = std::make_unique<XMLTypeset>(m_width, LALIGN_LEFT, false, m_font.id, m_font.size, m_font.style, m_font.color);
     message->typeset->loadXML(reinterpret_cast<const char *>(xml.c_str()));
 
     auto messagePtr = message.get();
@@ -118,22 +115,22 @@ bool MessageStackBoard::empty() const
 
 void MessageStackBoard::setFont(uint8_t font)
 {
-    m_font = font;
+    m_font.id = font;
 }
 
 void MessageStackBoard::setFontSize(uint8_t fontSize)
 {
-    m_fontSize = fontSize;
+    m_font.size = fontSize;
 }
 
 void MessageStackBoard::setFontStyle(uint8_t fontStyle)
 {
-    m_fontStyle = fontStyle;
+    m_font.style = fontStyle;
 }
 
 void MessageStackBoard::setFontColor(Widget::VarU32 fontColor)
 {
-    m_fontColor = std::move(fontColor);
+    m_font.color = std::move(fontColor);
 }
 
 void MessageStackBoard::updateDefault(double ms)

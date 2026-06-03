@@ -48,10 +48,12 @@ ProcessSelectChar::ProcessSelectChar()
           .x = [this]{ return m_canvas.w() / 2; },
           .y = [this]{ return m_canvas.h() / 2; },
           .width = 0,
-          .font = 1,
-          .fontSize = 15,
-          .fontStyle = 0,
-          .fontColor = colorf::YELLOW_A255,
+          .font
+          {
+              .id = 1,
+              .size = 15,
+              .color = colorf::YELLOW_A255,
+          },
           .showTime = 5000,
           .entryLimit = 1,
           .align = ItemAlign::CENTER,

@@ -92,10 +92,12 @@ int main(int argc, char *argv[])
             .x = 0,
             .y = 0,
             .width = 400,
-            .font = 0,
-            .fontSize = 15,
-            .fontStyle = 0,
-            .fontColor = colorf::RED + colorf::A_SHF(255),
+            .font
+            {
+                .id = 0,
+                .size = 15,
+                .color = colorf::RED + colorf::A_SHF(255),
+            },
             .showTime = 0,
             .entryLimit = 5,
         }};

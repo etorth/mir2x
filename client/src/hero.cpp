@@ -36,10 +36,6 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
       {{
           .width = 160,
           .corner = 3,
-          .font = 0,
-          .fontSize = 12,
-          .fontStyle = 0,
-          .fontColor = colorf::RGBA(0XFF, 0XFF, 0XE0, 0XFF),
           .showTime = 5000,
           .entryLimit = 3,
           .align = ItemAlign::UPLEFT,

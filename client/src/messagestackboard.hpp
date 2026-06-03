@@ -20,10 +20,7 @@ class MessageStackBoard: public Widget
             int width = 0;
             int corner = 3;
 
-            uint8_t font = 0;
-            uint8_t fontSize = 10;
-            uint8_t fontStyle = 0;
-            Widget::VarU32 fontColor = colorf::WHITE_A255;
+            Widget::FontConfig font {};
 
             uint64_t showTime = 0;
             size_t entryLimit = 0;
@@ -54,10 +51,7 @@ class MessageStackBoard: public Widget
         int m_corner;
 
     private:
-        uint8_t m_font;
-        uint8_t m_fontSize;
-        uint8_t m_fontStyle;
-        Widget::VarU32 m_fontColor;
+        Widget::FontConfig m_font;
 
     private:
         uint64_t m_showTime;
