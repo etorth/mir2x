@@ -35,10 +35,12 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     , m_playerSayBoard
       {{
           .width = 160,
-          .corner = 6,
+          .corner = 3,
           .showTime = 5000,
           .entryLimit = 10,
           .align = ItemAlign::UPLEFT,
+          .margin{3, 2, 3, 2},
+          .bgColor = colorf::RGBA(0, 0, 0, 128),
       }}
 {
     m_currMotion.reset(new MotionNode

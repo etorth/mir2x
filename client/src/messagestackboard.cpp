@@ -83,11 +83,23 @@ void MessageStackBoard::addXMLMessage(const std::u8string &xml)
         .margin = m_margin,
         .bgDrawFunc = [this](const Widget *self, int drawDstX, int drawDstY)
         {
+            const auto boxW = self->w();
+            const auto boxH = self->h();
+            const auto corner = std::min<int>({m_corner, boxW / 2, boxH / 2});
+
             const SDLDeviceHelper::EnableRenderBlendMode enableBlend(SDL_BLENDMODE_BLEND);
-            g_sdlDevice->fillRectangle(Widget::evalU32(m_bgColor, this), drawDstX, drawDstY, self->w(), self->h(), m_corner);
+            g_sdlDevice->fillRectangle(Widget::evalU32(m_bgColor, this), drawDstX, drawDstY, boxW, boxH, corner);
+        },
+
+        .fgDrawFunc = [this](const Widget *self, int drawDstX, int drawDstY)
+        {
+            const auto boxW = self->w();
+            const auto boxH = self->h();
+            const auto corner = std::min<int>({m_corner, boxW / 2, boxH / 2});
 
             if(colorf::A(Widget::evalU32(m_borderColor, this))){
-                g_sdlDevice->drawRectangle(Widget::evalU32(m_borderColor, this), drawDstX, drawDstY, self->w(), self->h(), m_corner);
+                const SDLDeviceHelper::EnableRenderBlendMode enableBlend(SDL_BLENDMODE_BLEND);
+                g_sdlDevice->drawRectangle(Widget::evalU32(m_borderColor, this), drawDstX, drawDstY, boxW, boxH, corner);
             }
         },
     }});

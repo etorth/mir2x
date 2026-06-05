@@ -29,8 +29,8 @@ class MessageStackBoard: public Widget
             Widget::VarSize itemSpace = 0;
             Widget::VarMargin margin {};
 
-            Widget::VarU32 bgColor = colorf::RGBA(0X00, 0X00, 0X00, 0X80);
-            Widget::VarU32 borderColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0X60);
+            Widget::VarU32 bgColor = 0U;
+            Widget::VarU32 borderColor = 0U;
 
             Widget::WADPair parent {};
         };
