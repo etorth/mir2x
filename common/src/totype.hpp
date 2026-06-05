@@ -1,11 +1,12 @@
 #pragma once
-#include <span>
 #include <cmath>
-#include <string>
-#include <vector>
 #include <cstdint>
 #include <cstring>
 #include <cinttypes>
+#include <span>
+#include <format>
+#include <string>
+#include <vector>
 #include <stdexcept>
 #include <string_view>
 #include "conceptf.hpp"
@@ -36,7 +37,7 @@ template<typename T, typename F> static T check_cast(F from)
         return to;
     }
     else{
-        throw std::runtime_error("cast fails to preserve original value");
+        throw std::runtime_error(std::format("value after casting ({}) fails to preserve original value: {}", to, from));
     }
 }
 
@@ -184,34 +185,67 @@ template<typename T> const char8_t *to_u8cstr(const T &s)
     return to_u8cstr(to_u8rawcstr(s));
 }
 
-inline std::u8string to_u8str(const std::u8string &s)
-{
-    return s;
-}
+// handling utf8: char8_t
+// return owning style std::u8string to avoid strict-aliasing-violation
 
-inline std::u8string to_u8str(std::u8string_view s)
+inline std::u8string to_u8rawstr(std::u8string_view s)
 {
     return std::u8string(s);
 }
 
-inline std::u8string to_u8str(const char8_t *s)
+inline std::u8string to_u8rawstr(const std::u8string &s)
 {
-    return s ? to_u8str(std::u8string_view(s)) : throw std::runtime_error("to_u8str: null pointer");
+    return s;
 }
 
-inline std::u8string to_u8str(std::string_view s)
+inline std::u8string to_u8rawstr(const char8_t *s)
+{
+    return s ? to_u8rawstr(std::u8string_view(s)) : throw std::runtime_error("to_u8rawstr: null pointer");
+}
+
+inline std::u8string to_u8rawstr(std::string_view s)
 {
     return std::u8string(s.begin(), s.end());
 }
 
+inline std::u8string to_u8rawstr(const std::string &s)
+{
+    return std::u8string(s.begin(), s.end());
+}
+
+inline std::u8string to_u8rawstr(const char *s)
+{
+    return s ? to_u8rawstr(std::string_view(s)) : throw std::runtime_error("to_u8rawstr: null pointer");
+}
+
+inline std::u8string to_u8str(const std::u8string &s)
+{
+    return s.empty() ? u8"(empty)" : s;
+}
+
+inline std::u8string to_u8str(std::u8string_view s)
+{
+    return s.empty() ? u8"(empty)" : std::u8string(s);
+}
+
+inline std::u8string to_u8str(const char8_t *s)
+{
+    return s ? to_u8str(std::u8string_view(s)) : u8"(null)";
+}
+
 inline std::u8string to_u8str(const std::string &s)
 {
-    return to_u8str(std::string_view(s));
+    return s.empty() ? u8"(empty)" : std::u8string(s.begin(), s.end());
+}
+
+inline std::u8string to_u8str(std::string_view s)
+{
+    return s.empty() ? u8"(empty)" : std::u8string(s.begin(), s.end());
 }
 
 inline std::u8string to_u8str(const char *s)
 {
-    return s ? to_u8str(std::string_view(s)) : throw std::runtime_error("to_u8str: null pointer");
+    return s ? to_u8str(std::string_view(s)) : u8"(null)";
 }
 
 inline const char *to_boolcstr(bool b)
