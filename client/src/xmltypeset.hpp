@@ -16,7 +16,8 @@ class XMLTypeset // means XMLParagraph typeset
     private:
         struct contentLine
         {
-            int startY;
+            int startY; // Y-axis coordinate reached by all tokens' H1, representing the bottom line of H1 pixels
+                        // If all tokens are with H1 == 0, startY is the Y-axis coordinate above starting line of all tokens
             std::deque<TOKEN> content;
         };
 
@@ -425,10 +426,10 @@ class XMLTypeset // means XMLParagraph typeset
         void buildTypeset(int, int);
 
     private:
-        int LineReachMaxX(int) const;
-        int LineReachMaxY(int) const;
-        int LineReachMinX(int) const;
-        int LineReachMinY(int) const;
+        int lineReachMaxX(int) const;
+        int lineReachMaxY(int) const;
+        int lineReachMinX(int) const;
+        int lineReachMinY(int) const;
 
     public:
         int px() const

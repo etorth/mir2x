@@ -429,7 +429,7 @@ int XMLTypeset::LineIntervalMaxH2(int argLine, int nIntervalStartX, int nInterva
         int nH2 = pToken->box.state.h2;
 
         if(mathf::intervalOverlap<int>(nX - nW1, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
-            nMaxH2 = (std::max<int>)(nMaxH2, nH2);
+            nMaxH2 = std::max<int>(nMaxH2, nH2);
         }
     }
 
@@ -525,11 +525,11 @@ int XMLTypeset::LineNewStartY(int argLine)
     }
 
     if(argLine == 0){
-        return LineMaxHk(0, 1);
+        return LineMaxHk(0, 1) - 1; // return -1 if all tokens have H1 == 0
     }
 
     if(!CanThrough()){
-        return LineReachMaxY(argLine - 1) + m_lineSpace + LineMaxHk(argLine, 1);
+        return lineReachMaxY(argLine - 1) + LineMaxHk(argLine - 1, 2) + m_lineSpace + LineMaxHk(argLine, 1);
     }
 
     if(lineTokenCount(argLine) == 0){
@@ -544,7 +544,7 @@ int XMLTypeset::LineNewStartY(int argLine)
         int nH1 = pToken->box.state.h1;
 
         // LineTokenBestY() already take m_lineSpace into consideration
-        nCurrentY = (std::max<int>)(nCurrentY, LineTokenBestY(argLine, nX, nW, nH1));
+        nCurrentY = std::max<int>(nCurrentY, LineTokenBestY(argLine, nX, nW, nH1));
     }
 
     // not done yet, think about the following situation
@@ -560,7 +560,7 @@ int XMLTypeset::LineNewStartY(int argLine)
     // -+--+--+----+ |    | ------ nth
     //               +----+
 
-    return to_d((std::max<int>)(nCurrentY, LineReachMaxY(argLine - 1) + 1));
+    return std::max<int>(nCurrentY, lineReachMaxY(argLine - 1) + 1);
 }
 
 void XMLTypeset::setLineTokenStartY(int argLine)
@@ -569,10 +569,10 @@ void XMLTypeset::setLineTokenStartY(int argLine)
         throw fflpanic("invalid line: {}", argLine);
     }
 
-    m_lineList[argLine].startY = to_d(LineNewStartY(argLine));
+    m_lineList[argLine].startY = LineNewStartY(argLine);
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
         auto pToken = getToken(nIndex, argLine);
-        pToken->box.state.y = m_lineList[argLine].startY - pToken->box.state.h1;
+        pToken->box.state.y = m_lineList[argLine].startY - pToken->box.state.h1 + 1;
     }
 }
 
@@ -833,26 +833,26 @@ void XMLTypeset::resetBoardPixelRegion()
         return;
     }
 
-    int nMaxPX = 0;
-    int nMaxPY = 0;
-    int nMinPX = INT_MAX;
-    int nMinPY = INT_MAX;
+    int maxPX = 0;
+    int maxPY = 0;
+    int minPX = INT_MAX;
+    int minPY = INT_MAX;
 
     for(int argLine = 0; lineValid(argLine); ++argLine){
         if(!lineTokenCount(argLine)){
             throw fflpanic("found empty line in XMLTypeset: line = {}", argLine);
         }
 
-        nMaxPX = std::max<int>(nMaxPX, LineReachMaxX(argLine));
-        nMaxPY = std::max<int>(nMaxPY, LineReachMaxY(argLine));
-        nMinPX = std::min<int>(nMinPX, LineReachMinX(argLine));
-        nMinPY = std::min<int>(nMinPY, LineReachMinY(argLine));
+        maxPX = std::max<int>(maxPX, lineReachMaxX(argLine));
+        maxPY = std::max<int>(maxPY, lineReachMaxY(argLine));
+        minPX = std::min<int>(minPX, lineReachMinX(argLine));
+        minPY = std::min<int>(minPY, lineReachMinY(argLine));
     }
 
-    m_px = nMinPX;
-    m_py = nMinPY;
-    m_pw = nMaxPX + 1 - nMinPX;
-    m_ph = nMaxPY + 1 - nMinPY;
+    m_px = minPX;
+    m_py = minPY;
+    m_pw = maxPX + 1 - minPX;
+    m_ph = maxPY + 1 - minPY;
 }
 
 std::tuple<int, int> XMLTypeset::prevTokenLoc(int nX, int nY) const
@@ -1260,7 +1260,7 @@ int XMLTypeset::GetTokenWordSpace(int nX, int nY) const
     return m_wordSpace;
 }
 
-int XMLTypeset::LineReachMaxX(int argLine) const
+int XMLTypeset::lineReachMaxX(int argLine) const
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
@@ -1270,11 +1270,16 @@ int XMLTypeset::LineReachMaxX(int argLine) const
         throw fflpanic("invalie empty line: {}", argLine);
     }
 
-    auto pToken = GetLineBackToken(argLine);
-    return pToken->box.state.x + pToken->box.info.w;
+    const auto tokPtr = GetLineBackToken(argLine);
+
+    if(tokPtr->box.info.w <= 0){
+        throw fflpanic("invalid token width: {}", tokPtr->box.info.w);
+    }
+
+    return tokPtr->box.state.x + tokPtr->box.info.w - 1;
 }
 
-int XMLTypeset::LineReachMaxY(int argLine) const
+int XMLTypeset::lineReachMaxY(int argLine) const
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
@@ -1282,7 +1287,7 @@ int XMLTypeset::LineReachMaxY(int argLine) const
     return m_lineList[argLine].startY + LineMaxHk(argLine, 2);
 }
 
-int XMLTypeset::LineReachMinX(int argLine) const
+int XMLTypeset::lineReachMinX(int argLine) const
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
@@ -1295,7 +1300,7 @@ int XMLTypeset::LineReachMinX(int argLine) const
     return getToken(0, argLine)->box.state.x;
 }
 
-int XMLTypeset::LineReachMinY(int argLine) const
+int XMLTypeset::lineReachMinY(int argLine) const
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
