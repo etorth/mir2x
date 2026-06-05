@@ -75,7 +75,7 @@ void MessageStackBoard::addXMLMessage(const std::u8string &xml)
                         },
                     },
                 },
-            }};
+            }},
 
             .autoDelete = true,
         },
