@@ -35,9 +35,9 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     , m_playerSayBoard
       {{
           .width = 160,
-          .corner = 3,
+          .corner = 6,
           .showTime = 5000,
-          .entryLimit = 3,
+          .entryLimit = 10,
           .align = ItemAlign::UPLEFT,
       }}
 {

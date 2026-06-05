@@ -18,7 +18,7 @@ class MessageStackBoard: public Widget
             Widget::VarInt y = 0;
 
             int width = 0;
-            int corner = 3;
+            int corner = 0;
 
             Widget::FontConfig font {};
 
@@ -26,8 +26,8 @@ class MessageStackBoard: public Widget
             size_t entryLimit = 0;
 
             ItemAlign align = ItemAlign::UPLEFT;
-            Widget::VarSize itemSpace = 4;
-            Widget::VarMargin margin {4, 4, 6, 6};
+            Widget::VarSize itemSpace = 0;
+            Widget::VarMargin margin {};
 
             Widget::VarU32 bgColor = colorf::RGBA(0X00, 0X00, 0X00, 0X80);
             Widget::VarU32 borderColor = colorf::RGBA(0XFF, 0XFF, 0XFF, 0X60);
