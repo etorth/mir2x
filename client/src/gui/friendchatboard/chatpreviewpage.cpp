@@ -64,7 +64,7 @@ void ChatPreviewPage::updateChatPreview(const SDChatPeerID &sdCPID, const std::s
             [this](const Widget *){ return w(); },
 
             sdCPID,
-            str_printf(u8"%s", argMsg.c_str()).c_str(),
+            to_u8rawstr(argMsg).c_str(),
 
             &canvas, // image load func uses getParentBoard(this)
             true,

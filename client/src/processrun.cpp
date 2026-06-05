@@ -2145,7 +2145,7 @@ void ProcessRun::drawMouseLocation() const
 void ProcessRun::drawFPS() const
 {
     const auto fpsStr = std::to_string(g_sdlDevice->getFPS());
-    LabelBoard fpsBoard{{.label = str_printf(u8"%s", fpsStr.c_str()).c_str(), .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
+    LabelBoard fpsBoard{{.label = to_u8rawstr(fpsStr).c_str(), .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
 
     const int winWidth = g_sdlDevice->getRendererWidth();
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);

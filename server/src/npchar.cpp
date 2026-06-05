@@ -308,7 +308,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
         std::set<std::u8string> typeList;
         for(const auto &type: typeTable.value()){
-            typeList.insert(str_printf(u8"%s", type.c_str()));
+            typeList.insert(to_u8rawstr(type));
         }
         getNPChar()->postStartInvOp(uid, invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
     });

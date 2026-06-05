@@ -266,7 +266,7 @@ void ItemListBoard::drawDefault(Widget::ROIMap m) const
             if(const auto header = getGridHeader(i); !header.empty()){
                 LabelBoard
                 {{
-                    .label = str_printf(u8"%s", header.c_str()).c_str(),
+                    .label = to_u8rawstr(header).c_str(),
                     .font
                     {
                         .id = 1,

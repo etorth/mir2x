@@ -56,7 +56,7 @@ void FriendListPage::append(const SDChatPeer &peer, std::function<void(FriendIte
         [this](const Widget *){ return w(); }, // use FriendListPage::w()
 
         SDChatPeerID(CP_PLAYER, peer.id),
-        str_printf(u8"%s", peer.name.c_str()).c_str(),
+        to_u8rawstr(peer.name).c_str(),
 
         [peer](const Widget *)
         {

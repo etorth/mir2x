@@ -878,7 +878,7 @@ void ProcessRun::on_SM_STARTINPUT(const uint8_t *buf, size_t bufSize)
     const auto sdSI = cerealf::deserialize<SDStartInput>(buf, bufSize);
     auto inputBoardPtr = dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"));
 
-    inputBoardPtr->waitInput(to_u8str(sdSI.title), true, [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
+    inputBoardPtr->waitInput(to_u8rawstr(sdSI.title), true, [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
     {
         sendNPCEvent(uid, {}, commitTag, to_cstr(input));
     });

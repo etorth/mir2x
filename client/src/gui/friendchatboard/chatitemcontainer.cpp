@@ -182,7 +182,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         .msgRefID = sdCM.refer,
 
         .name = u8"...",
-        .message = str_printf(u8"%s", cerealf::deserialize<std::string>(sdCM.message).c_str()).c_str(),
+        .message = to_u8rawstr(cerealf::deserialize<std::string>(sdCM.message)).c_str(),
         .messageRef = sdCM.refer.has_value() ? u8"<layout><par>...</par></layout>" : nullptr,
 
         .texLoadFunc = []{ return g_progUseDB->retrieve(0X010007CF); },

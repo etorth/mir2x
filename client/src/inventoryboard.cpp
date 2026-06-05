@@ -217,7 +217,7 @@ void InventoryBoard::drawItem(int dstX, int dstY, size_t startRow, const PackBin
                 if(bin.item.count > 1){
                     const LabelBoard itemCount
                     {{
-                        .label = str_printf(u8"%s", std::to_string(bin.item.count).c_str()).c_str(),
+                        .label = to_u8rawstr(std::to_string(bin.item.count)).c_str(),
                         .font
                         {
                             .id = 1,
@@ -483,7 +483,7 @@ void InventoryBoard::drawInvOpCost() const
 
     const LabelBoard queryResultBoard
     {{
-        .label = str_printf(u8"%s", str_ksep(m_invOpCost, ',').c_str()).c_str(),
+        .label = to_u8rawstr(str_ksep(m_invOpCost, ',')).c_str(),
         .font
         {
             .id = 1,
