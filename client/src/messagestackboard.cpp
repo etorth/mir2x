@@ -46,45 +46,40 @@ void MessageStackBoard::addXMLMessage(const std::u8string &xml)
     }
 
     auto message = std::make_unique<Message>();
+
     message->typeset = std::make_unique<XMLTypeset>(m_width, LALIGN_LEFT, false, m_font.id, m_font.size, m_font.style, m_font.color);
     message->typeset->loadXML(reinterpret_cast<const char *>(xml.c_str()));
-
-    auto messagePtr = message.get();
-    auto contentWidget = new Widget
-    {{
-        .w = [messagePtr](const Widget *)
-        {
-            return messagePtr->typeset->pw();
-        },
-
-        .h = [messagePtr](const Widget *)
-        {
-            return messagePtr->typeset->ph();
-        },
-
-        .attrs
-        {
-            .inst
-            {
-                .moveOnFocus = false,
-                .draw = [messagePtr](const Widget *self, Widget::ROIMap m)
-                {
-                    if(!m.calibrate(self)){
-                        return;
-                    }
-                    messagePtr->typeset->draw(m);
-                },
-            },
-        },
-    }};
 
     message->wrapper.reset(new MarginWrapper
     {{
         .wrapped
         {
-            .widget = contentWidget,
+            .widget = new Widget
+            {{
+                .w = [msgptr = message.get()]{ return msgptr->typeset->pw(); },
+                .h = [msgptr = message.get()]{ return msgptr->typeset->ph(); },
+
+                .attrs
+                {
+                    .inst
+                    {
+                        .name = "XMLTypesetContainer",
+                        .moveOnFocus = false,
+
+                        .draw = [msgptr = message.get()](const Widget *self, Widget::ROIMap m)
+                        {
+                            if(!m.calibrate(self)){
+                                return;
+                            }
+                            msgptr->typeset->draw(m);
+                        },
+                    },
+                },
+            }};
+
             .autoDelete = true,
         },
+
         .margin = m_margin,
         .bgDrawFunc = [this](const Widget *self, int drawDstX, int drawDstY)
         {

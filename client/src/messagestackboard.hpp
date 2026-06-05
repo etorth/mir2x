@@ -59,6 +59,8 @@ class MessageStackBoard: public Widget
 
     private:
         Widget::VarMargin m_margin;
+
+    private:
         Widget::VarU32 m_bgColor;
         Widget::VarU32 m_borderColor;
 
