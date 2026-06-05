@@ -164,7 +164,7 @@ void InputStringBoard::inputLineDone()
     m_input.setFocus(false);
 
     if(m_onDone){
-        m_onDone(to_u8cstr(realInput));
+        m_onDone(str_printf(u8"%s", realInput.c_str()));
     }
 }
 

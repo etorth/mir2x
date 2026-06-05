@@ -11,5 +11,5 @@ class ClientLuaModule: public LuaModule
         ClientLuaModule(ProcessRun *);
 
     protected:
-        void addLogString(int, const char8_t *) override;
+        void addLogString(int, const char *) override;
 };

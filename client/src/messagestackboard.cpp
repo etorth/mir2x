@@ -36,7 +36,7 @@ MessageStackBoard::MessageStackBoard(MessageStackBoard::InitArgs args)
 void MessageStackBoard::addMessage(const std::u8string &text)
 {
     const auto xml = xmlf::toParString("%s", text.empty() ? "" : reinterpret_cast<const char *>(text.c_str()));
-    addXMLMessage(std::u8string(reinterpret_cast<const char8_t *>(xml.c_str())));
+    addXMLMessage(to_u8str(xml));
 }
 
 void MessageStackBoard::addXMLMessage(const std::u8string &xml)

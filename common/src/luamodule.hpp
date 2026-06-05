@@ -88,7 +88,7 @@ class LuaModule
         }
 
     protected:
-        virtual void addLogString(int, const char8_t *) = 0;
+        virtual void addLogString(int, const char *) = 0;
 
     public:
         bool pfrCheck(const sol::protected_function_result &, const std::function<void(const std::string &)> & = nullptr); // parse if pfr is an error

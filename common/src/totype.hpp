@@ -95,7 +95,42 @@ template<typename T> std::span<const T> as_span(const T *data, size_t size) { re
 template<typename T, typename... Args> std::span<      T> as_span(      std::vector<T, Args...> &v){ return std::span<      T>(v.data(), v.size()); }
 template<typename T, typename... Args> std::span<const T> as_span(const std::vector<T, Args...> &v){ return std::span<const T>(v.data(), v.size()); }
 
-inline const char * to_cstr(const char *s)
+inline const char *to_rawcstr(const char *s)
+{
+    return s; // placeholder
+}
+
+inline const char *to_rawcstr(const unsigned char *s)
+{
+    return to_rawcstr(reinterpret_cast<const char *>(s));
+}
+
+inline const char *to_rawcstr(const char8_t *s)
+{
+    return to_rawcstr(reinterpret_cast<const char *>(s));
+}
+
+inline const char *to_rawcstr(const std::string &s)
+{
+    return to_rawcstr(s.c_str());
+}
+
+inline const char *to_rawcstr(const std::u8string &s)
+{
+    return to_rawcstr(s.c_str());
+}
+
+inline const char *to_rawcstr(const std::string_view &s)
+{
+    return to_rawcstr(s.data());
+}
+
+inline const char *to_rawcstr(const std::u8string_view &s)
+{
+    return to_rawcstr(s.data());
+}
+
+inline const char *to_cstr(const char *s)
 {
     if(s == nullptr){
         return "(null)";
@@ -108,40 +143,30 @@ inline const char * to_cstr(const char *s)
     }
 }
 
-inline const char *to_cstr(const unsigned char *s)
+template<typename T> const char *to_cstr(const T &s)
 {
-    return reinterpret_cast<const char *>(s);
+    return to_cstr(to_rawcstr(s));
 }
 
-inline const char *to_cstr(const char8_t *s)
+// handling utf8: char8_t
+// cast char * to char8_t * breaks strict-aliasing-rule, so to_u8cstr is limited
+
+inline const char8_t *to_u8rawcstr(const char8_t *s)
 {
-    return reinterpret_cast<const char *>(s);
+    return s; // placeholder
 }
 
-inline const char *to_cstr(const std::string &s)
+inline const char8_t *to_u8rawcstr(const std::u8string &s)
 {
-    return to_cstr(s.c_str());
+    return to_u8rawcstr(s.c_str());
 }
 
-inline const char *to_cstr(const std::u8string &s)
+inline const char8_t *to_u8rawcstr(const std::u8string_view &s)
 {
-    return to_cstr(s.c_str());
+    return to_u8rawcstr(s.data());
 }
 
-inline const char *to_cstr(const std::string_view &s)
-{
-    return to_cstr(s.data());
-}
-
-inline const char *to_cstr(const std::u8string_view &s)
-{
-    return to_cstr(s.data());
-}
-
-// cast char buf to char8_t buf
-// this may break the strict-aliasing rule
-
-inline const char8_t * to_u8cstr(const char8_t *s)
+inline const char8_t *to_u8cstr(const char8_t *s)
 {
     if(s == nullptr){
         return u8"(null)";
@@ -154,24 +179,39 @@ inline const char8_t * to_u8cstr(const char8_t *s)
     }
 }
 
-inline const char8_t *to_u8cstr(const unsigned char *s)
+template<typename T> const char8_t *to_u8cstr(const T &s)
 {
-    return reinterpret_cast<const char8_t *>(s);
+    return to_u8cstr(to_u8rawcstr(s));
 }
 
-inline const char8_t *to_u8cstr(const char *s)
+inline std::u8string to_u8str(const std::u8string &s)
 {
-    return reinterpret_cast<const char8_t *>(s);
+    return s;
 }
 
-inline const char8_t *to_u8cstr(const std::u8string &s)
+inline std::u8string to_u8str(std::u8string_view s)
 {
-    return to_u8cstr(s.c_str());
+    return std::u8string(s);
 }
 
-inline const char8_t *to_u8cstr(const std::string &s)
+inline std::u8string to_u8str(const char8_t *s)
 {
-    return to_u8cstr(s.c_str());
+    return s ? to_u8str(std::u8string_view(s)) : throw std::runtime_error("to_u8str: null pointer");
+}
+
+inline std::u8string to_u8str(std::string_view s)
+{
+    return std::u8string(s.begin(), s.end());
+}
+
+inline std::u8string to_u8str(const std::string &s)
+{
+    return to_u8str(std::string_view(s));
+}
+
+inline std::u8string to_u8str(const char *s)
+{
+    return s ? to_u8str(std::string_view(s)) : throw std::runtime_error("to_u8str: null pointer");
 }
 
 inline const char *to_boolcstr(bool b)
@@ -179,7 +219,7 @@ inline const char *to_boolcstr(bool b)
     return b ? "true" : "false";
 }
 
-inline const char8_t *to_boolu8cstr(bool b)
+inline const char8_t *to_u8boolcstr(bool b)
 {
     return b ? u8"true" : u8"false";
 }

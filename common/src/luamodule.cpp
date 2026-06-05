@@ -198,27 +198,27 @@ LuaModule::LuaModule()
 
     bindFunction("debugAttach", [this]()
     {
-        addLogString(1, to_u8cstr(str_printf("Waiting for debugger to attach pid %llu", to_llu(getpid()))));
+        addLogString(1, str_printf("Waiting for debugger to attach pid %llu", to_llu(getpid())).c_str());
     });
 
     bindFunction("addLogString", [this](sol::object logType, sol::object logInfo)
     {
         if(logType.is<int>() && logInfo.is<std::string>()){
-            addLogString(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
+            addLogString(logType.as<int>(), logInfo.as<std::string>().c_str());
             return;
         }
 
         if(logType.is<int>()){
-            addLogString(1, to_u8cstr(str_printf("Invalid argument: addLogString(%d, \"?\")", logType.as<int>())));
+            addLogString(1, str_printf("Invalid argument: addLogString(%d, \"?\")", logType.as<int>()).c_str());
             return;
         }
 
         if(logInfo.is<std::string>()){
-            addLogString(1, to_u8cstr(str_printf("Invalid argument: addLogString(?, \"%s\")", logInfo.as<std::string>().c_str())));
+            addLogString(1, str_printf("Invalid argument: addLogString(?, \"%s\")", logInfo.as<std::string>().c_str()).c_str());
             return;
         }
 
-        addLogString(1, u8"Invalid argument: addLogString(?, \"?\")");
+        addLogString(1, "Invalid argument: addLogString(?, \"?\")");
     });
 
     bindFunction("getTime", [timer = hres_timer()]() -> double
@@ -296,7 +296,7 @@ LuaModule::LuaModule()
 
     bindFunction("getItemID", [](std::string itemName) -> int
     {
-        return DBCOM_ITEMID(to_u8cstr(itemName));
+        return DBCOM_ITEMID(itemName.c_str());
     });
 
     bindFunction("getMonsterName", [](int monsterID, sol::this_state s) -> sol::object
@@ -310,7 +310,7 @@ LuaModule::LuaModule()
 
     bindFunction("getMonsterID", [](std::string monsterName) -> int
     {
-        return DBCOM_MONSTERID(to_u8cstr(monsterName));
+        return DBCOM_MONSTERID(monsterName.c_str());
     });
 
     bindFunction("getMapName", [](int mapID) -> std::string
@@ -320,7 +320,7 @@ LuaModule::LuaModule()
 
     bindFunction("getMapID", [](std::string mapName) -> int
     {
-        return DBCOM_MAPID(to_u8cstr(mapName));
+        return DBCOM_MAPID(mapName.c_str());
     });
 
     bindFunction("hexString", [](std::string s)
@@ -449,7 +449,7 @@ bool LuaModule::pfrCheck(const sol::protected_function_result &pfr, const std::f
             errDrainFunc(errStr);
         }
         else{
-            addLogString(Log::LOGTYPEV_WARNING, to_u8cstr(errStr));
+            addLogString(Log::LOGTYPEV_WARNING, errStr.c_str());
         }
     }
     return false;

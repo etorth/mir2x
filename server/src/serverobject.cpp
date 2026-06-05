@@ -81,7 +81,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
     {
         const auto mapID = [&mapName]() -> uint32_t
         {
-            if(mapName.is<std::string>()) return DBCOM_MAPID(to_u8cstr(mapName.as<std::string>()));
+            if(mapName.is<std::string>()) return DBCOM_MAPID(mapName.as<std::string>().c_str());
             if(mapName.is<lua_Integer>()) return static_cast<uint32_t>(mapName.as<lua_Integer>());
             throw fflpanic("invalid sol::object type");
         }();

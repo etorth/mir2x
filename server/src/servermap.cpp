@@ -240,7 +240,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                     }
 
                     else if(argList[0].is<std::string>()){
-                        if(const int monID = DBCOM_MONSTERID(to_u8cstr(argList[0].as<std::string>().c_str())); monID >= 0){
+                        if(const int monID = DBCOM_MONSTERID(argList[0].as<std::string>().c_str()); monID >= 0){
                             return getServerMap()->getMonsterCount(monID);
                         }
                     }
@@ -268,7 +268,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             }
 
             if(monInfo.is<std::string>()){
-                return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
+                return DBCOM_MONSTERID(monInfo.as<std::string>().c_str());
             }
 
             return 0;
@@ -352,7 +352,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             }
 
             else if(monInfo.is<std::string>()){
-                return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
+                return DBCOM_MONSTERID(monInfo.as<std::string>().c_str());
             }
 
             else{

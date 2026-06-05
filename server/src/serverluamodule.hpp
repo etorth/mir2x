@@ -7,5 +7,5 @@ class ServerLuaModule: public LuaModule
         ServerLuaModule();
 
     protected:
-       void addLogString(int, const char8_t *) override;
+       void addLogString(int, const char *) override;
 };

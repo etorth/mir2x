@@ -62,7 +62,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         getNPChar()->m_sellItemList.clear();
 
         for(const auto &itemName: itemNameList.value()){
-            if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
+            if(const auto itemID = DBCOM_ITEMID(itemName.c_str())){
                 getNPChar()->m_npcSell.insert(itemID);
             }
         }
@@ -72,7 +72,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
     bindFunction("addNPCSell", [this](std::string itemName)
     {
-        if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
+        if(const auto itemID = DBCOM_ITEMID(itemName.c_str())){
             getNPChar()->m_npcSell.insert(itemID);
         }
     });
@@ -163,7 +163,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
     bindFunction("addMonster", [this](std::string monsterName)
     {
-        const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
+        const auto monsterID = DBCOM_MONSTERID(monsterName.c_str());
 
         fflassert(monsterID);
         getNPChar()->postAddMonster(monsterID).resume();
@@ -308,7 +308,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
         std::set<std::u8string> typeList;
         for(const auto &type: typeTable.value()){
-            typeList.insert(to_u8cstr(type));
+            typeList.insert(str_printf(u8"%s", type.c_str()));
         }
         getNPChar()->postStartInvOp(uid, invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
     });

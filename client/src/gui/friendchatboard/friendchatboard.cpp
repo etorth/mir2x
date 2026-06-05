@@ -291,7 +291,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
 
               .enter = [this](int, UIPage *uiPage)
               {
-                  uiPage->title->setText(to_u8cstr([chatPage = dynamic_cast<ChatPage *>(uiPage->page), this]()
+                  const auto title = [chatPage = dynamic_cast<ChatPage *>(uiPage->page), this]()
                   {
                       if(chatPage->peer.group() || chatPage->peer.special() || findChatPeer({CP_PLAYER, chatPage->peer.id})){
                           return chatPage->peer.name;
@@ -302,7 +302,8 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       else{
                           return str_printf("陌生人 %s", chatPage->peer.name.c_str());
                       }
-                  }()));
+                  }();
+                  uiPage->title->setText(u8"%s", title.c_str());
               },
           },
 

@@ -1027,7 +1027,7 @@ bool ProcessRun::luaCommand(const char *luaCmdString)
 
     std::string errLine;
     while(std::getline(errStream, errLine, '\n')){
-        addCBLog(CBLOG_ERR, to_u8cstr(fnReplaceTabChar(errLine)));
+        addCBLog(CBLOG_ERR, u8"%s", fnReplaceTabChar(errLine).c_str());
     }
     return true;
 }
@@ -1172,7 +1172,7 @@ void ProcessRun::RegisterUserCommand()
             case 1 + 1:
             case 1 + 2:
                 {
-                    if(const auto itemID = DBCOM_ITEMID(to_u8cstr(parmList[1]))){
+                    if(const auto itemID = DBCOM_ITEMID(parmList[1].c_str())){
                         const auto count = [&parmList]() -> int
                         {
                             if(parmList.size() == 1 + 1){
@@ -1216,7 +1216,7 @@ void ProcessRun::RegisterUserCommand()
 
     m_userCommandList.emplace_back("getAttackUID", [this](const std::vector<std::string> &) -> int
     {
-        addCBLog(CBLOG_ERR, to_u8cstr(std::to_string(getFocusUID(FOCUS_ATTACK))));
+        addCBLog(CBLOG_ERR, u8"%s", std::to_string(getFocusUID(FOCUS_ATTACK)).c_str());
         return 1;
     });
 
@@ -1286,7 +1286,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                 case CBLOG_DBG:
                 case CBLOG_ERR:
                     {
-                        addCBLog(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
+                        addCBLog(logType.as<int>(), u8"%s", logInfo.as<std::string>().c_str());
                         return;
                     }
                 default:
@@ -1409,7 +1409,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                         itemID = to_u32(argList[0].as<lua_Integer>());
                     }
                     else if(argList[0].is<std::string>()){
-                        itemID = DBCOM_ITEMID(to_u8cstr(argList[0].as<std::string>()));
+                        itemID = DBCOM_ITEMID(argList[0].as<std::string>().c_str());
                     }
                     else{
                         throw fflpanic("invalid arguments: makeItem(itemID: [int,string])");
@@ -2145,7 +2145,7 @@ void ProcessRun::drawMouseLocation() const
 void ProcessRun::drawFPS() const
 {
     const auto fpsStr = std::to_string(g_sdlDevice->getFPS());
-    LabelBoard fpsBoard{{.label = to_u8cstr(fpsStr), .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
+    LabelBoard fpsBoard{{.label = str_printf(u8"%s", fpsStr.c_str()).c_str(), .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
 
     const int winWidth = g_sdlDevice->getRendererWidth();
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);

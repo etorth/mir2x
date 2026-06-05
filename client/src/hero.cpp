@@ -451,7 +451,7 @@ void Hero::addPlayerSay(const std::string &message)
         return;
     }
 
-    m_playerSayBoard.addMessage(std::u8string(reinterpret_cast<const char8_t *>(message.c_str())));
+    m_playerSayBoard.addMessage(to_u8str(message));
 }
 
 bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const

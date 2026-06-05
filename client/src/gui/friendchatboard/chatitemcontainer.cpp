@@ -182,7 +182,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         .msgRefID = sdCM.refer,
 
         .name = u8"...",
-        .message = to_u8cstr(cerealf::deserialize<std::string>(sdCM.message)),
+        .message = str_printf(u8"%s", cerealf::deserialize<std::string>(sdCM.message).c_str()).c_str(),
         .messageRef = sdCM.refer.has_value() ? u8"<layout><par>...</par></layout>" : nullptr,
 
         .texLoadFunc = []{ return g_progUseDB->retrieve(0X010007CF); },
@@ -228,7 +228,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
             const auto job    = peer->player() ? peer->player()->job    : 0;
             const auto gender = peer->player() ? peer->player()->gender : false;
 
-            chatItem->name.setText(to_u8cstr(peer->name));
+            chatItem->name.setText(u8"%s", peer->name.c_str());
             chatItem->avatar.setLoadFunc([from, job, gender](const Widget *)
             {
                 if     (from == SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM)) return g_progUseDB->retrieve(0X00001100);

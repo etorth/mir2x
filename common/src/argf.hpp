@@ -247,7 +247,7 @@ namespace argf
                 throw fflpanic("invalid {}value: {}", _details::strAppendSpace(name).c_str(), to_cstr(mapIDOptStr.value()));
             }
 
-            if(const auto mapID = DBCOM_MAPID(to_u8cstr(mapIDOptStr.value())); mapID > 0){
+            if(const auto mapID = DBCOM_MAPID(mapIDOptStr.value().c_str()); mapID > 0){
                 return mapID;
             }
 

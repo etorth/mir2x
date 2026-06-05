@@ -235,7 +235,7 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
         g_sdlDevice->drawTexture(texPtr, m.x + m_equipCharX + dx, m.y + m_equipCharY + dy);
     }
 
-    LabelBoard{{.label = to_u8cstr(myHeroPtr->getName()), .font{.color = myHeroPtr->getNameColor() | 0XFF}}}.draw({.dir=DIR_NONE, .x=m.x + 164, .y=m.y + 38});
+    LabelBoard{{.label = str_printf(u8"%s", myHeroPtr->getName().c_str()).c_str(), .font{.color = myHeroPtr->getNameColor() | 0XFF}}}.draw({.dir=DIR_NONE, .x=m.x + 164, .y=m.y + 38});
     if(const auto dressItemID = myHeroPtr->getWLItem(WLG_DRESS).itemID){
         if(const auto dressGfxID = DBCOM_ITEMRECORD(dressItemID).pkgGfxID; dressGfxID >= 0){
             if(auto [texPtr, dx, dy] = g_equipDB->retrieve(to_u32(dressGfxID) | 0X01000000); texPtr){

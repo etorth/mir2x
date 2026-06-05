@@ -69,7 +69,7 @@ ServerLuaModule::ServerLuaModule()
             throw fflreach();
         };
 
-        if(const auto mapID = DBCOM_MAPID(to_u8cstr(mapName))){
+        if(const auto mapID = DBCOM_MAPID(mapName.c_str())){
             if(const auto dataCPtr = g_mapBinDB->retrieve(mapID)){
                 return sol::as_returns(fnGetRandGLoc(dataCPtr));
             }
@@ -142,7 +142,7 @@ ServerLuaModule::ServerLuaModule()
     END_LUAINC()));
 }
 
-void ServerLuaModule::addLogString(int logType, const char8_t *logInfo)
+void ServerLuaModule::addLogString(int logType, const char *logInfo)
 {
     // any time if you call addLog() or addLogString() in lua module
     // this will get printed in the server GUI console
