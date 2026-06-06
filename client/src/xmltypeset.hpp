@@ -272,7 +272,7 @@ class XMLTypeset // means XMLParagraph typeset
 
         bool leafValid(int leafIndex) const
         {
-            return leafIndex < leafCount();
+            return leafIndex >= 0 && leafIndex < leafCount();
         }
 
     public:

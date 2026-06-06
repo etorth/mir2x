@@ -82,7 +82,8 @@ class XMLParagraph
         void Join(const XMLParagraph &);
 
     private:
-        size_t insertXMLAfter(tinyxml2::XMLNode *, const char *);
+        size_t insertXMLAtFront(                     const char *);
+        size_t insertXMLAfter  (tinyxml2::XMLNode *, const char *);
 
     public:
         size_t insertLeafXML(int, const char *);

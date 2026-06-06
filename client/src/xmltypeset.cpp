@@ -606,12 +606,12 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t nFont, uint8_t nFontSize
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
-    if(g_fontexDB->retrieve(nU64Key)){
+    if(!g_fontexDB->retrieve(nU64Key)){
         throw fflpanic("can't find texture for UTF8: {:X}", nUTF8Code);
     }
 
     nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, utf8f::peekUTF8Code("0"));
-    if(g_fontexDB->retrieve(nU64Key)){
+    if(!g_fontexDB->retrieve(nU64Key)){
         throw fflpanic("invalid font style: {:X}", nFontStyle);
     }
 
@@ -1031,7 +1031,7 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
         if(m_paragraph->leaf(prevLeaf).type() == LEAF_UTF8STR){
             addedCount = m_paragraph->insertUTF8String(prevLeaf, m_paragraph->leaf(prevLeaf).utf8CharOff().size(), text);
         }
-        if(m_paragraph->leaf(currLeaf).type() == LEAF_UTF8STR){
+        else if(m_paragraph->leaf(currLeaf).type() == LEAF_UTF8STR){
             addedCount = m_paragraph->insertUTF8String(currLeaf, 0, text);
         }
         else{

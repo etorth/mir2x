@@ -367,7 +367,75 @@ size_t XMLParagraph::insertLeafXML(int loc, const char *xmlString)
     if(loc < 0 || loc > leafCount() || !xmlString){
         throw fflpanic("invalid argument: loc = {}, xmlString = {:p}", loc, to_cvptr(xmlString));
     }
-    return insertXMLAfter(leaf(loc).xmlNode(), xmlString);
+
+    if(loc == 0){
+        return insertXMLAtFront(xmlString);
+    }
+    return insertXMLAfter(leaf(loc - 1).xmlNode(), xmlString);
+}
+
+size_t XMLParagraph::insertXMLAtFront(const char *xmlString)
+{
+    if(!xmlString){
+        throw fflpanic("invalid argument: xmlString = {:p}", to_cvptr(xmlString));
+    }
+
+    // to insert XML as leaves, we requires to insert as a new paragraph leaf
+    // for emoji and image we have specified tag <emoji>, <image>, but for text we don't have
+
+    tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
+    if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
+        throw fflpanic("tinyxml2::XMLDocument::Parse() failed: {}", xmlString);
+    }
+
+    auto xmlRoot = xmlDoc.RootElement();
+    if(!xmlRoot){
+        throw fflpanic("no root element");
+    }
+
+    bool parXML = false;
+    for(const char *cstr: {"par", "Par", "PAR"}){
+        if(to_sv(xmlRoot->Value()) == cstr){
+            parXML = true;
+            break;
+        }
+    }
+
+    if(!parXML){
+        throw fflpanic("xmlString is not a paragraph");
+    }
+
+    size_t addedLeafCount = 0;
+    for(auto p = xmlRoot->LastChild(); p; p = p->PreviousSibling()){
+        if(auto cloneNode = p->DeepClone(m_xmlDocument.get())){
+            if(m_xmlDocument->FirstChild()->InsertFirstChild(cloneNode) != cloneNode){
+                throw fflpanic("insert node failed");
+            }
+            addedLeafCount++;
+        }
+        else{
+            throw fflpanic("deep clone node failed");
+        }
+    }
+
+    // TODO rebuild everything
+    // this is not necessary, optimize later
+
+    m_leafList.clear();
+    if(auto parNode = m_xmlDocument->FirstChild(); !parNode->NoChildren()){
+        for(auto nodePtr = xmlf::getNodeFirstLeaf(parNode); nodePtr; nodePtr = xmlf::getNextLeaf(nodePtr, parNode)){
+            if(xmlf::checkValidLeaf(nodePtr)){
+                m_leafList.emplace_back(nodePtr);
+            }
+        }
+    }
+
+    size_t addedCount = 0;
+    for(size_t i = 0; i < addedLeafCount; ++i){
+        addedCount += leaf(i).length();
+    }
+
+    return addedCount;
 }
 
 size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlString)
@@ -406,7 +474,7 @@ size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlStr
     }
 
     size_t addedLeafCount = 0;
-    for(auto p = xmlRoot->FirstChild(); p; p = p->NextSibling()){
+    for(auto p = xmlRoot->LastChild(); p; p = p->PreviousSibling()){
         if(auto cloneNode = p->DeepClone(m_xmlDocument.get())){
             if(after->Parent()->InsertAfterChild(after, cloneNode) != cloneNode){
                 throw fflpanic("insert node failed");
