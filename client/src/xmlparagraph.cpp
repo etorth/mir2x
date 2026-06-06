@@ -218,9 +218,17 @@ void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
         switch(leaf(currLeaf).type()){
             case LEAF_UTF8STR:
                 {
-                    const int needDelete = std::min<int>(leaf(currLeaf).length() - currLeafOff, tokenCount - deletedToken);
+                    const auto leafLength = leaf(currLeaf).length();
+                    const auto needDelete = std::min<int>(leafLength - currLeafOff, tokenCount - deletedToken);
+
                     deleteUTF8Char(currLeaf, currLeafOff, needDelete);
                     deletedToken += needDelete;
+
+                    if(needDelete != leafLength){
+                        currLeaf++; // current leaf is not fully deleted
+                    }
+
+                    currLeafOff = 0;
                     break;
                 }
             case LEAF_EMOJI:
@@ -228,6 +236,7 @@ void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
                 {
                     deleteLeaf(currLeaf);
                     deletedToken += 1;
+                    currLeafOff = 0;
                     break;
                 }
             default:
@@ -235,9 +244,6 @@ void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
                     throw fflpanic("invalid leaf type: {}", leaf(currLeaf).type());
                 }
         }
-
-        currLeaf++;
-        currLeafOff = 0;
     }
 }
 
