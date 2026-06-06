@@ -274,7 +274,7 @@ void ControlBoard::onInputDone()
         return;
     }
 
-    // const std::string fullXML = m_cmdBoard.getXML();
+    const std::string fullXML = m_cmdBoard.getXML();
     const std::string fullStr = str_trim(m_cmdBoard.getText(), true, false);
 
     m_cmdBoard.clear();
@@ -319,7 +319,7 @@ void ControlBoard::onInputDone()
             }
         default: // normal talk
             {
-                // addXMLLog(fullXML.c_str());
+                addXMLLog(fullXML.c_str());
                 CMPlayerSay cmPS;
                 std::memset(&cmPS, 0, sizeof(cmPS));
                 std::memcpy(cmPS.content, fullStr.data(), std::min<size_t>(fullStr.size(), sizeof(cmPS.content) - 1));
