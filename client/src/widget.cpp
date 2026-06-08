@@ -1115,7 +1115,7 @@ void Widget::dumpJsonFile(const char *path) const
 
     for(size_t begin = 0; begin < json.size();){
         lc = std::move(cc);
-        cc = utf8f::peekUTF8Str(json.data() + begin, json.data() + json.length());
+        cc = utf8f::peekFirst(json.data() + begin);
         begin += cc.length();
 
         if(cc == "\"" && (begin == 0 || lc != "\\")){

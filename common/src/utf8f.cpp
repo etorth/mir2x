@@ -47,20 +47,46 @@ namespace
         pos += static_cast<size_t>(charLen);
         return codePoint;
     }
-}
 
-// uint32_t utf8f::peekUTF8Code(const char *utf8Begin, const char *utf8End)
-// {
-//     fflassert(str_haschar(utf8Begin));
-//     const size_t size = utf8End ? (utf8End - utf8Begin) : std::strlen(utf8Begin);
-//
-//     try{
-//         return std::bit_cast<uint32_t>(utf8::peek_next(utf8Begin, utf8Begin + size));
-//     }
-//     catch(...){
-//         throw fflpanic("failed to peek the first utf8 code");
-//     }
-// }
+    std::string peekFirstImpl(std::string_view utf8String)
+    {
+        size_t pos = 0;
+        str2codeImpl(utf8String.data(), utf8String.size(), pos);
+        return std::string(utf8String.data(), pos);
+    }
+
+    std::string peekLastImpl(std::string_view utf8String)
+    {
+        if(utf8String.empty()){
+            throw fflpanic("no UTF-8 character in empty string");
+        }
+
+        if(!utf8String.data()){
+            throw fflpanic("null UTF-8 string");
+        }
+
+        size_t pos = utf8String.size() - 1;
+        while(pos > 0){
+            const auto ch = static_cast<unsigned char>(utf8String[pos]);
+            if((ch & 0XC0) != 0X80){
+                break;
+            }
+            pos--;
+        }
+
+        if(utf8String.size() - pos > 4){
+            throw fflpanic("invalid UTF-8 character length: {}", utf8String.size() - pos);
+        }
+
+        auto endPos = pos;
+        str2codeImpl(utf8String.data(), utf8String.size(), endPos);
+        if(endPos != utf8String.size()){
+            throw fflpanic("invalid trailing UTF-8 character");
+        }
+
+        return std::string(utf8String.data() + pos, utf8String.size() - pos);
+    }
+}
 
 std::string utf8f::code2str(uint32_t codePoint)
 {
@@ -106,55 +132,51 @@ uint32_t utf8f::str2code(const std::string utf8String, size_t &pos)
     return str2code(std::string_view(utf8String), pos);
 }
 
-uint32_t utf8f::str2code(std::string_view utf8String)
+uint32_t utf8f::str2code(const std::string_view &utf8String)
 {
     size_t pos = 0;
     return str2code(utf8String, pos);
 }
 
-uint32_t utf8f::str2code(std::string_view utf8String, size_t &pos)
+uint32_t utf8f::str2code(const std::string_view &utf8String, size_t &pos)
 {
     return str2codeImpl(utf8String.data(), utf8String.size(), pos);
 }
 
-uint32_t utf8f::peekUTF8Code(const char *utf8Begin, const char *utf8End)
+std::string utf8f::peekFirst(const char *utf8String)
 {
-    // seems utf8::peek_next() is not what I need here
-    // what it returns?
-
-    fflassert(str_haschar(utf8Begin));
-    const size_t size = utf8End ? (utf8End - utf8Begin) : std::strlen(utf8Begin);
-
-    auto p = utf8Begin;
-    try{
-        utf8::advance(p, 1, utf8Begin + size);
+    if(!utf8String){
+        throw fflpanic("null UTF-8 string");
     }
-    catch(...){
-        throw fflpanic("failed to peek the first utf8 code");
-    }
-
-    fflassert(p - utf8Begin <= 4);
-
-    uint32_t code = 0;
-    std::memcpy(&code, utf8Begin, p - utf8Begin);
-    return code;
+    return peekFirst(std::string_view(utf8String));
 }
 
-std::string utf8f::peekUTF8Str(const char *utf8Begin, const char *utf8End)
+std::string utf8f::peekFirst(const std::string &utf8String)
 {
-    fflassert(str_haschar(utf8Begin));
-    const size_t size = utf8End ? (utf8End - utf8Begin) : std::strlen(utf8Begin);
+    return peekFirst(std::string_view(utf8String));
+}
 
-    auto p = utf8Begin;
-    try{
-        utf8::advance(p, 1, utf8Begin + size);
-    }
-    catch(...){
-        throw fflpanic("failed to peek the first utf8 code");
-    }
+std::string utf8f::peekFirst(const std::string_view &utf8String)
+{
+    return peekFirstImpl(utf8String);
+}
 
-    fflassert(p - utf8Begin <= 4);
-    return std::string(utf8Begin, p - utf8Begin);
+std::string utf8f::peekLast(const char *utf8String)
+{
+    if(!utf8String){
+        throw fflpanic("null UTF-8 string");
+    }
+    return peekLast(std::string_view(utf8String));
+}
+
+std::string utf8f::peekLast(const std::string &utf8String)
+{
+    return peekLast(std::string_view(utf8String));
+}
+
+std::string utf8f::peekLast(const std::string_view &utf8String)
+{
+    return peekLastImpl(utf8String);
 }
 
 std::vector<int> utf8f::buildUTF8Off(const char *utf8String)

@@ -23,12 +23,34 @@ struct FontexElement
 // key & 0X000000FF00000000) >> 32: font style
 // key & 0X00000000FFFFFFFF) >>  0: utf8 code or long text encode
 
-// use lower 4 bytes as utf8 code or long text encode
-// when it's: 0xFFXXXXXX: long text encode
-//            0xXXXXXXXX: otherwise, it's utf8 code with length <= 4
+// use lower 4 bytes:
+// 1. used as a single unicode point returned by utf8f::str2code(), max value is: 0x0010_FFFF
+// 2. used as a valid utf8-string buffer:
+//
+//        const std::string buf = get_valid_utf_8_string_with_lenght_less_than_or_equal_to_4();
+//        assert(buf.size() <= 4);
+//
+//        uint32_t encode = 0;
+//        std::memcpy(&encode, buf.data(), buf.size());
+//
+//    in this way, encode has maximal possible value: 0xBFDF_BFDF
+//    it's from a valid UTF-8 string with two chars, packed with little-endian: U+07FF U+07FF
+//
+// 3. used as a long-string index
 
 class FontexDB: public innDB<uint64_t, FontexElement>
 {
+    private:
+        constexpr static uint32_t R1_MAX = 0x0010FFFFU; // single unicode point
+        constexpr static uint32_t R2_MAX = 0xBFDFBFDFU; // raw utf-8 buffer with size <= 4
+        constexpr static uint32_t R3_MAX = 0x400F401FU; // long string index
+
+        constexpr static uint32_t R1_BASE = 0;
+        constexpr static uint32_t R2_BASE = R1_BASE + R1_MAX + 1;
+        constexpr static uint32_t R3_BASE = R2_BASE + R2_MAX + 1;
+
+        static_assert(R3_BASE + R3_MAX == 0xFFFFFFFFU);
+
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
         std::vector<ZSDB::Entry> m_entryList;
@@ -160,7 +182,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             if(const auto size = std::strlen(utf8String); size <= 4){
                 uint32_t utf8Code = 0;
                 std::memcpy(&utf8Code, utf8String, size);
-                return utf8Code;
+                return encodeRange(2, utf8Code);
             }
 
             if(auto p = m_longText2Encode.find(utf8String); p != m_longText2Encode.end()){
@@ -179,11 +201,11 @@ class FontexDB: public innDB<uint64_t, FontexElement>
                 }
             }();
 
-            if(currIndex > 0X00FFFFFF){
-                throw fflpanic("long text count exceeds limit: {}", to_llu(currIndex));
+            if(currIndex >= R3_MAX){
+                throw fflpanic("long text count exceeds limit: {}", currIndex);
             }
 
-            const auto encodedIndex = currIndex | UINT32_C(0XFF000000);
+            const auto encodedIndex = encodeRange(3, currIndex);
             const auto insertedString = m_longText2Encode.try_emplace(utf8String, encodedIndex);
             const auto insertedEncode = m_encode2LongText.try_emplace(encodedIndex, insertedString.first->first.c_str());
 
@@ -191,5 +213,23 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             fflassert(insertedEncode.second);
 
             return encodedIndex;
+        }
+
+    private:
+        static uint32_t encodeRange(int range, uint32_t val)
+        {
+            switch(range){
+                case 1 : fflassert(val <= R1_MAX); return R1_BASE + val;
+                case 2 : fflassert(val <= R2_MAX); return R2_BASE + val;
+                case 3 : fflassert(val <= R3_MAX); return R3_BASE + val;
+                default:                           throw  fflvalue(range, val);
+            }
+        }
+
+        static std::tuple<size_t, uint32_t> decodeRange(uint32_t val)
+        {
+            if     (val <= R1_BASE + R1_MAX) return {1, val - R1_BASE};
+            else if(val <= R2_BASE + R2_MAX) return {2, val - R2_BASE};
+            else                             return {3, val - R3_BASE};
         }
 };

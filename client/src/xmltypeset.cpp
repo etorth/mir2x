@@ -578,62 +578,54 @@ void XMLTypeset::setLineTokenStartY(int argLine)
 
 void XMLTypeset::checkDefaultFontEx() const
 {
-    const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::peekUTF8Code("0"));
+    const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::str2code("0"));
     if(!g_fontexDB->retrieve(u64key)){
         throw fflpanic("invalid default font: font = {}, fontsize = {}", to_d(m_font), to_d(m_fontSize));
     }
 }
 
-TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t nFont, uint8_t nFontSize, uint8_t nFontStyle, uint32_t nUTF8Code) const
+TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t font, uint8_t fontSize, uint8_t fontStyle, uint32_t codePoint) const
 {
-    TOKEN stToken;
-    std::memset(&(stToken), 0, sizeof(stToken));
-    auto nU64Key = utf8f::buildU64Key(nFont, nFontSize, nFontStyle, nUTF8Code);
+    TOKEN token;
+    std::memset(&(token), 0, sizeof(token));
+    auto u64Key = utf8f::buildU64Key(font, fontSize, fontStyle, codePoint);
 
-    stToken.leaf = leafIndex;
-    if(auto pTexture = g_fontexDB->retrieve(nU64Key)){
-        int nBoxW = -1;
-        int nBoxH = -1;
-        if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
-            stToken.box.info.w      = nBoxW;
-            stToken.box.info.h      = nBoxH;
-            stToken.box.state.h1    = stToken.box.info.h;
-            stToken.box.state.h2    = 0;
-            stToken.utf8char.key = nU64Key;
-            return stToken;
-        }
-        throw fflpanic("SDL_QueryTexture({:p}) failed", to_cvptr(pTexture));
+    token.leaf = leafIndex;
+    if(auto texPtr = g_fontexDB->retrieve(u64Key)){
+        const auto [boxW, boxH] = SDLDeviceHelper::getTextureSize(texPtr);
+        token.box.info.w   = boxW;
+        token.box.info.h   = boxH;
+        token.box.state.h1 = token.box.info.h;
+        token.box.state.h2 = 0;
+        token.utf8char.key = u64Key;
+        return token;
     }
 
-    nU64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, nUTF8Code);
-    if(!g_fontexDB->retrieve(nU64Key)){
-        throw fflpanic("can't find texture for UTF8: {:X}", nUTF8Code);
+    u64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, codePoint);
+    if(!g_fontexDB->retrieve(u64Key)){
+        throw fflpanic("can't find texture for UTF8: {:X}", codePoint);
     }
 
-    nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, utf8f::peekUTF8Code("0"));
-    if(!g_fontexDB->retrieve(nU64Key)){
-        throw fflpanic("invalid font style: {:X}", nFontStyle);
+    u64Key = utf8f::buildU64Key(m_font, m_fontSize, fontStyle, utf8f::str2code("a"));
+    if(!g_fontexDB->retrieve(u64Key)){
+        throw fflpanic("invalid font style: {:X}", fontStyle);
     }
 
     // invalid font given
     // use system default font, don't fail it
 
-    nU64Key = utf8f::buildU64Key(m_font, m_fontSize, nFontStyle, nUTF8Code);
-    if(auto pTexture = g_fontexDB->retrieve(nU64Key)){
-        int nBoxW = -1;
-        int nBoxH = -1;
-        if(!SDL_QueryTexture(pTexture, nullptr, nullptr, &nBoxW, &nBoxH)){
-            g_log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", to_d(nFont), to_d(m_font), to_d(nFontSize), to_d(m_fontSize));
-            stToken.box.info.w      = nBoxW;
-            stToken.box.info.h      = nBoxH;
-            stToken.box.state.h1    = stToken.box.info.h;
-            stToken.box.state.h2    = 0;
-            stToken.utf8char.key = nU64Key;
-            return stToken;
-        }
-        throw fflpanic("SDL_QueryTexture({:p}) failed", to_cvptr(pTexture));
+    u64Key = utf8f::buildU64Key(m_font, m_fontSize, fontStyle, codePoint);
+    if(auto texPtr = g_fontexDB->retrieve(u64Key)){
+        g_log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", font, m_font, fontSize, m_fontSize);
+        const auto [boxW, boxH] = SDLDeviceHelper::getTextureSize(texPtr);
+        token.box.info.w   = boxW;
+        token.box.info.h   = boxH;
+        token.box.state.h1 = token.box.info.h;
+        token.box.state.h2 = 0;
+        token.utf8char.key = u64Key;
+        return token;
     }
-    throw fflpanic("fallback to default font failed: font: {} -> {}, fontsize: {} -> {}", to_d(nFont), to_d(m_font), to_d(nFontSize), to_d(m_fontSize));
+    throw fflpanic("fallback to default font failed: font: {} -> {}, fontsize: {} -> {}", font, m_font, fontSize, m_fontSize);
 }
 
 TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
@@ -667,17 +659,17 @@ TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
 
 TOKEN XMLTypeset::createToken(int leafIndex, int leafOff) const
 {
-    switch(auto &rstLeaf = m_paragraph->leaf(leafIndex); rstLeaf.type()){
+    switch(auto &lf = m_paragraph->leaf(leafIndex); lf.type()){
         case LEAF_UTF8STR:
             {
-                auto nFont      = rstLeaf.font()     .value_or(m_font);
-                auto nFontSize  = rstLeaf.fontSize() .value_or(m_fontSize);
-                auto nFontStyle = rstLeaf.fontStyle().value_or(m_fontStyle);
-                return buildUTF8Token(leafIndex, nFont, nFontSize, nFontStyle, rstLeaf.peekUTF8Code(leafOff));
+                auto font      = lf.font()     .value_or(m_font);
+                auto fontSize  = lf.fontSize() .value_or(m_fontSize);
+                auto fontStyle = lf.fontStyle().value_or(m_fontStyle);
+                return buildUTF8Token(leafIndex, font, fontSize, fontStyle, lf.peekUTF8Code(leafOff));
             }
         case LEAF_EMOJI:
             {
-                return buildEmojiToken(leafIndex, rstLeaf.emojiU32Key());
+                return buildEmojiToken(leafIndex, lf.emojiU32Key());
             }
         case LEAF_IMAGE:
             {
@@ -685,7 +677,7 @@ TOKEN XMLTypeset::createToken(int leafIndex, int leafOff) const
             }
         default:
             {
-                throw fflpanic("invalid type: {}", rstLeaf.type());
+                throw fflpanic("invalid type: {}", lf.type());
             }
     }
 }
@@ -1489,7 +1481,7 @@ void XMLTypeset::setLineWidth(int lineWidth)
 
 int XMLTypeset::getDefaultFontHeight() const
 {
-    if(auto texPtr = g_fontexDB->retrieve(utf8f::buildU64Key(m_font, m_fontSize, m_fontStyle, utf8f::peekUTF8Code(" ")))){
+    if(auto texPtr = g_fontexDB->retrieve(utf8f::buildU64Key(m_font, m_fontSize, m_fontStyle, utf8f::str2code("a")))){
         return SDLDeviceHelper::getTextureHeight(texPtr);
     }
     return 20;

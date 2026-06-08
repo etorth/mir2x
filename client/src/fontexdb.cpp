@@ -55,21 +55,31 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
         TTF_SetFontStyle(ttfPtr, sdlTTFStyle);
     }
 
-    char textBuf[8];
-    const char * utf8String;
+    std::string strBuf;
+    const char *utf8String;
 
-    if((textEncode & 0XFF000000) == 0XFF000000){
-        if(auto p = m_encode2LongText.find(textEncode); p != m_encode2LongText.end()){
-            utf8String = p->second;
-        }
-        else{
-            return std::nullopt;
-        }
-    }
-    else{
-        utf8String = textBuf;
-        std::memset(textBuf, 0, sizeof(textBuf));
-        std::memcpy(textBuf, &textEncode, sizeof(textEncode));
+    switch(const auto [range, val] = decodeRange(textEncode); range){
+        case 1:
+            {
+                strBuf = utf8f::code2str(val);
+                utf8String = strBuf.data();
+                break;
+            }
+        case 2:
+            {
+                strBuf.assign(reinterpret_cast<const char *>(&val), 4);
+                utf8String = strBuf.data();
+                break;
+            }
+        default:
+            {
+                if(auto p = m_encode2LongText.find(textEncode); p != m_encode2LongText.end()){
+                    utf8String = p->second;
+                }
+                else{
+                    return std::nullopt;
+                }
+            }
     }
 
     SDL_Surface *surfPtr = nullptr;
@@ -115,9 +125,9 @@ void FontexDB::freeResource(FontexElement &element)
         SDL_DestroyTexture(element.texture);
         element.texture = nullptr;
 
-        if((element.textEncode & 0XFF000000) == 0XFF000000){
+        if(const auto [range, index] = decodeRange(element.textEncode); range == 3){
             if(auto p = m_encode2LongText.find(element.textEncode); p != m_encode2LongText.end()){
-                m_longTextIndexList.push_back(to_u32(element.textEncode & 0X00FFFFFF));
+                m_longTextIndexList.push_back(index);
                 m_longText2Encode.erase(p->second);
                 m_encode2LongText.erase(p);
             }
