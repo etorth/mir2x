@@ -2,12 +2,21 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <string_view>
 #include <utf8.h>
 
 namespace utf8f
 {
-    std::string code2str(uint32_t);          // u32 code point to single-utf8-char-string
-    uint32_t    str2code(const std::string); // pick the first utf8-char-string to u32 code point
+    std::string code2str(uint32_t); // u32 code point to single-utf8-char-string
+
+    uint32_t str2code(const char *);            // pick the first utf8-char-string to u32 code point
+    uint32_t str2code(const char *, size_t &);  // pick the first utf8-char-string to u32 code point from provided position, update position if succeeds
+
+    uint32_t str2code(const std::string);
+    uint32_t str2code(const std::string, size_t &);
+
+    uint32_t str2code(std::string_view);
+    uint32_t str2code(std::string_view, size_t &);
 
     uint32_t    peekUTF8Code(const char *, const char * = nullptr); // pick one UTF-8 character and return as code point
     std::string peekUTF8Str (const char *, const char * = nullptr); // pick one UTF-8 character and return as string
