@@ -292,14 +292,39 @@ std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leafIndex, int leafOff, 
     return {nCurrLeaf, nCurrLeafOff, nAdvancedToken};
 }
 
-void XMLParagraph::Join(const XMLParagraph &rstInput)
+void XMLParagraph::join(const XMLParagraph &input, bool append)
 {
-    if(rstInput.m_xmlDocument->FirstChild() == nullptr){
+    if(std::addressof(input) == this){
+        throw fflpanic("cannot join XMLParagraph with itself");
+    }
+
+    if(input.m_xmlDocument->FirstChild() == nullptr){
         return;
     }
 
-    for(auto pNode = rstInput.m_xmlDocument->FirstChild()->FirstChild(); pNode; pNode = pNode->NextSibling()){
-        m_xmlDocument->FirstChild()->InsertEndChild(pNode->DeepClone(m_xmlDocument->GetDocument()));
+    if(append){
+        for(auto node = input.m_xmlDocument->FirstChild()->FirstChild(); node; node = node->NextSibling()){
+            const auto cloneNode = node->DeepClone(m_xmlDocument->GetDocument());
+            m_xmlDocument->FirstChild()->InsertEndChild(cloneNode);
+
+            for(auto leafNode = xmlf::getNodeFirstLeaf(cloneNode); leafNode; leafNode = xmlf::getNextLeaf(leafNode, cloneNode)){
+                if(xmlf::checkValidLeaf(leafNode)){
+                    m_leafList.emplace_back(leafNode);
+                }
+            }
+        }
+    }
+    else{
+        for(auto node = input.m_xmlDocument->FirstChild()->LastChild(); node; node = node->PreviousSibling()){
+            const auto cloneNode = node->DeepClone(m_xmlDocument->GetDocument());
+            m_xmlDocument->FirstChild()->InsertFirstChild(cloneNode);
+
+            for(auto leafNode = xmlf::getNodeLastLeaf(cloneNode); leafNode; leafNode = xmlf::getPreviousLeaf(leafNode, cloneNode)){
+                if(xmlf::checkValidLeaf(leafNode)){
+                    m_leafList.emplace_front(leafNode);
+                }
+            }
+        }
     }
 }
 

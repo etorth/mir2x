@@ -124,24 +124,6 @@ bool xmlf::hasChild(tinyxml2::XMLNode *root, tinyxml2::XMLNode *child)
     return false;
 }
 
-tinyxml2::XMLNode *xmlf::getNextLeaf(tinyxml2::XMLNode *node, tinyxml2::XMLNode *root)
-{
-    fflassert(node);
-    fflassert(node->NoChildren());
-
-    if(root){
-        fflassert(xmlf::hasChild(root, node));
-    }
-
-    while(node && (node != root)){
-        if(auto next = node->NextSibling()){
-            return xmlf::getNodeFirstLeaf(next);
-        }
-        node = node->Parent();
-    }
-    return nullptr;
-}
-
 tinyxml2::XMLNode *xmlf::getNodeFirstLeaf(tinyxml2::XMLNode *node)
 {
     fflassert(node);
@@ -160,6 +142,42 @@ tinyxml2::XMLNode *xmlf::getNodeLastLeaf(tinyxml2::XMLNode *node)
         node = node->LastChild();
     }
     return node;
+}
+
+tinyxml2::XMLNode *xmlf::getPreviousLeaf(tinyxml2::XMLNode *node, tinyxml2::XMLNode *root)
+{
+    fflassert(node);
+    fflassert(node->NoChildren());
+
+    if(root){
+        fflassert(xmlf::hasChild(root, node));
+    }
+
+    while(node && (node != root)){
+        if(auto next = node->PreviousSibling()){
+            return xmlf::getNodeLastLeaf(next);
+        }
+        node = node->Parent();
+    }
+    return nullptr;
+}
+
+tinyxml2::XMLNode *xmlf::getNextLeaf(tinyxml2::XMLNode *node, tinyxml2::XMLNode *root)
+{
+    fflassert(node);
+    fflassert(node->NoChildren());
+
+    if(root){
+        fflassert(xmlf::hasChild(root, node));
+    }
+
+    while(node && (node != root)){
+        if(auto next = node->NextSibling()){
+            return xmlf::getNodeFirstLeaf(next);
+        }
+        node = node->Parent();
+    }
+    return nullptr;
 }
 
 bool xmlf::validTagName(const std::string &tagName)

@@ -79,7 +79,7 @@ class XMLParagraph
         void loadXMLNode(const tinyxml2::XMLNode *);
 
     public:
-        void Join(const XMLParagraph &);
+        void join(const XMLParagraph &, bool);
 
     private:
         size_t insertXMLAtFront(                     const char *);
