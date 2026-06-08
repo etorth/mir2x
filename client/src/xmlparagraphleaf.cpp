@@ -156,12 +156,14 @@ std::optional<uint32_t> XMLParagraphLeaf::bgColor() const
 std::optional<uint8_t> XMLParagraphLeaf::font() const
 {
     if(const auto fontStr = xmlf::findAttribute(xmlNode(), "font", true)){
-        if(const auto val = std::atoi(fontStr); val >= 0 && val < 256){
-            return to_u8(val);
+        try{
+            size_t pos = 0;
+            if(const auto val = std::stoi(fontStr, &pos); val >= 0 && val < 256 && pos == std::strlen(fontStr)){
+                return to_u8(val);
+            }
         }
-        else{
-            throw fflpanic("invalid font index, not an uint8_t: {}", val);
-        }
+        catch(...){}
+        throw fflpanic("invalid font index, not an uint8_t: {}", fontStr);
     }
     return {};
 }
@@ -169,12 +171,14 @@ std::optional<uint8_t> XMLParagraphLeaf::font() const
 std::optional<uint8_t> XMLParagraphLeaf::fontSize() const
 {
     if(const auto sizeStr = xmlf::findAttribute(xmlNode(), "size", true)){
-        if(const auto val = std::atoi(sizeStr); val >= 0 && val < 256){
-            return to_u8(val);
+        try{
+            size_t pos = 0;
+            if(const auto val = std::stoi(sizeStr, &pos); val >= 0 && val < 256 && pos == std::strlen(sizeStr)){
+                return to_u8(val);
+            }
         }
-        else{
-            throw fflpanic("invalid font size, not an uint8_t: {}", val);
-        }
+        catch(...){}
+        throw fflpanic("invalid font size, not an uint8_t: {}", sizeStr);
     }
     return {};
 }
@@ -182,12 +186,14 @@ std::optional<uint8_t> XMLParagraphLeaf::fontSize() const
 std::optional<uint8_t> XMLParagraphLeaf::fontStyle() const
 {
     if(const auto fontStyleStr = xmlf::findAttribute(xmlNode(), "style", true)){
-        if(const auto val = std::atoi(fontStyleStr); val >= 0 && val < 256){
-            return to_u8(val);
+        try{
+            size_t pos = 0;
+            if(const auto val = std::stoi(fontStyleStr, &pos); val >= 0 && val < 256 && pos == std::strlen(fontStyleStr)){
+                return to_u8(val);
+            }
         }
-        else{
-            throw fflpanic("invalid font style, not an uint8_t: {}", val);
-        }
+        catch(...){}
+        throw fflpanic("invalid font style, not an uint8_t: {}", fontStyleStr);
     }
     return {};
 }

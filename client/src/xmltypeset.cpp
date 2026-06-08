@@ -529,7 +529,7 @@ int XMLTypeset::LineNewStartY(int argLine)
     }
 
     if(!CanThrough()){
-        return lineReachMaxY(argLine - 1) + LineMaxHk(argLine - 1, 2) + m_lineSpace + LineMaxHk(argLine, 1);
+        return lineReachMaxY(argLine - 1) + m_lineSpace + LineMaxHk(argLine, 1);
     }
 
     if(lineTokenCount(argLine) == 0){
