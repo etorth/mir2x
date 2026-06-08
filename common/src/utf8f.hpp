@@ -6,6 +6,9 @@
 
 namespace utf8f
 {
+    std::string code2str(uint32_t);          // u32 code point to single-utf8-char-string
+    uint32_t    str2code(const std::string); // pick the first utf8-char-string to u32 code point
+
     uint32_t    peekUTF8Code(const char *, const char * = nullptr); // pick one UTF-8 character and return as code point
     std::string peekUTF8Str (const char *, const char * = nullptr); // pick one UTF-8 character and return as string
 

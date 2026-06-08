@@ -1,6 +1,7 @@
 #include <utf8.h>
 #include <cstring>
 #include <cstdint>
+#include <iterator>
 #include "strf.hpp"
 #include "utf8f.hpp"
 #include "fflerror.hpp"
@@ -17,6 +18,49 @@
 //         throw fflpanic("failed to peek the first utf8 code");
 //     }
 // }
+
+std::string utf8f::code2str(uint32_t codePoint)
+{
+    if(codePoint > 0X10FFFF || (codePoint >= 0XD800 && codePoint <= 0XDFFF)){
+        throw fflpanic("invalid UTF-8 code point: 0x{:X}", codePoint);
+    }
+
+    std::string result;
+    try{
+        utf8::append(codePoint, std::back_inserter(result));
+    }
+    catch(...){
+        throw fflpanic("failed to convert code point to UTF-8 string: 0x{:X}", codePoint);
+    }
+
+    if(result.empty() || result.size() > 4){
+        throw fflpanic("invalid UTF-8 string converted from code point: 0x{:X}", codePoint);
+    }
+    return result;
+}
+
+uint32_t utf8f::str2code(const std::string utf8String)
+{
+    auto p = utf8String.begin();
+    const auto pend = utf8String.end();
+
+    uint32_t codePoint = 0;
+    try{
+        codePoint = utf8::next(p, pend);
+    }
+    catch(...){
+        throw fflpanic("failed to convert UTF-8 string to code point");
+    }
+
+    if(p == utf8String.begin() || std::distance(utf8String.begin(), p) > 4){
+        throw fflpanic("invalid UTF-8 character length");
+    }
+
+    if(codePoint > 0X10FFFF || (codePoint >= 0XD800 && codePoint <= 0XDFFF)){
+        throw fflpanic("invalid UTF-8 code point: 0x{:X}", codePoint);
+    }
+    return codePoint;
+}
 
 uint32_t utf8f::peekUTF8Code(const char *utf8Begin, const char *utf8End)
 {
