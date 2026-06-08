@@ -17,15 +17,8 @@ XMLParagraph *XMLParagraph::split(int leafIndex, int cursorLoc)
     fflassert(leafValid(leafIndex));
     fflassert(cursorLoc >= 0 && cursorLoc <= leaf(leafIndex).length());
 
-    XMLParagraph * newPar = new XMLParagraph{};
     XMLParagraph *fromPar = this;
-    XMLParagraph *  toPar = newPar;
-
-    if(leafIndex * 2 > leafCount()){
-        std::swap(fromPar->m_xmlDocument, toPar->m_xmlDocument);
-        std::swap(fromPar->m_leafList   , toPar->m_leafList   );
-        std::swap(fromPar               , toPar               );
-    }
+    XMLParagraph *  toPar = new XMLParagraph{};
 
     const auto fnMoveFrontLeaf = [fromPar, toPar]()
     {
@@ -37,7 +30,7 @@ XMLParagraph *XMLParagraph::split(int leafIndex, int cursorLoc)
         fromPar->m_leafList.pop_front();
     };
 
-    for(int i = 0; i < leafIndex - 1; ++i){
+    for(int i = 0; i < leafIndex; ++i){
         fnMoveFrontLeaf();
     }
 
@@ -53,7 +46,7 @@ XMLParagraph *XMLParagraph::split(int leafIndex, int cursorLoc)
         toPar->m_leafList.emplace_back(node1);
     }
 
-    return newPar;
+    return toPar;
 }
 
 void XMLParagraph::deleteLeaf(int leafIndex)

@@ -1072,25 +1072,41 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
         if(std::tie(cursorX, cursorY) == lastCursorLoc()){
             return {m_paragraph->leafCount() - 1, m_paragraph->leaf(m_paragraph->leafCount() - 1).length()};
         }
+        else if(cursorX == lineTokenCount(cursorY)){
+            const auto [leaf, off] = leafLocInXMLParagraph(cursorX - 1, cursorY);
+            return {leaf, off + 1};
+        }
         else{
             return leafLocInXMLParagraph(cursorX, cursorY);
         }
     }();
 
-    newTpset->m_lineList.insert(newTpset->m_lineList.end(), m_lineList.begin(), m_lineList.begin() + cursorY + (cursorX == lineTokenCount(cursorY)));
-    newTpset->m_leaf2TokenLoc.insert(newTpset->m_leaf2TokenLoc.end(), m_leaf2TokenLoc.begin(), m_leaf2TokenLoc.begin() + leafIndex + (cursorInLeaf == m_paragraph->leaf(leafIndex).length()));
+    const bool copyFullLine = (cursorX == lineTokenCount(cursorY));
+    const bool copyLeafTLoc = (cursorInLeaf > 0);
+
+    newTpset->m_lineList     .assign(m_lineList     .begin(), m_lineList     .begin() + cursorY   + (copyFullLine ? 1 : 0));
+    newTpset->m_leaf2TokenLoc.assign(m_leaf2TokenLoc.begin(), m_leaf2TokenLoc.begin() + leafIndex + (copyLeafTLoc ? 1 : 0));
     newTpset->m_paragraph.reset(m_paragraph->split(leafIndex, cursorInLeaf));
 
     m_lineList.clear();
     m_leaf2TokenLoc.clear();
 
     if(!newTpset->empty()){
-        newTpset->buildTypeset(0, cursorY);
+        if(copyFullLine){
+            newTpset->buildTypeset(0, cursorY);
+        }
+        else{
+            newTpset->buildTypeset(0, std::max<int>(cursorY - 1, 0)); // split point can be in middle of first line
+        }
     }
 
-    if(!empty()){
+    if(empty()){
+        resetBoardPixelRegion();
+    }
+    else{
         buildTypeset(0, 0);
     }
+
     return newTpset;
 }
 
