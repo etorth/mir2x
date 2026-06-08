@@ -97,6 +97,10 @@ void ProcessRun::on_SM_PLAYERSAY(const uint8_t *buf, size_t bufSize)
     if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPS.uid)); playerPtr){
         playerPtr->addPlayerSay(smPS.content);
     }
+
+    if(smPS.uid != getMyHeroUID()){
+        addCBLog(CBLOG_DEF, u8"%s", smPS.content);
+    }
 }
 
 void ProcessRun::on_SM_PLAYERBROADCAST(const uint8_t *buf, size_t bufSize)
