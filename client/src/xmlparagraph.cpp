@@ -54,17 +54,13 @@ void XMLParagraph::deleteLeaf(int leafIndex)
     auto node   = leaf(leafIndex).xmlNode();
     auto parent = node->Parent();
 
-    while(parent && (parent->FirstChild() == parent->LastChild())){
+    while(parent && (parent->FirstChild() == parent->LastChild()) && (parent != m_xmlDocument->FirstChild())){
         node   = parent;
         parent = parent->Parent();
     }
 
-    if(parent){
-        parent->DeleteChild(node);
-    }
-    else{
-        m_xmlDocument->Clear();
-    }
+    fflassert(parent);
+    parent->DeleteChild(node);
     m_leafList.erase(m_leafList.begin() + leafIndex);
 }
 
