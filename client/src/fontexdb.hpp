@@ -2,6 +2,7 @@
 #include <cstring>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <utility>
 #include <unordered_map>
 
 #include "zsdb.hpp"
@@ -14,7 +15,7 @@
 
 struct FontexElement
 {
-    uint32_t textEncode = 0;
+    uint32_t textEncode = 0; // this is part of the resource because textEncode can refer to a long-text-string
     SDL_Texture *texture = nullptr;
 };
 
@@ -68,8 +69,8 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         std::vector<uint32_t> m_longTextIndexList;
 
     private:
-        std::unordered_map<std::string, uint32_t > m_longText2Encode;
-        std::unordered_map<uint32_t, const char *> m_encode2LongText;
+        std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> m_longText2Encode;
+        std::unordered_map<uint32_t, const char *>                     m_encode2LongText;
 
     public:
         FontexDB(size_t resMax)
@@ -123,7 +124,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
 
         SDL_Texture *retrieve(uint8_t fontIndex, uint8_t fontSize, uint8_t fontStyle, const char *utf8String)
         {
-            return retrieve(utf8f::buildU64Key(fontIndex, fontSize, fontStyle, textEncode(utf8String)));
+            return retrieve(utf8f::buildU64Key(fontIndex, fontSize, fontStyle, encodeString(utf8String)));
         }
 
     public:
@@ -175,7 +176,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         void freeResource(FontexElement &) override;
 
     private:
-        uint32_t textEncode(const char *utf8String)
+        uint32_t encodeString(const char *utf8String)
         {
             fflassert(utf8String);
 
@@ -186,7 +187,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }
 
             if(auto p = m_longText2Encode.find(utf8String); p != m_longText2Encode.end()){
-                return p->second;
+                return p->second.first;
             }
 
             const auto currIndex = [this] -> uint32_t
@@ -206,7 +207,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }
 
             const auto encodedIndex = encodeRange(3, currIndex);
-            const auto insertedString = m_longText2Encode.try_emplace(utf8String, encodedIndex);
+            const auto insertedString = m_longText2Encode.try_emplace(utf8String, std::make_pair(encodedIndex, 0)); // allocate slot only, no resource refers to it now
             const auto insertedEncode = m_encode2LongText.try_emplace(encodedIndex, insertedString.first->first.c_str());
 
             fflassert(insertedString.second);
@@ -226,7 +227,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }
         }
 
-        static std::tuple<size_t, uint32_t> decodeRange(uint32_t val)
+        static std::pair<size_t, uint32_t> decodeRange(uint32_t val)
         {
             if     (val <= R1_BASE + R1_MAX) return {1, val - R1_BASE};
             else if(val <= R2_BASE + R2_MAX) return {2, val - R2_BASE};

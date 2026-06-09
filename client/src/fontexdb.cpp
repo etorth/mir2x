@@ -28,9 +28,33 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
     const auto fontStyle  = to_u8 ((key & 0X000000FF00000000) >> 32);
     const auto textEncode = to_u32((key & 0X00000000FFFFFFFF) >>  0);
 
+    const auto fnReturnValue = [textEncode, this](SDL_Texture *texture) -> std::optional<std::tuple<FontexElement, size_t>>
+    {
+        // long-text is part of the resource
+        // shall not return nullopt if the load has allocated a long-text
+
+        const auto useLongText = (decodeRange(textEncode).first == 3);
+        if(useLongText){
+            if(auto &refCount = m_longText2Encode.at(m_encode2LongText.at(textEncode)).second; ++refCount == 0){
+                throw fflpanic("reference count for textEncode {} overflows", textEncode);
+            }
+        }
+
+        if(texture){
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texture);
+            return std::make_tuple(FontexElement{textEncode, texture}, texW * texH + 50);
+        }
+        else if(useLongText){
+            return std::make_tuple(FontexElement{textEncode, nullptr}, 1);
+        }
+        else{
+            return std::nullopt;
+        }
+    };
+
     auto ttfPtr = findTTF(ttfIndex);
     if(!ttfPtr){
-        return std::nullopt;
+        return fnReturnValue(nullptr);
     }
 
     TTF_SetFontKerning(ttfPtr, 0);
@@ -73,12 +97,8 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
             }
         default:
             {
-                if(auto p = m_encode2LongText.find(textEncode); p != m_encode2LongText.end()){
-                    utf8String = p->second;
-                }
-                else{
-                    return std::nullopt;
-                }
+                utf8String = m_encode2LongText.at(textEncode);
+                break;
             }
     }
 
@@ -100,23 +120,13 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
     }
 
     if(!surfPtr){
-        return std::nullopt;
+        return fnReturnValue(nullptr);
     }
 
     auto texPtr = g_sdlDevice->createTextureFromSurface(surfPtr);
     SDL_FreeSurface(surfPtr);
 
-    if(texPtr){
-        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-        return std::make_tuple(FontexElement
-        {
-            .textEncode = textEncode,
-            .texture = texPtr,
-        },
-
-        texW * texH + 50);
-    }
-    return std::nullopt;
+    return fnReturnValue(texPtr); // texPtr can be nullptr
 }
 
 void FontexDB::freeResource(FontexElement &element)
@@ -124,13 +134,19 @@ void FontexDB::freeResource(FontexElement &element)
     if(element.texture){
         SDL_DestroyTexture(element.texture);
         element.texture = nullptr;
+    }
 
-        if(const auto [range, index] = decodeRange(element.textEncode); range == 3){
-            if(auto p = m_encode2LongText.find(element.textEncode); p != m_encode2LongText.end()){
-                m_longTextIndexList.push_back(index);
-                m_longText2Encode.erase(p->second);
-                m_encode2LongText.erase(p);
-            }
+    if(const auto [range, index] = decodeRange(element.textEncode); range == 3){
+        auto p = m_encode2LongText.find(element.textEncode); fflassert(p != m_encode2LongText.end(), element.textEncode);
+        auto q = m_longText2Encode.find(p->second         ); fflassert(q != m_longText2Encode.end(), *p                );
+
+        if(q->second.second > 1){
+            q->second.second--;
+        }
+        else{
+            m_encode2LongText.erase(p);
+            m_longText2Encode.erase(q);
+            m_longTextIndexList.push_back(index);
         }
     }
 }
