@@ -792,7 +792,7 @@ void XMLTypeset::buildTypeset(int x, int y)
             if(leafOff == 0){
                 m_leafInfoList.push_back(LeafInfo
                 {
-                    .tokenX = to_d(m_lineList[currLine].content.size()) - 1,
+                    .tokenX = to_d(m_lineList[currLine].content.size() - tokenList.size()),
                     .tokenY = currLine,
                 });
             }
@@ -811,7 +811,7 @@ void XMLTypeset::buildTypeset(int x, int y)
         if(leafOff == 0){
             m_leafInfoList.push_back(LeafInfo
             {
-                .tokenX = to_d(m_lineList[currLine].content.size()) - 1,
+                .tokenX = to_d(m_lineList[currLine].content.size() - tokenList.size()),
                 .tokenY = currLine,
             });
         }
