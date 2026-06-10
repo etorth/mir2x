@@ -16,6 +16,11 @@
 struct FontexElement
 {
     uint32_t textEncode = 0; // this is part of the resource because textEncode can refer to a long-text-string
+
+    uint32_t left  :  8 = 0;
+    uint32_t right :  8 = 0;
+    uint32_t ascent: 16 = 0;
+
     SDL_Texture *texture = nullptr;
 };
 
@@ -154,7 +159,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         std::tuple<std::string, std::string> fontName(uint8_t font)
         {
             if(!hasFont(font)){
-                throw fflpanic("invalid font index: {}", to_u(font));
+                throw fflpanic("invalid font index: {}", font);
             }
 
             if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
@@ -166,7 +171,19 @@ class FontexDB: public innDB<uint64_t, FontexElement>
 
                 return {familyName, styleName};
             }
-            throw fflpanic("failed to load font: {}", to_u(font));
+            throw fflpanic("failed to load font: {}", font);
+        }
+
+        int fontAscent(uint8_t font)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+                return TTF_FontAscent(ttfPtr);
+            }
+            throw fflpanic("failed to load font: {}", font);
         }
 
     public:
