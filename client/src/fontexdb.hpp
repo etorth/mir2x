@@ -186,6 +186,42 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             throw fflpanic("failed to load font: {}", font);
         }
 
+        int fontHeight(uint8_t font)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+                return TTF_FontHeight(ttfPtr);
+            }
+            throw fflpanic("failed to load font: {}", font);
+        }
+
+        int fontLineSkip(uint8_t font)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+                return TTF_FontLineSkip(ttfPtr);
+            }
+            throw fflpanic("failed to load font: {}", font);
+        }
+
+        bool fontMono(uint8_t font)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+                return TTF_FontFaceIsFixedWidth(ttfPtr) != 0;
+            }
+            throw fflpanic("failed to load font: {}", font);
+        }
+
     public:
         std::optional<std::tuple<FontexElement, size_t>> loadResource(uint64_t) override;
 
