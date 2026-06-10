@@ -63,22 +63,22 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
     }
 
     TTF_SetFontKerning(ttf, useMiniToken ? 0 : 1);
-    if(fontStyle){
+    {
         int sdlTTFStyle = 0;
         if(fontStyle & FONTSTYLE_BOLD){
-            sdlTTFStyle &= TTF_STYLE_BOLD;
+            sdlTTFStyle |= TTF_STYLE_BOLD;
         }
 
         if(fontStyle & FONTSTYLE_ITALIC){
-            sdlTTFStyle &= TTF_STYLE_ITALIC;
+            sdlTTFStyle |= TTF_STYLE_ITALIC;
         }
 
         if(fontStyle & FONTSTYLE_UNDERLINE){
-            sdlTTFStyle &= TTF_STYLE_UNDERLINE;
+            sdlTTFStyle |= TTF_STYLE_UNDERLINE;
         }
 
         if(fontStyle & FONTSTYLE_STRIKETHROUGH){
-            sdlTTFStyle &= TTF_STYLE_STRIKETHROUGH;
+            sdlTTFStyle |= TTF_STYLE_STRIKETHROUGH;
         }
 
         TTF_SetFontStyle(ttf, sdlTTFStyle);
@@ -109,81 +109,97 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
 
     SDL_Surface *surf = nullptr;
     if(useMiniToken){
-        const auto metrics = getGlyphMetrics(ttf, index);
+        if(hasGlphy(ttf, index)){
+            const auto metrics = getGlyphMetrics(ttf, index);
 
-        const auto minx    = std::get<0>(metrics);
-        const auto maxy    = std::get<3>(metrics);
-        const auto advance = std::get<4>(metrics);
+            const auto minx    = std::get<0>(metrics);
+            const auto maxy    = std::get<3>(metrics);
+            const auto advance = std::get<4>(metrics);
 
-        const auto padding = getGlyphPadding  (metrics);
-        const auto pixSize = getGlyphPixelSize(metrics);
+            const auto padding = getGlyphPadding  (metrics);
+            const auto pixSize = getGlyphPixelSize(metrics);
 
-        result.left   = to_i32(std::get<0>(padding));
-        result.right  = to_i32(std::get<1>(padding));
-        result.ascent = to_i32(std::get<2>(padding));
+            if(pixSize.first <= 0 || pixSize.second <= 0){
+                fflassert(isTransparant(ttf, index), index);
+                const auto emptyPixSize = getGlyphPixelSize(ttf, utf8f::str2code("a"));
 
-        if(pixSize.first <= 0 || pixSize.second <= 0){
-            fflassert(isTransparant(ttf, index), index);
-            const auto emptyPixSize = getGlyphPixelSize(ttf, utf8f::str2code("a"));
+                fflassert(emptyPixSize.first  > 0, emptyPixSize);
+                fflassert(emptyPixSize.second > 0, emptyPixSize);
 
-            fflassert(emptyPixSize.first  > 0, emptyPixSize);
-            fflassert(emptyPixSize.second > 0, emptyPixSize);
-
-            surf = SDL_CreateRGBSurfaceWithFormat(0, advance, emptyPixSize.second, 32, SDL_PIXELFORMAT_ARGB8888);
-            if(fontStyle & FONTSTYLE_SOLID){
-                SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
-            }
-            else if(fontStyle & FONTSTYLE_SHADED){
-                SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
-            }
-            else{
-                SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 255, 255, 255, 0));
-            }
-        }
-        else{
-            if(fontStyle & FONTSTYLE_SOLID){
-                // create an texture that only has two colors: RGBA: (0, 0, 0, 0) and (255, 255, 255, 0)
-                // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
-                surf = TTF_RenderGlyph32_Solid(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
-            }
-            else if(fontStyle & FONTSTYLE_SHADED){
-                // create an texture that has color: (x, x, x, 0), x = 0~255
-                // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
-                surf = TTF_RenderGlyph32_Shaded(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF), colorf::RGBA2SDLColor(0X00, 0X00, 0X00, 0X00));
-            }
-            else{
-                // create an texture that has color: (255, 255, 255, x), x = 0~255
-                // cannot be used for SDL_BLENDMODE_NONE, otherwise will get a white opaque block
-                surf = TTF_RenderGlyph32_Blended(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
-            }
-
-            fflassert(pixSize.first  <= surf->w);
-            fflassert(pixSize.second <= surf->h);
-
-            if(pixSize.first < surf->w || pixSize.second < surf->h){
-                if(auto minisurf = SDL_CreateRGBSurfaceWithFormat(0, pixSize.first, pixSize.second, 32, SDL_PIXELFORMAT_ARGB8888)){
-                    SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
-
-                    // in SDL_ttf 2.24, TTF_RenderGlyph32_* internally routes through TTF_RenderUTF8_*, which returns a surface tailored to the full line height.
-                    // the actual bounding box of the single glyph bitmap within this surface is located at (xstart + minx, ystart + ascent - maxy).
-
-                    SDL_Rect src
-                    {
-                        std::max<int>(0, minx),
-                        std::max<int>(0, TTF_FontAscent(ttf) - maxy),
-                        pixSize.first,
-                        pixSize.second,
-                    };
-
-                    if(SDL_BlitSurface(surf, &src, minisurf, nullptr)){
-                        SDL_FreeSurface(minisurf); // blit failed, use original surface
+                if((surf = SDL_CreateRGBSurfaceWithFormat(0, advance, emptyPixSize.second, 32, SDL_PIXELFORMAT_ARGB8888))){
+                    if(fontStyle & FONTSTYLE_SOLID){
+                        SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+                    }
+                    else if(fontStyle & FONTSTYLE_SHADED){
+                        SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
                     }
                     else{
-                        SDL_FreeSurface(surf);
-                        surf = minisurf;
+                        SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 255, 255, 255, 0));
+                    }
+
+                    result.left   = 0;
+                    result.right  = 0;
+                    result.ascent = surf->h;
+                }
+            }
+            else{
+                if(fontStyle & FONTSTYLE_SOLID){
+                    // create an texture that only has two colors: RGBA: (0, 0, 0, 0) and (255, 255, 255, 0)
+                    // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
+                    surf = TTF_RenderGlyph32_Solid(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
+                }
+                else if(fontStyle & FONTSTYLE_SHADED){
+                    // create an texture that has color: (x, x, x, 0), x = 0~255
+                    // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
+                    surf = TTF_RenderGlyph32_Shaded(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF), colorf::RGBA2SDLColor(0X00, 0X00, 0X00, 0X00));
+                }
+                else{
+                    // create an texture that has color: (255, 255, 255, x), x = 0~255
+                    // cannot be used for SDL_BLENDMODE_NONE, otherwise will get a white opaque block
+                    surf = TTF_RenderGlyph32_Blended(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
+                }
+
+                if(surf){
+                    fflassert(pixSize.first  <= surf->w);
+                    fflassert(pixSize.second <= surf->h);
+
+                    // setup padding
+                    // as default if crop failed or crop not happen
+                    result.left   = 0;
+                    result.right  = 0;
+                    result.ascent = to_i32(std::get<2>(padding));
+
+                    if(pixSize.first < surf->w || pixSize.second < surf->h){
+                        if(auto minisurf = SDL_CreateRGBSurfaceWithFormat(0, pixSize.first, pixSize.second, 32, SDL_PIXELFORMAT_ARGB8888)){
+                            SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
+
+                            // in SDL_ttf 2.24, TTF_RenderGlyph32_* internally routes through TTF_RenderUTF8_*, which returns a surface tailored to the full line height.
+                            // the actual bounding box of the single glyph bitmap within this surface is located at (xstart + minx, ystart + ascent - maxy).
+
+                            SDL_Rect src
+                            {
+                                std::max<int>(0, minx),
+                                std::max<int>(0, TTF_FontAscent(ttf) - maxy),
+                                pixSize.first,
+                                pixSize.second,
+                            };
+
+                            if(SDL_BlitSurface(surf, &src, minisurf, nullptr)){
+                                SDL_FreeSurface(minisurf); // blit failed, use original surface
+                            }
+                            else{
+                                SDL_FreeSurface(surf);
+                                surf = minisurf;
+                                result.left  = to_i32(std::get<0>(padding));
+                                result.right = to_i32(std::get<1>(padding));
+                            }
+                        }
                     }
                 }
             }
+        }
+        else{
+            return fnReturnValue(); // TODO: create a [x] box is missing
         }
     }
     else{
@@ -263,13 +279,19 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
 
                         SDL_Rect dst{addLeft, 0, surf->w, surf->h};
                         SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
-                        SDL_BlitSurface(surf, nullptr, padded, &dst);
 
-                        SDL_FreeSurface(surf);
-                        surf = padded;
+                        if(SDL_BlitSurface(surf, nullptr, padded, &dst)){
+                            SDL_FreeSurface(padded);
+                            result.left = addLeft;
+                            result.right = addRight;
+                        }
+                        else{
+                            SDL_FreeSurface(surf);
+                            surf = padded;
+                            result.left = 0;
+                            result.right = 0;
+                        }
 
-                        result.left = 0;
-                        result.right = 0;
                         result.ascent = to_u32(TTF_FontAscent(ttf)); // can have 1 pixel shift for bitmap fonts
                     }
                 }
@@ -277,12 +299,10 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
         }
     }
 
-    if(!surf){
-        return fnReturnValue();
+    if(surf){
+        result.texture = g_sdlDevice->createTextureFromSurface(surf);
+        SDL_FreeSurface(surf);
     }
-
-    result.texture = g_sdlDevice->createTextureFromSurface(surf);
-    SDL_FreeSurface(surf);
 
     return fnReturnValue(); // result.texture can be nullptr
 }
