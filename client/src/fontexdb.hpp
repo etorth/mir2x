@@ -233,4 +233,11 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             else if(val <= R2_BASE + R2_MAX) return {2, val - R2_BASE};
             else                             return {3, val - R3_BASE};
         }
+
+    private:
+        static uint32_t hasGlphy     (TTF_Font *, uint32_t);
+        static bool     isTransparant(TTF_Font *, uint32_t);
+
+    private:
+        static std::tuple<int, int, int, int, int> getGlyphMetrics(TTF_Font *, uint32_t);
 };

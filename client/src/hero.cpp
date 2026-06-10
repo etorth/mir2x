@@ -39,7 +39,7 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
           .showTime = 5000,
           .entryLimit = 10,
           .align = ItemAlign::UPLEFT,
-          .margin{3, 2, 3, 2},
+          .margin{2, 2, 2, 2},
           .bgColor = colorf::RGBA(0, 0, 0, 128),
       }}
 {
