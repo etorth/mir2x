@@ -199,7 +199,67 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
             }
         }
         else{
-            return fnReturnValue(); // TODO: create a [x] box is missing
+            // font doesn't support this glyph
+            // we manually create a texture with a white cross: [x]
+            const auto metrics = getGlyphMetrics(ttf, utf8f::str2code("a"));
+            const auto padding = getGlyphPadding  (metrics);
+            const auto pixSize = getGlyphPixelSize(metrics);
+
+            fflassert(pixSize.first  > 0, pixSize);
+            fflassert(pixSize.second > 0, pixSize);
+
+            if((surf = SDL_CreateRGBSurfaceWithFormat(0, pixSize.first, pixSize.second, 32, SDL_PIXELFORMAT_ARGB8888))){
+                if(fontStyle & FONTSTYLE_SOLID){
+                    SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+                }
+                else if(fontStyle & FONTSTYLE_SHADED){
+                    SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+                }
+                else{
+                    SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 255, 255, 255, 0));
+                }
+
+                const int thickness = std::max<int>(1, std::min<int>(surf->w, surf->h) / 6);
+                const auto xColor = [fontStyle, surf]
+                {
+                    if(fontStyle & FONTSTYLE_SOLID){
+                        return SDL_MapRGBA(surf->format, 255, 255, 255, 0);
+                    }
+                    else if(fontStyle & FONTSTYLE_SHADED){
+                        return SDL_MapRGBA(surf->format, 255, 255, 255, 0);
+                    }
+                    else{
+                        return SDL_MapRGBA(surf->format, 255, 255, 255, 255);
+                    }
+                }();
+
+                SDL_Rect top    = { 0                  ,                   0,   surf->w, thickness };
+                SDL_Rect bottom = { 0                  , surf->h - thickness,   surf->w, thickness };
+                SDL_Rect left   = { 0                  ,                   0, thickness,   surf->h };
+                SDL_Rect right  = { surf->w - thickness,                   0, thickness,   surf->h };
+
+                SDL_FillRect(surf, &top   , xColor);
+                SDL_FillRect(surf, &bottom, xColor);
+                SDL_FillRect(surf, &left  , xColor);
+                SDL_FillRect(surf, &right , xColor);
+
+                int innerW = surf->w - (thickness * 2);
+                int innerH = surf->h - (thickness * 2);
+
+                for(int i = 0; i < innerW; i++){
+                    const auto y = thickness + (i * innerH) / innerW;
+
+                    SDL_Rect p1 {           thickness + i    , y, thickness, thickness }; // up-left  -> down-right
+                    SDL_Rect p2 { surf->w - thickness - i - 1, y, thickness, thickness }; // up-right -> down-left
+
+                    SDL_FillRect(surf, &p1, xColor);
+                    SDL_FillRect(surf, &p2, xColor);
+                }
+
+                result.left   = to_i32(std::get<0>(padding));
+                result.right  = to_i32(std::get<1>(padding));
+                result.ascent = to_i32(std::get<2>(padding));
+            }
         }
     }
     else{
