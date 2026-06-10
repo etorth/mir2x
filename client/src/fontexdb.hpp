@@ -17,9 +17,9 @@ struct FontexElement
 {
     uint32_t textEncode = 0; // this is part of the resource because textEncode can refer to a long-text-string
 
-    uint32_t left  :  8 = 0;
-    uint32_t right :  8 = 0;
-    uint32_t ascent: 16 = 0;
+    int32_t left  :  8 = 0;
+    int32_t right :  8 = 0;
+    int32_t ascent: 16 = 0;
 
     SDL_Texture *texture = nullptr;
 };
@@ -251,10 +251,21 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             else                             return {3, val - R3_BASE};
         }
 
-    private:
-        static uint32_t hasGlphy     (TTF_Font *, uint32_t);
-        static bool     isTransparant(TTF_Font *, uint32_t);
+    public:
+        static uint32_t hasGlphy(TTF_Font *, uint32_t);
 
     private:
-        static std::tuple<int, int, int, int, int> getGlyphMetrics(TTF_Font *, uint32_t);
+        static bool isTransparant(TTF_Font *, uint32_t);
+        static bool isTransparant(const std::tuple<int, int, int, int, int> &);
+
+    private:
+        static std::tuple<int, int, int, int, int> getGlyphMetrics(TTF_Font *, uint32_t); // returns everything
+
+    private:
+        static std::tuple<int, int, int> getGlyphPadding  (const std::tuple<int, int, int, int, int> &);
+        static std::pair <int, int>      getGlyphPixelSize(const std::tuple<int, int, int, int, int> &);
+
+    private:
+        static std::tuple<int, int, int> getGlyphPadding  (TTF_Font *font, uint32_t codePoint){ return getGlyphPadding  (getGlyphMetrics(font, codePoint)); }
+        static std::pair <int, int>      getGlyphPixelSize(TTF_Font *font, uint32_t codePoint){ return getGlyphPixelSize(getGlyphMetrics(font, codePoint)); }
 };

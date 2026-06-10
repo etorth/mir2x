@@ -33,23 +33,24 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
     const auto useMiniToken = (range == 1);
     const auto useLongText  = (range == 3);
 
-    const auto fnReturnValue = [useLongText, textEncode, this](SDL_Texture *texture) -> std::optional<std::tuple<FontexElement, size_t>>
+    FontexElement result {.textEncode = textEncode};
+    const auto fnReturnValue = [useLongText, &result, this] -> std::optional<std::tuple<FontexElement, size_t>>
     {
         // long-text is part of the resource
         // shall not return nullopt if the load has allocated a long-text
 
         if(useLongText){
-            if(auto &refCount = m_longText2Encode.at(m_encode2LongText.at(textEncode)).second; ++refCount == 0){
-                throw fflpanic("reference count for textEncode {} overflows", textEncode);
+            if(auto &refCount = m_longText2Encode.at(m_encode2LongText.at(result.textEncode)).second; ++refCount == 0){
+                throw fflpanic("reference count for textEncode {} overflows", result.textEncode);
             }
         }
 
-        if(texture){
-            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texture);
-            return std::make_tuple(FontexElement{textEncode, texture}, texW * texH + 50);
+        if(result.texture){
+            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(result.texture);
+            return std::make_tuple(result, texW * texH + 50);
         }
         else if(useLongText){
-            return std::make_tuple(FontexElement{textEncode, nullptr}, 1);
+            return std::make_tuple(result, 1);
         }
         else{
             return std::nullopt;
@@ -58,7 +59,7 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
 
     auto ttf = findTTF(ttfIndex);
     if(!ttf){
-        return fnReturnValue(nullptr);
+        return fnReturnValue();
     }
 
     TTF_SetFontKerning(ttf, useMiniToken ? 0 : 1);
@@ -107,11 +108,85 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
     }
 
     SDL_Surface *surf = nullptr;
-    // if(useMiniToken){
-    //
-    // }
-    // else
-    {
+    if(useMiniToken){
+        const auto metrics = getGlyphMetrics(ttf, index);
+
+        const auto minx    = std::get<0>(metrics);
+        const auto maxy    = std::get<3>(metrics);
+        const auto advance = std::get<4>(metrics);
+
+        const auto padding = getGlyphPadding  (metrics);
+        const auto pixSize = getGlyphPixelSize(metrics);
+
+        result.left   = to_i32(std::get<0>(padding));
+        result.right  = to_i32(std::get<1>(padding));
+        result.ascent = to_i32(std::get<2>(padding));
+
+        if(pixSize.first <= 0 || pixSize.second <= 0){
+            fflassert(isTransparant(ttf, index), index);
+            const auto emptyPixSize = getGlyphPixelSize(ttf, utf8f::str2code("a"));
+
+            fflassert(emptyPixSize.first  > 0, emptyPixSize);
+            fflassert(emptyPixSize.second > 0, emptyPixSize);
+
+            surf = SDL_CreateRGBSurfaceWithFormat(0, advance, emptyPixSize.second, 32, SDL_PIXELFORMAT_ARGB8888);
+            if(fontStyle & FONTSTYLE_SOLID){
+                SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+            }
+            else if(fontStyle & FONTSTYLE_SHADED){
+                SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+            }
+            else{
+                SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 255, 255, 255, 0));
+            }
+        }
+        else{
+            if(fontStyle & FONTSTYLE_SOLID){
+                // create an texture that only has two colors: RGBA: (0, 0, 0, 0) and (255, 255, 255, 0)
+                // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
+                surf = TTF_RenderGlyph32_Solid(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
+            }
+            else if(fontStyle & FONTSTYLE_SHADED){
+                // create an texture that has color: (x, x, x, 0), x = 0~255
+                // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
+                surf = TTF_RenderGlyph32_Shaded(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF), colorf::RGBA2SDLColor(0X00, 0X00, 0X00, 0X00));
+            }
+            else{
+                // create an texture that has color: (255, 255, 255, x), x = 0~255
+                // cannot be used for SDL_BLENDMODE_NONE, otherwise will get a white opaque block
+                surf = TTF_RenderGlyph32_Blended(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
+            }
+
+            fflassert(pixSize.first  <= surf->w);
+            fflassert(pixSize.second <= surf->h);
+
+            if(pixSize.first < surf->w || pixSize.second < surf->h){
+                if(auto minisurf = SDL_CreateRGBSurfaceWithFormat(0, pixSize.first, pixSize.second, 32, SDL_PIXELFORMAT_ARGB8888)){
+                    SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
+
+                    // in SDL_ttf 2.24, TTF_RenderGlyph32_* internally routes through TTF_RenderUTF8_*, which returns a surface tailored to the full line height.
+                    // the actual bounding box of the single glyph bitmap within this surface is located at (xstart + minx, ystart + ascent - maxy).
+
+                    SDL_Rect src
+                    {
+                        std::max<int>(0, minx),
+                        std::max<int>(0, TTF_FontAscent(ttf) - maxy),
+                        pixSize.first,
+                        pixSize.second,
+                    };
+
+                    if(SDL_BlitSurface(surf, &src, minisurf, nullptr)){
+                        SDL_FreeSurface(minisurf); // blit failed, use original surface
+                    }
+                    else{
+                        SDL_FreeSurface(surf);
+                        surf = minisurf;
+                    }
+                }
+            }
+        }
+    }
+    else{
         if(fontStyle & FONTSTYLE_SOLID){
             // create an texture that only has two colors: RGBA: (0, 0, 0, 0) and (255, 255, 255, 0)
             // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
@@ -192,6 +267,10 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
 
                         SDL_FreeSurface(surf);
                         surf = padded;
+
+                        result.left = 0;
+                        result.right = 0;
+                        result.ascent = to_u32(TTF_FontAscent(ttf)); // can have 1 pixel shift for bitmap fonts
                     }
                 }
             }
@@ -199,13 +278,13 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
     }
 
     if(!surf){
-        return fnReturnValue(nullptr);
+        return fnReturnValue();
     }
 
-    auto tex = g_sdlDevice->createTextureFromSurface(surf);
+    result.texture = g_sdlDevice->createTextureFromSurface(surf);
     SDL_FreeSurface(surf);
 
-    return fnReturnValue(tex); // tex can be nullptr
+    return fnReturnValue(); // result.texture can be nullptr
 }
 
 void FontexDB::freeResource(FontexElement &element)
@@ -237,16 +316,12 @@ uint32_t FontexDB::hasGlphy(TTF_Font *font, uint32_t codePoint)
 
 bool FontexDB::isTransparant(TTF_Font *font, uint32_t codePoint)
 {
-    int minx = 0;
-    int maxx = 0;
-    int miny = 0;
-    int maxy = 0;
-    int advance = 0;
+    return isTransparant(getGlyphMetrics(font, codePoint));
+}
 
-    if(TTF_GlyphMetrics32(font, codePoint, &minx, &maxx, &miny, &maxy, &advance)){
-        throw fflpanic("failed to query glphy metrics: {}", codePoint);
-    }
-
+bool FontexDB::isTransparant(const std::tuple<int, int, int, int, int> &t)
+{
+    const auto [minx, maxx, miny, maxy, _] = t;
     return minx == 0
         && maxx == 0
         && miny == 0
@@ -266,4 +341,16 @@ std::tuple<int, int, int, int, int> FontexDB::getGlyphMetrics(TTF_Font *font, ui
     }
 
     return {minx, maxx, miny, maxy, advance};
+}
+
+std::tuple<int, int, int> FontexDB::getGlyphPadding(const std::tuple<int, int, int, int, int> &t)
+{
+    const auto [minx, maxx, _, maxy, advance] = t;
+    return {minx, advance - maxx, maxy};
+}
+
+std::pair<int, int> FontexDB::getGlyphPixelSize(const std::tuple<int, int, int, int, int> &t)
+{
+    const auto [minx, maxx, miny, maxy, _] = t;
+    return {maxx - minx, maxy - miny};
 }
