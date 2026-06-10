@@ -749,7 +749,7 @@ void XMLTypeset::buildTypeset(int x, int y)
         }
     }
 
-    int leafIndex    = 0;
+    int leafIndex = 0;
     int leafOff = 0;
 
     if(x || y){
@@ -762,7 +762,7 @@ void XMLTypeset::buildTypeset(int x, int y)
         if(advanced == 0){
             // only prev location is valid
             // from (x, y) all token should be removed
-            m_leaf2TokenLoc.resize(prevLeaf + 1);
+            m_leafInfoList.resize(prevLeaf + 1);
 
             m_lineList.resize(prevY + 1);
             m_lineList[prevY].startY = 0;
@@ -776,7 +776,7 @@ void XMLTypeset::buildTypeset(int x, int y)
 
     // we start to push token from (leafIndex, leafOff)
     // if current it's a utf8String and not start from the beginning, we should keep the leaf record
-    m_leaf2TokenLoc.resize(leafIndex + to_d(leafOff > 0));
+    m_leafInfoList.resize(leafIndex + to_d(leafOff > 0));
 
     m_lineList.resize(y + 1);
     m_lineList[y].startY = 0;
@@ -790,7 +790,11 @@ void XMLTypeset::buildTypeset(int x, int y)
         tokenList = createTokenLine(leafIndex, leafOff, &tokenList); // TODO: well-defined ???
         if(addRawTokenLine(currLine, tokenList)){
             if(leafOff == 0){
-                m_leaf2TokenLoc.push_back({m_lineList[currLine].content.size() - 1, currLine});
+                m_leafInfoList.push_back(LeafInfo
+                {
+                    .tokenX = to_d(m_lineList[currLine].content.size()) - 1,
+                    .tokenY = currLine,
+                });
             }
             continue;
         }
@@ -805,7 +809,11 @@ void XMLTypeset::buildTypeset(int x, int y)
         }
 
         if(leafOff == 0){
-            m_leaf2TokenLoc.push_back({m_lineList[currLine].content.size() - 1, currLine});
+            m_leafInfoList.push_back(LeafInfo
+            {
+                .tokenX = to_d(m_lineList[currLine].content.size()) - 1,
+                .tokenY = currLine,
+            });
         }
     }
 
@@ -1100,12 +1108,12 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
     const bool copyFullLine = (cursorX == lineTokenCount(cursorY));
     const bool copyLeafTLoc = (cursorInLeaf > 0);
 
-    newTpset->m_lineList     .assign(m_lineList     .begin(), m_lineList     .begin() + cursorY   + (copyFullLine ? 1 : 0));
-    newTpset->m_leaf2TokenLoc.assign(m_leaf2TokenLoc.begin(), m_leaf2TokenLoc.begin() + leafIndex + (copyLeafTLoc ? 1 : 0));
+    newTpset->m_lineList    .assign(m_lineList    .begin(), m_lineList    .begin() + cursorY   + (copyFullLine ? 1 : 0));
+    newTpset->m_leafInfoList.assign(m_leafInfoList.begin(), m_leafInfoList.begin() + leafIndex + (copyLeafTLoc ? 1 : 0));
     newTpset->m_paragraph.reset(m_paragraph->split(leafIndex, cursorInLeaf));
 
     m_lineList.clear();
-    m_leaf2TokenLoc.clear();
+    m_leafInfoList.clear();
 
     if(!newTpset->empty()){
         if(copyFullLine){

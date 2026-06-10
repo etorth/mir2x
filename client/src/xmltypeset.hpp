@@ -21,6 +21,19 @@ class XMLTypeset // means XMLParagraph typeset
             std::deque<TOKEN> content;
         };
 
+        struct LeafInfo
+        {
+            int tokenX = 0;
+            int tokenY = 0;
+            int  maxH1 = 0;
+            int  maxH2 = 0;
+
+            std::tuple<int, int> tokenLoc() const
+            {
+                return {tokenX, tokenY};
+            }
+        };
+
     private:
         int m_lineWidth;
 
@@ -56,7 +69,7 @@ class XMLTypeset // means XMLParagraph typeset
         std::deque<contentLine> m_lineList;
 
     private:
-        std::deque<std::tuple<int, int>> m_leaf2TokenLoc;
+        std::deque<LeafInfo> m_leafInfoList;
 
     public:
         XMLTypeset(
@@ -221,7 +234,7 @@ class XMLTypeset // means XMLParagraph typeset
         std::tuple<int, int> leafTokenLoc(int leafIndex) const
         {
             if(leafValid(leafIndex)){
-                return m_leaf2TokenLoc.at(leafIndex);
+                return m_leafInfoList.at(leafIndex).tokenLoc();
             }
             throw fflpanic("invalid leaf: {}", leafIndex);
         }
