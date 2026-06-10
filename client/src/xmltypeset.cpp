@@ -753,6 +753,14 @@ void XMLTypeset::buildTypeset(int x, int y)
     int leafOff = 0;
 
     if(x || y){
+        if(const auto [startLeaf, startLeafOff] = leafLocInXMLParagraph(x, y); !m_paragraph->leaf(startLeaf).wrap().value_or(true)){
+            for(int i = 0; i < startLeafOff; ++i){
+                std::tie(x, y) = prevTokenLoc(x, y);
+            }
+        }
+    }
+
+    if(x || y){
         const auto [prevX, prevY] = prevTokenLoc(x, y);
         const auto [prevLeaf, prevLeafOff] = leafLocInXMLParagraph(prevX, prevY);
 
