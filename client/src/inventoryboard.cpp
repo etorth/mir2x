@@ -120,12 +120,6 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
               }
           },
 
-          .font
-          {
-              .id = 1,
-              .size = 12,
-          },
-
           .parent{this},
       }}
 
