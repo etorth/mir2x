@@ -175,7 +175,7 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
                 const int addRight = std::max<int>(0, padLeft  - padRight);
 
                 if(addLeft || addRight){
-                    if(auto padded = SDL_CreateRGBSurfaceWithFormat(0, surf->w + addLeft + addRight, surf->h, 32, surf->format->format)){
+                    if(auto padded = SDL_CreateRGBSurfaceWithFormat(0, surf->w + addLeft + addRight, surf->h, 32, SDL_PIXELFORMAT_ARGB8888)){
                         if(fontStyle & FONTSTYLE_SOLID){
                             SDL_FillRect(padded, nullptr, SDL_MapRGBA(padded->format, 0, 0, 0, 0));
                         }
