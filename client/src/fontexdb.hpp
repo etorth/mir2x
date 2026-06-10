@@ -119,17 +119,20 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         }
 
     public:
-        SDL_Texture *retrieve(uint64_t key)
+        SDL_Texture *retrieve(uint64_t key, int *left = nullptr, int *right = nullptr, int *ascent = nullptr)
         {
             if(auto p = innLoad(key)){
+                if(left  ) *  left = p->  left;
+                if(right ) * right = p-> right;
+                if(ascent) *ascent = p->ascent;
                 return p->texture;
             }
             return nullptr;
         }
 
-        SDL_Texture *retrieve(uint8_t fontIndex, uint8_t fontSize, uint8_t fontStyle, const char *utf8String)
+        SDL_Texture *retrieve(uint8_t fontIndex, uint8_t fontSize, uint8_t fontStyle, const char *utf8String, int *left = nullptr, int *right = nullptr, int *ascent = nullptr)
         {
-            return retrieve(utf8f::buildU64Key(fontIndex, fontSize, fontStyle, encodeString(utf8String)));
+            return retrieve(utf8f::buildU64Key(fontIndex, fontSize, fontStyle, encodeString(utf8String)), left, right, ascent);
         }
 
     public:
