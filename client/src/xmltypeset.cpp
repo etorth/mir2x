@@ -706,7 +706,7 @@ TOKEN XMLTypeset::createToken(int leafIndex, int leafOff) const
     }
 }
 
-std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, std::vector<TOKEN> *tokenListPtr) const
+std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, int &maxH1, int &maxH2, std::vector<TOKEN> *tokenListPtr) const
 {
     std::vector<TOKEN> tokenList;
     if(tokenListPtr){
@@ -716,6 +716,8 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, std::
     tokenList.clear();
     if(m_paragraph->leaf(leafIndex).wrap().value_or(true)){
         tokenList.push_back(createToken(leafIndex, leafOff));
+        maxH1 = std::max<int>(maxH1, tokenList.back().box.state.h1);
+        maxH2 = std::max<int>(maxH2, tokenList.back().box.state.h2);
     }
     else{
         if(leafOff != 0){
@@ -728,6 +730,8 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, std::
 
         for(int i = 0; i < m_paragraph->leaf(leafIndex).length(); ++i){
             tokenList.push_back(createToken(leafIndex, i));
+            maxH1 = std::max<int>(maxH1, tokenList.back().box.state.h1);
+            maxH2 = std::max<int>(maxH2, tokenList.back().box.state.h2);
         }
     }
     return tokenList;
@@ -768,6 +772,7 @@ void XMLTypeset::buildTypeset(int x, int y)
         if(advanced == 0){
             // only prev location is valid
             // from (x, y) all token should be removed
+            // leave maxH1/maxH2 as it is, there may be descrepency
             m_leafInfoList.resize(prevLeaf + 1);
 
             m_lineList.resize(prevY + 1);
@@ -793,13 +798,27 @@ void XMLTypeset::buildTypeset(int x, int y)
 
     std::vector<TOKEN> tokenList;
     for(; (advanced < 0) || (advanced == to_d(tokenList.size())); std::tie(leafIndex, leafOff, advanced) = m_paragraph->nextLeafOff(leafIndex, leafOff, tokenList.size())){
-        tokenList = createTokenLine(leafIndex, leafOff, &tokenList);
+        // if not start from offset 0, we use cached maxH1/maxH2
+        // this can cause some mismatch because [0, offset) may contain token with maxH1/maxH2 smaller than the cached value
+        //
+        // since a leaf use same font/size/style
+        // the descrepency is acceptable, leave it as it is for now.
+        int firstMaxH1 = 0;
+        int firstMaxH2 = 0;
+
+        int &maxH1 = (leafOff == 0) ? firstMaxH1 : m_leafInfoList.at(leafIndex).maxH1;
+        int &maxH2 = (leafOff == 0) ? firstMaxH2 : m_leafInfoList.at(leafIndex).maxH2;
+
+        tokenList = createTokenLine(leafIndex, leafOff, maxH1, maxH2, &tokenList);
         if(addRawTokenLine(currLine, tokenList)){
             if(leafOff == 0){
                 m_leafInfoList.push_back(LeafInfo
                 {
                     .tokenX = to_d(m_lineList[currLine].content.size() - tokenList.size()),
                     .tokenY = currLine,
+
+                    .maxH1 = firstMaxH1,
+                    .maxH2 = firstMaxH2,
                 });
             }
             continue;
@@ -819,6 +838,9 @@ void XMLTypeset::buildTypeset(int x, int y)
             {
                 .tokenX = to_d(m_lineList[currLine].content.size() - tokenList.size()),
                 .tokenY = currLine,
+
+                .maxH1 = firstMaxH1,
+                .maxH2 = firstMaxH2,
             });
         }
     }
@@ -1181,6 +1203,7 @@ void XMLTypeset::draw(Widget::ROIMap m) const
         for(int token = 0; token < lineTokenCount(line); ++token){
             const auto tokenPtr = getToken(token, line);
             const auto &leaf = m_paragraph->leaf(tokenPtr->leaf);
+            const auto &leafInfo = m_leafInfoList.at(tokenPtr->leaf);
 
             if(lastLeaf != tokenPtr->leaf){
                 fgColorVal  = leaf.  color().value_or(  color());
@@ -1193,9 +1216,9 @@ void XMLTypeset::draw(Widget::ROIMap m) const
 
             if(colorf::A(bgColorVal)){
                 int bgBoxX = tokenPtr->box.state.x - tokenPtr->box.state.w1;
-                int bgBoxY = tokenPtr->box.state.y;
+                int bgBoxY = tokenPtr->box.state.y + tokenPtr->box.state.h1 - leafInfo.maxH1;
                 int bgBoxW = tokenPtr->box.info.w + tokenPtr->box.state.w1 + tokenPtr->box.state.w2;
-                int bgBoxH = tokenPtr->box.info.h;
+                int bgBoxH = leafInfo.maxH1 + leafInfo.maxH2;
 
                 if(mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, bgBoxX, bgBoxY, bgBoxW, bgBoxH)){
                     g_sdlDevice->fillRectangle(bgColorVal, bgBoxX + dstDX, bgBoxY + dstDY, bgBoxW, bgBoxH);

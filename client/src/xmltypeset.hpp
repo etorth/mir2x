@@ -433,7 +433,7 @@ class XMLTypeset // means XMLParagraph typeset
 
     private:
         TOKEN createToken(int, int) const;
-        std::vector<TOKEN> createTokenLine(int, int, std::vector<TOKEN> * = nullptr) const;
+        std::vector<TOKEN> createTokenLine(int, int, int &, int &, std::vector<TOKEN> * = nullptr) const;
 
     private:
         void buildTypeset(int, int);
