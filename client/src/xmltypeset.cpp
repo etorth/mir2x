@@ -1560,8 +1560,5 @@ void XMLTypeset::setLineWidth(int lineWidth)
 
 int XMLTypeset::getDefaultFontHeight() const
 {
-    if(auto texPtr = g_fontexDB->retrieve(utf8f::buildU64Key(m_font, m_fontSize, m_fontStyle, utf8f::str2code("a")))){
-        return SDLDeviceHelper::getTextureHeight(texPtr);
-    }
-    return 20;
+    return g_fontexDB->fontHeight(m_font, m_fontSize);
 }
