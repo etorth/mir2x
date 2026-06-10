@@ -26,12 +26,37 @@ namespace utf8f
     std::string peekLast(const std::string &);
     std::string peekLast(const std::string_view &);
 
+    constexpr uint16_t buildTTFIndex(uint8_t fontIndex, uint8_t fontSize)
+    {
+        return (static_cast<uint16_t>(fontIndex) << 8) | fontSize;
+    }
+
+    constexpr std::tuple<uint8_t, uint8_t> extractTTFIndex(uint16_t ttfIndex)
+    {
+        return
+        {
+            static_cast<uint8_t>(ttfIndex >> 8),
+            static_cast<uint8_t>(ttfIndex >> 0),
+        };
+    }
+
     constexpr uint64_t buildU64Key(uint8_t font, uint8_t fontSize, uint8_t fontStyle, uint32_t codePoint)
     {
         return (static_cast<uint64_t>(font     ) << 48)
              + (static_cast<uint64_t>(fontSize ) << 40)
              + (static_cast<uint64_t>(fontStyle) << 32)
              + (static_cast<uint64_t>(codePoint) <<  0);
+    }
+
+    constexpr std::tuple<uint8_t, uint8_t, uint8_t, uint32_t> extractU64Key(uint64_t u64Key)
+    {
+        return
+        {
+            static_cast<uint8_t> (u64Key >> 48),
+            static_cast<uint8_t> (u64Key >> 40),
+            static_cast<uint8_t> (u64Key >> 32),
+            static_cast<uint32_t>(u64Key >>  0),
+        };
     }
 
     std::vector<int> buildUTF8Off(const char *);

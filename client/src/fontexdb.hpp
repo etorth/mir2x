@@ -110,6 +110,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
 
     private:
         TTF_Font *findTTF(uint16_t);
+        TTF_Font *findTTF(uint8_t, uint8_t);
 
     public:
         void load(const char *fontDBName)
@@ -165,7 +166,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
                 throw fflpanic("invalid font index: {}", font);
             }
 
-            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+            if(auto ttfPtr = findTTF(font, 16)){
                 const auto familyName = TTF_FontFaceFamilyName(ttfPtr);
                 const auto  styleName = TTF_FontFaceStyleName (ttfPtr);
 
@@ -177,49 +178,49 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             throw fflpanic("failed to load font: {}", font);
         }
 
-        int fontAscent(uint8_t font)
+        int fontAscent(uint8_t font, uint8_t fontSize)
         {
             if(!hasFont(font)){
                 throw fflpanic("invalid font index: {}", font);
             }
 
-            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+            if(auto ttfPtr = findTTF(font, fontSize)){
                 return TTF_FontAscent(ttfPtr);
             }
             throw fflpanic("failed to load font: {}", font);
         }
 
-        int fontHeight(uint8_t font)
+        int fontHeight(uint8_t font, uint8_t fontSize)
         {
             if(!hasFont(font)){
                 throw fflpanic("invalid font index: {}", font);
             }
 
-            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+            if(auto ttfPtr = findTTF(font, fontSize)){
                 return TTF_FontHeight(ttfPtr);
             }
             throw fflpanic("failed to load font: {}", font);
         }
 
-        int fontLineSkip(uint8_t font)
+        int fontLineSkip(uint8_t font, uint8_t fontSize)
         {
             if(!hasFont(font)){
                 throw fflpanic("invalid font index: {}", font);
             }
 
-            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+            if(auto ttfPtr = findTTF(font, fontSize)){
                 return TTF_FontLineSkip(ttfPtr);
             }
             throw fflpanic("failed to load font: {}", font);
         }
 
-        bool fontMono(uint8_t font)
+        bool fontMono(uint8_t font, uint8_t fontSize)
         {
             if(!hasFont(font)){
                 throw fflpanic("invalid font index: {}", font);
             }
 
-            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+            if(auto ttfPtr = findTTF(font, fontSize)){
                 return TTF_FontFaceIsFixedWidth(ttfPtr) != 0;
             }
             throw fflpanic("failed to load font: {}", font);
@@ -290,12 +291,20 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             else                             return {3, val - R3_BASE};
         }
 
-    public:
+    private:
         static uint32_t hasGlphy(TTF_Font *, uint32_t);
+
+    public:
+        uint32_t hasGlphy(uint16_t,          uint32_t);
+        uint32_t hasGlphy( uint8_t, uint8_t, uint32_t);
 
     private:
         static bool isTransparant(TTF_Font *, uint32_t);
         static bool isTransparant(const std::tuple<int, int, int, int, int> &);
+
+    public:
+        bool isTransparant(uint16_t,          uint32_t);
+        bool isTransparant(uint8_t , uint8_t, uint32_t);
 
     private:
         static std::tuple<int, int, int, int, int> getGlyphMetrics(TTF_Font *, uint32_t); // returns everything

@@ -22,12 +22,15 @@ TTF_Font *FontexDB::findTTF(uint16_t ttfIndex)
     }();
 }
 
+TTF_Font *FontexDB::findTTF(uint8_t ttfIndex, uint8_t ttfSize)
+{
+    return findTTF(utf8f::buildTTFIndex(ttfIndex, ttfSize));
+}
+
 std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t key)
 {
-    const auto ttfIndex   = to_u16((key & 0X00FFFF0000000000) >> 40);
-    const auto fontStyle  = to_u8 ((key & 0X000000FF00000000) >> 32);
-    const auto textEncode = to_u32((key & 0X00000000FFFFFFFF) >>  0);
-
+    const auto [fontIndex, fontSize, fontStyle, textEncode] = utf8f::extractU64Key(key);
+    const auto ttfIndex = utf8f::buildTTFIndex(fontIndex, fontSize);
     const auto [range, index] = decodeRange(textEncode);
 
     const auto useMiniToken = (range == 1);
@@ -394,6 +397,16 @@ uint32_t FontexDB::hasGlphy(TTF_Font *font, uint32_t codePoint)
     return TTF_GlyphIsProvided32(font, codePoint);
 }
 
+uint32_t FontexDB::hasGlphy(uint16_t ttfIndex, uint32_t codePoint)
+{
+    return hasGlphy(findTTF(ttfIndex), codePoint);
+}
+
+uint32_t FontexDB::hasGlphy(uint8_t fontIndex, uint8_t fontSize, uint32_t codePoint)
+{
+    return hasGlphy(findTTF(fontIndex, fontSize), codePoint);
+}
+
 bool FontexDB::isTransparant(TTF_Font *font, uint32_t codePoint)
 {
     return isTransparant(getGlyphMetrics(font, codePoint));
@@ -406,6 +419,16 @@ bool FontexDB::isTransparant(const std::tuple<int, int, int, int, int> &t)
         && maxx == 0
         && miny == 0
         && maxy == 0; // TBD: should I check advance > 0 ?
+}
+
+bool FontexDB::isTransparant(uint16_t ttfIndex, uint32_t codePoint)
+{
+    return isTransparant(getGlyphMetrics(findTTF(ttfIndex), codePoint));
+}
+
+bool FontexDB::isTransparant(uint8_t fontIndex, uint8_t fontSize, uint32_t codePoint)
+{
+    return isTransparant(getGlyphMetrics(findTTF(fontIndex, fontSize), codePoint));
 }
 
 std::tuple<int, int, int, int, int> FontexDB::getGlyphMetrics(TTF_Font *font, uint32_t codePoint)

@@ -1491,7 +1491,8 @@ bool XMLTypeset::blankToken(int x, int y) const
 
     const auto fnCheckBlank = [](uint64_t u64Key)
     {
-        return (u64Key & 0X00000000FFFFFFFFULL) == ' ';
+        const auto [fontIndex, fontSize, _, codePoint] = utf8f::extractU64Key(u64Key);
+        return g_fontexDB->isTransparant(fontIndex, fontSize, codePoint);
     };
 
     return (leaf.type() == LEAF_UTF8STR) && fnCheckBlank(tokenPtr->utf8char.key);
