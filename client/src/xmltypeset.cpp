@@ -23,12 +23,12 @@ void XMLTypeset::setTokenBoxWordSpace(int argLine)
         throw fflpanic("invalid line: {}", argLine);
     }
 
-    int nW1 = m_wordSpace / 2;
-    int nW2 = m_wordSpace - nW1;
+    const int extraW1 = m_wordSpace / 2;
+    const int extraW2 = m_wordSpace - extraW1;
 
-    for(auto &rstToken: m_lineList[argLine].content){
-        rstToken.box.state.w1 = nW1;
-        rstToken.box.state.w2 = nW2;
+    for(auto &tk: m_lineList[argLine].content){
+        tk.box.state.w1 += extraW1;
+        tk.box.state.w2 += extraW2;
     }
 
     if(!m_lineList[argLine].content.empty()){
@@ -48,12 +48,12 @@ int XMLTypeset::LineFullWidth(int argLine) const
         throw fflpanic("invalid line: {}", argLine);
     }
 
-    int nWidth = 0;
+    int fullWidth = 0;
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
         auto pToken = getToken(nIndex, argLine);
-        nWidth += (pToken->box.state.w1 + pToken->box.info.w + pToken->box.state.w2);
+        fullWidth += (pToken->box.state.w1 + pToken->box.info.w + pToken->box.state.w2);
     }
-    return nWidth;
+    return fullWidth;
 }
 
 // calculate line width without W1/W2
@@ -289,7 +289,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
     throw fflpanic("can't do padding to width: {}", MaxLineWidth());
 }
 
-void XMLTypeset::resetOneLine(int argLine, bool bCREnd)
+void XMLTypeset::resetOneLine(int argLine, bool crEnd)
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
@@ -324,14 +324,32 @@ void XMLTypeset::resetOneLine(int argLine, bool bCREnd)
     }();
 
     for(int i = 0, tokenCnt = lineTokenCount(argLine); i < tokenCnt; ++i){
-        getToken(i, argLine)->box.state.w1 = (i     == 0       ) ? 0 : wordSpace[0];
-        getToken(i, argLine)->box.state.w2 = (i + 1 == tokenCnt) ? 0 : wordSpace[1];
+        int left = 0;
+        int right = 0;
+
+        auto tkp = getToken(i, argLine);
+        fflassert(tkp);
+
+        switch(m_paragraph->leaf(tkp->leaf).type()){
+            case LEAF_UTF8STR:
+                {
+                    g_fontexDB->retrieve(tkp->utf8char.key, &left, &right);
+                    break;
+                }
+            default:
+                {
+                    break;
+                }
+        }
+
+        tkp->box.state.w1 = (i     == 0       ) ? 0 : (left  + wordSpace[0]);
+        tkp->box.state.w2 = (i + 1 == tokenCnt) ? 0 : (right + wordSpace[1]);
     }
 
     switch(lineAlign()){
         case LALIGN_JUSTIFY:
             {
-                if(!bCREnd){
+                if(!crEnd){
                     LineJustifyPadding(argLine);
                 }
                 break;
@@ -590,13 +608,19 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t font, uint8_t fontSize, 
     std::memset(&(token), 0, sizeof(token));
     auto u64Key = utf8f::buildU64Key(font, fontSize, fontStyle, codePoint);
 
+    int left = 0;
+    int right = 0;
+    int ascent = 0;
+
     token.leaf = leafIndex;
-    if(auto texPtr = g_fontexDB->retrieve(u64Key)){
+    if(auto texPtr = g_fontexDB->retrieve(u64Key, &left, &right, &ascent)){
         const auto [boxW, boxH] = SDLDeviceHelper::getTextureSize(texPtr);
         token.box.info.w   = boxW;
         token.box.info.h   = boxH;
-        token.box.state.h1 = token.box.info.h;
-        token.box.state.h2 = 0;
+        token.box.state.w1 = left;
+        token.box.state.w2 = right;
+        token.box.state.h1 = std::max<int>(0, ascent);
+        token.box.state.h2 = std::max<int>(0, boxH - ascent);
         token.utf8char.key = u64Key;
         return token;
     }
@@ -662,9 +686,9 @@ TOKEN XMLTypeset::createToken(int leafIndex, int leafOff) const
     switch(auto &lf = m_paragraph->leaf(leafIndex); lf.type()){
         case LEAF_UTF8STR:
             {
-                auto font      = lf.font()     .value_or(m_font);
-                auto fontSize  = lf.fontSize() .value_or(m_fontSize);
-                auto fontStyle = lf.fontStyle().value_or(m_fontStyle);
+                const auto font      = lf.font()     .value_or(m_font);
+                const auto fontSize  = lf.fontSize() .value_or(m_fontSize);
+                const auto fontStyle = lf.fontStyle().value_or(m_fontStyle);
                 return buildUTF8Token(leafIndex, font, fontSize, fontStyle, lf.peekUTF8Code(leafOff));
             }
         case LEAF_EMOJI:

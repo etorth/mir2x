@@ -41,12 +41,12 @@ struct TOKEN
             // we put mutable attributes here
             // should be valid after token board layout done
 
-            uint16_t x;
-            uint16_t y;
-            uint16_t w1;
-            uint16_t w2;
-            uint16_t h1;
-            uint16_t h2;
+            int16_t x;
+            int16_t y;
+            int16_t w1;
+            int16_t w2;
+            int16_t h1;
+            int16_t h2;
         }state;
     }box;
 
