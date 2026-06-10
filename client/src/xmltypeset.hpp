@@ -180,8 +180,8 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        std::tuple<int, int> prevTokenLoc(int, int) const;
-        std::tuple<int, int> nextTokenLoc(int, int) const;
+        std::tuple<int, int> prevTokenLoc(int, int, int = 1, bool = true) const;
+        std::tuple<int, int> nextTokenLoc(int, int, int = 1, bool = true) const;
 
     public:
         std::tuple<int, int> prevCursorLoc(int, int) const;

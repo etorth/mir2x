@@ -754,9 +754,7 @@ void XMLTypeset::buildTypeset(int x, int y)
 
     if(x || y){
         if(const auto [startLeaf, startLeafOff] = leafLocInXMLParagraph(x, y); !m_paragraph->leaf(startLeaf).wrap().value_or(true)){
-            for(int i = 0; i < startLeafOff; ++i){
-                std::tie(x, y) = prevTokenLoc(x, y);
-            }
+            std::tie(x, y) = prevTokenLoc(x, y, startLeafOff);
         }
     }
 
@@ -887,81 +885,98 @@ void XMLTypeset::resetBoardPixelRegion()
     m_ph = maxPY + 1 - minPY;
 }
 
-std::tuple<int, int> XMLTypeset::prevTokenLoc(int nX, int nY) const
+std::tuple<int, int> XMLTypeset::prevTokenLoc(int argX, int argY, int count, bool strict) const
 {
-    if(!tokenLocValid(nX, nY)){
-        throw fflpanic("invalid token location: ({}, {})", nX, nY);
+    if(!tokenLocValid(argX, argY)){
+        throw fflpanic("invalid token location: ({}, {})", argX, argY);
     }
 
-    if(nX == 0 && nY == 0){
-        throw fflpanic("try find token before (0, 0)");
+    if(count < 0){
+        throw fflpanic("invalid token jump count: {}", count);
     }
 
-    if(nX > 0){
-        return {nX - 1, nY};
+    while(count > argX){
+        count -= (argX + 1);
+        if(argY == 0){
+            if(strict){
+                throw fflpanic("try find token before (0, 0)");
+            }
+            return {0, 0};
+        }
+
+        argY--;
+        argX = lineTokenCount(argY) - 1;
     }
-    else{
-        return {lineTokenCount(nY - 1) - 1, nY - 1};
-    }
+
+    return {argX - count, argY};
 }
 
-std::tuple<int, int> XMLTypeset::nextTokenLoc(int nX, int nY) const
+std::tuple<int, int> XMLTypeset::nextTokenLoc(int argX, int argY, int count, bool strict) const
 {
-    if(!tokenLocValid(nX, nY)){
-        throw fflpanic("invalid token location: ({}, {})", nX, nY);
+    if(!tokenLocValid(argX, argY)){
+        throw fflpanic("invalid token location: ({}, {})", argX, argY);
     }
 
-    if(std::tie(nX, nY) == lastTokenLoc()){
-        throw fflpanic("try find token location after ({}, {})", nX, nY);
+    if(count < 0){
+        throw fflpanic("invalid token jump count: {}", count);
     }
 
-    if(nX + 1 >= lineTokenCount(nY)){
-        return {0, nY + 1};
+    for(int tokenLeft = lineTokenCount(argY) - argX; count >= tokenLeft;){
+        count -= tokenLeft;
+        if(argY + 1 >= lineCount()){
+            if(strict){
+                throw fflpanic("try find token location after ({}, {})", argX, argY);
+            }
+            return lastTokenLoc();
+        }
+
+        argY++;
+        argX = 0;
+        tokenLeft = lineTokenCount(argY) - argX;
     }
-    else{
-        return {nX + 1, nY};
-    }
+
+    return {argX + count, argY};
 }
 
-std::tuple<int, int> XMLTypeset::prevCursorLoc(int nX, int nY) const
+std::tuple<int, int> XMLTypeset::prevCursorLoc(int argX, int argY) const
 {
-    if(!cursorLocValid(nX, nY)){
-        throw fflpanic("invalid cursor location: ({}, {})", nX, nY);
+    if(!cursorLocValid(argX, argY)){
+        throw fflpanic("invalid cursor location: ({}, {})", argX, argY);
     }
 
-    if(nY == 0){
-        if(nX == 0){
+    if(argY == 0){
+        if(argX == 0){
             throw fflpanic("try find cursor location before (0, 0)");
         }
         else{
-            return {nX - 1, nY};
+            return {argX - 1, argY};
         }
     }
     else{
-        if(nX > 1){
-            return {nX - 1, nY};
+        if(argX > 1){
+            return {argX - 1, argY};
         }
         else{
-            return {lineTokenCount(nY - 1), nY - 1};
+            return {lineTokenCount(argY - 1), argY - 1};
         }
     }
 }
 
-std::tuple<int, int> XMLTypeset::nextCursorLoc(int nX, int nY) const
+std::tuple<int, int> XMLTypeset::nextCursorLoc(int argX, int argY) const
 {
-    if(!cursorLocValid(nX, nY)){
-        throw fflpanic("invalid cursor location: ({}, {})", nX, nY);
+    if(!cursorLocValid(argX, argY)){
+        throw fflpanic("invalid cursor location: ({}, {})", argX, argY);
     }
 
-    if(std::tie(nX, nY) == lastCursorLoc()){
-        throw fflpanic("try find cursor location after ({}, {})", nX, nY);
+    if(std::tie(argX, argY) == lastCursorLoc()){
+        throw fflpanic("try find cursor location after ({}, {})", argX, argY);
     }
 
-    if(nX >= lineTokenCount(nY)){
-        return {1, nY + 1};
+    if(argX >= lineTokenCount(argY)){
+        return {1, argY + 1};
     }
     else{
-        return {nX + 1, nY};
+        return {argX + 1, argY};
     }
 }
 
