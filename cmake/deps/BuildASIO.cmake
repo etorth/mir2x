@@ -5,7 +5,8 @@ ExternalProject_Add(
     asio
 
     GIT_REPOSITORY "https://github.com/chriskohlhoff/asio.git"
-    GIT_TAG        "${MIR2X_ASIO_GIT_TAG}"
+    GIT_TAG "${MIR2X_ASIO_GIT_TAG}"
+    GIT_PROGRESS TRUE
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/asio/${MIR2X_ASIO_GIT_TAG}"
 

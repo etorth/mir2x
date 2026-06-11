@@ -8,7 +8,8 @@ FetchContent_Declare(
     libdb
 
     GIT_REPOSITORY https://github.com/berkeleydb/libdb.git
-    GIT_TAG        master
+    GIT_TAG master
+    GIT_PROGRESS TRUE
 
     GIT_PROGRESS 1
 )
@@ -45,7 +46,8 @@ FetchContent_Declare(
     libpinyin
 
     GIT_REPOSITORY https://github.com/libpinyin/libpinyin.git
-    GIT_TAG        main
+    GIT_TAG main
+    GIT_PROGRESS TRUE
 
     GIT_PROGRESS 1
 )

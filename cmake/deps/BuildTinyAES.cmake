@@ -4,7 +4,8 @@ ExternalProject_Add(
     tiny-aes
 
     GIT_REPOSITORY "https://github.com/kokke/tiny-AES-c"
-    GIT_TAG        "master"
+    GIT_TAG "master"
+    GIT_PROGRESS TRUE
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/tiny-aes"
 

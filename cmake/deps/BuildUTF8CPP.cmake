@@ -4,8 +4,9 @@ ExternalProject_Add(
     utf8cpp
 
     GIT_REPOSITORY "https://github.com/nemtrif/utfcpp.git"
-    GIT_TAG        "master"
-  
+    GIT_TAG "master"
+    GIT_PROGRESS TRUE
+
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/utf8cpp"
 
     CONFIGURE_COMMAND ""

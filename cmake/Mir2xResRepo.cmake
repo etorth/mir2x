@@ -4,7 +4,8 @@ ExternalProject_Add(
     mir2x_res
 
     GIT_REPOSITORY "https://github.com/etorth/mir2x_res.git"
-    GIT_TAG        "main"
+    GIT_TAG "main"
+    GIT_PROGRESS TRUE
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/mir2x_res"
 

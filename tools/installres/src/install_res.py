@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 
-RESOURCE_PACKS = (
+CLIENT_RESOURCE_PACKS = (
     ("map", "map/mapbin.zsdb"),
     ("sound/seff", "sound/seff.zsdb"),
     ("sound/bgm", "sound/bgm.zsdb"),
@@ -25,6 +25,10 @@ RESOURCE_PACKS = (
     ("texture/hair", "texture/hair.zsdb"),
     ("texture/equip", "texture/equip.zsdb"),
     ("texture/hero", "texture/hero.zsdb"),
+)
+
+SERVER_RESOURCE_PACKS = (
+    ("map", "map/mapbin.zsdb"),
 )
 
 
@@ -46,6 +50,17 @@ def parse_args():
         "--output-dir",
         required=True,
         help="Directory where packed .zsdb files will be created.",
+    )
+    install_mode = parser.add_mutually_exclusive_group(required=True)
+    install_mode.add_argument(
+        "--install-server",
+        action="store_true",
+        help="Pack server resources.",
+    )
+    install_mode.add_argument(
+        "--install-client",
+        action="store_true",
+        help="Pack client resources.",
     )
     parser.add_argument(
         "--ignore-zsdbmaker-error",
@@ -73,13 +88,14 @@ def main():
     zsdbmaker = resolve_zsdbmaker(args.zsdbmaker)
     input_dir = Path(args.input_dir).resolve()
     output_dir = Path(args.output_dir).resolve()
+    resource_packs = SERVER_RESOURCE_PACKS if args.install_server else CLIENT_RESOURCE_PACKS
 
-    for input_relpath, _ in RESOURCE_PACKS:
+    for input_relpath, _ in resource_packs:
         pack_input_dir = input_dir / input_relpath
         if not pack_input_dir.is_dir():
             raise FileNotFoundError(f"missing resource directory: {pack_input_dir}")
 
-    for input_relpath, output_relpath in RESOURCE_PACKS:
+    for input_relpath, output_relpath in resource_packs:
         pack_input_dir = input_dir / input_relpath
         pack_output_path = (output_dir / output_relpath).resolve()
         pack_output_path.parent.mkdir(parents=True, exist_ok=True)
