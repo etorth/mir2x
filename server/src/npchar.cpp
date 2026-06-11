@@ -192,12 +192,12 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
         sol::state_view sv(s);
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
-            return sol::make_object(sv, sol::nil);
+            return sol::make_object(sv, sol::lua_nil);
         }
 
         auto queryStatement = g_dbPod->createQuery(u8R"###(select fld_value from %s where fld_key='%s')###", npcDBName.c_str(), key.c_str());
         if(!queryStatement.executeStep()){
-            return sol::make_object(sv, sol::nil);
+            return sol::make_object(sv, sol::lua_nil);
         }
         return luaf::buildLuaObj(sv, cerealf::deserialize<luaf::luaVar>(queryStatement.getColumn(0).getString()));
     });
@@ -264,12 +264,12 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
         sol::state_view sv(s);
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
-            return sol::make_object(sv, sol::nil);
+            return sol::make_object(sv, sol::lua_nil);
         }
 
         auto queryStatement = g_dbPod->createQuery(u8R"###(select %s from %s where fld_dbid=%llu)###", key.c_str(), npcDBName.c_str(), to_llu(dbid));
         if(!queryStatement.executeStep()){
-            return sol::make_object(sv, sol::nil);
+            return sol::make_object(sv, sol::lua_nil);
         }
 
         switch(const auto column = queryStatement.getColumn(0); column.getType()){
@@ -287,7 +287,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
                 }
             case SQLITE_NULL:
                 {
-                    return sol::make_object(sv, sol::nil);
+                    return sol::make_object(sv, sol::lua_nil);
                 }
             default:
                 {

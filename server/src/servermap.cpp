@@ -220,7 +220,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         if(auto p = getServerMap()->m_npcList.find(npcName); (p != getServerMap()->m_npcList.end()) && p->second){
             return luaf::buildLuaObj(sol::state_view(s), static_cast<lua_Integer>(p->second));
         }
-        return sol::nil;
+        return sol::lua_nil;
     });
 
     bindFunction("getMonsterCount", [this](sol::variadic_args args) -> int
