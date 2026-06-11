@@ -82,6 +82,23 @@ def resolve_zsdbmaker(zsdbmaker):
     return resolved
 
 
+def latest_resource_mtime_ns(resource_dir):
+    latest_mtime_ns = resource_dir.stat().st_mtime_ns
+    for resource_path in resource_dir.rglob("*"):
+        resource_mtime_ns = resource_path.stat().st_mtime_ns
+        if resource_mtime_ns > latest_mtime_ns:
+            latest_mtime_ns = resource_mtime_ns
+
+    return latest_mtime_ns
+
+
+def is_pack_outdated(pack_input_dir, pack_output_path):
+    if not pack_output_path.exists():
+        return True
+
+    return latest_resource_mtime_ns(pack_input_dir) > pack_output_path.stat().st_mtime_ns
+
+
 def main():
     args = parse_args()
 
@@ -99,6 +116,10 @@ def main():
         pack_input_dir = input_dir / input_relpath
         pack_output_path = (output_dir / output_relpath).resolve()
         pack_output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if not is_pack_outdated(pack_input_dir, pack_output_path):
+            print(f"Skipping {pack_input_dir} -> {pack_output_path}: up to date")
+            continue
 
         print(f"Packing {pack_input_dir} -> {pack_output_path}")
         result = subprocess.run(
