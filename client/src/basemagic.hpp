@@ -41,14 +41,14 @@ class BaseMagic
                   if(const auto magicID = DBCOM_MAGICID(magicName)){
                       return magicID;
                   }
-                  throw fflerror("invalid magicName: %s", to_cstr(magicName));
+                  throw fflpanic("invalid magicName: {}", to_cstr(magicName));
               }())
             , m_magicRecord([this]() -> const auto &
               {
                   if(const auto &mr = DBCOM_MAGICRECORD(magicID())){
                       return mr;
                   }
-                  throw fflerror("invalid magicID: %d", magicID());
+                  throw fflpanic("invalid magicID: {}", magicID());
               }())
             , m_gfxEntryPair([magicName, magicStage]()
               {

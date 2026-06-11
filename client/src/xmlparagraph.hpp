@@ -48,7 +48,7 @@ class XMLParagraph
         auto & leaf(this auto && self, int leafIndex)
         {
             if(!self.leafValid(leafIndex)){
-                throw fflerror("invalid leaf index: %d", leafIndex);
+                throw fflpanic("invalid leaf index: {}", leafIndex);
             }
             return self.m_leafList[leafIndex];
         }
@@ -66,7 +66,7 @@ class XMLParagraph
         auto & backLeaf(this auto && self)
         {
             if(self.m_leafList.empty()){
-                throw fflerror("no leaf");
+                throw fflpanic("no leaf");
             }
             return self.m_leafList.back();
         }
@@ -79,10 +79,11 @@ class XMLParagraph
         void loadXMLNode(const tinyxml2::XMLNode *);
 
     public:
-        void Join(const XMLParagraph &);
+        void join(const XMLParagraph &, bool);
 
     private:
-        size_t insertXMLAfter(tinyxml2::XMLNode *, const char *);
+        size_t insertXMLAtFront(                     const char *);
+        size_t insertXMLAfter  (tinyxml2::XMLNode *, const char *);
 
     public:
         size_t insertLeafXML(int, const char *);

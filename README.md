@@ -71,10 +71,12 @@ libsdl2-mixer-dev
 libsdl2-ttf-dev
 libsdl2-gfx-dev
 liblua5.4-dev
-libfltk1.3-dev
+libfltk1.4-dev
+libcairo2-dev
+libpinyin15-dev
 ```
 
-Cmake complains if libs are missing. After install all these dependencies, clone and compile the repo. By default cmake tries to install in /usr/local. use ``CMAKE_INSTALL_PREFIX" to customize.
+You also needs to install ```pkg-config``` before run cmake. Cmake complains if libs are missing. After install all these dependencies, clone and compile the repo. By default cmake tries to install in /usr/local. use ``CMAKE_INSTALL_PREFIX" to customize.
 
 ```sh
 $ git clone https://github.com/etorth/mir2x.git

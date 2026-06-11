@@ -34,7 +34,7 @@ class ServerWoomaTaurus final: public Monster
                     }
                 default:
                     {
-                        throw fflerror("invalid DC: id = %d, name = %s", dc, to_cstr(DBCOM_MAGICRECORD(dc).name));
+                        throw fflpanic("invalid DC: id = {}, name = {}", dc, to_cstr(DBCOM_MAGICRECORD(dc).name));
                     }
             }
         }

@@ -106,7 +106,7 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *argParent, bool argAuto
         setH(SDLDeviceHelper::getTextureHeight(texPtr));
     }
     else{
-        throw fflerror("no valid purchase status board frame texture");
+        throw fflpanic("no valid purchase status board frame texture");
     }
 }
 
@@ -266,7 +266,7 @@ void ItemListBoard::drawDefault(Widget::ROIMap m) const
             if(const auto header = getGridHeader(i); !header.empty()){
                 LabelBoard
                 {{
-                    .label = to_u8cstr(header),
+                    .label = to_u8rawstr(header).c_str(),
                     .font
                     {
                         .id = 1,

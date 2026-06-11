@@ -22,7 +22,7 @@ class StateTrigger final
                     }
                 }
                 else{
-                    throw fflerror("trigger is not executable");
+                    throw fflpanic("trigger is not executable");
                 }
             }
         }

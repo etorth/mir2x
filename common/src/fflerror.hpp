@@ -1,11 +1,13 @@
 #pragma once
 #include <cstring>
 #include <string>
+#include <format>
 #include <stdexcept>
 #include <execinfo.h>
 #include "strf.hpp"
 
 #define fflerror(...) std::runtime_error(str_ffl() + ": " + str_printf(__VA_ARGS__))
+#define fflpanic(...) std::runtime_error(str_ffl() + ": " + std::format(__VA_ARGS__))
 
 inline std::string _fflerror_helper(size_t index)
 {
@@ -27,13 +29,13 @@ template<typename ... Args> constexpr size_t _fflerror_count_helper(Args && ...)
     return sizeof...(Args);
 }
 
-#define fflreach() fflerror("bad_reach")
-#define fflvalue(...) fflerror("%s", _fflerror_helper(0, __VA_ARGS__).c_str())
+#define fflreach() fflpanic("bad_reach")
+#define fflvalue(...) fflpanic("{}", _fflerror_helper(0, __VA_ARGS__).c_str())
 
 #define fflassert(cond, ...) \
         do{ \
             if(cond){}else{ \
-                throw fflerror("assertion failed: %s%s", #cond, \
+                throw fflpanic("assertion failed: {}{}", #cond, \
                         (_fflerror_count_helper(__VA_ARGS__) == 0) ? "" : (std::string(", ") + _fflerror_helper(0, ##__VA_ARGS__)).c_str()); \
             } \
         } \

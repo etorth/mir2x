@@ -43,24 +43,22 @@ ProcessSelectChar::ProcessSelectChar()
       }}
 
     , m_notifyBoard
-      {
-          DIR_NONE,
-          [this]{ return m_canvas.w() / 2; },
-          [this]{ return m_canvas.h() / 2; },
-          0, // single line
-
-          1,
-          15,
-          0,
-
-          colorf::YELLOW_A255,
-
-          5000,
-          1,
-
-          &m_canvas,
-          false,
-      }
+      {{
+          .dir = DIR_NONE,
+          .x = [this]{ return m_canvas.w() / 2; },
+          .y = [this]{ return m_canvas.h() / 2; },
+          .width = 0,
+          .font
+          {
+              .id = 1,
+              .size = 15,
+              .color = colorf::YELLOW_A255,
+          },
+          .showTime = 5000,
+          .entryLimit = 1,
+          .align = ItemAlign::CENTER,
+          .parent{&m_canvas},
+      }}
 
     , m_deleteInput
       {
@@ -75,7 +73,7 @@ ProcessSelectChar::ProcessSelectChar()
     m_create.setShow([this]{ return hasChar(); });
     m_delete.setShow([this]{ return hasChar(); });
 
-    m_notifyBoard.addLog(u8"正在下载游戏角色");
+    m_notifyBoard.addMessage(u8"正在下载游戏角色");
 
     g_client->send(CM_QUERYCHAR);
     g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040002));
@@ -131,14 +129,14 @@ void ProcessSelectChar::onStart()
 {
     if(m_smChar.has_value()){
         if(m_smChar.value().name.empty()){
-            m_notifyBoard.addLog(u8"请先创建游戏角色");
+            m_notifyBoard.addMessage(u8"请先创建游戏角色");
         }
         else{
             g_client->send(CM_ONLINE);
         }
     }
     else{
-        m_notifyBoard.addLog(u8"正在下载游戏角色");
+        m_notifyBoard.addMessage(u8"正在下载游戏角色");
     }
 }
 
@@ -149,11 +147,11 @@ void ProcessSelectChar::onCreate()
             g_client->requestProcess(PROCESSID_CREATECHAR);
         }
         else{
-            m_notifyBoard.addLog(u8"一个账号只能创建一个游戏角色");
+            m_notifyBoard.addMessage(u8"一个账号只能创建一个游戏角色");
         }
     }
     else{
-        m_notifyBoard.addLog(u8"正在下载游戏角色");
+        m_notifyBoard.addMessage(u8"正在下载游戏角色");
     }
 }
 
@@ -161,12 +159,12 @@ void ProcessSelectChar::onDelete()
 {
     if(hasChar()){
         m_deleteInput.setShow(true);
-        m_deleteInput.waitInput(u8"<layout><par>删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。</par></layout>", [this](std::u8string inputString)
+        m_deleteInput.waitInput(u8"<layout><par>删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。</par></layout>", true, [this](std::u8string inputString)
         {
             CMDeleteChar cmDC;
             std::memset(&cmDC, 0, sizeof(cmDC));
             if(inputString.empty() || inputString.size() > SYS_PWDSIZE){
-                m_notifyBoard.addLog(u8"无效的密码");
+                m_notifyBoard.addMessage(u8"无效的密码");
             }
             else{
                 cmDC.password.assign(inputString);
@@ -176,7 +174,7 @@ void ProcessSelectChar::onDelete()
         });
     }
     else{
-        m_notifyBoard.addLog(u8"此账号没有角色");
+        m_notifyBoard.addMessage(u8"此账号没有角色");
     }
 }
 
@@ -198,12 +196,7 @@ void ProcessSelectChar::drawCharName() const
         xmlStr += str_printf(u8R"###(     <par color='RGB(237,226,200)'>角色：%s</par> )###""\n", to_cstr(name));
         xmlStr += str_printf(u8R"###(     <par color='RGB(175,196,175)'>等级：%d</par> )###""\n", to_d(SYS_LEVEL(exp)));
         for(const auto jobStr: jobf::jobName(m_smChar.value().job)){
-            if(jobStr){
-                xmlStr += str_printf(u8R"###( <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobStr));
-            }
-            else{
-                break;
-            }
+            xmlStr += str_printf(u8R"###( <par color='RGB(231,231,189)'>职业：%s</par> )###""\n", to_cstr(jobStr));
         }
         xmlStr += str_printf(u8R"###( </layout> )###""\n");
 
@@ -262,9 +255,9 @@ std::optional<uint32_t> ProcessSelectChar::charGfxBaseID() const
 {
     if(m_smChar.has_value() && !m_smChar.value().name.empty()){
         const bool gender = m_smChar.value().gender;
-        const auto jobIndexOpt = jobf::jobGfxIndex(m_smChar.value().job).front();
+        const auto jobIndexList = jobf::jobGfxIndex(m_smChar.value().job);
 
-        fflassert(jobIndexOpt.has_value());
+        fflassert(!jobIndexList.empty());
         fflassert(m_charAni >= 0);
         fflassert(m_charAni <  4);
 
@@ -276,7 +269,7 @@ std::optional<uint32_t> ProcessSelectChar::charGfxBaseID() const
         // 00 - 04: max = 32   frame
 
         return 0
-            + (to_u32(jobIndexOpt.value()) << 10)
+            + (to_u32(jobIndexList.front()) << 10)
             + (to_u32(gender             ) <<  9)
             + (to_u32(m_charAni          ) <<  5);
     }
@@ -381,7 +374,10 @@ void ProcessSelectChar::switchCharGfx()
 
     if(m_charAni == 1){
         const int offGender = to_d(m_smChar.value().gender);
-        const int offJob = jobf::jobGfxIndex(m_smChar.value().job).front().value();
+        const auto jobIndexList = jobf::jobGfxIndex(m_smChar.value().job);
+
+        fflassert(!jobIndexList.empty());
+        const int offJob = jobIndexList.front();
 
         const uint32_t seffID = UINT32_C(0X00010000) // base
             | (to_u32(offGender) << 4)               //

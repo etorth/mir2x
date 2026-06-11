@@ -49,18 +49,21 @@ ProcessCreateChar::ProcessCreateChar()
       }}
 
     , m_notifyBoard
-      {
-          DIR_UPLEFT,
-          0,
-          0,
-          0,
-          1,
-          15,
-          0,
-          colorf::YELLOW + colorf::A_SHF(255),
-          5000,
-          10,
-      }
+      {{
+          .dir = DIR_UPLEFT,
+          .x = 0,
+          .y = 0,
+          .width = 0,
+          .font
+          {
+              .id = 1,
+              .size = 15,
+              .color = colorf::YELLOW + colorf::A_SHF(255),
+          },
+          .showTime = 5000,
+          .entryLimit = 10,
+          .align = ItemAlign::CENTER,
+      }}
 {
     g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040001));
     if(!g_clientArgParser->disableIME){
@@ -124,13 +127,13 @@ void ProcessCreateChar::draw() const
         g_imeBoard->drawRoot({});
     }
 
-    const int notifX = (800 - m_notifyBoard.pw()) / 2;
+    const int notifX = (800 - m_notifyBoard.w()) / 2;
     const int notifY = (600 - m_notifyBoard. h()) / 2;
     const int margin = 15;
 
     if(!m_notifyBoard.empty()){
-        g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
-        g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), notifX - margin, notifY - margin, m_notifyBoard.pw() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+        g_sdlDevice->fillRectangle(colorf::RGBA(0, 0,   0, 128), notifX - margin, notifY - margin, m_notifyBoard.w() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
+        g_sdlDevice->drawRectangle(colorf::RGBA(0, 0, 255, 128), notifX - margin, notifY - margin, m_notifyBoard.w() + margin * 2, m_notifyBoard.h() + margin * 2, 8);
     }
     m_notifyBoard.draw({.dir=DIR_UPLEFT, .x=notifX, .y=notifY});
 }
@@ -229,14 +232,14 @@ void ProcessCreateChar::onSubmit()
     const auto nameStr = m_nameBox.getRawString();
 
     if(nameStr.empty() || nameStr.size() >= cmCC.name.capacity()){
-        m_notifyBoard.addLog(u8"无效的角色名");
+        m_notifyBoard.addMessage(u8"无效的角色名");
     }
     else{
         cmCC.name.assign(nameStr);
         cmCC.job = m_job;
         cmCC.gender = m_activeGender;
         g_client->send({CM_CREATECHAR, cmCC});
-        m_notifyBoard.addLog(u8"提交中");
+        m_notifyBoard.addMessage(u8"提交中");
     }
 }
 

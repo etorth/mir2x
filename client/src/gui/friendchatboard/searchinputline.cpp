@@ -137,7 +137,7 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
                             }
                         default:
                             {
-                                throw fflerror("query failed in server");
+                                throw fflpanic("query failed in server");
                             }
                       }
                   });

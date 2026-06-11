@@ -106,7 +106,7 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
         setH(SDLDeviceHelper::getTextureHeight(texPtr));
     }
     else{
-        throw fflerror("no valid player status board frame texture");
+        throw fflpanic("no valid player status board frame texture");
     }
 }
 
@@ -235,7 +235,7 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
         g_sdlDevice->drawTexture(texPtr, m.x + m_equipCharX + dx, m.y + m_equipCharY + dy);
     }
 
-    LabelBoard{{.label = to_u8cstr(myHeroPtr->getName()), .font{.color = myHeroPtr->getNameColor() | 0XFF}}}.draw({.dir=DIR_NONE, .x=m.x + 164, .y=m.y + 38});
+    LabelBoard{{.label = to_u8rawstr(myHeroPtr->getName()).c_str(), .font{.color = myHeroPtr->getNameColor() | 0XFF}}}.draw({.dir=DIR_NONE, .x=m.x + 164, .y=m.y + 38});
     if(const auto dressItemID = myHeroPtr->getWLItem(WLG_DRESS).itemID){
         if(const auto dressGfxID = DBCOM_ITEMRECORD(dressItemID).pkgGfxID; dressGfxID >= 0){
             if(auto [texPtr, dx, dy] = g_equipDB->retrieve(to_u32(dressGfxID) | 0X01000000); texPtr){

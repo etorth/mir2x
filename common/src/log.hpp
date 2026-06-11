@@ -80,7 +80,7 @@ class Log final
                 case LOGTYPEV_WARNING: return WARNING;
                 case LOGTYPEV_FATAL  : return FATAL;
                 case LOGTYPEV_TRACE  : return DEBUG; // message only goes to log file, not to console or gui
-                default              : throw fflerror("invalid log type: %d", type);
+                default              : throw fflpanic("invalid log type: {}", type);
             }
         }
 

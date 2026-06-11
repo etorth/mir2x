@@ -6,6 +6,7 @@
 #include "serdesmsg.hpp"
 #include "jobf.hpp"
 #include "creaturemovable.hpp"
+#include "messagestackboard.hpp"
 
 struct HeroFrameGfxSeq final
 {
@@ -38,6 +39,9 @@ class Hero: public CreatureMovable
         SDWLDesp m_sdWLDesp;
 
     protected:
+        MessageStackBoard m_playerSayBoard;
+
+    protected:
         std::unordered_set<uint32_t> m_swingMagicList;
 
     public:
@@ -51,6 +55,9 @@ class Hero: public CreatureMovable
 
     public:
         void drawFrame(int, int, int, int, bool) override;
+
+    public:
+        void addPlayerSay(const std::string &);
 
     public:
         bool onHorse() const
@@ -231,6 +238,8 @@ class Hero: public CreatureMovable
     public:
         uint32_t static faceGfxID(bool argGender, int argJob)
         {
-            return UINT32_C(0X02000000) + to_u32(jobf::jobGfxIndex(argJob).front().value() * 2 + (argGender ? 0 : 1));
+            const auto jobIndexList = jobf::jobGfxIndex(argJob);
+            fflassert(!jobIndexList.empty());
+            return UINT32_C(0X02000000) + to_u32(jobIndexList.front() * 2 + (argGender ? 0 : 1));
         }
 };

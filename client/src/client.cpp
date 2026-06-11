@@ -20,14 +20,14 @@
 #include "processcreateaccount.hpp"
 #include "processchangepassword.hpp"
 #include "pngtexoffdb.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "buildconfig.hpp"
 #include "processlogin.hpp"
 #include "clientargparser.hpp"
 
 extern Log *g_log;
 extern SDLDevice *g_sdlDevice;
-extern NotifyBoard *g_notifyBoard;
+extern MessageStackBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
 
 Client::Client()
@@ -142,7 +142,7 @@ void Client::initASIO()
                 m_respHandlers.erase(p);
             }
             else{
-                throw fflerror("no handler found for response id %llu", to_llu(respID));
+                throw fflpanic("no handler found for response id {}", to_llu(respID));
             }
         }
         else{
@@ -167,7 +167,7 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
             {
                 if(!g_clientArgParser->disableVersionCheck){
                     if(const auto smBV = ServerMsg::conv<SMBuildVersion>(buf); smBV.version.as_sv() != getBuildSignature()){
-                        throw fflerror("client/server version mismatches, client: %s, server: %s", getBuildSignature(), smBV.version.as_sv().data());
+                        throw fflpanic("client/server version mismatches, client: {}, server: {}", getBuildSignature(), smBV.version.as_sv().data());
                     }
                 }
                 break;
@@ -231,6 +231,8 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
         _INSTALL_SM_HANDLER(ProcessRun, SM_PING)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERCONFIG)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERNAME)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERSAY)
+        _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERBROADCAST)
         _INSTALL_SM_HANDLER(ProcessRun, SM_PLAYERWLDESP)
         _INSTALL_SM_HANDLER(ProcessRun, SM_QUESTDESPLIST)
         _INSTALL_SM_HANDLER(ProcessRun, SM_QUESTDESPUPDATE)
@@ -254,7 +256,7 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
 
         default:
             {
-                throw fflerror("no handler registered for server message %d", to_d(headCode));
+                throw fflpanic("no handler registered for server message {}", to_d(headCode));
             }
     }
 }
@@ -440,12 +442,12 @@ void Client::switchProcess(int oldID, int newID)
 
 void Client::sendCMsgLog(uint8_t headCode)
 {
-    g_notifyBoard->addLog(u8"[%08.3f] ← %s", (float)(SDL_GetTicks()) / 1000.0f, ClientMsg(headCode).name().c_str());
+    g_notifyBoard->addMessage(str_printf(u8"[%08.3f] ← %s", (float)(SDL_GetTicks()) / 1000.0f, ClientMsg(headCode).name().c_str()));
 }
 
 void Client::sendSMsgLog(uint8_t headCode)
 {
-    g_notifyBoard->addLog(u8"[%08.3f] → %s", (float)(SDL_GetTicks()) / 1000.0f, ServerMsg(headCode).name().c_str());
+    g_notifyBoard->addMessage(str_printf(u8"[%08.3f] → %s", (float)(SDL_GetTicks()) / 1000.0f, ServerMsg(headCode).name().c_str()));
 }
 
 void Client::PrintMonitor() const

@@ -44,7 +44,7 @@ TextBoard::TextBoard(TextBoard::InitArgs args)
       }}
 {
     if(!g_fontexDB->hasFont(m_font.id)){
-        throw fflerror("invalid font: %hhu", m_font.id);
+        throw fflpanic("invalid font: {:d}", m_font.id);
     }
 }
 

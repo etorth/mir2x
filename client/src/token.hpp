@@ -32,8 +32,8 @@ struct TOKEN
             // general static information
             // keep unchanged after token initialization
 
-            uint16_t    w;
-            uint16_t    h;
+            uint16_t w;
+            uint16_t h;
         }info;
 
         struct _TokenBoxState
@@ -41,12 +41,12 @@ struct TOKEN
             // we put mutable attributes here
             // should be valid after token board layout done
 
-            uint16_t    x;
-            uint16_t    y;
-            uint16_t    w1;
-            uint16_t    w2;
-            uint16_t    h1;
-            uint16_t    h2;
+            int16_t x;
+            int16_t y;
+            int16_t w1;
+            int16_t w2;
+            int16_t h1;
+            int16_t h2;
         }state;
     }box;
 
@@ -54,18 +54,18 @@ struct TOKEN
     {
         struct
         {
-            uint64_t    key;
+            uint64_t key;
         }utf8char;
 
         struct
         {
-            uint32_t    key;
+            uint32_t key;
 
-            uint8_t     fps;
-            uint8_t     frameCount;
+            uint8_t fps;
+            uint8_t frameCount;
 
-            uint8_t     tick;
-            uint8_t     frame;
+            uint8_t tick;
+            uint8_t frame;
         }emoji;
 
         struct

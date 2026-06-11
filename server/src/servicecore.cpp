@@ -66,6 +66,10 @@ corof::awaitable<> ServiceCore::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_QUERYQUESTUIDLIST(mpk);
             }
+        case AM_PLAYERBROADCAST:
+            {
+                return on_AM_PLAYERBROADCAST(mpk);
+            }
         default:
             {
                 throw fflvalue(mpk.str());
@@ -125,7 +129,7 @@ corof::awaitable<> ServiceCore::onActivate()
                 g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
             }
             else{
-                throw fflerror("failed to load map %s", to_cstr(DBCOM_MAPRECORD(mapID).name));
+                throw fflpanic("failed to load map {}", to_cstr(DBCOM_MAPRECORD(mapID).name));
             }
         }
     }
@@ -138,7 +142,7 @@ corof::awaitable<> ServiceCore::onActivate()
                 }
             default:
                 {
-                    throw fflerror("activation failed: %s", to_cstr(uidf::getUIDString(mapUID)));
+                    throw fflpanic("activation failed: {}", to_cstr(uidf::getUIDString(mapUID)));
                 }
         }
     }

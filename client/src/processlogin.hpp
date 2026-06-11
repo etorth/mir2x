@@ -9,7 +9,7 @@
 #include "inputline.hpp"
 #include "textboard.hpp"
 #include "passwordbox.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "tritexbutton.hpp"
 #include "gfxshapeboard.hpp"
 
@@ -33,7 +33,7 @@ class ProcessLogin: public Process
 
     private:
         GfxShapeBoard m_notifyBoardBg;
-        NotifyBoard    m_notifyBoard;
+        MessageStackBoard m_notifyBoard;
 
     public:
         ProcessLogin();

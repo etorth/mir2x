@@ -16,9 +16,11 @@ namespace xmlf
 
     bool hasChild(tinyxml2::XMLNode *, tinyxml2::XMLNode *);
 
-    tinyxml2::XMLNode *getNextLeaf(tinyxml2::XMLNode *, tinyxml2::XMLNode * = nullptr);
     tinyxml2::XMLNode *getNodeFirstLeaf(tinyxml2::XMLNode *);
-    tinyxml2::XMLNode *getNodeLastLeaf(tinyxml2::XMLNode *);
+    tinyxml2::XMLNode *getNodeLastLeaf (tinyxml2::XMLNode *);
+
+    tinyxml2::XMLNode *getPreviousLeaf(tinyxml2::XMLNode *, tinyxml2::XMLNode * = nullptr);
+    tinyxml2::XMLNode *getNextLeaf    (tinyxml2::XMLNode *, tinyxml2::XMLNode * = nullptr);
 
     bool validTagName(const std::string &);
     bool validAttributeName(const std::string &);

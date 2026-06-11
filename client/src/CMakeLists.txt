@@ -1,6 +1,7 @@
 MIR2X_LIST_SOURCE_RECURSIVE(CLIENT_SRCS)
 ADD_EXECUTABLE(client ${CLIENT_SRCS})
 ADD_DEPENDENCIES(client mir2x_3rds)
+ADD_DEPENDENCIES(client zsdbmaker)
 
 # can not use ExternalProject_Add() to add libpinyin as dependency
 # libpinyin generates libpinyin.pc for pkg-config to configure its paths, and ExternalProject_Add() runs in build stage
@@ -66,4 +67,12 @@ ENDIF()
 
 INSTALL(TARGETS client DESTINATION client)
 INSTALL(DIRECTORY ${LIBPINYIN_LIBDIR}/libpinyin DESTINATION client)
-INSTALL(DIRECTORY ${MIR2X_DATA_REPO_PATH}/res DESTINATION client)
+INSTALL(CODE "EXECUTE_PROCESS(
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/installres/src/install_res.py
+            --install-client
+            --ignore-zsdbmaker-error
+            --zsdbmaker=${CMAKE_BINARY_DIR}/tools/zsdbmaker/src/zsdbmaker
+            --input-dir=${MIR2X_RES_REPO_PATH}
+            --output-dir=${CMAKE_INSTALL_PREFIX}/client/res
+    COMMAND_ERROR_IS_FATAL ANY
+)")

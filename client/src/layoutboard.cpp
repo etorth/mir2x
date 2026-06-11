@@ -45,7 +45,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
           {
               if(empty()){
                   if(Widget::evalBool(m_canEdit, this)){
-                      throw fflerror("editable layout shall have at least one par");
+                      throw fflpanic("editable layout shall have at least one par");
                   }
                   return 0;
               }
@@ -149,20 +149,20 @@ void LayoutBoard::loadXML(const char *xmlString, size_t parLimit)
 void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tinyxml2::XMLNode *node)
 {
     if(loc < 0 || loc > parCount()){
-        throw fflerror("invalid location: %d", loc);
+        throw fflpanic("invalid location: {}", loc);
     }
 
     if(!std::ranges::all_of(std::views::iota(0, 4), [&parMargin](auto i){ return parMargin[i] >= 0; })){
-        throw fflerror("invalid margin: %d %d %d %d", parMargin[0], parMargin[1], parMargin[2], parMargin[3]);
+        throw fflpanic("invalid margin: {} {} {} {}", parMargin[0], parMargin[1], parMargin[2], parMargin[3]);
     }
 
     if(!node){
-        throw fflerror("null xml node");
+        throw fflpanic("null xml node");
     }
 
     const auto elemNode = node->ToElement();
     if(!elemNode){
-        throw fflerror("can't cast to XMLElement");
+        throw fflpanic("can't cast to XMLElement");
     }
 
     bool parXML = false;
@@ -174,7 +174,7 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
     }
 
     if(!parXML){
-        throw fflerror("not a paragraph node");
+        throw fflpanic("not a paragraph node");
     }
 
     const int lineWidth = [elemNode, this]()
@@ -189,7 +189,7 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         if(lineWidth >= 0){
             return lineWidth;
         }
-        throw fflerror("invalid line width: %d", lineWidth);
+        throw fflpanic("invalid line width: {}", lineWidth);
     }();
 
     const auto lineAlign = [elemNode, this]() -> int
@@ -237,7 +237,7 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         if(fontSize >= 0 && fontSize < 255){
             return fontSize;
         }
-        throw fflerror("invalid font size: %d", fontSize);
+        throw fflpanic("invalid font size: {}", fontSize);
     }();
 
     const uint8_t fontStyle = m_parNodeConfig.fontStyle; // TODO
@@ -266,7 +266,7 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         if(lineSpace >= 0){
             return lineSpace;
         }
-        throw fflerror("invalid line space: %d", lineSpace);
+        throw fflpanic("invalid line space: {}", lineSpace);
     }();
 
     const int wordSpace = [elemNode, this]()
@@ -277,7 +277,7 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         if(wordSpace >= 0){
             return wordSpace;
         }
-        throw fflerror("invalid word space: %d", wordSpace);
+        throw fflpanic("invalid word space: {}", wordSpace);
     }();
 
     auto parNodePtr = std::make_unique<XMLTypeset>
@@ -340,7 +340,7 @@ void LayoutBoard::addParXML(int loc, const Widget::IntMargin &parMargin, const c
 {
     tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
-        throw fflerror("parse xml failed: %s", xmlString ? xmlString : "(null)");
+        throw fflpanic("parse xml failed: {}", xmlString ? xmlString : "(null)");
     }
 
     addPar(loc, parMargin, xmlDoc.RootElement());
@@ -350,7 +350,7 @@ size_t LayoutBoard::addLayoutXML(int loc, const Widget::IntMargin &parMargin, co
 {
     tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
-        throw fflerror("parse xml failed: %s", xmlString ? xmlString : "(null)");
+        throw fflpanic("parse xml failed: {}", xmlString ? xmlString : "(null)");
     }
 
     bool layoutXML = false;
@@ -364,7 +364,7 @@ size_t LayoutBoard::addLayoutXML(int loc, const Widget::IntMargin &parMargin, co
     }
 
     if(!layoutXML){
-        throw fflerror("string is not layout xml");
+        throw fflpanic("string is not layout xml");
     }
 
     if(rootElem->FirstAttribute()){
@@ -593,7 +593,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                             }
                             else{
                                 if(m_cursorLoc.y != 0){
-                                    throw fflerror("invalid cursor location: par %d, x %d, y %d", m_cursorLoc.par, m_cursorLoc.x, m_cursorLoc.y);
+                                    throw fflpanic("invalid cursor location: par {}, x {}, y {}", m_cursorLoc.par, m_cursorLoc.x, m_cursorLoc.y);
                                 }
 
                                 if(m_cursorLoc.par > 0){
@@ -738,7 +738,7 @@ void LayoutBoard::drawCursorBlink(int drawDstX, int drawDstY) const
     }
 
     if(!cursorLocValid(m_cursorLoc)){
-        throw fflerror("invalid cursor location: par %d, x %d, y %d", m_cursorLoc.par, m_cursorLoc.x, m_cursorLoc.y);
+        throw fflpanic("invalid cursor location: par {}, x {}, y {}", m_cursorLoc.par, m_cursorLoc.x, m_cursorLoc.y);
     }
 
     if(std::fmod(m_cursorBlink, 1000.0) > 500.0){
@@ -785,7 +785,7 @@ const char * LayoutBoard::findAttrValue(const std::unordered_map<std::string, st
 std::tuple<int, int> LayoutBoard::getCursorOff() const
 {
     if(!cursorLocValid(m_cursorLoc)){
-        throw fflerror("invalid cursor location: par %d, x %d, y %d", m_cursorLoc.par, m_cursorLoc.x, m_cursorLoc.y);
+        throw fflpanic("invalid cursor location: par {}, x {}, y {}", m_cursorLoc.par, m_cursorLoc.x, m_cursorLoc.y);
     }
     return {m_cursorLoc.par, ithParIterator(m_cursorLoc.par)->tpset->cursorLoc2Off(m_cursorLoc.x, m_cursorLoc.y)};
 }

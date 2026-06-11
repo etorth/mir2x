@@ -338,7 +338,7 @@ void IMEBoard::drawDefault(Widget::ROIMap m) const
 
     const LabelBoard imeResult
     {{
-        .label = to_u8cstr(m_ime.result()),
+        .label = to_u8rawstr(m_ime.result()).c_str(),
         .font = m_font,
     }};
 

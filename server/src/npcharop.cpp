@@ -90,7 +90,7 @@ corof::awaitable<> NPChar::on_AM_QUERYCORECORD(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.conv<AMQueryCORecord>().UID;
     if(uidf::getUIDType(fromUID) != UID_PLY){
-        throw fflerror("NPC get AMQueryCORecord from %s", uidf::getUIDTypeCStr(fromUID));
+        throw fflpanic("NPC get AMQueryCORecord from {}", uidf::getUIDTypeCStr(fromUID));
     }
     dispatchAction(fromUID, makeActionStand());
     return {};
@@ -168,11 +168,11 @@ corof::awaitable<> NPChar::on_AM_BUY(const ActorMsgPack &mpk)
     const auto amB = mpk.conv<AMBuy>();
     const auto &ir = DBCOM_ITEMRECORD(amB.itemID);
     if(!ir){
-        throw fflerror("invalid itemID = %llu", to_llu(amB.itemID));
+        throw fflpanic("invalid itemID = {}", to_llu(amB.itemID));
     }
 
     if(!ir.packable() && amB.count > 1){
-        throw fflerror("buying multiple unpackable items");
+        throw fflpanic("buying multiple unpackable items");
     }
 
     auto p = m_sellItemList.find(amB.itemID);
@@ -205,22 +205,22 @@ corof::awaitable<> NPChar::on_AM_BUY(const ActorMsgPack &mpk)
     {
         const auto &ir = DBCOM_ITEMRECORD(amB.itemID);
         if(!ir){
-            throw fflerror("invalid itemID = %llu", to_llu(amB.itemID));
+            throw fflpanic("invalid itemID = {}", to_llu(amB.itemID));
         }
 
         auto p = m_sellItemList.find(amB.itemID);
         if(p == m_sellItemList.end()){
-            throw fflerror("no item selling: itemID = %llu", to_llu(amB.itemID));
+            throw fflpanic("no item selling: itemID = {}", to_llu(amB.itemID));
         }
 
         auto q = p->second.find(ir.packable() ? 0 : amB.seqID);
         if(q == p->second.end()){
-            throw fflerror("no item selling: itemID = %llu, seqID = %llu", to_llu(amB.itemID), to_llu(amB.seqID));
+            throw fflpanic("no item selling: itemID = {}, seqID = {}", to_llu(amB.itemID), to_llu(amB.seqID));
         }
 
         if(!ir.packable()){
             if(!q->second.locked){
-                throw fflerror("item lock released before get response");
+                throw fflpanic("item lock released before get response");
             }
             q->second.locked = false;
         }

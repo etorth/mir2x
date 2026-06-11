@@ -36,7 +36,7 @@ std::u8string SecuredItemListBoard::getGridHeader(size_t index) const
         fflassert(ir);
 
         if(ir.packable() && (item.count > 0)){
-            return to_u8cstr(str_ksep(item.count));
+            return to_u8rawstr(str_ksep(item.count));
         }
     }
     return {};

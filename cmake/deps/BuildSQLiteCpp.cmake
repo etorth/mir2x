@@ -7,7 +7,8 @@ ExternalProject_Add(
     SQLiteCpp
 
     GIT_REPOSITORY "https://github.com/SRombauts/SQLiteCpp"
-    GIT_TAG        "master"
+    GIT_TAG "master"
+    GIT_PROGRESS TRUE
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/SQLiteCpp"
     INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/SQLiteCpp/build"

@@ -4,7 +4,8 @@ ExternalProject_Add(
     argh
 
     GIT_REPOSITORY "https://github.com/adishavit/argh.git"
-    GIT_TAG        "master"
+    GIT_TAG "master"
+    GIT_PROGRESS TRUE
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/argh"
     INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/argh/build"

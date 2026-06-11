@@ -20,7 +20,7 @@ void AttachMagic::drawShift(int shiftX, int shiftY, uint32_t modColor) const
             case  4:
             case  8:
             case 16: return m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount;
-            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
+            default: throw fflpanic("invalid gfxDirType: {}", m_gfxEntry->gfxDirType);
         }
     }();
 
@@ -44,7 +44,7 @@ void Thunderbolt::drawShift(int shiftX, int shiftY, uint32_t modColor) const
             case  4:
             case  8:
             case 16: return m_gfxEntry->gfxID + frame() + m_gfxDirIndex * m_gfxEntry->gfxIDCount;
-            default: throw fflerror("invalid gfxDirType: %d", m_gfxEntry->gfxDirType);
+            default: throw fflpanic("invalid gfxDirType: {}", m_gfxEntry->gfxDirType);
         }
     }();
 

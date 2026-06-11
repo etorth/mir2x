@@ -17,6 +17,6 @@ namespace asiof
                 co_return msgf::decodeLength<T>(buf, offset + 1);
             }
         }
-        throw fflerror("variant packet size uses more than %zu bytes", offset);
+        throw fflpanic("variant packet size uses more than {} bytes", offset);
     }
 }

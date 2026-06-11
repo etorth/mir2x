@@ -85,7 +85,7 @@ struct ClientArgParser
 
                   if(pos == std::string::npos ||
                      pos == 0                 ||
-                     pos == autoLoginStr.value().size() - 1) throw fflerror("usage: --auto-login=id:password");
+                     pos == autoLoginStr.value().size() - 1) throw fflpanic("usage: --auto-login=id:password");
 
                   return std::make_pair(autoLoginStr.value().substr(0, pos), autoLoginStr.value().substr(pos + 1));
               }
@@ -99,7 +99,7 @@ struct ClientArgParser
             case 0:
             case 1:
             case 2: return screenMode;
-            default: throw fflerror("invalid screen mode: %d", screenMode);
+            default: throw fflpanic("invalid screen mode: {}", screenMode);
         }
     }
 
@@ -112,14 +112,14 @@ struct ClientArgParser
             case argf::REQ:
                 {
                     if(!optVal.has_value()){
-                        throw fflerror("missing required option: %s", opt.c_str());
+                        throw fflpanic("missing required option: {}", opt.c_str());
                     }
                     break;
                 }
             case argf::BAN:
                 {
                     if(optVal.has_value()){
-                        throw fflerror("invalid option: %s", opt.c_str());
+                        throw fflpanic("invalid option: {}", opt.c_str());
                     }
                     break;
                 }
@@ -130,7 +130,7 @@ struct ClientArgParser
         }
 
         if(optVal.has_value() && optVal.value().empty() && !allowEmpty){
-            throw fflerror("invalid empty option value: %s", opt.c_str());
+            throw fflpanic("invalid empty option value: {}", opt.c_str());
         }
         return optVal;
     }

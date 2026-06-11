@@ -124,24 +124,6 @@ bool xmlf::hasChild(tinyxml2::XMLNode *root, tinyxml2::XMLNode *child)
     return false;
 }
 
-tinyxml2::XMLNode *xmlf::getNextLeaf(tinyxml2::XMLNode *node, tinyxml2::XMLNode *root)
-{
-    fflassert(node);
-    fflassert(node->NoChildren());
-
-    if(root){
-        fflassert(xmlf::hasChild(root, node));
-    }
-
-    while(node && (node != root)){
-        if(auto next = node->NextSibling()){
-            return xmlf::getNodeFirstLeaf(next);
-        }
-        node = node->Parent();
-    }
-    return nullptr;
-}
-
 tinyxml2::XMLNode *xmlf::getNodeFirstLeaf(tinyxml2::XMLNode *node)
 {
     fflassert(node);
@@ -160,6 +142,42 @@ tinyxml2::XMLNode *xmlf::getNodeLastLeaf(tinyxml2::XMLNode *node)
         node = node->LastChild();
     }
     return node;
+}
+
+tinyxml2::XMLNode *xmlf::getPreviousLeaf(tinyxml2::XMLNode *node, tinyxml2::XMLNode *root)
+{
+    fflassert(node);
+    fflassert(node->NoChildren());
+
+    if(root){
+        fflassert(xmlf::hasChild(root, node));
+    }
+
+    while(node && (node != root)){
+        if(auto next = node->PreviousSibling()){
+            return xmlf::getNodeLastLeaf(next);
+        }
+        node = node->Parent();
+    }
+    return nullptr;
+}
+
+tinyxml2::XMLNode *xmlf::getNextLeaf(tinyxml2::XMLNode *node, tinyxml2::XMLNode *root)
+{
+    fflassert(node);
+    fflassert(node->NoChildren());
+
+    if(root){
+        fflassert(xmlf::hasChild(root, node));
+    }
+
+    while(node && (node != root)){
+        if(auto next = node->NextSibling()){
+            return xmlf::getNodeFirstLeaf(next);
+        }
+        node = node->Parent();
+    }
+    return nullptr;
 }
 
 bool xmlf::validTagName(const std::string &tagName)
@@ -197,13 +215,13 @@ bool xmlf::validAttributeName(const std::string &attributeName)
 std::string xmlf::buildXMLString(const std::string &tagName, const std::string &content, const std::vector<std::pair<std::string, std::string>> &attributeList)
 {
     if(!xmlf::validTagName(tagName)){
-        throw fflerror("invalid tag name: %s", tagName.c_str());
+        throw fflpanic("invalid tag name: {}", tagName.c_str());
     }
 
     std::string attributeString;
     for(size_t i = 0; i < attributeList.size(); ++i){
         if(!xmlf::validAttributeName(attributeList[i].first)){
-            throw fflerror("invalid attribute name: %s", attributeList[i].first.c_str());
+            throw fflpanic("invalid attribute name: {}", attributeList[i].first.c_str());
         }
         attributeString += str_printf("%s%s=\"%s\"", (i == 0) ? "" : " ", attributeList[i].first.c_str(), attributeList[i].second.c_str());
     }
@@ -221,7 +239,7 @@ std::string xmlf::toParString(const char *format, ...)
     const char *xmlString = "<par></par>";
 
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
-        throw fflerror("failed to parse xml template: %s", xmlString);
+        throw fflpanic("failed to parse xml template: {}", xmlString);
     }
 
     xmlDoc.RootElement()->SetText(text.c_str());

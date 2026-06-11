@@ -123,7 +123,7 @@ ClientZumaTaurus::ClientZumaTaurus(uint64_t uid, ProcessRun *proc, const ActionN
             }
         default:
             {
-                throw fflerror("invalid action: %s", actionName(action));
+                throw fflpanic("invalid action: {}", actionName(action));
             }
     }
 }

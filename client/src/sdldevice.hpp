@@ -373,7 +373,7 @@ class SDLDevice final
            int h = -1;
 
            if(SDL_GetRendererOutputSize(m_renderer, &w, &h)){
-               throw fflerror("SDL_GetRendererOutputSize(%p) failed: %s", to_cvptr(m_renderer), SDL_GetError());
+               throw fflpanic("SDL_GetRendererOutputSize({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
            }
            return {w, h};
        }

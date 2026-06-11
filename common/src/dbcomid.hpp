@@ -26,6 +26,31 @@ namespace
         return h;
     }
 
+    inline size_t cStrViewHashHelper(const char *s) noexcept
+    {
+        size_t h = 0;
+        int c;
+
+        for(auto p = s; (c = static_cast<unsigned char>(*p)); ++p){
+            h = c + (h << 6U) + (h << 16U) - h;
+        }
+        return h;
+    }
+
+    inline bool u8StrEqual(const char8_t *lhs, const char *rhs) noexcept
+    {
+        if(!lhs || !rhs){
+            return false;
+        }
+
+        while(*lhs && *rhs){
+            if(static_cast<unsigned char>(*lhs++) != static_cast<unsigned char>(*rhs++)){
+                return false;
+            }
+        }
+        return !*lhs && !*rhs;
+    }
+
     template<typename T, uint32_t TL> constexpr auto recordNameOffsetHelper(const T (&itemList)[TL])
     {
         static_assert(TL >= 1);
@@ -144,6 +169,32 @@ namespace
         }
         return 0;
     }
+
+    template<typename T, uint32_t TL, size_t HL> inline uint32_t DBCOM_IDHELPER(const T (&itemList)[TL], const std::array<uint32_t, HL> &itemOffList, const char *name)
+    {
+        static_assert(TL > 0);
+        static_assert(HL > 0);
+
+        if(name && name[0]){
+            const size_t h = cStrViewHashHelper(name);
+            for(size_t j = 0; j < HL; ++j){
+                const size_t c = (h + j) % HL;
+                const uint32_t off = itemOffList[c];
+
+                if(!off){
+                    return 0;
+                }
+
+                if(u8StrEqual(itemList[off].name, name)){
+                    return off;
+                }
+
+                // current slot has non-zero off
+                // but doesn't point to the item with given name, try next slot
+            }
+        }
+        return 0;
+    }
 }
 
 constexpr uint32_t DBCOM_ITEMID          (const char8_t *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,           _inn_ItemRecordOffList,           name); }
@@ -154,6 +205,15 @@ constexpr uint32_t DBCOM_BUFFID          (const char8_t *name) { return DBCOM_ID
 constexpr uint32_t DBCOM_BUFFACTID       (const char8_t *name) { return DBCOM_IDHELPER(_inn_BuffActRecordList,        _inn_BuffActRecordOffList,        name); }
 constexpr uint32_t DBCOM_ATTACKMODIFIERID(const char8_t *name) { return DBCOM_IDHELPER(_inn_AttackModifierRecordList, _inn_AttackModifierRecordOffList, name); }
 constexpr uint32_t DBCOM_SPELLMODIFIERID (const char8_t *name) { return DBCOM_IDHELPER(_inn_SpellModifierRecordList,  _inn_SpellModifierRecordOffList,  name); }
+
+inline uint32_t DBCOM_ITEMID          (const char *name) { return DBCOM_IDHELPER(_inn_ItemRecordList,           _inn_ItemRecordOffList,           name); }
+inline uint32_t DBCOM_MONSTERID       (const char *name) { return DBCOM_IDHELPER(_inn_MonsterRecordList,        _inn_MonsterRecordOffList,        name); }
+inline uint32_t DBCOM_MAGICID         (const char *name) { return DBCOM_IDHELPER(_inn_MagicRecordList,          _inn_MagicRecordOffList,          name); }
+inline uint32_t DBCOM_MAPID           (const char *name) { return DBCOM_IDHELPER(_inn_MapRecordList,            _inn_MapRecordOffList,            name); }
+inline uint32_t DBCOM_BUFFID          (const char *name) { return DBCOM_IDHELPER(_inn_BuffRecordList,           _inn_BuffRecordOffList,           name); }
+inline uint32_t DBCOM_BUFFACTID       (const char *name) { return DBCOM_IDHELPER(_inn_BuffActRecordList,        _inn_BuffActRecordOffList,        name); }
+inline uint32_t DBCOM_ATTACKMODIFIERID(const char *name) { return DBCOM_IDHELPER(_inn_AttackModifierRecordList, _inn_AttackModifierRecordOffList, name); }
+inline uint32_t DBCOM_SPELLMODIFIERID (const char *name) { return DBCOM_IDHELPER(_inn_SpellModifierRecordList,  _inn_SpellModifierRecordOffList,  name); }
 
 constexpr uint32_t DBCOM_ITEMENDID          () { return std::extent_v<decltype(_inn_ItemRecordList          )>; }
 constexpr uint32_t DBCOM_MONSTERENDID       () { return std::extent_v<decltype(_inn_MonsterRecordList       )>; }

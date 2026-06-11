@@ -21,7 +21,7 @@
 #include "processrun.hpp"
 #include "clientluamodule.hpp"
 #include "clientpathfinder.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "gui/npcchatboard/npcchatboard.hpp"
 #include "modalstringboard.hpp"
 #include "fflerror.hpp"
@@ -41,7 +41,7 @@ extern PNGTexDB *g_progUseDB;
 extern BGMusicDB *g_bgmDB;
 extern SoundEffectDB *g_seffDB;
 extern PNGTexDB *g_itemDB;
-extern NotifyBoard *g_notifyBoard;
+extern MessageStackBoard *g_notifyBoard;
 extern ClientArgParser *g_clientArgParser;
 
 ProcessRun::ProcessRun(const SMOnlineOK &smOOK)
@@ -275,7 +275,7 @@ void ProcessRun::setFocusUID(int focusType, uint64_t uid)
             }
         default:
             {
-                throw fflerror("invalid focus type: %d", focusType);
+                throw fflpanic("invalid focus type: {}", focusType);
             }
     }
 }
@@ -381,7 +381,7 @@ void ProcessRun::draw() const
             if(auto p = coLocList.find({x, y}); p != coLocList.end()){
                 for(auto creaturePtr: p->second){
                     if(!(creaturePtr && creaturePtr->location() == std::make_tuple(x, y))){
-                        throw fflerror("invalid creature location table");
+                        throw fflpanic("invalid creature location table");
                     }
 
                     if(!creaturePtr->alive()){
@@ -543,9 +543,9 @@ void ProcessRun::draw() const
             }
     }
 
-    // draw NotifyBoard
+    // draw message stack board
     if(false){
-        const int w = std::max<int>(g_notifyBoard->pw() + 10, 160);
+        const int w = std::max<int>(g_notifyBoard->w() + 10, 160);
         const int h = g_notifyBoard->h();
         const int x = 0;
         const int y = g_sdlDevice->getRendererHeight() - h - 133;
@@ -764,7 +764,7 @@ void ProcessRun::preloadMapBin(uint64_t newMapUID)
         m_mir2xMapData = *mapBinPtr;
     }
     else{
-        throw fflerror("failed to preload mapBin for mapUID: %llu", to_llu(newMapUID));
+        throw fflpanic("failed to preload mapBin for mapUID: {}", to_llu(newMapUID));
     }
 }
 
@@ -1027,7 +1027,7 @@ bool ProcessRun::luaCommand(const char *luaCmdString)
 
     std::string errLine;
     while(std::getline(errStream, errLine, '\n')){
-        addCBLog(CBLOG_ERR, to_u8cstr(fnReplaceTabChar(errLine)));
+        addCBLog(CBLOG_ERR, u8"%s", fnReplaceTabChar(errLine).c_str());
     }
     return true;
 }
@@ -1080,7 +1080,7 @@ bool ProcessRun::userCommand(const char *userCmdString)
         case 1:
             {
                 if(!entryPtr->callback){
-                    throw fflerror("command callback is not callable: %s", entryPtr->command.c_str());
+                    throw fflpanic("command callback is not callable: {}", entryPtr->command.c_str());
                 }
 
                 entryPtr->callback(tokenList);
@@ -1133,7 +1133,7 @@ void ProcessRun::RegisterUserCommand()
         switch(parmList.size()){
             case 0:
                 {
-                    throw fflerror("argument list empty");
+                    throw fflpanic("argument list empty");
                 }
             case 1:
                 {
@@ -1172,7 +1172,7 @@ void ProcessRun::RegisterUserCommand()
             case 1 + 1:
             case 1 + 2:
                 {
-                    if(const auto itemID = DBCOM_ITEMID(to_u8cstr(parmList[1]))){
+                    if(const auto itemID = DBCOM_ITEMID(parmList[1].c_str())){
                         const auto count = [&parmList]() -> int
                         {
                             if(parmList.size() == 1 + 1){
@@ -1216,7 +1216,7 @@ void ProcessRun::RegisterUserCommand()
 
     m_userCommandList.emplace_back("getAttackUID", [this](const std::vector<std::string> &) -> int
     {
-        addCBLog(CBLOG_ERR, to_u8cstr(std::to_string(getFocusUID(FOCUS_ATTACK))));
+        addCBLog(CBLOG_ERR, u8"%s", std::to_string(getFocusUID(FOCUS_ATTACK)).c_str());
         return 1;
     });
 
@@ -1286,7 +1286,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                 case CBLOG_DBG:
                 case CBLOG_ERR:
                     {
-                        addCBLog(logType.as<int>(), to_u8cstr(logInfo.as<std::string>()));
+                        addCBLog(logType.as<int>(), u8"%s", logInfo.as<std::string>().c_str());
                         return;
                     }
                 default:
@@ -1339,7 +1339,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
             case 1:
                 {
                     if(!argList[0].is<lua_Integer>()){
-                        throw fflerror("invalid arguments: moveTo(mapID: int)");
+                        throw fflpanic("invalid arguments: moveTo(mapID: int)");
                     }
 
                     argMapID = to_u32(argList[0].as<int>());
@@ -1349,7 +1349,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
             case 2:
                 {
                     if(!(argList[0].is<int>() && argList[1].is<int>())){
-                        throw fflerror("invalid arguments: moveTo(x: int, y: int)");
+                        throw fflpanic("invalid arguments: moveTo(x: int, y: int)");
                     }
 
                     argMapUID = mapUID();
@@ -1360,7 +1360,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
             case 3:
                 {
                     if(!(argList[0].is<lua_Integer>() && argList[1].is<int>() && argList[2].is<int>())){
-                        throw fflerror("invalid arguments: moveTo(mapID: int, x: int, y: int)");
+                        throw fflpanic("invalid arguments: moveTo(mapID: int, x: int, y: int)");
                     }
 
                     argMapID = to_u32(argList[0].as<int>());
@@ -1370,7 +1370,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                 }
             default:
                 {
-                    throw fflerror("invalid arguments: moveTo([mapID: int,] x: int, y: int)");
+                    throw fflpanic("invalid arguments: moveTo([mapID: int,] x: int, y: int)");
                 }
         }
 
@@ -1409,10 +1409,10 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                         itemID = to_u32(argList[0].as<lua_Integer>());
                     }
                     else if(argList[0].is<std::string>()){
-                        itemID = DBCOM_ITEMID(to_u8cstr(argList[0].as<std::string>()));
+                        itemID = DBCOM_ITEMID(argList[0].as<std::string>().c_str());
                     }
                     else{
-                        throw fflerror("invalid arguments: makeItem(itemID: [int,string])");
+                        throw fflpanic("invalid arguments: makeItem(itemID: [int,string])");
                     }
 
                     if(argList.size() == 2){
@@ -1420,23 +1420,23 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
                             count = to_uz(argList[1].as<lua_Integer>());
                         }
                         else{
-                            throw fflerror("invalid arguments: makeItem(itemID: [int,string], count: int)");
+                            throw fflpanic("invalid arguments: makeItem(itemID: [int,string], count: int)");
                         }
                     }
                     break;
                 }
             default:
                 {
-                    throw fflerror("invalid arguments: makeItem(itemID: [int,string], count: int)");
+                    throw fflpanic("invalid arguments: makeItem(itemID: [int,string], count: int)");
                 }
         }
 
         if(!itemID){
-            throw fflerror("invalid itemID: %llu", to_llu(itemID));
+            throw fflpanic("invalid itemID: {}", to_llu(itemID));
         }
 
         if(count <= 0){
-            throw fflerror("invalid count: %llu", to_llu(count));
+            throw fflpanic("invalid count: {}", to_llu(count));
         }
 
         requestMakeItem(itemID, count);
@@ -1530,7 +1530,7 @@ ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
 
     if(auto p = m_coList.find(uid); p != m_coList.end()){
         if(p->second->UID() != uid){
-            throw fflerror("invalid creature: %p, UID = %llu", to_cvptr(p->second.get()), to_llu(p->second->UID()));
+            throw fflpanic("invalid creature: {:p}, UID = {}", to_cvptr(p->second.get()), to_llu(p->second->UID()));
         }
 
         if(!checkVisible || p->second->visible()){
@@ -1602,7 +1602,7 @@ void ProcessRun::centerMyHero()
     const auto frameCount  = getMyHero()->getFrameCount(getMyHero()->currMotion());
 
     if(frameCount <= 0){
-        throw fflerror("invalid frame count: %d", frameCount);
+        throw fflpanic("invalid frame count: {}", frameCount);
     }
 
     const auto fnSetOff = [this, nX, nY, nDirection, currFrame, frameCount](int stepLen)
@@ -1676,7 +1676,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID, size_t tryCount)
     }();
 
     if(!mapBinPtr){
-        throw fflerror("failed to find map with mapID = %llu", to_llu(reqMapID));
+        throw fflpanic("failed to find map with mapID = {}", to_llu(reqMapID));
     }
 
     for(size_t i = 0; (tryCount == 0) || (i < tryCount); ++i){
@@ -1688,7 +1688,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID, size_t tryCount)
         }
     }
 
-    throw fflerror("can not find a valid location on mapID %llu by %zu tries", to_llu(reqMapID), tryCount);
+    throw fflpanic("can not find a valid location on mapID {} by {} tries", to_llu(reqMapID), tryCount);
 }
 
 bool ProcessRun::requestSpaceMove(uint64_t nMapUID, int nX, int nY)
@@ -1768,7 +1768,7 @@ void ProcessRun::requestLatestChatMessage(const std::vector<uint64_t> &cpids, si
     std::memset(&cmRLCM, 0, sizeof(cmRLCM));
 
     if(cpids.size() > cmRLCM.cpidList.capacity()){
-        throw fflerror("query of %zu cpids exceeds capacity %zu", cpids.size(), cmRLCM.cpidList.capacity());
+        throw fflpanic("query of {} cpids exceeds capacity {}", cpids.size(), cmRLCM.cpidList.capacity());
     }
 
     for(const auto &cpid: cpids){
@@ -1956,7 +1956,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
         for(const auto itemID: p.second){
             const auto &ir = DBCOM_ITEMRECORD(itemID);
             if(!ir){
-                throw fflerror("invalid itemID: %llu", to_llu(itemID));
+                throw fflpanic("invalid itemID: {}", to_llu(itemID));
             }
 
             if(ir.pkgGfxID < 0){
@@ -2086,7 +2086,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1) const
     for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
         if(p.second.empty()){
-            throw fflerror("empty ground item list at (%d, %d)", x, y);
+            throw fflpanic("empty ground item list at ({}, {})", x, y);
         }
 
         if(!(x >= x0 && x < x1 && y >= y0 && y < y1)){
@@ -2123,7 +2123,7 @@ std::tuple<int, int> ProcessRun::getACNum(const std::string &name) const
     }
 
     else{
-        throw fflerror("invalid argument: %s", name.c_str());
+        throw fflpanic("invalid argument: {}", name.c_str());
     }
 }
 
@@ -2145,7 +2145,7 @@ void ProcessRun::drawMouseLocation() const
 void ProcessRun::drawFPS() const
 {
     const auto fpsStr = std::to_string(g_sdlDevice->getFPS());
-    LabelBoard fpsBoard{{.label = to_u8cstr(fpsStr), .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
+    LabelBoard fpsBoard{{.label = to_u8rawstr(fpsStr).c_str(), .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
 
     const int winWidth = g_sdlDevice->getRendererWidth();
     fpsBoard.moveTo(winWidth - fpsBoard.w(), 0);
@@ -2385,7 +2385,7 @@ void ProcessRun::queryUIDBuff(uint64_t uid) const
             }
         default:
             {
-                throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
+                throw fflpanic("invalid uid: {}, type: {}", to_llu(uid), uidf::getUIDTypeCStr(uid));
             }
     }
 }
@@ -2423,7 +2423,7 @@ void ProcessRun::queryMapBaseUID(uint32_t mapID, std::function<void(uint64_t)> o
 void ProcessRun::queryPlayerWLDesp(uint64_t uid) const
 {
     if(uidf::getUIDType(uid) != UID_PLY){
-        throw fflerror("invalid uid: %llu, type: %s", to_llu(uid), uidf::getUIDTypeCStr(uid));
+        throw fflpanic("invalid uid: {}, type: {}", to_llu(uid), uidf::getUIDTypeCStr(uid));
     }
 
     CMQueryPlayerWLDesp cmQPWLD;
@@ -2444,7 +2444,7 @@ void ProcessRun::requestBuy(uint64_t npcUID, uint32_t itemID, uint32_t seqID, si
     }));
 
     if(count <= 0){
-        throw fflerror("invalid buy count: %zu", count);
+        throw fflpanic("invalid buy count: {}", count);
     }
 
     CMBuy cmB;
@@ -2482,20 +2482,20 @@ void ProcessRun::requestMakeItem(uint32_t itemID, size_t count)
 void ProcessRun::requestEquipWear(uint32_t itemID, uint32_t seqID, int wltype)
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("invalid wltype: %d", wltype);
+        throw fflpanic("invalid wltype: {}", wltype);
     }
 
     const auto &ir = DBCOM_ITEMRECORD(itemID);
     if(!ir){
-        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+        throw fflpanic("invalid itemID: {}", to_llu(itemID));
     }
 
     if(!seqID){
-        throw fflerror("invalid seqID: %llu", to_llu(seqID));
+        throw fflpanic("invalid seqID: {}", to_llu(seqID));
     }
 
     if(!ir.wearable(wltype)){
-        throw fflerror("can't equip %s to wltype %d", to_cstr(ir.name), wltype);
+        throw fflpanic("can't equip {} to wltype {}", to_cstr(ir.name), wltype);
     }
 
     if(!getMyHero()->canWear(itemID, wltype)){
@@ -2514,7 +2514,7 @@ void ProcessRun::requestEquipWear(uint32_t itemID, uint32_t seqID, int wltype)
 void ProcessRun::requestGrabWear(int wltype)
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("invalid wltype: %d", wltype);
+        throw fflpanic("invalid wltype: {}", wltype);
     }
 
     if(!getMyHero()->getWLItem(wltype)){
@@ -2530,20 +2530,20 @@ void ProcessRun::requestGrabWear(int wltype)
 void ProcessRun::requestEquipBelt(uint32_t itemID, uint32_t seqID, int slot)
 {
     if(!(slot >= 0 && slot < 6)){
-        throw fflerror("invalid slot: %d", slot);
+        throw fflpanic("invalid slot: {}", slot);
     }
 
     const auto &ir = DBCOM_ITEMRECORD(itemID);
     if(!ir){
-        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+        throw fflpanic("invalid itemID: {}", to_llu(itemID));
     }
 
     if(!seqID){
-        throw fflerror("invalid seqID: %llu", to_llu(seqID));
+        throw fflpanic("invalid seqID: {}", to_llu(seqID));
     }
 
     if(!ir.beltable()){
-        throw fflerror("can't equip %s to slot %d", to_cstr(ir.name), slot);
+        throw fflpanic("can't equip {} to slot {}", to_cstr(ir.name), slot);
     }
 
     CMRequestEquipBelt cmREB;
@@ -2558,7 +2558,7 @@ void ProcessRun::requestEquipBelt(uint32_t itemID, uint32_t seqID, int slot)
 void ProcessRun::requestGrabBelt(int slot)
 {
     if(!(slot >= 0 && slot < 6)){
-        throw fflerror("invalid slot: %d", slot);
+        throw fflpanic("invalid slot: {}", slot);
     }
 
     if(!getMyHero()->getBelt(slot)){
@@ -2606,7 +2606,7 @@ bool ProcessRun::addGroundItemID(uint32_t itemID, int x, int y)
     }
 
     if(!DBCOM_ITEMRECORD(itemID)){
-        throw fflerror("invalid itemID: %llu", to_llu(itemID));
+        throw fflpanic("invalid itemID: {}", to_llu(itemID));
     }
 
     m_groundItemIDList[{x, y}].push_back(itemID);

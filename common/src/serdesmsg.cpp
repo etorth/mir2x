@@ -261,7 +261,7 @@ SDItem::operator bool () const
 void SDWear::setWLItem(int i, SDItem item)
 {
     if(!(i >= WLG_BEGIN && i < WLG_END)){
-        throw fflerror("bad wltype: %d", i);
+        throw fflpanic("bad wltype: {}", i);
     }
 
     if(item.itemID){
@@ -293,7 +293,7 @@ std::unordered_set<uint64_t> SDInventory::getItemSeqIDSet() const
 
     for(const auto &item: m_list){
         if(!result.insert(buildItemSeqID(item.itemID, item.seqID)).second){
-            throw fflerror("found duplicated item: itemID = %llu, seqID = %llu", to_llu(item.itemID), to_llu(item.seqID));
+            throw fflpanic("found duplicated item: itemID = {}, seqID = {}", to_llu(item.itemID), to_llu(item.seqID));
         }
     }
     return result;
@@ -339,7 +339,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 
     if(keepSeqID){
         if(itemSeqIDSet.count(buildItemSeqID(newItem.itemID, newItem.seqID))){
-            throw fflerror("found duplication with given item: itemID = %llu, seqID = %llu", to_llu(newItem.itemID), to_llu(newItem.seqID));
+            throw fflpanic("found duplication with given item: itemID = {}, seqID = {}", to_llu(newItem.itemID), to_llu(newItem.seqID));
         }
         m_list.push_back(std::move(newItem));
         return m_list.back();
@@ -406,16 +406,16 @@ std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID
 void SDInventory::merge(uint32_t itemID, uint32_t fromSeqID, uint32_t toSeqID)
 {
     if(!(fromSeqID && toSeqID)){
-        throw fflerror("invalid fromSeqID = %llu, toSeqID = %llu", to_llu(fromSeqID), to_llu(toSeqID));
+        throw fflpanic("invalid fromSeqID = {}, toSeqID = {}", to_llu(fromSeqID), to_llu(toSeqID));
     }
 
     const auto &ir = DBCOM_ITEMRECORD(itemID);
     if(!ir){
-        throw fflerror("invalid itemID = %llu", to_llu(itemID));
+        throw fflpanic("invalid itemID = {}", to_llu(itemID));
     }
 
     if(!ir.packable()){
-        throw fflerror("item is not packable: itemID = %llu", to_llu(itemID));
+        throw fflpanic("item is not packable: itemID = {}", to_llu(itemID));
     }
 
     int fromIndex = -1;

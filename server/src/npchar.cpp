@@ -62,7 +62,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         getNPChar()->m_sellItemList.clear();
 
         for(const auto &itemName: itemNameList.value()){
-            if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
+            if(const auto itemID = DBCOM_ITEMID(itemName.c_str())){
                 getNPChar()->m_npcSell.insert(itemID);
             }
         }
@@ -72,7 +72,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
     bindFunction("addNPCSell", [this](std::string itemName)
     {
-        if(const auto itemID = DBCOM_ITEMID(to_u8cstr(itemName))){
+        if(const auto itemID = DBCOM_ITEMID(itemName.c_str())){
             getNPChar()->m_npcSell.insert(itemID);
         }
     });
@@ -98,12 +98,12 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
                             return obj.as<bool>();
                         }
                         else{
-                            throw fflerror("invalid argument type");
+                            throw fflpanic("invalid argument type");
                         }
                     }
                 default:
                     {
-                        throw fflerror("invalid argument count: %zu", args.size());
+                        throw fflpanic("invalid argument count: {}", args.size());
                     }
             }
         }();
@@ -137,12 +137,12 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
                             return obj.as<bool>();
                         }
                         else{
-                            throw fflerror("invalid argument type");
+                            throw fflpanic("invalid argument type");
                         }
                     }
                 default:
                     {
-                        throw fflerror("invalid argument count: %zu", args.size());
+                        throw fflpanic("invalid argument count: {}", args.size());
                     }
             }
         }();
@@ -163,7 +163,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
     bindFunction("addMonster", [this](std::string monsterName)
     {
-        const auto monsterID = DBCOM_MONSTERID(to_u8cstr(monsterName));
+        const auto monsterID = DBCOM_MONSTERID(monsterName.c_str());
 
         fflassert(monsterID);
         getNPChar()->postAddMonster(monsterID).resume();
@@ -234,7 +234,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
                 return "TEXT";
             }
             else{
-                throw fflerror("invalid object type: name = %s", to_cstr(key));
+                throw fflpanic("invalid object type: name = {}", to_cstr(key));
             }
         }();
 
@@ -242,7 +242,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
             g_dbPod->exec(u8R"###(alter table %s add column %s %s)###", npcDBName.c_str(), key.c_str(), objType.c_str());
         }
         else if(colType != objType){
-            throw fflerror("column %s:%s type mismatch, expected %s, get type %s", npcDBName.c_str(), key.c_str(), colType.c_str(), objType.c_str());
+            throw fflpanic("column {}:{} type mismatch, expected {}, get type {}", npcDBName.c_str(), key.c_str(), colType.c_str(), objType.c_str());
         }
 
         if(objType == "INTEGER"){
@@ -291,7 +291,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
                 }
             default:
                 {
-                    throw fflerror("column type not supported: %d", column.getType());
+                    throw fflpanic("column type not supported: {}", column.getType());
                 }
         }
     });
@@ -308,7 +308,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
 
         std::set<std::u8string> typeList;
         for(const auto &type: typeTable.value()){
-            typeList.insert(to_u8cstr(type));
+            typeList.insert(to_u8rawstr(type));
         }
         getNPChar()->postStartInvOp(uid, invOp, queryTag, commitTag, {typeList.begin(), typeList.end()});
     });
@@ -450,7 +450,7 @@ void NPChar::postXMLLayout(uint64_t uid, std::string path, std::string xmlString
 {
     tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
     if(xmlDoc.Parse(xmlString.c_str()) != tinyxml2::XML_SUCCESS){
-        throw fflerror("parse xml failed: %s", to_cstr(xmlString));
+        throw fflpanic("parse xml failed: {}", to_cstr(xmlString));
     }
 
     fflassert(xmlDoc.RootElement(), xmlString);
@@ -593,7 +593,7 @@ void NPChar::fillSellItemList()
     for(const uint32_t itemID: getSellList()){
         const auto &ir = DBCOM_ITEMRECORD(itemID);
         if(!ir){
-            throw fflerror("selling invalid item: itemID = %llu", to_llu(itemID));
+            throw fflpanic("selling invalid item: itemID = {}", to_llu(itemID));
         }
 
         auto &itemListRef = m_sellItemList[itemID];
@@ -612,7 +612,7 @@ void NPChar::fillSellItemList()
             };
 
             if(itemListRef.size() != 1){
-                throw fflerror("failed to reset packable item");
+                throw fflpanic("failed to reset packable item");
             }
         }
         else{

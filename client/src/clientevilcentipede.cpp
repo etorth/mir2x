@@ -74,7 +74,7 @@ ClientEvilCentipede::ClientEvilCentipede(uint64_t uid, ProcessRun *proc, const A
             }
         default:
             {
-                throw fflerror("invalid action: %s", actionName(action));
+                throw fflpanic("invalid action: {}", actionName(action));
             }
     }
 }

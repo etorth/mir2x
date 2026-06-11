@@ -25,7 +25,7 @@ ClientSandCactus::ClientSandCactus(uint64_t uid, ProcessRun *proc, const ActionN
             }
         default:
             {
-                throw fflerror("Taodog get invalid initial action: %s", actionName(action.type));
+                throw fflpanic("Taodog get invalid initial action: {}", actionName(action.type));
             }
     }
 }

@@ -164,15 +164,16 @@ void InputStringBoard::inputLineDone()
     m_input.setFocus(false);
 
     if(m_onDone){
-        m_onDone(to_u8cstr(realInput));
+        m_onDone(to_u8rawstr(realInput));
     }
 }
 
-void InputStringBoard::waitInput(std::u8string layoutString, std::function<void(std::u8string)> onDone)
+void InputStringBoard::waitInput(std::u8string layoutString, bool security, std::function<void(std::u8string)> onDone)
 {
     m_textInfo.loadXML(to_cstr(layoutString), 0);
     m_onDone = std::move(onDone);
 
+    m_input.setSecurity(security);
     clear();
     setShow(true);
     setFocus(true);

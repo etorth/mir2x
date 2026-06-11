@@ -17,7 +17,7 @@
 int main(int argc, char *argv[])
 {
     if(argc != 3){
-        throw fflerror("Usage: mapwil2png map-wil-path map-png-output-dir");
+        throw fflpanic("Usage: mapwil2png map-wil-path map-png-output-dir");
     }
 
     fflassert(str_haschar(argv[1])); // map-wil-path

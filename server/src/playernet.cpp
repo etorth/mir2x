@@ -265,7 +265,7 @@ corof::awaitable<> Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size
                 }
             default:
                 {
-                    throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQUIDB.uid), uidf::getUIDTypeCStr(cmQUIDB.uid));
+                    throw fflpanic("invalid uid: {}, type: {}", to_llu(cmQUIDB.uid), uidf::getUIDTypeCStr(cmQUIDB.uid));
                 }
         }
     }
@@ -308,7 +308,7 @@ corof::awaitable<> Player::net_CM_QUERYPLAYERWLDESP(uint8_t, const uint8_t *buf,
         m_actorPod->post(cmQPWLD.uid, AM_QUERYPLAYERWLDESP);
     }
     else{
-        throw fflerror("invalid uid: %llu, type: %s", to_llu(cmQPWLD.uid), uidf::getUIDTypeCStr(cmQPWLD.uid));
+        throw fflpanic("invalid uid: {}, type: {}", to_llu(cmQPWLD.uid), uidf::getUIDTypeCStr(cmQPWLD.uid));
     }
     return {};
 }
@@ -409,6 +409,50 @@ corof::awaitable<> Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_
 
     }), respID);
 
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_PLAYERSAY(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
+{
+    const auto cmPS = ClientMsg::conv<CMPlayerSay>(buf, bufSize);
+    if(!str_haschar(cmPS.content)){
+        return {};
+    }
+
+    AMPlayerSay amPS;
+    std::memset(&amPS, 0, sizeof(amPS));
+
+    amPS.uid = UID();
+    std::memcpy(amPS.content, cmPS.content, sizeof(amPS.content));
+
+    SMPlayerSay smPS;
+    std::memset(&smPS, 0, sizeof(smPS));
+
+    smPS.uid = amPS.uid;
+    std::memcpy(smPS.content, amPS.content, sizeof(smPS.content));
+    postNetMessage(SM_PLAYERSAY, smPS);
+
+    for(const auto &[uid, coLoc]: m_inViewCOList){
+        if(uidf::getUIDType(coLoc.uid) == UID_PLY){
+            m_actorPod->post(uid, {AM_PLAYERSAY, amPS});
+        }
+    }
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_PLAYERBROADCAST(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
+{
+    const auto cmPB = ClientMsg::conv<CMPlayerBroadcast>(buf, bufSize);
+    if(!str_haschar(cmPB.content)){
+        return {};
+    }
+
+    AMPlayerBroadcast amPB;
+    std::memset(&amPB, 0, sizeof(amPB));
+
+    amPB.uid = UID();
+    std::memcpy(amPB.content, cmPB.content, sizeof(amPB.content));
+    m_actorPod->post(uidf::getServiceCoreUID(), {AM_PLAYERBROADCAST, amPB});
     return {};
 }
 
@@ -600,7 +644,7 @@ corof::awaitable<> Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint6
 {
     const auto cmB = ClientMsg::conv<CMBuy>(buf);
     if(uidf::getUIDType(cmB.npcUID) != UID_NPC){
-        throw fflerror("invalid uid: %llu, type: %s", to_llu(cmB.npcUID), uidf::getUIDTypeCStr(cmB.npcUID));
+        throw fflpanic("invalid uid: {}, type: {}", to_llu(cmB.npcUID), uidf::getUIDTypeCStr(cmB.npcUID));
     }
 
     AMBuy amB;
@@ -631,7 +675,7 @@ corof::awaitable<> Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint6
                 const auto sdBC = cerealf::deserialize<SDBuyCost>(mpk.data(), mpk.size());
 
                 if(cmB.itemID != sdBC.item.itemID || cmB.seqID != sdBC.item.seqID){
-                    throw fflerror("item asked and sold are not same: buyItemID = %llu, buySeqID = %llu, soldItemID = %llu, soldSeqID = %llu", to_llu(cmB.itemID), to_llu(cmB.seqID), to_llu(sdBC.item.itemID), to_llu(sdBC.item.seqID));
+                    throw fflpanic("item asked and sold are not same: buyItemID = {}, buySeqID = {}, soldItemID = {}, soldSeqID = {}", to_llu(cmB.itemID), to_llu(cmB.seqID), to_llu(sdBC.item.itemID), to_llu(sdBC.item.seqID));
                 }
 
                 for(const auto &costItem: sdBC.costList){
@@ -663,7 +707,7 @@ corof::awaitable<> Player::net_CM_BUY(uint8_t, const uint8_t *buf, size_t, uint6
 
                     const auto &ir = DBCOM_ITEMRECORD(sdBC.item.itemID);
                     if(!ir){
-                        throw fflerror("bad item: itemID = %llu", to_llu(sdBC.item.itemID));
+                        throw fflpanic("bad item: itemID = {}", to_llu(sdBC.item.itemID));
                     }
 
                     if(ir.packable()){

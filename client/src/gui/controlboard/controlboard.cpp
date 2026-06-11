@@ -1,8 +1,12 @@
+#include <algorithm>
+#include <cstring>
 #include "log.hpp"
+#include "client.hpp"
 #include "controlboard.hpp"
 #include "processrun.hpp"
 
 extern Log *g_log;
+extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
 
 ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
@@ -191,7 +195,7 @@ void ControlBoard::addParLog(const char *log)
 void ControlBoard::addLog(int logType, const char *log)
 {
     if(!log){
-        throw fflerror("null log string");
+        throw fflpanic("null log string");
     }
 
     switch(logType){
@@ -223,7 +227,7 @@ void ControlBoard::addLog(int logType, const char *log)
     }();
 
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
-        throw fflerror("parse xml template failed: %s", xmlString);
+        throw fflpanic("parse xml template failed: {}", xmlString);
     }
 
     // to support <, >, / in xml string
@@ -283,9 +287,20 @@ void ControlBoard::onInputDone()
         m_middleExpand.onCmdCR();
     }
 
+    if(fullStr.empty()){
+        return;
+    }
+
     switch(fullStr[0]){
         case '!': // broadcast
             {
+                const std::string content = str_trim(fullStr.substr(1), true, false);
+                if(!content.empty()){
+                    CMPlayerBroadcast cmPB;
+                    std::memset(&cmPB, 0, sizeof(cmPB));
+                    std::memcpy(cmPB.content, content.data(), std::min<size_t>(content.size(), sizeof(cmPB.content) - 1));
+                    g_client->send({CM_PLAYERBROADCAST, cmPB});
+                }
                 break;
             }
         case '@': // user command
@@ -305,6 +320,10 @@ void ControlBoard::onInputDone()
         default: // normal talk
             {
                 addXMLLog(fullXML.c_str());
+                CMPlayerSay cmPS;
+                std::memset(&cmPS, 0, sizeof(cmPS));
+                std::memcpy(cmPS.content, fullStr.data(), std::min<size_t>(fullStr.size(), sizeof(cmPS.content) - 1));
+                g_client->send({CM_PLAYERSAY, cmPS});
                 break;
             }
     }

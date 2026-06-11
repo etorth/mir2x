@@ -15,19 +15,31 @@ void ProcessCreateChar::on_SM_CREATECHARERROR(const uint8_t *buf, size_t)
         case CRTCHARERR_BADNAME:
             {
                 setGUIActive(true);
-                m_notifyBoard.addLog(u8"无效的角色名");
+                m_notifyBoard.addMessage(u8"无效的角色名");
+                break;
+            }
+        case CRTCHARERR_BADGENDER:
+            {
+                setGUIActive(true);
+                m_notifyBoard.addMessage(u8"无效的角色性别");
+                break;
+            }
+        case CRTCHARERR_BADJOB:
+            {
+                setGUIActive(true);
+                m_notifyBoard.addMessage(u8"无效的角色职业");
                 break;
             }
         case CRTCHARERR_CHAREXIST:
             {
                 setGUIActive(true);
-                m_notifyBoard.addLog(u8"一个账号只能创建一个角色");
+                m_notifyBoard.addMessage(u8"一个账号只能创建一个角色");
                 break;
             }
         case CRTCHARERR_NAMEEXIST:
             {
                 setGUIActive(true);
-                m_notifyBoard.addLog(u8"角色名已被使用");
+                m_notifyBoard.addMessage(u8"角色名已被使用");
                 break;
             }
         default:

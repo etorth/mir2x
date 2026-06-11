@@ -112,7 +112,7 @@ ChatInputContainer::ChatInputContainer(
                               }
                           default:
                               {
-                                  throw fflerror("failed to send message");
+                                  throw fflpanic("failed to send message");
                               }
                       }
                   });

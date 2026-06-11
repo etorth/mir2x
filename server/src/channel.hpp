@@ -149,7 +149,7 @@ class Channel final: public std::enable_shared_from_this<Channel>
                     co_return msgf::decodeLength<T>(m_readSBuf, offset + 1);
                 }
             }
-            throw fflerror("variant packet size uses more than %zu bytes", offset);
+            throw fflpanic("variant packet size uses more than {} bytes", offset);
         }
 
     private:

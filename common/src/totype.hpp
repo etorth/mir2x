@@ -1,14 +1,14 @@
 #pragma once
-#include <span>
 #include <cmath>
-#include <string>
-#include <vector>
 #include <cstdint>
 #include <cstring>
 #include <cinttypes>
+#include <span>
+#include <format>
+#include <string>
+#include <vector>
 #include <stdexcept>
 #include <string_view>
-#include "staticbuffer.hpp"
 #include "conceptf.hpp"
 
 inline auto to_d    (auto x){ return static_cast<               int>(x); }
@@ -37,7 +37,7 @@ template<typename T, typename F> static T check_cast(F from)
         return to;
     }
     else{
-        throw std::runtime_error("cast fails to preserve original value");
+        throw std::runtime_error(std::format("value after casting ({}) fails to preserve original value: {}", to, from));
     }
 }
 
@@ -96,7 +96,42 @@ template<typename T> std::span<const T> as_span(const T *data, size_t size) { re
 template<typename T, typename... Args> std::span<      T> as_span(      std::vector<T, Args...> &v){ return std::span<      T>(v.data(), v.size()); }
 template<typename T, typename... Args> std::span<const T> as_span(const std::vector<T, Args...> &v){ return std::span<const T>(v.data(), v.size()); }
 
-inline const char * to_cstr(const char *s)
+inline const char *to_rawcstr(const char *s)
+{
+    return s; // placeholder
+}
+
+inline const char *to_rawcstr(const unsigned char *s)
+{
+    return to_rawcstr(reinterpret_cast<const char *>(s));
+}
+
+inline const char *to_rawcstr(const char8_t *s)
+{
+    return to_rawcstr(reinterpret_cast<const char *>(s));
+}
+
+inline const char *to_rawcstr(const std::string &s)
+{
+    return to_rawcstr(s.c_str());
+}
+
+inline const char *to_rawcstr(const std::u8string &s)
+{
+    return to_rawcstr(s.c_str());
+}
+
+inline const char *to_rawcstr(const std::string_view &s)
+{
+    return to_rawcstr(s.data());
+}
+
+inline const char *to_rawcstr(const std::u8string_view &s)
+{
+    return to_rawcstr(s.data());
+}
+
+inline const char *to_cstr(const char *s)
 {
     if(s == nullptr){
         return "(null)";
@@ -109,45 +144,30 @@ inline const char * to_cstr(const char *s)
     }
 }
 
-inline const char *to_cstr(const unsigned char *s)
+template<typename T> const char *to_cstr(const T &s)
 {
-    return reinterpret_cast<const char *>(s);
+    return to_cstr(to_rawcstr(s));
 }
 
-inline const char *to_cstr(const char8_t *s)
+// handling utf8: char8_t
+// cast char * to char8_t * breaks strict-aliasing-rule, so to_u8cstr is limited
+
+inline const char8_t *to_u8rawcstr(const char8_t *s)
 {
-    return reinterpret_cast<const char *>(s);
+    return s; // placeholder
 }
 
-inline const char *to_cstr(const std::string &s)
+inline const char8_t *to_u8rawcstr(const std::u8string &s)
 {
-    return to_cstr(s.c_str());
+    return to_u8rawcstr(s.c_str());
 }
 
-inline const char *to_cstr(const std::u8string &s)
+inline const char8_t *to_u8rawcstr(const std::u8string_view &s)
 {
-    return to_cstr(s.c_str());
+    return to_u8rawcstr(s.data());
 }
 
-inline const char *to_cstr(const std::string_view &s)
-{
-    return to_cstr(s.data());
-}
-
-inline const char *to_cstr(const std::u8string_view &s)
-{
-    return to_cstr(s.data());
-}
-
-template<size_t StaticBufferCapacity> const char *to_cstr(const StaticBuffer<StaticBufferCapacity> &buf)
-{
-    return to_cstr((const char *)(buf.buf));
-}
-
-// cast char buf to char8_t buf
-// this may break the strict-aliasing rule
-
-inline const char8_t * to_u8cstr(const char8_t *s)
+inline const char8_t *to_u8cstr(const char8_t *s)
 {
     if(s == nullptr){
         return u8"(null)";
@@ -160,29 +180,72 @@ inline const char8_t * to_u8cstr(const char8_t *s)
     }
 }
 
-inline const char8_t *to_u8cstr(const unsigned char *s)
+template<typename T> const char8_t *to_u8cstr(const T &s)
 {
-    return reinterpret_cast<const char8_t *>(s);
+    return to_u8cstr(to_u8rawcstr(s));
 }
 
-inline const char8_t *to_u8cstr(const char *s)
+// handling utf8: char8_t
+// return owning style std::u8string to avoid strict-aliasing-violation
+
+inline std::u8string to_u8rawstr(std::u8string_view s)
 {
-    return reinterpret_cast<const char8_t *>(s);
+    return std::u8string(s);
 }
 
-inline const char8_t *to_u8cstr(const std::u8string &s)
+inline std::u8string to_u8rawstr(const std::u8string &s)
 {
-    return to_u8cstr(s.c_str());
+    return s;
 }
 
-inline const char8_t *to_u8cstr(const std::string &s)
+inline std::u8string to_u8rawstr(const char8_t *s)
 {
-    return to_u8cstr(s.c_str());
+    return s ? to_u8rawstr(std::u8string_view(s)) : throw std::runtime_error("to_u8rawstr: null pointer");
 }
 
-template<size_t StaticBufferCapacity> const char8_t *to_u8cstr(const StaticBuffer<StaticBufferCapacity> &buf)
+inline std::u8string to_u8rawstr(std::string_view s)
 {
-    return to_u8cstr((const char8_t *)(buf.buf));
+    return std::u8string(s.begin(), s.end());
+}
+
+inline std::u8string to_u8rawstr(const std::string &s)
+{
+    return std::u8string(s.begin(), s.end());
+}
+
+inline std::u8string to_u8rawstr(const char *s)
+{
+    return s ? to_u8rawstr(std::string_view(s)) : throw std::runtime_error("to_u8rawstr: null pointer");
+}
+
+inline std::u8string to_u8str(const std::u8string &s)
+{
+    return s.empty() ? u8"(empty)" : s;
+}
+
+inline std::u8string to_u8str(std::u8string_view s)
+{
+    return s.empty() ? u8"(empty)" : std::u8string(s);
+}
+
+inline std::u8string to_u8str(const char8_t *s)
+{
+    return s ? to_u8str(std::u8string_view(s)) : u8"(null)";
+}
+
+inline std::u8string to_u8str(const std::string &s)
+{
+    return s.empty() ? u8"(empty)" : std::u8string(s.begin(), s.end());
+}
+
+inline std::u8string to_u8str(std::string_view s)
+{
+    return s.empty() ? u8"(empty)" : std::u8string(s.begin(), s.end());
+}
+
+inline std::u8string to_u8str(const char *s)
+{
+    return s ? to_u8str(std::string_view(s)) : u8"(null)";
 }
 
 inline const char *to_boolcstr(bool b)
@@ -190,7 +253,7 @@ inline const char *to_boolcstr(bool b)
     return b ? "true" : "false";
 }
 
-inline const char8_t *to_boolu8cstr(bool b)
+inline const char8_t *to_u8boolcstr(bool b)
 {
     return b ? u8"true" : u8"false";
 }

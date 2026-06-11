@@ -34,7 +34,8 @@ ExternalProject_Add(
     libpng
 
     GIT_REPOSITORY "https://github.com/etorth/libpng-apng-support"
-    GIT_TAG        "main"
+    GIT_TAG "main"
+    GIT_PROGRESS TRUE
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/libpng"
     INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/libpng/build/install"

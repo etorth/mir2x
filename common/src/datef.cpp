@@ -8,7 +8,7 @@ std::string datef::now()
 {
     std::time_t rawTime;
     if(std::time(&rawTime) == (std::time_t)(-1)){
-        throw fflerror("std::time() failed");
+        throw fflpanic("std::time() failed");
     }
 
     // not thread-safe here
@@ -19,5 +19,5 @@ std::string datef::now()
         std::strftime(timeStrBuf, sizeof(timeStrBuf), "%Y%m%d%H%M%S", localPtr);
         return timeStrBuf;
     }
-    throw fflerror("std::localtime(%p) failed", to_cvptr(&rawTime));
+    throw fflpanic("std::localtime({:p}) failed", to_cvptr(&rawTime));
 }

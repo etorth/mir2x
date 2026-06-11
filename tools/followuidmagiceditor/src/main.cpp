@@ -18,7 +18,7 @@ MainWindow  *g_mainWindow  = nullptr;
 int main(int argc, char *argv[])
 {
     fflassert(argc == 3);
-    const auto magicID = DBCOM_MAGICID(to_u8cstr(argv[1]));
+    const auto magicID = DBCOM_MAGICID(argv[1]);
     const auto magicDBPath = argv[2];
 
     const auto &mr = DBCOM_MAGICRECORD(magicID);

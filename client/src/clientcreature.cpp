@@ -73,7 +73,7 @@ void ClientCreature::updateHealth(SDHealth health)
 bool ClientCreature::alive() const
 {
     if(!motionValid(m_currMotion)){
-        throw fflerror("invalid motion detected");
+        throw fflpanic("invalid motion detected");
     }
 
     switch(m_currMotion->type){
@@ -92,7 +92,7 @@ bool ClientCreature::alive() const
 bool ClientCreature::active() const
 {
     if(!motionValid(m_currMotion)){
-        throw fflerror("invalid motion detected");
+        throw fflpanic("invalid motion detected");
     }
 
     switch(m_currMotion->type){

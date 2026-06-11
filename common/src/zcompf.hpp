@@ -10,6 +10,7 @@
 #include "lz4.h"
 #include "zstd.h"
 #include "fflerror.hpp"
+#include "totype.hpp"
 
 namespace zcompf
 {
@@ -17,7 +18,7 @@ namespace zcompf
     {
         static_assert(std::is_trivially_copyable_v<T>);
         if(!(src && srcSize)){
-            throw fflerror("invalid argument: src = %p, srcSize = %zu", src, srcSize);
+            throw fflpanic("invalid argument: src = {:p}, srcSize = {}", to_cvptr(src), srcSize);
         }
 
         const int maxDstSize = LZ4_compressBound(srcSize * sizeof(T));
@@ -27,7 +28,7 @@ namespace zcompf
 
         const int compSize = LZ4_compress_default(reinterpret_cast<const char *>(src.data()), reinterpret_cast<char *>(dst.data()), srcSize * sizeof(T), maxDstSize);
         if(compSize <= 0){
-            throw fflerror("LZ4_compress_default() return error code: %d", compSize);
+            throw fflpanic("LZ4_compress_default() return error code: {}", compSize);
         }
         dst.resize(compSize);
     }
@@ -41,7 +42,7 @@ namespace zcompf
         static_assert(std::is_trivially_copyable_v<VALUE_TYPE>);
 
         if(!(maxDstSize && src && srcSize)){
-            throw fflerror("invalid argument: maxDstSize = %zu, src = %p, srcSize = %zu", maxDstSize, src, srcSize);
+            throw fflpanic("invalid argument: maxDstSize = {}, src = {:p}, srcSize = {}", maxDstSize, to_cvptr(src), srcSize);
         }
 
         dst.clear();
@@ -49,11 +50,11 @@ namespace zcompf
 
         const int decompSize = LZ4_decompress_safe(reinterpret_cast<const char *>(src), reinterpret_cast<char *>(dst.data()), srcSize, maxDstSize * sizeof(VALUE_TYPE));
         if(decompSize <= 0){
-            throw fflerror("LZ4_decompress_safe() return error code: %d", decompSize);
+            throw fflpanic("LZ4_decompress_safe() return error code: {}", decompSize);
         }
 
         if(decompSize % sizeof(VALUE_TYPE)){
-            throw fflerror("decompressed data buffer is not aligned by class value type: size = %zu, sizeof(value_type) = %zu", decompSize, sizeof(VALUE_TYPE));
+            throw fflpanic("decompressed data buffer is not aligned by class value type: size = {}, sizeof(value_type) = {}", decompSize, sizeof(VALUE_TYPE));
         }
         dst.resize(decompSize / sizeof(VALUE_TYPE));
     }
@@ -63,7 +64,7 @@ namespace zcompf
     {
         static_assert(std::is_trivially_copyable_v<T>);
         if(!(src && srcSize)){
-            throw fflerror("invalid argument: src = %p, srcSize = %zu", src, srcSize);
+            throw fflpanic("invalid argument: src = {:p}, srcSize = {}", to_cvptr(src), srcSize);
         }
 
         dst.clear();
@@ -71,7 +72,7 @@ namespace zcompf
 
         const size_t rc = ZSTD_compress(dst.data(), dst.size(), src, srcSize * sizeof(T), ZSTD_maxCLevel());
         if(ZSTD_isError(rc)){
-            throw fflerror("failed to compress file: %s", ZSTD_getErrorName(rc));
+            throw fflpanic("failed to compress file: {}", ZSTD_getErrorName(rc));
         }
         dst.resize(rc);
     }
@@ -85,7 +86,7 @@ namespace zcompf
             case ZSTD_CONTENTSIZE_ERROR:
             case ZSTD_CONTENTSIZE_UNKNOWN:
                 {
-                    throw fflerror("not a zstd compressed data buffer: src = %p, srcSize = %zu", src, srcSize);
+                    throw fflpanic("not a zstd compressed data buffer: src = {:p}, srcSize = {}", to_cvptr(src), srcSize);
                 }
             default:
                 {
@@ -96,11 +97,11 @@ namespace zcompf
 
         const size_t rc = ZSTD_decompress(dst.data(), dst.size() * sizeof(VALUE_TYPE), src, srcSize);
         if(ZSTD_isError(rc)){
-            throw fflerror("failed to decompress data buffer: %s", ZSTD_getErrorName(rc));
+            throw fflpanic("failed to decompress data buffer: {}", ZSTD_getErrorName(rc));
         }
 
         if(rc % sizeof(VALUE_TYPE)){
-            throw fflerror("decompressed data buffer is not aligned by class value type: size = %zu, sizeof(value_type) = %zu", rc, sizeof(VALUE_TYPE));
+            throw fflpanic("decompressed data buffer is not aligned by class value type: size = {}, sizeof(value_type) = {}", rc, sizeof(VALUE_TYPE));
         }
         dst.resize(rc / sizeof(VALUE_TYPE));
     }

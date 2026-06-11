@@ -182,7 +182,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
         .msgRefID = sdCM.refer,
 
         .name = u8"...",
-        .message = to_u8cstr(cerealf::deserialize<std::string>(sdCM.message)),
+        .message = to_u8rawstr(cerealf::deserialize<std::string>(sdCM.message)).c_str(),
         .messageRef = sdCM.refer.has_value() ? u8"<layout><par>...</par></layout>" : nullptr,
 
         .texLoadFunc = []{ return g_progUseDB->retrieve(0X010007CF); },
@@ -228,7 +228,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
             const auto job    = peer->player() ? peer->player()->job    : 0;
             const auto gender = peer->player() ? peer->player()->gender : false;
 
-            chatItem->name.setText(to_u8cstr(peer->name));
+            chatItem->name.setText(u8"%s", peer->name.c_str());
             chatItem->avatar.setLoadFunc([from, job, gender](const Widget *)
             {
                 if     (from == SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM)) return g_progUseDB->retrieve(0X00001100);
@@ -263,7 +263,7 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
                         tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
 
                         if(xmlDoc.Parse(xmlStr.c_str()) != tinyxml2::XML_SUCCESS){
-                            throw fflerror("tinyxml2::XMLDocument::Parse() failed: %s", xmlStr.c_str());
+                            throw fflpanic("tinyxml2::XMLDocument::Parse() failed: {}", xmlStr.c_str());
                         }
 
                         fflassert(xmlf::checkNodeName(xmlDoc.FirstChild(), "layout"));

@@ -109,7 +109,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                     }
                 default:
                     {
-                        throw fflerror("invalid argument count: %zu", argList.size());
+                        throw fflpanic("invalid argument count: {}", argList.size());
                     }
             }
         }();
@@ -123,7 +123,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         int roiH = regionH;
 
         if(!mathf::rectangleOverlapRegion<int>(0, 0, getServerMap()->mapBin()->w(), getServerMap()->mapBin()->h(), roiX, roiY, roiW, roiH)){
-            throw fflerror("invalid region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name), regionX, regionY, regionW, regionH);
+            throw fflpanic("invalid region: map = {}, x = {}, y = {}, w = {}, h = {}", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name), regionX, regionY, regionW, regionH);
         }
 
         int count = 0;
@@ -171,7 +171,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                     }
                 default:
                     {
-                        throw fflerror("invalid argument count: %zu", argList.size());
+                        throw fflpanic("invalid argument count: {}", argList.size());
                     }
             }
         }();
@@ -208,10 +208,10 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         // need it to validate map monster gen coroutine, otherwise this can throw
 
         if(useFullMap){
-            throw fflerror("no valid grid on map: map = %s", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
+            throw fflpanic("no valid grid on map: map = {}", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
         }
         else{
-            throw fflerror("no valid grid in region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name), regionX, regionY, regionW, regionH);
+            throw fflpanic("no valid grid in region: map = {}, x = {}, y = {}, w = {}, h = {}", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name), regionX, regionY, regionW, regionH);
         }
     });
 
@@ -240,7 +240,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
                     }
 
                     else if(argList[0].is<std::string>()){
-                        if(const int monID = DBCOM_MONSTERID(to_u8cstr(argList[0].as<std::string>().c_str())); monID >= 0){
+                        if(const int monID = DBCOM_MONSTERID(argList[0].as<std::string>().c_str()); monID >= 0){
                             return getServerMap()->getMonsterCount(monID);
                         }
                     }
@@ -268,7 +268,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             }
 
             if(monInfo.is<std::string>()){
-                return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
+                return DBCOM_MONSTERID(monInfo.as<std::string>().c_str());
             }
 
             return 0;
@@ -352,11 +352,11 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             }
 
             else if(monInfo.is<std::string>()){
-                return DBCOM_MONSTERID(to_u8cstr(monInfo.as<std::string>().c_str()));
+                return DBCOM_MONSTERID(monInfo.as<std::string>().c_str());
             }
 
             else{
-                throw fflerror("invalid argument: addGuard()");
+                throw fflpanic("invalid argument: addGuard()");
             }
         }();
 
@@ -395,7 +395,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
             if(filesys::hasFile(defaultScriptName.c_str())){
                 return defaultScriptName;
             }
-            throw fflerror("can't load proper script for map %s", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
+            throw fflpanic("can't load proper script for map {}", to_cstr(DBCOM_MAPRECORD(getServerMap()->ID()).name));
         }().c_str()));
     }
 }
@@ -428,7 +428,7 @@ ServerMap::ServerMap(uint64_t argMapUID)
           if(auto p = g_mapBinDB->retrieve(uidf::getMapID(argMapUID))){
               return p;
           }
-          throw fflerror("failed to load map: mapID %d, name %s", to_d(uidf::getMapID(argMapUID)), to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name));
+          throw fflpanic("failed to load map: mapID {}, name {}", to_d(uidf::getMapID(argMapUID)), to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name));
       }())
 {
     m_gridList.resize(mapBin()->w() * mapBin()->h());
@@ -657,7 +657,7 @@ std::optional<std::tuple<int, int>> ServerMap::getRCGLoc(bool checkCO, bool chec
     int roiH = regionH;
 
     if(!mathf::rectangleOverlapRegion<int>(0, 0, mapBin()->w(), mapBin()->h(), roiX, roiY, roiW, roiH)){
-        throw fflerror("invalid region: map = %s, x = %d, y = %d, w = %d, h = %d", to_cstr(DBCOM_MAPRECORD(ID()).name), regionX, regionY, regionW, regionH);
+        throw fflpanic("invalid region: map = {}, x = {}, y = {}, w = {}, h = {}", to_cstr(DBCOM_MAPRECORD(ID()).name), regionX, regionY, regionW, regionH);
     }
 
     RotateCoord rc
@@ -705,7 +705,7 @@ std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool
 void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
 {
     if(!mapBin()->validC(nX, nY)){
-        throw fflerror("invalid location: (%d, %d)", nX, nY);
+        throw fflpanic("invalid location: ({}, {})", nX, nY);
     }
 
     if(bForce || mapBin()->groundValid(nX, nY)){
@@ -718,7 +718,7 @@ void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)
 bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
 {
     if(!mapBin()->validC(nX, nY)){
-        throw fflerror("invalid location: (%d, %d)", nX, nY);
+        throw fflpanic("invalid location: ({}, {})", nX, nY);
     }
 
     const auto &uidList = getUIDList(nX, nY);
@@ -728,7 +728,7 @@ bool ServerMap::hasGridUID(uint64_t uid, int nX, int nY) const
 bool ServerMap::removeGridUID(uint64_t uid, int nX, int nY)
 {
     if(!mapBin()->validC(nX, nY)){
-        throw fflerror("invalid location: (%d, %d)", nX, nY);
+        throw fflpanic("invalid location: ({}, {})", nX, nY);
     }
 
     auto &uidList = getUIDList(nX, nY);
@@ -1255,7 +1255,7 @@ corof::awaitable<> ServerMap::loadNPChar()
                         }
                     default:
                         {
-                            throw fflerror("failed to load NPC: %s", to_cstr(sdINPC.npcName));
+                            throw fflpanic("failed to load NPC: {}", to_cstr(sdINPC.npcName));
                         }
                 }
             }

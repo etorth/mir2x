@@ -317,7 +317,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 return [funcName, func = std::forward<Func>(func), this](typename _extractLambdaUserArgsAsTuple<Func>::type args, sol::function cb, sol::this_state s)
                 {
                     if(!m_currRunner){
-                        throw fflerror("calling %s() without a spawned runner", to_cstr(funcName));
+                        throw fflpanic("calling {}() without a spawned runner", to_cstr(funcName));
                     }
 
                     fflassert(s.lua_state());

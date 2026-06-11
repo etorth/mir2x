@@ -236,8 +236,19 @@ bool SliderBase::inSlider(int eventX, int eventY, Widget::ROIMap m) const
 
 void SliderBase::setBarBgWidget(Widget::VarInt ox, Widget::VarInt oy, Widget *bgWidget, bool autoDelete)
 {
+    if(m_bgWidgetID){
+        if(auto oldBgWidget = hasChild(m_bgWidgetID)){
+            removeChild(m_bgWidgetID, oldBgWidget != bgWidget);
+        }
+
+        m_bgOff.reset();
+        m_bgWidgetID = 0;
+    }
+
     if(bgWidget){
         m_bgOff = std::make_optional(std::make_pair(std::move(ox), std::move(oy)));
+        m_bgWidgetID = bgWidget->id();
+
         addChildAt(bgWidget, DIR_UPLEFT,
                 [this]{ return -1 * widgetXFromBar(0) - Widget::evalInt(m_bgOff->first , this); },
                 [this]{ return -1 * widgetYFromBar(0) - Widget::evalInt(m_bgOff->second, this); }, autoDelete);

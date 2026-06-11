@@ -81,9 +81,9 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
     {
         const auto mapID = [&mapName]() -> uint32_t
         {
-            if(mapName.is<std::string>()) return DBCOM_MAPID(to_u8cstr(mapName.as<std::string>()));
+            if(mapName.is<std::string>()) return DBCOM_MAPID(mapName.as<std::string>().c_str());
             if(mapName.is<lua_Integer>()) return static_cast<uint32_t>(mapName.as<lua_Integer>());
-            throw fflerror("invalid sol::object type");
+            throw fflpanic("invalid sol::object type");
         }();
 
         fflassert(mapID);
@@ -198,7 +198,7 @@ corof::awaitable<bool> ServerObject::queryDead(uint64_t uid)
             }
         default:
             {
-                throw fflerror("unexpected message: %s", rmpk.str(UID()).c_str());
+                throw fflpanic("unexpected message: {}", rmpk.str(UID()).c_str());
             }
     }
 }

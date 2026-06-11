@@ -542,7 +542,7 @@ corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
             }
         default:
             {
-                throw fflerror("Unsupported message: %s", mpkName(rstMPK.type()));
+                throw fflpanic("Unsupported message: {}", mpkName(rstMPK.type()));
             }
     }
 }
@@ -811,7 +811,7 @@ corof::awaitable<bool> Monster::moveOneStepNeighbor(int argX, int argY)
     const auto stPathNode = pathList.at(1);
 
     if(pathList.size() < 2){
-        throw fflerror("incorrect pathnode number: %zu", pathList.size());
+        throw fflpanic("incorrect pathnode number: {}", pathList.size());
     }
 
     m_astarCache.cache(mapID(), std::move(pathList));
@@ -838,7 +838,7 @@ corof::awaitable<bool> Monster::moveOneStepGreedy(int argX, int argY)
         getValidChaseGrid(argX, argY, stepSize, pathNodeList);
 
         if(pathNodeList.c.size() > 3){
-            throw fflerror("invalid chase grid size: %zu", pathNodeList.c.size());
+            throw fflpanic("invalid chase grid size: {}", pathNodeList.c.size());
         }
 
         for(const auto &node: pathNodeList.c){

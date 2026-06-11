@@ -43,7 +43,7 @@ corof::awaitable<> ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
             amML.MapList[nIndex++] = uidf::getMapID(mapUID);
         }
         else{
-            throw fflerror("Need larger map list size in AMMapList");
+            throw fflpanic("Need larger map list size in AMMapList");
         }
     }
 
@@ -200,6 +200,17 @@ corof::awaitable<> ServiceCore::on_AM_QUERYQUESTUIDLIST(const ActorMsgPack &mpk)
     }
 
     m_actorPod->post(mpk.fromAddr(), {AM_UIDLIST, cerealf::serialize(uidList)});
+    return {};
+}
+
+corof::awaitable<> ServiceCore::on_AM_PLAYERBROADCAST(const ActorMsgPack &mpk)
+{
+    const auto amPB = mpk.conv<AMPlayerBroadcast>();
+    for(const auto &entry: m_dbidList){
+        if(entry.second.second){
+            m_actorPod->post(uidf::getPlayerUID(entry.second.first), {AM_PLAYERBROADCAST, amPB});
+        }
+    }
     return {};
 }
 

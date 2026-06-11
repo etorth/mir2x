@@ -102,7 +102,7 @@ class ServerArgParser
         const auto &masterConfig() const
         {
             if(this->slave){
-                throw fflerror("master config is not available in slave mode");
+                throw fflpanic("master config is not available in slave mode");
             }
             return m_masterOnlyConfig;
         }
@@ -110,7 +110,7 @@ class ServerArgParser
         const auto &slaveConfig() const
         {
             if(!this->slave){
-                throw fflerror("slave config is not available in master mode");
+                throw fflpanic("slave config is not available in master mode");
             }
             return m_slaveOnlyConfig;
         }
@@ -118,7 +118,7 @@ class ServerArgParser
         const auto &sharedConfig() const
         {
             if(!m_masterSharedConfig){
-                throw fflerror("master shared config is not available");
+                throw fflpanic("master shared config is not available");
             }
             return *m_masterSharedConfig;
         }
@@ -195,7 +195,7 @@ class ServerArgParser
         void setSharedConfig(ServerArgParser::MasterSharedConfig sharedConfig)
         {
             if(m_masterSharedConfig){
-                throw fflerror("overwriting shared config is not allowed");
+                throw fflpanic("overwriting shared config is not allowed");
             }
             else{
                 m_masterSharedConfig = std::make_unique<MasterSharedConfig>(std::move(sharedConfig));
@@ -229,14 +229,14 @@ class ServerArgParser
                 case argf::REQ:
                     {
                         if(!optVal.has_value()){
-                            throw fflerror("missing required option in %s mode: %s", slave ? "slave" : "master", opt.c_str());
+                            throw fflpanic("missing required option in {} mode: {}", slave ? "slave" : "master", opt.c_str());
                         }
                         break;
                     }
                 case argf::BAN:
                     {
                         if(optVal.has_value()){
-                            throw fflerror("invalid option in %s mode: %s", slave ? "slave" : "master", opt.c_str());
+                            throw fflpanic("invalid option in {} mode: {}", slave ? "slave" : "master", opt.c_str());
                         }
                         break;
                     }
@@ -247,7 +247,7 @@ class ServerArgParser
             }
 
             if(optVal.has_value() && optVal.value().empty() && !(slave ? allowEmptyInSlave : allowEmptyInMaster)){
-                throw fflerror("invalid empty option value in %s mode: %s", slave ? "slave" : "master", opt.c_str());
+                throw fflpanic("invalid empty option value in {} mode: {}", slave ? "slave" : "master", opt.c_str());
             }
             return optVal;
         }

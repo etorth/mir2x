@@ -43,27 +43,27 @@ void filesys::copyFile(const char *dstFileName, const char *srcFileName)
     char fileBuf[copySize];
 
     if(std::fseek(src_fp, 0L, SEEK_END)){
-        throw fflerror("failed to fseek file %s: %s", srcFileName, std::strerror(errno));
+        throw fflpanic("failed to fseek file {}: {}", srcFileName, std::strerror(errno));
     }
 
     const long fileSize = ftell(src_fp);
     if(fileSize < 0){
-        throw fflerror("failed to ftell file %s: %s", srcFileName, std::strerror(errno));
+        throw fflpanic("failed to ftell file {}: {}", srcFileName, std::strerror(errno));
     }
 
     if(std::fseek(src_fp, 0L, SEEK_SET)){
-        throw fflerror("failed to fseek file %s: %s", srcFileName, std::strerror(errno));
+        throw fflpanic("failed to fseek file {}: {}", srcFileName, std::strerror(errno));
     }
 
     long copyDone = 0;
     while(copyDone < fileSize){
         const auto currCopySize = std::min<long>(copySize, fileSize - copyDone);
         if(std::fread (fileBuf, currCopySize, 1, src_fp) != 1){
-            throw fflerror("failed to read file %s: %s", srcFileName, std::strerror(errno));
+            throw fflpanic("failed to read file {}: {}", srcFileName, std::strerror(errno));
         }
 
         if(std::fwrite(fileBuf, currCopySize, 1, dst_fp) != 1){
-            throw fflerror("failed to write file %s: %s", dstFileName, std::strerror(errno));
+            throw fflpanic("failed to write file {}: {}", dstFileName, std::strerror(errno));
         }
         copyDone += currCopySize;
     }

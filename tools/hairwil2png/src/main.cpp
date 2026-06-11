@@ -101,7 +101,7 @@ void hairWil2PNG(bool bGender,
                                 hairImgInfo->py);
 
                         if(!imgf::saveImageBuffer((uint8_t *)(layer[0]), hairImgInfo->width, hairImgInfo->height, szSaveFileName)){
-                            throw fflerror("save hair PNG failed: %s", szSaveFileName);
+                            throw fflpanic("save hair PNG failed: {}", szSaveFileName);
                         }
                     }
                 }
@@ -113,13 +113,13 @@ void hairWil2PNG(bool bGender,
 int main(int argc, char *argv[])
 {
     if(argc != 6){
-        throw fflerror("Usage: hairwil2png gender hair-wil-path hair-wil-basename hair-wil-extension hair-output-dir");
+        throw fflpanic("Usage: hairwil2png gender hair-wil-path hair-wil-basename hair-wil-extension hair-output-dir");
     }
 
     if(true
             && std::strcmp(argv[1], "0")
             && std::strcmp(argv[1], "1")){
-        throw fflerror("invlid argv[1] : %s", argv[1]);
+        throw fflpanic("invlid argv[1] : {}", argv[1]);
     }
 
     hairWil2PNG((std::atoi(argv[1]) != 0), argv[2], argv[3], argv[4], argv[5]);

@@ -33,7 +33,7 @@
 const char *createOffsetFileName(char *fileNameBuf, const char *outDir, int fileIndex, int imgIndex,  int dx, int dy, int prefixIndex, int prefixWidth)
 {
     if(!fileNameBuf){
-        throw fflerror("invalid arguments");
+        throw fflpanic("invalid arguments");
     }
 
     char prefixBuf[64];
@@ -81,7 +81,7 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
                 createOffsetFileName(saveFileName, outDir, fileIndex, i, imgInfo->px, imgInfo->py, prefixIndex++, prefixWidth);
 
                 if(!imgf::saveImageBuffer((uint8_t *)(layer[0]), imgInfo->width, imgInfo->height, saveFileName)){
-                    throw fflerror("save PNG failed: %s", saveFileName);
+                    throw fflpanic("save PNG failed: {}", saveFileName);
                 }
             }
         }
@@ -92,7 +92,7 @@ void magicWil2PNG(const char *dataPath, const char *outDir, int prefixWidth)
 int main(int argc, char *argv[])
 {
     if(argc != 4){
-        throw fflerror("invalid arguments");
+        throw fflpanic("invalid arguments");
     }
 
     magicWil2PNG(argv[1], argv[2], std::stoi(argv[3]));

@@ -96,7 +96,7 @@ class ActorMonitorTable: public Fl_TableImpl
                 case 5: return "MSG_DONE";
                 case 6: return "MSG_PENDING";
                 case 7: return "MSG_AVGDLY";
-                default: throw fflerror("invalid col: %d", col);
+                default: throw fflpanic("invalid col: {}", col);
             }
         }
 

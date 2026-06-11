@@ -137,7 +137,7 @@ ChatPreviewItem::ChatPreviewItem(
             return;
         }
 
-        this->name.setText(to_u8cstr(peer->name));
+        this->name.setText(u8"%s", peer->name.c_str());
         this->avatar.setLoadFunc([dbid = peer->id, group = peer->group(), gender = peer->player() ? peer->player()->gender : false, job = peer->player() ? peer->player()->job : 0](const Widget *)
         {
             if     (group                      ) return g_progUseDB->retrieve(0X00001300);

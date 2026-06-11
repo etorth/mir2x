@@ -69,7 +69,7 @@ std::optional<int> IntegerSelector::getInt() const
             return std::stoi(s);
         }
         catch(...){
-            throw fflerror("invalid integer string: %s", to_cstr(s));
+            throw fflpanic("invalid integer string: {}", to_cstr(s));
         }
     }
 }

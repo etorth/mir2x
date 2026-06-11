@@ -35,7 +35,7 @@ class ClientNumaWizard: public ClientMonster
                 return onActionAttack_thunderBolt(action);
             }
             else{
-                throw fflerror("invalid monster: %s", to_cstr(monsterName()));
+                throw fflpanic("invalid monster: {}", to_cstr(monsterName()));
             }
         }
 

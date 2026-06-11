@@ -91,6 +91,29 @@ void ProcessRun::on_SM_CHATMESSAGELIST(const uint8_t *buf, size_t bufSize)
     dynamic_cast<ControlBoard *>(getWidget("ControlBoard"))->getButton("FriendChat")->setBlinkTime(100, 100, 5000);
 }
 
+void ProcessRun::on_SM_PLAYERSAY(const uint8_t *buf, size_t bufSize)
+{
+    const auto smPS = ServerMsg::conv<SMPlayerSay>(buf, bufSize);
+    if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPS.uid)); playerPtr){
+        playerPtr->addPlayerSay(smPS.content);
+    }
+
+    if(smPS.uid != getMyHeroUID()){
+        addCBLog(CBLOG_DEF, u8"%s", smPS.content);
+    }
+}
+
+void ProcessRun::on_SM_PLAYERBROADCAST(const uint8_t *buf, size_t bufSize)
+{
+    const auto smPB = ServerMsg::conv<SMPlayerBroadcast>(buf, bufSize);
+    if(auto playerPtr = dynamic_cast<Hero *>(findUID(smPB.uid)); playerPtr){
+        addCBLog(CBLOG_SYS, u8"%s: %s", playerPtr->getName().c_str(), smPB.content);
+    }
+    else{
+        addCBLog(CBLOG_SYS, u8"%s", smPB.content);
+    }
+}
+
 void ProcessRun::on_SM_LEARNEDMAGICLIST(const uint8_t *buf, size_t bufSize)
 {
     const auto sdLML = cerealf::deserialize<SDLearnedMagicList>(buf, bufSize);
@@ -366,14 +389,14 @@ void ProcessRun::on_SM_MISS(const uint8_t *bufPtr, size_t)
 void ProcessRun::on_SM_PING(const uint8_t *bufPtr, size_t)
 {
     if(m_lastPingDone){
-        throw fflerror("received echo while no ping has been sent to server");
+        throw fflpanic("received echo while no ping has been sent to server");
     }
 
     const auto currTick = SDL_GetTicks();
     const auto smP = ServerMsg::conv<SMPing>(bufPtr);
 
     if(currTick < smP.Tick){
-        throw fflerror("invalid ping tick: %llu -> %llu", to_llu(smP.Tick), to_llu(currTick));
+        throw fflpanic("invalid ping tick: {} -> {}", to_llu(smP.Tick), to_llu(currTick));
     }
 
     m_lastPingDone = true;
@@ -412,13 +435,13 @@ void ProcessRun::on_SM_GROUNDITEMIDLIST(const uint8_t *buf, size_t bufSize)
 
     for(const auto &[x, y, itemIDList]: sdGIIDL.gridItemIDList){
         if(!onMap(x, y)){
-            throw fflerror("invalid grid: x= %d, y = %d", x, y);
+            throw fflpanic("invalid grid: x= {}, y = {}", x, y);
         }
 
         clearGroundItemIDList(x, y);
         for(const auto itemID: itemIDList){
             if(!DBCOM_ITEMRECORD(itemID)){
-                throw fflerror("invalid itemID = %llu", to_llu(itemID));
+                throw fflpanic("invalid itemID = {}", to_llu(itemID));
             }
             addGroundItemID(itemID, x, y);
         }
@@ -641,7 +664,7 @@ void ProcessRun::on_SM_PLAYERWLDESP(const uint8_t *buf, size_t bufSize)
 {
     auto sdUIDWLD = cerealf::deserialize<SDUIDWLDesp>(buf, bufSize);
     if(uidf::getUIDType(sdUIDWLD.uid) != UID_PLY){
-        throw fflerror("invalid uid type: %s", uidf::getUIDTypeCStr(sdUIDWLD.uid));
+        throw fflpanic("invalid uid type: {}", uidf::getUIDTypeCStr(sdUIDWLD.uid));
     }
 
     if(auto playerPtr = dynamic_cast<Hero *>(findUID(sdUIDWLD.uid)); playerPtr){
@@ -670,7 +693,7 @@ void ProcessRun::on_SM_UPDATEITEM(const uint8_t *buf, size_t bufSize)
     const auto sdUI = cerealf::deserialize<SDUpdateItem>(buf, bufSize);
     const auto &ir = DBCOM_ITEMRECORD(sdUI.item.itemID);
     if(!ir){
-        throw fflerror("bad item: itemID = %llu", to_llu(sdUI.item.itemID));
+        throw fflpanic("bad item: itemID = {}", to_llu(sdUI.item.itemID));
     }
 
     const auto changed = getMyHero()->getInvPack().update(sdUI.item);
@@ -714,7 +737,7 @@ void ProcessRun::on_SM_EQUIPWEAR(const uint8_t *buf, size_t bufSize)
 {
     auto sdEW = cerealf::deserialize<SDEquipWear>(buf, bufSize);
     if(uidf::getUIDType(sdEW.uid) != UID_PLY){
-        throw fflerror("invalid uid type to equip wear item: %s", uidf::getUIDTypeCStr(sdEW.uid));
+        throw fflpanic("invalid uid type to equip wear item: {}", uidf::getUIDTypeCStr(sdEW.uid));
     }
 
     if(auto coPtr = dynamic_cast<Hero *>(findUID(sdEW.uid))){
@@ -748,12 +771,12 @@ void ProcessRun::on_SM_GRABWEAR(const uint8_t *buf, size_t bufSize)
 {
     auto sdGW = cerealf::deserialize<SDGrabWear>(buf, bufSize);
     if(!sdGW.item){
-        throw fflerror("invalid wear item: %s", to_cstr(sdGW.item.str()));
+        throw fflpanic("invalid wear item: {}", to_cstr(sdGW.item.str()));
     }
 
     const auto wltype = to_d(sdGW.wltype);
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("invalid wear grid type: %d", wltype);
+        throw fflpanic("invalid wear grid type: {}", wltype);
     }
 
     auto myHeroPtr = getMyHero();
@@ -788,7 +811,7 @@ void ProcessRun::on_SM_EQUIPBELT(const uint8_t *buf, size_t bufSize)
     auto sdEB = cerealf::deserialize<SDEquipBelt>(buf, bufSize);
     const auto &ir = DBCOM_ITEMRECORD(sdEB.item.itemID);
     if(!ir.beltable()){
-        throw fflerror("invalid item to equip belt: %s", to_cstr(sdEB.item.str()));
+        throw fflpanic("invalid item to equip belt: {}", to_cstr(sdEB.item.str()));
     }
     getMyHero()->setBelt(sdEB.slot, std::move(sdEB.item));
 }
@@ -819,12 +842,12 @@ void ProcessRun::on_SM_GRABBELT(const uint8_t *buf, size_t bufSize)
 {
     auto sdGB = cerealf::deserialize<SDGrabBelt>(buf, bufSize);
     if(!sdGB.item){
-        throw fflerror("invalid belt item: %s", to_cstr(sdGB.item.str()));
+        throw fflpanic("invalid belt item: {}", to_cstr(sdGB.item.str()));
     }
 
     const auto slot = to_d(sdGB.slot);
     if(!(slot >= 0 && slot < 6)){
-        throw fflerror("invalid belt slot: %d", slot);
+        throw fflpanic("invalid belt slot: {}", slot);
     }
 
     auto myHeroPtr = getMyHero();
@@ -859,8 +882,7 @@ void ProcessRun::on_SM_STARTINPUT(const uint8_t *buf, size_t bufSize)
     const auto sdSI = cerealf::deserialize<SDStartInput>(buf, bufSize);
     auto inputBoardPtr = dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"));
 
-    inputBoardPtr->setSecurity(true);
-    inputBoardPtr->waitInput(to_u8cstr(sdSI.title), [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
+    inputBoardPtr->waitInput(to_u8rawstr(sdSI.title), true, [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
     {
         sendNPCEvent(uid, {}, commitTag, to_cstr(input));
     });

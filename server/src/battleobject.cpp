@@ -108,7 +108,7 @@ void BattleObject::beforeActivate()
 corof::awaitable<bool> BattleObject::requestJump(int nX, int nY, int nDirection)
 {
     if(!mapBin()->groundValid(nX, nY)){
-        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), nX, nY);
+        throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", to_lld(mapID()), nX, nY);
     }
 
     if(X() == nX && Y() == nY){
@@ -187,7 +187,7 @@ corof::awaitable<bool> BattleObject::requestJump(int nX, int nY, int nDirection)
 corof::awaitable<bool> BattleObject::requestMove(int dstX, int dstY, int speed, bool allowHalfMove, bool removeMonster)
 {
     if(!mapBin()->groundValid(dstX, dstY)){
-        throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_lld(mapID()), dstX, dstY);
+        throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", to_lld(mapID()), dstX, dstY);
     }
 
     if(!canMove(true)){
@@ -199,7 +199,7 @@ corof::awaitable<bool> BattleObject::requestMove(int dstX, int dstY, int speed, 
     }
 
     if(removeMonster){
-        throw fflerror("RemoveMonster in requestMove() not implemented yet");
+        throw fflpanic("RemoveMonster in requestMove() not implemented yet");
     }
 
     switch(mathf::LDistance2(X(), Y(), dstX, dstY)){
@@ -316,12 +316,12 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
 {
     if(strictMove){
         if(!mapBin()->groundValid(locX, locY)){
-            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(mapID()), locX, locY);
+            throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", to_llu(mapID()), locX, locY);
         }
     }
     else{
         if(!mapBin()->validC(locX, locY)){
-            throw fflerror("invalid destination: (mapID = %lld, x = %d, y = %d)", to_llu(mapID()), locX, locY);
+            throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", to_llu(mapID()), locX, locY);
         }
     }
 
@@ -397,11 +397,11 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
 corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int locX, int locY, bool strictMove)
 {
     if(argMapUID == mapUID()){
-        throw fflerror("request to switch on same map: mapUID %llu", to_llu(argMapUID));
+        throw fflpanic("request to switch on same map: mapUID {}", to_llu(argMapUID));
     }
 
     if(locX < 0 || locY < 0){
-        throw fflerror("invalid argument: mapUID %llu, locX %d, locY %d", to_llu(argMapUID), locX, locY);
+        throw fflpanic("invalid argument: mapUID {}, locX {}, locY {}", to_llu(argMapUID), locX, locY);
     }
 
     if(!canMove(true)){
@@ -808,7 +808,7 @@ void BattleObject::getValidChaseGrid(int nX, int nY, int nDLen, scoped_alloc::sv
     }
 
     if(buf.c.size() > buf.svocap()){
-        throw fflerror("more than 3 valid chase grid found");
+        throw fflpanic("more than 3 valid chase grid found");
     }
 }
 

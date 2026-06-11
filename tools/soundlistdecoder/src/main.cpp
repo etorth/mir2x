@@ -26,7 +26,7 @@ struct WAVELISTHEADER
 int main(int argc, char *argv[])
 {
     if(argc != 2){
-        throw fflerror("usage: soundlistdecoder <file>.wwl");
+        throw fflpanic("usage: soundlistdecoder <file>.wwl");
     }
 
     auto fptr = make_fileptr(argv[1], "rb");

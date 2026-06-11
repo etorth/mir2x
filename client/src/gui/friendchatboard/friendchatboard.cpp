@@ -291,7 +291,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
 
               .enter = [this](int, UIPage *uiPage)
               {
-                  uiPage->title->setText(to_u8cstr([chatPage = dynamic_cast<ChatPage *>(uiPage->page), this]()
+                  const auto title = [chatPage = dynamic_cast<ChatPage *>(uiPage->page), this]()
                   {
                       if(chatPage->peer.group() || chatPage->peer.special() || findChatPeer({CP_PLAYER, chatPage->peer.id})){
                           return chatPage->peer.name;
@@ -302,7 +302,8 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                       else{
                           return str_printf("陌生人 %s", chatPage->peer.name.c_str());
                       }
-                  }()));
+                  }();
+                  uiPage->title->setText(u8"%s", title.c_str());
               },
           },
 
@@ -651,13 +652,12 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                                   }
 
                                   if(dbidList.size() > CMCreateChatGroup().list.capacity()){
-                                      throw fflerror("selected too many friends, max %zu", CMCreateChatGroup().list.capacity());
+                                      throw fflpanic("selected too many friends, max {}", CMCreateChatGroup().list.capacity());
                                   }
 
                                   auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"));
 
-                                  inputBoardPtr->setSecurity(false);
-                                  inputBoardPtr->waitInput(u8"<layout><par>请输入你要建立的群名称</par></layout>", [dbidList, this](std::u8string inputString)
+                                  inputBoardPtr->waitInput(u8"<layout><par>请输入你要建立的群名称</par></layout>", false, [dbidList, this](std::u8string inputString)
                                   {
                                       if(inputString.empty()){
                                           m_processRun->addCBLog(CBLOG_ERR, u8"无效输入:%s", to_cstr(inputString));
@@ -680,7 +680,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                                                   }
                                               default:
                                                   {
-                                                      throw fflerror("failed to create group");
+                                                      throw fflpanic("failed to create group");
                                                   }
                                           }
                                       });
@@ -1112,7 +1112,7 @@ void FriendChatBoard::queryChatPeer(const SDChatPeerID &sdCPID, std::function<vo
                   }
               default:
                   {
-                      throw fflerror("query failed in server");
+                      throw fflpanic("query failed in server");
                   }
             }
         });
@@ -1134,7 +1134,7 @@ void FriendChatBoard::addMessage(std::optional<uint64_t> localPendingID, const S
             return sdCM.to;
         }
         else{
-            throw fflerror("received invalid chat message: from %llu, to %llu, self %llu", to_llu(sdCM.from.asU64()), to_llu(sdCM.to.asU64()), to_llu(m_processRun->getMyHero()->cpid().asU64()));
+            throw fflpanic("received invalid chat message: from {}, to {}, self {}", to_llu(sdCM.from.asU64()), to_llu(sdCM.to.asU64()), to_llu(m_processRun->getMyHero()->cpid().asU64()));
         }
     }();
 
@@ -1205,7 +1205,7 @@ void FriendChatBoard::addMessagePending(uint64_t localPendingID, const SDChatMes
 {
     fflassert(!sdCM.seq.has_value());
     if(!m_localMessageList.emplace(localPendingID, sdCM).second){
-        throw fflerror("adding a pending message with local pending id which has already been used: %llu", to_llu(localPendingID));
+        throw fflpanic("adding a pending message with local pending id which has already been used: {}", to_llu(localPendingID));
     }
 }
 
@@ -1219,7 +1219,7 @@ void FriendChatBoard::finishMessagePending(size_t localPendingID, const SDChatMe
         addMessage(localPendingID, chatMessage);
     }
     else{
-        throw fflerror("invalid local pending message id: %zu", localPendingID);
+        throw fflpanic("invalid local pending message id: {}", localPendingID);
     }
 }
 
@@ -1299,7 +1299,7 @@ FriendChatBoard *FriendChatBoard::getParentBoard(Widget *widget)
             widget = widget->parent();
         }
     }
-    throw fflerror("widget is not a decedent of FriendChatBoard");
+    throw fflpanic("widget is not a decedent of FriendChatBoard");
 }
 
 const FriendChatBoard *FriendChatBoard::getParentBoard(const Widget *widget)
@@ -1313,7 +1313,7 @@ const FriendChatBoard *FriendChatBoard::getParentBoard(const Widget *widget)
             widget = widget->parent();
         }
     }
-    throw fflerror("widget is not a decedent of FriendChatBoard");
+    throw fflpanic("widget is not a decedent of FriendChatBoard");
 }
 
 void FriendChatBoard::requestAddFriend(const SDChatPeer &argCP, bool switchToChatPreview)

@@ -178,6 +178,8 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_QUERYTEAMPLAYER    (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYTEAMMEMBERLIST(const ActorMsgPack &);
         corof::awaitable<> on_AM_TEAMUPDATE         (const ActorMsgPack &);
+        corof::awaitable<> on_AM_PLAYERSAY          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_PLAYERBROADCAST    (const ActorMsgPack &);
 
     private:
         corof::awaitable<> net_CM_ACTION                    (uint8_t, const uint8_t *, size_t, uint64_t);
@@ -187,6 +189,8 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_REJECTADDFRIEND           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_BLOCKPLAYER               (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_CHATMESSAGE               (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_PLAYERSAY                 (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_PLAYERBROADCAST           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_CONSUMEITEM               (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_DROPITEM                  (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_MAKEITEM                  (uint8_t, const uint8_t *, size_t, uint64_t);

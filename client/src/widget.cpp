@@ -43,7 +43,7 @@ WidgetTreeNode::~WidgetTreeNode()
 void WidgetTreeNode::moveFront(const Widget *widget)
 {
     if(m_inLoop){
-        throw fflerror("can not modify child list while in loop");
+        throw fflpanic("can not modify child list while in loop");
     }
 
     auto pivot = std::find_if(m_childList.begin(), m_childList.end(), [widget](const auto &x)
@@ -52,7 +52,7 @@ void WidgetTreeNode::moveFront(const Widget *widget)
     });
 
     if(pivot == m_childList.end()){
-        throw fflerror("can not find child widget");
+        throw fflpanic("can not find child widget");
     }
 
     std::rotate(m_childList.begin(), pivot, std::next(pivot));
@@ -61,7 +61,7 @@ void WidgetTreeNode::moveFront(const Widget *widget)
 void WidgetTreeNode::moveBack(const Widget *widget)
 {
     if(m_inLoop){
-        throw fflerror("can not modify child list while in loop");
+        throw fflpanic("can not modify child list while in loop");
     }
 
     auto pivot = std::find_if(m_childList.begin(), m_childList.end(), [widget](const auto &x)
@@ -70,7 +70,7 @@ void WidgetTreeNode::moveBack(const Widget *widget)
     });
 
     if(pivot == m_childList.end()){
-        throw fflerror("can not find child widget");
+        throw fflpanic("can not find child widget");
     }
 
     std::rotate(pivot, std::next(pivot), m_childList.end());
@@ -137,7 +137,7 @@ void WidgetTreeNode::doRemoveChildElement(WidgetTreeNode::ChildElement &argEleme
             }
         }
         else{
-            throw fflerror("widget %s forbids to remove child", name());
+            throw fflpanic("widget {} forbids to remove child", name());
         }
     }
 }
@@ -145,7 +145,7 @@ void WidgetTreeNode::doRemoveChildElement(WidgetTreeNode::ChildElement &argEleme
 void WidgetTreeNode::purge()
 {
     if(m_inLoop){
-        throw fflerror("can not modify child list while in loop");
+        throw fflpanic("can not modify child list while in loop");
     }
 
     foreachChild([](Widget *widget, bool)
@@ -189,7 +189,7 @@ void WidgetTreeNode::doAddChild(Widget *argWidget, bool argAutoDelete, bool igno
         m_childList.emplace_back(argWidget, argAutoDelete); // only place to add child to m_childList
     }
     else{
-        throw fflerror("widget %s forbids to add child", name());
+        throw fflpanic("widget {} forbids to add child", name());
     }
 }
 
@@ -543,10 +543,10 @@ void Widget::updateDefault(double fUpdateTime)
 bool Widget::processEvent(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(m_attrs.inst.processEvent){
-        return m_attrs.inst.processEvent(this, event, valid, m);
+        return m_attrs.inst.processEvent(this, event, valid && active(), m);
     }
     else{
-        return processEventDefault(event, valid, m);
+        return processEventDefault(event, valid && active(), m);
     }
 }
 
@@ -584,7 +584,7 @@ bool Widget::processEventDefault(const SDL_Event &event, bool valid, Widget::ROI
             const bool takenEvent = widget->processEventParent(event, validEvent, m);
 
             if(!validEvent && takenEvent){
-                throw fflerror("widget %s takes invalid event", widget->name());
+                throw fflpanic("widget {} takes invalid event", widget->name());
             }
 
             // it's possible that a widget takes event but doesn't get focus
@@ -767,7 +767,7 @@ static int _rd_helper(const Widget *a, const Widget *b, const auto func)
         return offa - offb;
     }
 
-    throw fflerror("widgets from different trees: %p vs %p", to_cvptr(a), to_cvptr(b));
+    throw fflpanic("widgets from different trees: {:p} vs {:p}", to_cvptr(a), to_cvptr(b));
 }
 
 
@@ -882,7 +882,7 @@ bool Widget::consumeFocus(bool argFocus, Widget *descendant)
                 }
             }
             else{
-                throw fflerror("widget has no descendant: %s", descendant->name());
+                throw fflpanic("widget has no descendant: {}", descendant->name());
             }
         }
         else{
@@ -892,7 +892,7 @@ bool Widget::consumeFocus(bool argFocus, Widget *descendant)
     }
     else{
         if(descendant){
-            throw fflerror("unexpected descendant: %s", descendant->name());
+            throw fflpanic("unexpected descendant: {}", descendant->name());
         }
         else{
             setFocus(false);
@@ -994,18 +994,18 @@ void Widget::moveBy(Widget::VarInt argDX, Widget::VarInt argDY)
 {
     const auto fnOp = [](std::pair<Widget::VarInt, int> &offset, Widget::VarInt update)
     {
-        if(update.index() == 0){
+        if(update.fixed()){
             offset.second += std::get<int>(update);
         }
-        else if(offset.first.index() == 0){
+        else if(offset.first.fixed()){
             offset.second += std::get<int>(offset.first);
             offset.first   = std::move(update);
         }
         else{
             offset.first = [u = std::move(offset.first), v = std::move(update)](const Widget *widgetPtr)
             {
-                return std::get<std::function<int(const Widget *)>>(u)(widgetPtr)
-                     + std::get<std::function<int(const Widget *)>>(v)(widgetPtr);
+                return Widget::evalInt(u, widgetPtr)
+                     + Widget::evalInt(v, widgetPtr);
             };
         }
     };
@@ -1046,7 +1046,7 @@ void Widget::setW(Widget::VarSizeOpt argSize)
         m_w = std::move(argSize);
     }
     else{
-        throw fflerror("can not resize %s", name());
+        throw fflpanic("can not resize {}", name());
     }
 }
 
@@ -1056,7 +1056,7 @@ void Widget::setH(Widget::VarSizeOpt argSize)
         m_h = std::move(argSize);
     }
     else{
-        throw fflerror("can not resize %s", name());
+        throw fflpanic("can not resize {}", name());
     }
 }
 
@@ -1115,7 +1115,7 @@ void Widget::dumpJsonFile(const char *path) const
 
     for(size_t begin = 0; begin < json.size();){
         lc = std::move(cc);
-        cc = utf8f::peekUTF8Str(json.data() + begin, json.data() + json.length());
+        cc = utf8f::peekFirst(json.data() + begin);
         begin += cc.length();
 
         if(cc == "\"" && (begin == 0 || lc != "\\")){

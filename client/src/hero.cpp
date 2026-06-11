@@ -32,6 +32,16 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     , m_onHorse(false)
     , m_gender(argGender)
     , m_job(argJob)
+    , m_playerSayBoard
+      {{
+          .width = 160,
+          .corner = 3,
+          .showTime = 5000,
+          .entryLimit = 10,
+          .align = ItemAlign::UPLEFT,
+          .margin{2, 2, 2, 2},
+          .bgColor = colorf::RGBA(0, 0, 0, 128),
+      }}
 {
     m_currMotion.reset(new MotionNode
     {
@@ -42,7 +52,7 @@ Hero::Hero(uint64_t uid, bool argGender, int argJob, ProcessRun *proc, const Act
     });
 
     if(!parseAction(action)){
-        throw fflerror("failed to parse action");
+        throw fflpanic("failed to parse action");
     }
 }
 
@@ -277,11 +287,18 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         LabelBoard amLeader{{.label = u8"我是队长", .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
         amLeader.draw({.x=startX, .y=startY, .ro{0, 0, amLeader.w(), amLeader.h()}});
     }
+
+    if(!m_playerSayBoard.empty()){
+        const int boardX = startX + 24 - m_playerSayBoard.w() / 2;
+        const int boardY = startY - 70 - m_playerSayBoard.h();
+        m_playerSayBoard.drawRoot({.x = boardX, .y = boardY});
+    }
 }
 
 bool Hero::update(double ms)
 {
     updateAttachMagic(ms);
+    m_playerSayBoard.update(ms);
     const CallOnExitHelper motionOnUpdate([lastSeqFrameID = m_currMotion->getSeqFrameID(), this]()
     {
         m_currMotion->runTrigger();
@@ -428,6 +445,15 @@ bool Hero::update(double ms)
                 return updateMotion(true);
             }
     }
+}
+
+void Hero::addPlayerSay(const std::string &message)
+{
+    if(message.empty()){
+        return;
+    }
+
+    m_playerSayBoard.addMessage(to_u8rawstr(message));
 }
 
 bool Hero::motionValid(const std::unique_ptr<MotionNode> &motionPtr) const
@@ -1539,7 +1565,7 @@ ClientCreature::TargetBox Hero::getTargetBox() const
 const SDItem &Hero::getWLItem(int wltype) const
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("invalid wltype: %d", wltype);
+        throw fflpanic("invalid wltype: {}", wltype);
     }
     return m_sdWLDesp.wear.getWLItem(wltype);
 }
@@ -1547,7 +1573,7 @@ const SDItem &Hero::getWLItem(int wltype) const
 bool Hero::setWLItem(int wltype, SDItem item, bool playSound)
 {
     if(!(wltype >= WLG_BEGIN && wltype < WLG_END)){
-        throw fflerror("invalid wear/look type: %d", wltype);
+        throw fflpanic("invalid wear/look type: {}", wltype);
     }
 
     if(item.itemID == 0){
@@ -1556,12 +1582,12 @@ bool Hero::setWLItem(int wltype, SDItem item, bool playSound)
     }
 
     if(!item){
-        throw fflerror("invalid itemID: %llu", to_llu(item.itemID));
+        throw fflpanic("invalid itemID: {}", to_llu(item.itemID));
     }
 
     const auto &ir = DBCOM_ITEMRECORD(item.itemID);
     if(!ir){
-        throw fflerror("invalid itemID: %llu", to_llu(item.itemID));
+        throw fflpanic("invalid itemID: {}", to_llu(item.itemID));
     }
 
     switch(wltype){

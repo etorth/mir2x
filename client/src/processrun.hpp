@@ -47,11 +47,11 @@ class ProcessRun: public Process
                 , callback(cmdCB)
             {
                 if(command.empty()){
-                    throw fflerror("empty command name");
+                    throw fflpanic("empty command name");
                 }
 
                 if(!callback){
-                    throw fflerror("command callback is not callable: %s", command.c_str());
+                    throw fflpanic("command callback is not callable: {}", command.c_str());
                 }
             }
         };
@@ -265,6 +265,8 @@ class ProcessRun: public Process
         _support_sm(SM_QUESTDESPUPDATE);
         _support_sm(SM_QUESTDESPLIST);
         _support_sm(SM_CHATMESSAGELIST);
+        _support_sm(SM_PLAYERSAY);
+        _support_sm(SM_PLAYERBROADCAST);
         _support_sm(SM_CREATECHATGROUP);
         _support_sm(SM_ADDFRIENDACCEPTED);
         _support_sm(SM_ADDFRIENDREJECTED);
@@ -329,7 +331,7 @@ class ProcessRun: public Process
             if(auto myHeroPtr = dynamic_cast<MyHero *>(findUID(getMyHeroUID()))){
                 return myHeroPtr;
             }
-            throw fflerror("failed to get MyHero pointer: uid = %llu", to_llu(getMyHeroUID()));
+            throw fflpanic("failed to get MyHero pointer: uid = {}", to_llu(getMyHeroUID()));
         }
 
         SDChatPeer getMyHeroChatPeer() const

@@ -297,6 +297,8 @@ enum CreateCharErrorType: int
     CRTCHARERR_CHAREXIST,       // current account has char created
     CRTCHARERR_NAMEEXIST,       // name has been used by another existing char
     CRTCHARERR_BADNAME,         // name not allowed
+    CRTCHARERR_BADGENDER,       // gender not allowed
+    CRTCHARERR_BADJOB,          // job not allowed
     CRTCHARERR_DBERROR,         // sqlite3 error when creating player
     CRTCHARERR_END,
 };
@@ -317,6 +319,7 @@ enum DeleteCharErrorType: int
     DELCHARERR_NOLOGIN = 1,
     DELCHARERR_NOCHAR,
     DELCHARERR_BADPASSWORD,
+    DELCHARERR_DBERROR,
     DELCHARERR_END,
 };
 

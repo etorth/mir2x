@@ -41,7 +41,7 @@ GfxDirButton::GfxDirButton(GfxDirButton::InitArgs args)
                   case DIR_DOWN : x1 = tw / 2; y1 = th    ; x2 =  0; y2 =  0; x3 = tw; y3 =  0; break;
                   case DIR_LEFT : x1 =  0    ; y1 = th / 2; x2 = tw; y2 =  0; x3 = tw; y3 = th; break;
                   case DIR_RIGHT: x1 = tw    ; y1 = th / 2; x2 =  0; y2 =  0; x3 =  0; y3 = th; break;
-                  default: throw fflerror("invalid direction: %s", pathf::dirName(d));
+                  default: throw fflpanic("invalid direction: {}", pathf::dirName(d));
               }
 
               const auto xoff = (cw - tw) / 2; // move to center

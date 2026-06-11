@@ -9,7 +9,8 @@ ExternalProject_Add(
     liblz4
 
     GIT_REPOSITORY "https://github.com/lz4/lz4.git"
-    GIT_TAG        "dev"
+    GIT_TAG "dev"
+    GIT_PROGRESS TRUE
 
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/lz4"
     BUILD_IN_SOURCE TRUE

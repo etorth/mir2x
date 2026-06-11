@@ -26,11 +26,11 @@ SDLDeviceHelper::EnableRenderColor::EnableRenderColor(uint32_t color, SDLDevice 
     : m_device(devPtr ? devPtr : g_sdlDevice)
 {
     if(SDL_GetRenderDrawColor(m_device->getRenderer(), &m_r, &m_g, &m_b, &m_a)){
-        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+        throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
     if(SDL_SetRenderDrawColor(m_device->getRenderer(), colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
-        throw fflerror("set renderer draw color failed: %s", SDL_GetError());
+        throw fflpanic("set renderer draw color failed: {}", SDL_GetError());
     }
 }
 
@@ -45,11 +45,11 @@ SDLDeviceHelper::EnableRenderBlendMode::EnableRenderBlendMode(SDL_BlendMode blen
     : m_device(devPtr ? devPtr : g_sdlDevice)
 {
     if(SDL_GetRenderDrawBlendMode(m_device->getRenderer(), &m_blendMode)){
-        throw fflerror("get renderer blend mode failed: %s", SDL_GetError());
+        throw fflpanic("get renderer blend mode failed: {}", SDL_GetError());
     }
 
     if(SDL_SetRenderDrawBlendMode(m_device->getRenderer(), blendMode)){
-        throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
+        throw fflpanic("set renderer blend mode failed: {}", SDL_GetError());
     }
 }
 
@@ -75,7 +75,7 @@ SDLDeviceHelper::EnableRenderCropRectangle::EnableRenderCropRectangle(int x, int
     newRect.h = h;
 
     if(SDL_RenderSetClipRect(m_device->getRenderer(), &newRect)){
-        throw fflerror("set renderer clip rectangle failed: %s", SDL_GetError());
+        throw fflpanic("set renderer clip rectangle failed: {}", SDL_GetError());
     }
 }
 
@@ -106,11 +106,11 @@ SDLDeviceHelper::EnableTextureBlendMode::EnableTextureBlendMode(SDL_Texture *tex
     }
 
     if(SDL_GetTextureBlendMode(m_texPtr, &m_blendMode)){
-        throw fflerror("get texture blend mode failed: %s", SDL_GetError());
+        throw fflpanic("get texture blend mode failed: {}", SDL_GetError());
     }
 
     if(SDL_SetTextureBlendMode(m_texPtr, mode)){
-        throw fflerror("set texture blend mode failed: %s", SDL_GetError());
+        throw fflpanic("set texture blend mode failed: {}", SDL_GetError());
     }
 }
 
@@ -133,19 +133,19 @@ SDLDeviceHelper::EnableTextureModColor::EnableTextureModColor(SDL_Texture *texPt
     }
 
     if(SDL_GetTextureColorMod(m_texPtr, &m_r, &m_g, &m_b)){
-        throw fflerror("SDL_GetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+        throw fflpanic("SDL_GetTextureColorMod({:p}) failed: {}", to_cvptr(m_texPtr), SDL_GetError());
     }
 
     if(SDL_GetTextureAlphaMod(m_texPtr, &m_a)){
-        throw fflerror("SDL_GetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+        throw fflpanic("SDL_GetTextureAlphaMod({:p}) failed: {}", to_cvptr(m_texPtr), SDL_GetError());
     }
 
     if(SDL_SetTextureColorMod(m_texPtr, colorf::R(color), colorf::G(color), colorf::B(color))){
-        throw fflerror("SDL_SetTextureColorMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+        throw fflpanic("SDL_SetTextureColorMod({:p}) failed: {}", to_cvptr(m_texPtr), SDL_GetError());
     }
 
     if(SDL_SetTextureAlphaMod(m_texPtr, colorf::A(color))){
-        throw fflerror("SDL_SetTextureAlphaMod(%p) failed: %s", to_cvptr(m_texPtr), SDL_GetError());
+        throw fflpanic("SDL_SetTextureAlphaMod({:p}) failed: {}", to_cvptr(m_texPtr), SDL_GetError());
     }
 }
 
@@ -170,15 +170,15 @@ SDLDeviceHelper::EnableRenderTarget::EnableRenderTarget(SDL_Texture *argTarget, 
 {
     if(argTarget){
         if(int access = -1; SDL_QueryTexture(argTarget, nullptr, &access, nullptr, nullptr)){
-            throw fflerror("SDL_QueryTexture(%p) failed: %s", to_cvptr(argTarget), SDL_GetError());
+            throw fflpanic("SDL_QueryTexture({:p}) failed: {}", to_cvptr(argTarget), SDL_GetError());
         }
         else if(access != SDL_TEXTUREACCESS_TARGET){
-            throw fflerror("Texture can not be used as renderer target: %p", to_cvptr(argTarget));
+            throw fflpanic("Texture can not be used as renderer target: {:p}", to_cvptr(argTarget));
         }
     }
 
     if(SDL_SetRenderTarget(m_device->getRenderer(), argTarget)){
-        throw fflerror("SDL_SetRenderTarget(%p) failed: %s", to_cvptr(argTarget), SDL_GetError());
+        throw fflpanic("SDL_SetRenderTarget({:p}) failed: {}", to_cvptr(argTarget), SDL_GetError());
     }
 }
 
@@ -321,7 +321,7 @@ std::tuple<int, int> SDLDeviceHelper::getTextureSize(SDL_Texture *texture)
     if(!SDL_QueryTexture(const_cast<SDL_Texture *>(texture), 0, 0, &width, &height)){
         return {width, height};
     }
-    throw fflerror("query texture failed: %p", to_cvptr(texture));
+    throw fflpanic("query texture failed: {:p}", to_cvptr(texture));
 }
 
 int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture, std::optional<int> optW)
@@ -333,7 +333,7 @@ int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture, std::optional<int> op
         return optW.value();
     }
     else{
-        throw fflerror("invalid texture pointer and optional width");
+        throw fflpanic("invalid texture pointer and optional width");
     }
 }
 
@@ -346,7 +346,7 @@ int SDLDeviceHelper::getTextureHeight(SDL_Texture *texture, std::optional<int> o
         return optH.value();
     }
     else{
-        throw fflerror("invalid texture pointer and optional height");
+        throw fflpanic("invalid texture pointer and optional height");
     }
 }
 
@@ -416,38 +416,38 @@ void SDLSoundEffectChannel::setPosition(int distance, int angle)
 SDLDevice::SDLDevice()
 {
     if(g_sdlDevice){
-        throw fflerror("multiple initialization for SDLDevice");
+        throw fflpanic("multiple initialization for SDLDevice");
     }
 
     if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
-        throw fflerror("initialization failed for SDL2: %s", SDL_GetError());
+        throw fflpanic("initialization failed for SDL2: {}", SDL_GetError());
     }
 
     if(TTF_Init()){
-        throw fflerror("initialization failed for SDL2 TTF: %s", TTF_GetError());
+        throw fflpanic("initialization failed for SDL2 TTF: {}", TTF_GetError());
     }
 
     if((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
-        throw fflerror("initialization failed for SDL2 IMG: %s", IMG_GetError());
+        throw fflpanic("initialization failed for SDL2 IMG: {}", IMG_GetError());
     }
 
     if(!g_clientArgParser->disableAudio){
         if((Mix_Init(MIX_INIT_MP3) & MIX_INIT_MP3) != MIX_INIT_MP3){
-            throw fflerror("initialization failed for SDL2 MIX: %s", Mix_GetError());
+            throw fflpanic("initialization failed for SDL2 MIX: {}", Mix_GetError());
         }
 
         if(Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 512)){
-            throw fflerror("initialization failed for SDL2 MIX OpenAudio: %s", Mix_GetError());
+            throw fflpanic("initialization failed for SDL2 MIX OpenAudio: {}", Mix_GetError());
         }
 
 #if defined linux && SDL_VERSION_ATLEAST(2, 0, 8)
         if(SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0") == SDL_FALSE){
-            throw fflerror("SDL failed to disable compositor bypass");
+            throw fflpanic("SDL failed to disable compositor bypass");
         }
 #endif
 
         if(Mix_AllocateChannels(m_channelCount) != to_d(m_channelCount)){
-            throw fflerror("failed to allocate %zu channels: %s", m_channelCount, Mix_GetError());
+            throw fflpanic("failed to allocate {} channels: {}", m_channelCount, Mix_GetError());
         }
 
         for(int channel = 0; channel < to_d(m_channelCount); ++channel){
@@ -517,12 +517,12 @@ void SDLDevice::toggleWindowFullscreen()
 
     if(winFlag & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)){
         if(SDL_SetWindowFullscreen(m_window, 0)){
-            throw fflerror("SDL_SetWindowFullscreen(%p) failed: %s", to_cvptr(m_window), SDL_GetError());
+            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
         }
     }
     else{
         if(SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN)){
-            throw fflerror("SDL_SetWindowFullscreen(%p) failed: %s", to_cvptr(m_window), SDL_GetError());
+            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
         }
     }
 }
@@ -669,7 +669,7 @@ void SDLDevice::createInitViewWindow()
 
     m_window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowW, windowH, SDL_WINDOW_BORDERLESS);
     if(!m_window){
-        throw fflerror("failed to create SDL window handler: %s", SDL_GetError());
+        throw fflpanic("failed to create SDL window handler: {}", SDL_GetError());
     }
 
     SDL_ShowWindow(m_window);
@@ -679,17 +679,17 @@ void SDLDevice::createInitViewWindow()
     m_renderer = SDL_CreateRenderer(m_window, -1, 0);
     if(!m_renderer){
         SDL_DestroyWindow(m_window);
-        throw fflerror("failed to create SDL renderer: %s", SDL_GetError());
+        throw fflpanic("failed to create SDL renderer: {}", SDL_GetError());
     }
 
     setWindowIcon();
 
     if(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255)){
-        throw fflerror("set renderer draw color failed: %s", SDL_GetError());
+        throw fflpanic("set renderer draw color failed: {}", SDL_GetError());
     }
 
     if(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
-        throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
+        throw fflpanic("set renderer blend mode failed: {}", SDL_GetError());
     }
 }
 
@@ -726,17 +726,17 @@ void SDLDevice::createMainWindow()
 
     if(!m_renderer){
         SDL_DestroyWindow(m_window);
-        throw fflerror("failed to create SDL renderer: %s", SDL_GetError());
+        throw fflpanic("failed to create SDL renderer: {}", SDL_GetError());
     }
 
     setWindowIcon();
 
     if(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0)){
-        throw fflerror("set renderer draw color failed: %s", SDL_GetError());
+        throw fflpanic("set renderer draw color failed: {}", SDL_GetError());
     }
 
     if(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
-        throw fflerror("set renderer blend mode failed: %s", SDL_GetError());
+        throw fflpanic("set renderer blend mode failed: {}", SDL_GetError());
     }
 }
 
@@ -768,7 +768,7 @@ void SDLDevice::drawTextureEx(
         SDL_Point center {centerDstOffX, centerDstOffY};
         const double angle = 1.00 * (rotateDegree % 360);
         if(SDL_RenderCopyEx(m_renderer, texPtr, &src, &dst, angle, &center, flip)){
-            throw fflerror("SDL_RenderCopyEx(%p) failed: %s", to_cvptr(m_renderer), SDL_GetError());
+            throw fflpanic("SDL_RenderCopyEx({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
         }
 
         if(g_clientArgParser->debugDrawTexture){
@@ -853,7 +853,7 @@ TTF_Font *SDLDevice::defaultTTF(uint8_t fontSize)
     if(auto ttfPtr = createTTF(s_defaultTTFData.data(), s_defaultTTFData.size(), fontSize); ttfPtr){
         return m_fontList[fontSize] = ttfPtr;
     }
-    throw fflerror("can't build default ttf with point: %llu", to_llu(fontSize));
+    throw fflpanic("can't build default ttf with point: {}", to_llu(fontSize));
 }
 
 SDL_Texture *SDLDevice::getCover(int r, int angle)
@@ -866,7 +866,7 @@ SDL_Texture *SDLDevice::getCover(int r, int angle)
         if(p->second){
             return p->second;
         }
-        throw fflerror("invalid registered cover: r = %d, angle = %d", r, angle);
+        throw fflpanic("invalid registered cover: r = {}, angle = {}", r, angle);
     }
 
     const int w = r * 2 - 1;
@@ -906,7 +906,7 @@ SDL_Texture *SDLDevice::getCover(int r, int angle)
     if(auto texPtr = createRGBATexture(buf.data(), w, h)){
         return m_cover[key] = texPtr;
     }
-    throw fflerror("failed to create texture: r = %d, angle = %d", r, angle);
+    throw fflpanic("failed to create texture: r = {}, angle = {}", r, angle);
 }
 
 void SDLDevice::fillRectangle(int argX, int argY, int argW, int argH, int argRad)
@@ -921,7 +921,7 @@ void SDLDevice::fillRectangle(int argX, int argY, int argW, int argH, int argRad
     Uint8 a = 0;
 
     if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
-        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+        throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
     if(a == 0){
@@ -929,7 +929,7 @@ void SDLDevice::fillRectangle(int argX, int argY, int argW, int argH, int argRad
     }
 
     if(roundedBoxRGBA(getRenderer(), argX, argY, argX + argW - 1, argY + argH - 1, argRad, r, g, b, a)){
-        throw fflerror("roundedRectangleRGBA() failed");
+        throw fflpanic("roundedRectangleRGBA() failed");
     }
 }
 
@@ -970,7 +970,7 @@ void SDLDevice::drawTriangle(int argX1, int argY1, int argX2, int argY2, int arg
     Uint8 a = 0;
 
     if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
-        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+        throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
     if(a == 0){
@@ -978,7 +978,7 @@ void SDLDevice::drawTriangle(int argX1, int argY1, int argX2, int argY2, int arg
     }
 
     if(aatrigonRGBA(getRenderer(), argX1, argY1, argX2, argY2, argX3, argY3, r, g, b, a)){
-        throw fflerror("aatrigonRGBA() failed");
+        throw fflpanic("aatrigonRGBA() failed");
     }
 }
 
@@ -999,7 +999,7 @@ void SDLDevice::fillTriangle(int argX1, int argY1, int argX2, int argY2, int arg
     Uint8 a = 0;
 
     if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
-        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+        throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
     if(a == 0){
@@ -1007,7 +1007,7 @@ void SDLDevice::fillTriangle(int argX1, int argY1, int argX2, int argY2, int arg
     }
 
     if(filledTrigonRGBA(getRenderer(), argX1, argY1, argX2, argY2, argX3, argY3, r, g, b, a)){
-        throw fflerror("filledTrigonRGBA() failed");
+        throw fflpanic("filledTrigonRGBA() failed");
     }
 }
 
@@ -1040,7 +1040,7 @@ void SDLDevice::drawRectangle(int argX, int argY, int argW, int argH, int argRad
     Uint8 a = 0;
 
     if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
-        throw fflerror("get renderer draw color failed: %s", SDL_GetError());
+        throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
     if(a == 0){
@@ -1048,7 +1048,7 @@ void SDLDevice::drawRectangle(int argX, int argY, int argW, int argH, int argRad
     }
 
     if(roundedRectangleRGBA(getRenderer(), argX, argY, argX + argW - 1, argY + argH - 1, argRad, r, g, b, a)){
-        throw fflerror("roundedRectangleRGBA() failed");
+        throw fflpanic("roundedRectangleRGBA() failed");
     }
 }
 
@@ -1286,7 +1286,7 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
 void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
 {
     if(stringRGBA(m_renderer, x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
-        throw fflerror("failed to draw 8x8 string: %s", s);
+        throw fflpanic("failed to draw 8x8 string: {}", s);
     }
 }
 
@@ -1322,7 +1322,7 @@ void SDLDevice::playBGM(Mix_Music *music, size_t repeats)
 
     if(music){
         if(Mix_PlayMusic(music, (repeats == 0) ? -1 : (to_d(repeats) - 1))){
-            throw fflerror("failed to play music: %s", Mix_GetError());
+            throw fflpanic("failed to play music: {}", Mix_GetError());
         }
     }
 }
@@ -1414,14 +1414,14 @@ void SDLDevice::setSoundEffectVolume(float volume)
     // each channel has own volume and may change during playing, like firewall sound changes when MyHero moves
 
     if(!Mix_SetDistance(MIX_CHANNEL_POST, std::lround((1.0f - mathf::bound<float>(volume, 0.0f, 1.0f)) * 255))){
-        throw fflerror("failed to setup sound effect volume: %s", Mix_GetError());
+        throw fflpanic("failed to setup sound effect volume: {}", Mix_GetError());
     }
 }
 
 void SDLDevice::recycleSoundEffectChannel(int channel)
 {
     if(g_clientArgParser->disableAudio){
-        throw fflerror("sound effect callback is triggered with audio disabled");
+        throw fflpanic("sound effect callback is triggered with audio disabled");
     }
 
     // only put the channel to free list

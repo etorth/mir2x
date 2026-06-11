@@ -107,7 +107,7 @@ void helmetWil2PNG(bool bGender, int nIndex,
                                 helmetImgInfo->py);
 
                         if(!imgf::saveImageBuffer((uint8_t *)(layer[0]), helmetImgInfo->width, helmetImgInfo->height, szSaveFileName)){
-                            throw fflerror("save helmet PNG failed: %s", szSaveFileName);
+                            throw fflpanic("save helmet PNG failed: {}", szSaveFileName);
                         }
                     }
                 }
@@ -119,19 +119,19 @@ void helmetWil2PNG(bool bGender, int nIndex,
 int main(int argc, char *argv[])
 {
     if(argc != 7){
-        throw fflerror("Usage: hairwil2png gender hair-wil-path hair-wil-basename hair-wil-extension hair-output-dir");
+        throw fflpanic("Usage: hairwil2png gender hair-wil-path hair-wil-basename hair-wil-extension hair-output-dir");
     }
 
     if(true
             && std::strcmp(argv[1], "0")
             && std::strcmp(argv[1], "1")){
-        throw fflerror("invlid argv[1] : %s", argv[1]);
+        throw fflpanic("invlid argv[1] : {}", argv[1]);
     }
 
     if(true
             && std::strcmp(argv[2], "1")
             && std::strcmp(argv[2], "2")){
-        throw fflerror("invlid argv[2] : %s", argv[2]);
+        throw fflpanic("invlid argv[2] : {}", argv[2]);
     }
 
     helmetWil2PNG((std::atoi(argv[1]) != 0), std::atoi(argv[2]), argv[3], argv[4], argv[5], argv[6]);

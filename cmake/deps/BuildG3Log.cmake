@@ -7,8 +7,9 @@ ExternalProject_Add(
     g3log
 
     GIT_REPOSITORY "https://github.com/KjellKod/g3log"
-    GIT_TAG        "2.4"
-  
+    GIT_TAG "2.4"
+    GIT_PROGRESS TRUE
+
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/g3log"
     INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/g3log/build"
 

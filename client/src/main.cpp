@@ -8,7 +8,7 @@
 #include "imeboard.hpp"
 #include "bgmusicdb.hpp"
 #include "soundeffectdb.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 
@@ -36,7 +36,7 @@ MapBinDB        *g_mapBinDB        = nullptr;
 FontexDB        *g_fontexDB        = nullptr;
 SDLDevice       *g_sdlDevice       = nullptr; // for SDL hardware device
 IMEBoard        *g_imeBoard        = nullptr; //
-NotifyBoard     *g_notifyBoard     = nullptr;
+MessageStackBoard *g_notifyBoard   = nullptr;
 Client          *g_client          = nullptr; // gobal instance
 
 int main(int argc, char *argv[])
@@ -86,7 +86,21 @@ int main(int argc, char *argv[])
             g_imeBoard = new IMEBoard{{}};
         }
 
-        g_notifyBoard = new NotifyBoard(DIR_UPLEFT, 0, 0, 10240, 0, 15, 0, colorf::RED + colorf::A_SHF(255), 0, 5);
+        g_notifyBoard = new MessageStackBoard
+        {{
+            .dir = DIR_UPLEFT,
+            .x = 0,
+            .y = 0,
+            .width = 400,
+            .font
+            {
+                .id = 0,
+                .size = 15,
+                .color = colorf::RED + colorf::A_SHF(255),
+            },
+            .showTime = 0,
+            .entryLimit = 5,
+        }};
         g_client->mainLoop();
     }
     catch(const std::exception &e){

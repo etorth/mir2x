@@ -2,6 +2,7 @@
 #include <cstring>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <utility>
 #include <unordered_map>
 
 #include "zsdb.hpp"
@@ -14,7 +15,12 @@
 
 struct FontexElement
 {
-    uint32_t textEncode = 0;
+    uint32_t textEncode = 0; // this is part of the resource because textEncode can refer to a long-text-string
+
+    int32_t left  :  8 = 0;
+    int32_t right :  8 = 0;
+    int32_t ascent: 16 = 0;
+
     SDL_Texture *texture = nullptr;
 };
 
@@ -23,12 +29,34 @@ struct FontexElement
 // key & 0X000000FF00000000) >> 32: font style
 // key & 0X00000000FFFFFFFF) >>  0: utf8 code or long text encode
 
-// use lower 4 bytes as utf8 code or long text encode
-// when it's: 0xFFXXXXXX: long text encode
-//            0xXXXXXXXX: otherwise, it's utf8 code with length <= 4
+// use lower 4 bytes:
+// 1. used as a single unicode point returned by utf8f::str2code(), max value is: 0x0010_FFFF
+// 2. used as a valid utf8-string buffer:
+//
+//        const std::string buf = get_valid_utf_8_string_with_lenght_less_than_or_equal_to_4();
+//        assert(buf.size() <= 4);
+//
+//        uint32_t encode = 0;
+//        std::memcpy(&encode, buf.data(), buf.size());
+//
+//    in this way, encode has maximal possible value: 0xBFDF_BFDF
+//    it's from a valid UTF-8 string with two chars, packed with little-endian: U+07FF U+07FF
+//
+// 3. used as a long-string index
 
 class FontexDB: public innDB<uint64_t, FontexElement>
 {
+    private:
+        constexpr static uint32_t R1_MAX = 0x0010FFFFU; // single unicode point
+        constexpr static uint32_t R2_MAX = 0xBFDFBFDFU; // raw utf-8 buffer with size <= 4
+        constexpr static uint32_t R3_MAX = 0x400F401FU; // long string index
+
+        constexpr static uint32_t R1_BASE = 0;
+        constexpr static uint32_t R2_BASE = R1_BASE + R1_MAX + 1;
+        constexpr static uint32_t R3_BASE = R2_BASE + R2_MAX + 1;
+
+        static_assert(R3_BASE + R3_MAX == 0xFFFFFFFFU);
+
     private:
         std::unique_ptr<ZSDB> m_zsdbPtr;
         std::vector<ZSDB::Entry> m_entryList;
@@ -46,8 +74,8 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         std::vector<uint32_t> m_longTextIndexList;
 
     private:
-        std::unordered_map<std::string, uint32_t > m_longText2Encode;
-        std::unordered_map<uint32_t, const char *> m_encode2LongText;
+        std::unordered_map<std::string, std::pair<uint32_t, uint32_t>> m_longText2Encode;
+        std::unordered_map<uint32_t, const char *>                     m_encode2LongText;
 
     public:
         FontexDB(size_t resMax)
@@ -82,6 +110,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
 
     private:
         TTF_Font *findTTF(uint16_t);
+        TTF_Font *findTTF(uint8_t, uint8_t);
 
     public:
         void load(const char *fontDBName)
@@ -91,17 +120,20 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         }
 
     public:
-        SDL_Texture *retrieve(uint64_t key)
+        SDL_Texture *retrieve(uint64_t key, int *left = nullptr, int *right = nullptr, int *ascent = nullptr)
         {
             if(auto p = innLoad(key)){
+                if(left  ) *  left = p->  left;
+                if(right ) * right = p-> right;
+                if(ascent) *ascent = p->ascent;
                 return p->texture;
             }
             return nullptr;
         }
 
-        SDL_Texture *retrieve(uint8_t fontIndex, uint8_t fontSize, uint8_t fontStyle, const char *utf8String)
+        SDL_Texture *retrieve(uint8_t fontIndex, uint8_t fontSize, uint8_t fontStyle, const char *utf8String, int *left = nullptr, int *right = nullptr, int *ascent = nullptr)
         {
-            return retrieve(utf8f::buildU64Key(fontIndex, fontSize, fontStyle, textEncode(utf8String)));
+            return retrieve(utf8f::buildU64Key(fontIndex, fontSize, fontStyle, encodeString(utf8String)), left, right, ascent);
         }
 
     public:
@@ -131,10 +163,10 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         std::tuple<std::string, std::string> fontName(uint8_t font)
         {
             if(!hasFont(font)){
-                throw fflerror("invalid font index: %u", to_u(font));
+                throw fflpanic("invalid font index: {}", font);
             }
 
-            if(auto ttfPtr = findTTF((to_u16(font) << 8) | UINT16_C(16))){
+            if(auto ttfPtr = findTTF(font, 16)){
                 const auto familyName = TTF_FontFaceFamilyName(ttfPtr);
                 const auto  styleName = TTF_FontFaceStyleName (ttfPtr);
 
@@ -143,7 +175,55 @@ class FontexDB: public innDB<uint64_t, FontexElement>
 
                 return {familyName, styleName};
             }
-            throw fflerror("failed to load font: %u", to_u(font));
+            throw fflpanic("failed to load font: {}", font);
+        }
+
+        int fontAscent(uint8_t font, uint8_t fontSize)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF(font, fontSize)){
+                return TTF_FontAscent(ttfPtr);
+            }
+            throw fflpanic("failed to load font: {}", font);
+        }
+
+        int fontHeight(uint8_t font, uint8_t fontSize)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF(font, fontSize)){
+                return TTF_FontHeight(ttfPtr);
+            }
+            throw fflpanic("failed to load font: {}", font);
+        }
+
+        int fontLineSkip(uint8_t font, uint8_t fontSize)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF(font, fontSize)){
+                return TTF_FontLineSkip(ttfPtr);
+            }
+            throw fflpanic("failed to load font: {}", font);
+        }
+
+        bool fontMono(uint8_t font, uint8_t fontSize)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF(font, fontSize)){
+                return TTF_FontFaceIsFixedWidth(ttfPtr) != 0;
+            }
+            throw fflpanic("failed to load font: {}", font);
         }
 
     public:
@@ -153,18 +233,18 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         void freeResource(FontexElement &) override;
 
     private:
-        uint32_t textEncode(const char *utf8String)
+        uint32_t encodeString(const char *utf8String)
         {
             fflassert(utf8String);
 
             if(const auto size = std::strlen(utf8String); size <= 4){
                 uint32_t utf8Code = 0;
                 std::memcpy(&utf8Code, utf8String, size);
-                return utf8Code;
+                return encodeRange(2, utf8Code);
             }
 
             if(auto p = m_longText2Encode.find(utf8String); p != m_longText2Encode.end()){
-                return p->second;
+                return p->second.first;
             }
 
             const auto currIndex = [this] -> uint32_t
@@ -179,12 +259,12 @@ class FontexDB: public innDB<uint64_t, FontexElement>
                 }
             }();
 
-            if(currIndex > 0X00FFFFFF){
-                throw fflerror("long text count exceeds limit: %llu", to_llu(currIndex));
+            if(currIndex >= R3_MAX){
+                throw fflpanic("long text count exceeds limit: {}", currIndex);
             }
 
-            const auto encodedIndex = currIndex | UINT32_C(0XFF000000);
-            const auto insertedString = m_longText2Encode.try_emplace(utf8String, encodedIndex);
+            const auto encodedIndex = encodeRange(3, currIndex);
+            const auto insertedString = m_longText2Encode.try_emplace(utf8String, std::make_pair(encodedIndex, 0)); // allocate slot only, no resource refers to it now
             const auto insertedEncode = m_encode2LongText.try_emplace(encodedIndex, insertedString.first->first.c_str());
 
             fflassert(insertedString.second);
@@ -192,4 +272,48 @@ class FontexDB: public innDB<uint64_t, FontexElement>
 
             return encodedIndex;
         }
+
+    private:
+        static uint32_t encodeRange(int range, uint32_t val)
+        {
+            switch(range){
+                case 1 : fflassert(val <= R1_MAX); return R1_BASE + val;
+                case 2 : fflassert(val <= R2_MAX); return R2_BASE + val;
+                case 3 : fflassert(val <= R3_MAX); return R3_BASE + val;
+                default:                           throw  fflvalue(range, val);
+            }
+        }
+
+        static std::pair<size_t, uint32_t> decodeRange(uint32_t val)
+        {
+            if     (val <= R1_BASE + R1_MAX) return {1, val - R1_BASE};
+            else if(val <= R2_BASE + R2_MAX) return {2, val - R2_BASE};
+            else                             return {3, val - R3_BASE};
+        }
+
+    private:
+        static uint32_t hasGlphy(TTF_Font *, uint32_t);
+
+    public:
+        uint32_t hasGlphy(uint16_t,          uint32_t);
+        uint32_t hasGlphy( uint8_t, uint8_t, uint32_t);
+
+    private:
+        static bool isTransparant(TTF_Font *, uint32_t);
+        static bool isTransparant(const std::tuple<int, int, int, int, int> &);
+
+    public:
+        bool isTransparant(uint16_t,          uint32_t);
+        bool isTransparant(uint8_t , uint8_t, uint32_t);
+
+    private:
+        static std::tuple<int, int, int, int, int> getGlyphMetrics(TTF_Font *, uint32_t); // returns everything
+
+    private:
+        static std::tuple<int, int, int> getGlyphPadding  (const std::tuple<int, int, int, int, int> &);
+        static std::pair <int, int>      getGlyphPixelSize(const std::tuple<int, int, int, int, int> &);
+
+    private:
+        static std::tuple<int, int, int> getGlyphPadding  (TTF_Font *font, uint32_t codePoint){ return getGlyphPadding  (getGlyphMetrics(font, codePoint)); }
+        static std::pair <int, int>      getGlyphPixelSize(TTF_Font *font, uint32_t codePoint){ return getGlyphPixelSize(getGlyphMetrics(font, codePoint)); }
 };

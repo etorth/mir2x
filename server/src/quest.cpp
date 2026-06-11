@@ -79,7 +79,7 @@ Quest::LuaThreadRunner::LuaThreadRunner(Quest *quest)
             query.exec();
         }
         else{
-            throw fflerror("invalid type: %s", to_cstr(luaf::luaObjTypeString(despTable)));
+            throw fflpanic("invalid type: {}", to_cstr(luaf::luaObjTypeString(despTable)));
         }
 
         SDQuestDespUpdate sdQDU
@@ -322,7 +322,7 @@ corof::awaitable<> Quest::onActorMsg(const ActorMsgPack &mpk)
             }
         default:
             {
-                throw fflerror("unsupported message: %s", mpkName(mpk.type()));
+                throw fflpanic("unsupported message: {}", mpkName(mpk.type()));
             }
     }
 }

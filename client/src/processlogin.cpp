@@ -9,7 +9,7 @@
 #include "bgmusicdb.hpp"
 #include "sdldevice.hpp"
 #include "buildconfig.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "processlogin.hpp"
 #include "clientargparser.hpp"
 
@@ -118,24 +118,22 @@ ProcessLogin::ProcessLogin()
       }}
 
     , m_notifyBoard
-      {
-          DIR_NONE,
-          [this]{ return m_canvas.w() / 2; },
-          [this]{ return m_canvas.h() / 2; },
-          0, // single line
-
-          1,
-          15,
-          0,
-
-          colorf::YELLOW_A255,
-
-          5000,
-          10,
-
-          &m_canvas,
-          false,
-      }
+      {{
+          .dir = DIR_NONE,
+          .x = [this]{ return m_canvas.w() / 2; },
+          .y = [this]{ return m_canvas.h() / 2; },
+          .width = 0,
+          .font
+          {
+              .id = 1,
+              .size = 15,
+              .color = colorf::YELLOW_A255,
+          },
+          .showTime = 5000,
+          .entryLimit = 10,
+          .align = ItemAlign::CENTER,
+          .parent{&m_canvas},
+      }}
 {
     m_notifyBoard  .setShow([this]{ return !m_notifyBoard.empty(); });
     m_notifyBoardBg.setShow([this]{ return !m_notifyBoard.empty(); });
@@ -202,7 +200,7 @@ void ProcessLogin::doLogin()
     const auto pwdStr = m_passwordBox.getPasswordString();
 
     if(idStr.empty() || pwdStr.empty()){
-        m_notifyBoard.addLog(u8"无效的账号或密码");
+        m_notifyBoard.addMessage(u8"无效的账号或密码");
     }
     else{
         // don't check id/password by idstf functions

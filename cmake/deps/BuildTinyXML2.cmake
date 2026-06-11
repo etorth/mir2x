@@ -4,8 +4,9 @@ ExternalProject_Add(
     tinyxml2
 
     GIT_REPOSITORY "https://github.com/leethomason/tinyxml2.git"
-    GIT_TAG        "master"
-  
+    GIT_TAG "master"
+    GIT_PROGRESS TRUE
+
     SOURCE_DIR "${MIR2X_3RD_PARTY_DIR}/tinyxml2"
     INSTALL_DIR "${MIR2X_3RD_PARTY_DIR}/tinyxml2/build"
 

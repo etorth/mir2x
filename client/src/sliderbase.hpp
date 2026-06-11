@@ -84,6 +84,7 @@ class SliderBase: public Widget
         Widget::VarCheckFunc<float> m_checkFunc;
 
     private:
+        uint64_t m_bgWidgetID = 0;
         std::optional<std::pair<Widget::VarInt, Widget::VarInt>> m_bgOff;
 
     private:

@@ -137,7 +137,7 @@ bool Server::hasDatabase() const
 bool Server::hasCharacter(const char *charName) const
 {
     if(!str_haschar(charName)){
-        throw fflerror("invalid char name: %s", to_cstr(charName));
+        throw fflpanic("invalid char name: {}", to_cstr(charName));
     }
     return g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_char where fld_name = '%s')###", charName).executeStep();
 }
@@ -145,11 +145,11 @@ bool Server::hasCharacter(const char *charName) const
 int Server::createAccount(const char *id, const char *password)
 {
     if(!(str_haschar(id) && (str_haschar(password)))){
-        throw fflerror("bad account: id = %s, password = %s", to_cstr(id), to_cstr(password));
+        throw fflpanic("bad account: id = {}, password = {}", to_cstr(id), to_cstr(password));
     }
 
     if(!hasDatabase()){
-        throw fflerror("no available database");
+        throw fflpanic("no available database");
     }
 
     if(g_dbPod->createQuery(u8R"###(select fld_dbid from tbl_account where fld_account ='%s')###", id).executeStep()){
@@ -187,7 +187,7 @@ bool Server::createAccountCharacter(const char *id, const char *charName, bool g
             return {DBCOM_MAPID(u8"道馆_1"), 405, 120};
         }
 
-        throw fflerror("invalid job %d", job);
+        throw fflpanic("invalid job {}", job);
     }();
 
     g_dbPod->exec
@@ -287,7 +287,7 @@ void Server::createDefaultDatabase()
         u8R"###(     fld_name           text    not null,                                )###"
         u8R"###(     fld_namecolor      integer default 0,                               )###"
         u8R"###(     fld_gender         integer not null check(fld_gender in (0, 1)),    )###"
-        u8R"###(     fld_job            integer not null,                                )###"
+        u8R"###(     fld_job            integer not null check(fld_job >= 1 and fld_job < 8), )###"
         u8R"###(     fld_map            integer not null,                                )###"
         u8R"###(     fld_mapx           integer not null,                                )###"
         u8R"###(     fld_mapy           integer not null,                                )###"
@@ -480,7 +480,7 @@ void Server::loadMapBinDB()
     }();
 
     if(!g_mapBinDB->load(mapPath.c_str())){
-        throw fflerror("Failed to load mapbindb");
+        throw fflpanic("Failed to load mapbindb");
     }
 }
 
@@ -552,7 +552,7 @@ void Server::propagateException() noexcept
 
         // we do have an exception
         // but may not be std::exception, nest it...
-        std::throw_with_nested(fflerror("rethrow in Server::propagateException()"));
+        std::throw_with_nested(fflpanic("rethrow in Server::propagateException()"));
     }
     catch(...){
         // must have one exception...
@@ -918,7 +918,7 @@ uint64_t Server::sleepExt(uint64_t tickCount)
 void Server::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
 {
     if(!(modulePtr && nCWID)){
-        throw fflerror("invalid argument: module = %p, window ID = %llu", to_cvptr(modulePtr), to_llu(nCWID));
+        throw fflpanic("invalid argument: module = {:p}, window ID = {}", to_cvptr(modulePtr), to_llu(nCWID));
     }
 
     // register command quit
@@ -1049,9 +1049,9 @@ void Server::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
     {
         const auto mapID = [&mapName]() -> uint32_t
         {
-            if(mapName.is<std::string>()) return DBCOM_MAPID(to_u8cstr(mapName.as<std::string>()));
+            if(mapName.is<std::string>()) return DBCOM_MAPID(mapName.as<std::string>().c_str());
             if(mapName.is<lua_Integer>()) return static_cast<uint32_t>(mapName.as<lua_Integer>());
-            throw fflerror("invalid sol::object type");
+            throw fflpanic("invalid sol::object type");
         }();
 
         fflassert(mapID);

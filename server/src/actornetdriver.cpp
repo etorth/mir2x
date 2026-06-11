@@ -65,17 +65,17 @@ void ActorNetDriver::launch(asio::ip::port_type port)
     }
     catch(const std::system_error &e){
         if(e.code() == std::errc::address_in_use){
-            throw fflerror("port %llu is already in use", to_llu(port));
+            throw fflpanic("port {} is already in use", to_llu(port));
         }
         else{
-            throw fflerror("failed to create acceptor: %s", e.what());
+            throw fflpanic("failed to create acceptor: {}", e.what());
         }
     }
     catch(const std::exception &e){
-        throw fflerror("failed to create acceptor: %s", e.what());
+        throw fflpanic("failed to create acceptor: {}", e.what());
     }
     catch(...){
-        throw fflerror("failed to create acceptor: unknown error");
+        throw fflpanic("failed to create acceptor: unknown error");
     }
 
     g_server->addLog(LOGTYPE_INFO, "%s server listens on port %llu", g_serverArgParser->runMode(true), to_llu(m_acceptor->local_endpoint().port()));
@@ -309,7 +309,7 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
             {
                 const auto sdPI = mpk.deserialize<SDSysPeerIndex>();
                 if(m_peerIndex.has_value()){
-                    throw fflerror("invalid request to reassign peer %zu to index %zu", m_peerIndex.value(), sdPI.index);
+                    throw fflpanic("invalid request to reassign peer {} to index {}", m_peerIndex.value(), sdPI.index);
                 }
 
                 m_peerIndex = sdPI.index;
@@ -336,14 +336,14 @@ void ActorNetDriver::onRemoteMessage(size_t fromPeerIndex, uint64_t uid, ActorMs
                 const auto sdSPL = mpk.deserialize<SDSysSlavePeerList>();
                 for(const auto &[peerIndex, addr]: sdSPL.list){
                     if(peerIndex == 0){
-                        throw fflerror("found master peer in slave peer list");
+                        throw fflpanic("found master peer in slave peer list");
                     }
 
                     if(const auto p = m_remotePeerList.find(peerIndex); p == m_remotePeerList.end()){
                         m_remotePeerList[peerIndex] = addr;
                     }
                     else if(p->second != addr){
-                        throw fflerror("peer %zu address has been changed", peerIndex);
+                        throw fflpanic("peer {} address has been changed", peerIndex);
                     }
 
                     if(peerIndex >= m_peerIndex.value()){
@@ -406,7 +406,7 @@ void ActorNetDriver::asyncConnect(size_t peerIndex, const std::string &ip, asio:
     asio::async_connect(*masterSock, asio::ip::tcp::resolver(*m_context).resolve(ip, std::to_string(port)), [peerIndex, masterSock, afterLaunch = std::move(afterLaunch), this](std::error_code ec, const asio::ip::tcp::endpoint &)
     {
         if(ec){
-            throw fflerror("network error: %s", ec.message().c_str());
+            throw fflpanic("network error: {}", ec.message().c_str());
         }
 
         if(peerIndex >= m_peerSlotList.size()){

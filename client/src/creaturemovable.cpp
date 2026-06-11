@@ -84,7 +84,7 @@ std::vector<pathf::PathNode> CreatureMovable::parseMovePath(int x0, int y0, int 
                                 }
                             default:
                                 {
-                                    throw fflerror("invalid CheckCreature provided: %d, should be (0, 1, 2)", checkCreature);
+                                    throw fflpanic("invalid CheckCreature provided: {}, should be (0, 1, 2)", checkCreature);
                                 }
                         }
 
@@ -129,7 +129,7 @@ std::deque<std::unique_ptr<MotionNode>> CreatureMovable::makeWalkMotionQueue(int
             {
                 // 0 means error
                 // 1 means can't find a path here since we know LDistance2 != 0
-                throw fflerror("Can't find a path: (%d, %d) -> (%d, %d): uid = %s", startX, startY, endX, endY, to_cstr(uidf::getUIDString(UID())));
+                throw fflpanic("Can't find a path: ({}, {}) -> ({}, {}): uid = {}", startX, startY, endX, endY, to_cstr(uidf::getUIDString(UID())));
             }
         default:
             {
@@ -147,7 +147,7 @@ std::deque<std::unique_ptr<MotionNode>> CreatureMovable::makeWalkMotionQueue(int
                         motionQueue.push_back(std::move(motionNode));
                     }
                     else{
-                        throw fflerror("Can't make a motioni node: (%d, %d) -> (%d, %d)", x0, y0, x1, y1);
+                        throw fflpanic("Can't make a motioni node: ({}, {}) -> ({}, {})", x0, y0, x1, y1);
                     }
                 }
                 return motionQueue;
@@ -239,7 +239,7 @@ std::tuple<int, int> CreatureMovable::getShift(int frame) const
             }
         default:
             {
-                throw fflerror("invalid step count: %d", currStepCount);
+                throw fflpanic("invalid step count: {}", currStepCount);
             }
     }
 
@@ -297,7 +297,7 @@ void CreatureMovable::flushForcedMotion()
             case MOTION_DIE:
             case MOTION_MON_DIE:
                 {
-                    throw fflerror("can't flush dying CO: %llu", to_llu(UID()));
+                    throw fflpanic("can't flush dying CO: {}", to_llu(UID()));
                 }
             default:
                 {

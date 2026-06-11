@@ -59,7 +59,7 @@ bool MyHero::moveNextMotion()
             g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
         });
     }
-    throw fflerror("Current motion is not valid");
+    throw fflpanic("Current motion is not valid");
 }
 
 bool MyHero::decompMove(bool bCheckGround, int nCheckCreature, bool bCheckMove, int nX0, int nY0, int nX1, int nY1, int *pXm, int *pYm)

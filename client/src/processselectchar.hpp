@@ -5,7 +5,7 @@
 #include "raiitimer.hpp"
 #include "servermsg.hpp"
 #include "labelboard.hpp"
-#include "notifyboard.hpp"
+#include "messagestackboard.hpp"
 #include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 #include "gfxshapeboard.hpp"
@@ -32,7 +32,7 @@ class ProcessSelectChar: public Process
 
     private:
         GfxShapeBoard m_notifyBoardBg;
-        NotifyBoard    m_notifyBoard;
+        MessageStackBoard m_notifyBoard;
 
     private:
         InputStringBoard m_deleteInput;

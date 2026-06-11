@@ -92,7 +92,7 @@ class ClientRebornZombie: public ClientStandMonster
                     }
                 default:
                     {
-                        throw fflerror("invalid action: %s", actionName(action));
+                        throw fflpanic("invalid action: {}", actionName(action));
                     }
             }
         }

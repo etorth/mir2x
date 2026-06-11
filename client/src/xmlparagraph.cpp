@@ -17,15 +17,8 @@ XMLParagraph *XMLParagraph::split(int leafIndex, int cursorLoc)
     fflassert(leafValid(leafIndex));
     fflassert(cursorLoc >= 0 && cursorLoc <= leaf(leafIndex).length());
 
-    XMLParagraph * newPar = new XMLParagraph{};
     XMLParagraph *fromPar = this;
-    XMLParagraph *  toPar = newPar;
-
-    if(leafIndex * 2 > leafCount()){
-        std::swap(fromPar->m_xmlDocument, toPar->m_xmlDocument);
-        std::swap(fromPar->m_leafList   , toPar->m_leafList   );
-        std::swap(fromPar               , toPar               );
-    }
+    XMLParagraph *  toPar = new XMLParagraph{};
 
     const auto fnMoveFrontLeaf = [fromPar, toPar]()
     {
@@ -37,7 +30,7 @@ XMLParagraph *XMLParagraph::split(int leafIndex, int cursorLoc)
         fromPar->m_leafList.pop_front();
     };
 
-    for(int i = 0; i < leafIndex - 1; ++i){
+    for(int i = 0; i < leafIndex; ++i){
         fnMoveFrontLeaf();
     }
 
@@ -53,7 +46,7 @@ XMLParagraph *XMLParagraph::split(int leafIndex, int cursorLoc)
         toPar->m_leafList.emplace_back(node1);
     }
 
-    return newPar;
+    return toPar;
 }
 
 void XMLParagraph::deleteLeaf(int leafIndex)
@@ -61,32 +54,28 @@ void XMLParagraph::deleteLeaf(int leafIndex)
     auto node   = leaf(leafIndex).xmlNode();
     auto parent = node->Parent();
 
-    while(parent && (parent->FirstChild() == parent->LastChild())){
+    while(parent && (parent->FirstChild() == parent->LastChild()) && (parent != m_xmlDocument->FirstChild())){
         node   = parent;
         parent = parent->Parent();
     }
 
-    if(parent){
-        parent->DeleteChild(node);
-    }
-    else{
-        m_xmlDocument->Clear();
-    }
+    fflassert(parent);
+    parent->DeleteChild(node);
     m_leafList.erase(m_leafList.begin() + leafIndex);
 }
 
 size_t XMLParagraph::insertUTF8String(int leafIndex, int leafOff, const char *utf8String)
 {
     if(leaf(leafIndex).type() != LEAF_UTF8STR){
-        throw fflerror("the %d-th leaf is not a XMLText", leafIndex);
+        throw fflpanic("the {}-th leaf is not a XMLText", leafIndex);
     }
 
     if(leafOff < 0 || leafOff > to_d(leaf(leafIndex).utf8CharOff().size())){
-        throw fflerror("leaf offset %d is not a valid insert offset", leafOff);
+        throw fflpanic("leaf offset {} is not a valid insert offset", leafOff);
     }
 
     if(utf8String == nullptr){
-        throw fflerror("null utf8 text string");
+        throw fflpanic("null utf8 text string");
     }
 
     if(std::strlen(utf8String) == 0){
@@ -94,7 +83,7 @@ size_t XMLParagraph::insertUTF8String(int leafIndex, int leafOff, const char *ut
     }
 
     if(!utf8::is_valid(utf8String, utf8String + std::strlen(utf8String))){
-        throw fflerror("invalid utf-8 string: %s", utf8String);
+        throw fflpanic("invalid utf-8 string: {}", utf8String);
     }
 
     auto &utf8OffRef = leaf(leafIndex).utf8CharOff();
@@ -142,11 +131,11 @@ size_t XMLParagraph::insertUTF8String(int leafIndex, int leafOff, const char *ut
 void XMLParagraph::deleteUTF8Char(int leafIndex, int leafOff, int tokenCount)
 {
     if(leaf(leafIndex).type() != LEAF_UTF8STR){
-        throw fflerror("the %d-th leaf is not a XMLText", leafIndex);
+        throw fflpanic("the {}-th leaf is not a XMLText", leafIndex);
     }
 
     if(!leafOffValid(leafIndex, leafOff)){
-        throw fflerror("invalid leafOff: %d", leafOff);
+        throw fflpanic("invalid leafOff: {}", leafOff);
     }
 
     if(tokenCount == 0){
@@ -154,7 +143,7 @@ void XMLParagraph::deleteUTF8Char(int leafIndex, int leafOff, int tokenCount)
     }
 
     if((leafOff + tokenCount - 1) >= leaf(leafIndex).length()){
-        throw fflerror("the %d-th leaf has only %d tokens", leafIndex, leaf(leafIndex).length());
+        throw fflpanic("the {}-th leaf has only {} tokens", leafIndex, leaf(leafIndex).length());
     }
 
     if(tokenCount == leaf(leafIndex).length()){
@@ -183,7 +172,7 @@ void XMLParagraph::deleteUTF8Char(int leafIndex, int leafOff, int tokenCount)
 void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
 {
     if(!leafOffValid(leafIndex, leafOff)){
-        throw fflerror("invalid leaf off: (%d, %d)", leafIndex, leafOff);
+        throw fflpanic("invalid leaf off: ({}, {})", leafIndex, leafOff);
     }
 
     if(tokenCount == 0){
@@ -207,7 +196,7 @@ void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
     }();
 
     if(!hasEnoughToken){
-        throw fflerror("insufficient token to remove");
+        throw fflpanic("insufficient token to remove");
     }
 
     int currLeaf     = leafIndex;
@@ -218,9 +207,17 @@ void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
         switch(leaf(currLeaf).type()){
             case LEAF_UTF8STR:
                 {
-                    const int needDelete = std::min<int>(leaf(currLeaf).length() - currLeafOff, tokenCount - deletedToken);
+                    const auto leafLength = leaf(currLeaf).length();
+                    const auto needDelete = std::min<int>(leafLength - currLeafOff, tokenCount - deletedToken);
+
                     deleteUTF8Char(currLeaf, currLeafOff, needDelete);
                     deletedToken += needDelete;
+
+                    if(needDelete != leafLength){
+                        currLeaf++; // current leaf is not fully deleted
+                    }
+
+                    currLeafOff = 0;
                     break;
                 }
             case LEAF_EMOJI:
@@ -228,23 +225,21 @@ void XMLParagraph::deleteToken(int leafIndex, int leafOff, int tokenCount)
                 {
                     deleteLeaf(currLeaf);
                     deletedToken += 1;
+                    currLeafOff = 0;
                     break;
                 }
             default:
                 {
-                    throw fflerror("invalid leaf type: %d", leaf(currLeaf).type());
+                    throw fflpanic("invalid leaf type: {}", leaf(currLeaf).type());
                 }
         }
-
-        currLeaf++;
-        currLeafOff = 0;
     }
 }
 
 std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leafIndex, int leafOff, int) const
 {
     if(leafOff >= to_d(leaf(leafIndex).utf8CharOff().size())){
-        throw fflerror("the %d-th leaf has only %zu tokens", leafIndex, leaf(leafIndex).utf8CharOff().size());
+        throw fflpanic("the {}-th leaf has only {} tokens", leafIndex, leaf(leafIndex).utf8CharOff().size());
     }
 
     return {0, 0, 0};
@@ -253,7 +248,7 @@ std::tuple<int, int, int> XMLParagraph::prevLeafOff(int leafIndex, int leafOff, 
 std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leafIndex, int leafOff, int tokenCount) const
 {
     if(leafOff >= leaf(leafIndex).length()){
-        throw fflerror("the %d-th leaf has only %d tokens", leafIndex, leaf(leafIndex).length());
+        throw fflpanic("the {}-th leaf has only {} tokens", leafIndex, leaf(leafIndex).length());
     }
 
     int nCurrLeaf      = leafIndex;
@@ -286,37 +281,62 @@ std::tuple<int, int, int> XMLParagraph::nextLeafOff(int leafIndex, int leafOff, 
                 }
             default:
                 {
-                    throw fflerror("invalid leaf type: %d", nType);
+                    throw fflpanic("invalid leaf type: {}", nType);
                 }
         }
     }
     return {nCurrLeaf, nCurrLeafOff, nAdvancedToken};
 }
 
-void XMLParagraph::Join(const XMLParagraph &rstInput)
+void XMLParagraph::join(const XMLParagraph &input, bool append)
 {
-    if(rstInput.m_xmlDocument->FirstChild() == nullptr){
+    if(std::addressof(input) == this){
+        throw fflpanic("cannot join XMLParagraph with itself");
+    }
+
+    if(input.m_xmlDocument->FirstChild() == nullptr){
         return;
     }
 
-    for(auto pNode = rstInput.m_xmlDocument->FirstChild()->FirstChild(); pNode; pNode = pNode->NextSibling()){
-        m_xmlDocument->FirstChild()->InsertEndChild(pNode->DeepClone(m_xmlDocument->GetDocument()));
+    if(append){
+        for(auto node = input.m_xmlDocument->FirstChild()->FirstChild(); node; node = node->NextSibling()){
+            const auto cloneNode = node->DeepClone(m_xmlDocument->GetDocument());
+            m_xmlDocument->FirstChild()->InsertEndChild(cloneNode);
+
+            for(auto leafNode = xmlf::getNodeFirstLeaf(cloneNode); leafNode; leafNode = xmlf::getNextLeaf(leafNode, cloneNode)){
+                if(xmlf::checkValidLeaf(leafNode)){
+                    m_leafList.emplace_back(leafNode);
+                }
+            }
+        }
+    }
+    else{
+        for(auto node = input.m_xmlDocument->FirstChild()->LastChild(); node; node = node->PreviousSibling()){
+            const auto cloneNode = node->DeepClone(m_xmlDocument->GetDocument());
+            m_xmlDocument->FirstChild()->InsertFirstChild(cloneNode);
+
+            for(auto leafNode = xmlf::getNodeLastLeaf(cloneNode); leafNode; leafNode = xmlf::getPreviousLeaf(leafNode, cloneNode)){
+                if(xmlf::checkValidLeaf(leafNode)){
+                    m_leafList.emplace_front(leafNode);
+                }
+            }
+        }
     }
 }
 
 void XMLParagraph::loadXML(const char *xmlString)
 {
     if(xmlString == nullptr){
-        throw fflerror("null xml string");
+        throw fflpanic("null xml string");
     }
 
     if(!utf8::is_valid(xmlString, xmlString + std::strlen(xmlString))){
-        throw fflerror("xml is not a valid utf8 string: %s", xmlString);
+        throw fflpanic("xml is not a valid utf8 string: {}", xmlString);
     }
 
     tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
-        throw fflerror("tinyxml2::XMLDocument::Parse() failed: %s", xmlString);
+        throw fflpanic("tinyxml2::XMLDocument::Parse() failed: {}", xmlString);
     }
 
     loadXMLNode(xmlDoc.RootElement());
@@ -325,11 +345,11 @@ void XMLParagraph::loadXML(const char *xmlString)
 void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
 {
     if(!node){
-        throw fflerror("null node pointer");
+        throw fflpanic("null node pointer");
     }
 
     if(!node->ToElement()){
-        throw fflerror("given node is not an element");
+        throw fflpanic("given node is not an element");
     }
 
     bool parXML = false;
@@ -341,7 +361,7 @@ void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
     }
 
     if(!parXML){
-        throw fflerror("not a paragraph node");
+        throw fflpanic("not a paragraph node");
     }
 
     m_xmlDocument->Clear();
@@ -349,7 +369,7 @@ void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
         m_xmlDocument->InsertEndChild(pNew);
     }
     else{
-        throw fflerror("copy paragraph node failed");
+        throw fflpanic("copy paragraph node failed");
     }
 
     m_leafList.clear();
@@ -365,19 +385,19 @@ void XMLParagraph::loadXMLNode(const tinyxml2::XMLNode *node)
 size_t XMLParagraph::insertLeafXML(int loc, const char *xmlString)
 {
     if(loc < 0 || loc > leafCount() || !xmlString){
-        throw fflerror("invalid argument: loc = %d, xmlString = %p", loc, xmlString);
+        throw fflpanic("invalid argument: loc = {}, xmlString = {:p}", loc, to_cvptr(xmlString));
     }
-    return insertXMLAfter(leaf(loc).xmlNode(), xmlString);
+
+    if(loc == 0){
+        return insertXMLAtFront(xmlString);
+    }
+    return insertXMLAfter(leaf(loc - 1).xmlNode(), xmlString);
 }
 
-size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlString)
+size_t XMLParagraph::insertXMLAtFront(const char *xmlString)
 {
-    if(!(after && xmlString)){
-        throw fflerror("invalid argument: after = %p, xmlString = %p", to_cvptr(after), to_cvptr(xmlString));
-    }
-
-    if(after->GetDocument() != m_xmlDocument.get()){
-        throw fflerror("can't find after node in current XMLDocument");
+    if(!xmlString){
+        throw fflpanic("invalid argument: xmlString = {:p}", to_cvptr(xmlString));
     }
 
     // to insert XML as leaves, we requires to insert as a new paragraph leaf
@@ -385,12 +405,12 @@ size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlStr
 
     tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
     if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
-        throw fflerror("tinyxml2::XMLDocument::Parse() failed: %s", xmlString);
+        throw fflpanic("tinyxml2::XMLDocument::Parse() failed: {}", xmlString);
     }
 
     auto xmlRoot = xmlDoc.RootElement();
     if(!xmlRoot){
-        throw fflerror("no root element");
+        throw fflpanic("no root element");
     }
 
     bool parXML = false;
@@ -402,19 +422,87 @@ size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlStr
     }
 
     if(!parXML){
-        throw fflerror("xmlString is not a paragraph");
+        throw fflpanic("xmlString is not a paragraph");
     }
 
     size_t addedLeafCount = 0;
-    for(auto p = xmlRoot->FirstChild(); p; p = p->NextSibling()){
+    for(auto p = xmlRoot->LastChild(); p; p = p->PreviousSibling()){
         if(auto cloneNode = p->DeepClone(m_xmlDocument.get())){
-            if(after->Parent()->InsertAfterChild(after, cloneNode) != cloneNode){
-                throw fflerror("insert node failed");
+            if(m_xmlDocument->FirstChild()->InsertFirstChild(cloneNode) != cloneNode){
+                throw fflpanic("insert node failed");
             }
             addedLeafCount++;
         }
         else{
-            throw fflerror("deep clone node failed");
+            throw fflpanic("deep clone node failed");
+        }
+    }
+
+    // TODO rebuild everything
+    // this is not necessary, optimize later
+
+    m_leafList.clear();
+    if(auto parNode = m_xmlDocument->FirstChild(); !parNode->NoChildren()){
+        for(auto nodePtr = xmlf::getNodeFirstLeaf(parNode); nodePtr; nodePtr = xmlf::getNextLeaf(nodePtr, parNode)){
+            if(xmlf::checkValidLeaf(nodePtr)){
+                m_leafList.emplace_back(nodePtr);
+            }
+        }
+    }
+
+    size_t addedCount = 0;
+    for(size_t i = 0; i < addedLeafCount; ++i){
+        addedCount += leaf(i).length();
+    }
+
+    return addedCount;
+}
+
+size_t XMLParagraph::insertXMLAfter(tinyxml2::XMLNode *after, const char *xmlString)
+{
+    if(!(after && xmlString)){
+        throw fflpanic("invalid argument: after = {:p}, xmlString = {:p}", to_cvptr(after), to_cvptr(xmlString));
+    }
+
+    if(after->GetDocument() != m_xmlDocument.get()){
+        throw fflpanic("can't find after node in current XMLDocument");
+    }
+
+    // to insert XML as leaves, we requires to insert as a new paragraph leaf
+    // for emoji and image we have specified tag <emoji>, <image>, but for text we don't have
+
+    tinyxml2::XMLDocument xmlDoc(true, tinyxml2::PEDANTIC_WHITESPACE);
+    if(xmlDoc.Parse(xmlString) != tinyxml2::XML_SUCCESS){
+        throw fflpanic("tinyxml2::XMLDocument::Parse() failed: {}", xmlString);
+    }
+
+    auto xmlRoot = xmlDoc.RootElement();
+    if(!xmlRoot){
+        throw fflpanic("no root element");
+    }
+
+    bool parXML = false;
+    for(const char *cstr: {"par", "Par", "PAR"}){
+        if(to_sv(xmlRoot->Value()) == cstr){
+            parXML = true;
+            break;
+        }
+    }
+
+    if(!parXML){
+        throw fflpanic("xmlString is not a paragraph");
+    }
+
+    size_t addedLeafCount = 0;
+    for(auto p = xmlRoot->LastChild(); p; p = p->PreviousSibling()){
+        if(auto cloneNode = p->DeepClone(m_xmlDocument.get())){
+            if(after->Parent()->InsertAfterChild(after, cloneNode) != cloneNode){
+                throw fflpanic("insert node failed");
+            }
+            addedLeafCount++;
+        }
+        else{
+            throw fflpanic("deep clone node failed");
         }
     }
 
@@ -463,7 +551,7 @@ void XMLParagraph::deleteToken(int leafIndex, int leafOff)
             }
         default:
             {
-                throw fflerror("invalid leaf type: %d", leaf(leafIndex).type());
+                throw fflpanic("invalid leaf type: {}", leaf(leafIndex).type());
             }
     }
 }
@@ -485,7 +573,7 @@ std::string XMLParagraph::getRawString() const
                 }
             default:
                 {
-                    throw fflerror("invalid leaf node type");
+                    throw fflpanic("invalid leaf node type");
                 }
         }
     }

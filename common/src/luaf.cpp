@@ -72,7 +72,7 @@ bool luaf::_details::isArray(const luaf::luaTable &table)
 
     for(const auto &[k, v]: table){
         if(k == luaf::luaNil()){
-            throw fflerror("invalid luaTable key: nil");
+            throw fflpanic("invalid luaTable key: nil");
         }
 
         else if(const auto p = std::get_if<lua_Integer>(std::addressof(k.get()))){
@@ -256,7 +256,7 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
     }
     else if(obj.is<sol::table>()){
         if(obj.as<sol::table>()[sol::metatable_key] != sol::lua_nil){
-            throw fflerror("can't build from table with metatable");
+            throw fflpanic("can't build from table with metatable");
         }
 
         if(_details::isArray(obj.as<sol::table>())){
@@ -284,14 +284,14 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
                     //
                     // which creates table t with two table-keys with same value, but different address
                     // I can use sol::table::pointer() to differ them by adding an extra key to LuaTable to store the address, but looks doesn't make much sense
-                    throw fflerror("duplicated key detected: %s", str_any(luaf::buildLuaVar(sol::object(k))).c_str());
+                    throw fflpanic("duplicated key detected: {}", str_any(luaf::buildLuaVar(sol::object(k))).c_str());
                 }
             }
             return table;
         }
     }
     else{
-        throw fflerror("unsupported type: %s", to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
+        throw fflpanic("unsupported type: {}", to_cstr(sol::type_name(obj.lua_state(), obj.get_type())));
     }
 }
 

@@ -71,7 +71,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                           {u8"社交", &m_pageSocial},
                           {u8"游戏", &m_pageGameConfig},
                       }){
-                          page->setShow(to_u8sv(id) == label);
+                          page->setShow(to_sv(id) == to_cstr(label));
                       }
                   }
               }
