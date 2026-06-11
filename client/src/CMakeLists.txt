@@ -67,3 +67,13 @@ ENDIF()
 INSTALL(TARGETS client DESTINATION client)
 INSTALL(DIRECTORY ${LIBPINYIN_LIBDIR}/libpinyin DESTINATION client)
 INSTALL(DIRECTORY ${MIR2X_DATA_REPO_PATH}/res DESTINATION client)
+INSTALL(CODE [[
+    EXECUTE_PROCESS(
+        COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/tools/src/install_res.py
+                    --ignore-zsdbmaker-error
+                    --zsdbmaker="${CMAKE_BINARY_DIR}/tools/zsdbmaker/src/zsdbmaker"
+                    --input-dir="${MIR2X_RES_REPO_PATH}"
+                    --output-dir="${CMAKE_INSTALL_PREFIX}/client/res"
+        COMMAND_ERROR_IS_FATAL ANY
+    )
+]])
