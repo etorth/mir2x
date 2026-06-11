@@ -67,6 +67,11 @@ def parse_args():
         action="store_true",
         help="Continue packing if zsdbmaker returns an error for a resource pack.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Always run zsdbmaker, even when output .zsdb files are up to date.",
+    )
     return parser.parse_args()
 
 
@@ -117,28 +122,23 @@ def main():
         pack_output_path = (output_dir / output_relpath).resolve()
         pack_output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        if not is_pack_outdated(pack_input_dir, pack_output_path):
+        if not args.force and not is_pack_outdated(pack_input_dir, pack_output_path):
             print(f"Skipping {pack_input_dir} -> {pack_output_path}: up to date")
             continue
 
-        print(f"Packing {pack_input_dir} -> {pack_output_path}")
+        print(f"Packing {pack_input_dir} -> {pack_output_path}", flush=True)
         result = subprocess.run(
             [
                 zsdbmaker,
                 f"--input-dir={pack_input_dir}",
                 f"--create-db={pack_output_path}",
             ],
-            check=False,
-        )
+            check=False)
+
         if result.returncode != 0:
             if not args.ignore_zsdbmaker_error:
                 raise subprocess.CalledProcessError(result.returncode, result.args)
-
-            print(
-                f"Warning: zsdbmaker failed with exit code {result.returncode}: "
-                f"{pack_input_dir} -> {pack_output_path}",
-                file=sys.stderr,
-            )
+            print(f"Warning: zsdbmaker failed with exit code {result.returncode}: {pack_input_dir} -> {pack_output_path}", file=sys.stderr)
 
 
 if __name__ == "__main__":
