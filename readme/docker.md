@@ -103,7 +103,14 @@ docker run --rm -it \
 
 ## Part 4: Testing Inside the Sandbox
 
-Once execution finishes, your prompt will change to:
+Once execution finishes, you may see some warning message like:
+
+```text
+bash: cannot set terminal process group (-1): Inappropriate ioctl for device
+bash: no job control in this shell
+```
+
+You can ignore the warnings, and your prompt will change to:
 
 ```text
 ubuntu@<container_id>:/workspace$
