@@ -71,7 +71,7 @@ $ cd b_mir2x
 $ /path/to/mir2x/build.py
 ```
 
-Builds are incremental by default: rerunning the same command keeps `<build-dir>/build`, including CMake object files and `vcpkg_installed`. Use `--fresh` only when you want a real clean build: it deletes `<build-dir>/build`, including `vcpkg_installed`, so vcpkg dependencies are reinstalled/rebuilt.
+Builds are incremental by default: rerunning the same command keeps `<build-dir>/build`, including CMake object files, `vcpkg_installed`, and the default resource clone. Use `--fresh` only when you want a real clean build: it deletes `<build-dir>/build`, including `vcpkg_installed` and `<build-dir>/build/assets/mir2x_res`, so vcpkg dependencies are reinstalled/rebuilt and default resources are cloned again.
 
 Install-time client/server resource packing always runs. If `--res-path` is omitted, the CMake build clones `https://github.com/etorth/mir2x_res.git` to `<build-dir>/build/assets/mir2x_res` during the build stage. To use an existing resource checkout, pass:
 

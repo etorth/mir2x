@@ -124,7 +124,7 @@ def parse_args():
     parser.add_argument(
         "--fresh",
         action="store_true",
-        help="Delete <build-dir>/build, including vcpkg_installed, before configuring.",
+        help="Delete <build-dir>/build, including vcpkg_installed and the default resource clone, before configuring.",
     )
     parser.add_argument("--triplet", help="VCPKG_TARGET_TRIPLET.")
     parser.add_argument("--host-triplet", help="VCPKG_HOST_TRIPLET.")
