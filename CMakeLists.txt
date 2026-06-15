@@ -23,7 +23,7 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     endif()
 endif()
 
-project(mir2x)
+project(mir2x LANGUAGES CXX)
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "32-bit builds are not supported")
