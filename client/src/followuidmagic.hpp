@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <climits>
 #include "sysconst.hpp"
 #include "fflerror.hpp"
 #include "basemagic.hpp"

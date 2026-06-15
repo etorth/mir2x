@@ -16,7 +16,7 @@
 
 ServerArgParser          *g_serverArgParser;
 PeerConfig               *g_peerConfig;
-Log                      *g_log;
+Log                      *g_mir2xLog;
 ActorPool                *g_actorPool;
 DBPod                    *g_dbPod;
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
             Fl::lock();
         }
 
-        g_log       = new Log("mir2x-server-v0.1");
+        g_mir2xLog       = new Log("mir2x-server-v0.1");
         g_server    = new Server();
         g_mapBinDB  = new MapBinDB();
         g_actorPool = new ActorPool(g_serverArgParser->actorPoolThread);
@@ -92,10 +92,10 @@ int main(int argc, char *argv[])
     catch(const std::exception &e){
         // use raw log directly
         // no gui available because we are out of gui event loop
-        g_log->addLog(LOGTYPE_WARNING, "Exception in main thread: %s", e.what());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "Exception in main thread: %s", e.what());
     }
     catch(...){
-        g_log->addLog(LOGTYPE_WARNING, "Unknown exception caught in main thread");
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "Unknown exception caught in main thread");
     }
     return 0;
 }

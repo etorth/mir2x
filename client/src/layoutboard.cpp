@@ -14,7 +14,7 @@
 #include "xmltypeset.hpp"
 #include "clientargparser.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern FontexDB *g_fontexDB;
 extern IMEBoard *g_imeBoard;
 extern SDLDevice *g_sdlDevice;
@@ -368,13 +368,13 @@ size_t LayoutBoard::addLayoutXML(int loc, const Widget::IntMargin &parMargin, co
     }
 
     if(rootElem->FirstAttribute()){
-        g_log->addLog(LOGTYPE_WARNING, "Layout XML doesn't accept attributes, ignored");
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "Layout XML doesn't accept attributes, ignored");
     }
 
     size_t addedParCount = 0;
     for(auto p = rootElem->FirstChild(); p && (parLimit == 0 || addedParCount < parLimit); p = p->NextSibling()){
         if(!p->ToElement()){
-            g_log->addLog(LOGTYPE_WARNING, "Not an element: %s", p->Value());
+            g_mir2xLog->addLog(LOGTYPE_WARNING, "Not an element: %s", p->Value());
             continue;
         }
 
@@ -387,7 +387,7 @@ size_t LayoutBoard::addLayoutXML(int loc, const Widget::IntMargin &parMargin, co
         }
 
         if(!parXML){
-            g_log->addLog(LOGTYPE_WARNING, "Not a paragraph element: %s", p->Value());
+            g_mir2xLog->addLog(LOGTYPE_WARNING, "Not a paragraph element: %s", p->Value());
             continue;
         }
 

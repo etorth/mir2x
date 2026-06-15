@@ -1,2 +1,4 @@
 build
+vcpkg
+.vcpkg
 __pycache__

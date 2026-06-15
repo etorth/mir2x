@@ -62,31 +62,38 @@ If running on WSL/WSL2, check the following to configure PulseAudio to support s
 
 ### Building from source
 
-mir2x game is developed mainly in WSL2, please refer [here](https://github.com/etorth/mir2x/wiki/How-to-compile-and-run-on-windows) how to setup and run everything on windows. mir2x requires [cmake](https://cmake.org/) v3.12 and [gcc](https://gcc.gnu.org/) support c++20 to run. Mir2x needs some pre-installed packages before compile:
-
-```sh
-libsdl2-compat-dev # legacy libsdl2-dev package has bugs
-libsdl2-image-dev
-libsdl2-mixer-dev
-libsdl2-ttf-dev
-libsdl2-gfx-dev
-liblua5.4-dev
-libfltk1.4-dev
-libcairo2-dev
-libpinyin15-dev
-```
-
-You also needs to install ```pkg-config``` before run cmake. Cmake complains if libs are missing. After install all these dependencies, clone and compile the repo. By default cmake tries to install in /usr/local. use ``CMAKE_INSTALL_PREFIX" to customize.
+mir2x uses vcpkg manifest mode for third-party dependencies on native Linux and MSYS2 UCRT64/MinGW. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
 
 ```sh
 $ git clone https://github.com/etorth/mir2x.git
-$ cd mir2x
-$ mkdir b
-$ cd b
-$ cmake .. -DCMAKE_INSTALL_PREFIX=install
-$ make
-$ make install
+$ mkdir b_mir2x
+$ cd b_mir2x
+$ /path/to/mir2x/build.py
 ```
+
+Builds are incremental by default: rerunning the same command keeps `<build-dir>/build`, including CMake object files and `vcpkg_installed`. Use `--fresh` only when you want to delete the CMake build tree before configuring.
+
+To package install-time resources, pass the resource repository path:
+
+```sh
+$ /path/to/mir2x/build.py --res-repo-path=/path/to/mir2x_res
+```
+
+To choose a compiler for both vcpkg ports and mir2x targets, pass it through the helper. This enables `VCPKG_CHAINLOAD_TOOLCHAIN_FILE` internally:
+
+```sh
+$ /path/to/mir2x/build.py --c-compiler=gcc-16 --cxx-compiler=g++-16
+```
+
+To control build parallelism, use `--parallel=<N>`:
+
+```sh
+$ /path/to/mir2x/build.py --parallel=16
+```
+
+To show detailed CMake/vcpkg command output, add `--verbose`.
+
+On Windows, run the same command from an MSYS2 UCRT64 shell; the helper selects the `x64-mingw-static` vcpkg triplet by default.
 ### First time run
 To start the monoserver, find a linux machine to host the server, I tried to host it on ```Oracle Cloud Infrastructure```, it works perfectly with the ```always-free``` plan. Click menu server/launch to start the service before start client:
 
@@ -154,5 +161,3 @@ wsl2 sucks! if in WSL2 you can ping 8.8.8.8 but can not ping google.com, that me
    ipconfig /all
    ```
    You will find the section ``Wireless LAN adapter Wi-Fi``, inside the section find ``DNS Server`` and copy all IPs to ``/etc/resolv.conf``, reboot WSL2, it should be good now.
-
-

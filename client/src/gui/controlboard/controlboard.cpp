@@ -5,7 +5,7 @@
 #include "controlboard.hpp"
 #include "processrun.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
 
@@ -201,12 +201,12 @@ void ControlBoard::addLog(int logType, const char *log)
     switch(logType){
         case CBLOG_ERR:
             {
-                g_log->addLog(LOGTYPE_WARNING, "%s", log);
+                g_mir2xLog->addLog(LOGTYPE_WARNING, "%s", log);
                 break;
             }
         default:
             {
-                g_log->addLog(LOGTYPE_INFO, "%s", log);
+                g_mir2xLog->addLog(LOGTYPE_INFO, "%s", log);
                 break;
             }
     }

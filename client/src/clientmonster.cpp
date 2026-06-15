@@ -48,7 +48,7 @@
 #include "clientminotaurguardian.hpp"
 #include "clienttree.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexOffDB *g_monsterDB;

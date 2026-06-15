@@ -1,0 +1,39 @@
+{
+  "name": "mir2x",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "argh",
+    "asio",
+    "cereal",
+    "fltk",
+    "g3log",
+    "libpinyin",
+    "libpng",
+    "libpopcnt",
+    "lua",
+    "lz4",
+    "parallel-hashmap",
+    "sdl2",
+    "sdl2-gfx",
+    {
+      "name": "sdl2-image",
+      "features": [
+        "libjpeg-turbo"
+      ]
+    },
+    {
+      "name": "sdl2-mixer",
+      "features": [
+        "mpg123"
+      ]
+    },
+    "sdl2-ttf",
+    "sol2",
+    "sqlitecpp",
+    "tiny-aes-c",
+    "tinyxml2",
+    "utfcpp",
+    "zlib",
+    "zstd"
+  ]
+}

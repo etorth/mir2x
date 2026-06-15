@@ -11,7 +11,7 @@
 #include "processrun.hpp"
 #include "clientpathfinder.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern Client *g_client;
 extern ClientArgParser *g_clientArgParser;
 
@@ -46,17 +46,17 @@ bool MyHero::moveNextMotion()
     }
 
     // oops we get invalid motion queue
-    g_log->addLog(LOGTYPE_INFO, "Invalid motion queue:");
+    g_mir2xLog->addLog(LOGTYPE_INFO, "Invalid motion queue:");
 
     m_currMotion->print([](const std::string &s)
     {
-        g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "%s", s.c_str());
     });
 
     for(auto &m: m_motionQueue){
         m->print([](const std::string &s)
         {
-            g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+            g_mir2xLog->addLog(LOGTYPE_WARNING, "%s", s.c_str());
         });
     }
     throw fflpanic("Current motion is not valid");
@@ -181,7 +181,7 @@ bool MyHero::decompActionMove()
     int nY1 = move.aimY;
 
     if(!m_processRun->canMove(true, 0, nX0, nY0)){
-        g_log->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "Motion start from invalid grid (%d, %d)", nX0, nY0);
         m_actionQueue.clear();
         return false;
     }
@@ -189,7 +189,7 @@ bool MyHero::decompActionMove()
     switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
         case 0:
             {
-                g_log->addLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+                g_mir2xLog->addLog(LOGTYPE_WARNING, "Motion invalid (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
 
                 // I have to clear all pending actions
                 // because if I return true the next step treats the front action as basic one
@@ -278,7 +278,7 @@ bool MyHero::decompActionMine()
     switch(mathf::LDistance2<int>(nX0, nY0, nX1, nY1)){
         case 0:
             {
-                g_log->addLog(LOGTYPE_WARNING, "Invalid mine location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+                g_mir2xLog->addLog(LOGTYPE_WARNING, "Invalid mine location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
                 m_actionQueue.clear();
                 return false;
             }
@@ -373,7 +373,7 @@ bool MyHero::decompActionAttack()
         switch(mathf::LDistance2(nX0, nY0, nX1, nY1)){
             case 0:
                 {
-                    g_log->addLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
+                    g_mir2xLog->addLog(LOGTYPE_WARNING, "Invalid attack location (%d, %d) -> (%d, %d)", nX0, nY0, nX1, nY1);
                     m_actionQueue.clear();
                     return false;
                 }
@@ -613,8 +613,8 @@ bool MyHero::parseActionQueue()
             const int actionX1 = m_actionQueue.front().aimX;
             const int actionY1 = m_actionQueue.front().aimY;
 
-            g_log->addLog(LOGTYPE_INFO, "BF: CurrMotion: (%d, %d) -> (%d, %d)", motionX0, motionY0, motionX1, motionY1);
-            g_log->addLog(LOGTYPE_INFO, "BF: CurrAction: (%d, %d) -> (%d, %d)", actionX0, actionY0, actionX1, actionY1);
+            g_mir2xLog->addLog(LOGTYPE_INFO, "BF: CurrMotion: (%d, %d) -> (%d, %d)", motionX0, motionY0, motionX1, motionY1);
+            g_mir2xLog->addLog(LOGTYPE_INFO, "BF: CurrAction: (%d, %d) -> (%d, %d)", actionX0, actionY0, actionX1, actionY1);
         }
     }
 
@@ -689,11 +689,11 @@ bool MyHero::parseActionQueue()
                 const int motionY0 = node->y;
                 const int motionX1 = node->endX;
                 const int motionY1 = node->endY;
-                g_log->addLog(LOGTYPE_INFO, "AF: CurrMotion: (%d, %d) -> (%d, %d)", motionX0, motionY0, motionX1, motionY1);
+                g_mir2xLog->addLog(LOGTYPE_INFO, "AF: CurrMotion: (%d, %d) -> (%d, %d)", motionX0, motionY0, motionX1, motionY1);
             });
 
             if(m_actionQueue.empty()){
-                g_log->addLog(LOGTYPE_INFO, "AF: CurrAction: NONE");
+                g_mir2xLog->addLog(LOGTYPE_INFO, "AF: CurrAction: NONE");
             }
             else{
                 std::ranges::for_each(m_actionQueue, [](const auto &node)
@@ -702,7 +702,7 @@ bool MyHero::parseActionQueue()
                     const int actionY0 = node.y;
                     const int actionX1 = node.aimX;
                     const int actionY1 = node.aimY;
-                    g_log->addLog(LOGTYPE_INFO, "AF: CurrAction: (%d, %d) -> (%d, %d)", actionX0, actionY0, actionX1, actionY1);
+                    g_mir2xLog->addLog(LOGTYPE_INFO, "AF: CurrAction: (%d, %d) -> (%d, %d)", actionX0, actionY0, actionX1, actionY1);
                 });
             }
         }

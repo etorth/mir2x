@@ -15,7 +15,7 @@
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern Client *g_client;
 extern SDLDevice *g_sdlDevice;
 extern PNGTexDB *g_progUseDB;
@@ -98,7 +98,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     if(!nGfxDressID.has_value()){
         m_currMotion->print([](const std::string &s)
         {
-            g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+            g_mir2xLog->addLog(LOGTYPE_WARNING, "%s", s.c_str());
         });
         return;
     }

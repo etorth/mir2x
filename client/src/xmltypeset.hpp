@@ -1,4 +1,5 @@
 #pragma once
+#include <climits>
 #include <tuple>
 #include <deque>
 #include <memory>

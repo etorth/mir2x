@@ -6,7 +6,7 @@
 #include "processrun.hpp"
 #include "creaturemovable.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 std::vector<pathf::PathNode> CreatureMovable::parseMovePath(int x0, int y0, int x1, int y1, bool checkGround, int checkCreature)
 {
     if(!m_processRun->canMove(true, 0, x0, y0)){
@@ -169,16 +169,16 @@ bool CreatureMovable::motionQueueValid() const
             lastMotionPtr = motion.get();
         }
         else{
-            g_log->addLog(LOGTYPE_WARNING, "Invalid motion queue:");
+            g_mir2xLog->addLog(LOGTYPE_WARNING, "Invalid motion queue:");
             m_currMotion->print([](const std::string &s)
             {
-                g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+                g_mir2xLog->addLog(LOGTYPE_WARNING, "%s", s.c_str());
             });
 
             for(auto &node: m_motionQueue){
                 node->print([](const std::string &s)
                 {
-                    g_log->addLog(LOGTYPE_WARNING, "%s", s.c_str());
+                    g_mir2xLog->addLog(LOGTYPE_WARNING, "%s", s.c_str());
                 });
             }
             return false;
@@ -206,7 +206,7 @@ bool CreatureMovable::moveNextMotion()
         return true;
     }
 
-    g_log->addLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
+    g_mir2xLog->addLog(LOGTYPE_WARNING, "Motion queue invalid, reset idle state");
     m_motionQueue.clear();
     m_currMotion = makeIdleMotion();
     return false;

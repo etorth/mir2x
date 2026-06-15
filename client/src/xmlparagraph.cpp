@@ -11,7 +11,7 @@
 #include "utf8f.hpp"
 #include "xmlparagraph.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 XMLParagraph *XMLParagraph::split(int leafIndex, int cursorLoc)
 {
     fflassert(leafValid(leafIndex));

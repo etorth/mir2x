@@ -20,7 +20,7 @@
 #include "pngtexoffdb.hpp"
 #include "clientargparser.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
@@ -183,9 +183,9 @@ void InitView::addIVLog(int logType, const char *format, ...)
     str_format(format, logStr);
 
     switch(logType){
-        case LOGIV_INFO   : g_log->addLog(LOGTYPE_INFO,    "%s", logStr.c_str()); break;
-        case LOGIV_WARNING: g_log->addLog(LOGTYPE_WARNING, "%s", logStr.c_str()); break;
-        default           : g_log->addLog(LOGTYPE_FATAL,   "%s", logStr.c_str()); break;
+        case LOGIV_INFO   : g_mir2xLog->addLog(LOGTYPE_INFO,    "%s", logStr.c_str()); break;
+        case LOGIV_WARNING: g_mir2xLog->addLog(LOGTYPE_WARNING, "%s", logStr.c_str()); break;
+        default           : g_mir2xLog->addLog(LOGTYPE_FATAL,   "%s", logStr.c_str()); break;
     }
 
     {

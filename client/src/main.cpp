@@ -16,7 +16,7 @@
 // put all global in one place and create them togother
 
 ClientArgParser *g_clientArgParser = nullptr;
-Log             *g_log             = nullptr; // log information handler, must be inited first
+Log             *g_mir2xLog             = nullptr; // log information handler, must be inited first
 PNGTexDB        *g_progUseDB       = nullptr; // database for all PNG texture only
 PNGTexDB        *g_itemDB          = nullptr; // database for all PNG texture only
 PNGTexDB        *g_mapDB           = nullptr;
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
         if(g_clientArgParser->disableProfiler){
             logDisableProfiler();
         }
-        g_log = new Log("mir2x-client-v0.1");
+        g_mir2xLog = new Log("mir2x-client-v0.1");
 
     }
     catch(const std::exception &e){
@@ -104,10 +104,10 @@ int main(int argc, char *argv[])
         g_client->mainLoop();
     }
     catch(const std::exception &e){
-        g_log->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
+        g_mir2xLog->addLog(LOGTYPE_FATAL, "Caught exception: %s", e.what());
     }
     catch(...){
-        g_log->addLog(LOGTYPE_FATAL, "Caught unknown exception");
+        g_mir2xLog->addLog(LOGTYPE_FATAL, "Caught unknown exception");
     }
     return 0;
 }

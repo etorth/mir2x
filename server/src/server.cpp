@@ -29,7 +29,7 @@
 #include "serverargparser.hpp"
 #include "serverconfigurewindow.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern DBPod *g_dbPod;
 extern MapBinDB *g_mapBinDB;
 extern ActorPool *g_actorPool;
@@ -63,14 +63,14 @@ void Server::addFatal(const char *format, ...)
     }
 
     for(size_t i = 0; i + 1 < multiLine.size(); ++i){
-        g_log->addLog(LOGTYPE_FATAL, "%s", multiLine.at(i).c_str());
+        g_mir2xLog->addLog(LOGTYPE_FATAL, "%s", multiLine.at(i).c_str());
         if(g_serverArgParser->slave){
             std::cerr << multiLine.at(i) << std::endl;
         }
     }
 
     std::cerr << multiLine.back() << std::endl;
-    g_log->addFatal("%s", multiLine.back().c_str());
+    g_mir2xLog->addFatal("%s", multiLine.back().c_str());
 }
 
 void Server::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
@@ -100,7 +100,7 @@ void Server::addLog(const Log::LogTypeLoc &typeLoc, const char *format, ...)
     }
 
     for(const auto &line: multiLine){
-        g_log->addLog(typeLoc, "%s", line.c_str());
+        g_mir2xLog->addLog(typeLoc, "%s", line.c_str());
         if(g_serverArgParser->slave){
             std::cout << line << std::endl;
         }

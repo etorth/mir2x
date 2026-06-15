@@ -14,7 +14,7 @@
 #include "clientmonster.hpp"
 #include "teamstateboard.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 

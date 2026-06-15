@@ -9,7 +9,7 @@
 #include "bevent.hpp"
 #include "xmlparagraphleaf.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 
 XMLParagraphLeaf::XMLParagraphLeaf(tinyxml2::XMLNode *pNode)
     : m_node([pNode]()

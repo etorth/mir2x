@@ -32,7 +32,7 @@
 #include "clienttaoskeleton.hpp"
 #include "clienttaoskeletonext.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern Client *g_client;
 extern PNGTexDB *g_mapDB;
 extern MapBinDB *g_mapBinDB;

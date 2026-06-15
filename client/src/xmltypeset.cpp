@@ -11,7 +11,7 @@
 #include "emojidb.hpp"
 #include "clientargparser.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern FontexDB *g_fontexDB;
 extern SDLDevice *g_sdlDevice;
 extern EmojiDB *g_emojiDB;
@@ -133,7 +133,7 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
     }();
 
     if((lineTokenCount(argLine) == 0) && (m_lineWidth < to_d(rawExtraWidth + (tokenLine.size() - 1) * m_wordSpace))){
-        g_log->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_lineWidth);
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_lineWidth);
         m_lineList[argLine].content.insert(m_lineList[argLine].content.end(), tokenLine.begin(), tokenLine.end());
         return true;
     }
@@ -640,7 +640,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t font, uint8_t fontSize, 
 
     u64Key = utf8f::buildU64Key(m_font, m_fontSize, fontStyle, codePoint);
     if(auto texPtr = g_fontexDB->retrieve(u64Key)){
-        g_log->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", font, m_font, fontSize, m_fontSize);
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", font, m_font, fontSize, m_fontSize);
         const auto [boxW, boxH] = SDLDeviceHelper::getTextureSize(texPtr);
         token.box.info.w   = boxW;
         token.box.info.h   = boxH;

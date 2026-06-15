@@ -14,7 +14,15 @@
 #
 #=======================================================================================
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.21)
+
+IF(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    IF(DEFINED ENV{VCPKG_ROOT} AND EXISTS "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+        SET(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+            CACHE FILEPATH "vcpkg toolchain file")
+    ENDIF()
+ENDIF()
+
 PROJECT(mir2x)
 
 SET(CMAKE_CXX_STANDARD 26)
@@ -26,37 +34,9 @@ IF(CCACHE_FOUND)
     SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 ENDIF(CCACHE_FOUND)
 
-ADD_COMPILE_DEFINITIONS(SOL_ALL_SAFETIES_ON=1)
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    ADD_COMPILE_DEFINITIONS(MIR2X_DEBUG_MODE)
-ENDIF()
-
-IF(WIN32 AND MSVC)
-    # won't use the /WX
-    # have a lot secure warnings
-    ADD_COMPILE_OPTIONS(/W4)
-    ADD_COMPILE_DEFINITIONS(WIN32_LEAN_AND_MEAN)
-    ADD_COMPILE_DEFINITIONS(_HAS_STD_BYTE=0)
-ELSE()
-    ADD_COMPILE_OPTIONS(-fcoroutines)
-    ADD_COMPILE_OPTIONS(-fno-strict-aliasing)
-    ADD_COMPILE_OPTIONS(-Wall -Wfatal-errors -Wextra -Wunused -Werror -Wno-missing-field-initializers)
-
-    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " $ENV{CXXFLAGS}")
-    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -O0")
-    STRING(APPEND CMAKE_CXX_FLAGS_DEBUG " -g3 -ggdb3 -pedantic")
-
-    # add flags to release mode
-    # by default won't use release mode
-    STRING(APPEND CMAKE_CXX_FLAGS_RELEASE " $ENV{CXXFLAGS}")
-    STRING(APPEND CMAKE_CXX_FLAGS_RELEASE " -O3")
-ENDIF()
-
 OPTION(MIR2X_ENABLE_ASAN "Enable ASAN" OFF)
 OPTION(MIR2X_ENABLE_USAN "Enable USAN" OFF)
 OPTION(MIR2X_ENABLE_TSAN "Enable TSAN" OFF)
-
-OPTION(MIR2X_BUILD_LIBPINYIN "Build static libpinyin" OFF)
 
 IF(MIR2X_ENABLE_ASAN)
     IF(WIN32 AND MSVC)
@@ -85,8 +65,8 @@ IF(MIR2X_ENABLE_TSAN)
     ENDIF()
 ENDIF()
 
-SET(MIR2X_3RD_PARTY_DIR "${CMAKE_BINARY_DIR}/3rdparty")
 SET(MIR2X_COMMON_SOURCE_DIR ${CMAKE_SOURCE_DIR}/common/src)
+SET(MIR2X_RES_REPO_PATH "" CACHE PATH "Path to the mir2x resource repository used by install-time resource packing")
 
 # configure file
 # if not version defined, use version enginerring signagure
@@ -124,7 +104,6 @@ IF(WIN32 AND MSVC)
     STRING(REPLACE "/" "\\" MIR2X_LOG_FILELIST ${MIR2X_LOG_FILELIST})
 ENDIF()
 
-INCLUDE_DIRECTORIES(SYSTEM ${CMAKE_BINARY_DIR}/config_file)
 CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/buildconfig.hpp.in ${CMAKE_BINARY_DIR}/config_file/buildconfig.hpp)
 CONFIGURE_FILE(${MIR2X_COMMON_SOURCE_DIR}/logprof.hpp.in     ${CMAKE_BINARY_DIR}/config_file/logprof.hpp    )
 
@@ -168,7 +147,7 @@ FUNCTION(FLTK_PARSE_FL_FILE ARG_HPP ARG_CPP)
 
         ADD_CUSTOM_COMMAND(OUTPUT ${T_OUT_HPP} ${T_OUT_CPP}
             DEPENDS ${T_FL}
-            COMMAND fluid -c -o ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_CPP} -h ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_HPP} ${T_FL}
+            COMMAND ${FLTK_FLUID_EXECUTABLE} -c -o ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_CPP} -h ${CMAKE_CURRENT_BINARY_DIR}/${T_OUT_HPP} ${T_FL}
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     ENDFOREACH()
 
@@ -176,74 +155,28 @@ FUNCTION(FLTK_PARSE_FL_FILE ARG_HPP ARG_CPP)
     SET(${ARG_CPP} "${RES_CPP}" PARENT_SCOPE)
 ENDFUNCTION()
 
-ADD_CUSTOM_TARGET(mir2x_3rds)
-
-IF(DEFINED MIR2X_RES_REPO_PATH)
+IF(MIR2X_RES_REPO_PATH)
     IF(IS_DIRECTORY ${MIR2X_RES_REPO_PATH})
         MESSAGE(STATUS "Customized mir2x resource repository path provided: ${MIR2X_RES_REPO_PATH}")
     ELSE()
         MESSAGE(FATAL_ERROR "Invalid MIR2X_RES_REPO_PATH provided: invalid directory")
     ENDIF()
 ELSE()
-    INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Mir2xResRepo.cmake")
+    MESSAGE(STATUS "MIR2X_RES_REPO_PATH not provided: install-time resource packing is disabled")
 ENDIF()
-
-FILE(GLOB MIR2X_DEPS_DIR "${CMAKE_SOURCE_DIR}/cmake/deps/*.cmake")
-FOREACH(MIR2X_DEP ${MIR2X_DEPS_DIR})
-    INCLUDE(${MIR2X_DEP})
-ENDFOREACH()
-
-FILE(GLOB MIR2X_DOWNLOAD_DIR "${CMAKE_SOURCE_DIR}/cmake/download/*.cmake")
-FOREACH(MIR2X_DOWNLOAD ${MIR2X_DOWNLOAD_DIR})
-    INCLUDE(${MIR2X_DOWNLOAD})
-ENDFOREACH()
 
 IF(WIN32)
     CMAKE_POLICY(SET CMP0003 OLD)
 ENDIF()
 
-# include external cmake packages
-FIND_PACKAGE(PkgConfig REQUIRED)
-FIND_PACKAGE(OpenGL    REQUIRED)
-FIND_PACKAGE(FLTK      REQUIRED)
-
-# for libfltk1.4-dev
-PKG_CHECK_MODULES(CAIRO REQUIRED cairo)
-INCLUDE_DIRECTORIES(${CAIRO_INCLUDE_DIRS})
-
-# TODO
-# appveyor says "can find make command"
-# use vcpkg to get lz4, but for linux still use github to get lz4
-IF(WIN32 AND MSVC)
-    FIND_PACKAGE(LZ4 REQUIRED)
-ENDIF()
-
-# report sdl2 status
-# seems it won't report in find_package
-IF(WIN32)
-    FIND_PACKAGE(SDL2 CONFIG REQUIRED)
-    FIND_PACKAGE(FreeType REQUIRED)
-ELSE()
-    FIND_PACKAGE(SDL2 REQUIRED)
-ENDIF()
-
-MESSAGE(STATUS "SDL2 found: SDL2_INCLUDE_DIRS: ${SDL2_INCLUDE_DIRS}, SDL2_LIBRARIES: ${SDL2_LIBRARIES}")
-
-IF(WIN32)
-    FIND_PACKAGE(JPEG REQUIRED)
-ENDIF()
-
-IF(NOT WIN32)
-    SET(CMAKE_THREAD_PREFER_PTHREAD ON)
-ENDIF()
-FIND_PACKAGE(Threads REQUIRED)
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Mir2xDependencies.cmake")
 
 SET(CMAKE_SKIP_RPATH TRUE)
 
 ADD_SUBDIRECTORY(common)
+ADD_SUBDIRECTORY(tools )
 ADD_SUBDIRECTORY(server)
 ADD_SUBDIRECTORY(client)
-ADD_SUBDIRECTORY(tools )
 
 SET(COMMAND_GIT_TAG "git describe --tag")
 EXECUTE_PROCESS(

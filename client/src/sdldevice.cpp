@@ -18,7 +18,7 @@
 #include "soundeffecthandle.hpp"
 #include "scopedalloc.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
@@ -37,7 +37,7 @@ SDLDeviceHelper::EnableRenderColor::EnableRenderColor(uint32_t color, SDLDevice 
 SDLDeviceHelper::EnableRenderColor::~EnableRenderColor()
 {
     if(SDL_SetRenderDrawColor(m_device->getRenderer(), m_r, m_g, m_b, m_a)){
-        g_log->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: %s", SDL_GetError());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: %s", SDL_GetError());
     }
 }
 
@@ -56,7 +56,7 @@ SDLDeviceHelper::EnableRenderBlendMode::EnableRenderBlendMode(SDL_BlendMode blen
 SDLDeviceHelper::EnableRenderBlendMode::~EnableRenderBlendMode()
 {
     if(SDL_SetRenderDrawBlendMode(m_device->getRenderer(), m_blendMode)){
-        g_log->addLog(LOGTYPE_WARNING, "set renderer blend mode failed: %s", SDL_GetError());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "set renderer blend mode failed: %s", SDL_GetError());
     }
 }
 
@@ -82,7 +82,7 @@ SDLDeviceHelper::EnableRenderCropRectangle::EnableRenderCropRectangle(int x, int
 SDLDeviceHelper::EnableRenderCropRectangle::~EnableRenderCropRectangle()
 {
     if(SDL_RenderSetClipRect(m_device->getRenderer(), m_clipped ? &m_rect : nullptr)){
-        g_log->addLog(LOGTYPE_WARNING, "set renderer clip rectangle failed: %s", SDL_GetError());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "set renderer clip rectangle failed: %s", SDL_GetError());
     }
 }
 
@@ -121,7 +121,7 @@ SDLDeviceHelper::EnableTextureBlendMode::~EnableTextureBlendMode()
     }
 
     if(SDL_SetTextureBlendMode(m_texPtr, m_blendMode)){
-        g_log->addLog(LOGTYPE_WARNING, "Setup texture blend mode failed: %s", SDL_GetError());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "Setup texture blend mode failed: %s", SDL_GetError());
     }
 }
 
@@ -156,11 +156,11 @@ SDLDeviceHelper::EnableTextureModColor::~EnableTextureModColor()
     }
 
     if(SDL_SetTextureColorMod(m_texPtr, m_r, m_g, m_b)){
-        g_log->addLog(LOGTYPE_WARNING, "set texture mod color failed: %s", SDL_GetError());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "set texture mod color failed: %s", SDL_GetError());
     }
 
     if(SDL_SetTextureAlphaMod(m_texPtr, m_a)){
-        g_log->addLog(LOGTYPE_WARNING, "set texture mod alpha failed: %s", SDL_GetError());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "set texture mod alpha failed: %s", SDL_GetError());
     }
 }
 
@@ -185,7 +185,7 @@ SDLDeviceHelper::EnableRenderTarget::EnableRenderTarget(SDL_Texture *argTarget, 
 SDLDeviceHelper::EnableRenderTarget::~EnableRenderTarget()
 {
     if(SDL_SetRenderTarget(m_device->getRenderer(), m_target)){
-        g_log->addLog(LOGTYPE_WARNING, "SDL_SetRenderTarget(%p) failed: %s", to_cvptr(m_target), SDL_GetError());
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "SDL_SetRenderTarget(%p) failed: %s", to_cvptr(m_target), SDL_GetError());
     }
 }
 
@@ -364,11 +364,11 @@ SDLSoundEffectChannel::~SDLSoundEffectChannel()
     if(m_channel >= 0){
         if(auto p = m_sdlDevice->m_channelStateList.find(m_channel); p != m_sdlDevice->m_channelStateList.end()){
             if(const auto hooked = std::exchange(p->second.hooked, false); !hooked){
-                g_log->addLog(LOGTYPE_WARNING, "Sound channel gets unhooked unexpectedly: %d", m_channel);
+                g_mir2xLog->addLog(LOGTYPE_WARNING, "Sound channel gets unhooked unexpectedly: %d", m_channel);
             }
         }
         else{
-            g_log->addLog(LOGTYPE_WARNING, "Sound channel has no associated state: %d", m_channel);
+            g_mir2xLog->addLog(LOGTYPE_WARNING, "Sound channel has no associated state: %d", m_channel);
         }
     }
 }

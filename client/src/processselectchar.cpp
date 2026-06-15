@@ -10,7 +10,7 @@
 #include "layoutboard.hpp"
 #include "processselectchar.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern Client *g_client;
 extern BGMusicDB *g_bgmDB;
 extern SoundEffectDB *g_seffDB;

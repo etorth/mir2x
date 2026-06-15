@@ -17,7 +17,7 @@
 #include "clientcreature.hpp"
 #include "clientmonster.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern SDLDevice *g_sdlDevice;
 extern SoundEffectDB *g_seffDB;
 

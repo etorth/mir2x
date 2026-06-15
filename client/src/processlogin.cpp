@@ -13,7 +13,7 @@
 #include "processlogin.hpp"
 #include "clientargparser.hpp"
 
-extern Log *g_log;
+extern Log *g_mir2xLog;
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;

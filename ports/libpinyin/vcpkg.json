@@ -1,0 +1,17 @@
+{
+  "name": "libpinyin",
+  "version": "2.11.91",
+  "description": "Library to deal with pinyin.",
+  "homepage": "https://github.com/libpinyin/libpinyin",
+  "license": "GPL-3.0-or-later",
+  "supports": "linux | mingw",
+  "dependencies": [
+    "glib",
+    "libdb",
+    "pkgconf",
+    {
+      "name": "vcpkg-make",
+      "host": true
+    }
+  ]
+}
