@@ -288,6 +288,7 @@ def main():
         f"-DCMAKE_BUILD_TYPE={args.build_type}",
         f"-DCMAKE_TOOLCHAIN_FILE={vcpkg_toolchain(vcpkg_root)}",
         f"-DVCPKG_TARGET_TRIPLET={vcpkg_triplet}",
+        f"-DVCPKG_INSTALLED_DIR={cmake_build_dir / 'vcpkg_installed'}",
         f"-DCMAKE_INSTALL_PREFIX={install_prefix}",
     ])
     if vcpkg_host_triplet:
