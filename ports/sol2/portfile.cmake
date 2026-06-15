@@ -2,19 +2,21 @@ set(VCPKG_BUILD_TYPE release) # header-only
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO ThePhD/sol2
-    REF "v${VERSION}"
-    SHA512 5a6ec7e16dae05ad6abea02842f62db8f64935eda438d67b2c264cbee80cee6d82200bd060387c6df837fe9f212dbe22b2772af34df1ce8bd43296dd9429558d
+    REPO etorth/sol2
+    REF a6872ef46b08704b9069ebf83161f4637459ce63 # current latest commit on develop
+    SHA512 78d1d921eb6452475c180609785597afaa90b549517b0b53bea2c714982f9bedd19ec3fcdea0d701e88e043b802dadcfc76270fdd5c11fcaa973b6dec4dde7e8
     HEAD_REF develop
-    PATCHES
-        header-only.patch
-        lua-5.5.diff
-        pkgconfig.diff
-        a6872ef-fix-stack-field.patch
-        8f80cd7-fix-usertype-container-sentinel.patch
 )
 
-vcpkg_cmake_configure(SOURCE_PATH "${SOURCE_PATH}")
+vcpkg_replace_string("${SOURCE_PATH}/CMakeLists.txt" "if (sol2-is-top-level-project)" "if (0)")
+vcpkg_cmake_configure(
+    SOURCE_PATH "${SOURCE_PATH}"
+    OPTIONS
+        -DSOL2_DOCS=OFF
+        -DSOL2_EXAMPLES=OFF
+        -DSOL2_SINGLE=OFF
+        -DSOL2_TESTS=OFF
+        -DSOL2_ENABLE_INSTALL=ON)
 vcpkg_cmake_install()
 vcpkg_cmake_config_fixup(CONFIG_PATH share/cmake/sol2)
 vcpkg_fixup_pkgconfig()

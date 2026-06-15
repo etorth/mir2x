@@ -1,8 +1,8 @@
-AUX_SOURCE_DIRECTORY(. NPCWIL2PNG_SRC)
-ADD_EXECUTABLE(npcwil2png ${NPCWIL2PNG_SRC})
+aux_source_directory(. NPCWIL2PNG_SRC)
+add_executable(npcwil2png ${NPCWIL2PNG_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(npcwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(npcwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(npcwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(npcwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(npcwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(npcwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(npcwil2png common          )
+target_link_libraries(npcwil2png common          )

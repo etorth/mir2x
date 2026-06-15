@@ -11,6 +11,15 @@ from pathlib import Path
 SOURCE_DIR = Path(__file__).resolve().parent
 DEFAULT_LOCAL_BUILD_DIR = Path.cwd().resolve()
 MIR2X_VCPKG_CHAINLOAD_TOOLCHAIN = SOURCE_DIR / "cmake/Mir2xVcpkgChainload.cmake"
+MIR2X_RES_REPO_URL = "https://github.com/etorth/mir2x_res.git"
+MSYSTEM_TRIPLETS = {
+    "CLANGARM64": "arm64-mingw-static",
+    "MINGWARM64": "arm64-mingw-static",
+    "MINGW64": "x64-mingw-static",
+    "UCRT64": "x64-mingw-static",
+    "CLANG64": "x64-mingw-static",
+}
+MSYSTEM_32BIT = {"MINGW32", "CLANG32"}
 
 
 def run(args, *, env=None):
@@ -23,6 +32,11 @@ def run_batch_file(batch_file, *args):
 
 def log(message):
     print(message, flush=True)
+
+
+def fail_unsupported_32bit(reason):
+    print(f"32-bit builds are not supported: {reason}", file=sys.stderr)
+    sys.exit(1)
 
 
 def is_windows_like(system=None):
@@ -43,16 +57,20 @@ def default_mingw_triplet():
     if not has_msys2_environment and not platform.system().startswith(("MINGW", "MSYS")):
         return None
 
+    if msystem in MSYSTEM_32BIT:
+        fail_unsupported_32bit(f"MSYSTEM={msystem}")
+    if msystem_chost.startswith("i686"):
+        fail_unsupported_32bit(f"MSYSTEM_CHOST={msystem_chost}")
+    if msystem in MSYSTEM_TRIPLETS:
+        return MSYSTEM_TRIPLETS[msystem]
     if "aarch64" in msystem_chost or "arm64" in msystem:
         return "arm64-mingw-static"
-    if msystem_chost.startswith("i686") or msystem.endswith("32"):
-        return "x86-mingw-static"
 
     machine = platform.machine().lower()
     if machine in ("aarch64", "arm64"):
         return "arm64-mingw-static"
     if machine in ("i386", "i686", "x86"):
-        return "x86-mingw-static"
+        fail_unsupported_32bit(f"platform.machine()={machine}")
 
     return "x64-mingw-static"
 
@@ -73,6 +91,11 @@ def default_host_triplet(target_triplet):
     if "mingw" in target_triplet:
         return target_triplet
     return None
+
+
+def reject_unsupported_triplet(triplet, source):
+    if triplet and triplet.startswith("x86-"):
+        fail_unsupported_32bit(f"{source}={triplet}")
 
 
 def positive_int(value):
@@ -101,7 +124,7 @@ def parse_args():
     parser.add_argument(
         "--fresh",
         action="store_true",
-        help="Delete <build-dir>/build before configuring. By default builds are incremental.",
+        help="Delete <build-dir>/build, including vcpkg_installed, before configuring.",
     )
     parser.add_argument("--triplet", help="VCPKG_TARGET_TRIPLET.")
     parser.add_argument("--host-triplet", help="VCPKG_HOST_TRIPLET.")
@@ -128,9 +151,9 @@ def parse_args():
         help="CMAKE_INSTALL_PREFIX. Defaults to <build-dir>/install.",
     )
     parser.add_argument(
-        "--res-repo-path",
+        "--res-path",
         type=Path,
-        help="Use this mir2x resource repository for install-time resource packing.",
+        help=f"Use an existing mir2x resource path. If omitted, CMake clones {MIR2X_RES_REPO_URL} during the build.",
     )
     parser.add_argument(
         "--target",
@@ -205,6 +228,8 @@ def main():
     args = parse_args()
     vcpkg_triplet = args.triplet or os.environ.get("VCPKG_DEFAULT_TRIPLET", default_triplet())
     vcpkg_host_triplet = args.host_triplet or os.environ.get("VCPKG_DEFAULT_HOST_TRIPLET", default_host_triplet(vcpkg_triplet))
+    reject_unsupported_triplet(vcpkg_triplet, "VCPKG_TARGET_TRIPLET")
+    reject_unsupported_triplet(vcpkg_host_triplet, "VCPKG_HOST_TRIPLET")
     local_build_dir = args.build_dir.expanduser().resolve() if args.build_dir else DEFAULT_LOCAL_BUILD_DIR
     local_vcpkg_dir = local_build_dir / "vcpkg"
     cmake_build_dir = local_build_dir / "build"
@@ -222,6 +247,10 @@ def main():
         vcpkg, vcpkg_root = bootstrap_local_vcpkg(local_vcpkg_dir)
 
     log(f"Using vcpkg: {vcpkg}")
+    if args.res_path:
+        log(f"Using resource path: {args.res_path.expanduser().resolve()}")
+    else:
+        log("Using default CMake-managed resource clone")
     if vcpkg_host_triplet:
         log(f"Configuring mir2x for {vcpkg_triplet} with host triplet {vcpkg_host_triplet}")
     else:
@@ -264,12 +293,13 @@ def main():
     if vcpkg_host_triplet:
         cmake_configure_args.append(f"-DVCPKG_HOST_TRIPLET={vcpkg_host_triplet}")
     if use_chainload_toolchain:
+        cmake_configure_args.append("-DI_AM_BUILD_PY=ON")
         cmake_configure_args.append(f"-DVCPKG_CHAINLOAD_TOOLCHAIN_FILE={MIR2X_VCPKG_CHAINLOAD_TOOLCHAIN}")
     if args.verbose:
         cmake_configure_args.append("-DCMAKE_VERBOSE_MAKEFILE=ON")
         cmake_configure_args.append("-DVCPKG_VERBOSE=ON")
-    if args.res_repo_path:
-        cmake_configure_args.append(f"-DMIR2X_RES_REPO_PATH={args.res_repo_path.expanduser().resolve()}")
+    if args.res_path:
+        cmake_configure_args.append(f"-DMIR2X_RES_REPO_PATH={args.res_path.expanduser().resolve()}")
     run(cmake_configure_args, env=configure_env)
 
     build_base_args = ["cmake", "--build", str(cmake_build_dir), "--config", args.build_type, "--parallel"]

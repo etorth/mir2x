@@ -3,7 +3,7 @@
   "version-date": "2026-06-14",
   "description": "Berkeley DB built from the upstream libdb source tree.",
   "homepage": "https://github.com/berkeleydb/libdb",
-  "license": null,
+  "license": "Sleepycat AND BSD-3-Clause",
   "supports": "linux | mingw",
   "dependencies": [
     {

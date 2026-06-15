@@ -1,14 +1,14 @@
-SET(FLTK_HPP_SRC "")
-SET(FLTK_CPP_SRC "")
-FLTK_PARSE_FL_FILE(FLTK_HPP_SRC FLTK_CPP_SRC)
+set(FLTK_HPP_SRC "")
+set(FLTK_CPP_SRC "")
+fltk_parse_fl_file(FLTK_HPP_SRC FLTK_CPP_SRC)
 
-AUX_SOURCE_DIRECTORY(. PKGVIEWER_SRC)
-ADD_EXECUTABLE(pkgviewer ${PKGVIEWER_SRC} ${FLTK_CPP_SRC})
+aux_source_directory(. PKGVIEWER_SRC)
+add_executable(pkgviewer ${PKGVIEWER_SRC} ${FLTK_CPP_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(pkgviewer PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(pkgviewer PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(pkgviewer PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(pkgviewer PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(pkgviewer PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(pkgviewer PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(pkgviewer common             )
+target_link_libraries(pkgviewer common             )
 
-INSTALL(TARGETS pkgviewer DESTINATION tools/pkgviewer)
+install(TARGETS pkgviewer DESTINATION tools/pkgviewer)

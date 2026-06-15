@@ -1,12 +1,12 @@
-SET(FLTK_HPP_SRC "")
-SET(FLTK_CPP_SRC "")
-FLTK_PARSE_FL_FILE(FLTK_HPP_SRC FLTK_CPP_SRC)
+set(FLTK_HPP_SRC "")
+set(FLTK_CPP_SRC "")
+fltk_parse_fl_file(FLTK_HPP_SRC FLTK_CPP_SRC)
 
-AUX_SOURCE_DIRECTORY(. SHADOWMAKER_SRC)
-ADD_EXECUTABLE(weaponwil2png ${SHADOWMAKER_SRC} ${FLTK_CPP_SRC})
+aux_source_directory(. SHADOWMAKER_SRC)
+add_executable(weaponwil2png ${SHADOWMAKER_SRC} ${FLTK_CPP_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(weaponwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(weaponwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(weaponwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(weaponwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(weaponwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(weaponwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(weaponwil2png common             )
+target_link_libraries(weaponwil2png common             )

@@ -27,7 +27,10 @@ find_package(argh CONFIG REQUIRED)
 set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH ON)
 pkg_check_modules(LIBPINYIN REQUIRED IMPORTED_TARGET libpinyin)
 pkg_get_variable(MIR2X_LIBPINYIN_DATA_DIR libpinyin pkgdatadir)
-find_library(LIBDB_LIBRARY REQUIRED NAMES db db-5.3)
+find_library(LIBDB_LIBRARY REQUIRED
+    NAMES db db-5.3
+    HINTS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib"
+    NO_DEFAULT_PATH)
 
 find_path(LIBPOPCNT_INCLUDE_DIR REQUIRED NAMES libpopcnt.h)
 find_path(PHMAP_INCLUDE_DIR REQUIRED NAMES parallel_hashmap/phmap.h)

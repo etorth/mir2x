@@ -1,8 +1,8 @@
-AUX_SOURCE_DIRECTORY(. MAPINFO_SRC)
-ADD_EXECUTABLE(mapinfo ${MAPINFO_SRC})
+aux_source_directory(. MAPINFO_SRC)
+add_executable(mapinfo ${MAPINFO_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(mapinfo PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(mapinfo PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(mapinfo PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(mapinfo PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(mapinfo PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(mapinfo PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(mapinfo common)
+target_link_libraries(mapinfo common)

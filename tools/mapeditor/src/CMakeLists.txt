@@ -1,14 +1,14 @@
-SET(FLTK_HPP_SRC "")
-SET(FLTK_CPP_SRC "")
-FLTK_PARSE_FL_FILE(FLTK_HPP_SRC FLTK_CPP_SRC)
+set(FLTK_HPP_SRC "")
+set(FLTK_CPP_SRC "")
+fltk_parse_fl_file(FLTK_HPP_SRC FLTK_CPP_SRC)
 
-AUX_SOURCE_DIRECTORY(. MAPEDITOR_SRC)
-ADD_EXECUTABLE(mapeditor ${MAPEDITOR_SRC} ${FLTK_CPP_SRC})
+aux_source_directory(. MAPEDITOR_SRC)
+add_executable(mapeditor ${MAPEDITOR_SRC} ${FLTK_CPP_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(mapeditor PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(mapeditor PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(mapeditor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(mapeditor PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(mapeditor PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(mapeditor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(mapeditor common             )
+target_link_libraries(mapeditor common             )
 
-INSTALL(TARGETS mapeditor DESTINATION tools/mapeditor)
+install(TARGETS mapeditor DESTINATION tools/mapeditor)

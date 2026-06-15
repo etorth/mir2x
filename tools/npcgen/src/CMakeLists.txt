@@ -1,8 +1,8 @@
-AUX_SOURCE_DIRECTORY(. NPCGEN)
-ADD_EXECUTABLE(npcgen ${NPCGEN})
+aux_source_directory(. NPCGEN)
+add_executable(npcgen ${NPCGEN})
 
-TARGET_INCLUDE_DIRECTORIES(npcgen PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(npcgen PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(npcgen PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(npcgen PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(npcgen PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(npcgen PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(npcgen common)
+target_link_libraries(npcgen common)

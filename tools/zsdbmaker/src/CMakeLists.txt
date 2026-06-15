@@ -1,10 +1,10 @@
-AUX_SOURCE_DIRECTORY(. ZSDBMAKER_SRC)
-ADD_EXECUTABLE(zsdbmaker ${ZSDBMAKER_SRC})
+aux_source_directory(. ZSDBMAKER_SRC)
+add_executable(zsdbmaker ${ZSDBMAKER_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(zsdbmaker PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(zsdbmaker PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(zsdbmaker PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(zsdbmaker PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(zsdbmaker PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(zsdbmaker PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(zsdbmaker common)
+target_link_libraries(zsdbmaker common)
 
-INSTALL(TARGETS zsdbmaker DESTINATION tools/zsdbmaker)
+install(TARGETS zsdbmaker DESTINATION tools/zsdbmaker)

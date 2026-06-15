@@ -1,8 +1,8 @@
-AUX_SOURCE_DIRECTORY(. WTLDECODER_SRC)
-ADD_EXECUTABLE(wtldecoder ${WTLDECODER_SRC})
+aux_source_directory(. WTLDECODER_SRC)
+add_executable(wtldecoder ${WTLDECODER_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(wtldecoder PRIVATE ${MIR2X_COMMON_SOURCE_DIR} )
-TARGET_INCLUDE_DIRECTORIES(wtldecoder PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(wtldecoder PRIVATE ${CMAKE_CURRENT_LIST_DIR}  )
+target_include_directories(wtldecoder PRIVATE ${MIR2X_COMMON_SOURCE_DIR} )
+target_include_directories(wtldecoder PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(wtldecoder PRIVATE ${CMAKE_CURRENT_LIST_DIR}  )
 
-TARGET_LINK_LIBRARIES(wtldecoder common          )
+target_link_libraries(wtldecoder common          )

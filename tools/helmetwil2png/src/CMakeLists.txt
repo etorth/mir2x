@@ -1,8 +1,8 @@
-AUX_SOURCE_DIRECTORY(. HELMETWIL2PNG_SRC)
-ADD_EXECUTABLE(helmetwil2png ${HELMETWIL2PNG_SRC})
+aux_source_directory(. HELMETWIL2PNG_SRC)
+add_executable(helmetwil2png ${HELMETWIL2PNG_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(helmetwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR} )
-TARGET_INCLUDE_DIRECTORIES(helmetwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(helmetwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR}  )
+target_include_directories(helmetwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR} )
+target_include_directories(helmetwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(helmetwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR}  )
 
-TARGET_LINK_LIBRARIES(helmetwil2png common          )
+target_link_libraries(helmetwil2png common          )

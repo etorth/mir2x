@@ -1,9 +1,9 @@
-AUX_SOURCE_DIRECTORY(. PNGMKER_SRC)
+aux_source_directory(. PNGMKER_SRC)
 
-ADD_EXECUTABLE(magicwil2png ${PNGMKER_SRC})
+add_executable(magicwil2png ${PNGMKER_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(magicwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(magicwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(magicwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(magicwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(magicwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(magicwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(magicwil2png common             )
+target_link_libraries(magicwil2png common             )

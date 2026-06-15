@@ -1,8 +1,8 @@
-AUX_SOURCE_DIRECTORY(. MAPCONVERTER)
-ADD_EXECUTABLE(mapconverter ${MAPCONVERTER})
+aux_source_directory(. MAPCONVERTER)
+add_executable(mapconverter ${MAPCONVERTER})
 
-TARGET_INCLUDE_DIRECTORIES(mapconverter PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(mapconverter PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(mapconverter PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(mapconverter PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(mapconverter PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(mapconverter PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(mapconverter common)
+target_link_libraries(mapconverter common)

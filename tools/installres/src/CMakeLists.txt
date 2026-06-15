@@ -1,1 +1,1 @@
-INSTALL(PROGRAMS install_res.py DESTINATION tools/installres)
+install(PROGRAMS install_res.py DESTINATION tools/installres)

@@ -62,7 +62,7 @@ If running on WSL/WSL2, check the following to configure PulseAudio to support s
 
 ### Building from source
 
-mir2x uses vcpkg manifest mode for third-party dependencies on native Linux and MSYS2 UCRT64/MinGW. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
+mir2x uses vcpkg manifest mode for third-party dependencies on 64-bit native Linux and 64-bit MSYS2 UCRT64/MinGW. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
 
 ```sh
 $ git clone https://github.com/etorth/mir2x.git
@@ -71,12 +71,12 @@ $ cd b_mir2x
 $ /path/to/mir2x/build.py
 ```
 
-Builds are incremental by default: rerunning the same command keeps `<build-dir>/build`, including CMake object files and `vcpkg_installed`. Use `--fresh` only when you want to delete the CMake build tree before configuring.
+Builds are incremental by default: rerunning the same command keeps `<build-dir>/build`, including CMake object files and `vcpkg_installed`. Use `--fresh` only when you want a real clean build: it deletes `<build-dir>/build`, including `vcpkg_installed`, so vcpkg dependencies are reinstalled/rebuilt.
 
-To package install-time resources, pass the resource repository path:
+Install-time client/server resource packing always runs. If `--res-path` is omitted, the CMake build clones `https://github.com/etorth/mir2x_res.git` to `<build-dir>/build/assets/mir2x_res` during the build stage. To use an existing resource checkout, pass:
 
 ```sh
-$ /path/to/mir2x/build.py --res-repo-path=/path/to/mir2x_res
+$ /path/to/mir2x/build.py --res-path=/path/to/mir2x_res
 ```
 
 To choose a compiler for both vcpkg ports and mir2x targets, pass it through the helper. This enables `VCPKG_CHAINLOAD_TOOLCHAIN_FILE` internally:

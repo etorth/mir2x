@@ -1,8 +1,8 @@
-AUX_SOURCE_DIRECTORY(. MAPWIL2PNG_SRC)
-ADD_EXECUTABLE(mapwil2png ${MAPWIL2PNG_SRC})
+aux_source_directory(. MAPWIL2PNG_SRC)
+add_executable(mapwil2png ${MAPWIL2PNG_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(mapwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(mapwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(mapwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(mapwil2png PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(mapwil2png PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(mapwil2png PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(mapwil2png common          )
+target_link_libraries(mapwil2png common          )

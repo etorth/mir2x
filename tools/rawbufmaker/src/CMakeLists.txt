@@ -1,10 +1,10 @@
-AUX_SOURCE_DIRECTORY(. RAWBUFMAKER_SRC)
-ADD_EXECUTABLE(rawbufmaker ${RAWBUFMAKER_SRC})
+aux_source_directory(. RAWBUFMAKER_SRC)
+add_executable(rawbufmaker ${RAWBUFMAKER_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(rawbufmaker PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(rawbufmaker PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(rawbufmaker PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(rawbufmaker PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(rawbufmaker PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(rawbufmaker PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(rawbufmaker common)
+target_link_libraries(rawbufmaker common)
 
-INSTALL(TARGETS rawbufmaker DESTINATION tools/rawbufmaker)
+install(TARGETS rawbufmaker DESTINATION tools/rawbufmaker)

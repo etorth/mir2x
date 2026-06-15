@@ -1,10 +1,10 @@
-AUX_SOURCE_DIRECTORY(. BGMLISTDECODER_SRC)
-ADD_EXECUTABLE(bgmlistdecoder ${BGMLISTDECODER_SRC})
+aux_source_directory(. BGMLISTDECODER_SRC)
+add_executable(bgmlistdecoder ${BGMLISTDECODER_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(bgmlistdecoder PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(bgmlistdecoder PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(bgmlistdecoder PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(bgmlistdecoder PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(bgmlistdecoder PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(bgmlistdecoder PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(bgmlistdecoder common)
+target_link_libraries(bgmlistdecoder common)
 
-INSTALL(TARGETS bgmlistdecoder DESTINATION tools/bgmlistdecoder)
+install(TARGETS bgmlistdecoder DESTINATION tools/bgmlistdecoder)

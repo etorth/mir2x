@@ -22,3 +22,5 @@ vcpkg_install_make()
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/docs")
 file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/docs")
+
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

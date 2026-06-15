@@ -1,6 +1,6 @@
-AUX_SOURCE_DIRECTORY(. COMMON_SRC)
-ADD_LIBRARY(common ${COMMON_SRC})
+aux_source_directory(. COMMON_SRC)
+add_library(common ${COMMON_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(common PUBLIC ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(common PUBLIC ${CMAKE_BINARY_DIR}/config_file)
-TARGET_LINK_LIBRARIES(common PUBLIC mir2x::common_deps)
+target_include_directories(common PUBLIC ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(common PUBLIC ${CMAKE_BINARY_DIR}/config_file)
+target_link_libraries(common PUBLIC mir2x::common_deps)

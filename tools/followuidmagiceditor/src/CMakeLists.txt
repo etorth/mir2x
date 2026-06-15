@@ -1,14 +1,14 @@
-SET(FLTK_HPP_SRC "")
-SET(FLTK_CPP_SRC "")
-FLTK_PARSE_FL_FILE(FLTK_HPP_SRC FLTK_CPP_SRC)
+set(FLTK_HPP_SRC "")
+set(FLTK_CPP_SRC "")
+fltk_parse_fl_file(FLTK_HPP_SRC FLTK_CPP_SRC)
 
-AUX_SOURCE_DIRECTORY(. FOLLOWUIDMAGICEDITOR_SRC)
-ADD_EXECUTABLE(followuidmagiceditor ${FOLLOWUIDMAGICEDITOR_SRC} ${FLTK_CPP_SRC})
+aux_source_directory(. FOLLOWUIDMAGICEDITOR_SRC)
+add_executable(followuidmagiceditor ${FOLLOWUIDMAGICEDITOR_SRC} ${FLTK_CPP_SRC})
 
-TARGET_INCLUDE_DIRECTORIES(followuidmagiceditor PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-TARGET_INCLUDE_DIRECTORIES(followuidmagiceditor PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-TARGET_INCLUDE_DIRECTORIES(followuidmagiceditor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(followuidmagiceditor PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(followuidmagiceditor PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(followuidmagiceditor PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 
-TARGET_LINK_LIBRARIES(followuidmagiceditor common)
+target_link_libraries(followuidmagiceditor common)
 
-INSTALL(TARGETS followuidmagiceditor DESTINATION tools/followuidmagiceditor)
+install(TARGETS followuidmagiceditor DESTINATION tools/followuidmagiceditor)
