@@ -73,6 +73,7 @@ set(MIR2X_COMMON_SOURCE_DIR ${CMAKE_SOURCE_DIR}/common/src)
 set(MIR2X_RES_REPO_URL "https://github.com/etorth/mir2x_res.git" CACHE STRING "mir2x resource repository URL")
 set(MIR2X_RES_REPO_PATH "" CACHE PATH "Path to the mir2x resource repository used by install-time resource packing")
 set(MIR2X_DEFAULT_RES_REPO_PATH "${CMAKE_BINARY_DIR}/assets/mir2x_res")
+set(MIR2X_RES_REPO_PATH_IS_DEFAULT OFF CACHE INTERNAL "Whether CMake filled MIR2X_RES_REPO_PATH with the default path")
 
 # configure file
 # if not version defined, use version enginerring signagure
@@ -162,9 +163,12 @@ function(fltk_parse_fl_file ARG_HPP ARG_CPP)
 endfunction()
 
 if(NOT MIR2X_RES_REPO_PATH)
+    set(MIR2X_RES_REPO_PATH_IS_DEFAULT ON CACHE INTERNAL "Whether CMake filled MIR2X_RES_REPO_PATH with the default path" FORCE)
     set(MIR2X_RES_REPO_PATH "${MIR2X_DEFAULT_RES_REPO_PATH}" CACHE PATH "Path to the mir2x resource repository used by install-time resource packing" FORCE)
+elseif(NOT "${MIR2X_RES_REPO_PATH}" STREQUAL "${MIR2X_DEFAULT_RES_REPO_PATH}")
+    set(MIR2X_RES_REPO_PATH_IS_DEFAULT OFF CACHE INTERNAL "Whether CMake filled MIR2X_RES_REPO_PATH with the default path" FORCE)
 endif()
-if("${MIR2X_RES_REPO_PATH}" STREQUAL "${MIR2X_DEFAULT_RES_REPO_PATH}")
+if(MIR2X_RES_REPO_PATH_IS_DEFAULT)
     set(MIR2X_SHOULD_CLONE_RES_REPO TRUE)
 else()
     set(MIR2X_SHOULD_CLONE_RES_REPO FALSE)
