@@ -1,9 +1,9 @@
 {
   "name": "libdb",
-  "version-date": "2026-06-14",
-  "description": "Berkeley DB built from the upstream libdb source tree.",
-  "homepage": "https://github.com/berkeleydb/libdb",
-  "license": "Sleepycat AND BSD-3-Clause",
+  "version": "6.2.32",
+  "description": "Oracle Berkeley DB patched for native Linux and MinGW UCRT64.",
+  "homepage": "https://github.com/etorth/libdb",
+  "license": "AGPL-3.0-or-later",
   "supports": "linux | mingw",
   "dependencies": [
     {

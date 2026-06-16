@@ -1,26 +1,70 @@
-set(VCPKG_BUILD_TYPE release)
-
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO berkeleydb/libdb
-    REF eae0c147ed430872da5db993f5e920c8f41ecb31
-    SHA512 27de98cacdff80a7055682a2b9d27d9ba7d531824379bf83659bc4eaab7214e2e208236fa6e8ec848571a469f15b10c9546dc0cc0d82e0d02cc19b6ced58602d
-    HEAD_REF master
+    REPO etorth/libdb
+    REF 5e3264915ef0b4f77e82620034e785e606ae3965
+    SHA512 19241b5bea3ff300e6ae6c1f2c1ca362061d4b1026ce51cf74e238a414045d0a432848ffd15ac374986f8ba03c9879e2e9748f25ee6cf07771ed7d8b02e2aee9
+    HEAD_REF main
 )
 
-set(ENV{CFLAGS} "$ENV{CFLAGS} -Wno-incompatible-pointer-types")
+file(CHMOD
+    "${SOURCE_PATH}/dist/configure"
+    "${SOURCE_PATH}/dist/config.guess"
+    "${SOURCE_PATH}/dist/config.sub"
+    PERMISSIONS
+        OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+)
+
+set(LIBDB_CFLAGS "\${CFLAGS} -Wno-incompatible-pointer-types")
+set(LIBDB_CXXFLAGS "\${CXXFLAGS}")
+set(LIBDB_LDFLAGS "\${LDFLAGS}")
+set(LIBDB_BUILD_OPTIONS)
+
+set(configure_options
+    --enable-compat185
+    --enable-dbm
+    --disable-shared
+    --enable-static
+    --disable-cxx
+    --disable-java
+    --disable-replication
+    --disable-rpath
+    --disable-sql
+    --disable-stl
+    --disable-tcl
+)
+
+if(VCPKG_TARGET_IS_MINGW)
+    string(APPEND LIBDB_CFLAGS " -DUNICODE -D_UNICODE")
+    string(APPEND LIBDB_CXXFLAGS " -DUNICODE -D_UNICODE")
+    string(APPEND LIBDB_LDFLAGS " -lpthread")
+    list(APPEND LIBDB_BUILD_OPTIONS LIBSO_LIBS=-lpthread)
+    list(APPEND configure_options
+        --enable-mingw
+        ac_cv_func_time=yes
+        ac_cv_func_localtime=yes
+    )
+endif()
 
 vcpkg_configure_make(
-    SOURCE_PATH "${SOURCE_PATH}/dist"
+    SOURCE_PATH "${SOURCE_PATH}"
+    PROJECT_SUBPATH dist
     OPTIONS
-        --disable-shared
-        --enable-static
+        ${configure_options}
+        "CFLAGS=${LIBDB_CFLAGS}"
+        "CXXFLAGS=${LIBDB_CXXFLAGS}"
+        "LDFLAGS=${LIBDB_LDFLAGS}"
 )
 
-vcpkg_install_make()
+vcpkg_install_make(OPTIONS ${LIBDB_BUILD_OPTIONS})
 
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/docs")
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/docs")
+file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/debug/bin"
+    "${CURRENT_PACKAGES_DIR}/debug/include"
+    "${CURRENT_PACKAGES_DIR}/debug/share"
+    "${CURRENT_PACKAGES_DIR}/docs"
+    "${CURRENT_PACKAGES_DIR}/share/doc"
+)
 
 vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE")

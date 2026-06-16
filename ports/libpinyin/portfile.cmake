@@ -2,53 +2,44 @@ vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO libpinyin/libpinyin
     REF "${VERSION}"
-    SHA512 3f4c217c9962cb80057edea50314b152f050290c2dbbb25bcefd833d54f934a587cf0ef00c0e857065e08f4d5c91bd8dd18b9f18aeb93d8cdfb072e779cc5928
+    SHA512 ef9316fc4e429821fa9d9f1edba0c4f9918ac1f69d6cabfbfb60acd330db3078e7b38f3f61ddbdbaafbd7d1eb1d082c0257b871dfe6d81de3c4c72adefe6e431
     HEAD_REF main
+    PATCHES
+        portable-g-fsync.patch
 )
 
 vcpkg_download_distfile(MODEL_ARCHIVE
-    URLS "https://downloads.sourceforge.net/libpinyin/models/model20.text.tar.gz"
+    URLS "https://downloads.sourceforge.net/project/libpinyin/models/model20.text.tar.gz"
     FILENAME "libpinyin-model20.text.tar.gz"
     SHA512 ed4d0607ad35e0e7ea424670539ddcd81a2b03c1da914b9c00cb748cf065f29471502d40b9a189852001da1fb9178c3bcc4675d7efebea5d081d78bfeee9b5d6
 )
 
-file(MAKE_DIRECTORY "${SOURCE_PATH}/data")
-execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E tar xzf "${MODEL_ARCHIVE}"
-    WORKING_DIRECTORY "${SOURCE_PATH}/data"
-    COMMAND_ERROR_IS_FATAL ANY
+vcpkg_extract_source_archive(MODEL_SOURCE_PATH
+    ARCHIVE "${MODEL_ARCHIVE}"
+    SOURCE_BASE "model20"
+    NO_REMOVE_ONE_LEVEL
 )
-
-set(ENV{CPPFLAGS} "-I${CURRENT_INSTALLED_DIR}/include $ENV{CPPFLAGS}")
-set(ENV{LDFLAGS} "-L${CURRENT_INSTALLED_DIR}/lib $ENV{LDFLAGS}")
-set(ENV{PKG_CONFIG_PATH} "${CURRENT_INSTALLED_DIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+file(COPY "${MODEL_SOURCE_PATH}/" DESTINATION "${SOURCE_PATH}/data")
 
 vcpkg_configure_make(
     SOURCE_PATH "${SOURCE_PATH}"
     AUTOCONFIG
-    USE_WRAPPERS
     OPTIONS
         --disable-shared
         --enable-static
         --with-dbm=BerkeleyDB
+        --disable-libzhuyin
+        --disable-dependency-tracking
 )
 
 vcpkg_install_make()
+
 vcpkg_fixup_pkgconfig()
 
-foreach(LIBPINYIN_PC IN ITEMS
-    "${CURRENT_PACKAGES_DIR}/lib/pkgconfig/libpinyin.pc"
-    "${CURRENT_PACKAGES_DIR}/debug/lib/pkgconfig/libpinyin.pc")
-    if(EXISTS "${LIBPINYIN_PC}")
-        vcpkg_replace_string("${LIBPINYIN_PC}"
-            [[Libs: "-L${libdir}" -lpinyin]]
-            [[Libs: "-L${libdir}" -lpinyin
-Libs.private: -ldb]])
-    endif()
-endforeach()
+file(REMOVE_RECURSE
+    "${CURRENT_PACKAGES_DIR}/debug/include"
+    "${CURRENT_PACKAGES_DIR}/debug/share"
+    "${CURRENT_PACKAGES_DIR}/share/doc"
+)
 
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
-file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/lib/libpinyin")
-file(INSTALL "${SOURCE_PATH}/COPYING"
-     DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}"
-     RENAME copyright)
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/COPYING")
