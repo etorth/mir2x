@@ -1,0 +1,186 @@
+name: Build
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-linux:
+    name: Native Linux
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt update
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt update
+          sudo apt install -y \
+            autoconf \
+            automake \
+            build-essential \
+            curl \
+            g++-16 \
+            gawk \
+            gcc-16 \
+            gettext \
+            git \
+            libgl1-mesa-dev \
+            libglu1-mesa-dev \
+            libice-dev \
+            libsm-dev \
+            libtool \
+            libx11-dev \
+            libxcursor-dev \
+            libxext-dev \
+            libxfixes-dev \
+            libxft-dev \
+            libxinerama-dev \
+            libxrender-dev \
+            ninja-build \
+            pkg-config \
+            python3 \
+            tar \
+            unzip \
+            zip
+
+      - name: Create CI resource skeleton
+        run: |
+          set -euo pipefail
+          res_dir="$RUNNER_TEMP/mir2x_res"
+          mkdir -p \
+            "$res_dir/map" \
+            "$res_dir/sound/seff" \
+            "$res_dir/sound/bgm" \
+            "$res_dir/emoji" \
+            "$res_dir/font"
+          for texture_dir in proguse item npc weapon map monster helmet selectchar magic hair equip hero; do
+            mkdir -p "$res_dir/texture/$texture_dir"
+          done
+
+      - name: Build and install
+        run: |
+          python3 ./build.py \
+            --build-dir "$RUNNER_TEMP/mir2x_native" \
+            --res-path "$RUNNER_TEMP/mir2x_res" \
+            --c-compiler gcc-16 \
+            --cxx-compiler g++-16 \
+            --parallel 4
+
+      - name: Verify Linux linkage
+        run: |
+          set -euo pipefail
+          install_dir="$RUNNER_TEMP/mir2x_native/install"
+          mapfile -t exe_list < <(find "$install_dir" -type f -perm -111 | sort)
+          if [ "${#exe_list[@]}" -eq 0 ]; then
+            echo "No installed executables found" >&2
+            exit 1
+          fi
+
+          for exe in "${exe_list[@]}"; do
+            if ! file "$exe" | grep -q 'ELF'; then
+              continue
+            fi
+            echo "== $exe =="
+            ldd "$exe" || true
+            needed="$(readelf -d "$exe" | grep NEEDED || true)"
+            printf '%s\n' "$needed"
+            if printf '%s\n' "$needed" | grep -Ei 'libstdc\+\+|libgcc_s|libSDL2|libpng|libjpeg|libz\.so|liblua|liblz4|libzstd|libtinyxml2|libg3log|libsqlite|libpinyin|libdb|libglib|libgobject|libgmodule|libpcre2|libfreetype|libvorbis|libogg|libmpg123|libbz2|libbrotli'; then
+              echo "$exe has an unexpected dynamic dependency" >&2
+              exit 1
+            fi
+          done
+
+      - name: Upload Linux install tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: mir2x-native-linux
+          path: ${{ runner.temp }}/mir2x_native/install
+          if-no-files-found: error
+
+  mingw-ucrt64:
+    name: MinGW UCRT64
+    runs-on: windows-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up MSYS2 UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            base-devel
+            git
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-pkgconf
+            mingw-w64-ucrt-x86_64-python
+
+      - name: Create CI resource skeleton
+        run: |
+          set -euo pipefail
+          res_dir="$PWD/../mir2x_res"
+          mkdir -p \
+            "$res_dir/map" \
+            "$res_dir/sound/seff" \
+            "$res_dir/sound/bgm" \
+            "$res_dir/emoji" \
+            "$res_dir/font"
+          for texture_dir in proguse item npc weapon map monster helmet selectchar magic hair equip hero; do
+            mkdir -p "$res_dir/texture/$texture_dir"
+          done
+
+      - name: Build and install
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-mingw-static
+          VCPKG_DEFAULT_HOST_TRIPLET: x64-mingw-static
+        run: |
+          python3 ./build.py \
+            --build-dir "$PWD/../b_mir2x_ucrt64" \
+            --res-path "$PWD/../mir2x_res" \
+            --parallel 4
+
+      - name: Verify MinGW linkage
+        run: |
+          set -euo pipefail
+          install_dir="$PWD/../b_mir2x_ucrt64/install"
+          mapfile -t exe_list < <(find "$install_dir" -type f -name '*.exe' | sort)
+          if [ "${#exe_list[@]}" -eq 0 ]; then
+            echo "No installed executables found" >&2
+            exit 1
+          fi
+
+          for exe in "${exe_list[@]}"; do
+            echo "== $exe =="
+            objdump -p "$exe" | grep 'DLL Name' || true
+            if objdump -p "$exe" | grep -Ei 'DLL Name: (libstdc\+\+|libgcc_s|libwinpthread|SDL2|zlib|libpng|libjpeg|lua|liblz4|libzstd|tinyxml2|g3log|sqlite|pinyin|db-|glib|gobject|gmodule|pcre2|freetype|vorbis|ogg|mpg123|bz2|brotli)'; then
+              echo "$exe has an unexpected dynamic dependency" >&2
+              exit 1
+            fi
+          done
+
+      - name: Upload MinGW install tree
+        uses: actions/upload-artifact@v4
+        with:
+          name: mir2x-mingw-ucrt64
+          path: ../b_mir2x_ucrt64/install
+          if-no-files-found: error
