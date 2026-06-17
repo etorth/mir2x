@@ -2,14 +2,10 @@
   "name": "libpinyin",
   "version": "2.11.91",
   "description": "Library to deal with pinyin.",
-  "homepage": "https://github.com/libpinyin/libpinyin",
+  "homepage": "https://github.com/etorth/libpinyin",
   "license": "GPL-3.0-or-later",
   "dependencies": [
     "glib",
-    "libdb",
-    {
-      "name": "vcpkg-cmake",
-      "host": true
-    }
+    "libdb"
   ]
 }

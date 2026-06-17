@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO libpinyin/libpinyin
-    REF 88e39fccf0eb457cd5bed35103692502e12618aa
-    SHA512 13c3d555236032216b0c5e4cb4e3fa190257eeb970274087a40ded31b232221b18780b8a010c1e59146968a4e5d3a0499c0f8ed194d122add488421d351c307f
+    REPO etorth/libpinyin
+    REF 1089f205914cdabdc11937cc373e4ed1b8fff0bf
+    SHA512 4426c6ac54dfb02ccaca0c31a2f6e1f4d4c320c401eff0eaaede35cb57aa610c19fb298eec6b1f8e1e2476f8885f4481d6e98d12091d1d5e9a9112a8116d6400
     HEAD_REF main
 )
 
@@ -19,43 +19,16 @@ vcpkg_extract_source_archive(MODEL_SOURCE_PATH
 )
 file(COPY "${MODEL_SOURCE_PATH}/" DESTINATION "${SOURCE_PATH}/data")
 
-vcpkg_cmake_configure(
+vcpkg_configure_make(
     SOURCE_PATH "${SOURCE_PATH}"
+    AUTOCONFIG
     OPTIONS
-        -DBUILD_SHARED_LIBS=OFF
-        -DBUILD_TESTING=OFF
-        -DBUILD_UTILS=ON
-        -DSHARE_INSTALL_PREFIX=lib
-        "-DDB_INCLUDE_DIR=${CURRENT_INSTALLED_DIR}/include"
-        "-DDB_LIBRARY=${CURRENT_INSTALLED_DIR}/lib/libdb.a"
+        --with-dbm=BerkeleyDB
+        --disable-libzhuyin
+        --disable-dependency-tracking
 )
 
-vcpkg_cmake_install()
-
-foreach(build_suffix IN ITEMS rel dbg)
-    set(generated_data_dir "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${build_suffix}/data")
-    set(build_library_dir "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${build_suffix}/src")
-    if(build_suffix STREQUAL "dbg")
-        set(package_suffix debug)
-        set(package_data_dir "${CURRENT_PACKAGES_DIR}/${package_suffix}/lib/libpinyin/data")
-        set(package_library_dir "${CURRENT_PACKAGES_DIR}/${package_suffix}/lib")
-    else()
-        set(package_data_dir "${CURRENT_PACKAGES_DIR}/lib/libpinyin/data")
-        set(package_library_dir "${CURRENT_PACKAGES_DIR}/lib")
-    endif()
-
-    if(EXISTS "${generated_data_dir}/table.conf")
-        file(COPY "${generated_data_dir}/" DESTINATION "${package_data_dir}")
-    endif()
-
-    foreach(internal_library IN ITEMS lookup storage)
-        set(internal_archive "${build_library_dir}/${internal_library}/lib${internal_library}.a")
-        if(NOT EXISTS "${internal_archive}")
-            message(FATAL_ERROR "Could not find libpinyin internal static library '${internal_archive}'.")
-        endif()
-        file(INSTALL "${internal_archive}" DESTINATION "${package_library_dir}")
-    endforeach()
-endforeach()
+vcpkg_install_make()
 
 vcpkg_fixup_pkgconfig()
 
