@@ -13,12 +13,19 @@ permissions:
 jobs:
   native-linux:
     name: Native Linux
-    runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Cache vcpkg binary archives
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/vcpkg
+          key: native-linux-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**') }}
+          restore-keys: |
+            native-linux-vcpkg-
 
       - name: Install build tools
         run: |
@@ -71,6 +78,7 @@ jobs:
 
       - name: Build and install
         run: |
+          set -euo pipefail
           python3 ./build.py \
             --build-dir "$RUNNER_TEMP/mir2x_native" \
             --res-path "$RUNNER_TEMP/mir2x_res" \
@@ -112,7 +120,6 @@ jobs:
   mingw-ucrt64:
     name: MinGW UCRT64
     runs-on: windows-latest
-    timeout-minutes: 120
     defaults:
       run:
         shell: msys2 {0}
@@ -121,16 +128,23 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Cache vcpkg binary archives
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/vcpkg
+          key: mingw-ucrt64-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**') }}
+          restore-keys: |
+            mingw-ucrt64-vcpkg-
+
       - name: Set up MSYS2 UCRT64
         uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
           update: true
           install: >-
-            base-devel
-            git
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-git
             mingw-w64-ucrt-x86_64-cmake
-            mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-ninja
             mingw-w64-ucrt-x86_64-pkgconf
             mingw-w64-ucrt-x86_64-python

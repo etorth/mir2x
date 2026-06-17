@@ -3,12 +3,5 @@
   "version": "6.2.32",
   "description": "Oracle Berkeley DB patched for native Linux and MinGW UCRT64.",
   "homepage": "https://github.com/etorth/libdb",
-  "license": "AGPL-3.0-or-later",
-  "supports": "linux | mingw",
-  "dependencies": [
-    {
-      "name": "vcpkg-make",
-      "host": true
-    }
-  ]
+  "license": "AGPL-3.0-or-later"
 }
