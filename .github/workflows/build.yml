@@ -35,8 +35,10 @@ jobs:
           sudo apt update
           sudo apt install -y \
             autoconf \
+            autoconf-archive \
             automake \
             build-essential \
+            cmake \
             curl \
             g++-16 \
             gawk \
