@@ -13,7 +13,7 @@ permissions:
 jobs:
   native-linux:
     name: Native Linux
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
 
     steps:
       - name: Check out repository
