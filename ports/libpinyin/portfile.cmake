@@ -1,8 +1,8 @@
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO etorth/libpinyin
-    REF 1089f205914cdabdc11937cc373e4ed1b8fff0bf
-    SHA512 4426c6ac54dfb02ccaca0c31a2f6e1f4d4c320c401eff0eaaede35cb57aa610c19fb298eec6b1f8e1e2476f8885f4481d6e98d12091d1d5e9a9112a8116d6400
+    REF 91f2bf3541f71fc6e27e58c077152f6b81ea5edf
+    SHA512 595b1db787fbcf6bca9aaff21e96713db1a582d479ba335f9819ac08ceffde7295cc25ebc5850c47159bd0ca51c1c684a9df205dccfcc80f3e1c5d53151eb2d9
     HEAD_REF main
 )
 

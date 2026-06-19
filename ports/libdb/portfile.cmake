@@ -1,3 +1,5 @@
+vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO etorth/libdb
@@ -22,17 +24,23 @@ set(LIBDB_LDFLAGS "\${LDFLAGS}")
 set(LIBDB_BUILD_OPTIONS)
 
 set(configure_options
-    --enable-compat185
-    --enable-dbm
     --disable-shared
     --enable-static
+    --disable-compat185
+    --disable-compression
     --disable-cxx
+    --disable-dbm
+    --disable-heap
     --disable-java
+    --disable-partition
+    --disable-queue
     --disable-replication
     --disable-rpath
     --disable-sql
+    --disable-statistics
     --disable-stl
     --disable-tcl
+    --disable-verify
 )
 
 if(VCPKG_TARGET_IS_MINGW)
