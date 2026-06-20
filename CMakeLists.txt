@@ -158,10 +158,6 @@ function(fltk_parse_fl_file ARG_HPP ARG_CPP)
     set(${ARG_CPP} "${RES_CPP}" PARENT_SCOPE)
 endfunction()
 
-if(WIN32)
-    cmake_policy(SET CMP0003 OLD)
-endif()
-
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xResPath.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xDependencies.cmake")
 
