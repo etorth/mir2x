@@ -48,6 +48,7 @@ jobs:
             libgl1-mesa-dev \
             libglu1-mesa-dev \
             libice-dev \
+            libltdl-dev \
             libsm-dev \
             libtool \
             libx11-dev \
