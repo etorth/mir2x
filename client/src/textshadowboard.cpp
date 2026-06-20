@@ -1,5 +1,7 @@
 #include "textshadowboard.hpp"
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 TextShadowBoard::TextShadowBoard(TextShadowBoard::InitArgs args)
     : Widget
       {{
@@ -41,3 +43,4 @@ TextShadowBoard::TextShadowBoard(TextShadowBoard::InitArgs args)
           .parent{this},
       }}
 {}
+#pragma GCC diagnostic pop
