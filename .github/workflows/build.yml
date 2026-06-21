@@ -98,19 +98,12 @@ jobs:
             readelf -d "$exe" | grep NEEDED || true
           done
 
-      - name: Package Linux install tree
-        if: github.event_name != 'pull_request'
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP/b_mir2x_linux/install"
-          zip -r "$RUNNER_TEMP/mir2x-linux-latest-build.zip" .
-
-      - name: Upload Linux package
+      - name: Upload Linux install tree
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: mir2x-linux-package
-          path: ${{ runner.temp }}/mir2x-linux-latest-build.zip
+          name: mir2x-linux-install
+          path: ${{ runner.temp }}/b_mir2x_linux/install
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
@@ -175,19 +168,12 @@ jobs:
             objdump -p "$exe" | grep 'DLL Name' || true
           done
 
-      - name: Package MinGW install tree
-        if: github.event_name != 'pull_request'
-        run: |
-          set -euo pipefail
-          cd "$RUNNER_TEMP/b_mir2x_windows/install"
-          zip -r "$RUNNER_TEMP/mir2x-windows-latest-build.zip" .
-
-      - name: Upload MinGW package
+      - name: Upload MinGW install tree
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: mir2x-windows-package
-          path: ${{ runner.temp }}/mir2x-windows-latest-build.zip
+          name: mir2x-windows-install
+          path: ${{ runner.temp }}/b_mir2x_windows/install
           if-no-files-found: error
           retention-days: 1
           compression-level: 0
@@ -205,12 +191,23 @@ jobs:
       cancel-in-progress: true
 
     steps:
-      - name: Download packages
+      - name: Download Linux install tree
         uses: actions/download-artifact@v4
         with:
-          pattern: mir2x-*-package
-          path: dist
-          merge-multiple: true
+          name: mir2x-linux-install
+          path: dist/linux
+
+      - name: Download MinGW install tree
+        uses: actions/download-artifact@v4
+        with:
+          name: mir2x-windows-install
+          path: dist/windows
+
+      - name: Package release assets
+        run: |
+          set -euo pipefail
+          (cd dist/linux && zip -r ../mir2x-linux-latest-build.zip .)
+          (cd dist/windows && zip -r ../mir2x-windows-latest-build.zip .)
 
       - name: Replace latest release
         env:
