@@ -3,7 +3,6 @@
 #include <string>
 #include <format>
 #include <stdexcept>
-#include <execinfo.h>
 #include "strf.hpp"
 
 #define fflerror(...) std::runtime_error(str_ffl() + ": " + str_printf(__VA_ARGS__))
