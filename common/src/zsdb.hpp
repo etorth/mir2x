@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-#include <cstdio>
 #include <cstdint>
 #include "zstd.h"
 #include "fileptr.hpp"

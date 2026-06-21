@@ -1,7 +1,5 @@
 #include <regex>
 #include <zstd.h>
-#include <cerrno>
-#include <cstdio>
 #include <cstring>
 #include <stdexcept>
 #include <cinttypes>
@@ -89,24 +87,13 @@ static std::vector<uint8_t> readFileData(const char *filePath)
     return read_fileptr<std::vector<uint8_t>>(fp);
 }
 
-static std::vector<uint8_t> readFileOffData(std::FILE *fp, size_t dataOff, size_t dataLen)
+static std::vector<uint8_t> readFileOffData(fileptr_t &fp, size_t dataOff, size_t dataLen)
 {
-    if(!fp){
-        throw fflpanic("invalid argument: fp = nullptr");
-    }
-
-    std::vector<uint8_t> readBuf(dataLen);
-    if(std::fseek(fp, dataOff, SEEK_SET)){
-        throw fflpanic("failed to seek file: err = {}", std::strerror(errno));
-    }
-
-    if(std::fread(readBuf.data(), readBuf.size(), 1, fp) != 1){
-        throw fflpanic("failed to read file: err = {}", std::strerror(errno));
-    }
-    return readBuf;
+    seek_fileptr(fp, check_cast<int64_t>(dataOff), SEEK_SET);
+    return read_fileptr<std::vector<uint8_t>>(fp, dataLen);
 }
 
-static std::vector<uint8_t> decompFileOffData(std::FILE *fp, size_t dataOff, size_t dataLen, ZSTD_DCtx *dctxPtr, const ZSTD_DDict *ddictPtr)
+static std::vector<uint8_t> decompFileOffData(fileptr_t &fp, size_t dataOff, size_t dataLen, ZSTD_DCtx *dctxPtr, const ZSTD_DDict *ddictPtr)
 {
     const auto compBuf = readFileOffData(fp, dataOff, dataLen);
     if(compBuf.empty()){
@@ -135,17 +122,12 @@ ZSDB::ZSDB(const char *filePath)
         throw fflpanic("failed to create decompress context");
     }
 
-    if(const auto headerBuf = readFileOffData(m_fp.get(), 0, sizeof(ZSDBHeader)); headerBuf.empty()){
-        throw fflpanic("failed to load zsdb header");
-    }
-    else{
-        std::memcpy(&m_header, headerBuf.data(), sizeof(m_header));
-    }
+    read_fileptr(m_fp, &m_header, sizeof(m_header));
 
     if(m_header.dictLength){
         const auto offset = check_cast<size_t>(m_header.dictOffset);
         const auto length = check_cast<size_t>(m_header.dictLength);
-        if(const auto dictBuf = decompFileOffData(m_fp.get(), offset, length, m_DCtx, m_DDict); dictBuf.empty()){
+        if(const auto dictBuf = decompFileOffData(m_fp, offset, length, m_DCtx, m_DDict); dictBuf.empty()){
             throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
@@ -159,7 +141,7 @@ ZSDB::ZSDB(const char *filePath)
     if(m_header.entryLength){
         const auto offset = check_cast<size_t>(m_header.entryOffset);
         const auto length = check_cast<size_t>(m_header.entryLength);
-        if(const auto entryBuf = decompFileOffData(m_fp.get(), offset, length, m_DCtx, m_DDict); entryBuf.empty()){
+        if(const auto entryBuf = decompFileOffData(m_fp, offset, length, m_DCtx, m_DDict); entryBuf.empty()){
             throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
@@ -182,7 +164,7 @@ ZSDB::ZSDB(const char *filePath)
     if(m_header.fileNameLength){
         const auto offset = check_cast<size_t>(m_header.fileNameOffset);
         const auto length = check_cast<size_t>(m_header.fileNameLength);
-        if(const auto fileNameBuf = decompFileOffData(m_fp.get(), offset, length, m_DCtx, nullptr); fileNameBuf.empty()){
+        if(const auto fileNameBuf = decompFileOffData(m_fp, offset, length, m_DCtx, nullptr); fileNameBuf.empty()){
             throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
@@ -244,10 +226,10 @@ bool ZSDB::decompEntry(const ZSDB::InnEntry &entry, std::vector<uint8_t> *dstBuf
 
     std::vector<uint8_t> result;
     if(entry.attribute & F_COMPRESSED){
-        result = decompFileOffData(m_fp.get(), m_header.streamOffset + entry.offset, entry.length, m_DCtx, m_DDict);
+        result = decompFileOffData(m_fp, m_header.streamOffset + entry.offset, entry.length, m_DCtx, m_DDict);
     }
     else{
-        result = readFileOffData(m_fp.get(), m_header.streamOffset + entry.offset, entry.length);
+        result = readFileOffData(m_fp, m_header.streamOffset + entry.offset, entry.length);
     }
 
     if(result.empty()){
@@ -371,19 +353,9 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
     header.streamLength = streamBuf.size();
 
     auto fp = make_fileptr(savePath, "wb");
-    if(std::fwrite(&header, sizeof(header), 1, fp.get()) != 1){
-        throw fflpanic("failed to save zsdb header: {}", savePath);
-    }
-
-    if(std::fwrite(entryCompBuf.data(), entryCompBuf.size(), 1, fp.get()) != 1){
-        throw fflpanic("failed to save zsdb entry buffer: {}", savePath);
-    }
-
-    if(std::fwrite(fileNameCompBuf.data(), fileNameCompBuf.size(), 1, fp.get()) != 1){
-        throw fflpanic("failed to save zsdb file name buffer: {}", savePath);
-    }
-
-    if(std::fwrite(streamBuf.data(), streamBuf.size(), 1, fp.get()) != 1){
-        throw fflpanic("failed to save zsdb stream buffer: {}", savePath);
-    }
+    write_fileptr(fp, header);
+    write_fileptr(fp, entryCompBuf);
+    write_fileptr(fp, fileNameCompBuf);
+    write_fileptr(fp, streamBuf);
+    close_fileptr(fp);
 }

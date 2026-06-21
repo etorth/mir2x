@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cstdint>
 #include <climits>
+#include <concepts>
 #include <type_traits>
 #include "strf.hpp"
 #include "totype.hpp"
@@ -92,12 +93,12 @@ inline size_t tell_fileptr(fileptr_t &fptr)
     throw fflpanic("ftello({:p}) failed: [{}] {}", to_cvptr(fptr.get()), err, std::strerror(err));
 }
 
-inline void seek_fileptr(fileptr_t &fptr, size_t offset, int origin)
+template<std::signed_integral T> void seek_fileptr(fileptr_t &fptr, T offset, int origin)
 {
     fflassert(fptr);
     errno = 0;
 
-    if(fseeko(fptr.get(), check_cast<int64_t>(offset), origin)){
+    if(fseeko(fptr.get(), offset, origin)){
         const auto err = errno;
         throw fflpanic("fseeko({:p}, {}, {}) failed: [{}] {}", to_cvptr(fptr.get()), offset, [origin]() -> const char *
         {
@@ -117,7 +118,7 @@ inline size_t size_fileptr(fileptr_t &fptr, size_t *curLoc = nullptr)
     seek_fileptr(fptr, 0, SEEK_END);
 
     const auto endLoc = tell_fileptr(fptr);
-    seek_fileptr(fptr, oldLoc, SEEK_SET);
+    seek_fileptr(fptr, check_cast<int64_t>(oldLoc), SEEK_SET);
 
     if(curLoc){
         *curLoc = oldLoc;
@@ -218,9 +219,9 @@ inline void close_fileptr(fileptr_t &fptr)
 {
     if(fptr){
         errno = 0;
-        if(auto fp = fptr.release(); std::fclose(fp)){
+        if(std::fclose(fptr.release())){
             const auto err = errno;
-            throw fflpanic("fclose({:p}) failed: [{}] {}", to_cvptr(fp), err, std::strerror(err));
+            throw fflpanic("fclose() failed: [{}] {}", err, std::strerror(err));
         }
     }
 }
