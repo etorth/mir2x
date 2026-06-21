@@ -91,8 +91,12 @@
 #include <numeric>
 #include <filesystem>
 
-#ifdef __GNUC__
-    #define STR_PRINTF_CHECK_FORMAT(n) __attribute__ ((format (printf, (n), ((n)+1))))
+#if defined(__GNUC__)
+    #if defined(__MINGW32__) || defined(__MINGW64__)
+        #define STR_PRINTF_CHECK_FORMAT(n) __attribute__ ((format (gnu_printf, (n), ((n)+1))))
+    #else
+        #define STR_PRINTF_CHECK_FORMAT(n) __attribute__ ((format (printf, (n), ((n)+1))))
+    #endif
 #else
     #define STR_PRINTF_CHECK_FORMAT(n)
 #endif
