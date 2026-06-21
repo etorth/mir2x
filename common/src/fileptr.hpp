@@ -128,7 +128,7 @@ template<typename C> C read_fileptr(fileptr_t &fptr)
     const auto size = size_fileptr(fptr);
 
     if(size % sizeof(typename C::value_type)){
-        throw fflpanic("file size alignment error: file size {}, element size {}", size, sizeof(C::value_type));
+        throw fflpanic("file size alignment error: file size {}, element size {}", size, sizeof(typename C::value_type));
     }
 
     C c;

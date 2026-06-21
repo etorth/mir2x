@@ -85,20 +85,8 @@ static std::vector<uint8_t> decompressDataBuf(const uint8_t *dataBuf, size_t dat
 
 static std::vector<uint8_t> readFileData(const char *filePath)
 {
-    if(!filePath){
-        throw fflpanic("invalid filePath: (null)");
-    }
-
     auto fp = make_fileptr(filePath, "rb");
-    std::fseek(fp.get(), 0, SEEK_END);
-    const auto fileSize = std::ftell(fp.get());
-    std::fseek(fp.get(), 0, SEEK_SET);
-
-    std::vector<uint8_t> dataBuf(fileSize, 0);
-    if(std::fread(dataBuf.data(), fileSize, 1, fp.get()) != 1){
-        throw fflpanic("failed to read file: {}, err = {}", filePath, std::strerror(errno));
-    }
-    return dataBuf;
+    return read_fileptr<std::vector<uint8_t>>(fp);
 }
 
 static std::vector<uint8_t> readFileOffData(std::FILE *fp, size_t dataOff, size_t dataLen)
