@@ -118,7 +118,7 @@ std::tuple<std::string, std::string, std::string> filesys::decompFileName(const 
         }
     };
 
-    if(const auto p = std::strrchr(fullName, '/')){
+    if(const char *p = std::strrchr(fullName, '/')){
         if(decompName){
             return fnDecompName(std::string(fullName, p), std::string(p + 1));
         }

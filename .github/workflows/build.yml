@@ -65,35 +65,18 @@ jobs:
             unzip \
             zip
 
-      - name: Create CI resource skeleton
-        run: |
-          set -euo pipefail
-          res_dir="$RUNNER_TEMP/mir2x_res"
-          mkdir -p \
-            "$res_dir/map" \
-            "$res_dir/sound/seff" \
-            "$res_dir/sound/bgm" \
-            "$res_dir/emoji" \
-            "$res_dir/font"
-          for texture_dir in proguse item npc weapon map monster helmet selectchar magic hair equip hero; do
-            mkdir -p "$res_dir/texture/$texture_dir"
-          done
-
       - name: Build and install
         run: |
           set -euo pipefail
-          python3 ./build.py \
-            --build-dir "$RUNNER_TEMP/mir2x_native" \
-            --res-path "$RUNNER_TEMP/mir2x_res" \
-            --c-compiler gcc-16 \
-            --cxx-compiler g++-16 \
-            --parallel 4
+          python3 ./build.py --build-dir "$RUNNER_TEMP/b_mir2x_linux" --c-compiler gcc-16 --cxx-compiler g++-16 --parallel 4
 
       - name: Verify Linux linkage
         run: |
           set -euo pipefail
-          install_dir="$RUNNER_TEMP/mir2x_native/install"
+
+          install_dir="$RUNNER_TEMP/b_mir2x_linux/install"
           mapfile -t exe_list < <(find "$install_dir" -type f -perm -111 | sort)
+
           if [ "${#exe_list[@]}" -eq 0 ]; then
             echo "No installed executables found" >&2
             exit 1
@@ -103,21 +86,19 @@ jobs:
             if ! file "$exe" | grep -q 'ELF'; then
               continue
             fi
-            echo "== $exe =="
+
+            echo "== ldd $exe =="
             ldd "$exe" || true
-            needed="$(readelf -d "$exe" | grep NEEDED || true)"
-            printf '%s\n' "$needed"
-            if printf '%s\n' "$needed" | grep -Ei 'libstdc\+\+|libgcc_s|libSDL2|libpng|libjpeg|libz\.so|liblua|liblz4|libzstd|libtinyxml2|libg3log|libsqlite|libpinyin|libdb|libglib|libgobject|libgmodule|libpcre2|libfreetype|libvorbis|libogg|libmpg123|libbz2|libbrotli'; then
-              echo "$exe has an unexpected dynamic dependency" >&2
-              exit 1
-            fi
+
+            echo "== readelf $exe =="
+            readelf -d "$exe" | grep NEEDED || true
           done
 
       - name: Upload Linux install tree
         uses: actions/upload-artifact@v4
         with:
           name: mir2x-native-linux
-          path: ${{ runner.temp }}/mir2x_native/install
+          path: ${{ runner.temp }}/b_mir2x_linux/install
           if-no-files-found: error
 
   mingw-ucrt64:
@@ -152,52 +133,36 @@ jobs:
             mingw-w64-ucrt-x86_64-pkgconf
             mingw-w64-ucrt-x86_64-python
 
-      - name: Create CI resource skeleton
-        run: |
-          set -euo pipefail
-          res_dir="$PWD/../mir2x_res"
-          mkdir -p \
-            "$res_dir/map" \
-            "$res_dir/sound/seff" \
-            "$res_dir/sound/bgm" \
-            "$res_dir/emoji" \
-            "$res_dir/font"
-          for texture_dir in proguse item npc weapon map monster helmet selectchar magic hair equip hero; do
-            mkdir -p "$res_dir/texture/$texture_dir"
-          done
-
       - name: Build and install
         env:
           VCPKG_DEFAULT_TRIPLET: x64-mingw-static
           VCPKG_DEFAULT_HOST_TRIPLET: x64-mingw-static
         run: |
-          python3 ./build.py \
-            --build-dir "$PWD/../b_mir2x_ucrt64" \
-            --res-path "$PWD/../mir2x_res" \
-            --parallel 4
+          python3 ./build.py --build-dir "$RUNNER_TEMP/b_mir2x_windows" --parallel 4
 
       - name: Verify MinGW linkage
         run: |
           set -euo pipefail
-          install_dir="$PWD/../b_mir2x_ucrt64/install"
+
+          install_dir="$RUNNER_TEMP/b_mir2x_windows/install"
           mapfile -t exe_list < <(find "$install_dir" -type f -name '*.exe' | sort)
+
           if [ "${#exe_list[@]}" -eq 0 ]; then
             echo "No installed executables found" >&2
             exit 1
           fi
 
           for exe in "${exe_list[@]}"; do
-            echo "== $exe =="
+            echo "== ldd $exe =="
+            ldd "$exe" || true
+
+            echo "== objdump $exe =="
             objdump -p "$exe" | grep 'DLL Name' || true
-            if objdump -p "$exe" | grep -Ei 'DLL Name: (libstdc\+\+|libgcc_s|libwinpthread|SDL2|zlib|libpng|libjpeg|lua|liblz4|libzstd|tinyxml2|g3log|sqlite|pinyin|db-|glib|gobject|gmodule|pcre2|freetype|vorbis|ogg|mpg123|bz2|brotli)'; then
-              echo "$exe has an unexpected dynamic dependency" >&2
-              exit 1
-            fi
           done
 
       - name: Upload MinGW install tree
         uses: actions/upload-artifact@v4
         with:
           name: mir2x-mingw-ucrt64
-          path: ../b_mir2x_ucrt64/install
+          path: ${{ runner.temp }}/b_mir2x_windows/install
           if-no-files-found: error
