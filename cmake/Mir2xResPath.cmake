@@ -27,14 +27,24 @@ elseif(MIR2X_RES_REPO_MANAGED_PATH)
     find_program(GIT_EXECUTABLE git REQUIRED)
     get_filename_component(MIR2X_RES_REPO_PARENT_DIR "${MIR2X_RES_REPO_PATH}" DIRECTORY)
     get_filename_component(MIR2X_RES_REPO_DIR_NAME "${MIR2X_RES_REPO_PATH}" NAME)
+    set(MIR2X_RES_REPO_CLONE_STAMP "${MIR2X_RES_REPO_PARENT_DIR}/.${MIR2X_RES_REPO_DIR_NAME}.clone.stamp")
+
+    # Keep the stamp beside the checkout: Ninja won't pre-create the clone directory
+    # And deleting the checkout invalidates the stamp on reconfigure.
+    if(EXISTS "${MIR2X_RES_REPO_CLONE_STAMP}" AND NOT IS_DIRECTORY "${MIR2X_RES_REPO_PATH}")
+        file(REMOVE "${MIR2X_RES_REPO_CLONE_STAMP}")
+    endif()
+
     file(MAKE_DIRECTORY "${MIR2X_RES_REPO_PARENT_DIR}")
     add_custom_command(
-        OUTPUT "${MIR2X_RES_REPO_PATH}/.git/HEAD"
+        OUTPUT "${MIR2X_RES_REPO_CLONE_STAMP}"
         COMMAND ${CMAKE_COMMAND} -E echo "WARNING: cloning mir2x resources can take a very long time; your build tool may hide git clone progress."
         COMMAND ${GIT_EXECUTABLE} clone ${MIR2X_RES_REPO_URL} ${MIR2X_RES_REPO_DIR_NAME}
+        COMMAND ${CMAKE_COMMAND} -E touch "${MIR2X_RES_REPO_CLONE_STAMP}"
         WORKING_DIRECTORY "${MIR2X_RES_REPO_PARENT_DIR}"
         VERBATIM)
-    add_custom_target(mir2x_resources DEPENDS "${MIR2X_RES_REPO_PATH}/.git/HEAD")
+
+    add_custom_target(mir2x_resources DEPENDS "${MIR2X_RES_REPO_CLONE_STAMP}")
     message(STATUS "mir2x resource path will be cloned at build time: ${MIR2X_RES_REPO_PATH}")
 else()
     message(FATAL_ERROR "Invalid MIR2X_RES_REPO_PATH: ${MIR2X_RES_REPO_PATH}")
