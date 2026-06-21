@@ -67,7 +67,7 @@ uint64_t hres_tstamp::localtime()
     const uint64_t millisecond = ts.tv_nsec / UINT64_C(1000000);
 #endif
     // return format
-    // using UINT64_MAX_MAX = 18446744073709551615, can use 19 digits since year now start from 2
+    // using UINT64_MAX = 18446744073709551615, can use 19 digits since year now start from 2
     //
     // year month day hour minute second millisecond, using 16 digits
     // 2022    11  23   08     22     59         123

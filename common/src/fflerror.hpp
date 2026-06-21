@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include "strf.hpp"
 
-#define fflerror(...) std::runtime_error(str_ffl() + ": " + str_printf(__VA_ARGS__))
+#define fflerror(...) std::runtime_error(str_ffl() + ": " + str_printf (__VA_ARGS__))
 #define fflpanic(...) std::runtime_error(str_ffl() + ": " + std::format(__VA_ARGS__))
 
 inline std::string _fflerror_helper(size_t index)
