@@ -26,7 +26,7 @@ jobs:
       - name: Cache vcpkg binary archives
         uses: actions/cache@v4
         with:
-          path: ~/.cache/vcpkg
+          path: ${{ runner.temp }}/vcpkg-binary-cache
           key: native-linux-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**') }}
           restore-keys: |
             native-linux-vcpkg-
@@ -70,8 +70,11 @@ jobs:
             zip
 
       - name: Build and install
+        env:
+          VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-binary-cache,readwrite
         run: |
           set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/vcpkg-binary-cache"
           python3 ./build.py --build-dir "$RUNNER_TEMP/b_mir2x_linux" --c-compiler gcc-16 --cxx-compiler g++-16 --parallel 4
 
       - name: Verify Linux linkage
@@ -122,7 +125,7 @@ jobs:
       - name: Cache vcpkg binary archives
         uses: actions/cache@v4
         with:
-          path: ~/.cache/vcpkg
+          path: ${{ runner.temp }}/vcpkg-binary-cache
           key: mingw-ucrt64-vcpkg-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json', 'ports/**') }}
           restore-keys: |
             mingw-ucrt64-vcpkg-
@@ -145,7 +148,9 @@ jobs:
         env:
           VCPKG_DEFAULT_TRIPLET: x64-mingw-static
           VCPKG_DEFAULT_HOST_TRIPLET: x64-mingw-static
+          VCPKG_BINARY_SOURCES: clear;files,${{ runner.temp }}/vcpkg-binary-cache,readwrite
         run: |
+          mkdir -p "$RUNNER_TEMP/vcpkg-binary-cache"
           python3 ./build.py --build-dir "$RUNNER_TEMP/b_mir2x_windows" --parallel 4
 
       - name: Verify MinGW linkage
