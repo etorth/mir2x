@@ -1,3 +1,9 @@
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)
+    #include <windows.h>
+#else
+    #include <time.h>
+#endif
+
 #include "totype.hpp"
 #include "fflerror.hpp"
 #include "raiitimer.hpp"
@@ -16,27 +22,22 @@ static const LARGE_INTEGER g_winFreq = []()
 
 hres_tstamp::hres_tstamp()
 {
-#ifdef _MSC_VER
-    QueryPerformanceCounter(&m_tstamp); // after winxp this function always succeed
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)
+    LARGE_INTEGER tstamp;
+    QueryPerformanceCounter(&tstamp); // after winxp this function always succeed
+    m_tstamp = (to_u64(tstamp.QuadPart) * 1000000000ULL) / to_u64(g_winFreq.QuadPart);
 #else
-    if(clock_gettime(CLOCK_MONOTONIC, &m_tstamp)) [[unlikely]] {
+    struct timespec tstamp;
+    if(clock_gettime(CLOCK_MONOTONIC, &tstamp)) [[unlikely]] {
         throw fflpanic("clock_gettime(CLOCK_MONOTONIC) failed");
     }
-#endif
-}
-
-uint64_t hres_tstamp::to_nsec() const
-{
-#ifdef _MSC_VER
-    return (to_u64(m_tstamp.QuadPart) * 1000000000ULL) / to_u64(g_winFreq.QuadPart);
-#else
-    return (to_u64(m_tstamp.tv_sec  ) * 1000000000ULL) + to_u64(m_tstamp.tv_nsec  );
+    m_tstamp = (to_u64(tstamp.tv_sec) * 1000000000ULL) + to_u64(tstamp.tv_nsec);
 #endif
 }
 
 uint64_t hres_tstamp::localtime()
 {
-#ifdef _MSC_VER
+#if defined(__MINGW32__) || defined(__MINGW64__) || defined(_MSC_VER)
     SYSTEMTIME sys;
     GetLocalTime(&sys);
 

@@ -1,26 +1,20 @@
 #pragma once
-#ifdef _MSC_VER
-    #include <windows.h>
-#else
-    #include "time.h"
-#endif
-
 #include <atomic>
 #include <cstdint>
 
 class hres_tstamp
 {
     private:
-#ifdef _MSC_VER
-        LARGE_INTEGER m_tstamp;
-#else
-        struct timespec m_tstamp;
-#endif
+        uint64_t m_tstamp;
+
     public:
         hres_tstamp();
 
     public:
-        uint64_t to_nsec() const;
+        uint64_t to_nsec() const
+        {
+            return m_tstamp;
+        }
 
     public:
         uint64_t to_usec() const

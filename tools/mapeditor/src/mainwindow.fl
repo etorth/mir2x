@@ -29,7 +29,7 @@ decl {\#include <cstring>} {private local
 decl {\#include <FL/fl_draw.H>} {public local
 }
 
-decl {\#include "datef.hpp"} {public local
+decl {\#include "raiitimer.hpp"} {public local
 }
 
 decl {\#include <FL/Fl_Shared_Image.H>} {public local
@@ -844,7 +844,7 @@ g_aboutWindow->showAll();}
     code {{
     extern std::string g_workingPathName;
     if(g_workingPathName == "" || (g_workingPathName.size() > 0 && g_workingPathName[0] == '.')){
-        g_workingPathName = std::string("./") + datef::now();
+        g_workingPathName = std::string("./") + std::to_string(hres_tstamp::localtime());
     }
 
     filesys::removeDir(g_workingPathName.c_str());
@@ -988,7 +988,7 @@ g_aboutWindow->showAll();}
     };
 
     g_editorMap.exportOverview(fnBufDrawImage, nullptr);
-    const std::string szOverviewFileName = datef::now() + ".PNG";
+    const std::string szOverviewFileName = std::to_string(hres_tstamp::localtime()) + ".PNG";
     const std::string szOverviewFullFileName = g_workingPathName + "/" + szOverviewFileName;
 
     int exportW = dstW;
