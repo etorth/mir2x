@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   native-linux:
     name: Native Linux
@@ -94,12 +98,22 @@ jobs:
             readelf -d "$exe" | grep NEEDED || true
           done
 
-      - name: Upload Linux install tree
+      - name: Package Linux install tree
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/b_mir2x_linux/install"
+          zip -r "$RUNNER_TEMP/mir2x-linux-latest-build.zip" .
+
+      - name: Upload Linux package
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: mir2x-native-linux
-          path: ${{ runner.temp }}/b_mir2x_linux/install
+          name: mir2x-linux-package
+          path: ${{ runner.temp }}/mir2x-linux-latest-build.zip
           if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
 
   mingw-ucrt64:
     name: MinGW UCRT64
@@ -126,6 +140,7 @@ jobs:
           msystem: UCRT64
           update: true
           install: >-
+            zip
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-git
             mingw-w64-ucrt-x86_64-cmake
@@ -160,9 +175,56 @@ jobs:
             objdump -p "$exe" | grep 'DLL Name' || true
           done
 
-      - name: Upload MinGW install tree
+      - name: Package MinGW install tree
+        if: github.event_name != 'pull_request'
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/b_mir2x_windows/install"
+          zip -r "$RUNNER_TEMP/mir2x-windows-latest-build.zip" .
+
+      - name: Upload MinGW package
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: mir2x-mingw-ucrt64
-          path: ${{ runner.temp }}/b_mir2x_windows/install
+          name: mir2x-windows-package
+          path: ${{ runner.temp }}/mir2x-windows-latest-build.zip
           if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+  release-latest:
+    name: Publish latest release
+    runs-on: ubuntu-26.04
+    needs: [native-linux, mingw-ucrt64]
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+
+    concurrency:
+      group: latest-release
+      cancel-in-progress: true
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mir2x-*-package
+          path: dist
+          merge-multiple: true
+
+      - name: Replace latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          gh release delete latest --cleanup-tag -y || true
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/latest" || true
+
+          gh release create latest \
+            dist/mir2x-linux-latest-build.zip \
+            dist/mir2x-windows-latest-build.zip \
+            --target "$GITHUB_SHA" \
+            --title "Latest build" \
+            --notes "Automated latest build for $GITHUB_SHA" \
+            --latest
