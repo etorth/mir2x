@@ -227,9 +227,9 @@ class SDChatPeerID
         }
 
     public:
-        bool group  () const { return type() == CP_GROUP  ; }
-        bool player () const { return type() == CP_PLAYER ; }
-        bool special() const { return type() == CP_SPECIAL; }
+        bool group  () const { return type() == CPR_GROUP  ; }
+        bool player () const { return type() == CPR_PLAYER ; }
+        bool special() const { return type() == CPR_SPECIAL; }
 
     public:
         uint64_t asU64() const
@@ -289,9 +289,9 @@ struct SDChatPeer
             return {};
         }
 
-        /**/ if(player()){ return {CP_PLAYER , id}; }
-        else if(group ()){ return {CP_GROUP  , id}; }
-        else             { return {CP_SPECIAL, id}; }
+        /**/ if(player()){ return {CPR_PLAYER , id}; }
+        else if(group ()){ return {CPR_GROUP  , id}; }
+        else             { return {CPR_SPECIAL, id}; }
     }
 };
 

@@ -376,18 +376,18 @@ corof::awaitable<> Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_
     };
 
     switch(toCPID.type()){
-        case CP_SPECIAL:
+        case CPR_SPECIAL:
             {
                 break;
             }
-        case CP_PLAYER:
+        case CPR_PLAYER:
             {
                 if(toCPID != cpid()){
                     fnForwardChatMessage(toCPID.id());
                 }
                 break;
             }
-        case CP_GROUP:
+        case CPR_GROUP:
             {
                 for(const auto memberDBID: dbLoadChatGroupMemberList(toCPID.id())){
                     if(memberDBID != dbid()){
@@ -494,7 +494,7 @@ corof::awaitable<> Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t,
     const auto fnForwardSystemMessage = [&sdCPID, this](const std::string xmlChatMsg)
     {
         const auto msgBuf = cerealf::serialize(xmlChatMsg);
-        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM), sdCPID, msgBuf, {});
+        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM), sdCPID, msgBuf, {});
 
         forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
         {
@@ -508,8 +508,8 @@ corof::awaitable<> Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t,
 
                 .refer = std::nullopt,
 
-                .from {CP_SPECIAL, SYS_CHATDBID_SYSTEM},
-                .to   {CP_PLAYER, sdCPID.id()},
+                .from {CPR_SPECIAL, SYS_CHATDBID_SYSTEM},
+                .to   {CPR_PLAYER, sdCPID.id()},
 
                 .message = msgBuf, // keep serialized
             },

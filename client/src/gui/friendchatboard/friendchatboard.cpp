@@ -293,7 +293,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
               {
                   const auto title = [chatPage = dynamic_cast<ChatPage *>(uiPage->page), this]()
                   {
-                      if(chatPage->peer.group() || chatPage->peer.special() || findChatPeer({CP_PLAYER, chatPage->peer.id})){
+                      if(chatPage->peer.group() || chatPage->peer.special() || findChatPeer({CPR_PLAYER, chatPage->peer.id})){
                           return chatPage->peer.name;
                       }
                       else if(chatPage->peer.id == m_processRun->getMyHeroDBID()){
@@ -998,7 +998,7 @@ void FriendChatBoard::setFriendList(const SDFriendList &sdFL)
         }
     };
 
-    fnAddFriend(SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM));
+    fnAddFriend(SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM));
     fnAddFriend(m_processRun->getMyHero()->cpid());
 
     for(const auto &sdCP: sdFL){

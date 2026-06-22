@@ -231,8 +231,8 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
             chatItem->name.setText(u8"%s", peer->name.c_str());
             chatItem->avatar.setLoadFunc([from, job, gender](const Widget *)
             {
-                if     (from == SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM)) return g_progUseDB->retrieve(0X00001100);
-                else if(from == SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_GROUP )) return g_progUseDB->retrieve(0X00001300);
+                if     (from == SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM)) return g_progUseDB->retrieve(0X00001100);
+                else if(from == SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_GROUP )) return g_progUseDB->retrieve(0X00001300);
                 else                                                           return g_progUseDB->retrieve(Hero::faceGfxID(gender, job));
             });
 

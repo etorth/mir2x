@@ -116,7 +116,7 @@ void SearchPage::appendFriendItem(const SDChatPeer &candidate)
         maxY,
         [this](const Widget *){ return w(); }, // use SearchPage::w()
 
-        SDChatPeerID(CP_PLAYER, candidate.id),
+        SDChatPeerID(CPR_PLAYER, candidate.id),
         to_u8rawstr(candidate.name).c_str(),
 
         [gender = candidate.player()->gender, job = candidate.player()->job](const Widget *)

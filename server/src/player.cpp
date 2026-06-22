@@ -1649,8 +1649,8 @@ void Player::postOnlineOK()
 
     std::vector<uint64_t> friendIDList
     {
-        SDChatPeerID(CP_SPECIAL, SYS_CHATDBID_SYSTEM).asU64(),
-        SDChatPeerID(CP_PLAYER , dbid()             ).asU64(),
+        SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM).asU64(),
+        SDChatPeerID(CPR_PLAYER , dbid()             ).asU64(),
     };
 
     std::for_each(m_sdFriendList.begin(), m_sdFriendList.end(), [&friendIDList](const auto &peer)

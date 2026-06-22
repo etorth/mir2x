@@ -7,8 +7,8 @@ SDChatPeerID::SDChatPeerID(uint64_t argData)
     : m_data(argData)
 {
     fflassert(id());
-    fflassert(type() >= CP_BEGIN, type());
-    fflassert(type() <  CP_END  , type());
+    fflassert(type() >= CPR_BEGIN, type());
+    fflassert(type() <  CPR_END  , type());
 }
 
 SDChatPeerID::SDChatPeerID(ChatPeerType argType, uint32_t argID)

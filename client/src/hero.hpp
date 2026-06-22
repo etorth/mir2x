@@ -89,7 +89,7 @@ class Hero: public CreatureMovable
 
         SDChatPeerID cpid() const
         {
-            return SDChatPeerID(CP_PLAYER, dbid());
+            return SDChatPeerID(CPR_PLAYER, dbid());
         }
 
         int job() const

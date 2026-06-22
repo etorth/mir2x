@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <utility>
 #include "motion.hpp"
 
 // define of directioin
@@ -416,12 +417,13 @@ enum BlockPlayerResultType: int
 
 enum ChatPeerType: int
 {
-    CP_NONE    = 0,
-    CP_BEGIN   = 1,
-    CP_SPECIAL = 1,
-    CP_PLAYER,
-    CP_GROUP,
-    CP_END,
+    // Use CPR_ instead of CP_: Windows GDI defines CP_NONE through windows.h.
+    CPR_NONE    = 0,
+    CPR_BEGIN   = 1,
+    CPR_SPECIAL = 1,
+    CPR_PLAYER,
+    CPR_GROUP,
+    CPR_END,
 };
 
 template<typename... Ts> struct VarDispatcher: Ts...

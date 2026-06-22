@@ -446,7 +446,7 @@ class Player final: public BattleObject
 
         SDChatPeerID cpid() const
         {
-            return SDChatPeerID(CP_PLAYER, dbid());
+            return SDChatPeerID(CPR_PLAYER, dbid());
         }
 
         bool gender() const
