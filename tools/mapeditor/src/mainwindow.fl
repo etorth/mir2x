@@ -963,7 +963,7 @@ g_aboutWindow->showAll();}
     const int dstH = g_editorMap.h() * SYS_MAPGRIDYP;
 
     if(dstW % overviewRatio || dstH % overviewRatio){
-        fl_alert("Overview ratio doesn't match map size: ratio = %d, w = %zu h = %zu", overviewRatio, g_editorMap.w(), g_editorMap.h());
+        fl_alert("Overview ratio doesn't match map size: ratio %d, w %d h %d", overviewRatio, to_d(g_editorMap.w()), to_d(g_editorMap.h()));
         return;
     }
 
