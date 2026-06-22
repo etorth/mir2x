@@ -128,6 +128,11 @@ target_link_libraries(mir2x_header_deps INTERFACE
     cereal::cereal
     sol2::sol2
     utf8::cpp)
+if(WIN32)
+    target_link_libraries(mir2x_header_deps INTERFACE
+        ws2_32
+        mswsock)
+endif()
 
 add_library(mir2x_common_deps INTERFACE)
 add_library(mir2x::common_deps ALIAS mir2x_common_deps)
