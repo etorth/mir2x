@@ -14,6 +14,10 @@
 #
 #=======================================================================================
 
+# CMake condition notes:
+# - WIN32 means the target platform is Windows, including MSVC and MinGW.
+# - MSVC  means the compiler is Microsoft-compatible; MinGW UCRT64 is not MSVC.
+
 cmake_minimum_required(VERSION 3.21)
 
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)

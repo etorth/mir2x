@@ -55,9 +55,15 @@ target_compile_definitions(mir2x_project_options INTERFACE
     ZSTD_MULTITHREAD
     $<$<CONFIG:Debug>:MIR2X_DEBUG_MODE>)
 
+if(WIN32)
+    target_compile_definitions(mir2x_project_options INTERFACE
+        WIN32_LEAN_AND_MEAN
+        NOMINMAX)
+endif()
+
 if(MSVC)
     target_compile_options(mir2x_project_options INTERFACE /W4)
-    target_compile_definitions(mir2x_project_options INTERFACE WIN32_LEAN_AND_MEAN _HAS_STD_BYTE=0)
+    target_compile_definitions(mir2x_project_options INTERFACE _HAS_STD_BYTE=0)
 else()
     target_compile_options(mir2x_project_options INTERFACE
         -fcoroutines
