@@ -1,4 +1,5 @@
 #include <cmath>
+#include <ranges>
 #include <algorithm>
 #include <utf8.h>
 #include "colorf.hpp"
