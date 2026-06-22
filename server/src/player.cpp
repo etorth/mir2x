@@ -1049,13 +1049,13 @@ corof::awaitable<> Player::onCMActionAttack(CMAction stCMA)
                                                 }
                                             case DBCOM_MAGICID(u8"半月弯刀"):
                                                 {
-                                                    scoped_alloc::svobuf_wrapper<std::tuple<int, int>, 3> aimGridList;
+                                                    std::inplace_vector<std::tuple<int, int>, 3> aimGridList;
                                                     for(int d: {-1, 0, 1}){
-                                                        aimGridList.c.push_back(pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(Direction(), d)));
+                                                        aimGridList.push_back(pathf::getFrontGLoc(X(), Y(), pathf::getNextDir(Direction(), d)));
                                                     }
 
                                                     for(const auto &[uid, coLoc]: m_inViewCOList){
-                                                        if(std::find(aimGridList.c.begin(), aimGridList.c.end(), std::make_tuple(coLoc.x, coLoc.y)) != aimGridList.c.end()){
+                                                        if(std::find(aimGridList.begin(), aimGridList.end(), std::make_tuple(coLoc.x, coLoc.y)) != aimGridList.end()){
                                                             aimUIDList.push_back(uid);
                                                         }
                                                     }

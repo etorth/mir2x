@@ -1,16 +1,16 @@
+#include <inplace_vector>
 #include <vector>
 #include "buffactattackmodifier.hpp"
 #include "bufflist.hpp"
-#include "scopedalloc.hpp"
 
 std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
 {
-    scoped_alloc::svobuf_wrapper<BaseBuffActAttackModifier *, 16> amodList;
+    std::inplace_vector<BaseBuffActAttackModifier *, 16> amodList;
     for(auto &p: m_activeBuffList){
         if(p.second){
             for(auto &actPtr: p.second->m_activeActList){
                 if(actPtr->getBAR().isAttackModifier()){
-                    amodList.c.push_back(dynamic_cast<BaseBuffActAttackModifier *>(actPtr.get()));
+                    amodList.push_back(dynamic_cast<BaseBuffActAttackModifier *>(actPtr.get()));
                 }
             }
         }
@@ -19,18 +19,18 @@ std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
     uint32_t buffID = 0;
     uint32_t modifierID = 0;
 
-    while(!(amodList.c.empty() || (buffID && modifierID))){
-        const auto pick = mathf::rand<size_t>(0, amodList.c.size() - 1);
-        std::swap(amodList.c.back(), amodList.c[pick]);
+    while(!(amodList.empty() || (buffID && modifierID))){
+        const auto pick = mathf::rand<size_t>(0, amodList.size() - 1);
+        std::swap(amodList.back(), amodList[pick]);
 
         if(!buffID){
-            buffID = amodList.c.back()->rollBuff();
+            buffID = amodList.back()->rollBuff();
         }
 
         if(!modifierID){
-            modifierID = amodList.c.back()->rollModifier();
+            modifierID = amodList.back()->rollModifier();
         }
-        amodList.c.pop_back();
+        amodList.pop_back();
     }
     return {buffID, modifierID};
 }

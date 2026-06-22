@@ -1,4 +1,5 @@
 #include <tuple>
+#include <inplace_vector>
 #include <cinttypes>
 #include "player.hpp"
 #include "uidf.hpp"
@@ -824,24 +825,24 @@ corof::awaitable<bool> Monster::moveOneStepGreedy(int argX, int argY)
         co_return false;
     }
 
-    scoped_alloc::svobuf_wrapper<int, 2> distList;
-    distList.c.push_back(1);
+    std::inplace_vector<int, 2> distList;
+    distList.push_back(1);
 
     if((maxStep() > 1) && (mathf::CDistance(X(), Y(), argX, argY) >= maxStep())){
-        distList.c.push_back(maxStep());
+        distList.push_back(maxStep());
     }
 
-    scoped_alloc::svobuf_wrapper<pathf::PathNode, 3> pathNodeList;
-    for(const auto stepSize: distList.c){
+    std::inplace_vector<pathf::PathNode, 3> pathNodeList;
+    for(const auto stepSize: distList){
 
-        pathNodeList.c.clear();
+        pathNodeList.clear();
         getValidChaseGrid(argX, argY, stepSize, pathNodeList);
 
-        if(pathNodeList.c.size() > 3){
-            throw fflpanic("invalid chase grid size: {}", pathNodeList.c.size());
+        if(pathNodeList.size() > 3){
+            throw fflpanic("invalid chase grid size: {}", pathNodeList.size());
         }
 
-        for(const auto &node: pathNodeList.c){
+        for(const auto &node: pathNodeList){
             if(co_await requestMove(node.X, node.Y, moveSpeed(), false, false)){
                 co_return true;
             }

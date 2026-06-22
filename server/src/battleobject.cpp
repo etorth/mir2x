@@ -798,17 +798,16 @@ std::vector<pathf::PathNode> BattleObject::getValidChaseGrid(int nX, int nY, int
     return result;
 }
 
-void BattleObject::getValidChaseGrid(int nX, int nY, int nDLen, scoped_alloc::svobuf_wrapper<pathf::PathNode, 3> &buf) const
+void BattleObject::getValidChaseGrid(int nX, int nY, int nDLen, std::inplace_vector<pathf::PathNode, 3> &buf) const
 {
-    buf.c.clear();
+    buf.clear();
     for(const auto &node: getChaseGrid(nX, nY, nDLen)){
         if(mapBin()->groundValid(node.X, node.Y)){
-            buf.c.push_back(node);
+            if(buf.size() == buf.capacity()){
+                throw fflpanic("more than 3 valid chase grid found");
+            }
+            buf.push_back(node);
         }
-    }
-
-    if(buf.c.size() > buf.svocap()){
-        throw fflpanic("more than 3 valid chase grid found");
     }
 }
 

@@ -1,4 +1,5 @@
 #include <cinttypes>
+#include <inplace_vector>
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "mathf.hpp"
@@ -9,7 +10,6 @@
 #include "server.hpp"
 #include "charobject.hpp"
 #include "battleobject.hpp"
-#include "scopedalloc.hpp"
 #include "actormsgpack.hpp"
 #include "protocoldef.hpp"
 
@@ -146,12 +146,15 @@ void CharObject::foreachInViewCO(std::function<void(const COLocation &)> fnOnLoc
     // updateInViewCO() may get called in fnOnLoc
     // it may change m_inViewCOList
 
-    scoped_alloc::svobuf_wrapper<COLocation, 128> coLocList;
+    std::inplace_vector<COLocation, 128> coLocList;
     for(const auto &[_, coLoc]: m_inViewCOList){
-        coLocList.c.push_back(coLoc);
+        if(coLocList.size() == coLocList.capacity()){
+            break;
+        }
+        coLocList.push_back(coLoc);
     }
 
-    for(const auto &coLoc: coLocList.c){
+    for(const auto &coLoc: coLocList){
         fnOnLoc(coLoc);
     }
 }

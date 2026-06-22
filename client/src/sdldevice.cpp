@@ -1,5 +1,6 @@
 #include <ranges>
 #include <numeric>
+#include <inplace_vector>
 #include <cinttypes>
 #include <system_error>
 #include <unordered_map>
@@ -16,7 +17,6 @@
 #include "sdldevice.hpp"
 #include "clientargparser.hpp"
 #include "soundeffecthandle.hpp"
-#include "scopedalloc.hpp"
 
 extern Log *g_mir2xLog;
 extern SDLDevice *g_sdlDevice;
@@ -1347,7 +1347,7 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
     }
 
     int pickedChannel = -1;
-    scoped_alloc::svobuf_wrapper<int64_t, 64> idleChannelList; // use int64_t because ASAN reports error: alignment < 8
+    std::inplace_vector<int, 128> idleChannelList;
     {
         // clean pending channel
         // can't delete channel and handle in Mix_ChannelFinished()
@@ -1361,20 +1361,20 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
             if(auto p = m_channelStateList.find(channel); (p != m_channelStateList.end()) && p->second.hooked){
                 continue;
             }
-            else{
-                idleChannelList.c.push_back(channel);
+            else if(idleChannelList.size() < idleChannelList.capacity()){
+                idleChannelList.push_back(channel);
             }
         }
 
-        if(idleChannelList.c.empty()){
+        if(idleChannelList.empty()){
             return {};
         }
 
-        pickedChannel = to_d(idleChannelList.c.back());
+        pickedChannel = to_d(idleChannelList.back());
         m_freeChannelList.erase(pickedChannel);
     }
 
-    for(const auto idleChannel: idleChannelList.c){
+    for(const auto idleChannel: idleChannelList){
         m_channelStateList.erase(idleChannel);
     }
 

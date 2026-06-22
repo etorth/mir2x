@@ -1,4 +1,5 @@
 #pragma once
+#include <inplace_vector>
 #include <map>
 #include <vector>
 #include <memory>
@@ -6,7 +7,6 @@
 #include <unordered_map>
 #include "pathf.hpp"
 #include "sgf.hpp"
-#include "scopedalloc.hpp"
 #include "charobject.hpp"
 #include "damagenode.hpp"
 #include "actionnode.hpp"
@@ -216,7 +216,7 @@ class BattleObject: public CharObject
         std::vector<pathf::PathNode> getValidChaseGrid(int, int, int) const;
 
     protected:
-        void getValidChaseGrid(int, int, int, scoped_alloc::svobuf_wrapper<pathf::PathNode, 3> &) const;
+        void getValidChaseGrid(int, int, int, std::inplace_vector<pathf::PathNode, 3> &) const;
 
     protected:
         int checkPathGrid(int, int) const;
