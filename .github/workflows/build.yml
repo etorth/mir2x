@@ -223,12 +223,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          gh release delete latest --cleanup-tag -y || true
+          gh release delete latest --repo "$GITHUB_REPOSITORY" --cleanup-tag -y || true
           gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/latest" || true
 
           gh release create latest \
             dist/mir2x-linux-latest-build.zip \
             dist/mir2x-windows-latest-build.zip \
+            --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Latest build" \
             --notes "Automated latest build for $GITHUB_SHA" \
