@@ -57,6 +57,8 @@ target_compile_definitions(mir2x_project_options INTERFACE
 
 if(WIN32)
     target_compile_definitions(mir2x_project_options INTERFACE
+        WINVER=0x0601
+        _WIN32_WINNT=0x0601
         WIN32_LEAN_AND_MEAN
         NOMINMAX)
 endif()
