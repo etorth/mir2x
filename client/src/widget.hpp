@@ -30,8 +30,8 @@ class WidgetTreeNode // tree concept, used by class Widget only
         };
 
     private:
-        template<typename IN, typename OUT_1, typename OUT_2> using check_const_cond_t         = std::conditional_t<std::is_const_v<std::remove_reference_t<IN>>, OUT_1, OUT_2>;
-        template<typename IN, typename OUT                  > using check_const_cond_out_ptr_t = check_const_cond_t<IN, const OUT *, OUT *>;
+        template<typename InputType, typename  ConstType, typename MutableType> using check_const_cond_t         = std::conditional_t<std::is_const_v<std::remove_reference_t<InputType>>, ConstType, MutableType>;
+        template<typename InputType, typename OutputType                      > using check_const_cond_out_ptr_t = check_const_cond_t<InputType, const OutputType *, OutputType *>;
 
     private:
         template<typename T> using VarTypeHelperBase = std::variant<
