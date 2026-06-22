@@ -419,6 +419,7 @@ SDLDevice::SDLDevice()
         throw fflpanic("multiple initialization for SDLDevice");
     }
 
+    SDL_SetMainReady();
     if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
         throw fflpanic("initialization failed for SDL2: {}", SDL_GetError());
     }

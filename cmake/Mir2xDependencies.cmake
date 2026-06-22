@@ -49,6 +49,7 @@ add_library(mir2x_project_options INTERFACE)
 add_library(mir2x::project_options ALIAS mir2x_project_options)
 target_compile_definitions(mir2x_project_options INTERFACE
     ASIO_STANDALONE
+    SDL_MAIN_HANDLED
     SOL_ALL_SAFETIES_ON=1
     SOL_SAFE_NUMERICS=1
     ZSTD_MULTITHREAD
@@ -78,7 +79,6 @@ endif()
 add_library(mir2x_sdl2 INTERFACE)
 add_library(mir2x::sdl2 ALIAS mir2x_sdl2)
 target_link_libraries(mir2x_sdl2 INTERFACE
-    $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
     $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
 
 add_library(mir2x_sdl2_ext INTERFACE)
