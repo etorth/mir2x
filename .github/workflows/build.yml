@@ -66,8 +66,7 @@ jobs:
             pkg-config \
             python3 \
             tar \
-            unzip \
-            zip
+            unzip
 
       - name: Build and install
         env:
@@ -136,7 +135,6 @@ jobs:
           msystem: UCRT64
           update: true
           install: >-
-            zip
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-git
             mingw-w64-ucrt-x86_64-cmake
@@ -207,6 +205,11 @@ jobs:
         with:
           name: mir2x-windows-install
           path: dist/windows
+
+      - name: Install packaging tools
+        run: |
+          sudo apt update
+          sudo apt install -y zip
 
       - name: Package release assets
         run: |
