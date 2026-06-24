@@ -72,7 +72,7 @@ struct ClientArgParser
         , debugClickEvent      (argf::parseInteger<bool>(parseString(parser, "--debug-click-event",        argf::OPT, true), "debug-click-event",        argf::checkPass<bool>, false, true).first)
         , screenMode           (argf::parseInteger<int> (parseString(parser, "--screen-mode",              argf::OPT      ), "screen-mode",              checkScreenMode,           0,    0).first)
 
-        , serverIP(parseString(parser, "--server-ip", argf::REQ).value())
+        , serverIP(parseString(parser, "--server-ip", argf::OPT).value_or("localhost"))
         , serverPort(argf::parseInteger<int>(parseString(parser, "--server-port", argf::OPT), "server-port", argf::checkUserListenPort(false), argf::defVal::clientPort))
 
         , resPath    (parseString(parser, "--res-path",     argf::OPT).value_or("res"))
