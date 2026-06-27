@@ -1,12 +1,12 @@
 # mir2x
 
+<a href="https://github.com/etorth/mir2x/actions/workflows/build.yml">
+  <img alt="GitHub Actions Build Status"
+       src="https://github.com/etorth/mir2x/actions/workflows/build.yml/badge.svg"/>
+</a>
 <a href="https://scan.coverity.com/projects/etorth-mir2x">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/9270/badge.svg"/>
-</a>
-<a href="https://ci.appveyor.com/project/etorth/mir2x">
-  <img alt="Appveyor Build Status"
-       src="https://ci.appveyor.com/api/projects/status/github/etorth/mir2x?svg=true"/>
 </a>
 <a href="https://travis-ci.org/github/etorth/mir2x">
   <img alt="Travis CI Build Status"
@@ -24,6 +24,15 @@ mir2x is an experimental project that verifies actor-model based parallelism for
   - pkgviewer
   - animaker
   - mapeditor
+
+### Prebuilt binaries
+
+Each push to the repository publishes a rolling `latest` GitHub release containing Linux and MinGW UCRT64 install trees:
+
+- [mir2x-linux-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-linux-latest-build.zip)
+- [mir2x-windows-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-windows-latest-build.zip)
+
+The full release page is at <https://github.com/etorth/mir2x/releases/tag/latest>.
 
 ### Notes
 - This repo uses C++ coroutine to implement actor model, requires compiler to support c++23.
@@ -49,27 +58,60 @@ An IME for SDL fullscreen mode:
 <https://user-images.githubusercontent.com/1754214/213572554-785e826c-226d-43fa-a196-ee4f92112db2.mp4>
 
 
-### Windows
-
-For windows please download binaries from appveyor
-```
-https://ci.appveyor.com/project/etorth/mir2x/build/artifacts
-```
-If complains missing dll, you may need to copy .dll files from mir2x/bin to mir2x/client and mir2x/server.
-
-If running on WSL/WSL2, check the following to configure PulseAudio to support sound effect, the sound may get played with noticable delay.
-<img src="https://github.com/etorth/mir2x/raw/master/readme/pulseaudio.png"/>
-
 ### Building from source
 
 mir2x uses vcpkg manifest mode for third-party dependencies on 64-bit native Linux and 64-bit MSYS2 UCRT64/MinGW. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
 
+The exact build commands run in CI live in [.github/workflows/build.yml](.github/workflows/build.yml); the instructions below mirror that workflow.
+
+#### Linux (Ubuntu 26.04)
+
+mir2x is built with GCC 16. On Ubuntu, GCC 16 comes from the toolchain test PPA:
+
+```sh
+$ sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+$ sudo apt update
+$ sudo apt install -y \
+    autoconf autoconf-archive automake build-essential cmake curl \
+    g++-16 gcc-16 gawk gettext git libtool ninja-build pkg-config \
+    python3 tar unzip \
+    libgl1-mesa-dev libglu1-mesa-dev \
+    libice-dev libltdl-dev libsm-dev \
+    libx11-dev libxcursor-dev libxext-dev libxfixes-dev \
+    libxft-dev libxinerama-dev libxrender-dev
+```
+
+Then clone and build:
+
 ```sh
 $ git clone https://github.com/etorth/mir2x.git
-$ mkdir b_mir2x
-$ cd b_mir2x
-$ /path/to/mir2x/build.py
+$ mkdir b_mir2x && cd b_mir2x
+$ python3 /path/to/mir2x/build.py --c-compiler=gcc-16 --cxx-compiler=g++-16 --parallel=4
 ```
+
+#### Windows (MSYS2 UCRT64)
+
+Install [MSYS2](https://www.msys2.org/), then from a UCRT64 shell install the toolchain:
+
+```sh
+$ pacman -S --needed \
+    mingw-w64-ucrt-x86_64-toolchain \
+    mingw-w64-ucrt-x86_64-git \
+    mingw-w64-ucrt-x86_64-cmake \
+    mingw-w64-ucrt-x86_64-ninja \
+    mingw-w64-ucrt-x86_64-pkgconf \
+    mingw-w64-ucrt-x86_64-python
+```
+
+Then clone and build from the same UCRT64 shell; the helper selects the `x64-mingw-static` vcpkg triplet by default:
+
+```sh
+$ git clone https://github.com/etorth/mir2x.git
+$ mkdir b_mir2x && cd b_mir2x
+$ python3 /path/to/mir2x/build.py --parallel=4
+```
+
+#### Helper script options
 
 Builds are incremental by default: rerunning the same command keeps `<build-dir>/build`, including CMake object files, `vcpkg_installed`, and the default resource clone. Use `--fresh` only when you want a real clean build: it deletes `<build-dir>/build`, including `vcpkg_installed` and `<build-dir>/build/assets/mir2x_res`, so vcpkg dependencies are reinstalled/rebuilt and default resources are cloned again.
 
@@ -79,21 +121,11 @@ Install-time client/server resource packing always runs. If `--res-path` is omit
 $ /path/to/mir2x/build.py --res-path=/path/to/mir2x_res
 ```
 
-To choose a compiler for both vcpkg ports and mir2x targets, pass it through the helper. This enables `VCPKG_CHAINLOAD_TOOLCHAIN_FILE` internally:
+Other useful options:
 
-```sh
-$ /path/to/mir2x/build.py --c-compiler=gcc-16 --cxx-compiler=g++-16
-```
-
-To control build parallelism, use `--parallel=<N>`:
-
-```sh
-$ /path/to/mir2x/build.py --parallel=16
-```
-
-To show detailed CMake/vcpkg command output, add `--verbose`.
-
-On Windows, run the same command from an MSYS2 UCRT64 shell; the helper selects the `x64-mingw-static` vcpkg triplet by default.
+- `--c-compiler=<cc> --cxx-compiler=<cxx>` selects a compiler for both vcpkg ports and mir2x targets (enables `VCPKG_CHAINLOAD_TOOLCHAIN_FILE` internally).
+- `--parallel=<N>` controls build parallelism.
+- `--verbose` shows detailed CMake/vcpkg command output.
 ### First time run
 To start the monoserver, find a linux machine to host the server, I tried to host it on ```Oracle Cloud Infrastructure```, it works perfectly with the ```always-free``` plan. Click menu server/launch to start the service before start client:
 
@@ -146,18 +178,3 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
 * [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation.
 * [SQLiteCpp](https://github.com/SRombauts/SQLiteCpp) - SQLiteC++ (SQLiteCpp) is a smart and easy to use C++ SQLite3 wrapper.
-
-### running WSL2
-
-wsl2 sucks! if in WSL2 you can ping 8.8.8.8 but can not ping google.com, that means you DNS is wrong.
-1. in windows run
-   ```shell
-   ipconfig
-   ```
-   You will see line as ``Ethernet adapter vEthernet (WSL (Hyper-V firewall))``, the ``IPv4 Address`` of this section is used as your DNS in WSL2 ``/etc/resolv.conf``, everytime when WSL2 reboots, it automatically create this ``/etc/resolv.conf``, you need to disable the automagicall overwrite, there is comment in file ``/etc/resolv.conf`` explaining how to do it.
-
-2. in windows run
-   ```shell
-   ipconfig /all
-   ```
-   You will find the section ``Wireless LAN adapter Wi-Fi``, inside the section find ``DNS Server`` and copy all IPs to ``/etc/resolv.conf``, reboot WSL2, it should be good now.
