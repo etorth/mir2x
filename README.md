@@ -113,7 +113,7 @@ Builds are incremental by default: rerunning the same command keeps `<build-dir>
 Install-time client/server resource packing always runs. If `--res-path` is omitted, the CMake build clones `https://github.com/etorth/mir2x_res.git` to `<build-dir>/build/assets/mir2x_res` during the build stage. To use an existing resource checkout, pass:
 
 ```sh
-$ /path/to/mir2x/build.py [options] --res-path=/path/to/mir2x_res
+/path/to/mir2x/build.py [options] --res-path=/path/to/mir2x_res
 ```
 
 Other useful options:
