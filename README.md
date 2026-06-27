@@ -125,15 +125,15 @@ Other useful options:
 To start the monoserver, find a linux machine to host the server, I tried to host it on ```Oracle Cloud Infrastructure```, it works perfectly with the ```always-free``` plan. Click menu server/launch to start the service before start client:
 
 ```sh
-$ cd mir2x/b/install/server
-$ ./server --auto-launch
+cd b_mir2x/install/server
+./server --auto-launch
 ```
 
 Start client, currently you can use default account (id = test, pwd = 123456) to try it:
 
 ```sh
-$ cd mir2x/b/install/client
-$ ./client --server-ip=localhost --auto-login=test:123456
+cd b_mir2x/install/client
+./client --server-ip=localhost --auto-login=test:123456
 ```
 
 ### Packages
