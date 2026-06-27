@@ -58,7 +58,6 @@ An IME for SDL fullscreen mode:
 
 mir2x uses vcpkg manifest mode for third-party dependencies on 64-bit native Linux and 64-bit MSYS2 UCRT64/MinGW. The helper script clones and bootstraps a local vcpkg checkout in the current working directory, configures the CMake build, builds, and installs.
 
-The exact build commands run in CI live in [.github/workflows/build.yml](.github/workflows/build.yml); the instructions below mirror that workflow.
 
 #### Linux (Ubuntu 26.04)
 
@@ -67,7 +66,8 @@ mir2x is built with GCC 16:
 ```sh
 sudo apt update
 sudo apt install -y \
-    autoconf autoconf-archive automake build-essential cmake curl \
+    autoconf autoconf-archive automake \
+    build-essential cmake curl \
     g++-16 gcc-16 gawk gettext git libtool ninja-build pkg-config \
     python3 tar unzip \
     libgl1-mesa-dev libglu1-mesa-dev \
@@ -81,7 +81,7 @@ Then clone and build:
 ```sh
 git clone https://github.com/etorth/mir2x.git
 mkdir b_mir2x && cd b_mir2x
-python3 /path/to/mir2x/build.py --c-compiler=gcc-16 --cxx-compiler=g++-16 --parallel=4
+python3 /path/to/mir2x/build.py --c-compiler=gcc-16 --cxx-compiler=g++-16 --parallel=10
 ```
 
 #### Windows (MSYS2 UCRT64)
@@ -103,7 +103,7 @@ Then clone and build from the same UCRT64 shell; the helper selects the `x64-min
 ```sh
 git clone https://github.com/etorth/mir2x.git
 make b_mir2x && cd b_mir2x
-python3 /path/to/mir2x/build.py --build-dir=/path/to/b_mir2x --parallel=4
+python3 /path/to/mir2x/build.py --build-dir=/path/to/b_mir2x --parallel=10
 ```
 
 #### Helper script options
