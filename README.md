@@ -8,10 +8,6 @@
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/9270/badge.svg"/>
 </a>
-<a href="https://travis-ci.org/github/etorth/mir2x">
-  <img alt="Travis CI Build Status"
-       src="https://travis-ci.org/etorth/mir2x.svg?branch=master"/>
-</a>
 <a href="https://gitter.im/mir2x/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link">
   <img alt="Gitter chat"
        src="https://badges.gitter.im/org.png"/>
@@ -27,7 +23,7 @@ mir2x is an experimental project that verifies actor-model based parallelism for
 
 ### Prebuilt binaries
 
-Each push to the repository publishes a rolling `latest` GitHub release containing Linux and MinGW UCRT64 install trees:
+Each push to the repository publishes a rolling `latest` GitHub release containing Linux and Windows MinGW UCRT64 install trees:
 
 - [mir2x-linux-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-linux-latest-build.zip)
 - [mir2x-windows-latest-build.zip](https://github.com/etorth/mir2x/releases/download/latest/mir2x-windows-latest-build.zip)
@@ -66,12 +62,11 @@ The exact build commands run in CI live in [.github/workflows/build.yml](.github
 
 #### Linux (Ubuntu 26.04)
 
-mir2x is built with GCC 16. On Ubuntu, GCC 16 comes from the toolchain test PPA:
+mir2x is built with GCC 16:
 
 ```sh
-$ sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-$ sudo apt update
-$ sudo apt install -y \
+sudo apt update
+sudo apt install -y \
     autoconf autoconf-archive automake build-essential cmake curl \
     g++-16 gcc-16 gawk gettext git libtool ninja-build pkg-config \
     python3 tar unzip \
@@ -84,9 +79,9 @@ $ sudo apt install -y \
 Then clone and build:
 
 ```sh
-$ git clone https://github.com/etorth/mir2x.git
-$ mkdir b_mir2x && cd b_mir2x
-$ python3 /path/to/mir2x/build.py --c-compiler=gcc-16 --cxx-compiler=g++-16 --parallel=4
+git clone https://github.com/etorth/mir2x.git
+mkdir b_mir2x && cd b_mir2x
+python3 /path/to/mir2x/build.py --c-compiler=gcc-16 --cxx-compiler=g++-16 --parallel=4
 ```
 
 #### Windows (MSYS2 UCRT64)
@@ -94,7 +89,7 @@ $ python3 /path/to/mir2x/build.py --c-compiler=gcc-16 --cxx-compiler=g++-16 --pa
 Install [MSYS2](https://www.msys2.org/), then from a UCRT64 shell install the toolchain:
 
 ```sh
-$ pacman -S --needed \
+pacman -S --needed \
     mingw-w64-ucrt-x86_64-toolchain \
     mingw-w64-ucrt-x86_64-git \
     mingw-w64-ucrt-x86_64-cmake \
@@ -106,9 +101,9 @@ $ pacman -S --needed \
 Then clone and build from the same UCRT64 shell; the helper selects the `x64-mingw-static` vcpkg triplet by default:
 
 ```sh
-$ git clone https://github.com/etorth/mir2x.git
-$ mkdir b_mir2x && cd b_mir2x
-$ python3 /path/to/mir2x/build.py --parallel=4
+git clone https://github.com/etorth/mir2x.git
+make b_mir2x && cd b_mir2x
+python3 /path/to/mir2x/build.py --build-dir=/path/to/b_mir2x --parallel=4
 ```
 
 #### Helper script options
@@ -118,7 +113,7 @@ Builds are incremental by default: rerunning the same command keeps `<build-dir>
 Install-time client/server resource packing always runs. If `--res-path` is omitted, the CMake build clones `https://github.com/etorth/mir2x_res.git` to `<build-dir>/build/assets/mir2x_res` during the build stage. To use an existing resource checkout, pass:
 
 ```sh
-$ /path/to/mir2x/build.py --res-path=/path/to/mir2x_res
+$ /path/to/mir2x/build.py [options] --res-path=/path/to/mir2x_res
 ```
 
 Other useful options:
@@ -141,29 +136,6 @@ $ cd mir2x/b/install/client
 $ ./client --server-ip=localhost --auto-login=test:123456
 ```
 
-### Code style
-
-Global variables:
-
-1. no globals of builtin types, they are lacking of multithread access control.
-2. no globals of class instances, use pointer instead, for better construction/destruction control.
-3. all member functions of globals should be:
-    - simple
-    - thread-safe
-    - atomic operations
-4. name all global pointers as g_XXXX and use them by extern, and
-    - allocate them at beginning of main()
-    - remain valid during the whole run, and ONLY free them at process exit.
-
-Error handling:
-1. use exception for good/bad path control, force catch at exit of main() or clone().
-2. do strict parameters checking before doing actual logic, no assumptions.
-3. let the crash happen ASAP if any fatal error detected
-
-General rules:
-1. make all member functions self-contained, avoid first/second half logic.
-2. don't do optimization too early, perfer simple/clear logic.
-
 ### Packages
 
 mir2x uses a number of open source projects to work properly, and of course itself is open source with a public repository on github, please remind me if I missed anything.
@@ -176,5 +148,4 @@ mir2x uses a number of open source projects to work properly, and of course itse
 * [sol2](https://github.com/ThePhD/sol2) - A fast, simple C++ and Lua binding.
 * [tinyxml2](http://www.grinninglizard.com/tinyxml2/) - A simple, small, efficient, C++ XML parser.
 * [utf8-cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweigt C++ library for UTF-8 string handling.
-* [ThreadPool](https://github.com/progschj/ThreadPool) - A simple C++11 Thread Pool implementation.
 * [SQLiteCpp](https://github.com/SRombauts/SQLiteCpp) - SQLiteC++ (SQLiteCpp) is a smart and easy to use C++ SQLite3 wrapper.
