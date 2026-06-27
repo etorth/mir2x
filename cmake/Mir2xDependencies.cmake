@@ -63,6 +63,11 @@ if(WIN32)
         NOMINMAX)
 endif()
 
+if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 16)
+    # GCC 16's C++26 constexpr exception declarations conflict with static libstdc++ on MinGW Debug builds.
+    target_compile_definitions(mir2x_project_options INTERFACE $<$<CONFIG:Debug>:__cpp_lib_constexpr_exceptions=0>)
+endif()
+
 if(MSVC)
     target_compile_options(mir2x_project_options INTERFACE /W4)
     target_compile_definitions(mir2x_project_options INTERFACE _HAS_STD_BYTE=0)

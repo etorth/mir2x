@@ -83,23 +83,29 @@ std::vector<std::string> filesys::getFileList(const char *dir, bool fullPath, co
     std::vector<std::string> result;
     std::regex matchRegex(str_haschar(reg) ? reg : ".*");
 
+    const auto fnGetUTF8PathString = [](const std::filesystem::path &path) -> std::string
+    {
+        const auto u8path = path.u8string();
+        return std::string{reinterpret_cast<const char *>(u8path.data()), u8path.size()};
+    };
+
     for(auto &p: std::filesystem::directory_iterator(dir)){
         if(!p.is_regular_file()){
             continue;
         }
 
-        const auto fileName = p.path().filename().u8string();
+        const auto baseName = fnGetUTF8PathString(p.path().filename());
         if(str_haschar(reg)){
-            if(!std::regex_match(reinterpret_cast<const char *>(fileName.c_str()), matchRegex)){
+            if(!std::regex_match(baseName, matchRegex)){
                 continue;
             }
         }
 
         if(fullPath){
-            result.push_back(reinterpret_cast<const char *>(p.path().u8string().c_str()));
+            result.push_back(fnGetUTF8PathString(p.path()));
         }
         else{
-            result.push_back(reinterpret_cast<const char *>(p.path().filename().c_str()));
+            result.push_back(baseName);
         }
     }
     return result;

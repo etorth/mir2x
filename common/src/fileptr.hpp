@@ -5,7 +5,9 @@
 #include <cstring>
 #include <cstdint>
 #include <climits>
+#include <string>
 #include <concepts>
+#include <filesystem>
 #include <type_traits>
 #include "strf.hpp"
 #include "totype.hpp"
@@ -30,7 +32,14 @@ inline auto make_fileptr_helper(const char *path, const char *mode)
     fflassert(str_haschar(mode), mode);
 
     errno = 0;
-    if(auto fp = std::fopen(path, mode); fp){
+#if defined(_WIN32)
+    const auto wide_path = std::filesystem::path(to_u8rawstr(path)).wstring();
+    const auto wide_mode = std::wstring(mode, mode + std::strlen(mode)); // safe here since mode should only contain ASCII control letters
+    auto fp = ::_wfopen(wide_path.c_str(), wide_mode.c_str());
+#else
+    auto fp = std::fopen(path, mode);
+#endif
+    if(fp){
         constexpr auto fileptr_deleter = [](std::FILE *fp)-> void
         {
             // don't need to check fp
