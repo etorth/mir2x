@@ -71,6 +71,7 @@ jobs:
             libxrandr-dev \
             libxrender-dev \
             libxss-dev \
+            libxtst-dev \
             ninja-build \
             pkg-config \
             python3 \
