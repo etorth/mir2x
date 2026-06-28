@@ -286,7 +286,7 @@ void Client::switchProcess(int oldID, int newID)
                         {
                             // on initialization
                             m_currentProcess = std::make_unique<ProcessLogo>();
-                            SDL_ShowCursor(0);
+                            SDL_HideCursor();
                             break;
                         }
                     case PROCESSID_EXIT:
@@ -309,7 +309,7 @@ void Client::switchProcess(int oldID, int newID)
                         {
                             // on initialization
                             m_currentProcess = std::make_unique<ProcessSync>();
-                            SDL_ShowCursor(1);
+                            SDL_ShowCursor();
                             break;
                         }
                     case PROCESSID_EXIT:
@@ -331,7 +331,7 @@ void Client::switchProcess(int oldID, int newID)
                     case PROCESSID_LOGIN:
                         {
                             m_currentProcess = std::make_unique<ProcessLogin>();
-                            SDL_ShowCursor(1);
+                            SDL_ShowCursor();
                             break;
                         }
                     default:

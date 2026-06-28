@@ -232,9 +232,9 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
     }
 
     if(true
-            && event.type == SDL_MOUSEBUTTONUP
+            && event.type == SDL_EVENT_MOUSE_BUTTON_UP
             && event.button.button == SDL_BUTTON_RIGHT
-            && m.create(background.roi()).in(event.button.x, event.button.y)){
+            && m.create(background.roi()).in(to_d(event.button.x), to_d(event.button.y))){
 
         if(auto chatPage = hasParent<ChatPage>()){
             if(chatPage->menu){
@@ -281,8 +281,8 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
             }}),
 
             DIR_UPLEFT,
-            event.button.x - (m.x - m.ro->x),
-            event.button.y - (m.y - m.ro->y),
+            to_d(event.button.x) - (m.x - m.ro->x),
+            to_d(event.button.y) - (m.y - m.ro->y),
             true);
 
             chatPage->menu->setShow(true);

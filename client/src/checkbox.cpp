@@ -143,13 +143,13 @@ bool CheckBox::processEventDefault(const SDL_Event &event, bool valid, Widget::R
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                return consumeFocus(m.in(event.button.x, event.button.y));
+                return consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y)));
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(m.in(event.button.x, event.button.y)){
+                if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     setFocus(true);
                     toggle();
                     return true;
@@ -158,18 +158,18 @@ bool CheckBox::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                     return consumeFocus(false);
                 }
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                return consumeFocus(m.in(event.motion.x, event.motion.y));
+                return consumeFocus(m.in(to_d(event.motion.x), to_d(event.motion.y)));
             }
-        case SDL_KEYUP:
+        case SDL_EVENT_KEY_UP:
             {
                 return consumeFocus(focus());
             }
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
                 if(focus()){
-                    switch(event.key.keysym.sym){
+                    switch(event.key.key){
                         case SDLK_SPACE:
                         case SDLK_RETURN:
                             {

@@ -247,20 +247,20 @@ bool SkillBoard::processEventDefault(const SDL_Event &event, bool valid, Widget:
     }
 
     switch(event.type){
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(event.motion.x, event.motion.y) || focus())){
-                    moveBy(event.motion.xrel, event.motion.yrel, Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
+                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(to_d(event.motion.x), to_d(event.motion.y)) || focus())){
+                    moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
                     return consumeFocus(true);
                 }
                 return consumeFocus(false);
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            return consumeFocus(m.in(event.button.x, event.button.y));
+                            return consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y)));
                         }
                     default:
                         {
@@ -268,10 +268,10 @@ bool SkillBoard::processEventDefault(const SDL_Event &event, bool valid, Widget:
                         }
                 }
             }
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             {
-                if(m.create(m_pageCanvas.roi(this)).in(event.wheel.mouseX, event.wheel.mouseY)){
-                    m_slider.addValue(event.wheel.y * -0.1f, true);
+                if(m.create(m_pageCanvas.roi(this)).in(to_d(event.wheel.mouse_x), to_d(event.wheel.mouse_y))){
+                    m_slider.addValue(to_d(event.wheel.y) * -0.1f, true);
                 }
                 return consumeFocus(true);
             }

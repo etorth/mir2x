@@ -64,9 +64,9 @@ ProcessSync::ProcessSync()
 void ProcessSync::processEvent(const SDL_Event &event)
 {
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                if(event.key.keysym.sym == SDLK_ESCAPE){
+                if(event.key.key == SDLK_ESCAPE){
                     g_client->requestProcess(PROCESSID_LOGIN);
                 }
                 break;

@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "sdldevice.hpp"
 #include "sliderbase.hpp"
 #include "clientargparser.hpp"
@@ -93,21 +93,21 @@ bool SliderBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(inSlider(event.button.x, event.button.y, m)){
+                if(inSlider(to_d(event.button.x), to_d(event.button.y), m)){
                     m_sliderState = BEVENT_DOWN;
                     return consumeFocus(true);
                 }
-                else if(const auto mbar = m.create(m_bar.roi(this)); mbar.in(event.button.x, event.button.y)){
+                else if(const auto mbar = m.create(m_bar.roi(this)); mbar.in(to_d(event.button.x), to_d(event.button.y))){
                     m_sliderState = BEVENT_ON;
                     if(const auto newValue = std::clamp<float>([&event, startDstX = mbar.x - mbar.ro->x, startDstY = mbar.y - mbar.ro->y, this]() -> float
                     {
                         if(vbar()){
-                            return ((event.button.y - startDstY) * 1.0f) / std::max<int>(1, m_bar.h());
+                            return ((to_d(event.button.y) - startDstY) * 1.0f) / std::max<int>(1, m_bar.h());
                         }
                         else{
-                            return ((event.button.x - startDstX) * 1.0f) / std::max<int>(1, m_bar.w());
+                            return ((to_d(event.button.x) - startDstX) * 1.0f) / std::max<int>(1, m_bar.w());
                         }
                     }(), 0.0f, 1.0f);
 
@@ -121,9 +121,9 @@ bool SliderBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                     return consumeFocus(false);
                 }
             }
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                if(inSlider(event.button.x, event.button.y, m)){
+                if(inSlider(to_d(event.button.x), to_d(event.button.y), m)){
                     m_sliderState = BEVENT_ON;
                     return consumeFocus(true);
                 }
@@ -132,18 +132,18 @@ bool SliderBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                     return consumeFocus(false);
                 }
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
                 if(event.motion.state & SDL_BUTTON_LMASK){
-                    if(inSlider(event.motion.x, event.motion.y, m) || focus()){
+                    if(inSlider(to_d(event.motion.x), to_d(event.motion.y), m) || focus()){
                         m_sliderState = BEVENT_DOWN;
                         if(const auto newValue = std::clamp<float>(getValue() + [&event, this]() -> float
                         {
                             if(vbar()){
-                                return pixel2Value(event.motion.yrel);
+                                return pixel2Value(to_d(event.motion.yrel));
                             }
                             else{
-                                return pixel2Value(event.motion.xrel);
+                                return pixel2Value(to_d(event.motion.xrel));
                             }
                         }(), 0.0f, 1.0f);
 
@@ -158,7 +158,7 @@ bool SliderBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                     }
                 }
                 else{
-                    if(inSlider(event.motion.x, event.motion.y, m)){
+                    if(inSlider(to_d(event.motion.x), to_d(event.motion.y), m)){
                         m_sliderState = BEVENT_ON;
                         return consumeFocus(true);
                     }

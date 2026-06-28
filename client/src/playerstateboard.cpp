@@ -354,20 +354,20 @@ bool PlayerStateBoard::processEventDefault(const SDL_Event &event, bool valid, W
     }
 
     switch(event.type){
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(event.motion.x, event.motion.y) || focus())){
+                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(to_d(event.motion.x), to_d(event.motion.y)) || focus())){
                     if(const auto par = parent()){
-                        moveBy(event.motion.xrel, event.motion.yrel, par->roi());
+                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), par->roi());
                     }
                     else{
-                        moveBy(event.motion.xrel, event.motion.yrel, Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
+                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
                     }
                     return consumeFocus(true);
                 }
                 return consumeFocus(false);
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
@@ -375,7 +375,7 @@ bool PlayerStateBoard::processEventDefault(const SDL_Event &event, bool valid, W
                             auto myHeroPtr = m_processRun->getMyHero();
                             auto &invPackRef = myHeroPtr->getInvPack();
                             for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
-                                if(mathf::pointInRectangle(event.button.x, event.button.y, m.x + m_gridList[i].x, m.y + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
+                                if(mathf::pointInRectangle(to_d(event.button.x), to_d(event.button.y), m.x + m_gridList[i].x, m.y + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h)){
                                     if(const auto grabbedItem = invPackRef.getGrabbedItem()){
                                         if(myHeroPtr->canWear(grabbedItem.itemID, i)){
                                             m_processRun->requestEquipWear(grabbedItem.itemID, grabbedItem.seqID, i);
@@ -391,7 +391,7 @@ bool PlayerStateBoard::processEventDefault(const SDL_Event &event, bool valid, W
                                     break;
                                 }
                             }
-                            return consumeFocus(m.in(event.button.x, event.button.y));
+                            return consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y)));
                         }
                     default:
                         {

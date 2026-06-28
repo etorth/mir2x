@@ -165,9 +165,9 @@ void ProcessLogin::draw() const
 void ProcessLogin::processEvent(const SDL_Event &event)
 {
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_TAB:
                         {
                             if(true

@@ -108,9 +108,9 @@ bool SearchAutoCompletionItem::processEventDefault(const SDL_Event &event, bool 
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(m.in(event.button.x, event.button.y)){
+                if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     hasParent<SearchPage>()->candidates.setShow(true);
                     hasParent<SearchPage>()->autocompletes.setShow(false);
                     hasParent<SearchPage>()->input.input.setInput(byID ? std::to_string(candidate.id).c_str() : candidate.name.c_str());

@@ -85,9 +85,9 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                if(m.in(event.button.x, event.button.y)){
+                if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     switch(getState()){
                         case BEVENT_OFF:
                             {
@@ -131,9 +131,9 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                     return consumeFocus(false);
                 }
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(m.in(event.button.x, event.button.y)){
+                if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     switch(getState()){
                         case BEVENT_OFF:
                             {
@@ -172,9 +172,9 @@ bool ButtonBase::processEventDefault(const SDL_Event &event, bool valid, Widget:
                     return consumeFocus(false);
                 }
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                if(m.in(event.motion.x, event.motion.y)){
+                if(m.in(to_d(event.motion.x), to_d(event.motion.y))){
                     switch(getState()){
                         case BEVENT_OFF:
                             {

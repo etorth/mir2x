@@ -1,7 +1,7 @@
 #pragma once
 #include <variant>
 #include <functional>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "widget.hpp"
 #include "colorf.hpp"
 

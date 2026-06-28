@@ -193,9 +193,9 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid, Widget::R
     }
 
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_RETURN:
                         {
                             if(input.focus()){
@@ -212,9 +212,9 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                         }
                 }
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(m.create(input.roi()).in(event.button.x, event.button.y)){
+                if(m.create(input.roi()).in(to_d(event.button.x), to_d(event.button.y))){
                     setFocus(false);
                     return input.consumeFocus(true, std::addressof(input.layout));
                 }
@@ -223,7 +223,7 @@ bool ChatPage::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                     return true;
                 }
 
-                if(m.in(event.button.x, event.button.y)){
+                if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     if(menu){
                         removeChild(menu->id(), true);
                         menu = nullptr;

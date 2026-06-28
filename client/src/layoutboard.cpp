@@ -489,7 +489,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
     }
 
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
                 if(!focus()){
                     return false;
@@ -503,7 +503,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                     return false;
                 }
 
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_TAB:
                         {
                             if(m_onTab){
@@ -513,7 +513,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                         }
                     case SDLK_RETURN:
                         {
-                            if((event.key.keysym.mod & KMOD_LSHIFT) || (event.key.keysym.mod & KMOD_RSHIFT)){
+                            if((event.key.mod & SDL_KMOD_LSHIFT) || (event.key.mod & SDL_KMOD_RSHIFT)){
                                 auto currPar = ithParIterator(m_cursorLoc.par);
                                 auto  newPar = currPar->tpset->split(m_cursorLoc.x, m_cursorLoc.y);
 
@@ -649,14 +649,14 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                         }
                 }
             }
-        case SDL_MOUSEMOTION:
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_MOTION:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 const auto newEvent = [&event]
                 {
-                    if(event.type == SDL_MOUSEMOTION) return (event.motion.state & SDL_BUTTON_LMASK) ? BEVENT_DOWN : BEVENT_ON;
-                    else                              return (event.type == SDL_MOUSEBUTTONDOWN)     ? BEVENT_DOWN : BEVENT_ON;
+                    if(event.type == SDL_EVENT_MOUSE_MOTION) return (event.motion.state & SDL_BUTTON_LMASK) ? BEVENT_DOWN : BEVENT_ON;
+                    else                              return (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)     ? BEVENT_DOWN : BEVENT_ON;
                 }();
 
                 const auto [eventPX, eventPY] = SDLDeviceHelper::getEventPLoc(event).value();
@@ -697,7 +697,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                     }
 
                     node->tpset->clearEvent(leafID);
-                    if(!attrListPtr && event.type == SDL_MOUSEMOTION){
+                    if(!attrListPtr && event.type == SDL_EVENT_MOUSE_MOTION){
                         // it's not an event text, and no click happens
                         // don't take the event
                         return false;
@@ -710,7 +710,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                     takeEvent |= fnHandleEvent(&node, valid && !takeEvent);
                 }
 
-                if(valid && !takeEvent && event.type != SDL_MOUSEMOTION){
+                if(valid && !takeEvent && event.type != SDL_EVENT_MOUSE_MOTION){
                     takeEvent = m.in(eventPX, eventPY);
                 }
 
@@ -724,7 +724,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                 // layout board only handle mouse motion/click events
                 // ignore any other unexcepted events
 
-                // for GNOME3 I found sometimes here comes SDL_KEYMAPCHANGED after SDL_MOUSEBUTTONDOWN
+                // for GNOME3 I found sometimes here comes SDL_KEYMAPCHANGED after SDL_EVENT_MOUSE_BUTTON_DOWN
                 // need to ignore this event, don't call clearEvent()
                 return false;
             }

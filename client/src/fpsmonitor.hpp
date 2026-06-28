@@ -2,7 +2,7 @@
 #include <deque>
 #include <cstdint>
 #include <cstddef>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 class FPSMonitor
 {

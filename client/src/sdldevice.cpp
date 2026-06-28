@@ -1,11 +1,13 @@
+#include <cmath>
 #include <ranges>
 #include <numeric>
 #include <inplace_vector>
 #include <cinttypes>
 #include <system_error>
 #include <unordered_map>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3_image/SDL_image.h>
 
 #include "log.hpp"
 #include "mathf.hpp"
@@ -25,18 +27,18 @@ extern ClientArgParser *g_clientArgParser;
 SDLDeviceHelper::EnableRenderColor::EnableRenderColor(uint32_t color, SDLDevice *devPtr)
     : m_device(devPtr ? devPtr : g_sdlDevice)
 {
-    if(SDL_GetRenderDrawColor(m_device->getRenderer(), &m_r, &m_g, &m_b, &m_a)){
+    if(!SDL_GetRenderDrawColor(m_device->getRenderer(), &m_r, &m_g, &m_b, &m_a)){
         throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
-    if(SDL_SetRenderDrawColor(m_device->getRenderer(), colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
+    if(!SDL_SetRenderDrawColor(m_device->getRenderer(), colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
         throw fflpanic("set renderer draw color failed: {}", SDL_GetError());
     }
 }
 
 SDLDeviceHelper::EnableRenderColor::~EnableRenderColor()
 {
-    if(SDL_SetRenderDrawColor(m_device->getRenderer(), m_r, m_g, m_b, m_a)){
+    if(!SDL_SetRenderDrawColor(m_device->getRenderer(), m_r, m_g, m_b, m_a)){
         g_mir2xLog->addLog(LOGTYPE_WARNING, "Set renderer draw color failed: %s", SDL_GetError());
     }
 }
@@ -44,28 +46,28 @@ SDLDeviceHelper::EnableRenderColor::~EnableRenderColor()
 SDLDeviceHelper::EnableRenderBlendMode::EnableRenderBlendMode(SDL_BlendMode blendMode, SDLDevice *devPtr)
     : m_device(devPtr ? devPtr : g_sdlDevice)
 {
-    if(SDL_GetRenderDrawBlendMode(m_device->getRenderer(), &m_blendMode)){
+    if(!SDL_GetRenderDrawBlendMode(m_device->getRenderer(), &m_blendMode)){
         throw fflpanic("get renderer blend mode failed: {}", SDL_GetError());
     }
 
-    if(SDL_SetRenderDrawBlendMode(m_device->getRenderer(), blendMode)){
+    if(!SDL_SetRenderDrawBlendMode(m_device->getRenderer(), blendMode)){
         throw fflpanic("set renderer blend mode failed: {}", SDL_GetError());
     }
 }
 
 SDLDeviceHelper::EnableRenderBlendMode::~EnableRenderBlendMode()
 {
-    if(SDL_SetRenderDrawBlendMode(m_device->getRenderer(), m_blendMode)){
+    if(!SDL_SetRenderDrawBlendMode(m_device->getRenderer(), m_blendMode)){
         g_mir2xLog->addLog(LOGTYPE_WARNING, "set renderer blend mode failed: %s", SDL_GetError());
     }
 }
 
 SDLDeviceHelper::EnableRenderCropRectangle::EnableRenderCropRectangle(int x, int y, int w, int h, SDLDevice *devPtr)
     : m_device(devPtr ? devPtr : g_sdlDevice)
-    , m_clipped(SDL_RenderIsClipEnabled(m_device->getRenderer()) == SDL_TRUE)
+    , m_clipped(SDL_RenderClipEnabled(m_device->getRenderer()))
 {
     if(m_clipped){
-        SDL_RenderGetClipRect(m_device->getRenderer(), &m_rect);
+        SDL_GetRenderClipRect(m_device->getRenderer(), &m_rect);
     }
 
     SDL_Rect newRect;
@@ -74,14 +76,14 @@ SDLDeviceHelper::EnableRenderCropRectangle::EnableRenderCropRectangle(int x, int
     newRect.w = w;
     newRect.h = h;
 
-    if(SDL_RenderSetClipRect(m_device->getRenderer(), &newRect)){
+    if(!SDL_SetRenderClipRect(m_device->getRenderer(), &newRect)){
         throw fflpanic("set renderer clip rectangle failed: {}", SDL_GetError());
     }
 }
 
 SDLDeviceHelper::EnableRenderCropRectangle::~EnableRenderCropRectangle()
 {
-    if(SDL_RenderSetClipRect(m_device->getRenderer(), m_clipped ? &m_rect : nullptr)){
+    if(!SDL_SetRenderClipRect(m_device->getRenderer(), m_clipped ? &m_rect : nullptr)){
         g_mir2xLog->addLog(LOGTYPE_WARNING, "set renderer clip rectangle failed: %s", SDL_GetError());
     }
 }
@@ -105,11 +107,11 @@ SDLDeviceHelper::EnableTextureBlendMode::EnableTextureBlendMode(SDL_Texture *tex
         return;
     }
 
-    if(SDL_GetTextureBlendMode(m_texPtr, &m_blendMode)){
+    if(!SDL_GetTextureBlendMode(m_texPtr, &m_blendMode)){
         throw fflpanic("get texture blend mode failed: {}", SDL_GetError());
     }
 
-    if(SDL_SetTextureBlendMode(m_texPtr, mode)){
+    if(!SDL_SetTextureBlendMode(m_texPtr, mode)){
         throw fflpanic("set texture blend mode failed: {}", SDL_GetError());
     }
 }
@@ -120,7 +122,7 @@ SDLDeviceHelper::EnableTextureBlendMode::~EnableTextureBlendMode()
         return;
     }
 
-    if(SDL_SetTextureBlendMode(m_texPtr, m_blendMode)){
+    if(!SDL_SetTextureBlendMode(m_texPtr, m_blendMode)){
         g_mir2xLog->addLog(LOGTYPE_WARNING, "Setup texture blend mode failed: %s", SDL_GetError());
     }
 }
@@ -132,19 +134,19 @@ SDLDeviceHelper::EnableTextureModColor::EnableTextureModColor(SDL_Texture *texPt
         return;
     }
 
-    if(SDL_GetTextureColorMod(m_texPtr, &m_r, &m_g, &m_b)){
+    if(!SDL_GetTextureColorMod(m_texPtr, &m_r, &m_g, &m_b)){
         throw fflpanic("SDL_GetTextureColorMod({:p}) failed: {}", to_cvptr(m_texPtr), SDL_GetError());
     }
 
-    if(SDL_GetTextureAlphaMod(m_texPtr, &m_a)){
+    if(!SDL_GetTextureAlphaMod(m_texPtr, &m_a)){
         throw fflpanic("SDL_GetTextureAlphaMod({:p}) failed: {}", to_cvptr(m_texPtr), SDL_GetError());
     }
 
-    if(SDL_SetTextureColorMod(m_texPtr, colorf::R(color), colorf::G(color), colorf::B(color))){
+    if(!SDL_SetTextureColorMod(m_texPtr, colorf::R(color), colorf::G(color), colorf::B(color))){
         throw fflpanic("SDL_SetTextureColorMod({:p}) failed: {}", to_cvptr(m_texPtr), SDL_GetError());
     }
 
-    if(SDL_SetTextureAlphaMod(m_texPtr, colorf::A(color))){
+    if(!SDL_SetTextureAlphaMod(m_texPtr, colorf::A(color))){
         throw fflpanic("SDL_SetTextureAlphaMod({:p}) failed: {}", to_cvptr(m_texPtr), SDL_GetError());
     }
 }
@@ -155,11 +157,11 @@ SDLDeviceHelper::EnableTextureModColor::~EnableTextureModColor()
         return;
     }
 
-    if(SDL_SetTextureColorMod(m_texPtr, m_r, m_g, m_b)){
+    if(!SDL_SetTextureColorMod(m_texPtr, m_r, m_g, m_b)){
         g_mir2xLog->addLog(LOGTYPE_WARNING, "set texture mod color failed: %s", SDL_GetError());
     }
 
-    if(SDL_SetTextureAlphaMod(m_texPtr, m_a)){
+    if(!SDL_SetTextureAlphaMod(m_texPtr, m_a)){
         g_mir2xLog->addLog(LOGTYPE_WARNING, "set texture mod alpha failed: %s", SDL_GetError());
     }
 }
@@ -169,22 +171,22 @@ SDLDeviceHelper::EnableRenderTarget::EnableRenderTarget(SDL_Texture *argTarget, 
     , m_target(SDL_GetRenderTarget(m_device->getRenderer()))
 {
     if(argTarget){
-        if(int access = -1; SDL_QueryTexture(argTarget, nullptr, &access, nullptr, nullptr)){
-            throw fflpanic("SDL_QueryTexture({:p}) failed: {}", to_cvptr(argTarget), SDL_GetError());
-        }
-        else if(access != SDL_TEXTUREACCESS_TARGET){
+        // SDL3 exposes texture properties for access mode (SDL_QueryTexture removed)
+        const auto props = SDL_GetTextureProperties(argTarget);
+        const auto access = static_cast<SDL_TextureAccess>(SDL_GetNumberProperty(props, SDL_PROP_TEXTURE_ACCESS_NUMBER, -1));
+        if(access != SDL_TEXTUREACCESS_TARGET){
             throw fflpanic("Texture can not be used as renderer target: {:p}", to_cvptr(argTarget));
         }
     }
 
-    if(SDL_SetRenderTarget(m_device->getRenderer(), argTarget)){
+    if(!SDL_SetRenderTarget(m_device->getRenderer(), argTarget)){
         throw fflpanic("SDL_SetRenderTarget({:p}) failed: {}", to_cvptr(argTarget), SDL_GetError());
     }
 }
 
 SDLDeviceHelper::EnableRenderTarget::~EnableRenderTarget()
 {
-    if(SDL_SetRenderTarget(m_device->getRenderer(), m_target)){
+    if(!SDL_SetRenderTarget(m_device->getRenderer(), m_target)){
         g_mir2xLog->addLog(LOGTYPE_WARNING, "SDL_SetRenderTarget(%p) failed: %s", to_cvptr(m_target), SDL_GetError());
     }
 }
@@ -194,7 +196,7 @@ char SDLDeviceHelper::getKeyChar(const SDL_Event &event, bool checkShiftKey)
     const static std::unordered_map<SDL_Keycode, const char *> s_lookupTable
     {
         {SDLK_SPACE,        " "   " " },
-        {SDLK_QUOTE,        "'"   "\""},
+        {SDLK_APOSTROPHE,   "'"   "\""},
         {SDLK_COMMA,        ","   "<" },
         {SDLK_MINUS,        "-"   "_" },
         {SDLK_PERIOD,       "."   ">" },
@@ -214,94 +216,94 @@ char SDLDeviceHelper::getKeyChar(const SDL_Event &event, bool checkShiftKey)
         {SDLK_LEFTBRACKET,  "["   "{" },
         {SDLK_BACKSLASH,    "\\"  "|" },
         {SDLK_RIGHTBRACKET, "]"   "}" },
-        {SDLK_BACKQUOTE,    "`"   "~" },
-        {SDLK_a,            "a"   "A" },
-        {SDLK_b,            "b"   "B" },
-        {SDLK_c,            "c"   "C" },
-        {SDLK_d,            "d"   "D" },
-        {SDLK_e,            "e"   "E" },
-        {SDLK_f,            "f"   "F" },
-        {SDLK_g,            "g"   "G" },
-        {SDLK_h,            "h"   "H" },
-        {SDLK_i,            "i"   "I" },
-        {SDLK_j,            "j"   "J" },
-        {SDLK_k,            "k"   "K" },
-        {SDLK_l,            "l"   "L" },
-        {SDLK_m,            "m"   "M" },
-        {SDLK_n,            "n"   "N" },
-        {SDLK_o,            "o"   "O" },
-        {SDLK_p,            "p"   "P" },
-        {SDLK_q,            "q"   "Q" },
-        {SDLK_r,            "r"   "R" },
-        {SDLK_s,            "s"   "S" },
-        {SDLK_t,            "t"   "T" },
-        {SDLK_u,            "u"   "U" },
-        {SDLK_v,            "v"   "V" },
-        {SDLK_w,            "w"   "W" },
-        {SDLK_x,            "x"   "X" },
-        {SDLK_y,            "y"   "Y" },
-        {SDLK_z,            "z"   "Z" },
+        {SDLK_GRAVE,        "`"   "~" },
+        {SDLK_A,            "a"   "A" },
+        {SDLK_B,            "b"   "B" },
+        {SDLK_C,            "c"   "C" },
+        {SDLK_D,            "d"   "D" },
+        {SDLK_E,            "e"   "E" },
+        {SDLK_F,            "f"   "F" },
+        {SDLK_G,            "g"   "G" },
+        {SDLK_H,            "h"   "H" },
+        {SDLK_I,            "i"   "I" },
+        {SDLK_J,            "j"   "J" },
+        {SDLK_K,            "k"   "K" },
+        {SDLK_L,            "l"   "L" },
+        {SDLK_M,            "m"   "M" },
+        {SDLK_N,            "n"   "N" },
+        {SDLK_O,            "o"   "O" },
+        {SDLK_P,            "p"   "P" },
+        {SDLK_Q,            "q"   "Q" },
+        {SDLK_R,            "r"   "R" },
+        {SDLK_S,            "s"   "S" },
+        {SDLK_T,            "t"   "T" },
+        {SDLK_U,            "u"   "U" },
+        {SDLK_V,            "v"   "V" },
+        {SDLK_W,            "w"   "W" },
+        {SDLK_X,            "x"   "X" },
+        {SDLK_Y,            "y"   "Y" },
+        {SDLK_Z,            "z"   "Z" },
     };
 
-    if(const auto p = s_lookupTable.find(event.key.keysym.sym); p != s_lookupTable.end()){
-        return p->second[checkShiftKey && ((event.key.keysym.mod & KMOD_LSHIFT) || (event.key.keysym.mod & KMOD_RSHIFT)) ? 1 : 0];
+    if(const auto p = s_lookupTable.find(event.key.key); p != s_lookupTable.end()){
+        return p->second[checkShiftKey && ((event.key.mod & SDL_KMOD_LSHIFT) || (event.key.mod & SDL_KMOD_RSHIFT)) ? 1 : 0];
     }
     return '\0';
 }
 
 SDLDeviceHelper::SDLEventPLoc SDLDeviceHelper::getMousePLoc()
 {
-    int mousePX = -1;
-    int mousePY = -1;
+    float mousePX = -1.0f;
+    float mousePY = -1.0f;
     SDL_GetMouseState(&mousePX, &mousePY);
 
     return
     {
-        mousePX,
-        mousePY,
+        to_d(mousePX),
+        to_d(mousePY),
     };
 }
 
 std::tuple<int, int, Uint32> SDLDeviceHelper::getMouseState()
 {
-    int mousePX = -1;
-    int mousePY = -1;
-    Uint32 mouseState = SDL_GetMouseState(&mousePX, &mousePY);
+    float mousePX = -1.0f;
+    float mousePY = -1.0f;
+    SDL_MouseButtonFlags mouseState = SDL_GetMouseState(&mousePX, &mousePY);
 
     return
     {
-        mousePX,
-        mousePY,
-        mouseState,
+        to_d(mousePX),
+        to_d(mousePY),
+        static_cast<Uint32>(mouseState),
     };
 }
 
 std::optional<SDLDeviceHelper::SDLEventPLoc> SDLDeviceHelper::getEventPLoc(const SDL_Event &event)
 {
     switch(event.type){
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
                 return SDLDeviceHelper::SDLEventPLoc
                 {
-                    event.motion.x,
-                    event.motion.y,
+                    to_d(event.motion.x),
+                    to_d(event.motion.y),
                 };
             }
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 return SDLDeviceHelper::SDLEventPLoc
                 {
-                    event.button.x,
-                    event.button.y,
+                    to_d(event.button.x),
+                    to_d(event.button.y),
                 };
             }
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             {
                 return SDLDeviceHelper::SDLEventPLoc
                 {
-                    event.wheel.mouseX,
-                    event.wheel.mouseY,
+                    to_d(event.wheel.mouse_x),
+                    to_d(event.wheel.mouse_y),
                 };
             }
         default:
@@ -315,13 +317,8 @@ std::tuple<int, int> SDLDeviceHelper::getTextureSize(SDL_Texture *texture)
 {
     fflassert(texture);
 
-    int width  = 0;
-    int height = 0;
-
-    if(!SDL_QueryTexture(const_cast<SDL_Texture *>(texture), 0, 0, &width, &height)){
-        return {width, height};
-    }
-    throw fflpanic("query texture failed: {:p}", to_cvptr(texture));
+    // SDL3: w/h are public fields on SDL_Texture (SDL_QueryTexture removed)
+    return {texture->w, texture->h};
 }
 
 int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture, std::optional<int> optW)
@@ -350,67 +347,54 @@ int SDLDeviceHelper::getTextureHeight(SDL_Texture *texture, std::optional<int> o
     }
 }
 
-SDLSoundEffectChannel::SDLSoundEffectChannel(SDLDevice *sdlDevice, int channel)
+SDLSoundEffectChannel::SDLSoundEffectChannel(SDLDevice *sdlDevice, MIX_Track *track)
     : m_sdlDevice(sdlDevice)
-    , m_channel(channel)
+    , m_track(track)
 {
     fflassert(m_sdlDevice);
-    fflassert(m_channel >= 0, m_channel);
-    fflassert(m_channel < to_d(m_sdlDevice->channelCount()), m_channel, m_sdlDevice->channelCount());
+    fflassert(m_track);
 }
 
 SDLSoundEffectChannel::~SDLSoundEffectChannel()
 {
-    if(m_channel >= 0){
-        if(auto p = m_sdlDevice->m_channelStateList.find(m_channel); p != m_sdlDevice->m_channelStateList.end()){
+    if(m_track){
+        if(auto p = m_sdlDevice->m_trackStateList.find(m_track); p != m_sdlDevice->m_trackStateList.end()){
             if(const auto hooked = std::exchange(p->second.hooked, false); !hooked){
-                g_mir2xLog->addLog(LOGTYPE_WARNING, "Sound channel gets unhooked unexpectedly: %d", m_channel);
+                g_mir2xLog->addLog(LOGTYPE_WARNING, "Sound track gets unhooked unexpectedly: %p", to_cvptr(m_track));
             }
         }
         else{
-            g_mir2xLog->addLog(LOGTYPE_WARNING, "Sound channel has no associated state: %d", m_channel);
+            g_mir2xLog->addLog(LOGTYPE_WARNING, "Sound track has no associated state: %p", to_cvptr(m_track));
         }
     }
 }
 
 void SDLSoundEffectChannel::halt()
 {
-    if(m_channel >= 0){
-        // SDL_mixer can halt a channel several times, it ignores later halt requests
-        // call Mix_HaltChannel() can trigger SDLDevice::recycleSoundEffectChannel() if channel is not done yet
-        // if channel has reaches its end this function is a nop
-        //
-        // TODO dangerous here
-        //      SDLDevice should make sure a channel shall not get allocated to other sound effect before this->halt() called
-        //      otherwise this function halt same channel playing other sound
-        //
-        // a channel has not called this->halt() must still has a slot in m_channelStateList
-        // because only an explicit this->halt() call unhooks the channel, and makes it avaiable to next play request
-
-        Mix_HaltChannel(m_channel);
-        m_sdlDevice->m_channelStateList.erase(m_channel);
-
-        m_channel = -1;
+    if(m_track){
+        MIX_StopTrack(m_track, 0);
+        m_sdlDevice->m_trackStateList.erase(m_track);
+        m_track = nullptr;
     }
 }
 
 void SDLSoundEffectChannel::pause()
 {
-    fflassert(m_channel >= 0);
-    Mix_Pause(m_channel);
+    fflassert(m_track);
+    MIX_PauseTrack(m_track);
 }
 
 void SDLSoundEffectChannel::resume()
 {
-    fflassert(m_channel >= 0);
-    Mix_Resume(m_channel);
+    fflassert(m_track);
+    MIX_ResumeTrack(m_track);
 }
 
 void SDLSoundEffectChannel::setPosition(int distance, int angle)
 {
-    fflassert(m_channel >= 0);
+    fflassert(m_track);
     fflassert(distance >= 0, distance);
-    Mix_SetPosition(m_channel, ((angle % 360) + 360) % 360, std::min<int>(distance, 255));
+    SDLDevice::apply3DPosition(m_track, std::min<int>(distance, 255), ((angle % 360) + 360) % 360);
 }
 
 SDLDevice::SDLDevice()
@@ -420,49 +404,70 @@ SDLDevice::SDLDevice()
     }
 
     SDL_SetMainReady();
-    if(SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
-        throw fflpanic("initialization failed for SDL2: {}", SDL_GetError());
+    if(!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
+        throw fflpanic("initialization failed for SDL3: {}", SDL_GetError());
     }
 
-    if(TTF_Init()){
-        throw fflpanic("initialization failed for SDL2 TTF: {}", TTF_GetError());
+    if(!TTF_Init()){
+        throw fflpanic("initialization failed for SDL3_ttf: {}", SDL_GetError());
     }
 
-    if((IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG) != IMG_INIT_PNG){
-        throw fflpanic("initialization failed for SDL2 IMG: {}", IMG_GetError());
-    }
+    // SDL3_image dropped IMG_Init/IMG_Quit — no explicit init needed.
 
     if(!g_clientArgParser->disableAudio){
-        if((Mix_Init(MIX_INIT_MP3) & MIX_INIT_MP3) != MIX_INIT_MP3){
-            throw fflpanic("initialization failed for SDL2 MIX: {}", Mix_GetError());
+        if(!MIX_Init()){
+            throw fflpanic("initialization failed for SDL3_mixer: {}", SDL_GetError());
         }
 
-        if(Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 512)){
-            throw fflpanic("initialization failed for SDL2 MIX OpenAudio: {}", Mix_GetError());
+        m_mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
+        if(!m_mixer){
+            throw fflpanic("MIX_CreateMixerDevice failed: {}", SDL_GetError());
         }
 
-#if defined linux && SDL_VERSION_ATLEAST(2, 0, 8)
-        if(SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0") == SDL_FALSE){
+#if defined linux
+        if(!SDL_SetHint(SDL_HINT_VIDEO_X11_NET_WM_BYPASS_COMPOSITOR, "0")){
             throw fflpanic("SDL failed to disable compositor bypass");
         }
 #endif
 
-        if(Mix_AllocateChannels(m_channelCount) != to_d(m_channelCount)){
-            throw fflpanic("failed to allocate {} channels: {}", m_channelCount, Mix_GetError());
+        m_bgmTrack = MIX_CreateTrack(m_mixer);
+        if(!m_bgmTrack){
+            throw fflpanic("MIX_CreateTrack(bgm) failed: {}", SDL_GetError());
         }
 
-        for(int channel = 0; channel < to_d(m_channelCount); ++channel){
-            m_freeChannelList.insert(channel);
+        m_tracks.reserve(m_trackCount);
+        for(size_t i = 0; i < m_trackCount; ++i){
+            auto *t = MIX_CreateTrack(m_mixer);
+            if(!t){
+                throw fflpanic("MIX_CreateTrack failed: {}", SDL_GetError());
+            }
+            m_tracks.push_back(t);
+            m_freeTrackList.insert(t);
+            MIX_SetTrackStoppedCallback(t, &SDLDevice::recycleSoundEffectTrack, this);
         }
-        Mix_ChannelFinished(recycleSoundEffectChannel);
     }
 }
 
 SDLDevice::~SDLDevice()
 {
     if(!g_clientArgParser->disableAudio){
-        Mix_CloseAudio();
-        Mix_Quit();
+        for(auto *t : m_tracks){
+            MIX_DestroyTrack(t);
+        }
+        m_tracks.clear();
+        m_freeTrackList.clear();
+        m_trackStateList.clear();
+
+        if(m_bgmTrack){
+            MIX_DestroyTrack(m_bgmTrack);
+            m_bgmTrack = nullptr;
+        }
+
+        if(m_mixer){
+            MIX_DestroyMixer(m_mixer);
+            m_mixer = nullptr;
+        }
+        MIX_Quit();
     }
 
     for(auto p: m_fontList){
@@ -475,12 +480,12 @@ SDLDevice::~SDLDevice()
     }
     m_cover.clear();
 
-    if(m_window){
-        SDL_DestroyWindow(m_window);
-    }
-
     if(m_renderer){
         SDL_DestroyRenderer(m_renderer);
+    }
+
+    if(m_window){
+        SDL_DestroyWindow(m_window);
     }
 
     SDL_Quit();
@@ -493,21 +498,21 @@ void SDLDevice::setWindowIcon()
         #include "winicon.inc"
     };
 
-    SDL_RWops   * rwOpsPtr = nullptr;
-    SDL_Surface *  surfPtr = nullptr;
+    SDL_IOStream *ioStream = nullptr;
+    SDL_Surface  *surfPtr  = nullptr;
 
-    if((rwOpsPtr = SDL_RWFromConstMem(s_winIconBuf.data(), s_winIconBuf.size()))){
-        if((surfPtr = IMG_LoadPNG_RW(rwOpsPtr))){
+    if((ioStream = SDL_IOFromConstMem(s_winIconBuf.data(), s_winIconBuf.size()))){
+        if((surfPtr = IMG_LoadPNG_IO(ioStream))){
             SDL_SetWindowIcon(m_window, surfPtr);
         }
     }
 
-    if(rwOpsPtr){
-        SDL_FreeRW(rwOpsPtr);
+    if(ioStream){
+        SDL_CloseIO(ioStream);
     }
 
     if(surfPtr){
-        SDL_FreeSurface(surfPtr);
+        SDL_DestroySurface(surfPtr);
     }
 }
 
@@ -516,13 +521,13 @@ void SDLDevice::toggleWindowFullscreen()
     fflassert(m_window);
     const auto winFlag = SDL_GetWindowFlags(m_window);
 
-    if(winFlag & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)){
-        if(SDL_SetWindowFullscreen(m_window, 0)){
+    if(winFlag & SDL_WINDOW_FULLSCREEN){
+        if(!SDL_SetWindowFullscreen(m_window, false)){
             throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
         }
     }
     else{
-        if(SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN)){
+        if(!SDL_SetWindowFullscreen(m_window, true)){
             throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
         }
     }
@@ -530,12 +535,6 @@ void SDLDevice::toggleWindowFullscreen()
 
 SDL_Texture *SDLDevice::loadPNGTexture(const void *data, size_t size)
 {
-    // if it's changed
-    // all the texture need to be re-load
-
-    // currently it doesn't support dynamic set of context
-    // because all textures are based on current m_renderer
-
     fflassert(data);
     fflassert(size > 0);
 
@@ -543,8 +542,8 @@ SDL_Texture *SDLDevice::loadPNGTexture(const void *data, size_t size)
         return nullptr;
     }
 
-    if(auto rwOpsPtr = SDL_RWFromConstMem(data, size)){
-        return IMG_LoadTextureTyped_RW(m_renderer, rwOpsPtr, 1, "PNG");
+    if(auto ioStream = SDL_IOFromConstMem(data, size)){
+        return IMG_LoadTextureTyped_IO(m_renderer, ioStream, true, "PNG");
     }
     return nullptr;
 }
@@ -556,20 +555,10 @@ void SDLDevice::drawTexture(SDL_Texture *texPtr,
         int srcW, int srcH)
 {
     if(texPtr){
-        SDL_Rect src;
-        SDL_Rect dst;
+        const SDL_FRect src {to_f(srcX), to_f(srcY), to_f(srcW), to_f(srcH)};
+        const SDL_FRect dst {to_f(dstX), to_f(dstY), to_f(dstW), to_f(dstH)};
 
-        src.x = srcX;
-        src.y = srcY;
-        src.w = srcW;
-        src.h = srcH;
-
-        dst.x = dstX;
-        dst.y = dstY;
-        dst.w = dstW;
-        dst.h = dstH;
-
-        SDL_RenderCopy(m_renderer, texPtr, &src, &dst);
+        SDL_RenderTexture(m_renderer, texPtr, &src, &dst);
         if(g_clientArgParser->debugDrawTexture){
             drawRectangle(colorf::BLUE + colorf::A_SHF(128), dstX, dstY, dstW, dstH);
         }
@@ -620,30 +609,11 @@ TTF_Font *SDLDevice::createTTF(const void *data, size_t size, uint8_t fontPtSize
     fflassert(size > 0);
     fflassert(fontPtSize > 0);
 
-    SDL_RWops * rwOpsPtr = nullptr;
-    TTF_Font  *   ttfPtr = nullptr;
-
-    if((rwOpsPtr = SDL_RWFromConstMem(data, size))){
-        ttfPtr = TTF_OpenFontRW(rwOpsPtr, 1, fontPtSize);
+    if(auto ioStream = SDL_IOFromConstMem(data, size)){
+        // closeio=true: TTF will close the stream when the font is closed
+        return TTF_OpenFontIO(ioStream, true, to_f(fontPtSize));
     }
-
-    // TODO
-    // I checked the SDL_ttf.c
-    // seems the TTF_OpenFontRW() will directly assign the SDL_RWops pointer
-    // to inside pointer, and also the freeMark
-    //
-    // so here we provide SDL_RWops and freeMark
-    // the TTF_Font struct will take control of free/assess the SDL_RWops
-    // and we can't free it before destroy TTF_Font
-
-    // so, don't use this code before the resource allocated by SDL_RWops
-    // is done. WTF
-
-    // if(rwOpsPtr){
-    //     SDL_FreeRW(rwOpsPtr);
-    // }
-
-    return ttfPtr;
+    return nullptr;
 }
 
 void SDLDevice::createInitViewWindow()
@@ -661,23 +631,22 @@ void SDLDevice::createInitViewWindow()
     int windowW = 800;
     int windowH = 600;
     {
-        SDL_DisplayMode desktop;
-        if(!SDL_GetDesktopDisplayMode(0, &desktop)){
-            windowW = std::min<int>(windowW , desktop.w);
-            windowH = std::min<int>(windowH , desktop.h);
+        if(const auto *desktop = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay())){
+            windowW = std::min<int>(windowW, desktop->w);
+            windowH = std::min<int>(windowH, desktop->h);
         }
     }
 
-    m_window = SDL_CreateWindow("MIR2X-V0.1-LOADING", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowW, windowH, SDL_WINDOW_BORDERLESS);
+    m_window = SDL_CreateWindow("MIR2X-V0.1-LOADING", windowW, windowH, SDL_WINDOW_BORDERLESS);
     if(!m_window){
         throw fflpanic("failed to create SDL window handler: {}", SDL_GetError());
     }
 
     SDL_ShowWindow(m_window);
     SDL_RaiseWindow(m_window);
-    SDL_SetWindowResizable(m_window, SDL_FALSE);
+    SDL_SetWindowResizable(m_window, false);
 
-    m_renderer = SDL_CreateRenderer(m_window, -1, 0);
+    m_renderer = SDL_CreateRenderer(m_window, nullptr);
     if(!m_renderer){
         SDL_DestroyWindow(m_window);
         throw fflpanic("failed to create SDL renderer: {}", SDL_GetError());
@@ -685,21 +654,17 @@ void SDLDevice::createInitViewWindow()
 
     setWindowIcon();
 
-    if(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255)){
+    if(!SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255)){
         throw fflpanic("set renderer draw color failed: {}", SDL_GetError());
     }
 
-    if(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
+    if(!SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
         throw fflpanic("set renderer blend mode failed: {}", SDL_GetError());
     }
 }
 
 void SDLDevice::createMainWindow()
 {
-    // need to clean the window resource
-    // and abort if window allocation failed
-    // InitView will allocate window before main window
-
     if(m_renderer){
         SDL_DestroyRenderer(m_renderer);
         m_renderer = nullptr;
@@ -712,18 +677,20 @@ void SDLDevice::createMainWindow()
 
     const auto winFlag = []() -> Uint32
     {
+        // SDL3 dropped SDL_WINDOW_FULLSCREEN_DESKTOP; fullscreen mode is now
+        // configured via SDL_SetWindowFullscreenMode after window creation.
         switch(g_clientArgParser->screenMode){
-            case  1: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN_DESKTOP;
+            case  1: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
             case  2: return SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN;
             default: return SDL_WINDOW_RESIZABLE;
         }
     }();
 
-    m_window = SDL_CreateWindow("MIR2X-V0.1", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H, winFlag);
+    m_window = SDL_CreateWindow("MIR2X-V0.1", SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H, winFlag);
     fflassert(m_window);
 
     SDL_SetWindowMinimumSize(m_window, SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H);
-    m_renderer = SDL_CreateRenderer(m_window, -1, 0);
+    m_renderer = SDL_CreateRenderer(m_window, nullptr);
 
     if(!m_renderer){
         SDL_DestroyWindow(m_window);
@@ -732,11 +699,11 @@ void SDLDevice::createMainWindow()
 
     setWindowIcon();
 
-    if(SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0)){
+    if(!SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0)){
         throw fflpanic("set renderer draw color failed: {}", SDL_GetError());
     }
 
-    if(SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
+    if(!SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
         throw fflpanic("set renderer blend mode failed: {}", SDL_GetError());
     }
 }
@@ -754,48 +721,19 @@ void SDLDevice::drawTextureEx(
         int centerDstOffY,
 
         int rotateDegree,
-        SDL_RendererFlip flip)
+        SDL_FlipMode flip)
 {
-    // how SDL_RenderCopyEx works
-    //
-    //   1. crop image
-    //   2. flip the small cropped image, not the full image
-    //   3. draw cropped and flipped image to given destionation
-    //   4. rotate using offset to destionation, positive means clockwise
-
     if(texPtr){
-        SDL_Rect src {srcX, srcY, srcW, srcH};
-        SDL_Rect dst {dstX, dstY, dstW, dstH};
-        SDL_Point center {centerDstOffX, centerDstOffY};
+        const SDL_FRect src {to_f(srcX), to_f(srcY), to_f(srcW), to_f(srcH)};
+        const SDL_FRect dst {to_f(dstX), to_f(dstY), to_f(dstW), to_f(dstH)};
+        const SDL_FPoint center {to_f(centerDstOffX), to_f(centerDstOffY)};
         const double angle = 1.00 * (rotateDegree % 360);
-        if(SDL_RenderCopyEx(m_renderer, texPtr, &src, &dst, angle, &center, flip)){
-            throw fflpanic("SDL_RenderCopyEx({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+        if(!SDL_RenderTextureRotated(m_renderer, texPtr, &src, &dst, angle, &center, flip)){
+            throw fflpanic("SDL_RenderTextureRotated({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
         }
 
         if(g_clientArgParser->debugDrawTexture){
             const double radian = -1.0 * angle / 180.0 * mathf::pi;
-
-            // not very accurate, because rotation center is not at pixel
-            // take following 4-pixel-image as example
-            //
-            //     +-+-+
-            //     |a|b|
-            //     +-*-+
-            //     |d|c|
-            //     +-+-+
-            //
-            // drawTextureEx(tex,
-            //          0, 0, 2, 2,
-            //          0, 0, 2, 2,
-            //
-            //          1,
-            //          1,
-            //          90,
-            //
-            //          SDL_FLIP_NONE);
-            //
-            // above call actually means rotate at the star (*) position
-            // not at pixel (1, 1)
 
             const auto fnRotatePoint = [x0 = dstX + centerDstOffX, y0 = dstY + centerDstOffY, radian](double x, double y) -> std::pair<double, double>
             {
@@ -824,15 +762,12 @@ void SDLDevice::drawTextureEx(
 
 SDL_Texture *SDLDevice::createRGBATexture(const uint32_t *data, size_t w, size_t h)
 {
-    // use SDL_PIXELFORMAT_RGBA32
-    // it's alias of SDL_PIXELFORMAT_ARGB8888
-
     fflassert(data);
     fflassert(w > 0);
     fflassert(h > 0);
 
     if(auto texPtr = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, w, h)){
-        if(!SDL_UpdateTexture(texPtr, 0, data, w * 4) && !SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND)){
+        if(SDL_UpdateTexture(texPtr, nullptr, data, w * 4) && SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND)){
             return texPtr;
         }
         SDL_DestroyTexture(texPtr);
@@ -921,7 +856,7 @@ void SDLDevice::fillRectangle(int argX, int argY, int argW, int argH, int argRad
     Uint8 b = 0;
     Uint8 a = 0;
 
-    if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
+    if(!SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
         throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
@@ -929,7 +864,7 @@ void SDLDevice::fillRectangle(int argX, int argY, int argW, int argH, int argRad
         return;
     }
 
-    if(roundedBoxRGBA(getRenderer(), argX, argY, argX + argW - 1, argY + argH - 1, argRad, r, g, b, a)){
+    if(!roundedBoxRGBA(getRenderer(), argX, argY, argX + argW - 1, argY + argH - 1, argRad, r, g, b, a)){
         throw fflpanic("roundedRectangleRGBA() failed");
     }
 }
@@ -970,7 +905,7 @@ void SDLDevice::drawTriangle(int argX1, int argY1, int argX2, int argY2, int arg
     Uint8 b = 0;
     Uint8 a = 0;
 
-    if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
+    if(!SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
         throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
@@ -978,7 +913,7 @@ void SDLDevice::drawTriangle(int argX1, int argY1, int argX2, int argY2, int arg
         return;
     }
 
-    if(aatrigonRGBA(getRenderer(), argX1, argY1, argX2, argY2, argX3, argY3, r, g, b, a)){
+    if(!aatrigonRGBA(getRenderer(), argX1, argY1, argX2, argY2, argX3, argY3, r, g, b, a)){
         throw fflpanic("aatrigonRGBA() failed");
     }
 }
@@ -999,7 +934,7 @@ void SDLDevice::fillTriangle(int argX1, int argY1, int argX2, int argY2, int arg
     Uint8 b = 0;
     Uint8 a = 0;
 
-    if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
+    if(!SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
         throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
@@ -1007,7 +942,7 @@ void SDLDevice::fillTriangle(int argX1, int argY1, int argX2, int argY2, int arg
         return;
     }
 
-    if(filledTrigonRGBA(getRenderer(), argX1, argY1, argX2, argY2, argX3, argY3, r, g, b, a)){
+    if(!filledTrigonRGBA(getRenderer(), argX1, argY1, argX2, argY2, argX3, argY3, r, g, b, a)){
         throw fflpanic("filledTrigonRGBA() failed");
     }
 }
@@ -1023,9 +958,6 @@ void SDLDevice::fillTriangle(uint32_t argColor, int argX1, int argY1, int argX2,
 
 void SDLDevice::drawRectangle(int argX, int argY, int argW, int argH, int argRad)
 {
-    // hack for roundedRectangleRGBA
-    // looks sdl2_gfx has 1 pixel location bug
-
     if(argRad <= 1){
         argW++;
         argH++;
@@ -1040,7 +972,7 @@ void SDLDevice::drawRectangle(int argX, int argY, int argW, int argH, int argRad
     Uint8 b = 0;
     Uint8 a = 0;
 
-    if(SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
+    if(!SDL_GetRenderDrawColor(getRenderer(), &r, &g, &b, &a)){
         throw fflpanic("get renderer draw color failed: {}", SDL_GetError());
     }
 
@@ -1048,7 +980,7 @@ void SDLDevice::drawRectangle(int argX, int argY, int argW, int argH, int argRad
         return;
     }
 
-    if(roundedRectangleRGBA(getRenderer(), argX, argY, argX + argW - 1, argY + argH - 1, argRad, r, g, b, a)){
+    if(!roundedRectangleRGBA(getRenderer(), argX, argY, argX + argW - 1, argY + argH - 1, argRad, r, g, b, a)){
         throw fflpanic("roundedRectangleRGBA() failed");
     }
 }
@@ -1097,7 +1029,7 @@ void SDLDevice::drawHLineFading(uint32_t startColor, uint32_t endColor, int x, i
         SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND, this);
         for(int i = 0; i < std::abs(length); ++i){
             SDLDeviceHelper::EnableRenderColor enableColor(colorf::fadeRGBA(startColor, endColor, i * 1.0f / std::abs(length)), this);
-            SDL_RenderDrawPoint(getRenderer(), x + i * (length > 0 ? 1 : -1), y);
+            SDL_RenderPoint(getRenderer(), to_f(x + i * (length > 0 ? 1 : -1)), to_f(y));
         }
     }
 }
@@ -1108,7 +1040,7 @@ void SDLDevice::drawVLineFading(uint32_t startColor, uint32_t endColor, int x, i
         SDLDeviceHelper::EnableRenderBlendMode enableBlendMode(SDL_BLENDMODE_BLEND, this);
         for(int i = 0; i < std::abs(length); ++i){
             SDLDeviceHelper::EnableRenderColor enableColor(colorf::fadeRGBA(startColor, endColor, i * 1.0f / std::abs(length)), this);
-            SDL_RenderDrawPoint(getRenderer(), x, y + i * (length > 0 ? 1 : -1));
+            SDL_RenderPoint(getRenderer(), to_f(x), to_f(y + i * (length > 0 ? 1 : -1)));
         }
     }
 }
@@ -1157,18 +1089,6 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
 
     start = fnMod(start - length + 1);
     length = std::min<int>(std::abs(length), edgeGridCount);
-
-    // define the direction current x/y increments
-    //
-    //  +------------ start point
-    //  |
-    //  v   2
-    //  <-------A
-    //  |       |
-    // 3|       |1
-    //  |   0   |
-    //  v------->
-    //
 
     const auto endX = x + w - 1;
     const auto endY = y + h - 1;
@@ -1279,14 +1199,14 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
 
     for(int i = 0; i < length; ++i){
         SDLDeviceHelper::EnableRenderColor enableColor(colorf::fadeRGBA(startColor, endColor,  1.0 - (1.0 * i / length)), this);
-        SDL_RenderDrawPoint(getRenderer(), currX, currY);
+        SDL_RenderPoint(getRenderer(), to_f(currX), to_f(currY));
         std::tie(currX, currY, currDir) = fnNextPoint(currX, currY, currDir);
     }
 }
 
 void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
 {
-    if(stringRGBA(m_renderer, x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
+    if(!stringRGBA(m_renderer, x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
         throw fflpanic("failed to draw 8x8 string: {}", s);
     }
 }
@@ -1304,7 +1224,9 @@ void SDLDevice::stopBGM()
     if(g_clientArgParser->disableAudio){
         return;
     }
-    Mix_HaltMusic();
+    if(m_bgmTrack){
+        MIX_StopTrack(m_bgmTrack, 0);
+    }
 }
 
 void SDLDevice::setBGMVolume(float volume)
@@ -1312,19 +1234,36 @@ void SDLDevice::setBGMVolume(float volume)
     if(g_clientArgParser->disableAudio){
         return;
     }
-    Mix_VolumeMusic(std::lround(mathf::bound<float>(volume, 0.0f, 1.0f) * SDL_MIX_MAXVOLUME));
+    if(m_bgmTrack){
+        MIX_SetTrackGain(m_bgmTrack, mathf::bound<float>(volume, 0.0f, 1.0f));
+    }
 }
 
-void SDLDevice::playBGM(Mix_Music *music, size_t repeats)
+void SDLDevice::playBGM(MIX_Audio *music, size_t repeats)
 {
     if(g_clientArgParser->disableAudio){
         return;
     }
 
-    if(music){
-        if(Mix_PlayMusic(music, (repeats == 0) ? -1 : (to_d(repeats) - 1))){
-            throw fflpanic("failed to play music: {}", Mix_GetError());
-        }
+    if(!music || !m_bgmTrack){
+        return;
+    }
+
+    if(!MIX_SetTrackAudio(m_bgmTrack, music)){
+        throw fflpanic("MIX_SetTrackAudio failed: {}", SDL_GetError());
+    }
+
+    // repeats == 0 in old API meant "loop forever" → -1
+    // repeats == N meant "play N times" → loops = N - 1
+    const int loops = (repeats == 0) ? -1 : (to_d(repeats) - 1);
+
+    SDL_PropertiesID props = SDL_CreateProperties();
+    SDL_SetNumberProperty(props, MIX_PROP_PLAY_LOOPS_NUMBER, loops);
+    const bool ok = MIX_PlayTrack(m_bgmTrack, props);
+    SDL_DestroyProperties(props);
+
+    if(!ok){
+        throw fflpanic("failed to play music: {}", SDL_GetError());
     }
 }
 
@@ -1334,11 +1273,7 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
         return {};
     }
 
-    if(!handle){
-        return {};
-    }
-
-    if(!handle->chunk){
+    if(!handle || !handle->audio){
         return {};
     }
 
@@ -1346,54 +1281,62 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
         return {};
     }
 
-    int pickedChannel = -1;
-    std::inplace_vector<int, 128> idleChannelList;
+    MIX_Track *pickedTrack = nullptr;
+    std::inplace_vector<MIX_Track *, 128> idleTrackList;
     {
-        // clean pending channel
-        // can't delete channel and handle in Mix_ChannelFinished()
+        // clean pending track entries
+        //
+        // a free track that still has a hooked SoundChannelHookState is one whose
+        // SDLSoundEffectChannel shared_ptr hasn't been destroyed yet — it must not be
+        // reused before that owner releases.
 
-        // for channels in m_freeChannelList, their are not playing
-        // but there can still be a SDLSoundEffectChannel hooked to it, and can control it
-        // shall not allocate it to new sound effect before this hooked SDLSoundEffectChannel get released
-
-        const std::lock_guard<std::mutex> lockGuard(m_freeChannelLock);
-        for(const auto channel: m_freeChannelList){
-            if(auto p = m_channelStateList.find(channel); (p != m_channelStateList.end()) && p->second.hooked){
+        const std::lock_guard<std::mutex> lockGuard(m_freeTrackLock);
+        for(auto *t : m_freeTrackList){
+            if(auto p = m_trackStateList.find(t); (p != m_trackStateList.end()) && p->second.hooked){
                 continue;
             }
-            else if(idleChannelList.size() < idleChannelList.capacity()){
-                idleChannelList.push_back(channel);
+            else if(idleTrackList.size() < idleTrackList.capacity()){
+                idleTrackList.push_back(t);
             }
         }
 
-        if(idleChannelList.empty()){
+        if(idleTrackList.empty()){
             return {};
         }
 
-        pickedChannel = to_d(idleChannelList.back());
-        m_freeChannelList.erase(pickedChannel);
+        pickedTrack = idleTrackList.back();
+        m_freeTrackList.erase(pickedTrack);
     }
 
-    for(const auto idleChannel: idleChannelList){
-        m_channelStateList.erase(idleChannel);
+    for(auto *idleTrack : idleTrackList){
+        m_trackStateList.erase(idleTrack);
     }
 
-    fflassert(pickedChannel >= 0, pickedChannel);
-    m_channelStateList.try_emplace(pickedChannel, true, handle);
+    fflassert(pickedTrack);
+    m_trackStateList.try_emplace(pickedTrack, SoundChannelHookState{.hooked = true, .handle = handle});
 
-    // Mix_HaltChannel() does nothing if channel has done play
-    // otherwise halt the channel and call SDLDevice::recycleSoundEffectChannel()
+    MIX_StopTrack(pickedTrack, 0);
+    apply3DPosition(pickedTrack, std::min<int>(distance, 255), ((angle % 360) + 360) % 360);
 
-    Mix_HaltChannel(pickedChannel);
-    Mix_SetPosition(pickedChannel, ((angle % 360) + 360) % 360, distance);
-    Mix_PlayChannel(pickedChannel, handle->chunk, (repeats == 0) ? -1 : (to_d(repeats) - 1));
+    if(!MIX_SetTrackAudio(pickedTrack, handle->audio)){
+        throw fflpanic("MIX_SetTrackAudio failed: {}", SDL_GetError());
+    }
 
-    // return shared_ptr that hooks to m_channelStateList[pickedChannel].hooked
-    // p->dtor() or p->halt() shall get called to unhook the flag, otherwise this channel gets hold on forever
+    const int loops = (repeats == 0) ? -1 : (to_d(repeats) - 1);
+
+    SDL_PropertiesID props = SDL_CreateProperties();
+    SDL_SetNumberProperty(props, MIX_PROP_PLAY_LOOPS_NUMBER, loops);
+    const bool ok = MIX_PlayTrack(pickedTrack, props);
+    SDL_DestroyProperties(props);
+
+    if(!ok){
+        throw fflpanic("MIX_PlayTrack failed: {}", SDL_GetError());
+    }
+
     return std::shared_ptr<SDLSoundEffectChannel>(new SDLSoundEffectChannel
     {
         this,
-        pickedChannel,
+        pickedTrack,
     });
 }
 
@@ -1402,7 +1345,11 @@ void SDLDevice::stopSoundEffect()
     if(g_clientArgParser->disableAudio){
         return;
     }
-    Mix_HaltChannel(-1);
+    // SDL2 Mix_HaltChannel(-1) only halted sound-effect channels (music was separate).
+    // MIX_StopAllTracks would also halt m_bgmTrack — iterate the effect tracks instead.
+    for(auto *t : m_tracks){
+        MIX_StopTrack(t, 0);
+    }
 }
 
 void SDLDevice::setSoundEffectVolume(float volume)
@@ -1411,29 +1358,38 @@ void SDLDevice::setSoundEffectVolume(float volume)
         return;
     }
 
-    // use post channel to configure the volume
-    // each channel has own volume and may change during playing, like firewall sound changes when MyHero moves
-
-    if(!Mix_SetDistance(MIX_CHANNEL_POST, std::lround((1.0f - mathf::bound<float>(volume, 0.0f, 1.0f)) * 255))){
-        throw fflpanic("failed to setup sound effect volume: {}", Mix_GetError());
+    // SDL2_mixer used Mix_SetDistance(MIX_CHANNEL_POST, ...) as a post-mix global attenuation.
+    // SDL3_mixer has no per-output post effect; use mixer gain for now.
+    // TODO: this also scales BGM gain. Improve later by routing sound effects through a MIX_Group.
+    if(m_mixer){
+        MIX_SetMixerGain(m_mixer, mathf::bound<float>(volume, 0.0f, 1.0f));
     }
 }
 
-void SDLDevice::recycleSoundEffectChannel(int channel)
+void SDLDevice::recycleSoundEffectTrack(void *userdata, MIX_Track *track)
 {
+    auto *self = static_cast<SDLDevice *>(userdata);
     if(g_clientArgParser->disableAudio){
-        throw fflpanic("sound effect callback is triggered with audio disabled");
+        return;
     }
 
-    // only put the channel to free list
-    // don't call handle.reset() here which may call into Mix_Funcs and is forbidden
+    // only put the track back to the free list
+    // don't reset the handle here — release happens when track is next allocated
 
-    // handle reset is done in next time when channel allocated for new playing
-    // this may cause resouce free delay
+    const std::lock_guard<std::mutex> lockGuard(self->m_freeTrackLock);
+    self->m_freeTrackList.insert(track);
+}
 
-    // don't need to lock here even it's called other than main thread
-    // SDL2 mixer calls SDL_LockAudio()/SDL_UnlockAudio()
-
-    const std::lock_guard<std::mutex> lockGuard(g_sdlDevice->m_freeChannelLock);
-    g_sdlDevice->m_freeChannelList.insert(channel);
+void SDLDevice::apply3DPosition(MIX_Track *track, int distance, int angle)
+{
+    // angle in [0, 360), 0=north (-z), 90=east (+x), 180=south (+z), 270=west (-x)
+    // distance in [0, 255], 0 = at listener
+    const double rad = angle * mathf::pi / 180.0;
+    const float scaled = to_f(distance) / 255.0f;
+    MIX_Point3D pos {
+        to_f(std::sin(rad) * scaled),
+        0.0f,
+        to_f(-std::cos(rad) * scaled),
+    };
+    MIX_SetTrack3DPosition(track, &pos);
 }

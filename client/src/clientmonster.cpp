@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <algorithm>
 #include "log.hpp"
 #include "pathf.hpp"
@@ -298,7 +298,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             // just blend it using the original color
 
             const auto stColor = focusColor(nFocusChan);
-            if(!SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
+            if(SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
                 g_sdlDevice->drawTexture(pTexture, nX, nY);
             }
         }

@@ -56,7 +56,7 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
     }
 
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
                 // another widget can consume the event
                 // and pass the focus to this widget, don't drop focus for keyboard events
@@ -69,7 +69,7 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                     return false;
                 }
 
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_TAB:
                         {
                             if(m_onTab){
@@ -144,20 +144,20 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                         }
                 }
             }
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 if(!valid){
                     return consumeFocus(false);
                 }
 
-                if(!m.in(event.button.x, event.button.y)){
+                if(!m.in(to_d(event.button.x), to_d(event.button.y))){
                     return consumeFocus(false);
                 }
 
-                if(event.type == SDL_MOUSEBUTTONDOWN){
-                    const int eventX = event.button.x - m.x;
-                    const int eventY = event.button.y - m.y;
+                if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
+                    const int eventX = to_d(event.button.x) - m.x;
+                    const int eventY = to_d(event.button.y) - m.y;
 
                     const auto [cursorX, cursorY] = m_tpset.locCursor(eventX, eventY);
                     if(cursorY != 0){

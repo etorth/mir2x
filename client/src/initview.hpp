@@ -16,7 +16,7 @@
 #include <string>
 #include <cstdint>
 #include <cstddef>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <functional>
 #include "bevent.hpp"
 #include "sdldevice.hpp"

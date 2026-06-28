@@ -285,13 +285,13 @@ bool TeamStateBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
     const auto remapYDiff = m.y - m.ro->y;
 
     switch(event.type){
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 int selectedLine = -1;
                 for(size_t i = 0; i < lineShowCount(); ++i){
                     const auto lineX = remapXDiff + m_uidRegionX;
                     const auto lineY = remapYDiff + m_uidRegionY + i * lineHeight();
-                    if(mathf::pointInRectangle<int>(event.button.x, event.button.y, lineX, lineY, m_uidRegionW, lineHeight())){
+                    if(mathf::pointInRectangle<int>(to_d(event.button.x), to_d(event.button.y), lineX, lineY, m_uidRegionW, lineHeight())){
                         selectedLine = i;
                         break;
                     }
@@ -317,14 +317,14 @@ bool TeamStateBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
 
                 return consumeFocus(true);
             }
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             {
                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
                 if(mathf::pointInRectangle<int>(mousePX, mousePY, remapXDiff + m_uidRegionX, remapYDiff + m_uidRegionY, m_uidRegionW, lineHeight() * lineShowCount())){
                     if(lineCount() <= lineShowCount()){
                         m_startIndex[m_showCandidateList] = 0;
                     }
-                    else if(event.wheel.y < 0){
+                    else if(to_d(event.wheel.y) < 0){
                         m_startIndex[m_showCandidateList] = std::min<int>(m_startIndex[m_showCandidateList] + 1, lineCount() - lineShowCount());
                     }
                     else{
@@ -333,15 +333,15 @@ bool TeamStateBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                 }
                 return consumeFocus(true);
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(event.motion.x, event.motion.y) || focus())){
+                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(to_d(event.motion.x), to_d(event.motion.y)) || focus())){
                     const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
 
-                    const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + event.motion.xrel));
-                    const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + event.motion.yrel));
+                    const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + to_d(event.motion.xrel)));
+                    const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + to_d(event.motion.yrel)));
                     moveBy(newX - remapXDiff, newY - remapYDiff);
                     return consumeFocus(true);
                 }

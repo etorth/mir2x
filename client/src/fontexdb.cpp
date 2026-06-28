@@ -129,15 +129,15 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
                 fflassert(emptyPixSize.first  > 0, emptyPixSize);
                 fflassert(emptyPixSize.second > 0, emptyPixSize);
 
-                if((surf = SDL_CreateRGBSurfaceWithFormat(0, advance, emptyPixSize.second, 32, SDL_PIXELFORMAT_ARGB8888))){
+                if((surf = SDL_CreateSurface(advance, emptyPixSize.second, SDL_PIXELFORMAT_ARGB8888))){
                     if(fontStyle & FONTSTYLE_SOLID){
-                        SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+                        SDL_FillSurfaceRect(surf, nullptr, SDL_MapSurfaceRGBA(surf, 0, 0, 0, 0));
                     }
                     else if(fontStyle & FONTSTYLE_SHADED){
-                        SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+                        SDL_FillSurfaceRect(surf, nullptr, SDL_MapSurfaceRGBA(surf, 0, 0, 0, 0));
                     }
                     else{
-                        SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 255, 255, 255, 0));
+                        SDL_FillSurfaceRect(surf, nullptr, SDL_MapSurfaceRGBA(surf, 255, 255, 255, 0));
                     }
 
                     result.left   = 0;
@@ -149,17 +149,17 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
                 if(fontStyle & FONTSTYLE_SOLID){
                     // create an texture that only has two colors: RGBA: (0, 0, 0, 0) and (255, 255, 255, 0)
                     // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
-                    surf = TTF_RenderGlyph32_Solid(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
+                    surf = TTF_RenderGlyph_Solid(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
                 }
                 else if(fontStyle & FONTSTYLE_SHADED){
                     // create an texture that has color: (x, x, x, 0), x = 0~255
                     // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
-                    surf = TTF_RenderGlyph32_Shaded(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF), colorf::RGBA2SDLColor(0X00, 0X00, 0X00, 0X00));
+                    surf = TTF_RenderGlyph_Shaded(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF), colorf::RGBA2SDLColor(0X00, 0X00, 0X00, 0X00));
                 }
                 else{
                     // create an texture that has color: (255, 255, 255, x), x = 0~255
                     // cannot be used for SDL_BLENDMODE_NONE, otherwise will get a white opaque block
-                    surf = TTF_RenderGlyph32_Blended(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
+                    surf = TTF_RenderGlyph_Blended(ttf, index, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
                 }
 
                 if(surf){
@@ -173,7 +173,7 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
                     result.ascent = to_i32(std::get<2>(padding));
 
                     if(pixSize.first < surf->w || pixSize.second < surf->h){
-                        if(auto minisurf = SDL_CreateRGBSurfaceWithFormat(0, pixSize.first, pixSize.second, 32, SDL_PIXELFORMAT_ARGB8888)){
+                        if(auto minisurf = SDL_CreateSurface(pixSize.first, pixSize.second, SDL_PIXELFORMAT_ARGB8888)){
                             SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
 
                             // in SDL_ttf 2.24, TTF_RenderGlyph32_* internally routes through TTF_RenderUTF8_*, which returns a surface tailored to the full line height.
@@ -182,19 +182,20 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
                             SDL_Rect src
                             {
                                 std::max<int>(0, minx),
-                                std::max<int>(0, TTF_FontAscent(ttf) - maxy),
+                                std::max<int>(0, TTF_GetFontAscent(ttf) - maxy),
                                 pixSize.first,
                                 pixSize.second,
                             };
 
+                            // SDL3: SDL_BlitSurface returns true on success (was 0 in SDL2)
                             if(SDL_BlitSurface(surf, &src, minisurf, nullptr)){
-                                SDL_FreeSurface(minisurf); // blit failed, use original surface
-                            }
-                            else{
-                                SDL_FreeSurface(surf);
+                                SDL_DestroySurface(surf);
                                 surf = minisurf;
                                 result.left  = to_i32(std::get<0>(padding));
                                 result.right = to_i32(std::get<1>(padding));
+                            }
+                            else{
+                                SDL_DestroySurface(minisurf); // blit failed, use original surface
                             }
                         }
                     }
@@ -211,28 +212,28 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
             fflassert(pixSize.first  > 0, pixSize);
             fflassert(pixSize.second > 0, pixSize);
 
-            if((surf = SDL_CreateRGBSurfaceWithFormat(0, pixSize.first, pixSize.second, 32, SDL_PIXELFORMAT_ARGB8888))){
+            if((surf = SDL_CreateSurface(pixSize.first, pixSize.second, SDL_PIXELFORMAT_ARGB8888))){
                 if(fontStyle & FONTSTYLE_SOLID){
-                    SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+                    SDL_FillSurfaceRect(surf, nullptr, SDL_MapSurfaceRGBA(surf, 0, 0, 0, 0));
                 }
                 else if(fontStyle & FONTSTYLE_SHADED){
-                    SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0));
+                    SDL_FillSurfaceRect(surf, nullptr, SDL_MapSurfaceRGBA(surf, 0, 0, 0, 0));
                 }
                 else{
-                    SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 255, 255, 255, 0));
+                    SDL_FillSurfaceRect(surf, nullptr, SDL_MapSurfaceRGBA(surf, 255, 255, 255, 0));
                 }
 
                 const int thickness = std::max<int>(1, std::min<int>(surf->w, surf->h) / 6);
                 const auto xColor = [fontStyle, surf]
                 {
                     if(fontStyle & FONTSTYLE_SOLID){
-                        return SDL_MapRGBA(surf->format, 255, 255, 255, 0);
+                        return SDL_MapSurfaceRGBA(surf, 255, 255, 255, 0);
                     }
                     else if(fontStyle & FONTSTYLE_SHADED){
-                        return SDL_MapRGBA(surf->format, 255, 255, 255, 0);
+                        return SDL_MapSurfaceRGBA(surf, 255, 255, 255, 0);
                     }
                     else{
-                        return SDL_MapRGBA(surf->format, 255, 255, 255, 255);
+                        return SDL_MapSurfaceRGBA(surf, 255, 255, 255, 255);
                     }
                 }();
 
@@ -241,10 +242,10 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
                 SDL_Rect left   = { 0                  ,                   0, thickness,   surf->h };
                 SDL_Rect right  = { surf->w - thickness,                   0, thickness,   surf->h };
 
-                SDL_FillRect(surf, &top   , xColor);
-                SDL_FillRect(surf, &bottom, xColor);
-                SDL_FillRect(surf, &left  , xColor);
-                SDL_FillRect(surf, &right , xColor);
+                SDL_FillSurfaceRect(surf, &top   , xColor);
+                SDL_FillSurfaceRect(surf, &bottom, xColor);
+                SDL_FillSurfaceRect(surf, &left  , xColor);
+                SDL_FillSurfaceRect(surf, &right , xColor);
 
                 int innerW = surf->w - (thickness * 2);
                 int innerH = surf->h - (thickness * 2);
@@ -255,8 +256,8 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
                     SDL_Rect p1 {           thickness + i    , y, thickness, thickness }; // up-left  -> down-right
                     SDL_Rect p2 { surf->w - thickness - i - 1, y, thickness, thickness }; // up-right -> down-left
 
-                    SDL_FillRect(surf, &p1, xColor);
-                    SDL_FillRect(surf, &p2, xColor);
+                    SDL_FillSurfaceRect(surf, &p1, xColor);
+                    SDL_FillSurfaceRect(surf, &p2, xColor);
                 }
 
                 result.left   = to_i32(std::get<0>(padding));
@@ -269,17 +270,17 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
         if(fontStyle & FONTSTYLE_SOLID){
             // create an texture that only has two colors: RGBA: (0, 0, 0, 0) and (255, 255, 255, 0)
             // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
-            surf = TTF_RenderUTF8_Solid(ttf, utf8String, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
+            surf = TTF_RenderText_Solid(ttf, utf8String, 0, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
         }
         else if(fontStyle & FONTSTYLE_SHADED){
             // create an texture that has color: (x, x, x, 0), x = 0~255
             // cannot be used for SDL_BLENDMODE_BLEND because alpha channel is always 0
-            surf = TTF_RenderUTF8_Shaded(ttf, utf8String, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF), colorf::RGBA2SDLColor(0X00, 0X00, 0X00, 0X00));
+            surf = TTF_RenderText_Shaded(ttf, utf8String, 0, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF), colorf::RGBA2SDLColor(0X00, 0X00, 0X00, 0X00));
         }
         else{
             // create an texture that has color: (255, 255, 255, x), x = 0~255
             // cannot be used for SDL_BLENDMODE_NONE, otherwise will get a white opaque block
-            surf = TTF_RenderUTF8_Blended(ttf, utf8String, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
+            surf = TTF_RenderText_Blended(ttf, utf8String, 0, colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF));
         }
 
         // put same # of transparent pixels at left side and right side
@@ -329,33 +330,34 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
                 const int addRight = std::max<int>(0, padLeft  - padRight);
 
                 if(addLeft || addRight){
-                    if(auto padded = SDL_CreateRGBSurfaceWithFormat(0, surf->w + addLeft + addRight, surf->h, 32, SDL_PIXELFORMAT_ARGB8888)){
+                    if(auto padded = SDL_CreateSurface(surf->w + addLeft + addRight, surf->h, SDL_PIXELFORMAT_ARGB8888)){
                         if(fontStyle & FONTSTYLE_SOLID){
-                            SDL_FillRect(padded, nullptr, SDL_MapRGBA(padded->format, 0, 0, 0, 0));
+                            SDL_FillSurfaceRect(padded, nullptr, SDL_MapSurfaceRGBA(padded, 0, 0, 0, 0));
                         }
                         else if(fontStyle & FONTSTYLE_SHADED){
-                            SDL_FillRect(padded, nullptr, SDL_MapRGBA(padded->format, 0, 0, 0, 0));
+                            SDL_FillSurfaceRect(padded, nullptr, SDL_MapSurfaceRGBA(padded, 0, 0, 0, 0));
                         }
                         else{
-                            SDL_FillRect(padded, nullptr, SDL_MapRGBA(padded->format, 255, 255, 255, 0));
+                            SDL_FillSurfaceRect(padded, nullptr, SDL_MapSurfaceRGBA(padded, 255, 255, 255, 0));
                         }
 
                         SDL_Rect dst{addLeft, 0, surf->w, surf->h};
                         SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
 
+                        // SDL3: SDL_BlitSurface returns true on success (was 0 in SDL2)
                         if(SDL_BlitSurface(surf, nullptr, padded, &dst)){
-                            SDL_FreeSurface(padded);
-                            result.left = addLeft;
-                            result.right = addRight;
-                        }
-                        else{
-                            SDL_FreeSurface(surf);
+                            SDL_DestroySurface(surf);
                             surf = padded;
                             result.left = 0;
                             result.right = 0;
                         }
+                        else{
+                            SDL_DestroySurface(padded);
+                            result.left = addLeft;
+                            result.right = addRight;
+                        }
 
-                        result.ascent = to_u32(TTF_FontAscent(ttf)); // can have 1 pixel shift for bitmap fonts
+                        result.ascent = to_u32(TTF_GetFontAscent(ttf)); // can have 1 pixel shift for bitmap fonts
                     }
                 }
             }
@@ -364,7 +366,7 @@ std::optional<std::tuple<FontexElement, size_t>> FontexDB::loadResource(uint64_t
 
     if(surf){
         result.texture = g_sdlDevice->createTextureFromSurface(surf);
-        SDL_FreeSurface(surf);
+        SDL_DestroySurface(surf);
     }
 
     return fnReturnValue(); // result.texture can be nullptr
@@ -392,17 +394,17 @@ void FontexDB::freeResource(FontexElement &element)
     }
 }
 
-uint32_t FontexDB::hasGlphy(TTF_Font *font, uint32_t codePoint)
+bool FontexDB::hasGlphy(TTF_Font *font, uint32_t codePoint)
 {
-    return TTF_GlyphIsProvided32(font, codePoint);
+    return TTF_FontHasGlyph(font, codePoint);
 }
 
-uint32_t FontexDB::hasGlphy(uint16_t ttfIndex, uint32_t codePoint)
+bool FontexDB::hasGlphy(uint16_t ttfIndex, uint32_t codePoint)
 {
     return hasGlphy(findTTF(ttfIndex), codePoint);
 }
 
-uint32_t FontexDB::hasGlphy(uint8_t fontIndex, uint8_t fontSize, uint32_t codePoint)
+bool FontexDB::hasGlphy(uint8_t fontIndex, uint8_t fontSize, uint32_t codePoint)
 {
     return hasGlphy(findTTF(fontIndex, fontSize), codePoint);
 }
@@ -439,7 +441,7 @@ std::tuple<int, int, int, int, int> FontexDB::getGlyphMetrics(TTF_Font *font, ui
     int maxy;
     int advance;
 
-    if(TTF_GlyphMetrics32(font, codePoint, &minx, &maxx, &miny, &maxy, &advance)){
+    if(!TTF_GetGlyphMetrics(font, codePoint, &minx, &maxx, &miny, &maxy, &advance)){
         throw fflpanic("failed to get glyph metrics: {}", codePoint);
     }
 

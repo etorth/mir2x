@@ -213,13 +213,13 @@ bool CBMiddle::processEventDefault(const SDL_Event &event, bool valid, Widget::R
     }
 
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
                 if(!valid){
                     return false;
                 }
 
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_RETURN:
                         {
                             return hasParent<ControlBoard>()->m_cmdBoard.consumeFocus(true);
@@ -230,9 +230,9 @@ bool CBMiddle::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                         }
                 }
             }
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
+        case SDL_EVENT_MOUSE_MOTION:
         default:
             {
                 return false;

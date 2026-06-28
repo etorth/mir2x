@@ -219,7 +219,7 @@ void ProcessCreateAccount::processEvent(const SDL_Event &event)
     }
 
     if(hasInfo()){
-        SDL_FlushEvent(SDL_KEYDOWN);
+        SDL_FlushEvent(SDL_EVENT_KEY_DOWN);
         return;
     }
 
@@ -228,9 +228,9 @@ void ProcessCreateAccount::processEvent(const SDL_Event &event)
     }
 
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_TAB:
                         {
                             Widget * boxPtrList[]

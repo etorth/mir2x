@@ -198,20 +198,11 @@ bool GUIManager::processEventDefault(const SDL_Event &event, bool valid, Widget:
     }
 
     switch(event.type){
-        case SDL_WINDOWEVENT:
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        case SDL_EVENT_WINDOW_RESIZED:
             {
-                switch(event.window.event){
-                    case SDL_WINDOWEVENT_SIZE_CHANGED:
-                        {
-                            afterResize();
-                            return true;
-                        }
-                    default:
-                        {
-                            break;
-                        }
-                }
-                break;
+                afterResize();
+                return true;
             }
         default:
             {

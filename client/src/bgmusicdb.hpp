@@ -1,18 +1,15 @@
 #pragma once
 #include <cstring>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
+#include <SDL3/SDL.h>
+#include <SDL3_mixer/SDL_mixer.h>
 
 #include "zsdb.hpp"
 #include "inndb.hpp"
 
-// SDL_mixer supports only 1 Mix_Music playing
-// when a Mix_music gets freed, SDL_mixer dynamically checks if it's playing
-
 struct BGMusicElement
 {
-    Mix_Music *music = nullptr;
-    std::vector<uint8_t> musicFileData; // seems SDL_mixer access data during playing
+    MIX_Audio *music = nullptr;
+    std::vector<uint8_t> musicFileData; // SDL_mixer streams from this buffer
 };
 
 class BGMusicDB: public innDB<uint32_t, BGMusicElement>
@@ -35,7 +32,7 @@ class BGMusicDB: public innDB<uint32_t, BGMusicElement>
         }
 
     public:
-        Mix_Music *retrieve(uint32_t key)
+        MIX_Audio *retrieve(uint32_t key)
         {
             if(auto p = innLoad(key)){
                 return p->music;

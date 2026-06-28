@@ -9,11 +9,11 @@ find_package(lz4 CONFIG REQUIRED)
 find_package(zstd CONFIG REQUIRED)
 find_package(tinyxml2 CONFIG REQUIRED)
 find_package(g3log CONFIG REQUIRED)
-find_package(SDL2 CONFIG REQUIRED)
-find_package(SDL2_image CONFIG REQUIRED)
-find_package(SDL2_ttf CONFIG REQUIRED)
-find_package(SDL2_mixer CONFIG REQUIRED)
-find_package(sdl2-gfx CONFIG REQUIRED)
+find_package(SDL3 CONFIG REQUIRED)
+find_package(SDL3_image CONFIG REQUIRED)
+find_package(SDL3_ttf CONFIG REQUIRED)
+find_package(SDL3_mixer CONFIG REQUIRED)
+find_package(SDL3_gfx CONFIG REQUIRED)
 find_package(FLTK CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
 find_package(cereal CONFIG REQUIRED)
@@ -89,19 +89,19 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_options(mir2x_project_options INTERFACE -static-libgcc -static-libstdc++)
 endif()
 
-add_library(mir2x_sdl2 INTERFACE)
-add_library(mir2x::sdl2 ALIAS mir2x_sdl2)
-target_link_libraries(mir2x_sdl2 INTERFACE
-    $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>)
+add_library(mir2x_sdl3 INTERFACE)
+add_library(mir2x::sdl3 ALIAS mir2x_sdl3)
+target_link_libraries(mir2x_sdl3 INTERFACE
+    $<IF:$<TARGET_EXISTS:SDL3::SDL3-static>,SDL3::SDL3-static,SDL3::SDL3-shared>)
 
-add_library(mir2x_sdl2_ext INTERFACE)
-add_library(mir2x::sdl2_ext ALIAS mir2x_sdl2_ext)
-target_link_libraries(mir2x_sdl2_ext INTERFACE
-    mir2x::sdl2
-    $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
-    $<IF:$<TARGET_EXISTS:SDL2_ttf::SDL2_ttf>,SDL2_ttf::SDL2_ttf,SDL2_ttf::SDL2_ttf-static>
-    $<IF:$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>,SDL2_mixer::SDL2_mixer,SDL2_mixer::SDL2_mixer-static>
-    SDL2::SDL2_gfx)
+add_library(mir2x_sdl3_ext INTERFACE)
+add_library(mir2x::sdl3_ext ALIAS mir2x_sdl3_ext)
+target_link_libraries(mir2x_sdl3_ext INTERFACE
+    mir2x::sdl3
+    $<IF:$<TARGET_EXISTS:SDL3_image::SDL3_image-static>,SDL3_image::SDL3_image-static,SDL3_image::SDL3_image-shared>
+    $<IF:$<TARGET_EXISTS:SDL3_ttf::SDL3_ttf-static>,SDL3_ttf::SDL3_ttf-static,SDL3_ttf::SDL3_ttf-shared>
+    $<IF:$<TARGET_EXISTS:SDL3_mixer::SDL3_mixer-static>,SDL3_mixer::SDL3_mixer-static,SDL3_mixer::SDL3_mixer-shared>
+    $<IF:$<TARGET_EXISTS:SDL3_gfx::SDL3_gfx-static>,SDL3_gfx::SDL3_gfx-static,SDL3_gfx::SDL3_gfx-shared>)
 
 add_library(mir2x_lua INTERFACE)
 add_library(mir2x::lua ALIAS mir2x_lua)
@@ -143,7 +143,7 @@ add_library(mir2x_common_deps INTERFACE)
 add_library(mir2x::common_deps ALIAS mir2x_common_deps)
 target_link_libraries(mir2x_common_deps INTERFACE
     mir2x::project_options
-    mir2x::sdl2
+    mir2x::sdl3
     mir2x::fltk
     mir2x::lua
     mir2x::header_deps

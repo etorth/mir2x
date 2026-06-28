@@ -13,16 +13,21 @@
     "lua",
     "lz4",
     "parallel-hashmap",
-    "sdl2",
-    "sdl2-gfx",
-    "sdl2-image",
+    "sdl3",
+    "sdl3-gfx",
     {
-      "name": "sdl2-mixer",
+      "name": "sdl3-image",
+      "features": [
+        "png"
+      ]
+    },
+    {
+      "name": "sdl3-mixer",
       "features": [
         "mpg123"
       ]
     },
-    "sdl2-ttf",
+    "sdl3-ttf",
     "sol2",
     "sqlitecpp",
     "tiny-aes-c",

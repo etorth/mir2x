@@ -12,9 +12,9 @@ extern ClientArgParser *g_clientArgParser;
 void ProcessLogo::processEvent(const SDL_Event &event)
 {
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_SPACE:
                     case SDLK_ESCAPE:
                         {

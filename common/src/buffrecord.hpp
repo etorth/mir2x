@@ -1,6 +1,7 @@
 #pragma once
-#include <string>
+#include <cmath>
 #include <cstdint>
+#include <string>
 #include <variant>
 #include <string_view>
 #include <initializer_list>

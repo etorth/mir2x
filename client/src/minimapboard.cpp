@@ -340,7 +340,7 @@ bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             {
                 if(event.button.button == SDL_BUTTON_LEFT){
                     if(m_dragStarted){
@@ -350,19 +350,19 @@ bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
                 }
                 return false;
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 if(event.button.button == SDL_BUTTON_LEFT){
-                    if(m.in(event.button.x, event.button.y)){
+                    if(m.in(to_d(event.button.x), to_d(event.button.y))){
                         m_dragStarted = true;
                         return true;
                     }
                 }
 
                 else if(event.button.button == SDL_BUTTON_RIGHT){
-                    if(m.in(event.button.x, event.button.y)){
-                        const auto onCanvasPX = event.button.x - m.x + m.ro->x;
-                        const auto onCanvasPY = event.button.y - m.y + m.ro->y;
+                    if(m.in(to_d(event.button.x), to_d(event.button.y))){
+                        const auto onCanvasPX = to_d(event.button.x) - m.x + m.ro->x;
+                        const auto onCanvasPY = to_d(event.button.y) - m.y + m.ro->y;
                         const auto [onMapPX, onMapPY] = onMapGLoc_from_onCanvasPLoc({onCanvasPX, onCanvasPY});
                         m_processRun->requestSpaceMove(std::get<0>(m_processRun->getMap()), onMapPX, onMapPY);
                         return true;
@@ -370,20 +370,20 @@ bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
                 }
                 return false;
             }
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             {
-                if(m.in(event.wheel.mouseX, event.wheel.mouseY)){
-                    const auto onCanvasPX = event.wheel.mouseX - m.x + m.ro->x;
-                    const auto onCanvasPY = event.wheel.mouseY - m.y + m.ro->y;
-                    zoomOnCanvasAt(onCanvasPX, onCanvasPY, m_zoomFactor * std::pow(1.1,  event.wheel.y));
+                if(m.in(to_d(event.wheel.mouse_x), to_d(event.wheel.mouse_y))){
+                    const auto onCanvasPX = to_d(event.wheel.mouse_x) - m.x + m.ro->x;
+                    const auto onCanvasPY = to_d(event.wheel.mouse_y) - m.y + m.ro->y;
+                    zoomOnCanvasAt(onCanvasPX, onCanvasPY, m_zoomFactor * std::pow(1.1,  to_d(event.wheel.y)));
                     return true;
                 }
                 return false;
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
                 if(event.motion.state & SDL_BUTTON_LMASK){
-                    if(m.in(event.motion.x, event.motion.y)){
+                    if(m.in(to_d(event.motion.x), to_d(event.motion.y))){
                         if(m_dragStarted){
                             if(m_autoCenter){
                                 m_mapImage_dx = m_mapImage.dx();
@@ -391,8 +391,8 @@ bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
                                 m_autoCenter = false;
                             }
 
-                            m_mapImage_dx += event.motion.xrel;
-                            m_mapImage_dy += event.motion.yrel;
+                            m_mapImage_dx += to_d(event.motion.xrel);
+                            m_mapImage_dy += to_d(event.motion.yrel);
                             fixMapImagePLoc();
 
                             return consumeFocus(true);

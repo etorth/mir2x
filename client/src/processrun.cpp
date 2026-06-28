@@ -578,9 +578,9 @@ void ProcessRun::processEvent(const SDL_Event &event)
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                const auto [mouseGridX, mouseGridY] = fromPLoc2Grid(event.button.x, event.button.y);
+                const auto [mouseGridX, mouseGridY] = fromPLoc2Grid(to_d(event.button.x), to_d(event.button.y));
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
@@ -705,13 +705,13 @@ void ProcessRun::processEvent(const SDL_Event &event)
                 }
                 break;
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
                 break;
             }
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_ESCAPE:
                         {
                             centerMyHero();
@@ -724,7 +724,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                         }
                     default:
                         {
-                            if(event.key.keysym.mod & (KMOD_LALT | KMOD_RALT)){
+                            if(event.key.mod & (SDL_KMOD_LALT | SDL_KMOD_RALT)){
                                 switch(SDLDeviceHelper::getKeyChar(event, false)){
                                     case 'e':
                                         {
@@ -2681,17 +2681,17 @@ void ProcessRun::setCursor(int cursorState)
     switch(m_cursorState = cursorState){
         case CURSOR_NONE:
             {
-                SDL_ShowCursor(SDL_DISABLE);
+                SDL_HideCursor();
                 break;
             }
         case CURSOR_DEFAULT:
             {
-                SDL_ShowCursor(SDL_ENABLE);
+                SDL_ShowCursor();
                 break;
             }
         case CURSOR_TEAMFLAG:
             {
-                SDL_ShowCursor(SDL_DISABLE);
+                SDL_HideCursor();
                 break;
             }
         default:

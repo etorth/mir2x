@@ -324,9 +324,9 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
     const auto startYOff = m.y - m.ro->y;
 
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_ESCAPE:
                         {
                             setShow(false);
@@ -339,9 +339,9 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                         }
                 }
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(event.motion.x, event.motion.y) || focus())){
+                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(to_d(event.motion.x), to_d(event.motion.y)) || focus())){
                     const auto remapXDiff = m.x - m.ro->x;
                     const auto remapYDiff = m.y - m.ro->y;
 
@@ -349,15 +349,15 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
 
-                    const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + event.motion.xrel));
-                    const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + event.motion.yrel));
+                    const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + to_d(event.motion.xrel)));
+                    const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + to_d(event.motion.yrel)));
 
                     moveBy(newX - remapXDiff, newY - remapYDiff);
                     return consumeFocus(true);
                 }
                 return consumeFocus(false);
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 auto myHeroPtr = m_processRun->getMyHero();
                 auto &invPackRef = myHeroPtr->getInvPack();
@@ -366,9 +366,9 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
-                            if(m.in(event.button.x, event.button.y)){
+                            if(m.in(to_d(event.button.x), to_d(event.button.y))){
                                 if(m_sdInvOp.invOp == INVOP_NONE){
-                                    if(const int selectedPackIndex = getPackBinIndex(event.button.x - startXOff, event.button.y - startYOff); selectedPackIndex >= 0){
+                                    if(const int selectedPackIndex = getPackBinIndex(to_d(event.button.x) - startXOff, to_d(event.button.y) - startYOff); selectedPackIndex >= 0){
                                         auto selectedPackBin = invPackRef.getPackBinList().at(selectedPackIndex);
                                         invPackRef.setGrabbedItem(selectedPackBin.item);
                                         invPackRef.remove(selectedPackBin.item);
@@ -379,7 +379,7 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                                         }
                                     }
                                     else if(lastGrabbedItem){
-                                        const auto [gridX, gridY] = getInvGrid(event.button.x - startXOff, event.button.y - startYOff);
+                                        const auto [gridX, gridY] = getInvGrid(to_d(event.button.x) - startXOff, to_d(event.button.y) - startYOff);
                                         const auto [gridW, gridH] = InvPack::getPackBinSize(lastGrabbedItem.itemID);
                                         const auto startGridX = gridX - gridW / 2; // can give an invalid (x, y)
                                         const auto startGridY = gridY - gridH / 2;
@@ -388,7 +388,7 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                                     }
                                 }
                                 else{
-                                    if(const int selectedPackIndex = getPackBinIndex(event.button.x - startXOff, event.button.y - startYOff); selectedPackIndex >= 0){
+                                    if(const int selectedPackIndex = getPackBinIndex(to_d(event.button.x) - startXOff, to_d(event.button.y) - startYOff); selectedPackIndex >= 0){
                                         m_selectedIndex = selectedPackIndex;
                                         const auto &selectedItem = invPackRef.getPackBinList().at(selectedPackIndex);
 
@@ -412,8 +412,8 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                         }
                     case SDL_BUTTON_RIGHT:
                         {
-                            if(m.in(event.button.x, event.button.y)){
-                                if(const int selectedPackIndex = getPackBinIndex(event.button.x - startXOff, event.button.y - startYOff); selectedPackIndex >= 0){
+                            if(m.in(to_d(event.button.x), to_d(event.button.y))){
+                                if(const int selectedPackIndex = getPackBinIndex(to_d(event.button.x) - startXOff, to_d(event.button.y) - startYOff); selectedPackIndex >= 0){
                                     const auto &packBin = invPackRef.getPackBinList().at(selectedPackIndex);
                                     packBinConsume(packBin);
                                 }
@@ -427,13 +427,13 @@ bool InventoryBoard::processEventDefault(const SDL_Event &event, bool valid, Wid
                         }
                 }
             }
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             {
                 const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
                 if(mathf::pointInRectangle<int>(mousePX, mousePY, m.x + m_invGridX0, m.y + m_invGridY0, SYS_INVGRIDGW * SYS_INVGRIDPW, SYS_INVGRIDGH * SYS_INVGRIDPH)){
                     const auto rowCount = getRowCount();
                     if(rowCount > SYS_INVGRIDGH){
-                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (rowCount - SYS_INVGRIDGH), false);
+                        m_slider.addValue((to_d(event.wheel.y) > 0 ? -1.0 : 1.0) / (rowCount - SYS_INVGRIDGH), false);
                     }
                     return consumeFocus(true);
                 }

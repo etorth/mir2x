@@ -87,7 +87,7 @@ bool MagicIconButton::processEventDefault(const SDL_Event &event, bool valid, Wi
     }
 
     const auto result = m_icon.processEventParent(event, valid, m);
-    if(event.type == SDL_KEYDOWN && cursorOn()){
+    if(event.type == SDL_EVENT_KEY_DOWN && cursorOn()){
         if(const auto key = SDLDeviceHelper::getKeyChar(event, false); (key >= '0' && key <= '9') || (key >= 'a' && key <= 'z')){
             if(m_config->hasMagicID(magicID())){
                 if(SkillBoard::getMagicIconGfx(magicID())->passive){

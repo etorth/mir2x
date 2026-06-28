@@ -1,7 +1,7 @@
 #pragma once
 #include <cstring>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <utility>
 #include <unordered_map>
 
@@ -167,8 +167,8 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }
 
             if(auto ttfPtr = findTTF(font, 16)){
-                const auto familyName = TTF_FontFaceFamilyName(ttfPtr);
-                const auto  styleName = TTF_FontFaceStyleName (ttfPtr);
+                const auto familyName = TTF_GetFontFamilyName(ttfPtr);
+                const auto  styleName = TTF_GetFontStyleName (ttfPtr);
 
                 fflassert(str_haschar(familyName));
                 fflassert(str_haschar( styleName));
@@ -185,7 +185,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }
 
             if(auto ttfPtr = findTTF(font, fontSize)){
-                return TTF_FontAscent(ttfPtr);
+                return TTF_GetFontAscent(ttfPtr);
             }
             throw fflpanic("failed to load font: {}", font);
         }
@@ -197,7 +197,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }
 
             if(auto ttfPtr = findTTF(font, fontSize)){
-                return TTF_FontHeight(ttfPtr);
+                return TTF_GetFontHeight(ttfPtr);
             }
             throw fflpanic("failed to load font: {}", font);
         }
@@ -209,7 +209,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }
 
             if(auto ttfPtr = findTTF(font, fontSize)){
-                return TTF_FontLineSkip(ttfPtr);
+                return TTF_GetFontLineSkip(ttfPtr);
             }
             throw fflpanic("failed to load font: {}", font);
         }
@@ -221,7 +221,7 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             }
 
             if(auto ttfPtr = findTTF(font, fontSize)){
-                return TTF_FontFaceIsFixedWidth(ttfPtr) != 0;
+                return TTF_FontIsFixedWidth(ttfPtr) != 0;
             }
             throw fflpanic("failed to load font: {}", font);
         }
@@ -292,11 +292,12 @@ class FontexDB: public innDB<uint64_t, FontexElement>
         }
 
     private:
-        static uint32_t hasGlphy(TTF_Font *, uint32_t);
+        // SDL3_ttf only reports presence (not the glyph index)
+        static bool hasGlphy(TTF_Font *, uint32_t);
 
     public:
-        uint32_t hasGlphy(uint16_t,          uint32_t);
-        uint32_t hasGlphy( uint8_t, uint8_t, uint32_t);
+        bool hasGlphy(uint16_t,          uint32_t);
+        bool hasGlphy( uint8_t, uint8_t, uint32_t);
 
     private:
         static bool isTransparant(TTF_Font *, uint32_t);

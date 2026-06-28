@@ -1,0 +1,22 @@
+{
+  "name": "sdl3-gfx",
+  "version": "1.0.1",
+  "description": "Graphics drawing primitives and helpers for SDL3 renderers.",
+  "homepage": "https://github.com/sabdul-khabir/SDL3_gfx",
+  "license": "Zlib",
+  "dependencies": [
+    {
+      "name": "sdl3",
+      "default-features": false
+    },
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
+}
+

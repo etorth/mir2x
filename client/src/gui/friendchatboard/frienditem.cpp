@@ -124,12 +124,12 @@ bool FriendItem::processEventDefault(const SDL_Event &event, bool valid, Widget:
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 if(Widget::processEventDefault(event, valid, m)){
                     return consumeFocus(true);
                 }
-                else if(m.in(event.button.x, event.button.y)){
+                else if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     if(onClick){
                         onClick(this);
                     }

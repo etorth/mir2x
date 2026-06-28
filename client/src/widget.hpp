@@ -11,7 +11,7 @@
 #include <cstring>
 #include <optional>
 #include <type_traits>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "mathf.hpp"
 #include "colorf.hpp"
 #include "fflerror.hpp"

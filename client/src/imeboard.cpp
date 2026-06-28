@@ -172,9 +172,9 @@ bool IMEBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::R
     }
 
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_UP:
                     case SDLK_LEFT:
                     case SDLK_PAGEUP:
@@ -243,27 +243,27 @@ bool IMEBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                         }
                 }
             }
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             {
                 if(event.button.button == SDL_BUTTON_LEFT){
                     for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
                         m_boardList[i]->setFontColor(Widget::evalU32(m_font.color, this));
-                        if(m.create(m_boardList.at(i)->roi()).in(event.button.x, event.button.y)){
+                        if(m.create(m_boardList.at(i)->roi()).in(to_d(event.button.x), to_d(event.button.y))){
                             m_ime.select(i);
                         }
                     }
                 }
                 return true;
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(!m.in(event.button.x, event.button.y)){
+                if(!m.in(to_d(event.button.x), to_d(event.button.y))){
                     dropFocus();
                     return true;
                 }
 
                 for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
-                    if(m.create(m_boardList.at(i)->roi()).in(event.button.x, event.button.y)){
+                    if(m.create(m_boardList.at(i)->roi()).in(to_d(event.button.x), to_d(event.button.y))){
                         m_boardList.at(i)->setFontColor(Widget::evalU32(m_fontColorPressed, this));
                     }
                     else{
@@ -272,7 +272,7 @@ bool IMEBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                 }
                 return true;
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
                 if(event.motion.state & SDL_BUTTON_LMASK){
                     const auto remapXDiff = m.x - m.ro->x;
@@ -282,14 +282,14 @@ bool IMEBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::R
                     const int maxX = rendererW - w();
                     const int maxY = rendererH - h();
 
-                    const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + event.motion.xrel));
-                    const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + event.motion.yrel));
+                    const int newX = std::max<int>(0, std::min<int>(maxX, remapXDiff + to_d(event.motion.xrel)));
+                    const int newY = std::max<int>(0, std::min<int>(maxY, remapYDiff + to_d(event.motion.yrel)));
 
                     moveBy(newX - remapXDiff, newY - remapYDiff);
                 }
-                else if(m.in(event.motion.x, event.motion.y)){
+                else if(m.in(to_d(event.motion.x), to_d(event.motion.y))){
                     for(size_t i = m_startIndex; i < std::min<size_t>(m_startIndex + 9, m_candidateList.size()); ++i){
-                        if(m.create(m_boardList.at(i)->roi()).in(event.motion.x, event.motion.y)){
+                        if(m.create(m_boardList.at(i)->roi()).in(to_d(event.motion.x), to_d(event.motion.y))){
                             m_boardList.at(i)->setFontColor(Widget::evalU32(m_fontColorHover, this));
                         }
                         else{

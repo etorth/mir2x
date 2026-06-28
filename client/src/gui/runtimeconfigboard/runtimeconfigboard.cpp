@@ -515,31 +515,31 @@ bool RuntimeConfigBoard::processEventDefault(const SDL_Event &event, bool valid,
     if(m_pageGameConfig.processEventParent(event, valid, m)){ return true; }
 
     switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                if(event.key.keysym.sym == SDLK_ESCAPE){
+                if(event.key.key == SDLK_ESCAPE){
                     setShow(false);
                     return consumeFocus(false);
                 }
                 return consumeFocus(true);
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(event.motion.x, event.motion.y) || focus())){
+                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(to_d(event.motion.x), to_d(event.motion.y)) || focus())){
                     if(const auto par = parent()){
-                        moveBy(event.motion.xrel, event.motion.yrel, par->roi());
+                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), par->roi());
                     }
                     else{
-                        moveBy(event.motion.xrel, event.motion.yrel, Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
+                        moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
                     }
                     return consumeFocus(true);
                 }
                 return false;
             }
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                return consumeFocus(m.in(event.button.x, event.button.y));
+                return consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y)));
             }
         default:
             {

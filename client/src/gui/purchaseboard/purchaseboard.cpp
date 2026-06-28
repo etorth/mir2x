@@ -340,10 +340,10 @@ bool PurchaseBoard::processEventDefault(const SDL_Event &event, bool valid, Widg
     const auto remapY = m.y - m.ro->y;
 
     switch(event.type){
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                const int mouseDX = event.button.x - remapX;
-                const int mouseDY = event.button.y - remapY;
+                const int mouseDX = to_d(event.button.x) - remapX;
+                const int mouseDY = to_d(event.button.y) - remapY;
 
                 for(int i = 0; i < 4; ++i){
                     const Widget::ROI select
@@ -372,7 +372,7 @@ bool PurchaseBoard::processEventDefault(const SDL_Event &event, bool valid, Widg
                 }
                 break;
             }
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             {
                 const Widget::ROI select
                 {
@@ -383,16 +383,16 @@ bool PurchaseBoard::processEventDefault(const SDL_Event &event, bool valid, Widg
                     .h = m_lineH * 3 + m_boxH,
                 };
 
-                const int mouseDX = event.wheel.mouseX - remapX;
-                const int mouseDY = event.wheel.mouseY - remapY;
+                const int mouseDX = to_d(event.wheel.mouse_x) - remapX;
+                const int mouseDY = to_d(event.wheel.mouse_y) - remapY;
 
                 if(select.in(mouseDX, mouseDY)){
                     if(m_itemList.size() > 4){
-                        m_slider.addValue((event.wheel.y > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4), false);
+                        m_slider.addValue((to_d(event.wheel.y) > 0 ? -1.0 : 1.0) / (m_itemList.size() - 4), false);
                     }
                 }
                 else if((extendedBoardGfxID() == 1) && (extendedPageCount() > 0) && m_ext1GridArea.in(mouseDX, mouseDY)){
-                    if(event.wheel.y > 0){
+                    if(to_d(event.wheel.y) > 0){
                         m_ext1Page--;
                     }
                     else{

@@ -126,17 +126,17 @@ bool ItemListBoard::processEventDefault(const SDL_Event &event, bool valid, Widg
     if(m_closeButton .processEventParent(event, valid, m)){ return true; }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 if(const auto gridIndex = getPageGrid(); gridIndex.has_value() && pageCount() > 0 && m_page * 3 * 4 + gridIndex.value() < itemCount()){
                     m_selectedPageGrid = m_page * 3 * 4 + gridIndex.value();
                 }
                 break;
             }
-        case SDL_MOUSEWHEEL:
+        case SDL_EVENT_MOUSE_WHEEL:
             {
                 if(getPageGrid().has_value()){
-                    if(event.wheel.y > 0){
+                    if(to_d(event.wheel.y) > 0){
                         m_page = to_uz(mathf::bound<int>(to_d(m_page) - 1, 0, to_d(pageCount()) - 1));
                     }
                     else{

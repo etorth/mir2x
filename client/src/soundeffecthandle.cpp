@@ -1,5 +1,5 @@
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
+#include <SDL3/SDL.h>
+#include <SDL3_mixer/SDL_mixer.h>
 #include "clientargparser.hpp"
 #include "soundeffecthandle.hpp"
 
@@ -10,8 +10,8 @@ SoundEffectHandle::~SoundEffectHandle()
         return;
     }
 
-    if(this->chunk){
-        Mix_FreeChunk(this->chunk);
-        this->chunk = nullptr;
+    if(this->audio){
+        MIX_DestroyAudio(this->audio);
+        this->audio = nullptr;
     }
 }

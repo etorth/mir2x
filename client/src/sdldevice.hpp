@@ -3,11 +3,12 @@
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
+#include <unordered_set>
 #include <mutex>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL2_gfxPrimitives.h>
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#include <SDL3_mixer/SDL_mixer.h>
+#include <SDL3_gfxPrimitives.h>
 #include "totype.hpp"
 #include "protocoldef.hpp"
 #include "fflerror.hpp"
@@ -133,7 +134,7 @@ namespace SDLDeviceHelper
 }
 
 class SDLDevice;
-class SDLSoundEffectChannel // controller of sound effect and channl playing it
+class SDLSoundEffectChannel // controller of sound effect and the track playing it
 {
     private:
         friend class SDLDevice;
@@ -142,10 +143,10 @@ class SDLSoundEffectChannel // controller of sound effect and channl playing it
         SDLDevice *m_sdlDevice;
 
     private:
-        int m_channel;
+        MIX_Track *m_track;       // nullptr after halt(); owned by m_sdlDevice's track pool
 
     private:
-        SDLSoundEffectChannel(SDLDevice *, int);
+        SDLSoundEffectChannel(SDLDevice *, MIX_Track *);
 
     private:
         SDLSoundEffectChannel              (      SDLSoundEffectChannel &&) = delete;
@@ -158,10 +159,10 @@ class SDLSoundEffectChannel // controller of sound effect and channl playing it
 
     public:
         // returns true if this->halt() get called
-        // channel may have stopped before this->halt() because of finished playing or errors
+        // track may have stopped before this->halt() because of finished playing or errors
         bool halted() const
         {
-            return m_channel < 0;
+            return m_track == nullptr;
         }
 
     public:
@@ -184,7 +185,7 @@ class SDLDevice final
         };
 
     private:
-        const size_t m_channelCount = 128;
+        const size_t m_trackCount = 128;
 
     private:
         SDL_Window   *m_window   = nullptr;
@@ -200,9 +201,14 @@ class SDLDevice final
        std::unordered_map<uint8_t, TTF_Font *> m_fontList;
 
     private:
-       std::mutex m_freeChannelLock;
-       std::unordered_set<int> m_freeChannelList;
-       std::unordered_map<int, SoundChannelHookState> m_channelStateList;
+       MIX_Mixer *m_mixer = nullptr;
+       MIX_Track *m_bgmTrack = nullptr;
+       std::vector<MIX_Track *> m_tracks;          // all sound-effect tracks, owned here
+
+    private:
+       std::mutex m_freeTrackLock;
+       std::unordered_set<MIX_Track *> m_freeTrackList;
+       std::unordered_map<MIX_Track *, SoundChannelHookState> m_trackStateList;
 
     public:
        /* ctor */  SDLDevice();
@@ -235,7 +241,7 @@ class SDLDevice final
                int, // center y on dst
 
                int, // rotate in 360-degree on dst
-               SDL_RendererFlip = SDL_FLIP_NONE);
+               SDL_FlipMode = SDL_FLIP_NONE);
 
     public:
        void present()
@@ -248,13 +254,6 @@ class SDLDevice final
            SDL_SetWindowTitle(m_window, (szUTF8Title) ? szUTF8Title : "");
        }
 
-       void setGamma(double fGamma)
-       {
-           Uint16 pRawRamp[256];
-           SDL_CalculateGammaRamp((float)((std::min<double>)((std::max<double>)(fGamma, 0.0), 1.0)), pRawRamp);
-           SDL_SetWindowGammaRamp(m_window, pRawRamp, pRawRamp, pRawRamp);
-       }
-
        void clearScreen()
        {
            setColor(0, 0, 0, 0);
@@ -263,38 +262,38 @@ class SDLDevice final
 
        void drawLine(int argX0, int argY0, int argX1, int argY1)
        {
-           SDL_RenderDrawLine(m_renderer, argX0, argY0, argX1, argY1);
+           SDL_RenderLine(m_renderer, to_f(argX0), to_f(argY0), to_f(argX1), to_f(argY1));
        }
 
        void drawLine(uint32_t color, int argX0, int argY0, int argX1, int argY1)
        {
            SDLDeviceHelper::EnableRenderColor enableColor(color, this);
-           SDL_RenderDrawLine(m_renderer, argX0, argY0, argX1, argY1);
+           drawLine(argX0, argY0, argX1, argY1);
        }
 
        void drawCross(uint32_t color, int x, int y, size_t r)
        {
            SDLDeviceHelper::EnableRenderColor enableColor(color, this);
-           SDL_RenderDrawLine(m_renderer, x - to_d(r), y, x + to_d(r), y);
-           SDL_RenderDrawLine(m_renderer, x, y - to_d(r), x, y + to_d(r));
+           drawLine(x - to_d(r), y, x + to_d(r), y);
+           drawLine(x, y - to_d(r), x, y + to_d(r));
        }
 
        void drawLinef(float argX0, float argY0, float argX1, float argY1)
        {
-           SDL_RenderDrawLine(m_renderer, argX0, argY0, argX1, argY1);
+           SDL_RenderLine(m_renderer, argX0, argY0, argX1, argY1);
        }
 
        void drawLinef(uint32_t color, float argX0, float argY0, float argX1, float argY1)
        {
            SDLDeviceHelper::EnableRenderColor enableColor(color, this);
-           SDL_RenderDrawLine(m_renderer, argX0, argY0, argX1, argY1);
+           SDL_RenderLine(m_renderer, argX0, argY0, argX1, argY1);
        }
 
        void drawCrossf(uint32_t color, float x, float y, float r)
        {
            SDLDeviceHelper::EnableRenderColor enableColor(color, this);
-           SDL_RenderDrawLine(m_renderer, x - r, y, x + r, y);
-           SDL_RenderDrawLine(m_renderer, x, y - r, x, y + r);
+           SDL_RenderLine(m_renderer, x - r, y, x + r, y);
+           SDL_RenderLine(m_renderer, x, y - r, x, y + r);
        }
 
        void setColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
@@ -304,7 +303,7 @@ class SDLDevice final
 
        void drawPixel(int argX, int argY)
        {
-           SDL_RenderDrawPoint(m_renderer, argX, argY);
+           SDL_RenderPoint(m_renderer, to_f(argX), to_f(argY));
        }
 
     public:
@@ -343,6 +342,12 @@ class SDLDevice final
        }
 
     public:
+       MIX_Mixer *getMixer()
+       {
+           return m_mixer;
+       }
+
+    public:
        SDL_Texture *createTextureFromSurface(SDL_Surface * surfPtr)
        {
            return surfPtr ? SDL_CreateTextureFromSurface(m_renderer, surfPtr) : nullptr;
@@ -372,8 +377,8 @@ class SDLDevice final
            int w = -1;
            int h = -1;
 
-           if(SDL_GetRendererOutputSize(m_renderer, &w, &h)){
-               throw fflpanic("SDL_GetRendererOutputSize({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+           if(!SDL_GetCurrentRenderOutputSize(m_renderer, &w, &h)){
+               throw fflpanic("SDL_GetCurrentRenderOutputSize({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
            }
            return {w, h};
        }
@@ -419,7 +424,7 @@ class SDLDevice final
     public:
        void setWindowResizable(bool resizable)
        {
-           SDL_SetWindowResizable(m_window, resizable ? SDL_TRUE : SDL_FALSE);
+           SDL_SetWindowResizable(m_window, resizable);
        }
 
     public:
@@ -434,12 +439,12 @@ class SDLDevice final
     public:
        void stopBGM();
        void setBGMVolume(float); // by initial max volume
-       void playBGM(Mix_Music *, size_t repeats = 0); // by default repeats forever
+       void playBGM(MIX_Audio *, size_t repeats = 0); // by default repeats forever
 
     public:
        size_t channelCount() const
        {
-           return m_channelCount;
+           return m_trackCount;
        }
 
        // repeats : 0 : plays forever
@@ -454,12 +459,13 @@ class SDLDevice final
        //        180 : south
        //        270 : west
        //
-       // return   empty : no channel allocated for playing
-       //      non-empty : playing channel, channel can not get reused before halt() or dtor() called
+       // return   empty : no track allocated for playing
+       //      non-empty : playing track, track can not get reused before halt() or dtor() called
        std::shared_ptr<SDLSoundEffectChannel> playSoundEffect(std::shared_ptr<SoundEffectHandle>, int distance = 0, int angle = 0, size_t repeats = 1);
        void stopSoundEffect();
        void setSoundEffectVolume(float);
 
     private:
-       static void recycleSoundEffectChannel(int);
+       static void recycleSoundEffectTrack(void *userdata, MIX_Track *track);
+       static void apply3DPosition(MIX_Track *track, int distance, int angle);
 };

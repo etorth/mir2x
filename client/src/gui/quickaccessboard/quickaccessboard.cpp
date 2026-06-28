@@ -109,22 +109,22 @@ bool QuickAccessBoard::processEventDefault(const SDL_Event &event, bool valid, W
     }
 
     switch(event.type){
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(event.motion.x, event.motion.y) || focus())){
-                    moveBy(event.motion.xrel, event.motion.yrel, Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
+                if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(to_d(event.motion.x), to_d(event.motion.y)) || focus())){
+                    moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), Widget::makeROI(0, 0, g_sdlDevice->getRendererSize()));
                     return consumeFocus(true);
                 }
                 return consumeFocus(false);
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 switch(event.button.button){
                     case SDL_BUTTON_LEFT:
                         {
                             for(int slot = 0; slot < 6; ++slot){
                                 const auto [gridX, gridY, gridW, gridH] = getGridLoc(slot);
-                                if(mathf::pointInRectangle(event.button.x, event.button.y, m.x + gridX, m.y + gridY, gridW, gridH)){
+                                if(mathf::pointInRectangle(to_d(event.button.x), to_d(event.button.y), m.x + gridX, m.y + gridY, gridW, gridH)){
                                     if(const auto grabbedItem = m_processRun->getMyHero()->getInvPack().getGrabbedItem()){
                                         const auto &ir = DBCOM_ITEMRECORD(grabbedItem.itemID);
                                         if(ir.beltable()){
@@ -142,7 +142,7 @@ bool QuickAccessBoard::processEventDefault(const SDL_Event &event, bool valid, W
                                 }
                             }
 
-                            if(m.in(event.button.x, event.button.y)){
+                            if(m.in(to_d(event.button.x), to_d(event.button.y))){
                                 return consumeFocus(true);
                             }
                             else{
@@ -153,13 +153,13 @@ bool QuickAccessBoard::processEventDefault(const SDL_Event &event, bool valid, W
                         {
                             for(int slot = 0; slot < 6; ++slot){
                                 const auto [gridX, gridY, gridW, gridH] = getGridLoc(slot);
-                                if(mathf::pointInRectangle(event.button.x, event.button.y, m.x + gridX, m.y + gridY, gridW, gridH)){
+                                if(mathf::pointInRectangle(to_d(event.button.x), to_d(event.button.y), m.x + gridX, m.y + gridY, gridW, gridH)){
                                     gridConsume(slot);
                                     break;
                                 }
                             }
 
-                            if(m.in(event.button.x, event.button.y)){
+                            if(m.in(to_d(event.button.x), to_d(event.button.y))){
                                 return consumeFocus(true);
                             }
                             else{
@@ -172,7 +172,7 @@ bool QuickAccessBoard::processEventDefault(const SDL_Event &event, bool valid, W
                         }
                 }
             }
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
                 if(focus()){
                     if(const auto ch = SDLDeviceHelper::getKeyChar(event, false); ch >= '1' && ch <= '6'){

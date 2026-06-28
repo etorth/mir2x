@@ -9,7 +9,7 @@
 #include <optional>
 #include <concepts>
 #include <optional>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 #include "uidf.hpp"
 #include "mathf.hpp"

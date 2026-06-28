@@ -1,7 +1,8 @@
 #pragma once
+#include <cmath>
+#include <cfloat>
 #include <span>
 #include <tuple>
-#include <cmath>
 #include <array>
 #include <queue>
 #include <vector>

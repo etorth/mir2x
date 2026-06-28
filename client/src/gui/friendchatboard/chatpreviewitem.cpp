@@ -158,9 +158,9 @@ bool ChatPreviewItem::processEventDefault(const SDL_Event &event, bool valid, Wi
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(m.in(event.button.x, event.button.y)){
+                if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     FriendChatBoard::getParentBoard(this)->m_processRun->requestLatestChatMessage({this->cpid.asU64()}, 50, true, true);
                     FriendChatBoard::getParentBoard(this)->queryChatPeer(this->cpid, [canvas = this->parent(), widgetID = this->id(), this](const SDChatPeer *peer, bool)
                     {

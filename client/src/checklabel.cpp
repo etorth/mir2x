@@ -120,9 +120,9 @@ bool CheckLabel::processEventDefault(const SDL_Event &event, bool valid, Widget:
 
 
     switch(event.type){
-        case SDL_MOUSEMOTION:
-        case SDL_MOUSEBUTTONUP:
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_MOTION:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
                 m_hoverColor = m.in(SDLDeviceHelper::getEventPLoc(event).value());
                 break;
@@ -138,18 +138,18 @@ bool CheckLabel::processEventDefault(const SDL_Event &event, bool valid, Widget:
     }
 
     switch(event.type){
-        case SDL_MOUSEBUTTONUP:
+        case SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                if(m.in(event.button.x, event.button.y)){
+                if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     return consumeFocus(true, &m_box);
                 }
                 else{
                     return consumeFocus(false);
                 }
             }
-        case SDL_MOUSEBUTTONDOWN:
+        case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(m.in(event.button.x, event.button.y)){
+                if(m.in(to_d(event.button.x), to_d(event.button.y))){
                     m_box.toggle();
                     return consumeFocus(true, &m_box);
                 }
@@ -157,23 +157,23 @@ bool CheckLabel::processEventDefault(const SDL_Event &event, bool valid, Widget:
                     return consumeFocus(false);
                 }
             }
-        case SDL_MOUSEMOTION:
+        case SDL_EVENT_MOUSE_MOTION:
             {
-                if(m.in(event.motion.x, event.motion.y)){
+                if(m.in(to_d(event.motion.x), to_d(event.motion.y))){
                     return consumeFocus(true, &m_box);
                 }
                 else{
                     return consumeFocus(false);
                 }
             }
-        case SDL_KEYUP:
+        case SDL_EVENT_KEY_UP:
             {
                 return consumeFocus(focus());
             }
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
                 if(focus()){
-                    switch(event.key.keysym.sym){
+                    switch(event.key.key){
                         case SDLK_SPACE:
                         case SDLK_RETURN:
                             {

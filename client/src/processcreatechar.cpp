@@ -154,9 +154,9 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
 
     if(!tookEvent){
         switch(event.type){
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
             {
-                switch(event.key.keysym.sym){
+                switch(event.key.key){
                     case SDLK_TAB:
                         {
                             m_nameBox.setFocus(true);
@@ -169,7 +169,7 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
                 }
                 break;
             }
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 {
                     const auto [px, py] = SDLDeviceHelper::getMousePLoc();
                     if(mathf::pointInRectangle(px, py, 200, 290, 90, 260)){

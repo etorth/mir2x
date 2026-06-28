@@ -1,8 +1,11 @@
 #include "clientargparser.hpp"
 #include "bgmusicdb.hpp"
+#include "sdldevice.hpp"
 #include "hexstr.hpp"
 
 extern ClientArgParser *g_clientArgParser;
+extern SDLDevice *g_sdlDevice;
+
 std::optional<std::tuple<BGMusicElement, size_t>> BGMusicDB::loadResource(uint32_t key)
 {
     if(g_clientArgParser->disableAudio){
@@ -20,9 +23,12 @@ std::optional<std::tuple<BGMusicElement, size_t>> BGMusicDB::loadResource(uint32
         return {};
     }
 
-    Mix_Music *musicPtr = nullptr;
-    if(auto rwOpsPtr = SDL_RWFromConstMem(bgmDataBuf.data(), bgmDataBuf.size())){
-        musicPtr = Mix_LoadMUS_RW(rwOpsPtr, SDL_TRUE);
+    // stream from in-memory buffer; do not predecode so large music files don't fully load
+    // closeio=true so MIX_DestroyAudio() will close the iostream
+    // the underlying bgmDataBuf must outlive the MIX_Audio (kept in musicFileData)
+    MIX_Audio *musicPtr = nullptr;
+    if(auto ioStream = SDL_IOFromConstMem(bgmDataBuf.data(), bgmDataBuf.size())){
+        musicPtr = MIX_LoadAudio_IO(g_sdlDevice->getMixer(), ioStream, false, true);
     }
 
     if(!musicPtr){
@@ -38,15 +44,12 @@ std::optional<std::tuple<BGMusicElement, size_t>> BGMusicDB::loadResource(uint32
 
 void BGMusicDB::freeResource(BGMusicElement &element)
 {
-    // check SDL_mixer docmument
-    // Mix_FreeMusic() stops music if it's playing, this is blocking when music doing fading out
-
     if(g_clientArgParser->disableAudio){
         return;
     }
 
     if(element.music){
-        Mix_FreeMusic(element.music);
+        MIX_DestroyAudio(element.music);
         element.music = nullptr;
         std::vector<uint8_t>().swap(element.musicFileData);
     }

@@ -1,6 +1,7 @@
 #include "soundeffecthandle.hpp"
 #include "clientargparser.hpp"
 #include "soundeffectdb.hpp"
+#include "sdldevice.hpp"
 #include "hexstr.hpp"
 
 // sound index remap information mostly from:
@@ -140,6 +141,7 @@
 // 2. remove M27-R.wav, because looks M27-L.wav and M27-R.wav are identical, and these two files are not used for magic sound actually
 
 extern ClientArgParser *g_clientArgParser;
+extern SDLDevice *g_sdlDevice;
 std::optional<std::tuple<SoundEffectElement, size_t>> SoundEffectDB::loadResource(uint32_t key)
 {
     if(g_clientArgParser->disableAudio){
@@ -157,12 +159,14 @@ std::optional<std::tuple<SoundEffectElement, size_t>> SoundEffectDB::loadResourc
         return {};
     }
 
-    Mix_Chunk *chunkPtr = nullptr;
-    if(auto rwOpsPtr = SDL_RWFromConstMem(soundEffectDataBuf.data(), soundEffectDataBuf.size())){
-        chunkPtr = Mix_LoadWAV_RW(rwOpsPtr, SDL_TRUE);
+    // predecode=true: small sound effect, decode fully into memory
+    // closeio=true: MIX_DestroyAudio() closes the iostream
+    MIX_Audio *audioPtr = nullptr;
+    if(auto ioStream = SDL_IOFromConstMem(soundEffectDataBuf.data(), soundEffectDataBuf.size())){
+        audioPtr = MIX_LoadAudio_IO(g_sdlDevice->getMixer(), ioStream, true, true);
     }
 
-    if(!chunkPtr){
+    if(!audioPtr){
         return {};
     }
 
@@ -170,7 +174,7 @@ std::optional<std::tuple<SoundEffectElement, size_t>> SoundEffectDB::loadResourc
     {
         .handle = std::shared_ptr<SoundEffectHandle>(new SoundEffectHandle
         {
-            .chunk = chunkPtr,
+            .audio = audioPtr,
             .chunkFileData = std::move(soundEffectDataBuf),
         }),
     }, 1);

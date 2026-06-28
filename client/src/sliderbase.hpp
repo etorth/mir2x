@@ -11,7 +11,7 @@
 
 #pragma once
 #include <climits>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <functional>
 #include "widget.hpp"
 #include "bevent.hpp"

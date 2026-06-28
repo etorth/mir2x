@@ -1,8 +1,8 @@
 #include <mutex>
 #include <memory>
 #include <chrono>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #include "log.hpp"
 #include "strf.hpp"
@@ -127,9 +127,9 @@ void InitView::processEvent()
     SDL_Event event;
     while(SDL_PollEvent(&event)){
         switch(event.type){
-            case SDL_MOUSEBUTTONUP:
+            case SDL_EVENT_MOUSE_BUTTON_UP:
                 {
-                    if(mathf::pointInRectangle(event.button.x, event.button.y, m_buttonX, m_buttonY, m_buttonW, m_buttonH)){
+                    if(mathf::pointInRectangle(to_d(event.button.x), to_d(event.button.y), m_buttonX, m_buttonY, m_buttonW, m_buttonH)){
                         if(m_buttonState == BEVENT_DOWN){
                             std::exit(0);
                         }
@@ -142,12 +142,12 @@ void InitView::processEvent()
                     }
                     break;
                 }
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
                 {
                     switch(event.button.button){
                         case SDL_BUTTON_LEFT:
                             {
-                                if(mathf::pointInRectangle(event.button.x, event.button.y, m_buttonX, m_buttonY, m_buttonW, m_buttonH)){
+                                if(mathf::pointInRectangle(to_d(event.button.x), to_d(event.button.y), m_buttonX, m_buttonY, m_buttonW, m_buttonH)){
                                     m_buttonState = BEVENT_DOWN;
                                 }
                                 break;
@@ -159,9 +159,9 @@ void InitView::processEvent()
                     }
                     break;
                 }
-            case SDL_MOUSEMOTION:
+            case SDL_EVENT_MOUSE_MOTION:
                 {
-                    if(mathf::pointInRectangle(event.button.x, event.button.y, m_buttonX, m_buttonY, m_buttonW, m_buttonH)){
+                    if(mathf::pointInRectangle(to_d(event.button.x), to_d(event.button.y), m_buttonX, m_buttonY, m_buttonW, m_buttonH)){
                         m_buttonState = BEVENT_ON;
                     }
                     else{
@@ -232,9 +232,9 @@ void InitView::draw()
         }();
 
         SDL_Texture *texPtr = nullptr;
-        if(auto surfPtr = TTF_RenderUTF8_Blended(g_sdlDevice->defaultTTF(m_fontSize), log.c_str(), color)){
+        if(auto surfPtr = TTF_RenderText_Blended(g_sdlDevice->defaultTTF(m_fontSize), log.c_str(), 0, color)){
             texPtr = g_sdlDevice->createTextureFromSurface(surfPtr);
-            SDL_FreeSurface(surfPtr);
+            SDL_DestroySurface(surfPtr);
         }
         return texPtr;
     };

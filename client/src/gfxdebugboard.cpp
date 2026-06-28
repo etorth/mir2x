@@ -76,9 +76,9 @@ GfxDebugBoard::GfxDebugBoard(GfxDebugBoard::InitArgs args)
                       return false;
                   }
 
-                  if((event.type == SDL_MOUSEMOTION) && valid){
-                      if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(event.motion.x, event.motion.y) || self->focus())){
-                          self->moveBy(event.motion.xrel, event.motion.yrel, m_imgCanvas.roi());
+                  if((event.type == SDL_EVENT_MOUSE_MOTION) && valid){
+                      if((event.motion.state & SDL_BUTTON_LMASK) && (m.in(to_d(event.motion.x), to_d(event.motion.y)) || self->focus())){
+                          self->moveBy(to_d(event.motion.xrel), to_d(event.motion.yrel), m_imgCanvas.roi());
                           return true;
                       }
                   }
