@@ -49,19 +49,28 @@ jobs:
             gcc-16 \
             gettext \
             git \
+            libasound2-dev \
+            libdbus-1-dev \
             libgl1-mesa-dev \
             libglu1-mesa-dev \
+            libibus-1.0-dev \
             libice-dev \
             libltdl-dev \
+            libpulse-dev \
             libsm-dev \
             libtool \
+            libudev-dev \
             libx11-dev \
             libxcursor-dev \
             libxext-dev \
             libxfixes-dev \
             libxft-dev \
+            libxi-dev \
             libxinerama-dev \
+            libxkbcommon-dev \
+            libxrandr-dev \
             libxrender-dev \
+            libxss-dev \
             ninja-build \
             pkg-config \
             python3 \
