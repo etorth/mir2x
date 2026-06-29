@@ -117,7 +117,7 @@ ZSDB::InnEntry ZSDB::getErrorEntry()
 ZSDB::ZSDB(const char *filePath)
     : m_fp(make_fileptr(filePath, "rb"))
 {
-    m_DCtx = ZSTD_createDCtx();
+    m_DCtx.reset(ZSTD_createDCtx());
     if(!m_DCtx){
         throw fflpanic("failed to create decompress context");
     }
@@ -127,11 +127,13 @@ ZSDB::ZSDB(const char *filePath)
     if(m_header.dictLength){
         const auto offset = check_cast<size_t>(m_header.dictOffset);
         const auto length = check_cast<size_t>(m_header.dictLength);
-        if(const auto dictBuf = decompFileOffData(m_fp, offset, length, m_DCtx, m_DDict); dictBuf.empty()){
+        // The dict block is itself zstd-compressed without using any dictionary
+        // (it's the dictionary we're about to load); decompress with ddict=nullptr.
+        if(const auto dictBuf = decompFileOffData(m_fp, offset, length, m_DCtx.get(), nullptr); dictBuf.empty()){
             throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
-            m_DDict = ZSTD_createDDict(dictBuf.data(), dictBuf.size());
+            m_DDict.reset(ZSTD_createDDict(dictBuf.data(), dictBuf.size()));
             if(!m_DDict){
                 throw fflpanic("create decompression dictory failed");
             }
@@ -141,7 +143,8 @@ ZSDB::ZSDB(const char *filePath)
     if(m_header.entryLength){
         const auto offset = check_cast<size_t>(m_header.entryOffset);
         const auto length = check_cast<size_t>(m_header.entryLength);
-        if(const auto entryBuf = decompFileOffData(m_fp, offset, length, m_DCtx, m_DDict); entryBuf.empty()){
+        // Entry table is compressed without dict (see buildDB), so decompress without ddict.
+        if(const auto entryBuf = decompFileOffData(m_fp, offset, length, m_DCtx.get(), nullptr); entryBuf.empty()){
             throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
@@ -149,9 +152,12 @@ ZSDB::ZSDB(const char *filePath)
                 throw fflpanic("zsdb database file corrupted");
             }
 
-            const auto *headPtr = (InnEntry *)(entryBuf.data());
-            m_entryList.clear();
-            m_entryList.insert(m_entryList.end(), headPtr, headPtr + m_header.entryNum + 1);
+            // memcpy rather than reinterpret_cast: entryBuf.data() is byte-aligned but
+            // InnEntry has uint64_t members that require 8-byte alignment on strict
+            // platforms (ARM, RISC-V). #pragma pack(1) guarantees a contiguous on-disk
+            // layout but does not license type-punning.
+            m_entryList.resize(m_header.entryNum + 1);
+            std::memcpy(m_entryList.data(), entryBuf.data(), entryBuf.size());
 
             const auto errEntry = getErrorEntry();
             if(std::memcmp(&m_entryList.back(), &errEntry, sizeof(InnEntry))){
@@ -164,21 +170,13 @@ ZSDB::ZSDB(const char *filePath)
     if(m_header.fileNameLength){
         const auto offset = check_cast<size_t>(m_header.fileNameOffset);
         const auto length = check_cast<size_t>(m_header.fileNameLength);
-        if(const auto fileNameBuf = decompFileOffData(m_fp, offset, length, m_DCtx, nullptr); fileNameBuf.empty()){
+        if(const auto fileNameBuf = decompFileOffData(m_fp, offset, length, m_DCtx.get(), nullptr); fileNameBuf.empty()){
             throw fflpanic("failed to load data at (off = {}, length = {})", offset, length);
         }
         else{
-            const auto *headPtr = (char *)(fileNameBuf.data());
-            m_fileNameBuf.clear();
-            m_fileNameBuf.insert(m_fileNameBuf.end(), headPtr, headPtr + fileNameBuf.size());
+            m_fileNameBuf.assign(fileNameBuf.begin(), fileNameBuf.end());
         }
     }
-}
-
-ZSDB::~ZSDB()
-{
-    ZSTD_freeDCtx(m_DCtx);
-    ZSTD_freeDDict(m_DDict);
 }
 
 const char *ZSDB::decomp(const char *fileName, size_t checkLen, std::vector<uint8_t> *dstBuf)
@@ -226,7 +224,7 @@ bool ZSDB::decompEntry(const ZSDB::InnEntry &entry, std::vector<uint8_t> *dstBuf
 
     std::vector<uint8_t> result;
     if(entry.attribute & F_COMPRESSED){
-        result = decompFileOffData(m_fp, m_header.streamOffset + entry.offset, entry.length, m_DCtx, m_DDict);
+        result = decompFileOffData(m_fp, m_header.streamOffset + entry.offset, entry.length, m_DCtx.get(), m_DDict.get());
     }
     else{
         result = readFileOffData(m_fp, m_header.streamOffset + entry.offset, entry.length);
@@ -255,7 +253,7 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
         throw fflpanic("invalid arguments: savePath = {}, dataPath = {}", to_cstr(savePath), to_cstr(dataPath));
     }
 
-    ZSTD_CDict *cdictPtr = nullptr;
+    std::unique_ptr<ZSTD_CDict, size_t (*)(ZSTD_CDict *)> cdictPtr{nullptr, ZSTD_freeCDict};
     std::vector<uint8_t> cdictBuf;
 
     if(str_haschar(dictPath)){
@@ -264,13 +262,13 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
             throw fflpanic("dict file is empty: {}", dictPath);
         }
 
-        cdictPtr = ZSTD_createCDict(cdictBuf.data(), cdictBuf.size(), g_compLevel);
+        cdictPtr.reset(ZSTD_createCDict(cdictBuf.data(), cdictBuf.size(), g_compLevel));
         if(!cdictPtr){
             throw fflpanic("failed to create dict: {}", dictPath);
         }
     }
 
-    ZSTD_CCtx *cctxPtr = ZSTD_createCCtx();
+    std::unique_ptr<ZSTD_CCtx, size_t (*)(ZSTD_CCtx *)> cctxPtr{ZSTD_createCCtx(), ZSTD_freeCCtx};
     if(!cctxPtr){
         throw fflpanic("failed to create ZSTD_CCtx");
     }
@@ -299,7 +297,7 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
             continue;
         }
 
-        const auto dstBuf = compressDataBuf(srcBuf.data(), srcBuf.size(), cctxPtr, cdictPtr);
+        const auto dstBuf = compressDataBuf(srcBuf.data(), srcBuf.size(), cctxPtr.get(), cdictPtr.get());
         if(dstBuf.empty()){
             continue;
         }
@@ -332,6 +330,13 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
     });
     entryList.push_back(getErrorEntry());
 
+    // The dict block is stored zstd-compressed (without using itself as a dictionary,
+    // for obvious bootstrap reasons). Skip emitting any dict bytes when no dict was
+    // provided — header.dictLength == 0 then signals the reader to skip the block.
+    const auto cdictCompBuf = cdictBuf.empty()
+        ? std::vector<uint8_t>{}
+        : compressDataBuf(cdictBuf.data(), cdictBuf.size(), cctxPtr.get(), nullptr);
+
     ZSDBHeader header;
     std::memset(&header, 0, sizeof(header));
 
@@ -339,13 +344,13 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
     header.entryNum    = entryCount;
 
     header.dictOffset = sizeof(header);
-    header.dictLength = cdictBuf.size();
+    header.dictLength = cdictCompBuf.size();
 
-    const auto entryCompBuf = compressDataBuf((uint8_t *)(entryList.data()), entryList.size() * sizeof(InnEntry), cctxPtr, nullptr);
+    const auto entryCompBuf = compressDataBuf((uint8_t *)(entryList.data()), entryList.size() * sizeof(InnEntry), cctxPtr.get(), nullptr);
     header.entryOffset = header.dictOffset + header.dictLength;
     header.entryLength = entryCompBuf.size();
 
-    const auto fileNameCompBuf = compressDataBuf((uint8_t *)(fileNameBuf.data()), fileNameBuf.size(), cctxPtr, nullptr);
+    const auto fileNameCompBuf = compressDataBuf((uint8_t *)(fileNameBuf.data()), fileNameBuf.size(), cctxPtr.get(), nullptr);
     header.fileNameOffset = header.entryOffset + header.entryLength;
     header.fileNameLength = fileNameCompBuf.size();
 
@@ -354,6 +359,9 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
 
     auto fp = make_fileptr(savePath, "wb");
     write_fileptr(fp, header);
+    if(!cdictCompBuf.empty()){
+        write_fileptr(fp, cdictCompBuf);
+    }
     write_fileptr(fp, entryCompBuf);
     write_fileptr(fp, fileNameCompBuf);
     write_fileptr(fp, streamBuf);

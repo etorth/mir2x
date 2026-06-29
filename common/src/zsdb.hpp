@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <vector>
 #include <cstdint>
 #include "zstd.h"
@@ -53,8 +54,8 @@ class ZSDB final
         fileptr_t m_fp;
 
     private:
-        ZSTD_DCtx  *m_DCtx  = nullptr;
-        ZSTD_DDict *m_DDict = nullptr;
+        std::unique_ptr<ZSTD_DCtx,  size_t (*)(ZSTD_DCtx  *)> m_DCtx  {nullptr, ZSTD_freeDCtx };
+        std::unique_ptr<ZSTD_DDict, size_t (*)(ZSTD_DDict *)> m_DDict {nullptr, ZSTD_freeDDict};
 
     private:
         ZSDBHeader m_header;
@@ -67,9 +68,6 @@ class ZSDB final
 
     public:
         ZSDB(const char *);
-
-    public:
-        ~ZSDB();
 
     public:
         const char *decomp(const char *, size_t, std::vector<uint8_t> *);
