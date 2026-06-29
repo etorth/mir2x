@@ -262,32 +262,20 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
     const auto [shadowFrame, shadowDX, shadowDY] = g_monsterDB->retrieve(shadowKey);
     const auto [shiftX, shiftY] = getShift(frame);
 
-    // always reset the alpha mode for each texture because texture is shared
-    // one texture to draw can be configured with different alpha mode for other creatures
+    // fadeOut :     0: normal
+    //         : 1-255: fading out (body and shadow both decay)
+    const auto [bodyAlpha, shadowAlpha] = [this]() -> std::tuple<uint8_t, uint8_t>
+    {
+        if((m_currMotion->type == MOTION_MON_DIE) && (m_currMotion->extParam.die.fadeOut > 0)){
+            const auto fadeOut = m_currMotion->extParam.die.fadeOut;
+            const auto alpha   = to_u8(255 - fadeOut);
 
-    if(bodyFrame){
-        SDL_SetTextureAlphaMod(bodyFrame, 255);
-    }
-
-    if(shadowFrame){
-        SDL_SetTextureAlphaMod(shadowFrame, 128);
-    }
-
-    if(true
-            && (m_currMotion->type  == MOTION_MON_DIE)
-            && (m_currMotion->extParam.die.fadeOut  > 0)){
-        // FadeOut :    0 : normal
-        //         : 1-255: fadeOut
-        if(bodyFrame){
-            SDL_SetTextureAlphaMod(bodyFrame, (255 - m_currMotion->extParam.die.fadeOut) / 1);
+            return {alpha, alpha / 2};
         }
+        return {255, 128};
+    }();
 
-        if(shadowFrame){
-            SDL_SetTextureAlphaMod(shadowFrame, (255 - m_currMotion->extParam.die.fadeOut) / 2);
-        }
-    }
-
-    const auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, int nX, int nY)
+    const auto fnBlendFrame = [](SDL_Texture *pTexture, int nFocusChan, uint8_t alpha, int nX, int nY)
     {
         if(true
                 && pTexture
@@ -297,10 +285,8 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
             // if provided channel as 0
             // just blend it using the original color
 
-            const auto stColor = focusColor(nFocusChan);
-            if(SDL_SetTextureColorMod(pTexture, stColor.r, stColor.g, stColor.b)){
-                g_sdlDevice->drawTexture(pTexture, nX, nY);
-            }
+            const SDLDeviceHelper::EnableTextureModColor modColor(pTexture, colorf::SDLColor2RGBA(focusColor(nFocusChan, alpha)));
+            g_sdlDevice->drawTexture(pTexture, nX, nY);
         }
     };
 
@@ -308,9 +294,9 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
     const int startY = currMotion()->y * SYS_MAPGRIDYP + shiftY - viewY;
 
     if(getMR().shadow){
-        fnBlendFrame(shadowFrame, 0, startX + shadowDX, startY + shadowDY);
+        fnBlendFrame(shadowFrame, 0, shadowAlpha, startX + shadowDX, startY + shadowDY);
     }
-    fnBlendFrame(bodyFrame, 0, startX + bodyDX, startY + bodyDY);
+    fnBlendFrame(bodyFrame, 0, bodyAlpha, startX + bodyDX, startY + bodyDY);
 
     if(!frameOnly){
         if(g_clientArgParser->drawTextureAlignLine){
@@ -330,7 +316,7 @@ void ClientMonster::drawFrame(int viewX, int viewY, int focusMask, int frame, bo
 
     for(int nFocusChan = 1; nFocusChan < FOCUS_END; ++nFocusChan){
         if(focusMask & (1 << nFocusChan)){
-            fnBlendFrame(bodyFrame, nFocusChan, startX + bodyDX, startY + bodyDY);
+            fnBlendFrame(bodyFrame, nFocusChan, bodyAlpha, startX + bodyDX, startY + bodyDY);
         }
     }
 

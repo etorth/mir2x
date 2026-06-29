@@ -82,14 +82,14 @@ class ClientCreature
         }
 
     public:
-        static SDL_Color focusColor(int focusChan)
+        static SDL_Color focusColor(int focusChan, uint8_t alpha = 0XFF)
         {
             switch(focusChan){
-                case FOCUS_MOUSE : return colorf::RGBA2SDLColor(0XFF, 0X86, 0X00, 0XFF);
-                case FOCUS_MAGIC : return colorf::RGBA2SDLColor(0X92, 0XC6, 0X20, 0XFF);
-                case FOCUS_FOLLOW: return colorf::RGBA2SDLColor(0X00, 0XC6, 0XF0, 0XFF);
-                case FOCUS_ATTACK: return colorf::RGBA2SDLColor(0XD0, 0X2C, 0X70, 0XFF);
-                default          : return colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, 0XFF);
+                case FOCUS_MOUSE : return colorf::RGBA2SDLColor(0XFF, 0X86, 0X00, alpha);
+                case FOCUS_MAGIC : return colorf::RGBA2SDLColor(0X92, 0XC6, 0X20, alpha);
+                case FOCUS_FOLLOW: return colorf::RGBA2SDLColor(0X00, 0XC6, 0XF0, alpha);
+                case FOCUS_ATTACK: return colorf::RGBA2SDLColor(0XD0, 0X2C, 0X70, alpha);
+                default          : return colorf::RGBA2SDLColor(0XFF, 0XFF, 0XFF, alpha);
             }
         }
 
