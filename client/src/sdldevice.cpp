@@ -1356,11 +1356,14 @@ void SDLDevice::setSoundEffectVolume(float volume)
         return;
     }
 
-    // SDL2_mixer used Mix_SetDistance(MIX_CHANNEL_POST, ...) as a post-mix global attenuation.
-    // SDL3_mixer has no per-output post effect; use mixer gain for now.
-    // TODO: this also scales BGM gain. Improve later by routing sound effects through a MIX_Group.
-    if(m_mixer){
-        MIX_SetMixerGain(m_mixer, mathf::bound<float>(volume, 0.0f, 1.0f));
+    // SDL3_mixer has no per-bus gain control (MIX_Group exists but only for
+    // routing/post-mix callbacks, not volume). Per-track gain compounds with
+    // master gain and is the proper way to scale a subset of tracks: applying
+    // it to every SFX track in the pool leaves m_bgmTrack untouched, so BGM
+    // and SFX volumes are independent.
+    const float gain = mathf::bound<float>(volume, 0.0f, 1.0f);
+    for(auto *t : m_tracks){
+        MIX_SetTrackGain(t, gain);
     }
 }
 
