@@ -16,16 +16,21 @@ class ZSDB final
         };
 
     public:
-        enum
+        enum : uint64_t
         {
             F_COMPRESSED = 1,
         };
 
     private:
+        static constexpr char     FORMAT_MAGIC[4] = {'Z', 'S', 'D', 'B'};
+        static constexpr uint32_t FORMAT_VERSION  = 1;
+
+    private:
 #pragma pack(push, 1)
         struct ZSDBHeader
         {
-            uint64_t zstdVersion;
+            char     magic[4];
+            uint32_t formatVersion;
             uint64_t entryNum;
 
             uint64_t dictOffset;

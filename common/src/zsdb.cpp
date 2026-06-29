@@ -124,6 +124,14 @@ ZSDB::ZSDB(const char *filePath)
 
     read_fileptr(m_fp, &m_header, sizeof(m_header));
 
+    if(std::memcmp(m_header.magic, FORMAT_MAGIC, sizeof(FORMAT_MAGIC))){
+        throw fflpanic("not a zsdb file: {}", filePath);
+    }
+
+    if(m_header.formatVersion != FORMAT_VERSION){
+        throw fflpanic("unsupported zsdb format version: got {}, expected {}", m_header.formatVersion, FORMAT_VERSION);
+    }
+
     if(m_header.dictLength){
         const auto offset = check_cast<size_t>(m_header.dictOffset);
         const auto length = check_cast<size_t>(m_header.dictLength);
@@ -340,8 +348,9 @@ void ZSDB::buildDB(const char *savePath, const char *fileNameRegex, const char *
     ZSDBHeader header;
     std::memset(&header, 0, sizeof(header));
 
-    header.zstdVersion = ZSTD_versionNumber();
-    header.entryNum    = entryCount;
+    std::memcpy(header.magic, FORMAT_MAGIC, sizeof(FORMAT_MAGIC));
+    header.formatVersion = FORMAT_VERSION;
+    header.entryNum      = entryCount;
 
     header.dictOffset = sizeof(header);
     header.dictLength = cdictCompBuf.size();
