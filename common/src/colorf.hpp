@@ -2,7 +2,7 @@
 #include <array>
 #include <cstdint>
 #include <algorithm>
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_pixels.h>
 
 // this header may be included in fltk widget code
 // fltk includes windows.h when compiling under windows, windows.h has a macro defined: RGB
