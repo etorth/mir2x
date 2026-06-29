@@ -63,6 +63,7 @@ class RuntimeConfigBoard: public Widget
 
     private:
         void reportRuntimeConfig(int);
+        void applyAudioConfig();
 
     public:
         void setConfig(const SDRuntimeConfig &);

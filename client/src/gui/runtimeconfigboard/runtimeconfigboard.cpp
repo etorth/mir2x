@@ -128,6 +128,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           [this](float val)
           {
               SDRuntimeConfig_setConfig<RTCFG_BGMVALUE>(m_sdRuntimeConfig, val);
+              applyAudioConfig();
               reportRuntimeConfig(RTCFG_BGMVALUE);
           },
       }
@@ -147,6 +148,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           [this](float val)
           {
               SDRuntimeConfig_setConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig, val);
+              applyAudioConfig();
               reportRuntimeConfig(RTCFG_SEFFVALUE);
           },
       }
@@ -195,6 +197,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                               .onChange = [this](bool value)
                               {
+                                  applyAudioConfig();
                                   reportRuntimeConfig(RTCFG_BGM);
                                   m_pageSystem_musicSlider.setActive(value);
                               },
@@ -222,6 +225,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                               .onChange = [this](bool value)
                               {
+                                  applyAudioConfig();
                                   reportRuntimeConfig(RTCFG_SEFF);
                                   m_pageSystem_soundEffectSlider.setActive(value);
                               },
@@ -558,8 +562,19 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
     m_pageSystem_musicSlider      .getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig), false);
     m_pageSystem_soundEffectSlider.getSlider()->setValue(SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig), false);
 
+    applyAudioConfig();
+
     const auto [winW, winH] = SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig);
     g_sdlDevice->setWindowSize(winW, winH);
+}
+
+void RuntimeConfigBoard::applyAudioConfig()
+{
+    const float  bgmGain = SDRuntimeConfig_getConfig<RTCFG_BGM >(m_sdRuntimeConfig) ? SDRuntimeConfig_getConfig<RTCFG_BGMVALUE >(m_sdRuntimeConfig) : 0.0f;
+    const float seffGain = SDRuntimeConfig_getConfig<RTCFG_SEFF>(m_sdRuntimeConfig) ? SDRuntimeConfig_getConfig<RTCFG_SEFFVALUE>(m_sdRuntimeConfig) : 0.0f;
+
+    g_sdlDevice->setBGMVolume(bgmGain);
+    g_sdlDevice->setSoundEffectVolume(seffGain);
 }
 
 void RuntimeConfigBoard::reportRuntimeConfig(int rtCfg)
