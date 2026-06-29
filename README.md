@@ -73,7 +73,9 @@ sudo apt install -y \
     libgl1-mesa-dev libglu1-mesa-dev \
     libice-dev libltdl-dev libsm-dev \
     libx11-dev libxcursor-dev libxext-dev libxfixes-dev \
-    libxft-dev libxinerama-dev libxrender-dev
+    libxft-dev libxinerama-dev libxrender-dev \
+    libasound2-dev libdbus-1-dev libibus-1.0-dev libpulse-dev libudev-dev \
+    libxi-dev libxkbcommon-dev libxrandr-dev libxss-dev libxtst-dev
 ```
 
 Then clone and build:
@@ -140,7 +142,7 @@ cd b_mir2x/install/client
 
 mir2x uses a number of open source projects to work properly, and of course itself is open source with a public repository on github, please remind me if I missed anything.
 
-* [SDL2](https://www.libsdl.org/) - A cross-platform development library designed to provide a hardware abstraction layer.
+* [SDL3](https://www.libsdl.org/) - A cross-platform development library designed to provide a hardware abstraction layer.
 * [FLTK](http://www.fltk.org) - A cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X.
 * [asio](http://www.think-async.com/) - A cross-platform C++ library for network and low-level I/O programming.
 * [g3log](https://github.com/KjellKod/g3log) - An asynchronous, "crash safe", logger that is easy to use.
