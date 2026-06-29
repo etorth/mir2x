@@ -324,7 +324,7 @@ std::tuple<int, int> SDLDeviceHelper::getTextureSize(SDL_Texture *texture)
 int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture, std::optional<int> optW)
 {
     if(texture){
-        return std::get<0>(getTextureSize(texture));
+        return texture->w;
     }
     else if(optW.has_value() && optW.value() >= 0){
         return optW.value();
@@ -337,7 +337,7 @@ int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture, std::optional<int> op
 int SDLDeviceHelper::getTextureHeight(SDL_Texture *texture, std::optional<int> optH)
 {
     if(texture){
-        return std::get<1>(getTextureSize(texture));
+        return texture->h;
     }
     else if(optH.has_value() && optH.value() >= 0){
         return optH.value();
