@@ -124,15 +124,7 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
     const auto [  bodyFrame,   bodyDX,   bodyDY] = g_standNPCDB->retrieve((bodyKey.value()                    ));
     const auto [shadowFrame, shadowDX, shadowDY] = g_standNPCDB->retrieve((bodyKey.value() | (to_u32(1) << 23)));
 
-    if(bodyFrame){
-        SDL_SetTextureAlphaMod(bodyFrame, 255);
-    }
-
-    if(shadowFrame){
-        SDL_SetTextureAlphaMod(shadowFrame, 128);
-    }
-
-    auto fnBlendFrame = [](SDL_Texture *texture, int focusChan, int x, int y, Uint8 alpha)
+    auto fnBlendFrame = [](SDL_Texture *texture, int focusChan, int x, int y, uint8_t alpha)
     {
         if(!texture){
             return;
@@ -142,10 +134,7 @@ void ClientNPC::drawFrame(int viewX, int viewY, int focusMask, int frame, bool)
             return;
         }
 
-        const auto color = focusColor(focusChan);
-        SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
-
-        SDL_SetTextureAlphaMod(texture, alpha);
+        const SDLDeviceHelper::EnableTextureModColor modColor(texture, colorf::SDLColor2RGBA(focusColor(focusChan, alpha)));
         g_sdlDevice->drawTexture(texture, x, y);
     };
 

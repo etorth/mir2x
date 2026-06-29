@@ -1976,24 +1976,20 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
             const int mouseGridX = (mouseX + m_viewX) / SYS_MAPGRIDXP;
             const int mouseGridY = (mouseY + m_viewY) / SYS_MAPGRIDYP;
 
-            bool mouseOver = false;
-            if(mouseGridX == x && mouseGridY == y){
-                mouseOver = true;
-                SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_ADD);
-            }
-            else{
-                SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND);
-            }
+            const bool mouseOver = (mouseGridX == x && mouseGridY == y);
+            const SDLDeviceHelper::EnableTextureBlendMode blendMode(texPtr, mouseOver ? SDL_BLENDMODE_ADD : SDL_BLENDMODE_BLEND);
 
             // draw item shadow
-            SDL_SetTextureColorMod(texPtr, 0, 0, 0);
-            SDL_SetTextureAlphaMod(texPtr, 128);
-            g_sdlDevice->drawTexture(texPtr, drawPX + 1, drawPY - 1);
+            {
+                const SDLDeviceHelper::EnableTextureModColor modColor(texPtr, colorf::RGBA(0, 0, 0, 128));
+                g_sdlDevice->drawTexture(texPtr, drawPX + 1, drawPY - 1);
+            }
 
             // draw item body
-            SDL_SetTextureColorMod(texPtr, 255, 255, 255);
-            SDL_SetTextureAlphaMod(texPtr, 255);
-            g_sdlDevice->drawTexture(texPtr, drawPX, drawPY);
+            {
+                const SDLDeviceHelper::EnableTextureModColor modColor(texPtr, colorf::WHITE | colorf::A_SHF(255));
+                g_sdlDevice->drawTexture(texPtr, drawPX, drawPY);
+            }
 
             if(mouseOver){
                 LabelBoard itemName{{.label = ir.name, .font{.color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF)}}};
@@ -2099,7 +2095,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1) const
         // TODO make this to be more informative
         // use different color of rotating star for different type
 
-        SDL_SetTextureAlphaMod(texPtr, 128);
+        const SDLDeviceHelper::EnableTextureModColor modColor(texPtr, colorf::WHITE | colorf::A_SHF(128));
         g_sdlDevice->drawTextureEx(texPtr, 0, 0, texW, texH, drawPX, drawPY, currSize, currSize, currSize / 2, currSize / 2, std::lround(m_starRatio * 360.0));
     }
 }
