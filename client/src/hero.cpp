@@ -78,9 +78,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
         const uint32_t weaponKey = ((to_u32(shadow ? 1 : 0)) << 23) + (to_u32(gender()) << 22) + ((nGfxWeaponID.value() & 0X01FFFF) << 5) + m_currMotion->gfxFrame(frame);
         const auto [weaponFrame, weaponDX, weaponDY] = g_weaponDB->retrieve(weaponKey);
 
-        if(weaponFrame && shadow){
-            SDL_SetTextureAlphaMod(weaponFrame, 128);
-        }
+        const SDLDeviceHelper::EnableTextureModColor modColor(weaponFrame, colorf::WHITE | colorf::A_SHF((weaponFrame && shadow) ? 128 : 255));
         g_sdlDevice->drawTexture(weaponFrame, startX + weaponDX, startY + weaponDY);
     };
 
@@ -118,9 +116,7 @@ void Hero::drawFrame(int viewX, int viewY, int, int frame, bool)
     const auto [ bodyLayer1,  body1DX,  body1DY] = g_heroDB->retrieve(bodyKey | (to_u32(1) << 24));
     const auto [shadowFrame, shadowDX, shadowDY] = g_heroDB->retrieve(shadowKey);
 
-    if(shadowFrame){
-        SDL_SetTextureAlphaMod(shadowFrame, 128);
-    }
+    const SDLDeviceHelper::EnableTextureModColor modColor(shadowFrame, colorf::WHITE | colorf::A_SHF(128));
     g_sdlDevice->drawTexture(shadowFrame, startX + shadowDX, startY + shadowDY);
 
     if(true

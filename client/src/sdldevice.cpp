@@ -313,15 +313,13 @@ std::optional<SDLDeviceHelper::SDLEventPLoc> SDLDeviceHelper::getEventPLoc(const
     }
 }
 
-std::tuple<int, int> SDLDeviceHelper::getTextureSize(SDL_Texture *texture)
+std::tuple<int, int> SDLDeviceHelper::getTextureSize(const SDL_Texture *texture)
 {
     fflassert(texture);
-
-    // SDL3: w/h are public fields on SDL_Texture (SDL_QueryTexture removed)
     return {texture->w, texture->h};
 }
 
-int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture, std::optional<int> optW)
+int SDLDeviceHelper::getTextureWidth(const SDL_Texture *texture, std::optional<int> optW)
 {
     if(texture){
         return texture->w;
@@ -334,7 +332,7 @@ int SDLDeviceHelper::getTextureWidth(SDL_Texture *texture, std::optional<int> op
     }
 }
 
-int SDLDeviceHelper::getTextureHeight(SDL_Texture *texture, std::optional<int> optH)
+int SDLDeviceHelper::getTextureHeight(const SDL_Texture *texture, std::optional<int> optH)
 {
     if(texture){
         return texture->h;
