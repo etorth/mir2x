@@ -28,15 +28,20 @@ class LuaModule
     public:
         sol::protected_function_result execFile(const char *path)
         {
-            fflassert(     str_haschar(path), path);
-            fflassert(filesys::hasFile(path), path);
+            // load via fileptr_t (which uses _wfopen on Windows) instead of letting Lua call fopen():
+            // luaL_loadfilex can't open UTF-8 paths on Windows under MinGW/UCRT when the active code page isn't UTF-8.
+            // The "@" prefix on the chunk name tells Lua "this came from a file" so stack traces show the path as if luaL_loadfile worked.
+            auto fptr = make_fileptr(path, "rb");
+            auto code = read_fileptr<std::string>(fptr);
 
-            return m_luaState.script_file(path, [](lua_State *, sol::protected_function_result result)
+            return m_luaState.safe_script(code, [](lua_State *, sol::protected_function_result result)
             {
                 // default handler
                 // do nothing and let the call site handle the errors
                 return result;
-            });
+            },
+
+            "@" + std::string(path));
         }
 
         sol::protected_function_result execString(const char *format, ...) STR_PRINTF_CHECK_FORMAT(2)
@@ -66,7 +71,7 @@ class LuaModule
             //
             // in xxx.lua there can be string.format() calls and execRawString() doesn't parse it
 
-            return m_luaState.script(s, [](lua_State *, sol::protected_function_result result)
+            return m_luaState.safe_script(s, [](lua_State *, sol::protected_function_result result)
             {
                 // default handler
                 // do nothing and let the call site handle the errors
