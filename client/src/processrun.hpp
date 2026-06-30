@@ -130,7 +130,7 @@ class ProcessRun: public Process
 
     private:
         bool     m_lastPingDone = true;
-        uint32_t m_lastPingTick = 0;
+        uint64_t m_lastPingTick = 0;
 
     private:
         double m_starRatio = 0.0;

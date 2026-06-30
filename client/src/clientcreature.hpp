@@ -44,8 +44,8 @@ class ClientCreature
         std::list<std::unique_ptr<AttachMagic>> m_attachMagicList;
 
     protected:
-        uint32_t m_lastActive;
-        uint32_t m_lastQuerySelf;
+        uint64_t m_lastActive;
+        uint64_t m_lastQuerySelf;
 
     protected:
         double m_lastUpdateTime = 0.0;
@@ -100,12 +100,12 @@ class ClientCreature
         }
 
     public:
-        uint32_t lastActive() const
+        uint64_t lastActive() const
         {
             return m_lastActive;
         }
 
-        uint32_t lastQuerySelf() const
+        uint64_t lastQuerySelf() const
         {
             return m_lastQuerySelf;
         }

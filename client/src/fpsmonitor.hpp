@@ -8,7 +8,7 @@ class FPSMonitor
 {
     private:
         const size_t m_size;
-        std::deque<uint32_t> m_timeStamp;
+        std::deque<uint64_t> m_timeStamp;
 
     public:
         FPSMonitor(size_t monitorSize = 0)
