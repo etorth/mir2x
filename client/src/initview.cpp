@@ -67,20 +67,20 @@ InitView::InitView(uint8_t fontSize)
           {1, [this](size_t weight){ loadDB(weight, g_seffDB,       g_clientArgParser->resPath, "sound/seff.zsdb"        ); }},
       }
 {
-    const Rawbuf boardData
+    constexpr uint8_t boardData []
     {
-        #include "ivboard.inc"
+        #embed "ivboard.png"
     };
 
-    const Rawbuf buttonData
+    constexpr uint8_t buttonData []
     {
-        #include "ivbutton.inc"
+        #embed "ivbutton.png"
     };
 
     g_sdlDevice->createInitViewWindow();
 
-    m_boardTexture  = g_sdlDevice->loadPNGTexture( boardData.data(),  boardData.size());
-    m_buttonTexture = g_sdlDevice->loadPNGTexture(buttonData.data(), buttonData.size());
+    m_boardTexture  = g_sdlDevice->loadPNGTexture(std::data( boardData), std::size( boardData));
+    m_buttonTexture = g_sdlDevice->loadPNGTexture(std::data(buttonData), std::size(buttonData));
 
     fflassert(m_boardTexture);
     fflassert(m_buttonTexture);

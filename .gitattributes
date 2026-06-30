@@ -5,6 +5,24 @@
 # Force all text files to use LF on commit
 * text eol=lf
 
-# Keep binary files (like .exe or .so) as-is
-*.exe binary
-*.so  binary
+# Keep binary files as-is. Without these, the catch-all `* text eol=lf`
+# above will strip 0x0D 0x0A byte sequences from binary payloads and
+# corrupt PNG chunk CRCs, TTF tables, zstd frames, etc.
+*.exe   binary
+*.so    binary
+*.dll   binary
+*.dylib binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.bmp   binary
+*.ico   binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.wav   binary
+*.mp3   binary
+*.ogg   binary
+*.zsdb  binary

@@ -491,15 +491,15 @@ SDLDevice::~SDLDevice()
 
 void SDLDevice::setWindowIcon()
 {
-    const static Rawbuf s_winIconBuf
+    constexpr uint8_t winIconData []
     {
-        #include "winicon.inc"
+        #embed "winicon.png"
     };
 
     SDL_IOStream *ioStream = nullptr;
     SDL_Surface  *surfPtr  = nullptr;
 
-    if((ioStream = SDL_IOFromConstMem(s_winIconBuf.data(), s_winIconBuf.size()))){
+    if((ioStream = SDL_IOFromConstMem(std::data(winIconData), std::size(winIconData)))){
         if((surfPtr = IMG_LoadPNG_IO(ioStream))){
             SDL_SetWindowIcon(m_window, surfPtr);
         }
@@ -779,15 +779,21 @@ TTF_Font *SDLDevice::defaultTTF(uint8_t fontSize)
         return p->second;
     }
 
-    const static Rawbuf s_defaultTTFData
+    // TTF_OpenFontIO with closeio=true holds onto the IO stream and re-reads font data on demand (glyph cache misses, etc.)
+    // so the buffer must outlive the TTF_Font
+
+    // A plain `constexpr` local has automatic storage duration despite the name
+    // The font would point into reused stack memory and rendering would intermittently fail
+
+    constexpr static uint8_t ttfData []
     {
-        #include "monaco.rawbuf"
+        #embed "monaco.ttf"
     };
 
-    if(auto ttfPtr = createTTF(s_defaultTTFData.data(), s_defaultTTFData.size(), fontSize); ttfPtr){
+    if(auto ttfPtr = createTTF(std::data(ttfData), std::size(ttfData), fontSize); ttfPtr){
         return m_fontList[fontSize] = ttfPtr;
     }
-    throw fflpanic("can't build default ttf with point: {}", to_llu(fontSize));
+    throw fflpanic("can't build default ttf with point: {}", fontSize);
 }
 
 SDL_Texture *SDLDevice::getCover(int r, int angle)
