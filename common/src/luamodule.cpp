@@ -11,6 +11,7 @@
 #include "luamodule.hpp"
 #include "raiitimer.hpp"
 #include "dbcomid.hpp"
+#include "fileptr.hpp"
 #include "cerealf.hpp"
 #include "luaf.hpp"
 
@@ -432,6 +433,52 @@ LuaModule::LuaModule()
     m_luaState.script(BEGIN_LUAINC(char)
 #include "luamodule.lua"
     END_LUAINC());
+}
+
+sol::protected_function_result LuaModule::execFile(const char *path)
+{
+    // load via fileptr_t (which uses _wfopen on Windows) instead of letting Lua call fopen():
+    // luaL_loadfilex can't open UTF-8 paths on Windows under MinGW/UCRT when the active code page isn't UTF-8.
+    // The "@" prefix on the chunk name tells Lua "this came from a file" so stack traces show the path as if luaL_loadfile worked.
+    auto fptr = make_fileptr(path, "rb");
+    auto code = read_fileptr<std::string>(fptr);
+
+    return m_luaState.safe_script(code, [](lua_State *, sol::protected_function_result result)
+    {
+        // default handler
+        // do nothing and let the call site handle the errors
+        return result;
+    },
+
+    "@" + std::string(path));
+}
+
+sol::protected_function_result LuaModule::execRawString(const char *s)
+{
+    // execString() fails when format contains lua string.format() string, like
+    //
+    //    execString(
+    //        "function my_error(err)                             ""\n"
+    //        "    error(string.format('dected error: %s', err))  ""\n"
+    //        "end                                                ""\n");
+    //
+    // we would like to take the lua code as raw string
+    // but it contains %s, execString() parses it incorrectly as format string
+
+    // execRawString() is only used to include lua file:
+    //
+    //    execRawString(BEGIN_LUAINC(char)
+    //        #include "xxx.lua"
+    //    END_LUAINC());
+    //
+    // in xxx.lua there can be string.format() calls and execRawString() doesn't parse it
+
+    return m_luaState.safe_script(s, [](lua_State *, sol::protected_function_result result)
+    {
+        // default handler
+        // do nothing and let the call site handle the errors
+        return result;
+    });
 }
 
 bool LuaModule::pfrCheck(const sol::protected_function_result &pfr, const std::function<void(const std::string &)> &errDrainFunc)
