@@ -191,7 +191,7 @@ bool ClientNPC::parseAction(const ActionNode &action)
                 }
             default:
                 {
-                    throw fflpanic("invalid action node: type = {}", action.type);
+                    throw fflpanic("invalid action node: type = {}", to_d(action.type));
                 }
         }
     }();

@@ -214,7 +214,7 @@ void pathf::AStarPathFinder::expand_f()
         if(const auto p = m_parentSet_f.find(currNode.node); p != m_parentSet_f.end()){
             return p->second;
         }
-        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
+        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", to_d(currNode.node.x), to_d(currNode.node.y), pathf::dirName(currNode.node.dir));
     }();
 
     while(!m_cost_PQ_f.empty()){
@@ -292,7 +292,7 @@ void pathf::AStarPathFinder::expand_r()
         if(const auto p = m_parentSet_r.find(currNode.node); p != m_parentSet_r.end()){
             return p->second;
         }
-        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", currNode.node.x, currNode.node.y, pathf::dirName(currNode.node.dir));
+        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", to_d(currNode.node.x), to_d(currNode.node.y), pathf::dirName(currNode.node.dir));
     }();
 
     while(!m_cost_PQ_r.empty()){
@@ -475,7 +475,7 @@ std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
             currNode = p->second;
         }
 
-        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", currNode.x, currNode.y, pathf::dirName(currNode.dir));
+        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", to_d(currNode.x), to_d(currNode.y), pathf::dirName(currNode.dir));
     };
 
     std::vector<pathf::PathNode> result;
