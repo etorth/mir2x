@@ -97,10 +97,6 @@ class InitView final
             fflassert(str_haschar(resPath));
             fflassert(str_haschar(dbPath));
 
-            // No need for an explicit "abort if a sibling task failed" check
-            // here -- threadCBWrapper does that before invoking us (skips the
-            // task if hasError.m_tag is already set).
-
             const auto fullPath = std::filesystem::path(resPath) / dbPath;
             const auto fileName = fullPath.filename().string();
 
@@ -109,10 +105,6 @@ class InitView final
                 dbPtr->load(fullPath.string().c_str());
             }
             catch(const std::exception &e){
-                // Log the specific failure (visible on the loading window)
-                // and rethrow so threadCBWrapper captures it into hasError.
-                // The main-thread wait loop's per-iteration checkError() then
-                // rethrows to main.cpp for a clean FATAL exit.
                 addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: %s", donePercent(), to_cstr(fileName), str_haschar(e.what()) ? e.what() : "unknown error");
                 throw;
             }
