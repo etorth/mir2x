@@ -1678,6 +1678,7 @@ void Hero::setBuff(int type, int state)
                             break;
                         }
                 }
+                break;
             }
         default:
             {
