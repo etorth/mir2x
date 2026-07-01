@@ -198,7 +198,7 @@ corof::awaitable<bool> ServerObject::queryDead(uint64_t uid)
             }
         default:
             {
-                throw fflpanic("unexpected message: {}", rmpk.str(UID()).c_str());
+                throw fflpanic("unexpected message: {}", rmpk.str(UID()));
             }
     }
 }

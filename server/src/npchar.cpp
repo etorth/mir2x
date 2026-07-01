@@ -242,7 +242,7 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
             g_dbPod->exec(u8R"###(alter table %s add column %s %s)###", npcDBName.c_str(), key.c_str(), objType.c_str());
         }
         else if(colType != objType){
-            throw fflpanic("column {}:{} type mismatch, expected {}, get type {}", npcDBName.c_str(), key.c_str(), colType.c_str(), objType.c_str());
+            throw fflpanic("column {}:{} type mismatch, expected {}, get type {}", npcDBName, key, colType, objType);
         }
 
         if(objType == "INTEGER"){
@@ -593,7 +593,7 @@ void NPChar::fillSellItemList()
     for(const uint32_t itemID: getSellList()){
         const auto &ir = DBCOM_ITEMRECORD(itemID);
         if(!ir){
-            throw fflpanic("selling invalid item: itemID = {}", to_llu(itemID));
+            throw fflpanic("selling invalid item: itemID = {}", itemID);
         }
 
         auto &itemListRef = m_sellItemList[itemID];

@@ -56,7 +56,7 @@ uint64_t hres_tstamp::localtime()
 
     struct tm buf;
     if(localtime_r(&ts.tv_sec, &buf) != &buf) [[unlikely]] {
-        throw fflpanic("localtime_r({}, {:p}) failed", to_llu(ts.tv_sec), to_cvptr(&buf));
+        throw fflpanic("localtime_r({}, {:p}) failed", ts.tv_sec, to_cvptr(&buf));
     }
 
     const uint64_t year        = buf.tm_year + 1900;

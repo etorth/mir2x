@@ -51,7 +51,7 @@ class ProcessRun: public Process
                 }
 
                 if(!callback){
-                    throw fflpanic("command callback is not callable: {}", command.c_str());
+                    throw fflpanic("command callback is not callable: {}", command);
                 }
             }
         };
@@ -331,7 +331,7 @@ class ProcessRun: public Process
             if(auto myHeroPtr = dynamic_cast<MyHero *>(findUID(getMyHeroUID()))){
                 return myHeroPtr;
             }
-            throw fflpanic("failed to get MyHero pointer: uid = {}", to_llu(getMyHeroUID()));
+            throw fflpanic("failed to get MyHero pointer: uid = {}", getMyHeroUID());
         }
 
         SDChatPeer getMyHeroChatPeer() const

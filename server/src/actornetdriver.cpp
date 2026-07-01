@@ -65,7 +65,7 @@ void ActorNetDriver::launch(asio::ip::port_type port)
     }
     catch(const std::system_error &e){
         if(e.code() == std::errc::address_in_use){
-            throw fflpanic("port {} is already in use", to_llu(port));
+            throw fflpanic("port {} is already in use", port);
         }
         else{
             throw fflpanic("failed to create acceptor: {}", e.what());
@@ -406,7 +406,7 @@ void ActorNetDriver::asyncConnect(size_t peerIndex, const std::string &ip, asio:
     asio::async_connect(*masterSock, asio::ip::tcp::resolver(*m_context).resolve(ip, std::to_string(port)), [peerIndex, masterSock, afterLaunch = std::move(afterLaunch), this](std::error_code ec, const asio::ip::tcp::endpoint &)
     {
         if(ec){
-            throw fflpanic("network error: {}", ec.message().c_str());
+            throw fflpanic("network error: {}", ec.message());
         }
 
         if(peerIndex >= m_peerSlotList.size()){

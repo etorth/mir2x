@@ -192,7 +192,7 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
               }
 
               if(seqID != 0){
-                  throw fflpanic("unexpected seqID = {}", to_llu(seqID));
+                  throw fflpanic("unexpected seqID = {}", seqID);
               }
 
               auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"));
@@ -513,7 +513,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
     }
 
     fflassert(itemIndex >= 0);
-    fflassert(itemIndex < to_d(m_sdSellItemList.list.size()));
+    fflassert(itemIndex < m_sdSellItemList.list.size());
     fflassert(DBCOM_ITEMRECORD(selectedItemID()));
 
     LayoutBoard hoverTextBoard
@@ -572,7 +572,7 @@ void PurchaseBoard::drawExt1(Widget::ROIMap m) const
             const auto &sellItem = m_sdSellItemList.list.at(i);
             const auto &ir = DBCOM_ITEMRECORD(sellItem.item.itemID);
             if(!ir){
-                throw fflpanic("bad item in sell list: itemID = {}, seqID = {}", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
+                throw fflpanic("bad item in sell list: itemID = {}, seqID = {}", sellItem.item.itemID, sellItem.item.seqID);
             }
 
             constexpr int rightStartX = m_ext1GridArea.x;
@@ -635,7 +635,7 @@ void PurchaseBoard::drawExt2(Widget::ROIMap m) const
 
     const auto [extItemID, extSeqID] = getExtSelectedItemSeqID();
     if(extSeqID){
-        throw fflpanic("unexpected extSeqID: {}", to_llu(extSeqID));
+        throw fflpanic("unexpected extSeqID: {}", extSeqID);
     }
 
     drawChild(&m_buttonExt2Close , m);
@@ -648,7 +648,7 @@ void PurchaseBoard::drawExt2(Widget::ROIMap m) const
     const auto &sellItem = m_sdSellItemList.list.at(0);
     const auto &ir = DBCOM_ITEMRECORD(sellItem.item.itemID);
     if(!ir){
-        throw fflpanic("bad item in sell list: itemID = {}, seqID = {}", to_llu(sellItem.item.itemID), to_llu(sellItem.item.seqID));
+        throw fflpanic("bad item in sell list: itemID = {}, seqID = {}", sellItem.item.itemID, sellItem.item.seqID);
     }
 
     drawItemInGrid(ir.type, ir.pkgGfxID, m_ext2GridArea.x, m_ext2GridArea.y, m);

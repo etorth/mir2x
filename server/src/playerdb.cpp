@@ -141,7 +141,7 @@ void Player::dbRemoveInventoryItem(uint32_t itemID, uint32_t seqID)
     // means won't support remove more than 1 item in database per call
 
     if(!(DBCOM_ITEMRECORD(itemID) && seqID > 0)){
-        throw fflpanic("invalid arguments: itemID = {}, seqID = {}", to_llu(itemID), to_llu(seqID));
+        throw fflpanic("invalid arguments: itemID = {}, seqID = {}", itemID, seqID);
     }
     g_dbPod->exec("delete from tbl_inventory where fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu", to_llu(dbid()), to_llu(itemID), to_llu(seqID));
 }
@@ -197,7 +197,7 @@ SDItem Player::dbRetrieveSecuredItem(uint32_t itemID, uint32_t seqID)
         fflassert(!query.executeStep());
         return item;
     }
-    throw fflpanic("can't find item: itemID = {}, seqID = {}", to_llu(itemID), to_llu(seqID));
+    throw fflpanic("can't find item: itemID = {}, seqID = {}", itemID, seqID);
 }
 
 std::vector<SDItem> Player::dbLoadSecuredItemList() const
@@ -321,7 +321,7 @@ std::optional<SDChatPeer> Player::dbLoadChatPeer(uint64_t argCPID)
         }
     }
     else{
-        throw fflpanic("invalid cpid: 0x{:016x}", to_llu(argCPID));
+        throw fflpanic("invalid cpid: 0x{:016x}", argCPID);
     }
 }
 
@@ -796,7 +796,7 @@ std::string Player::dbGetPlayerName(uint32_t argDBID)
     if(query.executeStep()){
         return query.getColumn("fld_name");
     }
-    throw fflpanic("invalid dbid: {}", to_llu(argDBID));
+    throw fflpanic("invalid dbid: {}", argDBID);
 }
 
 bool Player::dbIsFriend(uint32_t argDBID, uint32_t argFriendDBID)

@@ -140,7 +140,7 @@ std::tuple<int, int> InvPack::getPackBinSize(uint32_t itemID)
             (itemPH + (SYS_INVGRIDPH - 1)) / SYS_INVGRIDPH,
         };
     }
-    throw fflpanic("can't find size: itemID = {}", to_llu(itemID));
+    throw fflpanic("can't find size: itemID = {}", itemID);
 }
 
 PackBin InvPack::makePackBin(SDItem item)

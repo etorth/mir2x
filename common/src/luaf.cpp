@@ -284,7 +284,7 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
                     //
                     // which creates table t with two table-keys with same value, but different address
                     // I can use sol::table::pointer() to differ them by adding an extra key to LuaTable to store the address, but looks doesn't make much sense
-                    throw fflpanic("duplicated key detected: {}", str_any(luaf::buildLuaVar(sol::object(k))).c_str());
+                    throw fflpanic("duplicated key detected: {}", str_any(luaf::buildLuaVar(sol::object(k))));
                 }
             }
             return table;

@@ -215,13 +215,13 @@ bool xmlf::validAttributeName(const std::string &attributeName)
 std::string xmlf::buildXMLString(const std::string &tagName, const std::string &content, const std::vector<std::pair<std::string, std::string>> &attributeList)
 {
     if(!xmlf::validTagName(tagName)){
-        throw fflpanic("invalid tag name: {}", tagName.c_str());
+        throw fflpanic("invalid tag name: {}", tagName);
     }
 
     std::string attributeString;
     for(size_t i = 0; i < attributeList.size(); ++i){
         if(!xmlf::validAttributeName(attributeList[i].first)){
-            throw fflpanic("invalid attribute name: {}", attributeList[i].first.c_str());
+            throw fflpanic("invalid attribute name: {}", attributeList[i].first);
         }
         attributeString += str_printf("%s%s=\"%s\"", (i == 0) ? "" : " ", attributeList[i].first.c_str(), attributeList[i].second.c_str());
     }

@@ -47,7 +47,7 @@ corof::awaitable<> ServerTaoDog::runAICoro()
 
 corof::awaitable<bool> ServerTaoDog::attackUID(uint64_t targetUID, int dcType)
 {
-    fflassert(to_u32(dcType) == DBCOM_MAGICID(u8"神兽_喷火"));
+    fflassert(dcType == DBCOM_MAGICID(u8"神兽_喷火"));
     if(!canAttack(true)){
         co_return false;
     }
@@ -155,7 +155,7 @@ corof::awaitable<> ServerTaoDog::onAMAttack(const ActorMsgPack &mpk)
 
 DamageNode ServerTaoDog::getAttackDamage(int dc, int modifierID) const
 {
-    fflassert(to_u32(dc) == DBCOM_MAGICID(u8"神兽_喷火"));
+    fflassert(dc == DBCOM_MAGICID(u8"神兽_喷火"));
     return MagicDamage
     {
         .magicID = dc,

@@ -168,7 +168,7 @@ corof::awaitable<> NPChar::on_AM_BUY(const ActorMsgPack &mpk)
     const auto amB = mpk.conv<AMBuy>();
     const auto &ir = DBCOM_ITEMRECORD(amB.itemID);
     if(!ir){
-        throw fflpanic("invalid itemID = {}", to_llu(amB.itemID));
+        throw fflpanic("invalid itemID = {}", amB.itemID);
     }
 
     if(!ir.packable() && amB.count > 1){
@@ -205,17 +205,17 @@ corof::awaitable<> NPChar::on_AM_BUY(const ActorMsgPack &mpk)
     {
         const auto &ir = DBCOM_ITEMRECORD(amB.itemID);
         if(!ir){
-            throw fflpanic("invalid itemID = {}", to_llu(amB.itemID));
+            throw fflpanic("invalid itemID = {}", amB.itemID);
         }
 
         auto p = m_sellItemList.find(amB.itemID);
         if(p == m_sellItemList.end()){
-            throw fflpanic("no item selling: itemID = {}", to_llu(amB.itemID));
+            throw fflpanic("no item selling: itemID = {}", amB.itemID);
         }
 
         auto q = p->second.find(ir.packable() ? 0 : amB.seqID);
         if(q == p->second.end()){
-            throw fflpanic("no item selling: itemID = {}, seqID = {}", to_llu(amB.itemID), to_llu(amB.seqID));
+            throw fflpanic("no item selling: itemID = {}, seqID = {}", amB.itemID, amB.seqID);
         }
 
         if(!ir.packable()){

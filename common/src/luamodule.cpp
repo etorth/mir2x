@@ -291,7 +291,7 @@ LuaModule::LuaModule()
             return sol::make_object(sol::state_view(s), sol::lua_nil);
         }
         else{
-            throw fflpanic("invalid argument type: {}", luaf::luaObjTypeString(arg).c_str());
+            throw fflpanic("invalid argument type: {}", luaf::luaObjTypeString(arg));
         }
     });
 
@@ -384,7 +384,7 @@ LuaModule::LuaModule()
                 }
                 return alphabet.substr(0, 3) + "...";
             }();
-            throw fflpanic("Invalid argument: randString(length = {}, alphabe = \'{}\')", length, reportAlphabet.c_str());
+            throw fflpanic("Invalid argument: randString(length = {}, alphabe = \'{}\')", length, reportAlphabet);
         }
 
         std::string result;

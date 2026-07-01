@@ -35,7 +35,7 @@ bool ClientShipwreckLord::onActionAttack(const ActionNode &action)
             }
         default:
             {
-                throw fflpanic("invalid DC: id = {}, name = {}", to_d(magicID), to_cstr(DBCOM_MAGICRECORD(magicID).name));
+                throw fflpanic("invalid DC: id = {}, name = {}", magicID, to_cstr(DBCOM_MAGICRECORD(magicID).name));
             }
     }
 }

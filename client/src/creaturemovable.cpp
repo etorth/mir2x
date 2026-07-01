@@ -297,7 +297,7 @@ void CreatureMovable::flushForcedMotion()
             case MOTION_DIE:
             case MOTION_MON_DIE:
                 {
-                    throw fflpanic("can't flush dying CO: {}", to_llu(UID()));
+                    throw fflpanic("can't flush dying CO: {}", UID());
                 }
             default:
                 {

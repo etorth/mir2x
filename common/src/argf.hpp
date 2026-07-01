@@ -150,7 +150,7 @@ namespace argf
                     }
                 }
                 catch(...){}
-                throw fflpanic("invalid {}value: {}", _details::strAppendSpace(name).c_str(), to_cstr(optStr.value()));
+                throw fflpanic("invalid {}value: {}", _details::strAppendSpace(name), to_cstr(optStr.value()));
             }
             return defVal;
         }();
@@ -165,8 +165,8 @@ namespace argf
 
     constexpr auto checkPort = [](const char *name, int port)
     {
-        if(port < 0    ) throw fflpanic("invalid {}netagive port: {}", _details::strAppendSpace(name).c_str(), port);
-        if(port > 65535) throw fflpanic("invalid {}port: {}",          _details::strAppendSpace(name).c_str(), port);
+        if(port < 0    ) throw fflpanic("invalid {}netagive port: {}", _details::strAppendSpace(name), port);
+        if(port > 65535) throw fflpanic("invalid {}port: {}",          _details::strAppendSpace(name), port);
         return port;
     };
 
@@ -180,11 +180,11 @@ namespace argf
                     return 0;
                 }
                 else{
-                    throw fflpanic("invalid {}zero port: {}", _details::strAppendSpace(name).c_str(), port);
+                    throw fflpanic("invalid {}zero port: {}", _details::strAppendSpace(name), port);
                 }
             }
             else if(port < 1024){
-                throw fflpanic("invalid {}reserved port: {}", _details::strAppendSpace(name).c_str(), port);
+                throw fflpanic("invalid {}reserved port: {}", _details::strAppendSpace(name), port);
             }
             else{
                 return port;
@@ -194,19 +194,19 @@ namespace argf
 
     const auto checkPositive = [](const char *name, int val)
     {
-        if(val <= 0) throw fflpanic("invalid {}non-positive value: {}", _details::strAppendSpace(name).c_str(), val);
+        if(val <= 0) throw fflpanic("invalid {}non-positive value: {}", _details::strAppendSpace(name), val);
         return val;
     };
 
     const auto checkNonNegative = [](const char *name, int val)
     {
-        if(val < 0) throw fflpanic("invalid {}negative value: {}", _details::strAppendSpace(name).c_str(), val);
+        if(val < 0) throw fflpanic("invalid {}negative value: {}", _details::strAppendSpace(name), val);
         return val;
     };
 
     constexpr auto checkMapID = [](const char *name, uint32_t mapID)
     {
-        if(!DBCOM_MAPRECORD(mapID)) throw fflpanic("invalid {}map id: {}", _details::strAppendSpace(name).c_str(), to_llu(mapID));
+        if(!DBCOM_MAPRECORD(mapID)) throw fflpanic("invalid {}map id: {}", _details::strAppendSpace(name), mapID);
         return mapID;
     };
 
@@ -215,7 +215,7 @@ namespace argf
         const auto fnCheckMapID = [&](int mapID)
         {
             if(mapID < 0){
-                throw fflpanic("invalid {}negative map id: {}", _details::strAppendSpace(name).c_str(), mapID);
+                throw fflpanic("invalid {}negative map id: {}", _details::strAppendSpace(name), mapID);
             }
 
             if(mapID == 0){
@@ -223,7 +223,7 @@ namespace argf
                     return 0;
                 }
                 else{
-                    throw fflpanic("invalid {}zero map id: {}", _details::strAppendSpace(name).c_str(), mapID);
+                    throw fflpanic("invalid {}zero map id: {}", _details::strAppendSpace(name), mapID);
                 }
             }
 
@@ -231,7 +231,7 @@ namespace argf
                 return mapID;
             }
 
-            throw fflpanic("invalid {}map id: {}", _details::strAppendSpace(name).c_str(), mapID);
+            throw fflpanic("invalid {}map id: {}", _details::strAppendSpace(name), mapID);
         };
 
         const auto parsedMapID = [&]() -> int
@@ -244,7 +244,7 @@ namespace argf
                 if(defValOnEmpty.has_value()){
                     return defValOnEmpty.value();
                 }
-                throw fflpanic("invalid {}value: {}", _details::strAppendSpace(name).c_str(), to_cstr(mapIDOptStr.value()));
+                throw fflpanic("invalid {}value: {}", _details::strAppendSpace(name), to_cstr(mapIDOptStr.value()));
             }
 
             if(const auto mapID = DBCOM_MAPID(mapIDOptStr.value().c_str()); mapID > 0){
@@ -256,7 +256,7 @@ namespace argf
             }
 
             catch(...){}
-            throw fflpanic("failed to parse {}value: {}", _details::strAppendSpace(name).c_str(), to_cstr(mapIDOptStr.value()));
+            throw fflpanic("failed to parse {}value: {}", _details::strAppendSpace(name), to_cstr(mapIDOptStr.value()));
         }();
 
         return {fnCheckMapID(parsedMapID), !mapIDOptStr.has_value()}; // {value, value_is_default}

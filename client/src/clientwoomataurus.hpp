@@ -60,7 +60,7 @@ class ClientWoomaTaurus: public ClientMonster
                     }
                 default:
                     {
-                        throw fflpanic("invalid DC: id = {}, name = {}", to_d(action.extParam.attack.magicID), to_cstr(DBCOM_MAGICRECORD(action.extParam.attack.magicID).name));
+                        throw fflpanic("invalid DC: id = {}, name = {}", action.extParam.attack.magicID, to_cstr(DBCOM_MAGICRECORD(action.extParam.attack.magicID).name));
                     }
             }
         }

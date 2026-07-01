@@ -112,14 +112,14 @@ struct ClientArgParser
             case argf::REQ:
                 {
                     if(!optVal.has_value()){
-                        throw fflpanic("missing required option: {}", opt.c_str());
+                        throw fflpanic("missing required option: {}", opt);
                     }
                     break;
                 }
             case argf::BAN:
                 {
                     if(optVal.has_value()){
-                        throw fflpanic("invalid option: {}", opt.c_str());
+                        throw fflpanic("invalid option: {}", opt);
                     }
                     break;
                 }
@@ -130,7 +130,7 @@ struct ClientArgParser
         }
 
         if(optVal.has_value() && optVal.value().empty() && !allowEmpty){
-            throw fflpanic("invalid empty option value: {}", opt.c_str());
+            throw fflpanic("invalid empty option value: {}", opt);
         }
         return optVal;
     }

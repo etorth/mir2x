@@ -764,7 +764,7 @@ void ProcessRun::preloadMapBin(uint64_t newMapUID)
         m_mir2xMapData = *mapBinPtr;
     }
     else{
-        throw fflpanic("failed to preload mapBin for mapUID: {}", to_llu(newMapUID));
+        throw fflpanic("failed to preload mapBin for mapUID: {}", newMapUID);
     }
 }
 
@@ -1080,7 +1080,7 @@ bool ProcessRun::userCommand(const char *userCmdString)
         case 1:
             {
                 if(!entryPtr->callback){
-                    throw fflpanic("command callback is not callable: {}", entryPtr->command.c_str());
+                    throw fflpanic("command callback is not callable: {}", entryPtr->command);
                 }
 
                 entryPtr->callback(tokenList);
@@ -1432,11 +1432,11 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
         }
 
         if(!itemID){
-            throw fflpanic("invalid itemID: {}", to_llu(itemID));
+            throw fflpanic("invalid itemID: {}", itemID);
         }
 
         if(count <= 0){
-            throw fflpanic("invalid count: {}", to_llu(count));
+            throw fflpanic("invalid count: {}", count);
         }
 
         requestMakeItem(itemID, count);
@@ -1530,7 +1530,7 @@ ClientCreature *ProcessRun::findUID(uint64_t uid, bool checkVisible) const
 
     if(auto p = m_coList.find(uid); p != m_coList.end()){
         if(p->second->UID() != uid){
-            throw fflpanic("invalid creature: {:p}, UID = {}", to_cvptr(p->second.get()), to_llu(p->second->UID()));
+            throw fflpanic("invalid creature: {:p}, UID = {}", to_cvptr(p->second.get()), p->second->UID());
         }
 
         if(!checkVisible || p->second->visible()){
@@ -1676,7 +1676,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID, size_t tryCount)
     }();
 
     if(!mapBinPtr){
-        throw fflpanic("failed to find map with mapID = {}", to_llu(reqMapID));
+        throw fflpanic("failed to find map with mapID = {}", reqMapID);
     }
 
     for(size_t i = 0; (tryCount == 0) || (i < tryCount); ++i){
@@ -1688,7 +1688,7 @@ std::tuple<int, int> ProcessRun::getRandLoc(uint32_t reqMapID, size_t tryCount)
         }
     }
 
-    throw fflpanic("can not find a valid location on mapID {} by {} tries", to_llu(reqMapID), tryCount);
+    throw fflpanic("can not find a valid location on mapID {} by {} tries", reqMapID, tryCount);
 }
 
 bool ProcessRun::requestSpaceMove(uint64_t nMapUID, int nX, int nY)
@@ -1956,7 +1956,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
         for(const auto itemID: p.second){
             const auto &ir = DBCOM_ITEMRECORD(itemID);
             if(!ir){
-                throw fflpanic("invalid itemID: {}", to_llu(itemID));
+                throw fflpanic("invalid itemID: {}", itemID);
             }
 
             if(ir.pkgGfxID < 0){
@@ -2119,7 +2119,7 @@ std::tuple<int, int> ProcessRun::getACNum(const std::string &name) const
     }
 
     else{
-        throw fflpanic("invalid argument: {}", name.c_str());
+        throw fflpanic("invalid argument: {}", name);
     }
 }
 
@@ -2381,7 +2381,7 @@ void ProcessRun::queryUIDBuff(uint64_t uid) const
             }
         default:
             {
-                throw fflpanic("invalid uid: {}, type: {}", to_llu(uid), uidf::getUIDTypeCStr(uid));
+                throw fflpanic("invalid uid: {}, type: {}", uid, uidf::getUIDTypeCStr(uid));
             }
     }
 }
@@ -2419,7 +2419,7 @@ void ProcessRun::queryMapBaseUID(uint32_t mapID, std::function<void(uint64_t)> o
 void ProcessRun::queryPlayerWLDesp(uint64_t uid) const
 {
     if(uidf::getUIDType(uid) != UID_PLY){
-        throw fflpanic("invalid uid: {}, type: {}", to_llu(uid), uidf::getUIDTypeCStr(uid));
+        throw fflpanic("invalid uid: {}, type: {}", uid, uidf::getUIDTypeCStr(uid));
     }
 
     CMQueryPlayerWLDesp cmQPWLD;
@@ -2483,11 +2483,11 @@ void ProcessRun::requestEquipWear(uint32_t itemID, uint32_t seqID, int wltype)
 
     const auto &ir = DBCOM_ITEMRECORD(itemID);
     if(!ir){
-        throw fflpanic("invalid itemID: {}", to_llu(itemID));
+        throw fflpanic("invalid itemID: {}", itemID);
     }
 
     if(!seqID){
-        throw fflpanic("invalid seqID: {}", to_llu(seqID));
+        throw fflpanic("invalid seqID: {}", seqID);
     }
 
     if(!ir.wearable(wltype)){
@@ -2531,11 +2531,11 @@ void ProcessRun::requestEquipBelt(uint32_t itemID, uint32_t seqID, int slot)
 
     const auto &ir = DBCOM_ITEMRECORD(itemID);
     if(!ir){
-        throw fflpanic("invalid itemID: {}", to_llu(itemID));
+        throw fflpanic("invalid itemID: {}", itemID);
     }
 
     if(!seqID){
-        throw fflpanic("invalid seqID: {}", to_llu(seqID));
+        throw fflpanic("invalid seqID: {}", seqID);
     }
 
     if(!ir.beltable()){
@@ -2602,7 +2602,7 @@ bool ProcessRun::addGroundItemID(uint32_t itemID, int x, int y)
     }
 
     if(!DBCOM_ITEMRECORD(itemID)){
-        throw fflpanic("invalid itemID: {}", to_llu(itemID));
+        throw fflpanic("invalid itemID: {}", itemID);
     }
 
     m_groundItemIDList[{x, y}].push_back(itemID);

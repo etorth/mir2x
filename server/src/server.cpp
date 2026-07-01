@@ -918,7 +918,7 @@ uint64_t Server::sleepExt(uint64_t tickCount)
 void Server::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
 {
     if(!(modulePtr && nCWID)){
-        throw fflpanic("invalid argument: module = {:p}, window ID = {}", to_cvptr(modulePtr), to_llu(nCWID));
+        throw fflpanic("invalid argument: module = {:p}, window ID = {}", to_cvptr(modulePtr), nCWID);
     }
 
     // register command quit

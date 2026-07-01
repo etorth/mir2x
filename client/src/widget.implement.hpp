@@ -213,7 +213,7 @@ auto WidgetTreeNode::prevChild(this auto && self, uint64_t childID) -> check_con
             return nullptr;
         }
     }
-    throw fflpanic("can not find child {}", to_llu(childID));
+    throw fflpanic("can not find child {}", childID);
 }
 
 auto WidgetTreeNode::nextChild(this auto && self, uint64_t childID) -> check_const_cond_out_ptr_t<decltype(self), Widget>
@@ -229,7 +229,7 @@ auto WidgetTreeNode::nextChild(this auto && self, uint64_t childID) -> check_con
             return nullptr;
         }
     }
-    throw fflpanic("can not find child {}", to_llu(childID));
+    throw fflpanic("can not find child {}", childID);
 }
 
 template<std::derived_from<Widget> T> auto WidgetTreeNode::hasParent(this auto && self) -> check_const_cond_out_ptr_t<decltype(self), T>

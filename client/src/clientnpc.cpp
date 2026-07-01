@@ -46,7 +46,7 @@ ClientNPC::ClientNPC(uint64_t uid, ProcessRun *proc, const ActionNode &action)
     : ClientCreature(uid, proc)
 {
     if(type() != UID_NPC){
-        throw fflpanic("uid type: {}", uidf::getUIDString(UID()).c_str());
+        throw fflpanic("uid type: {}", uidf::getUIDString(UID()));
     }
 
     if(!parseAction(action)){

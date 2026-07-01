@@ -598,7 +598,7 @@ void XMLTypeset::checkDefaultFontEx() const
 {
     const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::str2code("0"));
     if(!g_fontexDB->retrieve(u64key)){
-        throw fflpanic("invalid default font: font = {}, fontsize = {}", to_d(m_font), to_d(m_fontSize));
+        throw fflpanic("invalid default font: font = {}, fontsize = {}", m_font, m_fontSize);
     }
 }
 
@@ -665,7 +665,7 @@ TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
     int frameCount = -1;
 
     if(((emoji << 8) >> 8) != emoji){
-        throw fflpanic("invalid emoji key: {}", to_llu(emoji));
+        throw fflpanic("invalid emoji key: {}", emoji);
     }
 
     emoji <<= 8;

@@ -13,7 +13,7 @@ class ServerTaoSkeleton final: public ServerTaoSummon
     protected:
         DamageNode getAttackDamage(int dc, int) const override
         {
-            fflassert(to_u32(dc) == DBCOM_MAGICID(u8"物理攻击"));
+            fflassert(dc == DBCOM_MAGICID(u8"物理攻击"));
             return PlainPhyDamage
             {
                 .damage = mathf::rand<int>(getMR().dc[0] + m_masterSC[0], getMR().dc[1] + m_masterSC[1]),

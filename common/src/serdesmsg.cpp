@@ -293,7 +293,7 @@ std::unordered_set<uint64_t> SDInventory::getItemSeqIDSet() const
 
     for(const auto &item: m_list){
         if(!result.insert(buildItemSeqID(item.itemID, item.seqID)).second){
-            throw fflpanic("found duplicated item: itemID = {}, seqID = {}", to_llu(item.itemID), to_llu(item.seqID));
+            throw fflpanic("found duplicated item: itemID = {}, seqID = {}", item.itemID, item.seqID);
         }
     }
     return result;
@@ -339,7 +339,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 
     if(keepSeqID){
         if(itemSeqIDSet.count(buildItemSeqID(newItem.itemID, newItem.seqID))){
-            throw fflpanic("found duplication with given item: itemID = {}, seqID = {}", to_llu(newItem.itemID), to_llu(newItem.seqID));
+            throw fflpanic("found duplication with given item: itemID = {}, seqID = {}", newItem.itemID, newItem.seqID);
         }
         m_list.push_back(std::move(newItem));
         return m_list.back();
@@ -406,16 +406,16 @@ std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID
 void SDInventory::merge(uint32_t itemID, uint32_t fromSeqID, uint32_t toSeqID)
 {
     if(!(fromSeqID && toSeqID)){
-        throw fflpanic("invalid fromSeqID = {}, toSeqID = {}", to_llu(fromSeqID), to_llu(toSeqID));
+        throw fflpanic("invalid fromSeqID = {}, toSeqID = {}", fromSeqID, toSeqID);
     }
 
     const auto &ir = DBCOM_ITEMRECORD(itemID);
     if(!ir){
-        throw fflpanic("invalid itemID = {}", to_llu(itemID));
+        throw fflpanic("invalid itemID = {}", itemID);
     }
 
     if(!ir.packable()){
-        throw fflpanic("item is not packable: itemID = {}", to_llu(itemID));
+        throw fflpanic("item is not packable: itemID = {}", itemID);
     }
 
     int fromIndex = -1;

@@ -1578,12 +1578,12 @@ bool Hero::setWLItem(int wltype, SDItem item, bool playSound)
     }
 
     if(!item){
-        throw fflpanic("invalid itemID: {}", to_llu(item.itemID));
+        throw fflpanic("invalid itemID: {}", item.itemID);
     }
 
     const auto &ir = DBCOM_ITEMRECORD(item.itemID);
     if(!ir){
-        throw fflpanic("invalid itemID: {}", to_llu(item.itemID));
+        throw fflpanic("invalid itemID: {}", item.itemID);
     }
 
     switch(wltype){

@@ -122,7 +122,7 @@ void ActorPool::attach(ActorPod *actorPtr)
 
         MailboxSubBucket::WLockGuard lockGuard(subBucket.lock);
         if(!(subBucket.mailboxList.emplace(uid, std::move(mailboxPtr)).second)){
-            throw fflpanic("actor UID {} exists in bucket already", to_llu(uid));
+            throw fflpanic("actor UID {} exists in bucket already", uid);
         }
     }
 
@@ -152,7 +152,7 @@ void ActorPool::attach(Receiver *receiverPtr)
 
     const std::lock_guard<std::mutex> lockGuard(m_receiverLock);
     if(!m_receiverList.emplace(receiverPtr->UID(), receiverPtr).second){
-        throw fflpanic("receriver UID {} alreayd exists in receriver list", to_llu(receiverPtr->UID()));
+        throw fflpanic("receriver UID {} alreayd exists in receriver list", receiverPtr->UID());
     }
 }
 
@@ -550,7 +550,7 @@ bool ActorPool::runOneMailbox(Mailbox *mailboxPtr)
 
             const uint64_t timeNow = mailboxPtr->monitor.liveTimer.diff_nsec();
             if(timeNow < p->second){
-                throw fflpanic("monotonic clock error: {} -> {}", to_llu(p->second), to_llu(timeNow));
+                throw fflpanic("monotonic clock error: {} -> {}", p->second, timeNow);
             }
 
             mailboxPtr->monitor.avgDelay.store((mailboxPtr->monitor.avgDelay.load() * 7 + (timeNow - p->second)) / 8);

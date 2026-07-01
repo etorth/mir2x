@@ -396,7 +396,7 @@ void ProcessRun::on_SM_PING(const uint8_t *bufPtr, size_t)
     const auto smP = ServerMsg::conv<SMPing>(bufPtr);
 
     if(currTick < smP.Tick){
-        throw fflpanic("invalid ping tick: {} -> {}", to_llu(smP.Tick), to_llu(currTick));
+        throw fflpanic("invalid ping tick: {} -> {}", smP.Tick, currTick);
     }
 
     m_lastPingDone = true;
@@ -441,7 +441,7 @@ void ProcessRun::on_SM_GROUNDITEMIDLIST(const uint8_t *buf, size_t bufSize)
         clearGroundItemIDList(x, y);
         for(const auto itemID: itemIDList){
             if(!DBCOM_ITEMRECORD(itemID)){
-                throw fflpanic("invalid itemID = {}", to_llu(itemID));
+                throw fflpanic("invalid itemID = {}", itemID);
             }
             addGroundItemID(itemID, x, y);
         }
@@ -693,7 +693,7 @@ void ProcessRun::on_SM_UPDATEITEM(const uint8_t *buf, size_t bufSize)
     const auto sdUI = cerealf::deserialize<SDUpdateItem>(buf, bufSize);
     const auto &ir = DBCOM_ITEMRECORD(sdUI.item.itemID);
     if(!ir){
-        throw fflpanic("bad item: itemID = {}", to_llu(sdUI.item.itemID));
+        throw fflpanic("bad item: itemID = {}", sdUI.item.itemID);
     }
 
     const auto changed = getMyHero()->getInvPack().update(sdUI.item);

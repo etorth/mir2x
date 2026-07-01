@@ -216,7 +216,7 @@ namespace msgf
         T length = 0;
         for(size_t i = 0; i < bufSize; ++i){
             if(const T nextLength = (length << 7) | (buf[bufSize - 1 - i] & 0x7f); nextLength < length){
-                throw fflpanic("decode length overflows: {}", str_any(std::vector<uint8_t>(buf, buf + bufSize)).c_str());
+                throw fflpanic("decode length overflows: {}", str_any(std::vector<uint8_t>(buf, buf + bufSize)));
             }
             else{
                 length = nextLength;

@@ -196,7 +196,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
                 }
             default:
                 {
-                    throw fflpanic("lua call failed in {}: {}", to_cstr(uidf::getUIDString(uid)), mpk.str().c_str());
+                    throw fflpanic("lua call failed in {}: {}", to_cstr(uidf::getUIDString(uid)), mpk.str());
                 }
         }
     });

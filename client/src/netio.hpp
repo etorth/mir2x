@@ -96,7 +96,7 @@ class NetIO final
             asio::async_read(m_socket, asio::buffer(m_readSBuf + offset, 1), [offset, fnOp, this](std::error_code ec, size_t)
             {
                 if(ec){
-                    throw fflpanic("network error: {}", ec.message().c_str());
+                    throw fflpanic("network error: {}", ec.message());
                 }
 
                 if(m_readSBuf[offset] & 0x80){

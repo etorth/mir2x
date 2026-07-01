@@ -63,7 +63,7 @@ class ClientCreature
             , m_nameBoard{{.label=u8"ClientCreature"}}
         {
             if(!(m_UID && m_processRun)){
-                throw fflpanic("invalid argument: UID = {}, processRun = {:p}", to_llu(m_UID), to_cvptr(m_processRun));
+                throw fflpanic("invalid argument: UID = {}, processRun = {:p}", m_UID, to_cvptr(m_processRun));
             }
         }
 

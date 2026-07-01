@@ -475,7 +475,7 @@ std::vector<pathf::PathNode> pathf::AStarPathFinder::getPathNode() const
             currNode = p->second;
         }
 
-        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", to_d(currNode.x), to_d(currNode.y), pathf::dirName(currNode.dir));
+        throw fflpanic("intermiediate node has no parent: ({}, {}, {})", currNode.x, currNode.y, pathf::dirName(currNode.dir));
     };
 
     std::vector<pathf::PathNode> result;

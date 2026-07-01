@@ -428,7 +428,7 @@ ServerMap::ServerMap(uint64_t argMapUID)
           if(auto p = g_mapBinDB->retrieve(uidf::getMapID(argMapUID))){
               return p;
           }
-          throw fflpanic("failed to load map: mapID {}, name {}", to_d(uidf::getMapID(argMapUID)), to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name));
+          throw fflpanic("failed to load map: mapID {}, name {}", uidf::getMapID(argMapUID), to_cstr(DBCOM_MAPRECORD(uidf::getMapID(argMapUID)).name));
       }())
 {
     m_gridList.resize(mapBin()->w() * mapBin()->h());

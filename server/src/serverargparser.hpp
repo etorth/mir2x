@@ -229,14 +229,14 @@ class ServerArgParser
                 case argf::REQ:
                     {
                         if(!optVal.has_value()){
-                            throw fflpanic("missing required option in {} mode: {}", slave ? "slave" : "master", opt.c_str());
+                            throw fflpanic("missing required option in {} mode: {}", slave ? "slave" : "master", opt);
                         }
                         break;
                     }
                 case argf::BAN:
                     {
                         if(optVal.has_value()){
-                            throw fflpanic("invalid option in {} mode: {}", slave ? "slave" : "master", opt.c_str());
+                            throw fflpanic("invalid option in {} mode: {}", slave ? "slave" : "master", opt);
                         }
                         break;
                     }
@@ -247,7 +247,7 @@ class ServerArgParser
             }
 
             if(optVal.has_value() && optVal.value().empty() && !(slave ? allowEmptyInSlave : allowEmptyInMaster)){
-                throw fflpanic("invalid empty option value in {} mode: {}", slave ? "slave" : "master", opt.c_str());
+                throw fflpanic("invalid empty option value in {} mode: {}", slave ? "slave" : "master", opt);
             }
             return optVal;
         }

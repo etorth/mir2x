@@ -1134,7 +1134,7 @@ void FriendChatBoard::addMessage(std::optional<uint64_t> localPendingID, const S
             return sdCM.to;
         }
         else{
-            throw fflpanic("received invalid chat message: from {}, to {}, self {}", to_llu(sdCM.from.asU64()), to_llu(sdCM.to.asU64()), to_llu(m_processRun->getMyHero()->cpid().asU64()));
+            throw fflpanic("received invalid chat message: from {}, to {}, self {}", sdCM.from.asU64(), sdCM.to.asU64(), m_processRun->getMyHero()->cpid().asU64());
         }
     }();
 
@@ -1205,7 +1205,7 @@ void FriendChatBoard::addMessagePending(uint64_t localPendingID, const SDChatMes
 {
     fflassert(!sdCM.seq.has_value());
     if(!m_localMessageList.emplace(localPendingID, sdCM).second){
-        throw fflpanic("adding a pending message with local pending id which has already been used: {}", to_llu(localPendingID));
+        throw fflpanic("adding a pending message with local pending id which has already been used: {}", localPendingID);
     }
 }
 

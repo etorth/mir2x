@@ -316,12 +316,12 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
 {
     if(strictMove){
         if(!mapBin()->groundValid(locX, locY)){
-            throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", to_llu(mapID()), locX, locY);
+            throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", mapID(), locX, locY);
         }
     }
     else{
         if(!mapBin()->validC(locX, locY)){
-            throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", to_llu(mapID()), locX, locY);
+            throw fflpanic("invalid destination: (mapID = {}, x = {}, y = {})", mapID(), locX, locY);
         }
     }
 
@@ -397,11 +397,11 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
 corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int locX, int locY, bool strictMove)
 {
     if(argMapUID == mapUID()){
-        throw fflpanic("request to switch on same map: mapUID {}", to_llu(argMapUID));
+        throw fflpanic("request to switch on same map: mapUID {}", argMapUID);
     }
 
     if(locX < 0 || locY < 0){
-        throw fflpanic("invalid argument: mapUID {}, locX {}, locY {}", to_llu(argMapUID), locX, locY);
+        throw fflpanic("invalid argument: mapUID {}, locX {}, locY {}", argMapUID, locX, locY);
     }
 
     if(!canMove(true)){

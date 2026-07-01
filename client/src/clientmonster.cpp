@@ -401,7 +401,7 @@ static uint32_t monsterSeffBaseIDHelper(std::u8string_view monName, int offset)
 {
     fflassert(!monName.empty());
     fflassert(offset >= 0, offset);
-    fflassert(offset < to_d(SYS_SEFFSIZE), offset, SYS_SEFFSIZE);
+    fflassert(offset < SYS_SEFFSIZE, offset, SYS_SEFFSIZE);
 
     const auto &mr = DBCOM_MONSTERRECORD(monName.data());
     fflassert(mr);
@@ -528,7 +528,7 @@ bool ClientMonster::onActionHitted(const ActionNode &action)
 
 bool ClientMonster::onActionTransf(const ActionNode &)
 {
-    throw fflpanic("unexpected ACTION_TRANSF to uid: {}", uidf::getUIDString(UID()).c_str());
+    throw fflpanic("unexpected ACTION_TRANSF to uid: {}", uidf::getUIDString(UID()));
 }
 
 bool ClientMonster::onActionSpaceMove(const ActionNode &action)
@@ -574,7 +574,7 @@ bool ClientMonster::onActionMove(const ActionNode &action)
 bool ClientMonster::onActionSpawn(const ActionNode &action)
 {
     if(!m_forcedMotionQueue.empty()){
-        throw fflpanic("found motion before spawn: {}", uidf::getUIDString(UID()).c_str());
+        throw fflpanic("found motion before spawn: {}", uidf::getUIDString(UID()));
     }
 
     m_currMotion = std::unique_ptr<MotionNode>(new MotionNode

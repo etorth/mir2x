@@ -36,7 +36,7 @@ void NetIO::doReadPacketHeadCode()
     asio::async_read(m_socket, asio::buffer(m_readSBuf, 1), [this](std::error_code ec, size_t)
     {
         if(ec){
-            throw fflpanic("network error: {}", ec.message().c_str());
+            throw fflpanic("network error: {}", ec.message());
         }
 
         m_respIDOpt.reset();
@@ -115,7 +115,7 @@ void NetIO::doReadPacketBody(size_t maskSize, size_t bodySize)
         asio::async_read(m_socket, asio::buffer(m_readDBuf.data(), totalSize), [maskSize, bodySize, this](std::error_code ec, size_t)
         {
             if(ec){
-                throw fflpanic("network error: {}", ec.message().c_str());
+                throw fflpanic("network error: {}", ec.message());
             }
 
             if(maskSize){
@@ -154,7 +154,7 @@ void NetIO::doSendBuf()
     asio::async_write(m_socket, asio::buffer(m_currSendBuf.data(), m_currSendBuf.size()), [this](std::error_code ec, size_t)
     {
         if(ec){
-            throw fflpanic("network error: {}", ec.message().c_str());
+            throw fflpanic("network error: {}", ec.message());
         }
 
         m_currSendBuf.clear();
@@ -170,7 +170,7 @@ void NetIO::doSendBuf()
 void NetIO::send(uint8_t headCode, const uint8_t *buf, size_t bufSize, uint64_t respID)
 {
     if(headCode & 0x80){
-        throw fflpanic("invalid head code 0x{:02d}", to_d(headCode));
+        throw fflpanic("invalid head code 0x{:02d}", headCode);
     }
 
     const ClientMsg cmsg(headCode);
@@ -250,7 +250,7 @@ void NetIO::start(const std::string &ipStr, const std::string &portStr, std::fun
     asio::async_connect(m_socket, m_resolver.resolve(ipStr, portStr), [this](std::error_code ec, const asio::ip::tcp::endpoint &)
     {
         if(ec){
-            throw fflpanic("network error: {}", ec.message().c_str());
+            throw fflpanic("network error: {}", ec.message());
         }
         else{
             doReadPacketHeadCode();

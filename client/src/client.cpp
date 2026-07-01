@@ -142,7 +142,7 @@ void Client::initASIO()
                 m_respHandlers.erase(p);
             }
             else{
-                throw fflpanic("no handler found for response id {}", to_llu(respID));
+                throw fflpanic("no handler found for response id {}", respID);
             }
         }
         else{
@@ -256,7 +256,7 @@ void Client::onServerMessage(uint8_t headCode, const uint8_t *buf, size_t bufSiz
 
         default:
             {
-                throw fflpanic("no handler registered for server message {}", to_d(headCode));
+                throw fflpanic("no handler registered for server message {}", headCode);
             }
     }
 }
