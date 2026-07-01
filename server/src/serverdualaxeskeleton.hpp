@@ -12,7 +12,7 @@ class ServerDualAxeSkeleton final: public Monster
     protected:
         DamageNode getAttackDamage(int dc, int) const override
         {
-            fflassert(dc == DBCOM_MAGICID(u8"掷斧骷髅_掷斧"));
+            fflassert(dc == to_d(DBCOM_MAGICID(u8"掷斧骷髅_掷斧")));
             return MagicDamage
             {
                 .magicID = dc,

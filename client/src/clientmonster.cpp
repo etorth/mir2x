@@ -401,7 +401,7 @@ static uint32_t monsterSeffBaseIDHelper(std::u8string_view monName, int offset)
 {
     fflassert(!monName.empty());
     fflassert(offset >= 0, offset);
-    fflassert(offset < SYS_SEFFSIZE, offset, SYS_SEFFSIZE);
+    fflassert(offset < to_d(SYS_SEFFSIZE), offset, SYS_SEFFSIZE);
 
     const auto &mr = DBCOM_MONSTERRECORD(monName.data());
     fflassert(mr);
