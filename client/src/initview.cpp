@@ -96,27 +96,20 @@ InitView::InitView(uint8_t fontSize)
         });
     }
 
-    // Exit the wait loop when all tasks completed. Two failure paths:
-    //   1. loadDB catches its exception, sets m_hasError, and does NOT increment m_doneWeight -- so donePercent() maxes at <100 forever.
-    //      The !m_hasError check breaks out.
-    //
-    //   2. A task throws UN-caught (rare -- would have to escape loadDB's try/catch, e.g. from m_taskList.at(i) or the lambda itself).
-    //      threadCBWrapper captures the exception in hasError; the per-iteration checkError() rethrows it here so the loop bails.
-    while(donePercent() < 100 && !m_hasError){
+    // Wait for tasks to finish. If any task throws, loadDB logs the specific
+    // failure via addIVLog (visible on the loading window) then rethrows;
+    // threadCBWrapper captures the exception into hasError, and the
+    // per-iteration checkError() rethrows here so the loop bails without
+    // deadlocking on donePercent() < 100 (m_doneWeight is not incremented for
+    // the failed task).
+    while(donePercent() < 100){
         processEvent(); // can abort internally
         draw();
-        hasError.checkError();  // rethrows an uncaught task exception, if any
+        hasError.checkError();
     }
 
     taskPool.finish();
     hasError.checkError();
-
-    if(m_hasError){
-        // Path (1) above:
-        // the specific error is already in g_mir2xLog via addIVLog
-        // propagate so main exits cleanly, instead of continuing into a half-loaded client
-        throw fflpanic("failed to load one or more asset databases (see log for details)");
-    }
 }
 
 InitView::~InitView()

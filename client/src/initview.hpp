@@ -45,7 +45,6 @@ class InitView final
         static constexpr int m_buttonH =  30;
 
     private:
-        std::atomic<bool> m_hasError{false};
         std::atomic<size_t> m_doneWeight{0};
 
     private:
@@ -98,30 +97,31 @@ class InitView final
             fflassert(str_haschar(resPath));
             fflassert(str_haschar(dbPath));
 
-            if(m_hasError){
-                return;
-            }
+            // No need for an explicit "abort if a sibling task failed" check
+            // here -- threadCBWrapper does that before invoking us (skips the
+            // task if hasError.m_tag is already set).
 
             const auto fullPath = std::filesystem::path(resPath) / dbPath;
             const auto fileName = fullPath.filename().string();
 
-            std::string errstr;
             addIVLog(LOGIV_INFO, "[%03d%%]Loading %s", donePercent(), to_cstr(fileName));
             try{
                 dbPtr->load(fullPath.string().c_str());
-                m_doneWeight += taskWeight;
-                addIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", donePercent(), to_cstr(fileName));
             }
             catch(const std::exception &e){
-                errstr = str_haschar(e.what()) ? e.what() : "unknown error";
+                // Log the specific failure (visible on the loading window)
+                // and rethrow so threadCBWrapper captures it into hasError.
+                // The main-thread wait loop's per-iteration checkError() then
+                // rethrows to main.cpp for a clean FATAL exit.
+                addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: %s", donePercent(), to_cstr(fileName), str_haschar(e.what()) ? e.what() : "unknown error");
+                throw;
             }
             catch(...){
-                errstr = "unknown error";
+                addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: unknown error", donePercent(), to_cstr(fileName));
+                throw;
             }
 
-            if(!errstr.empty()){
-                addIVLog(LOGIV_WARNING, "[%03d%%]Loading %s failed: %s", donePercent(), to_cstr(fileName), to_cstr(errstr));
-                m_hasError = true;
-            }
+            m_doneWeight += taskWeight;
+            addIVLog(LOGIV_INFO, "[%03d%%]Loading %s done", donePercent(), to_cstr(fileName));
         }
 };
