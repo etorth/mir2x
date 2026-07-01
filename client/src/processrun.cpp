@@ -2619,13 +2619,13 @@ bool ProcessRun::removeGroundItemID(uint32_t itemID, int x, int y)
     for(auto i = to_lld(p->second.size()) - 1; i >= 0; --i){
         if(p->second[i] == itemID){
             p->second.erase(p->second.begin() + i);
+            if(p->second.empty()){
+                m_groundItemIDList.erase(p);
+            }
             return true;
         }
     }
 
-    if(p->second.empty()){
-        m_groundItemIDList.erase(p);
-    }
     return false;
 }
 
