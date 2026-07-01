@@ -26,10 +26,17 @@ class SecuredItemListBoard: public ItemListBoard
 
         void removeItem(uint32_t itemID, uint32_t seqID)
         {
-            m_itemList.erase(std::find_if(m_itemList.begin(), m_itemList.end(), [itemID, seqID](const auto &param)
+            if(auto it = std::find_if(m_itemList.begin(), m_itemList.end(), [itemID, seqID](const auto &param)
             {
                 return itemID == param.itemID && seqID == param.seqID;
-            }));
+            });
+
+            it == m_itemList.end()){
+                return;
+            }
+            else{
+                m_itemList.erase(it);
+            }
 
             if(itemCount() == 0){
                 m_page = 0;
