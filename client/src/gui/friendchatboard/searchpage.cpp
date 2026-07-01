@@ -119,7 +119,9 @@ void SearchPage::appendFriendItem(const SDChatPeer &candidate)
         SDChatPeerID(CPR_PLAYER, candidate.id),
         to_u8rawstr(candidate.name).c_str(),
 
-        [gender = candidate.player()->gender, job = candidate.player()->job](const Widget *)
+        // guard against non-player candidates (group/special); server can send them and the deref would UB
+        [gender = candidate.player() ? candidate.player()->gender : false,
+         job    = candidate.player() ? candidate.player()->job    : 0    ](const Widget *)
         {
             return g_progUseDB->retrieve(Hero::faceGfxID(gender, job));
         },

@@ -62,7 +62,8 @@ void FriendListPage::append(const SDChatPeer &peer, std::function<void(FriendIte
         {
             if     (peer.group()                  ) return g_progUseDB->retrieve(0X00001300);
             else if(peer.id == SYS_CHATDBID_SYSTEM) return g_progUseDB->retrieve(0X00001100);
-            else                                    return g_progUseDB->retrieve(Hero::faceGfxID(peer.player()->gender, peer.player()->job));
+            else if(peer.player()                 ) return g_progUseDB->retrieve(Hero::faceGfxID(peer.player()->gender, peer.player()->job));
+            else                                    return g_progUseDB->retrieve(0X00001100); // unexpected: not group/system/player -- fall back to system icon
         },
 
         std::move(argOnClick),
