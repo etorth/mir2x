@@ -75,6 +75,10 @@ ChatItem::ChatItem(ChatItem::InitArgs args)
 
                   FriendChatBoard::getParentBoard(this)->queryChatPeer(SDChatPeerID(std::stoull(cpidstr)), [attrList, this](const SDChatPeer *sdCP, bool)
                   {
+                      // sdCP is null when the server can't resolve the referenced peer (deleted account, etc.); nothing meaningful to do
+                      if(!sdCP){
+                          return;
+                      }
                       if(LayoutBoard::findAttrValue(attrList, "accept")){
                           FriendChatBoard::getParentBoard(this)->requestAcceptAddFriend(*sdCP);
                           if(LayoutBoard::findAttrValue(attrList, "addfriend")){
