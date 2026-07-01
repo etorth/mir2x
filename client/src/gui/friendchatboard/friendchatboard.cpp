@@ -1244,12 +1244,13 @@ void FriendChatBoard::setUIPage(int uiPage)
             m_uiPageList[fromPage].exit(toPage, std::addressof(m_uiPageList[fromPage]));
         }
 
+        // update state BEFORE enter() so any callback that reads m_uiPage sees the new page
+        m_uiLastPage = fromPage;
+        m_uiPage     =   toPage;
+
         if(m_uiPageList[toPage].enter){
             m_uiPageList[toPage].enter(fromPage, std::addressof(m_uiPageList[toPage]));
         }
-
-        m_uiLastPage = fromPage;
-        m_uiPage     =   toPage;
 
         m_uiPageList[fromPage].page->setFocus(false);
         m_uiPageList[  toPage].page->setFocus(true );
