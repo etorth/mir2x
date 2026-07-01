@@ -998,11 +998,16 @@ void SDLDevice::drawWidthRectangle(size_t frameLineWidth, int argX, int argY, in
         return;
     }
 
-    fillRectangle(argX, argY,                             argW, frameLineWidth);
-    fillRectangle(argX, argY + argW - 2 * frameLineWidth, argW, frameLineWidth);
+    // Four bands making up the frame around (argX, argY, argW, argH):
+    //   top:    full width, top edge
+    //   bottom: full width, bottom edge (Y = argY + argH - T)
+    //   left:   thickness T, between the top and bottom bands
+    //   right:  thickness T, between the top and bottom bands (X = argX + argW - T)
+    fillRectangle(argX, argY,                         argW, frameLineWidth);
+    fillRectangle(argX, argY + argH - frameLineWidth, argW, frameLineWidth);
 
-    fillRectangle(argX,                             argY + frameLineWidth, frameLineWidth, argH - 2 * frameLineWidth);
-    fillRectangle(argX + argW - 2 * frameLineWidth, argY + frameLineWidth, frameLineWidth, argH - 2 * frameLineWidth);
+    fillRectangle(argX,                         argY + frameLineWidth, frameLineWidth, argH - 2 * frameLineWidth);
+    fillRectangle(argX + argW - frameLineWidth, argY + frameLineWidth, frameLineWidth, argH - 2 * frameLineWidth);
 }
 
 void SDLDevice::drawWidthRectangle(uint32_t color, size_t frameLineWidth, int argX, int argY, int argW, int argH)
