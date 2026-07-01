@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <memory>
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
@@ -188,8 +189,10 @@ class SDLDevice final
         const size_t m_trackCount = 128;
 
     private:
-        SDL_Window   *m_window   = nullptr;
-        SDL_Renderer *m_renderer = nullptr;
+        // Declaration order matters: SDL requires the renderer be destroyed before its owning window
+        // So m_renderer must be declared AFTER m_window
+        std::unique_ptr<SDL_Window,   void(*)(SDL_Window   *)> m_window   {nullptr, SDL_DestroyWindow  };
+        std::unique_ptr<SDL_Renderer, void(*)(SDL_Renderer *)> m_renderer {nullptr, SDL_DestroyRenderer};
 
     private:
        FPSMonitor m_fpsMonitor;
@@ -246,23 +249,23 @@ class SDLDevice final
     public:
        void present()
        {
-           SDL_RenderPresent(m_renderer);
+           SDL_RenderPresent(m_renderer.get());
        }
 
        void setWindowTitle(const char *szUTF8Title)
        {
-           SDL_SetWindowTitle(m_window, (szUTF8Title) ? szUTF8Title : "");
+           SDL_SetWindowTitle(m_window.get(), (szUTF8Title) ? szUTF8Title : "");
        }
 
        void clearScreen()
        {
            setColor(0, 0, 0, 0);
-           SDL_RenderClear(m_renderer);
+           SDL_RenderClear(m_renderer.get());
        }
 
        void drawLine(int argX0, int argY0, int argX1, int argY1)
        {
-           SDL_RenderLine(m_renderer, to_f(argX0), to_f(argY0), to_f(argX1), to_f(argY1));
+           SDL_RenderLine(m_renderer.get(), to_f(argX0), to_f(argY0), to_f(argX1), to_f(argY1));
        }
 
        void drawLine(uint32_t color, int argX0, int argY0, int argX1, int argY1)
@@ -280,30 +283,30 @@ class SDLDevice final
 
        void drawLinef(float argX0, float argY0, float argX1, float argY1)
        {
-           SDL_RenderLine(m_renderer, argX0, argY0, argX1, argY1);
+           SDL_RenderLine(m_renderer.get(), argX0, argY0, argX1, argY1);
        }
 
        void drawLinef(uint32_t color, float argX0, float argY0, float argX1, float argY1)
        {
            SDLDeviceHelper::EnableRenderColor enableColor(color, this);
-           SDL_RenderLine(m_renderer, argX0, argY0, argX1, argY1);
+           SDL_RenderLine(m_renderer.get(), argX0, argY0, argX1, argY1);
        }
 
        void drawCrossf(uint32_t color, float x, float y, float r)
        {
            SDLDeviceHelper::EnableRenderColor enableColor(color, this);
-           SDL_RenderLine(m_renderer, x - r, y, x + r, y);
-           SDL_RenderLine(m_renderer, x, y - r, x, y + r);
+           SDL_RenderLine(m_renderer.get(), x - r, y, x + r, y);
+           SDL_RenderLine(m_renderer.get(), x, y - r, x, y + r);
        }
 
        void setColor(uint8_t nR, uint8_t nG, uint8_t nB, uint8_t nA)
        {
-           SDL_SetRenderDrawColor(m_renderer, nR, nG, nB, nA);
+           SDL_SetRenderDrawColor(m_renderer.get(), nR, nG, nB, nA);
        }
 
        void drawPixel(int argX, int argY)
        {
-           SDL_RenderPoint(m_renderer, to_f(argX), to_f(argY));
+           SDL_RenderPoint(m_renderer.get(), to_f(argX), to_f(argY));
        }
 
     public:
@@ -338,7 +341,7 @@ class SDLDevice final
     public:
        SDL_Renderer *getRenderer()
        {
-           return m_renderer;
+           return m_renderer.get();
        }
 
     public:
@@ -350,7 +353,7 @@ class SDLDevice final
     public:
        SDL_Texture *createTextureFromSurface(SDL_Surface * surfPtr)
        {
-           return surfPtr ? SDL_CreateTextureFromSurface(m_renderer, surfPtr) : nullptr;
+           return surfPtr ? SDL_CreateTextureFromSurface(m_renderer.get(), surfPtr) : nullptr;
        }
 
        std::tuple<int, int> getWindowSize()
@@ -358,7 +361,7 @@ class SDLDevice final
            int w = -1;
            int h = -1;
 
-           SDL_GetWindowSize(m_window, &w, &h);
+           SDL_GetWindowSize(m_window.get(), &w, &h);
            return {w, h};
        }
 
@@ -377,8 +380,8 @@ class SDLDevice final
            int w = -1;
            int h = -1;
 
-           if(!SDL_GetCurrentRenderOutputSize(m_renderer, &w, &h)){
-               throw fflpanic("SDL_GetCurrentRenderOutputSize({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+           if(!SDL_GetCurrentRenderOutputSize(m_renderer.get(), &w, &h)){
+               throw fflpanic("SDL_GetCurrentRenderOutputSize({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
            }
            return {w, h};
        }
@@ -424,7 +427,7 @@ class SDLDevice final
     public:
        void setWindowResizable(bool resizable)
        {
-           SDL_SetWindowResizable(m_window, resizable);
+           SDL_SetWindowResizable(m_window.get(), resizable);
        }
 
     public:

@@ -478,13 +478,11 @@ SDLDevice::~SDLDevice()
     }
     m_cover.clear();
 
-    if(m_renderer){
-        SDL_DestroyRenderer(m_renderer);
-    }
-
-    if(m_window){
-        SDL_DestroyWindow(m_window);
-    }
+    // Reset explicitly before SDL_Quit so the SDL handles release while the
+    // SDL subsystems are still alive. (Members otherwise destruct after this
+    // function returns, i.e. AFTER SDL_Quit — which would UB.)
+    m_renderer.reset();
+    m_window.reset();
 
     SDL_Quit();
 }
@@ -501,7 +499,7 @@ void SDLDevice::setWindowIcon()
 
     if((ioStream = SDL_IOFromConstMem(std::data(winIconData), std::size(winIconData)))){
         if((surfPtr = IMG_LoadPNG_IO(ioStream))){
-            SDL_SetWindowIcon(m_window, surfPtr);
+            SDL_SetWindowIcon(m_window.get(), surfPtr);
         }
     }
 
@@ -517,16 +515,16 @@ void SDLDevice::setWindowIcon()
 void SDLDevice::toggleWindowFullscreen()
 {
     fflassert(m_window);
-    const auto winFlag = SDL_GetWindowFlags(m_window);
+    const auto winFlag = SDL_GetWindowFlags(m_window.get());
 
     if(winFlag & SDL_WINDOW_FULLSCREEN){
-        if(!SDL_SetWindowFullscreen(m_window, false)){
-            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
+        if(!SDL_SetWindowFullscreen(m_window.get(), false)){
+            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window.get()), SDL_GetError());
         }
     }
     else{
-        if(!SDL_SetWindowFullscreen(m_window, true)){
-            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window), SDL_GetError());
+        if(!SDL_SetWindowFullscreen(m_window.get(), true)){
+            throw fflpanic("SDL_SetWindowFullscreen({:p}) failed: {}", to_cvptr(m_window.get()), SDL_GetError());
         }
     }
 }
@@ -541,7 +539,7 @@ SDL_Texture *SDLDevice::loadPNGTexture(const void *data, size_t size)
     }
 
     if(auto ioStream = SDL_IOFromConstMem(data, size)){
-        return IMG_LoadTextureTyped_IO(m_renderer, ioStream, true, "PNG");
+        return IMG_LoadTextureTyped_IO(m_renderer.get(), ioStream, true, "PNG");
     }
     return nullptr;
 }
@@ -556,7 +554,7 @@ void SDLDevice::drawTexture(SDL_Texture *texPtr,
         const SDL_FRect src {to_f(srcX), to_f(srcY), to_f(srcW), to_f(srcH)};
         const SDL_FRect dst {to_f(dstX), to_f(dstY), to_f(dstW), to_f(dstH)};
 
-        SDL_RenderTexture(m_renderer, texPtr, &src, &dst);
+        SDL_RenderTexture(m_renderer.get(), texPtr, &src, &dst);
         if(g_clientArgParser->debugDrawTexture){
             drawRectangle(colorf::BLUE + colorf::A_SHF(128), dstX, dstY, dstW, dstH);
         }
@@ -616,15 +614,9 @@ TTF_Font *SDLDevice::createTTF(const void *data, size_t size, uint8_t fontPtSize
 
 void SDLDevice::createInitViewWindow()
 {
-    if(m_renderer){
-        SDL_DestroyRenderer(m_renderer);
-        m_renderer = nullptr;
-    }
-
-    if(m_window){
-        SDL_DestroyWindow(m_window);
-        m_window = nullptr;
-    }
+    // Reset renderer before window (renderer references the window)
+    m_renderer.reset();
+    m_window.reset();
 
     int windowW = 800;
     int windowH = 600;
@@ -635,43 +627,36 @@ void SDLDevice::createInitViewWindow()
         }
     }
 
-    m_window = SDL_CreateWindow("MIR2X-V0.1-LOADING", windowW, windowH, SDL_WINDOW_BORDERLESS);
+    m_window.reset(SDL_CreateWindow("MIR2X-V0.1-LOADING", windowW, windowH, SDL_WINDOW_BORDERLESS));
     if(!m_window){
         throw fflpanic("failed to create SDL window handler: {}", SDL_GetError());
     }
 
-    SDL_ShowWindow(m_window);
-    SDL_RaiseWindow(m_window);
-    SDL_SetWindowResizable(m_window, false);
+    SDL_ShowWindow(m_window.get());
+    SDL_RaiseWindow(m_window.get());
+    SDL_SetWindowResizable(m_window.get(), false);
 
-    m_renderer = SDL_CreateRenderer(m_window, nullptr);
+    m_renderer.reset(SDL_CreateRenderer(m_window.get(), nullptr));
     if(!m_renderer){
-        SDL_DestroyWindow(m_window);
+        m_window.reset();
         throw fflpanic("failed to create SDL renderer: {}", SDL_GetError());
     }
 
     setWindowIcon();
 
-    if(!SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255)){
+    if(!SDL_SetRenderDrawColor(m_renderer.get(), 0, 0, 0, 255)){
         throw fflpanic("set renderer draw color failed: {}", SDL_GetError());
     }
 
-    if(!SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
+    if(!SDL_SetRenderDrawBlendMode(m_renderer.get(), SDL_BLENDMODE_BLEND)){
         throw fflpanic("set renderer blend mode failed: {}", SDL_GetError());
     }
 }
 
 void SDLDevice::createMainWindow()
 {
-    if(m_renderer){
-        SDL_DestroyRenderer(m_renderer);
-        m_renderer = nullptr;
-    }
-
-    if(m_window){
-        SDL_DestroyWindow(m_window);
-        m_window = nullptr;
-    }
+    m_renderer.reset();
+    m_window.reset();
 
     const auto winFlag = []() -> Uint32
     {
@@ -684,24 +669,24 @@ void SDLDevice::createMainWindow()
         }
     }();
 
-    m_window = SDL_CreateWindow("MIR2X-V0.1", SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H, winFlag);
+    m_window.reset(SDL_CreateWindow("MIR2X-V0.1", SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H, winFlag));
     fflassert(m_window);
 
-    SDL_SetWindowMinimumSize(m_window, SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H);
-    m_renderer = SDL_CreateRenderer(m_window, nullptr);
+    SDL_SetWindowMinimumSize(m_window.get(), SYS_WINDOW_MIN_W, SYS_WINDOW_MIN_H);
+    m_renderer.reset(SDL_CreateRenderer(m_window.get(), nullptr));
 
     if(!m_renderer){
-        SDL_DestroyWindow(m_window);
+        m_window.reset();
         throw fflpanic("failed to create SDL renderer: {}", SDL_GetError());
     }
 
     setWindowIcon();
 
-    if(!SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 0)){
+    if(!SDL_SetRenderDrawColor(m_renderer.get(), 0, 0, 0, 0)){
         throw fflpanic("set renderer draw color failed: {}", SDL_GetError());
     }
 
-    if(!SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND)){
+    if(!SDL_SetRenderDrawBlendMode(m_renderer.get(), SDL_BLENDMODE_BLEND)){
         throw fflpanic("set renderer blend mode failed: {}", SDL_GetError());
     }
 }
@@ -726,8 +711,8 @@ void SDLDevice::drawTextureEx(
         const SDL_FRect dst {to_f(dstX), to_f(dstY), to_f(dstW), to_f(dstH)};
         const SDL_FPoint center {to_f(centerDstOffX), to_f(centerDstOffY)};
         const double angle = 1.00 * (rotateDegree % 360);
-        if(!SDL_RenderTextureRotated(m_renderer, texPtr, &src, &dst, angle, &center, flip)){
-            throw fflpanic("SDL_RenderTextureRotated({:p}) failed: {}", to_cvptr(m_renderer), SDL_GetError());
+        if(!SDL_RenderTextureRotated(m_renderer.get(), texPtr, &src, &dst, angle, &center, flip)){
+            throw fflpanic("SDL_RenderTextureRotated({:p}) failed: {}", to_cvptr(m_renderer.get()), SDL_GetError());
         }
 
         if(g_clientArgParser->debugDrawTexture){
@@ -764,7 +749,7 @@ SDL_Texture *SDLDevice::createRGBATexture(const uint32_t *data, size_t w, size_t
     fflassert(w > 0);
     fflassert(h > 0);
 
-    if(auto texPtr = SDL_CreateTexture(m_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, w, h)){
+    if(auto texPtr = SDL_CreateTexture(m_renderer.get(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, w, h)){
         if(SDL_UpdateTexture(texPtr, nullptr, data, w * 4) && SDL_SetTextureBlendMode(texPtr, SDL_BLENDMODE_BLEND)){
             return texPtr;
         }
@@ -890,7 +875,7 @@ void SDLDevice::drawCircle(uint32_t color, int argX, int argY, int argRad)
 {
     fflassert(argRad >= 0, argRad);
     if(colorf::A(color)){
-        aacircleRGBA(m_renderer, argX, argY, argRad, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color));
+        aacircleRGBA(m_renderer.get(), argX, argY, argRad, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color));
     }
 }
 
@@ -898,7 +883,7 @@ void SDLDevice::fillCircle(uint32_t color, int argX, int argY, int argRad)
 {
     fflassert(argRad >= 0, argRad);
     if(colorf::A(color)){
-        filledCircleRGBA(m_renderer, argX, argY, argRad, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color));
+        filledCircleRGBA(m_renderer.get(), argX, argY, argRad, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color));
     }
 }
 
@@ -1210,7 +1195,7 @@ void SDLDevice::drawBoxFading(uint32_t startColor, uint32_t endColor, int x, int
 
 void SDLDevice::drawString(uint32_t color, int x, int y, const char *s)
 {
-    if(!stringRGBA(m_renderer, x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
+    if(!stringRGBA(m_renderer.get(), x, y, s, colorf::R(color), colorf::G(color), colorf::B(color), colorf::A(color))){
         throw fflpanic("failed to draw 8x8 string: {}", s);
     }
 }
@@ -1220,7 +1205,7 @@ void SDLDevice::setWindowSize(int w, int h)
     fflassert(w >= 400, w, h);
     fflassert(h >= 400, w, h);
 
-    SDL_SetWindowSize(m_window, w, h);
+    SDL_SetWindowSize(m_window.get(), w, h);
 }
 
 void SDLDevice::stopBGM()
