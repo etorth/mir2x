@@ -276,6 +276,10 @@ void Client::switchProcess(int newID)
 
 void Client::switchProcess(int oldID, int newID)
 {
+    // Drop pending server-response callbacks -- they capture widget pointers
+    // into m_currentProcess and would UAF on late replies.
+    m_respHandlers.clear();
+
     m_currentProcess.reset();
     switch(oldID){
         case PROCESSID_NONE:
