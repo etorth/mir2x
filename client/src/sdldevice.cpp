@@ -456,12 +456,24 @@ SDLDevice::SDLDevice()
 SDLDevice::~SDLDevice()
 {
     if(!g_clientArgParser->disableAudio){
+        // Unhook stopped-callbacks first. MIX_SetTrackStoppedCallback takes
+        // the track's SDL_LockAudioStream, which is the same lock the audio
+        // thread holds while inside recycleSoundEffectTrack; so this call
+        // blocks briefly if a callback is in flight, and afterwards no
+        // future callback can fire for these tracks. Only THEN is it safe
+        // to clear m_freeTrackList / m_trackStateList without racing an
+        // async insert.
+        for(auto *t : m_tracks){
+            MIX_SetTrackStoppedCallback(t, nullptr, nullptr);
+        }
+
+        m_freeTrackList.clear();
+        m_trackStateList.clear();
+
         for(auto *t : m_tracks){
             MIX_DestroyTrack(t);
         }
         m_tracks.clear();
-        m_freeTrackList.clear();
-        m_trackStateList.clear();
 
         if(m_bgmTrack){
             MIX_DestroyTrack(m_bgmTrack);
