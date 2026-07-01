@@ -589,7 +589,7 @@ void ProcessRun::on_SM_PICKUPERROR(const uint8_t *buf, size_t)
             addCBLog(CBLOG_SYS, u8"无法捡起%s", to_cstr(ir.name));
         }
         else{
-            addCBLog(CBLOG_SYS, u8"无法捡起物品ID = %llu", to_cstr(ir.name), to_llu(smPUE.failedItemID));
+            addCBLog(CBLOG_SYS, u8"无法捡起物品ID = %llu", to_llu(smPUE.failedItemID));
         }
     }
     else{
