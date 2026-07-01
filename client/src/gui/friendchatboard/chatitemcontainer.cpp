@@ -222,13 +222,13 @@ void ChatItemContainer::append(const SDChatMessage &sdCM, std::function<void(con
 
     hasParent<FriendChatBoard>()->queryChatPeer(sdCM.from, [widgetID = chatItem->id(), sdCM, fnOp = std::move(fnOp), this](const SDChatPeer *peer, bool)
     {
-        fflassert(peer, sdCM.from.asU64());
+        // peer may be null when the server can't resolve the sender (deleted account, etc.); fall back to a placeholder instead of asserting
         if(auto chatItem = dynamic_cast<ChatItem *>(canvas.hasDescendant(widgetID))){
             const auto from = sdCM.from;
-            const auto job    = peer->player() ? peer->player()->job    : 0;
-            const auto gender = peer->player() ? peer->player()->gender : false;
+            const auto job    = (peer && peer->player()) ? peer->player()->job    : 0;
+            const auto gender = (peer && peer->player()) ? peer->player()->gender : false;
 
-            chatItem->name.setText(u8"%s", peer->name.c_str());
+            chatItem->name.setText(u8"%s", peer ? peer->name.c_str() : "[未知]");
             chatItem->avatar.setLoadFunc([from, job, gender](const Widget *)
             {
                 if     (from == SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM)) return g_progUseDB->retrieve(0X00001100);
