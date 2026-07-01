@@ -242,8 +242,10 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
 
         if(auto chatPage = hasParent<ChatPage>()){
             if(chatPage->menu){
-                chatPage->removeChild(chatPage->menu->id(), true);
+                // null before destroy: any callback during destruction sees nullptr, not a dangling pointer
+                const auto oldMenuID = chatPage->menu->id();
                 chatPage->menu = nullptr;
+                chatPage->removeChild(oldMenuID, true);
             }
 
             chatPage->addChildAt((chatPage->menu = new MenuBoard
@@ -304,8 +306,10 @@ bool ChatItem::processEventDefault(const SDL_Event &event, bool valid, Widget::R
 
         if(auto chatPage = hasParent<ChatPage>()){
             if(chatPage->menu){
-                chatPage->removeChild(chatPage->menu->id(), true);
+                // null before destroy: any callback during destruction sees nullptr, not a dangling pointer
+                const auto oldMenuID = chatPage->menu->id();
                 chatPage->menu = nullptr;
+                chatPage->removeChild(oldMenuID, true);
             }
         }
         return true;

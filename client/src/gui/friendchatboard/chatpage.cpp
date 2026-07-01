@@ -145,7 +145,10 @@ std::optional<uint64_t> ChatPage::refopt() const
 void ChatPage::enableChatRef(uint64_t refMsgID, std::string xmlStr)
 {
     if(chatref){
-        removeChild(chatref->id(), true);
+        // null before destroy: any callback during destruction sees nullptr, not a dangling pointer
+        const auto oldID = chatref->id();
+        chatref = nullptr;
+        removeChild(oldID, true);
     }
     chatref = ChatPage::createChatItemRef(refMsgID, std::move(xmlStr), this, true);
 }
@@ -153,8 +156,9 @@ void ChatPage::enableChatRef(uint64_t refMsgID, std::string xmlStr)
 void ChatPage::disableChatRef()
 {
     if(chatref){
-        removeChild(chatref->id(), true);
+        const auto oldID = chatref->id();
         chatref = nullptr;
+        removeChild(oldID, true);
     }
 }
 
