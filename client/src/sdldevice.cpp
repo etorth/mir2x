@@ -356,6 +356,7 @@ SDLSoundEffectChannel::SDLSoundEffectChannel(SDLDevice *sdlDevice, MIX_Track *tr
 SDLSoundEffectChannel::~SDLSoundEffectChannel()
 {
     if(m_track){
+        const std::lock_guard<std::mutex> lockGuard(m_sdlDevice->m_trackLock);
         if(auto p = m_sdlDevice->m_trackStateList.find(m_track); p != m_sdlDevice->m_trackStateList.end()){
             if(const auto hooked = std::exchange(p->second.hooked, false); !hooked){
                 g_mir2xLog->addLog(LOGTYPE_WARNING, "Sound track gets unhooked unexpectedly: %p", to_cvptr(m_track));
@@ -370,8 +371,14 @@ SDLSoundEffectChannel::~SDLSoundEffectChannel()
 void SDLSoundEffectChannel::halt()
 {
     if(m_track){
+        // MIX_StopTrack outside the lock -- the stopped-callback fires from
+        // SDL_mixer's audio thread and re-acquires m_trackLock; holding the
+        // lock here would deadlock if the callback is synchronous.
         MIX_StopTrack(m_track, 0);
-        m_sdlDevice->m_trackStateList.erase(m_track);
+        {
+            const std::lock_guard<std::mutex> lockGuard(m_sdlDevice->m_trackLock);
+            m_sdlDevice->m_trackStateList.erase(m_track);
+        }
         m_track = nullptr;
     }
 }
@@ -1280,11 +1287,14 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
     {
         // clean pending track entries
         //
-        // a free track that still has a hooked SoundChannelHookState is one whose
-        // SDLSoundEffectChannel shared_ptr hasn't been destroyed yet — it must not be
-        // reused before that owner releases.
+        // a free track that still has a hooked SoundChannelHookState is one whose SDLSoundEffectChannel shared_ptr hasn't been destroyed yet
+        // it must not be reused before that owner releases.
+        //
+        // Lock scope covers ALL m_trackStateList mutations too
+        // So ~SDLSoundEffectChannel / halt() running concurrently can't invalidate this loop or race with the erase/try_emplace below
+        // SDL_mixer calls (MIX_StopTrack etc.) stay outside the lock so the audio-thread stopped-callback can't deadlock
 
-        const std::lock_guard<std::mutex> lockGuard(m_freeTrackLock);
+        const std::lock_guard<std::mutex> lockGuard(m_trackLock);
         for(auto *t : m_freeTrackList){
             if(auto p = m_trackStateList.find(t); (p != m_trackStateList.end()) && p->second.hooked){
                 continue;
@@ -1300,15 +1310,15 @@ std::shared_ptr<SDLSoundEffectChannel> SDLDevice::playSoundEffect(std::shared_pt
 
         pickedTrack = idleTrackList.back();
         m_freeTrackList.erase(pickedTrack);
-    }
 
-    for(auto *idleTrack : idleTrackList){
-        m_trackStateList.erase(idleTrack);
+        for(auto *idleTrack : idleTrackList){
+            m_trackStateList.erase(idleTrack);
+        }
+
+        m_trackStateList.try_emplace(pickedTrack, SoundChannelHookState{.hooked = true, .handle = handle});
     }
 
     fflassert(pickedTrack);
-    m_trackStateList.try_emplace(pickedTrack, SoundChannelHookState{.hooked = true, .handle = handle});
-
     MIX_StopTrack(pickedTrack, 0);
     apply3DPosition(pickedTrack, std::min<int>(distance, 255), ((angle % 360) + 360) % 360);
 
@@ -1373,7 +1383,7 @@ void SDLDevice::recycleSoundEffectTrack(void *userdata, MIX_Track *track)
     // only put the track back to the free list
     // don't reset the handle here — release happens when track is next allocated
 
-    const std::lock_guard<std::mutex> lockGuard(self->m_freeTrackLock);
+    const std::lock_guard<std::mutex> lockGuard(self->m_trackLock);
     self->m_freeTrackList.insert(track);
 }
 
