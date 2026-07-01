@@ -513,7 +513,7 @@ void PurchaseBoard::drawExt1GridHoverText(int itemIndex) const
     }
 
     fflassert(itemIndex >= 0);
-    fflassert(itemIndex < m_sdSellItemList.list.size());
+    fflassert(itemIndex < to_d(m_sdSellItemList.list.size()));
     fflassert(DBCOM_ITEMRECORD(selectedItemID()));
 
     LayoutBoard hoverTextBoard
