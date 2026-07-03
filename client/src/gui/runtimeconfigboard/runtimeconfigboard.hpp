@@ -76,5 +76,6 @@ class RuntimeConfigBoard: public Widget
         }
 
     public:
-        void updateWindowSize(int, int, bool);
+        void updateWindowSize(std::pair<int, int>, bool);
+        void updateIME(int, bool);
 };

@@ -29,7 +29,7 @@ class LayoutBoard: public Widget
 
             Widget::VarBool canSelect  = false;
             Widget::VarBool canEdit    = false;
-            Widget::VarBool enableIME  = false;
+            Widget::VarInt  enableIME  = IME_DISABLE;
             /**/       bool canThrough = false; // static attribute
 
             Widget::FontConfig font {};
@@ -109,7 +109,7 @@ class LayoutBoard: public Widget
     private:
         Widget::VarBool m_canSelect;
         Widget::VarBool m_canEdit;
-        Widget::VarBool m_imeEnabled;
+        Widget::VarInt  m_imeEnabled;
 
     private:
         int m_cursorWidth;
@@ -239,11 +239,7 @@ class LayoutBoard: public Widget
         std::string getText() const;
 
     public:
-        void setFocus(bool argFocus) override
-        {
-            Widget::setFocus(argFocus);
-            m_cursorBlink = 0.0;
-        }
+        void setFocus(bool) override;
 
     public:
         static const char * findAttrValue(const std::unordered_map<std::string, std::string> &, const char *, const char * = nullptr);

@@ -1,5 +1,6 @@
 #include <cmath>
 #include <algorithm>
+#include <cstring>
 #include <utf8.h>
 #include "colorf.hpp"
 #include "fflerror.hpp"
@@ -489,6 +490,32 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
     }
 
     switch(event.type){
+        case SDL_EVENT_TEXT_INPUT:
+            {
+                if(!valid || !focus() || !Widget::evalBool(m_canEdit, this)){
+                    return false;
+                }
+
+                if(const auto ime = Widget::evalInt(m_imeEnabled, this); ime != IME_SYSTEM){
+                    throw fflpanic("received valid SDL_EVENT_TEXT_INPUT while system input is not enabled: IME {}", ime);
+                }
+
+                if(str_haschar(event.text.text)){
+                    ithParIterator(m_cursorLoc.par)->tpset->insertUTF8String(m_cursorLoc.x, m_cursorLoc.y, event.text.text);
+                    for(size_t i = 0, count = utf8::distance(event.text.text, event.text.text + std::strlen(event.text.text)); i < count; ++i){
+                        std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->nextCursorLoc(m_cursorLoc.x, m_cursorLoc.y);
+                    }
+
+                    setupStartY(m_cursorLoc.par);
+
+                    if(m_onCursorMove){
+                        m_onCursorMove();
+                    }
+                }
+
+                m_cursorBlink = 0.0;
+                return true;
+            }
         case SDL_EVENT_KEY_DOWN:
             {
                 if(!focus()){
@@ -619,6 +646,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                         }
                     default:
                         {
+                            const auto ime = Widget::evalInt(m_imeEnabled, this);
                             const char keyChar = SDLDeviceHelper::getKeyChar(event, true);
                             const auto fnInsertString = [this](std::string s)
                             {
@@ -634,7 +662,12 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                                 }
                             };
 
-                            if(Widget::evalBool(m_imeEnabled, this) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
+                            if(ime == IME_SYSTEM){
+                                // when System IME is enabled
+                                // SDL3 still dispatch SDL_EVENT_KEY_DOWN, need to ignore
+                            }
+
+                            else if((ime == IME_EMBEDED) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [fnInsertString, this](std::string s)
                                 {
                                     fnInsertString(std::move(s));
@@ -729,6 +762,18 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                 return false;
             }
     }
+}
+
+void LayoutBoard::setFocus(bool argFocus)
+{
+    Widget::setFocus(argFocus);
+    if(focus() && (Widget::evalInt(m_imeEnabled, this) == IME_SYSTEM)){
+        g_sdlDevice->enableSystemIME(id());
+    }
+    else{
+        g_sdlDevice->disableSystemIME(id());
+    }
+    m_cursorBlink = 0.0;
 }
 
 void LayoutBoard::drawCursorBlink(int drawDstX, int drawDstY) const

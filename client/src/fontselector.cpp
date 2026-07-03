@@ -125,7 +125,7 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
           .lineWidth = FontSelector::LAYOUT_WIDTH,
           .initXML = "<layout><par>The quick brown fox jumps over the lazy dog.</par></layout>",
           .canEdit = true,
-          .enableIME = false,
+          .enableIME = IME_DISABLE,
           .lineAlign = LALIGN_JUSTIFY,
       }}
 
@@ -134,7 +134,7 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
           .lineWidth = FontSelector::LAYOUT_WIDTH,
           .initXML = "<layout><par>快速的棕色狐狸跳过了懒狗。</par></layout>",
           .canEdit = true,
-          .enableIME = true,
+          .enableIME = IME_EMBEDED,
           .lineAlign = LALIGN_JUSTIFY,
       }}
 

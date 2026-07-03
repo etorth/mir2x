@@ -383,7 +383,7 @@ class SDLDevice final
            return std::get<1>(getWindowSize());
        }
 
-       std::tuple<int, int> getRendererSize()
+       std::pair<int, int> getRendererSize()
        {
            int w = -1;
            int h = -1;
@@ -396,12 +396,12 @@ class SDLDevice final
 
        int getRendererWidth()
        {
-           return std::get<0>(getRendererSize());
+           return getRendererSize().first;
        }
 
        int getRendererHeight()
        {
-           return std::get<1>(getRendererSize());
+           return getRendererSize().second;
        }
 
     public:

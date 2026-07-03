@@ -298,7 +298,7 @@ Widget *GUIManager::getWidget(const std::string_view &name)
 void GUIManager::afterResizeDefault()
 {
     m_controlBoard.afterResize();
-    m_runtimeConfigBoard.updateWindowSize(w(), h(), true);
+    m_runtimeConfigBoard.updateWindowSize({w(), h()}, true);
 
     const auto fnSetWidgetPLoc = [this](Widget *widgetPtr)
     {

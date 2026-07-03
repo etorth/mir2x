@@ -55,7 +55,10 @@ ChatInputContainer::ChatInputContainer(
           .lineWidth = this->w(),
 
           .canEdit = true,
-          .enableIME = true,
+          .enableIME = [this]
+          {
+              return FriendChatBoard::getParentBoard(this)->m_processRun->getRuntimeConfig<RTCFG_IME>();
+          },
 
           .font
           {

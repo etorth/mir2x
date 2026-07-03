@@ -107,9 +107,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .onClick = [this](Widget *widget)
           {
-              const auto [w, h] = std::any_cast<std::pair<int, int>>(widget->data());
-              g_sdlDevice->setWindowSize(w, h);
-              updateWindowSize(w, h, true);
+              updateWindowSize(std::any_cast<std::pair<int, int>>(widget->data()), true);
           },
       }}
 
@@ -130,15 +128,14 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
           .itemList
           {
-              {{new LabelBoard{{.label = u8"禁用"          , .attrs{.data = IME_DISABLE}}}, true}},
-              {{new LabelBoard{{.label = u8"使用内置输入法", .attrs{.data = IME_EMBEDED}}}, true}},
-              {{new LabelBoard{{.label = u8"使用系统输入法", .attrs{.data = IME_SYSTEM }}}, true}},
+              {{new LabelBoard{{.label = u8"禁用"          , .attrs{.data = static_cast<int>(IME_DISABLE)}}}, true}},
+              {{new LabelBoard{{.label = u8"使用内置输入法", .attrs{.data = static_cast<int>(IME_EMBEDED)}}}, true}},
+              {{new LabelBoard{{.label = u8"使用系统输入法", .attrs{.data = static_cast<int>(IME_SYSTEM )}}}, true}},
           },
 
           .onClick = [this](Widget *widget)
           {
-              SDRuntimeConfig_setConfig<RTCFG_IME>(m_sdRuntimeConfig, std::any_cast<int>(widget->data()));
-              reportRuntimeConfig(RTCFG_IME);
+              updateIME(std::any_cast<int>(widget->data()), true);
           },
       }}
 
@@ -498,8 +495,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
         R"###( </layout>                                                )###""\n"
     );
 
-    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
-    updateWindowSize(rendererW, rendererH, false);
+    updateWindowSize(g_sdlDevice->getRendererSize(), false);
+    updateIME(IME_DISABLE, false);
 
     // 1.0f -> SDL_MIX_MAXVOLUME
     // SDL_mixer initial sound/music volume is SDL_MIX_MAXVOLUME
@@ -593,8 +590,8 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
 
     applyAudioConfig();
 
-    const auto [winW, winH] = SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig);
-    g_sdlDevice->setWindowSize(winW, winH);
+    updateWindowSize(SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig), false);
+    updateIME(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig), false);
 }
 
 void RuntimeConfigBoard::applyAudioConfig()
@@ -620,14 +617,37 @@ void RuntimeConfigBoard::reportRuntimeConfig(int rtCfg)
     g_client->send({CM_SETRUNTIMECONFIG, cmSRC});
 }
 
-void RuntimeConfigBoard::updateWindowSize(int w, int h, bool saveConfig)
+void RuntimeConfigBoard::updateWindowSize(std::pair<int, int> size, bool saveConfig)
 {
-    fflassert(w >= 0, w, h);
-    fflassert(h >= 0, w, h);
+    fflassert(size.first  >= 0, size);
+    fflassert(size.second >= 0, size);
 
-    m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", w, h).c_str());
+    m_pageSystem_resolution.getTitle()->setText(str_printf(u8"%d×%d", size.first, size.second).c_str());
+    g_sdlDevice->setWindowSize(size.first, size.second);
+
     if(saveConfig){
-        SDRuntimeConfig_setConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig, std::make_pair(w, h));
+        SDRuntimeConfig_setConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig, size);
         reportRuntimeConfig(RTCFG_WINDOWSIZE);
+    }
+}
+
+void RuntimeConfigBoard::updateIME(int ime, bool saveConfig)
+{
+    fflassert(ime >= IME_BEGIN, ime);
+    fflassert(ime <  IME_END  , ime);
+
+    m_pageSystem_ime.getTitle()->setText([ime] -> const char8_t *
+    {
+        switch(ime){
+            case IME_DISABLE: return u8"禁用";
+            case IME_EMBEDED: return u8"使用内置输入法";
+            case IME_SYSTEM : return u8"使用系统输入法";
+            default         : std::unreachable();
+        }
+    }());
+
+    if(saveConfig){
+        SDRuntimeConfig_setConfig<RTCFG_IME>(m_sdRuntimeConfig, ime);
+        reportRuntimeConfig(RTCFG_IME);
     }
 }
