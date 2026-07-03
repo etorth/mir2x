@@ -707,19 +707,25 @@ void SDLDevice::createMainWindow()
     }
 }
 
-void SDLDevice::enableSystemIME()
+void SDLDevice::enableSystemIME(uint64_t id)
 {
     fflassert(m_window);
+    m_imeEnableList.insert(id);
+
     if(!SDL_StartTextInput(m_window.get())){
         throw fflpanic("SDL_StartTextInput failed: {}", SDL_GetError());
     }
 }
 
-void SDLDevice::disableSystemIME()
+void SDLDevice::disableSystemIME(uint64_t id)
 {
     fflassert(m_window);
-    if(!SDL_StopTextInput(m_window.get())){
-        throw fflpanic("SDL_StopTextInput failed: {}", SDL_GetError());
+    m_imeEnableList.erase(id);
+
+    if(m_imeEnableList.empty()){
+        if(!SDL_StopTextInput(m_window.get())){
+            throw fflpanic("SDL_StopTextInput failed: {}", SDL_GetError());
+        }
     }
 }
 

@@ -204,7 +204,7 @@ void ProcessCreateAccount::draw() const
     fnDrawInput(m_x + 129, m_y + 198, 10, m_LBPwdConfirm, m_LBCheckPwdConfirm);
 
     m_submit.drawRoot({});
-    m_quit.drawRoot({});
+    m_quit  .drawRoot({});
 
     if(hasInfo()){
         g_sdlDevice->fillRectangle(colorf::BLUE + colorf::A_SHF(32), 0, 75, 800, 450);

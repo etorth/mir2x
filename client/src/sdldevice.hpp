@@ -204,6 +204,9 @@ class SDLDevice final
        std::unordered_map<uint8_t, TTF_Font *> m_fontList;
 
     private:
+       std::unordered_set<uint64_t> m_imeEnableList;
+
+    private:
        MIX_Mixer *m_mixer = nullptr;
        MIX_Track *m_bgmTrack = nullptr;
        std::vector<MIX_Track *> m_tracks;          // all sound-effect tracks, owned here
@@ -409,8 +412,8 @@ class SDLDevice final
        void createInitViewWindow();
 
     public:
-       void  enableSystemIME();
-       void disableSystemIME();
+       void  enableSystemIME(uint64_t);
+       void disableSystemIME(uint64_t);
 
     public:
        SDL_Texture *createTargetTexture(size_t, size_t);

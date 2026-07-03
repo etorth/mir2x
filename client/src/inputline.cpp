@@ -215,10 +215,10 @@ void InputLine::setFocus(bool argFocus)
 {
     Widget::setFocus(argFocus);
     if(focus() && (Widget::evalInt(m_imeEnabled, this) == IME_SYSTEM)){
-        g_sdlDevice->enableSystemIME();
+        g_sdlDevice->enableSystemIME(id());
     }
     else{
-        g_sdlDevice->disableSystemIME();
+        g_sdlDevice->disableSystemIME(id());
     }
     m_cursorBlink = 0.0;
 }

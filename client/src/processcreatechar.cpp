@@ -35,7 +35,7 @@ ProcessCreateChar::ProcessCreateChar()
           .w = 85,
           .h = 15,
 
-          .enableIME = IME_DISABLE, // TODO
+          .enableIME = IME_SYSTEM,
           .font
           {
               .id = 1,
