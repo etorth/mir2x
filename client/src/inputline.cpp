@@ -62,6 +62,9 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                 // no matter SDL_StopTextInput() is called or not
                 // IME still show the input candidates, SDL just doesn't dispatch SDL_EVENT_TEXT_INPUT anymore
 
+                // so SDL_StopTextInput does nothing
+                // just filter the SDL_EVENT_TEXT_INPUT event
+
                 if(const auto ime = Widget::evalInt(m_imeEnabled, this); (ime != IME_SYSTEM) && valid){
                     throw fflpanic("received valid SDL_EVENT_TEXT_INPUT while system input is not enabled: IME {}", ime);
                 }
