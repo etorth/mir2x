@@ -113,6 +113,35 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           },
       }}
 
+    , m_pageSystem_ime
+      {{
+          .label
+          {
+              .text = u8"输入法",
+              .w = 40,
+          },
+
+          .title
+          {
+              .text = u8"???",
+              .w = 120,
+              .h = 24,
+          },
+
+          .itemList
+          {
+              {{new LabelBoard{{.label = u8"禁用"          , .attrs{.data = IME_DISABLE}}}, true}},
+              {{new LabelBoard{{.label = u8"使用内置输入法", .attrs{.data = IME_EMBEDED}}}, true}},
+              {{new LabelBoard{{.label = u8"使用系统输入法", .attrs{.data = IME_SYSTEM }}}, true}},
+          },
+
+          .onClick = [this](Widget *widget)
+          {
+              SDRuntimeConfig_setConfig<RTCFG_IME>(m_sdRuntimeConfig, std::any_cast<int>(widget->data()));
+              reportRuntimeConfig(RTCFG_IME);
+          },
+      }}
+
     , m_pageSystem_musicSlider
       {
           DIR_UPLEFT,
@@ -172,11 +201,11 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                       .childList
                       {
-                          {&m_pageSystem_resolution, DIR_UPLEFT, 0, 0, false},
+                          {&m_pageSystem_resolution, DIR_UPLEFT, 0,  0, false},
+                          {&m_pageSystem_ime       , DIR_UPLEFT, 0, 30, false},
 
-                          {new CheckLabel{{.label{.text=u8"全屏显示"    }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_FULLSCREEN); }}}, DIR_UPLEFT, 0, 40, true},
-                          {new CheckLabel{{.label{.text=u8"显示FPS"     }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_SHOWFPS   ); }}}, DIR_UPLEFT, 0, 65, true},
-                          {new CheckLabel{{.label{.text=u8"使用内置拼音"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_PINYIN    >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_PINYIN    >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_PINYIN    ); }}}, DIR_UPLEFT, 0, 90, true},
+                          {new CheckLabel{{.label{.text=u8"全屏显示"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_FULLSCREEN); }}}, DIR_UPLEFT, 0,  75, true},
+                          {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig(RTCFG_SHOWFPS   ); }}}, DIR_UPLEFT, 0, 100, true},
 
                           {new CheckLabel
                           {{
@@ -202,9 +231,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   m_pageSystem_musicSlider.setActive(value);
                               },
                           }},
-                          DIR_UPLEFT, 0, 125, true},
+                          DIR_UPLEFT, 0, 140, true},
 
-                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 150, false},
+                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 165, false},
 
                           {new CheckLabel
                           {{
@@ -230,9 +259,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   m_pageSystem_soundEffectSlider.setActive(value);
                               },
                           }},
-                          DIR_UPLEFT, 0,  185, true},
+                          DIR_UPLEFT, 0,  200, true},
 
-                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 210, false},
+                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 225, false},
                       },
                   }},
                   true,

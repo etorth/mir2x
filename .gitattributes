@@ -9,6 +9,7 @@
 # above will strip 0x0D 0x0A byte sequences from binary payloads and
 # corrupt PNG chunk CRCs, TTF tables, zstd frames, etc.
 *.exe   binary
+*.pdf   binary
 *.so    binary
 *.dll   binary
 *.dylib binary

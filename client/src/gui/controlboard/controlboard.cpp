@@ -63,7 +63,7 @@ ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .canEdit = true,
           .enableIME = [this]
           {
-              return m_processRun->getRuntimeConfig<RTCFG_PINYIN>();
+              return m_processRun->getRuntimeConfig<RTCFG_IME>();
           },
 
           .lineAlign = LALIGN_JUSTIFY,

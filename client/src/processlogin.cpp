@@ -41,6 +41,8 @@ ProcessLogin::ProcessLogin()
               .w = 146,
               .h =  18,
 
+              .enableIME = IME_SYSTEM, // TODO
+
               .font
               {
                   .id = 2,
@@ -77,8 +79,8 @@ ProcessLogin::ProcessLogin()
 
               .onTab = [this]
               {
-                  m_idBox      .setFocus(true);
                   m_passwordBox.setFocus(false);
+                  m_idBox      .setFocus(true);
               },
 
               .onCR = [this]
@@ -174,8 +176,8 @@ void ProcessLogin::processEvent(const SDL_Event &event)
                                     && !m_idBox      .focus()
                                     && !m_passwordBox.focus()){
 
-                                m_idBox      .setFocus(true);
                                 m_passwordBox.setFocus(false);
+                                m_idBox      .setFocus(true);
                                 return;
                             }
                         }

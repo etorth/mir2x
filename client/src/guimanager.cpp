@@ -152,9 +152,7 @@ GUIManager::GUIManager(ProcessRun *argProc)
       }
 {
     fflassert(m_processRun);
-    if(!g_clientArgParser->disableIME){
-        g_imeBoard->dropFocus();
-    }
+    g_imeBoard->dropFocus();
 }
 
 void GUIManager::drawDefault(Widget::ROIMap m) const
@@ -173,10 +171,8 @@ void GUIManager::drawDefault(Widget::ROIMap m) const
 
     Widget::drawDefault(m);
 
-    if(!g_clientArgParser->disableIME){
-        if(g_imeBoard->show()){
-            g_imeBoard->drawRoot({});
-        }
+    if(g_imeBoard->show()){
+        g_imeBoard->drawRoot({});
     }
 }
 
@@ -186,9 +182,7 @@ void GUIManager::updateDefault(double fUpdateTime)
     m_purchaseBoard.update(fUpdateTime);
     m_controlBoard.update(fUpdateTime);
     m_NPCChatBoard.update(fUpdateTime);
-    if(!g_clientArgParser->disableIME){
-        g_imeBoard->update(fUpdateTime);
-    }
+    g_imeBoard->update(fUpdateTime);
 }
 
 bool GUIManager::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
@@ -218,9 +212,7 @@ bool GUIManager::processEventDefault(const SDL_Event &event, bool valid, Widget:
         }
     };
 
-    if(!g_clientArgParser->disableIME){
-        fnProcEventRoot(g_imeBoard);
-    }
+    fnProcEventRoot(g_imeBoard);
 
     tookEvent |= Widget::processEventDefault(event, valid && !tookEvent, m);
 
@@ -318,10 +310,7 @@ void GUIManager::afterResizeDefault()
         widgetPtr->moveBy(-moveDX, -moveDY);
     };
 
-    if(!g_clientArgParser->disableIME){
-        fnSetWidgetPLoc(g_imeBoard);
-    }
-
+    fnSetWidgetPLoc(g_imeBoard);
     fnSetWidgetPLoc(&m_horseBoard);
     fnSetWidgetPLoc(&m_skillBoard);
     fnSetWidgetPLoc(&m_guildBoard);

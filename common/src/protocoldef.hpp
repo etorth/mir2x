@@ -426,6 +426,16 @@ enum ChatPeerType: int
     CPR_END,
 };
 
+enum IMEType: int
+{
+    IME_NONE  = 0,
+    IME_BEGIN = 1,
+    IME_DISABLE = 1,
+    IME_EMBEDED,
+    IME_SYSTEM,
+    IME_END,
+};
+
 template<typename... Ts> struct VarDispatcher: Ts...
 {
     using Ts::operator()...;

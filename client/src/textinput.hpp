@@ -23,7 +23,7 @@ class TextInput: public Widget
             Widget::VarSize gapFirst  = 3;
             Widget::VarSize gapSecond = 3;
 
-            Widget::VarBool   enableIME {};
+            Widget::VarInt    enableIME = IME_DISABLE;
             Widget::VarSize2D inputSize {};
 
             std::function<void()> onTab = nullptr;

@@ -35,7 +35,7 @@ ProcessCreateChar::ProcessCreateChar()
           .w = 85,
           .h = 15,
 
-          .enableIME = true,
+          .enableIME = IME_DISABLE, // TODO
           .font
           {
               .id = 1,
@@ -66,9 +66,7 @@ ProcessCreateChar::ProcessCreateChar()
       }}
 {
     g_sdlDevice->playBGM(g_bgmDB->retrieve(0X00040001));
-    if(!g_clientArgParser->disableIME){
-        g_imeBoard->dropFocus();
-    }
+    g_imeBoard->dropFocus();
 }
 
 ProcessCreateChar::~ProcessCreateChar()
@@ -81,9 +79,7 @@ void ProcessCreateChar::update(double fUpdateTime)
 {
     m_aniTime += fUpdateTime;
     m_notifyBoard.update(fUpdateTime);
-    if(!g_clientArgParser->disableIME){
-        g_imeBoard->update(fUpdateTime);
-    }
+    g_imeBoard->update(fUpdateTime);
 
     if(const uint32_t frameCount = charFrameCount(m_job, m_activeGender); frameCount > 0){
         if(const auto currAbsFrame = absFrame(); ((currAbsFrame % frameCount) == 0) && (m_lastStartAbsFrame != currAbsFrame)){
@@ -123,9 +119,7 @@ void ProcessCreateChar::draw() const
     m_submit.drawRoot({});
     m_exit  .drawRoot({});
 
-    if(!g_clientArgParser->disableIME){
-        g_imeBoard->drawRoot({});
-    }
+    g_imeBoard->drawRoot({});
 
     const int notifX = (800 - m_notifyBoard.w()) / 2;
     const int notifY = (600 - m_notifyBoard. h()) / 2;
@@ -141,16 +135,14 @@ void ProcessCreateChar::draw() const
 void ProcessCreateChar::processEvent(const SDL_Event &event)
 {
     bool tookEvent = false;
-    if(!g_clientArgParser->disableIME){
-        tookEvent |= g_imeBoard->processEventRoot(event, !tookEvent, {});
-    }
 
-    tookEvent |= m_warrior.processEventRoot(event, !tookEvent, {});
-    tookEvent |= m_wizard .processEventRoot(event, !tookEvent, {});
-    tookEvent |= m_taoist .processEventRoot(event, !tookEvent, {});
-    tookEvent |= m_submit .processEventRoot(event, !tookEvent, {});
-    tookEvent |= m_exit   .processEventRoot(event, !tookEvent, {});
-    tookEvent |= m_nameBox.processEventRoot(event, !tookEvent, {});
+    tookEvent |= g_imeBoard->processEventRoot(event, !tookEvent, {});
+    tookEvent |= m_warrior  .processEventRoot(event, !tookEvent, {});
+    tookEvent |= m_wizard   .processEventRoot(event, !tookEvent, {});
+    tookEvent |= m_taoist   .processEventRoot(event, !tookEvent, {});
+    tookEvent |= m_submit   .processEventRoot(event, !tookEvent, {});
+    tookEvent |= m_exit     .processEventRoot(event, !tookEvent, {});
+    tookEvent |= m_nameBox  .processEventRoot(event, !tookEvent, {});
 
     if(!tookEvent){
         switch(event.type){

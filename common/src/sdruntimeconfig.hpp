@@ -82,14 +82,12 @@ template<int, typename T> bool SDRuntimeConfig_setConfig(      SDRuntimeConfig &
     } \
 
     /**/ // begin of runtime config types
-    /**/ // each line provides two definitions, take RTCFG_IME as example:
+    /**/ // each line provides two definitions, take RTCFG_BGM as example:
     /**/ //
-    /**/ //     RTCFG_IME           : an integer used as key
-    /**/ //     RTCFG_IME_t         : an type contains: RTCFG_IME_t::value and RTCFG_IME_t::type
+    /**/ //     RTCFG_BGM           : an integer used as key
+    /**/ //     RTCFG_BGM_t         : an type contains: RTCFG_BGM_t::value and RTCFG_BGM_t::type
     /**/ //
     /**/ // don't put any other code except the macro defines and type aligns
-    /**/
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_IME, bool, true)
 
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_BGM, bool, true)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_BGMVALUE, float, 0.50f)
@@ -99,10 +97,10 @@ template<int, typename T> bool SDRuntimeConfig_setConfig(      SDRuntimeConfig &
 
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_FULLSCREEN, bool, false)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SHOWFPS   , bool, false)
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_PINYIN    , bool, false)
 
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_IME       , int, static_cast<int>(IME_DISABLE))
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_ATTACKMODE, int, 0)
-    /**/
+
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_允许私聊        , bool, true)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_允许白字聊天    , bool, true)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_允许地图聊天    , bool, true)

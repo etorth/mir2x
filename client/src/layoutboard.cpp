@@ -634,7 +634,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                                 }
                             };
 
-                            if(!g_clientArgParser->disableIME && Widget::evalBool(m_imeEnabled, this) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
+                            if(Widget::evalBool(m_imeEnabled, this) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [fnInsertString, this](std::string s)
                                 {
                                     fnInsertString(std::move(s));

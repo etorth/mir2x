@@ -24,7 +24,7 @@ class InputLine: public Widget
             Widget::VarSizeOpt w = 0;
             Widget::VarSizeOpt h = 0;
 
-            Widget::VarBool enableIME = false;
+            Widget::VarInt enableIME = IME_DISABLE;
 
             Widget::FontConfig font {};
             InputLine::CursorArgs cursor {};
@@ -38,7 +38,7 @@ class InputLine: public Widget
         };
 
     protected:
-        Widget::VarBool m_imeEnabled;
+        Widget::VarInt m_imeEnabled;
 
     protected:
         XMLTypeset m_tpset;
@@ -61,6 +61,9 @@ class InputLine: public Widget
 
     public:
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
+
+    public:
+        void setFocus(bool) override;
 
     public:
         void drawDefault(Widget::ROIMap) const override;

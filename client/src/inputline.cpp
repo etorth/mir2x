@@ -56,6 +56,30 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
     }
 
     switch(event.type){
+        case SDL_EVENT_TEXT_INPUT:
+            {
+                // when system IME is activated
+                // no matter SDL_StopTextInput() is called or not
+                // IME still show the input candidates, SDL just doesn't dispatch SDL_EVENT_TEXT_INPUT anymore
+
+                if(const auto ime = Widget::evalInt(m_imeEnabled, this); (ime != IME_SYSTEM) && valid){
+                    throw fflpanic("received valid SDL_EVENT_TEXT_INPUT while system input is not enabled: IME {}", ime);
+                }
+
+                if(!valid || !focus()){
+                    return false;
+                }
+
+                if(str_haschar(event.text.text)){
+                    m_cursor += m_tpset.insertUTF8String(m_cursor, 0, event.text.text);
+                    if(m_onChange){
+                        m_onChange(m_tpset.getRawString());
+                    }
+                }
+
+                m_cursorBlink = 0.0;
+                return true;
+            }
         case SDL_EVENT_KEY_DOWN:
             {
                 // another widget can consume the event
@@ -121,8 +145,15 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                         }
                     default:
                         {
+                            const auto ime = Widget::evalInt(m_imeEnabled, this);
                             const char keyChar = SDLDeviceHelper::getKeyChar(event, true);
-                            if(!g_clientArgParser->disableIME && Widget::evalBool(m_imeEnabled, this) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
+
+                            if(ime == IME_SYSTEM){
+                                // when System IME is enabled
+                                // SDL3 still dispatch SDL_EVENT_KEY_DOWN, need to ignore
+                            }
+
+                            else if((ime == IME_EMBEDED) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [this](std::string s)
                                 {
                                     m_tpset.insertUTF8String(m_cursor, 0, s.c_str());
@@ -175,6 +206,18 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                 return false;
             }
     }
+}
+
+void InputLine::setFocus(bool argFocus)
+{
+    Widget::setFocus(argFocus);
+    if(focus() && (Widget::evalInt(m_imeEnabled, this) == IME_SYSTEM)){
+        g_sdlDevice->enableSystemIME();
+    }
+    else{
+        g_sdlDevice->disableSystemIME();
+    }
+    m_cursorBlink = 0.0;
 }
 
 void InputLine::drawDefault(Widget::ROIMap m) const

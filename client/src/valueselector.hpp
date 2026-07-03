@@ -11,7 +11,7 @@ class ValueSelector: public Widget
         struct InputArgs final
         {
             Widget::VarSize w = 0;
-            Widget::VarBool enableIME = false;
+            Widget::VarInt enableIME = IME_DISABLE;
 
             Widget::FontConfig font {};
             InputLine::CursorArgs cursor {};

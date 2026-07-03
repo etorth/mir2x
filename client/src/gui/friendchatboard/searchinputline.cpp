@@ -81,7 +81,7 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
           .w = SearchInputLine::WIDTH  - 3 * 2 - SearchInputLine::ICON_MARGIN - SearchInputLine::ICON_WIDTH - SearchInputLine::GAP,
           .h = SearchInputLine::HEIGHT - 3 * 2,
 
-          .enableIME = true,
+          .enableIME = IME_DISABLE,
           .font
           {
               .id = 1,

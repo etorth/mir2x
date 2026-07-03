@@ -409,6 +409,10 @@ class SDLDevice final
        void createInitViewWindow();
 
     public:
+       void  enableSystemIME();
+       void disableSystemIME();
+
+    public:
        SDL_Texture *createTargetTexture(size_t, size_t);
        SDL_Texture *createRGBATexture(const uint32_t *, size_t, size_t);
 

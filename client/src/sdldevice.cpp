@@ -707,6 +707,22 @@ void SDLDevice::createMainWindow()
     }
 }
 
+void SDLDevice::enableSystemIME()
+{
+    fflassert(m_window);
+    if(!SDL_StartTextInput(m_window.get())){
+        throw fflpanic("SDL_StartTextInput failed: {}", SDL_GetError());
+    }
+}
+
+void SDLDevice::disableSystemIME()
+{
+    fflassert(m_window);
+    if(!SDL_StopTextInput(m_window.get())){
+        throw fflpanic("SDL_StopTextInput failed: {}", SDL_GetError());
+    }
+}
+
 void SDLDevice::drawTextureEx(
         SDL_Texture *texPtr,
 
