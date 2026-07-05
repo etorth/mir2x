@@ -45,6 +45,18 @@ def get_frame_delay_ms(fps):
     return round(1000 / fps)
 
 
+def get_output_filename(output_filename_format, index):
+    try:
+        output_filename = output_filename_format % index
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"invalid --output-filename-format {output_filename_format!r}: {exc}") from exc
+
+    if not output_filename or output_filename in (".", "..") or Path(output_filename).name != output_filename or "\\" in output_filename:
+        raise ValueError(f"invalid --output-filename-format {output_filename_format!r}: result must be a filename, not a path")
+
+    return output_filename
+
+
 def generate_apng_with_cli(frames, output_path, frame_delay_ms, apngasm_path):
     result = subprocess.run(
         [
@@ -80,10 +92,10 @@ def generate_apng_with_python(frames, output_path, frame_delay_ms):
         apngasm.reset()
 
 
-def generate_apng(index, input_dir, output_dir, fps, apngasm_path, use_apngasm_python):
+def generate_apng(index, input_dir, output_dir, output_filename_format, fps, apngasm_path, use_apngasm_python):
     frames_by_index = find_frames(index, input_dir)
     frames = [frames_by_index[frame_index] for frame_index in sorted(frames_by_index)]
-    output_path = output_dir / f"out_{index}.png"
+    output_path = output_dir / get_output_filename(output_filename_format, index)
 
     print_frame_table(index, input_dir, output_path, frames_by_index)
 
@@ -103,6 +115,11 @@ def parse_args():
     parser.add_argument("--apngasm-path", default="apngasm", help="Path to apngasm. Defaults to apngasm from PATH.")
     parser.add_argument("--apngasm-python", action="store_true", help="Use the apngasm-python package instead of apngasm CLI.")
     parser.add_argument("--max-index", type=int, default=1000, help="Maximum emoji index to scan. Defaults to 1000.")
+    parser.add_argument(
+        "--output-filename-format",
+        default="%d.png",
+        help='Printf-style output filename format using the emoji index. Defaults to "%%d.png".',
+    )
     return parser.parse_args()
 
 
@@ -126,11 +143,25 @@ def main():
         print(f"Error: --max-index must be greater than or equal to 0, got {args.max_index}", file=sys.stderr)
         return 1
 
+    try:
+        get_output_filename(args.output_filename_format, 0)
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     for index in range(args.max_index + 1):
         if (args.input_dir / f"{index}_1.png").is_file():
-            generate_apng(index, args.input_dir, args.output_dir, args.fps, args.apngasm_path, args.apngasm_python)
+            generate_apng(
+                index,
+                args.input_dir,
+                args.output_dir,
+                args.output_filename_format,
+                args.fps,
+                args.apngasm_path,
+                args.apngasm_python,
+            )
 
     return 0
 
