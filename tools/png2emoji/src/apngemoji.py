@@ -23,25 +23,27 @@ def natural_sort_key(path):
     return [int(part) if part.isdigit() else part for part in re.split(r"(\d+)", path.name)]
 
 
-def warn_if_frames_are_not_continuous(index, frames):
-    expected_frame = 1
-
-    for frame_path in frames:
+def find_frames(index, input_dir):
+    frames_by_index = {}
+    for frame_path in sorted(input_dir.glob(f"{index}_*.png"), key=natural_sort_key):
         match = re.fullmatch(rf"{index}_(\d+)\.png", frame_path.name)
         if not match:
-            print(f"Warning: index {index} has unexpected frame file name: {frame_path.name}", file=sys.stderr)
+            print(f"Warning: index {index} has unexpected frame file name: {frame_path}", file=sys.stderr)
             continue
 
-        frame = int(match.group(1))
-        if frame != expected_frame:
-            print(
-                f"Warning: index {index} frame sequence is not continuous: "
-                f"expected {index}_{expected_frame}.png but found {frame_path.name}",
-                file=sys.stderr,
-            )
-            expected_frame = frame
+        frames_by_index[int(match.group(1))] = frame_path
 
-        expected_frame += 1
+    return frames_by_index
+
+
+def print_frame_table(index, input_dir, output_path, frames_by_index):
+    print(f"creating {output_path}, found frames:")
+    for frame_index in range(1, max(frames_by_index) + 1):
+        expected_frame_path = input_dir / f"{index}_{frame_index}.png"
+        if frame_index in frames_by_index:
+            print(f"{frames_by_index[frame_index]} found")
+        else:
+            print(f"{expected_frame_path} missing")
 
 
 def get_frame_delay_ms(fps):
@@ -49,7 +51,7 @@ def get_frame_delay_ms(fps):
 
 
 def generate_apng_with_cli(frames, output_path, frame_delay_ms, apngasm_path):
-    subprocess.run(
+    result = subprocess.run(
         [
             str(apngasm_path),
             "-o",
@@ -59,8 +61,16 @@ def generate_apng_with_cli(frames, output_path, frame_delay_ms, apngasm_path):
             "-d",
             str(frame_delay_ms),
         ],
-        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
     )
+    if result.returncode != 0:
+        if result.stdout:
+            print(result.stdout, end="")
+        if result.stderr:
+            print(result.stderr, end="", file=sys.stderr)
+        result.check_returncode()
 
 
 def generate_apng_with_python(frames, output_path, frame_delay_ms):
@@ -76,15 +86,18 @@ def generate_apng_with_python(frames, output_path, frame_delay_ms):
 
 
 def generate_apng(index, input_dir, output_dir, fps, apngasm_path, use_apngasm_python):
-    frames = sorted(input_dir.glob(f"{index}_*.png"), key=natural_sort_key)
-    warn_if_frames_are_not_continuous(index, frames)
-
+    frames_by_index = find_frames(index, input_dir)
+    frames = [frames_by_index[frame_index] for frame_index in sorted(frames_by_index)]
     output_path = output_dir / f"out_{index}.png"
+
+    print_frame_table(index, input_dir, output_path, frames_by_index)
+
     frame_delay_ms = get_frame_delay_ms(fps)
     if use_apngasm_python:
         generate_apng_with_python(frames, output_path, frame_delay_ms)
     else:
         generate_apng_with_cli(frames, output_path, frame_delay_ms, apngasm_path)
+    print("done")
 
 
 def parse_args():
