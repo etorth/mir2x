@@ -73,13 +73,11 @@ class XMLParagraph
 
     public:
         XMLParagraph *split(int, int);
+        void join(const XMLParagraph &, bool);
 
     public:
         void loadXML(const char *);
         void loadXMLNode(const tinyxml2::XMLNode *);
-
-    public:
-        void join(const XMLParagraph &, bool);
 
     private:
         size_t insertXMLAtFront(                     const char *);

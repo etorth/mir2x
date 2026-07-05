@@ -3,6 +3,7 @@
 #include <tuple>
 #include <deque>
 #include <memory>
+#include <optional>
 #include "token.hpp"
 #include "lalign.hpp"
 #include "xmlf.hpp"
@@ -185,8 +186,13 @@ class XMLTypeset // means XMLParagraph typeset
         std::tuple<int, int> nextTokenLoc(int, int, int = 1, bool = true) const;
 
     public:
-        std::tuple<int, int> prevCursorLoc(int, int) const;
-        std::tuple<int, int> nextCursorLoc(int, int) const;
+        std::tuple<int, int> prevCursorLoc(int, int,      bool, bool = true) const;
+        std::tuple<int, int> nextCursorLoc(int, int,      bool, bool = true) const;
+        std::tuple<int, int> prevCursorLoc(int, int, int, bool, bool = true) const;
+        std::tuple<int, int> nextCursorLoc(int, int, int, bool, bool = true) const;
+
+    public:
+        std::optional<std::tuple<int, int>> tokenLocBeforeCursor(int, int) const; // use for deleteToken(cursorLoc)
 
     public:
         static bool locInToken(int, int, const TOKEN *, bool withPadding);
@@ -220,7 +226,7 @@ class XMLTypeset // means XMLParagraph typeset
             if(empty()){
                 return {0, 0};
             }
-            return {1, 0};
+            return {0, 0};
         }
 
         std::tuple<int, int> lastCursorLoc() const
@@ -251,12 +257,7 @@ class XMLTypeset // means XMLParagraph typeset
             if(empty()){
                 return argX == 0 && argY == 0;
             }
-            else if(argY == 0){
-                return (argX >= 0) && (argX <= lineTokenCount(argY));
-            }
-            else{
-                return lineValid(argY) && (argX >= 1) && (argX <= lineTokenCount(argY));
-            }
+            return lineValid(argY) && (argX >= 0) && (argX <= lineTokenCount(argY));
         }
 
     public:
@@ -274,9 +275,10 @@ class XMLTypeset // means XMLParagraph typeset
 
     public:
         XMLTypeset *split(int, int);
+        void join(const XMLTypeset &, bool);
 
     public:
-        void deleteToken(int, int, int);
+        void deleteToken(int, int, int); // deleteToken(tokenLoc)
 
     public:
         int leafCount() const

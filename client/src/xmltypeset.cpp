@@ -907,98 +907,157 @@ void XMLTypeset::resetBoardPixelRegion()
     m_ph = maxPY + 1 - minPY;
 }
 
-std::tuple<int, int> XMLTypeset::prevTokenLoc(int argX, int argY, int count, bool strict) const
+std::tuple<int, int> XMLTypeset::prevTokenLoc(int argX, int argY, int tokenCount, bool strict) const
 {
-    if(!tokenLocValid(argX, argY)){
-        throw fflpanic("invalid token location: ({}, {})", argX, argY);
-    }
+    fflassert(tokenLocValid(argX, argY), argX, argY);
+    fflassert(tokenCount >= 0, tokenCount);
 
-    if(count < 0){
-        throw fflpanic("invalid token jump count: {}", count);
-    }
-
-    while(count > argX){
-        count -= (argX + 1);
+    while(tokenCount > argX){ // need to cross to previous line
         if(argY == 0){
             if(strict){
-                throw fflpanic("try find token before (0, 0)");
+                throw fflpanic("try to find {} token{} before ({}, {})", tokenCount, (tokenCount > 1) ? "s" : "", argX, argY);
             }
             return {0, 0};
         }
 
+        tokenCount -= (argX + 1);
         argY--;
         argX = lineTokenCount(argY) - 1;
     }
 
-    return {argX - count, argY};
+    return {argX - tokenCount, argY};
 }
 
-std::tuple<int, int> XMLTypeset::nextTokenLoc(int argX, int argY, int count, bool strict) const
+std::tuple<int, int> XMLTypeset::nextTokenLoc(int argX, int argY, int tokenCount, bool strict) const
 {
-    if(!tokenLocValid(argX, argY)){
-        throw fflpanic("invalid token location: ({}, {})", argX, argY);
-    }
+    fflassert(tokenLocValid(argX, argY), argX, argY);
+    fflassert(tokenCount >= 0, tokenCount);
 
-    if(count < 0){
-        throw fflpanic("invalid token jump count: {}", count);
-    }
-
-    for(int tokenLeft = lineTokenCount(argY) - argX; count >= tokenLeft;){
-        count -= tokenLeft;
+    for(int maxMoves = lineTokenCount(argY) - argX - 1; tokenCount > maxMoves;){ // maxMoves: max number of moves without goto next line
         if(argY + 1 >= lineCount()){
             if(strict){
-                throw fflpanic("try find token location after ({}, {})", argX, argY);
+                throw fflpanic("try to find {} token{} location after ({}, {})", tokenCount, (tokenCount > 1) ? "s" : "", argX, argY);
             }
             return lastTokenLoc();
         }
 
-        argY++;
+        tokenCount -= (maxMoves + 1); // cross to next line
         argX = 0;
-        tokenLeft = lineTokenCount(argY) - argX;
+        argY++;
+        maxMoves = lineTokenCount(argY) - 1;
     }
 
-    return {argX + count, argY};
+    return {argX + tokenCount, argY};
 }
 
-std::tuple<int, int> XMLTypeset::prevCursorLoc(int argX, int argY) const
+std::tuple<int, int> XMLTypeset::prevCursorLoc(int argX, int argY, bool allowDupCursorLoc, bool strict) const
 {
-    if(!cursorLocValid(argX, argY)){
-        throw fflpanic("invalid cursor location: ({}, {})", argX, argY);
-    }
-
-    if(argY == 0){
-        if(argX == 0){
-            throw fflpanic("try find cursor location before (0, 0)");
-        }
-        else{
-            return {argX - 1, argY};
-        }
-    }
-    else{
-        if(argX > 1){
-            return {argX - 1, argY};
-        }
-        else{
-            return {lineTokenCount(argY - 1), argY - 1};
-        }
-    }
+    return prevCursorLoc(argX, argY, 1, allowDupCursorLoc, strict);
 }
 
-std::tuple<int, int> XMLTypeset::nextCursorLoc(int argX, int argY) const
+std::tuple<int, int> XMLTypeset::nextCursorLoc(int argX, int argY, bool allowDupCursorLoc, bool strict) const
 {
-    if(!cursorLocValid(argX, argY)){
-        throw fflpanic("invalid cursor location: ({}, {})", argX, argY);
+    return nextCursorLoc(argX, argY, 1, allowDupCursorLoc, strict);
+}
+
+std::tuple<int, int> XMLTypeset::prevCursorLoc(int argX, int argY, int hopCount, bool allowDupCursorLoc, bool strict) const
+{
+    fflassert(cursorLocValid(argX, argY), argX, argY);
+    fflassert(hopCount >= 0, hopCount);
+
+    while(hopCount > argX){ // need to cross to previous line
+        if(argY == 0){
+            if(strict){
+                throw fflpanic("try to find {} cursor location{} before ({}, {})", hopCount, (hopCount > 1) ? "s" : "", argX, argY);
+            }
+            return {0, 0};
+        }
+
+        hopCount -= (argX + 1);
+        argY--;
+        argX = lineTokenCount(argY) - (allowDupCursorLoc ? 0 : 1);
     }
 
-    if(std::tie(argX, argY) == lastCursorLoc()){
-        throw fflpanic("try find cursor location after ({}, {})", argX, argY);
+    return {argX - hopCount, argY};
+}
+
+std::tuple<int, int> XMLTypeset::nextCursorLoc(int argX, int argY, int hopCount, bool allowDupCursorLoc, bool strict) const
+{
+    fflassert(cursorLocValid(argX, argY), argX, argY);
+    fflassert(hopCount >= 0, hopCount);
+
+    // if typeset is empty
+    // need special handling otherwise lineTokenCount(0) throws
+
+    if(empty()){
+        if(hopCount > 0 && strict){
+            throw fflpanic("try to find {} cursor location{} after ({}, {})", hopCount, (hopCount > 1) ? "s" : "", argX, argY);
+        }
+        else{
+            return {0, 0};
+        }
     }
 
-    if(argX >= lineTokenCount(argY)){
-        return {1, argY + 1};
+    const auto fnMaxCursorMoves = [this, allowDupCursorLoc](int cursorX, int cursorY)
+    {
+        if(allowDupCursorLoc || (cursorY + 1 >= lineCount())){
+            return lineTokenCount(cursorY) - cursorX;
+        }
+        else{
+            return lineTokenCount(cursorY) - cursorX - 1;
+        }
+    };
+
+    // if we disable allowDupCursorLoc, and current line is not the last line
+    // then during moving we don't allow cursor to reach line's right-most boundary cursor location
+    //
+    // but the initial place (argX, argY) may be already at this cursor location
+    // then we need to canonicalize the initial location by move it to next line's left-most cursor location, otherwise fnMaxCursorMoves returns -1
+
+    if(!allowDupCursorLoc && (argX == lineTokenCount(argY))){
+        if(hopCount == 0){
+            return {argX, argY}; // don't canonicalize if it's an NOP
+        }
+        else if(argY + 1 < lineCount()){
+            argX = 0;
+            argY++;
+        }
+        else if(strict){
+            throw fflpanic("try to find {} cursor location{} after ({}, {})", hopCount, (hopCount > 1) ? "s" : "", argX, argY);
+        }
+        else{
+            return lastCursorLoc();
+        }
+    }
+
+    for(int maxCursorMoves = fnMaxCursorMoves(argX, argY); hopCount > maxCursorMoves;){ // maxCursorMoves: max number of moves without goto next line
+        if(argY + 1 >= lineCount()){
+            if(strict){
+                throw fflpanic("try to find {} cursor location{} after ({}, {})", hopCount, (hopCount > 1) ? "s" : "", argX, argY);
+            }
+            return lastCursorLoc();
+        }
+
+        hopCount -= (maxCursorMoves + 1); // cross to next line
+        argX = 0;
+        argY++;
+        maxCursorMoves = fnMaxCursorMoves(argX, argY);
+    }
+
+    return {argX + hopCount, argY};
+}
+
+std::optional<std::tuple<int, int>> XMLTypeset::tokenLocBeforeCursor(int argX, int argY) const
+{
+    fflassert(cursorLocValid(argX, argY), argX, argY);
+    if(argX == 0 && argY == 0){
+        return std::nullopt;
+    }
+    else if(argX == 0){
+        return std::make_tuple(lineTokenCount(argY - 1) - 1, argY - 1);
     }
     else{
-        return {argX + 1, argY};
+        return std::make_tuple(argX - 1, argY);
     }
 }
 
@@ -1051,6 +1110,11 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
             buildTypeset(0, 0);
         }
         return m_paragraph->tokenCount();
+    }
+
+    if((y + 1 < lineCount()) && (x == lineTokenCount(y))){
+        y++;
+        x = 0;
     }
 
     // XMLParagraph doesn't have cursor
@@ -1177,6 +1241,21 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
     }
 
     return newTpset;
+}
+
+void XMLTypeset::join(const XMLTypeset &input, bool append)
+{
+    if(std::addressof(input) == this){
+        throw fflpanic("cannot join XMLTypeset with itself");
+    }
+
+    if(input.empty()){
+        return;
+    }
+
+    const int startLine = (append && !empty()) ? (lineCount() - 1) : 0;
+    m_paragraph->join(*input.m_paragraph, append);
+    buildTypeset(0, startLine);
 }
 
 void XMLTypeset::draw(Widget::ROIMap m) const
@@ -1457,12 +1536,7 @@ std::tuple<int, int> XMLTypeset::locCursor(int xOffPixel, int yOffPixel) const
         return std::distance(m_lineList.at(cursorY).content.begin(), pBox);
     }();
 
-    if(cursorY == 0){
-        return {cursorX, cursorY};
-    }
-    else{
-        return {std::max<int>(1, cursorX), cursorY};
-    }
+    return {cursorX, cursorY};
 }
 
 int XMLTypeset::cursorLoc2Off(int argCursorX, int argCursorY) const
