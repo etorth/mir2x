@@ -1,6 +1,3 @@
---, u8R"###(
---
-
 -- event handlers
 -- to support all kinds of quests, merchant scripts, etc
 
@@ -703,6 +700,3 @@ function getNPCMapLocXML(tag, fargs)
 
     return string.format([[<%s%s>%s</%s>]], tag, table.concat(attrList, ' '), text, tag)
 end
-
---
--- )###"

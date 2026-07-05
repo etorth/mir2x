@@ -29,9 +29,12 @@ CharObject::LuaThreadRunner::LuaThreadRunner(CharObject *charObjectPtr)
         return std::make_tuple(getCO()->X(), getCO()->Y());
     });
 
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "charobject.lua"
-    END_LUAINC()));
+    constexpr static unsigned char luaScript []
+    {
+        #embed "charobject.lua" suffix(,)
+        '\0'
+    };
+    pfrCheck(execRawString(to_rawcstr(luaScript)));
 }
 
 CharObject::CharObject(

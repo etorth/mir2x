@@ -1,6 +1,7 @@
 #include "uidf.hpp"
 #include "mathf.hpp"
 #include "dbpod.hpp"
+#include "totype.hpp"
 #include "dbcomid.hpp"
 #include "mapbindb.hpp"
 #include "actorpool.hpp"
@@ -137,9 +138,12 @@ ServerLuaModule::ServerLuaModule()
         return sol::nested<decltype(queryResult)>(std::move(queryResult));
     });
 
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "serverluamodule.lua"
-    END_LUAINC()));
+    constexpr static unsigned char luaScript []
+    {
+        #embed "serverluamodule.lua" suffix(,)
+        '\0'
+    };
+    pfrCheck(execRawString(to_rawcstr(luaScript)));
 }
 
 void ServerLuaModule::addLogString(int logType, const char *logInfo)

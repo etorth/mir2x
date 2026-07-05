@@ -323,9 +323,12 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         });
     });
 
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "serverluacoroutinerunner.lua"
-    END_LUAINC()));
+    constexpr static unsigned char luaScript []
+    {
+        #embed "serverluacoroutinerunner.lua" suffix(,)
+        '\0'
+    };
+    pfrCheck(execRawString(to_rawcstr(luaScript)));
 }
 
 std::vector<uint64_t> ServerLuaCoroutineRunner::getSeqID(uint64_t key, std::vector<uint64_t> *seqIDListBuf) const

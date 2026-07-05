@@ -430,9 +430,12 @@ LuaModule::LuaModule()
         return luaf::quotedLuaString(s);
     });
 
-    m_luaState.script(BEGIN_LUAINC(char)
-#include "luamodule.lua"
-    END_LUAINC());
+    constexpr static unsigned char luaScript []
+    {
+        #embed "luamodule.lua" suffix(,)
+        '\0'
+    };
+    m_luaState.script(to_rawcstr(luaScript));
 }
 
 sol::protected_function_result LuaModule::execFile(const char *path)
@@ -467,11 +470,15 @@ sol::protected_function_result LuaModule::execRawString(const char *s)
 
     // execRawString() is only used to include lua file:
     //
-    //    execRawString(BEGIN_LUAINC(char)
-    //        #include "xxx.lua"
-    //    END_LUAINC());
+    //    constexpr static unsigned char luaScript []
+    //    {
+    //        #embed "xxx.lua" suffix(,)
+    //        '\0'
+    //    };
     //
-    // in xxx.lua there can be string.format() calls and execRawString() doesn't parse it
+    //    execRawString(to_rawcstr(luaScript));
+    //
+    // in xxx.lua there can be string.format() calls and execRawString() won't parse it
 
     return m_luaState.safe_script(s, [](lua_State *, sol::protected_function_result result)
     {

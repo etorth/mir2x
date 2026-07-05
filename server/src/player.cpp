@@ -7,6 +7,7 @@
 #include "jobf.hpp"
 #include "pathf.hpp"
 #include "mathf.hpp"
+#include "totype.hpp"
 #include "dbcomid.hpp"
 #include "sysconst.hpp"
 #include "charobject.hpp"
@@ -346,9 +347,12 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         }
     });
 
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "player.lua"
-    END_LUAINC()));
+    constexpr static unsigned char luaScript []
+    {
+        #embed "player.lua" suffix(,)
+        '\0'
+    };
+    pfrCheck(execRawString(to_rawcstr(luaScript)));
 }
 
 Player::Player(const SDInitPlayer &initParam)

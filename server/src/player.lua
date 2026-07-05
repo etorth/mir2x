@@ -1,6 +1,3 @@
---, u8R"###(
---
-
 function dbHasFlag(flag)
     assertType(flag, 'string')
     local found, value = dbHasVar(flag)
@@ -183,6 +180,3 @@ do
         end
     end)
 end
-
---
--- )###"

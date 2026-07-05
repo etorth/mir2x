@@ -1,6 +1,3 @@
---, u8R"###(
---
-
 function dbExec(cmd, ...)
     dbExecString(cmd:format(...))
 end
@@ -8,6 +5,3 @@ end
 function dbQuery(query, ...)
     return dbQueryString(query:format(...))
 end
-
---
--- )###"

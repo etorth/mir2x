@@ -1,6 +1,7 @@
 #include <cinttypes>
 #include "serdesmsg.hpp"
 #include "actorpod.hpp"
+#include "totype.hpp"
 #include "serverargparser.hpp"
 #include "server.hpp"
 #include "serverobject.hpp"
@@ -132,9 +133,12 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         onDone();
     });
 
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "serverobject.lua"
-    END_LUAINC()));
+    constexpr static unsigned char luaScript []
+    {
+        #embed "serverobject.lua" suffix(,)
+        '\0'
+    };
+    pfrCheck(execRawString(to_rawcstr(luaScript)));
 }
 
 ServerObject::ServerObject(uint64_t uid)

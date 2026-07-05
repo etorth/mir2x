@@ -1,6 +1,3 @@
---, u8R"###(
---
-
 local _RSVD_NAME_triggers = {}
 local _RSVD_NAME_triggerSeqID = 0
 function addTrigger(triggerType, callback)
@@ -85,6 +82,3 @@ function _RSVD_NAME_trigger(triggerType, ...)
         _RSVD_NAME_triggers[triggerType] = nil
     end
 end
-
---
--- )###"

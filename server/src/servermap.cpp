@@ -376,9 +376,12 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         return 0;
     });
 
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "servermap.lua"
-    END_LUAINC()));
+    constexpr static unsigned char luaScript []
+    {
+        #embed "servermap.lua" suffix(,)
+        '\0'
+    };
+    pfrCheck(execRawString(to_rawcstr(luaScript)));
 
     if(!g_serverArgParser->sharedConfig().disableMapScript){
         pfrCheck(execFile([this]() -> std::string

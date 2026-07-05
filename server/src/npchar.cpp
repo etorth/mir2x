@@ -335,9 +335,12 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         getNPChar()->postXMLLayout(uid, std::move(path), std::move(xmlString));
     });
 
-    pfrCheck(execRawString(BEGIN_LUAINC(char)
-#include "npchar.lua"
-    END_LUAINC()));
+    constexpr static unsigned char luaScript []
+    {
+        #embed "npchar.lua" suffix(,)
+        '\0'
+    };
+    pfrCheck(execRawString(to_rawcstr(luaScript)));
 
     pfrCheck(execFile(getNPChar()->m_initScriptName.c_str()));
     pfrCheck(execRawString(R"###(

@@ -1,6 +1,3 @@
---, u8R"###(
---
-
 -- example:
 --     addLog(LOGTYPE_INFO, 'hello world')
 --     addLog(LOGTYPE_INFO, 'hello world: %d', 12)
@@ -353,6 +350,3 @@ function addExtLog(logType, logInfo)
     -- else we need to give warning
     addLog(1, 'addExtLog(logType: int, logInfo: string)')
 end
-
---
--- )###"

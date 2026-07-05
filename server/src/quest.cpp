@@ -1,6 +1,7 @@
 #include "luaf.hpp"
 #include "uidf.hpp"
 #include "strf.hpp"
+#include "totype.hpp"
 #include "quest.hpp"
 #include "dbpod.hpp"
 #include "filesys.hpp"
@@ -306,9 +307,12 @@ corof::awaitable<> Quest::onActivate()
 
     m_luaRunner = std::make_unique<Quest::LuaThreadRunner>(this);
 
-    m_luaRunner->pfrCheck(m_luaRunner->execRawString(BEGIN_LUAINC(char)
-#include "quest.lua"
-    END_LUAINC()));
+    constexpr static unsigned char luaScript []
+    {
+        #embed "quest.lua" suffix(,)
+        '\0'
+    };
+    m_luaRunner->pfrCheck(m_luaRunner->execRawString(to_rawcstr(luaScript)));
 
     m_luaRunner->spawn(m_mainScriptThreadKey, filesys::readFile(m_scriptName.c_str()));
 }

@@ -1,6 +1,3 @@
---, u8R"###(
---
-
 function _RSVD_NAME_luaCoroutineRunner_main(code, args)
     assertType(code, 'string')
     local func, err = load(code)
@@ -306,6 +303,3 @@ server.utils  = require 'api.utils'
 server.player = require 'api.player'
 server.quest  = require 'api.quest'
 server.npc    = require 'api.npc'
-
---
--- )###"

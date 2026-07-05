@@ -1,6 +1,3 @@
---, u8R"###(
---
-
 function runQuestThread(func)
     assertType(func, 'function')
     return runThread(rollKey(), func)
@@ -506,6 +503,3 @@ function _RSVD_NAME_trigger(triggerType, uid, ...)
         end
     end
 end
-
---
--- )###"
