@@ -1,7 +1,5 @@
 #include <cmath>
 #include <algorithm>
-#include <cstring>
-#include <utf8.h>
 #include "colorf.hpp"
 #include "fflerror.hpp"
 #include "fontexdb.hpp"
@@ -501,10 +499,8 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                 }
 
                 if(str_haschar(event.text.text)){
-                    ithParIterator(m_cursorLoc.par)->tpset->insertUTF8String(m_cursorLoc.x, m_cursorLoc.y, event.text.text);
-                    for(size_t i = 0, count = utf8::distance(event.text.text, event.text.text + std::strlen(event.text.text)); i < count; ++i){
-                        std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->nextCursorLoc(m_cursorLoc.x, m_cursorLoc.y);
-                    }
+                    const auto addedCount = ithParIterator(m_cursorLoc.par)->tpset->insertUTF8String(m_cursorLoc.x, m_cursorLoc.y, event.text.text);
+                    std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->nextCursorLoc(m_cursorLoc.x, m_cursorLoc.y, to_d(addedCount), false);
 
                     setupStartY(m_cursorLoc.par);
 
@@ -575,7 +571,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                                 }
                             }
                             else{
-                                std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->prevCursorLoc(m_cursorLoc.x, m_cursorLoc.y);
+                                std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->prevCursorLoc(m_cursorLoc.x, m_cursorLoc.y, true);
                             }
 
                             if(m_onCursorMove){
@@ -596,7 +592,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                                 }
                             }
                             else{
-                                std::tie(m_cursorLoc.x, m_cursorLoc.y) = par->tpset->nextCursorLoc(m_cursorLoc.x, m_cursorLoc.y);
+                                std::tie(m_cursorLoc.x, m_cursorLoc.y) = par->tpset->nextCursorLoc(m_cursorLoc.x, m_cursorLoc.y, true);
                             }
 
                             if(m_onCursorMove){
@@ -650,10 +646,8 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                             const char keyChar = SDLDeviceHelper::getKeyChar(event, true);
                             const auto fnInsertString = [this](std::string s)
                             {
-                                ithParIterator(m_cursorLoc.par)->tpset->insertUTF8String(m_cursorLoc.x, m_cursorLoc.y, s.c_str());
-                                for(size_t i = 0, count = utf8::distance(s.begin(), s.end()); i < count; ++i){
-                                    std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->nextCursorLoc(m_cursorLoc.x, m_cursorLoc.y);
-                                }
+                                const auto addedCount = ithParIterator(m_cursorLoc.par)->tpset->insertUTF8String(m_cursorLoc.x, m_cursorLoc.y, s.c_str());
+                                std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->nextCursorLoc(m_cursorLoc.x, m_cursorLoc.y, to_d(addedCount), false);
 
                                 setupStartY(m_cursorLoc.par);
 
