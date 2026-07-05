@@ -275,6 +275,7 @@ class XMLTypeset // means XMLParagraph typeset
 
     public:
         XMLTypeset *split(int, int);
+        void join(const XMLTypeset &, bool);
 
     public:
         void deleteToken(int, int, int); // deleteToken(tokenLoc)
