@@ -10,13 +10,8 @@ from pathlib import Path
 # needs apngasm from: https://github.com/apngasm/apngasm
 # the legacy apngasm looks buggy and can not setup correct frame delay
 #
-# install
-#
-#       sudo add-apt-repository ppa:zero-tsuki/ppa
-#       sudo apt-get update
-#       sudo apt-get install apngasm
-
-DEFAULT_MAX_INDEX = 1000
+# but the build of apngasm/apngasm is not easier
+# this script also support --apngasm-python which can be pip installed
 
 
 def natural_sort_key(path):
@@ -107,7 +102,7 @@ def parse_args():
     parser.add_argument("--fps", type=float, default=5, help="Animation frames per second. Defaults to 5.")
     parser.add_argument("--apngasm-path", default="apngasm", help="Path to apngasm. Defaults to apngasm from PATH.")
     parser.add_argument("--apngasm-python", action="store_true", help="Use the apngasm-python package instead of apngasm CLI.")
-    parser.add_argument("--max-index", type=int, default=DEFAULT_MAX_INDEX, help="Maximum emoji index to scan. Defaults to 1000.")
+    parser.add_argument("--max-index", type=int, default=1000, help="Maximum emoji index to scan. Defaults to 1000.")
     return parser.parse_args()
 
 
