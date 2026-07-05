@@ -1243,6 +1243,21 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
     return newTpset;
 }
 
+void XMLTypeset::join(const XMLTypeset &input, bool append)
+{
+    if(std::addressof(input) == this){
+        throw fflpanic("cannot join XMLTypeset with itself");
+    }
+
+    if(input.empty()){
+        return;
+    }
+
+    const int startLine = (append && !empty()) ? (lineCount() - 1) : 0;
+    m_paragraph->join(*input.m_paragraph, append);
+    buildTypeset(0, startLine);
+}
+
 void XMLTypeset::draw(Widget::ROIMap m) const
 {
     int dstX = m.x;
