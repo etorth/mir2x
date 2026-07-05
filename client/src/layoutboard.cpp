@@ -604,26 +604,21 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                         }
                     case SDLK_BACKSPACE:
                         {
-                            if(m_cursorLoc.x > 0){
-                                ithParIterator(m_cursorLoc.par)->tpset->deleteToken(m_cursorLoc.x - 1, m_cursorLoc.y, 1);
-                                if(m_cursorLoc.x > 1 || m_cursorLoc.y == 0){
-                                    m_cursorLoc.x--;
-                                }
-                                else{
-                                    m_cursorLoc.y--;
-                                    m_cursorLoc.x = ithParIterator(m_cursorLoc.par)->tpset->lineTokenCount(m_cursorLoc.y);
-                                }
+                            if(auto currPar = ithParIterator(m_cursorLoc.par); auto tokenLocOpt = currPar->tpset->tokenLocBeforeCursor(m_cursorLoc.x, m_cursorLoc.y)){
+                                const auto [tokenX, tokenY] = tokenLocOpt.value();
+                                currPar->tpset->deleteToken(tokenX, tokenY, 1);
+                                m_cursorLoc.x = tokenX;
+                                m_cursorLoc.y = tokenY;
                             }
-                            else{
-                                if(m_cursorLoc.y != 0){
-                                    throw fflpanic("invalid cursor location: par {}, x {}, y {}", m_cursorLoc.par, m_cursorLoc.x, m_cursorLoc.y);
-                                }
+                            else if(m_cursorLoc.par > 0){
+                                auto currPar = ithParIterator(m_cursorLoc.par);
+                                auto prevPar = std::prev(currPar);
 
-                                if(m_cursorLoc.par > 0){
-                                    m_parNodeList.erase(ithParIterator(m_cursorLoc.par));
-                                    m_cursorLoc.par--;
-                                    std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->lastCursorLoc();
-                                }
+                                std::tie(m_cursorLoc.x, m_cursorLoc.y) = prevPar->tpset->lastCursorLoc();
+                                prevPar->tpset->join(*currPar->tpset, true);
+
+                                m_parNodeList.erase(currPar);
+                                m_cursorLoc.par--;
                             }
 
                             setupStartY(m_cursorLoc.par);
