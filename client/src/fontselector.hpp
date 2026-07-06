@@ -5,6 +5,7 @@
 #include "gfxshapeboard.hpp"
 #include "integerselector.hpp"
 
+class ProcessRun;
 class FontSelector: public Widget
 {
     private:
@@ -19,8 +20,12 @@ class FontSelector: public Widget
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
+            ProcessRun *runProc = nullptr;
             Widget::WADPair parent {};
         };
+
+    private:
+        ProcessRun *m_runProc;
 
     private:
         PullMenu        m_widget;

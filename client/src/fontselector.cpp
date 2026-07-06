@@ -3,6 +3,7 @@
 #include "sdldevice.hpp"
 #include "textboard.hpp"
 #include "fontselector.hpp"
+#include "processrun.hpp"
 
 extern FontexDB *g_fontexDB;
 extern SDLDevice *g_sdlDevice;
@@ -21,6 +22,7 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
           .parent = std::move(args.parent),
       }}
 
+    , m_runProc(args.runProc)
     , m_widget
       {{
           .label
@@ -134,7 +136,10 @@ FontSelector::FontSelector(FontSelector::InitArgs args)
           .lineWidth = FontSelector::LAYOUT_WIDTH,
           .initXML = "<layout><par>快速的棕色狐狸跳过了懒狗。</par></layout>",
           .canEdit = true,
-          .enableIME = IME_EMBEDED,
+          .enableIME = [this]
+          {
+              return m_runProc->getRuntimeConfig<RTCFG_IME>();
+          },
           .lineAlign = LALIGN_JUSTIFY,
       }}
 

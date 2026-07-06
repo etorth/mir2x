@@ -276,7 +276,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                           {
                               .widget = new FontSelector
                               {{
-
+                                  .runProc = proc,
                               }},
                               .autoDelete = true,
                           }
