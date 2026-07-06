@@ -37,10 +37,10 @@ GfxDirButton::GfxDirButton(GfxDirButton::InitArgs args)
               int x3 = 0, y3 = 0; // second base vertex
 
               switch(const auto d = Widget::evalDir(triangle.dir, self)){
-                  case DIR_UP   : x1 = tw / 2; y1 =  0    ; x2 =  0; y2 = th; x3 = tw; y3 = th; break;
-                  case DIR_DOWN : x1 = tw / 2; y1 = th    ; x2 =  0; y2 =  0; x3 = tw; y3 =  0; break;
-                  case DIR_LEFT : x1 =  0    ; y1 = th / 2; x2 = tw; y2 =  0; x3 = tw; y3 = th; break;
-                  case DIR_RIGHT: x1 = tw    ; y1 = th / 2; x2 =  0; y2 =  0; x3 =  0; y3 = th; break;
+                  case DIR_UP   : x1 = tw / 2; y1 =      0; x2 =      0; y2 = th - 1; x3 = tw - 1; y3 = th - 1; break;
+                  case DIR_DOWN : x1 = tw / 2; y1 = th - 1; x2 =      0; y2 =      0; x3 = tw - 1; y3 =      0; break;
+                  case DIR_LEFT : x1 =      0; y1 = th / 2; x2 = tw - 1; y2 =      0; x3 = tw - 1; y3 = th - 1; break;
+                  case DIR_RIGHT: x1 = tw - 1; y1 = th / 2; x2 =      0; y2 =      0; x3 =      0; y3 = th - 1; break;
                   default: throw fflpanic("invalid direction: {}", pathf::dirName(d));
               }
 
