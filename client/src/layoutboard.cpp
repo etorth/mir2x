@@ -606,9 +606,25 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                         {
                             if(auto currPar = ithParIterator(m_cursorLoc.par); auto tokenLocOpt = currPar->tpset->tokenLocBeforeCursor(m_cursorLoc.x, m_cursorLoc.y)){
                                 const auto [tokenX, tokenY] = tokenLocOpt.value();
+                                const bool needMoveCursorUp = tokenLocOpt.value() == currPar->tpset->lastTokenLoc() && tokenX == 0;
+
                                 currPar->tpset->deleteToken(tokenX, tokenY, 1);
-                                m_cursorLoc.x = tokenX;
-                                m_cursorLoc.y = tokenY;
+
+                                // micmic MS-word, MS-notepad behavior: when deleting the first token of last line
+                                //
+                                //   (a). if last line has  1 token : move cursor to end of previous line
+                                //   (b). if last line has >1 tokens: keep cursor at the beginning of current line
+                                //
+                                // this behavior is different from vim/nvim
+                                // vim/nvim always behaves as (b), no matter how many tokens in the last line
+
+                                if(needMoveCursorUp){
+                                    std::tie(m_cursorLoc.x, m_cursorLoc.y) = currPar->tpset->lastCursorLoc();
+                                }
+                                else{
+                                    m_cursorLoc.x = tokenX;
+                                    m_cursorLoc.y = tokenY;
+                                }
                             }
                             else if(m_cursorLoc.par > 0){
                                 auto currPar = ithParIterator(m_cursorLoc.par);
