@@ -12,6 +12,9 @@ from pathlib import Path
 #
 # but the build of apngasm/apngasm is not easier
 # this script also support --apngasm-python which can be pip installed
+#
+# also after APNG generated, we can use apngopt to optimize the APNG file size:
+# https://github.com/jindongyi011039/apngopt.git
 
 
 def natural_sort_key(path):
