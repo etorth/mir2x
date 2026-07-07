@@ -59,6 +59,16 @@ namespace utf8f
         };
     }
 
+    constexpr uint32_t fontInfoFromU64Key(uint64_t u64Key)
+    {
+        return static_cast<uint32_t>(u64Key >> 32);
+    }
+
+    constexpr uint32_t codePointFromU64Key(uint64_t u64Key)
+    {
+        return static_cast<uint32_t>(u64Key);
+    }
+
     std::vector<int> buildUTF8Off(const char *);
 
     bool valid(const std::string &);
