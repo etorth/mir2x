@@ -1689,7 +1689,32 @@ void XMLTypeset::setLineWidth(int lineWidth)
     updateGfx();
 }
 
+std::tuple<int, int> XMLTypeset::getDefaultFontHk() const
+{
+    return
+    {
+                          g_fontexDB->fontAscent (m_font, m_fontSize),
+        std::max<int>(0, -g_fontexDB->fontDescent(m_font, m_fontSize)),
+    };
+}
+
+std::tuple<int, int> XMLTypeset::getTokenCursorHk(int tokenX, int tokenY) const
+{
+    const auto tkptr = getToken(tokenX, tokenY);
+    if(m_paragraph->leaf(tkptr->leaf).type() == LEAF_UTF8STR){
+        const auto [fontIndex, fontSize, _, _] = utf8f::extractU64Key(tkptr->utf8char.key);
+        return
+        {
+                              g_fontexDB->fontAscent (fontIndex, fontSize),
+            std::max<int>(0, -g_fontexDB->fontDescent(fontIndex, fontSize)),
+        };
+    }
+
+    return {tkptr->box.state.h1, tkptr->box.state.h2};
+}
+
 int XMLTypeset::getDefaultFontHeight() const
 {
-    return g_fontexDB->fontAscent(m_font, m_fontSize) - g_fontexDB->fontDescent(m_font, m_fontSize);
+    const auto [fontH1, fontH2] = getDefaultFontHk();
+    return fontH1 + fontH2;
 }

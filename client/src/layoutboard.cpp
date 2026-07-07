@@ -855,38 +855,62 @@ std::tuple<int, int, int> LayoutBoard::getCursorLoc() const
 std::tuple<int, int, int, int> LayoutBoard::getCursorPLoc() const
 {
     if(auto par = ithParIterator(m_cursorLoc.par); par->tpset->empty()){
+        const auto [cursorH1, cursorH2] = par->tpset->getDefaultFontHk();
         return
         {
             par->margin[2],
             par->startY,
 
             m_cursorWidth,
-            par->tpset->getDefaultFontHeight(),
+            cursorH1 + cursorH2,
         };
     }
-    else if(m_cursorLoc.x < par->tpset->lineTokenCount(m_cursorLoc.y)){
-        const auto tokenPtr = par->tpset->getToken(m_cursorLoc.x, m_cursorLoc.y);
-        return
-        {
-            par->margin[2] + tokenPtr->box.state.x - tokenPtr->box.state.w1,
-            par->startY    + tokenPtr->box.state.y,
 
-            m_cursorWidth,
-            par->tpset->getToken(std::max<int>(0, m_cursorLoc.x - 1), m_cursorLoc.y)->box.info.h,
-        };
-    }
     else{
+        const auto [cursorH1, cursorH2] = [this, par] -> std::tuple<int, int>
+        {
+            if(par->tpset->lineEmpty(m_cursorLoc.y)){
+                return par->tpset->getDefaultFontHk();
+            }
+            return par->tpset->getTokenCursorHk(std::max<int>(m_cursorLoc.x - 1, 0), m_cursorLoc.y);
+        }();
+
+        const auto cursorY = par->startY + par->tpset->lineStartY(m_cursorLoc.y) - cursorH1 + 1;
+        const auto cursorH = cursorH1 + cursorH2;
+
+        if(par->tpset->lineEmpty(m_cursorLoc.y)){
+            return
+            {
+                par->margin[2],
+                cursorY,
+
+                m_cursorWidth,
+                cursorH,
+            };
+        }
+
+        if(m_cursorLoc.x < par->tpset->lineTokenCount(m_cursorLoc.y)){
+            const auto tkptr = par->tpset->getToken(m_cursorLoc.x, m_cursorLoc.y);
+            return
+            {
+                par->margin[2] + tkptr->box.state.x - tkptr->box.state.w1,
+                cursorY,
+
+                m_cursorWidth,
+                cursorH,
+            };
+        }
+
         // cursor is after last token
         // we should draw it inside widget
-
-        const auto tokenPtr = par->tpset->getToken(m_cursorLoc.x - 1, m_cursorLoc.y);
+        const auto tkptr = par->tpset->getToken(m_cursorLoc.x - 1, m_cursorLoc.y);
         return
         {
-            par->margin[2] + tokenPtr->box.state.x + tokenPtr->box.info.w + tokenPtr->box.state.w2 - m_cursorWidth,
-            par->startY    + tokenPtr->box.state.y,
+            par->margin[2] + tkptr->box.state.x + tkptr->box.info.w + tkptr->box.state.w2 - m_cursorWidth,
+            cursorY,
 
             m_cursorWidth,
-            tokenPtr->box.info.h,
+            cursorH,
         };
     }
 }

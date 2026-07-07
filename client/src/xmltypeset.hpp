@@ -121,9 +121,10 @@ class XMLTypeset // means XMLParagraph typeset
             return m_paragraph->empty();
         }
 
-        bool lineEmpty(int line) const
+        bool lineEmpty(int argLine) const
         {
-            return m_lineList.at(line).content.empty();
+            fflassert(lineValid(argLine), argLine);
+            return m_lineList.at(argLine).content.empty();
         }
 
     public:
@@ -524,5 +525,7 @@ class XMLTypeset // means XMLParagraph typeset
         bool blankToken(int, int) const;
 
     public:
+        std::tuple<int, int> getDefaultFontHk() const;
+        std::tuple<int, int> getTokenCursorHk(int, int) const;
         int getDefaultFontHeight() const;
 };
