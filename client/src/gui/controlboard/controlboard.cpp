@@ -68,9 +68,14 @@ ControlBoard::ControlBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
 
           .lineAlign = LALIGN_JUSTIFY,
 
-          .onCR = [this]
+          .onCR = [this](bool shiftHold)
           {
+              if(m_expand && shiftHold){
+                  return false;
+              }
+
               onInputDone();
+              return true;
           },
 
           .onCursorMove = [this]

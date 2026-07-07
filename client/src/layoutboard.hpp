@@ -40,9 +40,9 @@ class LayoutBoard: public Widget
 
             Widget::CursorConfig cursor {};
 
-            std::function<void()> onTab;
-            std::function<void()> onCR;
-            std::function<void()> onCursorMove;
+            std::function<void(    )> onTab;
+            std::function<bool(bool)> onCR; // onCR(is_shift_hold) -> is_event_consumed
+            std::function<void(    )> onCursorMove;
             std::function<void(const std::unordered_map<std::string, std::string> &, int)> onClickText;
 
             Widget::WADPair parent {};
@@ -116,9 +116,9 @@ class LayoutBoard: public Widget
         Widget::VarU32 m_cursorColor;
 
     private:
-        const std::function<void()> m_onTab;
-        const std::function<void()> m_onCR;
-        const std::function<void()> m_onCursorMove; // after cursor moved
+        const std::function<void(    )> m_onTab;
+        const std::function<bool(bool)> m_onCR;
+        const std::function<void(    )> m_onCursorMove; // after cursor moved
         const std::function<void(const std::unordered_map<std::string, std::string> &, int)> m_eventCB;
 
     public:

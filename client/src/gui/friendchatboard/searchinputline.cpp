@@ -88,7 +88,7 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
               .size = 14,
           },
 
-          .onCR = [this]()
+          .onCR = [this]
           {
               hasParent<SearchPage>()->candidates.setShow(true);
               hasParent<SearchPage>()->autocompletes.setShow(false);

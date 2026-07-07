@@ -536,7 +536,10 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                         }
                     case SDLK_RETURN:
                         {
-                            if((event.key.mod & SDL_KMOD_LSHIFT) || (event.key.mod & SDL_KMOD_RSHIFT)){
+                            const bool shiftHold = (event.key.mod & SDL_KMOD_LSHIFT) || (event.key.mod & SDL_KMOD_RSHIFT);
+                            const bool cbTriggered = m_onCR && m_onCR(shiftHold);
+
+                            if(!cbTriggered){
                                 auto currPar = ithParIterator(m_cursorLoc.par);
                                 auto  newPar = currPar->tpset->split(m_cursorLoc.x, m_cursorLoc.y);
 
@@ -549,11 +552,6 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
 
                                 if(m_onCursorMove){
                                     m_onCursorMove();
-                                }
-                            }
-                            else{
-                                if(m_onCR){
-                                    m_onCR();
                                 }
                             }
 

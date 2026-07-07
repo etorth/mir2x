@@ -68,10 +68,14 @@ ChatInputContainer::ChatInputContainer(
 
           .lineAlign = LALIGN_JUSTIFY,
 
-          .onCR = [this]()
+          .onCR = [this](bool shiftHold)
           {
+              if(shiftHold){
+                  return false;
+              }
+
               if(!layout.hasToken()){
-                  return;
+                  return true;
               }
 
               auto message = layout.getXML();
@@ -120,6 +124,8 @@ ChatInputContainer::ChatInputContainer(
                       }
                   });
               });
+
+              return true;
           },
 
           .parent{this},
