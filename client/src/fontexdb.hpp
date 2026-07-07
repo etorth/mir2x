@@ -190,6 +190,18 @@ class FontexDB: public innDB<uint64_t, FontexElement>
             throw fflpanic("failed to load font: {}", font);
         }
 
+        int fontDescent(uint8_t font, uint8_t fontSize)
+        {
+            if(!hasFont(font)){
+                throw fflpanic("invalid font index: {}", font);
+            }
+
+            if(auto ttfPtr = findTTF(font, fontSize)){
+                return TTF_GetFontDescent(ttfPtr);
+            }
+            throw fflpanic("failed to load font: {}", font);
+        }
+
         int fontHeight(uint8_t font, uint8_t fontSize)
         {
             if(!hasFont(font)){
