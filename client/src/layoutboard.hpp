@@ -27,9 +27,10 @@ class LayoutBoard: public Widget
             // dynamic margin is not supported since which requires gfx-update
             Widget::IntMargin margin {};
 
-            Widget::VarBool canSelect  = false;
-            Widget::VarBool canEdit    = false;
-            /**/       bool canThrough = false; // static attribute
+            Widget::VarBool canSelect   = false;
+            Widget::VarBool canEdit     = false;
+            /**/       bool canThrough  = false; // static attribute
+            /**/       bool compactLine = false; // static attribute
 
             Widget::VarInt enableIME = IME_DISABLE;
             Widget::FontConfig font {};
@@ -80,6 +81,7 @@ class LayoutBoard: public Widget
             Widget::IntMargin margin;
 
             bool canThrough;
+            bool compactLine;
 
             uint8_t font;
             uint8_t fontSize;

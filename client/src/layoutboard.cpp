@@ -74,6 +74,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
           fflcheck(args.margin, std::ranges::all_of(std::views::iota(0, 4), [&args](auto i){ return args.margin[i] >= 0; })),
 
           args.canThrough,
+          args.compactLine,
 
           args.font.id,
           args.font.size,
@@ -210,6 +211,13 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         return canThrough;
     }();
 
+    const bool compactLine = [elemNode, this]()
+    {
+        bool compactLine = m_parNodeConfig.compactLine;
+        elemNode->QueryBoolAttribute("compactLine", &compactLine);
+        return compactLine;
+    }();
+
     const uint8_t font = [elemNode, this]()
     {
         int font = m_parNodeConfig.font;
@@ -284,6 +292,7 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         lineWidth,
         lineAlign,
         canThrough,
+        compactLine,
         font,
         fontSize,
         fontStyle,

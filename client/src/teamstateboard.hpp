@@ -97,7 +97,7 @@ class TeamStateBoard: public Widget
     public:
         int lineHeight() const
         {
-            return XMLTypeset(-1, LALIGN_LEFT, false, m_font, m_fontSize, m_fontStyle).getDefaultFontHeight() + m_lineSpace;
+            return XMLTypeset(-1, LALIGN_LEFT, false, false, m_font, m_fontSize, m_fontStyle).getDefaultFontHeight() + m_lineSpace;
         }
 
         size_t lineShowCount() const

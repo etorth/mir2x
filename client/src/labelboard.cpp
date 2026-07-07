@@ -32,6 +32,7 @@ LabelBoard::LabelBoard(LabelBoard::InitArgs args)
           0,
           LALIGN_LEFT,
           false,
+          false,
           args.font.id,
           args.font.size,
           args.font.style,

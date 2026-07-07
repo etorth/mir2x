@@ -47,7 +47,7 @@ void MessageStackBoard::addXMLMessage(const std::u8string &xml)
 
     auto message = std::make_unique<Message>();
 
-    message->typeset = std::make_unique<XMLTypeset>(m_width, LALIGN_LEFT, false, m_font.id, m_font.size, m_font.style, m_font.color);
+    message->typeset = std::make_unique<XMLTypeset>(m_width, LALIGN_LEFT, false, false, m_font.id, m_font.size, m_font.style, m_font.color);
     message->typeset->loadXML(reinterpret_cast<const char *>(xml.c_str()));
 
     message->wrapper.reset(new MarginWrapper

@@ -44,6 +44,7 @@ class XMLTypeset // means XMLParagraph typeset
 
     private:
         const bool m_canThrough;
+        const bool m_compactLine;
 
     private:
         int m_wordSpace;
@@ -79,6 +80,7 @@ class XMLTypeset // means XMLParagraph typeset
 
                 int  lineAlign  = LALIGN_LEFT,
                 bool canThrough = true,
+                bool compactLine = false,
 
                 uint8_t defaultFont      = 0,
                 uint8_t defaultFontSize  = 8,
@@ -94,6 +96,7 @@ class XMLTypeset // means XMLParagraph typeset
             : m_lineWidth(maxLineWidth)
             , m_lineAlign(lineAlign)
             , m_canThrough(canThrough)
+            , m_compactLine(compactLine)
             , m_wordSpace(wordSpace)
             , m_lineSpace(lineSpace)
 

@@ -437,7 +437,10 @@ int XMLTypeset::LineIntervalMaxH2(int argLine, int nIntervalStartX, int nInterva
         throw fflpanic("zero-length interval provided");
     }
 
-    int nMaxH2 = -1;
+    std::optional<uint32_t> fontInfoOpt;
+    int fontDescent = -1;
+    int maxH2 = -1;
+
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
         auto pToken = getToken(nIndex, argLine);
         int nW  = pToken->box.info .w;
@@ -446,14 +449,28 @@ int XMLTypeset::LineIntervalMaxH2(int argLine, int nIntervalStartX, int nInterva
         int nW2 = pToken->box.state.w2;
         int nH2 = pToken->box.state.h2;
 
+        if(!m_compactLine && m_paragraph->leaf(pToken->leaf).type() == LEAF_UTF8STR){
+            const uint32_t fontInfo = utf8f::fontInfoFromU64Key(pToken->utf8char.key);
+            if(fontInfoOpt.has_value() && fontInfoOpt.value() == fontInfo){
+                // token uses same font as last one
+                // reuse the cached info
+            }
+            else{
+                const auto [fontIndex, fontSize, _, _] = utf8f::extractU64Key(pToken->utf8char.key);
+                fontInfoOpt = fontInfo;
+                fontDescent = std::max<int>(0, -g_fontexDB->fontDescent(fontIndex, fontSize));
+            }
+            nH2 = std::max<int>(nH2, fontDescent);
+        }
+
         if(mathf::intervalOverlap<int>(nX - nW1, nW1 + nW + nW2, nIntervalStartX, nIntervalWidth)){
-            nMaxH2 = std::max<int>(nMaxH2, nH2);
+            maxH2 = std::max<int>(maxH2, nH2);
         }
     }
 
     // maybe the line is not long enough to cover interval
     // in this case we return -1
-    return nMaxH2;
+    return maxH2;
 }
 
 // get the minmal (compact) possible start Y of a token in nth line
@@ -554,12 +571,29 @@ int XMLTypeset::LineNewStartY(int argLine)
         throw fflpanic("empty line detected: {}", argLine);
     }
 
+    std::optional<uint32_t> fontInfoOpt;
+    int fontAscent = -1;
     int nCurrentY = -1;
+
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
         auto pToken = getToken(nIndex, argLine);
         int nX  = pToken->box.state.x;
         int nW  = pToken->box.info .w;
         int nH1 = pToken->box.state.h1;
+
+        if(!m_compactLine && m_paragraph->leaf(pToken->leaf).type() == LEAF_UTF8STR){
+            const uint32_t fontInfo = utf8f::fontInfoFromU64Key(pToken->utf8char.key);
+            if(fontInfoOpt.has_value() && fontInfoOpt.value() == fontInfo){
+                // token uses same font as last one
+                // reuse the cached info
+            }
+            else{
+                const auto [fontIndex, fontSize, _, _] = utf8f::extractU64Key(pToken->utf8char.key);
+                fontInfoOpt = fontInfo;
+                fontAscent = g_fontexDB->fontAscent(fontIndex, fontSize);
+            }
+            nH1 = std::max<int>(nH1, fontAscent);
+        }
 
         // LineTokenBestY() already take m_lineSpace into consideration
         nCurrentY = std::max<int>(nCurrentY, LineTokenBestY(argLine, nX, nW, nH1));
@@ -1184,6 +1218,7 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
         MaxLineWidth(),
         m_lineAlign,
         CanThrough(),
+        m_compactLine,
 
         m_font,
         m_fontSize,
@@ -1486,11 +1521,33 @@ int XMLTypeset::LineMaxHk(int argLine, int k) const
         throw fflpanic("invalid argument k: {}", k);
     }
 
-    int nCurrMaxHk = 0;
+    std::optional<uint32_t> fontInfoOpt;
+    int fontHeightMetric = 0;
+    int currMaxHk = 0;
+
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
-        nCurrMaxHk = (std::max<int>)(nCurrMaxHk, (k == 1) ? getToken(nIndex, argLine)->box.state.h1 : getToken(nIndex, argLine)->box.state.h2);
+        const auto tokenPtr = getToken(nIndex, argLine);
+        /* */ auto tokenHk  = (k == 1) ? tokenPtr->box.state.h1 : tokenPtr->box.state.h2;
+
+        if(!m_compactLine && m_paragraph->leaf(tokenPtr->leaf).type() == LEAF_UTF8STR){
+            const uint32_t fontInfo = utf8f::fontInfoFromU64Key(tokenPtr->utf8char.key);
+            if(fontInfoOpt.has_value() && fontInfoOpt.value() == fontInfo){
+                // token uses same font as last one
+                // reuse the cached info
+            }
+            else{
+                const auto [fontIndex, fontSize, _, _] = utf8f::extractU64Key(tokenPtr->utf8char.key);
+                fontInfoOpt = fontInfo;
+
+                if(k == 1){ fontHeightMetric =                   g_fontexDB->fontAscent (fontIndex, fontSize) ; }
+                else      { fontHeightMetric = std::max<int>(0, -g_fontexDB->fontDescent(fontIndex, fontSize)); }
+            }
+            tokenHk = std::max<int>(tokenHk, fontHeightMetric);
+        }
+
+        currMaxHk = std::max<int>(currMaxHk, tokenHk);
     }
-    return nCurrMaxHk;
+    return currMaxHk;
 }
 
 int XMLTypeset::lineAlign() const
@@ -1634,5 +1691,5 @@ void XMLTypeset::setLineWidth(int lineWidth)
 
 int XMLTypeset::getDefaultFontHeight() const
 {
-    return g_fontexDB->fontHeight(m_font, m_fontSize);
+    return g_fontexDB->fontAscent(m_font, m_fontSize) - g_fontexDB->fontDescent(m_font, m_fontSize);
 }
