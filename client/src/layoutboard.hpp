@@ -29,9 +29,9 @@ class LayoutBoard: public Widget
 
             Widget::VarBool canSelect  = false;
             Widget::VarBool canEdit    = false;
-            Widget::VarInt  enableIME  = IME_DISABLE;
             /**/       bool canThrough = false; // static attribute
 
+            Widget::VarInt enableIME = IME_DISABLE;
             Widget::FontConfig font {};
 
             int lineAlign = LALIGN_LEFT;

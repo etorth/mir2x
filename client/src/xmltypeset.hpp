@@ -175,10 +175,14 @@ class XMLTypeset // means XMLParagraph typeset
 
         int lineTokenCount(int argLine) const
         {
-            if(lineValid(argLine)){
-                return m_lineList[argLine].content.size();
-            }
-            throw fflpanic("invalid line specified: {} >= {}", argLine, lineCount());
+            fflassert(lineValid(argLine), argLine);
+            return to_d(m_lineList[argLine].content.size());
+        }
+
+        int lineStartY(int argLine) const
+        {
+            fflassert(lineValid(argLine), argLine);
+            return m_lineList[argLine].startY;
         }
 
     public:
