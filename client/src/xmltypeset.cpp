@@ -200,33 +200,35 @@ void XMLTypeset::LineJustifyPadding(int argLine)
     const auto fnLeafPadding = [this, y = argLine](const auto &fnCheckToken) -> int
     {
         while(LineFullWidth(y) < MaxLineWidth()){
-            int nCurrDWidth = MaxLineWidth() - LineFullWidth(y);
-            int nDoneDWidth = nCurrDWidth;
+            int currDWidth = MaxLineWidth() - LineFullWidth(y);
+            int doneDWidth = currDWidth;
+
             for(int x = 0; x < lineTokenCount(y); ++x){
                 if(!fnCheckToken(x, y)){
                     continue;
                 }
 
                 auto tokenPtr = getToken(x, y);
-                if(tokenPtr->box.state.w1 <= tokenPtr->box.state.w2){
-                    if(x != 0){
-                        tokenPtr->box.state.w1++;
-                        nDoneDWidth--;
 
-                        if(nDoneDWidth == 0){
-                            return MaxLineWidth();
-                        }
-                    }
-                }
+                // pick the smaller side to keep w1/w2 balanced
+                // if the picked side is edge-frozen (w1 of first token, w2 of last), fall back to the other side
+                // otherwise a 2-token line has both sides frozen and can never be padded
 
-                else{
-                    if(x != lineTokenCount(y) - 1){
-                        tokenPtr->box.state.w2++;
-                        nDoneDWidth--;
+                const bool preferW1 = tokenPtr->box.state.w1 <= tokenPtr->box.state.w2;
+                const bool canW1 = (x != 0);
+                const bool canW2 = (x != lineTokenCount(y) - 1);
 
-                        if(nDoneDWidth == 0){
-                            return MaxLineWidth();
-                        }
+                int *growPtr = nullptr;
+
+                if     ( preferW1 ? canW1 : canW2){ growPtr =  preferW1 ? &tokenPtr->box.state.w1 : &tokenPtr->box.state.w2; }
+                else if(!preferW1 ? canW1 : canW2){ growPtr = !preferW1 ? &tokenPtr->box.state.w1 : &tokenPtr->box.state.w2; }
+
+                if(growPtr){
+                    (*growPtr)++;
+                    doneDWidth--;
+
+                    if(doneDWidth == 0){
+                        return MaxLineWidth();
                     }
                 }
             }
@@ -234,7 +236,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
             // can't help
             // we go through the whole line but no width changed
 
-            if(nCurrDWidth == nDoneDWidth){
+            if(currDWidth == doneDWidth){
                 return LineFullWidth(y);
             }
         }
@@ -286,7 +288,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
         return;
     }
 
-    throw fflpanic("can't do padding to width: {}", MaxLineWidth());
+    g_mir2xLog->addLog(LOGTYPE_WARNING, "can't do justify padding to width: %d", MaxLineWidth());
 }
 
 void XMLTypeset::resetOneLine(int argLine, bool crEnd)
