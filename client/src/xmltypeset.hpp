@@ -30,9 +30,14 @@ class XMLTypeset // means XMLParagraph typeset
             int  maxH1 = 0;
             int  maxH2 = 0;
 
-            std::tuple<int, int> tokenLoc() const
+            std::tuple<int, int> tokenLoc() const noexcept
             {
                 return {tokenX, tokenY};
+            }
+
+            std::tuple<int, int> maxHk() const noexcept
+            {
+                return {maxH1, maxH2};
             }
         };
 

@@ -1700,8 +1700,11 @@ std::tuple<int, int> XMLTypeset::getDefaultFontHk() const
 
 std::tuple<int, int> XMLTypeset::getTokenCursorHk(int tokenX, int tokenY) const
 {
+    // in compactLine mode, the ascent/descent is not reserved for utf8 chars
+    // if still uses ascent/descent for cursor height, the cursor may go cross gfx of previous/next line tokens
+
     const auto tkptr = getToken(tokenX, tokenY);
-    if(m_paragraph->leaf(tkptr->leaf).type() == LEAF_UTF8STR){
+    if(!m_compactLine && (m_paragraph->leaf(tkptr->leaf).type() == LEAF_UTF8STR)){
         const auto [fontIndex, fontSize, _, _] = utf8f::extractU64Key(tkptr->utf8char.key);
         return
         {
@@ -1710,7 +1713,7 @@ std::tuple<int, int> XMLTypeset::getTokenCursorHk(int tokenX, int tokenY) const
         };
     }
 
-    return {tkptr->box.state.h1, tkptr->box.state.h2};
+    return m_leafInfoList.at(tkptr->leaf).maxHk();
 }
 
 int XMLTypeset::getDefaultFontHeight() const
