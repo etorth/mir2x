@@ -218,7 +218,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
                 const bool canW1 = (x != 0);
                 const bool canW2 = (x != lineTokenCount(y) - 1);
 
-                int8_t *growPtr = nullptr;
+                int16_t *growPtr = nullptr;
 
                 if     ( preferW1 ? canW1 : canW2){ growPtr =  preferW1 ? &tokenPtr->box.state.w1 : &tokenPtr->box.state.w2; }
                 else if(!preferW1 ? canW1 : canW2){ growPtr = !preferW1 ? &tokenPtr->box.state.w1 : &tokenPtr->box.state.w2; }
