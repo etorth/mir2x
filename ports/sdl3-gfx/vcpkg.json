@@ -2,7 +2,7 @@
   "name": "sdl3-gfx",
   "version": "1.0.1",
   "description": "Graphics drawing primitives and helpers for SDL3 renderers.",
-  "homepage": "https://github.com/sabdul-khabir/SDL3_gfx",
+  "homepage": "https://github.com/etorth/SDL3_gfx",
   "license": "Zlib",
   "dependencies": [
     {
@@ -19,4 +19,3 @@
     }
   ]
 }
-
