@@ -436,6 +436,13 @@ enum IMEType: int
     IME_END,
 };
 
+enum DropItemRuleFlag: uint32_t
+{
+    DIRF_NONE      = 0,
+    DIRF_HIGHLIGHT = 1U << 0,
+    DIRF_FILTER    = 1U << 1,
+};
+
 template<typename... Ts> struct VarDispatcher: Ts...
 {
     using Ts::operator()...;

@@ -1,6 +1,8 @@
 #pragma once
+#include <map>
 #include <tuple>
 #include <string>
+#include <cstdint>
 #include <string_view>
 #include <unordered_map>
 #include <cerealf.hpp>
@@ -150,6 +152,9 @@ template<int, typename T> bool SDRuntimeConfig_setConfig(      SDRuntimeConfig &
     /**/ // 1: reject any friend request
     /**/ // 2: accept or reject manually
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_好友申请, int, 2)
+    /**/
+    /**/ using _RSVD_helper_type_RTCFG_DROPITEMRULEMAP_t = std::map<uint32_t, uint32_t>;
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_DROPITEMRULEMAP, _RSVD_helper_type_RTCFG_DROPITEMRULEMAP_t, _RSVD_helper_type_RTCFG_DROPITEMRULEMAP_t {})
     /**/
     /**/ // end of runtime config types
     /**/ // any config types should be put inside above region

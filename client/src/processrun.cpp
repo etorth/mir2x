@@ -1947,6 +1947,8 @@ void ProcessRun::sendNPCEvent(uint64_t uid, std::string path, std::string event,
 
 void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
 {
+    const auto dropItemRuleMap = getRuntimeConfig<RTCFG_DROPITEMRULEMAP>();
+
     for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
         if(!(x >= x0 && x < x1 && y >= y0 && y < y1)){
@@ -1954,6 +1956,18 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
         }
 
         for(const auto itemID: p.second){
+            const auto rule = [&dropItemRuleMap, itemID]
+            {
+                if(const auto p = dropItemRuleMap.find(itemID); p != dropItemRuleMap.end()){
+                    return p->second;
+                }
+                return static_cast<uint32_t>(DIRF_NONE);
+            }();
+
+            if(rule & DIRF_FILTER){
+                continue;
+            }
+
             const auto &ir = DBCOM_ITEMRECORD(itemID);
             if(!ir){
                 throw fflpanic("invalid itemID: {}", itemID);
@@ -1977,7 +1991,8 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
             const int mouseGridY = (mouseY + m_viewY) / SYS_MAPGRIDYP;
 
             const bool mouseOver = (mouseGridX == x && mouseGridY == y);
-            const SDLDeviceHelper::EnableTextureBlendMode blendMode(texPtr, mouseOver ? SDL_BLENDMODE_ADD : SDL_BLENDMODE_BLEND);
+            const bool highlighted = rule & DIRF_HIGHLIGHT;
+            const SDLDeviceHelper::EnableTextureBlendMode blendMode(texPtr, (mouseOver || highlighted) ? SDL_BLENDMODE_ADD : SDL_BLENDMODE_BLEND);
 
             // draw item shadow
             {
@@ -1987,7 +2002,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
 
             // draw item body
             {
-                const SDLDeviceHelper::EnableTextureModColor modColor(texPtr, colorf::WHITE | colorf::A_SHF(255));
+                const SDLDeviceHelper::EnableTextureModColor modColor(texPtr, highlighted ? (colorf::YELLOW | colorf::A_SHF(255)) : (colorf::WHITE | colorf::A_SHF(255)));
                 g_sdlDevice->drawTexture(texPtr, drawPX, drawPY);
             }
 
@@ -2078,6 +2093,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1) const
 
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
     const auto currSize = to_d(std::lround(m_starRatio * texW / 2.50));
+    const auto dropItemRuleMap = getRuntimeConfig<RTCFG_DROPITEMRULEMAP>();
 
     for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
@@ -2089,13 +2105,38 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1) const
             continue;
         }
 
+        bool hasVisibleItem = false;
+        bool hasHighlightedItem = false;
+        for(const auto itemID: p.second){
+            const auto rule = [&dropItemRuleMap, itemID]
+            {
+                if(const auto p = dropItemRuleMap.find(itemID); p != dropItemRuleMap.end()){
+                    return p->second;
+                }
+                return static_cast<uint32_t>(DIRF_NONE);
+            }();
+
+            if(rule & DIRF_FILTER){
+                continue;
+            }
+
+            hasVisibleItem = true;
+            if(rule & DIRF_HIGHLIGHT){
+                hasHighlightedItem = true;
+            }
+        }
+
+        if(!hasVisibleItem){
+            continue;
+        }
+
         const auto drawPX = x * SYS_MAPGRIDXP - m_viewX + SYS_MAPGRIDXP / 2 - currSize / 2;
         const auto drawPY = y * SYS_MAPGRIDYP - m_viewY + SYS_MAPGRIDYP / 2 - currSize / 2;
 
         // TODO make this to be more informative
         // use different color of rotating star for different type
 
-        const SDLDeviceHelper::EnableTextureModColor modColor(texPtr, colorf::WHITE | colorf::A_SHF(128));
+        const SDLDeviceHelper::EnableTextureModColor modColor(texPtr, hasHighlightedItem ? (colorf::YELLOW | colorf::A_SHF(220)) : (colorf::WHITE | colorf::A_SHF(128)));
         g_sdlDevice->drawTextureEx(texPtr, 0, 0, texW, texH, drawPX, drawPY, currSize, currSize, currSize / 2, currSize / 2, std::lround(m_starRatio * 360.0));
     }
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <tuple>
 #include <string>
 #include "mathf.hpp"
@@ -9,6 +10,7 @@
 #include "menubutton.hpp"
 #include "checklabel.hpp"
 #include "labelboard.hpp"
+#include "layoutboard.hpp"
 #include "texslider.hpp"
 #include "tritexbutton.hpp"
 #include "trigfxbutton.hpp"
@@ -17,6 +19,7 @@
 #include "baseframeboard.hpp"
 #include "textinput.hpp"
 #include "pullmenu.hpp"
+#include "sdruntimeconfig.hpp"
 #include "labelsliderbar.hpp"
 #include "menupage.hpp"
 
@@ -65,6 +68,10 @@ class RuntimeConfigBoard: public Widget
     private:
         void reportRuntimeConfig(int);
         void applyAudioConfig();
+
+    public:
+        uint32_t dropItemRule(uint32_t) const;
+        void     setDropItemRule(uint32_t, uint32_t, bool);
 
     public:
         void setConfig(const SDRuntimeConfig &);

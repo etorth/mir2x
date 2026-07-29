@@ -3,6 +3,7 @@
 #include "luaf.hpp"
 #include "client.hpp"
 #include "imeboard.hpp"
+#include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "radioselector.hpp"
@@ -10,6 +11,7 @@
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
 #include "fontselector.hpp"
+#include "gui/runtimeconfigboard/dropitemruleboard.hpp"
 
 extern Client *g_client;
 extern PNGTexDB *g_progUseDB;
@@ -474,6 +476,21 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                   }},
                   true,
               },
+
+              {
+                  u8"掉落",
+                  new Widget
+                  {{
+                      .w = std::nullopt,
+                      .h = std::nullopt,
+
+                      .childList
+                      {
+                          {new DropItemRuleBoard(this), DIR_UPLEFT, 0, 0, true},
+                      },
+                  }},
+                  true,
+              },
           },
 
           this,
@@ -615,6 +632,52 @@ void RuntimeConfigBoard::reportRuntimeConfig(int rtCfg)
     cmSRC.buf.assign(m_sdRuntimeConfig.getConfig(rtCfg).value_or(std::string()));
 
     g_client->send({CM_SETRUNTIMECONFIG, cmSRC});
+}
+
+uint32_t RuntimeConfigBoard::dropItemRule(uint32_t itemID) const
+{
+    const auto ruleMap = SDRuntimeConfig_getConfig<RTCFG_DROPITEMRULEMAP>(m_sdRuntimeConfig);
+    if(const auto p = ruleMap.find(itemID); p != ruleMap.end()){
+        return p->second;
+    }
+    return DIRF_NONE;
+}
+
+void RuntimeConfigBoard::setDropItemRule(uint32_t itemID, uint32_t flag, bool enabled)
+{
+    fflassert(DBCOM_ITEMRECORD(itemID), itemID);
+    fflassert(flag == DIRF_HIGHLIGHT || flag == DIRF_FILTER, flag);
+
+    auto ruleMap = SDRuntimeConfig_getConfig<RTCFG_DROPITEMRULEMAP>(m_sdRuntimeConfig);
+    for(auto p = ruleMap.begin(); p != ruleMap.end();){
+        if(!DBCOM_ITEMRECORD(p->first) || p->second == DIRF_NONE){
+            p = ruleMap.erase(p);
+        }
+        else{
+            ++p;
+        }
+    }
+
+    auto &rule = ruleMap[itemID];
+    if(enabled){
+        rule |= flag;
+        if(flag == DIRF_HIGHLIGHT){
+            rule &= ~DIRF_FILTER;
+        }
+        else if(flag == DIRF_FILTER){
+            rule &= ~DIRF_HIGHLIGHT;
+        }
+    }
+    else{
+        rule &= ~flag;
+    }
+
+    if(rule == DIRF_NONE){
+        ruleMap.erase(itemID);
+    }
+
+    SDRuntimeConfig_setConfig<RTCFG_DROPITEMRULEMAP>(m_sdRuntimeConfig, ruleMap);
+    reportRuntimeConfig(RTCFG_DROPITEMRULEMAP);
 }
 
 void RuntimeConfigBoard::updateWindowSize(std::pair<int, int> size, bool saveConfig)
