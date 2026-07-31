@@ -1142,7 +1142,7 @@ corof::awaitable<> Player::net_CM_SETRUNTIMECONFIG(uint8_t, const uint8_t *buf, 
     fflassert(cmSRC.type >= RTCFG_BEGIN, cmSRC.type);
     fflassert(cmSRC.type <  RTCFG_END  , cmSRC.type);
 
-    if(m_sdPlayerConfig.runtimeConfig.setConfig(cmSRC.type, cmSRC.buf.as_sv())){
+    if(m_sdPlayerConfig.runtimeConfig.setConfig(cmSRC.keyBuf.to_str(), cmSRC.valueBuf.to_str())){
         dbUpdateRuntimeConfig();
     }
 

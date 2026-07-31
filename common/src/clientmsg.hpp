@@ -216,7 +216,8 @@ struct CMChangePassword
 struct CMSetRuntimeConfig
 {
     uint16_t type;
-    StaticBuffer<256> buf;
+    StaticBuffer< 64>   keyBuf; // serialized key tuple: (type, extraKeys...)
+    StaticBuffer<256> valueBuf; // serialized value
 };
 
 struct CMNPCEvent
