@@ -637,11 +637,7 @@ void RuntimeConfigBoard::reportRuntimeConfigRaw(int rtCfg, std::string key)
 
 uint32_t RuntimeConfigBoard::dropItemRule(uint32_t itemID) const
 {
-    const auto ruleMap = SDRuntimeConfig_getConfig<RTCFG_DROPITEMRULEMAP>(m_sdRuntimeConfig);
-    if(const auto p = ruleMap.find(itemID); p != ruleMap.end()){
-        return p->second;
-    }
-    return DIRF_NONE;
+    return SDRuntimeConfig_getConfig<RTCFG_DROPITEMRULE>(m_sdRuntimeConfig, itemID);
 }
 
 void RuntimeConfigBoard::setDropItemRule(uint32_t itemID, uint32_t flag, bool enabled)
@@ -649,17 +645,7 @@ void RuntimeConfigBoard::setDropItemRule(uint32_t itemID, uint32_t flag, bool en
     fflassert(DBCOM_ITEMRECORD(itemID), itemID);
     fflassert(flag == DIRF_HIGHLIGHT || flag == DIRF_FILTER, flag);
 
-    auto ruleMap = SDRuntimeConfig_getConfig<RTCFG_DROPITEMRULEMAP>(m_sdRuntimeConfig);
-    for(auto p = ruleMap.begin(); p != ruleMap.end();){
-        if(!DBCOM_ITEMRECORD(p->first) || p->second == DIRF_NONE){
-            p = ruleMap.erase(p);
-        }
-        else{
-            ++p;
-        }
-    }
-
-    auto &rule = ruleMap[itemID];
+    uint32_t rule = SDRuntimeConfig_getConfig<RTCFG_DROPITEMRULE>(m_sdRuntimeConfig, itemID);
     if(enabled){
         rule |= flag;
         if(flag == DIRF_HIGHLIGHT){
@@ -673,12 +659,8 @@ void RuntimeConfigBoard::setDropItemRule(uint32_t itemID, uint32_t flag, bool en
         rule &= ~flag;
     }
 
-    if(rule == DIRF_NONE){
-        ruleMap.erase(itemID);
-    }
-
-    SDRuntimeConfig_setConfig<RTCFG_DROPITEMRULEMAP>(m_sdRuntimeConfig, ruleMap);
-    reportRuntimeConfig<RTCFG_DROPITEMRULEMAP>();
+    SDRuntimeConfig_setConfig<RTCFG_DROPITEMRULE>(m_sdRuntimeConfig, itemID, rule);
+    reportRuntimeConfig<RTCFG_DROPITEMRULE>(itemID);
 }
 
 void RuntimeConfigBoard::updateWindowSize(std::pair<int, int> size, bool saveConfig)

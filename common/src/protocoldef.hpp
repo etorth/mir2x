@@ -438,7 +438,6 @@ enum IMEType: int
 
 enum DropItemRuleFlag: uint32_t
 {
-    DIRF_NONE      = 0,
     DIRF_HIGHLIGHT = 1U << 0,
     DIRF_FILTER    = 1U << 1,
 };

@@ -495,8 +495,8 @@ class ProcessRun: public Process
         void setCursor(int);
 
     public:
-        template<int CfgIndex> auto getRuntimeConfig(this auto && self)
+        template<int CfgIndex, typename... Args> auto getRuntimeConfig(this auto && self, Args && ... args)
         {
-            return SDRuntimeConfig_getConfig<CfgIndex>(dynamic_cast<const RuntimeConfigBoard *>(self.getWidget("RuntimeConfigBoard"))->getConfig());
+            return SDRuntimeConfig_getConfig<CfgIndex>(dynamic_cast<const RuntimeConfigBoard *>(self.getWidget("RuntimeConfigBoard"))->getConfig(), std::forward<Args>(args)...);
         }
 };

@@ -1,5 +1,4 @@
 #pragma once
-#include <map>
 #include <tuple>
 #include <string>
 #include <cstdint>
@@ -25,11 +24,11 @@ class SDRuntimeConfig
         template<int> friend struct SDRuntimeConfigAccessor;
 
     public:
-        bool setConfig(std::string key, std::string s, bool isDef = false)
+        // empty s means "reset to default": erase the key if present.
+        // cerealf::serialize never returns an empty string, so empty s is an unambiguous sentinel.
+        bool setConfig(std::string key, std::string s)
         {
-            if(isDef){
-                // default value
-		// no need to store, just erase if present
+            if(s.empty()){
                 if(auto p = m_config.find(key); p != m_config.end()){
                     m_config.erase(p);
                     return true;
@@ -117,9 +116,9 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
             \
             ValueType value(std::get<N - 1>(std::move(argRefs))); \
             if(defValue() == value){ \
-                return rtCfg.setConfig(std::move(key), {}, true); \
+                return rtCfg.setConfig(std::move(key), {}); \
             } \
-            return rtCfg.setConfig(std::move(key), cerealf::serialize<ValueType>(value), false); \
+            return rtCfg.setConfig(std::move(key), cerealf::serialize<ValueType>(value)); \
         } \
     };
 
@@ -192,8 +191,7 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/ // 2: accept or reject manually
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_好友申请, (), int, 2)
     /**/
-    /**/ using _RSVD_helper_type_RTCFG_DROPITEMRULEMAP_t = std::map<uint32_t, uint32_t>;
-    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_DROPITEMRULEMAP, (), _RSVD_helper_type_RTCFG_DROPITEMRULEMAP_t, _RSVD_helper_type_RTCFG_DROPITEMRULEMAP_t {})
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_DROPITEMRULE, (uint32_t), uint32_t, 0u)
     /**/
     /**/ // end of runtime config types
     /**/ // any config types should be put inside above region

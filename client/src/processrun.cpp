@@ -1947,8 +1947,6 @@ void ProcessRun::sendNPCEvent(uint64_t uid, std::string path, std::string event,
 
 void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
 {
-    const auto dropItemRuleMap = getRuntimeConfig<RTCFG_DROPITEMRULEMAP>();
-
     for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
         if(!(x >= x0 && x < x1 && y >= y0 && y < y1)){
@@ -1956,13 +1954,7 @@ void ProcessRun::drawGroundItem(int x0, int y0, int x1, int y1) const
         }
 
         for(const auto itemID: p.second){
-            const auto rule = [&dropItemRuleMap, itemID]
-            {
-                if(const auto p = dropItemRuleMap.find(itemID); p != dropItemRuleMap.end()){
-                    return p->second;
-                }
-                return static_cast<uint32_t>(DIRF_NONE);
-            }();
+            const auto rule = getRuntimeConfig<RTCFG_DROPITEMRULE>(itemID);
 
             if(rule & DIRF_FILTER){
                 continue;
@@ -2093,7 +2085,6 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1) const
 
     const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
     const auto currSize = to_d(std::lround(m_starRatio * texW / 2.50));
-    const auto dropItemRuleMap = getRuntimeConfig<RTCFG_DROPITEMRULEMAP>();
 
     for(const auto &p: m_groundItemIDList){
         const auto [x, y] = p.first;
@@ -2108,13 +2099,7 @@ void ProcessRun::drawRotateStar(int x0, int y0, int x1, int y1) const
         bool hasVisibleItem = false;
         bool hasHighlightedItem = false;
         for(const auto itemID: p.second){
-            const auto rule = [&dropItemRuleMap, itemID]
-            {
-                if(const auto p = dropItemRuleMap.find(itemID); p != dropItemRuleMap.end()){
-                    return p->second;
-                }
-                return static_cast<uint32_t>(DIRF_NONE);
-            }();
+            const auto rule = getRuntimeConfig<RTCFG_DROPITEMRULE>(itemID);
 
             if(rule & DIRF_FILTER){
                 continue;
