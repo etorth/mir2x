@@ -14,8 +14,6 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
 
           .x = std::move(args.x),
           .y = std::move(args.y),
-          .w = std::move(args.w),
-          .h = std::move(args.h),
 
           .childList
           {
@@ -65,6 +63,9 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
 
     , m_viewport(dynamic_cast<GfxCropBoard *>(firstChild()))
 
+    , m_viewportW(std::move(args.vpw))
+    , m_viewportH(std::move(args.vph))
+
     , m_hScroll(std::move(args.hScroll))
     , m_vScroll(std::move(args.vScroll))
 
@@ -82,44 +83,28 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     , m_arrowBoxColor(std::move(args.arrowBoxColor))
 {
     fflassert(m_viewport);
+    setSize([this]{ return viewportW() + (vBarEnabled() ? m_barSize : 0); },
+            [this]{ return viewportH() + (hBarEnabled() ? m_barSize : 0); });
 }
 
 bool ScrollContainer::hBarEnabled() const
 {
-    const bool hAllow = Widget::evalBool(m_hScroll, this);
-    const bool vAllow = Widget::evalBool(m_vScroll, this);
-
-    if(!hAllow){
+    if(!Widget::evalBool(m_hScroll, this)){
         return false;
     }
 
     const int cw = contained() ? contained()->w() : 0;
-    const int ch = contained() ? contained()->h() : 0;
-
-    if(cw > w()){
-        return true;
-    }
-
-    return (vAllow && (ch > h())) && (cw > std::max<int>(0, w() - m_barSize));
+    return cw > viewportW();
 }
 
 bool ScrollContainer::vBarEnabled() const
 {
-    const bool hAllow = Widget::evalBool(m_hScroll, this);
-    const bool vAllow = Widget::evalBool(m_vScroll, this);
-
-    if(!vAllow){
+    if(!Widget::evalBool(m_vScroll, this)){
         return false;
     }
 
-    const int cw = contained() ? contained()->w() : 0;
     const int ch = contained() ? contained()->h() : 0;
-
-    if(ch > h()){
-        return true;
-    }
-
-    return (hAllow && (cw > w())) && (ch > std::max<int>(0, h() - m_barSize));
+    return ch > viewportH();
 }
 
 Widget::ROI ScrollContainer::vBarROI() const

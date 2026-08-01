@@ -28,8 +28,9 @@ class ScrollContainer: public Widget
             Widget::VarDir  dir = DIR_UPLEFT;
             Widget::VarInt  x   = 0;
             Widget::VarInt  y   = 0;
-            Widget::VarSize w   = 0;
-            Widget::VarSize h   = 0;
+
+            Widget::VarSize vpw = 0;
+            Widget::VarSize vph = 0;
 
             Widget::VarGetter<Widget *> getter = nullptr;
 
@@ -66,6 +67,10 @@ class ScrollContainer: public Widget
 
     private:
         GfxCropBoard *m_viewport; // owned via childList, drawn/handled through the standard tree
+
+    private:
+        Widget::VarSize m_viewportW;
+        Widget::VarSize m_viewportH;
 
     private:
         Widget::VarBool m_hScroll;
@@ -127,8 +132,8 @@ class ScrollContainer: public Widget
         bool vBarEnabled() const;
 
     public:
-        int viewportW() const { return vBarEnabled() ? std::max<int>(0, w() - m_barSize) : w(); }
-        int viewportH() const { return hBarEnabled() ? std::max<int>(0, h() - m_barSize) : h(); }
+        int viewportW() const { return Widget::evalSize(m_viewportW, this); }
+        int viewportH() const { return Widget::evalSize(m_viewportH, this); }
 
     public:
         int maxScrollX() const { return std::max<int>(0, (contained() ? contained()->w() : 0) - viewportW()); }

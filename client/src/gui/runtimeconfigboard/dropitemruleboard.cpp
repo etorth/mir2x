@@ -31,8 +31,9 @@ DropItemRuleBoard::DropItemRuleBoard(RuntimeConfigBoard *configBoard)
       {{
           .x = m_listX,
           .y = m_listY,
-          .w = m_listW + 12, // reserve barSize on the right so the visible viewport stays m_listW wide
-          .h = m_listH,
+
+          .vpw = m_listW,
+          .vph = m_listH,
 
           .getter = std::addressof(m_itemBox),
 
