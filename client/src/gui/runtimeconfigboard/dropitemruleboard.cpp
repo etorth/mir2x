@@ -19,11 +19,6 @@ DropItemRuleBoard::DropItemRuleBoard(RuntimeConfigBoard *configBoard)
     , m_itemBox
       {{
           .fixed = m_viewportW,
-          .v = true,
-
-          .headSpace = 4,
-          .itemSpace = 2,
-          .tailSpace = 4,
       }}
 
     , m_scroll

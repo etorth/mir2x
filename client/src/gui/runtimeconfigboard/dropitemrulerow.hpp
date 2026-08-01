@@ -14,10 +14,10 @@ class DropItemRuleRow final: public Widget
         const uint32_t m_itemID = 0;
 
     private:
-        GfxShapeBoard m_bg;   // background tint reflecting the current rule
+        GfxShapeBoard m_bg;
 
     private:
-        ItemPair m_pair;      // left: item name label; right: horizontal ItemBox of CheckLabels
+        ItemPair m_pair;
 
     public:
         DropItemRuleRow(Widget::VarSize, RuntimeConfigBoard *, uint32_t);

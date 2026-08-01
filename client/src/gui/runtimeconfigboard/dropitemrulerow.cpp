@@ -35,25 +35,16 @@ DropItemRuleRow::DropItemRuleRow(Widget::VarSize argW, RuntimeConfigBoard *confi
     , m_pair
       {{
           .dir = DIR_LEFT,
-          .y   = [this]{ return h() / 2; },
 
-          .flex = [this]{ return w(); },
+          .y    = [this]{ return h() / 2; },
+          .flex = [this]{ return w()    ; },
 
           .v = false,
           .align = ItemAlign::CENTER,
 
           .first
           {
-              .widget = new LabelBoard
-              {{
-                  .label = DBCOM_ITEMRECORD(itemID).name,
-                  .font
-                  {
-                      .id = 1,
-                      .size = 12,
-                      .color = colorf::WHITE_A255,
-                  },
-              }},
+              .widget = new LabelBoard{{.label = DBCOM_ITEMRECORD(itemID).name}},
               .autoDelete = true,
           },
 
@@ -63,7 +54,9 @@ DropItemRuleRow::DropItemRuleRow(Widget::VarSize argW, RuntimeConfigBoard *confi
               {{
                   .v = false,
                   .align = ItemAlign::CENTER,
+
                   .itemSpace = 10,
+                  .tailSpace = 10,
 
                   .childList
                   {
@@ -72,12 +65,7 @@ DropItemRuleRow::DropItemRuleRow(Widget::VarSize argW, RuntimeConfigBoard *confi
                           {{
                               .gap = 3,
                               .box{.w = 14, .h = 14},
-
-                              .label
-                              {
-                                  .text = u8"高亮",
-                                  .font{.id = 1, .size = 12},
-                              },
+                              .label{.text = u8"高亮"},
 
                               .getter = [this]{ return (m_configBoard->dropItemRule(m_itemID) & DIRF_HIGHLIGHT) != 0; },
                               .setter = [this](bool value){ m_configBoard->setDropItemRule(m_itemID, DIRF_HIGHLIGHT, value); },
@@ -88,18 +76,8 @@ DropItemRuleRow::DropItemRuleRow(Widget::VarSize argW, RuntimeConfigBoard *confi
                           new CheckLabel
                           {{
                               .gap = 3,
-                              .box
-                              {
-                                  .w = 14,
-                                  .h = 14,
-                                  .color = colorf::RGBA(231, 120, 120, 160),
-                              },
-
-                              .label
-                              {
-                                  .text = u8"隐藏",
-                                  .font{.id = 1, .size = 12},
-                              },
+                              .box{.w = 14, .h = 14, .color = colorf::RGBA(231, 120, 120, 160)},
+                              .label{.text = u8"隐藏"},
 
                               .getter = [this]{ return (m_configBoard->dropItemRule(m_itemID) & DIRF_FILTER) != 0; },
                               .setter = [this](bool value){ m_configBoard->setDropItemRule(m_itemID, DIRF_FILTER, value); },
