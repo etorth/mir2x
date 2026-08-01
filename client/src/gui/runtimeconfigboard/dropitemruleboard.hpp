@@ -2,7 +2,6 @@
 #include <cstdint>
 #include "widget.hpp"
 #include "itembox.hpp"
-#include "gfxshapeboard.hpp"
 #include "scrollcontainer.hpp"
 
 class RuntimeConfigBoard;
@@ -18,10 +17,7 @@ class DropItemRuleBoard final: public Widget
         RuntimeConfigBoard *m_configBoard = nullptr;
 
     private:
-        GfxShapeBoard m_listBg;
-
-    private:
-        ItemBox m_itemBox;
+        ItemBox         m_itemBox;   // external content — referenced by m_scroll, not a tree child
         ScrollContainer m_scroll;
 
     public:

@@ -16,21 +16,6 @@ DropItemRuleBoard::DropItemRuleBoard(RuntimeConfigBoard *configBoard)
       }}
 
     , m_configBoard(configBoard)
-    , m_listBg
-      {{
-          .x = m_listX,
-          .y = m_listY,
-          .w = m_listW,
-          .h = m_listH,
-
-          .drawFunc = [](const Widget *self, int drawDstX, int drawDstY)
-          {
-              g_sdlDevice->fillRectangle(colorf::RGBA(  0,   0,   0,  60), drawDstX, drawDstY, self->w(), self->h(), 6);
-              g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 100), drawDstX, drawDstY, self->w(), self->h(), 6);
-          },
-
-          .parent{this},
-      }}
 
     , m_itemBox
       {{
@@ -52,6 +37,11 @@ DropItemRuleBoard::DropItemRuleBoard(RuntimeConfigBoard *configBoard)
           .getter = std::addressof(m_itemBox),
 
           .hScroll = false,  // ItemBox is fixed-width and never overflows horizontally
+
+          .fgDrawFunc = [](const Widget *self, int drawDstX, int drawDstY)
+          {
+              g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 100), drawDstX, drawDstY, self->w(), self->h());
+          },
 
           .parent{this},
       }}

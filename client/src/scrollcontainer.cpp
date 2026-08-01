@@ -37,6 +37,9 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
                           Widget::VarSize([this]{ return viewportH(); })
                       ),
 
+                      .bgDrawFunc = std::move(args.bgDrawFunc),
+                      .fgDrawFunc = std::move(args.fgDrawFunc),
+
                       .attrs
                       {
                           .inst

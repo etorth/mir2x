@@ -29,6 +29,9 @@ class ScrollContainer: public Widget
             int minThumbSize = 20; // px min thumb length
             int scrollStep   = 24; // px per wheel notch / arrow click
 
+            Widget::VarDrawFunc bgDrawFunc = nullptr; // painted under the content, inside the viewport rect
+            Widget::VarDrawFunc fgDrawFunc = nullptr; // painted over  the content, inside the viewport rect (below the scrollbars)
+
             Widget::VarU32 bgColor         = 0u; // 0 = don't fill
             Widget::VarU32 trackColor      = colorf::RGBA(232, 232, 232, 255);
             Widget::VarU32 thumbColor      = colorf::RGBA(176, 176, 176, 255);
