@@ -145,7 +145,6 @@ class ScrollContainer: public Widget
         void setVScroll(Widget::VarBool arg) { m_vScroll = std::move(arg); }
 
     public:
-        void drawDefault(Widget::ROIMap) const override;
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     private:

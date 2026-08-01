@@ -4,6 +4,7 @@
 #include "totype.hpp"
 #include "colorf.hpp"
 #include "sdldevice.hpp"
+#include "gfxshapeboard.hpp"
 #include "scrollcontainer.hpp"
 
 extern SDLDevice *g_sdlDevice;
@@ -57,7 +58,6 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
           .y = 0,
 
           .getter = std::move(args.getter),
-
           .vr = Widget::VarROI
           (
               Widget::VarInt ([this]{ return m_scrollX;   }),
@@ -97,10 +97,101 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     , m_arrowColor(std::move(args.arrowColor))
     , m_arrowBoxColor(std::move(args.arrowBoxColor))
 {
-    fflassert(m_canvas);
-    fflassert(m_viewport);
-
     m_canvas->addChild(m_viewport, true);
+    m_canvas->addChild(new GfxShapeBoard
+    {{
+        .w = [this]{ return m_canvas->w(); },
+        .h = [this]{ return m_canvas->h(); },
+
+        .drawFunc = [this](const Widget *, int drawDstX, int drawDstY)
+        {
+            const auto fnFillRectangle = [drawDstX, drawDstY](uint32_t color, const Widget::ROI &r)
+            {
+                if(!r.empty()){
+                    g_sdlDevice->fillRectangle(color, drawDstX + r.x, drawDstY + r.y, r.w, r.h);
+                }
+            };
+
+            const auto fnFillTriangle = [drawDstX, drawDstY](uint32_t color, int x0, int y0, int x1, int y1, int x2, int y2)
+            {
+                g_sdlDevice->fillTriangle(color, drawDstX + x0, drawDstY + y0, drawDstX + x1, drawDstY + y1, drawDstX + x2, drawDstY + y2);
+            };
+
+            const auto vBar = vBarROI();
+            const auto hBar = hBarROI();
+
+            if(!vBar.empty()){
+                fnFillRectangle(Widget::evalU32(m_trackColor, this), vTrackROI());
+
+                const auto up     = vUpArrowROI();
+                const auto down = vDownArrowROI();
+
+                const auto arrowColor    = Widget::evalU32(m_arrowColor   , this);
+                const auto arrowBoxColor = Widget::evalU32(m_arrowBoxColor, this);
+
+                fnFillRectangle(arrowBoxColor, up);
+                fnFillRectangle(arrowBoxColor, down);
+
+                if(!up.empty()){
+                    const int inset = std::max<int>(3, up.w / 4);
+                    fnFillTriangle(arrowColor,
+                            up.x + up.w / 2    , up.y        + inset,
+                            up.x        + inset, up.y + up.h - inset,
+                            up.x + up.w - inset, up.y + up.h - inset);
+                }
+
+                if(!down.empty()){
+                    const int inset = std::max<int>(3, down.w / 4);
+                    fnFillTriangle(arrowColor,
+                            down.x          + inset , down.y          + inset,
+                            down.x + down.w - inset , down.y          + inset,
+                            down.x + down.w / 2     , down.y + down.h - inset);
+                }
+
+                const uint32_t thumbColor = (m_drag == DRAG_V_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
+                                                                     : Widget::evalU32(m_thumbColor    , this);
+                fnFillRectangle(thumbColor, vThumbROI());
+            }
+
+            if(!hBar.empty()){
+                fnFillRectangle(Widget::evalU32(m_trackColor, this), hTrackROI());
+
+                const auto left  =  hLeftArrowROI();
+                const auto right = hRightArrowROI();
+
+                const auto arrowColor    = Widget::evalU32(m_arrowColor   , this);
+                const auto arrowBoxColor = Widget::evalU32(m_arrowBoxColor, this);
+
+                fnFillRectangle(arrowBoxColor, left);
+                fnFillRectangle(arrowBoxColor, right);
+
+                if(!left.empty()){
+                    const int inset = std::max<int>(3, left.h / 4);
+                    fnFillTriangle(arrowColor,
+                            left.x          + inset, left.y + left.h / 2,
+                            left.x + left.w - inset, left.y          + inset,
+                            left.x + left.w - inset, left.y + left.h - inset);
+                }
+
+                if(!right.empty()){
+                    const int inset = std::max<int>(3, right.h / 4);
+                    fnFillTriangle(arrowColor,
+                            right.x           + inset, right.y           + inset,
+                            right.x           + inset, right.y + right.h - inset,
+                            right.x + right.w - inset, right.y + right.h / 2);
+                }
+
+                const uint32_t thumbColor = (m_drag == DRAG_H_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
+                                                                     : Widget::evalU32(m_thumbColor    , this);
+                fnFillRectangle(thumbColor, hThumbROI());
+            }
+
+            if(!vBar.empty() && !hBar.empty()){
+                g_sdlDevice->fillRectangle(Widget::evalU32(m_trackColor, this), drawDstX + vBar.x, drawDstY + hBar.y, vBar.w, hBar.h);
+            }
+        },
+    }}, true);
+
     m_canvas->setSize([this]{ return viewportW() + (vBarEnabled() ? m_barSize : 0); },
                       [this]{ return viewportH() + (hBarEnabled() ? m_barSize : 0); });
 }
@@ -263,111 +354,6 @@ Widget::ROI ScrollContainer::hThumbROI() const
     const int offset = maxScroll > 0 ? (track.w - thumbW) * m_scrollX / maxScroll : 0;
 
     return Widget::ROI{track.x + offset, track.y, thumbW, track.h};
-}
-
-void ScrollContainer::drawDefault(Widget::ROIMap m) const
-{
-    if(!m.calibrate(this)){
-        return;
-    }
-
-    Widget::drawDefault(m);
-
-    const SDLDeviceHelper::EnableRenderCropRectangle enableClip(m.x, m.y, m.ro->w, m.ro->h);
-    const int sX = m.x - m.ro->x;
-    const int sY = m.y - m.ro->y;
-
-    const auto drawFillLocal = [sX, sY](uint32_t color, const Widget::ROI &r)
-    {
-        if(!r.empty()){
-            g_sdlDevice->fillRectangle(color, sX + r.x, sY + r.y, r.w, r.h);
-        }
-    };
-
-    const auto drawTriangleLocal = [sX, sY](uint32_t color, int x0, int y0, int x1, int y1, int x2, int y2)
-    {
-        g_sdlDevice->fillTriangle(color,
-            sX + x0, sY + y0,
-            sX + x1, sY + y1,
-            sX + x2, sY + y2);
-    };
-
-    const auto vBar = vBarROI();
-    const auto hBar = hBarROI();
-
-    if(!vBar.empty()){
-        drawFillLocal(Widget::evalU32(m_trackColor, this), vTrackROI());
-
-        const auto up = vUpArrowROI();
-        const auto down = vDownArrowROI();
-
-        const auto arrowColor = Widget::evalU32(m_arrowColor, this);
-        const auto arrowBoxColor = Widget::evalU32(m_arrowBoxColor, this);
-
-        drawFillLocal(arrowBoxColor, up);
-        drawFillLocal(arrowBoxColor, down);
-
-        if(!up.empty()){
-            const int cx    = up.x + up.w / 2;
-            const int inset = std::max<int>(3, up.w / 4);
-            drawTriangleLocal(arrowColor,
-                cx                , up.y + inset,
-                up.x + inset      , up.y + up.h - inset,
-                up.x + up.w - inset, up.y + up.h - inset);
-        }
-        if(!down.empty()){
-            const int cx    = down.x + down.w / 2;
-            const int inset = std::max<int>(3, down.w / 4);
-            drawTriangleLocal(arrowColor,
-                down.x + inset          , down.y + inset,
-                down.x + down.w - inset , down.y + inset,
-                cx                      , down.y + down.h - inset);
-        }
-
-        const uint32_t thumbColor = (m_drag == DRAG_V_THUMB)
-            ? Widget::evalU32(m_thumbDragColor , this)
-            : Widget::evalU32(m_thumbColor     , this);
-        drawFillLocal(thumbColor, vThumbROI());
-    }
-
-    if(!hBar.empty()){
-        drawFillLocal(Widget::evalU32(m_trackColor, this), hTrackROI());
-
-        const auto left = hLeftArrowROI();
-        const auto right = hRightArrowROI();
-
-        const auto arrowColor = Widget::evalU32(m_arrowColor, this);
-        const auto arrowBoxColor = Widget::evalU32(m_arrowBoxColor, this);
-
-        drawFillLocal(arrowBoxColor, left);
-        drawFillLocal(arrowBoxColor, right);
-
-        if(!left.empty()){
-            const int cy    = left.y + left.h / 2;
-            const int inset = std::max<int>(3, left.h / 4);
-            drawTriangleLocal(arrowColor,
-                left.x + inset          , cy,
-                left.x + left.w - inset , left.y + inset,
-                left.x + left.w - inset , left.y + left.h - inset);
-        }
-        if(!right.empty()){
-            const int cy    = right.y + right.h / 2;
-            const int inset = std::max<int>(3, right.h / 4);
-            drawTriangleLocal(arrowColor,
-                right.x + inset            , right.y + inset,
-                right.x + inset            , right.y + right.h - inset,
-                right.x + right.w - inset  , cy);
-        }
-
-        const uint32_t thumbColor = (m_drag == DRAG_H_THUMB)
-            ? Widget::evalU32(m_thumbDragColor , this)
-            : Widget::evalU32(m_thumbColor     , this);
-        drawFillLocal(thumbColor, hThumbROI());
-    }
-
-    if(!vBar.empty() && !hBar.empty()){
-        g_sdlDevice->fillRectangle(Widget::evalU32(m_trackColor, this), sX + vBar.x, sY + hBar.y, vBar.w, hBar.h);
-    }
 }
 
 bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
