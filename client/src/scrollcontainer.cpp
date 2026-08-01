@@ -73,7 +73,6 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     , m_minThumbSize(args.minThumbSize)
     , m_scrollStep  (args.scrollStep)
 
-    , m_bgColor        (std::move(args.bgColor))
     , m_trackColor     (std::move(args.trackColor))
     , m_thumbColor     (std::move(args.thumbColor))
     , m_thumbHoverColor(std::move(args.thumbHoverColor))
@@ -272,15 +271,11 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         return;
     }
 
-    // 1. optional background fill (over the visible slice of our rect)
-    if(const auto bg = Widget::evalU32(m_bgColor, this); bg){
-        g_sdlDevice->fillRectangle(bg, m.x, m.y, m.ro->w, m.ro->h);
-    }
-
-    // 2. viewport child — the standard tree draw handles the child's own crop
+    // 1. viewport child — the standard tree draw handles the child's own crop.
+    //    (background painting is done inside the viewport via GfxCropBoard's bgDrawFunc.)
     Widget::drawDefault(m);
 
-    // 3. draw scrollbar chrome clipped to our visible rect (respects any outer cropping via m.ro)
+    // 2. draw scrollbar chrome clipped to our visible rect (respects any outer cropping via m.ro)
     const SDLDeviceHelper::EnableRenderCropRectangle enableClip(m.x, m.y, m.ro->w, m.ro->h);
     const int sX = m.x - m.ro->x;   // screen coord of our local (0, 0)
     const int sY = m.y - m.ro->y;
@@ -305,7 +300,7 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
     const auto vBar = vBarROI();
     const auto hBar = hBarROI();
 
-    // 3. vertical scrollbar
+    // 2a. vertical scrollbar
     if(!vBar.empty()){
         drawFillLocal(Widget::evalU32(m_trackColor, this), vTrackROI());
 
@@ -340,7 +335,7 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         drawFillLocal(thumbColor, vThumbROI());
     }
 
-    // 4. horizontal scrollbar
+    // 2b. horizontal scrollbar
     if(!hBar.empty()){
         drawFillLocal(Widget::evalU32(m_trackColor, this), hTrackROI());
 
@@ -375,7 +370,7 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         drawFillLocal(thumbColor, hThumbROI());
     }
 
-    // 5. corner square (where both bars meet), fill with track color
+    // 2c. corner square (where both bars meet), fill with track color
     if(!vBar.empty() && !hBar.empty()){
         g_sdlDevice->fillRectangle(Widget::evalU32(m_trackColor, this),
             sX + vBar.x, sY + hBar.y, vBar.w, hBar.h);
