@@ -938,3 +938,8 @@ void ProcessRun::on_SM_ADDFRIENDREJECTED(const uint8_t *buf, size_t bufSize)
 {
     dynamic_cast<FriendChatBoard *>(getWidget("FriendChatBoard"))->onAddFriendRejected(cerealf::deserialize<SDChatPeer>(buf, bufSize));
 }
+
+void ProcessRun::on_SM_RANKINGLIST(const uint8_t *buf, size_t bufSize)
+{
+    dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->setRankingList(cerealf::deserialize<SDRankingList>(buf, bufSize));
+}

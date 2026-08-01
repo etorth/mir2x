@@ -1,4 +1,5 @@
 #include <cinttypes>
+#include "dbpod.hpp"
 #include "uidsf.hpp"
 #include "player.hpp"
 #include "message.hpp"
@@ -7,6 +8,7 @@
 #include "dbcomid.hpp"
 #include "serverargparser.hpp"
 
+extern DBPod *g_dbPod;
 extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
 {
@@ -1156,6 +1158,35 @@ corof::awaitable<> Player::net_CM_REQUESTLATESTCHATMESSAGE(uint8_t, const uint8_
         postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(dbRetrieveLatestChatMessage(as_span(cmRLCM.cpidList.data, cmRLCM.cpidList.size), cmRLCM.limitCount, cmRLCM.includeSend, cmRLCM.includeRecv)));
     }
 
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_QUERYRANKING(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmQR = ClientMsg::conv<CMQueryRanking>(buf);
+    fflassert(cmQR.type < RANKING_END, cmQR.type);
+
+    SDRankingList sdRL;
+    sdRL.type = cmQR.type;
+
+    constexpr int limit = 100;
+    const char *orderBy = (cmQR.type == RANKING_GOLD) ? "fld_gold" : "fld_exp";
+
+    auto query = g_dbPod->createQuery(
+        u8R"###( select fld_dbid, fld_name, fld_exp, fld_gold from tbl_char order by %s desc limit %d )###",
+        orderBy, limit);
+
+    while(query.executeStep()){
+        sdRL.entries.push_back(SDRankingEntry
+        {
+            .dbid  = check_cast<uint32_t>(query.getColumn("fld_dbid").getInt64()),
+            .level = to_u32(SYS_LEVEL(check_cast<size_t>(query.getColumn("fld_exp").getInt64()))),
+            .gold  = check_cast<uint32_t>(query.getColumn("fld_gold").getInt64()),
+            .name  = query.getColumn("fld_name").getString(),
+        });
+    }
+
+    postNetMessage(SM_RANKINGLIST, cerealf::serialize(sdRL));
     return {};
 }
 

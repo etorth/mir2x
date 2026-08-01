@@ -64,6 +64,7 @@ enum CMType: uint8_t
     CM_REQUESTJOINTEAM,
     CM_REQUESTLEAVETEAM,
     CM_REQUESTLATESTCHATMESSAGE,
+    CM_QUERYRANKING,
     CM_END,
 };
 
@@ -328,6 +329,11 @@ struct CMRequestLatestChatMessage
     uint32_t includeRecv :  1;
 };
 
+struct CMQueryRanking
+{
+    uint8_t type;
+};
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -394,6 +400,7 @@ namespace
         _RSVD_register_clientmsg(CM_REQUESTJOINTEAM,            1, sizeof(CMRequestJoinTeam)           );
         _RSVD_register_clientmsg(CM_REQUESTLEAVETEAM,           1, sizeof(CMRequestLeaveTeam)          );
         _RSVD_register_clientmsg(CM_REQUESTLATESTCHATMESSAGE,   1, sizeof(CMRequestLatestChatMessage)  );
+        _RSVD_register_clientmsg(CM_QUERYRANKING,               2, sizeof(CMQueryRanking)              );
 
 #undef _RSVD_register_clientmsg
         return result;

@@ -86,6 +86,7 @@ enum SMType: uint8_t
     SM_CHATMESSAGELIST,
     SM_PLAYERSAY,
     SM_PLAYERBROADCAST,
+    SM_RANKINGLIST,
     SM_END,
 };
 
@@ -452,6 +453,7 @@ namespace
         _RSVD_register_servermsg(SM_CHATMESSAGELIST,     3                               );
         _RSVD_register_servermsg(SM_PLAYERSAY,           1, sizeof(SMPlayerSay)          );
         _RSVD_register_servermsg(SM_PLAYERBROADCAST,     1, sizeof(SMPlayerBroadcast)    );
+        _RSVD_register_servermsg(SM_RANKINGLIST,         3                               );
 
 #undef _RSVD_register_servermsg
         return result;

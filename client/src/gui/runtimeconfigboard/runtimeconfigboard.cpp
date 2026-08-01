@@ -72,8 +72,15 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                           {u8"系统", &m_pageSystem},
                           {u8"社交", &m_pageSocial},
                           {u8"游戏", &m_pageGameConfig},
+                          {u8"排名", &m_pageRanking},
                       }){
-                          page->setShow(to_sv(id) == to_cstr(label));
+                          page->setShow(to_sv(id) == to_rawcstr(label));
+                      }
+
+                      if(to_sv(id) == to_rawcstr(u8"排名")){
+                          for(const auto type: {RANKING_LEVEL, RANKING_GOLD}){
+                              g_client->send({CM_QUERYRANKING, CMQueryRanking{.type = static_cast<uint8_t>(type)}});
+                          }
                       }
                   }
               }
@@ -497,6 +504,27 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           false,
       }
 
+    , m_rankLevel(RANKING_LEVEL)
+    , m_rankGold (RANKING_GOLD)
+
+    , m_pageRanking
+      {
+          DIR_UPLEFT,
+          m_leftMenuBackground.dx() + m_leftMenuBackground.w() + 30,
+          m_leftMenuBackground.dy() + 10,
+
+          w() - (m_leftMenuBackground.dx() + m_leftMenuBackground.w() + 30) - 50,
+          20,
+
+          {
+              {u8"等级", &m_rankLevel, false},
+              {u8"金币", &m_rankGold , false},
+          },
+
+          this,
+          false,
+      }
+
     , m_processRun([proc]()
       {
           fflassert(proc); return proc;
@@ -508,6 +536,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
         R"###(     <par><event id="社交">社 交</event></par><par></par> )###""\n"
         R"###(     <par><event id="网络">网 络</event></par><par></par> )###""\n"
         R"###(     <par><event id="游戏">游 戏</event></par><par></par> )###""\n"
+        R"###(     <par><event id="排名">排 名</event></par><par></par> )###""\n"
         R"###(     <par><event id="帮助">帮 助</event></par><par></par> )###""\n"
         R"###( </layout>                                                )###""\n"
     );
@@ -524,6 +553,7 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
     m_pageSystem.setShow(true);
     m_pageSocial.setShow(false);
     m_pageGameConfig.setShow(false);
+    m_pageRanking.setShow(false);
 
     setShow(false);
 }
@@ -538,6 +568,7 @@ void RuntimeConfigBoard::drawDefault(Widget::ROIMap m) const
         static_cast<const Widget *>(&m_pageSystem),
         static_cast<const Widget *>(&m_pageSocial),
         static_cast<const Widget *>(&m_pageGameConfig),
+        static_cast<const Widget *>(&m_pageRanking),
     }){
         if(p->show()){
             drawChild(p, m);
@@ -560,6 +591,7 @@ bool RuntimeConfigBoard::processEventDefault(const SDL_Event &event, bool valid,
     if(m_pageSystem    .processEventParent(event, valid, m)){ return true; }
     if(m_pageSocial    .processEventParent(event, valid, m)){ return true; }
     if(m_pageGameConfig.processEventParent(event, valid, m)){ return true; }
+    if(m_pageRanking   .processEventParent(event, valid, m)){ return true; }
 
     switch(event.type){
         case SDL_EVENT_KEY_DOWN:
@@ -609,6 +641,15 @@ void RuntimeConfigBoard::setConfig(const SDRuntimeConfig &config)
 
     updateWindowSize(SDRuntimeConfig_getConfig<RTCFG_WINDOWSIZE>(m_sdRuntimeConfig), false);
     updateIME(SDRuntimeConfig_getConfig<RTCFG_IME>(m_sdRuntimeConfig), false);
+}
+
+void RuntimeConfigBoard::setRankingList(const SDRankingList &rankingList)
+{
+    switch(rankingList.type){
+        case RANKING_GOLD : m_rankGold .setRankingList(rankingList); break;
+        case RANKING_LEVEL: m_rankLevel.setRankingList(rankingList); break;
+        default: break;
+    }
 }
 
 void RuntimeConfigBoard::applyAudioConfig()

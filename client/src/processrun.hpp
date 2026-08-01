@@ -270,6 +270,7 @@ class ProcessRun: public Process
         _support_sm(SM_CREATECHATGROUP);
         _support_sm(SM_ADDFRIENDACCEPTED);
         _support_sm(SM_ADDFRIENDREJECTED);
+        _support_sm(SM_RANKINGLIST);
 #undef _support_sm
 
     public:

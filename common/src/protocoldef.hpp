@@ -442,6 +442,13 @@ enum DropItemRuleFlag: uint32_t
     DIRF_FILTER    = 1U << 1,
 };
 
+enum RankingType: uint8_t
+{
+    RANKING_LEVEL = 0,
+    RANKING_GOLD  = 1,
+    RANKING_END,
+};
+
 template<typename... Ts> struct VarDispatcher: Ts...
 {
     using Ts::operator()...;

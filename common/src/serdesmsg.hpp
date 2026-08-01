@@ -1190,3 +1190,28 @@ struct SDQuestDespUpdate
 };
 
 using SDQuestDespList = std::unordered_map<std::string, std::unordered_map<std::string, std::string>>; // sdQDL[quest][fsm] = desp
+
+struct SDRankingEntry
+{
+    uint32_t  dbid  = 0;
+    uint32_t  level = 0;
+    uint32_t  gold  = 0;
+
+    std::string name {};
+
+    template<typename Archive> void serialize(Archive &ar)
+    {
+        ar(dbid, level, gold, name);
+    }
+};
+
+struct SDRankingList
+{
+    uint8_t type = 0;
+    std::vector<SDRankingEntry> entries {};
+
+    template<typename Archive> void serialize(Archive &ar)
+    {
+        ar(type, entries);
+    }
+};

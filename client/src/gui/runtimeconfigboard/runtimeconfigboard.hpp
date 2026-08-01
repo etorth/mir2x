@@ -22,6 +22,7 @@
 #include "sdruntimeconfig.hpp"
 #include "labelsliderbar.hpp"
 #include "menupage.hpp"
+#include "rankinglistboard.hpp"
 
 class ProcessRun;
 class RuntimeConfigBoard: public Widget
@@ -54,6 +55,11 @@ class RuntimeConfigBoard: public Widget
         MenuPage m_pageGameConfig;
 
     private:
+        RankingListBoard m_rankLevel;
+        RankingListBoard m_rankGold;
+        MenuPage m_pageRanking;
+
+    private:
         ProcessRun *m_processRun;
 
     public:
@@ -82,6 +88,7 @@ class RuntimeConfigBoard: public Widget
 
     public:
         void setConfig(const SDRuntimeConfig &);
+        void setRankingList(const SDRankingList &);
 
     public:
         const SDRuntimeConfig &getConfig() const
