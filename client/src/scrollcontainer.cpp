@@ -268,16 +268,12 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         return;
     }
 
-    // 1. viewport child — the standard tree draw handles the child's own crop.
-    //    (background painting is done inside the viewport via GfxCropBoard's bgDrawFunc.)
     Widget::drawDefault(m);
 
-    // 2. draw scrollbar chrome clipped to our visible rect (respects any outer cropping via m.ro)
     const SDLDeviceHelper::EnableRenderCropRectangle enableClip(m.x, m.y, m.ro->w, m.ro->h);
-    const int sX = m.x - m.ro->x;   // screen coord of our local (0, 0)
+    const int sX = m.x - m.ro->x;
     const int sY = m.y - m.ro->y;
 
-    // helper: draw a filled ROI whose coords are in our local space
     const auto drawFillLocal = [sX, sY](uint32_t color, const Widget::ROI &r)
     {
         if(!r.empty()){
@@ -285,7 +281,6 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         }
     };
 
-    // helper: draw a filled triangle whose vertices are in our local space
     const auto drawTriangleLocal = [sX, sY](uint32_t color, int x0, int y0, int x1, int y1, int x2, int y2)
     {
         g_sdlDevice->fillTriangle(color,
@@ -297,7 +292,6 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
     const auto vBar = vBarROI();
     const auto hBar = hBarROI();
 
-    // 2a. vertical scrollbar
     if(!vBar.empty()){
         drawFillLocal(Widget::evalU32(m_trackColor, this), vTrackROI());
 
@@ -333,7 +327,6 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         drawFillLocal(thumbColor, vThumbROI());
     }
 
-    // 2b. horizontal scrollbar
     if(!hBar.empty()){
         drawFillLocal(Widget::evalU32(m_trackColor, this), hTrackROI());
 
@@ -369,10 +362,8 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         drawFillLocal(thumbColor, hThumbROI());
     }
 
-    // 2c. corner square (where both bars meet), fill with track color
     if(!vBar.empty() && !hBar.empty()){
-        g_sdlDevice->fillRectangle(Widget::evalU32(m_trackColor, this),
-            sX + vBar.x, sY + hBar.y, vBar.w, hBar.h);
+        g_sdlDevice->fillRectangle(Widget::evalU32(m_trackColor, this), sX + vBar.x, sY + hBar.y, vBar.w, hBar.h);
     }
 }
 
