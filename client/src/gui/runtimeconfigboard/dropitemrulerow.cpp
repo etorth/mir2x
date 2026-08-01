@@ -1,5 +1,8 @@
 #include "colorf.hpp"
 #include "dbcomid.hpp"
+#include "itembox.hpp"
+#include "checklabel.hpp"
+#include "labelboard.hpp"
 #include "sdldevice.hpp"
 #include "dropitemrulerow.hpp"
 #include "runtimeconfigboard.hpp"
@@ -12,8 +15,8 @@ DropItemRuleRow::DropItemRuleRow(Widget::VarSize argW, RuntimeConfigBoard *confi
           .h = 22,
       }}
 
-    , m_configBoard(configBoard)
-    , m_itemID(itemID)
+    , m_configBoard(fflcheck(configBoard))
+    , m_itemID(fflcheck(itemID, DBCOM_ITEMRECORD(itemID)))
 
     , m_bg
       {{
@@ -23,68 +26,91 @@ DropItemRuleRow::DropItemRuleRow(Widget::VarSize argW, RuntimeConfigBoard *confi
           .drawFunc = [this](const Widget *, int drawDstX, int drawDstY)
           {
               const auto rule = m_configBoard->dropItemRule(m_itemID);
-              if     (rule & DIRF_HIGHLIGHT){ g_sdlDevice->fillRectangle(colorf::RGBA(255, 255, 0, 45), drawDstX, drawDstY, w(), h(), 3); }
-              else if(rule & DIRF_FILTER   ){ g_sdlDevice->fillRectangle(colorf::RGBA(255,   0, 0, 35), drawDstX, drawDstY, w(), h(), 3); }
+              if     (rule & DIRF_HIGHLIGHT){ g_sdlDevice->fillRectangle(colorf::RGBA(255, 255, 0, 45), drawDstX, drawDstY, w(), h()); }
+              else if(rule & DIRF_FILTER   ){ g_sdlDevice->fillRectangle(colorf::RGBA(255,   0, 0, 35), drawDstX, drawDstY, w(), h()); }
           },
           .parent{this},
       }}
 
-    , m_name
+    , m_pair
       {{
-          .x = 0,
-          .y = 3,
-          .label = DBCOM_ITEMRECORD(itemID).name,
+          .dir = DIR_LEFT,
+          .y   = [this]{ return h() / 2; },
 
-          .font
+          .flex = [this]{ return w(); },
+
+          .v = false,
+          .align = ItemAlign::CENTER,
+
+          .first
           {
-              .id = 1,
-              .size = 12,
-              .color = colorf::WHITE_A255,
+              .widget = new LabelBoard
+              {{
+                  .label = DBCOM_ITEMRECORD(itemID).name,
+                  .font
+                  {
+                      .id = 1,
+                      .size = 12,
+                      .color = colorf::WHITE_A255,
+                  },
+              }},
+              .autoDelete = true,
           },
+
+          .second
+          {
+              .widget = new ItemBox
+              {{
+                  .v = false,
+                  .align = ItemAlign::CENTER,
+                  .itemSpace = 10,
+
+                  .childList
+                  {
+                      {
+                          new CheckLabel
+                          {{
+                              .gap = 3,
+                              .box{.w = 14, .h = 14},
+
+                              .label
+                              {
+                                  .text = u8"高亮",
+                                  .font{.id = 1, .size = 12},
+                              },
+
+                              .getter = [this]{ return (m_configBoard->dropItemRule(m_itemID) & DIRF_HIGHLIGHT) != 0; },
+                              .setter = [this](bool value){ m_configBoard->setDropItemRule(m_itemID, DIRF_HIGHLIGHT, value); },
+                          }},
+                          true,
+                      },
+                      {
+                          new CheckLabel
+                          {{
+                              .gap = 3,
+                              .box
+                              {
+                                  .w = 14,
+                                  .h = 14,
+                                  .color = colorf::RGBA(231, 120, 120, 160),
+                              },
+
+                              .label
+                              {
+                                  .text = u8"隐藏",
+                                  .font{.id = 1, .size = 12},
+                              },
+
+                              .getter = [this]{ return (m_configBoard->dropItemRule(m_itemID) & DIRF_FILTER) != 0; },
+                              .setter = [this](bool value){ m_configBoard->setDropItemRule(m_itemID, DIRF_FILTER, value); },
+                          }},
+                          true,
+                      },
+                  },
+              }},
+              .autoDelete = true,
+          },
+
           .parent{this},
       }}
-
-    , m_highlight
-      {{
-          .x = 240,
-          .y = 2,
-          .gap = 3,
-          .box{.w = 14, .h = 14},
-
-          .label
-          {
-              .text = u8"高亮",
-              .font{.id = 1, .size = 12},
-          },
-
-          .getter = [this]{ return (m_configBoard->dropItemRule(m_itemID) & DIRF_HIGHLIGHT) != 0; },
-          .setter = [this](bool value){ m_configBoard->setDropItemRule(m_itemID, DIRF_HIGHLIGHT, value); },
-          .parent{this},
-      }}
-
-    , m_filter
-      {{
-          .x = 304,
-          .y = 2,
-          .gap = 3,
-          .box
-          {
-              .w = 14,
-              .h = 14,
-              .color = colorf::RGBA(231, 120, 120, 160),
-          },
-
-          .label
-          {
-              .text = u8"隐藏",
-              .font{.id = 1, .size = 12},
-          },
-
-          .getter = [this]{ return (m_configBoard->dropItemRule(m_itemID) & DIRF_FILTER) != 0; },
-          .setter = [this](bool value){ m_configBoard->setDropItemRule(m_itemID, DIRF_FILTER, value); },
-          .parent{this},
-      }}
-{
-    fflassert(m_configBoard);
-    fflassert(DBCOM_ITEMRECORD(m_itemID), m_itemID);
-}
+{}

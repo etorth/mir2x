@@ -1,8 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "widget.hpp"
-#include "checklabel.hpp"
-#include "labelboard.hpp"
+#include "itempair.hpp"
 #include "gfxshapeboard.hpp"
 
 class RuntimeConfigBoard;
@@ -15,12 +14,10 @@ class DropItemRuleRow final: public Widget
         const uint32_t m_itemID = 0;
 
     private:
-        GfxShapeBoard m_bg;
+        GfxShapeBoard m_bg;   // background tint reflecting the current rule
 
     private:
-        LabelBoard m_name;
-        CheckLabel m_highlight;
-        CheckLabel m_filter;
+        ItemPair m_pair;      // left: item name label; right: horizontal ItemBox of CheckLabels
 
     public:
         DropItemRuleRow(Widget::VarSize, RuntimeConfigBoard *, uint32_t);
