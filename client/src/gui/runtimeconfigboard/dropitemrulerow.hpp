@@ -23,5 +23,5 @@ class DropItemRuleRow final: public Widget
         CheckLabel m_filter;
 
     public:
-        DropItemRuleRow(RuntimeConfigBoard *, uint32_t);
+        DropItemRuleRow(Widget::VarSize, RuntimeConfigBoard *, uint32_t);
 };

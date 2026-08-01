@@ -5,10 +5,10 @@
 #include "runtimeconfigboard.hpp"
 
 extern SDLDevice *g_sdlDevice;
-DropItemRuleRow::DropItemRuleRow(RuntimeConfigBoard *configBoard, uint32_t itemID)
+DropItemRuleRow::DropItemRuleRow(Widget::VarSize argW, RuntimeConfigBoard *configBoard, uint32_t itemID)
     : Widget
       {{
-          .w = 410,
+          .w = std::move(argW),
           .h = 22,
       }}
 
