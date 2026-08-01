@@ -28,12 +28,14 @@ class ScrollContainer: public Widget
             Widget::VarDrawFunc bgDrawFunc = nullptr; // painted under the content, inside the viewport rect
             Widget::VarDrawFunc fgDrawFunc = nullptr; // painted over  the content, inside the viewport rect (below the scrollbars)
 
-            Widget::VarU32 trackColor      = colorf::RGBA(232, 232, 232, 255);
+            Widget::VarU32 trackColor = colorf::RGBA(232, 232, 232, 255);
+
             Widget::VarU32 thumbColor      = colorf::RGBA(176, 176, 176, 255);
             Widget::VarU32 thumbHoverColor = colorf::RGBA(144, 144, 144, 255);
             Widget::VarU32 thumbDragColor  = colorf::RGBA(112, 112, 112, 255);
-            Widget::VarU32 arrowBoxColor   = colorf::RGBA(232, 232, 232, 255);
-            Widget::VarU32 arrowColor      = colorf::RGBA( 96,  96,  96, 255);
+
+            Widget::VarU32 arrowColor    = colorf::RGBA( 96,  96,  96, 255);
+            Widget::VarU32 arrowBoxColor = colorf::RGBA(232, 232, 232, 255);
 
             Widget::InstAttrs attrs  {};
             Widget::WADPair   parent {};
@@ -61,11 +63,15 @@ class ScrollContainer: public Widget
 
     private:
         Widget::VarU32 m_trackColor;
+
+    private:
         Widget::VarU32 m_thumbColor;
         Widget::VarU32 m_thumbHoverColor;
         Widget::VarU32 m_thumbDragColor;
-        Widget::VarU32 m_arrowBoxColor;
+
+    private:
         Widget::VarU32 m_arrowColor;
+        Widget::VarU32 m_arrowBoxColor;
 
     private:
         int m_scrollX = 0;

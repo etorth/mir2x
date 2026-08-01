@@ -73,12 +73,14 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     , m_minThumbSize(args.minThumbSize)
     , m_scrollStep  (args.scrollStep)
 
-    , m_trackColor     (std::move(args.trackColor))
-    , m_thumbColor     (std::move(args.thumbColor))
+    , m_trackColor(std::move(args.trackColor))
+
+    , m_thumbColor(std::move(args.thumbColor))
     , m_thumbHoverColor(std::move(args.thumbHoverColor))
-    , m_thumbDragColor (std::move(args.thumbDragColor))
-    , m_arrowBoxColor  (std::move(args.arrowBoxColor))
-    , m_arrowColor     (std::move(args.arrowColor))
+    , m_thumbDragColor(std::move(args.thumbDragColor))
+
+    , m_arrowColor(std::move(args.arrowColor))
+    , m_arrowBoxColor(std::move(args.arrowBoxColor))
 {
     fflassert(m_viewport);
 }
@@ -304,18 +306,19 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
     if(!vBar.empty()){
         drawFillLocal(Widget::evalU32(m_trackColor, this), vTrackROI());
 
-        const auto up   = vUpArrowROI();
+        const auto up = vUpArrowROI();
         const auto down = vDownArrowROI();
-        const auto arrowBox = Widget::evalU32(m_arrowBoxColor, this);
-        const auto arrowCol = Widget::evalU32(m_arrowColor   , this);
 
-        drawFillLocal(arrowBox, up);
-        drawFillLocal(arrowBox, down);
+        const auto arrowColor = Widget::evalU32(m_arrowColor, this);
+        const auto arrowBoxColor = Widget::evalU32(m_arrowBoxColor, this);
+
+        drawFillLocal(arrowBoxColor, up);
+        drawFillLocal(arrowBoxColor, down);
 
         if(!up.empty()){
             const int cx    = up.x + up.w / 2;
             const int inset = std::max<int>(3, up.w / 4);
-            drawTriangleLocal(arrowCol,
+            drawTriangleLocal(arrowColor,
                 cx                , up.y + inset,
                 up.x + inset      , up.y + up.h - inset,
                 up.x + up.w - inset, up.y + up.h - inset);
@@ -323,7 +326,7 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         if(!down.empty()){
             const int cx    = down.x + down.w / 2;
             const int inset = std::max<int>(3, down.w / 4);
-            drawTriangleLocal(arrowCol,
+            drawTriangleLocal(arrowColor,
                 down.x + inset          , down.y + inset,
                 down.x + down.w - inset , down.y + inset,
                 cx                      , down.y + down.h - inset);
@@ -339,18 +342,19 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
     if(!hBar.empty()){
         drawFillLocal(Widget::evalU32(m_trackColor, this), hTrackROI());
 
-        const auto left  = hLeftArrowROI();
+        const auto left = hLeftArrowROI();
         const auto right = hRightArrowROI();
-        const auto arrowBox = Widget::evalU32(m_arrowBoxColor, this);
-        const auto arrowCol = Widget::evalU32(m_arrowColor   , this);
 
-        drawFillLocal(arrowBox, left);
-        drawFillLocal(arrowBox, right);
+        const auto arrowColor = Widget::evalU32(m_arrowColor, this);
+        const auto arrowBoxColor = Widget::evalU32(m_arrowBoxColor, this);
+
+        drawFillLocal(arrowBoxColor, left);
+        drawFillLocal(arrowBoxColor, right);
 
         if(!left.empty()){
             const int cy    = left.y + left.h / 2;
             const int inset = std::max<int>(3, left.h / 4);
-            drawTriangleLocal(arrowCol,
+            drawTriangleLocal(arrowColor,
                 left.x + inset          , cy,
                 left.x + left.w - inset , left.y + inset,
                 left.x + left.w - inset , left.y + left.h - inset);
@@ -358,7 +362,7 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
         if(!right.empty()){
             const int cy    = right.y + right.h / 2;
             const int inset = std::max<int>(3, right.h / 4);
-            drawTriangleLocal(arrowCol,
+            drawTriangleLocal(arrowColor,
                 right.x + inset            , right.y + inset,
                 right.x + inset            , right.y + right.h - inset,
                 right.x + right.w - inset  , cy);
