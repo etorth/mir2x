@@ -384,18 +384,10 @@ void ScrollContainer::drawDefault(Widget::ROIMap m) const
 bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
-        // dragging is bound to us — if we lose visibility mid-drag, abort it
         m_drag = DRAG_NONE;
         return false;
     }
 
-    // helper: convert an event's mouse coord (which is in ROIMap.ro coords, i.e. screen-ish)
-    // into local coords by subtracting m.x/m.y and adding m.ro->x/y (the standard idiom from
-    // buttonbase.cpp / minimapboard.cpp — but here we just need the "in local coord" version).
-    // NOTE: m.in(mx, my) uses ROIMap.ro coords directly, so we keep mouse in that space.
-
-    // ---- 1. drag continuation ----
-    // m_dragMouseStart holds a raw screen coord captured at drag begin; deltas are pixel-space.
     if(m_drag != DRAG_NONE){
         switch(event.type){
             case SDL_EVENT_MOUSE_MOTION:
@@ -403,36 +395,40 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
                     if(m_drag == DRAG_V_THUMB){
                         const auto track = vTrackROI();
                         const auto thumb = vThumbROI();
-                        const int  travel = std::max<int>(1, track.h - thumb.h);
-                        const int  dMouse = to_d(event.motion.y) - m_dragMouseStart;
+                        const int travel = std::max<int>(1, track.h - thumb.h);
+                        const int dMouse = to_d(event.motion.y) - m_dragMouseStart;
                         scrollTo(m_scrollX, m_dragScrollStart + dMouse * maxScrollY() / travel);
                     }
                     else{
                         const auto track = hTrackROI();
                         const auto thumb = hThumbROI();
-                        const int  travel = std::max<int>(1, track.w - thumb.w);
-                        const int  dMouse = to_d(event.motion.x) - m_dragMouseStart;
+                        const int travel = std::max<int>(1, track.w - thumb.w);
+                        const int dMouse = to_d(event.motion.x) - m_dragMouseStart;
                         scrollTo(m_dragScrollStart + dMouse * maxScrollX() / travel, m_scrollY);
                     }
                     return true;
                 }
             case SDL_EVENT_MOUSE_BUTTON_UP:
-                m_drag = DRAG_NONE;
-                return true;
+                {
+                    m_drag = DRAG_NONE;
+                    return true;
+                }
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                return true; // swallow, don't let content see button events during a drag
+                {
+                    return true; // swallow, don't let content see button events during a drag
+                }
             default:
-                break;
+                {
+                    break;
+                }
         }
     }
 
-    // ---- 2. mouse wheel ----
     if(event.type == SDL_EVENT_MOUSE_WHEEL){
         if(m.in(to_d(event.wheel.mouse_x), to_d(event.wheel.mouse_y))){
-            const bool horiz = SDL_GetModState() & SDL_KMOD_SHIFT;
-            if(horiz){
+            if(SDL_GetModState() & SDL_KMOD_SHIFT){
                 if(!hBarEnabled()){
-                    return false; // axis force-disabled or content fits — let event through
+                    return false;
                 }
                 scrollBy(-to_d(event.wheel.y) * m_scrollStep, 0);
             }
@@ -446,31 +442,28 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
         }
     }
 
-    // ---- 3. button-down hit test on scrollbar regions ----
     if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
-        // screen -> local coord conversion (see minimapboard.cpp:376 for the idiom)
         const int localX = to_d(event.button.x) - m.x + m.ro->x;
         const int localY = to_d(event.button.y) - m.y + m.ro->y;
 
-        // vertical bar
         if(const auto bar = vBarROI(); !bar.empty() && bar.in(localX, localY)){
             if(vUpArrowROI().in(localX, localY)){
                 scrollBy(0, -m_scrollStep);
                 return true;
             }
+
             if(vDownArrowROI().in(localX, localY)){
                 scrollBy(0, m_scrollStep);
                 return true;
             }
-            const auto thumb = vThumbROI();
-            if(thumb.in(localX, localY)){
-                m_drag            = DRAG_V_THUMB;
-                m_dragMouseStart  = to_d(event.button.y); // capture raw screen coord for delta math
+
+            if(const auto thumb = vThumbROI(); thumb.in(localX, localY)){
+                m_drag = DRAG_V_THUMB;
+                m_dragMouseStart = to_d(event.button.y); // capture raw screen coord for delta math
                 m_dragScrollStart = m_scrollY;
                 return true;
             }
-            // track click above / below thumb
-            if(vTrackROI().in(localX, localY)){
+            else if(vTrackROI().in(localX, localY)){
                 if(localY < thumb.y){
                     scrollBy(0, -viewportH());
                 }
@@ -482,24 +475,24 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
             return true; // anywhere else on the bar strip — consume silently
         }
 
-        // horizontal bar
         if(const auto bar = hBarROI(); !bar.empty() && bar.in(localX, localY)){
             if(hLeftArrowROI().in(localX, localY)){
                 scrollBy(-m_scrollStep, 0);
                 return true;
             }
+
             if(hRightArrowROI().in(localX, localY)){
                 scrollBy(m_scrollStep, 0);
                 return true;
             }
-            const auto thumb = hThumbROI();
-            if(thumb.in(localX, localY)){
-                m_drag            = DRAG_H_THUMB;
-                m_dragMouseStart  = to_d(event.button.x);
+
+            if(const auto thumb = hThumbROI(); thumb.in(localX, localY)){
+                m_drag = DRAG_H_THUMB;
+                m_dragMouseStart = to_d(event.button.x);
                 m_dragScrollStart = m_scrollX;
                 return true;
             }
-            if(hTrackROI().in(localX, localY)){
+            else if(hTrackROI().in(localX, localY)){
                 if(localX < thumb.x){
                     scrollBy(-viewportW(), 0);
                 }
@@ -512,6 +505,5 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
         }
     }
 
-    // ---- 4. pass through to the viewport child ----
     return Widget::processEventDefault(event, valid, m);
 }

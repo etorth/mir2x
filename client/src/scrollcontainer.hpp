@@ -5,6 +5,21 @@
 #include "colorf.hpp"
 #include "gfxcropboard.hpp"
 
+// vertical scroll bar (analogous for horizontal):
+//
+// ┌──────────┐  ← vBarROI top
+// │ up arrow │    vUpArrowROI   (barSize × barSize square at top)
+// ├──────────┤
+// │          │
+// │   track  │    vTrackROI     (the middle segment between arrows)
+// │  ┌────┐  │
+// │  │thmb│  │    vThumbROI     (sits inside the track, sized proportionally)
+// │  └────┘  │
+// │          │
+// ├──────────┤
+// │ down arw │    vDownArrowROI (barSize × barSize square at bottom)
+// └──────────┘  ← vBarROI bottom
+
 class ScrollContainer: public Widget
 {
     public:
