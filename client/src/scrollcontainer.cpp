@@ -102,15 +102,11 @@ bool ScrollContainer::hBarEnabled() const
     const int cw = contentW();
     const int ch = contentH();
 
-    // first pass: does content overflow without any bar?
-    // then account for the vertical bar shrinking the horizontal viewport
     if(cw > w()){
         return true;
     }
 
-    // vertical bar takes a strip on the right; if it will be shown, does that push us to need the horizontal too?
-    const bool needV = vAllow && (ch > h());
-    return needV && (cw > std::max<int>(0, w() - m_barSize));
+    return (vAllow && (ch > h())) && (cw > std::max<int>(0, w() - m_barSize));
 }
 
 bool ScrollContainer::vBarEnabled() const
@@ -129,8 +125,7 @@ bool ScrollContainer::vBarEnabled() const
         return true;
     }
 
-    const bool needH = hAllow && (cw > w());
-    return needH && (ch > std::max<int>(0, h() - m_barSize));
+    return (hAllow && (cw > w())) && (ch > std::max<int>(0, h() - m_barSize));
 }
 
 Widget::ROI ScrollContainer::vBarROI() const
@@ -138,6 +133,7 @@ Widget::ROI ScrollContainer::vBarROI() const
     if(!vBarEnabled()){
         return {};
     }
+
     return Widget::ROI
     {
         .x = std::max<int>(0, w() - m_barSize),
@@ -152,6 +148,7 @@ Widget::ROI ScrollContainer::hBarROI() const
     if(!hBarEnabled()){
         return {};
     }
+
     return Widget::ROI
     {
         .x = 0,

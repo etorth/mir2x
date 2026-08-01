@@ -16,23 +16,19 @@ class ScrollContainer: public Widget
             Widget::VarSize w   = 0;
             Widget::VarSize h   = 0;
 
-            // external content widget — not owned by ScrollContainer
             Widget::VarGetter<Widget *> getter = nullptr;
 
-            // enable/disable each axis independently
-            //   - true  : axis is scrollable, bar shown when content overflows
-            //   - false : axis is locked, bar force-hidden, scroll input on that axis rejected
             Widget::VarBool hScroll = true;
             Widget::VarBool vScroll = true;
 
-            int barSize      = 12; // px thickness of each scrollbar strip
-            int minThumbSize = 20; // px min thumb length
-            int scrollStep   = 24; // px per wheel notch / arrow click
+            int      barSize = 12; // scrollbar thickness
+            int minThumbSize = 20; // minimal thumb length
+            int   scrollStep = 24;
 
             Widget::VarDrawFunc bgDrawFunc = nullptr; // painted under the content, inside the viewport rect
             Widget::VarDrawFunc fgDrawFunc = nullptr; // painted over  the content, inside the viewport rect (below the scrollbars)
 
-            Widget::VarU32 bgColor         = 0u; // 0 = don't fill
+            Widget::VarU32 bgColor         = 0u;
             Widget::VarU32 trackColor      = colorf::RGBA(232, 232, 232, 255);
             Widget::VarU32 thumbColor      = colorf::RGBA(176, 176, 176, 255);
             Widget::VarU32 thumbHoverColor = colorf::RGBA(144, 144, 144, 255);
@@ -40,7 +36,7 @@ class ScrollContainer: public Widget
             Widget::VarU32 arrowBoxColor   = colorf::RGBA(232, 232, 232, 255);
             Widget::VarU32 arrowColor      = colorf::RGBA( 96,  96,  96, 255);
 
-            Widget::InstAttrs attrs {};
+            Widget::InstAttrs attrs  {};
             Widget::WADPair   parent {};
         };
 
@@ -78,22 +74,17 @@ class ScrollContainer: public Widget
         int m_scrollY = 0;
 
     private:
-        DragMode m_drag           = DRAG_NONE;
-        int      m_dragMouseStart = 0;
-        int      m_dragScrollStart = 0;
+        DragMode m_drag = DRAG_NONE;
+        int m_dragMouseStart = 0;
+        int m_dragScrollStart = 0;
 
     public:
         explicit ScrollContainer(ScrollContainer::InitArgs);
 
     public:
-        Widget *content()
+        auto content(this auto && self)
         {
-            return m_viewport->gfxWidget();
-        }
-
-        const Widget *content() const
-        {
-            return m_viewport->gfxWidget();
+            return self.m_viewport->gfxWidget();
         }
 
     public:
@@ -108,7 +99,6 @@ class ScrollContainer: public Widget
         int contentH() const { return content() ? content()->h() : 0; }
 
     public:
-        // effective: allowed AND content overflows on that axis
         bool hBarEnabled() const;
         bool vBarEnabled() const;
 
@@ -129,15 +119,17 @@ class ScrollContainer: public Widget
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     private:
-        // scrollbar geometry in local coords (returns empty ROI when the bar is disabled)
-        Widget::ROI vBarROI() const;      // full vertical strip (including arrow boxes)
+        Widget::ROI vBarROI() const;
         Widget::ROI hBarROI() const;
-        Widget::ROI vUpArrowROI() const;
-        Widget::ROI vDownArrowROI() const;
-        Widget::ROI hLeftArrowROI() const;
+
+        Widget::ROI    vUpArrowROI() const;
+        Widget::ROI  vDownArrowROI() const;
+
+        Widget::ROI  hLeftArrowROI() const;
         Widget::ROI hRightArrowROI() const;
-        Widget::ROI vTrackROI() const;    // between the two arrow boxes
+
+        Widget::ROI vTrackROI() const;
         Widget::ROI hTrackROI() const;
-        Widget::ROI vThumbROI() const;    // proportional thumb within vTrackROI
+        Widget::ROI vThumbROI() const;
         Widget::ROI hThumbROI() const;
 };
