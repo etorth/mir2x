@@ -86,7 +86,7 @@ class ScrollContainer: public Widget
         explicit ScrollContainer(ScrollContainer::InitArgs);
 
     public:
-        auto content(this auto && self)
+        auto contained(this auto && self)
         {
             return self.m_viewport->gfxWidget();
         }
@@ -99,8 +99,8 @@ class ScrollContainer: public Widget
         void scrollBy(int dx, int dy) { scrollTo(m_scrollX + dx, m_scrollY + dy); }
 
     public:
-        int contentW() const { return content() ? content()->w() : 0; }
-        int contentH() const { return content() ? content()->h() : 0; }
+        int contentW() const { return contained() ? contained()->w() : 0; }
+        int contentH() const { return contained() ? contained()->h() : 0; }
 
     public:
         bool hBarEnabled() const;
