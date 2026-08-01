@@ -100,8 +100,8 @@ bool ScrollContainer::hBarEnabled() const
         return false;
     }
 
-    const int cw = contentW();
-    const int ch = contentH();
+    const int cw = contained() ? contained()->w() : 0;
+    const int ch = contained() ? contained()->h() : 0;
 
     if(cw > w()){
         return true;
@@ -119,8 +119,8 @@ bool ScrollContainer::vBarEnabled() const
         return false;
     }
 
-    const int cw = contentW();
-    const int ch = contentH();
+    const int cw = contained() ? contained()->w() : 0;
+    const int ch = contained() ? contained()->h() : 0;
 
     if(ch > h()){
         return true;
@@ -234,7 +234,7 @@ Widget::ROI ScrollContainer::vThumbROI() const
         return {};
     }
 
-    const int ch = contentH();
+    const int ch = contained() ? contained()->h() : 0;
     const int vh = viewportH();
     if(ch <= 0 || vh <= 0){
         return track;
@@ -254,7 +254,7 @@ Widget::ROI ScrollContainer::hThumbROI() const
         return {};
     }
 
-    const int cw = contentW();
+    const int cw = contained() ? contained()->w() : 0;
     const int vw = viewportW();
     if(cw <= 0 || vw <= 0){
         return track;

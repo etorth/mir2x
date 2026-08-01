@@ -114,10 +114,6 @@ class ScrollContainer: public Widget
         void scrollBy(int dx, int dy) { scrollTo(m_scrollX + dx, m_scrollY + dy); }
 
     public:
-        int contentW() const { return contained() ? contained()->w() : 0; }
-        int contentH() const { return contained() ? contained()->h() : 0; }
-
-    public:
         bool hBarEnabled() const;
         bool vBarEnabled() const;
 
@@ -126,8 +122,8 @@ class ScrollContainer: public Widget
         int viewportH() const { return hBarEnabled() ? std::max<int>(0, h() - m_barSize) : h(); }
 
     public:
-        int maxScrollX() const { return std::max<int>(0, contentW() - viewportW()); }
-        int maxScrollY() const { return std::max<int>(0, contentH() - viewportH()); }
+        int maxScrollX() const { return std::max<int>(0, (contained() ? contained()->w() : 0) - viewportW()); }
+        int maxScrollY() const { return std::max<int>(0, (contained() ? contained()->h() : 0) - viewportH()); }
 
     public:
         void setHScroll(Widget::VarBool arg) { m_hScroll = std::move(arg); }
