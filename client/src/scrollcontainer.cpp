@@ -7,7 +7,6 @@
 #include "scrollcontainer.hpp"
 
 extern SDLDevice *g_sdlDevice;
-
 ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     : Widget
       {{
@@ -83,12 +82,6 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     , m_arrowBoxColor(std::move(args.arrowBoxColor))
 {
     fflassert(m_viewport);
-}
-
-void ScrollContainer::scrollTo(int x, int y)
-{
-    m_scrollX = std::clamp<int>(x, 0, maxScrollX());
-    m_scrollY = std::clamp<int>(y, 0, maxScrollY());
 }
 
 bool ScrollContainer::hBarEnabled() const
@@ -201,7 +194,8 @@ Widget::ROI ScrollContainer::vTrackROI() const
     if(bar.empty()){
         return {};
     }
-    const int inset = std::min<int>(m_barSize, bar.h / 2);
+
+    const auto inset = std::min<int>(m_barSize, bar.h / 2);
     return Widget::ROI
     {
         .x = bar.x,
@@ -217,7 +211,8 @@ Widget::ROI ScrollContainer::hTrackROI() const
     if(bar.empty()){
         return {};
     }
-    const int inset = std::min<int>(m_barSize, bar.w / 2);
+
+    const auto inset = std::min<int>(m_barSize, bar.w / 2);
     return Widget::ROI
     {
         .x = bar.x + inset,

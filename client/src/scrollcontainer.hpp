@@ -7,18 +7,18 @@
 
 // vertical scroll bar (analogous for horizontal):
 //
-// ┌──────────┐  ← vBarROI top
-// │ up arrow │    vUpArrowROI   (barSize × barSize square at top)
-// ├──────────┤
-// │          │
-// │   track  │    vTrackROI     (the middle segment between arrows)
-// │  ┌────┐  │
-// │  │thmb│  │    vThumbROI     (sits inside the track, sized proportionally)
-// │  └────┘  │
-// │          │
-// ├──────────┤
-// │ down arw │    vDownArrowROI (barSize × barSize square at bottom)
-// └──────────┘  ← vBarROI bottom
+// ┌────────────┐  ← vBarROI top
+// │   up arrow │    vUpArrowROI     (barSize × barSize square at top)
+// ├────────────┤
+// │            │
+// │   track    │    vTrackROI       (the middle segment between arrows)
+// │  ┌─────┐   │
+// │  │thumb│   │    vThumbROI       (sits inside the track, sized proportionally)
+// │  └─────┘   │
+// │            │
+// ├────────────┤
+// │ down arrow │    vDownArrowROI   (barSize × barSize square at bottom)
+// └────────────┘  ← vBarROI bottom
 
 class ScrollContainer: public Widget
 {
@@ -110,8 +110,17 @@ class ScrollContainer: public Widget
         int scrollX() const { return m_scrollX; }
         int scrollY() const { return m_scrollY; }
 
-        void scrollTo(int, int);
-        void scrollBy(int dx, int dy) { scrollTo(m_scrollX + dx, m_scrollY + dy); }
+    public:
+        void scrollTo(int x, int y)
+        {
+            m_scrollX = std::clamp<int>(x, 0, maxScrollX());
+            m_scrollY = std::clamp<int>(y, 0, maxScrollY());
+        }
+
+        void scrollBy(int dx, int dy)
+        {
+            scrollTo(m_scrollX + dx, m_scrollY + dy);
+        }
 
     public:
         bool hBarEnabled() const;
