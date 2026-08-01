@@ -15,33 +15,21 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
           .x = std::move(args.x),
           .y = std::move(args.y),
 
+          .w = std::nullopt,
+          .h = std::nullopt,
+
           .childList
           {
               Widget::AddChildArgs
               {
-                  .widget = new GfxCropBoard
+                  .widget = new Widget
                   {{
-                      .x = 0,
-                      .y = 0,
-
-                      .getter = std::move(args.getter),
-
-                      .vr = Widget::VarROI
-                      (
-                          Widget::VarInt ([this]{ return m_scrollX;   }),
-                          Widget::VarInt ([this]{ return m_scrollY;   }),
-                          Widget::VarSize([this]{ return viewportW(); }),
-                          Widget::VarSize([this]{ return viewportH(); })
-                      ),
-
-                      .bgDrawFunc = std::move(args.bgDrawFunc),
-                      .fgDrawFunc = std::move(args.fgDrawFunc),
-
                       .attrs
                       {
                           .inst
                           {
-                              .name = "ScrollViewport",
+                              .name = "Canvas",
+                              .moveOnFocus = false,
                           },
                       },
                   }},
@@ -53,7 +41,8 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
           {
               .type
               {
-                  .addChild = false,
+                  .setSize     = false,
+                  .addChild    = false,
                   .removeChild = false,
               },
               .inst = std::move(args.attrs),
@@ -61,7 +50,33 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
           .parent = std::move(args.parent),
       }}
 
-    , m_viewport(dynamic_cast<GfxCropBoard *>(firstChild()))
+    , m_canvas(firstChild())
+    , m_viewport(new GfxCropBoard
+      {{
+          .x = 0,
+          .y = 0,
+
+          .getter = std::move(args.getter),
+
+          .vr = Widget::VarROI
+          (
+              Widget::VarInt ([this]{ return m_scrollX;   }),
+              Widget::VarInt ([this]{ return m_scrollY;   }),
+              Widget::VarSize([this]{ return viewportW(); }),
+              Widget::VarSize([this]{ return viewportH(); })
+          ),
+
+          .bgDrawFunc = std::move(args.bgDrawFunc),
+          .fgDrawFunc = std::move(args.fgDrawFunc),
+
+          .attrs
+          {
+              .inst
+              {
+                  .name = "ScrollViewport",
+              },
+          },
+      }})
 
     , m_viewportW(std::move(args.vpw))
     , m_viewportH(std::move(args.vph))
@@ -82,9 +97,12 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     , m_arrowColor(std::move(args.arrowColor))
     , m_arrowBoxColor(std::move(args.arrowBoxColor))
 {
+    fflassert(m_canvas);
     fflassert(m_viewport);
-    setSize([this]{ return viewportW() + (vBarEnabled() ? m_barSize : 0); },
-            [this]{ return viewportH() + (hBarEnabled() ? m_barSize : 0); });
+
+    m_canvas->addChild(m_viewport, true);
+    m_canvas->setSize([this]{ return viewportW() + (vBarEnabled() ? m_barSize : 0); },
+                      [this]{ return viewportH() + (hBarEnabled() ? m_barSize : 0); });
 }
 
 bool ScrollContainer::hBarEnabled() const

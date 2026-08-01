@@ -66,7 +66,8 @@ class ScrollContainer: public Widget
         };
 
     private:
-        GfxCropBoard *m_viewport; // owned via childList, drawn/handled through the standard tree
+        Widget *m_canvas;
+        GfxCropBoard *m_viewport;
 
     private:
         Widget::VarSize m_viewportW;
