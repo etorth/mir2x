@@ -42,27 +42,17 @@ DropItemRuleBoard::DropItemRuleBoard(RuntimeConfigBoard *configBoard)
           .tailSpace = 4,
       }}
 
-    , m_viewport
+    , m_scroll
       {{
           .x = m_listX,
           .y = m_listY,
+          .w = m_listW + 12, // reserve barSize on the right so the visible viewport stays m_listW wide
+          .h = m_listH,
+
           .getter = std::addressof(m_itemBox),
-          .vr = Widget::VarROI(0, [this]{ return to_dround(scrollMax() * m_slider.getValue()); }, m_listW, m_listH),
-          .parent{this},
-      }}
 
-    , m_slider
-      {{
-          .bar
-          {
-              .x = m_sliderX,
-              .y = m_listY,
-              .w = TexSliderBar::BAR_FIXED_EDGE_SIZE,
-              .h = m_listH,
-              .v = true,
-          },
+          .hScroll = false,  // ItemBox is fixed-width and never overflows horizontally
 
-          .index = 3,
           .parent{this},
       }}
 {
@@ -71,9 +61,5 @@ DropItemRuleBoard::DropItemRuleBoard(RuntimeConfigBoard *configBoard)
         if(const auto &ir = DBCOM_ITEMRECORD(itemID); ir && ir.pkgGfxID >= 0){
             m_itemBox.addItem(new DropItemRuleRow(m_configBoard, itemID), true);
         }
-    }
-
-    if(scrollMax() <= 0){
-        m_slider.setShow(false);
     }
 }

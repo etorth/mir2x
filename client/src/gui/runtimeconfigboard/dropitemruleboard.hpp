@@ -2,9 +2,8 @@
 #include <cstdint>
 #include "widget.hpp"
 #include "itembox.hpp"
-#include "gfxcropboard.hpp"
 #include "gfxshapeboard.hpp"
-#include "texsliderbar.hpp"
+#include "scrollcontainer.hpp"
 
 class RuntimeConfigBoard;
 class DropItemRuleBoard final: public Widget
@@ -14,7 +13,6 @@ class DropItemRuleBoard final: public Widget
         constexpr static int m_listY = 0;
         constexpr static int m_listW = 420;
         constexpr static int m_listH = 300;
-        constexpr static int m_sliderX = m_listX + m_listW + 6;
 
     private:
         RuntimeConfigBoard *m_configBoard = nullptr;
@@ -24,15 +22,8 @@ class DropItemRuleBoard final: public Widget
 
     private:
         ItemBox m_itemBox;
-        GfxCropBoard m_viewport;
-        TexSliderBar m_slider;
+        ScrollContainer m_scroll;
 
     public:
         explicit DropItemRuleBoard(RuntimeConfigBoard *);
-
-    private:
-        int scrollMax() const
-        {
-            return std::max<int>(0, m_itemBox.h() - m_listH);
-        }
 };
