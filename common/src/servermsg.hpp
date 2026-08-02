@@ -87,6 +87,7 @@ enum SMType: uint8_t
     SM_PLAYERSAY,
     SM_PLAYERBROADCAST,
     SM_RANKINGLIST,
+    SM_CLAIMDELIVERYERROR,
     SM_END,
 };
 
@@ -362,6 +363,11 @@ struct SMPlayerBroadcast
     char content[128];
 };
 
+struct SMClaimDeliveryError
+{
+    uint8_t error;
+};
+
 #pragma pack(pop)
 
 namespace
@@ -454,6 +460,7 @@ namespace
         _RSVD_register_servermsg(SM_PLAYERSAY,           1, sizeof(SMPlayerSay)          );
         _RSVD_register_servermsg(SM_PLAYERBROADCAST,     1, sizeof(SMPlayerBroadcast)    );
         _RSVD_register_servermsg(SM_RANKINGLIST,         3                               );
+        _RSVD_register_servermsg(SM_CLAIMDELIVERYERROR,  1, sizeof(SMClaimDeliveryError ));
 
 #undef _RSVD_register_servermsg
         return result;

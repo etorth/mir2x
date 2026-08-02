@@ -455,6 +455,16 @@ enum RankingType: uint8_t
     RANKING_END,
 };
 
+enum ClaimDeliveryError: int
+{
+    CDERR_NONE = 0,
+    CDERR_BEGIN = 1,
+    CDERR_UNKNOWN_ERROR = 1,
+    CDERR_INVALID_CLAIM,
+    CDERR_INVALID_RECORD,
+    CDERR_END,
+};
+
 template<typename... Ts> struct VarDispatcher: Ts...
 {
     using Ts::operator()...;

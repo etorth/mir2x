@@ -1337,13 +1337,16 @@ void FriendChatBoard::requestClaimDelivery(const std::string &record)
                 }
             case SM_ERROR:
                 {
-                    const auto error = (buf && bufSize) ? std::string(reinterpret_cast<const char *>(buf), bufSize) : "Failed to claim delivery";
-                    m_processRun->addCBLog(CBLOG_ERR, u8"%s", error.c_str());
+                    switch(ServerMsg::conv<SMClaimDeliveryError>(buf, bufSize).error){
+                        case CDERR_INVALID_RECORD: m_processRun->addCBLog(CBLOG_ERR, u8"找不到相关奖励"          ); break;
+                        case CDERR_INVALID_CLAIM : m_processRun->addCBLog(CBLOG_ERR, u8"奖励不存在或者已经被领取"); break;
+                        default                  : m_processRun->addCBLog(CBLOG_ERR, u8"未知错误"                ); break;
+                    }
                     break;
                 }
             default:
                 {
-                    m_processRun->addCBLog(CBLOG_ERR, u8"领取投递奖励失败");
+                    m_processRun->addCBLog(CBLOG_ERR, u8"未知错误");
                     break;
                 }
         }

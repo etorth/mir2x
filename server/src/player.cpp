@@ -106,7 +106,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
 
         for(auto item: SDItem::buildItemList(to_u32(itemID), to_uz(itemCount))){
             if(item.isGold()){
-                getPlayer()->setGold(getPlayer()->getGold() + item.count);
+                getPlayer()->setGold(getPlayer()->gold() + item.count);
             }
             else{
                 getPlayer()->addInventoryItem(std::move(item), false);
@@ -1778,6 +1778,11 @@ void Player::setGold(size_t gold)
     reportGold();
 }
 
+void Player::addGold(size_t extraGold)
+{
+    setGold(gold() + extraGold);
+}
+
 bool Player::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)
 {
     if(BattleObject::updateHealth(addHP, addMP, addMaxHP, addMaxMP)){
@@ -2119,7 +2124,20 @@ std::string Player::sendDelivery(std::vector<SDItem> itemList)
     return record;
 }
 
-std::optional<std::string> Player::claimDelivery(const std::string &record)
+std::optional<int> Player::claimDelivery(const std::string &record)
 {
-    return dbClaimDelivery(record);
+    if(const auto claimedItemList = dbClaimDelivery(record); claimedItemList.has_value()){
+        for(const auto &item: claimedItemList.value()){
+            if(item.isGold()){
+                addGold(item.count);
+            }
+            else{
+                addInventoryItem(item, false);
+            }
+        }
+        return std::nullopt;
+    }
+    else{
+        return claimedItemList.error();
+    }
 }

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 #include <optional>
+#include <expected>
 #include <type_traits>
 #include "totype.hpp"
 #include "server.hpp"
@@ -111,7 +112,7 @@ class Player final: public BattleObject
             return m_exp;
         }
 
-        uint32_t gold() const
+        size_t gold() const
         {
             return m_sdItemStorage.gold;
         }
@@ -356,7 +357,7 @@ class Player final: public BattleObject
 
     private:
         std::tuple<std::string, SDChatMessage> dbCreateDelivery(std::vector<SDItem>);
-        std::optional<std::string> dbClaimDelivery(const std::string &);
+        std::expected<std::vector<SDItem>, int> dbClaimDelivery(const std::string &);
 
     private:
         void dbSecureItem(uint32_t, uint32_t);
@@ -435,12 +436,8 @@ class Player final: public BattleObject
         void removeSecuredItem(uint32_t, uint32_t);
 
     private:
-        size_t getGold() const
-        {
-            return m_sdItemStorage.gold;
-        }
-
         void setGold(size_t);
+        void addGold(size_t);
 
     protected:
         bool updateHealth_virtualFuncWithDefArgs() override;
@@ -540,5 +537,5 @@ class Player final: public BattleObject
 
     private:
         std::string sendDelivery(std::vector<SDItem>);
-        std::optional<std::string> claimDelivery(const std::string &);
+        std::optional<int> claimDelivery(const std::string &);
 };

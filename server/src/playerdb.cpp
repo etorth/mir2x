@@ -879,12 +879,11 @@ std::tuple<std::string, SDChatMessage> Player::dbCreateDelivery(std::vector<SDIt
     }};
 }
 
-std::optional<std::string> Player::dbClaimDelivery(const std::string &record)
+std::expected<std::vector<SDItem>, int> Player::dbClaimDelivery(const std::string &record)
 {
     fflassert(record.size() == SYS_DELIVERYRECORDSIZE, record);
     fflassert(std::ranges::all_of(record, [](unsigned char ch) -> bool { return std::isalnum(ch); }), record);
 
-    auto dbTrans = g_dbPod->createTransaction();
     std::string payload;
     {
         auto query = g_dbPod->createQuery(
@@ -908,71 +907,12 @@ std::optional<std::string> Player::dbClaimDelivery(const std::string &record)
         query.bind(1, record);
 
         if(query.executeStep() && query.getColumn("fld_claimed").getInt() != 0){
-            return "Item has been claimed";
+            return std::unexpected(CDERR_INVALID_CLAIM);
         }
-        return "Invalid delivery record";
+        return std::unexpected(CDERR_INVALID_RECORD);
     }
 
-    const auto itemList = cerealf::deserialize<std::vector<SDItem>>(payload);
-    if(itemList.empty()){
-        return "Invalid delivery record";
-    }
-
-    auto inventory = m_sdItemStorage.inventory;
-    auto gold      = m_sdItemStorage.gold;
-
-    std::unordered_set<uint64_t> changedItemSet;
-    for(auto item: itemList){
-        if(!item || item.seqID != 0){
-            return "Invalid delivery record";
-        }
-
-        if(item.isGold()){
-            if(gold > INT_MAX || item.count > INT_MAX - gold){
-                return "Gold limit exceeded";
-            }
-            gold += item.count;
-        }
-        else{
-            const auto &addedItem = inventory.add(std::move(item), false);
-            changedItemSet.insert(addedItem.itemIDSeq());
-        }
-    }
-
-    std::vector<SDItem> changedItemList;
-    changedItemList.reserve(changedItemSet.size());
-    for(const auto &item: inventory.getItemList()){
-        if(changedItemSet.contains(item.itemIDSeq())){
-            changedItemList.push_back(item);
-            dbUpdateInventoryItem(item);
-        }
-    }
-
-    if(gold != m_sdItemStorage.gold){
-        dbUpdateGold(gold);
-    }
-    dbTrans.commit();
-
-    m_sdItemStorage.inventory = std::move(inventory);
-    m_sdItemStorage.gold = gold;
-
-    for(const auto &item: changedItemList){
-        reportUpdateItem(item);
-    }
-
-    for(const auto &item: itemList){
-        if(!item.isGold()){
-            m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(item.itemID)));
-        }
-    }
-
-    if(std::any_of(itemList.begin(), itemList.end(), [](const SDItem &item)
-    {
-        return item.isGold();
-    })){
-        reportGold();
-    }
-    return {};
+    return cerealf::deserialize<std::vector<SDItem>>(payload);
 }
 
 bool Player::dbHasPlayer(uint32_t argDBID)
