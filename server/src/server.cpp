@@ -6,6 +6,7 @@
 #include <cstdarg>
 #include <cstdlib>
 #include <cinttypes>
+#include <climits>
 #include <FL/fl_ask.H>
 
 #include "log.hpp"
@@ -303,6 +304,16 @@ void Server::createDBConnection()
 {
     const char *dbName = "mir2x.db3";
     g_dbPod->launch(dbName);
+    g_dbPod->createFunction("jobValid", 1, true, +[](sqlite3_context *context, int argCount, sqlite3_value **argList)
+    {
+        if(argCount != 1 || sqlite3_value_type(argList[0]) != SQLITE_INTEGER){
+            sqlite3_result_int(context, 0);
+            return;
+        }
+
+        const auto job = sqlite3_value_int64(argList[0]);
+        sqlite3_result_int(context, job >= 0 && job <= INT_MAX && jobf::jobValid(to_d(job)));
+    });
 
     if(!hasDatabase()){
         createDefaultDatabase();

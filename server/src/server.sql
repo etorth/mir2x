@@ -13,7 +13,7 @@ create table tbl_char(
     fld_name           text    not null,
     fld_namecolor      integer default 0,
     fld_gender         integer not null check(fld_gender in (0, 1)),
-    fld_job            integer not null check(fld_job >= 1 and fld_job < 8),
+    fld_job            integer not null check(jobValid(fld_job)),
     fld_map            integer not null,
     fld_mapx           integer not null,
     fld_mapy           integer not null,

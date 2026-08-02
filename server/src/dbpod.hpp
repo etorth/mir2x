@@ -13,6 +13,9 @@
 class DBPod final
 {
     public:
+        using ScalarFunction = void (*)(sqlite3_context *, int, sqlite3_value **);
+
+    public:
         class Statement: public SQLite::Statement
         {
             public:
@@ -62,6 +65,13 @@ class DBPod final
         {
             checkDBEx();
             return SQLite::Transaction(*m_dbPtr);
+        }
+
+    public:
+        void createFunction(const char *name, int argCount, bool deterministic, ScalarFunction function)
+        {
+            checkDBEx();
+            m_dbPtr->createFunction(name, argCount, deterministic, nullptr, function);
         }
 
     public:
