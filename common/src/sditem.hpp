@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <vector>
 #include <string>
 #include <numeric>
 #include <variant>
@@ -143,6 +144,7 @@ struct SDItem
     }
 
     operator bool () const;
+    static std::vector<SDItem> buildItemList(uint32_t, size_t);
     static std::vector<SDItem> buildGoldItem(size_t);
 
     template<typename T> std::optional<typename T::type> getExtAttr() const

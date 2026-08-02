@@ -217,6 +217,7 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_REQUESTKILLPETS           (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTLATESTCHATMESSAGE  (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYRANKING              (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_CLAIMDELIVERY             (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTLEAVETEAM          (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTMAGICDAMAGE        (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *, size_t, uint64_t);
@@ -234,6 +235,7 @@ class Player final: public BattleObject
         void reportDeadUID(uint64_t);
         void reportCO(uint64_t) override;
         void reportOffline(uint64_t, uint64_t);
+        void reportUpdateItem(const SDItem &);
         void reportRemoveItem(uint32_t, uint32_t, size_t);
         void reportSecuredItemList();
 
@@ -337,6 +339,7 @@ class Player final: public BattleObject
 
     private:
         void dbUpdateExp();
+        void dbUpdateGold(size_t);
         void dbUpdateHealth();
         void dbUpdateMapGLoc();
 
@@ -350,6 +353,10 @@ class Player final: public BattleObject
     private:
         static std::tuple<uint64_t, uint64_t> dbSaveChatMessage(const SDChatPeerID &, const SDChatPeerID &, const std::string_view &, std::optional<uint64_t>);
         SDChatMessageList dbRetrieveLatestChatMessage(const std::span<const uint64_t> &, size_t, bool, bool);
+
+    private:
+        std::string createDelivery(std::vector<SDItem>);
+        std::optional<std::string> claimDelivery(const std::string &);
 
     private:
         void dbSecureItem(uint32_t, uint32_t);

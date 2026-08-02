@@ -89,6 +89,7 @@ constexpr int SYS_MAXACTOR  = 65521;
 constexpr size_t SYS_IDSIZE = 64;
 constexpr size_t SYS_PWDSIZE = 64;
 constexpr size_t SYS_NAMESIZE = 64;
+constexpr size_t SYS_DELIVERYRECORDSIZE = 32;
 
 constexpr size_t SYS_SEFFSIZE = 16;
 constexpr uint32_t SYS_MONSEFFBASE(int lookID)
@@ -159,6 +160,7 @@ constexpr char SYS_QSTFSM[] = "_RSVD_NAME_QST_FSM_4194347313";
 constexpr char SYS_FLAGVAL[] = "_RSVD_NAME_FLAG_VAL_8192362390";
 
 constexpr char SYS_AFRESP[] = "_RSVD_NAME_AFRESP_8368138412597";
+constexpr char SYS_DELIVERY[] = "_RSVD_NAME_DELIVERY_5639021748316";
 
 constexpr inline size_t SYS_SUMEXP(uint32_t level)
 {

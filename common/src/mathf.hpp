@@ -25,7 +25,7 @@ namespace mathf
 namespace mathf
 {
     uint64_t rand();
-    std::string randstr(size_t, const std::string &);
+    std::string randstr(size_t, const std::string & = {});
 }
 
 namespace mathf

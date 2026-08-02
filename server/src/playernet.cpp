@@ -9,6 +9,7 @@
 #include "serverargparser.hpp"
 
 extern DBPod *g_dbPod;
+extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
 corof::awaitable<> Player::net_CM_ACTION(uint8_t, const uint8_t *pBuf, size_t, uint64_t)
 {
@@ -1187,6 +1188,29 @@ corof::awaitable<> Player::net_CM_QUERYRANKING(uint8_t, const uint8_t *buf, size
     }
 
     postNetMessage(SM_RANKINGLIST, cerealf::serialize(sdRL));
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_CLAIMDELIVERY(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+{
+    const auto cmCD = ClientMsg::conv<CMClaimDelivery>(buf);
+    if(cmCD.record.size != SYS_DELIVERYRECORDSIZE){
+        postNetMessage(SM_ERROR, std::string("Invalid delivery record"), respID);
+        return {};
+    }
+
+    try{
+        if(const auto error = claimDelivery(cmCD.record.to_str()); error.has_value()){
+            postNetMessage(SM_ERROR, error.value(), respID);
+        }
+        else{
+            postNetMessage(SM_OK, respID);
+        }
+    }
+    catch(const std::exception &e){
+        g_server->addLog(LOGTYPE_WARNING, "Failed to claim delivery for dbid %llu: %s", to_llu(dbid()), e.what());
+        postNetMessage(SM_ERROR, std::string("Failed to claim delivery"), respID);
+    }
     return {};
 }
 

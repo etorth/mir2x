@@ -104,21 +104,21 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         fflassert(ir);
         fflassert(itemCount > 0);
 
-        if(ir.isGold()){
-            getPlayer()->setGold(getPlayer()->getGold() + itemCount);
-        }
-        else{
-            int added = 0;
-            while(added < itemCount){
-                const auto &addedItem = getPlayer()->addInventoryItem(SDItem
-                {
-                    .itemID = to_u32(itemID),
-                    .seqID  = 1,
-                    .count = std::min<size_t>(ir.packable() ? SYS_INVGRIDMAXHOLD : 1, itemCount - added),
-                }, false);
-                added += addedItem.count;
+        for(auto item: SDItem::buildItemList(to_u32(itemID), to_uz(itemCount))){
+            if(item.isGold()){
+                getPlayer()->setGold(getPlayer()->getGold() + item.count);
+            }
+            else{
+                getPlayer()->addInventoryItem(std::move(item), false);
             }
         }
+    });
+
+    bindFunction("deliverItem", [this](int itemID, int itemCount) -> std::string
+    {
+        fflassert(itemID > 0);
+        fflassert(itemCount > 0);
+        return getPlayer()->createDelivery(SDItem::buildItemList(to_u32(itemID), to_uz(itemCount)));
     });
 
     bindFunction("removeItem", [this](int itemID, int seqID, int count) -> bool
@@ -581,6 +581,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_REQUESTRETRIEVESECUREDITEM);
         _support_cm(CM_REQUESTLATESTCHATMESSAGE  );
         _support_cm(CM_QUERYRANKING              );
+        _support_cm(CM_CLAIMDELIVERY             );
         _support_cm(CM_REQUESTSPACEMOVE          );
         _support_cm(CM_SETMAGICKEY               );
         _support_cm(CM_SETRUNTIMECONFIG          );
@@ -1525,6 +1526,14 @@ void Player::reportGold()
     postNetMessage(SM_GOLD, smG);
 }
 
+void Player::reportUpdateItem(const SDItem &item)
+{
+    postNetMessage(SM_UPDATEITEM, cerealf::serialize(SDUpdateItem
+    {
+        .item = item,
+    }));
+}
+
 void Player::reportRemoveItem(uint32_t itemID, uint32_t seqID, size_t count)
 {
     SMRemoveItem smRI;
@@ -1688,15 +1697,12 @@ bool Player::hasInventoryItem(uint32_t itemID, uint32_t seqID, size_t count) con
 
 const SDItem &Player::addInventoryItem(SDItem item, bool keepSeqID)
 {
+    const auto itemID = item.itemID;
     const auto &addedItem = m_sdItemStorage.inventory.add(std::move(item), keepSeqID);
     dbUpdateInventoryItem(addedItem);
 
-    m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(item.itemID)));
-
-    postNetMessage(SM_UPDATEITEM, cerealf::serialize(SDUpdateItem
-    {
-        .item = addedItem,
-    }));
+    m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(itemID)));
+    reportUpdateItem(addedItem);
     return addedItem;
 }
 
@@ -1768,7 +1774,7 @@ void Player::removeSecuredItem(uint32_t itemID, uint32_t seqID)
 void Player::setGold(size_t gold)
 {
     m_sdItemStorage.gold = gold;
-    g_dbPod->exec("update tbl_char set fld_gold = %llu where fld_dbid = %llu", to_llu(m_sdItemStorage.gold), to_llu(dbid()));
+    dbUpdateGold(m_sdItemStorage.gold);
     reportGold();
 }
 

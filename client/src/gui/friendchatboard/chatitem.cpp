@@ -69,7 +69,16 @@ ChatItem::ChatItem(ChatItem::InitArgs args)
               fflassert(idstr);
 
               const auto id = to_sv(idstr);
-              if(id == SYS_AFRESP){
+              if(id == SYS_DELIVERY){
+                  const auto record = LayoutBoard::findAttrValue(attrList, "record");
+                  if(record){
+                      FriendChatBoard::getParentBoard(this)->requestClaimDelivery(record);
+                  }
+                  else{
+                      FriendChatBoard::getParentBoard(this)->m_processRun->addCBLog(CBLOG_ERR, u8"无效的投递记录");
+                  }
+              }
+              else if(id == SYS_AFRESP){
                   const auto cpidstr = LayoutBoard::findAttrValue(attrList, "cpid");
                   fflassert(cpidstr);
 

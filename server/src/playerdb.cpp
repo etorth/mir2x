@@ -1,8 +1,16 @@
 #include <cstring>
+#include <cctype>
+#include <limits>
+#include <algorithm>
+#include <unordered_set>
 #include "luaf.hpp"
+#include "xmlf.hpp"
+#include "mathf.hpp"
 #include "dbpod.hpp"
 #include "player.hpp"
 #include "server.hpp"
+#include "dbcomid.hpp"
+#include "sysconst.hpp"
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
@@ -67,6 +75,11 @@ void Player::dbRemoveVar(const std::string &var)
 void Player::dbUpdateExp()
 {
     g_dbPod->exec(u8R"###( update tbl_char set fld_exp = %llu where fld_dbid = %llu )###", to_llu(exp()), to_llu(dbid()));
+}
+
+void Player::dbUpdateGold(size_t gold)
+{
+    g_dbPod->exec(u8R"###( update tbl_char set fld_gold = %llu where fld_dbid = %llu )###", to_llu(gold), to_llu(dbid()));
 }
 
 void Player::dbUpdateMapGLoc()
@@ -745,6 +758,15 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
         }
 
         queries.back().append(" )");
+
+        if(includeRecv && other == SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM).asU64()){
+            queries.push_back(str_printf(
+                u8R"###( select tbl_chatmessage.*                                              )###"
+                u8R"###( from tbl_delivery                                                       )###"
+                u8R"###( inner join tbl_chatmessage on tbl_chatmessage.fld_id = tbl_delivery.fld_messageid )###"
+                u8R"###( where tbl_delivery.fld_dbid = %llu and tbl_delivery.fld_claimed = 0     )###",
+                to_llu(dbid())));
+        }
     }
 
     if(queries.empty()){
@@ -772,6 +794,193 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
         });
     }
     return result;
+}
+
+std::string Player::createDelivery(std::vector<SDItem> itemList)
+{
+    fflassert(!itemList.empty());
+    fflassert(std::ranges::all_of(itemList, [](const auto &item){ return item && item.seqID == 0; }));
+
+    auto dbTrans = g_dbPod->createTransaction();
+    const auto payload = cerealf::serialize(itemList);
+
+    std::string record;
+    for(int i = 0; i < 16; ++i){
+        record = mathf::randstr(SYS_DELIVERYRECORDSIZE);
+
+        auto query = g_dbPod->createQuery(
+            u8R"###( insert into tbl_delivery(fld_record, fld_dbid, fld_timestamp, fld_payload) )###"
+            u8R"###( values                                                                     )###"
+            u8R"###(     (?, %llu, %llu, ?)                                                     )###"
+            u8R"###( on conflict(fld_record) do nothing                                         )###"
+            u8R"###( returning fld_record;                                                      )###",
+
+            to_llu(dbid()),
+            to_llu(hres_tstamp::localtime()));
+
+        query.bind(1, record);
+        query.bindBlob(2, payload);
+        if(query.executeStep()){
+            break;
+        }
+        record.clear();
+    }
+
+    if(record.empty()){
+        throw fflpanic("failed to generate delivery record");
+    }
+
+    std::map<uint32_t, size_t> itemSummary;
+    for(const auto &item: itemList){
+        itemSummary[item.itemID] += item.count;
+    }
+
+    std::string xmlString = "<layout>";
+    xmlString += xmlf::toParString("%s", to_cstr(u8"你收到了一份系统投递："));
+    for(const auto &[itemID, count]: itemSummary){
+        const auto &ir = DBCOM_ITEMRECORD(itemID);
+        fflassert(ir);
+        xmlString += xmlf::toParString("%s：%zu", ir.isGold() ? to_cstr(u8"金币") : to_cstr(ir.name), count);
+    }
+    xmlString += str_printf(
+        "<par><event id=\"%s\" record=\"%s\">%s</event></par>",
+        SYS_DELIVERY,
+        record.c_str(),
+        to_cstr(u8"收取"));
+    xmlString += "</layout>";
+
+    const auto fromCPID = SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM);
+    const auto toCPID = cpid();
+    const auto messageBuf = cerealf::serialize(xmlString);
+    const auto [messageID, messageTimestamp] = dbSaveChatMessage(fromCPID, toCPID, messageBuf, {});
+
+    {
+        auto query = g_dbPod->createQuery(
+            u8R"###( update tbl_delivery set fld_messageid = %llu where fld_record = ? returning fld_record )###",
+            to_llu(messageID));
+
+        query.bind(1, record);
+        if(!query.executeStep()){
+            throw fflpanic("failed to bind delivery record to chat message");
+        }
+    }
+    dbTrans.commit();
+
+    SDChatMessage message;
+    message.seq = SDChatMessageDBSeq
+    {
+        .id = messageID,
+        .timestamp = messageTimestamp,
+    };
+    message.from = fromCPID;
+    message.to = toCPID;
+    message.message = messageBuf;
+    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList{std::move(message)}));
+    return record;
+}
+
+std::optional<std::string> Player::claimDelivery(const std::string &record)
+{
+    const auto validRecord = record.size() == SYS_DELIVERYRECORDSIZE
+        && std::all_of(record.begin(), record.end(), [](unsigned char ch)
+        {
+            return std::isalnum(ch) != 0;
+        });
+
+    if(!validRecord){
+        return "Invalid delivery record";
+    }
+
+    auto dbTrans = g_dbPod->createTransaction();
+    std::string payload;
+    {
+        auto query = g_dbPod->createQuery(
+            u8R"###( update tbl_delivery                                                      )###"
+            u8R"###( set fld_claimed = 1, fld_claimtime = %llu                                 )###"
+            u8R"###( where fld_record = ? and fld_dbid = %llu and fld_claimed = 0              )###"
+            u8R"###( returning fld_payload;                                                    )###",
+
+            to_llu(hres_tstamp::localtime()),
+            to_llu(dbid()));
+
+        query.bind(1, record);
+        if(query.executeStep()){
+            payload = query.getColumn("fld_payload").getString();
+        }
+    }
+
+    if(payload.empty()){
+        auto query = g_dbPod->createQuery(
+            u8R"###( select fld_claimed from tbl_delivery where fld_record = ? and fld_dbid = %llu )###",
+            to_llu(dbid()));
+
+        query.bind(1, record);
+        if(query.executeStep() && query.getColumn("fld_claimed").getInt() != 0){
+            return "Item has been claimed";
+        }
+        return "Invalid delivery record";
+    }
+
+    const auto itemList = cerealf::deserialize<std::vector<SDItem>>(payload);
+    if(itemList.empty()){
+        return "Invalid delivery record";
+    }
+
+    auto inventory = m_sdItemStorage.inventory;
+    auto gold = m_sdItemStorage.gold;
+    std::unordered_set<uint64_t> changedItemSet;
+
+    for(auto item: itemList){
+        if(!item || item.seqID != 0){
+            return "Invalid delivery record";
+        }
+
+        if(item.isGold()){
+            if(gold > std::numeric_limits<int>::max() || item.count > to_uz(std::numeric_limits<int>::max()) - gold){
+                return "Gold limit exceeded";
+            }
+            gold += item.count;
+        }
+        else{
+            const auto &addedItem = inventory.add(std::move(item), false);
+            changedItemSet.insert((to_u64(addedItem.itemID) << 32) | addedItem.seqID);
+        }
+    }
+
+    std::vector<SDItem> changedItemList;
+    changedItemList.reserve(changedItemSet.size());
+    for(const auto &item: inventory.getItemList()){
+        if(changedItemSet.contains((to_u64(item.itemID) << 32) | item.seqID)){
+            changedItemList.push_back(item);
+            dbUpdateInventoryItem(item);
+        }
+    }
+
+    if(gold != m_sdItemStorage.gold){
+        dbUpdateGold(gold);
+    }
+    dbTrans.commit();
+
+    m_sdItemStorage.inventory = std::move(inventory);
+    m_sdItemStorage.gold = gold;
+
+    for(const auto &item: changedItemList){
+        reportUpdateItem(item);
+    }
+
+    for(const auto &item: itemList){
+        if(!item.isGold()){
+            m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(item.itemID)));
+        }
+    }
+
+    if(std::any_of(itemList.begin(), itemList.end(), [](const SDItem &item)
+    {
+        return item.isGold();
+    })){
+        reportGold();
+    }
+    return {};
 }
 
 bool Player::dbHasPlayer(uint32_t argDBID)

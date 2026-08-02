@@ -1317,6 +1317,39 @@ const FriendChatBoard *FriendChatBoard::getParentBoard(const Widget *widget)
     throw fflpanic("widget is not a decedent of FriendChatBoard");
 }
 
+void FriendChatBoard::requestClaimDelivery(const std::string &record)
+{
+    if(record.size() != SYS_DELIVERYRECORDSIZE){
+        m_processRun->addCBLog(CBLOG_ERR, u8"无效的投递记录");
+        return;
+    }
+
+    CMClaimDelivery cmCD {};
+    cmCD.record.assign(record);
+
+    g_client->send({CM_CLAIMDELIVERY, cmCD}, [this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    {
+        switch(headCode){
+            case SM_OK:
+                {
+                    m_processRun->addCBLog(CBLOG_SYS, u8"投递奖励已领取");
+                    break;
+                }
+            case SM_ERROR:
+                {
+                    const auto error = (buf && bufSize) ? std::string(reinterpret_cast<const char *>(buf), bufSize) : "Failed to claim delivery";
+                    m_processRun->addCBLog(CBLOG_ERR, u8"%s", error.c_str());
+                    break;
+                }
+            default:
+                {
+                    m_processRun->addCBLog(CBLOG_ERR, u8"领取投递奖励失败");
+                    break;
+                }
+        }
+    });
+}
+
 void FriendChatBoard::requestAddFriend(const SDChatPeer &argCP, bool switchToChatPreview)
 {
     CMAddFriend cmAF;

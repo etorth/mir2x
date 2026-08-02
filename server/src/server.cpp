@@ -427,6 +427,21 @@ void Server::createDefaultDatabase()
         u8R"###(     fld_to             integer not null,                                )###"
         u8R"###(     fld_message        blob        null default (x'')                   )###"
         u8R"###( ) strict;                                                               )###",
+
+        u8R"###( create table tbl_delivery(                                              )###"
+        u8R"###(     fld_record         text    not null primary key,                    )###"
+        u8R"###(     fld_dbid           integer not null,                                )###"
+        u8R"###(     fld_messageid      integer,                                         )###"
+        u8R"###(     fld_timestamp      integer not null,                                )###"
+        u8R"###(     fld_claimed        integer not null default 0 check(fld_claimed in (0, 1)), )###"
+        u8R"###(     fld_claimtime      integer,                                         )###"
+        u8R"###(     fld_payload        blob    not null,                                )###"
+        u8R"###(                                                                         )###"
+        u8R"###(     foreign key (fld_dbid     ) references tbl_char       (fld_dbid) on delete cascade, )###"
+        u8R"###(     foreign key (fld_messageid) references tbl_chatmessage(fld_id)      )###"
+        u8R"###( ) strict;                                                               )###",
+
+        u8R"###( create index tbl_delivery_dbid_index on tbl_delivery(fld_dbid);          )###",
     };
 
     {

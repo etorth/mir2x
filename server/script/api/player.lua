@@ -46,6 +46,33 @@ function player.addItem(uid, item, count)
     ]])
 end
 
+function player.deliverItem(uid, item, count)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+
+    assertType(item, 'string', 'integer')
+    if type(item) == 'string' then
+        item = getItemID(item)
+    end
+    assert(item > 0)
+
+    assertType(count, 'integer', 'nil')
+    if count == nil then
+        count = 1
+    end
+    assert(count > 0)
+
+    return uidRemoteCall(uid, item, count,
+    [[
+        local item, count = ...
+        return deliverItem(item, count)
+    ]])
+end
+
+function player.deliverGold(uid, count)
+    return player.deliverItem(uid, SYS_GOLDNAME, count)
+end
+
 function player.removeItem(uid, item, arg1, arg2)
     assertType(uid, 'integer')
     assert(isPlayer(uid))

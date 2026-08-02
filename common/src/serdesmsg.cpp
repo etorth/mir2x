@@ -175,6 +175,25 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
     return xmlStr;
 }
 
+std::vector<SDItem> SDItem::buildItemList(uint32_t itemID, size_t count)
+{
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    fflassert(ir);
+    fflassert(count > 0);
+
+    std::vector<SDItem> itemList;
+    while(count > 0){
+        const auto itemCount = ir.isGold() ? count : std::min<size_t>(ir.packable() ? SYS_INVGRIDMAXHOLD : 1, count);
+        itemList.push_back(SDItem
+        {
+            .itemID = itemID,
+            .count  = itemCount,
+        });
+        count -= itemCount;
+    }
+    return itemList;
+}
+
 std::vector<SDItem> SDItem::buildGoldItem(size_t count)
 {
     fflassert(count > 0);

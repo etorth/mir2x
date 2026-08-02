@@ -129,6 +129,7 @@ class FriendChatBoard: public Widget
         void addFriendListChatPeer(const SDChatPeerID &);
 
     public:
+        void requestClaimDelivery  (const std::string &);
         void requestAddFriend      (const SDChatPeer &, bool);
         void requestAcceptAddFriend(const SDChatPeer &);
         void requestRejectAddFriend(const SDChatPeer &);
