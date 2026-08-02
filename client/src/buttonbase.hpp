@@ -48,7 +48,7 @@ class ButtonBase: public Widget
                 int m_state[2]
                 {
                     BEVENT_OFF,
-                        BEVENT_OFF,
+                    BEVENT_OFF,
                 };
 
             public:

@@ -13,6 +13,8 @@ class RankingRow final: public Widget
 
     private:
         GfxShapeBoard m_bg;
+
+    private:
         ItemPair m_pair;
 
     public:

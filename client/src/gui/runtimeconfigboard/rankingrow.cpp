@@ -5,7 +5,7 @@
 #include "itembox.hpp"
 #include "labelboard.hpp"
 #include "sdldevice.hpp"
-#include "trigfxbutton.hpp"
+#include "textbutton.hpp"
 #include "rankingrow.hpp"
 
 namespace
@@ -25,60 +25,6 @@ namespace
                 throw fflpanic("invalid ranking type: {}", to_d(type));
         }
     }
-
-    class RankingActionButton final: public Widget
-    {
-        private:
-            LabelBoard m_label;
-            TrigfxButton m_button;
-
-        public:
-            RankingActionButton(const char8_t *label, uint32_t dbid)
-                : Widget
-                  {{
-                      .w = std::nullopt,
-                      .h = std::nullopt,
-
-                      .attrs
-                      {
-                          .inst
-                          {
-                              .data = dbid,
-                          },
-                      },
-                  }}
-
-                , m_label
-                  {{
-                      .label = label,
-                      .font
-                      {
-                          .id = 1,
-                          .size = 12,
-                          .color = colorf::YELLOW_A255,
-                      },
-                  }}
-
-                , m_button
-                  {{
-                      .gfxList
-                      {
-                          &m_label,
-                          &m_label,
-                          &m_label,
-                      },
-
-                      .onTrigger = [](Widget *, int)
-                      {
-                      },
-
-                      .offXOnClick = 1,
-                      .offYOnClick = 1,
-
-                      .parent{this},
-                  }}
-            {}
-    };
 }
 
 extern SDLDevice *g_sdlDevice;
@@ -110,8 +56,8 @@ RankingRow::RankingRow(Widget::VarSize argW, size_t rank, RankingType type, cons
       {{
           .dir = DIR_LEFT,
 
-          .y = [this]{ return h() / 2; },
-          .flex = [this]{ return w(); },
+          .y    = [this]{ return h() / 2; },
+          .flex = [this]{ return w()    ; },
 
           .v = false,
           .align = ItemAlign::CENTER,
@@ -121,11 +67,6 @@ RankingRow::RankingRow(Widget::VarSize argW, size_t rank, RankingType type, cons
               .widget = new LabelBoard
               {{
                   .label = getRankingLabel(rank, type, entry).c_str(),
-                  .font
-                  {
-                      .id = 1,
-                      .size = 12,
-                  },
               }},
               .autoDelete = true,
           },
@@ -142,8 +83,36 @@ RankingRow::RankingRow(Widget::VarSize argW, size_t rank, RankingType type, cons
 
                   .childList
                   {
-                      {new RankingActionButton(u8"打招呼", m_dbid), true},
-                      {new RankingActionButton(u8"加好友", m_dbid), true},
+                      {
+                          new TextButton
+                          {{
+                              .textFunc = to_cstr(u8"打招呼"),
+                              .onTrigger = [](Widget *, int)
+                              {
+                              },
+
+                              .attrs
+                              {
+                                  .data = m_dbid,
+                              },
+                          }},
+                          true,
+                      },
+                      {
+                          new TextButton
+                          {{
+                              .textFunc = to_cstr(u8"加好友"),
+                              .onTrigger = [](Widget *, int)
+                              {
+                              },
+
+                              .attrs
+                              {
+                                  .data = m_dbid,
+                              },
+                          }},
+                          true,
+                      },
                   },
               }},
               .autoDelete = true,

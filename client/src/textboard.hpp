@@ -19,7 +19,7 @@ class TextBoard: public Widget
             Widget::VarInt y = 0;
 
             Widget::VarStrFunc textFunc {};
-            Widget::FontConfig font {};
+            Widget::FontConfig font     {};
 
             Widget::VarBlendMode blendMode = SDL_BLENDMODE_BLEND;
 
