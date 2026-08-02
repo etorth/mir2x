@@ -118,7 +118,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
     {
         fflassert(itemID > 0);
         fflassert(itemCount > 0);
-        return getPlayer()->createDelivery(SDItem::buildItemList(to_u32(itemID), to_uz(itemCount)));
+        return getPlayer()->sendDelivery(SDItem::buildItemList(to_u32(itemID), to_uz(itemCount)));
     });
 
     bindFunction("removeItem", [this](int itemID, int seqID, int count) -> bool
@@ -2110,4 +2110,16 @@ corof::awaitable<bool> Player::followTeamLeader()
         const auto [backX, backY] = pathf::getBackGLoc(coLoc.x, coLoc.y, coLoc.direction, 3);
         co_return co_await requestSpaceMove(backX, backY, false);
     }
+}
+
+std::string Player::sendDelivery(std::vector<SDItem> itemList)
+{
+    auto [record, msg] = dbCreateDelivery(std::move(itemList));
+    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList{std::move(msg)}));
+    return record;
+}
+
+std::optional<std::string> Player::claimDelivery(const std::string &record)
+{
+    return dbClaimDelivery(record);
 }

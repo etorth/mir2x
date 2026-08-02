@@ -131,6 +131,11 @@ struct SDItem
         ar(itemID, seqID, count, duration[0], duration[1], extAttrList);
     }
 
+    uint64_t itemIDSeq() const
+    {
+        return (to_u64(itemID) << 32) | seqID;
+    }
+
     std::string str() const
     {
         return str_printf("(name, itemID, seqID, count, duration) = (%s, %zu, %zu, %zu, (%zu, %zu))", to_cstr(DBCOM_ITEMRECORD(itemID).name), to_uz(itemID), to_uz(seqID), count, duration[0], duration[1]);

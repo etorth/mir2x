@@ -1,6 +1,6 @@
 #include <cstring>
 #include <cctype>
-#include <limits>
+#include <climits>
 #include <algorithm>
 #include <unordered_set>
 #include "luaf.hpp"
@@ -799,7 +799,7 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
     return result;
 }
 
-std::string Player::createDelivery(std::vector<SDItem> itemList)
+std::tuple<std::string, SDChatMessage> Player::dbCreateDelivery(std::vector<SDItem> itemList)
 {
     fflassert(!itemList.empty());
     fflassert(std::ranges::all_of(itemList, [](const auto &item){ return item && item.seqID == 0; }));
@@ -845,18 +845,13 @@ std::string Player::createDelivery(std::vector<SDItem> itemList)
         fflassert(ir);
         xmlString += xmlf::toParString("%s：%zu", ir.isGold() ? to_cstr(u8"金币") : to_cstr(ir.name), count);
     }
-    xmlString += str_printf(
-        "<par><event id=\"%s\" record=\"%s\">%s</event></par>",
-        SYS_DELIVERY,
-        record.c_str(),
-        to_cstr(u8"收取"));
+    xmlString += str_printf(R"###("<par><event id="%s" record="%s">收取</event></par>)###", SYS_DELIVERY, record.c_str());
     xmlString += "</layout>";
 
     const auto fromCPID = SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM);
     const auto toCPID = cpid();
     const auto messageBuf = cerealf::serialize(xmlString);
     const auto [messageID, messageTimestamp] = dbSaveChatMessage(fromCPID, toCPID, messageBuf, {});
-
     {
         auto query = g_dbPod->createQuery(
             u8R"###( update tbl_delivery set fld_messageid = %llu where fld_record = ? returning fld_record )###",
@@ -867,41 +862,37 @@ std::string Player::createDelivery(std::vector<SDItem> itemList)
             throw fflpanic("failed to bind delivery record to chat message");
         }
     }
-    dbTrans.commit();
 
-    SDChatMessage message;
-    message.seq = SDChatMessageDBSeq
+    dbTrans.commit();
+    return {record, SDChatMessage
     {
-        .id = messageID,
-        .timestamp = messageTimestamp,
-    };
-    message.from = fromCPID;
-    message.to = toCPID;
-    message.message = messageBuf;
-    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList{std::move(message)}));
-    return record;
+        .seq = SDChatMessageDBSeq
+        {
+            .id = messageID,
+            .timestamp = messageTimestamp,
+        },
+
+        .from = fromCPID,
+        .to = toCPID,
+
+        .message = messageBuf,
+    }};
 }
 
-std::optional<std::string> Player::claimDelivery(const std::string &record)
+std::optional<std::string> Player::dbClaimDelivery(const std::string &record)
 {
-    const auto validRecord = record.size() == SYS_DELIVERYRECORDSIZE
-        && std::all_of(record.begin(), record.end(), [](unsigned char ch)
-        {
-            return std::isalnum(ch) != 0;
-        });
-
-    if(!validRecord){
-        return "Invalid delivery record";
-    }
+    fflassert(record.size() == SYS_DELIVERYRECORDSIZE, record);
+    fflassert(std::ranges::all_of(record, [](unsigned char ch) -> bool { return std::isalnum(ch); }), record);
 
     auto dbTrans = g_dbPod->createTransaction();
     std::string payload;
     {
         auto query = g_dbPod->createQuery(
-            u8R"###( update tbl_delivery                                                      )###"
-            u8R"###( set fld_claimed = 1, fld_claimtime = %llu                                 )###"
-            u8R"###( where fld_record = ? and fld_dbid = %llu and fld_claimed = 0              )###"
-            u8R"###( returning fld_payload;                                                    )###",
+            u8R"###( update tbl_delivery                                         )###"
+            u8R"###(     set fld_claimed = 1, fld_claimtime = %llu               )###"
+            u8R"###( where                                                       )###"
+            u8R"###(     fld_record = ? and fld_dbid = %llu and fld_claimed = 0  )###"
+            u8R"###( returning fld_payload;                                      )###",
 
             to_llu(hres_tstamp::localtime()),
             to_llu(dbid()));
@@ -913,11 +904,9 @@ std::optional<std::string> Player::claimDelivery(const std::string &record)
     }
 
     if(payload.empty()){
-        auto query = g_dbPod->createQuery(
-            u8R"###( select fld_claimed from tbl_delivery where fld_record = ? and fld_dbid = %llu )###",
-            to_llu(dbid()));
-
+        auto query = g_dbPod->createQuery(u8R"###( select fld_claimed from tbl_delivery where fld_record = ? and fld_dbid = %llu )###", to_llu(dbid()));
         query.bind(1, record);
+
         if(query.executeStep() && query.getColumn("fld_claimed").getInt() != 0){
             return "Item has been claimed";
         }
@@ -930,30 +919,30 @@ std::optional<std::string> Player::claimDelivery(const std::string &record)
     }
 
     auto inventory = m_sdItemStorage.inventory;
-    auto gold = m_sdItemStorage.gold;
-    std::unordered_set<uint64_t> changedItemSet;
+    auto gold      = m_sdItemStorage.gold;
 
+    std::unordered_set<uint64_t> changedItemSet;
     for(auto item: itemList){
         if(!item || item.seqID != 0){
             return "Invalid delivery record";
         }
 
         if(item.isGold()){
-            if(gold > std::numeric_limits<int>::max() || item.count > to_uz(std::numeric_limits<int>::max()) - gold){
+            if(gold > INT_MAX || item.count > INT_MAX - gold){
                 return "Gold limit exceeded";
             }
             gold += item.count;
         }
         else{
             const auto &addedItem = inventory.add(std::move(item), false);
-            changedItemSet.insert((to_u64(addedItem.itemID) << 32) | addedItem.seqID);
+            changedItemSet.insert(addedItem.itemIDSeq());
         }
     }
 
     std::vector<SDItem> changedItemList;
     changedItemList.reserve(changedItemSet.size());
     for(const auto &item: inventory.getItemList()){
-        if(changedItemSet.contains((to_u64(item.itemID) << 32) | item.seqID)){
+        if(changedItemSet.contains(item.itemIDSeq())){
             changedItemList.push_back(item);
             dbUpdateInventoryItem(item);
         }

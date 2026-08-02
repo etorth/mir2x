@@ -355,8 +355,8 @@ class Player final: public BattleObject
         SDChatMessageList dbRetrieveLatestChatMessage(const std::span<const uint64_t> &, size_t, bool, bool);
 
     private:
-        std::string createDelivery(std::vector<SDItem>);
-        std::optional<std::string> claimDelivery(const std::string &);
+        std::tuple<std::string, SDChatMessage> dbCreateDelivery(std::vector<SDItem>);
+        std::optional<std::string> dbClaimDelivery(const std::string &);
 
     private:
         void dbSecureItem(uint32_t, uint32_t);
@@ -537,4 +537,8 @@ class Player final: public BattleObject
     protected:
         bool consumeBook(uint32_t);
         bool consumePotion(uint32_t);
+
+    private:
+        std::string sendDelivery(std::vector<SDItem>);
+        std::optional<std::string> claimDelivery(const std::string &);
 };
