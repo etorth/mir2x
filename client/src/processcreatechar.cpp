@@ -1,4 +1,5 @@
 #include "mathf.hpp"
+#include "jobf.hpp"
 #include "client.hpp"
 #include "fflerror.hpp"
 #include "sdldevice.hpp"
@@ -185,15 +186,14 @@ void ProcessCreateChar::processEvent(const SDL_Event &event)
 
 uint32_t ProcessCreateChar::charFrameCount(int job, bool gender)
 {
-    fflassert(job >= JOB_BEGIN);
-    fflassert(job <  JOB_END  );
+    fflassert(jobf::jobValid(job), job);
 
     const static std::map<std::tuple<int, bool, int>, uint32_t> s_frameCount
     {
         #include "selectcharframecount.inc"
     };
 
-    if(auto p = s_frameCount.find({job, gender, 4}); p != s_frameCount.end()){
+    if(auto p = s_frameCount.find({jobf::firstJob(job), gender, 4}); p != s_frameCount.end()){
         return p->second;
     }
     return 0;
@@ -201,8 +201,8 @@ uint32_t ProcessCreateChar::charFrameCount(int job, bool gender)
 
 uint32_t ProcessCreateChar::charGfxBaseID(int job, bool gender)
 {
-    fflassert(job >= JOB_BEGIN);
-    fflassert(job <  JOB_END  );
+    fflassert(jobf::jobValid(job), job);
+    const auto jobIndexList = jobf::jobGfxIndex(jobf::firstJob(job));
 
     // 14     : max =  2   shadow
     // 13     : max =  2   magic
@@ -212,9 +212,9 @@ uint32_t ProcessCreateChar::charGfxBaseID(int job, bool gender)
     // 00 - 04: max = 32   frame
 
     return 0
-        + (to_u32(job - JOB_BEGIN) << 10)
-        + (to_u32(gender         ) <<  9)
-        + (to_u32(4              ) <<  5);
+        + (to_u32(jobIndexList.front()) << 10)
+        + (to_u32(gender              ) <<  9)
+        + (to_u32(4                   ) <<  5);
 }
 
 void ProcessCreateChar::onSubmit()
@@ -298,8 +298,10 @@ void ProcessCreateChar::drawChar(bool gender, int drawX, int drawY) const
 
 void ProcessCreateChar::playMagicSoundEffect()
 {
+    fflassert(jobf::jobValid(m_job), m_job);
+
     const int offGender = to_d(m_activeGender);
-    const int offJob = m_job - JOB_BEGIN;
+    const int offJob = jobf::jobGfxIndex(jobf::firstJob(m_job)).front();
 
     const uint32_t seffID = UINT32_C(0X00010000) // base
         | (to_u32(offGender) << 4)               //

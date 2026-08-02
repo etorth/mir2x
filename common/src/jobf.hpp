@@ -10,7 +10,7 @@ namespace jobf
 {
     inline bool jobValid(int job)
     {
-        return job >= JOB_BEGIN && job < JOB_END;
+        return job && valmaskCheck(JOB_VALMASK, job);
     }
 
     inline int firstJob(int job)
@@ -18,7 +18,7 @@ namespace jobf
         /**/ if(job & JOB_WARRIOR) return JOB_WARRIOR;
         else if(job & JOB_TAOIST ) return JOB_TAOIST ;
         else if(job & JOB_WIZARD ) return JOB_WIZARD ;
-        else                       return JOB_NONE   ;
+        else                       return 0;
     }
 
     inline auto jobName(int job)

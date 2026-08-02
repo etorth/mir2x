@@ -3,6 +3,11 @@
 #include <utility>
 #include "motion.hpp"
 
+constexpr bool valmaskCheck(uint64_t valMask, uint64_t value) noexcept
+{
+    return (value & ~valMask) == 0;
+}
+
 // define of directioin
 //
 //               0
@@ -130,12 +135,11 @@ enum NPCErrorType: int
 
 enum JobType: int
 {
-    JOB_NONE    = 0,
-    JOB_BEGIN   = 1,
     JOB_WARRIOR = 1 << 0,
     JOB_TAOIST  = 1 << 1,
     JOB_WIZARD  = 1 << 2,
-    JOB_END     = 1 << 3,
+
+    JOB_VALMASK = JOB_WARRIOR | JOB_TAOIST | JOB_WIZARD,
 };
 
 // keep it POD
@@ -440,6 +444,8 @@ enum DropItemRuleFlag: uint32_t
 {
     DIRF_HIGHLIGHT = 1U << 0,
     DIRF_FILTER    = 1U << 1,
+
+    DIRF_VALMASK = DIRF_HIGHLIGHT | DIRF_FILTER,
 };
 
 enum RankingType: uint8_t
