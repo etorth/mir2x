@@ -207,8 +207,15 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         const auto dbid = uidf::getPlayerDBID(uid);
         const auto npcDBName = str_printf("tbl_npcdb_%s_%s", to_cstr(DBCOM_MAPRECORD(getNPChar()->mapID()).name), getNPChar()->getNPCName().c_str());
 
+        // keep npc cooldown/state across character recreation
+        // but remove it with the account
+
         if(!g_dbPod->createQuery(u8R"###(select name from sqlite_master where type='table' and name='%s')###", npcDBName.c_str()).executeStep()){
-            g_dbPod->exec(u8R"###(create table %s(fld_dbid integer not null primary key))###", npcDBName.c_str());
+            g_dbPod->exec(
+                u8R"###( create table %s(                                                               )###"
+                u8R"###(     fld_dbid integer not null primary key,                                     )###"
+                u8R"###(     foreign key (fld_dbid) references tbl_account(fld_dbid) on delete cascade  )###"
+                u8R"###( );                                                                             )###", npcDBName.c_str());
         }
 
         const auto colType = [&npcDBName, &key]() -> std::string

@@ -761,11 +761,14 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
 
         if(includeRecv && other == SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM).asU64()){
             queries.push_back(str_printf(
-                u8R"###( select tbl_chatmessage.*                                              )###"
-                u8R"###( from tbl_delivery                                                       )###"
-                u8R"###( inner join tbl_chatmessage on tbl_chatmessage.fld_id = tbl_delivery.fld_messageid )###"
-                u8R"###( where tbl_delivery.fld_dbid = %llu and tbl_delivery.fld_claimed = 0     )###",
-                to_llu(dbid())));
+                R"###( select                                                             )###"
+                R"###(     tbl_chatmessage.*                                              )###"
+                R"###( from                                                               )###"
+                R"###(     tbl_delivery                                                   )###"
+                R"###(     inner join tbl_chatmessage                                     )###"
+                R"###(         on tbl_chatmessage.fld_id = tbl_delivery.fld_messageid     )###"
+                R"###( where                                                              )###"
+                R"###(     tbl_delivery.fld_dbid = %llu and tbl_delivery.fld_claimed = 0; )###", to_llu(dbid())));
         }
     }
 

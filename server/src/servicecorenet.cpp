@@ -261,18 +261,6 @@ corof::awaitable<> ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, con
     const auto dbid = dbidOpt.value().first;
     try{
         auto dbTrans = g_dbPod->createTransaction();
-        {
-            auto query = g_dbPod->createQuery(u8R"###( delete from tbl_char where fld_dbid = %llu returning fld_dbid )###", to_llu(dbid));
-            if(!query.executeStep()){
-                fnDeleteCharError(DELCHARERR_NOCHAR);
-                return {};
-            }
-
-            const auto dbidDeleted = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
-            fflassert(dbidDeleted == dbid);
-        }
-
-        g_dbPod->exec(u8R"###( delete from tbl_learnedmagiclist where fld_dbid = %llu )###", to_llu(dbid));
         auto maxSeqID = [dbid]() -> uint32_t
         {
             auto querySeqID = g_dbPod->createQuery(
@@ -384,6 +372,17 @@ corof::awaitable<> ServiceCore::net_CM_DELETECHAR(uint32_t channID, uint8_t, con
                 insertQuery.bindBlob(1, extAttrBuf.data(), extAttrBuf.length());
                 insertQuery.exec();
             }
+        }
+
+        {
+            auto query = g_dbPod->createQuery(u8R"###( delete from tbl_char where fld_dbid = %llu returning fld_dbid )###", to_llu(dbid));
+            if(!query.executeStep()){
+                fnDeleteCharError(DELCHARERR_NOCHAR);
+                return {};
+            }
+
+            const auto dbidDeleted = check_cast<uint32_t, unsigned>(query.getColumn("fld_dbid"));
+            fflassert(dbidDeleted == dbid);
         }
 
         dbTrans.commit();
