@@ -48,8 +48,8 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .dir = DIR_NONE,
           .x = [](const Widget *){ return g_sdlDevice->getRendererWidth () / 2; },
           .y = [](const Widget *){ return g_sdlDevice->getRendererHeight() / 2; },
-          .w = 720,
-          .h = 440,
+          .w = std::nullopt,
+          .h = std::nullopt,
           .parent{argParent, argAutoDelete},
       }}
 

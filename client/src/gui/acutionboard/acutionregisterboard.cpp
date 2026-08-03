@@ -51,8 +51,8 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
           .dir = DIR_NONE,
           .x = [](const Widget *){ return g_sdlDevice->getRendererWidth () / 2; },
           .y = [](const Widget *){ return g_sdlDevice->getRendererHeight() / 2; },
-          .w = 408,
-          .h = 286,
+          .w = std::nullopt,
+          .h = std::nullopt,
           .parent{argParent, argAutoDelete},
       }}
 
