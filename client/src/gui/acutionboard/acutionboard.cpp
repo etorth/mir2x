@@ -64,6 +64,23 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .parent{this},
       }}
 
+    , m_buttonContactSeller
+      {{
+          .dir = DIR_UPRIGHT,
+          .x = 704,
+          .y = 141,
+          .textFunc = to_cstr(u8"联系卖家"),
+          .font
+          {
+              .id = 1,
+              .size = 11,
+          },
+          .onTrigger = [](Widget *, int)
+          {
+          },
+          .parent{this},
+      }}
+
     , m_buttonPrevious
       {{
           .x = 21,
@@ -229,6 +246,11 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       }}
 {
     fflassert(m_runProc);
+    m_buttonContactSeller.setShow([this]
+    {
+        return m_selected.has_value() && m_selected.value() < m_sdAcutionItemList.itemList.size();
+    });
+
     setShow(false);
     updatePageButtonState();
 }
@@ -342,6 +364,7 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
         return consumeFocus(false);
     }
 
+    if(m_buttonContactSeller.show() && m_buttonContactSeller.processEventParent(event, valid, m)){ return true; }
     if(m_buttonPrevious    .processEventParent(event, valid, m)){ return true; }
     if(m_buttonNext        .processEventParent(event, valid, m)){ return true; }
     if(m_buttonRefresh     .processEventParent(event, valid, m)){ return true; }
@@ -489,26 +512,6 @@ void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
     const int remapX = m.x - m.ro->x;
     const int remapY = m.y - m.ro->y;
 
-    if(auto texPtr = getItemTexture(ir)){
-        constexpr int maxItemW = 72;
-        constexpr int maxItemH = 72;
-        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-        const auto ratio = std::max<double>({to_df(texW) / maxItemW, to_df(texH) / maxItemH, 1.0});
-        const int drawW = to_d(std::lround(texW / ratio));
-        const int drawH = to_d(std::lround(texH / ratio));
-
-        g_sdlDevice->drawTexture(
-                texPtr,
-                remapX + 496 + (maxItemW - drawW) / 2,
-                remapY + 72 + (maxItemH - drawH) / 2,
-                drawW,
-                drawH,
-                0,
-                0,
-                texW,
-                texH);
-    }
-
     const auto drawText = [this, &m](std::string text, uint32_t color, int x, int y, int fontSize = 11)
     {
         TextBoard textBoard
@@ -524,34 +527,129 @@ void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
         drawAsChild(&textBoard, DIR_LEFT, x, y, m);
     };
 
-    drawText(to_cstr(ir.name), colorf::YELLOW_A255, 577, 65, 12);
-    drawText(to_cstr(str_printf(u8"寄售人：%s", entry.seller.c_str())), colorf::WHITE_A255, 577, 87);
-    drawText(to_cstr(str_printf(u8"剩余：%s", formatTimeLeft(currentTimeLeft(entry)).c_str())), colorf::WHITE_A255, 577, 107);
-    drawText(to_cstr(str_printf(u8"价格：%s", str_ksep(entry.price).c_str())), priceColor(entry.price), 577, 127);
+    drawText(to_cstr(u8"卖家留言"), colorf::CYAN_A255, 493, 58, 11);
 
-    LayoutBoard detailBoard
+    const auto noteXML = str_printf(
+            "<layout>%s</layout>",
+            xmlf::toParString(
+                "%s",
+                entry.note.empty() ? to_cstr(u8"卖家未填写留言。") : entry.note.c_str()).c_str());
+
+    LayoutBoard noteBoard
     {{
-        .lineWidth = 205,
+        .lineWidth = 211,
+        .initXML = noteXML.c_str(),
         .font
         {
             .id = 1,
-            .size = 11,
+            .size = 10,
         },
         .lineAlign = LALIGN_JUSTIFY,
     }};
+    noteBoard.draw({.x=remapX + 493, .y=remapY + 77, .ro{0, 0, 211, 52}});
 
-    std::string detailXML = to_cstr(entry.item.getXMLLayout(
-    {
-        {SDItem::XML_PRICE, std::to_string(entry.price)},
-        {SDItem::XML_PRICECOLOR, entry.price >= 10000000 ? "red" : entry.price >= 1000000 ? "cyan" : "yellow"},
-    }));
+    const auto sellerXML = str_printf(
+            "<layout>%s</layout>",
+            xmlf::toParString("卖家：%s", entry.seller.c_str()).c_str());
+    LayoutBoard sellerBoard
+    {{
+        .lineWidth = 155,
+        .initXML = sellerXML.c_str(),
+        .font
+        {
+            .id = 1,
+            .size = 10,
+        },
+        .lineAlign = LALIGN_LEFT,
+    }};
+    sellerBoard.draw({.x=remapX + 493, .y=remapY + 142, .ro{0, 0, 155, 15}});
 
-    if(!entry.note.empty()){
-        if(const auto insertPos = detailXML.rfind("</layout>"); insertPos != std::string::npos){
-            detailXML.insert(insertPos, xmlf::toParString("卖家留言：%s", entry.note.c_str()));
-        }
+    if(auto texPtr = getItemTexture(ir)){
+        constexpr int maxItemW = 56;
+        constexpr int maxItemH = 56;
+        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
+        const auto ratio = std::max<double>({to_df(texW) / maxItemW, to_df(texH) / maxItemH, 1.0});
+        const int drawW = to_d(std::lround(texW / ratio));
+        const int drawH = to_d(std::lround(texH / ratio));
+
+        g_sdlDevice->drawTexture(
+                texPtr,
+                remapX + 493 + (maxItemW - drawW) / 2,
+                remapY + 176 + (maxItemH - drawH) / 2,
+                drawW,
+                drawH,
+                0,
+                0,
+                texW,
+                texH);
     }
 
-    detailBoard.loadXML(detailXML.c_str());
-    detailBoard.draw({.x=remapX + 496, .y=remapY + 174, .ro{0, 0, 207, 148}});
+    const auto durationString = [&entry, &ir]() -> std::string
+    {
+        if(ir.equip.duration > 0){
+            fflassert(entry.item.duration[0] <= entry.item.duration[1]);
+            return str_printf("%zu / %zu", entry.item.duration[0], entry.item.duration[1]);
+        }
+        return "--";
+    }();
+
+    std::string summaryXML = "<layout>";
+    summaryXML += xmlf::toParString("名称：%s", to_cstr(ir.name));
+    summaryXML += xmlf::toParString("类型：%s", to_cstr(ir.type));
+    summaryXML += str_printf(
+            "<par>售价：<t color='%s'>%s</t></par>",
+            entry.price >= 10000000 ? "red" : entry.price >= 1000000 ? "cyan" : "yellow",
+            str_ksep(entry.price).c_str());
+    summaryXML += xmlf::toParString("持久：%s", durationString.c_str());
+    summaryXML += "</layout>";
+
+    LayoutBoard summaryBoard
+    {{
+        .lineWidth = 145,
+        .initXML = summaryXML.c_str(),
+        .font
+        {
+            .id = 1,
+            .size = 10,
+        },
+        .lineAlign = LALIGN_LEFT,
+    }};
+    summaryBoard.draw({.x=remapX + 559, .y=remapY + 174, .ro{0, 0, 145, 61}});
+
+    drawText(to_cstr(u8"物品描述"), colorf::GREEN_A255, 493, 239, 10);
+    const auto descriptionXML = str_printf(
+            "<layout>%s</layout>",
+            xmlf::toParString(
+                "%s",
+                str_haschar(ir.description) ? to_cstr(ir.description) : to_cstr(u8"游戏处于开发阶段，暂无物品描述。")).c_str());
+
+    LayoutBoard descriptionBoard
+    {
+        {
+            .lineWidth = 211,
+            .initXML = descriptionXML.c_str(),
+            .font
+            {
+                .id = 1,
+                .size = 10,
+            },
+            .lineAlign = LALIGN_JUSTIFY,
+        }
+    };
+    descriptionBoard.draw({.x=remapX + 493, .y=remapY + 253, .ro{0, 0, 211, 22}});
+
+    drawText(to_cstr(u8"物品属性"), colorf::GREEN_A255, 493, 279, 10);
+    const auto attributeXML = entry.item.getXMLLayout({}, SDItem::XMLLAYOUT_ATTRIBUTE);
+    LayoutBoard attributeBoard
+    {{
+        .lineWidth = 211,
+        .initXML = to_cstr(attributeXML),
+        .font
+        {
+            .id = 1,
+            .size = 10,
+        },
+        .lineAlign = LALIGN_LEFT,
+    }};
+    attributeBoard.draw({.x=remapX + 493, .y=remapY + 293, .ro{0, 0, 211, 36}});
 }

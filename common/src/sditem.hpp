@@ -18,6 +18,12 @@
 
 struct SDItem
 {
+    enum SDItemXMLLayoutType: int
+    {
+        XMLLAYOUT_FULL = 0,
+        XMLLAYOUT_ATTRIBUTE,
+    };
+
     enum SDItemXMLLayoutParamType: int
     {
         XML_NONE  = 0,
@@ -141,7 +147,9 @@ struct SDItem
         return str_printf("(name, itemID, seqID, count, duration) = (%s, %zu, %zu, %zu, (%zu, %zu))", to_cstr(DBCOM_ITEMRECORD(itemID).name), to_uz(itemID), to_uz(seqID), count, duration[0], duration[1]);
     }
 
-    std::u8string getXMLLayout(const std::unordered_map<int, std::string> & = {}) const;
+    std::u8string getXMLLayout(
+            const std::unordered_map<int, std::string> & = {},
+            SDItemXMLLayoutType = XMLLAYOUT_FULL) const;
 
     bool isGold() const
     {

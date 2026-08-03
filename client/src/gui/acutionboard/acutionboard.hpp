@@ -3,6 +3,7 @@
 #include "widget.hpp"
 #include "serdesmsg.hpp"
 #include "imageboard.hpp"
+#include "textbutton.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
@@ -27,6 +28,7 @@ class AcutionBoard final: public Widget
 
     private:
         ImageBoard m_background;
+        TextButton m_buttonContactSeller;
 
     private:
         TritexButton m_buttonPrevious;

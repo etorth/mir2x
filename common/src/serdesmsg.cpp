@@ -15,46 +15,51 @@ SDChatPeerID::SDChatPeerID(ChatPeerType argType, uint32_t argID)
     : SDChatPeerID((to_u64(argType) << 32) | argID)
 {}
 
-std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & params) const
+std::u8string SDItem::getXMLLayout(
+        const std::unordered_map<int, std::string> & params,
+        SDItem::SDItemXMLLayoutType layoutType) const
 {
     fflassert(*this);
     const auto &ir = DBCOM_ITEMRECORD(itemID);
 
     fflassert(ir);
+    fflassert(layoutType == XMLLAYOUT_FULL || layoutType == XMLLAYOUT_ATTRIBUTE, layoutType);
     std::u8string xmlStr;
 
     xmlStr += str_printf(u8R"###( <layout> )###""\n");
-    xmlStr += str_printf(u8R"###( <par>【名称】%s</par> )###""\n", ir.name);
-    xmlStr += str_printf(u8R"###( <par>【类型】%s</par> )###""\n", ir.type);
-    xmlStr += str_printf(u8R"###( <par>【重量】%d</par> )###""\n", ir.weight);
+    if(layoutType == XMLLAYOUT_FULL){
+        xmlStr += str_printf(u8R"###( <par>【名称】%s</par> )###""\n", ir.name);
+        xmlStr += str_printf(u8R"###( <par>【类型】%s</par> )###""\n", ir.type);
+        xmlStr += str_printf(u8R"###( <par>【重量】%d</par> )###""\n", ir.weight);
 
-    if(const auto p = params.find(SDItem::XML_PRICE); p != params.end()){
-        const auto priceColor = params.count(SDItem::XML_PRICECOLOR) ? to_cstr(params.at(SDItem::XML_PRICECOLOR)) : "green";
-        xmlStr += str_printf(u8R"###( <par>【售价】<t color='%s'>%s</t></par> )###""\n", priceColor, to_cstr(p->second));
+        if(const auto p = params.find(SDItem::XML_PRICE); p != params.end()){
+            const auto priceColor = params.count(SDItem::XML_PRICECOLOR) ? to_cstr(params.at(SDItem::XML_PRICECOLOR)) : "green";
+            xmlStr += str_printf(u8R"###( <par>【售价】<t color='%s'>%s</t></par> )###""\n", priceColor, to_cstr(p->second));
+        }
+
+        if(ir.equip.duration > 0){
+            fflassert(duration[0] <= duration[1]);
+            fflassert(duration[1] <= to_uz(ir.equip.duration));
+            const auto duraColorStr = [this]() -> const char *
+            {
+                if(duration[0] <= to_uz(duration[1] / 4) || (duration[0] <= 1)){
+                    return "red";
+                }
+                else if(duration[0] <= to_uz(duration[1] / 2)){
+                    return "yellow";
+                }
+                else{
+                    return "white";
+                }
+            }();
+            xmlStr += str_printf(u8R"###( <par>【持久】<t color='%s'>%zu/%zu/%d</t></par> )###""\n", duraColorStr, duration[0], duration[1], ir.equip.duration);
+        }
+
+        xmlStr += str_printf(u8R"###( <par></par> )###""\n");
+        xmlStr += str_printf(u8R"###( <par>%s</par> )###""\n", str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，暂无物品描述。");
+        xmlStr += str_printf(u8R"###( <par></par> )###""\n");
     }
 
-    if(ir.equip.duration > 0){
-        fflassert(duration[0] <= duration[1]);
-        fflassert(duration[1] <= to_uz(ir.equip.duration));
-        const auto duraColorStr = [this]() -> const char *
-        {
-            if(duration[0] <= to_uz(duration[1] / 4) || (duration[0] <= 1)){
-                return "red";
-            }
-            else if(duration[0] <= to_uz(duration[1] / 2)){
-                return "yellow";
-            }
-            else{
-                return "white";
-            }
-        }();
-        xmlStr += str_printf(u8R"###( <par>【持久】<t color='%s'>%zu/%zu/%d</t></par> )###""\n", duraColorStr, duration[0], duration[1], ir.equip.duration);
-    }
-
-    xmlStr += str_printf(u8R"###( <par></par> )###""\n");
-    xmlStr += str_printf(u8R"###( <par>%s</par> )###""\n", str_haschar(ir.description) ? ir.description : u8"游戏处于开发阶段，暂无物品描述。");
-
-    xmlStr += str_printf(u8R"###( <par></par> )###""\n");
     const auto fnAddAttrValuePair = [&xmlStr, this](int val0, int val1, const char8_t *valName, std::optional<int> extAttr)
     {
         if(val0 > 0 || val1 > 0 || (extAttr.has_value() && extAttr.value() != 0)){
