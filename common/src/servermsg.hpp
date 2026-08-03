@@ -88,6 +88,7 @@ enum SMType: uint8_t
     SM_PLAYERBROADCAST,
     SM_RANKINGLIST,
     SM_CLAIMDELIVERYERROR,
+    SM_ACUTIONITEMLIST,
     SM_END,
 };
 
@@ -461,6 +462,7 @@ namespace
         _RSVD_register_servermsg(SM_PLAYERBROADCAST,     1, sizeof(SMPlayerBroadcast)    );
         _RSVD_register_servermsg(SM_RANKINGLIST,         3                               );
         _RSVD_register_servermsg(SM_CLAIMDELIVERYERROR,  1, sizeof(SMClaimDeliveryError ));
+        _RSVD_register_servermsg(SM_ACUTIONITEMLIST,     3                               );
 
 #undef _RSVD_register_servermsg
         return result;

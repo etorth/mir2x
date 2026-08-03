@@ -66,6 +66,7 @@ enum CMType: uint8_t
     CM_REQUESTLATESTCHATMESSAGE,
     CM_QUERYRANKING,
     CM_CLAIMDELIVERY,
+    CM_QUERYACUTIONITEMLIST,
     CM_END,
 };
 
@@ -340,6 +341,11 @@ struct CMClaimDelivery
     StaticBuffer<SYS_DELIVERYRECORDSIZE> record;
 };
 
+struct CMQueryAcutionItemList
+{
+    uint8_t category;
+};
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -408,6 +414,7 @@ namespace
         _RSVD_register_clientmsg(CM_REQUESTLATESTCHATMESSAGE,   1, sizeof(CMRequestLatestChatMessage)  );
         _RSVD_register_clientmsg(CM_QUERYRANKING,               2, sizeof(CMQueryRanking)              );
         _RSVD_register_clientmsg(CM_CLAIMDELIVERY,              1, sizeof(CMClaimDelivery)             );
+        _RSVD_register_clientmsg(CM_QUERYACUTIONITEMLIST,       2, sizeof(CMQueryAcutionItemList)      );
 
 #undef _RSVD_register_clientmsg
         return result;

@@ -7,6 +7,7 @@
 #include "server.hpp"
 #include "dbcomid.hpp"
 #include "serverargparser.hpp"
+#include "acutiondb.hpp"
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
@@ -245,6 +246,14 @@ corof::awaitable<> Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf,
     std::memset(&amQSIL, 0, sizeof(amQSIL));
     amQSIL.itemID = cmQSIL.itemID;
     m_actorPod->post(cmQSIL.npcUID, {AM_QUERYSELLITEMLIST, amQSIL});
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_QUERYACUTIONITEMLIST(uint8_t, const uint8_t *buf, size_t, uint64_t)
+{
+    const auto cmQAIL = ClientMsg::conv<CMQueryAcutionItemList>(buf);
+    fflassert(cmQAIL.category >= ACUTIONCAT_BEGIN && cmQAIL.category < ACUTIONCAT_END, cmQAIL.category);
+    postNetMessage(SM_ACUTIONITEMLIST, cerealf::serialize(dbQueryAcutionItemList(cmQAIL.category), true));
     return {};
 }
 

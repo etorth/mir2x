@@ -18,6 +18,7 @@
 #include "server.hpp"
 #include "serverpasswordwindow.hpp"
 #include "serverconfigurewindow.hpp"
+#include "acutiondb.hpp"
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
@@ -308,6 +309,11 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         getNPChar()->postSell(uid);
     });
 
+    bindFunction("uidPostAcutionItemList", [this](uint64_t uid, int category)
+    {
+        getNPChar()->postAcutionItemList(uid, category);
+    });
+
     bindFunction("uidPostStartInvOp", [this](uint64_t uid, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
     {
         fflassert(invOp >= INVOP_BEGIN);
@@ -412,6 +418,13 @@ void NPChar::postSell(uint64_t uid)
         .npcUID = UID(),
         .itemList = std::vector<uint32_t>(getSellList().begin(), getSellList().end()),
     }));
+}
+
+void NPChar::postAcutionItemList(uint64_t uid, int category)
+{
+    fflassert(uidf::isPlayer(uid), uid, uidf::getUIDString(uid));
+    fflassert(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END, category);
+    forwardNetPackage(uid, SM_ACUTIONITEMLIST, cerealf::serialize(dbQueryAcutionItemList(category), true));
 }
 
 void NPChar::postInvOpCost(uint64_t uid, int invOp, uint32_t itemID, uint32_t seqID, size_t cost)

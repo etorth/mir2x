@@ -177,3 +177,22 @@ create table tbl_delivery(
 
 create index tbl_delivery_dbid_index      on tbl_delivery(fld_dbid);
 create index tbl_delivery_messageid_index on tbl_delivery(fld_messageid);
+
+create table tbl_acutionitem(
+    fld_id             integer not null primary key autoincrement,
+    fld_seller         integer not null,
+    fld_itemid         integer not null,
+    fld_seqid          integer not null,
+    fld_count          integer not null check(fld_count > 0),
+    fld_duration       integer not null check(fld_duration >= 0),
+    fld_maxduration    integer not null check(fld_maxduration >= 0),
+    fld_extattrlist    blob    not null,
+    fld_price          integer not null check(fld_price >= 0),
+    fld_expiretime     integer not null check(fld_expiretime > 0),
+
+    foreign key (fld_seller) references tbl_char(fld_dbid) on delete cascade,
+    unique (fld_seller, fld_itemid, fld_seqid)
+) strict;
+
+create index tbl_acutionitem_seller_index     on tbl_acutionitem(fld_seller);
+create index tbl_acutionitem_expiretime_index on tbl_acutionitem(fld_expiretime);

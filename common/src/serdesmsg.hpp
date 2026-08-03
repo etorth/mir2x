@@ -449,6 +449,30 @@ struct SDSellItemList
     }
 };
 
+struct SDAcutionItem
+{
+    std::string seller {};
+    size_t timeLeft = 0;
+    size_t price = 0;
+    SDItem item {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(seller, timeLeft, price, item);
+    }
+};
+
+struct SDAcutionItemList
+{
+    int category = 0;
+    std::vector<SDAcutionItem> itemList {};
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(category, itemList);
+    }
+};
+
 struct SDUpdateItem
 {
     SDItem item;

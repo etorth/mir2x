@@ -124,6 +124,18 @@ LuaModule::LuaModule()
     execString("WLG_TORCH     = %d", WLG_TORCH   );
     execString("WLG_CHARM     = %d", WLG_CHARM   );
 
+    execString("ACUTIONCAT_ALL      = %d", ACUTIONCAT_ALL     );
+    execString("ACUTIONCAT_DRESS    = %d", ACUTIONCAT_DRESS   );
+    execString("ACUTIONCAT_WEAPON   = %d", ACUTIONCAT_WEAPON  );
+    execString("ACUTIONCAT_NECKLACE = %d", ACUTIONCAT_NECKLACE);
+    execString("ACUTIONCAT_HELMET   = %d", ACUTIONCAT_HELMET  );
+    execString("ACUTIONCAT_RING     = %d", ACUTIONCAT_RING    );
+    execString("ACUTIONCAT_ARMRING  = %d", ACUTIONCAT_ARMRING );
+    execString("ACUTIONCAT_SHOES    = %d", ACUTIONCAT_SHOES   );
+    execString("ACUTIONCAT_POTION   = %d", ACUTIONCAT_POTION  );
+    execString("ACUTIONCAT_BOOK     = %d", ACUTIONCAT_BOOK    );
+    execString("ACUTIONCAT_OTHER    = %d", ACUTIONCAT_OTHER   );
+
     execString("SYS_DEBUG = %s", to_boolcstr(SYS_DEBUG));
     execString("SYS_GOLDNAME = %s", luaf::quotedLuaString(SYS_GOLDNAME).c_str());
 

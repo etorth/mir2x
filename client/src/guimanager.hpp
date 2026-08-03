@@ -4,6 +4,7 @@
 #include "horseboard.hpp"
 #include "gui/skillboard/skillboard.hpp"
 #include "gui/acutionboard/acutionboard.hpp"
+#include "gui/acutionboard/acutionregisterboard.hpp"
 #include "guildboard.hpp"
 #include "gui/npcchatboard/npcchatboard.hpp"
 #include "gui/friendchatboard/friendchatboard.hpp"
@@ -37,6 +38,7 @@ class GUIManager: public Widget
         GuildBoard m_guildBoard;
         MiniMapBoard m_miniMapBoard;
         AcutionBoard m_acutionBoard;
+        AcutionRegisterBoard m_acutionRegisterBoard;
         PurchaseBoard m_purchaseBoard;
         TeamStateBoard m_teamStateBoard;
         InventoryBoard m_inventoryBoard;
