@@ -2126,6 +2126,9 @@ std::string Player::sendDelivery(std::vector<SDItem> itemList)
 
 std::optional<int> Player::claimDelivery(const std::string &record)
 {
+    // the dbClaim and dbUpdateInventoryItem should be in same database transaction
+    // here keep it as it is for simplicity
+
     if(const auto claimedItemList = dbClaimDelivery(record); claimedItemList.has_value()){
         for(const auto &item: claimedItemList.value()){
             if(item.isGold()){
