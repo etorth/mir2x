@@ -452,13 +452,14 @@ struct SDSellItemList
 struct SDAcutionItem
 {
     std::string seller {};
+    std::string note {};
     size_t timeLeft = 0;
     size_t price = 0;
     SDItem item {};
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(seller, timeLeft, price, item);
+        ar(seller, note, timeLeft, price, item);
     }
 };
 

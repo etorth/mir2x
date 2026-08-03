@@ -485,6 +485,16 @@ enum ClaimDeliveryError: int
     CDERR_END,
 };
 
+enum AcutionRegisterErrorType: int
+{
+    ACUTIONREGERR_NONE = 0,
+    ACUTIONREGERR_BEGIN = 1,
+    ACUTIONREGERR_BADITEM = 1,
+    ACUTIONREGERR_BADPRICE,
+    ACUTIONREGERR_BADNOTE,
+    ACUTIONREGERR_END,
+};
+
 template<typename... Ts> struct VarDispatcher: Ts...
 {
     using Ts::operator()...;

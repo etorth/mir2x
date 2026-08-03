@@ -369,6 +369,11 @@ struct SMClaimDeliveryError
     uint8_t error;
 };
 
+struct SMAcutionRegisterError
+{
+    uint8_t error;
+};
+
 #pragma pack(pop)
 
 namespace

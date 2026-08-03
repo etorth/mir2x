@@ -90,6 +90,7 @@ constexpr size_t SYS_IDSIZE = 64;
 constexpr size_t SYS_PWDSIZE = 64;
 constexpr size_t SYS_NAMESIZE = 64;
 constexpr size_t SYS_DELIVERYRECORDSIZE = 32;
+constexpr size_t SYS_ACUTIONNOTESIZE = 128;
 
 constexpr size_t SYS_SEFFSIZE = 16;
 constexpr uint32_t SYS_MONSEFFBASE(int lookID)

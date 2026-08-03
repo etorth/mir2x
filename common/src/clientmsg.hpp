@@ -67,6 +67,7 @@ enum CMType: uint8_t
     CM_QUERYRANKING,
     CM_CLAIMDELIVERY,
     CM_QUERYACUTIONITEMLIST,
+    CM_REGISTERACUTIONITEM,
     CM_END,
 };
 
@@ -346,6 +347,14 @@ struct CMQueryAcutionItemList
     uint8_t category;
 };
 
+struct CMRegisterAcutionItem
+{
+    uint32_t itemID;
+    uint32_t seqID;
+    uint64_t price;
+    StaticBuffer<SYS_ACUTIONNOTESIZE> note;
+};
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -415,6 +424,7 @@ namespace
         _RSVD_register_clientmsg(CM_QUERYRANKING,               2, sizeof(CMQueryRanking)              );
         _RSVD_register_clientmsg(CM_CLAIMDELIVERY,              1, sizeof(CMClaimDelivery)             );
         _RSVD_register_clientmsg(CM_QUERYACUTIONITEMLIST,       2, sizeof(CMQueryAcutionItemList)      );
+        _RSVD_register_clientmsg(CM_REGISTERACUTIONITEM,         1, sizeof(CMRegisterAcutionItem)       );
 
 #undef _RSVD_register_clientmsg
         return result;

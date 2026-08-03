@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cmath>
 #include "strf.hpp"
+#include "xmlf.hpp"
 #include "mathf.hpp"
 #include "colorf.hpp"
 #include "client.hpp"
@@ -10,6 +11,7 @@
 #include "layoutboard.hpp"
 #include "textboard.hpp"
 #include "processrun.hpp"
+#include "acutionregisterboard.hpp"
 #include "acutionboard.hpp"
 
 extern PNGTexDB *g_itemDB;
@@ -170,8 +172,11 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
               .on   = 0X000000B3,
               .down = 0X000000B4,
           },
-          .onTrigger = [](Widget *, int)
+          .onTrigger = [this](Widget *, int)
           {
+              if(auto registerBoardPtr = dynamic_cast<AcutionRegisterBoard *>(m_runProc->getWidget("AcutionRegisterBoard"))){
+                  registerBoardPtr->begin();
+              }
           },
           .parent{this},
       }}
@@ -535,10 +540,18 @@ void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
         .lineAlign = LALIGN_JUSTIFY,
     }};
 
-    detailBoard.loadXML(to_cstr(entry.item.getXMLLayout(
+    std::string detailXML = to_cstr(entry.item.getXMLLayout(
     {
         {SDItem::XML_PRICE, std::to_string(entry.price)},
         {SDItem::XML_PRICECOLOR, entry.price >= 10000000 ? "red" : entry.price >= 1000000 ? "cyan" : "yellow"},
-    }).c_str()));
+    }));
+
+    if(!entry.note.empty()){
+        if(const auto insertPos = detailXML.rfind("</layout>"); insertPos != std::string::npos){
+            detailXML.insert(insertPos, xmlf::toParString("卖家留言：%s", entry.note.c_str()));
+        }
+    }
+
+    detailBoard.loadXML(detailXML.c_str());
     detailBoard.draw({.x=remapX + 496, .y=remapY + 174, .ro{0, 0, 207, 148}});
 }

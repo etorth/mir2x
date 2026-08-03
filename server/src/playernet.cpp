@@ -1,4 +1,5 @@
 #include <cinttypes>
+#include <limits>
 #include "dbpod.hpp"
 #include "uidsf.hpp"
 #include "player.hpp"
@@ -6,6 +7,7 @@
 #include "actorpod.hpp"
 #include "server.hpp"
 #include "dbcomid.hpp"
+#include "utf8f.hpp"
 #include "serverargparser.hpp"
 #include "acutiondb.hpp"
 
@@ -254,6 +256,52 @@ corof::awaitable<> Player::net_CM_QUERYACUTIONITEMLIST(uint8_t, const uint8_t *b
     const auto cmQAIL = ClientMsg::conv<CMQueryAcutionItemList>(buf);
     fflassert(cmQAIL.category >= ACUTIONCAT_BEGIN && cmQAIL.category < ACUTIONCAT_END, cmQAIL.category);
     postNetMessage(SM_ACUTIONITEMLIST, cerealf::serialize(dbQueryAcutionItemList(cmQAIL.category), true));
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_REGISTERACUTIONITEM(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+{
+    const auto cmRAI = ClientMsg::conv<CMRegisterAcutionItem>(buf);
+    const auto postError = [respID, this](int error)
+    {
+        postNetMessage(SM_ERROR, SMAcutionRegisterError{.error = to_u8(error)}, respID);
+    };
+
+    if(cmRAI.note.size > cmRAI.note.capacity()){
+        postError(ACUTIONREGERR_BADNOTE);
+        return {};
+    }
+
+    const auto note = cmRAI.note.to_str();
+    if(!utf8f::valid(note)){
+        postError(ACUTIONREGERR_BADNOTE);
+        return {};
+    }
+
+    if(cmRAI.price == 0 || cmRAI.price > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())){
+        postError(ACUTIONREGERR_BADPRICE);
+        return {};
+    }
+
+    if(true
+            && DBCOM_ITEMRECORD(cmRAI.itemID)
+            && cmRAI.seqID > 0
+            && hasInventoryItem(cmRAI.itemID, cmRAI.seqID, 1)){
+
+        const auto item = findInventoryItem(cmRAI.itemID, cmRAI.seqID);
+        if(item && !item.isGold() && dbRegisterAcutionItem(dbid(), item, note, cmRAI.price)){
+            const auto [removedCount, removedSeqID, itemPtr] = m_sdItemStorage.inventory.remove(item.itemID, item.seqID, item.count);
+            fflassert(removedCount == item.count, removedCount, item.count);
+            fflassert(removedSeqID == item.seqID, removedSeqID, item.seqID);
+            fflassert(!itemPtr);
+
+            reportRemoveItem(item.itemID, item.seqID, item.count);
+            postNetMessage(SM_OK, respID);
+            return {};
+        }
+    }
+
+    postError(ACUTIONREGERR_BADITEM);
     return {};
 }
 
