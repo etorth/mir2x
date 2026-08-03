@@ -227,6 +227,11 @@ struct ItemRecord
         return std::u8string_view(type) == u8"强效药水";
     }
 
+    constexpr bool isPowder() const
+    {
+        return std::u8string_view(type) == u8"药粉";
+    }
+
     constexpr std::optional<bool> clothGender() const
     {
         if(type && (std::u8string_view(type) == u8"衣服")){

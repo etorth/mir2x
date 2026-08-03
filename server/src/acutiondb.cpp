@@ -18,7 +18,7 @@ namespace
             case ACUTIONCAT_RING    : return ir.isRing();
             case ACUTIONCAT_ARMRING : return ir.wearable(WLG_ARMRING0);
             case ACUTIONCAT_SHOES   : return ir.wearable(WLG_SHOES);
-            case ACUTIONCAT_POTION  : return ir.isPotion() || ir.isDope() || to_u8sv(ir.type) == u8"药粉";
+            case ACUTIONCAT_POTION  : return ir.isPotion() || ir.isDope() || ir.isPowder();
             case ACUTIONCAT_BOOK    : return ir.isBook();
             default                 : return false;
         }
