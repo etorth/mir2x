@@ -2,7 +2,6 @@
 #include <cmath>
 #include "strf.hpp"
 #include "xmlf.hpp"
-#include "mathf.hpp"
 #include "colorf.hpp"
 #include "client.hpp"
 #include "dbcomid.hpp"
@@ -58,6 +57,13 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .texLoadFunc = []{ return g_progUseDB->retrieve(0X00001400); },
           .blendMode = SDL_BLENDMODE_NONE,
+          .parent{this},
+      }}
+
+    , m_itemList
+      {{
+          .x = 10,
+          .y = 84,
           .parent{this},
       }}
 
@@ -128,10 +134,11 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .onTrigger = [this](Widget *, int)
           {
-              if(m_sdAcutionItemList.category >= ACUTIONCAT_BEGIN && m_sdAcutionItemList.category < ACUTIONCAT_END){
+              const auto category = m_itemList.getItemList().category;
+              if(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END){
                   g_client->send({CM_QUERYACUTIONITEMLIST, CMQueryAcutionItemList
                   {
-                      .category = to_u8(m_sdAcutionItemList.category),
+                      .category = to_u8(category),
                   }});
               }
           },
@@ -245,17 +252,11 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     fflassert(m_runProc);
     m_buttonContactSeller.setShow([this]
     {
-        return m_selected.has_value() && m_selected.value() < m_sdAcutionItemList.itemList.size();
+        return m_itemList.selectedIndex().has_value();
     });
 
     setShow(false);
     updatePageButtonState();
-}
-
-void AcutionBoard::updateDefault(double updateTime)
-{
-    m_elapsedMS += updateTime;
-    Widget::updateDefault(updateTime);
 }
 
 void AcutionBoard::drawDefault(Widget::ROIMap m) const
@@ -265,10 +266,6 @@ void AcutionBoard::drawDefault(Widget::ROIMap m) const
     }
 
     Widget::drawDefault(m);
-
-    const int remapX = m.x - m.ro->x;
-    const int remapY = m.y - m.ro->y;
-    const auto [mouseX, mouseY] = SDLDeviceHelper::getMousePLoc();
 
     const auto drawText = [this, &m](std::string text, uint32_t color, dir8_t dir, int x, int y, int fontSize = 11)
     {
@@ -288,7 +285,7 @@ void AcutionBoard::drawDefault(Widget::ROIMap m) const
     const auto pageCountValue = pageCount();
     const auto categoryName = [this]() -> const char8_t *
     {
-        switch(m_sdAcutionItemList.category){
+        switch(m_itemList.getItemList().category){
             case ACUTIONCAT_ALL     : return u8"所有物品";
             case ACUTIONCAT_DRESS   : return u8"衣服";
             case ACUTIONCAT_WEAPON  : return u8"武器";
@@ -305,48 +302,13 @@ void AcutionBoard::drawDefault(Widget::ROIMap m) const
     }();
 
     drawText(to_cstr(categoryName), colorf::YELLOW_A255, DIR_NONE, 61, 20, 12);
-    drawText(to_cstr(str_printf(u8"共%zu件", m_sdAcutionItemList.itemList.size())), colorf::YELLOW_A255, DIR_NONE, 240, 20, 12);
+    drawText(to_cstr(str_printf(u8"共%zu件", m_itemList.getItemList().itemList.size())), colorf::YELLOW_A255, DIR_NONE, 240, 20, 12);
     drawText(pageCountValue ? to_cstr(str_printf(u8"第%zu/%zu页", m_page + 1, pageCountValue)) : to_cstr(u8"（空）"), colorf::YELLOW_A255, DIR_NONE, 419, 20, 12);
 
     drawText(to_cstr(u8"物品"), colorf::YELLOW_A255, DIR_NONE, 64, 62, 12);
     drawText(to_cstr(u8"寄售人"), colorf::YELLOW_A255, DIR_NONE, 188, 62, 12);
     drawText(to_cstr(u8"剩余"), colorf::YELLOW_A255, DIR_NONE, 293, 62, 12);
     drawText(to_cstr(u8"价格"), colorf::YELLOW_A255, DIR_NONE, 399, 62, 12);
-
-    const size_t startIndex = m_page * m_pageSize;
-    for(size_t pageIndex = 0; pageIndex < m_pageSize; ++pageIndex){
-        const size_t itemIndex = startIndex + pageIndex;
-        if(itemIndex >= m_sdAcutionItemList.itemList.size()){
-            break;
-        }
-
-        const int rowY = m_tableY + to_d(pageIndex) * m_rowH;
-        const bool selected = m_selected.has_value() && m_selected.value() == itemIndex;
-        const bool cursorOn = mathf::pointInRectangle<int>(
-                mouseX,
-                mouseY,
-                remapX + m_tableX,
-                remapY + rowY,
-                m_tableW,
-                m_rowH);
-
-        if(selected || cursorOn){
-            const auto color = selected
-                ? colorf::RGBA(0, 80, 255, 96)
-                : colorf::RGBA(255, 255, 255, 48);
-            g_sdlDevice->fillRectangle(color, remapX + m_tableX, remapY + rowY, m_tableW, m_rowH);
-        }
-
-        const auto &entry = m_sdAcutionItemList.itemList.at(itemIndex);
-        const auto &ir = DBCOM_ITEMRECORD(entry.item.itemID);
-        fflassert(ir);
-
-        const int textY = rowY + m_rowH / 2;
-        drawText(to_cstr(ir.name), colorf::WHITE_A255, DIR_LEFT, 13, textY);
-        drawText(entry.seller, colorf::WHITE_A255, DIR_LEFT, 121, textY);
-        drawText(formatTimeLeft(currentTimeLeft(entry)), colorf::WHITE_A255, DIR_NONE, 293, textY);
-        drawText(str_ksep(entry.price), priceColor(entry.price), DIR_NONE, 399, textY);
-    }
 
     drawSelectedItem(m);
 }
@@ -355,6 +317,15 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
 {
     if(!m.calibrate(this)){
         return false;
+    }
+
+    const auto oldFirstIndex = m_itemList.firstIndex();
+    if(m_itemList.processEventParent(event, valid, m)){
+        if(oldFirstIndex != m_itemList.firstIndex()){
+            m_page = m_itemList.firstIndex() / m_pageSize;
+            updatePageButtonState();
+        }
+        return true;
     }
 
     if(!valid){
@@ -384,19 +355,6 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
             }
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(event.button.button == SDL_BUTTON_LEFT){
-                    const int remapX = m.x - m.ro->x;
-                    const int remapY = m.y - m.ro->y;
-                    const int localX = to_d(event.button.x) - remapX;
-                    const int localY = to_d(event.button.y) - remapY;
-
-                    if(mathf::pointInRectangle<int>(localX, localY, m_tableX, m_tableY, m_tableW, m_rowH * to_d(m_pageSize))){
-                        const size_t itemIndex = m_page * m_pageSize + to_uz((localY - m_tableY) / m_rowH);
-                        if(itemIndex < m_sdAcutionItemList.itemList.size()){
-                            m_selected = itemIndex;
-                        }
-                    }
-                }
                 return consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y)));
             }
         case SDL_EVENT_MOUSE_MOTION:
@@ -422,31 +380,26 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
 
 void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
 {
-    fflassert(sdAcutionItemList.category >= ACUTIONCAT_BEGIN && sdAcutionItemList.category < ACUTIONCAT_END, sdAcutionItemList.category);
-    for(const auto &entry: sdAcutionItemList.itemList){
-        fflassert(entry.item);
-        fflassert(DBCOM_ITEMRECORD(entry.item.itemID));
-    }
-
-    m_sdAcutionItemList = std::move(sdAcutionItemList);
-    m_elapsedMS = 0.0;
+    m_itemList.setItemList(std::move(sdAcutionItemList));
     setPage(0);
 }
 
 size_t AcutionBoard::pageCount() const
 {
-    return (m_sdAcutionItemList.itemList.size() + m_pageSize - 1) / m_pageSize;
+    return (m_itemList.getItemList().itemList.size() + m_pageSize - 1) / m_pageSize;
 }
 
 void AcutionBoard::setPage(size_t page)
 {
     if(const auto count = pageCount(); count > 0){
         m_page = std::min(page, count - 1);
-        m_selected = m_page * m_pageSize;
+        m_itemList.setFirstIndex(m_page * m_pageSize);
+        m_itemList.setSelectedIndex(m_itemList.firstIndex());
     }
     else{
         m_page = 0;
-        m_selected.reset();
+        m_itemList.setFirstIndex(0);
+        m_itemList.setSelectedIndex(0);
     }
     updatePageButtonState();
 }
@@ -455,54 +408,18 @@ void AcutionBoard::updatePageButtonState()
 {
     m_buttonPrevious.setActive(m_page > 0);
     m_buttonNext.setActive(m_page + 1 < pageCount());
-    m_buttonRefresh.setActive(m_sdAcutionItemList.category >= ACUTIONCAT_BEGIN && m_sdAcutionItemList.category < ACUTIONCAT_END);
-}
-
-size_t AcutionBoard::currentTimeLeft(const SDAcutionItem &entry) const
-{
-    const size_t elapsedSeconds = to_uz(std::max(0.0, m_elapsedMS) / 1000.0);
-    return entry.timeLeft > elapsedSeconds ? entry.timeLeft - elapsedSeconds : 0;
-}
-
-std::string AcutionBoard::formatTimeLeft(size_t timeLeft)
-{
-    if(timeLeft == 0){
-        return to_cstr(u8"已到期");
-    }
-
-    if(timeLeft >= 24 * 60 * 60){
-        return to_cstr(str_printf(u8"%zu天%02zu时", timeLeft / (24 * 60 * 60), timeLeft / (60 * 60) % 24));
-    }
-
-    if(timeLeft >= 60 * 60){
-        return to_cstr(str_printf(u8"%zu时%02zu分", timeLeft / (60 * 60), timeLeft / 60 % 60));
-    }
-
-    if(timeLeft >= 60){
-        return to_cstr(str_printf(u8"%zu分%02zu秒", timeLeft / 60, timeLeft % 60));
-    }
-    return to_cstr(str_printf(u8"%zu秒", timeLeft));
-}
-
-uint32_t AcutionBoard::priceColor(size_t price)
-{
-    if(price >= 10000000){
-        return colorf::RED_A255;
-    }
-
-    if(price >= 1000000){
-        return colorf::CYAN_A255;
-    }
-    return colorf::YELLOW_A255;
+    const auto category = m_itemList.getItemList().category;
+    m_buttonRefresh.setActive(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END);
 }
 
 void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
 {
-    if(!m_selected.has_value() || m_selected.value() >= m_sdAcutionItemList.itemList.size()){
+    const auto selectedIndex = m_itemList.selectedIndex();
+    if(!selectedIndex.has_value()){
         return;
     }
 
-    const auto &entry = m_sdAcutionItemList.itemList.at(m_selected.value());
+    const auto &entry = m_itemList.getItemList().itemList.at(selectedIndex.value());
     const auto &ir = DBCOM_ITEMRECORD(entry.item.itemID);
     fflassert(ir);
 
