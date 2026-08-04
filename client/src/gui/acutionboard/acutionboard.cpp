@@ -1,44 +1,17 @@
 #include <algorithm>
-#include <cmath>
+#include <utility>
 #include "strf.hpp"
-#include "xmlf.hpp"
 #include "colorf.hpp"
 #include "client.hpp"
-#include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "layoutboard.hpp"
 #include "processrun.hpp"
 #include "acutionregisterboard.hpp"
 #include "acutionboard.hpp"
 
-extern PNGTexDB *g_itemDB;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern Client *g_client;
-
-namespace
-{
-    SDL_Texture *getItemTexture(const ItemRecord &ir)
-    {
-        if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
-            return texPtr;
-        }
-
-        if(false
-                || ir.wearable(WLG_DRESS)
-                || ir.wearable(WLG_HELMET)
-                || ir.wearable(WLG_WEAPON)
-                || ir.wearable(WLG_SHOES)
-                || ir.wearable(WLG_NECKLACE)
-                || ir.wearable(WLG_ARMRING0)
-                || ir.wearable(WLG_RING0)
-                || ir.wearable(WLG_TORCH)){
-            return g_itemDB->retrieve(ir.pkgGfxID | 0X01000000);
-        }
-        return nullptr;
-    }
-}
 
 AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
     : Widget
@@ -201,82 +174,17 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .parent{this},
       }}
 
-    , m_sellerNoteTitle
+    , m_itemDetailUpper
       {{
-          .dir = DIR_LEFT,
-          .x = 493,
-          .y = 58,
-          .textFunc = to_cstr(u8"卖家留言"),
-          .font
-          {
-              .id = 1,
-              .size = 11,
-              .color = colorf::CYAN_A255,
-          },
-          .attrs
-          {
-              .show = [this]{ return m_itemList.selectedIndex().has_value(); },
-          },
+          .x = 486,
+          .y = 50,
           .parent{this},
       }}
 
-    , m_itemDescriptionTitle
+    , m_itemDetailLower
       {{
-          .dir = DIR_LEFT,
-          .x = 493,
-          .y = 239,
-          .textFunc = to_cstr(u8"物品描述"),
-          .font
-          {
-              .id = 1,
-              .size = 10,
-              .color = colorf::GREEN_A255,
-          },
-          .attrs
-          {
-              .show = [this]{ return m_itemList.selectedIndex().has_value(); },
-          },
-          .parent{this},
-      }}
-
-    , m_itemAttributeTitle
-      {{
-          .dir = DIR_LEFT,
-          .x = 493,
-          .y = 279,
-          .textFunc = to_cstr(u8"物品属性"),
-          .font
-          {
-              .id = 1,
-              .size = 10,
-              .color = colorf::GREEN_A255,
-          },
-          .attrs
-          {
-              .show = [this]{ return m_itemList.selectedIndex().has_value(); },
-          },
-          .parent{this},
-      }}
-
-    , m_buttonContactSeller
-      {{
-          .dir = DIR_UPRIGHT,
-          .x = 704,
-          .y = 141,
-          .textFunc = to_cstr(u8"联系卖家"),
-          .font
-          {
-              .id = 1,
-              .size = 11,
-          },
-          .onTrigger = [](Widget *, int)
-          {
-          },
-
-          .attrs
-          {
-              .show = [this]{ return m_itemList.selectedIndex().has_value(); },
-          },
+          .x = 486,
+          .y = 168,
           .parent{this},
       }}
 
@@ -293,6 +201,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               m_itemList.movePrev();
+              updateSelectedItem();
           },
 
           .attrs
@@ -315,6 +224,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               m_itemList.moveNext();
+              updateSelectedItem();
           },
 
           .attrs
@@ -454,24 +364,17 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     setShow(false);
 }
 
-void AcutionBoard::drawDefault(Widget::ROIMap m) const
-{
-    if(!m.calibrate(this)){
-        return;
-    }
-
-    Widget::drawDefault(m);
-
-    drawSelectedItem(m);
-}
-
 bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
         return false;
     }
 
+    const auto oldSelectedIndex = m_itemList.selectedIndex();
     if(m_itemList.processEventParent(event, valid, m)){
+        if(oldSelectedIndex != m_itemList.selectedIndex()){
+            updateSelectedItem();
+        }
         return true;
     }
 
@@ -479,7 +382,7 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
         return consumeFocus(false);
     }
 
-    if(m_buttonContactSeller.show() && m_buttonContactSeller.processEventParent(event, valid, m)){ return true; }
+    if(m_itemDetailUpper.show() && m_itemDetailUpper.processEventParent(event, valid, m)){ return true; }
     if(m_buttonPrevious    .processEventParent(event, valid, m)){ return true; }
     if(m_buttonNext        .processEventParent(event, valid, m)){ return true; }
     if(m_buttonRefresh     .processEventParent(event, valid, m)){ return true; }
@@ -525,139 +428,19 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     }
 }
 
-void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
+void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
 {
-    const auto selectedIndex = m_itemList.selectedIndex();
-    if(!selectedIndex.has_value()){
-        return;
+    m_itemList.setItemList(std::move(sdAcutionItemList));
+    updateSelectedItem();
+}
+
+void AcutionBoard::updateSelectedItem()
+{
+    const SDAcutionItem *item = nullptr;
+    if(const auto selectedIndex = m_itemList.selectedIndex(); selectedIndex.has_value()){
+        item = fflcheck(m_itemList.indexItem(selectedIndex.value()));
     }
 
-    const auto &entry = m_itemList.getItemList().itemList.at(selectedIndex.value());
-    const auto &ir = DBCOM_ITEMRECORD(entry.item.itemID);
-    fflassert(ir);
-
-    const int remapX = m.x - m.ro->x;
-    const int remapY = m.y - m.ro->y;
-
-    const auto noteXML = str_printf(
-            "<layout>%s</layout>",
-            xmlf::toParString(
-                "%s",
-                entry.note.empty() ? to_cstr(u8"卖家未填写留言。") : entry.note.c_str()).c_str());
-
-    LayoutBoard noteBoard
-    {{
-        .lineWidth = 211,
-        .initXML = noteXML.c_str(),
-        .font
-        {
-            .id = 1,
-            .size = 10,
-        },
-        .lineAlign = LALIGN_JUSTIFY,
-    }};
-    noteBoard.draw({.x=remapX + 493, .y=remapY + 77, .ro{0, 0, 211, 52}});
-
-    const auto sellerXML = str_printf(
-            "<layout>%s</layout>",
-            xmlf::toParString("卖家：%s", entry.seller.c_str()).c_str());
-    LayoutBoard sellerBoard
-    {{
-        .lineWidth = 155,
-        .initXML = sellerXML.c_str(),
-        .font
-        {
-            .id = 1,
-            .size = 10,
-        },
-        .lineAlign = LALIGN_LEFT,
-    }};
-    sellerBoard.draw({.x=remapX + 493, .y=remapY + 142, .ro{0, 0, 155, 15}});
-
-    if(auto texPtr = getItemTexture(ir)){
-        constexpr int maxItemW = 56;
-        constexpr int maxItemH = 56;
-        const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-        const auto ratio = std::max<double>({to_df(texW) / maxItemW, to_df(texH) / maxItemH, 1.0});
-        const int drawW = to_d(std::lround(texW / ratio));
-        const int drawH = to_d(std::lround(texH / ratio));
-
-        g_sdlDevice->drawTexture(
-                texPtr,
-                remapX + 493 + (maxItemW - drawW) / 2,
-                remapY + 176 + (maxItemH - drawH) / 2,
-                drawW,
-                drawH,
-                0,
-                0,
-                texW,
-                texH);
-    }
-
-    const auto durationString = [&entry, &ir]() -> std::string
-    {
-        if(ir.equip.duration > 0){
-            fflassert(entry.item.duration[0] <= entry.item.duration[1]);
-            return str_printf("%zu / %zu", entry.item.duration[0], entry.item.duration[1]);
-        }
-        return "--";
-    }();
-
-    std::string summaryXML = "<layout>";
-    summaryXML += xmlf::toParString("名称：%s", to_cstr(ir.name));
-    summaryXML += xmlf::toParString("类型：%s", to_cstr(ir.type));
-    summaryXML += str_printf(
-            "<par>售价：<t color='%s'>%s</t></par>",
-            entry.price >= 10000000 ? "red" : entry.price >= 1000000 ? "cyan" : "yellow",
-            str_ksep(entry.price).c_str());
-    summaryXML += xmlf::toParString("持久：%s", durationString.c_str());
-    summaryXML += "</layout>";
-
-    LayoutBoard summaryBoard
-    {{
-        .lineWidth = 145,
-        .initXML = summaryXML.c_str(),
-        .font
-        {
-            .id = 1,
-            .size = 10,
-        },
-        .lineAlign = LALIGN_LEFT,
-    }};
-    summaryBoard.draw({.x=remapX + 559, .y=remapY + 174, .ro{0, 0, 145, 61}});
-
-    const auto descriptionXML = str_printf(
-            "<layout>%s</layout>",
-            xmlf::toParString(
-                "%s",
-                str_haschar(ir.description) ? to_cstr(ir.description) : to_cstr(u8"游戏处于开发阶段，暂无物品描述。")).c_str());
-
-    LayoutBoard descriptionBoard
-    {
-        {
-            .lineWidth = 211,
-            .initXML = descriptionXML.c_str(),
-            .font
-            {
-                .id = 1,
-                .size = 10,
-            },
-            .lineAlign = LALIGN_JUSTIFY,
-        }
-    };
-    descriptionBoard.draw({.x=remapX + 493, .y=remapY + 253, .ro{0, 0, 211, 22}});
-
-    const auto attributeXML = entry.item.getXMLLayout({}, SDItem::XMLLAYOUT_ATTRIBUTE);
-    LayoutBoard attributeBoard
-    {{
-        .lineWidth = 211,
-        .initXML = to_cstr(attributeXML),
-        .font
-        {
-            .id = 1,
-            .size = 10,
-        },
-        .lineAlign = LALIGN_LEFT,
-    }};
-    attributeBoard.draw({.x=remapX + 493, .y=remapY + 293, .ro{0, 0, 211, 36}});
+    m_itemDetailUpper.setItem(item);
+    m_itemDetailLower.setItem(item);
 }

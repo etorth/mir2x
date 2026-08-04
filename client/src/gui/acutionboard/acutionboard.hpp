@@ -2,9 +2,10 @@
 #include "widget.hpp"
 #include "imageboard.hpp"
 #include "textboard.hpp"
-#include "textbutton.hpp"
 #include "tritexbutton.hpp"
 #include "acutionitemlist.hpp"
+#include "acutionitemdetailupper.hpp"
+#include "acutionitemdetaillower.hpp"
 
 class ProcessRun;
 class AcutionBoard final: public Widget
@@ -25,11 +26,8 @@ class AcutionBoard final: public Widget
         TextBoard m_columnTime;
         TextBoard m_columnPrice;
 
-        TextBoard m_sellerNoteTitle;
-        TextBoard m_itemDescriptionTitle;
-        TextBoard m_itemAttributeTitle;
-
-        TextButton m_buttonContactSeller;
+        AcutionItemDetailUpper m_itemDetailUpper;
+        AcutionItemDetailLower m_itemDetailLower;
 
     private:
         TritexButton m_buttonPrevious;
@@ -46,15 +44,11 @@ class AcutionBoard final: public Widget
         AcutionBoard(ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
-        void drawDefault(Widget::ROIMap) const override;
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     public:
-        void setItemList(SDAcutionItemList sdAcutionItemList)
-        {
-            m_itemList.setItemList(std::move(sdAcutionItemList));
-        }
+        void setItemList(SDAcutionItemList);
 
     private:
-        void drawSelectedItem(Widget::ROIMap) const;
+        void updateSelectedItem();
 };
