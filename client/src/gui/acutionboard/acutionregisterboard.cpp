@@ -165,16 +165,16 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
         return true;
     }
 
-    if(m_pending
-            && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN
-            && event.button.button == SDL_BUTTON_LEFT){
-        const auto inButton = [&m, &event, this](const Widget &button)
+    if(m_pending && (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) && (event.button.button == SDL_BUTTON_LEFT)){
+        for(const auto button:
         {
-            return m.create(button.roi(this)).in(to_d(event.button.x), to_d(event.button.y));
-        };
-
-        if(inButton(m_buttonRegister) || inButton(m_buttonCancel) || inButton(m_buttonClose)){
-            return consumeFocus(true);
+            std::addressof(m_buttonRegister),
+            std::addressof(m_buttonCancel),
+            std::addressof(m_buttonClose),
+        }){
+            if(m.create(button->roi(this)).in(to_d(event.button.x), to_d(event.button.y))){
+                return consumeFocus(true);
+            }
         }
     }
 
