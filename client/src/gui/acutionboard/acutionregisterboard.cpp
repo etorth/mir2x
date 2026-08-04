@@ -1,49 +1,21 @@
 #include <algorithm>
 #include <charconv>
-#include <cmath>
 #include <limits>
 #include "strf.hpp"
 #include "utf8f.hpp"
-#include "mathf.hpp"
 #include "xmlf.hpp"
-#include "colorf.hpp"
 #include "client.hpp"
 #include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "textboard.hpp"
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
 #include "inputstringboard.hpp"
 #include "acutionregisterboard.hpp"
 
-extern PNGTexDB *g_itemDB;
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern Client *g_client;
-
-namespace
-{
-    SDL_Texture *getItemTexture(const ItemRecord &ir)
-    {
-        if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
-            return texPtr;
-        }
-
-        if(false
-                || ir.wearable(WLG_DRESS)
-                || ir.wearable(WLG_HELMET)
-                || ir.wearable(WLG_WEAPON)
-                || ir.wearable(WLG_SHOES)
-                || ir.wearable(WLG_NECKLACE)
-                || ir.wearable(WLG_ARMRING0)
-                || ir.wearable(WLG_RING0)
-                || ir.wearable(WLG_TORCH)){
-            return g_itemDB->retrieve(ir.pkgGfxID | 0X01000000);
-        }
-        return nullptr;
-    }
-}
 
 AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
     : Widget
@@ -67,31 +39,51 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
           .parent{this},
       }}
 
-    , m_noteArea
+    , m_note
       {{
-          .x = m_noteX,
-          .y = m_noteY,
-          .w = m_noteW,
-          .h = m_noteH,
-          .parent{this},
-      }}
-
-    , m_noteBoard
-      {{
-          .lineWidth = m_noteW,
-          .canEdit = true,
+          .x = 9,
+          .y = 68,
           .enableIME = [this]
           {
               return m_runProc->getRuntimeConfig<RTCFG_IME>();
           },
-          .font
+          .parent{this},
+      }}
+
+    , m_item
+      {{
+          .x = 241,
+          .y = 45,
+          .onClick = [this]
           {
-              .id = 1,
-              .size = 12,
-              .color = colorf::WHITE_A255,
+              auto &invPack = m_runProc->getMyHero()->getInvPack();
+              if(const auto grabbedItem = invPack.getGrabbedItem()){
+                  restoreOwnedItem();
+                  m_item.setItem(grabbedItem);
+                  invPack.setGrabbedItem({});
+                  m_price.clear();
+                  m_note.setInputFocus(true);
+              }
+              else if(m_item.item()){
+                  const auto item = m_item.takeItem();
+                  invPack.setGrabbedItem(item);
+                  m_price.clear();
+              }
           },
-          .lineAlign = LALIGN_LEFT,
-          .parent{&m_noteArea},
+          .parent{this},
+      }}
+
+    , m_price
+      {{
+          .x = 25,
+          .y = 232,
+          .onClick = [this]
+          {
+              if(m_item.item()){
+                  setPrice();
+              }
+          },
+          .parent{this},
       }}
 
     , m_buttonRegister
@@ -156,75 +148,6 @@ void AcutionRegisterBoard::beginRegister()
     setFocus(true);
 }
 
-void AcutionRegisterBoard::drawDefault(Widget::ROIMap m) const
-{
-    if(!m.calibrate(this)){
-        return;
-    }
-
-    Widget::drawDefault(m);
-
-    const int remapX = m.x - m.ro->x;
-    const int remapY = m.y - m.ro->y;
-
-    if(!m_noteBoard.hasToken() && !m_noteBoard.focus()){
-        const TextBoard placeholder
-        {{
-            .textFunc = to_cstr(u8"可填写联系方式或其它说明"),
-            .font
-            {
-                .id = 1,
-                .size = 11,
-                .color = colorf::RGBA(220, 220, 220, 128),
-            },
-        }};
-        drawAsChild(&placeholder, DIR_UPLEFT, m_noteX + 2, m_noteY + 2, m);
-    }
-
-    const auto drawText = [this, &m](std::string text, uint32_t color, dir8_t dir, int x, int y, int fontSize = 11)
-    {
-        const TextBoard textBoard
-        {{
-            .textFunc = std::move(text),
-            .font
-            {
-                .id = 1,
-                .size = to_u8(fontSize),
-                .color = color,
-            },
-        }};
-        drawAsChild(&textBoard, dir, x, y, m);
-    };
-
-    if(m_item){
-        const auto &ir = DBCOM_ITEMRECORD(m_item.itemID);
-        fflassert(ir);
-
-        if(auto texPtr = getItemTexture(ir)){
-            constexpr int maxItemW = m_itemW - 20;
-            constexpr int maxItemH = m_itemH - 40;
-            const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-            const auto ratio = std::max<double>({to_df(texW) / maxItemW, to_df(texH) / maxItemH, 1.0});
-            const int drawW = to_d(std::lround(texW / ratio));
-            const int drawH = to_d(std::lround(texH / ratio));
-
-            g_sdlDevice->drawTexture(
-                    texPtr,
-                    remapX + m_itemX + (m_itemW - drawW) / 2,
-                    remapY + m_itemY + 5 + (maxItemH - drawH) / 2,
-                    drawW,
-                    drawH,
-                    0,
-                    0,
-                    texW,
-                    texH);
-        }
-        drawText(to_cstr(ir.name), colorf::YELLOW_A255, DIR_NONE, m_itemX + m_itemW / 2, m_itemY + m_itemH - 18, 12);
-    }
-
-    drawText(m_price ? str_ksep(m_price) : to_cstr(u8"点击设置价格"), m_price ? colorf::YELLOW_A255 : colorf::WHITE_A255, DIR_NONE, m_priceX + m_priceW / 2, m_priceY + m_priceH / 2, 12);
-}
-
 bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
@@ -242,10 +165,22 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
         return true;
     }
 
-    if(m_noteArea      .processEventParent(event, valid && !m_pending, m)){ return true; }
-    if(m_buttonRegister.processEventParent(event, valid, m)){ return true; }
-    if(m_buttonCancel  .processEventParent(event, valid, m)){ return true; }
-    if(m_buttonClose   .processEventParent(event, valid, m)){ return true; }
+    if(Widget::processEventDefault(event, valid, m)){
+        return true;
+    }
+
+    if(m_pending
+            && event.type == SDL_EVENT_MOUSE_BUTTON_DOWN
+            && event.button.button == SDL_BUTTON_LEFT){
+        const auto inButton = [&m, &event, this](const Widget &button)
+        {
+            return m.create(button.roi(this)).in(to_d(event.button.x), to_d(event.button.y));
+        };
+
+        if(inButton(m_buttonRegister) || inButton(m_buttonCancel) || inButton(m_buttonClose)){
+            return consumeFocus(true);
+        }
+    }
 
     switch(event.type){
         case SDL_EVENT_KEY_DOWN:
@@ -256,55 +191,6 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
             {
                 m_dragging = false;
                 if(event.button.button == SDL_BUTTON_LEFT){
-                    const int remapX = m.x - m.ro->x;
-                    const int remapY = m.y - m.ro->y;
-                    const int localX = to_d(event.button.x) - remapX;
-                    const int localY = to_d(event.button.y) - remapY;
-
-                    if(mathf::pointInRectangle<int>(localX, localY, m_noteX, m_noteY, m_noteW, m_noteH)){
-                        if(!m_pending){
-                            m_noteBoard.setFocus(true);
-                        }
-                        return consumeFocus(true);
-                    }
-
-                    if(mathf::pointInRectangle<int>(localX, localY, m_itemX, m_itemY, m_itemW, m_itemH)){
-                        if(!m_pending){
-                            auto &invPack = m_runProc->getMyHero()->getInvPack();
-                            if(const auto grabbedItem = invPack.getGrabbedItem()){
-                                restoreOwnedItem();
-                                m_item = grabbedItem;
-                                invPack.setGrabbedItem({});
-                                m_price = 0;
-                                m_noteBoard.setFocus(true);
-                            }
-                            else if(m_item){
-                                invPack.setGrabbedItem(m_item);
-                                m_item = {};
-                                m_price = 0;
-                            }
-                        }
-                        return consumeFocus(true);
-                    }
-
-                    if(mathf::pointInRectangle<int>(localX, localY, m_priceX, m_priceY, m_priceW, m_priceH)){
-                        if(!m_pending && m_item){
-                            setPrice();
-                        }
-                        return consumeFocus(true);
-                    }
-
-                    if(m_pending){
-                        const auto inButton = [localX, localY](const Widget &button)
-                        {
-                            return mathf::pointInRectangle<int>(localX, localY, button.dx(), button.dy(), button.w(), button.h());
-                        };
-
-                        if(inButton(m_buttonRegister) || inButton(m_buttonCancel) || inButton(m_buttonClose)){
-                            return consumeFocus(true);
-                        }
-                    }
-
                     m_dragging = m.in(to_d(event.button.x), to_d(event.button.y));
                 }
                 return consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y)));
@@ -338,10 +224,12 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
 void AcutionRegisterBoard::setPending(bool pending)
 {
     m_pending = pending;
-    m_noteArea      .setActive(!pending);
+    m_note.setInputEnabled(!pending);
+    m_item.setInputEnabled(!pending);
+    m_price.setInputEnabled(!pending);
     m_buttonRegister.setActive(!pending);
-    m_buttonCancel  .setActive(!pending);
-    m_buttonClose   .setActive(!pending);
+    m_buttonCancel.setActive(!pending);
+    m_buttonClose.setActive(!pending);
 
     if(auto invBoardPtr = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"))){
         invBoardPtr->setActive(!pending);
@@ -366,7 +254,7 @@ void AcutionRegisterBoard::setPrice()
             m_runProc->addCBLog(CBLOG_ERR, u8"无效的寄售价格：%s", value.c_str());
             return;
         }
-        m_price = price;
+        m_price.setPrice(price);
     });
 }
 
@@ -376,17 +264,17 @@ void AcutionRegisterBoard::confirmRegister()
         return;
     }
 
-    if(!m_item){
+    if(!m_item.item()){
         m_runProc->addCBLog(CBLOG_ERR, u8"请先放入寄售物品");
         return;
     }
 
-    if(m_price == 0 || m_price > to_u64(std::numeric_limits<int64_t>::max())){
+    if(m_price.price() == 0 || m_price.price() > to_u64(std::numeric_limits<int64_t>::max())){
         m_runProc->addCBLog(CBLOG_ERR, u8"请先设置有效的寄售价格");
         return;
     }
 
-    const std::string note = m_noteBoard.getText();
+    const std::string note = m_note.getText();
     if(!utf8f::valid(note)){
         m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言不是有效的UTF-8文本");
         return;
@@ -397,7 +285,7 @@ void AcutionRegisterBoard::confirmRegister()
         return;
     }
 
-    const auto &ir = DBCOM_ITEMRECORD(m_item.itemID);
+    const auto &ir = DBCOM_ITEMRECORD(m_item.item().itemID);
     fflassert(ir);
 
     auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
@@ -416,11 +304,11 @@ void AcutionRegisterBoard::confirmRegister()
 
 void AcutionRegisterBoard::registerItem()
 {
-    if(m_pending || !m_item){
+    if(m_pending || !m_item.item()){
         return;
     }
 
-    const std::string note = m_noteBoard.getText();
+    const std::string note = m_note.getText();
     if(!utf8f::valid(note)){
         m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言不是有效的UTF-8文本");
         return;
@@ -431,20 +319,21 @@ void AcutionRegisterBoard::registerItem()
         return;
     }
 
-    if(m_price == 0 || m_price > to_u64(std::numeric_limits<int64_t>::max())){
+    if(m_price.price() == 0 || m_price.price() > to_u64(std::numeric_limits<int64_t>::max())){
         m_runProc->addCBLog(CBLOG_ERR, u8"寄售价格无效");
         return;
     }
 
-    const auto &ir = DBCOM_ITEMRECORD(m_item.itemID);
+    const auto &item = m_item.item();
+    const auto &ir = DBCOM_ITEMRECORD(item.itemID);
     fflassert(ir);
     const std::string itemName = to_cstr(ir.name);
 
     CMRegisterAcutionItem cmRAI
     {
-        .itemID = m_item.itemID,
-        .seqID = m_item.seqID,
-        .price = m_price,
+        .itemID = item.itemID,
+        .seqID = item.seqID,
+        .price = m_price.price(),
     };
     cmRAI.note.assign(note);
 
@@ -508,10 +397,10 @@ void AcutionRegisterBoard::restoreGrabbedItem()
 
 void AcutionRegisterBoard::restoreOwnedItem()
 {
-    if(m_item){
-        m_runProc->getMyHero()->getInvPack().add(m_item);
-        m_item = {};
-        m_price = 0;
+    if(m_item.item()){
+        const auto item = m_item.takeItem();
+        m_runProc->getMyHero()->getInvPack().add(item);
+        m_price.clear();
     }
 }
 
@@ -521,14 +410,14 @@ void AcutionRegisterBoard::closeRegister(bool registered)
         restoreOwnedItem();
     }
     else{
-        m_item = {};
+        m_item.clear();
     }
     restoreGrabbedItem();
 
-    m_price = 0;
+    m_price.clear();
     m_dragging = false;
-    m_noteBoard.clear();
-    m_noteBoard.setFocus(false);
+    m_note.clear();
+    m_note.setInputFocus(false);
     setPending(false);
 
     if(auto invBoardPtr = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"))){
