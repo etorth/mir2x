@@ -941,9 +941,11 @@ bool Widget::localShow() const
     return Widget::evalBool(m_show.first, this) != m_show.second;
 }
 
-void Widget::flipShow()
+void Widget::flipShow(std::optional<bool> targetShow)
 {
-    m_show.second = !m_show.second;
+    if(!targetShow.has_value() || targetShow.value() != show()){
+        m_show.second = !m_show.second;
+    }
 }
 
 void Widget::setShow(Widget::VarBool argShow)
@@ -964,9 +966,11 @@ bool Widget::localActive() const
     return Widget::evalBool(m_active.first, this) != m_active.second;
 }
 
-void Widget::flipActive()
+void Widget::flipActive(std::optional<bool> targetActive)
 {
-    m_active.second = !m_active.second;
+    if(!targetActive.has_value() || targetActive.value() != active()){
+        m_active.second = !m_active.second;
+    }
 }
 
 void Widget::setActive(Widget::VarBool argActive)

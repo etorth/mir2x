@@ -541,13 +541,13 @@ class Widget: public WidgetTreeNode
     public:
         bool       show() const;
         bool  localShow() const;
-        void   flipShow();
+        void   flipShow(std::optional<bool> = std::nullopt);
         void    setShow(Widget::VarBool);
 
     public:
         bool      active() const;
         bool localActive() const;
-        void  flipActive();
+        void  flipActive(std::optional<bool> = std::nullopt);
         void   setActive(Widget::VarBool);
 
     public:
