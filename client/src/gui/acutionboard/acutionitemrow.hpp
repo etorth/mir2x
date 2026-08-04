@@ -40,7 +40,7 @@ class AcutionItemRow final: public Widget
     private:
         TextBoard m_item;
         TextBoard m_seller;
-        TextBoard m_timeLeft;
+        TextBoard m_time;
         TextBoard m_price;
 
     public:

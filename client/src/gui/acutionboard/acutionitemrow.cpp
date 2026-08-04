@@ -74,7 +74,7 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
           .parent{this},
       }}
 
-    , m_timeLeft
+    , m_time
       {{
           .dir = DIR_NONE,
           .x = m_columnCenter_time,
@@ -125,6 +125,11 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
 
 bool AcutionItemRow::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
+    if(!m_itemList->item(m_rowIndex)){
+        m_itemList->setHoveredRow(m_rowIndex, false);
+        return false;
+    }
+
     if(!m.calibrate(this)){
         if(event.type == SDL_EVENT_MOUSE_MOTION){
             m_itemList->setHoveredRow(m_rowIndex, false);
@@ -135,11 +140,7 @@ bool AcutionItemRow::processEventDefault(const SDL_Event &event, bool valid, Wid
     switch(event.type){
         case SDL_EVENT_MOUSE_MOTION:
             {
-                const bool hovered = valid
-                    && m_itemList->itemIndex(m_rowIndex).has_value()
-                    && m.in(to_d(event.motion.x), to_d(event.motion.y));
-
-                m_itemList->setHoveredRow(m_rowIndex, hovered);
+                m_itemList->setHoveredRow(m_rowIndex, valid && m.in(to_d(event.motion.x), to_d(event.motion.y)));
                 return false;
             }
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -148,10 +149,7 @@ bool AcutionItemRow::processEventDefault(const SDL_Event &event, bool valid, Wid
                     return false;
                 }
 
-                if(true
-                        && event.button.button == SDL_BUTTON_LEFT
-                        && m_itemList->itemIndex(m_rowIndex).has_value()
-                        && m.in(to_d(event.button.x), to_d(event.button.y))){
+                if((event.button.button == SDL_BUTTON_LEFT) && m.in(to_d(event.button.x), to_d(event.button.y))){
                     m_itemList->selectRow(m_rowIndex);
                     return consumeFocus(true);
                 }
