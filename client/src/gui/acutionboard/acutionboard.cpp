@@ -322,7 +322,7 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     const auto oldFirstIndex = m_itemList.firstIndex();
     if(m_itemList.processEventParent(event, valid, m)){
         if(oldFirstIndex != m_itemList.firstIndex()){
-            m_page = m_itemList.firstIndex() / m_pageSize;
+            m_page = m_itemList.firstIndex() / AcutionItemList::m_rowCount;
             updatePageButtonState();
         }
         return true;
@@ -386,14 +386,14 @@ void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
 
 size_t AcutionBoard::pageCount() const
 {
-    return (m_itemList.getItemList().itemList.size() + m_pageSize - 1) / m_pageSize;
+    return (m_itemList.getItemList().itemList.size() + AcutionItemList::m_rowCount - 1) / AcutionItemList::m_rowCount;
 }
 
 void AcutionBoard::setPage(size_t page)
 {
     if(const auto count = pageCount(); count > 0){
         m_page = std::min(page, count - 1);
-        m_itemList.setFirstIndex(m_page * m_pageSize);
+        m_itemList.setFirstIndex(m_page * AcutionItemList::m_rowCount);
         m_itemList.setSelectedIndex(m_itemList.firstIndex());
     }
     else{

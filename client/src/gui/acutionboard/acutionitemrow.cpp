@@ -7,39 +7,11 @@
 #include "acutionitemrow.hpp"
 
 extern SDLDevice *g_sdlDevice;
-
-namespace
-{
-    constexpr int itemColumnW = 108;
-    constexpr int sellerColumnW = 140;
-    constexpr int timeColumnW = 70;
-    constexpr int priceColumnW = 142;
-
-    static_assert(itemColumnW + sellerColumnW + timeColumnW + priceColumnW == AcutionItemList::m_rowW);
-
-    constexpr int itemColumnCenter = itemColumnW / 2;
-    constexpr int sellerColumnCenter = itemColumnW + sellerColumnW / 2;
-    constexpr int timeColumnCenter = itemColumnW + sellerColumnW + timeColumnW / 2;
-    constexpr int priceColumnCenter = itemColumnW + sellerColumnW + timeColumnW + priceColumnW / 2;
-
-    uint32_t priceColor(size_t price)
-    {
-        if(price >= 10000000){
-            return colorf::RED_A255;
-        }
-
-        if(price >= 1000000){
-            return colorf::CYAN_A255;
-        }
-        return colorf::YELLOW_A255;
-    }
-}
-
 AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
     : Widget
       {{
-          .w = AcutionItemList::m_rowW,
-          .h = AcutionItemList::m_rowH,
+          .w = m_rowW,
+          .h = m_rowH,
       }}
 
     , m_itemList(fflcheck(itemList))
@@ -52,25 +24,18 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
 
           .drawFunc = [this](const Widget *, int drawDstX, int drawDstY)
           {
-              const auto itemIndex = m_itemList->itemIndex(m_rowIndex);
-              if(!itemIndex.has_value()){
-                  return;
-              }
-
-              if(m_itemList->selectedIndex() == itemIndex){
-                  g_sdlDevice->fillRectangle(colorf::RGBA(0, 80, 255, 96), drawDstX, drawDstY, w(), h());
-              }
-              else if(m_itemList->hoveredIndex() == itemIndex){
-                  g_sdlDevice->fillRectangle(colorf::RGBA(255, 255, 255, 48), drawDstX, drawDstY, w(), h());
+              if(const auto itemIndex = m_itemList->itemIndex(m_rowIndex); itemIndex.has_value()){
+                  if     (m_itemList->selectedIndex() == itemIndex){ g_sdlDevice->fillRectangle(colorf::RGBA(  0,  80, 255, 96), drawDstX, drawDstY, w(), h()); }
+                  else if(m_itemList-> hoveredIndex() == itemIndex){ g_sdlDevice->fillRectangle(colorf::RGBA(255, 255, 255, 48), drawDstX, drawDstY, w(), h()); }
               }
           },
           .parent{this},
       }}
 
-    , m_itemName
+    , m_item
       {{
           .dir = DIR_NONE,
-          .x = itemColumnCenter,
+          .x = m_columnCenter_item,
           .y = [this]{ return h() / 2; },
           .textFunc = [this]() -> std::string
           {
@@ -91,7 +56,7 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
     , m_seller
       {{
           .dir = DIR_NONE,
-          .x = sellerColumnCenter,
+          .x = m_columnCenter_seller,
           .y = [this]{ return h() / 2; },
           .textFunc = [this]() -> std::string
           {
@@ -112,12 +77,12 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
     , m_timeLeft
       {{
           .dir = DIR_NONE,
-          .x = timeColumnCenter,
+          .x = m_columnCenter_time,
           .y = [this]{ return h() / 2; },
           .textFunc = [this]() -> std::string
           {
               if(const auto entry = m_itemList->item(m_rowIndex)){
-                  return AcutionItemList::formatTimeLeft(m_itemList->currentTimeLeft(*entry));
+                  return m_itemList->formatTimeLeft(*entry);
               }
               return {};
           },
@@ -133,7 +98,7 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
     , m_price
       {{
           .dir = DIR_NONE,
-          .x = priceColumnCenter,
+          .x = m_columnCenter_price,
           .y = [this]{ return h() / 2; },
           .textFunc = [this]() -> std::string
           {
@@ -196,5 +161,18 @@ bool AcutionItemRow::processEventDefault(const SDL_Event &event, bool valid, Wid
             {
                 return Widget::processEventDefault(event, valid, m);
             }
+    }
+}
+
+uint32_t AcutionItemRow::priceColor(size_t price)
+{
+    if(price >= 10000000){
+        return colorf::RED_A255;
+    }
+    else if(price >= 1000000){
+        return colorf::CYAN_A255;
+    }
+    else{
+        return colorf::YELLOW_A255;
     }
 }

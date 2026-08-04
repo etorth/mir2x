@@ -2,17 +2,19 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include "raiitimer.hpp"
 #include "widget.hpp"
 #include "itembox.hpp"
 #include "serdesmsg.hpp"
 
-class AcutionItemRow;
 class AcutionItemList final: public Widget
 {
-    public:
+    private:
+        friend class AcutionBoard;
+        friend class AcutionItemRow;
+
+    private:
         constexpr static size_t m_rowCount = 13;
-        constexpr static int m_rowW = 460;
-        constexpr static int m_rowH = 19;
 
     public:
         struct InitArgs final
@@ -22,15 +24,17 @@ class AcutionItemList final: public Widget
             Widget::VarInt y = 0;
 
             Widget::InstAttrs attrs {};
-            Widget::WADPair parent {};
+            Widget::WADPair  parent {};
         };
 
     private:
+        hres_timer m_acutionTimer;
         SDAcutionItemList m_sdAcutionItemList;
+
+    private:
         size_t m_firstIndex = 0;
-        std::optional<size_t> m_selectedIndex;
         std::optional<size_t> m_hoveredRow;
-        double m_elapsedMS = 0.0;
+        std::optional<size_t> m_selectedIndex;
 
     private:
         ItemBox m_itemBox;
@@ -39,7 +43,6 @@ class AcutionItemList final: public Widget
         explicit AcutionItemList(AcutionItemList::InitArgs);
 
     public:
-        void updateDefault(double) override;
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     public:
@@ -57,27 +60,48 @@ class AcutionItemList final: public Widget
 
         size_t maxFirstIndex() const
         {
-            return m_sdAcutionItemList.itemList.empty()
-                ? 0
-                : m_sdAcutionItemList.itemList.size() - 1;
+            return m_sdAcutionItemList.itemList.empty() ? 0 : (m_sdAcutionItemList.itemList.size() - 1);
         }
 
-        void setFirstIndex(size_t);
+        void setFirstIndex(size_t firstIndex)
+        {
+            m_firstIndex = std::min<size_t>(firstIndex, maxFirstIndex());
+        }
+
+        void setSelectedIndex(size_t itemIndex)
+        {
+            if(itemIndex < m_sdAcutionItemList.itemList.size()){
+                m_selectedIndex = itemIndex;
+            }
+            else{
+                m_selectedIndex.reset();
+            }
+        }
 
     public:
-        std::optional<size_t> selectedIndex() const;
-        std::optional<size_t> hoveredIndex() const;
-        void setSelectedIndex(size_t);
+        std::optional<size_t> selectedIndex() const
+        {
+            if(m_selectedIndex.has_value() && m_selectedIndex.value() < m_sdAcutionItemList.itemList.size()){
+                return m_selectedIndex;
+            }
+            return {};
+        }
 
-    private:
-        friend class AcutionItemRow;
+        std::optional<size_t> hoveredIndex() const
+        {
+            if(m_hoveredRow.has_value()){
+                return itemIndex(m_hoveredRow.value());
+            }
+            return {};
+        }
 
+    public:
         const SDAcutionItem *item(size_t) const;
         std::optional<size_t> itemIndex(size_t) const;
 
         void selectRow(size_t);
         void setHoveredRow(size_t, bool);
 
-        size_t currentTimeLeft(const SDAcutionItem &) const;
-        static std::string formatTimeLeft(size_t);
+    private:
+        std::string formatTimeLeft(const SDAcutionItem &);
 };

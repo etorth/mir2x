@@ -9,9 +9,6 @@ class ProcessRun;
 class AcutionBoard final: public Widget
 {
     private:
-        constexpr static size_t m_pageSize = AcutionItemList::m_rowCount;
-
-    private:
         ProcessRun *m_runProc;
 
     private:
