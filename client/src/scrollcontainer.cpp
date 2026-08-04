@@ -81,6 +81,7 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     , m_viewportW(std::move(args.vpw))
     , m_viewportH(std::move(args.vph))
 
+    , m_drag(std::move(args.drag))
     , m_hBar(std::move(args.hBar))
     , m_vBar(std::move(args.vBar))
     , m_hScroll(std::move(args.hScroll))
@@ -161,7 +162,7 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
                             down.x + down.w / 2     , down.y + down.h - inset);
                 }
 
-                const uint32_t thumbColor = active ? ((m_drag == DRAG_V_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
+                const uint32_t thumbColor = active ? ((m_dragState == DRAG_V_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
                                                                                : Widget::evalU32(m_thumbColor    , this))
                                                    : fnInactiveColor(Widget::evalU32(m_thumbColor, this));
                 fnFillRectangle(thumbColor, vThumbROI());
@@ -199,7 +200,7 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
                             right.x + right.w - inset, right.y + right.h / 2);
                 }
 
-                const uint32_t thumbColor = active ? ((m_drag == DRAG_H_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
+                const uint32_t thumbColor = active ? ((m_dragState == DRAG_H_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
                                                                                : Widget::evalU32(m_thumbColor    , this))
                                                    : fnInactiveColor(Widget::evalU32(m_thumbColor, this));
                 fnFillRectangle(thumbColor, hThumbROI());
@@ -375,38 +376,57 @@ Widget::ROI ScrollContainer::hThumbROI() const
 bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
-        m_drag = DRAG_NONE;
+        m_dragState = DRAG_NONE;
         return false;
     }
 
-    if((m_drag == DRAG_V_THUMB && !vScrollEnabled()) ||
-       (m_drag == DRAG_H_THUMB && !hScrollEnabled())){
-        m_drag = DRAG_NONE;
+    if((m_dragState == DRAG_V_THUMB && !vScrollEnabled()) ||
+       (m_dragState == DRAG_H_THUMB && !hScrollEnabled())){
+        m_dragState = DRAG_NONE;
     }
 
-    if(m_drag != DRAG_NONE){
+    if(m_dragState != DRAG_NONE){
         switch(event.type){
             case SDL_EVENT_MOUSE_MOTION:
                 {
-                    if(m_drag == DRAG_V_THUMB){
-                        const auto track = vTrackROI();
-                        const auto thumb = vThumbROI();
-                        const int travel = std::max<int>(1, track.h - thumb.h);
-                        const int dMouse = to_d(event.motion.y) - m_dragMouseStart;
-                        scrollTo(scrollX(), m_dragScrollStart + dMouse * maxScrollY() / travel);
-                    }
-                    else{
-                        const auto track = hTrackROI();
-                        const auto thumb = hThumbROI();
-                        const int travel = std::max<int>(1, track.w - thumb.w);
-                        const int dMouse = to_d(event.motion.x) - m_dragMouseStart;
-                        scrollTo(m_dragScrollStart + dMouse * maxScrollX() / travel, scrollY());
+                    switch(m_dragState){
+                        case DRAG_V_THUMB:
+                            {
+                                const auto track = vTrackROI();
+                                const auto thumb = vThumbROI();
+                                const int travel = std::max<int>(1, track.h - thumb.h);
+                                const int dMouse = to_d(event.motion.y) - m_dragMouseStart;
+                                scrollTo(scrollX(), m_dragScrollStart + dMouse * maxScrollY() / travel);
+                                break;
+                            }
+                        case DRAG_H_THUMB:
+                            {
+                                const auto track = hTrackROI();
+                                const auto thumb = hThumbROI();
+                                const int travel = std::max<int>(1, track.w - thumb.w);
+                                const int dMouse = to_d(event.motion.x) - m_dragMouseStart;
+                                scrollTo(m_dragScrollStart + dMouse * maxScrollX() / travel, scrollY());
+                                break;
+                            }
+                        case DRAG_VIEWPORT:
+                            {
+                                if(dragEnabled()){
+                                    scrollBy(-to_d(event.motion.xrel), -to_d(event.motion.yrel));
+                                }
+                                break;
+                            }
+                        default:
+                            {
+                                break;
+                            }
                     }
                     return true;
                 }
             case SDL_EVENT_MOUSE_BUTTON_UP:
                 {
-                    m_drag = DRAG_NONE;
+                    if(m_dragState != DRAG_VIEWPORT || event.button.button == SDL_BUTTON_LEFT){
+                        m_dragState = DRAG_NONE;
+                    }
                     return true;
                 }
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -458,7 +478,7 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
             }
 
             if(const auto thumb = vThumbROI(); thumb.in(localX, localY)){
-                m_drag = DRAG_V_THUMB;
+                m_dragState = DRAG_V_THUMB;
                 m_dragMouseStart = to_d(event.button.y); // capture raw screen coord for delta math
                 m_dragScrollStart = scrollY();
                 return true;
@@ -491,7 +511,7 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
             }
 
             if(const auto thumb = hThumbROI(); thumb.in(localX, localY)){
-                m_drag = DRAG_H_THUMB;
+                m_dragState = DRAG_H_THUMB;
                 m_dragMouseStart = to_d(event.button.x);
                 m_dragScrollStart = scrollX();
                 return true;
@@ -506,6 +526,23 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
                 return true;
             }
             return true;
+        }
+
+        if(valid && event.button.button == SDL_BUTTON_LEFT && dragEnabled()){
+            const bool canDragX = hScrollEnabled() && maxScrollX() > 0;
+            const bool canDragY = vScrollEnabled() && maxScrollY() > 0;
+
+            if((canDragX || canDragY)
+                    && m.in(to_d(event.button.x), to_d(event.button.y))
+                    && Widget::ROI(0, 0, viewportW(), viewportH()).in(localX, localY)){
+
+                if(Widget::processEventDefault(event, valid, m)){
+                    return true;
+                }
+
+                m_dragState = DRAG_VIEWPORT;
+                return true;
+            }
         }
     }
 

@@ -34,8 +34,10 @@ class ScrollContainer: public Widget
 
             Widget::VarGetter<Widget *> getter = nullptr;
 
+            Widget::VarBool drag = true;
             Widget::VarBool hBar = true;
             Widget::VarBool vBar = true;
+
             Widget::VarBool hScroll = true;
             Widget::VarBool vScroll = true;
 
@@ -62,9 +64,10 @@ class ScrollContainer: public Widget
     private:
         enum DragMode : uint8_t
         {
-            DRAG_NONE    = 0,
-            DRAG_V_THUMB = 1,
-            DRAG_H_THUMB = 2,
+            DRAG_NONE     = 0,
+            DRAG_V_THUMB  = 1,
+            DRAG_H_THUMB  = 2,
+            DRAG_VIEWPORT = 3,
         };
 
     private:
@@ -76,6 +79,7 @@ class ScrollContainer: public Widget
         Widget::VarSize m_viewportH;
 
     private:
+        Widget::VarBool m_drag;
         Widget::VarBool m_hBar;
         Widget::VarBool m_vBar;
         Widget::VarBool m_hScroll;
@@ -103,7 +107,8 @@ class ScrollContainer: public Widget
         int m_scrollY = 0;
 
     private:
-        DragMode m_drag = DRAG_NONE;
+        DragMode m_dragState = DRAG_NONE;
+
         int m_dragMouseStart = 0;
         int m_dragScrollStart = 0;
 
@@ -138,6 +143,7 @@ class ScrollContainer: public Widget
         }
 
     public:
+        bool    dragEnabled() const { return Widget::evalBool(   m_drag, this); }
         bool hScrollEnabled() const { return Widget::evalBool(m_hScroll, this); }
         bool vScrollEnabled() const { return Widget::evalBool(m_vScroll, this); }
 
@@ -153,6 +159,7 @@ class ScrollContainer: public Widget
         int maxScrollY() const { return std::max<int>(0, (contained() ? contained()->h() : 0) - viewportH()); }
 
     public:
+        void setDrag(Widget::VarBool arg) { m_drag = std::move(arg); }
         void setHBar(Widget::VarBool arg) { m_hBar = std::move(arg); }
         void setVBar(Widget::VarBool arg) { m_vBar = std::move(arg); }
 
