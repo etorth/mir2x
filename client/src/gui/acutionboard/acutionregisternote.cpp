@@ -6,10 +6,13 @@ AcutionRegisterNote::AcutionRegisterNote(AcutionRegisterNote::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
+
           .x = std::move(args.x),
           .y = std::move(args.y),
+
           .w = 222,
           .h = 116,
+
           .attrs
           {
               .inst = std::move(args.attrs),
@@ -21,26 +24,24 @@ AcutionRegisterNote::AcutionRegisterNote(AcutionRegisterNote::InitArgs args)
       {{
           .lineWidth = 222,
           .canEdit = true,
+
           .enableIME = std::move(args.enableIME),
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::WHITE_A255,
           },
+
           .lineAlign = LALIGN_LEFT,
           .parent{this},
       }}
 
-    , m_placeholder
+    , m_hint
       {{
           .x = 2,
           .y = 2,
           .textFunc = to_cstr(u8"可填写联系方式或其它说明"),
           .font
           {
-              .id = 1,
-              .size = 11,
               .color = colorf::RGBA(220, 220, 220, 128),
           },
           .attrs
@@ -68,9 +69,7 @@ bool AcutionRegisterNote::processEventDefault(const SDL_Event &event, bool valid
         return consumeFocus(false);
     }
 
-    if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN
-            && event.button.button == SDL_BUTTON_LEFT
-            && m.in(to_d(event.button.x), to_d(event.button.y))){
+    if((event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) && (event.button.button == SDL_BUTTON_LEFT) && m.in(to_d(event.button.x), to_d(event.button.y))){
         if(m_enabled){
             m_note.setFocus(true);
         }

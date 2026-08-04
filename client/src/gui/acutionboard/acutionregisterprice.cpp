@@ -7,10 +7,13 @@ AcutionRegisterPrice::AcutionRegisterPrice(AcutionRegisterPrice::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
+
           .x = std::move(args.x),
           .y = std::move(args.y),
+
           .w = 145,
-          .h = 27,
+          .h =  27,
+
           .attrs
           {
               .inst = std::move(args.attrs),
@@ -19,12 +22,13 @@ AcutionRegisterPrice::AcutionRegisterPrice(AcutionRegisterPrice::InitArgs args)
       }}
 
     , m_onClick(std::move(args.onClick))
-
     , m_text
       {{
           .dir = DIR_NONE,
-          .x = 145 / 2,
-          .y = 27 / 2,
+
+          .x = [this]{ return w() / 2; },
+          .y = [this]{ return h() / 2; },
+
           .textFunc = [this]() -> std::string
           {
               if(m_price){
@@ -32,10 +36,9 @@ AcutionRegisterPrice::AcutionRegisterPrice(AcutionRegisterPrice::InitArgs args)
               }
               return to_cstr(u8"点击设置价格");
           },
+
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = [this]
               {
                   return m_price ? colorf::YELLOW_A255 : colorf::WHITE_A255;
@@ -59,9 +62,7 @@ bool AcutionRegisterPrice::processEventDefault(const SDL_Event &event, bool vali
         return consumeFocus(false);
     }
 
-    if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN
-            && event.button.button == SDL_BUTTON_LEFT
-            && m.in(to_d(event.button.x), to_d(event.button.y))){
+    if((event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) && (event.button.button == SDL_BUTTON_LEFT) && m.in(to_d(event.button.x), to_d(event.button.y))){
         if(m_enabled && m_onClick){
             m_onClick();
         }

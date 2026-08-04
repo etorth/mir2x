@@ -24,7 +24,7 @@ class AcutionRegisterNote final: public Widget
 
     private:
         LayoutBoard m_note;
-        TextBoard m_placeholder;
+        TextBoard m_hint;
 
     public:
         explicit AcutionRegisterNote(AcutionRegisterNote::InitArgs);
