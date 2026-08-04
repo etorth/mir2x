@@ -38,6 +38,5 @@ class AcutionBoard final: public Widget
         void setItemList(SDAcutionItemList);
 
     private:
-        void updateMoveButtonState();
         void drawSelectedItem(Widget::ROIMap) const;
 };

@@ -52,7 +52,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .parent{argParent, argAutoDelete},
       }}
 
-    , m_runProc(argProc)
+    , m_runProc(fflcheck(argProc))
     , m_background
       {{
           .texLoadFunc = []{ return g_progUseDB->retrieve(0X00001400); },
@@ -81,6 +81,11 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [](Widget *, int)
           {
           },
+
+          .attrs
+          {
+              .show = [this]{ return m_itemList.selectedIndex().has_value(); },
+          },
           .parent{this},
       }}
 
@@ -97,7 +102,11 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               m_itemList.movePrev();
-              updateMoveButtonState();
+          },
+
+          .attrs
+          {
+              .active = [this]{ return m_itemList.canMovePrev(); },
           },
           .parent{this},
       }}
@@ -115,7 +124,11 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               m_itemList.moveNext();
-              updateMoveButtonState();
+          },
+
+          .attrs
+          {
+              .active = [this]{ return m_itemList.canMoveNext(); },
           },
           .parent{this},
       }}
@@ -247,14 +260,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .parent{this},
       }}
 {
-    fflassert(m_runProc);
-    m_buttonContactSeller.setShow([this]
-    {
-        return m_itemList.selectedIndex().has_value();
-    });
-
     setShow(false);
-    updateMoveButtonState();
 }
 
 void AcutionBoard::drawDefault(Widget::ROIMap m) const
@@ -322,11 +328,7 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
         return false;
     }
 
-    const auto oldFirstIndex = m_itemList.firstIndex();
     if(m_itemList.processEventParent(event, valid, m)){
-        if(oldFirstIndex != m_itemList.firstIndex()){
-            updateMoveButtonState();
-        }
         return true;
     }
 
@@ -383,15 +385,6 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
 void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
 {
     m_itemList.setItemList(std::move(sdAcutionItemList));
-    updateMoveButtonState();
-}
-
-void AcutionBoard::updateMoveButtonState()
-{
-    m_buttonPrevious.setActive(m_itemList.canMovePrev());
-    m_buttonNext.setActive(m_itemList.canMoveNext());
-    const auto category = m_itemList.getItemList().category;
-    m_buttonRefresh.setActive(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END);
 }
 
 void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
