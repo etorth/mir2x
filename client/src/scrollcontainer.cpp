@@ -60,8 +60,8 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
           .getter = std::move(args.getter),
           .vr = Widget::VarROI
           (
-              Widget::VarInt ([this]{ return m_scrollX;   }),
-              Widget::VarInt ([this]{ return m_scrollY;   }),
+              Widget::VarInt ([this]{ return   scrollX(); }),
+              Widget::VarInt ([this]{ return   scrollY(); }),
               Widget::VarSize([this]{ return viewportW(); }),
               Widget::VarSize([this]{ return viewportH(); })
           ),
@@ -81,6 +81,8 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
     , m_viewportW(std::move(args.vpw))
     , m_viewportH(std::move(args.vph))
 
+    , m_hBar(std::move(args.hBar))
+    , m_vBar(std::move(args.vBar))
     , m_hScroll(std::move(args.hScroll))
     , m_vScroll(std::move(args.vScroll))
 
@@ -117,11 +119,19 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
                 g_sdlDevice->fillTriangle(color, drawDstX + x0, drawDstY + y0, drawDstX + x1, drawDstY + y1, drawDstX + x2, drawDstY + y2);
             };
 
+            const auto trackColor = Widget::evalU32(m_trackColor, this);
+            const auto inactiveTrackColor = colorf::decolor(trackColor);
+            const auto fnInactiveColor = [inactiveTrackColor](uint32_t color)
+            {
+                return colorf::fadeRGBA(colorf::decolor(color), inactiveTrackColor, 0.5F);
+            };
+
             const auto vBar = vBarROI();
             const auto hBar = hBarROI();
 
             if(!vBar.empty()){
-                fnFillRectangle(Widget::evalU32(m_trackColor, this), vTrackROI());
+                const bool active = vScrollEnabled();
+                fnFillRectangle(active ? trackColor : inactiveTrackColor, vTrackROI());
 
                 const auto up     = vUpArrowROI();
                 const auto down = vDownArrowROI();
@@ -129,12 +139,15 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
                 const auto arrowColor    = Widget::evalU32(m_arrowColor   , this);
                 const auto arrowBoxColor = Widget::evalU32(m_arrowBoxColor, this);
 
-                fnFillRectangle(arrowBoxColor, up);
-                fnFillRectangle(arrowBoxColor, down);
+                const auto drawArrowColor    = active ? arrowColor    : fnInactiveColor(arrowColor);
+                const auto drawArrowBoxColor = active ? arrowBoxColor : fnInactiveColor(arrowBoxColor);
+
+                fnFillRectangle(drawArrowBoxColor, up);
+                fnFillRectangle(drawArrowBoxColor, down);
 
                 if(!up.empty()){
                     const int inset = std::max<int>(3, up.w / 4);
-                    fnFillTriangle(arrowColor,
+                    fnFillTriangle(drawArrowColor,
                             up.x + up.w / 2    , up.y        + inset,
                             up.x        + inset, up.y + up.h - inset,
                             up.x + up.w - inset, up.y + up.h - inset);
@@ -142,19 +155,21 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
 
                 if(!down.empty()){
                     const int inset = std::max<int>(3, down.w / 4);
-                    fnFillTriangle(arrowColor,
+                    fnFillTriangle(drawArrowColor,
                             down.x          + inset , down.y          + inset,
                             down.x + down.w - inset , down.y          + inset,
                             down.x + down.w / 2     , down.y + down.h - inset);
                 }
 
-                const uint32_t thumbColor = (m_drag == DRAG_V_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
-                                                                     : Widget::evalU32(m_thumbColor    , this);
+                const uint32_t thumbColor = active ? ((m_drag == DRAG_V_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
+                                                                               : Widget::evalU32(m_thumbColor    , this))
+                                                   : fnInactiveColor(Widget::evalU32(m_thumbColor, this));
                 fnFillRectangle(thumbColor, vThumbROI());
             }
 
             if(!hBar.empty()){
-                fnFillRectangle(Widget::evalU32(m_trackColor, this), hTrackROI());
+                const bool active = hScrollEnabled();
+                fnFillRectangle(active ? trackColor : inactiveTrackColor, hTrackROI());
 
                 const auto left  =  hLeftArrowROI();
                 const auto right = hRightArrowROI();
@@ -162,12 +177,15 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
                 const auto arrowColor    = Widget::evalU32(m_arrowColor   , this);
                 const auto arrowBoxColor = Widget::evalU32(m_arrowBoxColor, this);
 
-                fnFillRectangle(arrowBoxColor, left);
-                fnFillRectangle(arrowBoxColor, right);
+                const auto drawArrowColor    = active ? arrowColor    : fnInactiveColor(arrowColor);
+                const auto drawArrowBoxColor = active ? arrowBoxColor : fnInactiveColor(arrowBoxColor);
+
+                fnFillRectangle(drawArrowBoxColor, left);
+                fnFillRectangle(drawArrowBoxColor, right);
 
                 if(!left.empty()){
                     const int inset = std::max<int>(3, left.h / 4);
-                    fnFillTriangle(arrowColor,
+                    fnFillTriangle(drawArrowColor,
                             left.x          + inset, left.y + left.h / 2,
                             left.x + left.w - inset, left.y          + inset,
                             left.x + left.w - inset, left.y + left.h - inset);
@@ -175,19 +193,21 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
 
                 if(!right.empty()){
                     const int inset = std::max<int>(3, right.h / 4);
-                    fnFillTriangle(arrowColor,
+                    fnFillTriangle(drawArrowColor,
                             right.x           + inset, right.y           + inset,
                             right.x           + inset, right.y + right.h - inset,
                             right.x + right.w - inset, right.y + right.h / 2);
                 }
 
-                const uint32_t thumbColor = (m_drag == DRAG_H_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
-                                                                     : Widget::evalU32(m_thumbColor    , this);
+                const uint32_t thumbColor = active ? ((m_drag == DRAG_H_THUMB) ? Widget::evalU32(m_thumbDragColor, this)
+                                                                               : Widget::evalU32(m_thumbColor    , this))
+                                                   : fnInactiveColor(Widget::evalU32(m_thumbColor, this));
                 fnFillRectangle(thumbColor, hThumbROI());
             }
 
             if(!vBar.empty() && !hBar.empty()){
-                g_sdlDevice->fillRectangle(Widget::evalU32(m_trackColor, this), drawDstX + vBar.x, drawDstY + hBar.y, vBar.w, hBar.h);
+                const auto cornerColor = (vScrollEnabled() && hScrollEnabled()) ? trackColor : inactiveTrackColor;
+                g_sdlDevice->fillRectangle(cornerColor, drawDstX + vBar.x, drawDstY + hBar.y, vBar.w, hBar.h);
             }
         },
     }}, true);
@@ -198,22 +218,18 @@ ScrollContainer::ScrollContainer(ScrollContainer::InitArgs args)
 
 bool ScrollContainer::hBarEnabled() const
 {
-    if(!Widget::evalBool(m_hScroll, this)){
+    if(!Widget::evalBool(m_hBar, this)){
         return false;
     }
-
-    const int cw = contained() ? contained()->w() : 0;
-    return cw > viewportW();
+    return maxScrollX() > 0;
 }
 
 bool ScrollContainer::vBarEnabled() const
 {
-    if(!Widget::evalBool(m_vScroll, this)){
+    if(!Widget::evalBool(m_vBar, this)){
         return false;
     }
-
-    const int ch = contained() ? contained()->h() : 0;
-    return ch > viewportH();
+    return maxScrollY() > 0;
 }
 
 Widget::ROI ScrollContainer::vBarROI() const
@@ -331,7 +347,7 @@ Widget::ROI ScrollContainer::vThumbROI() const
 
     const int thumbH = std::clamp<int>((track.h * vh) / ch, std::min<int>(m_minThumbSize, track.h), track.h);
     const int maxScroll = maxScrollY();
-    const int offset = maxScroll > 0 ? (track.h - thumbH) * m_scrollY / maxScroll : 0;
+    const int offset = maxScroll > 0 ? (track.h - thumbH) * scrollY() / maxScroll : 0;
 
     return Widget::ROI{track.x, track.y + offset, track.w, thumbH};
 }
@@ -351,7 +367,7 @@ Widget::ROI ScrollContainer::hThumbROI() const
 
     const int thumbW = std::clamp<int>((track.w * vw) / cw, std::min<int>(m_minThumbSize, track.w), track.w);
     const int maxScroll = maxScrollX();
-    const int offset = maxScroll > 0 ? (track.w - thumbW) * m_scrollX / maxScroll : 0;
+    const int offset = maxScroll > 0 ? (track.w - thumbW) * scrollX() / maxScroll : 0;
 
     return Widget::ROI{track.x + offset, track.y, thumbW, track.h};
 }
@@ -363,6 +379,11 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
         return false;
     }
 
+    if((m_drag == DRAG_V_THUMB && !vScrollEnabled()) ||
+       (m_drag == DRAG_H_THUMB && !hScrollEnabled())){
+        m_drag = DRAG_NONE;
+    }
+
     if(m_drag != DRAG_NONE){
         switch(event.type){
             case SDL_EVENT_MOUSE_MOTION:
@@ -372,14 +393,14 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
                         const auto thumb = vThumbROI();
                         const int travel = std::max<int>(1, track.h - thumb.h);
                         const int dMouse = to_d(event.motion.y) - m_dragMouseStart;
-                        scrollTo(m_scrollX, m_dragScrollStart + dMouse * maxScrollY() / travel);
+                        scrollTo(scrollX(), m_dragScrollStart + dMouse * maxScrollY() / travel);
                     }
                     else{
                         const auto track = hTrackROI();
                         const auto thumb = hThumbROI();
                         const int travel = std::max<int>(1, track.w - thumb.w);
                         const int dMouse = to_d(event.motion.x) - m_dragMouseStart;
-                        scrollTo(m_dragScrollStart + dMouse * maxScrollX() / travel, m_scrollY);
+                        scrollTo(m_dragScrollStart + dMouse * maxScrollX() / travel, scrollY());
                     }
                     return true;
                 }
@@ -402,13 +423,13 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
     if(event.type == SDL_EVENT_MOUSE_WHEEL){
         if(m.in(to_d(event.wheel.mouse_x), to_d(event.wheel.mouse_y))){
             if(SDL_GetModState() & SDL_KMOD_SHIFT){
-                if(!hBarEnabled()){
+                if(!hScrollEnabled() || maxScrollX() <= 0){
                     return false;
                 }
                 scrollBy(-to_d(event.wheel.y) * m_scrollStep, 0);
             }
             else{
-                if(!vBarEnabled()){
+                if(!vScrollEnabled() || maxScrollY() <= 0){
                     return false;
                 }
                 scrollBy(0, -to_d(event.wheel.y) * m_scrollStep);
@@ -422,6 +443,10 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
         const int localY = to_d(event.button.y) - m.y + m.ro->y;
 
         if(const auto bar = vBarROI(); !bar.empty() && bar.in(localX, localY)){
+            if(!vScrollEnabled()){
+                return true;
+            }
+
             if(vUpArrowROI().in(localX, localY)){
                 scrollBy(0, -m_scrollStep);
                 return true;
@@ -435,7 +460,7 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
             if(const auto thumb = vThumbROI(); thumb.in(localX, localY)){
                 m_drag = DRAG_V_THUMB;
                 m_dragMouseStart = to_d(event.button.y); // capture raw screen coord for delta math
-                m_dragScrollStart = m_scrollY;
+                m_dragScrollStart = scrollY();
                 return true;
             }
             else if(vTrackROI().in(localX, localY)){
@@ -451,6 +476,10 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
         }
 
         if(const auto bar = hBarROI(); !bar.empty() && bar.in(localX, localY)){
+            if(!hScrollEnabled()){
+                return true;
+            }
+
             if(hLeftArrowROI().in(localX, localY)){
                 scrollBy(-m_scrollStep, 0);
                 return true;
@@ -464,7 +493,7 @@ bool ScrollContainer::processEventDefault(const SDL_Event &event, bool valid, Wi
             if(const auto thumb = hThumbROI(); thumb.in(localX, localY)){
                 m_drag = DRAG_H_THUMB;
                 m_dragMouseStart = to_d(event.button.x);
-                m_dragScrollStart = m_scrollX;
+                m_dragScrollStart = scrollX();
                 return true;
             }
             else if(hTrackROI().in(localX, localY)){

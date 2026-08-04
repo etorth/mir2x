@@ -26,6 +26,8 @@ RankingListBoard::RankingListBoard(RankingType type)
           .vph = m_viewportH,
 
           .getter = std::addressof(m_itemBox),
+
+          .hBar    = false,
           .hScroll = false,
           .fgDrawFunc = [](const Widget *self, int drawDstX, int drawDstY)
           {

@@ -34,6 +34,8 @@ class ScrollContainer: public Widget
 
             Widget::VarGetter<Widget *> getter = nullptr;
 
+            Widget::VarBool hBar = true;
+            Widget::VarBool vBar = true;
             Widget::VarBool hScroll = true;
             Widget::VarBool vScroll = true;
 
@@ -74,6 +76,8 @@ class ScrollContainer: public Widget
         Widget::VarSize m_viewportH;
 
     private:
+        Widget::VarBool m_hBar;
+        Widget::VarBool m_vBar;
         Widget::VarBool m_hScroll;
         Widget::VarBool m_vScroll;
 
@@ -113,22 +117,30 @@ class ScrollContainer: public Widget
         }
 
     public:
-        int scrollX() const { return m_scrollX; }
-        int scrollY() const { return m_scrollY; }
+        int scrollX() const { return std::clamp<int>(m_scrollX, 0, maxScrollX()); }
+        int scrollY() const { return std::clamp<int>(m_scrollY, 0, maxScrollY()); }
 
     public:
         void scrollTo(int x, int y)
         {
-            m_scrollX = std::clamp<int>(x, 0, maxScrollX());
-            m_scrollY = std::clamp<int>(y, 0, maxScrollY());
+            if(hScrollEnabled()){
+                m_scrollX = std::clamp<int>(x, 0, maxScrollX());
+            }
+
+            if(vScrollEnabled()){
+                m_scrollY = std::clamp<int>(y, 0, maxScrollY());
+            }
         }
 
         void scrollBy(int dx, int dy)
         {
-            scrollTo(m_scrollX + dx, m_scrollY + dy);
+            scrollTo(scrollX() + dx, scrollY() + dy);
         }
 
     public:
+        bool hScrollEnabled() const { return Widget::evalBool(m_hScroll, this); }
+        bool vScrollEnabled() const { return Widget::evalBool(m_vScroll, this); }
+
         bool hBarEnabled() const;
         bool vBarEnabled() const;
 
@@ -139,6 +151,10 @@ class ScrollContainer: public Widget
     public:
         int maxScrollX() const { return std::max<int>(0, (contained() ? contained()->w() : 0) - viewportW()); }
         int maxScrollY() const { return std::max<int>(0, (contained() ? contained()->h() : 0) - viewportH()); }
+
+    public:
+        void setHBar(Widget::VarBool arg) { m_hBar = std::move(arg); }
+        void setVBar(Widget::VarBool arg) { m_vBar = std::move(arg); }
 
     public:
         void setHScroll(Widget::VarBool arg) { m_hScroll = std::move(arg); }
