@@ -8,7 +8,6 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "layoutboard.hpp"
-#include "textboard.hpp"
 #include "processrun.hpp"
 #include "acutionregisterboard.hpp"
 #include "acutionboard.hpp"
@@ -64,6 +63,198 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 10,
           .y = 84,
+          .parent{this},
+      }}
+
+    , m_category
+      {{
+          .dir = DIR_NONE,
+          .x = 61,
+          .y = 20,
+          .textFunc = [this]() -> std::string
+          {
+              switch(m_itemList.getItemList().category){
+                  case ACUTIONCAT_ALL     : return to_cstr(u8"所有物品");
+                  case ACUTIONCAT_DRESS   : return to_cstr(u8"衣服");
+                  case ACUTIONCAT_WEAPON  : return to_cstr(u8"武器");
+                  case ACUTIONCAT_NECKLACE: return to_cstr(u8"项链");
+                  case ACUTIONCAT_HELMET  : return to_cstr(u8"头盔");
+                  case ACUTIONCAT_RING    : return to_cstr(u8"戒指");
+                  case ACUTIONCAT_ARMRING : return to_cstr(u8"手镯");
+                  case ACUTIONCAT_SHOES   : return to_cstr(u8"鞋类");
+                  case ACUTIONCAT_POTION  : return to_cstr(u8"药品");
+                  case ACUTIONCAT_BOOK    : return to_cstr(u8"图书");
+                  case ACUTIONCAT_OTHER   : return to_cstr(u8"其他物品");
+                  default                 : return to_cstr(u8"寄售");
+              }
+          },
+          .font
+          {
+              .id = 1,
+              .size = 12,
+              .color = colorf::YELLOW_A255,
+          },
+          .parent{this},
+      }}
+
+    , m_itemCount
+      {{
+          .dir = DIR_NONE,
+          .x = 240,
+          .y = 20,
+          .textFunc = [this]() -> std::string
+          {
+              return to_cstr(str_printf(u8"共%zu件", m_itemList.size()));
+          },
+          .font
+          {
+              .id = 1,
+              .size = 12,
+              .color = colorf::YELLOW_A255,
+          },
+          .parent{this},
+      }}
+
+    , m_itemRange
+      {{
+          .dir = DIR_NONE,
+          .x = 419,
+          .y = 20,
+          .textFunc = [this]() -> std::string
+          {
+              if(const auto firstIndex = m_itemList.firstIndex(); firstIndex.has_value()){
+                  const auto lastIndex = std::min(firstIndex.value() + AcutionItemList::m_rowCount, m_itemList.size());
+                  return to_cstr(str_printf(u8"第%zu-%zu件物品", firstIndex.value() + 1, lastIndex));
+              }
+              return {};
+          },
+          .font
+          {
+              .id = 1,
+              .size = 12,
+              .color = colorf::YELLOW_A255,
+          },
+          .attrs
+          {
+              .show = [this]{ return !m_itemList.empty(); },
+          },
+          .parent{this},
+      }}
+
+    , m_columnItem
+      {{
+          .dir = DIR_NONE,
+          .x = 64,
+          .y = 62,
+          .textFunc = to_cstr(u8"物品"),
+          .font
+          {
+              .id = 1,
+              .size = 12,
+              .color = colorf::YELLOW_A255,
+          },
+          .parent{this},
+      }}
+
+    , m_columnSeller
+      {{
+          .dir = DIR_NONE,
+          .x = 188,
+          .y = 62,
+          .textFunc = to_cstr(u8"寄售人"),
+          .font
+          {
+              .id = 1,
+              .size = 12,
+              .color = colorf::YELLOW_A255,
+          },
+          .parent{this},
+      }}
+
+    , m_columnTime
+      {{
+          .dir = DIR_NONE,
+          .x = 293,
+          .y = 62,
+          .textFunc = to_cstr(u8"剩余"),
+          .font
+          {
+              .id = 1,
+              .size = 12,
+              .color = colorf::YELLOW_A255,
+          },
+          .parent{this},
+      }}
+
+    , m_columnPrice
+      {{
+          .dir = DIR_NONE,
+          .x = 399,
+          .y = 62,
+          .textFunc = to_cstr(u8"价格"),
+          .font
+          {
+              .id = 1,
+              .size = 12,
+              .color = colorf::YELLOW_A255,
+          },
+          .parent{this},
+      }}
+
+    , m_sellerNoteTitle
+      {{
+          .dir = DIR_LEFT,
+          .x = 493,
+          .y = 58,
+          .textFunc = to_cstr(u8"卖家留言"),
+          .font
+          {
+              .id = 1,
+              .size = 11,
+              .color = colorf::CYAN_A255,
+          },
+          .attrs
+          {
+              .show = [this]{ return m_itemList.selectedIndex().has_value(); },
+          },
+          .parent{this},
+      }}
+
+    , m_itemDescriptionTitle
+      {{
+          .dir = DIR_LEFT,
+          .x = 493,
+          .y = 239,
+          .textFunc = to_cstr(u8"物品描述"),
+          .font
+          {
+              .id = 1,
+              .size = 10,
+              .color = colorf::GREEN_A255,
+          },
+          .attrs
+          {
+              .show = [this]{ return m_itemList.selectedIndex().has_value(); },
+          },
+          .parent{this},
+      }}
+
+    , m_itemAttributeTitle
+      {{
+          .dir = DIR_LEFT,
+          .x = 493,
+          .y = 279,
+          .textFunc = to_cstr(u8"物品属性"),
+          .font
+          {
+              .id = 1,
+              .size = 10,
+              .color = colorf::GREEN_A255,
+          },
+          .attrs
+          {
+              .show = [this]{ return m_itemList.selectedIndex().has_value(); },
+          },
           .parent{this},
       }}
 
@@ -271,54 +462,6 @@ void AcutionBoard::drawDefault(Widget::ROIMap m) const
 
     Widget::drawDefault(m);
 
-    const auto drawText = [this, &m](std::string text, uint32_t color, dir8_t dir, int x, int y, int fontSize = 11)
-    {
-        TextBoard textBoard
-        {{
-            .textFunc = std::move(text),
-            .font
-            {
-                .id = 1,
-                .size = to_u8(fontSize),
-                .color = color,
-            },
-        }};
-        drawAsChild(&textBoard, dir, x, y, m);
-    };
-
-    const auto categoryName = [this]() -> const char8_t *
-    {
-        switch(m_itemList.getItemList().category){
-            case ACUTIONCAT_ALL     : return u8"所有物品";
-            case ACUTIONCAT_DRESS   : return u8"衣服";
-            case ACUTIONCAT_WEAPON  : return u8"武器";
-            case ACUTIONCAT_NECKLACE: return u8"项链";
-            case ACUTIONCAT_HELMET  : return u8"头盔";
-            case ACUTIONCAT_RING    : return u8"戒指";
-            case ACUTIONCAT_ARMRING : return u8"手镯";
-            case ACUTIONCAT_SHOES   : return u8"鞋类";
-            case ACUTIONCAT_POTION  : return u8"药品";
-            case ACUTIONCAT_BOOK    : return u8"图书";
-            case ACUTIONCAT_OTHER   : return u8"其他物品";
-            default                 : return u8"寄售";
-        }
-    }();
-
-    drawText(to_cstr(categoryName), colorf::YELLOW_A255, DIR_NONE, 61, 20, 12);
-    drawText(to_cstr(str_printf(u8"共%zu件", m_itemList.getItemList().itemList.size())), colorf::YELLOW_A255, DIR_NONE, 240, 20, 12);
-    if(const auto firstIndex = m_itemList.firstIndex(); firstIndex.has_value()){
-        const auto lastIndex = std::min(firstIndex.value() + AcutionItemList::m_rowCount, m_itemList.getItemList().itemList.size());
-        drawText(to_cstr(str_printf(u8"第%zu-%zu件物品", firstIndex.value() + 1, lastIndex)), colorf::YELLOW_A255, DIR_NONE, 419, 20, 12);
-    }
-    else{
-        drawText(to_cstr(u8"（空）"), colorf::YELLOW_A255, DIR_NONE, 419, 20, 12);
-    }
-
-    drawText(to_cstr(u8"物品"), colorf::YELLOW_A255, DIR_NONE, 64, 62, 12);
-    drawText(to_cstr(u8"寄售人"), colorf::YELLOW_A255, DIR_NONE, 188, 62, 12);
-    drawText(to_cstr(u8"剩余"), colorf::YELLOW_A255, DIR_NONE, 293, 62, 12);
-    drawText(to_cstr(u8"价格"), colorf::YELLOW_A255, DIR_NONE, 399, 62, 12);
-
     drawSelectedItem(m);
 }
 
@@ -395,23 +538,6 @@ void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
 
     const int remapX = m.x - m.ro->x;
     const int remapY = m.y - m.ro->y;
-
-    const auto drawText = [this, &m](std::string text, uint32_t color, int x, int y, int fontSize = 11)
-    {
-        TextBoard textBoard
-        {{
-            .textFunc = std::move(text),
-            .font
-            {
-                .id = 1,
-                .size = to_u8(fontSize),
-                .color = color,
-            },
-        }};
-        drawAsChild(&textBoard, DIR_LEFT, x, y, m);
-    };
-
-    drawText(to_cstr(u8"卖家留言"), colorf::CYAN_A255, 493, 58, 11);
 
     const auto noteXML = str_printf(
             "<layout>%s</layout>",
@@ -500,7 +626,6 @@ void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
     }};
     summaryBoard.draw({.x=remapX + 559, .y=remapY + 174, .ro{0, 0, 145, 61}});
 
-    drawText(to_cstr(u8"物品描述"), colorf::GREEN_A255, 493, 239, 10);
     const auto descriptionXML = str_printf(
             "<layout>%s</layout>",
             xmlf::toParString(
@@ -522,7 +647,6 @@ void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
     };
     descriptionBoard.draw({.x=remapX + 493, .y=remapY + 253, .ro{0, 0, 211, 22}});
 
-    drawText(to_cstr(u8"物品属性"), colorf::GREEN_A255, 493, 279, 10);
     const auto attributeXML = entry.item.getXMLLayout({}, SDItem::XMLLAYOUT_ATTRIBUTE);
     LayoutBoard attributeBoard
     {{
