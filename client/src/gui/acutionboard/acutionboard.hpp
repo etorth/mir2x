@@ -35,7 +35,10 @@ class AcutionBoard final: public Widget
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     public:
-        void setItemList(SDAcutionItemList);
+        void setItemList(SDAcutionItemList sdAcutionItemList)
+        {
+            m_itemList.setItemList(std::move(sdAcutionItemList));
+        }
 
     private:
         void drawSelectedItem(Widget::ROIMap) const;

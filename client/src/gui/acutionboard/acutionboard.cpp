@@ -382,11 +382,6 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     }
 }
 
-void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
-{
-    m_itemList.setItemList(std::move(sdAcutionItemList));
-}
-
 void AcutionBoard::drawSelectedItem(Widget::ROIMap m) const
 {
     const auto selectedIndex = m_itemList.selectedIndex();
