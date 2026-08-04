@@ -4,6 +4,7 @@
 #include "widget.hpp"
 #include "textboard.hpp"
 #include "gfxshapeboard.hpp"
+
 class AcutionItemList;
 class AcutionItemRow final: public Widget
 {

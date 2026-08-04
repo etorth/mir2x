@@ -96,7 +96,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .onTrigger = [this](Widget *, int)
           {
-              m_itemList.moveBackward();
+              m_itemList.movePrev();
               updateMoveButtonState();
           },
           .parent{this},
@@ -114,7 +114,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .onTrigger = [this](Widget *, int)
           {
-              m_itemList.moveForward();
+              m_itemList.moveNext();
               updateMoveButtonState();
           },
           .parent{this},
@@ -132,13 +132,13 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .onTrigger = [this](Widget *, int)
           {
-              const auto category = m_itemList.getItemList().category;
-              if(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END){
-                  g_client->send({CM_QUERYACUTIONITEMLIST, CMQueryAcutionItemList
-                  {
-                      .category = to_u8(category),
-                  }});
-              }
+              const auto  currCategory = m_itemList.getItemList().category;
+              const auto queryCategory = (currCategory >= ACUTIONCAT_BEGIN && currCategory < ACUTIONCAT_END) ? currCategory : ACUTIONCAT_ALL;
+
+              g_client->send({CM_QUERYACUTIONITEMLIST, CMQueryAcutionItemList
+              {
+                  .category = to_u8(queryCategory),
+              }});
           },
           .parent{this},
       }}
@@ -388,8 +388,8 @@ void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
 
 void AcutionBoard::updateMoveButtonState()
 {
-    m_buttonPrevious.setActive(m_itemList.canMoveBackward());
-    m_buttonNext.setActive(m_itemList.canMoveForward());
+    m_buttonPrevious.setActive(m_itemList.canMovePrev());
+    m_buttonNext.setActive(m_itemList.canMoveNext());
     const auto category = m_itemList.getItemList().category;
     m_buttonRefresh.setActive(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END);
 }

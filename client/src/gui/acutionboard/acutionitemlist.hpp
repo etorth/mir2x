@@ -3,9 +3,9 @@
 #include <optional>
 #include <string>
 #include "raiitimer.hpp"
+#include "serdesmsg.hpp"
 #include "widget.hpp"
 #include "itembox.hpp"
-#include "serdesmsg.hpp"
 
 class AcutionItemList final: public Widget
 {
@@ -32,9 +32,11 @@ class AcutionItemList final: public Widget
         SDAcutionItemList m_sdAcutionItemList;
 
     private:
-        std::optional<size_t> m_firstIndex;
-        std::optional<size_t> m_selectedRow;
+        size_t m_firstIndex = 0; // valid only when empty() is false
+
+    private:
         std::optional<size_t> m_hoveredRow;
+        std::optional<size_t> m_selectedRow;
 
     private:
         ItemBox m_itemBox;
@@ -47,15 +49,28 @@ class AcutionItemList final: public Widget
 
     public:
         void setItemList(SDAcutionItemList);
+
+    public:
         const SDAcutionItemList &getItemList() const
         {
             return m_sdAcutionItemList;
         }
 
     public:
+        bool empty() const
+        {
+            return m_sdAcutionItemList.itemList.empty();
+        }
+
+        size_t size() const
+        {
+            return m_sdAcutionItemList.itemList.size();
+        }
+
+    public:
         std::optional<size_t> firstIndex() const
         {
-            return m_firstIndex;
+            return empty() ? std::nullopt : std::optional<size_t>(m_firstIndex);
         }
 
         std::optional<size_t> selectedRow() const
@@ -71,8 +86,8 @@ class AcutionItemList final: public Widget
         std::optional<size_t> selectedIndex() const
         {
             if(m_selectedRow.has_value()){
-                fflassert(m_firstIndex.has_value());
-                return m_firstIndex.value() + m_selectedRow.value();
+                fflassert(!empty());
+                return m_firstIndex + m_selectedRow.value();
             }
             return {};
         }
@@ -80,8 +95,8 @@ class AcutionItemList final: public Widget
         std::optional<size_t> hoveredIndex() const
         {
             if(m_hoveredRow.has_value()){
-                fflassert(m_firstIndex.has_value());
-                return m_firstIndex.value() + m_hoveredRow.value();
+                fflassert(!empty());
+                return m_firstIndex + m_hoveredRow.value();
             }
             return {};
         }
@@ -96,30 +111,33 @@ class AcutionItemList final: public Widget
 
         const SDAcutionItem *rowItem(size_t rowIndex) const
         {
-            if(m_firstIndex.has_value() && rowIndex < m_rowCount){
-                return indexItem(m_firstIndex.value() + rowIndex);
+            if(!empty() && rowIndex < m_rowCount){
+                return indexItem(m_firstIndex + rowIndex);
             }
             return nullptr;
         }
 
-        bool canMoveBackward() const
+    public:
+        bool canMovePrev() const
         {
-            return m_firstIndex.has_value() && m_firstIndex.value() > 0;
+            return !empty() && m_firstIndex > 0;
         }
 
-        bool canMoveForward() const
+        bool canMoveNext() const
         {
-            return m_firstIndex.has_value() && m_firstIndex.value() + m_rowCount < m_sdAcutionItemList.itemList.size();
+            return !empty() && (m_firstIndex + m_rowCount) < m_sdAcutionItemList.itemList.size();
         }
 
-        void moveBackward();
-        void moveForward();
+        void movePrev();
+        void moveNext();
 
     private:
         void setFirstIndex(size_t);
-        void setSelectedRow(size_t, bool);
-        void setHoveredRow(size_t, bool);
-        void validateRowIndex(size_t) const;
 
+    private:
+        void setSelectedRow(size_t, bool);
+        void  setHoveredRow(size_t, bool);
+
+    private:
         std::string formatTimeLeft(const SDAcutionItem &);
 };

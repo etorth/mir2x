@@ -41,23 +41,21 @@ AcutionItemList::AcutionItemList(AcutionItemList::InitArgs args)
 
 bool AcutionItemList::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
-    if(!m.calibrate(this)){
-        if(m_hoveredRow.has_value()){
-            setHoveredRow(m_hoveredRow.value(), false);
-        }
+    if(empty()){
         return false;
     }
 
-    if(true
-            && valid
-            && m_firstIndex.has_value()
-            && event.type == SDL_EVENT_MOUSE_WHEEL
-            && m.in(to_d(event.wheel.mouse_x), to_d(event.wheel.mouse_y))){
+    if(!m.calibrate(this)){
+        m_hoveredRow.reset();
+        return false;
+    }
+
+    if(valid && (event.type == SDL_EVENT_MOUSE_WHEEL) && m.in(to_d(event.wheel.mouse_x), to_d(event.wheel.mouse_y))){
         if(event.wheel.y > 0.0F){
-            setFirstIndex(m_firstIndex.value() > 0 ? m_firstIndex.value() - 1 : 0);
+            setFirstIndex((m_firstIndex > 0) ? (m_firstIndex - 1) : 0);
         }
         else if(event.wheel.y < 0.0F){
-            setFirstIndex(std::min(m_firstIndex.value() + 1, m_sdAcutionItemList.itemList.size() - 1));
+            setFirstIndex(std::min<size_t>(m_firstIndex + 1, m_sdAcutionItemList.itemList.size() - 1));
         }
         return true;
     }
@@ -75,61 +73,48 @@ void AcutionItemList::setItemList(SDAcutionItemList sdAIL)
         fflassert(DBCOM_ITEMRECORD(entry.item.itemID));
     }
 
-    m_sdAcutionItemList = std::move(sdAIL);
-    m_firstIndex = m_sdAcutionItemList.itemList.empty() ? std::nullopt : std::optional<size_t>(0);
-    m_selectedRow = m_firstIndex.has_value() ? std::optional<size_t>(0) : std::nullopt;
-    m_hoveredRow.reset();
     m_acutionTimer.reset();
+    m_sdAcutionItemList = std::move(sdAIL);
+
+    m_firstIndex = 0;
+    m_hoveredRow.reset();
+    m_selectedRow.reset();
 }
 
-void AcutionItemList::moveBackward()
+void AcutionItemList::movePrev()
 {
-    if(!canMoveBackward()){
+    if(!canMovePrev()){
         return;
     }
 
-    setFirstIndex(m_firstIndex.value() > m_rowCount ? m_firstIndex.value() - m_rowCount : 0);
-    setSelectedRow(0, true);
+    setFirstIndex((m_firstIndex > m_rowCount) ? (m_firstIndex - m_rowCount) : 0);
+    m_selectedRow.reset();
 }
 
-void AcutionItemList::moveForward()
+void AcutionItemList::moveNext()
 {
-    if(!canMoveForward()){
+    if(!canMoveNext()){
         return;
     }
 
-    setFirstIndex(m_firstIndex.value() + m_rowCount);
-    setSelectedRow(0, true);
+    setFirstIndex(m_firstIndex + m_rowCount);
+    m_selectedRow.reset();
 }
 
 void AcutionItemList::setFirstIndex(size_t firstIndex)
 {
-    if(!indexItem(firstIndex)){
-        throw fflpanic("invalid acution item first index: index = {}, item count = {}", firstIndex, m_sdAcutionItemList.itemList.size());
-    }
-
+    fflassert(indexItem(firstIndex), firstIndex, size());
     m_firstIndex = firstIndex;
 
-    if(m_selectedRow.has_value() && !rowItem(m_selectedRow.value())){
-        setSelectedRow(m_selectedRow.value(), false);
-    }
-
-    if(m_hoveredRow.has_value() && !rowItem(m_hoveredRow.value())){
-        setHoveredRow(m_hoveredRow.value(), false);
-    }
+    m_hoveredRow.reset();
+    m_selectedRow.reset();
 }
 
 void AcutionItemList::setSelectedRow(size_t rowIndex, bool selected)
 {
-    validateRowIndex(rowIndex);
-
+    fflassert(rowIndex < m_rowCount, rowIndex);
     if(selected){
-        if(!rowItem(rowIndex)){
-            throw fflpanic("acution item row has no item: row = {}, first index = {}, item count = {}",
-                    rowIndex,
-                    m_firstIndex.value_or(0),
-                    m_sdAcutionItemList.itemList.size());
-        }
+        fflassert(rowItem(rowIndex), rowIndex);
         m_selectedRow = rowIndex;
     }
     else if(m_selectedRow == rowIndex){
@@ -139,26 +124,13 @@ void AcutionItemList::setSelectedRow(size_t rowIndex, bool selected)
 
 void AcutionItemList::setHoveredRow(size_t rowIndex, bool hovered)
 {
-    validateRowIndex(rowIndex);
-
+    fflassert(rowIndex < m_rowCount, rowIndex);
     if(hovered){
-        if(!rowItem(rowIndex)){
-            throw fflpanic("acution item row has no item: row = {}, first index = {}, item count = {}",
-                    rowIndex,
-                    m_firstIndex.value_or(0),
-                    m_sdAcutionItemList.itemList.size());
-        }
+        fflassert(rowItem(rowIndex), rowIndex);
         m_hoveredRow = rowIndex;
     }
     else if(m_hoveredRow == rowIndex){
         m_hoveredRow.reset();
-    }
-}
-
-void AcutionItemList::validateRowIndex(size_t rowIndex) const
-{
-    if(rowIndex >= m_rowCount){
-        throw fflpanic("invalid acution item row: row = {}, row count = {}", rowIndex, m_rowCount);
     }
 }
 

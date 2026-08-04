@@ -37,18 +37,13 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
           .dir = DIR_NONE,
           .x = m_columnCenter_item,
           .y = [this]{ return h() / 2; },
+
           .textFunc = [this]() -> std::string
           {
               if(const auto entry = m_itemList->rowItem(m_rowIndex)){
                   return to_cstr(DBCOM_ITEMRECORD(entry->item.itemID).name);
               }
               return {};
-          },
-          .font
-          {
-              .id = 1,
-              .size = 11,
-              .color = colorf::WHITE_A255,
           },
           .parent{this},
       }}
@@ -58,18 +53,13 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
           .dir = DIR_NONE,
           .x = m_columnCenter_seller,
           .y = [this]{ return h() / 2; },
+
           .textFunc = [this]() -> std::string
           {
               if(const auto entry = m_itemList->rowItem(m_rowIndex)){
                   return entry->seller;
               }
               return {};
-          },
-          .font
-          {
-              .id = 1,
-              .size = 11,
-              .color = colorf::WHITE_A255,
           },
           .parent{this},
       }}
@@ -79,18 +69,13 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
           .dir = DIR_NONE,
           .x = m_columnCenter_time,
           .y = [this]{ return h() / 2; },
+
           .textFunc = [this]() -> std::string
           {
               if(const auto entry = m_itemList->rowItem(m_rowIndex)){
                   return m_itemList->formatTimeLeft(*entry);
               }
               return {};
-          },
-          .font
-          {
-              .id = 1,
-              .size = 11,
-              .color = colorf::WHITE_A255,
           },
           .parent{this},
       }}
@@ -100,6 +85,7 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
           .dir = DIR_NONE,
           .x = m_columnCenter_price,
           .y = [this]{ return h() / 2; },
+
           .textFunc = [this]() -> std::string
           {
               if(const auto entry = m_itemList->rowItem(m_rowIndex)){
@@ -107,10 +93,9 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
               }
               return {};
           },
+
           .font
           {
-              .id = 1,
-              .size = 11,
               .color = [this]
               {
                   if(const auto entry = m_itemList->rowItem(m_rowIndex)){
@@ -126,7 +111,7 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
 bool AcutionItemRow::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m_itemList->rowItem(m_rowIndex)){
-        m_itemList->setHoveredRow(m_rowIndex, false);
+        m_itemList-> setHoveredRow(m_rowIndex, false);
         m_itemList->setSelectedRow(m_rowIndex, false);
         return false;
     }
