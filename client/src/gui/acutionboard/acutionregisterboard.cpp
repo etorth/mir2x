@@ -374,6 +374,11 @@ void AcutionRegisterBoard::confirmCancel()
         return;
     }
 
+    if(!m_box.item()){
+        closeRegister(false);
+        return;
+    }
+
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
     fflassert(inputBoard);
     inputBoard->waitInput(u8"<layout><par>你确定取消吗？</par></layout>", false, [this](std::u8string)
