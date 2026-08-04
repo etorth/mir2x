@@ -50,7 +50,7 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
           .parent{this},
       }}
 
-    , m_item
+    , m_box
       {{
           .x = 241,
           .y = 45,
@@ -61,13 +61,13 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
 
               if(grabbedItem){ // has item in hand
                   restoreOwnedItem();
-                  m_item.setItem(grabbedItem);
+                  m_box.setItem(grabbedItem);
                   invPack.setGrabbedItem({});
                   m_price.clear();
                   m_note.setInputFocus(true);
               }
-              else if(m_item.item()){
-                  invPack.setGrabbedItem(m_item.takeItem());
+              else if(m_box.item()){ // has item in register box
+                  invPack.setGrabbedItem(m_box.takeItem());
                   m_price.clear();
               }
           },
@@ -80,7 +80,7 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
           .y = 232,
           .onClick = [this]
           {
-              if(m_item.item()){
+              if(m_box.item()){
                   setPrice();
               }
           },
@@ -226,7 +226,7 @@ void AcutionRegisterBoard::setPending(bool pending)
 {
     m_pending = pending;
     m_note.setInputEnabled(!pending);
-    m_item.setInputEnabled(!pending);
+    m_box.setInputEnabled(!pending);
     m_price.setInputEnabled(!pending);
     m_buttonRegister.setActive(!pending);
     m_buttonCancel.setActive(!pending);
@@ -265,7 +265,7 @@ void AcutionRegisterBoard::confirmRegister()
         return;
     }
 
-    if(!m_item.item()){
+    if(!m_box.item()){
         m_runProc->addCBLog(CBLOG_ERR, u8"请先放入寄售物品");
         return;
     }
@@ -286,7 +286,7 @@ void AcutionRegisterBoard::confirmRegister()
         return;
     }
 
-    const auto &ir = DBCOM_ITEMRECORD(m_item.item().itemID);
+    const auto &ir = DBCOM_ITEMRECORD(m_box.item().itemID);
     fflassert(ir);
 
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
@@ -305,7 +305,7 @@ void AcutionRegisterBoard::confirmRegister()
 
 void AcutionRegisterBoard::registerItem()
 {
-    if(m_pending || !m_item.item()){
+    if(m_pending || !m_box.item()){
         return;
     }
 
@@ -325,7 +325,7 @@ void AcutionRegisterBoard::registerItem()
         return;
     }
 
-    const auto &item = m_item.item();
+    const auto &item = m_box.item();
     const auto &ir = DBCOM_ITEMRECORD(item.itemID);
     fflassert(ir);
     const std::string itemName = to_cstr(ir.name);
@@ -398,8 +398,8 @@ void AcutionRegisterBoard::restoreGrabbedItem()
 
 void AcutionRegisterBoard::restoreOwnedItem()
 {
-    if(m_item.item()){
-        const auto item = m_item.takeItem();
+    if(m_box.item()){
+        const auto item = m_box.takeItem();
         m_runProc->getMyHero()->getInvPack().add(item);
         m_price.clear();
     }
@@ -411,7 +411,7 @@ void AcutionRegisterBoard::closeRegister(bool registered)
         restoreOwnedItem();
     }
     else{
-        m_item.clear();
+        m_box.clear();
     }
     restoreGrabbedItem();
 

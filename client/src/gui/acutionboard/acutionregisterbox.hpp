@@ -6,7 +6,7 @@
 #include "textboard.hpp"
 #include "serdesmsg.hpp"
 
-class AcutionRegisterItem final: public Widget
+class AcutionRegisterBox final: public Widget
 {
     public:
         struct InitArgs final
@@ -33,7 +33,7 @@ class AcutionRegisterItem final: public Widget
         TextBoard m_name;
 
     public:
-        explicit AcutionRegisterItem(AcutionRegisterItem::InitArgs);
+        explicit AcutionRegisterBox(AcutionRegisterBox::InitArgs);
 
     public:
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;

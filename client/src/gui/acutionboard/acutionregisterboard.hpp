@@ -3,7 +3,7 @@
 #include "serdesmsg.hpp"
 #include "imageboard.hpp"
 #include "acutionregisternote.hpp"
-#include "acutionregisteritem.hpp"
+#include "acutionregisterbox.hpp"
 #include "acutionregisterprice.hpp"
 #include "tritexbutton.hpp"
 
@@ -20,7 +20,7 @@ class AcutionRegisterBoard final: public Widget
     private:
         ImageBoard m_background;
         AcutionRegisterNote m_note;
-        AcutionRegisterItem m_item;
+        AcutionRegisterBox m_box;
         AcutionRegisterPrice m_price;
 
         TritexButton m_buttonRegister;
