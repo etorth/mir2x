@@ -31,10 +31,7 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
     , m_runProc(fflcheck(argProc))
     , m_background
       {{
-          .texLoadFunc = [](const Widget *) -> SDL_Texture *
-          {
-              return g_progUseDB->retrieve(0X00001410);
-          },
+          .texLoadFunc = []{ return g_progUseDB->retrieve(0X00001410); },
           .blendMode = SDL_BLENDMODE_NONE,
           .parent{this},
       }}
@@ -43,10 +40,7 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
       {{
           .x = 9,
           .y = 68,
-          .enableIME = [this]
-          {
-              return m_runProc->getRuntimeConfig<RTCFG_IME>();
-          },
+          .enableIME = [this]{ return m_runProc->getRuntimeConfig<RTCFG_IME>(); },
           .parent{this},
       }}
 
@@ -56,13 +50,14 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
           .y = 45,
           .onClick = [this]
           {
-              auto &invPack = m_runProc->getMyHero()->getInvPack();
-              auto &grabbedItem = invPack.getGrabbedItem();
+              if(auto &invPack = m_runProc->getMyHero()->getInvPack(); invPack.getGrabbedItem()){ // has item in hand
+                  if(m_box.item()){
+                      restoreItemInBox();
+                  }
 
-              if(grabbedItem){ // has item in hand
-                  restoreOwnedItem();
-                  m_box.setItem(grabbedItem);
+                  m_box.setItem(invPack.getGrabbedItem());
                   invPack.setGrabbedItem({});
+
                   m_price.clear();
                   m_note.setInputFocus(true);
               }
@@ -387,16 +382,7 @@ void AcutionRegisterBoard::confirmCancel()
     });
 }
 
-void AcutionRegisterBoard::restoreGrabbedItem()
-{
-    auto &invPack = m_runProc->getMyHero()->getInvPack();
-    if(const auto grabbedItem = invPack.getGrabbedItem()){
-        invPack.add(grabbedItem);
-        invPack.setGrabbedItem({});
-    }
-}
-
-void AcutionRegisterBoard::restoreOwnedItem()
+void AcutionRegisterBoard::restoreItemInBox()
 {
     if(m_box.item()){
         const auto item = m_box.takeItem();
@@ -405,15 +391,24 @@ void AcutionRegisterBoard::restoreOwnedItem()
     }
 }
 
+void AcutionRegisterBoard::restoreItemInGrab()
+{
+    auto &invPack = m_runProc->getMyHero()->getInvPack();
+    if(const auto grabbedItem = invPack.getGrabbedItem()){
+        invPack.add(grabbedItem);
+        invPack.setGrabbedItem({});
+    }
+}
+
 void AcutionRegisterBoard::closeRegister(bool registered)
 {
     if(!registered){
-        restoreOwnedItem();
+        restoreItemInBox();
     }
     else{
         m_box.clear();
     }
-    restoreGrabbedItem();
+    restoreItemInGrab();
 
     m_price.clear();
     m_dragging = false;

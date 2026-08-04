@@ -44,7 +44,9 @@ class AcutionRegisterBoard final: public Widget
         void confirmCancel();
 
     private:
-        void restoreGrabbedItem();
-        void restoreOwnedItem();
+        void restoreItemInBox();
+        void restoreItemInGrab();
+
+    private:
         void closeRegister(bool);
 };
