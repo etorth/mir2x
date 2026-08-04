@@ -73,7 +73,7 @@ bool AcutionRegisterNote::processEventDefault(const SDL_Event &event, bool valid
         if(m_enabled){
             m_note.setFocus(true);
         }
-        return consumeFocus(true);
+        return true;
     }
-    return consumeFocus(false);
+    return false;
 }

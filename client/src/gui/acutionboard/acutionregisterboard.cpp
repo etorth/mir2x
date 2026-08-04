@@ -181,7 +181,7 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
     switch(event.type){
         case SDL_EVENT_KEY_DOWN:
             {
-                return consumeFocus(false);
+                return false;
             }
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
@@ -193,8 +193,9 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
             }
         case SDL_EVENT_MOUSE_BUTTON_UP:
             {
+                const bool wasDragging = m_dragging;
                 m_dragging = false;
-                return consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y)));
+                return wasDragging ? consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y))) : false;
             }
         case SDL_EVENT_MOUSE_MOTION:
             {
@@ -208,11 +209,11 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
                     moveBy(newX - remapX, newY - remapY);
                     return consumeFocus(true);
                 }
-                return consumeFocus(false);
+                return false;
             }
         default:
             {
-                return consumeFocus(false);
+                return false;
             }
     }
 }
