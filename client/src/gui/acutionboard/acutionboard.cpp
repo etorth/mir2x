@@ -46,8 +46,8 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     : Widget
       {{
           .dir = DIR_NONE,
-          .x = [](const Widget *){ return g_sdlDevice->getRendererWidth () / 2; },
-          .y = [](const Widget *){ return g_sdlDevice->getRendererHeight() / 2; },
+          .x = []{ return g_sdlDevice->getRendererWidth () / 2; },
+          .y = []{ return g_sdlDevice->getRendererHeight() / 2; },
           .w = std::nullopt,
           .h = std::nullopt,
           .parent{argParent, argAutoDelete},
@@ -56,10 +56,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     , m_runProc(argProc)
     , m_background
       {{
-          .texLoadFunc = [](const Widget *) -> SDL_Texture *
-          {
-              return g_progUseDB->retrieve(0X00001400);
-          },
+          .texLoadFunc = []{ return g_progUseDB->retrieve(0X00001400); },
           .blendMode = SDL_BLENDMODE_NONE,
           .parent{this},
       }}
