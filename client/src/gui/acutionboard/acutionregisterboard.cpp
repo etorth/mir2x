@@ -57,7 +57,9 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
           .onClick = [this]
           {
               auto &invPack = m_runProc->getMyHero()->getInvPack();
-              if(const auto grabbedItem = invPack.getGrabbedItem()){
+              auto &grabbedItem = invPack.getGrabbedItem();
+
+              if(grabbedItem){ // has item in hand
                   restoreOwnedItem();
                   m_item.setItem(grabbedItem);
                   invPack.setGrabbedItem({});
@@ -65,8 +67,7 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
                   m_note.setInputFocus(true);
               }
               else if(m_item.item()){
-                  const auto item = m_item.takeItem();
-                  invPack.setGrabbedItem(item);
+                  invPack.setGrabbedItem(m_item.takeItem());
                   m_price.clear();
               }
           },
@@ -231,17 +232,17 @@ void AcutionRegisterBoard::setPending(bool pending)
     m_buttonCancel.setActive(!pending);
     m_buttonClose.setActive(!pending);
 
-    if(auto invBoardPtr = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"))){
-        invBoardPtr->setActive(!pending);
+    if(auto invBoard = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"))){
+        invBoard->setActive(!pending);
     }
 }
 
 void AcutionRegisterBoard::setPrice()
 {
-    auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
-    fflassert(inputBoardPtr);
+    auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
+    fflassert(inputBoard);
 
-    inputBoardPtr->waitInput(u8"<layout><par>你想卖多少钱呢?</par></layout>", false, [this](std::u8string input)
+    inputBoard->waitInput(u8"<layout><par>你想卖多少钱呢?</par></layout>", false, [this](std::u8string input)
     {
         const std::string value(reinterpret_cast<const char *>(input.data()), input.size());
         uint64_t price = 0;
@@ -288,15 +289,15 @@ void AcutionRegisterBoard::confirmRegister()
     const auto &ir = DBCOM_ITEMRECORD(m_item.item().itemID);
     fflassert(ir);
 
-    auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
-    fflassert(inputBoardPtr);
+    auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
+    fflassert(inputBoard);
 
     std::u8string prompt = to_u8rawstr("<layout>"
             + xmlf::toParString("你确定上架%s吗?", to_cstr(ir.name))
             + xmlf::toParString("委托交易将会扣除手续费500，交易成功后扣除2%%交易额")
             + "</layout>");
 
-    inputBoardPtr->waitInput(std::move(prompt), false, [this](std::u8string)
+    inputBoard->waitInput(std::move(prompt), false, [this](std::u8string)
     {
         registerItem();
     });
@@ -378,9 +379,9 @@ void AcutionRegisterBoard::confirmCancel()
         return;
     }
 
-    auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
-    fflassert(inputBoardPtr);
-    inputBoardPtr->waitInput(u8"<layout><par>你确定取消吗？</par></layout>", false, [this](std::u8string)
+    auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
+    fflassert(inputBoard);
+    inputBoard->waitInput(u8"<layout><par>你确定取消吗？</par></layout>", false, [this](std::u8string)
     {
         closeRegister(false);
     });
@@ -420,13 +421,14 @@ void AcutionRegisterBoard::closeRegister(bool registered)
     m_note.setInputFocus(false);
     setPending(false);
 
-    if(auto invBoardPtr = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"))){
-        invBoardPtr->setShow(false);
-    }
-    if(auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"))){
-        inputBoardPtr->setShow(false);
+    if(auto invBoard = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"))){
+        invBoard->flipShow(false);
     }
 
-    setShow(false);
+    if(auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"))){
+        inputBoard->flipShow(false);
+    }
+
+    flipShow(false);
     setFocus(false);
 }

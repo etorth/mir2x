@@ -11,17 +11,17 @@ setEventHandler(
                 <par>注意事项：任务用道具过一定时间后会自动消失,所以尽量不要购买托管在我这里的道具。</par>
                 <par></par>
 
-                <par><event id="npc_goto_all">查看所有寄售的物品</event></par>
-                <par><event id="npc_goto_dress">查看衣服</event></par>
-                <par><event id="npc_goto_weapon">查看武器</event></par>
-                <par><event id="npc_goto_necklace">查看项链</event></par>
-                <par><event id="npc_goto_helmet">查看头盔（帽子）</event></par>
-                <par><event id="npc_goto_ring">查看戒指</event></par>
-                <par><event id="npc_goto_armring">查看手镯（手套）</event></par>
-                <par><event id="npc_goto_shoes">查看鞋类</event></par>
-                <par><event id="npc_goto_potion">查看药品</event></par>
-                <par><event id="npc_goto_book">查看图书</event></par>
-                <par><event id="npc_goto_other">查看其他物品</event></par>
+                <par><event id="npc_goto_all"      close="1">查看所有寄售的物品</event></par>
+                <par><event id="npc_goto_dress"    close="1">查看衣服</event></par>
+                <par><event id="npc_goto_weapon"   close="1">查看武器</event></par>
+                <par><event id="npc_goto_necklace" close="1">查看项链</event></par>
+                <par><event id="npc_goto_helmet"   close="1">查看头盔（帽子）</event></par>
+                <par><event id="npc_goto_ring"     close="1">查看戒指</event></par>
+                <par><event id="npc_goto_armring"  close="1">查看手镯（手套）</event></par>
+                <par><event id="npc_goto_shoes"    close="1">查看鞋类</event></par>
+                <par><event id="npc_goto_potion"   close="1">查看药品</event></par>
+                <par><event id="npc_goto_book"     close="1">查看图书</event></par>
+                <par><event id="npc_goto_other"    close="1">查看其他物品</event></par>
                 <par></par>
 
                 <par>你以前寄售过物品吗？</par>
