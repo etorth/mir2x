@@ -96,9 +96,8 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .onTrigger = [this](Widget *, int)
           {
-              if(m_page > 0){
-                  setPage(m_page - 1);
-              }
+              m_itemList.moveBackward();
+              updateMoveButtonState();
           },
           .parent{this},
       }}
@@ -115,9 +114,8 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .onTrigger = [this](Widget *, int)
           {
-              if(m_page + 1 < pageCount()){
-                  setPage(m_page + 1);
-              }
+              m_itemList.moveForward();
+              updateMoveButtonState();
           },
           .parent{this},
       }}
@@ -256,7 +254,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     });
 
     setShow(false);
-    updatePageButtonState();
+    updateMoveButtonState();
 }
 
 void AcutionBoard::drawDefault(Widget::ROIMap m) const
@@ -282,7 +280,6 @@ void AcutionBoard::drawDefault(Widget::ROIMap m) const
         drawAsChild(&textBoard, dir, x, y, m);
     };
 
-    const auto pageCountValue = pageCount();
     const auto categoryName = [this]() -> const char8_t *
     {
         switch(m_itemList.getItemList().category){
@@ -303,7 +300,13 @@ void AcutionBoard::drawDefault(Widget::ROIMap m) const
 
     drawText(to_cstr(categoryName), colorf::YELLOW_A255, DIR_NONE, 61, 20, 12);
     drawText(to_cstr(str_printf(u8"共%zu件", m_itemList.getItemList().itemList.size())), colorf::YELLOW_A255, DIR_NONE, 240, 20, 12);
-    drawText(pageCountValue ? to_cstr(str_printf(u8"第%zu/%zu页", m_page + 1, pageCountValue)) : to_cstr(u8"（空）"), colorf::YELLOW_A255, DIR_NONE, 419, 20, 12);
+    if(const auto firstIndex = m_itemList.firstIndex(); firstIndex.has_value()){
+        const auto lastIndex = std::min(firstIndex.value() + AcutionItemList::m_rowCount, m_itemList.getItemList().itemList.size());
+        drawText(to_cstr(str_printf(u8"第%zu-%zu件物品", firstIndex.value() + 1, lastIndex)), colorf::YELLOW_A255, DIR_NONE, 419, 20, 12);
+    }
+    else{
+        drawText(to_cstr(u8"（空）"), colorf::YELLOW_A255, DIR_NONE, 419, 20, 12);
+    }
 
     drawText(to_cstr(u8"物品"), colorf::YELLOW_A255, DIR_NONE, 64, 62, 12);
     drawText(to_cstr(u8"寄售人"), colorf::YELLOW_A255, DIR_NONE, 188, 62, 12);
@@ -322,8 +325,7 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     const auto oldFirstIndex = m_itemList.firstIndex();
     if(m_itemList.processEventParent(event, valid, m)){
         if(oldFirstIndex != m_itemList.firstIndex()){
-            m_page = m_itemList.firstIndex() / AcutionItemList::m_rowCount;
-            updatePageButtonState();
+            updateMoveButtonState();
         }
         return true;
     }
@@ -381,33 +383,13 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
 void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
 {
     m_itemList.setItemList(std::move(sdAcutionItemList));
-    setPage(0);
+    updateMoveButtonState();
 }
 
-size_t AcutionBoard::pageCount() const
+void AcutionBoard::updateMoveButtonState()
 {
-    return (m_itemList.getItemList().itemList.size() + AcutionItemList::m_rowCount - 1) / AcutionItemList::m_rowCount;
-}
-
-void AcutionBoard::setPage(size_t page)
-{
-    if(const auto count = pageCount(); count > 0){
-        m_page = std::min(page, count - 1);
-        m_itemList.setFirstIndex(m_page * AcutionItemList::m_rowCount);
-        m_itemList.setSelectedIndex(m_itemList.firstIndex());
-    }
-    else{
-        m_page = 0;
-        m_itemList.setFirstIndex(0);
-        m_itemList.setSelectedIndex(0);
-    }
-    updatePageButtonState();
-}
-
-void AcutionBoard::updatePageButtonState()
-{
-    m_buttonPrevious.setActive(m_page > 0);
-    m_buttonNext.setActive(m_page + 1 < pageCount());
+    m_buttonPrevious.setActive(m_itemList.canMoveBackward());
+    m_buttonNext.setActive(m_itemList.canMoveForward());
     const auto category = m_itemList.getItemList().category;
     m_buttonRefresh.setActive(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END);
 }

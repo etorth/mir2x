@@ -12,9 +12,6 @@ class AcutionBoard final: public Widget
         ProcessRun *m_runProc;
 
     private:
-        size_t m_page = 0;
-
-    private:
         ImageBoard m_background;
         AcutionItemList m_itemList;
         TextButton m_buttonContactSeller;
@@ -41,10 +38,6 @@ class AcutionBoard final: public Widget
         void setItemList(SDAcutionItemList);
 
     private:
-        size_t pageCount() const;
-        void setPage(size_t);
-        void updatePageButtonState();
-
-    private:
+        void updateMoveButtonState();
         void drawSelectedItem(Widget::ROIMap) const;
 };

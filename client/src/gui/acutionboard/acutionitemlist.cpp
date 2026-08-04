@@ -42,16 +42,22 @@ AcutionItemList::AcutionItemList(AcutionItemList::InitArgs args)
 bool AcutionItemList::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
-        m_hoveredRow.reset();
+        if(m_hoveredRow.has_value()){
+            setHoveredRow(m_hoveredRow.value(), false);
+        }
         return false;
     }
 
-    if(valid && (event.type == SDL_EVENT_MOUSE_WHEEL) && m.in(to_d(event.wheel.mouse_x), to_d(event.wheel.mouse_y))){
+    if(true
+            && valid
+            && m_firstIndex.has_value()
+            && event.type == SDL_EVENT_MOUSE_WHEEL
+            && m.in(to_d(event.wheel.mouse_x), to_d(event.wheel.mouse_y))){
         if(event.wheel.y > 0.0F){
-            setFirstIndex((m_firstIndex > 0) ? (m_firstIndex - 1) : 0);
+            setFirstIndex(m_firstIndex.value() > 0 ? m_firstIndex.value() - 1 : 0);
         }
         else if(event.wheel.y < 0.0F){
-            setFirstIndex(m_firstIndex + 1);
+            setFirstIndex(std::min(m_firstIndex.value() + 1, m_sdAcutionItemList.itemList.size() - 1));
         }
         return true;
     }
@@ -70,46 +76,89 @@ void AcutionItemList::setItemList(SDAcutionItemList sdAIL)
     }
 
     m_sdAcutionItemList = std::move(sdAIL);
-    m_firstIndex = 0;
-    m_selectedIndex.reset();
+    m_firstIndex = m_sdAcutionItemList.itemList.empty() ? std::nullopt : std::optional<size_t>(0);
+    m_selectedRow = m_firstIndex.has_value() ? std::optional<size_t>(0) : std::nullopt;
     m_hoveredRow.reset();
     m_acutionTimer.reset();
 }
 
-const SDAcutionItem *AcutionItemList::item(size_t rowIndex) const
+void AcutionItemList::moveBackward()
 {
-    if(const auto index = itemIndex(rowIndex)){
-        return std::addressof(m_sdAcutionItemList.itemList.at(index.value()));
+    if(!canMoveBackward()){
+        return;
     }
-    return nullptr;
+
+    setFirstIndex(m_firstIndex.value() > m_rowCount ? m_firstIndex.value() - m_rowCount : 0);
+    setSelectedRow(0, true);
 }
 
-std::optional<size_t> AcutionItemList::itemIndex(size_t rowIndex) const
+void AcutionItemList::moveForward()
 {
-    if(rowIndex < m_rowCount){
-        if(const size_t itemIndex = m_firstIndex + rowIndex; itemIndex < m_sdAcutionItemList.itemList.size()){
-            return itemIndex;
+    if(!canMoveForward()){
+        return;
+    }
+
+    setFirstIndex(m_firstIndex.value() + m_rowCount);
+    setSelectedRow(0, true);
+}
+
+void AcutionItemList::setFirstIndex(size_t firstIndex)
+{
+    if(!indexItem(firstIndex)){
+        throw fflpanic("invalid acution item first index: index = {}, item count = {}", firstIndex, m_sdAcutionItemList.itemList.size());
+    }
+
+    m_firstIndex = firstIndex;
+
+    if(m_selectedRow.has_value() && !rowItem(m_selectedRow.value())){
+        setSelectedRow(m_selectedRow.value(), false);
+    }
+
+    if(m_hoveredRow.has_value() && !rowItem(m_hoveredRow.value())){
+        setHoveredRow(m_hoveredRow.value(), false);
+    }
+}
+
+void AcutionItemList::setSelectedRow(size_t rowIndex, bool selected)
+{
+    validateRowIndex(rowIndex);
+
+    if(selected){
+        if(!rowItem(rowIndex)){
+            throw fflpanic("acution item row has no item: row = {}, first index = {}, item count = {}",
+                    rowIndex,
+                    m_firstIndex.value_or(0),
+                    m_sdAcutionItemList.itemList.size());
         }
+        m_selectedRow = rowIndex;
     }
-    return {};
-}
-
-void AcutionItemList::selectRow(size_t rowIndex)
-{
-    if(const auto index = itemIndex(rowIndex)){
-        m_selectedIndex = index;
+    else if(m_selectedRow == rowIndex){
+        m_selectedRow.reset();
     }
 }
 
 void AcutionItemList::setHoveredRow(size_t rowIndex, bool hovered)
 {
+    validateRowIndex(rowIndex);
+
     if(hovered){
-        if(itemIndex(rowIndex).has_value()){
-            m_hoveredRow = rowIndex;
+        if(!rowItem(rowIndex)){
+            throw fflpanic("acution item row has no item: row = {}, first index = {}, item count = {}",
+                    rowIndex,
+                    m_firstIndex.value_or(0),
+                    m_sdAcutionItemList.itemList.size());
         }
+        m_hoveredRow = rowIndex;
     }
     else if(m_hoveredRow == rowIndex){
         m_hoveredRow.reset();
+    }
+}
+
+void AcutionItemList::validateRowIndex(size_t rowIndex) const
+{
+    if(rowIndex >= m_rowCount){
+        throw fflpanic("invalid acution item row: row = {}, row count = {}", rowIndex, m_rowCount);
     }
 }
 

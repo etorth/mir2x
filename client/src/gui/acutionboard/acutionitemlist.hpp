@@ -32,9 +32,9 @@ class AcutionItemList final: public Widget
         SDAcutionItemList m_sdAcutionItemList;
 
     private:
-        size_t m_firstIndex = 0;
+        std::optional<size_t> m_firstIndex;
+        std::optional<size_t> m_selectedRow;
         std::optional<size_t> m_hoveredRow;
-        std::optional<size_t> m_selectedIndex;
 
     private:
         ItemBox m_itemBox;
@@ -53,36 +53,26 @@ class AcutionItemList final: public Widget
         }
 
     public:
-        size_t firstIndex() const
+        std::optional<size_t> firstIndex() const
         {
             return m_firstIndex;
         }
 
-        size_t maxFirstIndex() const
+        std::optional<size_t> selectedRow() const
         {
-            return m_sdAcutionItemList.itemList.empty() ? 0 : (m_sdAcutionItemList.itemList.size() - 1);
+            return m_selectedRow;
         }
 
-        void setFirstIndex(size_t firstIndex)
+        std::optional<size_t> hoveredRow() const
         {
-            m_firstIndex = std::min<size_t>(firstIndex, maxFirstIndex());
+            return m_hoveredRow;
         }
 
-        void setSelectedIndex(size_t itemIndex)
-        {
-            if(itemIndex < m_sdAcutionItemList.itemList.size()){
-                m_selectedIndex = itemIndex;
-            }
-            else{
-                m_selectedIndex.reset();
-            }
-        }
-
-    public:
         std::optional<size_t> selectedIndex() const
         {
-            if(m_selectedIndex.has_value() && m_selectedIndex.value() < m_sdAcutionItemList.itemList.size()){
-                return m_selectedIndex;
+            if(m_selectedRow.has_value()){
+                fflassert(m_firstIndex.has_value());
+                return m_firstIndex.value() + m_selectedRow.value();
             }
             return {};
         }
@@ -90,18 +80,46 @@ class AcutionItemList final: public Widget
         std::optional<size_t> hoveredIndex() const
         {
             if(m_hoveredRow.has_value()){
-                return itemIndex(m_hoveredRow.value());
+                fflassert(m_firstIndex.has_value());
+                return m_firstIndex.value() + m_hoveredRow.value();
             }
             return {};
         }
 
-    public:
-        const SDAcutionItem *item(size_t) const;
-        std::optional<size_t> itemIndex(size_t) const;
+        const SDAcutionItem *indexItem(size_t itemIndex) const
+        {
+            if(itemIndex < m_sdAcutionItemList.itemList.size()){
+                return &m_sdAcutionItemList.itemList.at(itemIndex);
+            }
+            return nullptr;
+        }
 
-        void selectRow(size_t);
-        void setHoveredRow(size_t, bool);
+        const SDAcutionItem *rowItem(size_t rowIndex) const
+        {
+            if(m_firstIndex.has_value() && rowIndex < m_rowCount){
+                return indexItem(m_firstIndex.value() + rowIndex);
+            }
+            return nullptr;
+        }
+
+        bool canMoveBackward() const
+        {
+            return m_firstIndex.has_value() && m_firstIndex.value() > 0;
+        }
+
+        bool canMoveForward() const
+        {
+            return m_firstIndex.has_value() && m_firstIndex.value() + m_rowCount < m_sdAcutionItemList.itemList.size();
+        }
+
+        void moveBackward();
+        void moveForward();
 
     private:
+        void setFirstIndex(size_t);
+        void setSelectedRow(size_t, bool);
+        void setHoveredRow(size_t, bool);
+        void validateRowIndex(size_t) const;
+
         std::string formatTimeLeft(const SDAcutionItem &);
 };
