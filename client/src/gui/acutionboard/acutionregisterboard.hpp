@@ -46,7 +46,7 @@ class AcutionRegisterBoard final: public Widget
         AcutionRegisterBoard(ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
-        void begin();
+        void beginRegister();
 
     public:
         void drawDefault(Widget::ROIMap) const override;

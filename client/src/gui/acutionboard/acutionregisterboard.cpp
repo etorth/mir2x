@@ -49,14 +49,14 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
     : Widget
       {{
           .dir = DIR_NONE,
-          .x = [](const Widget *){ return g_sdlDevice->getRendererWidth () / 2; },
-          .y = [](const Widget *){ return g_sdlDevice->getRendererHeight() / 2; },
+          .x = []{ return g_sdlDevice->getRendererWidth () / 2; },
+          .y = []{ return g_sdlDevice->getRendererHeight() / 2; },
           .w = std::nullopt,
           .h = std::nullopt,
           .parent{argParent, argAutoDelete},
       }}
 
-    , m_runProc(argProc)
+    , m_runProc(fflcheck(argProc))
     , m_background
       {{
           .texLoadFunc = [](const Widget *) -> SDL_Texture *
@@ -142,32 +142,17 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
           .parent{this},
       }}
 {
-    fflassert(m_runProc);
     setShow(false);
 }
 
-void AcutionRegisterBoard::begin()
+void AcutionRegisterBoard::beginRegister()
 {
-    auto invBoardPtr = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"));
-    fflassert(invBoardPtr);
+    auto invBoard = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"));
 
-    const auto [rendererW, rendererH] = g_sdlDevice->getRendererSize();
-    const int totalW = invBoardPtr->w() + w();
-    const int startX = std::max(0, (rendererW - totalW) / 2);
+    fflassert(invBoard);
+    invBoard->flipShow(true);
 
-    invBoardPtr->moveAt(
-            DIR_UPLEFT,
-            startX,
-            std::max(0, (rendererH - invBoardPtr->h()) / 2));
-
-    moveAt(
-            DIR_UPLEFT,
-            startX + invBoardPtr->w(),
-            std::max(0, (rendererH - h()) / 2));
-
-    invBoardPtr->setActive(!m_pending);
-    invBoardPtr->setShow(true);
-    setShow(true);
+    flipShow(true);
     setFocus(true);
 }
 

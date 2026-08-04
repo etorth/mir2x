@@ -308,7 +308,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               if(auto registerBoardPtr = dynamic_cast<AcutionRegisterBoard *>(m_runProc->getWidget("AcutionRegisterBoard"))){
-                  registerBoardPtr->begin();
+                  registerBoardPtr->beginRegister();
               }
           },
           .parent{this},
