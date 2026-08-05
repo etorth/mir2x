@@ -58,11 +58,6 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
     , m_summary
       {{
           .lineWidth = 145,
-          .font
-          {
-              .id = 1,
-              .size = 10,
-          },
           .lineAlign = LALIGN_LEFT,
           .parent{&m_summaryArea},
       }}
@@ -75,8 +70,6 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .textFunc = to_cstr(u8"物品描述"),
           .font
           {
-              .id = 1,
-              .size = 10,
               .color = colorf::GREEN_A255,
           },
           .parent{this},
@@ -94,11 +87,6 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
     , m_description
       {{
           .lineWidth = 211,
-          .font
-          {
-              .id = 1,
-              .size = 10,
-          },
           .lineAlign = LALIGN_JUSTIFY,
           .parent{&m_descriptionArea},
       }}
@@ -111,8 +99,6 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .textFunc = to_cstr(u8"物品属性"),
           .font
           {
-              .id = 1,
-              .size = 10,
               .color = colorf::GREEN_A255,
           },
           .parent{this},
@@ -130,11 +116,6 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
     , m_attribute
       {{
           .lineWidth = 211,
-          .font
-          {
-              .id = 1,
-              .size = 10,
-          },
           .lineAlign = LALIGN_LEFT,
           .parent{&m_attributeArea},
       }}
@@ -144,50 +125,41 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
 
 void AcutionItemDetailLower::setItem(const SDAcutionItem *item)
 {
-    if(!item){
+    if(item){
+        const auto &ir = DBCOM_ITEMRECORD(item->item.itemID);
+        fflassert(ir);
+        m_itemID = item->item.itemID;
+
+        std::string summaryXML = "<layout>";
+        summaryXML += xmlf::toParString("名称：%s", to_cstr(ir.name));
+        summaryXML += xmlf::toParString("类型：%s", to_cstr(ir.type));
+        summaryXML += str_printf("<par>售价：<t color='%s'>%s</t></par>", priceColor(item->price), to_cstr(str_ksep(item->price)));
+
+        if(ir.equip.duration > 0){
+            fflassert(item->item.duration[0] <= item->item.duration[1]);
+            summaryXML += xmlf::toParString("持久：%zu / %zu", item->item.duration[0], item->item.duration[1]);
+        }
+
+        summaryXML += "</layout>";
+        m_summary.loadXML(summaryXML.c_str());
+
+        const auto descriptionXML = str_printf("<layout>%s</layout>", xmlf::toParString("%s", str_haschar(ir.description) ? to_cstr(ir.description) : to_cstr(u8"游戏处于开发阶段，暂无物品描述。")).c_str());
+        m_description.loadXML(descriptionXML.c_str());
+
+        const auto attributeXML = item->item.getXMLLayout({}, SDItem::XMLLAYOUT_ATTRIBUTE);
+        m_attribute.loadXML(to_cstr(attributeXML));
+
+        setShow(true);
+    }
+    else{
         m_itemID = 0;
+
         m_summary.clear();
         m_description.clear();
         m_attribute.clear();
+
         setShow(false);
-        return;
     }
-
-    const auto &ir = DBCOM_ITEMRECORD(item->item.itemID);
-    fflassert(ir);
-    m_itemID = item->item.itemID;
-
-    const auto durationString = [&]() -> std::string
-    {
-        if(ir.equip.duration > 0){
-            fflassert(item->item.duration[0] <= item->item.duration[1]);
-            return str_printf("%zu / %zu", item->item.duration[0], item->item.duration[1]);
-        }
-        return "--";
-    }();
-
-    std::string summaryXML = "<layout>";
-    summaryXML += xmlf::toParString("名称：%s", to_cstr(ir.name));
-    summaryXML += xmlf::toParString("类型：%s", to_cstr(ir.type));
-    summaryXML += str_printf(
-            "<par>售价：<t color='%s'>%s</t></par>",
-            item->price >= 10000000 ? "red" : item->price >= 1000000 ? "cyan" : "yellow",
-            str_ksep(item->price).c_str());
-    summaryXML += xmlf::toParString("持久：%s", durationString.c_str());
-    summaryXML += "</layout>";
-    m_summary.loadXML(summaryXML.c_str());
-
-    const auto descriptionXML = str_printf(
-            "<layout>%s</layout>",
-            xmlf::toParString(
-                "%s",
-                str_haschar(ir.description) ? to_cstr(ir.description) : to_cstr(u8"游戏处于开发阶段，暂无物品描述。")).c_str());
-    m_description.loadXML(descriptionXML.c_str());
-
-    const auto attributeXML = item->item.getXMLLayout({}, SDItem::XMLLAYOUT_ATTRIBUTE);
-    m_attribute.loadXML(to_cstr(attributeXML));
-
-    setShow(true);
 }
 
 SDL_Texture *AcutionItemDetailLower::itemTexture() const
@@ -200,7 +172,7 @@ SDL_Texture *AcutionItemDetailLower::itemTexture() const
     fflassert(ir);
 
     if(auto texPtr = g_itemDB->retrieve(ir.pkgGfxID | 0X02000000)){
-        return texPtr;
+        return texPtr; // items in shop grid, smaller
     }
 
     if(false
@@ -212,24 +184,43 @@ SDL_Texture *AcutionItemDetailLower::itemTexture() const
             || ir.wearable(WLG_ARMRING0)
             || ir.wearable(WLG_RING0)
             || ir.wearable(WLG_TORCH)){
-        return g_itemDB->retrieve(ir.pkgGfxID | 0X01000000);
+        return g_itemDB->retrieve(ir.pkgGfxID | 0X01000000); // items in invpack, can be bigger
     }
     return nullptr;
 }
 
 std::pair<int, int> AcutionItemDetailLower::itemImageSize() const
 {
-    constexpr int maxItemW = 56;
-    constexpr int maxItemH = 56;
-
     if(auto texPtr = itemTexture()){
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
-        const auto ratio = std::max<double>({to_df(texW) / maxItemW, to_df(texH) / maxItemH, 1.0});
+        const auto bestRatio = std::max<double>
+        ({
+                1.0, // don't room in when image is small
+                to_df(texW) / m_maxItemImageW,
+                to_df(texH) / m_maxItemImageH,
+        });
+
         return
         {
-            to_d(std::lround(texW / ratio)),
-            to_d(std::lround(texH / ratio)),
+            to_d(std::lround(texW / bestRatio)),
+            to_d(std::lround(texH / bestRatio)),
         };
     }
     return {0, 0};
+}
+
+const char *AcutionItemDetailLower::priceColor(size_t price)
+{
+    if(price >= 10000000){
+        return "red";
+    }
+    else if(price >= 1000000){
+        return "cyan";
+    }
+    else if(price >= 100000){
+        return "yellow";
+    }
+    else{
+        return "white";
+    }
 }

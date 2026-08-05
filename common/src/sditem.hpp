@@ -20,8 +20,10 @@ struct SDItem
 {
     enum SDItemXMLLayoutType: int
     {
-        XMLLAYOUT_FULL = 0,
+        XMLLAYOUT_BEGIN = 0,
+        XMLLAYOUT_FULL  = 0,
         XMLLAYOUT_ATTRIBUTE,
+        XMLLAYOUT_END,
     };
 
     enum SDItemXMLLayoutParamType: int

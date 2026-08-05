@@ -9,6 +9,10 @@
 
 class AcutionItemDetailLower final: public Widget
 {
+    private:
+        constexpr static int m_maxItemImageW = 56;
+        constexpr static int m_maxItemImageH = 56;
+
     public:
         struct InitArgs final
         {
@@ -50,4 +54,7 @@ class AcutionItemDetailLower final: public Widget
     private:
         SDL_Texture *itemTexture() const;
         std::pair<int, int> itemImageSize() const;
+
+    private:
+        static const char *priceColor(size_t);
 };

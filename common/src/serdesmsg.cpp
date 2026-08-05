@@ -15,15 +15,13 @@ SDChatPeerID::SDChatPeerID(ChatPeerType argType, uint32_t argID)
     : SDChatPeerID((to_u64(argType) << 32) | argID)
 {}
 
-std::u8string SDItem::getXMLLayout(
-        const std::unordered_map<int, std::string> & params,
-        SDItem::SDItemXMLLayoutType layoutType) const
+std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & params, SDItem::SDItemXMLLayoutType layoutType) const
 {
     fflassert(*this);
     const auto &ir = DBCOM_ITEMRECORD(itemID);
 
     fflassert(ir);
-    fflassert(layoutType == XMLLAYOUT_FULL || layoutType == XMLLAYOUT_ATTRIBUTE, layoutType);
+    fflassert(layoutType >= XMLLAYOUT_BEGIN || layoutType < XMLLAYOUT_END, layoutType);
     std::u8string xmlStr;
 
     xmlStr += str_printf(u8R"###( <layout> )###""\n");
