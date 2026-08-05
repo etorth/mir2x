@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include "widget.hpp"
 #include "textboard.hpp"
 #include "textbutton.hpp"
@@ -15,11 +16,17 @@ class AcutionItemDetailUpper final: public Widget
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
+            std::function<void(const SDChatPeer &)> onContactSeller = nullptr;
+
             Widget::WADPair parent {};
         };
 
     private:
         std::string m_titleString;
+
+    private:
+        SDChatPeer m_seller;
+        std::function<void(const SDChatPeer &)> m_onContactSeller;
 
     private:
         TextBoard m_title;

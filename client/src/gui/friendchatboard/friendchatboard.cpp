@@ -976,11 +976,9 @@ void FriendChatBoard::addFriendListChatPeer(const SDChatPeerID &sdCPID)
             return;
         }
 
-        dynamic_cast<FriendListPage *>(m_uiPageList[UIPage_FRIENDLIST].page)->append(*peer, [peerInst = *peer, this](FriendItem *item)
+        dynamic_cast<FriendListPage *>(m_uiPageList[UIPage_FRIENDLIST].page)->append(*peer, [peerInst = *peer, this](FriendItem *)
         {
-            setChatPeer(peerInst, true);
-            setUIPage(UIPage_CHAT);
-            m_processRun->requestLatestChatMessage({item->cpid.asU64()}, 50, true, true);
+            openChat(peerInst);
         });
     });
 }
@@ -1223,11 +1221,26 @@ void FriendChatBoard::finishMessagePending(size_t localPendingID, const SDChatMe
     }
 }
 
+void FriendChatBoard::openChat(const SDChatPeer &sdCP)
+{
+    fflassert(!sdCP.empty());
+
+    setChatPeer(sdCP, true);
+    setUIPage(UIPage_CHAT);
+
+    flipShow(true);
+    m_processRun->requestLatestChatMessage({sdCP.cpid().asU64()}, 50, true, true);
+}
+
 void FriendChatBoard::setChatPeer(const SDChatPeer &sdCP, bool forceReload)
 {
     if(auto chatPage = dynamic_cast<ChatPage *>(m_uiPageList[UIPage_CHAT].page); (chatPage->peer.id != sdCP.id) || forceReload){
         chatPage->peer = sdCP;
         loadChatPage();
+
+        if(m_uiPage == UIPage_CHAT && m_uiPageList[UIPage_CHAT].enter){
+            m_uiPageList[UIPage_CHAT].enter(UIPage_CHAT, std::addressof(m_uiPageList[UIPage_CHAT]));
+        }
     }
 }
 

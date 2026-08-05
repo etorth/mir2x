@@ -293,6 +293,14 @@ struct SDChatPeer
         else if(group ()){ return {CPR_GROUP  , id}; }
         else             { return {CPR_SPECIAL, id}; }
     }
+
+    void clear()
+    {
+        id = 0;
+        name.clear();
+        avatar.reset();
+        despvar.emplace<0>();
+    }
 };
 
 using SDChatPeerList = std::vector<SDChatPeer>;
@@ -451,7 +459,7 @@ struct SDSellItemList
 
 struct SDAcutionItem
 {
-    std::string seller {};
+    SDChatPeer seller {};
     std::string note {};
     size_t timeLeft = 0;
     size_t price = 0;

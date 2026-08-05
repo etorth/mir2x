@@ -18,6 +18,8 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
           .parent = std::move(args.parent),
       }}
 
+    , m_onContactSeller(std::move(args.onContactSeller))
+
     , m_title
       {{
           .dir = DIR_NONE,
@@ -57,8 +59,16 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
           .x = 186,
           .y = 10,
           .textFunc = to_cstr(u8"发消息"),
-          .onTrigger = [](Widget *, int)
+          .onTrigger = [this](Widget *, int)
           {
+              if(!m_seller.empty() && m_onContactSeller){
+                  m_onContactSeller(m_seller);
+              }
+          },
+
+          .attrs
+          {
+              .active = [this]{ return !m_seller.empty() && bool(m_onContactSeller); },
           },
           .parent{this},
       }}
@@ -73,10 +83,12 @@ void AcutionItemDetailUpper::setItem(const SDAcutionItem *item)
         const auto noteXML = str_printf("<layout>%s</layout>", notePar.c_str());
 
         m_note.loadXML(noteXML.c_str());
-        m_titleString = str_printf("卖家：%s", to_cstr(item->seller));
+        m_seller = item->seller;
+        m_titleString = str_printf("卖家：%s", to_cstr(item->seller.name));
     }
     else{
         m_note.clear();
+        m_seller.clear();
         m_titleString.clear();
     }
 

@@ -6,6 +6,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "gui/friendchatboard/friendchatboard.hpp"
 #include "acutionregisterboard.hpp"
 #include "acutionboard.hpp"
 
@@ -164,6 +165,16 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
       {{
           .x = 486,
           .y = 23,
+
+          .onContactSeller = [this](const SDChatPeer &seller)
+          {
+              auto chatBoard = dynamic_cast<FriendChatBoard *>(m_runProc->getWidget("FriendChatBoard"));
+              fflassert(chatBoard);
+
+              setFocus(false);
+              chatBoard->openChat(seller);
+          },
+
           .parent{this},
       }}
 

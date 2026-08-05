@@ -54,20 +54,25 @@ namespace
 
 SDAcutionItemList dbQueryAcutionItemList(int category)
 {
-    fflassert(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END, category);
+    fflassert(category >= ACUTIONCAT_BEGIN, category);
+    fflassert(category <  ACUTIONCAT_END  , category);
 
     const auto now = epochSeconds();
     auto query = g_dbPod->createQuery(
-        u8R"###(
-            select
-                ai.*,
-                ch.fld_name as fld_sellername
-            from tbl_acutionitem as ai
-            join tbl_char as ch on ch.fld_dbid = ai.fld_seller
-            where ai.fld_expiretime > %lld
-            order by ai.fld_id
-        )###",
-        static_cast<long long>(now));
+        u8R"###( select                                                 )###"
+        u8R"###(     tbl_acutionitem.*,                                 )###"
+        u8R"###(     tbl_char.fld_dbid   as fld_sellerdbid,             )###"
+        u8R"###(     tbl_char.fld_name   as fld_sellername,             )###"
+        u8R"###(     tbl_char.fld_gender as fld_sellergender,           )###"
+        u8R"###(     tbl_char.fld_job    as fld_sellerjob               )###"
+        u8R"###( from                                                   )###"
+        u8R"###(     tbl_acutionitem join tbl_char                      )###"
+        u8R"###(     on                                                 )###"
+        u8R"###(         tbl_char.fld_dbid = tbl_acutionitem.fld_seller )###"
+        u8R"###( where                                                  )###"
+        u8R"###(     tbl_acutionitem.fld_expiretime > %lld              )###"
+        u8R"###( order by                                               )###"
+        u8R"###(     tbl_acutionitem.fld_id                             )###", to_lld(now));
 
     SDAcutionItemList result
     {
@@ -76,7 +81,8 @@ SDAcutionItemList dbQueryAcutionItemList(int category)
 
     while(query.executeStep()){
         const auto expireTime = query.getColumn("fld_expiretime").getInt64();
-        const auto price = query.getColumn("fld_price").getInt64();
+        const auto price      = query.getColumn("fld_price"     ).getInt64();
+
         fflassert(expireTime > now, expireTime, now);
         fflassert(price > 0, price);
 
@@ -95,6 +101,7 @@ SDAcutionItemList dbQueryAcutionItemList(int category)
 
         fflassert(item);
         const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+
         fflassert(ir, item.itemID);
         if(!categoryMatchIncludingOther(ir, category)){
             continue;
@@ -102,10 +109,23 @@ SDAcutionItemList dbQueryAcutionItemList(int category)
 
         result.itemList.push_back(SDAcutionItem
         {
-            .seller = query.getColumn("fld_sellername").getString(),
+            .seller
+            {
+                .id   = check_cast<uint32_t, unsigned>(query.getColumn("fld_sellerdbid")),
+                .name =                                query.getColumn("fld_sellername").getString(),
+
+                .despvar = SDChatPeerPlayerVar
+                {
+                    .gender = query.getColumn("fld_sellergender").getUInt() > 0,
+                    .job    = query.getColumn("fld_sellerjob"),
+                },
+            },
+
             .note = query.getColumn("fld_note").getString(),
+
             .timeLeft = check_cast<size_t, uint64_t>(expireTime - now),
-            .price = check_cast<size_t, uint64_t>(price),
+            .price    = check_cast<size_t, uint64_t>(price),
+
             .item = std::move(item),
         });
     }

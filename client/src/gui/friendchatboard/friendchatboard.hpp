@@ -114,6 +114,7 @@ class FriendChatBoard: public Widget
         void setFriendList(const SDFriendList &);
 
     public:
+        void openChat(const SDChatPeer &);
         void setChatPeer(const SDChatPeer &, bool);
         void setUIPage(int);
 

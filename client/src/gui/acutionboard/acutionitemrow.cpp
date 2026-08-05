@@ -57,7 +57,7 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
           .textFunc = [this]() -> std::string
           {
               if(const auto entry = m_itemList->rowItem(m_rowIndex)){
-                  return entry->seller;
+                  return entry->seller.name;
               }
               return {};
           },
