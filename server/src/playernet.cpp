@@ -1252,20 +1252,20 @@ corof::awaitable<> Player::net_CM_CLAIMDELIVERY(uint8_t, const uint8_t *buf, siz
 {
     const auto cmCD = ClientMsg::conv<CMClaimDelivery>(buf);
     if(cmCD.record.size != SYS_DELIVERYRECORDSIZE){
-        postNetMessage(SM_ERROR, SMClaimDeliveryError{.error = to_u8(CDERR_INVALID_RECORD)}, respID);
+        postNetMessage(SM_CLAIMDELIVERYERROR, SMClaimDeliveryError{.error = to_u8(CDERR_INVALID_RECORD)}, respID);
         return {};
     }
 
     try{
         if(const auto error = claimDelivery(cmCD.record.to_str()); error.has_value()){
-            postNetMessage(SM_ERROR, SMClaimDeliveryError{.error = to_u8(error.value())}, respID);
+            postNetMessage(SM_CLAIMDELIVERYERROR, SMClaimDeliveryError{.error = to_u8(error.value())}, respID);
         }
         else{
             postNetMessage(SM_OK, respID);
         }
     }
     catch(...){
-        postNetMessage(SM_ERROR, SMClaimDeliveryError{.error = to_u8(CDERR_UNKNOWN_ERROR)}, respID);
+        postNetMessage(SM_CLAIMDELIVERYERROR, SMClaimDeliveryError{.error = to_u8(CDERR_UNKNOWN_ERROR)}, respID);
     }
     return {};
 }

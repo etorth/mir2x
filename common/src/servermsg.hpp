@@ -390,7 +390,7 @@ namespace
         //  3    : not empty, not fixed size, not compressed
         _RSVD_register_servermsg(SM_NONE_0,               0                                );
         _RSVD_register_servermsg(SM_OK,                   3                                );
-        _RSVD_register_servermsg(SM_ERROR,                3                                );
+        _RSVD_register_servermsg(SM_ERROR,                0                                );
         _RSVD_register_servermsg(SM_PING,                 2, sizeof(SMPing)                );
         _RSVD_register_servermsg(SM_UID,                  2, sizeof(SMUID)                 );
         _RSVD_register_servermsg(SM_LOGINOK,              0                                );

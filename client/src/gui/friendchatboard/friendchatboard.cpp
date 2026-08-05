@@ -1335,7 +1335,7 @@ void FriendChatBoard::requestClaimDelivery(const std::string &record)
                     m_processRun->addCBLog(CBLOG_SYS, u8"投递奖励已领取");
                     break;
                 }
-            case SM_ERROR:
+            case SM_CLAIMDELIVERYERROR:
                 {
                     switch(ServerMsg::conv<SMClaimDeliveryError>(buf, bufSize).error){
                         case CDERR_INVALID_RECORD: m_processRun->addCBLog(CBLOG_ERR, u8"找不到相关奖励"          ); break;
