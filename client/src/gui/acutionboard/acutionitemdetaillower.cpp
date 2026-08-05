@@ -16,10 +16,13 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
     : Widget
       {{
           .dir = std::move(args.dir),
+
           .x = std::move(args.x),
           .y = std::move(args.y),
-          .w = 226,
-          .h = 168,
+
+          .w = m_width,
+          .h = m_height,
+
           .attrs
           {
               .inst = std::move(args.attrs),

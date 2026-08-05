@@ -13,6 +13,10 @@
 class AcutionItemDetailLower final: public Widget
 {
     private:
+        constexpr static int m_width  = 228;
+        constexpr static int m_height = 168;
+
+    private:
         constexpr static int m_maxItemImageW = 56;
         constexpr static int m_maxItemImageH = 56;
 
