@@ -10,6 +10,7 @@
 #include "acutionitemdetaillower.hpp"
 
 extern PNGTexDB *g_itemDB;
+extern SDLDevice *g_sdlDevice;
 
 AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs args)
     : Widget
@@ -26,33 +27,35 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .parent = std::move(args.parent),
       }}
 
-    , m_imageArea
-      {{
-          .x = 7,
-          .y = 8,
-          .w = 56,
-          .h = 56,
-          .parent{this},
-      }}
-
     , m_image
       {{
-          .dir = DIR_NONE,
-          .x = 28,
-          .y = 28,
           .w = [this]{ return itemImageSize().first; },
           .h = [this]{ return itemImageSize().second; },
           .texLoadFunc = [this]{ return itemTexture(); },
-          .parent{&m_imageArea},
+      }}
+
+    , m_imageArea
+      {{
+          .w = m_maxItemImageW + 2,
+          .h = m_maxItemImageH + 2,
+
+          .contained
+          {
+              .dir = DIR_NONE,
+              .widget = &m_image,
+              .autoDelete = false,
+          },
+
+          .fgDrawFunc = [](const Widget *self, int drawDstX, int drawDstY)
+          {
+              g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 100), drawDstX, drawDstY, self->w(), self->h());
+          },
       }}
 
     , m_summaryArea
       {{
-          .x = 73,
-          .y = 6,
           .w = 145,
-          .h = 61,
-          .parent{this},
+          .h = [this]{ return std::max<int>(61, m_summary.h()); },
       }}
 
     , m_summary
@@ -62,62 +65,108 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .parent{&m_summaryArea},
       }}
 
+    , m_hItemBox
+      {{
+          .v = false,
+          .align = ItemAlign::CENTER,
+
+          .headSpace = 7,
+          .itemSpace = 8,
+
+          .childList
+          {
+              {&m_imageArea, false},
+              {&m_summaryArea, false},
+          },
+      }}
+
+    , m_descriptionArea
+      {{
+          .w = m_viewportW,
+          .h = [this]{ return m_descriptionTitle.h() + std::max<int>(22, m_description.h()); },
+      }}
+
     , m_descriptionTitle
       {{
           .dir = DIR_LEFT,
           .x = 7,
-          .y = 71,
           .textFunc = to_cstr(u8"物品描述"),
           .font
           {
               .color = colorf::GREEN_A255,
           },
-          .parent{this},
-      }}
-
-    , m_descriptionArea
-      {{
-          .x = 7,
-          .y = 85,
-          .w = 211,
-          .h = 22,
-          .parent{this},
+          .parent{&m_descriptionArea},
       }}
 
     , m_description
       {{
+          .x = 7,
+          .y = [this]{ return m_descriptionTitle.h(); },
           .lineWidth = 211,
           .lineAlign = LALIGN_JUSTIFY,
           .parent{&m_descriptionArea},
+      }}
+
+    , m_attributeArea
+      {{
+          .w = m_viewportW,
+          .h = [this]{ return m_attributeTitle.h() + std::max<int>(36, m_attribute.h()); },
       }}
 
     , m_attributeTitle
       {{
           .dir = DIR_LEFT,
           .x = 7,
-          .y = 111,
           .textFunc = to_cstr(u8"物品属性"),
           .font
           {
               .color = colorf::GREEN_A255,
           },
-          .parent{this},
-      }}
-
-    , m_attributeArea
-      {{
-          .x = 7,
-          .y = 125,
-          .w = 211,
-          .h = 36,
-          .parent{this},
+          .parent{&m_attributeArea},
       }}
 
     , m_attribute
       {{
+          .x = 7,
+          .y = [this]{ return m_attributeTitle.h(); },
           .lineWidth = 211,
           .lineAlign = LALIGN_LEFT,
           .parent{&m_attributeArea},
+      }}
+
+    , m_vItemBox
+      {{
+          .fixed = m_viewportW,
+          .v = true,
+          .align = ItemAlign::UPLEFT,
+
+          .headSpace = 6,
+          .itemSpace = 4,
+          .tailSpace = 7,
+
+          .childList
+          {
+              {&m_hItemBox, false},
+              {&m_descriptionArea, false},
+              {&m_attributeArea, false},
+          },
+      }}
+
+    , m_scroll
+      {{
+          .vpw = m_viewportW,
+          .vph = m_viewportH,
+
+          .getter = &m_vItemBox,
+
+          .hBar = false,
+          .vBar = true,
+
+          .hScroll = false,
+          .vScroll = true,
+
+          .barSize = m_scrollBarSize,
+          .parent{this},
       }}
 {
     setShow(false);
@@ -149,6 +198,10 @@ void AcutionItemDetailLower::setItem(const SDAcutionItem *item)
         const auto attributeXML = item->item.getXMLLayout({}, SDItem::XMLLAYOUT_ATTRIBUTE);
         m_attribute.loadXML(to_cstr(attributeXML));
 
+        m_hItemBox.buildLayout();
+        m_vItemBox.buildLayout();
+        m_scroll.scrollTo(0, 0);
+
         setShow(true);
     }
     else{
@@ -157,6 +210,10 @@ void AcutionItemDetailLower::setItem(const SDAcutionItem *item)
         m_summary.clear();
         m_description.clear();
         m_attribute.clear();
+
+        m_hItemBox.buildLayout();
+        m_vItemBox.buildLayout();
+        m_scroll.scrollTo(0, 0);
 
         setShow(false);
     }

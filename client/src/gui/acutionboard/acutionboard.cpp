@@ -368,6 +368,7 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     }
 
     if(m_itemDetailUpper.show() && m_itemDetailUpper   .processEventParent(event, valid, m)){ return true; }
+    if(m_itemDetailLower.show() && m_itemDetailLower   .processEventParent(event, valid, m)){ return true; }
     if(                            m_buttonPrevious    .processEventParent(event, valid, m)){ return true; }
     if(                            m_buttonNext        .processEventParent(event, valid, m)){ return true; }
     if(                            m_buttonRefresh     .processEventParent(event, valid, m)){ return true; }

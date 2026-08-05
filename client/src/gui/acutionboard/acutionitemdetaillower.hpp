@@ -5,6 +5,9 @@
 #include "imageboard.hpp"
 #include "textboard.hpp"
 #include "layoutboard.hpp"
+#include "margincontainer.hpp"
+#include "itembox.hpp"
+#include "scrollcontainer.hpp"
 #include "serdesmsg.hpp"
 
 class AcutionItemDetailLower final: public Widget
@@ -12,6 +15,11 @@ class AcutionItemDetailLower final: public Widget
     private:
         constexpr static int m_maxItemImageW = 56;
         constexpr static int m_maxItemImageH = 56;
+
+    private:
+        constexpr static int m_viewportW = 218;
+        constexpr static int m_viewportH = 168;
+        constexpr static int m_scrollBarSize = 8;
 
     public:
         struct InitArgs final
@@ -28,22 +36,29 @@ class AcutionItemDetailLower final: public Widget
         uint32_t m_itemID = 0;
 
     private:
-        Widget m_imageArea;
         ImageBoard m_image;
+        MarginContainer m_imageArea;
 
     private:
         Widget m_summaryArea;
         LayoutBoard m_summary;
 
     private:
-        TextBoard m_descriptionTitle;
+        ItemBox m_hItemBox;
+
+    private:
         Widget m_descriptionArea;
+        TextBoard m_descriptionTitle;
         LayoutBoard m_description;
 
     private:
-        TextBoard m_attributeTitle;
         Widget m_attributeArea;
+        TextBoard m_attributeTitle;
         LayoutBoard m_attribute;
+
+    private:
+        ItemBox m_vItemBox;
+        ScrollContainer m_scroll;
 
     public:
         explicit AcutionItemDetailLower(AcutionItemDetailLower::InitArgs);
