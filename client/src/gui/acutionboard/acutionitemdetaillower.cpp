@@ -39,8 +39,8 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
 
     , m_imageArea
       {{
-          .w = m_maxItemImageW + 2,
-          .h = m_maxItemImageH + 2,
+          .w = m_maxItemImageW + (m_itemImageInset + m_itemImageBorderWidth) * 2,
+          .h = m_maxItemImageH + (m_itemImageInset + m_itemImageBorderWidth) * 2,
 
           .contained
           {
@@ -51,7 +51,7 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
 
           .fgDrawFunc = [](const Widget *self, int drawDstX, int drawDstY)
           {
-              g_sdlDevice->drawRectangle(colorf::RGBA(231, 231, 189, 100), drawDstX, drawDstY, self->w(), self->h());
+              g_sdlDevice->drawWidthRectangle(colorf::RGBA(231, 231, 189, 100), m_itemImageBorderWidth, drawDstX, drawDstY, self->w(), self->h());
           },
       }}
 

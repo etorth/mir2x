@@ -19,6 +19,8 @@ class AcutionItemDetailLower final: public Widget
     private:
         constexpr static int m_maxItemImageW = 56;
         constexpr static int m_maxItemImageH = 56;
+        constexpr static int m_itemImageInset = 2;
+        constexpr static int m_itemImageBorderWidth = 1;
 
     private:
         constexpr static int m_viewportW = 218;
