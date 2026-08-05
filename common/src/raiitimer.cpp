@@ -81,3 +81,8 @@ uint64_t hres_tstamp::localtime()
            second      * UINT64_C(1000          ) +
            millisecond * UINT64_C(1             ) ;
 }
+
+uint64_t hres_tstamp::epoch()
+{
+    return to_u64(std::time(nullptr));
+}

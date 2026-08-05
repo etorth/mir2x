@@ -91,6 +91,7 @@ constexpr size_t SYS_PWDSIZE = 64;
 constexpr size_t SYS_NAMESIZE = 64;
 constexpr size_t SYS_DELIVERYRECORDSIZE = 32;
 constexpr size_t SYS_AUCTIONNOTESIZE = 128;
+constexpr size_t SYS_AUCTIONLIFETIME = 7u * 24 * 60 * 60; // 7 days
 
 constexpr size_t SYS_SEFFSIZE = 16;
 constexpr uint32_t SYS_MONSEFFBASE(int lookID)

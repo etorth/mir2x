@@ -40,6 +40,7 @@ class hres_tstamp
 
     public:
         static uint64_t localtime();
+        static uint64_t epoch();
 };
 
 class hres_timer

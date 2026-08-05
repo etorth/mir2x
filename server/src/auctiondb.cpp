@@ -1,10 +1,11 @@
 #include <chrono>
-#include <limits>
+#include <climits>
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "auctiondb.hpp"
+#include "raiitimer.hpp"
 
 extern DBPod *g_dbPod;
 
@@ -43,13 +44,6 @@ namespace
         return categoryMatch(ir, category);
     }
 
-    int64_t epochSeconds()
-    {
-        return std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
-    }
-
-    constexpr int64_t AUCTION_LISTING_LIFETIME = 7 * 24 * 60 * 60;
 }
 
 SDAuctionItemList dbQueryAuctionItemList(int category)
@@ -57,7 +51,7 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
     fflassert(category >= AUCTIONCAT_BEGIN, category);
     fflassert(category <  AUCTIONCAT_END  , category);
 
-    const auto now = epochSeconds();
+    auto now = hres_tstamp::epoch();
     auto query = g_dbPod->createQuery(
         u8R"###( select                                                 )###"
         u8R"###(     tbl_auctionitem.*,                                 )###"
@@ -80,11 +74,8 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
     };
 
     while(query.executeStep()){
-        const auto expireTime = query.getColumn("fld_expiretime").getInt64();
         const auto price      = query.getColumn("fld_price"     ).getInt64();
-
-        fflassert(expireTime > now, expireTime, now);
-        fflassert(price > 0, price);
+        const auto expireTime = query.getColumn("fld_expiretime").getInt64();
 
         SDItem item
         {
@@ -100,9 +91,10 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
         };
 
         fflassert(item);
-        const auto &ir = DBCOM_ITEMRECORD(item.itemID);
 
+        const auto &ir = DBCOM_ITEMRECORD(item.itemID);
         fflassert(ir, item.itemID);
+
         if(!categoryMatchIncludingOther(ir, category)){
             continue;
         }
@@ -117,7 +109,7 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
                 .despvar = SDChatPeerPlayerVar
                 {
                     .gender = query.getColumn("fld_sellergender").getUInt() > 0,
-                    .job    = query.getColumn("fld_sellerjob"),
+                    .job    = query.getColumn("fld_sellerjob"   ),
                 },
             },
 
@@ -134,19 +126,23 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
 
 bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::string &note, uint64_t price)
 {
-    fflassert(sellerDBID > 0 && sellerDBID <= SYS_MAXDBID, sellerDBID);
-    fflassert(item && !item.isGold());
-    fflassert(note.size() <= SYS_AUCTIONNOTESIZE, note.size());
-    fflassert(price > 0 && price <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()), price);
+    fflassert(sellerDBID > 0, sellerDBID);
+    fflassert(sellerDBID <= SYS_MAXDBID, sellerDBID);
+
+    fflassert(item);
+    fflassert(!item.isGold());
+
+    fflassert(note.size() <= SYS_AUCTIONNOTESIZE, note);
+
+    fflassert(price > 0, price);
+    fflassert(price <= INT_MAX, price);
 
     auto transaction = g_dbPod->createTransaction();
     {
         auto deleteQuery = g_dbPod->createQuery(
-            u8R"###(
-                delete from tbl_inventory
-                where fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu
-                returning fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist
-            )###",
+            u8R"###( delete from tbl_inventory                                      )###"
+            u8R"###( where                                                          )###"
+            u8R"###(     fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu )###",
 
             to_llu(sellerDBID),
             to_llu(item.itemID),
@@ -156,63 +152,29 @@ bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::s
             return false;
         }
 
-        const SDItem dbItem
-        {
-            .itemID = check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_itemid")),
-            .seqID  = check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_seqid" )),
-            .count  = check_cast<  size_t, unsigned>(deleteQuery.getColumn("fld_count" )),
-            .duration
-            {
-                check_cast<size_t, unsigned>(deleteQuery.getColumn("fld_duration"   )),
-                check_cast<size_t, unsigned>(deleteQuery.getColumn("fld_maxduration")),
-            },
-            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(deleteQuery.getColumn("fld_extattrlist")),
-        };
-
-        if(true
-                && dbItem.itemID       == item.itemID
-                && dbItem.seqID        == item.seqID
-                && dbItem.count        == item.count
-                && dbItem.duration[0]  == item.duration[0]
-                && dbItem.duration[1]  == item.duration[1]
-                && dbItem.extAttrList  == item.extAttrList){
-            fflassert(!deleteQuery.executeStep());
-        }
-        else{
-            throw fflpanic("inventory item differs from its database row: dbid = {}, itemid = {}, seqid = {}", sellerDBID, item.itemID, item.seqID);
-        }
+        // we can reconstruct SDItem by returned fields
+        // and validate if item from database and item from argument matches, but not very necessary
     }
 
-    const auto expireTime = epochSeconds() + AUCTION_LISTING_LIFETIME;
     auto insertQuery = g_dbPod->createQuery(
-        u8R"###(
-            insert into tbl_auctionitem(
-                fld_seller,
-                fld_note,
-                fld_itemid,
-                fld_seqid,
-                fld_count,
-                fld_duration,
-                fld_maxduration,
-                fld_extattrlist,
-                fld_price,
-                fld_expiretime
-            )
-            values(%llu, ?, %llu, %llu, %llu, %llu, %llu, ?, %llu, %lld)
-        )###",
+            u8R"###( insert into tbl_auctionitem(fld_seller, fld_note, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist, fld_price, fld_expiretime) )###"
+            u8R"###( values                                                                                                                                                         )###"
+            u8R"###(     (%llu, ?, %llu, %llu, %llu, %llu, %llu, ?, %llu, %lld)                                                                                                     )###",
 
-        to_llu(sellerDBID),
-        to_llu(item.itemID),
-        to_llu(item.seqID),
-        to_llu(item.count),
-        to_llu(item.duration[0]),
-        to_llu(item.duration[1]),
-        to_llu(price),
-        static_cast<long long>(expireTime));
+            to_llu(sellerDBID),
+            to_llu(item.itemID),
+            to_llu(item.seqID),
+            to_llu(item.count),
+            to_llu(item.duration[0]),
+            to_llu(item.duration[1]),
+            to_llu(price),
+            to_lld(hres_tstamp::epoch() + SYS_AUCTIONLIFETIME));
 
     insertQuery.bind(1, note);
     insertQuery.bindBlob(2, cerealf::serialize(item.extAttrList));
+
     insertQuery.exec();
     transaction.commit();
+
     return true;
 }
