@@ -384,10 +384,10 @@ namespace
         std::array<std::unique_ptr<const msgf::MsgAttribute>, std::min<size_t>(SM_END, 128)> result;
 #define _RSVD_register_servermsg(type, ...) result.at(type) = std::make_unique<msgf::MsgAttribute>(#type, __VA_ARGS__)
 
-        //  0    :     empty
-        //  1    : not empty,     fixed size,     compressed
-        //  2    : not empty,     fixed size, not compressed
-        //  3    : not empty, not fixed size, not compressed
+        //  0    :       empty
+        //  1    :   not empty,     fixed size,     compressed
+        //  2    :   not empty,     fixed size, not compressed
+        //  3    : maybe empty, not fixed size, not compressed
         _RSVD_register_servermsg(SM_NONE_0,               0                                );
         _RSVD_register_servermsg(SM_OK,                   3                                );
         _RSVD_register_servermsg(SM_ERROR,                0                                );

@@ -11,10 +11,10 @@ namespace msgf
     {
         const std::string name;
 
-        //  0    :     empty
-        //  1    : not empty,     fixed size,     compressed by xor
-        //  2    : not empty,     fixed size, not compressed
-        //  3    : not empty, not fixed size, not compressed
+        //  0    :       empty
+        //  1    :   not empty,     fixed size,     compressed by xor
+        //  2    :   not empty,     fixed size, not compressed
+        //  3    : maybe empty, not fixed size, not compressed
         const int type;
 
         // define message length before compression
@@ -59,7 +59,7 @@ namespace msgf
                     }
                 case 3:
                     {
-                        // not empty, not fixed size, not compressed
+                        // maybe empty, not fixed size, not compressed
                         // dataLen should be zero to indicate it's not fixed size message
                         if(dataLen){
                             throw fflpanic("invalid dataLen: {}", dataLen);
