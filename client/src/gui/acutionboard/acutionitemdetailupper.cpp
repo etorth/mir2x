@@ -26,8 +26,6 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
           .textFunc = to_cstr(u8"卖家留言"),
           .font
           {
-              .id = 1,
-              .size = 11,
               .color = colorf::CYAN_A255,
           },
           .parent{this},
@@ -61,11 +59,6 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
     , m_seller
       {{
           .lineWidth = 155,
-          .font
-          {
-              .id = 1,
-              .size = 10,
-          },
           .lineAlign = LALIGN_LEFT,
           .parent{&m_sellerArea},
       }}
@@ -76,11 +69,6 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
           .x = 218,
           .y = 91,
           .textFunc = to_cstr(u8"联系卖家"),
-          .font
-          {
-              .id = 1,
-              .size = 11,
-          },
           .onTrigger = [](Widget *, int)
           {
           },

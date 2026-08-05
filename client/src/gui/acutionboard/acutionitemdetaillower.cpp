@@ -66,7 +66,6 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .v = false,
           .align = ItemAlign::CENTER,
 
-          .headSpace = 7,
           .itemSpace = 8,
 
           .childList
@@ -114,7 +113,6 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .v = true,
           .align = ItemAlign::UPLEFT,
 
-          .headSpace = 6,
           .itemSpace = 4,
           .tailSpace = 7,
 
@@ -139,6 +137,16 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .hScroll = false,
 
           .barSize = m_scrollBarWidth,
+
+          .trackColor = colorf::RGBA( 32,  13,   7, 255),
+
+          .thumbColor      = colorf::RGBA(104,  99,  47, 255),
+          .thumbHoverColor = colorf::RGBA(120, 107,  66, 255),
+          .thumbDragColor  = colorf::RGBA(153, 136,  91, 255),
+
+          .arrowColor    = colorf::RGBA(223, 204, 155, 255),
+          .arrowBoxColor = colorf::RGBA( 64,  28,   7, 255),
+
           .parent{this},
       }}
 {

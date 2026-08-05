@@ -23,11 +23,9 @@ class AcutionItemDetailLower final: public Widget
         constexpr static int m_itemImageBorderWidth = 1;
 
     private:
-        constexpr static int m_viewportW = 218;
-        constexpr static int m_viewportH = 168;
-
-    private:
         constexpr static int m_scrollBarWidth = 8;
+        constexpr static int m_viewportW = m_width - m_scrollBarWidth;
+        constexpr static int m_viewportH = m_height;
         constexpr static int m_detailLineWidth = 211;
 
     public:
