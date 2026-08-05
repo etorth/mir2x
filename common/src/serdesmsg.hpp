@@ -457,7 +457,7 @@ struct SDSellItemList
     }
 };
 
-struct SDAcutionItem
+struct SDAuctionItem
 {
     SDChatPeer seller {};
     std::string note {};
@@ -471,10 +471,10 @@ struct SDAcutionItem
     }
 };
 
-struct SDAcutionItemList
+struct SDAuctionItemList
 {
     int category = 0;
-    std::vector<SDAcutionItem> itemList {};
+    std::vector<SDAuctionItem> itemList {};
 
     template<typename Archive> void serialize(Archive & ar)
     {

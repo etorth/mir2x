@@ -66,8 +66,8 @@ enum CMType: uint8_t
     CM_REQUESTLATESTCHATMESSAGE,
     CM_QUERYRANKING,
     CM_CLAIMDELIVERY,
-    CM_QUERYACUTIONITEMLIST,
-    CM_REGISTERACUTIONITEM,
+    CM_QUERYAUCTIONITEMLIST,
+    CM_REGISTERAUCTIONITEM,
     CM_END,
 };
 
@@ -342,17 +342,17 @@ struct CMClaimDelivery
     StaticBuffer<SYS_DELIVERYRECORDSIZE> record;
 };
 
-struct CMQueryAcutionItemList
+struct CMQueryAuctionItemList
 {
     uint8_t category;
 };
 
-struct CMRegisterAcutionItem
+struct CMRegisterAuctionItem
 {
     uint32_t itemID;
     uint32_t seqID;
     uint64_t price;
-    StaticBuffer<SYS_ACUTIONNOTESIZE> note;
+    StaticBuffer<SYS_AUCTIONNOTESIZE> note;
 };
 
 #pragma pack(pop)
@@ -423,8 +423,8 @@ namespace
         _RSVD_register_clientmsg(CM_REQUESTLATESTCHATMESSAGE,   1, sizeof(CMRequestLatestChatMessage)  );
         _RSVD_register_clientmsg(CM_QUERYRANKING,               2, sizeof(CMQueryRanking)              );
         _RSVD_register_clientmsg(CM_CLAIMDELIVERY,              1, sizeof(CMClaimDelivery)             );
-        _RSVD_register_clientmsg(CM_QUERYACUTIONITEMLIST,       2, sizeof(CMQueryAcutionItemList)      );
-        _RSVD_register_clientmsg(CM_REGISTERACUTIONITEM,         1, sizeof(CMRegisterAcutionItem)       );
+        _RSVD_register_clientmsg(CM_QUERYAUCTIONITEMLIST,       2, sizeof(CMQueryAuctionItemList)      );
+        _RSVD_register_clientmsg(CM_REGISTERAUCTIONITEM,         1, sizeof(CMRegisterAuctionItem)       );
 
 #undef _RSVD_register_clientmsg
         return result;

@@ -7,14 +7,14 @@
 #include "sdldevice.hpp"
 #include "processrun.hpp"
 #include "gui/friendchatboard/friendchatboard.hpp"
-#include "acutionregisterboard.hpp"
-#include "acutionboard.hpp"
+#include "auctionregisterboard.hpp"
+#include "auctionboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern Client *g_client;
 
-AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
+AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
     : Widget
       {{
           .dir = DIR_NONE,
@@ -48,17 +48,17 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .textFunc = [this]() -> std::string
           {
               switch(m_itemList.getItemList().category){
-                  case ACUTIONCAT_ALL     : return to_cstr(u8"所有物品");
-                  case ACUTIONCAT_DRESS   : return to_cstr(u8"衣服");
-                  case ACUTIONCAT_WEAPON  : return to_cstr(u8"武器");
-                  case ACUTIONCAT_NECKLACE: return to_cstr(u8"项链");
-                  case ACUTIONCAT_HELMET  : return to_cstr(u8"头盔");
-                  case ACUTIONCAT_RING    : return to_cstr(u8"戒指");
-                  case ACUTIONCAT_ARMRING : return to_cstr(u8"手镯");
-                  case ACUTIONCAT_SHOES   : return to_cstr(u8"鞋类");
-                  case ACUTIONCAT_POTION  : return to_cstr(u8"药品");
-                  case ACUTIONCAT_BOOK    : return to_cstr(u8"图书");
-                  case ACUTIONCAT_OTHER   : return to_cstr(u8"其他物品");
+                  case AUCTIONCAT_ALL     : return to_cstr(u8"所有物品");
+                  case AUCTIONCAT_DRESS   : return to_cstr(u8"衣服");
+                  case AUCTIONCAT_WEAPON  : return to_cstr(u8"武器");
+                  case AUCTIONCAT_NECKLACE: return to_cstr(u8"项链");
+                  case AUCTIONCAT_HELMET  : return to_cstr(u8"头盔");
+                  case AUCTIONCAT_RING    : return to_cstr(u8"戒指");
+                  case AUCTIONCAT_ARMRING : return to_cstr(u8"手镯");
+                  case AUCTIONCAT_SHOES   : return to_cstr(u8"鞋类");
+                  case AUCTIONCAT_POTION  : return to_cstr(u8"药品");
+                  case AUCTIONCAT_BOOK    : return to_cstr(u8"图书");
+                  case AUCTIONCAT_OTHER   : return to_cstr(u8"其他物品");
                   default                 : return to_cstr(u8"寄售");
               }
           },
@@ -93,7 +93,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .textFunc = [this]() -> std::string
           {
               if(const auto firstIndex = m_itemList.firstIndex(); firstIndex.has_value()){
-                  const auto lastIndex = std::min<size_t>(firstIndex.value() + AcutionItemList::m_rowCount, m_itemList.size());
+                  const auto lastIndex = std::min<size_t>(firstIndex.value() + AuctionItemList::m_rowCount, m_itemList.size());
                   return to_cstr(str_printf(u8"第%zu-%zu件物品", firstIndex.value() + 1, lastIndex));
               }
               return {};
@@ -242,9 +242,9 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               const auto  currCategory = m_itemList.getItemList().category;
-              const auto queryCategory = (currCategory >= ACUTIONCAT_BEGIN && currCategory < ACUTIONCAT_END) ? currCategory : ACUTIONCAT_ALL;
+              const auto queryCategory = (currCategory >= AUCTIONCAT_BEGIN && currCategory < AUCTIONCAT_END) ? currCategory : AUCTIONCAT_ALL;
 
-              g_client->send({CM_QUERYACUTIONITEMLIST, CMQueryAcutionItemList
+              g_client->send({CM_QUERYAUCTIONITEMLIST, CMQueryAuctionItemList
               {
                   .category = to_u8(queryCategory),
               }});
@@ -293,7 +293,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
               // TMP001228.PNG vs TMP001904.PNG
               // they are identical expect 1 pixel offset
               //
-              // zsdb uses 1228, but acution board frame image uses 1904
+              // zsdb uses 1228, but auction board frame image uses 1904
               // here use zsdb and off texture to redraw the button off state
 
               .off  = 0X000000B3,
@@ -303,7 +303,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               flipShow(false);
-              if(auto registerBoardPtr = dynamic_cast<AcutionRegisterBoard *>(m_runProc->getWidget("AcutionRegisterBoard"))){
+              if(auto registerBoardPtr = dynamic_cast<AuctionRegisterBoard *>(m_runProc->getWidget("AuctionRegisterBoard"))){
                   registerBoardPtr->beginRegister();
               }
           },
@@ -360,7 +360,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     setShow(false);
 }
 
-bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
+bool AuctionBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
         return false;
@@ -425,9 +425,9 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     }
 }
 
-void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
+void AuctionBoard::setItemList(SDAuctionItemList sdAuctionItemList)
 {
-    m_itemList.setItemList(std::move(sdAcutionItemList));
+    m_itemList.setItemList(std::move(sdAuctionItemList));
     m_itemDetailUpper.setItem(nullptr);
     m_itemDetailLower.setItem(nullptr);
 }

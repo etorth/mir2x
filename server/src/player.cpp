@@ -582,8 +582,8 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_REQUESTLATESTCHATMESSAGE  );
         _support_cm(CM_QUERYRANKING              );
         _support_cm(CM_CLAIMDELIVERY             );
-        _support_cm(CM_QUERYACUTIONITEMLIST      );
-        _support_cm(CM_REGISTERACUTIONITEM       );
+        _support_cm(CM_QUERYAUCTIONITEMLIST      );
+        _support_cm(CM_REGISTERAUCTIONITEM       );
         _support_cm(CM_REQUESTSPACEMOVE          );
         _support_cm(CM_SETMAGICKEY               );
         _support_cm(CM_SETRUNTIMECONFIG          );

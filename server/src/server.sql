@@ -178,7 +178,7 @@ create table tbl_delivery(
 create index tbl_delivery_dbid_index      on tbl_delivery(fld_dbid);
 create index tbl_delivery_messageid_index on tbl_delivery(fld_messageid);
 
-create table tbl_acutionitem(
+create table tbl_auctionitem(
     fld_id             integer not null primary key autoincrement,
     fld_seller         integer not null,
     fld_note           text    not null default '',
@@ -195,5 +195,5 @@ create table tbl_acutionitem(
     unique (fld_seller, fld_itemid, fld_seqid)
 ) strict;
 
-create index tbl_acutionitem_seller_index     on tbl_acutionitem(fld_seller);
-create index tbl_acutionitem_expiretime_index on tbl_acutionitem(fld_expiretime);
+create index tbl_auctionitem_seller_index     on tbl_auctionitem(fld_seller);
+create index tbl_auctionitem_expiretime_index on tbl_auctionitem(fld_expiretime);

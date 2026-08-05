@@ -11,13 +11,13 @@
 #include "processrun.hpp"
 #include "inventoryboard.hpp"
 #include "inputstringboard.hpp"
-#include "acutionregisterboard.hpp"
+#include "auctionregisterboard.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 extern Client *g_client;
 
-AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
+AuctionRegisterBoard::AuctionRegisterBoard(ProcessRun *argProc, Widget *argParent, bool argAutoDelete)
     : Widget
       {{
           .dir = DIR_NONE,
@@ -133,7 +133,7 @@ AcutionRegisterBoard::AcutionRegisterBoard(ProcessRun *argProc, Widget *argParen
     setShow(false);
 }
 
-void AcutionRegisterBoard::beginRegister()
+void AuctionRegisterBoard::beginRegister()
 {
     auto invBoard = dynamic_cast<InventoryBoard *>(m_runProc->getWidget("InventoryBoard"));
 
@@ -144,7 +144,7 @@ void AcutionRegisterBoard::beginRegister()
     setFocus(true);
 }
 
-bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
+bool AuctionRegisterBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
         return false;
@@ -216,7 +216,7 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
     }
 }
 
-void AcutionRegisterBoard::setPending(bool pending)
+void AuctionRegisterBoard::setPending(bool pending)
 {
     m_pending = pending;
     m_note.setInputEnabled(!pending);
@@ -231,7 +231,7 @@ void AcutionRegisterBoard::setPending(bool pending)
     }
 }
 
-void AcutionRegisterBoard::setPrice()
+void AuctionRegisterBoard::setPrice()
 {
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
     fflassert(inputBoard);
@@ -253,7 +253,7 @@ void AcutionRegisterBoard::setPrice()
     });
 }
 
-void AcutionRegisterBoard::confirmRegister()
+void AuctionRegisterBoard::confirmRegister()
 {
     if(m_pending){
         return;
@@ -275,8 +275,8 @@ void AcutionRegisterBoard::confirmRegister()
         return;
     }
 
-    if(note.size() > SYS_ACUTIONNOTESIZE){
-        m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言不能超过%zu字节", SYS_ACUTIONNOTESIZE);
+    if(note.size() > SYS_AUCTIONNOTESIZE){
+        m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言不能超过%zu字节", SYS_AUCTIONNOTESIZE);
         return;
     }
 
@@ -293,7 +293,7 @@ void AcutionRegisterBoard::confirmRegister()
     });
 }
 
-void AcutionRegisterBoard::registerItem()
+void AuctionRegisterBoard::registerItem()
 {
     if(m_pending || !m_box.item()){
         return;
@@ -305,8 +305,8 @@ void AcutionRegisterBoard::registerItem()
         return;
     }
 
-    if(note.size() > SYS_ACUTIONNOTESIZE){
-        m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言不能超过%zu字节", SYS_ACUTIONNOTESIZE);
+    if(note.size() > SYS_AUCTIONNOTESIZE){
+        m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言不能超过%zu字节", SYS_AUCTIONNOTESIZE);
         return;
     }
 
@@ -320,7 +320,7 @@ void AcutionRegisterBoard::registerItem()
     fflassert(ir);
     const std::string itemName = to_cstr(ir.name);
 
-    CMRegisterAcutionItem cmRAI
+    CMRegisterAuctionItem cmRAI
     {
         .itemID = item.itemID,
         .seqID = item.seqID,
@@ -329,7 +329,7 @@ void AcutionRegisterBoard::registerItem()
     cmRAI.note.assign(note);
 
     setPending(true);
-    g_client->send({CM_REGISTERACUTIONITEM, cmRAI}, [itemName, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    g_client->send({CM_REGISTERAUCTIONITEM, cmRAI}, [itemName, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
     {
         switch(headCode){
             case SM_OK:
@@ -338,13 +338,13 @@ void AcutionRegisterBoard::registerItem()
                     closeRegister(true);
                     return;
                 }
-            case SM_ACUTIONREGISTERERROR:
+            case SM_AUCTIONREGISTERERROR:
                 {
                     setPending(false);
-                    switch(ServerMsg::conv<SMAcutionRegisterError>(buf, bufSize).error){
-                        case ACUTIONREGERR_BADITEM : m_runProc->addCBLog(CBLOG_ERR, u8"寄售物品无效"); return;
-                        case ACUTIONREGERR_BADPRICE: m_runProc->addCBLog(CBLOG_ERR, u8"寄售价格无效"); return;
-                        case ACUTIONREGERR_BADNOTE : m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言无效"); return;
+                    switch(ServerMsg::conv<SMAuctionRegisterError>(buf, bufSize).error){
+                        case AUCTIONREGERR_BADITEM : m_runProc->addCBLog(CBLOG_ERR, u8"寄售物品无效"); return;
+                        case AUCTIONREGERR_BADPRICE: m_runProc->addCBLog(CBLOG_ERR, u8"寄售价格无效"); return;
+                        case AUCTIONREGERR_BADNOTE : m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言无效"); return;
                         default: break;
                     }
                     m_runProc->addCBLog(CBLOG_ERR, u8"寄售失败");
@@ -360,7 +360,7 @@ void AcutionRegisterBoard::registerItem()
     });
 }
 
-void AcutionRegisterBoard::confirmCancel()
+void AuctionRegisterBoard::confirmCancel()
 {
     if(m_pending){
         return;
@@ -379,7 +379,7 @@ void AcutionRegisterBoard::confirmCancel()
     });
 }
 
-void AcutionRegisterBoard::restoreItemInBox()
+void AuctionRegisterBoard::restoreItemInBox()
 {
     if(m_box.item()){
         const auto item = m_box.takeItem();
@@ -388,7 +388,7 @@ void AcutionRegisterBoard::restoreItemInBox()
     }
 }
 
-void AcutionRegisterBoard::restoreItemInGrab()
+void AuctionRegisterBoard::restoreItemInGrab()
 {
     auto &invPack = m_runProc->getMyHero()->getInvPack();
     if(const auto grabbedItem = invPack.getGrabbedItem()){
@@ -397,7 +397,7 @@ void AcutionRegisterBoard::restoreItemInGrab()
     }
 }
 
-void AcutionRegisterBoard::closeRegister(bool registered)
+void AuctionRegisterBoard::closeRegister(bool registered)
 {
     if(!registered){
         restoreItemInBox();

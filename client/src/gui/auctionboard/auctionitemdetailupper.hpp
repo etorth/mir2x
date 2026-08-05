@@ -6,7 +6,7 @@
 #include "layoutboard.hpp"
 #include "serdesmsg.hpp"
 
-class AcutionItemDetailUpper final: public Widget
+class AuctionItemDetailUpper final: public Widget
 {
     public:
         struct InitArgs final
@@ -39,8 +39,8 @@ class AcutionItemDetailUpper final: public Widget
         TextButton m_buttonContactSeller;
 
     public:
-        explicit AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs);
+        explicit AuctionItemDetailUpper(AuctionItemDetailUpper::InitArgs);
 
     public:
-        void setItem(const SDAcutionItem *);
+        void setItem(const SDAuctionItem *);
 };

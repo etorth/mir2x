@@ -10,7 +10,7 @@
 #include "scrollcontainer.hpp"
 #include "serdesmsg.hpp"
 
-class AcutionItemDetailLower final: public Widget
+class AuctionItemDetailLower final: public Widget
 {
     private:
         constexpr static int m_width  = 228;
@@ -65,10 +65,10 @@ class AcutionItemDetailLower final: public Widget
         ScrollContainer m_scroll;
 
     public:
-        explicit AcutionItemDetailLower(AcutionItemDetailLower::InitArgs);
+        explicit AuctionItemDetailLower(AuctionItemDetailLower::InitArgs);
 
     public:
-        void setItem(const SDAcutionItem *);
+        void setItem(const SDAuctionItem *);
 
     private:
         SDL_Texture *itemTexture() const;

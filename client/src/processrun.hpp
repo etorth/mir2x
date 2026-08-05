@@ -271,7 +271,7 @@ class ProcessRun: public Process
         _support_sm(SM_ADDFRIENDACCEPTED);
         _support_sm(SM_ADDFRIENDREJECTED);
         _support_sm(SM_RANKINGLIST);
-        _support_sm(SM_ACUTIONITEMLIST);
+        _support_sm(SM_AUCTIONITEMLIST);
 #undef _support_sm
 
     public:

@@ -9,7 +9,7 @@
 #include "dbcomid.hpp"
 #include "utf8f.hpp"
 #include "serverargparser.hpp"
-#include "acutiondb.hpp"
+#include "auctiondb.hpp"
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
@@ -251,35 +251,35 @@ corof::awaitable<> Player::net_CM_QUERYSELLITEMLIST(uint8_t, const uint8_t *buf,
     return {};
 }
 
-corof::awaitable<> Player::net_CM_QUERYACUTIONITEMLIST(uint8_t, const uint8_t *buf, size_t, uint64_t)
+corof::awaitable<> Player::net_CM_QUERYAUCTIONITEMLIST(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
-    const auto cmQAIL = ClientMsg::conv<CMQueryAcutionItemList>(buf);
-    fflassert(cmQAIL.category >= ACUTIONCAT_BEGIN && cmQAIL.category < ACUTIONCAT_END, cmQAIL.category);
-    postNetMessage(SM_ACUTIONITEMLIST, cerealf::serialize(dbQueryAcutionItemList(cmQAIL.category), true));
+    const auto cmQAIL = ClientMsg::conv<CMQueryAuctionItemList>(buf);
+    fflassert(cmQAIL.category >= AUCTIONCAT_BEGIN && cmQAIL.category < AUCTIONCAT_END, cmQAIL.category);
+    postNetMessage(SM_AUCTIONITEMLIST, cerealf::serialize(dbQueryAuctionItemList(cmQAIL.category), true));
     return {};
 }
 
-corof::awaitable<> Player::net_CM_REGISTERACUTIONITEM(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+corof::awaitable<> Player::net_CM_REGISTERAUCTIONITEM(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
-    const auto cmRAI = ClientMsg::conv<CMRegisterAcutionItem>(buf);
+    const auto cmRAI = ClientMsg::conv<CMRegisterAuctionItem>(buf);
     const auto postError = [respID, this](int error)
     {
-        postNetMessage(SM_ACUTIONREGISTERERROR, SMAcutionRegisterError{.error = to_u8(error)}, respID);
+        postNetMessage(SM_AUCTIONREGISTERERROR, SMAuctionRegisterError{.error = to_u8(error)}, respID);
     };
 
     if(cmRAI.note.size > cmRAI.note.capacity()){
-        postError(ACUTIONREGERR_BADNOTE);
+        postError(AUCTIONREGERR_BADNOTE);
         return {};
     }
 
     const auto note = cmRAI.note.to_str();
     if(!utf8f::valid(note)){
-        postError(ACUTIONREGERR_BADNOTE);
+        postError(AUCTIONREGERR_BADNOTE);
         return {};
     }
 
     if(cmRAI.price == 0 || cmRAI.price > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())){
-        postError(ACUTIONREGERR_BADPRICE);
+        postError(AUCTIONREGERR_BADPRICE);
         return {};
     }
 
@@ -289,7 +289,7 @@ corof::awaitable<> Player::net_CM_REGISTERACUTIONITEM(uint8_t, const uint8_t *bu
             && hasInventoryItem(cmRAI.itemID, cmRAI.seqID, 1)){
 
         const auto item = findInventoryItem(cmRAI.itemID, cmRAI.seqID);
-        if(item && !item.isGold() && dbRegisterAcutionItem(dbid(), item, note, cmRAI.price)){
+        if(item && !item.isGold() && dbRegisterAuctionItem(dbid(), item, note, cmRAI.price)){
             const auto [removedCount, removedSeqID, itemPtr] = m_sdItemStorage.inventory.remove(item.itemID, item.seqID, item.count);
             fflassert(removedCount == item.count, removedCount, item.count);
             fflassert(removedSeqID == item.seqID, removedSeqID, item.seqID);
@@ -301,7 +301,7 @@ corof::awaitable<> Player::net_CM_REGISTERACUTIONITEM(uint8_t, const uint8_t *bu
         }
     }
 
-    postError(ACUTIONREGERR_BADITEM);
+    postError(AUCTIONREGERR_BADITEM);
     return {};
 }
 

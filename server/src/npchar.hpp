@@ -92,7 +92,7 @@ class NPChar final: public CharObject
 
     private:
         void postSell(uint64_t);
-        void postAcutionItemList(uint64_t, int);
+        void postAuctionItemList(uint64_t, int);
         void postXMLLayout(uint64_t, std::string, std::string);
         corof::awaitable<> postAddMonster(uint32_t);
         void postInvOpCost(uint64_t, int, uint32_t, uint32_t, size_t);

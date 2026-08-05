@@ -3,11 +3,11 @@
 #include "colorf.hpp"
 #include "dbcomid.hpp"
 #include "sdldevice.hpp"
-#include "acutionitemlist.hpp"
-#include "acutionitemrow.hpp"
+#include "auctionitemlist.hpp"
+#include "auctionitemrow.hpp"
 
 extern SDLDevice *g_sdlDevice;
-AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
+AuctionItemRow::AuctionItemRow(AuctionItemList *itemList, size_t rowIndex)
     : Widget
       {{
           .w = m_rowW,
@@ -15,7 +15,7 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
       }}
 
     , m_itemList(fflcheck(itemList))
-    , m_rowIndex(fflcheck(rowIndex, rowIndex < AcutionItemList::m_rowCount))
+    , m_rowIndex(fflcheck(rowIndex, rowIndex < AuctionItemList::m_rowCount))
 
     , m_background
       {{
@@ -108,7 +108,7 @@ AcutionItemRow::AcutionItemRow(AcutionItemList *itemList, size_t rowIndex)
       }}
 {}
 
-bool AcutionItemRow::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
+bool AuctionItemRow::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m_itemList->rowItem(m_rowIndex)){
         m_itemList-> setHoveredRow(m_rowIndex, false);
@@ -148,7 +148,7 @@ bool AcutionItemRow::processEventDefault(const SDL_Event &event, bool valid, Wid
     }
 }
 
-uint32_t AcutionItemRow::priceColor(size_t price)
+uint32_t AuctionItemRow::priceColor(size_t price)
 {
     if(price >= 10000000){
         return colorf::RED_A255;

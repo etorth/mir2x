@@ -7,12 +7,12 @@
 #include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "acutionitemdetaillower.hpp"
+#include "auctionitemdetaillower.hpp"
 
 extern PNGTexDB *g_itemDB;
 extern SDLDevice *g_sdlDevice;
 
-AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs args)
+AuctionItemDetailLower::AuctionItemDetailLower(AuctionItemDetailLower::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
@@ -153,7 +153,7 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
     setShow(false);
 }
 
-void AcutionItemDetailLower::setItem(const SDAcutionItem *item)
+void AuctionItemDetailLower::setItem(const SDAuctionItem *item)
 {
     if(item){
         const auto &ir = DBCOM_ITEMRECORD(item->item.itemID);
@@ -200,7 +200,7 @@ void AcutionItemDetailLower::setItem(const SDAcutionItem *item)
     }
 }
 
-SDL_Texture *AcutionItemDetailLower::itemTexture() const
+SDL_Texture *AuctionItemDetailLower::itemTexture() const
 {
     if(!m_itemID){
         return nullptr;
@@ -227,7 +227,7 @@ SDL_Texture *AcutionItemDetailLower::itemTexture() const
     return nullptr;
 }
 
-std::pair<int, int> AcutionItemDetailLower::itemImageSize() const
+std::pair<int, int> AuctionItemDetailLower::itemImageSize() const
 {
     if(auto texPtr = itemTexture()){
         const auto [texW, texH] = SDLDeviceHelper::getTextureSize(texPtr);
@@ -247,7 +247,7 @@ std::pair<int, int> AcutionItemDetailLower::itemImageSize() const
     return {0, 0};
 }
 
-const char *AcutionItemDetailLower::priceColor(size_t price)
+const char *AuctionItemDetailLower::priceColor(size_t price)
 {
     if(price >= 10000000){
         return "red";

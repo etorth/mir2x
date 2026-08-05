@@ -1,12 +1,10 @@
 #pragma once
+#include <cstdint>
 #include <functional>
-#include <utility>
 #include "widget.hpp"
-#include "imageboard.hpp"
 #include "textboard.hpp"
-#include "serdesmsg.hpp"
 
-class AcutionRegisterBox final: public Widget
+class AuctionRegisterPrice final: public Widget
 {
     public:
         struct InitArgs final
@@ -23,17 +21,16 @@ class AcutionRegisterBox final: public Widget
 
     private:
         bool m_enabled = true;
-        SDItem m_item;
+        uint64_t m_price = 0;
 
     private:
         const std::function<void()> m_onClick;
 
     private:
-        ImageBoard m_image;
-        TextBoard m_name;
+        TextBoard m_text;
 
     public:
-        explicit AcutionRegisterBox(AcutionRegisterBox::InitArgs);
+        explicit AuctionRegisterPrice(AuctionRegisterPrice::InitArgs);
 
     public:
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
@@ -45,27 +42,18 @@ class AcutionRegisterBox final: public Widget
         }
 
     public:
-        const SDItem &item() const
+        uint64_t price() const
         {
-            return m_item;
+            return m_price;
         }
 
-        void setItem(SDItem item)
+        void setPrice(uint64_t price)
         {
-            m_item = std::move(item);
-        }
-
-        SDItem takeItem()
-        {
-            return std::exchange(m_item, SDItem{});
+            m_price = price;
         }
 
         void clear()
         {
-            m_item = {};
+            m_price = 0;
         }
-
-    private:
-        SDL_Texture *itemTexture() const;
-        std::pair<int, int> itemImageSize() const;
 };

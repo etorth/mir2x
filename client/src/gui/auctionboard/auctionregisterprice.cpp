@@ -1,9 +1,9 @@
 #include <utility>
 #include "strf.hpp"
 #include "colorf.hpp"
-#include "acutionregisterprice.hpp"
+#include "auctionregisterprice.hpp"
 
-AcutionRegisterPrice::AcutionRegisterPrice(AcutionRegisterPrice::InitArgs args)
+AuctionRegisterPrice::AuctionRegisterPrice(AuctionRegisterPrice::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
@@ -48,7 +48,7 @@ AcutionRegisterPrice::AcutionRegisterPrice(AcutionRegisterPrice::InitArgs args)
       }}
 {}
 
-bool AcutionRegisterPrice::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
+bool AuctionRegisterPrice::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
         return false;

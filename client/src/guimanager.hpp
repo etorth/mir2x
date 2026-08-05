@@ -3,8 +3,8 @@
 #include "minimapboard.hpp"
 #include "horseboard.hpp"
 #include "gui/skillboard/skillboard.hpp"
-#include "gui/acutionboard/acutionboard.hpp"
-#include "gui/acutionboard/acutionregisterboard.hpp"
+#include "gui/auctionboard/auctionboard.hpp"
+#include "gui/auctionboard/auctionregisterboard.hpp"
 #include "guildboard.hpp"
 #include "gui/npcchatboard/npcchatboard.hpp"
 #include "gui/friendchatboard/friendchatboard.hpp"
@@ -37,8 +37,8 @@ class GUIManager: public Widget
         SkillBoard m_skillBoard;
         GuildBoard m_guildBoard;
         MiniMapBoard m_miniMapBoard;
-        AcutionBoard m_acutionBoard;
-        AcutionRegisterBoard m_acutionRegisterBoard;
+        AuctionBoard m_auctionBoard;
+        AuctionRegisterBoard m_auctionRegisterBoard;
         PurchaseBoard m_purchaseBoard;
         TeamStateBoard m_teamStateBoard;
         InventoryBoard m_inventoryBoard;

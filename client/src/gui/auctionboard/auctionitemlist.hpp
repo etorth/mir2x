@@ -7,11 +7,11 @@
 #include "widget.hpp"
 #include "itembox.hpp"
 
-class AcutionItemList final: public Widget
+class AuctionItemList final: public Widget
 {
     private:
-        friend class AcutionBoard;
-        friend class AcutionItemRow;
+        friend class AuctionBoard;
+        friend class AuctionItemRow;
 
     private:
         constexpr static size_t m_rowCount = 13;
@@ -28,8 +28,8 @@ class AcutionItemList final: public Widget
         };
 
     private:
-        hres_timer m_acutionTimer;
-        SDAcutionItemList m_sdAcutionItemList;
+        hres_timer m_auctionTimer;
+        SDAuctionItemList m_sdAuctionItemList;
 
     private:
         size_t m_firstIndex = 0; // valid only when empty() is false
@@ -42,29 +42,29 @@ class AcutionItemList final: public Widget
         ItemBox m_itemBox;
 
     public:
-        explicit AcutionItemList(AcutionItemList::InitArgs);
+        explicit AuctionItemList(AuctionItemList::InitArgs);
 
     public:
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     public:
-        void setItemList(SDAcutionItemList);
+        void setItemList(SDAuctionItemList);
 
     public:
-        const SDAcutionItemList &getItemList() const
+        const SDAuctionItemList &getItemList() const
         {
-            return m_sdAcutionItemList;
+            return m_sdAuctionItemList;
         }
 
     public:
         bool empty() const
         {
-            return m_sdAcutionItemList.itemList.empty();
+            return m_sdAuctionItemList.itemList.empty();
         }
 
         size_t size() const
         {
-            return m_sdAcutionItemList.itemList.size();
+            return m_sdAuctionItemList.itemList.size();
         }
 
     public:
@@ -101,15 +101,15 @@ class AcutionItemList final: public Widget
             return {};
         }
 
-        const SDAcutionItem *indexItem(size_t itemIndex) const
+        const SDAuctionItem *indexItem(size_t itemIndex) const
         {
-            if(itemIndex < m_sdAcutionItemList.itemList.size()){
-                return &m_sdAcutionItemList.itemList.at(itemIndex);
+            if(itemIndex < m_sdAuctionItemList.itemList.size()){
+                return &m_sdAuctionItemList.itemList.at(itemIndex);
             }
             return nullptr;
         }
 
-        const SDAcutionItem *rowItem(size_t rowIndex) const
+        const SDAuctionItem *rowItem(size_t rowIndex) const
         {
             if(!empty() && rowIndex < m_rowCount){
                 return indexItem(m_firstIndex + rowIndex);
@@ -125,7 +125,7 @@ class AcutionItemList final: public Widget
 
         bool canMoveNext() const
         {
-            return !empty() && (m_firstIndex + m_rowCount) < m_sdAcutionItemList.itemList.size();
+            return !empty() && (m_firstIndex + m_rowCount) < m_sdAuctionItemList.itemList.size();
         }
 
         void movePrev();
@@ -139,5 +139,5 @@ class AcutionItemList final: public Widget
         void  setHoveredRow(size_t, bool);
 
     private:
-        std::string formatTimeLeft(const SDAcutionItem &);
+        std::string formatTimeLeft(const SDAuctionItem &);
 };

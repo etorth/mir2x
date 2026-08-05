@@ -68,13 +68,13 @@ GUIManager::GUIManager(ProcessRun *argProc)
           .proc = argProc,
       }}
 
-    , m_acutionBoard
+    , m_auctionBoard
       {
           argProc,
           this,
       }
 
-    , m_acutionRegisterBoard
+    , m_auctionRegisterBoard
       {
           argProc,
           this,
@@ -268,12 +268,12 @@ Widget *GUIManager::getWidget(const std::string_view &name)
         return &m_miniMapBoard;
     }
 
-    else if(name == "AcutionBoard"){
-        return &m_acutionBoard;
+    else if(name == "AuctionBoard"){
+        return &m_auctionBoard;
     }
 
-    else if(name == "AcutionRegisterBoard"){
-        return &m_acutionRegisterBoard;
+    else if(name == "AuctionRegisterBoard"){
+        return &m_auctionRegisterBoard;
     }
 
     else if(name == "TeamStateBoard"){

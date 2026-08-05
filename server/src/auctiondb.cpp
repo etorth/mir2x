@@ -4,7 +4,7 @@
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "sysconst.hpp"
-#include "acutiondb.hpp"
+#include "auctiondb.hpp"
 
 extern DBPod *g_dbPod;
 
@@ -13,27 +13,27 @@ namespace
     bool categoryMatch(const ItemRecord &ir, int category)
     {
         switch(category){
-            case ACUTIONCAT_DRESS   : return ir.isDress();
-            case ACUTIONCAT_WEAPON  : return ir.isWeapon();
-            case ACUTIONCAT_NECKLACE: return ir.wearable(WLG_NECKLACE);
-            case ACUTIONCAT_HELMET  : return ir.isHelmet();
-            case ACUTIONCAT_RING    : return ir.isRing();
-            case ACUTIONCAT_ARMRING : return ir.wearable(WLG_ARMRING0);
-            case ACUTIONCAT_SHOES   : return ir.wearable(WLG_SHOES);
-            case ACUTIONCAT_POTION  : return ir.isPotion() || ir.isDope() || ir.isPowder();
-            case ACUTIONCAT_BOOK    : return ir.isBook();
+            case AUCTIONCAT_DRESS   : return ir.isDress();
+            case AUCTIONCAT_WEAPON  : return ir.isWeapon();
+            case AUCTIONCAT_NECKLACE: return ir.wearable(WLG_NECKLACE);
+            case AUCTIONCAT_HELMET  : return ir.isHelmet();
+            case AUCTIONCAT_RING    : return ir.isRing();
+            case AUCTIONCAT_ARMRING : return ir.wearable(WLG_ARMRING0);
+            case AUCTIONCAT_SHOES   : return ir.wearable(WLG_SHOES);
+            case AUCTIONCAT_POTION  : return ir.isPotion() || ir.isDope() || ir.isPowder();
+            case AUCTIONCAT_BOOK    : return ir.isBook();
             default                 : return false;
         }
     }
 
     bool categoryMatchIncludingOther(const ItemRecord &ir, int category)
     {
-        if(category == ACUTIONCAT_ALL){
+        if(category == AUCTIONCAT_ALL){
             return true;
         }
 
-        if(category == ACUTIONCAT_OTHER){
-            for(int knownCategory = ACUTIONCAT_DRESS; knownCategory < ACUTIONCAT_OTHER; ++knownCategory){
+        if(category == AUCTIONCAT_OTHER){
+            for(int knownCategory = AUCTIONCAT_DRESS; knownCategory < AUCTIONCAT_OTHER; ++knownCategory){
                 if(categoryMatch(ir, knownCategory)){
                     return false;
                 }
@@ -49,32 +49,32 @@ namespace
                 std::chrono::system_clock::now().time_since_epoch()).count();
     }
 
-    constexpr int64_t ACUTION_LISTING_LIFETIME = 7 * 24 * 60 * 60;
+    constexpr int64_t AUCTION_LISTING_LIFETIME = 7 * 24 * 60 * 60;
 }
 
-SDAcutionItemList dbQueryAcutionItemList(int category)
+SDAuctionItemList dbQueryAuctionItemList(int category)
 {
-    fflassert(category >= ACUTIONCAT_BEGIN, category);
-    fflassert(category <  ACUTIONCAT_END  , category);
+    fflassert(category >= AUCTIONCAT_BEGIN, category);
+    fflassert(category <  AUCTIONCAT_END  , category);
 
     const auto now = epochSeconds();
     auto query = g_dbPod->createQuery(
         u8R"###( select                                                 )###"
-        u8R"###(     tbl_acutionitem.*,                                 )###"
+        u8R"###(     tbl_auctionitem.*,                                 )###"
         u8R"###(     tbl_char.fld_dbid   as fld_sellerdbid,             )###"
         u8R"###(     tbl_char.fld_name   as fld_sellername,             )###"
         u8R"###(     tbl_char.fld_gender as fld_sellergender,           )###"
         u8R"###(     tbl_char.fld_job    as fld_sellerjob               )###"
         u8R"###( from                                                   )###"
-        u8R"###(     tbl_acutionitem join tbl_char                      )###"
+        u8R"###(     tbl_auctionitem join tbl_char                      )###"
         u8R"###(     on                                                 )###"
-        u8R"###(         tbl_char.fld_dbid = tbl_acutionitem.fld_seller )###"
+        u8R"###(         tbl_char.fld_dbid = tbl_auctionitem.fld_seller )###"
         u8R"###( where                                                  )###"
-        u8R"###(     tbl_acutionitem.fld_expiretime > %lld              )###"
+        u8R"###(     tbl_auctionitem.fld_expiretime > %lld              )###"
         u8R"###( order by                                               )###"
-        u8R"###(     tbl_acutionitem.fld_id                             )###", to_lld(now));
+        u8R"###(     tbl_auctionitem.fld_id                             )###", to_lld(now));
 
-    SDAcutionItemList result
+    SDAuctionItemList result
     {
         .category = category,
     };
@@ -107,7 +107,7 @@ SDAcutionItemList dbQueryAcutionItemList(int category)
             continue;
         }
 
-        result.itemList.push_back(SDAcutionItem
+        result.itemList.push_back(SDAuctionItem
         {
             .seller
             {
@@ -132,11 +132,11 @@ SDAcutionItemList dbQueryAcutionItemList(int category)
     return result;
 }
 
-bool dbRegisterAcutionItem(uint32_t sellerDBID, const SDItem &item, const std::string &note, uint64_t price)
+bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::string &note, uint64_t price)
 {
     fflassert(sellerDBID > 0 && sellerDBID <= SYS_MAXDBID, sellerDBID);
     fflassert(item && !item.isGold());
-    fflassert(note.size() <= SYS_ACUTIONNOTESIZE, note.size());
+    fflassert(note.size() <= SYS_AUCTIONNOTESIZE, note.size());
     fflassert(price > 0 && price <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()), price);
 
     auto transaction = g_dbPod->createTransaction();
@@ -183,10 +183,10 @@ bool dbRegisterAcutionItem(uint32_t sellerDBID, const SDItem &item, const std::s
         }
     }
 
-    const auto expireTime = epochSeconds() + ACUTION_LISTING_LIFETIME;
+    const auto expireTime = epochSeconds() + AUCTION_LISTING_LIFETIME;
     auto insertQuery = g_dbPod->createQuery(
         u8R"###(
-            insert into tbl_acutionitem(
+            insert into tbl_auctionitem(
                 fld_seller,
                 fld_note,
                 fld_itemid,

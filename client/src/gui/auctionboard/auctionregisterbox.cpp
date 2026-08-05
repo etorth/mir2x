@@ -5,11 +5,11 @@
 #include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
-#include "acutionregisterbox.hpp"
+#include "auctionregisterbox.hpp"
 
 extern PNGTexDB *g_itemDB;
 
-AcutionRegisterBox::AcutionRegisterBox(AcutionRegisterBox::InitArgs args)
+AuctionRegisterBox::AuctionRegisterBox(AuctionRegisterBox::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
@@ -58,7 +58,7 @@ AcutionRegisterBox::AcutionRegisterBox(AcutionRegisterBox::InitArgs args)
       }}
 {}
 
-bool AcutionRegisterBox::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
+bool AuctionRegisterBox::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
         return false;
@@ -83,7 +83,7 @@ bool AcutionRegisterBox::processEventDefault(const SDL_Event &event, bool valid,
     return consumeFocus(false);
 }
 
-SDL_Texture *AcutionRegisterBox::itemTexture() const
+SDL_Texture *AuctionRegisterBox::itemTexture() const
 {
     if(!m_item){
         return nullptr;
@@ -110,7 +110,7 @@ SDL_Texture *AcutionRegisterBox::itemTexture() const
     return nullptr;
 }
 
-std::pair<int, int> AcutionRegisterBox::itemImageSize() const
+std::pair<int, int> AuctionRegisterBox::itemImageSize() const
 {
     constexpr int maxItemW = 159 - 20;
     constexpr int maxItemH = 164 - 40;

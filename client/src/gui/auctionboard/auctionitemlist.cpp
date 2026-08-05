@@ -3,10 +3,10 @@
 #include "strf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
-#include "acutionitemrow.hpp"
-#include "acutionitemlist.hpp"
+#include "auctionitemrow.hpp"
+#include "auctionitemlist.hpp"
 
-AcutionItemList::AcutionItemList(AcutionItemList::InitArgs args)
+AuctionItemList::AuctionItemList(AuctionItemList::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
@@ -25,7 +25,7 @@ AcutionItemList::AcutionItemList(AcutionItemList::InitArgs args)
 
     , m_itemBox
       {{
-          .fixed = AcutionItemRow::m_rowW,
+          .fixed = AuctionItemRow::m_rowW,
 
           .headSpace = 1,
           .itemSpace = 1,
@@ -35,11 +35,11 @@ AcutionItemList::AcutionItemList(AcutionItemList::InitArgs args)
       }}
 {
     for(size_t i = 0; i < m_rowCount; ++i){
-        m_itemBox.addItem(new AcutionItemRow(this, i), true);
+        m_itemBox.addItem(new AuctionItemRow(this, i), true);
     }
 }
 
-bool AcutionItemList::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
+bool AuctionItemList::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(empty()){
         return false;
@@ -55,7 +55,7 @@ bool AcutionItemList::processEventDefault(const SDL_Event &event, bool valid, Wi
             setFirstIndex((m_firstIndex > 0) ? (m_firstIndex - 1) : 0);
         }
         else if(event.wheel.y < 0.0F){
-            setFirstIndex(std::min<size_t>(m_firstIndex + 1, m_sdAcutionItemList.itemList.size() - 1));
+            setFirstIndex(std::min<size_t>(m_firstIndex + 1, m_sdAuctionItemList.itemList.size() - 1));
         }
         return true;
     }
@@ -63,25 +63,25 @@ bool AcutionItemList::processEventDefault(const SDL_Event &event, bool valid, Wi
     return Widget::processEventDefault(event, valid, m);
 }
 
-void AcutionItemList::setItemList(SDAcutionItemList sdAIL)
+void AuctionItemList::setItemList(SDAuctionItemList sdAIL)
 {
-    fflassert(sdAIL.category >= ACUTIONCAT_BEGIN, sdAIL.category);
-    fflassert(sdAIL.category <  ACUTIONCAT_END  , sdAIL.category);
+    fflassert(sdAIL.category >= AUCTIONCAT_BEGIN, sdAIL.category);
+    fflassert(sdAIL.category <  AUCTIONCAT_END  , sdAIL.category);
 
     for(const auto &entry: sdAIL.itemList){
         fflassert(entry.item);
         fflassert(DBCOM_ITEMRECORD(entry.item.itemID));
     }
 
-    m_acutionTimer.reset();
-    m_sdAcutionItemList = std::move(sdAIL);
+    m_auctionTimer.reset();
+    m_sdAuctionItemList = std::move(sdAIL);
 
     m_firstIndex = 0;
     m_hoveredRow.reset();
     m_selectedRow.reset();
 }
 
-void AcutionItemList::movePrev()
+void AuctionItemList::movePrev()
 {
     if(!canMovePrev()){
         return;
@@ -91,7 +91,7 @@ void AcutionItemList::movePrev()
     m_selectedRow.reset();
 }
 
-void AcutionItemList::moveNext()
+void AuctionItemList::moveNext()
 {
     if(!canMoveNext()){
         return;
@@ -101,7 +101,7 @@ void AcutionItemList::moveNext()
     m_selectedRow.reset();
 }
 
-void AcutionItemList::setFirstIndex(size_t firstIndex)
+void AuctionItemList::setFirstIndex(size_t firstIndex)
 {
     fflassert(indexItem(firstIndex), firstIndex, size());
     m_firstIndex = firstIndex;
@@ -110,7 +110,7 @@ void AcutionItemList::setFirstIndex(size_t firstIndex)
     m_selectedRow.reset();
 }
 
-void AcutionItemList::setSelectedRow(size_t rowIndex, bool selected)
+void AuctionItemList::setSelectedRow(size_t rowIndex, bool selected)
 {
     fflassert(rowIndex < m_rowCount, rowIndex);
     if(selected){
@@ -122,7 +122,7 @@ void AcutionItemList::setSelectedRow(size_t rowIndex, bool selected)
     }
 }
 
-void AcutionItemList::setHoveredRow(size_t rowIndex, bool hovered)
+void AuctionItemList::setHoveredRow(size_t rowIndex, bool hovered)
 {
     fflassert(rowIndex < m_rowCount, rowIndex);
     if(hovered){
@@ -134,9 +134,9 @@ void AcutionItemList::setHoveredRow(size_t rowIndex, bool hovered)
     }
 }
 
-std::string AcutionItemList::formatTimeLeft(const SDAcutionItem &item)
+std::string AuctionItemList::formatTimeLeft(const SDAuctionItem &item)
 {
-    const auto elapsedSecs = m_acutionTimer.diff_sec();
+    const auto elapsedSecs = m_auctionTimer.diff_sec();
     const auto timeLeft = (item.timeLeft > elapsedSecs) ? (item.timeLeft - elapsedSecs) : 0;
 
     if(timeLeft == 0){

@@ -1,8 +1,8 @@
 #include <utility>
 #include "colorf.hpp"
-#include "acutionregisternote.hpp"
+#include "auctionregisternote.hpp"
 
-AcutionRegisterNote::AcutionRegisterNote(AcutionRegisterNote::InitArgs args)
+AuctionRegisterNote::AuctionRegisterNote(AuctionRegisterNote::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
@@ -55,7 +55,7 @@ AcutionRegisterNote::AcutionRegisterNote(AcutionRegisterNote::InitArgs args)
       }}
 {}
 
-bool AcutionRegisterNote::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
+bool AuctionRegisterNote::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
         return false;

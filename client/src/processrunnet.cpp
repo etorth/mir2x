@@ -22,7 +22,7 @@
 #include "imeboard.hpp"
 #include "gui/controlboard/controlboard.hpp"
 #include "gui/friendchatboard/friendchatboard.hpp"
-#include "gui/acutionboard/acutionboard.hpp"
+#include "gui/auctionboard/auctionboard.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
@@ -130,12 +130,12 @@ void ProcessRun::on_SM_SELLITEMLIST(const uint8_t *buf, size_t bufSize)
     purchaseBoardPtr->setSellItemList(std::move(sdSIL));
 }
 
-void ProcessRun::on_SM_ACUTIONITEMLIST(const uint8_t *buf, size_t bufSize)
+void ProcessRun::on_SM_AUCTIONITEMLIST(const uint8_t *buf, size_t bufSize)
 {
-    auto itemList = cerealf::deserialize<SDAcutionItemList>(buf, bufSize);
-    auto acutionBoard = dynamic_cast<AcutionBoard *>(getWidget("AcutionBoard"));
-    acutionBoard->setItemList(std::move(itemList));
-    acutionBoard->setShow(true);
+    auto itemList = cerealf::deserialize<SDAuctionItemList>(buf, bufSize);
+    auto auctionBoard = dynamic_cast<AuctionBoard *>(getWidget("AuctionBoard"));
+    auctionBoard->setItemList(std::move(itemList));
+    auctionBoard->setShow(true);
 }
 
 void ProcessRun::on_SM_ACTION(const uint8_t *bufPtr, size_t)

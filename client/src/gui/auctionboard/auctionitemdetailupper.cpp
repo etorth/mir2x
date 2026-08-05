@@ -2,9 +2,9 @@
 #include "strf.hpp"
 #include "xmlf.hpp"
 #include "colorf.hpp"
-#include "acutionitemdetailupper.hpp"
+#include "auctionitemdetailupper.hpp"
 
-AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs args)
+AuctionItemDetailUpper::AuctionItemDetailUpper(AuctionItemDetailUpper::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
@@ -76,7 +76,7 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
     setShow(false);
 }
 
-void AcutionItemDetailUpper::setItem(const SDAcutionItem *item)
+void AuctionItemDetailUpper::setItem(const SDAuctionItem *item)
 {
     if(item){
         const auto notePar = xmlf::toParString("%s", item->note.empty() ? to_cstr(u8"卖家未填写留言。") :  item->note.c_str());

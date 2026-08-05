@@ -3,19 +3,19 @@
 #include "imageboard.hpp"
 #include "textboard.hpp"
 #include "tritexbutton.hpp"
-#include "acutionitemlist.hpp"
-#include "acutionitemdetailupper.hpp"
-#include "acutionitemdetaillower.hpp"
+#include "auctionitemlist.hpp"
+#include "auctionitemdetailupper.hpp"
+#include "auctionitemdetaillower.hpp"
 
 class ProcessRun;
-class AcutionBoard final: public Widget
+class AuctionBoard final: public Widget
 {
     private:
         ProcessRun *m_runProc;
 
     private:
         ImageBoard m_background;
-        AcutionItemList m_itemList;
+        AuctionItemList m_itemList;
 
         TextBoard m_category;
         TextBoard m_itemCount;
@@ -26,8 +26,8 @@ class AcutionBoard final: public Widget
         TextBoard m_columnTime;
         TextBoard m_columnPrice;
 
-        AcutionItemDetailUpper m_itemDetailUpper;
-        AcutionItemDetailLower m_itemDetailLower;
+        AuctionItemDetailUpper m_itemDetailUpper;
+        AuctionItemDetailLower m_itemDetailLower;
 
     private:
         TritexButton m_buttonPrevious;
@@ -41,11 +41,11 @@ class AcutionBoard final: public Widget
         TritexButton m_buttonClose;
 
     public:
-        AcutionBoard(ProcessRun *, Widget * = nullptr, bool = false);
+        AuctionBoard(ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     public:
-        void setItemList(SDAcutionItemList);
+        void setItemList(SDAuctionItemList);
 };

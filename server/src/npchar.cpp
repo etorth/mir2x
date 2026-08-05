@@ -18,7 +18,7 @@
 #include "server.hpp"
 #include "serverpasswordwindow.hpp"
 #include "serverconfigurewindow.hpp"
-#include "acutiondb.hpp"
+#include "auctiondb.hpp"
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
@@ -309,9 +309,9 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         getNPChar()->postSell(uid);
     });
 
-    bindFunction("uidPostAcutionItemList", [this](uint64_t uid, int category)
+    bindFunction("uidPostAuctionItemList", [this](uint64_t uid, int category)
     {
-        getNPChar()->postAcutionItemList(uid, category);
+        getNPChar()->postAuctionItemList(uid, category);
     });
 
     bindFunction("uidPostStartInvOp", [this](uint64_t uid, int invOp, std::string queryTag, std::string commitTag, sol::as_table_t<std::vector<std::string>> typeTable)
@@ -420,11 +420,11 @@ void NPChar::postSell(uint64_t uid)
     }));
 }
 
-void NPChar::postAcutionItemList(uint64_t uid, int category)
+void NPChar::postAuctionItemList(uint64_t uid, int category)
 {
     fflassert(uidf::isPlayer(uid), uid, uidf::getUIDString(uid));
-    fflassert(category >= ACUTIONCAT_BEGIN && category < ACUTIONCAT_END, category);
-    forwardNetPackage(uid, SM_ACUTIONITEMLIST, cerealf::serialize(dbQueryAcutionItemList(category), true));
+    fflassert(category >= AUCTIONCAT_BEGIN && category < AUCTIONCAT_END, category);
+    forwardNetPackage(uid, SM_AUCTIONITEMLIST, cerealf::serialize(dbQueryAuctionItemList(category), true));
 }
 
 void NPChar::postInvOpCost(uint64_t uid, int invOp, uint32_t itemID, uint32_t seqID, size_t cost)

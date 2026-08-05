@@ -88,8 +88,8 @@ enum SMType: uint8_t
     SM_PLAYERBROADCAST,
     SM_RANKINGLIST,
     SM_CLAIMDELIVERYERROR,
-    SM_ACUTIONITEMLIST,
-    SM_ACUTIONREGISTERERROR,
+    SM_AUCTIONITEMLIST,
+    SM_AUCTIONREGISTERERROR,
     SM_QUERYCHATPEERLISTOK,
     SM_QUERYCHATMESSAGEOK,
     SM_CHATMESSAGEOK,
@@ -375,7 +375,7 @@ struct SMClaimDeliveryError
     uint8_t error;
 };
 
-struct SMAcutionRegisterError
+struct SMAuctionRegisterError
 {
     uint8_t error;
 };
@@ -473,8 +473,8 @@ namespace
         _RSVD_register_servermsg(SM_PLAYERBROADCAST,      1, sizeof(SMPlayerBroadcast)     );
         _RSVD_register_servermsg(SM_RANKINGLIST,          3                                );
         _RSVD_register_servermsg(SM_CLAIMDELIVERYERROR,   1, sizeof(SMClaimDeliveryError)  );
-        _RSVD_register_servermsg(SM_ACUTIONITEMLIST,      3                                );
-        _RSVD_register_servermsg(SM_ACUTIONREGISTERERROR, 1, sizeof(SMAcutionRegisterError));
+        _RSVD_register_servermsg(SM_AUCTIONITEMLIST,      3                                );
+        _RSVD_register_servermsg(SM_AUCTIONREGISTERERROR, 1, sizeof(SMAuctionRegisterError));
         _RSVD_register_servermsg(SM_QUERYCHATPEERLISTOK,  3                                );
         _RSVD_register_servermsg(SM_QUERYCHATMESSAGEOK,   3                                );
         _RSVD_register_servermsg(SM_CHATMESSAGEOK,        3                                );

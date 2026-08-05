@@ -2,13 +2,13 @@
 #include "widget.hpp"
 #include "serdesmsg.hpp"
 #include "imageboard.hpp"
-#include "acutionregisternote.hpp"
-#include "acutionregisterbox.hpp"
-#include "acutionregisterprice.hpp"
+#include "auctionregisternote.hpp"
+#include "auctionregisterbox.hpp"
+#include "auctionregisterprice.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessRun;
-class AcutionRegisterBoard final: public Widget
+class AuctionRegisterBoard final: public Widget
 {
     private:
         ProcessRun *m_runProc;
@@ -19,16 +19,16 @@ class AcutionRegisterBoard final: public Widget
 
     private:
         ImageBoard m_background;
-        AcutionRegisterNote m_note;
-        AcutionRegisterBox m_box;
-        AcutionRegisterPrice m_price;
+        AuctionRegisterNote m_note;
+        AuctionRegisterBox m_box;
+        AuctionRegisterPrice m_price;
 
         TritexButton m_buttonRegister;
         TritexButton m_buttonCancel;
         TritexButton m_buttonClose;
 
     public:
-        AcutionRegisterBoard(ProcessRun *, Widget * = nullptr, bool = false);
+        AuctionRegisterBoard(ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
         void beginRegister();

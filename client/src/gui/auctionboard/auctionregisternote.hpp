@@ -1,10 +1,10 @@
 #pragma once
-#include <cstdint>
-#include <functional>
+#include <string>
 #include "widget.hpp"
 #include "textboard.hpp"
+#include "layoutboard.hpp"
 
-class AcutionRegisterPrice final: public Widget
+class AuctionRegisterNote final: public Widget
 {
     public:
         struct InitArgs final
@@ -13,7 +13,7 @@ class AcutionRegisterPrice final: public Widget
             Widget::VarInt x = 0;
             Widget::VarInt y = 0;
 
-            std::function<void()> onClick {};
+            Widget::VarInt enableIME = IME_DISABLE;
 
             Widget::InstAttrs attrs {};
             Widget::WADPair  parent {};
@@ -21,16 +21,13 @@ class AcutionRegisterPrice final: public Widget
 
     private:
         bool m_enabled = true;
-        uint64_t m_price = 0;
 
     private:
-        const std::function<void()> m_onClick;
-
-    private:
-        TextBoard m_text;
+        LayoutBoard m_note;
+        TextBoard m_hint;
 
     public:
-        explicit AcutionRegisterPrice(AcutionRegisterPrice::InitArgs);
+        explicit AuctionRegisterNote(AuctionRegisterNote::InitArgs);
 
     public:
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
@@ -41,19 +38,19 @@ class AcutionRegisterPrice final: public Widget
             m_enabled = enabled;
         }
 
-    public:
-        uint64_t price() const
+        void setInputFocus(bool focused)
         {
-            return m_price;
+            m_note.setFocus(focused);
         }
 
-        void setPrice(uint64_t price)
+    public:
+        std::string getText() const
         {
-            m_price = price;
+            return m_note.getText();
         }
 
         void clear()
         {
-            m_price = 0;
+            m_note.clear();
         }
 };
