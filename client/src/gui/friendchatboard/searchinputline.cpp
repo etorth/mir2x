@@ -113,7 +113,7 @@ SearchInputLine::SearchInputLine(Widget::VarDir argDir,
                   g_client->send({CM_QUERYCHATPEERLIST, cmQPC}, [query = std::move(query), this](uint8_t headCode, const uint8_t *data, size_t size)
                   {
                       switch(headCode){
-                          case SM_OK:
+                          case SM_QUERYCHATPEERLISTOK:
                             {
                                 hasParent<SearchPage>()->candidates.clearChild();
                                 hasParent<SearchPage>()->autocompletes.clearChild();

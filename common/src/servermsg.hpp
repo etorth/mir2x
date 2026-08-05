@@ -90,6 +90,11 @@ enum SMType: uint8_t
     SM_CLAIMDELIVERYERROR,
     SM_ACUTIONITEMLIST,
     SM_ACUTIONREGISTERERROR,
+    SM_QUERYCHATPEERLISTOK,
+    SM_QUERYCHATMESSAGEOK,
+    SM_CHATMESSAGEOK,
+    SM_ADDFRIENDOK,
+    SM_CREATECHATGROUPOK,
     SM_END,
 };
 
@@ -389,7 +394,7 @@ namespace
         //  2    :   not empty,     fixed size, not compressed
         //  3    : maybe empty, not fixed size, not compressed
         _RSVD_register_servermsg(SM_NONE_0,               0                                );
-        _RSVD_register_servermsg(SM_OK,                   3                                );
+        _RSVD_register_servermsg(SM_OK,                   0                                );
         _RSVD_register_servermsg(SM_ERROR,                0                                );
         _RSVD_register_servermsg(SM_PING,                 2, sizeof(SMPing)                );
         _RSVD_register_servermsg(SM_UID,                  2, sizeof(SMUID)                 );
@@ -470,6 +475,11 @@ namespace
         _RSVD_register_servermsg(SM_CLAIMDELIVERYERROR,   1, sizeof(SMClaimDeliveryError)  );
         _RSVD_register_servermsg(SM_ACUTIONITEMLIST,      3                                );
         _RSVD_register_servermsg(SM_ACUTIONREGISTERERROR, 1, sizeof(SMAcutionRegisterError));
+        _RSVD_register_servermsg(SM_QUERYCHATPEERLISTOK,  3                                );
+        _RSVD_register_servermsg(SM_QUERYCHATMESSAGEOK,   3                                );
+        _RSVD_register_servermsg(SM_CHATMESSAGEOK,        3                                );
+        _RSVD_register_servermsg(SM_ADDFRIENDOK,          3                                );
+        _RSVD_register_servermsg(SM_CREATECHATGROUPOK,    3                                );
 
 #undef _RSVD_register_servermsg
         return result;

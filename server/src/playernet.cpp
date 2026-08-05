@@ -382,7 +382,7 @@ corof::awaitable<> Player::net_CM_QUERYCHATPEERLIST(uint8_t, const uint8_t *buf,
         postNetMessage(SM_ERROR, respID);
     }
     else{
-        postNetMessage(SM_OK, cerealf::serialize(dbQueryChatPeerList(input, true, true)), respID);
+        postNetMessage(SM_QUERYCHATPEERLISTOK, cerealf::serialize(dbQueryChatPeerList(input, true, true)), respID);
     }
     return {};
 }
@@ -391,7 +391,7 @@ corof::awaitable<> Player::net_CM_QUERYCHATMESSAGE(uint8_t, const uint8_t *buf, 
 {
     const auto cmQCM = ClientMsg::conv<CMQueryChatMessage>(buf);
     if(auto msgOpt = dbQueryChatMessage(cmQCM.msgid); msgOpt.has_value()){
-        postNetMessage(SM_OK, cerealf::serialize(msgOpt.value()), respID);
+        postNetMessage(SM_QUERYCHATMESSAGEOK, cerealf::serialize(msgOpt.value()), respID);
     }
     else{
         postNetMessage(SM_ERROR, respID);
@@ -462,7 +462,7 @@ corof::awaitable<> Player::net_CM_CHATMESSAGE(uint8_t, const uint8_t *buf, size_
             }
     }
 
-    postNetMessage(SM_OK, cerealf::serialize(SDChatMessageDBSeq
+    postNetMessage(SM_CHATMESSAGEOK, cerealf::serialize(SDChatMessageDBSeq
     {
         .id = msgId,
         .timestamp = tstamp,
@@ -520,7 +520,7 @@ corof::awaitable<> Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t,
 {
     const auto fnPostNetMessage = [respID, this](int notif)
     {
-        postNetMessage(SM_OK, cerealf::serialize(SDAddFriendNotif
+        postNetMessage(SM_ADDFRIENDOK, cerealf::serialize(SDAddFriendNotif
         {
             .notif = notif,
         }),
@@ -1281,6 +1281,6 @@ corof::awaitable<> Player::net_CM_CREATECHATGROUP(uint8_t, const uint8_t *buf, s
         }
     }
 
-    postNetMessage(SM_OK, sdBuf, respID);
+    postNetMessage(SM_CREATECHATGROUPOK, sdBuf, respID);
     return {};
 }

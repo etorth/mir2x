@@ -673,7 +673,7 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
                                       g_client->send({CM_CREATECHATGROUP, cmCCG}, [this](uint8_t headCode, const uint8_t *buf, size_t size)
                                       {
                                           switch(headCode){
-                                              case SM_OK:
+                                              case SM_CREATECHATGROUPOK:
                                                   {
                                                       addGroup(cerealf::deserialize<SDChatPeer>(buf, size));
                                                       break;
@@ -1053,7 +1053,7 @@ void FriendChatBoard::queryChatMessage(uint64_t argMsgID, std::function<void(con
         cmQCM.msgid = argMsgID;
         g_client->send({CM_QUERYCHATMESSAGE, cmQCM}, [argMsgID, argOp = std::move(argOp), this](uint8_t headCode, const uint8_t *data, size_t size)
         {
-            if(headCode == SM_OK){
+            if(headCode == SM_QUERYCHATMESSAGEOK){
                 const auto sdCM = cerealf::deserialize<SDChatMessage>(data, size);
                 fflassert(sdCM.seq.has_value());
                 fflassert(sdCM.seq.value().id == argMsgID);
@@ -1086,7 +1086,7 @@ void FriendChatBoard::queryChatPeer(const SDChatPeerID &sdCPID, std::function<vo
         g_client->send({CM_QUERYCHATPEERLIST, cmQCPL}, [sdCPID, argOp = std::move(argOp), this](uint8_t headCode, const uint8_t *data, size_t size)
         {
             switch(headCode){
-                case SM_OK:
+                case SM_QUERYCHATPEERLISTOK:
                   {
                       if(const auto sdPCL = cerealf::deserialize<SDChatPeerList>(data, size); sdPCL.empty()){
                           if(argOp){
@@ -1362,7 +1362,7 @@ void FriendChatBoard::requestAddFriend(const SDChatPeer &argCP, bool switchToCha
     g_client->send({CM_ADDFRIEND, cmAF}, [argCP, switchToChatPreview, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
     {
         switch(headCode){
-            case SM_OK:
+            case SM_ADDFRIENDOK:
                 {
                     switch(const auto sdAFN = cerealf::deserialize<SDAddFriendNotif>(buf, bufSize); sdAFN.notif){
                         case AF_ACCEPTED:

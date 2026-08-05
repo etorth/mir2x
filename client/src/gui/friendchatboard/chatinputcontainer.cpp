@@ -111,7 +111,7 @@ ChatInputContainer::ChatInputContainer(
                   g_client->send({CM_CHATMESSAGE, msgbuf}, [widgetID, this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
                   {
                       switch(headCode){
-                          case SM_OK:
+                          case SM_CHATMESSAGEOK:
                               {
                                   const auto sdCMDBS = cerealf::deserialize<SDChatMessageDBSeq>(buf, bufSize);
                                   FriendChatBoard::getParentBoard(this)->finishMessagePending(widgetID, sdCMDBS);
