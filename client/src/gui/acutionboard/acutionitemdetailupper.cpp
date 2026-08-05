@@ -8,14 +8,13 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
     : Widget
       {{
           .dir = std::move(args.dir),
+
           .x = std::move(args.x),
           .y = std::move(args.y),
+
           .w = 226,
           .h = 115,
-          .attrs
-          {
-              .inst = std::move(args.attrs),
-          },
+
           .parent = std::move(args.parent),
       }}
 
@@ -46,11 +45,6 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
     , m_note
       {{
           .lineWidth = 211,
-          .font
-          {
-              .id = 1,
-              .size = 10,
-          },
           .lineAlign = LALIGN_JUSTIFY,
           .parent{&m_noteArea},
       }}
@@ -98,24 +92,19 @@ AcutionItemDetailUpper::AcutionItemDetailUpper(AcutionItemDetailUpper::InitArgs 
 
 void AcutionItemDetailUpper::setItem(const SDAcutionItem *item)
 {
-    if(!item){
+    if(item){
+        const auto notePar = xmlf::toParString("%s", item->note.empty() ? to_cstr(u8"卖家未填写留言。") :  item->note.c_str());
+        const auto noteXML = str_printf("<layout>%s</layout>", notePar.c_str());
+        m_note.loadXML(noteXML.c_str());
+
+        const auto sellerPar = xmlf::toParString("卖家：%s", to_cstr(item->seller));
+        const auto sellerXML = str_printf("<layout>%s</layout>", sellerPar.c_str());
+        m_seller.loadXML(sellerXML.c_str());
+    }
+    else{
         m_note.clear();
         m_seller.clear();
-        setShow(false);
-        return;
     }
 
-    const auto noteXML = str_printf(
-            "<layout>%s</layout>",
-            xmlf::toParString(
-                "%s",
-                item->note.empty() ? to_cstr(u8"卖家未填写留言。") : item->note.c_str()).c_str());
-    m_note.loadXML(noteXML.c_str());
-
-    const auto sellerXML = str_printf(
-            "<layout>%s</layout>",
-            xmlf::toParString("卖家：%s", item->seller.c_str()).c_str());
-    m_seller.loadXML(sellerXML.c_str());
-
-    setShow(true);
+    flipShow(item);
 }

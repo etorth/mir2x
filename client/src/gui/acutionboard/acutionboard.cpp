@@ -63,8 +63,6 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::YELLOW_A255,
           },
           .parent{this},
@@ -81,8 +79,6 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::YELLOW_A255,
           },
           .parent{this},
@@ -96,15 +92,13 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .textFunc = [this]() -> std::string
           {
               if(const auto firstIndex = m_itemList.firstIndex(); firstIndex.has_value()){
-                  const auto lastIndex = std::min(firstIndex.value() + AcutionItemList::m_rowCount, m_itemList.size());
+                  const auto lastIndex = std::min<size_t>(firstIndex.value() + AcutionItemList::m_rowCount, m_itemList.size());
                   return to_cstr(str_printf(u8"第%zu-%zu件物品", firstIndex.value() + 1, lastIndex));
               }
               return {};
           },
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::YELLOW_A255,
           },
           .attrs
@@ -122,8 +116,6 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .textFunc = to_cstr(u8"物品"),
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::YELLOW_A255,
           },
           .parent{this},
@@ -137,8 +129,6 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .textFunc = to_cstr(u8"寄售人"),
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::YELLOW_A255,
           },
           .parent{this},
@@ -152,8 +142,6 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .textFunc = to_cstr(u8"剩余"),
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::YELLOW_A255,
           },
           .parent{this},
@@ -167,8 +155,6 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .textFunc = to_cstr(u8"价格"),
           .font
           {
-              .id = 1,
-              .size = 12,
               .color = colorf::YELLOW_A255,
           },
           .parent{this},
@@ -201,7 +187,6 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               m_itemList.movePrev();
-              updateSelectedItem();
           },
 
           .attrs
@@ -224,7 +209,6 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           .onTrigger = [this](Widget *, int)
           {
               m_itemList.moveNext();
-              updateSelectedItem();
           },
 
           .attrs
@@ -371,10 +355,10 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
         return false;
     }
 
-    const auto oldSelectedIndex = m_itemList.selectedIndex();
-    if(m_itemList.processEventParent(event, valid, m)){
-        if(oldSelectedIndex != m_itemList.selectedIndex()){
-            updateSelectedItem();
+    if(const auto oldSelected = m_itemList.selectedIndex(); m_itemList.processEventParent(event, valid, m)){
+        if(const auto newSelected = m_itemList.selectedIndex(); oldSelected != newSelected){
+            m_itemDetailUpper.setItem(newSelected.has_value() ? m_itemList.indexItem(newSelected.value()) : nullptr);
+            m_itemDetailLower.setItem(newSelected.has_value() ? m_itemList.indexItem(newSelected.value()) : nullptr);
         }
         return true;
     }
@@ -383,22 +367,22 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
         return consumeFocus(false);
     }
 
-    if(m_itemDetailUpper.show() && m_itemDetailUpper.processEventParent(event, valid, m)){ return true; }
-    if(m_buttonPrevious    .processEventParent(event, valid, m)){ return true; }
-    if(m_buttonNext        .processEventParent(event, valid, m)){ return true; }
-    if(m_buttonRefresh     .processEventParent(event, valid, m)){ return true; }
-    if(m_buttonItemSearch  .processEventParent(event, valid, m)){ return true; }
-    if(m_buttonSellerSearch.processEventParent(event, valid, m)){ return true; }
-    if(m_buttonRegister    .processEventParent(event, valid, m)){ return true; }
-    if(m_buttonBuy         .processEventParent(event, valid, m)){ return true; }
-    if(m_buttonCancel      .processEventParent(event, valid, m)){ return true; }
-    if(m_buttonClose       .processEventParent(event, valid, m)){ return true; }
+    if(m_itemDetailUpper.show() && m_itemDetailUpper   .processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonPrevious    .processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonNext        .processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonRefresh     .processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonItemSearch  .processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonSellerSearch.processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonRegister    .processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonBuy         .processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonCancel      .processEventParent(event, valid, m)){ return true; }
+    if(                            m_buttonClose       .processEventParent(event, valid, m)){ return true; }
 
     switch(event.type){
         case SDL_EVENT_KEY_DOWN:
             {
                 if(event.key.key == SDLK_ESCAPE){
-                    setShow(false);
+                    flipShow(false);
                     setFocus(false);
                     return true;
                 }
@@ -432,16 +416,6 @@ bool AcutionBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
 void AcutionBoard::setItemList(SDAcutionItemList sdAcutionItemList)
 {
     m_itemList.setItemList(std::move(sdAcutionItemList));
-    updateSelectedItem();
-}
-
-void AcutionBoard::updateSelectedItem()
-{
-    const SDAcutionItem *item = nullptr;
-    if(const auto selectedIndex = m_itemList.selectedIndex(); selectedIndex.has_value()){
-        item = fflcheck(m_itemList.indexItem(selectedIndex.value()));
-    }
-
-    m_itemDetailUpper.setItem(item);
-    m_itemDetailLower.setItem(item);
+    m_itemDetailUpper.setItem(nullptr);
+    m_itemDetailLower.setItem(nullptr);
 }

@@ -48,7 +48,4 @@ class AcutionBoard final: public Widget
 
     public:
         void setItemList(SDAcutionItemList);
-
-    private:
-        void updateSelectedItem();
 };
