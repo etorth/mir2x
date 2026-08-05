@@ -52,17 +52,10 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           },
       }}
 
-    , m_summaryArea
-      {{
-          .w = 145,
-          .h = [this]{ return std::max<int>(61, m_summary.h()); },
-      }}
-
     , m_summary
       {{
-          .lineWidth = 145,
+          .lineWidth = 0, // all single lines
           .lineAlign = LALIGN_LEFT,
-          .parent{&m_summaryArea},
       }}
 
     , m_hItemBox
@@ -76,62 +69,40 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .childList
           {
               {&m_imageArea, false},
-              {&m_summaryArea, false},
+              {&m_summary  , false},
           },
-      }}
-
-    , m_descriptionArea
-      {{
-          .w = m_viewportW,
-          .h = [this]{ return m_descriptionTitle.h() + std::max<int>(22, m_description.h()); },
       }}
 
     , m_descriptionTitle
       {{
           .dir = DIR_LEFT,
-          .x = 7,
           .textFunc = to_cstr(u8"物品描述"),
           .font
           {
               .color = colorf::GREEN_A255,
           },
-          .parent{&m_descriptionArea},
       }}
 
     , m_description
       {{
-          .x = 7,
-          .y = [this]{ return m_descriptionTitle.h(); },
-          .lineWidth = 211,
+          .lineWidth = m_detailLineWidth,
           .lineAlign = LALIGN_JUSTIFY,
-          .parent{&m_descriptionArea},
-      }}
-
-    , m_attributeArea
-      {{
-          .w = m_viewportW,
-          .h = [this]{ return m_attributeTitle.h() + std::max<int>(36, m_attribute.h()); },
       }}
 
     , m_attributeTitle
       {{
           .dir = DIR_LEFT,
-          .x = 7,
           .textFunc = to_cstr(u8"物品属性"),
           .font
           {
               .color = colorf::GREEN_A255,
           },
-          .parent{&m_attributeArea},
       }}
 
     , m_attribute
       {{
-          .x = 7,
-          .y = [this]{ return m_attributeTitle.h(); },
-          .lineWidth = 211,
+          .lineWidth = m_detailLineWidth,
           .lineAlign = LALIGN_LEFT,
-          .parent{&m_attributeArea},
       }}
 
     , m_vItemBox
@@ -146,9 +117,11 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
 
           .childList
           {
-              {&m_hItemBox, false},
-              {&m_descriptionArea, false},
-              {&m_attributeArea, false},
+              {&m_hItemBox        , false},
+              {&m_descriptionTitle, false},
+              {&m_description     , false},
+              {&m_attributeTitle  , false},
+              {&m_attribute       , false},
           },
       }}
 
@@ -160,12 +133,9 @@ AcutionItemDetailLower::AcutionItemDetailLower(AcutionItemDetailLower::InitArgs 
           .getter = &m_vItemBox,
 
           .hBar = false,
-          .vBar = true,
-
           .hScroll = false,
-          .vScroll = true,
 
-          .barSize = m_scrollBarSize,
+          .barSize = m_scrollBarWidth,
           .parent{this},
       }}
 {

@@ -19,7 +19,10 @@ class AcutionItemDetailLower final: public Widget
     private:
         constexpr static int m_viewportW = 218;
         constexpr static int m_viewportH = 168;
-        constexpr static int m_scrollBarSize = 8;
+
+    private:
+        constexpr static int m_scrollBarWidth = 8;
+        constexpr static int m_detailLineWidth = 211;
 
     public:
         struct InitArgs final
@@ -40,19 +43,16 @@ class AcutionItemDetailLower final: public Widget
         MarginContainer m_imageArea;
 
     private:
-        Widget m_summaryArea;
         LayoutBoard m_summary;
 
     private:
         ItemBox m_hItemBox;
 
     private:
-        Widget m_descriptionArea;
         TextBoard m_descriptionTitle;
         LayoutBoard m_description;
 
     private:
-        Widget m_attributeArea;
         TextBoard m_attributeTitle;
         LayoutBoard m_attribute;
 
