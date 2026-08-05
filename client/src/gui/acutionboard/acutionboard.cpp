@@ -163,7 +163,7 @@ AcutionBoard::AcutionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
     , m_itemDetailUpper
       {{
           .x = 486,
-          .y = 50,
+          .y = 23,
           .parent{this},
       }}
 

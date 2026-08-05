@@ -19,15 +19,14 @@ class AcutionItemDetailUpper final: public Widget
         };
 
     private:
+        std::string m_titleString;
+
+    private:
         TextBoard m_title;
 
     private:
         Widget m_noteArea;
         LayoutBoard m_note;
-
-    private:
-        Widget m_sellerArea;
-        LayoutBoard m_seller;
 
     private:
         TextButton m_buttonContactSeller;
