@@ -193,9 +193,7 @@ bool AcutionRegisterBoard::processEventDefault(const SDL_Event &event, bool vali
             }
         case SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                const bool wasDragging = m_dragging;
-                m_dragging = false;
-                return wasDragging ? consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y))) : false;
+                return std::exchange(m_dragging, false) ? consumeFocus(m.in(to_d(event.button.x), to_d(event.button.y))) : false;
             }
         case SDL_EVENT_MOUSE_MOTION:
             {
@@ -288,11 +286,7 @@ void AcutionRegisterBoard::confirmRegister()
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
     fflassert(inputBoard);
 
-    std::u8string prompt = to_u8rawstr("<layout>"
-            + xmlf::toParString("你确定上架%s吗?", to_cstr(ir.name))
-            + xmlf::toParString("委托交易将会扣除手续费500，交易成功后扣除2%%交易额")
-            + "</layout>");
-
+    std::u8string prompt = to_u8rawstr("<layout>" + xmlf::toParString("你确定上架%s吗?", to_cstr(ir.name)) + xmlf::toParString("委托交易将会扣除手续费500，交易成功后扣除2%%交易额") + "</layout>");
     inputBoard->waitInput(std::move(prompt), false, [this](std::u8string)
     {
         registerItem();
@@ -344,17 +338,14 @@ void AcutionRegisterBoard::registerItem()
                     closeRegister(true);
                     return;
                 }
-            case SM_ERROR:
+            case SM_ACUTIONREGISTERERROR:
                 {
                     setPending(false);
-                    if(buf && bufSize >= sizeof(SMAcutionRegisterError)){
-                        const auto smARE = ServerMsg::conv<SMAcutionRegisterError>(buf, bufSize);
-                        switch(smARE.error){
-                            case ACUTIONREGERR_BADITEM : m_runProc->addCBLog(CBLOG_ERR, u8"寄售物品无效"); return;
-                            case ACUTIONREGERR_BADPRICE: m_runProc->addCBLog(CBLOG_ERR, u8"寄售价格无效"); return;
-                            case ACUTIONREGERR_BADNOTE : m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言无效"); return;
-                            default: break;
-                        }
+                    switch(ServerMsg::conv<SMAcutionRegisterError>(buf, bufSize).error){
+                        case ACUTIONREGERR_BADITEM : m_runProc->addCBLog(CBLOG_ERR, u8"寄售物品无效"); return;
+                        case ACUTIONREGERR_BADPRICE: m_runProc->addCBLog(CBLOG_ERR, u8"寄售价格无效"); return;
+                        case ACUTIONREGERR_BADNOTE : m_runProc->addCBLog(CBLOG_ERR, u8"寄售留言无效"); return;
+                        default: break;
                     }
                     m_runProc->addCBLog(CBLOG_ERR, u8"寄售失败");
                     return;

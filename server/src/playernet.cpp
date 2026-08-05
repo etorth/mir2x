@@ -264,7 +264,7 @@ corof::awaitable<> Player::net_CM_REGISTERACUTIONITEM(uint8_t, const uint8_t *bu
     const auto cmRAI = ClientMsg::conv<CMRegisterAcutionItem>(buf);
     const auto postError = [respID, this](int error)
     {
-        postNetMessage(SM_ERROR, SMAcutionRegisterError{.error = to_u8(error)}, respID);
+        postNetMessage(SM_ACUTIONREGISTERERROR, SMAcutionRegisterError{.error = to_u8(error)}, respID);
     };
 
     if(cmRAI.note.size > cmRAI.note.capacity()){
