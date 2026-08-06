@@ -118,8 +118,11 @@ bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::s
         // we can reconstruct SDItem by returned fields
         // and validate if item from database and item from argument are identical, but not very necessary
 
-        fflassert(check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_itemid") == item.itemID));
-        fflassert(check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_seqid" ) == item. seqID));
+        const auto deletedItemID = check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_itemid"));
+        const auto deletedSeqID  = check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_seqid" ));
+
+        fflassert(deletedItemID == item.itemID, deletedItemID, item.itemID);
+        fflassert(deletedSeqID  == item. seqID, deletedSeqID , item. seqID);
 
         // can have at most 1 match
         fflassert(!deleteQuery.executeStep());
