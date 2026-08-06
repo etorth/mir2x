@@ -9,6 +9,7 @@
 #include "mathf.hpp"
 #include "totype.hpp"
 #include "dbcomid.hpp"
+#include "deliverydb.hpp"
 #include "sysconst.hpp"
 #include "charobject.hpp"
 #include "friendtype.hpp"
@@ -584,6 +585,8 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_CLAIMDELIVERY             );
         _support_cm(CM_QUERYAUCTIONITEMLIST      );
         _support_cm(CM_REGISTERAUCTIONITEM       );
+        _support_cm(CM_BUYAUCTIONITEM            );
+        _support_cm(CM_UNREGISTERAUCTIONITEM     );
         _support_cm(CM_REQUESTSPACEMOVE          );
         _support_cm(CM_SETMAGICKEY               );
         _support_cm(CM_SETRUNTIMECONFIG          );
@@ -2121,9 +2124,9 @@ corof::awaitable<bool> Player::followTeamLeader()
 
 std::string Player::sendDelivery(std::vector<SDItem> itemList)
 {
-    auto [record, msg] = dbCreateDelivery(std::move(itemList));
-    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList{std::move(msg)}));
-    return record;
+    auto delivery = dbCreateDelivery(dbid(), std::move(itemList), to_cstr(u8"你收到了一份系统投递："));
+    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList{std::move(delivery.message)}));
+    return delivery.record;
 }
 
 std::optional<int> Player::claimDelivery(const std::string &record)

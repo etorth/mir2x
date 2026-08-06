@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "widget.hpp"
 #include "imageboard.hpp"
 #include "textboard.hpp"
@@ -12,6 +13,7 @@ class AuctionBoard final: public Widget
 {
     private:
         ProcessRun *m_runProc;
+        bool m_pending = false;
 
     private:
         ImageBoard m_background;
@@ -48,4 +50,18 @@ class AuctionBoard final: public Widget
 
     public:
         void setItemList(SDAuctionItemList);
+
+    private:
+        const SDAuctionItem *selectedItem() const;
+
+    private:
+        void refreshItemList();
+
+    private:
+        void confirmBuy();
+        void buyItem(uint64_t, std::string);
+
+    private:
+        void confirmUnregister();
+        void unregisterItem(uint64_t, std::string);
 };

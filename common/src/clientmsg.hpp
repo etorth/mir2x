@@ -68,6 +68,8 @@ enum CMType: uint8_t
     CM_CLAIMDELIVERY,
     CM_QUERYAUCTIONITEMLIST,
     CM_REGISTERAUCTIONITEM,
+    CM_BUYAUCTIONITEM,
+    CM_UNREGISTERAUCTIONITEM,
     CM_END,
 };
 
@@ -355,6 +357,16 @@ struct CMRegisterAuctionItem
     StaticBuffer<SYS_AUCTIONNOTESIZE> note;
 };
 
+struct CMBuyAuctionItem
+{
+    uint64_t auctionID;
+};
+
+struct CMUnregisterAuctionItem
+{
+    uint64_t auctionID;
+};
+
 #pragma pack(pop)
 
 // I was using class name ClientMessage
@@ -425,6 +437,8 @@ namespace
         _RSVD_register_clientmsg(CM_CLAIMDELIVERY,              1, sizeof(CMClaimDelivery)             );
         _RSVD_register_clientmsg(CM_QUERYAUCTIONITEMLIST,       2, sizeof(CMQueryAuctionItemList)      );
         _RSVD_register_clientmsg(CM_REGISTERAUCTIONITEM,         1, sizeof(CMRegisterAuctionItem)       );
+        _RSVD_register_clientmsg(CM_BUYAUCTIONITEM,              1, sizeof(CMBuyAuctionItem)            );
+        _RSVD_register_clientmsg(CM_UNREGISTERAUCTIONITEM,       1, sizeof(CMUnregisterAuctionItem)     );
 
 #undef _RSVD_register_clientmsg
         return result;

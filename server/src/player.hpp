@@ -221,6 +221,8 @@ class Player final: public BattleObject
         corof::awaitable<> net_CM_CLAIMDELIVERY             (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_QUERYAUCTIONITEMLIST      (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REGISTERAUCTIONITEM       (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_BUYAUCTIONITEM            (uint8_t, const uint8_t *, size_t, uint64_t);
+        corof::awaitable<> net_CM_UNREGISTERAUCTIONITEM     (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTLEAVETEAM          (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTMAGICDAMAGE        (uint8_t, const uint8_t *, size_t, uint64_t);
         corof::awaitable<> net_CM_REQUESTRETRIEVESECUREDITEM(uint8_t, const uint8_t *, size_t, uint64_t);
@@ -354,11 +356,9 @@ class Player final: public BattleObject
         void dbRemoveInventoryItem(uint32_t, uint32_t);
 
     private:
-        static std::tuple<uint64_t, uint64_t> dbSaveChatMessage(const SDChatPeerID &, const SDChatPeerID &, const std::string_view &, std::optional<uint64_t>);
         SDChatMessageList dbRetrieveLatestChatMessage(const std::span<const uint64_t> &, size_t, bool, bool);
 
     private:
-        std::tuple<std::string, SDChatMessage> dbCreateDelivery(std::vector<SDItem>);
         std::expected<std::vector<SDItem>, int> dbClaimDelivery(const std::string &);
 
     private:

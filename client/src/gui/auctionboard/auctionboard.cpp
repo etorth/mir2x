@@ -1,11 +1,14 @@
 #include <algorithm>
 #include <utility>
 #include "strf.hpp"
+#include "xmlf.hpp"
 #include "colorf.hpp"
 #include "client.hpp"
+#include "dbcomid.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "processrun.hpp"
+#include "inputstringboard.hpp"
 #include "gui/friendchatboard/friendchatboard.hpp"
 #include "auctionregisterboard.hpp"
 #include "auctionboard.hpp"
@@ -241,13 +244,7 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
           },
           .onTrigger = [this](Widget *, int)
           {
-              const auto  currCategory = m_itemList.getItemList().category;
-              const auto queryCategory = (currCategory >= AUCTIONCAT_BEGIN && currCategory < AUCTIONCAT_END) ? currCategory : AUCTIONCAT_ALL;
-
-              g_client->send({CM_QUERYAUCTIONITEMLIST, CMQueryAuctionItemList
-              {
-                  .category = to_u8(queryCategory),
-              }});
+              refreshItemList();
           },
           .parent{this},
       }}
@@ -319,8 +316,25 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
               .on   = 0X000000B7,
               .down = 0X000000B8,
           },
-          .onTrigger = [](Widget *, int)
+          .onTrigger = [this](Widget *, int)
           {
+              confirmBuy();
+          },
+
+          .attrs
+          {
+              .active = [this] -> bool
+              {
+                  if(m_pending){
+                      return false;
+                  }
+
+                  if(const auto item = selectedItem()){
+                      return item->seller.id != m_runProc->getMyHeroDBID();
+                  }
+
+                  return false;
+              },
           },
           .parent{this},
       }}
@@ -335,8 +349,25 @@ AuctionBoard::AuctionBoard(ProcessRun *argProc, Widget *argParent, bool argAutoD
               .on   = 0X00000850,
               .down = 0X00000851,
           },
-          .onTrigger = [](Widget *, int)
+          .onTrigger = [this](Widget *, int)
           {
+              confirmUnregister();
+          },
+
+          .attrs
+          {
+              .active = [this]
+              {
+                  if(m_pending){
+                      return false;
+                  }
+
+                  if(const auto item = selectedItem()){
+                      return item->seller.id == m_runProc->getMyHeroDBID();
+                  }
+
+                  return false;
+              },
           },
           .parent{this},
       }}
@@ -430,4 +461,200 @@ void AuctionBoard::setItemList(SDAuctionItemList sdAuctionItemList)
     m_itemList.setItemList(std::move(sdAuctionItemList));
     m_itemDetailUpper.setItem(nullptr);
     m_itemDetailLower.setItem(nullptr);
+}
+
+const SDAuctionItem *AuctionBoard::selectedItem() const
+{
+    const auto selectedIndex = m_itemList.selectedIndex();
+    return selectedIndex.has_value() ? m_itemList.indexItem(selectedIndex.value()) : nullptr;
+}
+
+void AuctionBoard::refreshItemList()
+{
+    const auto currCategory = m_itemList.getItemList().category;
+    const auto queryCategory = (currCategory >= AUCTIONCAT_BEGIN && currCategory < AUCTIONCAT_END) ? currCategory : AUCTIONCAT_ALL;
+
+    g_client->send({CM_QUERYAUCTIONITEMLIST, CMQueryAuctionItemList
+    {
+        .category = to_u8(queryCategory),
+    }});
+}
+
+void AuctionBoard::confirmBuy()
+{
+    if(m_pending){
+        return;
+    }
+
+    const auto item = selectedItem();
+    if(!item){
+        m_runProc->addCBLog(CBLOG_ERR, u8"请先选择要购买的寄售物品");
+        return;
+    }
+
+    if(item->seller.id == m_runProc->getMyHeroDBID()){
+        m_runProc->addCBLog(CBLOG_ERR, u8"不能购买自己寄售的物品");
+        return;
+    }
+
+    if(item->price > m_runProc->getMyHero()->getGold()){
+        m_runProc->addCBLog(CBLOG_ERR, u8"金币不够");
+        return;
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(item->item.itemID);
+    fflassert(ir);
+
+    auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
+    fflassert(inputBoard);
+
+    std::string prompt = "<layout>";
+    prompt += xmlf::toParString("你确定花费%s金币购买%s吗？", str_ksep(item->price).c_str(), to_cstr(ir.name));
+    prompt += xmlf::toParString("%s", to_cstr(u8"购买成功后，物品会通过系统投递发送。"));
+    prompt += "</layout>";
+
+    inputBoard->waitInput(to_u8rawstr(prompt), false, [auctionID = item->auctionID, itemName = std::string(to_cstr(ir.name)), this](std::u8string)
+    {
+        buyItem(auctionID, itemName);
+    });
+}
+
+void AuctionBoard::buyItem(uint64_t auctionID, std::string itemName)
+{
+    if(m_pending){
+        return;
+    }
+
+    m_pending = true;
+    g_client->send({CM_BUYAUCTIONITEM, CMBuyAuctionItem
+    {
+        .auctionID = auctionID,
+    }},
+
+    [itemName = std::move(itemName), this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    {
+        m_pending = false;
+        switch(headCode){
+            case SM_OK:
+                {
+                    m_runProc->addCBLog(CBLOG_SYS, u8"%s购买成功，物品已发送到系统投递", itemName.c_str());
+                    refreshItemList();
+                    return;
+                }
+            case SM_AUCTIONBUYERROR:
+                {
+                    switch(ServerMsg::conv<SMAuctionBuyError>(buf, bufSize).error){
+                        case AUCTIONBUYERR_UNAVAILABLE:
+                            {
+                                m_runProc->addCBLog(CBLOG_ERR, u8"该寄售物品已售出或到期");
+                                refreshItemList();
+                                return;
+                            }
+                        case AUCTIONBUYERR_INSUFFICIENT:
+                            {
+                                m_runProc->addCBLog(CBLOG_ERR, u8"金币不够");
+                                return;
+                            }
+                        case AUCTIONBUYERR_OWNITEM:
+                            {
+                                m_runProc->addCBLog(CBLOG_ERR, u8"不能购买自己寄售的物品");
+                                return;
+                            }
+                        case AUCTIONBUYERR_BADITEM:
+                        default:
+                            {
+                                m_runProc->addCBLog(CBLOG_ERR, u8"购买失败");
+                                return;
+                            }
+                    }
+                }
+            default:
+                {
+                    m_runProc->addCBLog(CBLOG_ERR, u8"购买失败");
+                    return;
+                }
+        }
+    });
+}
+
+void AuctionBoard::confirmUnregister()
+{
+    if(m_pending){
+        return;
+    }
+
+    const auto item = selectedItem();
+    if(!item){
+        m_runProc->addCBLog(CBLOG_ERR, u8"请先选择要下架的寄售物品");
+        return;
+    }
+
+    if(item->seller.id != m_runProc->getMyHeroDBID()){
+        m_runProc->addCBLog(CBLOG_ERR, u8"只能下架自己寄售的物品");
+        return;
+    }
+
+    const auto &ir = DBCOM_ITEMRECORD(item->item.itemID);
+    fflassert(ir);
+
+    auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
+    fflassert(inputBoard);
+
+    std::string prompt = "<layout>";
+    prompt += xmlf::toParString("你确定下架%s吗？", to_cstr(ir.name));
+    prompt += xmlf::toParString("%s", to_cstr(u8"下架后，物品会通过系统投递退回。"));
+    prompt += "</layout>";
+
+    inputBoard->waitInput(to_u8rawstr(prompt), false, [auctionID = item->auctionID, itemName = std::string(to_cstr(ir.name)), this](std::u8string)
+    {
+        unregisterItem(auctionID, itemName);
+    });
+}
+
+void AuctionBoard::unregisterItem(uint64_t auctionID, std::string itemName)
+{
+    if(m_pending){
+        return;
+    }
+
+    m_pending = true;
+    g_client->send({CM_UNREGISTERAUCTIONITEM, CMUnregisterAuctionItem
+    {
+        .auctionID = auctionID,
+    }},
+
+    [itemName = std::move(itemName), this](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    {
+        m_pending = false;
+        switch(headCode){
+            case SM_OK:
+                {
+                    m_runProc->addCBLog(CBLOG_SYS, u8"%s已下架，物品已发送到系统投递", itemName.c_str());
+                    refreshItemList();
+                    return;
+                }
+            case SM_AUCTIONUNREGISTERERROR:
+                {
+                    switch(ServerMsg::conv<SMAuctionUnregisterError>(buf, bufSize).error){
+                        case AUCTIONUNREGERR_UNAVAILABLE:
+                            {
+                                m_runProc->addCBLog(CBLOG_ERR, u8"该寄售物品已售出或下架");
+                                refreshItemList();
+                                return;
+                            }
+                        case AUCTIONUNREGERR_BADITEM:
+                        default:
+                            {
+                                m_runProc->addCBLog(CBLOG_ERR, u8"下架失败");
+                                return;
+                            }
+                    }
+                }
+            default:
+                {
+                    m_runProc->addCBLog(CBLOG_ERR, u8"下架失败");
+                    return;
+                }
+        }
+    });
 }

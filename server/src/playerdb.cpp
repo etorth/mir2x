@@ -697,30 +697,6 @@ void Player::dbLoadFriendList()
     }
 }
 
-std::tuple<uint64_t, uint64_t> Player::dbSaveChatMessage(const SDChatPeerID &fromCPID, const SDChatPeerID &toCPID, const std::string_view &sv, std::optional<uint64_t> argRef)
-{
-    auto tstamp= hres_tstamp::localtime();
-    auto query = g_dbPod->createQuery(
-        u8R"###( insert into tbl_chatmessage(fld_timestamp, fld_refer, fld_from, fld_to, fld_message) )###"
-        u8R"###( values                                                                               )###"
-        u8R"###(     (%llu, %s, %llu, %llu, ?)                                                        )###"
-        u8R"###( returning                                                                            )###"
-        u8R"###(     fld_id;                                                                          )###",
-
-        to_llu(tstamp),
-        argRef.has_value() ? std::to_string(argRef.value()).c_str() : "null",
-        to_llu(fromCPID.asU64()),
-        to_llu(  toCPID.asU64()));
-
-    query.bindBlob(1, sv.data(), sv.size());
-    if(query.executeStep()){
-        return {to_u64(query.getColumn("fld_id").getInt64()), tstamp};
-    }
-    else{
-        throw fflpanic("failed to insert chat message to database");
-    }
-}
-
 SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint64_t> &cpidList, size_t limitPerID, bool includeSend, bool includeRecv)
 {
     if(cpidList.empty() || !(includeSend || includeRecv)){
@@ -797,86 +773,6 @@ SDChatMessageList Player::dbRetrieveLatestChatMessage(const std::span<const uint
         });
     }
     return result;
-}
-
-std::tuple<std::string, SDChatMessage> Player::dbCreateDelivery(std::vector<SDItem> itemList)
-{
-    fflassert(!itemList.empty());
-    fflassert(std::ranges::all_of(itemList, [](const auto &item){ return item && item.seqID == 0; }));
-
-    auto dbTrans = g_dbPod->createTransaction();
-    const auto payload = cerealf::serialize(itemList);
-
-    std::string record;
-    for(int i = 0; i < 16; ++i){
-        record = mathf::randstr(SYS_DELIVERYRECORDSIZE);
-
-        auto query = g_dbPod->createQuery(
-            u8R"###( insert into tbl_delivery(fld_record, fld_dbid, fld_timestamp, fld_payload) )###"
-            u8R"###( values                                                                     )###"
-            u8R"###(     (?, %llu, %llu, ?)                                                     )###"
-            u8R"###( on conflict(fld_record) do nothing                                         )###"
-            u8R"###( returning fld_record;                                                      )###",
-
-            to_llu(dbid()),
-            to_llu(hres_tstamp::localtime()));
-
-        query.bind(1, record);
-        query.bindBlob(2, payload);
-        if(query.executeStep()){
-            break;
-        }
-        record.clear();
-    }
-
-    if(record.empty()){
-        throw fflpanic("failed to generate delivery record");
-    }
-
-    std::map<uint32_t, size_t> itemSummary;
-    for(const auto &item: itemList){
-        itemSummary[item.itemID] += item.count;
-    }
-
-    std::string xmlString = "<layout>";
-    xmlString += xmlf::toParString("%s", to_cstr(u8"你收到了一份系统投递："));
-    for(const auto &[itemID, count]: itemSummary){
-        const auto &ir = DBCOM_ITEMRECORD(itemID);
-        fflassert(ir);
-        xmlString += xmlf::toParString("%s：%zu", ir.isGold() ? to_cstr(u8"金币") : to_cstr(ir.name), count);
-    }
-    xmlString += str_printf(R"###("<par><event id="%s" record="%s">收取</event></par>)###", SYS_DELIVERY, record.c_str());
-    xmlString += "</layout>";
-
-    const auto fromCPID = SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM);
-    const auto toCPID = cpid();
-    const auto messageBuf = cerealf::serialize(xmlString);
-    const auto [messageID, messageTimestamp] = dbSaveChatMessage(fromCPID, toCPID, messageBuf, {});
-    {
-        auto query = g_dbPod->createQuery(
-            u8R"###( update tbl_delivery set fld_messageid = %llu where fld_record = ? returning fld_record )###",
-            to_llu(messageID));
-
-        query.bind(1, record);
-        if(!query.executeStep()){
-            throw fflpanic("failed to bind delivery record to chat message");
-        }
-    }
-
-    dbTrans.commit();
-    return {record, SDChatMessage
-    {
-        .seq = SDChatMessageDBSeq
-        {
-            .id = messageID,
-            .timestamp = messageTimestamp,
-        },
-
-        .from = fromCPID,
-        .to = toCPID,
-
-        .message = messageBuf,
-    }};
 }
 
 std::expected<std::vector<SDItem>, int> Player::dbClaimDelivery(const std::string &record)

@@ -10,6 +10,7 @@
 #include "utf8f.hpp"
 #include "serverargparser.hpp"
 #include "auctiondb.hpp"
+#include "deliverydb.hpp"
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
@@ -305,6 +306,58 @@ corof::awaitable<> Player::net_CM_REGISTERAUCTIONITEM(uint8_t, const uint8_t *bu
     return {};
 }
 
+corof::awaitable<> Player::net_CM_BUYAUCTIONITEM(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+{
+    const auto cmBAI = ClientMsg::conv<CMBuyAuctionItem>(buf);
+    auto buyResult = dbBuyAuctionItem(dbid(), cmBAI.auctionID);
+
+    if(!buyResult.has_value()){
+        postNetMessage(SM_AUCTIONBUYERROR, SMAuctionBuyError
+        {
+            .error = to_u8(buyResult.error()),
+        }, respID);
+        return {};
+    }
+
+    auto result = std::move(buyResult.value());
+    setGold(result.buyerGold);
+
+    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
+    {
+        std::move(result.buyerMessage),
+    }));
+
+    forwardNetPackage(uidf::getPlayerUID(result.sellerDBID), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
+    {
+        std::move(result.sellerMessage),
+    }));
+
+    postNetMessage(SM_OK, respID);
+    return {};
+}
+
+corof::awaitable<> Player::net_CM_UNREGISTERAUCTIONITEM(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
+{
+    const auto cmUAI = ClientMsg::conv<CMUnregisterAuctionItem>(buf);
+    auto unregisterResult = dbUnregisterAuctionItem(dbid(), cmUAI.auctionID);
+
+    if(!unregisterResult.has_value()){
+        postNetMessage(SM_AUCTIONUNREGISTERERROR, SMAuctionUnregisterError
+        {
+            .error = to_u8(unregisterResult.error()),
+        }, respID);
+        return {};
+    }
+
+    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
+    {
+        std::move(unregisterResult->sellerMessage),
+    }));
+
+    postNetMessage(SM_OK, respID);
+    return {};
+}
+
 corof::awaitable<> Player::net_CM_QUERYUIDBUFF(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmQUIDB = ClientMsg::conv<CMQueryUIDBuff>(buf);
@@ -554,7 +607,7 @@ corof::awaitable<> Player::net_CM_ADDFRIEND(uint8_t, const uint8_t *buf, size_t,
     const auto fnForwardSystemMessage = [&sdCPID, this](const std::string xmlChatMsg)
     {
         const auto msgBuf = cerealf::serialize(xmlChatMsg);
-        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM), sdCPID, msgBuf, {});
+        const auto [msgId, tstamp] = dbSaveChatMessage(SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM), sdCPID, msgBuf, std::nullopt);
 
         forwardNetPackage(uidf::getPlayerUID(sdCPID.id()), SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
         {

@@ -459,6 +459,7 @@ struct SDSellItemList
 
 struct SDAuctionItem
 {
+    uint64_t auctionID = 0;
     SDChatPeer seller {};
     std::string note {};
     size_t timeLeft = 0;
@@ -467,7 +468,7 @@ struct SDAuctionItem
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(seller, note, timeLeft, price, item);
+        ar(auctionID, seller, note, timeLeft, price, item);
     }
 };
 

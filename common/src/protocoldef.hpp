@@ -495,6 +495,26 @@ enum AuctionRegisterErrorType: int
     AUCTIONREGERR_END,
 };
 
+enum AuctionBuyErrorType: int
+{
+    AUCTIONBUYERR_NONE = 0,
+    AUCTIONBUYERR_BEGIN = 1,
+    AUCTIONBUYERR_BADITEM = 1,
+    AUCTIONBUYERR_UNAVAILABLE,
+    AUCTIONBUYERR_INSUFFICIENT,
+    AUCTIONBUYERR_OWNITEM,
+    AUCTIONBUYERR_END,
+};
+
+enum AuctionUnregisterErrorType: int
+{
+    AUCTIONUNREGERR_NONE = 0,
+    AUCTIONUNREGERR_BEGIN = 1,
+    AUCTIONUNREGERR_BADITEM = 1,
+    AUCTIONUNREGERR_UNAVAILABLE,
+    AUCTIONUNREGERR_END,
+};
+
 template<typename... Ts> struct VarDispatcher: Ts...
 {
     using Ts::operator()...;

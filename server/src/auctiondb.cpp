@@ -4,9 +4,28 @@
 #include "fflerror.hpp"
 #include "sysconst.hpp"
 #include "auctiondb.hpp"
+#include "deliverydb.hpp"
 #include "raiitimer.hpp"
 
 extern DBPod *g_dbPod;
+
+namespace
+{
+    SDItem makeAuctionItem(DBPod::Statement &query)
+    {
+        return SDItem
+        {
+            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
+            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
+            .duration
+            {
+                check_cast<size_t, unsigned>(query.getColumn("fld_duration"   )),
+                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
+            },
+            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
+        };
+    }
+}
 
 SDAuctionItemList dbQueryAuctionItemList(int category)
 {
@@ -59,6 +78,7 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
 
         result.itemList.push_back(SDAuctionItem
         {
+            .auctionID = check_cast<uint64_t>(query.getColumn("fld_id").getInt64()),
             .seller
             {
                 .id   = check_cast<uint32_t, unsigned>(query.getColumn("fld_sellerdbid")),
@@ -149,4 +169,123 @@ bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::s
     transaction.commit();
 
     return true;
+}
+
+std::expected<DBAuctionBuyResult, int> dbBuyAuctionItem(uint32_t buyerDBID, uint64_t auctionID)
+{
+    if(true
+            && buyerDBID > 0
+            && buyerDBID <= SYS_MAXDBID
+            && auctionID > 0
+            && auctionID <= to_u64(INT64_MAX)){
+
+        auto transaction = g_dbPod->createTransaction();
+        const auto now = hres_tstamp::epoch();
+
+        auto deleteQuery = g_dbPod->createQuery(
+            u8R"###( delete from tbl_auctionitem                                                                      )###"
+            u8R"###( where                                                                                            )###"
+            u8R"###(     fld_id = %llu and fld_expiretime > %llu                                                      )###"
+            u8R"###( returning                                                                                        )###"
+            u8R"###(     fld_seller, fld_itemid, fld_count, fld_duration, fld_maxduration, fld_extattrlist, fld_price )###",
+
+            to_llu(auctionID),
+            to_llu(now));
+
+        if(!deleteQuery.executeStep()){
+            return std::unexpected(AUCTIONBUYERR_UNAVAILABLE);
+        }
+
+        const auto sellerDBID = check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_seller"));
+        if(sellerDBID == buyerDBID){
+            return std::unexpected(AUCTIONBUYERR_OWNITEM);
+        }
+
+        auto item = makeAuctionItem(deleteQuery);
+        fflassert(item);
+        fflassert(!item.isGold());
+
+        const auto price = check_cast<uint64_t>(deleteQuery.getColumn("fld_price").getInt64());
+        fflassert(price > 0);
+
+        fflassert(!deleteQuery.executeStep());
+
+        auto goldQuery = g_dbPod->createQuery(
+            u8R"###( update tbl_char                          )###"
+            u8R"###( set                                      )###"
+            u8R"###(     fld_gold = fld_gold - %llu           )###"
+            u8R"###( where                                    )###"
+            u8R"###(     fld_dbid = %llu and fld_gold >= %llu )###"
+            u8R"###( returning fld_gold                       )###",
+
+            to_llu(price),
+            to_llu(buyerDBID),
+            to_llu(price));
+
+        if(!goldQuery.executeStep()){
+            return std::unexpected(AUCTIONBUYERR_INSUFFICIENT);
+        }
+
+        const auto buyerGold = check_cast<size_t, uint64_t>(goldQuery.getColumn("fld_gold").getInt64());
+        fflassert(!goldQuery.executeStep());
+
+        auto buyerDelivery = dbCreateDeliveryInTransaction(buyerDBID, {item}, to_cstr(u8"你购买的寄售物品已送达："));
+
+        const auto sellerGold = price - price * SYS_AUCTIONTAXRATE / 100;
+        fflassert(sellerGold > 0);
+
+        const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+        fflassert(ir);
+
+        auto sellerDelivery = dbCreateDeliveryInTransaction(sellerDBID, SDItem::buildGoldItem(check_cast<size_t, uint64_t>(sellerGold)), to_cstr(str_printf(u8"你寄售的%s已售出，扣除%zu%%交易税后获得：", to_cstr(ir.name), SYS_AUCTIONTAXRATE)));
+        transaction.commit();
+
+        return DBAuctionBuyResult
+        {
+            .buyerGold  = buyerGold,
+            .sellerDBID = sellerDBID,
+
+            .buyerMessage  = std::move( buyerDelivery.message),
+            .sellerMessage = std::move(sellerDelivery.message),
+        };
+    }
+    return std::unexpected(AUCTIONBUYERR_BADITEM);
+}
+
+std::expected<DBAuctionUnregisterResult, int> dbUnregisterAuctionItem(uint32_t sellerDBID, uint64_t auctionID)
+{
+    if(true
+            && sellerDBID > 0
+            && sellerDBID <= SYS_MAXDBID
+            && auctionID > 0
+            && auctionID <= to_u64(INT64_MAX)){
+
+        auto transaction = g_dbPod->createTransaction();
+        auto deleteQuery = g_dbPod->createQuery(
+            u8R"###( delete from tbl_auctionitem                                                     )###"
+            u8R"###( where                                                                           )###"
+            u8R"###(     fld_id = %llu and fld_seller = %llu                                         )###"
+            u8R"###( returning fld_itemid, fld_count, fld_duration, fld_maxduration, fld_extattrlist )###",
+
+            to_llu(auctionID),
+            to_llu(sellerDBID));
+
+        if(!deleteQuery.executeStep()){
+            return std::unexpected(AUCTIONUNREGERR_UNAVAILABLE);
+        }
+
+        auto item = makeAuctionItem(deleteQuery);
+        fflassert(item);
+        fflassert(!item.isGold());
+        fflassert(!deleteQuery.executeStep());
+
+        auto delivery = dbCreateDeliveryInTransaction(sellerDBID, {item}, to_cstr(u8"你下架的寄售物品已退回："));
+        transaction.commit();
+
+        return DBAuctionUnregisterResult
+        {
+            .sellerMessage = std::move(delivery.message),
+        };
+    }
+    return std::unexpected(AUCTIONUNREGERR_BADITEM);
 }

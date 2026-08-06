@@ -69,6 +69,7 @@ void AuctionItemList::setItemList(SDAuctionItemList sdAIL)
     fflassert(sdAIL.category <  AUCTIONCAT_END  , sdAIL.category);
 
     for(const auto &entry: sdAIL.itemList){
+        fflassert(entry.auctionID);
         fflassert(entry.item);
         fflassert(DBCOM_ITEMRECORD(entry.item.itemID));
     }
