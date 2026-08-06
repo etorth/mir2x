@@ -1,4 +1,3 @@
-#include <chrono>
 #include <climits>
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
@@ -9,43 +8,6 @@
 
 extern DBPod *g_dbPod;
 
-namespace
-{
-    bool categoryMatch(const ItemRecord &ir, int category)
-    {
-        switch(category){
-            case AUCTIONCAT_DRESS   : return ir.isDress();
-            case AUCTIONCAT_WEAPON  : return ir.isWeapon();
-            case AUCTIONCAT_NECKLACE: return ir.wearable(WLG_NECKLACE);
-            case AUCTIONCAT_HELMET  : return ir.isHelmet();
-            case AUCTIONCAT_RING    : return ir.isRing();
-            case AUCTIONCAT_ARMRING : return ir.wearable(WLG_ARMRING0);
-            case AUCTIONCAT_SHOES   : return ir.wearable(WLG_SHOES);
-            case AUCTIONCAT_POTION  : return ir.isPotion() || ir.isDope() || ir.isPowder();
-            case AUCTIONCAT_BOOK    : return ir.isBook();
-            default                 : return false;
-        }
-    }
-
-    bool categoryMatchIncludingOther(const ItemRecord &ir, int category)
-    {
-        if(category == AUCTIONCAT_ALL){
-            return true;
-        }
-
-        if(category == AUCTIONCAT_OTHER){
-            for(int knownCategory = AUCTIONCAT_DRESS; knownCategory < AUCTIONCAT_OTHER; ++knownCategory){
-                if(categoryMatch(ir, knownCategory)){
-                    return false;
-                }
-            }
-            return true;
-        }
-        return categoryMatch(ir, category);
-    }
-
-}
-
 SDAuctionItemList dbQueryAuctionItemList(int category)
 {
     fflassert(category >= AUCTIONCAT_BEGIN, category);
@@ -53,20 +15,20 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
 
     auto now = hres_tstamp::epoch();
     auto query = g_dbPod->createQuery(
-        u8R"###( select                                                 )###"
-        u8R"###(     tbl_auctionitem.*,                                 )###"
-        u8R"###(     tbl_char.fld_dbid   as fld_sellerdbid,             )###"
-        u8R"###(     tbl_char.fld_name   as fld_sellername,             )###"
-        u8R"###(     tbl_char.fld_gender as fld_sellergender,           )###"
-        u8R"###(     tbl_char.fld_job    as fld_sellerjob               )###"
-        u8R"###( from                                                   )###"
-        u8R"###(     tbl_auctionitem join tbl_char                      )###"
-        u8R"###(     on                                                 )###"
-        u8R"###(         tbl_char.fld_dbid = tbl_auctionitem.fld_seller )###"
-        u8R"###( where                                                  )###"
-        u8R"###(     tbl_auctionitem.fld_expiretime > %lld              )###"
-        u8R"###( order by                                               )###"
-        u8R"###(     tbl_auctionitem.fld_id                             )###", to_lld(now));
+        u8R"###( select                                                                                                 )###"
+        u8R"###(     tbl_auctionitem.*,                                                                                 )###"
+        u8R"###(     tbl_char.fld_dbid   as fld_sellerdbid,                                                             )###"
+        u8R"###(     tbl_char.fld_name   as fld_sellername,                                                             )###"
+        u8R"###(     tbl_char.fld_gender as fld_sellergender,                                                           )###"
+        u8R"###(     tbl_char.fld_job    as fld_sellerjob                                                               )###"
+        u8R"###( from                                                                                                   )###"
+        u8R"###(     tbl_auctionitem join tbl_char                                                                      )###"
+        u8R"###(     on                                                                                                 )###"
+        u8R"###(         tbl_char.fld_dbid = tbl_auctionitem.fld_seller                                                 )###"
+        u8R"###( where                                                                                                  )###"
+        u8R"###(     tbl_auctionitem.fld_expiretime > %lld and checkAuctionCategory(tbl_auctionitem.fld_itemid, %d) = 1 )###"
+        u8R"###( order by                                                                                               )###"
+        u8R"###(     tbl_auctionitem.fld_id                                                                             )###", to_lld(now), category);
 
     SDAuctionItemList result
     {
@@ -94,10 +56,6 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
 
         const auto &ir = DBCOM_ITEMRECORD(item.itemID);
         fflassert(ir, item.itemID);
-
-        if(!categoryMatchIncludingOther(ir, category)){
-            continue;
-        }
 
         result.itemList.push_back(SDAuctionItem
         {

@@ -12,6 +12,7 @@
 #include "log.hpp"
 #include "jobf.hpp"
 #include "dbpod.hpp"
+#include "dbcomid.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
 #include "message.hpp"
@@ -313,6 +314,63 @@ void Server::createDBConnection()
 
         const auto job = sqlite3_value_int64(argList[0]);
         sqlite3_result_int(context, job >= 0 && job <= INT_MAX && jobf::jobValid(to_d(job)));
+    });
+
+    g_dbPod->createFunction("checkAuctionCategory", 2, true, +[](sqlite3_context *context, int argCount, sqlite3_value **argList)
+    {
+        if(true
+                && argCount == 2
+                && sqlite3_value_type(argList[0]) == SQLITE_INTEGER
+                && sqlite3_value_type(argList[1]) == SQLITE_INTEGER){
+
+            const auto itemID   = sqlite3_value_int64(argList[0]);
+            const auto category = sqlite3_value_int64(argList[1]);
+
+            if(true
+                    && itemID > 0
+                    && itemID < to_lld(DBCOM_ITEMENDID())
+                    && category >= AUCTIONCAT_BEGIN
+                    && category <  AUCTIONCAT_END){
+
+                const auto &ir = DBCOM_ITEMRECORD(static_cast<uint32_t>(itemID));
+                const auto categoryMatch = [&ir](int itemCategory) -> int
+                {
+                    switch(itemCategory){
+                        case AUCTIONCAT_DRESS   : return ir.isDress();
+                        case AUCTIONCAT_WEAPON  : return ir.isWeapon();
+                        case AUCTIONCAT_NECKLACE: return ir.wearable(WLG_NECKLACE);
+                        case AUCTIONCAT_HELMET  : return ir.isHelmet();
+                        case AUCTIONCAT_RING    : return ir.isRing();
+                        case AUCTIONCAT_ARMRING : return ir.wearable(WLG_ARMRING0);
+                        case AUCTIONCAT_SHOES   : return ir.wearable(WLG_SHOES);
+                        case AUCTIONCAT_POTION  : return ir.isPotion() || ir.isDope() || ir.isPowder();
+                        case AUCTIONCAT_BOOK    : return ir.isBook();
+                        default                 : return false;
+                    }
+                };
+
+                if(category == AUCTIONCAT_ALL){
+                    sqlite3_result_int(context, 1);
+                    return;
+                }
+
+                if(category == AUCTIONCAT_OTHER){
+                    for(int knownCategory = AUCTIONCAT_ALL + 1; knownCategory < AUCTIONCAT_OTHER; ++knownCategory){
+                        if(categoryMatch(knownCategory)){
+                            sqlite3_result_int(context, 0);
+                            return;
+                        }
+                    }
+                    sqlite3_result_int(context, 1);
+                    return;
+                }
+
+                sqlite3_result_int(context, categoryMatch(static_cast<int>(category)));
+                return;
+            }
+        }
+
+        sqlite3_result_int(context, 0);
     });
 
     if(!hasDatabase()){
