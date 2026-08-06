@@ -100,7 +100,12 @@ bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::s
         auto deleteQuery = g_dbPod->createQuery(
             u8R"###( delete from tbl_inventory                                      )###"
             u8R"###( where                                                          )###"
-            u8R"###(     fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu )###",
+            u8R"###(     fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu )###"
+            u8R"###( returning                                                      )###"
+            u8R"###(     fld_itemid, fld_seqid                                      )###",
+
+            // use the returning
+            // to know there is row found and deleted
 
             to_llu(sellerDBID),
             to_llu(item.itemID),
@@ -111,7 +116,13 @@ bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::s
         }
 
         // we can reconstruct SDItem by returned fields
-        // and validate if item from database and item from argument matches, but not very necessary
+        // and validate if item from database and item from argument are identical, but not very necessary
+
+        fflassert(check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_itemid") == item.itemID));
+        fflassert(check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_seqid" ) == item. seqID));
+
+        // can have at most 1 match
+        fflassert(!deleteQuery.executeStep());
     }
 
     auto insertQuery = g_dbPod->createQuery(
