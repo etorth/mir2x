@@ -10,7 +10,7 @@
 #include "utf8f.hpp"
 #include "serverargparser.hpp"
 #include "auctiondb.hpp"
-#include "deliverydb.hpp"
+#include "chatdb.hpp"
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
@@ -1266,7 +1266,7 @@ corof::awaitable<> Player::net_CM_REQUESTLATESTCHATMESSAGE(uint8_t, const uint8_
 {
     const auto cmRLCM = ClientMsg::conv<CMRequestLatestChatMessage>(buf);
     if(!cmRLCM.cpidList.empty()){
-        postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(dbRetrieveLatestChatMessage(as_span(cmRLCM.cpidList.data, cmRLCM.cpidList.size), cmRLCM.limitCount, cmRLCM.includeSend, cmRLCM.includeRecv)));
+        postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(dbRetrieveLatestChatMessage(dbid(), as_span(cmRLCM.cpidList.data, cmRLCM.cpidList.size), cmRLCM.limitCount, cmRLCM.includeSend, cmRLCM.includeRecv)));
     }
 
     return {};
@@ -1326,7 +1326,7 @@ corof::awaitable<> Player::net_CM_CLAIMDELIVERY(uint8_t, const uint8_t *buf, siz
 corof::awaitable<> Player::net_CM_CREATECHATGROUP(uint8_t, const uint8_t *buf, size_t, uint64_t respID)
 {
     const auto cmCCG = ClientMsg::conv<CMCreateChatGroup>(buf);
-    const auto sdBuf = cerealf::serialize(dbCreateChatGroup(cmCCG.name.as_sv().data(), as_span(cmCCG.list.data, cmCCG.list.size)));
+    const auto sdBuf = cerealf::serialize(dbCreateChatGroup(dbid(), cmCCG.name.as_sv().data(), as_span(cmCCG.list.data, cmCCG.list.size)));
 
     for(const auto memberDBID: as_span<uint32_t>(cmCCG.list.data, cmCCG.list.size)){
         if(memberDBID != dbid()){

@@ -10,6 +10,7 @@
 #include "totype.hpp"
 #include "dbcomid.hpp"
 #include "deliverydb.hpp"
+#include "chatdb.hpp"
 #include "sysconst.hpp"
 #include "charobject.hpp"
 #include "friendtype.hpp"
@@ -1678,7 +1679,7 @@ void Player::postOnlineOK()
     });
 
     if(!friendIDList.empty()){
-        postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(dbRetrieveLatestChatMessage(friendIDList, 1, true, true)));
+        postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(dbRetrieveLatestChatMessage(dbid(), friendIDList, 1, true, true)));
     }
 
     for(int wltype = WLG_BEGIN; wltype < WLG_END; ++wltype){

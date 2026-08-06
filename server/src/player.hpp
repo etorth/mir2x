@@ -356,9 +356,6 @@ class Player final: public BattleObject
         void dbRemoveInventoryItem(uint32_t, uint32_t);
 
     private:
-        SDChatMessageList dbRetrieveLatestChatMessage(const std::span<const uint64_t> &, size_t, bool, bool);
-
-    private:
         std::expected<std::vector<SDItem>, int> dbClaimDelivery(const std::string &);
 
     private:
@@ -378,10 +375,6 @@ class Player final: public BattleObject
 
     private:
         void dbLoadPlayerConfig();
-        std::optional<SDChatPeer> dbLoadChatPeer(uint64_t);
-        std::optional<SDChatMessage> dbQueryChatMessage(uint64_t);
-        std::vector<uint32_t> dbLoadChatGroupMemberList(uint32_t);
-        SDChatPeerList dbQueryChatPeerList(const std::string &, bool, bool);
 
     private:
         void dbLoadLearnedMagic();
@@ -408,9 +401,6 @@ class Player final: public BattleObject
     private:
         static int dbAddFriend(uint32_t, uint32_t);
         static int dbBlockPlayer(uint32_t, uint32_t);
-
-    private:
-        SDChatPeer dbCreateChatGroup(const char *, const std::span<const uint32_t> &);
 
     protected:
         corof::awaitable<int> checkFriend(uint64_t) override;

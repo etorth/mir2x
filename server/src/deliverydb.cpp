@@ -1,40 +1,15 @@
 #include <algorithm>
 #include <map>
-#include <string_view>
-#include <tuple>
 #include "dbpod.hpp"
 #include "mathf.hpp"
 #include "xmlf.hpp"
 #include "dbcomid.hpp"
 #include "sysconst.hpp"
 #include "raiitimer.hpp"
+#include "chatdb.hpp"
 #include "deliverydb.hpp"
 
 extern DBPod *g_dbPod;
-
-std::tuple<uint64_t, uint64_t> dbSaveChatMessage(const SDChatPeerID &fromCPID, const SDChatPeerID &toCPID, const std::string_view &message, std::optional<uint64_t> refID)
-{
-    const auto timestamp = hres_tstamp::localtime();
-    auto query = g_dbPod->createQuery(
-        u8R"###( insert into tbl_chatmessage(fld_timestamp, fld_refer, fld_from, fld_to, fld_message) )###"
-        u8R"###( values                                                                               )###"
-        u8R"###(     (%llu, %s, %llu, %llu, ?)                                                        )###"
-        u8R"###( returning                                                                            )###"
-        u8R"###(     fld_id                                                                           )###",
-
-        to_llu(timestamp),
-        refID.has_value() ? std::to_string(refID.value()).c_str() : "null",
-        to_llu(fromCPID.asU64()),
-        to_llu(toCPID.asU64()));
-
-    query.bindBlob(1, message);
-    if(!query.executeStep()){
-        throw fflpanic("failed to insert chat message");
-    }
-    const auto messageID = to_u64(query.getColumn("fld_id").getInt64());
-    fflassert(!query.executeStep());
-    return {messageID, timestamp};
-}
 
 DBDelivery dbCreateDeliveryInTransaction(uint32_t recipientDBID, std::vector<SDItem> itemList, std::string title)
 {

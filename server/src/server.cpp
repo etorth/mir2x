@@ -12,6 +12,7 @@
 #include "log.hpp"
 #include "jobf.hpp"
 #include "dbpod.hpp"
+#include "chatdb.hpp"
 #include "dbcomid.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
@@ -207,17 +208,11 @@ bool Server::createAccountCharacter(const char *id, const char *charName, bool g
         mapy
     );
 
-    auto query = g_dbPod->createQuery(
-        u8R"###( insert into tbl_chatmessage(fld_timestamp, fld_from, fld_to, fld_message) )###"
-        u8R"###( values                                                                    )###"
-        u8R"###(     (%llu, %llu, %llu, ?);                                                )###",
-
-        to_llu(hres_tstamp::localtime()),
-        to_llu(SYS_CHATDBID_SYSTEM),
-        to_llu(dbid));
-
-    query.bindBlob(1, cerealf::serialize(std::string("<layout><par>欢迎来到mir2x传奇的世界！</par></layout>")));
-    query.exec();
+    dbSaveChatMessage(
+        SDChatPeerID(CPR_SPECIAL, SYS_CHATDBID_SYSTEM),
+        SDChatPeerID(CPR_PLAYER, dbid),
+        cerealf::serialize(std::string("<layout><par>欢迎来到mir2x传奇的世界！</par></layout>")),
+        std::nullopt);
 
     uint32_t seqID = 1;
     const auto fnAddInitItem = [dbid, &seqID](const char8_t *itemName, size_t count = 1)
