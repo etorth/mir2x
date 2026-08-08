@@ -1,6 +1,8 @@
 #pragma once
+#include <iterator>
 #include <string>
 #include <functional>
+#include <utf8.h>
 #include "inputline.hpp"
 
 class PasswordBox: public InputLine
@@ -26,6 +28,7 @@ class PasswordBox: public InputLine
             std::function<void()>            onTab    = nullptr;
             std::function<void()>            onCR     = nullptr;
             std::function<void(std::string)> onChange = nullptr;
+            std::function<bool(const std::string &, const std::string &)> validate = nullptr;
 
             Widget::WADPair parent {};
         };
@@ -54,6 +57,7 @@ class PasswordBox: public InputLine
                   .onTab    = std::move(args.onTab),
                   .onCR     = std::move(args.onCR),
                   .onChange = std::move(args.onChange),
+                  .validate = std::move(args.validate),
 
                   .parent = std::move(args.parent),
               }}
@@ -61,29 +65,47 @@ class PasswordBox: public InputLine
             , m_security(std::move(args.security))
         {}
 
-    public:
-        bool processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m) override
+    protected:
+        bool insertInput(const std::string &input) override
         {
-            const auto result = InputLine::processEventDefault(event, valid, m);
-            if(security()){
-                const auto inputString = getRawString();
-                if(inputString.size() + 1 == m_passwordString.size()){
-                    // delete one char
-                    m_passwordString.erase(m_cursor, 1);
-                }
-
-                else if(inputString.size() == m_passwordString.size() + 1){
-                    // insert one char
-                    m_passwordString.insert(m_cursor - 1, 1, inputString[m_cursor - 1]);
-                    deleteChar();
-                    insertChar('*');
-                }
-
-                else if(inputString.size() != m_passwordString.size()){
-                    throw fflpanic("password box input error");
-                }
+            if(!security()){
+                return InputLine::insertInput(input);
             }
-            return result;
+
+            if(input.empty() || !validateInput(m_passwordString, input)){
+                return false;
+            }
+
+            auto insertPos = m_passwordString.begin();
+            utf8::advance(insertPos, m_cursor, m_passwordString.end());
+            const auto insertOff = std::distance(m_passwordString.begin(), insertPos);
+            const auto inputLength = utf8::distance(input.begin(), input.end());
+
+            m_passwordString.insert(to_uz(insertOff), input);
+            m_cursor += m_tpset.insertUTF8String(m_cursor, 0, std::string(to_uz(inputLength), '*').c_str());
+            return true;
+        }
+
+        bool deleteInput() override
+        {
+            if(!security()){
+                return InputLine::deleteInput();
+            }
+
+            if(m_cursor <= 0){
+                return false;
+            }
+
+            auto eraseBegin = m_passwordString.begin();
+            utf8::advance(eraseBegin, m_cursor - 1, m_passwordString.end());
+
+            auto eraseEnd = eraseBegin;
+            utf8::advance(eraseEnd, 1, m_passwordString.end());
+
+            m_passwordString.erase(
+                    to_uz(std::distance(m_passwordString.begin(), eraseBegin)),
+                    to_uz(std::distance(eraseBegin, eraseEnd)));
+            return InputLine::deleteInput();
         }
 
     public:
@@ -94,8 +116,8 @@ class PasswordBox: public InputLine
 
         void clear() override
         {
-            InputLine::clear();
             m_passwordString.clear();
+            InputLine::clear();
         }
 
     public:

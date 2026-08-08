@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <string>
 #include "colorf.hpp"
 #include "widget.hpp"
 #include "xmltypeset.hpp"
@@ -32,7 +33,7 @@ class InputLine: public Widget
             std::function<void()>            onTab    = nullptr;
             std::function<void()>            onCR     = nullptr;
             std::function<void(std::string)> onChange = nullptr;
-            std::function<bool(std::string)> validate = nullptr;
+            std::function<bool(const std::string &, const std::string &)> validate = nullptr;
 
             Widget::WADPair parent {};
         };
@@ -54,7 +55,14 @@ class InputLine: public Widget
         std::function<void()>            m_onTab;
         std::function<void()>            m_onCR;
         std::function<void(std::string)> m_onChange;
-        std::function<bool(std::string)> m_validate;
+        std::function<bool(const std::string &, const std::string &)> m_validate;
+
+    protected:
+        bool validateInput(const std::string &, const std::string &) const;
+        virtual bool insertInput(const std::string &);
+        virtual bool deleteInput();
+
+        void notifyInputChange() const;
 
     public:
         InputLine(InputLine::InitArgs);
@@ -82,6 +90,8 @@ class InputLine: public Widget
 
     public:
         virtual void clear();
+
+        void setValidateFunc(std::function<bool(const std::string &, const std::string &)>);
 
     public:
         void deleteChar();

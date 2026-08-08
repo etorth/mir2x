@@ -271,6 +271,12 @@ class ProcessRun: public Process
         _support_sm(SM_ADDFRIENDACCEPTED);
         _support_sm(SM_ADDFRIENDREJECTED);
         _support_sm(SM_RANKINGLIST);
+        _support_sm(SM_DIRECTTRADEREQUEST);
+        _support_sm(SM_STARTDIRECTTRADE);
+        _support_sm(SM_UPDATEDIRECTTRADE);
+        _support_sm(SM_COMPLETEDIRECTTRADE);
+        _support_sm(SM_CLOSEDIRECTTRADE);
+        _support_sm(SM_DIRECTTRADEERROR);
         _support_sm(SM_AUCTIONITEMLIST);
 #undef _support_sm
 
@@ -468,6 +474,11 @@ class ProcessRun: public Process
         void requestRemoveSecuredItem(uint32_t, uint32_t);
         void requestJoinTeam(uint64_t);
         void requestLeaveTeam(uint64_t);
+        void requestDirectTrade(uint64_t);
+        void respondDirectTrade(uint64_t, bool);
+        bool updateDirectTradeOffer(uint64_t, uint32_t, bool, const std::vector<SDItem> &);
+        void commitDirectTrade(uint64_t);
+        void cancelDirectTrade(uint64_t);
         void requestLatestChatMessage(const std::vector<uint64_t> &, size_t, bool, bool);
 
     public:

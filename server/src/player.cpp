@@ -535,6 +535,46 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_PLAYERBROADCAST(mpk);
             }
+        case AM_REQUESTDIRECTTRADE:
+            {
+                return on_AM_REQUESTDIRECTTRADE(mpk);
+            }
+        case AM_ACCEPTDIRECTTRADE:
+            {
+                return on_AM_ACCEPTDIRECTTRADE(mpk);
+            }
+        case AM_REJECTDIRECTTRADE:
+            {
+                return on_AM_REJECTDIRECTTRADE(mpk);
+            }
+        case AM_STARTDIRECTTRADE:
+            {
+                return on_AM_STARTDIRECTTRADE(mpk);
+            }
+        case AM_UPDATEDIRECTTRADE:
+            {
+                return on_AM_UPDATEDIRECTTRADE(mpk);
+            }
+        case AM_COMMITDIRECTTRADE:
+            {
+                return on_AM_COMMITDIRECTTRADE(mpk);
+            }
+        case AM_PREPAREDIRECTTRADE:
+            {
+                return on_AM_PREPAREDIRECTTRADE(mpk);
+            }
+        case AM_COMPLETEDIRECTTRADE:
+            {
+                return on_AM_COMPLETEDIRECTTRADE(mpk);
+            }
+        case AM_DIRECTTRADEERROR:
+            {
+                return on_AM_DIRECTTRADEERROR(mpk);
+            }
+        case AM_CANCELDIRECTTRADE:
+            {
+                return on_AM_CANCELDIRECTTRADE(mpk);
+            }
         default:
             {
                 throw fflvalue(mpk.str(UID()));
@@ -592,6 +632,11 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_SETMAGICKEY               );
         _support_cm(CM_SETRUNTIMECONFIG          );
         _support_cm(CM_CREATECHATGROUP           );
+        _support_cm(CM_REQUESTDIRECTTRADE        );
+        _support_cm(CM_RESPONDDIRECTTRADE        );
+        _support_cm(CM_UPDATEDIRECTTRADE         );
+        _support_cm(CM_COMMITDIRECTTRADE         );
+        _support_cm(CM_CANCELDIRECTTRADE         );
         default:
             {
                 throw fflvalue(ClientMsg(nType).name());
@@ -800,8 +845,92 @@ bool Player::ActionValid(const ActionNode &)
     return true;
 }
 
+bool Player::directTradeBusy() const
+{
+    return m_directTradeRequestTargetUID || m_directTradeRequesterUID || m_directTradePeerUID;
+}
+
+bool Player::directTradeReady() const
+{
+    return m_directTradePeerUID
+        && m_directTradeOffer.uid == UID()
+        && m_directTradePeerOffer.uid == m_directTradePeerUID
+        && to_bool(m_directTradeOffer.locked)
+        && to_bool(m_directTradePeerOffer.locked);
+}
+
+bool Player::directTradeConfirmed() const
+{
+    return directTradeReady()
+        && to_bool(m_directTradeOffer.confirmed)
+        && to_bool(m_directTradePeerOffer.confirmed);
+}
+
+void Player::postDirectTradeError(int error)
+{
+    postNetMessage(SM_DIRECTTRADEERROR, SMDirectTradeError
+    {
+        .error = to_u8(error),
+    });
+}
+
+void Player::applyDirectTradeResult(SDDirectTradeResult result)
+{
+    fflassert(result.uid == UID(), result.uid, UID());
+
+    const auto peerUID = m_directTradePeerUID;
+    const auto gainedItemList = m_directTradePeerOffer.itemList;
+
+    m_sdItemStorage.gold = result.gold;
+    m_sdItemStorage.inventory = std::move(result.inventory);
+    reportGold();
+    postNetMessage(SM_INVENTORY, cerealf::serialize(m_sdItemStorage.inventory));
+
+    for(const auto &item: gainedItemList){
+        m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(item.itemID)));
+    }
+
+    m_directTradeRequestTargetUID = 0;
+    m_directTradeRequesterUID = 0;
+    m_directTradePeerUID = 0;
+    m_directTradeOffer.clear();
+    m_directTradePeerOffer.clear();
+    m_directTradeCommitPending = false;
+
+    postNetMessage(SM_COMPLETEDIRECTTRADE, SMCompleteDirectTrade
+    {
+        .uid = peerUID,
+    });
+}
+
+void Player::cancelDirectTrade()
+{
+    const auto peerUID = m_directTradePeerUID;
+    const auto notifyUID = peerUID ? peerUID : (m_directTradeRequestTargetUID ? m_directTradeRequestTargetUID : m_directTradeRequesterUID);
+
+    m_directTradeRequestTargetUID = 0;
+    m_directTradeRequesterUID = 0;
+    m_directTradePeerUID = 0;
+    m_directTradeOffer.clear();
+    m_directTradePeerOffer.clear();
+    m_directTradeCommitPending = false;
+
+    if(notifyUID && hasActorPod()){
+        m_actorPod->post(notifyUID, AM_CANCELDIRECTTRADE);
+    }
+
+    if(peerUID && m_channID.value_or(0)){
+        postNetMessage(SM_CLOSEDIRECTTRADE, SMCloseDirectTrade
+        {
+            .uid = peerUID,
+        });
+    }
+}
+
 void Player::dispatchOffline()
 {
+    cancelDirectTrade();
+
     if(hasActorPod()){
         AMOffline amO;
         std::memset(&amO, 0, sizeof(amO));
@@ -911,6 +1040,10 @@ corof::awaitable<> Player::onCMActionStand(CMAction stCMA)
 
 corof::awaitable<> Player::onCMActionMove(CMAction stCMA)
 {
+    if(!m_directTradeCommitPending){
+        cancelDirectTrade();
+    }
+
     // server won't do any path finding
     // client should sent action with only one-hop movement
 

@@ -186,7 +186,7 @@ CBRight::CBRight(
 
           .onTrigger = [this](Widget *, int)
           {
-              if(auto p = m_processRun->getWidget("PlayerStateBoard")){
+              if(auto p = m_processRun->getWidget("MyHeroStateBoard")){
                   p->flipShow();
               }
           },

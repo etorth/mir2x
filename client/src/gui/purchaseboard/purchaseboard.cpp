@@ -198,20 +198,29 @@ PurchaseBoard::PurchaseBoard(ProcessRun *argProc, Widget *argParent, bool argAut
               auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"));
               const auto headerString = str_printf(u8"<layout><par>请输入你要购买<t color=\"red\">%s</t>的数量</par></layout>", to_cstr(DBCOM_ITEMRECORD(itemID).name));
 
-              inputBoardPtr->waitInput(headerString, false, [itemID, npcUID = m_npcUID, this](std::u8string inputString)
+              inputBoardPtr->waitInput(
               {
-                  const auto &ir = DBCOM_ITEMRECORD(itemID);
-                  int count = 0;
-                  try{
-                      count = std::stoi(to_cstr(inputString));
-                  }
-                  catch(...){
-                      m_processRun->addCBLog(CBLOG_ERR, u8"无效输入:%s", to_cstr(inputString));
-                  }
+                  .layoutString = headerString,
+                  .onAccept = [itemID, npcUID = m_npcUID, this](std::u8string inputString)
+                  {
+                      const auto &ir = DBCOM_ITEMRECORD(itemID);
+                      int count = 0;
+                      try{
+                          count = std::stoi(to_cstr(inputString));
+                      }
+                      catch(...){
+                          m_processRun->addCBLog(CBLOG_ERR, u8"无效输入:%s", to_cstr(inputString));
+                      }
 
-                  if(ir && count > 0){
-                      m_processRun->requestBuy(npcUID, itemID, 0, count);
-                  }
+                      if(ir && count > 0){
+                          m_processRun->requestBuy(npcUID, itemID, 0, count);
+                      }
+                  },
+                  .validate = [](const std::string &currentInput, const std::string &newInput)
+                  {
+                      return currentInput.size() + newInput.size() <= 10
+                          && newInput.find_first_not_of("0123456789") == std::string::npos;
+                  },
               });
           },
 

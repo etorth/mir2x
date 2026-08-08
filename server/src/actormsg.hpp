@@ -139,6 +139,16 @@ enum ActorMsgPackType: int
     AM_REQUESTLEAVETEAM,
     AM_PLAYERSAY,
     AM_PLAYERBROADCAST,
+    AM_REQUESTDIRECTTRADE,
+    AM_ACCEPTDIRECTTRADE,
+    AM_REJECTDIRECTTRADE,
+    AM_STARTDIRECTTRADE,
+    AM_UPDATEDIRECTTRADE,
+    AM_COMMITDIRECTTRADE,
+    AM_PREPAREDIRECTTRADE,
+    AM_COMPLETEDIRECTTRADE,
+    AM_DIRECTTRADEERROR,
+    AM_CANCELDIRECTTRADE,
     AM_END,
 };
 
@@ -273,6 +283,16 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_REQUESTLEAVETEAM)
         _add_mpk_type_case(AM_PLAYERSAY)
         _add_mpk_type_case(AM_PLAYERBROADCAST)
+        _add_mpk_type_case(AM_REQUESTDIRECTTRADE)
+        _add_mpk_type_case(AM_ACCEPTDIRECTTRADE)
+        _add_mpk_type_case(AM_REJECTDIRECTTRADE)
+        _add_mpk_type_case(AM_STARTDIRECTTRADE)
+        _add_mpk_type_case(AM_UPDATEDIRECTTRADE)
+        _add_mpk_type_case(AM_COMMITDIRECTTRADE)
+        _add_mpk_type_case(AM_PREPAREDIRECTTRADE)
+        _add_mpk_type_case(AM_COMPLETEDIRECTTRADE)
+        _add_mpk_type_case(AM_DIRECTTRADEERROR)
+        _add_mpk_type_case(AM_CANCELDIRECTTRADE)
         default: return "AM_UNKNOWN";
     }
 #undef _add_mpk_type_case
@@ -288,6 +308,16 @@ struct AMPlayerBroadcast
 {
     uint64_t uid;
     char content[128];
+};
+
+struct AMDirectTradePeer
+{
+    StaticBuffer<SYS_NAMESIZE> name;
+};
+
+struct AMDirectTradeError
+{
+    uint8_t error;
 };
 
 struct AMBadActorPod

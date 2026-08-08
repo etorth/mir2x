@@ -97,6 +97,12 @@ enum SMType: uint8_t
     SM_CHATMESSAGEOK,
     SM_ADDFRIENDOK,
     SM_CREATECHATGROUPOK,
+    SM_DIRECTTRADEREQUEST,
+    SM_STARTDIRECTTRADE,
+    SM_UPDATEDIRECTTRADE,
+    SM_COMPLETEDIRECTTRADE,
+    SM_CLOSEDIRECTTRADE,
+    SM_DIRECTTRADEERROR,
     SM_END,
 };
 
@@ -360,6 +366,33 @@ struct SMTeamError
     uint8_t error;
 };
 
+struct SMDirectTradeRequest
+{
+    uint64_t uid;
+    StaticBuffer<SYS_NAMESIZE> name;
+};
+
+struct SMStartDirectTrade
+{
+    uint64_t uid;
+    StaticBuffer<SYS_NAMESIZE> name;
+};
+
+struct SMCompleteDirectTrade
+{
+    uint64_t uid;
+};
+
+struct SMCloseDirectTrade
+{
+    uint64_t uid;
+};
+
+struct SMDirectTradeError
+{
+    uint8_t error;
+};
+
 struct SMPlayerSay
 {
     uint64_t uid;
@@ -494,6 +527,12 @@ namespace
         _RSVD_register_servermsg(SM_CHATMESSAGEOK,          3                                  );
         _RSVD_register_servermsg(SM_ADDFRIENDOK,            3                                  );
         _RSVD_register_servermsg(SM_CREATECHATGROUPOK,      3                                  );
+        _RSVD_register_servermsg(SM_DIRECTTRADEREQUEST,     1, sizeof(SMDirectTradeRequest)    );
+        _RSVD_register_servermsg(SM_STARTDIRECTTRADE,       1, sizeof(SMStartDirectTrade)      );
+        _RSVD_register_servermsg(SM_UPDATEDIRECTTRADE,      3                                  );
+        _RSVD_register_servermsg(SM_COMPLETEDIRECTTRADE,     1, sizeof(SMCompleteDirectTrade)   );
+        _RSVD_register_servermsg(SM_CLOSEDIRECTTRADE,       1, sizeof(SMCloseDirectTrade)      );
+        _RSVD_register_servermsg(SM_DIRECTTRADEERROR,       1, sizeof(SMDirectTradeError)      );
 
 #undef _RSVD_register_servermsg
         return result;

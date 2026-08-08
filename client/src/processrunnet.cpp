@@ -23,6 +23,9 @@
 #include "gui/controlboard/controlboard.hpp"
 #include "gui/friendchatboard/friendchatboard.hpp"
 #include "gui/auctionboard/auctionboard.hpp"
+#include "gui/directtradeboard/directtradeboard.hpp"
+#include "gui/herostateboard/herostateboard.hpp"
+#include "inputstringboard.hpp"
 #include "serdesmsg.hpp"
 #include "sdldevice.hpp"
 
@@ -891,9 +894,14 @@ void ProcessRun::on_SM_STARTINPUT(const uint8_t *buf, size_t bufSize)
     const auto sdSI = cerealf::deserialize<SDStartInput>(buf, bufSize);
     auto inputBoardPtr = dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"));
 
-    inputBoardPtr->waitInput(to_u8rawstr(sdSI.title), true, [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
+    inputBoardPtr->waitInput(
     {
-        sendNPCEvent(uid, {}, commitTag, to_cstr(input));
+        .layoutString = to_u8rawstr(sdSI.title),
+        .security = true,
+        .onAccept = [uid = sdSI.uid, commitTag = sdSI.commitTag, this](std::u8string input)
+        {
+            sendNPCEvent(uid, {}, commitTag, to_cstr(input));
+        },
     });
 }
 
@@ -951,4 +959,97 @@ void ProcessRun::on_SM_ADDFRIENDREJECTED(const uint8_t *buf, size_t bufSize)
 void ProcessRun::on_SM_RANKINGLIST(const uint8_t *buf, size_t bufSize)
 {
     dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->setRankingList(cerealf::deserialize<SDRankingList>(buf, bufSize));
+}
+
+void ProcessRun::on_SM_DIRECTTRADEREQUEST(const uint8_t *buf, size_t)
+{
+    const auto smDTR = ServerMsg::conv<SMDirectTradeRequest>(buf);
+    auto inputBoard = dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"));
+    fflassert(inputBoard);
+
+    inputBoard->waitChoice(
+            to_u8rawstr(str_printf("<layout><par><t color='red'>%s</t>请求与你交易，是否接受？</par></layout>", smDTR.name.as_rawcstr())),
+            [uid = smDTR.uid, this]
+            {
+                respondDirectTrade(uid, true);
+            },
+            [uid = smDTR.uid, this]
+            {
+                respondDirectTrade(uid, false);
+            });
+}
+
+void ProcessRun::on_SM_STARTDIRECTTRADE(const uint8_t *buf, size_t)
+{
+    const auto smSDT = ServerMsg::conv<SMStartDirectTrade>(buf);
+
+    dynamic_cast<HeroStateBoard *>(getWidget("HeroStateBoard"))->close();
+    dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"))->begin(smSDT.uid, smSDT.name.as_rawcstr());
+}
+
+// SM_UPDATEDIRECTTRADE is used both as the acknowledgement for this client's
+// offer and as the live broadcast of the peer offer. The embedded owner UID
+// routes the canonical snapshot to the correct side of the board.
+void ProcessRun::on_SM_UPDATEDIRECTTRADE(const uint8_t *buf, size_t bufSize)
+{
+    const auto offer = cerealf::deserialize<SDDirectTradeOffer>(buf, bufSize);
+    auto tradeBoard = dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"));
+
+    if(offer.uid == tradeBoard->peerUID()){
+        tradeBoard->setPeerOffer(offer);
+    }
+    else if(const auto hero = getMyHero(); hero && offer.uid == hero->UID()){
+        tradeBoard->applyLocalOfferAck(offer);
+    }
+}
+
+void ProcessRun::on_SM_COMPLETEDIRECTTRADE(const uint8_t *buf, size_t)
+{
+    const auto smCDT = ServerMsg::conv<SMCompleteDirectTrade>(buf);
+    auto tradeBoard = dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"));
+    if(tradeBoard->peerUID() == smCDT.uid){
+        tradeBoard->complete();
+    }
+}
+
+void ProcessRun::on_SM_CLOSEDIRECTTRADE(const uint8_t *buf, size_t)
+{
+    const auto smCDT = ServerMsg::conv<SMCloseDirectTrade>(buf);
+    auto tradeBoard = dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"));
+    if(tradeBoard->peerUID() == smCDT.uid){
+        tradeBoard->close(false);
+    }
+}
+
+void ProcessRun::on_SM_DIRECTTRADEERROR(const uint8_t *buf, size_t)
+{
+    const auto error = ServerMsg::conv<SMDirectTradeError>(buf).error;
+    const char8_t *message = nullptr;
+
+    switch(error){
+        case DTRADEERR_BADTARGET       : message = u8"无效的交易目标"; break;
+        case DTRADEERR_NOTALLOWED      : message = u8"请先在系统设置中勾选允许交易"; break;
+        case DTRADEERR_TARGETNOTALLOWED: message = u8"对方没有开启允许交易"; break;
+        case DTRADEERR_BUSY            : message = u8"你正在处理其它交易"; break;
+        case DTRADEERR_TARGETBUSY      : message = u8"对方正在处理其它交易"; break;
+        case DTRADEERR_DEAD            : message = u8"死亡状态下无法交易"; break;
+        case DTRADEERR_TARGETDEAD      : message = u8"无法与死亡的玩家交易"; break;
+        case DTRADEERR_TOOFAR          : message = u8"距离过远，无法交易"; break;
+        case DTRADEERR_REJECTED        : message = u8"对方拒绝了交易申请"; break;
+        case DTRADEERR_OFFLINE         : message = u8"交易目标已经离线"; break;
+        case DTRADEERR_BADOFFER        : message = u8"交易物品已经失效"; break;
+        case DTRADEERR_BADGOLD         : message = u8"交易金币数量无效"; break;
+        case DTRADEERR_LOCKED          : message = u8"交易内容已经锁定"; break;
+        case DTRADEERR_NOTREADY        : message = u8"双方尚未完成锁定和确认"; break;
+        case DTRADEERR_COMMITFAILED    : message = u8"交易内容已失效，交易取消"; break;
+        default                        : message = u8"交易申请失败"; break;
+    }
+
+    if(error == DTRADEERR_BADOFFER
+            || error == DTRADEERR_BADGOLD
+            || error == DTRADEERR_NOTREADY
+            || error == DTRADEERR_COMMITFAILED){
+        dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"))->rejectLocalOffer();
+    }
+    addCBLog(CBLOG_ERR, u8"%s", to_cstr(message));
 }

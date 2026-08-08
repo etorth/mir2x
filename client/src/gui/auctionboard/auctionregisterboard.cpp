@@ -236,20 +236,29 @@ void AuctionRegisterBoard::setPrice()
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
     fflassert(inputBoard);
 
-    inputBoard->waitInput(u8"<layout><par>你想卖多少钱呢?</par></layout>", false, [this](std::u8string input)
+    inputBoard->waitInput(
     {
-        const std::string value(reinterpret_cast<const char *>(input.data()), input.size());
-        uint64_t price = 0;
-        const auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), price, 10);
-        if(value.empty()
-                || ec != std::errc()
-                || ptr != value.data() + value.size()
-                || price == 0
-                || price > to_u64(std::numeric_limits<int64_t>::max())){
-            m_runProc->addCBLog(CBLOG_ERR, u8"无效的寄售价格：%s", value.c_str());
-            return;
-        }
-        m_price.setPrice(price);
+        .layoutString = u8"<layout><par>你想卖多少钱呢?</par></layout>",
+        .onAccept = [this](std::u8string input)
+        {
+            const std::string value(reinterpret_cast<const char *>(input.data()), input.size());
+            uint64_t price = 0;
+            const auto [ptr, ec] = std::from_chars(value.data(), value.data() + value.size(), price, 10);
+            if(value.empty()
+                    || ec != std::errc()
+                    || ptr != value.data() + value.size()
+                    || price == 0
+                    || price > to_u64(std::numeric_limits<int64_t>::max())){
+                m_runProc->addCBLog(CBLOG_ERR, u8"无效的寄售价格：%s", value.c_str());
+                return;
+            }
+            m_price.setPrice(price);
+        },
+        .validate = [](const std::string &currentInput, const std::string &newInput)
+        {
+            return currentInput.size() + newInput.size() <= 19
+                && newInput.find_first_not_of("0123456789") == std::string::npos;
+        },
     });
 }
 
@@ -287,7 +296,7 @@ void AuctionRegisterBoard::confirmRegister()
     fflassert(inputBoard);
 
     std::u8string prompt = to_u8rawstr("<layout>" + xmlf::toParString("你确定上架%s吗?", to_cstr(ir.name)) + xmlf::toParString("委托交易将会扣除手续费500，交易成功后扣除2%%交易额") + "</layout>");
-    inputBoard->waitInput(std::move(prompt), false, [this](std::u8string)
+    inputBoard->waitChoice(std::move(prompt), [this]
     {
         registerItem();
     });
@@ -373,7 +382,7 @@ void AuctionRegisterBoard::confirmCancel()
 
     auto inputBoard = dynamic_cast<InputStringBoard *>(m_runProc->getWidget("InputStringBoard"));
     fflassert(inputBoard);
-    inputBoard->waitInput(u8"<layout><par>你确定取消吗？</par></layout>", false, [this](std::u8string)
+    inputBoard->waitChoice(u8"<layout><par>你确定取消吗？</par></layout>", [this]
     {
         closeRegister(false);
     });

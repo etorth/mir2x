@@ -12,7 +12,7 @@ class IntegerSelector: public ValueSelector
             InputLine::CursorArgs cursor {};
 
             std::function<void(std::string)> onChange = nullptr;
-            std::function<bool(std::string)> validate = nullptr;
+            std::function<bool(const std::string &, const std::string &)> validate = nullptr;
         };
 
         struct ButtonArgs final

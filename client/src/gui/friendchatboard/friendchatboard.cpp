@@ -657,33 +657,41 @@ FriendChatBoard::FriendChatBoard(Widget::VarInt argX, Widget::VarInt argY, Proce
 
                                   auto inputBoardPtr = dynamic_cast<InputStringBoard *>(m_processRun->getWidget("InputStringBoard"));
 
-                                  inputBoardPtr->waitInput(u8"<layout><par>请输入你要建立的群名称</par></layout>", false, [dbidList, this](std::u8string inputString)
+                                  inputBoardPtr->waitInput(
                                   {
-                                      if(inputString.empty()){
-                                          m_processRun->addCBLog(CBLOG_ERR, u8"无效输入:%s", to_cstr(inputString));
-                                          return;
-                                      }
-
-                                      CMCreateChatGroup cmCCG;
-                                      std::memset(&cmCCG, 0, sizeof(cmCCG));
-
-                                      cmCCG.name.assign(inputString);
-                                      cmCCG.list.assign(dbidList.begin(), dbidList.end());
-
-                                      g_client->send({CM_CREATECHATGROUP, cmCCG}, [this](uint8_t headCode, const uint8_t *buf, size_t size)
+                                      .layoutString = u8"<layout><par>请输入你要建立的群名称</par></layout>",
+                                      .onAccept = [dbidList, this](std::u8string inputString)
                                       {
-                                          switch(headCode){
-                                              case SM_CREATECHATGROUPOK:
-                                                  {
-                                                      addGroup(cerealf::deserialize<SDChatPeer>(buf, size));
-                                                      break;
-                                                  }
-                                              default:
-                                                  {
-                                                      throw fflpanic("failed to create group");
-                                                  }
+                                          if(inputString.empty()){
+                                              m_processRun->addCBLog(CBLOG_ERR, u8"无效输入:%s", to_cstr(inputString));
+                                              return;
                                           }
-                                      });
+
+                                          CMCreateChatGroup cmCCG;
+                                          std::memset(&cmCCG, 0, sizeof(cmCCG));
+
+                                          cmCCG.name.assign(inputString);
+                                          cmCCG.list.assign(dbidList.begin(), dbidList.end());
+
+                                          g_client->send({CM_CREATECHATGROUP, cmCCG}, [this](uint8_t headCode, const uint8_t *buf, size_t size)
+                                          {
+                                              switch(headCode){
+                                                  case SM_CREATECHATGROUPOK:
+                                                      {
+                                                          addGroup(cerealf::deserialize<SDChatPeer>(buf, size));
+                                                          break;
+                                                      }
+                                                  default:
+                                                      {
+                                                          throw fflpanic("failed to create group");
+                                                      }
+                                              }
+                                          });
+                                      },
+                                      .validate = [](const std::string &currentInput, const std::string &newInput)
+                                      {
+                                          return currentInput.size() + newInput.size() <= CMCreateChatGroup().name.capacity();
+                                      },
                                   });
                               },
                           }},

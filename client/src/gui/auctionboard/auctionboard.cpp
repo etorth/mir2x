@@ -513,7 +513,7 @@ void AuctionBoard::confirmBuy()
     prompt += xmlf::toParString("%s", to_cstr(u8"购买成功后，物品会通过系统投递发送。"));
     prompt += "</layout>";
 
-    inputBoard->waitInput(to_u8rawstr(prompt), false, [auctionID = item->auctionID, itemName = std::string(to_cstr(ir.name)), this](std::u8string)
+    inputBoard->waitChoice(to_u8rawstr(prompt), [auctionID = item->auctionID, itemName = std::string(to_cstr(ir.name)), this]
     {
         buyItem(auctionID, itemName);
     });
@@ -605,7 +605,7 @@ void AuctionBoard::confirmUnregister()
     prompt += xmlf::toParString("%s", to_cstr(u8"下架后，物品会通过系统投递退回。"));
     prompt += "</layout>";
 
-    inputBoard->waitInput(to_u8rawstr(prompt), false, [auctionID = item->auctionID, itemName = std::string(to_cstr(ir.name)), this](std::u8string)
+    inputBoard->waitChoice(to_u8rawstr(prompt), [auctionID = item->auctionID, itemName = std::string(to_cstr(ir.name)), this]
     {
         unregisterItem(auctionID, itemName);
     });

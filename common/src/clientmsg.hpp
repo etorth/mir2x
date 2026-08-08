@@ -70,6 +70,11 @@ enum CMType: uint8_t
     CM_REGISTERAUCTIONITEM,
     CM_BUYAUCTIONITEM,
     CM_UNREGISTERAUCTIONITEM,
+    CM_REQUESTDIRECTTRADE,
+    CM_RESPONDDIRECTTRADE,
+    CM_UPDATEDIRECTTRADE,
+    CM_COMMITDIRECTTRADE,
+    CM_CANCELDIRECTTRADE,
     CM_END,
 };
 
@@ -325,6 +330,27 @@ struct CMRequestLeaveTeam
     uint64_t uid;
 };
 
+struct CMRequestDirectTrade
+{
+    uint64_t uid;
+};
+
+struct CMRespondDirectTrade
+{
+    uint64_t uid;
+    uint8_t accept;
+};
+
+struct CMCommitDirectTrade
+{
+    uint64_t uid;
+};
+
+struct CMCancelDirectTrade
+{
+    uint64_t uid;
+};
+
 struct CMRequestLatestChatMessage
 {
     StaticVector<uint64_t, 128> cpidList;
@@ -439,6 +465,11 @@ namespace
         _RSVD_register_clientmsg(CM_REGISTERAUCTIONITEM,         1, sizeof(CMRegisterAuctionItem)       );
         _RSVD_register_clientmsg(CM_BUYAUCTIONITEM,              1, sizeof(CMBuyAuctionItem)            );
         _RSVD_register_clientmsg(CM_UNREGISTERAUCTIONITEM,       1, sizeof(CMUnregisterAuctionItem)     );
+        _RSVD_register_clientmsg(CM_REQUESTDIRECTTRADE,          1, sizeof(CMRequestDirectTrade)        );
+        _RSVD_register_clientmsg(CM_RESPONDDIRECTTRADE,          1, sizeof(CMRespondDirectTrade)        );
+        _RSVD_register_clientmsg(CM_UPDATEDIRECTTRADE,           3                                      );
+        _RSVD_register_clientmsg(CM_COMMITDIRECTTRADE,            1, sizeof(CMCommitDirectTrade)         );
+        _RSVD_register_clientmsg(CM_CANCELDIRECTTRADE,           1, sizeof(CMCancelDirectTrade)         );
 
 #undef _RSVD_register_clientmsg
         return result;

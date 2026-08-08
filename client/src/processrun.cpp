@@ -27,6 +27,7 @@
 #include "fflerror.hpp"
 #include "totype.hpp"
 #include "gui/skillboard/skillboard.hpp"
+#include "gui/herostateboard/herostateboard.hpp"
 #include "lochashtable.hpp"
 #include "clienttaodog.hpp"
 #include "clienttaoskeleton.hpp"
@@ -654,6 +655,13 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     }
                                 case CURSOR_DEFAULT:
                                     {
+                                        if(SDL_GetModState() & SDL_KMOD_CTRL){
+                                            if(const auto uid = getFocusUID(FOCUS_MOUSE); uidf::isPlayer(uid)){
+                                                dynamic_cast<HeroStateBoard *>(getWidget("HeroStateBoard"))->inspect(uid);
+                                                break;
+                                            }
+                                        }
+
                                         // in mir2ei how human moves
                                         // 1. client send motion request to server
                                         // 2. client put motion lock to human
@@ -1760,6 +1768,84 @@ void ProcessRun::requestLeaveTeam(uint64_t uid)
 
     cmRLT.uid = uid;
     g_client->send({CM_REQUESTLEAVETEAM, cmRLT});
+}
+
+void ProcessRun::requestDirectTrade(uint64_t uid)
+{
+    fflassert(uidf::isPlayer(uid));
+
+    if(!getRuntimeConfig<RTCFG_允许交易>()){
+        addCBLog(CBLOG_ERR, u8"请先在系统设置中勾选允许交易");
+        return;
+    }
+
+    CMRequestDirectTrade cmRDT {};
+    cmRDT.uid = uid;
+    g_client->send({CM_REQUESTDIRECTTRADE, cmRDT});
+}
+
+void ProcessRun::respondDirectTrade(uint64_t uid, bool accept)
+{
+    fflassert(uidf::isPlayer(uid));
+
+    CMRespondDirectTrade cmRDT {};
+    cmRDT.uid = uid;
+    cmRDT.accept = to_u8(accept);
+    g_client->send({CM_RESPONDDIRECTTRADE, cmRDT});
+}
+
+bool ProcessRun::updateDirectTradeOffer(uint64_t uid, uint32_t gold, bool locked, const std::vector<SDItem> &itemList)
+{
+    fflassert(uidf::isPlayer(uid));
+
+    if(itemList.size() > SYS_DIRECTTRADEMAXITEM){
+        addCBLog(CBLOG_ERR, u8"交易栏物品数量已达上限");
+        return false;
+    }
+
+    SDDirectTradeOfferRequest request
+    {
+        .uid = uid,
+        .gold = gold,
+        .locked = to_u8(locked),
+    };
+    request.itemList.reserve(itemList.size());
+
+    for(const auto &item: itemList){
+        if(!item || item.count > std::numeric_limits<uint32_t>::max()){
+            addCBLog(CBLOG_ERR, u8"交易物品数量无效");
+            return false;
+        }
+
+        request.itemList.push_back(SDDirectTradeItem
+        {
+            .itemID = item.itemID,
+            .seqID = item.seqID,
+            .count = to_u32(item.count),
+        });
+    }
+
+    const auto requestBuf = cerealf::serialize(request);
+    g_client->send({CM_UPDATEDIRECTTRADE, requestBuf});
+    return true;
+}
+
+void ProcessRun::commitDirectTrade(uint64_t uid)
+{
+    fflassert(uidf::isPlayer(uid));
+
+    CMCommitDirectTrade cmCDT {};
+    cmCDT.uid = uid;
+    g_client->send({CM_COMMITDIRECTTRADE, cmCDT});
+}
+
+void ProcessRun::cancelDirectTrade(uint64_t uid)
+{
+    fflassert(uidf::isPlayer(uid));
+
+    CMCancelDirectTrade cmCDT {};
+    cmCDT.uid = uid;
+    g_client->send({CM_CANCELDIRECTTRADE, cmCDT});
 }
 
 void ProcessRun::requestLatestChatMessage(const std::vector<uint64_t> &cpids, size_t limitCount, bool sendIncluded, bool recvIncluded)

@@ -29,7 +29,7 @@ struct ClientArgParser
     const bool debugAlphaCover;         // "--debug-alpha-cover"
     const bool debugDrawTexture;        // "--debug-draw-texture"
     const bool debugDrawInputLine;      // "--debug-draw-input-line"
-    const bool debugPlayerStateBoard;   // "--debug-player-state-board"
+    const bool debugMyHeroStateBoard;   // "--debug-myhero-state-board"
     const bool debugSlider;             // "--debug-slider"
     const bool debugClickEvent;         // "--debug-click-event"
     const int  screenMode;              // "--screen-mode"
@@ -65,7 +65,7 @@ struct ClientArgParser
         , debugAlphaCover      (argf::parseInteger<bool>(parseString(parser, "--debug-alpha-cover",        argf::OPT, true), "debug-alpha-cover",        argf::checkPass<bool>, false, true).first)
         , debugDrawTexture     (argf::parseInteger<bool>(parseString(parser, "--debug-draw-texture",       argf::OPT, true), "debug-draw-texture",       argf::checkPass<bool>, false, true).first)
         , debugDrawInputLine   (argf::parseInteger<bool>(parseString(parser, "--debug-draw-input-line",    argf::OPT, true), "debug-draw-input-line",    argf::checkPass<bool>, false, true).first)
-        , debugPlayerStateBoard(argf::parseInteger<bool>(parseString(parser, "--debug-player-state-board", argf::OPT, true), "debug-player-state-board", argf::checkPass<bool>, false, true).first)
+        , debugMyHeroStateBoard(argf::parseInteger<bool>(parseString(parser, "--debug-myhero-state-board", argf::OPT, true), "debug-myhero-state-board", argf::checkPass<bool>, false, true).first)
         , debugSlider          (argf::parseInteger<bool>(parseString(parser, "--debug-slider",             argf::OPT, true), "debug-slider",             argf::checkPass<bool>, false, true).first)
         , debugClickEvent      (argf::parseInteger<bool>(parseString(parser, "--debug-click-event",        argf::OPT, true), "debug-click-event",        argf::checkPass<bool>, false, true).first)
         , screenMode           (argf::parseInteger<int> (parseString(parser, "--screen-mode",              argf::OPT      ), "screen-mode",              checkScreenMode,           0,    0).first)

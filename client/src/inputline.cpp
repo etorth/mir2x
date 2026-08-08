@@ -75,9 +75,8 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                 }
 
                 if(str_haschar(event.text.text)){
-                    m_cursor += m_tpset.insertUTF8String(m_cursor, 0, event.text.text);
-                    if(m_onChange){
-                        m_onChange(m_tpset.getRawString());
+                    if(insertInput(event.text.text)){
+                        notifyInputChange();
                     }
                 }
 
@@ -131,13 +130,8 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                         }
                     case SDLK_BACKSPACE:
                         {
-                            if(m_cursor > 0){
-                                m_tpset.deleteToken(m_cursor - 1, 0, 1);
-                                m_cursor--;
-
-                                if(m_onChange){
-                                    m_onChange(m_tpset.getRawString());
-                                }
+                            if(deleteInput()){
+                                notifyInputChange();
                             }
                             m_cursorBlink = 0.0;
                             return true;
@@ -160,17 +154,14 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                             else if((ime == IME_EMBEDED) && g_imeBoard->active() && (keyChar >= 'a' && keyChar <= 'z')){
                                 g_imeBoard->gainFocus("", str_printf("%c", keyChar), this, [this](std::string s)
                                 {
-                                    m_tpset.insertUTF8String(m_cursor, 0, s.c_str());
-                                    m_cursor += utf8::distance(s.begin(), s.end());
-                                    if(m_onChange){
-                                        m_onChange(m_tpset.getRawString());
+                                    if(insertInput(s)){
+                                        notifyInputChange();
                                     }
                                 });
                             }
                             else if(keyChar != '\0'){
-                                m_tpset.insertUTF8String(m_cursor++, 0, str_printf("%c", keyChar).c_str());
-                                if(m_onChange){
-                                    m_onChange(m_tpset.getRawString());
+                                if(insertInput(std::string(1, keyChar))){
+                                    notifyInputChange();
                                 }
                             }
 
@@ -209,6 +200,39 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
             {
                 return false;
             }
+    }
+}
+
+bool InputLine::validateInput(const std::string &currentInput, const std::string &newInput) const
+{
+    return !m_validate || m_validate(currentInput, newInput);
+}
+
+bool InputLine::insertInput(const std::string &input)
+{
+    if(input.empty() || !validateInput(m_tpset.getRawString(), input)){
+        return false;
+    }
+
+    m_cursor += m_tpset.insertUTF8String(m_cursor, 0, input.c_str());
+    return true;
+}
+
+bool InputLine::deleteInput()
+{
+    if(m_cursor <= 0){
+        return false;
+    }
+
+    m_tpset.deleteToken(m_cursor - 1, 0, 1);
+    m_cursor--;
+    return true;
+}
+
+void InputLine::notifyInputChange() const
+{
+    if(m_onChange){
+        m_onChange(m_tpset.getRawString());
     }
 }
 
@@ -291,25 +315,18 @@ void InputLine::drawDefault(Widget::ROIMap m) const
 
 void InputLine::deleteChar()
 {
-    m_tpset.deleteToken(m_cursor - 1, 0, 1);
-    m_cursor--;
+    deleteInput();
 }
 
 void InputLine::insertChar(char ch)
 {
-    const char rawString[]
-    {
-        ch, '\0',
-    };
-
-    m_tpset.insertUTF8String(m_cursor, 0, rawString);
-    m_cursor++;
+    insertInput(std::string(1, ch));
 }
 
 void InputLine::insertUTF8String(const char *utf8Str)
 {
     if(str_haschar(utf8Str)){
-        m_cursor += m_tpset.insertUTF8String(m_cursor, 0, utf8Str);
+        insertInput(utf8Str);
     }
 }
 
@@ -320,11 +337,13 @@ void InputLine::clear()
 
     if(!m_tpset.empty()){
         m_tpset.clear();
-
-        if(m_onChange){
-            m_onChange({});
-        }
+        notifyInputChange();
     }
+}
+
+void InputLine::setValidateFunc(std::function<bool(const std::string &, const std::string &)> validate)
+{
+    m_validate = std::move(validate);
 }
 
 void InputLine::setInput(const char *utf8Str)
@@ -337,7 +356,5 @@ void InputLine::setInput(const char *utf8Str)
         m_cursor = m_tpset.insertUTF8String(m_cursor, 0, utf8Str);
     }
 
-    if(m_onChange){
-        m_onChange(m_tpset.getRawString());
-    }
+    notifyInputChange();
 }

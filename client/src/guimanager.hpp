@@ -5,6 +5,8 @@
 #include "gui/skillboard/skillboard.hpp"
 #include "gui/auctionboard/auctionboard.hpp"
 #include "gui/auctionboard/auctionregisterboard.hpp"
+#include "gui/directtradeboard/directtradeboard.hpp"
+#include "gui/herostateboard/herostateboard.hpp"
 #include "guildboard.hpp"
 #include "gui/npcchatboard/npcchatboard.hpp"
 #include "gui/friendchatboard/friendchatboard.hpp"
@@ -14,7 +16,7 @@
 #include "inventoryboard.hpp"
 #include "queststateboard.hpp"
 #include "gui/quickaccessboard/quickaccessboard.hpp"
-#include "playerstateboard.hpp"
+#include "gui/myherostateboard/myherostateboard.hpp"
 #include "inputstringboard.hpp"
 #include "gui/runtimeconfigboard/runtimeconfigboard.hpp"
 #include "secureditemlistboard.hpp"
@@ -39,12 +41,14 @@ class GUIManager: public Widget
         MiniMapBoard m_miniMapBoard;
         AuctionBoard m_auctionBoard;
         AuctionRegisterBoard m_auctionRegisterBoard;
+        DirectTradeBoard m_directTradeBoard;
+        HeroStateBoard m_heroStateBoard;
         PurchaseBoard m_purchaseBoard;
         TeamStateBoard m_teamStateBoard;
         InventoryBoard m_inventoryBoard;
         QuestStateBoard m_questStateBoard;
         QuickAccessBoard m_quickAccessBoard;
-        PlayerStateBoard m_playerStateBoard;
+        MyHeroStateBoard m_myHeroStateBoard;
         InputStringBoard m_inputStringBoard;
         RuntimeConfigBoard m_runtimeConfigBoard;
         SecuredItemListBoard m_securedItemListBoard;

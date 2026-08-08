@@ -95,7 +95,7 @@ InputStringBoard::InputStringBoard(
 
           .onCR = [this]
           {
-              inputLineDone();
+              acceptInput();
               setShow(false);
           },
 
@@ -116,7 +116,7 @@ InputStringBoard::InputStringBoard(
 
           .onTrigger = [this](Widget *, int)
           {
-              inputLineDone();
+              acceptInput();
               setShow(false);
           },
 
@@ -139,6 +139,13 @@ InputStringBoard::InputStringBoard(
           {
               setShow(false);
               m_input.clear();
+              m_input.setFocus(false);
+
+              m_onAccept = {};
+              m_input.setValidateFunc({});
+              if(auto onReject = std::move(m_onReject)){
+                  onReject();
+              }
           },
 
           .parent{this},
@@ -154,7 +161,7 @@ InputStringBoard::InputStringBoard(
     });
 }
 
-void InputStringBoard::inputLineDone()
+void InputStringBoard::acceptInput()
 {
     const std::string fullInput = m_input.getPasswordString();
     const auto inputPos = fullInput.find_first_not_of(" \n\r\t");
@@ -163,18 +170,48 @@ void InputStringBoard::inputLineDone()
     m_input.clear();
     m_input.setFocus(false);
 
-    if(m_onDone){
-        m_onDone(to_u8rawstr(realInput));
+    m_onReject = {};
+    m_input.setValidateFunc({});
+    if(auto onAccept = std::move(m_onAccept)){
+        onAccept(to_u8rawstr(realInput));
     }
 }
 
-void InputStringBoard::waitInput(std::u8string layoutString, bool security, std::function<void(std::u8string)> onDone)
+void InputStringBoard::waitInput(InputStringBoard::WaitInputArgs args)
+{
+    m_textInfo.loadXML(to_cstr(args.layoutString), 0);
+    m_onAccept = std::move(args.onAccept);
+    m_onReject = std::move(args.onReject);
+
+    m_input.setShow(true);
+    m_input.setActive(true);
+    m_input.setSecurity(args.security);
+    m_input.setValidateFunc(std::move(args.validate));
+    clear();
+    setShow(true);
+    setFocus(true);
+}
+
+void InputStringBoard::waitChoice(
+        std::u8string layoutString,
+        std::function<void()> onAccept,
+        std::function<void()> onReject)
 {
     m_textInfo.loadXML(to_cstr(layoutString), 0);
-    m_onDone = std::move(onDone);
+    m_onAccept = [onAccept = std::move(onAccept)](std::u8string)
+    {
+        if(onAccept){
+            onAccept();
+        }
+    };
+    m_onReject = std::move(onReject);
 
-    m_input.setSecurity(security);
     clear();
+    m_input.setFocus(false);
+    m_input.setActive(false);
+    m_input.setShow(false);
+    m_input.setValidateFunc({});
+
     setShow(true);
     setFocus(true);
 }

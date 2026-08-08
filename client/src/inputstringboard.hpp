@@ -10,8 +10,20 @@
 
 class InputStringBoard: public Widget
 {
+    public:
+        struct WaitInputArgs final
+        {
+            std::u8string layoutString {};
+            bool security = false;
+
+            std::function<void(std::u8string)> onAccept = nullptr;
+            std::function<void()> onReject = nullptr;
+            std::function<bool(const std::string &, const std::string &)> validate = nullptr;
+        };
+
     private:
-        std::function<void(std::u8string)> m_onDone;
+        std::function<void(std::u8string)> m_onAccept;
+        std::function<void()> m_onReject;
 
     private:
         ImageBoard m_bg;
@@ -39,7 +51,7 @@ class InputStringBoard: public Widget
                 bool     = false);
 
     private:
-        void inputLineDone();
+        void acceptInput();
 
     public:
         void clear()
@@ -48,5 +60,10 @@ class InputStringBoard: public Widget
         }
 
     public:
-        void waitInput(std::u8string, bool, std::function<void(std::u8string)>);
+        void waitInput(InputStringBoard::WaitInputArgs);
+
+        void waitChoice(
+                std::u8string,
+                std::function<void()>,
+                std::function<void()> = {});
 };

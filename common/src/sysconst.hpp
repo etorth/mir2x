@@ -82,6 +82,7 @@ constexpr int SYS_INVGRIDGH = 10;
 constexpr int SYS_INVGRIDPW = 38;
 constexpr int SYS_INVGRIDPH = 38;
 constexpr int SYS_INVGRIDMAXHOLD = 99;
+constexpr size_t SYS_DIRECTTRADEMAXITEM = 100;
 
 constexpr int SYS_MAXTARGET = 8;
 constexpr int SYS_MAXACTOR  = 65521;

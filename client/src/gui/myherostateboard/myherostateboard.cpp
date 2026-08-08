@@ -17,7 +17,7 @@ extern SoundEffectDB *g_seffDB;
 extern SDLDevice *g_sdlDevice;
 extern ClientArgParser *g_clientArgParser;
 
-PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent, bool argAutoDelete)
+MyHeroStateBoard::MyHeroStateBoard(int argX, int argY, ProcessRun *runPtr, Widget *argParent, bool argAutoDelete)
     : Widget
       {{
           .x = argX,
@@ -110,11 +110,11 @@ PlayerStateBoard::PlayerStateBoard(int argX, int argY, ProcessRun *runPtr, Widge
     }
 }
 
-void PlayerStateBoard::updateDefault(double)
+void MyHeroStateBoard::updateDefault(double)
 {
 }
 
-void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
+void MyHeroStateBoard::drawDefault(Widget::ROIMap m) const
 {
     if(!m.calibrate(this)){
         return;
@@ -330,7 +330,7 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
         }
     }
 
-    if(g_clientArgParser->debugPlayerStateBoard){
+    if(g_clientArgParser->debugMyHeroStateBoard){
         for(size_t i = WLG_BEGIN; i < WLG_END; ++i){
             g_sdlDevice->drawRectangle(colorf::BLUE + colorf::A_SHF(255), m.x + m_gridList[i].x, m.y + m_gridList[i].y, m_gridList[i].w, m_gridList[i].h);
         }
@@ -339,7 +339,7 @@ void PlayerStateBoard::drawDefault(Widget::ROIMap m) const
     drawChild(&m_closeButton, m);
 }
 
-bool PlayerStateBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
+bool MyHeroStateBoard::processEventDefault(const SDL_Event &event, bool valid, Widget::ROIMap m)
 {
     if(!m.calibrate(this)){
         return false;
@@ -406,7 +406,7 @@ bool PlayerStateBoard::processEventDefault(const SDL_Event &event, bool valid, W
     }
 }
 
-void PlayerStateBoard::drawItemHoverText(int wltype) const
+void MyHeroStateBoard::drawItemHoverText(int wltype) const
 {
     const auto &item = m_processRun->getMyHero()->getWLItem(wltype);
     if(!item){

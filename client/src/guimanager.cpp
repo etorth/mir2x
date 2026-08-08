@@ -80,6 +80,25 @@ GUIManager::GUIManager(ProcessRun *argProc)
           this,
       }
 
+    , m_directTradeBoard
+      {{
+          .dir = DIR_NONE,
+          .x = []{ return g_sdlDevice->getRendererWidth () / 2; },
+          .y = []{ return g_sdlDevice->getRendererHeight() / 2; },
+          .runProc = argProc,
+          .parent{this},
+      }}
+
+    , m_heroStateBoard
+      {{
+          .runProc = argProc,
+          .onTradeRequest = [argProc](uint64_t uid)
+          {
+              argProc->requestDirectTrade(uid);
+          },
+          .parent{this},
+      }}
+
     , m_purchaseBoard
       {
           argProc,
@@ -120,7 +139,7 @@ GUIManager::GUIManager(ProcessRun *argProc)
           this,
       }
 
-    , m_playerStateBoard
+    , m_myHeroStateBoard
       {
           g_sdlDevice->getRendererWidth()  / 2 - 164,
           g_sdlDevice->getRendererHeight() / 2 - 233,
@@ -276,12 +295,20 @@ Widget *GUIManager::getWidget(const std::string_view &name)
         return &m_auctionRegisterBoard;
     }
 
+    else if(name == "DirectTradeBoard"){
+        return &m_directTradeBoard;
+    }
+
+    else if(name == "HeroStateBoard"){
+        return &m_heroStateBoard;
+    }
+
     else if(name == "TeamStateBoard"){
         return &m_teamStateBoard;
     }
 
-    else if(name == "PlayerStateBoard"){
-        return &m_playerStateBoard;
+    else if(name == "MyHeroStateBoard"){
+        return &m_myHeroStateBoard;
     }
 
     else if(name == "QuestStateBoard"){
@@ -328,9 +355,11 @@ void GUIManager::afterResizeDefault()
     fnSetWidgetPLoc(&m_horseBoard);
     fnSetWidgetPLoc(&m_skillBoard);
     fnSetWidgetPLoc(&m_guildBoard);
+    fnSetWidgetPLoc(&m_directTradeBoard);
+    fnSetWidgetPLoc(&m_heroStateBoard);
     fnSetWidgetPLoc(&m_inventoryBoard);
     fnSetWidgetPLoc(&m_quickAccessBoard);
-    fnSetWidgetPLoc(&m_playerStateBoard);
+    fnSetWidgetPLoc(&m_myHeroStateBoard);
     fnSetWidgetPLoc(&m_inputStringBoard);
     fnSetWidgetPLoc(&m_friendChatBoard);
 }

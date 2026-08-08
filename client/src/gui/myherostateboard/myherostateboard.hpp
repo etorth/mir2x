@@ -6,7 +6,7 @@
 #include "tritexbutton.hpp"
 
 class ProcessRun;
-class PlayerStateBoard: public Widget
+class MyHeroStateBoard: public Widget
 {
     private:
         struct WearGrid
@@ -32,7 +32,7 @@ class PlayerStateBoard: public Widget
         ProcessRun *m_processRun;
 
     public:
-        PlayerStateBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
+        MyHeroStateBoard(int, int, ProcessRun *, Widget * = nullptr, bool = false);
 
     public:
         void updateDefault(double) override;

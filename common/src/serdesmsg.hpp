@@ -546,6 +546,83 @@ class SDInventory final
         std::unordered_set<uint64_t> getItemSeqIDSet() const;
 };
 
+struct SDDirectTradeItem
+{
+    uint32_t itemID = 0;
+    uint32_t seqID = 0;
+    uint32_t count = 0;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(itemID, seqID, count);
+    }
+};
+
+struct SDDirectTradeOfferRequest
+{
+    // Untrusted compact client request. The server resolves these item
+    // references against the player's current inventory before broadcasting.
+    uint64_t uid = 0;
+    uint32_t gold = 0;
+    uint8_t locked = 0;
+    std::vector<SDDirectTradeItem> itemList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, gold, locked, itemList);
+    }
+};
+
+struct SDDirectTradeOffer
+{
+    // Canonical server snapshot. locked freezes items/gold; confirmed records
+    // the later exchange click and is valid only for a locked offer.
+    uint64_t uid = 0;
+    uint32_t gold = 0;
+    uint8_t locked = 0;
+    uint8_t confirmed = 0;
+    std::vector<SDItem> itemList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, gold, locked, confirmed, itemList);
+    }
+
+    void clear()
+    {
+        uid = 0;
+        gold = 0;
+        locked = 0;
+        confirmed = 0;
+        itemList.clear();
+    }
+};
+
+struct SDDirectTradeCommit
+{
+    // Exact two-player snapshot accepted by the actor handshake and revalidated
+    // inside the database transaction.
+    std::array<SDDirectTradeOffer, 2> offerList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(offerList);
+    }
+};
+
+struct SDDirectTradeResult
+{
+    // Authoritative post-transaction state returned separately to each player.
+    uint64_t uid = 0;
+    size_t gold = 0;
+    SDInventory inventory;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(uid, gold, inventory);
+    }
+};
+
 struct SDPlayerName
 {
     uint64_t uid = 0;

@@ -159,18 +159,27 @@ void ProcessSelectChar::onDelete()
 {
     if(hasChar()){
         m_deleteInput.setShow(true);
-        m_deleteInput.waitInput(u8"<layout><par>删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。</par></layout>", true, [this](std::u8string inputString)
+        m_deleteInput.waitInput(
         {
-            CMDeleteChar cmDC;
-            std::memset(&cmDC, 0, sizeof(cmDC));
-            if(inputString.empty() || inputString.size() > SYS_PWDSIZE){
-                m_notifyBoard.addMessage(u8"无效的密码");
-            }
-            else{
-                cmDC.password.assign(inputString);
-                g_client->send({CM_DELETECHAR, cmDC});
-            }
-            m_deleteInput.setShow(false);
+            .layoutString = u8"<layout><par>删除的角色将无法还原，请谨慎操作。如果确定删除，请输入游戏密码，并点击YES。</par></layout>",
+            .security = true,
+            .onAccept = [this](std::u8string inputString)
+            {
+                CMDeleteChar cmDC;
+                std::memset(&cmDC, 0, sizeof(cmDC));
+                if(inputString.empty() || inputString.size() > SYS_PWDSIZE){
+                    m_notifyBoard.addMessage(u8"无效的密码");
+                }
+                else{
+                    cmDC.password.assign(inputString);
+                    g_client->send({CM_DELETECHAR, cmDC});
+                }
+                m_deleteInput.setShow(false);
+            },
+            .validate = [](const std::string &currentInput, const std::string &newInput)
+            {
+                return currentInput.size() + newInput.size() <= SYS_PWDSIZE;
+            },
         });
     }
     else{
