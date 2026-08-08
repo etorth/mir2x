@@ -1339,49 +1339,53 @@ corof::awaitable<> Player::net_CM_CREATECHATGROUP(uint8_t, const uint8_t *buf, s
     return {};
 }
 
-// Client-facing direct-trade protocol:
-//   * request/respond establishes the two Player actors as peers;
-//   * update validates inventory ownership and broadcasts a canonical offer;
-//   * the first trade-button click is update(locked = true);
-//   * CM_COMMITDIRECTTRADE is a per-player confirmation, not an immediate DB
-//     commit; the exchange starts only when both canonical offers confirm;
-//   * cancel is accepted until this actor freezes its final commit snapshot.
 corof::awaitable<> Player::net_CM_REQUESTDIRECTTRADE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRDT = ClientMsg::conv<CMRequestDirectTrade>(buf);
+    const auto fnPostError = [this](int error)
+    {
+        SMDirectTradeError smDTE;
+        std::memset(&smDTE, 0, sizeof(smDTE));
+
+        smDTE.error = to_u8(error);
+        postNetMessage(SM_DIRECTTRADEERROR, smDTE);
+    };
+
     if(!uidf::isPlayer(cmRDT.uid) || cmRDT.uid == UID()){
-        postDirectTradeError(DTRADEERR_BADTARGET);
+        fnPostError(DTRADEERR_BADTARGET);
         return {};
     }
 
     if(!SDRuntimeConfig_getConfig<RTCFG_允许交易>(m_sdPlayerConfig.runtimeConfig)){
-        postDirectTradeError(DTRADEERR_NOTALLOWED);
+        fnPostError(DTRADEERR_NOTALLOWED);
         return {};
     }
 
     if(!SDRuntimeConfig_getConfig<RTCFG_允许交易>(dbGetRuntimeConfig(uidf::getPlayerDBID(cmRDT.uid)))){
-        postDirectTradeError(DTRADEERR_TARGETNOTALLOWED);
+        fnPostError(DTRADEERR_TARGETNOTALLOWED);
         return {};
     }
 
     if(m_sdHealth.dead()){
-        postDirectTradeError(DTRADEERR_DEAD);
+        fnPostError(DTRADEERR_DEAD);
         return {};
     }
 
     if(directTradeBusy()){
-        postDirectTradeError(DTRADEERR_BUSY);
+        fnPostError(DTRADEERR_BUSY);
         return {};
     }
 
     if(!getInViewCOPtr(cmRDT.uid)){
-        postDirectTradeError(DTRADEERR_TOOFAR);
+        fnPostError(DTRADEERR_TOOFAR);
         return {};
     }
 
     m_directTradeRequestTargetUID = cmRDT.uid;
 
     AMDirectTradePeer amDTP;
+    std::memset(&amDTP, 0, sizeof(amDTP));
+
     amDTP.name.assign(name());
     m_actorPod->post(cmRDT.uid, {AM_REQUESTDIRECTTRADE, amDTP});
     return {};
@@ -1394,33 +1398,40 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
         return {};
     }
 
-    const auto reject = [this, uid = cmRDT.uid](int error)
+    const auto fnRejectTrade = [this, uid = cmRDT.uid](int error)
     {
         m_directTradeRequesterUID = 0;
-        m_actorPod->post(uid, {AM_REJECTDIRECTTRADE, AMDirectTradeError{.error = to_u8(error)}});
+
+        AMDirectTradeError amDTE;
+        std::memset(&amDTE, 0, sizeof(amDTE));
+
+        amDTE.error = to_u8(error);
+        m_actorPod->post(uid, {AM_REJECTDIRECTTRADE, amDTE});
     };
 
     if(!to_bool(cmRDT.accept)){
-        reject(DTRADEERR_REJECTED);
+        fnRejectTrade(DTRADEERR_REJECTED);
         return {};
     }
 
     if(!SDRuntimeConfig_getConfig<RTCFG_允许交易>(m_sdPlayerConfig.runtimeConfig)){
-        reject(DTRADEERR_TARGETNOTALLOWED);
+        fnRejectTrade(DTRADEERR_TARGETNOTALLOWED);
         return {};
     }
 
     if(m_sdHealth.dead()){
-        reject(DTRADEERR_TARGETDEAD);
+        fnRejectTrade(DTRADEERR_TARGETDEAD);
         return {};
     }
 
     if(!getInViewCOPtr(cmRDT.uid)){
-        reject(DTRADEERR_TOOFAR);
+        fnRejectTrade(DTRADEERR_TOOFAR);
         return {};
     }
 
     AMDirectTradePeer amDTP;
+    std::memset(&amDTP, 0, sizeof(amDTP));
+
     amDTP.name.assign(name());
     m_actorPod->post(cmRDT.uid, {AM_ACCEPTDIRECTTRADE, amDTP});
     return {};
@@ -1428,47 +1439,56 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
 
 corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
 {
-    const auto request = cerealf::deserialize<SDDirectTradeOfferRequest>(buf, bufSize);
-    if(request.uid != m_directTradePeerUID || !uidf::isPlayer(request.uid)){
+    const auto sdDTOR = cerealf::deserialize<SDDirectTradeOfferRequest>(buf, bufSize);
+    const auto fnPostError = [this](int error)
+    {
+        SMDirectTradeError smDTE;
+        std::memset(&smDTE, 0, sizeof(smDTE));
+
+        smDTE.error = to_u8(error);
+        postNetMessage(SM_DIRECTTRADEERROR, smDTE);
+    };
+
+    if(sdDTOR.uid != m_directTradePeerUID || !uidf::isPlayer(sdDTOR.uid)){
         return {};
     }
 
     if(m_directTradeCommitPending){
-        postDirectTradeError(DTRADEERR_LOCKED);
+        fnPostError(DTRADEERR_LOCKED);
         return {};
     }
 
     if(to_bool(m_directTradeOffer.confirmed)){
-        postDirectTradeError(DTRADEERR_LOCKED);
+        fnPostError(DTRADEERR_LOCKED);
         postNetMessage(SM_UPDATEDIRECTTRADE, cerealf::serialize(m_directTradeOffer));
         return {};
     }
 
-    if(m_sdHealth.dead() || !getInViewCOPtr(request.uid)){
-        postDirectTradeError(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
+    if(m_sdHealth.dead() || !getInViewCOPtr(sdDTOR.uid)){
+        fnPostError(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
         cancelDirectTrade();
         return {};
     }
 
-    if(request.locked > 1 || request.itemList.size() > SYS_DIRECTTRADEMAXITEM){
-        postDirectTradeError(DTRADEERR_BADOFFER);
+    if(sdDTOR.locked > 1 || sdDTOR.itemList.size() > SYS_DIRECTTRADEMAXITEM){
+        fnPostError(DTRADEERR_BADOFFER);
         return {};
     }
 
-    if(request.gold > gold()){
-        postDirectTradeError(DTRADEERR_BADGOLD);
+    if(sdDTOR.gold > gold()){
+        fnPostError(DTRADEERR_BADGOLD);
         return {};
     }
 
-    const auto matchesCurrentOffer = [&request, this]()
+    const auto matchesCurrentOffer = [&sdDTOR, this]()
     {
-        if(request.gold != m_directTradeOffer.gold
-                || request.itemList.size() != m_directTradeOffer.itemList.size()){
+        if(sdDTOR.gold != m_directTradeOffer.gold
+                || sdDTOR.itemList.size() != m_directTradeOffer.itemList.size()){
             return false;
         }
 
-        for(size_t i = 0; i < request.itemList.size(); ++i){
-            const auto &itemRef = request.itemList.at(i);
+        for(size_t i = 0; i < sdDTOR.itemList.size(); ++i){
+            const auto &itemRef = sdDTOR.itemList.at(i);
             const auto &item = m_directTradeOffer.itemList.at(i);
             if(itemRef.itemID != item.itemID
                     || itemRef.seqID != item.seqID
@@ -1479,8 +1499,8 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
         return true;
     };
 
-    if(to_bool(m_directTradeOffer.locked) && (!to_bool(request.locked) || !matchesCurrentOffer())){
-        postDirectTradeError(DTRADEERR_LOCKED);
+    if(to_bool(m_directTradeOffer.locked) && (!to_bool(sdDTOR.locked) || !matchesCurrentOffer())){
+        fnPostError(DTRADEERR_LOCKED);
         postNetMessage(SM_UPDATEDIRECTTRADE, cerealf::serialize(m_directTradeOffer));
         return {};
     }
@@ -1488,14 +1508,14 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
     SDDirectTradeOffer offer
     {
         .uid = UID(),
-        .gold = request.gold,
-        .locked = request.locked,
+        .gold = sdDTOR.gold,
+        .locked = sdDTOR.locked,
         .confirmed = 0,
     };
-    offer.itemList.reserve(request.itemList.size());
+    offer.itemList.reserve(sdDTOR.itemList.size());
 
     std::unordered_set<uint64_t> itemSeqIDSet;
-    for(const auto &itemRef: request.itemList){
+    for(const auto &itemRef: sdDTOR.itemList){
         const auto &ir = DBCOM_ITEMRECORD(itemRef.itemID);
         const uint64_t itemSeqID = (to_u64(itemRef.itemID) << 32) | itemRef.seqID;
         if(!ir
@@ -1503,13 +1523,13 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
                 || itemRef.seqID == 0
                 || itemRef.count == 0
                 || !itemSeqIDSet.insert(itemSeqID).second){
-            postDirectTradeError(DTRADEERR_BADOFFER);
+            fnPostError(DTRADEERR_BADOFFER);
             return {};
         }
 
         const auto &inventoryItem = findInventoryItem(itemRef.itemID, itemRef.seqID);
         if(!inventoryItem || itemRef.count > inventoryItem.count){
-            postDirectTradeError(DTRADEERR_BADOFFER);
+            fnPostError(DTRADEERR_BADOFFER);
             return {};
         }
 
@@ -1521,7 +1541,7 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
     m_directTradeOffer = offer;
     const auto offerBuf = cerealf::serialize(offer);
     postNetMessage(SM_UPDATEDIRECTTRADE, offerBuf);
-    m_actorPod->post(request.uid, {AM_UPDATEDIRECTTRADE, offerBuf});
+    m_actorPod->post(sdDTOR.uid, {AM_UPDATEDIRECTTRADE, offerBuf});
     return {};
 }
 

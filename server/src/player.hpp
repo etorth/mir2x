@@ -292,7 +292,6 @@ class Player final: public BattleObject
         bool directTradeBusy() const;
         bool directTradeReady() const;
         bool directTradeConfirmed() const;
-        void postDirectTradeError(int);
         void applyDirectTradeResult(SDDirectTradeResult);
         void cancelDirectTrade();
         corof::awaitable<> commitDirectTrade(uint64_t);

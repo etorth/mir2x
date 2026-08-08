@@ -866,14 +866,6 @@ bool Player::directTradeConfirmed() const
         && to_bool(m_directTradePeerOffer.confirmed);
 }
 
-void Player::postDirectTradeError(int error)
-{
-    postNetMessage(SM_DIRECTTRADEERROR, SMDirectTradeError
-    {
-        .error = to_u8(error),
-    });
-}
-
 void Player::applyDirectTradeResult(SDDirectTradeResult result)
 {
     fflassert(result.uid == UID(), result.uid, UID());
