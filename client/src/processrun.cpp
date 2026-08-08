@@ -1779,7 +1779,9 @@ void ProcessRun::requestDirectTrade(uint64_t uid)
         return;
     }
 
-    CMRequestDirectTrade cmRDT {};
+    CMRequestDirectTrade cmRDT;
+    std::memset(&cmRDT, 0, sizeof(cmRDT));
+
     cmRDT.uid = uid;
     g_client->send({CM_REQUESTDIRECTTRADE, cmRDT});
 }
@@ -1788,7 +1790,9 @@ void ProcessRun::respondDirectTrade(uint64_t uid, bool accept)
 {
     fflassert(uidf::isPlayer(uid));
 
-    CMRespondDirectTrade cmRDT {};
+    CMRespondDirectTrade cmRDT;
+    std::memset(&cmRDT, 0, sizeof(cmRDT));
+
     cmRDT.uid = uid;
     cmRDT.accept = to_u8(accept);
     g_client->send({CM_RESPONDDIRECTTRADE, cmRDT});
@@ -1834,7 +1838,9 @@ void ProcessRun::commitDirectTrade(uint64_t uid)
 {
     fflassert(uidf::isPlayer(uid));
 
-    CMCommitDirectTrade cmCDT {};
+    CMCommitDirectTrade cmCDT;
+    std::memset(&cmCDT, 0, sizeof(cmCDT));
+
     cmCDT.uid = uid;
     g_client->send({CM_COMMITDIRECTTRADE, cmCDT});
 }
@@ -1843,7 +1849,9 @@ void ProcessRun::cancelDirectTrade(uint64_t uid)
 {
     fflassert(uidf::isPlayer(uid));
 
-    CMCancelDirectTrade cmCDT {};
+    CMCancelDirectTrade cmCDT;
+    std::memset(&cmCDT, 0, sizeof(cmCDT));
+
     cmCDT.uid = uid;
     g_client->send({CM_CANCELDIRECTTRADE, cmCDT});
 }

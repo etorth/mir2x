@@ -885,10 +885,11 @@ void Player::clearDirectTrade()
 
 void Player::postDirectTradeError(int error)
 {
-    postNetMessage(SM_DIRECTTRADEERROR, SMDirectTradeError
-    {
-        .error = to_u8(error),
-    });
+    SMDirectTradeError smDTE;
+    std::memset(&smDTE, 0, sizeof(smDTE));
+
+    smDTE.error = to_u8(error);
+    postNetMessage(SM_DIRECTTRADEERROR, smDTE);
 }
 
 void Player::commitDirectTrade()
@@ -902,7 +903,12 @@ void Player::commitDirectTrade()
     if(!resultListResult.has_value()){
         const int error = resultListResult.error();
         postDirectTradeError(error);
-        m_actorPod->post(peerUID, {AM_DIRECTTRADEERROR, AMDirectTradeError{.error = to_u8(error)}});
+
+        AMDirectTradeError amDTE;
+        std::memset(&amDTE, 0, sizeof(amDTE));
+
+        amDTE.error = to_u8(error);
+        m_actorPod->post(peerUID, {AM_DIRECTTRADEERROR, amDTE});
         cancelDirectTrade();
         return;
     }
@@ -945,10 +951,11 @@ void Player::applyDirectTradeResult(SDDirectTradeResult result)
 
     clearDirectTrade();
 
-    postNetMessage(SM_COMPLETEDIRECTTRADE, SMCompleteDirectTrade
-    {
-        .uid = peerUID,
-    });
+    SMCompleteDirectTrade smCDT;
+    std::memset(&smCDT, 0, sizeof(smCDT));
+
+    smCDT.uid = peerUID;
+    postNetMessage(SM_COMPLETEDIRECTTRADE, smCDT);
 }
 
 void Player::cancelDirectTrade()
@@ -979,10 +986,11 @@ void Player::cancelDirectTrade()
     }
 
     if(started && m_channID.value_or(0)){
-        postNetMessage(SM_CLOSEDIRECTTRADE, SMCloseDirectTrade
-        {
-            .uid = peerUID,
-        });
+        SMCloseDirectTrade smCDT;
+        std::memset(&smCDT, 0, sizeof(smCDT));
+
+        smCDT.uid = peerUID;
+        postNetMessage(SM_CLOSEDIRECTTRADE, smCDT);
     }
 }
 

@@ -566,13 +566,15 @@ corof::awaitable<> Player::on_AM_ACCEPTDIRECTTRADE(const ActorMsgPack &mpk)
 
     const auto amDTP = mpk.conv<AMDirectTradePeer>();
     AMDirectTradePeer amStart;
+    std::memset(&amStart, 0, sizeof(amStart));
+
     amStart.name.assign(name());
     m_actorPod->post(mpk.fromAddr(), {AM_STARTDIRECTTRADE, amStart});
 
-    SMStartDirectTrade smSDT
-    {
-        .uid = mpk.from(),
-    };
+    SMStartDirectTrade smSDT;
+    std::memset(&smSDT, 0, sizeof(smSDT));
+
+    smSDT.uid = mpk.from();
     smSDT.name.assign(amDTP.name.as_sv());
     postNetMessage(SM_STARTDIRECTTRADE, smSDT);
     return {};
@@ -604,10 +606,10 @@ corof::awaitable<> Player::on_AM_STARTDIRECTTRADE(const ActorMsgPack &mpk)
     startDirectTrade();
 
     const auto amDTP = mpk.conv<AMDirectTradePeer>();
-    SMStartDirectTrade smSDT
-    {
-        .uid = mpk.from(),
-    };
+    SMStartDirectTrade smSDT;
+    std::memset(&smSDT, 0, sizeof(smSDT));
+
+    smSDT.uid = mpk.from();
     smSDT.name.assign(amDTP.name.as_sv());
     postNetMessage(SM_STARTDIRECTTRADE, smSDT);
     return {};
@@ -689,10 +691,11 @@ corof::awaitable<> Player::on_AM_CANCELDIRECTTRADE(const ActorMsgPack &mpk)
     clearDirectTrade();
 
     if(started && m_channID.value_or(0)){
-        postNetMessage(SM_CLOSEDIRECTTRADE, SMCloseDirectTrade
-        {
-            .uid = peerUID,
-        });
+        SMCloseDirectTrade smCDT;
+        std::memset(&smCDT, 0, sizeof(smCDT));
+
+        smCDT.uid = peerUID;
+        postNetMessage(SM_CLOSEDIRECTTRADE, smCDT);
     }
     return {};
 }

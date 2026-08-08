@@ -1377,10 +1377,10 @@ corof::awaitable<> Player::net_CM_REQUESTDIRECTTRADE(uint8_t, const uint8_t *buf
     m_directTradeOffer.clear();
     m_directTradeTargetOffer.clear();
 
-    SMDirectTradeRequest smDTR
-    {
-        .uid = UID(),
-    };
+    SMDirectTradeRequest smDTR;
+    std::memset(&smDTR, 0, sizeof(smDTR));
+
+    smDTR.uid = UID();
     smDTR.name.assign(name());
     forwardNetPackage(cmRDT.uid, SM_DIRECTTRADEREQUEST, smDTR);
     return {};
