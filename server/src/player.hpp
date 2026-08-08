@@ -84,10 +84,9 @@ class Player final: public BattleObject
         SDDirectTradeOffer m_directTradePeerOffer; // latest authoritative offer received from the trade partner
 
         // Freezes local updates and client cancellation during final exchange.
-        // The lower-UID coordinator sets it before asking the peer to validate
-        // the exact snapshot, so it may still be waiting and a prior peer cancel
-        // can win. The peer sets it only after accepting that snapshot. The
-        // database exchange has not necessarily happened yet.
+        // The lower-UID coordinator sets it before asking the peer to validate the exact snapshot, so it may still be waiting and a prior peer cancel can win
+        // The peer sets it only after accepting that snapshot.
+        // The database exchange has not necessarily happened yet.
         bool m_directTradeCommitPending = false;
 
     private:

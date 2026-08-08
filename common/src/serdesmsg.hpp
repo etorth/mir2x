@@ -556,6 +556,12 @@ struct SDDirectTradeItem
     {
         ar(itemID, seqID, count);
     }
+
+
+    uint64_t itemIDSeq() const
+    {
+        return SDItem{.itemID = this->itemID, .seqID = this->seqID}.itemIDSeq();
+    }
 };
 
 struct SDDirectTradeOfferRequest
@@ -607,6 +613,16 @@ struct SDDirectTradeCommit
     template<typename Archive> void serialize(Archive & ar)
     {
         ar(offerList);
+    }
+
+    const SDDirectTradeOffer *findDirectTradeOffer(uint64_t uid) const
+    {
+        for(const auto &offer: this->offerList){
+            if(offer.uid == uid){
+                return std::addressof(offer);
+            }
+        }
+        return nullptr;
     }
 };
 
