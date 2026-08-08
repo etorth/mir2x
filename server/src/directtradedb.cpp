@@ -128,17 +128,17 @@ namespace
     }
 }
 
-std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const SDDirectTradeCommit &commit)
+std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(
+        const SDDirectTradeOffer &offer0,
+        const SDDirectTradeOffer &offer1)
 {
-    const auto &offer0 = commit.offerList.at(0);
-    const auto &offer1 = commit.offerList.at(1);
     if(!uidf::isPlayer(offer0.uid)
             || !uidf::isPlayer(offer1.uid)
             || offer0.uid == offer1.uid
-            || !to_bool(offer0.locked)
-            || !to_bool(offer1.locked)
-            || !to_bool(offer0.confirmed)
-            || !to_bool(offer1.confirmed)
+            || !offer0.locked
+            || !offer1.locked
+            || !offer0.confirmed
+            || !offer1.confirmed
             || offer0.itemList.size() > SYS_DIRECTTRADEMAXITEM
             || offer1.itemList.size() > SYS_DIRECTTRADEMAXITEM){
         return std::unexpected(DTRADEERR_COMMITFAILED);

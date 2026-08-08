@@ -570,7 +570,7 @@ struct SDDirectTradeOfferRequest
     // references against the player's current inventory before broadcasting.
     uint64_t uid = 0;
     uint32_t gold = 0;
-    uint8_t locked = 0;
+    bool locked = false;
     std::vector<SDDirectTradeItem> itemList;
 
     template<typename Archive> void serialize(Archive & ar)
@@ -585,8 +585,8 @@ struct SDDirectTradeOffer
     // the later exchange click and is valid only for a locked offer.
     uint64_t uid = 0;
     uint32_t gold = 0;
-    uint8_t locked = 0;
-    uint8_t confirmed = 0;
+    bool locked = false;
+    bool confirmed = false;
     std::vector<SDItem> itemList;
 
     template<typename Archive> void serialize(Archive & ar)
@@ -598,31 +598,9 @@ struct SDDirectTradeOffer
     {
         uid = 0;
         gold = 0;
-        locked = 0;
-        confirmed = 0;
+        locked = false;
+        confirmed = false;
         itemList.clear();
-    }
-};
-
-struct SDDirectTradeCommit
-{
-    // Exact two-player snapshot accepted by the actor handshake and revalidated
-    // inside the database transaction.
-    std::array<SDDirectTradeOffer, 2> offerList;
-
-    template<typename Archive> void serialize(Archive & ar)
-    {
-        ar(offerList);
-    }
-
-    const SDDirectTradeOffer *findDirectTradeOffer(uint64_t uid) const
-    {
-        for(const auto &offer: this->offerList){
-            if(offer.uid == uid){
-                return std::addressof(offer);
-            }
-        }
-        return nullptr;
     }
 };
 

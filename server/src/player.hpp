@@ -72,22 +72,12 @@ class Player final: public BattleObject
         std::vector<uint64_t> m_teamMemberList; // ignored if not team leader
 
     private:
-        // Each Player actor owns one side of the direct-trade state machine:
-        // pending invitation -> live offers -> both locked -> both confirmed ->
-        // frozen commit snapshot. Client packets never directly modify the peer
-        // actor or the database; canonical offers are relayed actor-to-actor.
-        uint64_t m_directTradeRequestTargetUID = 0; // player invited by this player, waiting for accept/reject
-        uint64_t m_directTradeRequesterUID = 0;     // player who sent the pending invitation
-        uint64_t m_directTradePeerUID = 0;          // active trade partner after the invitation is accepted
-
-        SDDirectTradeOffer m_directTradeOffer;     // this player's authoritative items, gold, lock and confirmation
-        SDDirectTradeOffer m_directTradePeerOffer; // latest authoritative offer received from the trade partner
-
-        // Freezes local updates and client cancellation during final exchange.
-        // The lower-UID coordinator sets it before asking the peer to validate the exact snapshot, so it may still be waiting and a prior peer cancel can win
-        // The peer sets it only after accepting that snapshot.
-        // The database exchange has not necessarily happened yet.
-        bool m_directTradeCommitPending = false;
+        // Before acceptance only the requester reserves m_directTradePeerUID.
+        // After acceptance both players store each other here. Offer UIDs show
+        // whether the pair is established; locked/confirmed derive its phase.
+        uint64_t m_directTradePeerUID = 0;
+        SDDirectTradeOffer m_directTradeOffer;
+        SDDirectTradeOffer m_directTradeTargetOffer;
 
     private:
         bool m_pickUpLock = false;
@@ -199,13 +189,10 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_TEAMUPDATE         (const ActorMsgPack &);
         corof::awaitable<> on_AM_PLAYERSAY          (const ActorMsgPack &);
         corof::awaitable<> on_AM_PLAYERBROADCAST    (const ActorMsgPack &);
-        corof::awaitable<> on_AM_REQUESTDIRECTTRADE (const ActorMsgPack &);
         corof::awaitable<> on_AM_ACCEPTDIRECTTRADE  (const ActorMsgPack &);
         corof::awaitable<> on_AM_REJECTDIRECTTRADE  (const ActorMsgPack &);
         corof::awaitable<> on_AM_STARTDIRECTTRADE   (const ActorMsgPack &);
         corof::awaitable<> on_AM_UPDATEDIRECTTRADE  (const ActorMsgPack &);
-        corof::awaitable<> on_AM_COMMITDIRECTTRADE  (const ActorMsgPack &);
-        corof::awaitable<> on_AM_PREPAREDIRECTTRADE (const ActorMsgPack &);
         corof::awaitable<> on_AM_COMPLETEDIRECTTRADE(const ActorMsgPack &);
         corof::awaitable<> on_AM_DIRECTTRADEERROR   (const ActorMsgPack &);
         corof::awaitable<> on_AM_CANCELDIRECTTRADE  (const ActorMsgPack &);
@@ -289,11 +276,16 @@ class Player final: public BattleObject
 
     private:
         bool directTradeBusy() const;
+        bool directTradeStarted() const;
+        bool directTradeCoordinator() const;
         bool directTradeReady() const;
         bool directTradeConfirmed() const;
+        void startDirectTrade();
+        void clearDirectTrade();
+        void postDirectTradeError(int);
         void applyDirectTradeResult(SDDirectTradeResult);
         void cancelDirectTrade();
-        corof::awaitable<> commitDirectTrade(uint64_t);
+        void commitDirectTrade();
 
     protected:
         bool struckDamage(uint64_t, const DamageNode &) override;

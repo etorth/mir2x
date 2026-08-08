@@ -1807,7 +1807,7 @@ bool ProcessRun::updateDirectTradeOffer(uint64_t uid, uint32_t gold, bool locked
     {
         .uid = uid,
         .gold = gold,
-        .locked = to_u8(locked),
+        .locked = locked,
     };
     request.itemList.reserve(itemList.size());
 

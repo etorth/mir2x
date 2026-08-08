@@ -12,7 +12,6 @@
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
 #include "buildconfig.hpp"
-#include "directtradedb.hpp"
 
 extern Server *g_server;
 
@@ -549,83 +548,21 @@ corof::awaitable<> Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
     return {};
 }
 
-// Cross-actor direct-trade protocol.
-//
-// Each Player actor stores its own canonical offer plus the latest canonical
-// peer offer. Offer updates are relayed immediately for live client display.
-// After both offers are locked, each player's CM_COMMITDIRECTTRADE marks only
-// that player's confirmation. The lower-UID actor is the sole coordinator:
-// it snapshots both confirmed offers, asks the peer actor to validate the exact
-// same snapshot, then runs one atomic database exchange.
-//
-// Cancellation wins if it is processed before the peer accepts that snapshot.
-// Once an actor sets m_directTradeCommitPending, its local client can no longer
-// cancel; this prevents a completed database transaction from being undone by
-// a late close message.
-corof::awaitable<> Player::on_AM_REQUESTDIRECTTRADE(const ActorMsgPack &mpk)
-{
-    const auto reject = [this, &mpk](int error)
-    {
-        m_actorPod->post(mpk.fromAddr(), {AM_REJECTDIRECTTRADE, AMDirectTradeError{.error = to_u8(error)}});
-    };
-
-    if(!uidf::isPlayer(mpk.from()) || !getInViewCOPtr(mpk.from())){
-        reject(DTRADEERR_TOOFAR);
-        return {};
-    }
-
-    if(!SDRuntimeConfig_getConfig<RTCFG_允许交易>(m_sdPlayerConfig.runtimeConfig)){
-        reject(DTRADEERR_TARGETNOTALLOWED);
-        return {};
-    }
-
-    if(m_sdHealth.dead()){
-        reject(DTRADEERR_TARGETDEAD);
-        return {};
-    }
-
-    if(directTradeBusy()){
-        reject(DTRADEERR_TARGETBUSY);
-        return {};
-    }
-
-    m_directTradeRequesterUID = mpk.from();
-
-    const auto amDTP = mpk.conv<AMDirectTradePeer>();
-    SMDirectTradeRequest smDTR
-    {
-        .uid = mpk.from(),
-    };
-    smDTR.name.assign(amDTP.name.as_sv());
-    postNetMessage(SM_DIRECTTRADEREQUEST, smDTR);
-    return {};
-}
-
 corof::awaitable<> Player::on_AM_ACCEPTDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradeRequestTargetUID != mpk.from() || m_directTradePeerUID || m_directTradeRequesterUID){
+    if(m_directTradePeerUID != mpk.from() || directTradeStarted()){
         m_actorPod->post(mpk.fromAddr(), AM_CANCELDIRECTTRADE);
         return {};
     }
 
     if(m_sdHealth.dead() || !getInViewCOPtr(mpk.from())){
-        m_directTradeRequestTargetUID = 0;
+        clearDirectTrade();
         m_actorPod->post(mpk.fromAddr(), AM_CANCELDIRECTTRADE);
-
-        SMDirectTradeError smDTE;
-        std::memset(&smDTE, 0, sizeof(smDTE));
-
-        smDTE.error = to_u8(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
-        postNetMessage(SM_DIRECTTRADEERROR, smDTE);
+        postDirectTradeError(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
         return {};
     }
 
-    m_directTradePeerUID = mpk.from();
-    m_directTradeRequestTargetUID = 0;
-    m_directTradeOffer.clear();
-    m_directTradeOffer.uid = UID();
-    m_directTradePeerOffer.clear();
-    m_directTradeCommitPending = false;
+    startDirectTrade();
 
     const auto amDTP = mpk.conv<AMDirectTradePeer>();
     AMDirectTradePeer amStart;
@@ -643,31 +580,28 @@ corof::awaitable<> Player::on_AM_ACCEPTDIRECTTRADE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_REJECTDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradeRequestTargetUID == mpk.from()){
-        m_directTradeRequestTargetUID = 0;
-
-        SMDirectTradeError smDTE;
-        std::memset(&smDTE, 0, sizeof(smDTE));
-
-        smDTE.error = to_u8(mpk.conv<AMDirectTradeError>().error);
-        postNetMessage(SM_DIRECTTRADEERROR, smDTE);
+    if(m_directTradePeerUID == mpk.from() && !directTradeStarted()){
+        clearDirectTrade();
+        postDirectTradeError(mpk.conv<AMDirectTradeError>().error);
     }
     return {};
 }
 
 corof::awaitable<> Player::on_AM_STARTDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradeRequesterUID != mpk.from() || m_directTradePeerUID || m_directTradeRequestTargetUID){
+    if(m_directTradePeerUID != mpk.from() || directTradeStarted()){
         m_actorPod->post(mpk.fromAddr(), AM_CANCELDIRECTTRADE);
         return {};
     }
 
-    m_directTradePeerUID = mpk.from();
-    m_directTradeRequesterUID = 0;
-    m_directTradeOffer.clear();
-    m_directTradeOffer.uid = UID();
-    m_directTradePeerOffer.clear();
-    m_directTradeCommitPending = false;
+    if(m_sdHealth.dead() || !getInViewCOPtr(mpk.from())){
+        clearDirectTrade();
+        m_actorPod->post(mpk.fromAddr(), AM_CANCELDIRECTTRADE);
+        postDirectTradeError(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
+        return {};
+    }
+
+    startDirectTrade();
 
     const auto amDTP = mpk.conv<AMDirectTradePeer>();
     SMStartDirectTrade smSDT
@@ -681,90 +615,41 @@ corof::awaitable<> Player::on_AM_STARTDIRECTTRADE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_UPDATEDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID != mpk.from()){
-        co_return;
-    }
-
-    if(m_directTradeCommitPending){
-        co_return;
+    if(m_directTradePeerUID != mpk.from() || !directTradeStarted()){
+        return {};
     }
 
     if(m_sdHealth.dead() || !getInViewCOPtr(mpk.from())){
         cancelDirectTrade();
-        co_return;
+        return {};
     }
 
     const auto offer = mpk.deserialize<SDDirectTradeOffer>();
     if(offer.uid != mpk.from()
-            || offer.locked > 1
-            || offer.confirmed > 1
-            || (to_bool(offer.confirmed) && !to_bool(offer.locked))
+            || (offer.confirmed && !offer.locked)
             || offer.itemList.size() > SYS_DIRECTTRADEMAXITEM){
         cancelDirectTrade();
-        co_return;
+        return {};
     }
 
-    if(to_bool(m_directTradePeerOffer.confirmed)
-            && !sameDirectTradeOffer(offer, m_directTradePeerOffer)){
+    if(m_directTradeTargetOffer.confirmed
+            && !sameDirectTradeOffer(offer, m_directTradeTargetOffer)){
         cancelDirectTrade();
-        co_return;
+        return {};
     }
 
-    m_directTradePeerOffer = offer;
+    m_directTradeTargetOffer = offer;
     postNetMessage(SM_UPDATEDIRECTTRADE, cerealf::serialize(offer));
 
-    if(directTradeConfirmed() && !m_directTradeCommitPending){
-        if(UID() < m_directTradePeerUID){
-            co_await commitDirectTrade(mpk.from());
-        }
-        else{
-            m_actorPod->post(m_directTradePeerUID, AM_COMMITDIRECTTRADE);
-        }
+    if(directTradeCoordinator() && directTradeConfirmed()){
+        commitDirectTrade();
     }
-    co_return;
-}
-
-corof::awaitable<> Player::on_AM_COMMITDIRECTTRADE(const ActorMsgPack &mpk)
-{
-    if(m_directTradePeerUID == mpk.from()
-            && UID() < mpk.from()
-            && !m_directTradeCommitPending){
-        co_await commitDirectTrade(mpk.from());
-    }
-    co_return;
-}
-
-corof::awaitable<> Player::on_AM_PREPAREDIRECTTRADE(const ActorMsgPack &mpk)
-{
-    if(m_directTradePeerUID != mpk.from()
-            || m_directTradeCommitPending
-            || !directTradeConfirmed()
-            || m_sdHealth.dead()
-            || !getInViewCOPtr(mpk.from())){
-        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-        return {};
-    }
-
-    const auto commit = mpk.deserialize<SDDirectTradeCommit>();
-    const auto ownOffer = commit.findDirectTradeOffer(UID());
-    const auto peerOffer = commit.findDirectTradeOffer(m_directTradePeerUID);
-    if(!ownOffer
-            || !peerOffer
-            || !sameDirectTradeOffer(*ownOffer, m_directTradeOffer)
-            || !sameDirectTradeOffer(*peerOffer, m_directTradePeerOffer)){
-        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-        return {};
-    }
-
-    // The peer has verified both offers byte-for-byte and now freezes them.
-    m_directTradeCommitPending = true;
-    m_actorPod->post(mpk.fromAddr(), AM_OK);
     return {};
 }
 
 corof::awaitable<> Player::on_AM_COMPLETEDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID != mpk.from() || !m_directTradeCommitPending){
+    if(m_directTradePeerUID != mpk.from() || !directTradeStarted()){
         return {};
     }
 
@@ -781,38 +666,33 @@ corof::awaitable<> Player::on_AM_COMPLETEDIRECTTRADE(const ActorMsgPack &mpk)
 corof::awaitable<> Player::on_AM_DIRECTTRADEERROR(const ActorMsgPack &mpk)
 {
     if(m_directTradePeerUID == mpk.from()){
-        SMDirectTradeError smDTE;
-        std::memset(&smDTE, 0, sizeof(smDTE));
-
-        smDTE.error = to_u8(mpk.conv<AMDirectTradeError>().error);
-        postNetMessage(SM_DIRECTTRADEERROR, smDTE);
+        postDirectTradeError(mpk.conv<AMDirectTradeError>().error);
     }
     return {};
 }
 
 corof::awaitable<> Player::on_AM_CANCELDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    // Deliberately accept peer cancellation even if this actor is pending:
-    // the coordinator sets pending before the peer validates the snapshot. A
-    // cancel emitted by the peer before that validation must still win. After
-    // validation the peer ignores local close, so it cannot emit a new cancel.
-    if(m_directTradePeerUID == mpk.from()){
-        m_directTradePeerUID = 0;
-        m_directTradeOffer.clear();
-        m_directTradePeerOffer.clear();
-        m_directTradeCommitPending = false;
+    if(m_directTradePeerUID != mpk.from()){
+        return {};
+    }
+
+    // For an established pair, a message from the higher-UID player is a
+    // cancellation request. The coordinator serializes it against confirmation.
+    if(directTradeCoordinator()){
+        cancelDirectTrade();
+        return {};
+    }
+
+    const bool started = directTradeStarted();
+    const auto peerUID = m_directTradePeerUID;
+    clearDirectTrade();
+
+    if(started && m_channID.value_or(0)){
         postNetMessage(SM_CLOSEDIRECTTRADE, SMCloseDirectTrade
         {
-            .uid = mpk.from(),
+            .uid = peerUID,
         });
-    }
-
-    if(m_directTradeRequestTargetUID == mpk.from()){
-        m_directTradeRequestTargetUID = 0;
-    }
-
-    if(m_directTradeRequesterUID == mpk.from()){
-        m_directTradeRequesterUID = 0;
     }
     return {};
 }

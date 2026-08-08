@@ -397,8 +397,8 @@ void DirectTradeBoard::setPeerOffer(SDDirectTradeOffer offer)
 {
     m_peerGold = offer.gold;
     m_peerItemList.setItemList(std::move(offer.itemList));
-    m_peerLocked = to_bool(offer.locked);
-    m_peerConfirmed = to_bool(offer.confirmed);
+    m_peerLocked = offer.locked;
+    m_peerConfirmed = offer.confirmed;
 }
 
 void DirectTradeBoard::applyLocalOfferAck(const SDDirectTradeOffer &offer)
@@ -409,9 +409,9 @@ void DirectTradeBoard::applyLocalOfferAck(const SDDirectTradeOffer &offer)
         return;
     }
 
-    if(to_bool(offer.locked)){
+    if(offer.locked){
         setLocalLocked(true);
-        m_localConfirmed = to_bool(offer.confirmed);
+        m_localConfirmed = offer.confirmed;
     }
     else if(!m_localLockPending){
         setLocalLocked(false);
