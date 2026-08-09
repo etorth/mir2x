@@ -31,7 +31,7 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
         xmlStr += str_printf(u8R"###( <par>【重量】%d</par> )###""\n", ir.weight);
 
         if(const auto p = params.find(SDItem::XML_PRICE); p != params.end()){
-            const auto priceColor = params.count(SDItem::XML_PRICECOLOR) ? to_cstr(params.at(SDItem::XML_PRICECOLOR)) : "green";
+            const auto priceColor = params.contains(SDItem::XML_PRICECOLOR) ? to_cstr(params.at(SDItem::XML_PRICECOLOR)) : "green";
             xmlStr += str_printf(u8R"###( <par>【售价】<t color='%s'>%s</t></par> )###""\n", priceColor, to_cstr(p->second));
         }
 
@@ -360,7 +360,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
     const auto itemSeqIDSet = getItemSeqIDSet();
 
     if(keepSeqID){
-        if(itemSeqIDSet.count(newItem.itemIDSeq())){
+        if(itemSeqIDSet.contains(newItem.itemIDSeq())){
             throw fflpanic("found duplication with given item: itemID = {}, seqID = {}", newItem.itemID, newItem.seqID);
         }
         m_list.push_back(std::move(newItem));
@@ -384,7 +384,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 
     for(uint32_t seqID = 1;; ++seqID){
         newItem.seqID = seqID;
-        if(!itemSeqIDSet.count(newItem.itemIDSeq())){
+        if(!itemSeqIDSet.contains(newItem.itemIDSeq())){
             m_list.push_back(std::move(newItem));
             return m_list.back();
         }

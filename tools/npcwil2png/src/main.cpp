@@ -261,7 +261,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
             continue;
         }
 
-        if(npcGfxType.count(gfxType) == 0){
+        if(!npcGfxType.contains(gfxType)){
             throw fflpanic("can't find gfx for gfxType {}", gfxType);
         }
 
@@ -275,7 +275,7 @@ void npcWil2PNG(const char *path, const char *baseName, const char *, const char
             std::map<int, int> dirMap;
             for(const auto &p: frameSeqMap){
                 const int dir = p.first.at(0);
-                if(!dirMap.count(dir)){
+                if(!dirMap.contains(dir)){
                     dirMap.insert(std::make_pair(dir, to_d(dirMap.size())));
                 }
             }

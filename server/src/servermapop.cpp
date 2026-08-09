@@ -167,7 +167,7 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                             case UID_MON:
                             case UID_NPC:
                                 {
-                                    if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
+                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
                                         m_actorPod->post(gridUID, {AM_ACTION, amA});
                                         seenUIDList.insert(gridUID);
                                     }
@@ -198,7 +198,7 @@ corof::awaitable<> ServerMap::on_AM_TRYSPACEMOVE(const ActorMsgPack &mpk)
                             case UID_MON:
                             case UID_NPC:
                                 {
-                                    if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
+                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
                                         m_actorPod->post(gridUID, {AM_ACTION, amA});
                                         seenUIDList.insert(gridUID);
                                     }
@@ -295,7 +295,7 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                             case UID_MON:
                             case UID_NPC:
                                 {
-                                    if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
+                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
                                         m_actorPod->post(gridUID, {AM_ACTION, amA});
                                         seenUIDList.insert(gridUID);
                                     }
@@ -328,7 +328,7 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                             case UID_MON:
                             case UID_NPC:
                                 {
-                                    if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
+                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
                                         m_actorPod->post(gridUID, {AM_ACTION, amA});
                                         seenUIDList.insert(gridUID);
                                     }
@@ -531,7 +531,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                             case UID_MON:
                             case UID_NPC:
                                 {
-                                    if((gridUID != amTM.UID) && (seenUIDList.count(gridUID) == 0)){
+                                    if((gridUID != amTM.UID) && !seenUIDList.contains(gridUID)){
                                         m_actorPod->post(gridUID, {AM_ACTION, amA});
                                         seenUIDList.insert(gridUID);
                                     }
@@ -564,7 +564,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                             case UID_MON:
                             case UID_NPC:
                                 {
-                                    if((gridUID != amTM.UID) && (seenUIDList.count(gridUID) == 0)){
+                                    if((gridUID != amTM.UID) && !seenUIDList.contains(gridUID)){
                                         m_actorPod->post(gridUID, {AM_ACTION, amA});
                                         seenUIDList.insert(gridUID);
                                     }
@@ -706,7 +706,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
                             case UID_MON:
                             case UID_NPC:
                                 {
-                                    if((gridUID != fromUID) && (seenUIDList.count(gridUID) == 0)){
+                                    if((gridUID != fromUID) && !seenUIDList.contains(gridUID)){
                                         m_actorPod->post(gridUID, {AM_ACTION, amA});
                                         seenUIDList.insert(gridUID);
                                     }

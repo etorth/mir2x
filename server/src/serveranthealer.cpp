@@ -60,7 +60,7 @@ corof::awaitable<> ServerAntHealer::runAICoro()
             continue;
         }
 
-        if(const auto targetUID = co_await pickHealTarget(); targetUID && m_inViewCOList.count(targetUID)){
+        if(const auto targetUID = co_await pickHealTarget(); targetUID && m_inViewCOList.contains(targetUID)){
             sendHeal(targetUID);
             co_await asyncWait(1000);
             continue;

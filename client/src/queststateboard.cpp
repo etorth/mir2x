@@ -239,7 +239,7 @@ void QuestStateBoard::loadQuestDesp()
     for(const auto &[quest, state]: m_questDesp){
         xmlStrs.push_back(str_printf(R"###(<par><event id="%s">%s</event></par>)###", quest.c_str(), quest.c_str()));
         if(!state.folded){
-            xmlStrs.push_back(str_printf("<par>    %s</par>", (state.desp.count(SYS_QSTFSM) && str_haschar(state.desp.at(SYS_QSTFSM))) ? state.desp.at(SYS_QSTFSM).c_str() : "暂无任务描述"));
+            xmlStrs.push_back(str_printf("<par>    %s</par>", (state.desp.contains(SYS_QSTFSM) && str_haschar(state.desp.at(SYS_QSTFSM))) ? state.desp.at(SYS_QSTFSM).c_str() : "暂无任务描述"));
             for(const auto &[fsm, desp]: state.desp){
                 if(fsm != SYS_QSTFSM){
                     xmlStrs.push_back(str_printf("<par>    * %s</par>", fsm.c_str()));

@@ -24,7 +24,7 @@ class SkillBoardConfig final
     public:
         bool hasMagicID(uint32_t magicID) const
         {
-            return m_learnedMagicList.count(magicID) > 0;
+            return m_learnedMagicList.contains(magicID);
         }
 
     public:

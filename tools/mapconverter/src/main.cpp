@@ -207,7 +207,7 @@ class MapInfoParser
                         }
                     }
 
-                    if(mapFileSet.count(entry.fileName + ".MAP")){
+                    if(mapFileSet.contains(entry.fileName + ".MAP")){
                         m_mapEntryList.push_back(entry);
                         std::cout << str_printf("[FILE] %s:%s", entry.mapName.c_str(), entry.fileName.c_str()) << std::endl;
                     }
@@ -418,7 +418,7 @@ static void convertMap(std::string mapDir, std::string mapFileName, std::string 
                 const auto toMapNameList = parser->hasMapName(switchPoint.to_fileName);
                 for(const auto &toMapName: toMapNameList){
                     const auto switchCodeLine = str_printf(R"#(        {.x = %d, .y = %d, .w = %d, .h = %d, .endName = u8"%s_%s", .endX = %d, .endY = %d},%s)#", switchPoint.from_x, switchPoint.from_y, switchPoint.from_w, switchPoint.from_h, toMapName.c_str(), switchPoint.to_fileName.c_str(), switchPoint.to_x, switchPoint.to_y, (toMapNameList.size() == 1) ? "" : "// TODO select one");
-                    if(!seenSwitchCodeList.count(switchCodeLine)){
+                    if(!seenSwitchCodeList.contains(switchCodeLine)){
                         seenSwitchCodeList.insert(switchCodeLine);
                         codeList.push_back(switchCodeLine);
                     }

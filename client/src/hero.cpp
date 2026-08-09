@@ -1689,7 +1689,7 @@ void Hero::setBuff(int type, int state)
 
 bool Hero::hasSwingMagic(uint32_t magicID) const
 {
-    return m_swingMagicList.count(magicID);
+    return m_swingMagicList.contains(magicID);
 }
 
 void Hero::toggleSwingMagic(uint32_t magicID, std::optional<bool> enable)
@@ -1703,7 +1703,7 @@ void Hero::toggleSwingMagic(uint32_t magicID, std::optional<bool> enable)
         }
     }
     else{
-        if(m_swingMagicList.count(magicID)){
+        if(m_swingMagicList.contains(magicID)){
             m_swingMagicList.erase(magicID);
         }
         else{
