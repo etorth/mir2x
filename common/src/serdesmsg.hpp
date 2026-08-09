@@ -549,8 +549,8 @@ class SDInventory final
 struct SDDirectTradeItem
 {
     uint32_t itemID = 0;
-    uint32_t seqID = 0;
-    uint32_t count = 0;
+    uint32_t seqID  = 0;
+    size_t   count  = 0;
 
     template<typename Archive> void serialize(Archive & ar)
     {
@@ -566,10 +566,8 @@ struct SDDirectTradeItem
 
 struct SDDirectTradeOfferRequest
 {
-    // Untrusted compact client request. The server resolves these item
-    // references against the player's current inventory before broadcasting.
     uint64_t uid = 0;
-    uint32_t gold = 0;
+    size_t gold = 0;
     bool locked = false;
     std::vector<SDDirectTradeItem> itemList;
 
@@ -581,10 +579,8 @@ struct SDDirectTradeOfferRequest
 
 struct SDDirectTradeOffer
 {
-    // Canonical server snapshot. locked freezes items/gold; confirmed records
-    // the later exchange click and is valid only for a locked offer.
     uint64_t uid = 0;
-    uint32_t gold = 0;
+    size_t gold = 0;
     bool locked = false;
     bool confirmed = false;
     std::vector<SDItem> itemList;
@@ -606,7 +602,6 @@ struct SDDirectTradeOffer
 
 struct SDDirectTradeResult
 {
-    // Authoritative post-transaction state returned separately to each player.
     uint64_t uid = 0;
     size_t gold = 0;
     SDInventory inventory;

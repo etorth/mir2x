@@ -97,7 +97,7 @@ enum SMType: uint8_t
     SM_CHATMESSAGEOK,
     SM_ADDFRIENDOK,
     SM_CREATECHATGROUPOK,
-    SM_DIRECTTRADEREQUEST,
+    SM_REQUESTDIRECTTRADE,
     SM_STARTDIRECTTRADE,
     SM_UPDATEDIRECTTRADE,
     SM_COMPLETEDIRECTTRADE,
@@ -366,7 +366,7 @@ struct SMTeamError
     uint8_t error;
 };
 
-struct SMDirectTradeRequest
+struct SMRequestDirectTrade
 {
     uint64_t uid;
     StaticBuffer<SYS_NAMESIZE> name;
@@ -527,7 +527,7 @@ namespace
         _RSVD_register_servermsg(SM_CHATMESSAGEOK,          3                                  );
         _RSVD_register_servermsg(SM_ADDFRIENDOK,            3                                  );
         _RSVD_register_servermsg(SM_CREATECHATGROUPOK,      3                                  );
-        _RSVD_register_servermsg(SM_DIRECTTRADEREQUEST,     1, sizeof(SMDirectTradeRequest)    );
+        _RSVD_register_servermsg(SM_REQUESTDIRECTTRADE,     1, sizeof(SMRequestDirectTrade)    );
         _RSVD_register_servermsg(SM_STARTDIRECTTRADE,       1, sizeof(SMStartDirectTrade)      );
         _RSVD_register_servermsg(SM_UPDATEDIRECTTRADE,      3                                  );
         _RSVD_register_servermsg(SM_COMPLETEDIRECTTRADE,     1, sizeof(SMCompleteDirectTrade)   );

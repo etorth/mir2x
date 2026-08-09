@@ -92,10 +92,6 @@ GUIManager::GUIManager(ProcessRun *argProc)
     , m_heroStateBoard
       {{
           .runProc = argProc,
-          .onTradeRequest = [argProc](uint64_t uid)
-          {
-              argProc->requestDirectTrade(uid);
-          },
           .parent{this},
       }}
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 #include <cstdint>
-#include <functional>
 #include "protocoldef.hpp"
 #include "sysconst.hpp"
 #include "textbutton.hpp"
@@ -31,7 +30,6 @@ class HeroStateBoard final: public Widget
         struct InitArgs final
         {
             ProcessRun *runProc = nullptr;
-            std::function<void(uint64_t)> onTradeRequest {};
             Widget::WADPair parent {};
         };
 
@@ -46,7 +44,6 @@ class HeroStateBoard final: public Widget
     private:
         ProcessRun *m_processRun;
         uint64_t m_targetUID = 0;
-        std::function<void(uint64_t)> m_onTradeRequest;
 
     public:
         explicit HeroStateBoard(HeroStateBoard::InitArgs);

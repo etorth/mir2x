@@ -137,7 +137,6 @@ HeroStateBoard::HeroStateBoard(HeroStateBoard::InitArgs args)
       }}
 
     , m_processRun(fflcheck(args.runProc))
-    , m_onTradeRequest(std::move(args.onTradeRequest))
 {
     setShow(false);
     if(auto texPtr = g_progUseDB->retrieve(0X00002020)){
@@ -329,8 +328,8 @@ Hero *HeroStateBoard::target() const
 
 void HeroStateBoard::requestTrade()
 {
-    if(m_targetUID && m_onTradeRequest){
-        m_onTradeRequest(m_targetUID);
+    if(m_targetUID){
+        m_processRun->requestDirectTrade(m_targetUID);
     }
 }
 

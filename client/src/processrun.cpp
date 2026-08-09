@@ -1802,11 +1802,6 @@ bool ProcessRun::updateDirectTradeOffer(uint64_t uid, uint32_t gold, bool locked
 {
     fflassert(uidf::isPlayer(uid));
 
-    if(itemList.size() > SYS_DIRECTTRADEMAXITEM){
-        addCBLog(CBLOG_ERR, u8"交易栏物品数量已达上限");
-        return false;
-    }
-
     SDDirectTradeOfferRequest request
     {
         .uid = uid,

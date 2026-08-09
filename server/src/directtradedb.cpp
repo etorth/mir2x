@@ -138,9 +138,7 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(
             || !offer0.locked
             || !offer1.locked
             || !offer0.confirmed
-            || !offer1.confirmed
-            || offer0.itemList.size() > SYS_DIRECTTRADEMAXITEM
-            || offer1.itemList.size() > SYS_DIRECTTRADEMAXITEM){
+            || !offer1.confirmed){
         return std::unexpected(DTRADEERR_COMMITFAILED);
     }
 

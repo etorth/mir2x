@@ -628,8 +628,7 @@ corof::awaitable<> Player::on_AM_UPDATEDIRECTTRADE(const ActorMsgPack &mpk)
 
     const auto offer = mpk.deserialize<SDDirectTradeOffer>();
     if(offer.uid != mpk.from()
-            || (offer.confirmed && !offer.locked)
-            || offer.itemList.size() > SYS_DIRECTTRADEMAXITEM){
+            || (offer.confirmed && !offer.locked)){
         cancelDirectTrade();
         return {};
     }

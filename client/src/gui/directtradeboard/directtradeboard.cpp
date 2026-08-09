@@ -476,11 +476,7 @@ bool DirectTradeBoard::syncLocalOffer(bool locked)
         return false;
     }
 
-    return m_runProc->updateDirectTradeOffer(
-            m_peerUID,
-            gold.value(),
-            locked,
-            m_localItemList.itemList());
+    return m_runProc->updateDirectTradeOffer(m_peerUID, gold.value(), locked, m_localItemList.itemList());
 }
 
 void DirectTradeBoard::onLocalItemClick(DirectTradeItemList::ClickEvent event)
@@ -504,11 +500,6 @@ void DirectTradeBoard::onLocalItemClick(DirectTradeItemList::ClickEvent event)
             invPack.setGrabbedItem(selectedBin.item);
         }
         else{
-            if(m_localItemList.itemCount() >= SYS_DIRECTTRADEMAXITEM){
-                m_runProc->addCBLog(CBLOG_ERR, u8"交易栏物品数量已达上限");
-                return;
-            }
-
             const auto [gridW, gridH] = InvPack::getPackBinSize(grabbedItem.itemID);
             if(!m_localItemList.addItem(grabbedItem, event.gridX - gridW / 2, event.gridY - gridH / 2)){
                 m_runProc->addCBLog(CBLOG_ERR, u8"该物品过大，无法放入交易栏");

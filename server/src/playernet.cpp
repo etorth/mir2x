@@ -1377,12 +1377,12 @@ corof::awaitable<> Player::net_CM_REQUESTDIRECTTRADE(uint8_t, const uint8_t *buf
     m_directTradeOffer.clear();
     m_directTradeTargetOffer.clear();
 
-    SMDirectTradeRequest smDTR;
+    SMRequestDirectTrade smDTR;
     std::memset(&smDTR, 0, sizeof(smDTR));
 
     smDTR.uid = UID();
     smDTR.name.assign(name());
-    forwardNetPackage(cmRDT.uid, SM_DIRECTTRADEREQUEST, smDTR);
+    forwardNetPackage(cmRDT.uid, SM_REQUESTDIRECTTRADE, smDTR);
     return {};
 }
 
@@ -1442,7 +1442,6 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
 corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
 {
     const auto sdDTOR = cerealf::deserialize<SDDirectTradeOfferRequest>(buf, bufSize);
-
     if(sdDTOR.uid != m_directTradePeerUID || !directTradeStarted()){
         return {};
     }
@@ -1456,11 +1455,6 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
     if(m_sdHealth.dead() || !getInViewCOPtr(sdDTOR.uid)){
         postDirectTradeError(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
         cancelDirectTrade();
-        return {};
-    }
-
-    if(sdDTOR.itemList.size() > SYS_DIRECTTRADEMAXITEM){
-        postDirectTradeError(DTRADEERR_BADOFFER);
         return {};
     }
 
@@ -1529,8 +1523,9 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
         offer.itemList.push_back(std::move(offeredItem));
     }
 
-    m_directTradeOffer = offer;
-    const auto offerBuf = cerealf::serialize(offer);
+    m_directTradeOffer = std::move(offer);
+    const auto offerBuf = cerealf::serialize(m_directTradeOffer);
+
     postNetMessage(SM_UPDATEDIRECTTRADE, offerBuf);
     m_actorPod->post(sdDTOR.uid, {AM_UPDATEDIRECTTRADE, offerBuf});
     return {};
@@ -1560,6 +1555,7 @@ corof::awaitable<> Player::net_CM_COMMITDIRECTTRADE(uint8_t, const uint8_t *buf,
 
     m_directTradeOffer.confirmed = true;
     const auto offerBuf = cerealf::serialize(m_directTradeOffer);
+
     postNetMessage(SM_UPDATEDIRECTTRADE, offerBuf);
     m_actorPod->post(m_directTradePeerUID, {AM_UPDATEDIRECTTRADE, offerBuf});
 

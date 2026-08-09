@@ -961,22 +961,19 @@ void ProcessRun::on_SM_RANKINGLIST(const uint8_t *buf, size_t bufSize)
     dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->setRankingList(cerealf::deserialize<SDRankingList>(buf, bufSize));
 }
 
-void ProcessRun::on_SM_DIRECTTRADEREQUEST(const uint8_t *buf, size_t)
+void ProcessRun::on_SM_REQUESTDIRECTTRADE(const uint8_t *buf, size_t)
 {
-    const auto smDTR = ServerMsg::conv<SMDirectTradeRequest>(buf);
-    auto inputBoard = dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"));
-    fflassert(inputBoard);
+    const auto smDTR = ServerMsg::conv<SMRequestDirectTrade>(buf);
+    dynamic_cast<InputStringBoard *>(getWidget("InputStringBoard"))->waitChoice(to_u8rawstr(str_printf("<layout><par><t color='red'>%s</t>请求与你交易，是否接受？</par></layout>", smDTR.name.as_rawcstr())),
+    [uid = smDTR.uid, this]
+    {
+        respondDirectTrade(uid, true);
+    },
 
-    inputBoard->waitChoice(
-            to_u8rawstr(str_printf("<layout><par><t color='red'>%s</t>请求与你交易，是否接受？</par></layout>", smDTR.name.as_rawcstr())),
-            [uid = smDTR.uid, this]
-            {
-                respondDirectTrade(uid, true);
-            },
-            [uid = smDTR.uid, this]
-            {
-                respondDirectTrade(uid, false);
-            });
+    [uid = smDTR.uid, this]
+    {
+        respondDirectTrade(uid, false);
+    });
 }
 
 void ProcessRun::on_SM_STARTDIRECTTRADE(const uint8_t *buf, size_t)

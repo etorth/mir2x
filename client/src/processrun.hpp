@@ -271,7 +271,7 @@ class ProcessRun: public Process
         _support_sm(SM_ADDFRIENDACCEPTED);
         _support_sm(SM_ADDFRIENDREJECTED);
         _support_sm(SM_RANKINGLIST);
-        _support_sm(SM_DIRECTTRADEREQUEST);
+        _support_sm(SM_REQUESTDIRECTTRADE);
         _support_sm(SM_STARTDIRECTTRADE);
         _support_sm(SM_UPDATEDIRECTTRADE);
         _support_sm(SM_COMPLETEDIRECTTRADE);
