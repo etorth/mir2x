@@ -13,6 +13,7 @@
 #include "jobf.hpp"
 #include "dbpod.hpp"
 #include "chatdb.hpp"
+#include "inventorydb.hpp"
 #include "dbcomid.hpp"
 #include "totype.hpp"
 #include "filesys.hpp"
@@ -231,20 +232,7 @@ bool Server::createAccountCharacter(const char *id, const char *charName, bool g
         }
 
         fflassert(item);
-        auto query = g_dbPod->createQuery(
-                u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
-                u8R"###( values                                                                                                                 )###"
-                u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                            )###",
-
-                to_llu(dbid),
-                to_llu(item.itemID),
-                to_llu(item.seqID),
-                to_llu(item.count),
-                to_llu(item.duration[0]),
-                to_llu(item.duration[1]));
-
-        query.bindBlob(1, cerealf::serialize(item.extAttrList));
-        query.exec();
+        dbUpdateInventoryItem(dbid, item);
     };
 
     fnAddInitItem(u8"火墙");

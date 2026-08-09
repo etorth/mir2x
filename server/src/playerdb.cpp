@@ -95,57 +95,6 @@ void Player::dbUpdateHealth()
     g_dbPod->exec(u8R"###( update tbl_char set fld_hp = %d, fld_mp = %d where fld_dbid = %llu )###", m_sdHealth.hp, m_sdHealth.mp, to_llu(dbid()));
 }
 
-void Player::dbLoadInventory()
-{
-    // tbl_inventory:
-    // +----------+------------+-----------+-----------+--------------+-----------------+
-    // | fld_dbid | fld_itemid | fld_seqid | fld_count | fld_duration | fld_extattrlist |
-    // +----------+------------+-----------+-----------+--------------+-----------------+
-    // |<----primary key---->|
-
-    m_sdItemStorage.inventory.clear();
-    auto query = g_dbPod->createQuery("select * from tbl_inventory where fld_dbid = %llu", to_llu(dbid()));
-
-    while(query.executeStep()){
-        m_sdItemStorage.inventory.add(SDItem::fromQuery(query), true);
-    }
-}
-
-void Player::dbUpdateInventoryItem(const SDItem &item)
-{
-    fflassert(item);
-    auto query = g_dbPod->createQuery(
-            u8R"###( replace into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
-            u8R"###( values                                                                                                                 )###"
-            u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                            )###",
-
-            to_llu(dbid()),
-            to_llu(item.itemID),
-            to_llu(item.seqID),
-            to_llu(item.count),
-            to_llu(item.duration[0]),
-            to_llu(item.duration[1]));
-
-    query.bindBlob(1, cerealf::serialize(item.extAttrList));
-    query.exec();
-}
-
-void Player::dbRemoveInventoryItem(const SDItem &item)
-{
-    dbRemoveInventoryItem(item.itemID, item.seqID);
-}
-
-void Player::dbRemoveInventoryItem(uint32_t itemID, uint32_t seqID)
-{
-    // requies seqID to be non-zero
-    // means won't support remove more than 1 item in database per call
-
-    if(!(DBCOM_ITEMRECORD(itemID) && seqID > 0)){
-        throw fflpanic("invalid arguments: itemID = {}, seqID = {}", itemID, seqID);
-    }
-    g_dbPod->exec("delete from tbl_inventory where fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu", to_llu(dbid()), to_llu(itemID), to_llu(seqID));
-}
-
 void Player::dbSecureItem(uint32_t itemID, uint32_t seqID)
 {
     const auto &item = findInventoryItem(itemID, seqID);

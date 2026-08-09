@@ -380,11 +380,7 @@ class Player final: public BattleObject
         void dbUpdateMapGLoc();
 
     private:
-        void dbLoadInventory();
         void dbLoadFriendList();
-        void dbUpdateInventoryItem(const SDItem &);
-        void dbRemoveInventoryItem(const SDItem &);
-        void dbRemoveInventoryItem(uint32_t, uint32_t);
 
     private:
         std::expected<std::vector<SDItem>, int> dbClaimDelivery(const std::string &);

@@ -5,6 +5,7 @@
 #include "sysconst.hpp"
 #include "auctiondb.hpp"
 #include "deliverydb.hpp"
+#include "inventorydb.hpp"
 #include "raiitimer.hpp"
 
 extern DBPod *g_dbPod;
@@ -85,36 +86,8 @@ bool dbRegisterAuctionItem(uint32_t sellerDBID, const SDItem &item, const std::s
     fflassert(price <= INT_MAX, price);
 
     auto transaction = g_dbPod->createTransaction();
-    {
-        auto deleteQuery = g_dbPod->createQuery(
-            u8R"###( delete from tbl_inventory                                      )###"
-            u8R"###( where                                                          )###"
-            u8R"###(     fld_dbid = %llu and fld_itemid = %llu and fld_seqid = %llu )###"
-            u8R"###( returning                                                      )###"
-            u8R"###(     fld_itemid, fld_seqid                                      )###",
-
-            // use the returning
-            // to know there is row found and deleted
-
-            to_llu(sellerDBID),
-            to_llu(item.itemID),
-            to_llu(item.seqID));
-
-        if(!deleteQuery.executeStep()){
-            return false;
-        }
-
-        // we can reconstruct SDItem by returned fields
-        // and validate if item from database and item from argument are identical, but not very necessary
-
-        const auto deletedItemID = check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_itemid"));
-        const auto deletedSeqID  = check_cast<uint32_t, unsigned>(deleteQuery.getColumn("fld_seqid" ));
-
-        fflassert(deletedItemID == item.itemID, deletedItemID, item.itemID);
-        fflassert(deletedSeqID  == item. seqID, deletedSeqID , item. seqID);
-
-        // can have at most 1 match
-        fflassert(!deleteQuery.executeStep());
+    if(!dbRemoveInventoryItem(sellerDBID, item)){
+        return false;
     }
 
     auto insertQuery = g_dbPod->createQuery(

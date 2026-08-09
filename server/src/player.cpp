@@ -11,6 +11,7 @@
 #include "dbcomid.hpp"
 #include "deliverydb.hpp"
 #include "chatdb.hpp"
+#include "inventorydb.hpp"
 #include "directtradedb.hpp"
 #include "sysconst.hpp"
 #include "charobject.hpp"
@@ -380,7 +381,7 @@ Player::Player(const SDInitPlayer &initParam)
 
     dbLoadWear();
     dbLoadBelt();
-    dbLoadInventory();
+    m_sdItemStorage.inventory = dbLoadInventory(dbid());
     dbLoadFriendList();
     dbLoadLearnedMagic();
     dbLoadPlayerConfig();
@@ -1898,7 +1899,7 @@ const SDItem &Player::addInventoryItem(SDItem item, bool keepSeqID)
 {
     const auto itemID = item.itemID;
     const auto &addedItem = m_sdItemStorage.inventory.add(std::move(item), keepSeqID);
-    dbUpdateInventoryItem(addedItem);
+    dbUpdateInventoryItem(dbid(), addedItem);
 
     m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(itemID)));
     reportUpdateItem(addedItem);
@@ -1933,10 +1934,10 @@ size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count
         }
 
         if(itemPtr){
-            dbUpdateInventoryItem(*itemPtr);
+            dbUpdateInventoryItem(dbid(), *itemPtr);
         }
         else{
-            dbRemoveInventoryItem(itemID, removedSeqID);
+            dbRemoveInventoryItem(dbid(), itemID, removedSeqID);
         }
 
         doneCount += removedCount;

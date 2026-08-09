@@ -12,6 +12,7 @@
 #include "serverargparser.hpp"
 #include "auctiondb.hpp"
 #include "chatdb.hpp"
+#include "inventorydb.hpp"
 
 extern DBPod *g_dbPod;
 extern Server *g_server;
@@ -1029,7 +1030,7 @@ corof::awaitable<> Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, s
     dbRemoveWearItem(wltype);
 
     const auto &addedItem = m_sdItemStorage.inventory.add(currItem, false);
-    dbUpdateInventoryItem(addedItem);
+    dbUpdateInventoryItem(dbid(), addedItem);
 
     postNetMessage(SM_GRABWEAR, cerealf::serialize(SDGrabWear
     {
@@ -1070,7 +1071,7 @@ corof::awaitable<> Player::net_CM_REQUESTGRABBELT(uint8_t, const uint8_t *buf, s
     dbRemoveBeltItem(cmRGB.slot);
 
     const auto &addedItem = m_sdItemStorage.inventory.add(currItem, false);
-    dbUpdateInventoryItem(addedItem);
+    dbUpdateInventoryItem(dbid(), addedItem);
 
     postNetMessage(SM_GRABBELT, cerealf::serialize(SDGrabBelt
     {

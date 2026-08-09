@@ -5,6 +5,7 @@
 #include "protocoldef.hpp"
 #include "sysconst.hpp"
 #include "uidf.hpp"
+#include "inventorydb.hpp"
 #include "directtradedb.hpp"
 
 extern DBPod *g_dbPod;
@@ -43,17 +44,6 @@ namespace
 
         fflassert(!query.executeStep());
         return check_cast<size_t, uint64_t>(to_u64(gold));
-    }
-
-    SDInventory loadInventory(uint64_t uid)
-    {
-        const auto dbid = uidf::getPlayerDBID(uid);
-        SDInventory inventory;
-        auto query = g_dbPod->createQuery("select * from tbl_inventory where fld_dbid = %llu", to_llu(dbid));
-        while(query.executeStep()){
-            inventory.add(SDItem::fromQuery(query), true);
-        }
-        return inventory;
     }
 
     bool removeOffer(DirectTradeParticipant &participant, const SDDirectTradeOffer &offer)
@@ -95,28 +85,6 @@ namespace
         }
     }
 
-    void storeInventory(const DirectTradeParticipant &participant)
-    {
-        const auto dbid = uidf::getPlayerDBID(participant.uid);
-        g_dbPod->exec("delete from tbl_inventory where fld_dbid = %llu", to_llu(dbid));
-
-        for(const auto &item: participant.inventory.getItemList()){
-            auto query = g_dbPod->createQuery(
-                    u8R"###( insert into tbl_inventory(fld_dbid, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist) )###"
-                    u8R"###( values                                                                                                                )###"
-                    u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                           )###",
-
-                    to_llu(dbid),
-                    to_llu(item.itemID),
-                    to_llu(item.seqID),
-                    to_llu(item.count),
-                    to_llu(item.duration[0]),
-                    to_llu(item.duration[1]));
-
-            query.bindBlob(1, cerealf::serialize(item.extAttrList));
-            query.exec();
-        }
-    }
 }
 
 std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const SDDirectTradeOffer &offer0, const SDDirectTradeOffer &offer1)
@@ -157,8 +125,8 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const
     participant0.gold = gold0.value();
     participant1.gold = gold1.value();
 
-    participant0.inventory = loadInventory(participant0.uid);
-    participant1.inventory = loadInventory(participant1.uid);
+    participant0.inventory = dbLoadInventory(uidf::getPlayerDBID(participant0.uid));
+    participant1.inventory = dbLoadInventory(uidf::getPlayerDBID(participant1.uid));
 
     if(!removeOffer(participant0, offer0) || !removeOffer(participant1, offer1)){
         return std::unexpected(DTRADEERR_COMMITFAILED);
@@ -177,8 +145,8 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const
     addOffer(participant0, offer1);
     addOffer(participant1, offer0);
 
-    storeInventory(participant0);
-    storeInventory(participant1);
+    dbStoreInventory(uidf::getPlayerDBID(participant0.uid), participant0.inventory);
+    dbStoreInventory(uidf::getPlayerDBID(participant1.uid), participant1.inventory);
 
     g_dbPod->exec(
             "update tbl_char set fld_gold = %llu where fld_dbid = %llu",
