@@ -256,9 +256,11 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
               .active = [this]
               {
                   if(m_locked){
-                      return !m_confirmed && m_peerLocked;
+                      return m_peerLocked && !m_confirmed;
                   }
-                  return !m_lockPending && parsedLocalGold().has_value();
+                  else{
+                      return !m_lockPending && parsedLocalGold().has_value();
+                  }
               },
           },
 
@@ -277,11 +279,7 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
               .down = 0X0000001D,
           },
 
-          .onTrigger = [this](Widget *, int)
-          {
-              closeTrade();
-          },
-
+          .onTrigger = [this](Widget *, int){ closeTrade(); },
           .parent{this},
       }}
 {
@@ -478,27 +476,32 @@ void DirectTradeBoard::rejectLocalOffer()
     m_confirmed = false;
 }
 
-std::optional<uint32_t> DirectTradeBoard::parsedLocalGold() const
+std::optional<size_t> DirectTradeBoard::parsedLocalGold(bool checkGold) const
 {
-    const auto input = m_goldInput.getRawString();
-    if(input.empty()){
+    if(const auto input = m_goldInput.getRawString(); input.empty()){
         return 0;
     }
 
-    if(input.size() > 10 || !std::ranges::all_of(input, [](unsigned char ch){ return std::isdigit(ch); })){
-        return {};
-    }
+    else{
+        long long val = 0;
+        for(char c: input){
+            if(c < '0' || c > '9'){
+                return {};
+            }
 
-    uint64_t value = 0;
-    const auto [ptr, ec] = std::from_chars(input.data(), input.data() + input.size(), value);
-    if(ec != std::errc() || ptr != input.data() + input.size() || value > std::numeric_limits<uint32_t>::max()){
-        return {};
-    }
+            val = val * 10 + (c - '0');
+            if(val >= INT_MAX){
+                return {};
+            }
 
-    if(const auto hero = m_runProc->getMyHero(); hero && value > hero->getGold()){
-        return {};
+            if(checkGold){
+                if(const auto hero = m_runProc->getMyHero(); hero && val > hero->getGold()){
+                    return {};
+                }
+            }
+        }
+        return to_uz(val);
     }
-    return to_u32(value);
 }
 
 bool DirectTradeBoard::localOfferMatches(const SDDirectTradeOffer &offer) const
@@ -582,9 +585,8 @@ void DirectTradeBoard::restoreLocalItems()
     }
 
     if(auto hero = m_runProc->getMyHero()){
-        auto &invPack = hero->getInvPack();
         for(auto &item: itemList){
-            invPack.add(std::move(item), false);
+            hero->getInvPack().add(std::move(item), false);
         }
     }
 }

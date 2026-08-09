@@ -106,7 +106,7 @@ class DirectTradeBoard final: public Widget
         void rejectLocalOffer();
 
     private:
-        std::optional<uint32_t> parsedLocalGold() const;
+        std::optional<size_t> parsedLocalGold(bool = true) const;
         bool localOfferMatches(const SDDirectTradeOffer &) const;
         bool syncLocalOffer(bool);
 
