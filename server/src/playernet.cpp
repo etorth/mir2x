@@ -1373,9 +1373,10 @@ corof::awaitable<> Player::net_CM_REQUESTDIRECTTRADE(uint8_t, const uint8_t *buf
         return {};
     }
 
-    m_directTradePeerUID = cmRDT.uid;
+    m_directTradeStarted = false;
     m_directTradeOffer.clear();
     m_directTradeTargetOffer.clear();
+    m_directTradeTargetOffer.uid = cmRDT.uid;
 
     SMRequestDirectTrade smDTR;
     std::memset(&smDTR, 0, sizeof(smDTR));
@@ -1427,9 +1428,10 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
         return {};
     }
 
-    m_directTradePeerUID = cmRDT.uid;
+    m_directTradeStarted = false;
     m_directTradeOffer.clear();
     m_directTradeTargetOffer.clear();
+    m_directTradeTargetOffer.uid = cmRDT.uid;
 
     AMDirectTradePeer amDTP;
     std::memset(&amDTP, 0, sizeof(amDTP));
@@ -1442,7 +1444,7 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
 corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)
 {
     const auto sdDTOR = cerealf::deserialize<SDDirectTradeOfferRequest>(buf, bufSize);
-    if(sdDTOR.uid != m_directTradePeerUID || !directTradeStarted()){
+    if(sdDTOR.uid != m_directTradeTargetOffer.uid || !m_directTradeStarted){
         return {};
     }
 
@@ -1534,7 +1536,7 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
 corof::awaitable<> Player::net_CM_COMMITDIRECTTRADE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmCDT = ClientMsg::conv<CMCommitDirectTrade>(buf);
-    if(cmCDT.uid != m_directTradePeerUID || !directTradeStarted()){
+    if(cmCDT.uid != m_directTradeTargetOffer.uid || !m_directTradeStarted){
         return {};
     }
 
@@ -1543,7 +1545,7 @@ corof::awaitable<> Player::net_CM_COMMITDIRECTTRADE(uint8_t, const uint8_t *buf,
         return {};
     }
 
-    if(m_sdHealth.dead() || !getInViewCOPtr(m_directTradePeerUID)){
+    if(m_sdHealth.dead() || !getInViewCOPtr(m_directTradeTargetOffer.uid)){
         postDirectTradeError(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
         cancelDirectTrade();
         return {};
@@ -1557,7 +1559,7 @@ corof::awaitable<> Player::net_CM_COMMITDIRECTTRADE(uint8_t, const uint8_t *buf,
     const auto offerBuf = cerealf::serialize(m_directTradeOffer);
 
     postNetMessage(SM_UPDATEDIRECTTRADE, offerBuf);
-    m_actorPod->post(m_directTradePeerUID, {AM_UPDATEDIRECTTRADE, offerBuf});
+    m_actorPod->post(m_directTradeTargetOffer.uid, {AM_UPDATEDIRECTTRADE, offerBuf});
 
     if(directTradeCoordinator() && directTradeConfirmed()){
         commitDirectTrade();
@@ -1568,7 +1570,7 @@ corof::awaitable<> Player::net_CM_COMMITDIRECTTRADE(uint8_t, const uint8_t *buf,
 corof::awaitable<> Player::net_CM_CANCELDIRECTTRADE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmCDT = ClientMsg::conv<CMCancelDirectTrade>(buf);
-    if(cmCDT.uid == m_directTradePeerUID){
+    if(cmCDT.uid == m_directTradeTargetOffer.uid){
         cancelDirectTrade();
     }
     return {};

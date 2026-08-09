@@ -836,24 +836,17 @@ bool Player::ActionValid(const ActionNode &)
 
 bool Player::directTradeBusy() const
 {
-    return m_directTradePeerUID != 0;
-}
-
-bool Player::directTradeStarted() const
-{
-    return m_directTradePeerUID
-        && m_directTradeOffer.uid == UID()
-        && m_directTradeTargetOffer.uid == m_directTradePeerUID;
+    return m_directTradeTargetOffer.uid != 0;
 }
 
 bool Player::directTradeCoordinator() const
 {
-    return directTradeStarted() && UID() < m_directTradePeerUID;
+    return m_directTradeStarted && UID() < m_directTradeTargetOffer.uid;
 }
 
 bool Player::directTradeReady() const
 {
-    return directTradeStarted()
+    return m_directTradeStarted
         && m_directTradeOffer.locked
         && m_directTradeTargetOffer.locked;
 }
@@ -867,18 +860,20 @@ bool Player::directTradeConfirmed() const
 
 void Player::startDirectTrade()
 {
-    fflassert(uidf::isPlayer(m_directTradePeerUID));
-    fflassert(m_directTradePeerUID != UID());
+    const auto targetUID = m_directTradeTargetOffer.uid;
+    fflassert(uidf::isPlayer(targetUID));
+    fflassert(targetUID != UID());
 
+    m_directTradeStarted = true;
     m_directTradeOffer.clear();
     m_directTradeOffer.uid = UID();
     m_directTradeTargetOffer.clear();
-    m_directTradeTargetOffer.uid = m_directTradePeerUID;
+    m_directTradeTargetOffer.uid = targetUID;
 }
 
 void Player::clearDirectTrade()
 {
-    m_directTradePeerUID = 0;
+    m_directTradeStarted = false;
     m_directTradeOffer.clear();
     m_directTradeTargetOffer.clear();
 }
@@ -898,7 +893,7 @@ void Player::commitDirectTrade()
         return;
     }
 
-    const auto peerUID = m_directTradePeerUID;
+    const auto peerUID = m_directTradeTargetOffer.uid;
     auto resultListResult = dbCommitDirectTrade(m_directTradeOffer, m_directTradeTargetOffer);
     if(!resultListResult.has_value()){
         const int error = resultListResult.error();
@@ -937,7 +932,7 @@ void Player::applyDirectTradeResult(SDDirectTradeResult result)
 {
     fflassert(result.uid == UID(), result.uid, UID());
 
-    const auto peerUID = m_directTradePeerUID;
+    const auto peerUID = m_directTradeTargetOffer.uid;
     const auto gainedItemList = m_directTradeTargetOffer.itemList;
 
     m_sdItemStorage.gold = result.gold;
@@ -960,7 +955,7 @@ void Player::applyDirectTradeResult(SDDirectTradeResult result)
 
 void Player::cancelDirectTrade()
 {
-    const auto peerUID = m_directTradePeerUID;
+    const auto peerUID = m_directTradeTargetOffer.uid;
     if(!peerUID){
         return;
     }
@@ -968,7 +963,7 @@ void Player::cancelDirectTrade()
     // During an established trade only the lower-UID coordinator decides the
     // result. The other player sends a cancellation request and keeps server
     // state until the coordinator replies with cancel or completion.
-    if(directTradeStarted() && !directTradeCoordinator()){
+    if(m_directTradeStarted && !directTradeCoordinator()){
         if(hasActorPod()){
             m_actorPod->post(peerUID, AM_CANCELDIRECTTRADE);
         }
@@ -978,7 +973,7 @@ void Player::cancelDirectTrade()
         return;
     }
 
-    const bool started = directTradeStarted();
+    const bool started = m_directTradeStarted;
     clearDirectTrade();
 
     if(hasActorPod()){

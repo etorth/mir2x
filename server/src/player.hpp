@@ -72,10 +72,9 @@ class Player final: public BattleObject
         std::vector<uint64_t> m_teamMemberList; // ignored if not team leader
 
     private:
-        // Before acceptance only the requester reserves m_directTradePeerUID.
-        // After acceptance both players store each other here. Offer UIDs show
-        // whether the pair is established; locked/confirmed derive its phase.
-        uint64_t m_directTradePeerUID = 0;
+        // m_directTradeTargetOffer.uid identifies the peer while the request is
+        // pending and after the trade starts.
+        bool m_directTradeStarted = false;
         SDDirectTradeOffer m_directTradeOffer;
         SDDirectTradeOffer m_directTradeTargetOffer;
 
@@ -276,7 +275,6 @@ class Player final: public BattleObject
 
     private:
         bool directTradeBusy() const;
-        bool directTradeStarted() const;
         bool directTradeCoordinator() const;
         bool directTradeReady() const;
         bool directTradeConfirmed() const;

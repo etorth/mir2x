@@ -550,7 +550,7 @@ corof::awaitable<> Player::on_AM_REQUESTJOINTEAM(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_ACCEPTDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID != mpk.from() || directTradeStarted()){
+    if(m_directTradeTargetOffer.uid != mpk.from() || m_directTradeStarted){
         m_actorPod->post(mpk.fromAddr(), AM_CANCELDIRECTTRADE);
         return {};
     }
@@ -582,7 +582,7 @@ corof::awaitable<> Player::on_AM_ACCEPTDIRECTTRADE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_REJECTDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID == mpk.from() && !directTradeStarted()){
+    if(m_directTradeTargetOffer.uid == mpk.from() && !m_directTradeStarted){
         clearDirectTrade();
         postDirectTradeError(mpk.conv<AMDirectTradeError>().error);
     }
@@ -591,7 +591,7 @@ corof::awaitable<> Player::on_AM_REJECTDIRECTTRADE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_STARTDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID != mpk.from() || directTradeStarted()){
+    if(m_directTradeTargetOffer.uid != mpk.from() || m_directTradeStarted){
         m_actorPod->post(mpk.fromAddr(), AM_CANCELDIRECTTRADE);
         return {};
     }
@@ -617,7 +617,7 @@ corof::awaitable<> Player::on_AM_STARTDIRECTTRADE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_UPDATEDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID != mpk.from() || !directTradeStarted()){
+    if(m_directTradeTargetOffer.uid != mpk.from() || !m_directTradeStarted){
         return {};
     }
 
@@ -650,7 +650,7 @@ corof::awaitable<> Player::on_AM_UPDATEDIRECTTRADE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_COMPLETEDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID != mpk.from() || !directTradeStarted()){
+    if(m_directTradeTargetOffer.uid != mpk.from() || !m_directTradeStarted){
         return {};
     }
 
@@ -666,7 +666,7 @@ corof::awaitable<> Player::on_AM_COMPLETEDIRECTTRADE(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_DIRECTTRADEERROR(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID == mpk.from()){
+    if(m_directTradeTargetOffer.uid == mpk.from()){
         postDirectTradeError(mpk.conv<AMDirectTradeError>().error);
     }
     return {};
@@ -674,7 +674,7 @@ corof::awaitable<> Player::on_AM_DIRECTTRADEERROR(const ActorMsgPack &mpk)
 
 corof::awaitable<> Player::on_AM_CANCELDIRECTTRADE(const ActorMsgPack &mpk)
 {
-    if(m_directTradePeerUID != mpk.from()){
+    if(m_directTradeTargetOffer.uid != mpk.from()){
         return {};
     }
 
@@ -685,8 +685,8 @@ corof::awaitable<> Player::on_AM_CANCELDIRECTTRADE(const ActorMsgPack &mpk)
         return {};
     }
 
-    const bool started = directTradeStarted();
-    const auto peerUID = m_directTradePeerUID;
+    const bool started = m_directTradeStarted;
+    const auto peerUID = m_directTradeTargetOffer.uid;
     clearDirectTrade();
 
     if(started && m_channID.value_or(0)){

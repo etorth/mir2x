@@ -128,15 +128,17 @@ namespace
     }
 }
 
-std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(
-        const SDDirectTradeOffer &offer0,
-        const SDDirectTradeOffer &offer1)
+std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const SDDirectTradeOffer &offer0, const SDDirectTradeOffer &offer1)
 {
-    if(!uidf::isPlayer(offer0.uid)
+    if(false
+            || !uidf::isPlayer(offer0.uid)
             || !uidf::isPlayer(offer1.uid)
+
             || offer0.uid == offer1.uid
+
             || !offer0.locked
             || !offer1.locked
+
             || !offer0.confirmed
             || !offer1.confirmed){
         return std::unexpected(DTRADEERR_COMMITFAILED);
@@ -147,23 +149,25 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(
         .uid = offer0.uid,
         .dbid = uidf::getPlayerDBID(offer0.uid),
     };
+
     DirectTradeParticipant participant1
     {
         .uid = offer1.uid,
         .dbid = uidf::getPlayerDBID(offer1.uid),
     };
 
-    // Validation and both rewrites share one transaction. Early error returns
-    // rely on transaction rollback, so gold and items move together or not at all.
     auto transaction = g_dbPod->createTransaction();
+
     const auto gold0 = loadGold(participant0.dbid);
     const auto gold1 = loadGold(participant1.dbid);
+
     if(!gold0 || !gold1){
         return std::unexpected(DTRADEERR_COMMITFAILED);
     }
 
     participant0.gold = gold0.value();
     participant1.gold = gold1.value();
+
     participant0.inventory = loadInventory(participant0.dbid);
     participant1.inventory = loadInventory(participant1.dbid);
 
@@ -173,19 +177,23 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(
 
     const uint64_t finalGold0 = to_u64(participant0.gold) - offer0.gold + offer1.gold;
     const uint64_t finalGold1 = to_u64(participant1.gold) - offer1.gold + offer0.gold;
+
     if(finalGold0 > to_u64(INT64_MAX) || finalGold1 > to_u64(INT64_MAX)){
         return std::unexpected(DTRADEERR_COMMITFAILED);
     }
 
     participant0.gold = check_cast<size_t, uint64_t>(finalGold0);
     participant1.gold = check_cast<size_t, uint64_t>(finalGold1);
+
     addOffer(participant0, offer1);
     addOffer(participant1, offer0);
 
     storeInventory(participant0);
     storeInventory(participant1);
+
     g_dbPod->exec("update tbl_char set fld_gold = %llu where fld_dbid = %llu", to_llu(participant0.gold), to_llu(participant0.dbid));
     g_dbPod->exec("update tbl_char set fld_gold = %llu where fld_dbid = %llu", to_llu(participant1.gold), to_llu(participant1.dbid));
+
     transaction.commit();
 
     return std::array<SDDirectTradeResult, 2>
@@ -196,6 +204,7 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(
             .gold = participant0.gold,
             .inventory = std::move(participant0.inventory),
         },
+
         SDDirectTradeResult
         {
             .uid = participant1.uid,
