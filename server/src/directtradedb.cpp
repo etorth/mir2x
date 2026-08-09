@@ -51,18 +51,7 @@ namespace
         SDInventory inventory;
         auto query = g_dbPod->createQuery("select * from tbl_inventory where fld_dbid = %llu", to_llu(dbid));
         while(query.executeStep()){
-            inventory.add(SDItem
-            {
-                .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-                .seqID = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid")),
-                .count = check_cast<size_t, unsigned>(query.getColumn("fld_count")),
-                .duration
-                {
-                    check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
-                    check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
-                },
-                .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
-            }, true);
+            inventory.add(SDItem::fromQuery(query), true);
         }
         return inventory;
     }

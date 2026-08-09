@@ -314,7 +314,7 @@ std::unordered_set<uint64_t> SDInventory::getItemSeqIDSet() const
     result.reserve(m_list.size());
 
     for(const auto &item: m_list){
-        if(!result.insert(buildItemSeqID(item.itemID, item.seqID)).second){
+        if(!result.insert(item.itemIDSeq()).second){
             throw fflpanic("found duplicated item: itemID = {}, seqID = {}", item.itemID, item.seqID);
         }
     }
@@ -360,7 +360,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
     const auto itemSeqIDSet = getItemSeqIDSet();
 
     if(keepSeqID){
-        if(itemSeqIDSet.count(buildItemSeqID(newItem.itemID, newItem.seqID))){
+        if(itemSeqIDSet.count(newItem.itemIDSeq())){
             throw fflpanic("found duplication with given item: itemID = {}, seqID = {}", newItem.itemID, newItem.seqID);
         }
         m_list.push_back(std::move(newItem));
@@ -383,8 +383,8 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
     }
 
     for(uint32_t seqID = 1;; ++seqID){
-        if(!itemSeqIDSet.count(buildItemSeqID(newItem.itemID, seqID))){
-            newItem.seqID = seqID;
+        newItem.seqID = seqID;
+        if(!itemSeqIDSet.count(newItem.itemIDSeq())){
             m_list.push_back(std::move(newItem));
             return m_list.back();
         }

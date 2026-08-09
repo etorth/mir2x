@@ -9,24 +9,6 @@
 
 extern DBPod *g_dbPod;
 
-namespace
-{
-    SDItem makeAuctionItem(DBPod::Statement &query)
-    {
-        return SDItem
-        {
-            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
-            .duration
-            {
-                check_cast<size_t, unsigned>(query.getColumn("fld_duration"   )),
-                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
-            },
-            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
-        };
-    }
-}
-
 SDAuctionItemList dbQueryAuctionItemList(int category)
 {
     fflassert(category >= AUCTIONCAT_BEGIN, category);
@@ -58,20 +40,7 @@ SDAuctionItemList dbQueryAuctionItemList(int category)
         const auto price      = query.getColumn("fld_price"     ).getInt64();
         const auto expireTime = query.getColumn("fld_expiretime").getInt64();
 
-        SDItem item
-        {
-            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-            .seqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )),
-            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
-            .duration
-            {
-                check_cast<size_t, unsigned>(query.getColumn("fld_duration"   )),
-                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
-            },
-            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
-        };
-
-        fflassert(item);
+        auto item = SDItem::fromQuery(query);
 
         const auto &ir = DBCOM_ITEMRECORD(item.itemID);
         fflassert(ir, item.itemID);
@@ -187,7 +156,7 @@ std::expected<DBAuctionBuyResult, int> dbBuyAuctionItem(uint32_t buyerDBID, uint
             u8R"###( where                                                                                            )###"
             u8R"###(     fld_id = %llu and fld_expiretime > %llu                                                      )###"
             u8R"###( returning                                                                                        )###"
-            u8R"###(     fld_seller, fld_itemid, fld_count, fld_duration, fld_maxduration, fld_extattrlist, fld_price )###",
+            u8R"###(     fld_seller, fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist, fld_price )###",
 
             to_llu(auctionID),
             to_llu(now));
@@ -201,8 +170,8 @@ std::expected<DBAuctionBuyResult, int> dbBuyAuctionItem(uint32_t buyerDBID, uint
             return std::unexpected(AUCTIONBUYERR_OWNITEM);
         }
 
-        auto item = makeAuctionItem(deleteQuery);
-        fflassert(item);
+        auto item = SDItem::fromQuery(deleteQuery);
+        item.seqID = 0;
         fflassert(!item.isGold());
 
         const auto price = check_cast<uint64_t>(deleteQuery.getColumn("fld_price").getInt64());
@@ -265,7 +234,7 @@ std::expected<DBAuctionUnregisterResult, int> dbUnregisterAuctionItem(uint32_t s
             u8R"###( delete from tbl_auctionitem                                                     )###"
             u8R"###( where                                                                           )###"
             u8R"###(     fld_id = %llu and fld_seller = %llu                                         )###"
-            u8R"###( returning fld_itemid, fld_count, fld_duration, fld_maxduration, fld_extattrlist )###",
+            u8R"###( returning fld_itemid, fld_seqid, fld_count, fld_duration, fld_maxduration, fld_extattrlist )###",
 
             to_llu(auctionID),
             to_llu(sellerDBID));
@@ -274,8 +243,8 @@ std::expected<DBAuctionUnregisterResult, int> dbUnregisterAuctionItem(uint32_t s
             return std::unexpected(AUCTIONUNREGERR_UNAVAILABLE);
         }
 
-        auto item = makeAuctionItem(deleteQuery);
-        fflassert(item);
+        auto item = SDItem::fromQuery(deleteQuery);
+        item.seqID = 0;
         fflassert(!item.isGold());
         fflassert(!deleteQuery.executeStep());
 

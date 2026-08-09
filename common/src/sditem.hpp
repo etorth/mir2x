@@ -139,6 +139,30 @@ struct SDItem
         ar(itemID, seqID, count, duration[0], duration[1], extAttrList);
     }
 
+    template<typename Query> static SDItem fromQuery(Query &query)
+    {
+        SDItem item
+        {
+            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
+            .seqID = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid")),
+            .count = check_cast<size_t, unsigned>(query.getColumn("fld_count")),
+            .duration
+            {
+                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
+                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
+            },
+            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
+        };
+
+        if(!item){
+            throw fflpanic("invalid SDItem query result: itemID = {}, seqID = {}, count = {}",
+                    item.itemID,
+                    item.seqID,
+                    item.count);
+        }
+        return item;
+    }
+
     uint64_t itemIDSeq() const
     {
         return (to_u64(itemID) << 32) | seqID;

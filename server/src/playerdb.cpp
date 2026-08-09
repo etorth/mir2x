@@ -107,21 +107,7 @@ void Player::dbLoadInventory()
     auto query = g_dbPod->createQuery("select * from tbl_inventory where fld_dbid = %llu", to_llu(dbid()));
 
     while(query.executeStep()){
-        SDItem item
-        {
-            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-            .seqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )),
-            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
-            .duration
-            {
-                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
-                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
-            },
-            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
-        };
-
-        fflassert(item);
-        m_sdItemStorage.inventory.add(std::move(item), true);
+        m_sdItemStorage.inventory.add(SDItem::fromQuery(query), true);
     }
 }
 
@@ -194,20 +180,7 @@ SDItem Player::dbRetrieveSecuredItem(uint32_t itemID, uint32_t seqID)
             to_llu(seqID));
 
     while(query.executeStep()){
-        SDItem item
-        {
-            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-            .seqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )),
-            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
-            .duration
-            {
-                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
-                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
-            },
-            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
-        };
-
-        fflassert(item);
+        auto item = SDItem::fromQuery(query);
         fflassert(!query.executeStep());
         return item;
     }
@@ -226,21 +199,7 @@ std::vector<SDItem> Player::dbLoadSecuredItemList() const
     auto query = g_dbPod->createQuery("select * from tbl_secureditemlist where fld_dbid = %llu", to_llu(dbid()));
 
     while(query.executeStep()){
-        SDItem item
-        {
-            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-            .seqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )),
-            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
-            .duration
-            {
-                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
-                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
-            },
-            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
-        };
-
-        fflassert(item);
-        itemList.push_back(std::move(item));
+        itemList.push_back(SDItem::fromQuery(query));
     }
     return itemList;
 }
@@ -386,28 +345,16 @@ void Player::dbLoadWear()
     // |<----primary key---->|
 
     m_sdItemStorage.wear.clear();
-    auto query = g_dbPod->createQuery("select * from tbl_wear where fld_dbid = %llu", to_llu(dbid()));
+    auto query = g_dbPod->createQuery("select *, 0 as fld_seqid from tbl_wear where fld_dbid = %llu", to_llu(dbid()));
 
     while(query.executeStep()){
         const auto wltype = check_cast<int, unsigned>(query.getColumn("fld_wear"));
-        SDItem item
-        {
-            .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-            .seqID  = 0,
-            .count  = check_cast<size_t, unsigned>(query.getColumn("fld_count")),
-            .duration
-            {
-                check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
-                check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
-            },
-            .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
-        };
+        auto item = SDItem::fromQuery(query);
 
         if(!DBCOM_ITEMRECORD(item.itemID).wearable(wltype)){
             throw fflpanic("invalid item type to wear grid");
         }
 
-        fflassert(item);
         m_sdItemStorage.wear.setWLItem(wltype, std::move(item));
     }
 }

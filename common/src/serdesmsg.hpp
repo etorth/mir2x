@@ -537,12 +537,6 @@ class SDInventory final
         void merge(uint32_t, uint32_t, uint32_t);
 
     private:
-        static uint64_t buildItemSeqID(uint32_t itemID, uint32_t seqID)
-        {
-            return (to_u64(itemID) << 32) | seqID;
-        }
-
-    private:
         std::unordered_set<uint64_t> getItemSeqIDSet() const;
 };
 
