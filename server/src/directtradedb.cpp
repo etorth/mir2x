@@ -14,7 +14,6 @@ namespace
     struct DirectTradeParticipant final
     {
         uint64_t uid = 0;
-        uint32_t dbid = 0;
         size_t gold = 0;
         SDInventory inventory;
     };
@@ -29,8 +28,9 @@ namespace
             && inventoryItem.extAttrList == offeredItem.extAttrList;
     }
 
-    std::optional<size_t> loadGold(uint32_t dbid)
+    std::optional<size_t> loadGold(uint64_t uid)
     {
+        const auto dbid = uidf::getPlayerDBID(uid);
         auto query = g_dbPod->createQuery("select fld_gold from tbl_char where fld_dbid = %llu", to_llu(dbid));
         if(!query.executeStep()){
             return {};
@@ -45,8 +45,9 @@ namespace
         return check_cast<size_t, uint64_t>(to_u64(gold));
     }
 
-    SDInventory loadInventory(uint32_t dbid)
+    SDInventory loadInventory(uint64_t uid)
     {
+        const auto dbid = uidf::getPlayerDBID(uid);
         SDInventory inventory;
         auto query = g_dbPod->createQuery("select * from tbl_inventory where fld_dbid = %llu", to_llu(dbid));
         while(query.executeStep()){
@@ -107,7 +108,8 @@ namespace
 
     void storeInventory(const DirectTradeParticipant &participant)
     {
-        g_dbPod->exec("delete from tbl_inventory where fld_dbid = %llu", to_llu(participant.dbid));
+        const auto dbid = uidf::getPlayerDBID(participant.uid);
+        g_dbPod->exec("delete from tbl_inventory where fld_dbid = %llu", to_llu(dbid));
 
         for(const auto &item: participant.inventory.getItemList()){
             auto query = g_dbPod->createQuery(
@@ -115,7 +117,7 @@ namespace
                     u8R"###( values                                                                                                                )###"
                     u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                           )###",
 
-                    to_llu(participant.dbid),
+                    to_llu(dbid),
                     to_llu(item.itemID),
                     to_llu(item.seqID),
                     to_llu(item.count),
@@ -147,19 +149,17 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const
     DirectTradeParticipant participant0
     {
         .uid = offer0.uid,
-        .dbid = uidf::getPlayerDBID(offer0.uid),
     };
 
     DirectTradeParticipant participant1
     {
         .uid = offer1.uid,
-        .dbid = uidf::getPlayerDBID(offer1.uid),
     };
 
     auto transaction = g_dbPod->createTransaction();
 
-    const auto gold0 = loadGold(participant0.dbid);
-    const auto gold1 = loadGold(participant1.dbid);
+    const auto gold0 = loadGold(participant0.uid);
+    const auto gold1 = loadGold(participant1.uid);
 
     if(!gold0 || !gold1){
         return std::unexpected(DTRADEERR_COMMITFAILED);
@@ -168,8 +168,8 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const
     participant0.gold = gold0.value();
     participant1.gold = gold1.value();
 
-    participant0.inventory = loadInventory(participant0.dbid);
-    participant1.inventory = loadInventory(participant1.dbid);
+    participant0.inventory = loadInventory(participant0.uid);
+    participant1.inventory = loadInventory(participant1.uid);
 
     if(!removeOffer(participant0, offer0) || !removeOffer(participant1, offer1)){
         return std::unexpected(DTRADEERR_COMMITFAILED);
@@ -191,8 +191,15 @@ std::expected<std::array<SDDirectTradeResult, 2>, int> dbCommitDirectTrade(const
     storeInventory(participant0);
     storeInventory(participant1);
 
-    g_dbPod->exec("update tbl_char set fld_gold = %llu where fld_dbid = %llu", to_llu(participant0.gold), to_llu(participant0.dbid));
-    g_dbPod->exec("update tbl_char set fld_gold = %llu where fld_dbid = %llu", to_llu(participant1.gold), to_llu(participant1.dbid));
+    g_dbPod->exec(
+            "update tbl_char set fld_gold = %llu where fld_dbid = %llu",
+            to_llu(participant0.gold),
+            to_llu(uidf::getPlayerDBID(participant0.uid)));
+
+    g_dbPod->exec(
+            "update tbl_char set fld_gold = %llu where fld_dbid = %llu",
+            to_llu(participant1.gold),
+            to_llu(uidf::getPlayerDBID(participant1.uid)));
 
     transaction.commit();
 
