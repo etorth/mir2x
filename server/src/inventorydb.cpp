@@ -63,7 +63,7 @@ bool dbRemoveInventoryItem(uint32_t dbid, uint32_t itemID, uint32_t seqID)
     fflassert(dbid <= SYS_MAXDBID, dbid);
 
     if(!(DBCOM_ITEMRECORD(itemID) && seqID > 0)){
-        throw fflpanic("invalid arguments: itemID = {}, seqID = {}", itemID, seqID);
+        throw fflpanic("invalid arguments: itemID {}, seqID {}", itemID, seqID);
     }
 
     auto query = g_dbPod->createQuery(
@@ -81,8 +81,12 @@ bool dbRemoveInventoryItem(uint32_t dbid, uint32_t itemID, uint32_t seqID)
         return false;
     }
 
-    fflassert(check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")) == itemID);
-    fflassert(check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )) == seqID);
+    const auto deletedItemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid"));
+    const auto deletedSeqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" ));
+
+    fflassert(deletedItemID == itemID, deletedItemID, itemID);
+    fflassert(deletedSeqID  ==  seqID, deletedSeqID ,  seqID);
+
     fflassert(!query.executeStep());
     return true;
 }

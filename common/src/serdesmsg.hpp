@@ -525,7 +525,7 @@ class SDInventory final
         //          [0]: how many items get removed, 0 means can't remove any item
         //          [1]: seqID of the SDItem which applies the removal
         //          [2]: const pointer to the SDItem, if removed fully then remove nullptr
-        std::tuple<size_t, uint32_t, const SDItem *> remove(uint32_t, uint32_t, size_t);
+        std::tuple<size_t, uint32_t, const SDItem *> remove(uint32_t, uint32_t, size_t, bool);
 
     public:
         void clear()

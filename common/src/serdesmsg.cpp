@@ -392,7 +392,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
     throw fflreach();
 }
 
-std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID, uint32_t seqID, size_t count)
+std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID, uint32_t seqID, size_t count, bool strict)
 {
     const auto &ir = DBCOM_ITEMRECORD(itemID);
 
@@ -413,7 +413,7 @@ std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID
             item.count -= count;
             return {count, item.seqID, &item};
         }
-        else{
+        else if(!strict || (count == item.count)){
             const auto removedCount = item.count;
             const auto removedSeqID = item.seqID;
 

@@ -11,6 +11,7 @@
 #include "dbcomid.hpp"
 #include "deliverydb.hpp"
 #include "chatdb.hpp"
+#include "golddb.hpp"
 #include "inventorydb.hpp"
 #include "directtradedb.hpp"
 #include "sysconst.hpp"
@@ -837,46 +838,46 @@ bool Player::ActionValid(const ActionNode &)
 
 bool Player::directTradeBusy() const
 {
-    return m_directTradeTargetOffer.uid != 0;
+    return m_directTradePeerOffer.uid != 0;
 }
 
 bool Player::directTradeCoordinator() const
 {
-    return m_directTradeStarted && UID() < m_directTradeTargetOffer.uid;
+    return m_directTradeStarted && UID() < m_directTradePeerOffer.uid;
 }
 
 bool Player::directTradeReady() const
 {
     return m_directTradeStarted
         && m_directTradeOffer.locked
-        && m_directTradeTargetOffer.locked;
+        && m_directTradePeerOffer.locked;
 }
 
 bool Player::directTradeConfirmed() const
 {
     return directTradeReady()
         && m_directTradeOffer.confirmed
-        && m_directTradeTargetOffer.confirmed;
+        && m_directTradePeerOffer.confirmed;
 }
 
 void Player::startDirectTrade()
 {
-    const auto targetUID = m_directTradeTargetOffer.uid;
+    const auto targetUID = m_directTradePeerOffer.uid;
     fflassert(uidf::isPlayer(targetUID));
     fflassert(targetUID != UID());
 
     m_directTradeStarted = true;
     m_directTradeOffer.clear();
     m_directTradeOffer.uid = UID();
-    m_directTradeTargetOffer.clear();
-    m_directTradeTargetOffer.uid = targetUID;
+    m_directTradePeerOffer.clear();
+    m_directTradePeerOffer.uid = targetUID;
 }
 
 void Player::clearDirectTrade()
 {
     m_directTradeStarted = false;
     m_directTradeOffer.clear();
-    m_directTradeTargetOffer.clear();
+    m_directTradePeerOffer.clear();
 }
 
 void Player::postDirectTradeError(int error)
@@ -894,50 +895,35 @@ void Player::commitDirectTrade()
         return;
     }
 
-    const auto peerUID = m_directTradeTargetOffer.uid;
-    auto resultListResult = dbCommitDirectTrade(m_directTradeOffer, m_directTradeTargetOffer);
-    if(!resultListResult.has_value()){
-        const int error = resultListResult.error();
-        postDirectTradeError(error);
+    if(auto tradeRes = dbCommitDirectTrade(m_directTradeOffer, m_directTradePeerOffer); tradeRes.has_value()){
+        fflassert(tradeRes.value().at(0).uid == m_directTradeOffer.uid);
+        fflassert(tradeRes.value().at(1).uid == m_directTradePeerOffer.uid);
 
+        m_actorPod->post(m_directTradePeerOffer.uid, {AM_COMPLETEDIRECTTRADE, cerealf::serialize(tradeRes.value().at(1))});
+        applyDirectTradeResult(std::move(tradeRes.value().at(0)));
+    }
+    else{
         AMDirectTradeError amDTE;
         std::memset(&amDTE, 0, sizeof(amDTE));
 
-        amDTE.error = to_u8(error);
-        m_actorPod->post(peerUID, {AM_DIRECTTRADEERROR, amDTE});
+        amDTE.error = to_u8(tradeRes.error());
+        m_actorPod->post(m_directTradePeerOffer.uid, {AM_DIRECTTRADEERROR, amDTE});
+
+        postDirectTradeError(tradeRes.error());
         cancelDirectTrade();
-        return;
     }
-
-    auto resultList = std::move(resultListResult.value());
-    size_t ownResultIndex = resultList.size();
-    size_t peerResultIndex = resultList.size();
-    for(size_t i = 0; i < resultList.size(); ++i){
-        if(resultList.at(i).uid == UID()){
-            ownResultIndex = i;
-        }
-        else if(resultList.at(i).uid == peerUID){
-            peerResultIndex = i;
-        }
-    }
-
-    if(ownResultIndex >= resultList.size() || peerResultIndex >= resultList.size()){
-        throw fflpanic("direct trade result misses participant: ownUID = {}, peerUID = {}", UID(), peerUID);
-    }
-
-    m_actorPod->post(peerUID, {AM_COMPLETEDIRECTTRADE, cerealf::serialize(resultList.at(peerResultIndex))});
-    applyDirectTradeResult(std::move(resultList.at(ownResultIndex)));
 }
 
 void Player::applyDirectTradeResult(SDDirectTradeResult result)
 {
     fflassert(result.uid == UID(), result.uid, UID());
 
-    const auto peerUID = m_directTradeTargetOffer.uid;
-    const auto gainedItemList = m_directTradeTargetOffer.itemList;
+    const auto peerUID = m_directTradePeerOffer.uid;
+    const auto gainedItemList = m_directTradePeerOffer.itemList;
 
     m_sdItemStorage.gold = result.gold;
     m_sdItemStorage.inventory = std::move(result.inventory);
+
     reportGold();
     postNetMessage(SM_INVENTORY, cerealf::serialize(m_sdItemStorage.inventory));
 
@@ -956,37 +942,23 @@ void Player::applyDirectTradeResult(SDDirectTradeResult result)
 
 void Player::cancelDirectTrade()
 {
-    const auto peerUID = m_directTradeTargetOffer.uid;
-    if(!peerUID){
-        return;
-    }
+    // During an established trade only the lower-UID coordinator decides the result
+    // The other player sends a cancellation request and keeps server state until the coordinator replies with cancel or completion
 
-    // During an established trade only the lower-UID coordinator decides the
-    // result. The other player sends a cancellation request and keeps server
-    // state until the coordinator replies with cancel or completion.
-    if(m_directTradeStarted && !directTradeCoordinator()){
-        if(hasActorPod()){
-            m_actorPod->post(peerUID, AM_CANCELDIRECTTRADE);
-        }
-        else{
+    if(m_directTradePeerOffer.uid && m_directTradeStarted){
+        if(directTradeCoordinator()){
+            SMCloseDirectTrade smCDT;
+            std::memset(&smCDT, 0, sizeof(smCDT));
+
+            smCDT.uid = m_directTradePeerOffer.uid;
+            postNetMessage(SM_CLOSEDIRECTTRADE, smCDT);
+
+            m_actorPod->post(m_directTradePeerOffer.uid, AM_CANCELDIRECTTRADE);
             clearDirectTrade();
         }
-        return;
-    }
-
-    const bool started = m_directTradeStarted;
-    clearDirectTrade();
-
-    if(hasActorPod()){
-        m_actorPod->post(peerUID, AM_CANCELDIRECTTRADE);
-    }
-
-    if(started && m_channID.value_or(0)){
-        SMCloseDirectTrade smCDT;
-        std::memset(&smCDT, 0, sizeof(smCDT));
-
-        smCDT.uid = peerUID;
-        postNetMessage(SM_CLOSEDIRECTTRADE, smCDT);
+        else{
+            m_actorPod->post(m_directTradePeerOffer.uid, AM_CANCELDIRECTTRADE);
+        }
     }
 }
 
@@ -1928,7 +1900,7 @@ size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count
 
     size_t doneCount = 0;
     while(doneCount < count){
-        const auto [removedCount, removedSeqID, itemPtr] = m_sdItemStorage.inventory.remove(itemID, seqID, count - doneCount);
+        const auto [removedCount, removedSeqID, itemPtr] = m_sdItemStorage.inventory.remove(itemID, seqID, count - doneCount, false);
         if(!removedCount){
             break;
         }
@@ -1974,7 +1946,7 @@ void Player::removeSecuredItem(uint32_t itemID, uint32_t seqID)
 void Player::setGold(size_t gold)
 {
     m_sdItemStorage.gold = gold;
-    dbUpdateGold(m_sdItemStorage.gold);
+    dbUpdateGold(dbid(), m_sdItemStorage.gold);
     reportGold();
 }
 

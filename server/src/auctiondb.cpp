@@ -5,6 +5,7 @@
 #include "sysconst.hpp"
 #include "auctiondb.hpp"
 #include "deliverydb.hpp"
+#include "golddb.hpp"
 #include "inventorydb.hpp"
 #include "raiitimer.hpp"
 
@@ -152,24 +153,10 @@ std::expected<DBAuctionBuyResult, int> dbBuyAuctionItem(uint32_t buyerDBID, uint
 
         fflassert(!deleteQuery.executeStep());
 
-        auto goldQuery = g_dbPod->createQuery(
-            u8R"###( update tbl_char                          )###"
-            u8R"###( set                                      )###"
-            u8R"###(     fld_gold = fld_gold - %llu           )###"
-            u8R"###( where                                    )###"
-            u8R"###(     fld_dbid = %llu and fld_gold >= %llu )###"
-            u8R"###( returning fld_gold                       )###",
-
-            to_llu(price),
-            to_llu(buyerDBID),
-            to_llu(price));
-
-        if(!goldQuery.executeStep()){
+        const auto buyerGold = dbRemoveGold(buyerDBID, check_cast<size_t, uint64_t>(price));
+        if(!buyerGold){
             return std::unexpected(AUCTIONBUYERR_INSUFFICIENT);
         }
-
-        const auto buyerGold = check_cast<size_t, uint64_t>(goldQuery.getColumn("fld_gold").getInt64());
-        fflassert(!goldQuery.executeStep());
 
         auto buyerDelivery = dbCreateDeliveryInTransaction(buyerDBID, {item}, to_cstr(u8"你购买的寄售物品已送达："));
 
@@ -184,7 +171,7 @@ std::expected<DBAuctionBuyResult, int> dbBuyAuctionItem(uint32_t buyerDBID, uint
 
         return DBAuctionBuyResult
         {
-            .buyerGold  = buyerGold,
+            .buyerGold  = buyerGold.value(),
             .sellerDBID = sellerDBID,
 
             .buyerMessage  = std::move( buyerDelivery.message),

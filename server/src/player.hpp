@@ -72,11 +72,11 @@ class Player final: public BattleObject
         std::vector<uint64_t> m_teamMemberList; // ignored if not team leader
 
     private:
-        // m_directTradeTargetOffer.uid identifies the peer while the request is
+        // m_directTradePeerOffer.uid identifies the peer while the request is
         // pending and after the trade starts.
         bool m_directTradeStarted = false;
         SDDirectTradeOffer m_directTradeOffer;
-        SDDirectTradeOffer m_directTradeTargetOffer;
+        SDDirectTradeOffer m_directTradePeerOffer;
 
     private:
         bool m_pickUpLock = false;
@@ -375,7 +375,6 @@ class Player final: public BattleObject
 
     private:
         void dbUpdateExp();
-        void dbUpdateGold(size_t);
         void dbUpdateHealth();
         void dbUpdateMapGLoc();
 
