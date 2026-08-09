@@ -88,6 +88,23 @@ class InputLine: public Widget
             return m_tpset.getRawString();
         }
 
+    // public:
+    //     int w() const override
+    //     {
+    //         return varWOpt() ? m_tpset.pw() : Widget::w();
+    //     }
+    //
+    //     int h() const override
+    //     {
+    //         if(varHOpt()){
+    //             if(m_tpset.empty()){
+    //                 return m_tpset.getDefaultFontHeight();
+    //             }
+    //             return m_tpset.ph();
+    //         }
+    //         return Widget::h();
+    //     }
+
     public:
         virtual void clear();
 

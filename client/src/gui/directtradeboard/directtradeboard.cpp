@@ -184,6 +184,8 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
 
           .w = 96,
           .h = 20,
+          // .w = std::nullopt,
+          // .h = std::nullopt,
 
           .font
           {
