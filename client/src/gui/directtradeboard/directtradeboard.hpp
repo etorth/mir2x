@@ -11,21 +11,6 @@
 #include "directtradeitemlist.hpp"
 
 class ProcessRun;
-
-// Client-side direct-trade state machine.
-//
-// The local offer is displayed on the right. Items placed there are temporarily
-// removed from InvPack and restored if the trade closes without completion.
-// Every edit sends a compact offer request; only a matching server echo can
-// finish the local lock transition. Peer items and all peer state always come
-// from canonical server offers.
-//
-// The trade button has two phases:
-//   1. submit and lock the local items/gold;
-//   2. after both offers are locked, confirm the exchange.
-// Both players must confirm before the server performs the atomic exchange.
-// SM_INVENTORY/SM_GOLD carry the final state, then SM_COMPLETEDIRECTTRADE closes
-// the board without restoring the provisional local offer.
 class DirectTradeBoard final: public Widget
 {
     public:
@@ -37,37 +22,45 @@ class DirectTradeBoard final: public Widget
             Widget::VarInt y = 0;
 
             ProcessRun *runProc = nullptr;
-
             Widget::WADPair parent {};
         };
 
     private:
         ProcessRun *m_runProc;
 
+    private:
         bool m_dragging = false;
-        bool m_localLocked = false;
-        bool m_localLockPending = false;
-        bool m_peerLocked = false;
-        bool m_localConfirmed = false;
+
+    private:
+        bool m_lockPending = false;
+        bool m_locked      = false;
+        bool m_confirmed   = false;
+
+    private:
+        bool m_peerLocked    = false;
         bool m_peerConfirmed = false;
 
-        uint32_t m_peerGold = 0;
-        uint64_t m_peerUID = 0;
-        std::string m_peerName;
+    private:
+        size_t      m_peerGold = 0;
+        uint64_t    m_peerUID  = 0;
+        std::string m_peerNameStr;
 
     private:
         ImageBoard m_background;
-        DirectTradeItemList m_localItemList;
+
+    private:
+        TextBoard m_peerName;
+        TextBoard m_peerState;
+        TextBoard m_peerGoldBoard;
         DirectTradeItemList m_peerItemList;
 
-        TextBoard m_localName;
-        TextBoard m_localState;
-        TextBoard m_peerState;
-        TextBoard m_peerNameBoard;
+    private:
+        TextBoard m_name;
+        TextBoard m_state;
+        InputLine m_goldInput;
+        DirectTradeItemList m_itemList;
 
-        InputLine m_localGoldInput;
-        TextBoard m_peerGoldBoard;
-
+    private:
         TritexButton m_buttonTrade;
         TritexButton m_buttonClose;
 
@@ -79,10 +72,11 @@ class DirectTradeBoard final: public Widget
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     public:
-        void begin(uint64_t, std::string);
-        void close(bool notify = true);
-        void complete();
+        void    beginTrade(uint64_t, std::string);
+        void    closeTrade(bool = true);
+        void completeTrade();
 
+    public:
         uint64_t peerUID() const
         {
             return m_peerUID;
@@ -93,12 +87,12 @@ class DirectTradeBoard final: public Widget
 
         std::vector<SDItem> localItemList() const
         {
-            return m_localItemList.itemList();
+            return m_itemList.itemList();
         }
 
         bool localLocked() const
         {
-            return m_localLocked;
+            return m_locked;
         }
 
         bool peerLocked() const

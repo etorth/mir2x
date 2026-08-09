@@ -17,8 +17,10 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
     : Widget
       {{
           .dir = std::move(args.dir),
+
           .x = std::move(args.x),
           .y = std::move(args.y),
+
           .w = std::nullopt,
           .h = std::nullopt,
           .parent = std::move(args.parent),
@@ -33,14 +35,71 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
           .parent{this},
       }}
 
-    , m_localItemList
+    , m_peerName
       {{
-          .x = 264,
-          .y = 47,
-          .onClick = [this](DirectTradeItemList::ClickEvent event)
+          .dir = DIR_NONE,
+          .x = 178,
+          .y =  20,
+
+          .textFunc = [this]{ return m_peerNameStr; },
+          .font
           {
-              onLocalItemClick(event);
+              .color = colorf::YELLOW_A255,
           },
+
+          .parent{this},
+      }}
+
+    , m_peerState
+      {{
+          .dir = DIR_NONE,
+          .x = 80,
+          .y = 20,
+
+          .textFunc = [this]
+          {
+              if(m_peerConfirmed){
+                  return to_cstr(u8"已确认");
+              }
+
+              if(m_peerLocked){
+                  return to_cstr(u8"已锁定");
+              }
+
+              return to_cstr(u8"编辑中");
+          },
+
+          .font
+          {
+              .color = [this]
+              {
+                  if(m_peerConfirmed){
+                      return colorf::RED_A255;
+                  }
+
+                  if(m_peerLocked){
+                      return colorf::GREEN_A255;
+                  }
+
+                  return colorf::GREY_A255;
+              },
+          },
+
+          .parent{this},
+      }}
+
+    , m_peerGoldBoard
+      {{
+          .dir = DIR_NONE,
+          .x = 124,
+          .y = 300,
+
+          .textFunc = [this]{ return str_ksep(m_peerGold, ','); },
+          .font
+          {
+              .color = colorf::YELLOW_A255,
+          },
+
           .parent{this},
       }}
 
@@ -51,120 +110,118 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
           .parent{this},
       }}
 
-    , m_localName
+    , m_name
       {{
           .dir = DIR_NONE,
-          .x = 429,
-          .y = 18,
+          .x = 320,
+          .y =  20,
+
           .textFunc = [this]
           {
               return m_runProc->getMyHeroChatPeer().name;
           },
+
           .font
           {
               .color = colorf::YELLOW_A255,
           },
+
           .parent{this},
       }}
 
-    , m_localState
+    , m_state
       {{
           .dir = DIR_NONE,
-          .x = 319,
-          .y = 18,
-          .textFunc = [this]
+          .x = 415,
+          .y =  20,
+
+          .textFunc = [this] -> const char *
           {
-              if(m_localConfirmed){
-                  return to_cstr(u8"已确认交易");
+              if(m_confirmed){
+                  return to_cstr(u8"已确认");
               }
-              if(m_localLockPending){
+
+              if(m_locked){
+                  return to_cstr(u8"已锁定");
+              }
+
+              if(m_lockPending){
                   return to_cstr(u8"锁定中");
               }
-              return m_localLocked ? to_cstr(u8"已锁定物品") : to_cstr(u8"编辑中");
+
+              return to_cstr(u8"编辑中");
           },
+
           .font
           {
               .color = [this]
               {
-                  if(m_localConfirmed || m_localLockPending){
+                  if(m_confirmed){
+                      return colorf::RED_A255;
+                  }
+
+                  if(m_locked){
+                      return colorf::GREEN_A255;
+                  }
+
+                  if(m_lockPending){
                       return colorf::YELLOW_A255;
                   }
-                  return m_localLocked ? colorf::GREEN_A255 : colorf::GREY_A255;
+
+                  return colorf::GREY_A255;
               },
           },
+
           .parent{this},
       }}
 
-    , m_peerState
+    , m_goldInput
       {{
           .dir = DIR_NONE,
-          .x = 180,
-          .y = 18,
-          .textFunc = [this]
-          {
-              if(m_peerConfirmed){
-                  return to_cstr(u8"已确认交易");
-              }
-              return m_peerLocked ? to_cstr(u8"已锁定物品") : to_cstr(u8"编辑中");
-          },
-          .font
-          {
-              .color = [this]
-              {
-                  if(m_peerConfirmed){
-                      return colorf::YELLOW_A255;
-                  }
-                  return m_peerLocked ? colorf::GREEN_A255 : colorf::GREY_A255;
-              },
-          },
-          .parent{this},
-      }}
 
-    , m_peerNameBoard
-      {{
-          .dir = DIR_NONE,
-          .x = 67,
-          .y = 18,
-          .textFunc = [this]{ return m_peerName; },
-          .font
-          {
-              .color = colorf::YELLOW_A255,
-          },
-          .parent{this},
-      }}
+          .x = 375,
+          .y = 300,
 
-    , m_localGoldInput
-      {{
-          .x = 333,
-          .y = 289,
           .w = 96,
-          .h = 18,
+          .h = 20,
+
           .font
           {
               .color = colorf::YELLOW_A255,
           },
+
           .onChange = [this](std::string)
           {
-              m_localConfirmed = false;
+              m_confirmed = false;
               syncLocalOffer(false);
           },
+
           .validate = [](const std::string &currentInput, const std::string &newInput)
           {
-              return currentInput.size() + newInput.size() <= 10
-                  && newInput.find_first_not_of("0123456789") == std::string::npos;
+              if(newInput.find_first_not_of("0123456789") != std::string::npos){
+                  return false;
+              }
+
+              try{
+                  if(const auto val = std::stoll(currentInput + newInput); val >= 0 && val <= INT_MAX){
+                      return true;
+                  }
+              }
+              catch(...){}
+              return false;
           },
+
           .parent{this},
       }}
 
-    , m_peerGoldBoard
+    , m_itemList
       {{
-          .dir = DIR_NONE,
-          .x = 134,
-          .y = 298,
-          .textFunc = [this]{ return str_ksep(m_peerGold, ','); },
-          .font
+          .x = 264,
+          .y =  47,
+
+          .onClick = [this](DirectTradeItemList::ClickEvent event)
           {
-              .color = colorf::YELLOW_A255,
+              onLocalItemClick(event);
           },
           .parent{this},
       }}
@@ -173,38 +230,38 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
       {{
           .x = 227,
           .y = 278,
+
           .texIDFunc = [this](int state) -> std::optional<uint32_t>
           {
-              if(m_localLocked){
-                  return (state == BEVENT_DOWN) ? 0X00000191 : 0X00000190;
-              }
-              return (state == BEVENT_DOWN) ? 0X000000B6 : 0X000000B5;
+              if(m_locked) return (state == BEVENT_DOWN) ? 0X00000191 : 0X00000190;
+              else         return (state == BEVENT_DOWN) ? 0X000000B6 : 0X000000B5;
           },
+
           .onTrigger = [this](Widget *, int)
           {
-              // One button drives both protocol phases. Lock first freezes the
-              // offer; the next click is enabled only after both sides locked.
-              if(!m_localLocked){
+              if(!m_locked){
                   if(syncLocalOffer(true)){
-                      m_localLockPending = true;
-                      m_localGoldInput.setFocus(false);
+                      m_lockPending = true;
+                      m_goldInput.setFocus(false);
                   }
                   return;
               }
 
-              m_localConfirmed = true;
+              m_confirmed = true;
               m_runProc->commitDirectTrade(m_peerUID);
           },
+
           .attrs
           {
               .active = [this]
               {
-                  if(m_localLocked){
-                      return !m_localConfirmed && m_peerLocked;
+                  if(m_locked){
+                      return !m_confirmed && m_peerLocked;
                   }
-                  return !m_localLockPending && parsedLocalGold().has_value();
+                  return !m_lockPending && parsedLocalGold().has_value();
               },
           },
+
           .parent{this},
       }}
 
@@ -212,21 +269,24 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
       {{
           .x = 454,
           .y = 282,
+
           .texIDList
           {
               .off  = 0X0000001C,
               .on   = 0X0000001C,
               .down = 0X0000001D,
           },
+
           .onTrigger = [this](Widget *, int)
           {
-              close();
+              closeTrade();
           },
+
           .parent{this},
       }}
 {
-    m_localGoldInput.setInput("0");
-    m_localGoldInput.setActive([this]{ return !m_localLocked && !m_localLockPending; });
+    m_goldInput.setInput("0");
+    m_goldInput.setActive([this]{ return !m_locked && !m_lockPending; });
 
     setShow(false);
     setSize([this]{ return m_background.w(); },
@@ -241,9 +301,10 @@ void DirectTradeBoard::drawDefault(Widget::ROIMap m) const
 
     Widget::drawDefault(m);
 
-    if(const auto item = m_localItemList.hoveredItem()){
+    if(const auto item = m_itemList.hoveredItem()){
         drawItemHoverText(*item);
     }
+
     else if(const auto item = m_peerItemList.hoveredItem()){
         drawItemHoverText(*item);
     }
@@ -260,7 +321,7 @@ bool DirectTradeBoard::processEventDefault(const SDL_Event &event, bool valid, W
     }
 
     if(event.type == SDL_EVENT_KEY_DOWN && event.key.key == SDLK_ESCAPE){
-        close();
+        closeTrade();
         return true;
     }
 
@@ -299,78 +360,73 @@ bool DirectTradeBoard::processEventDefault(const SDL_Event &event, bool valid, W
     }
 }
 
-void DirectTradeBoard::begin(uint64_t peerUID, std::string peerName)
+void DirectTradeBoard::beginTrade(uint64_t peerUID, std::string peerName)
 {
     restoreLocalItems();
     m_peerItemList.clear();
 
     m_peerUID = peerUID;
-    m_peerName = std::move(peerName);
+    m_peerNameStr = std::move(peerName);
     m_peerGold = 0;
-    m_localLocked = false;
-    m_localLockPending = false;
+    m_locked = false;
+    m_lockPending = false;
     m_peerLocked = false;
-    m_localConfirmed = false;
+    m_confirmed = false;
     m_peerConfirmed = false;
 
-    m_localGoldInput.setInput("0");
+    m_goldInput.setInput("0");
 
     flipShow(true);
     setFocus(true);
 }
 
-void DirectTradeBoard::close(bool notify)
+void DirectTradeBoard::closeTrade(bool notify)
 {
     if(notify && m_peerUID){
         m_runProc->cancelDirectTrade(m_peerUID);
     }
 
-    // The board owns only a provisional client-side copy of offered items.
-    // If a racing server commit already won, the following SM_INVENTORY replaces
-    // this restored pack with the authoritative post-trade inventory.
     restoreLocalItems();
     m_peerItemList.clear();
 
     m_dragging = false;
-    m_localLocked = false;
-    m_localLockPending = false;
+    m_locked = false;
+    m_lockPending = false;
     m_peerLocked = false;
-    m_localConfirmed = false;
+    m_confirmed = false;
     m_peerConfirmed = false;
     m_peerGold = 0;
     m_peerUID = 0;
-    m_peerName.clear();
+    m_peerNameStr.clear();
 
-    m_localGoldInput.setInput("0");
-    m_localGoldInput.setFocus(false);
+    m_goldInput.setInput("0");
+    m_goldInput.setFocus(false);
 
     flipShow(false);
     setFocus(false);
 }
 
-void DirectTradeBoard::complete()
+void DirectTradeBoard::completeTrade()
 {
     if(auto hero = m_runProc->getMyHero()){
         hero->getInvPack().setGrabbedItem({});
     }
 
-    // Completion arrives after the authoritative inventory and gold updates.
-    // Do not return the offered items to InvPack: they were consumed by trade.
-    m_localItemList.clear();
+    m_itemList.clear();
     m_peerItemList.clear();
 
     m_dragging = false;
-    m_localLocked = false;
-    m_localLockPending = false;
+    m_locked = false;
+    m_lockPending = false;
     m_peerLocked = false;
-    m_localConfirmed = false;
+    m_confirmed = false;
     m_peerConfirmed = false;
     m_peerGold = 0;
     m_peerUID = 0;
-    m_peerName.clear();
+    m_peerNameStr.clear();
 
-    m_localGoldInput.setInput("0");
-    m_localGoldInput.setFocus(false);
+    m_goldInput.setInput("0");
+    m_goldInput.setFocus(false);
 
     flipShow(false);
     setFocus(false);
@@ -383,13 +439,13 @@ uint32_t DirectTradeBoard::localGold() const
 
 void DirectTradeBoard::setLocalLocked(bool locked)
 {
-    m_localLocked = locked;
-    m_localLockPending = false;
+    m_locked = locked;
+    m_lockPending = false;
     if(!locked){
-        m_localConfirmed = false;
+        m_confirmed = false;
     }
     else{
-        m_localGoldInput.setFocus(false);
+        m_goldInput.setFocus(false);
     }
 }
 
@@ -403,30 +459,28 @@ void DirectTradeBoard::setPeerOffer(SDDirectTradeOffer offer)
 
 void DirectTradeBoard::applyLocalOfferAck(const SDDirectTradeOffer &offer)
 {
-    // Ignore delayed echoes for an older edit. In particular, the UI must not
-    // become locked until the server has accepted the exact visible offer.
     if(!localOfferMatches(offer)){
         return;
     }
 
     if(offer.locked){
         setLocalLocked(true);
-        m_localConfirmed = offer.confirmed;
+        m_confirmed = offer.confirmed;
     }
-    else if(!m_localLockPending){
+    else if(!m_lockPending){
         setLocalLocked(false);
     }
 }
 
 void DirectTradeBoard::rejectLocalOffer()
 {
-    m_localLockPending = false;
-    m_localConfirmed = false;
+    m_lockPending = false;
+    m_confirmed = false;
 }
 
 std::optional<uint32_t> DirectTradeBoard::parsedLocalGold() const
 {
-    const auto input = m_localGoldInput.getRawString();
+    const auto input = m_goldInput.getRawString();
     if(input.empty()){
         return 0;
     }
@@ -450,7 +504,7 @@ std::optional<uint32_t> DirectTradeBoard::parsedLocalGold() const
 bool DirectTradeBoard::localOfferMatches(const SDDirectTradeOffer &offer) const
 {
     const auto gold = parsedLocalGold();
-    const auto itemList = m_localItemList.itemList();
+    const auto itemList = m_itemList.itemList();
     if(!gold || offer.gold != gold.value() || offer.itemList.size() != itemList.size()){
         return false;
     }
@@ -476,12 +530,12 @@ bool DirectTradeBoard::syncLocalOffer(bool locked)
         return false;
     }
 
-    return m_runProc->updateDirectTradeOffer(m_peerUID, gold.value(), locked, m_localItemList.itemList());
+    return m_runProc->updateDirectTradeOffer(m_peerUID, gold.value(), locked, m_itemList.itemList());
 }
 
 void DirectTradeBoard::onLocalItemClick(DirectTradeItemList::ClickEvent event)
 {
-    if(m_localLocked || m_localLockPending){
+    if(m_locked || m_lockPending){
         return;
     }
 
@@ -491,9 +545,9 @@ void DirectTradeBoard::onLocalItemClick(DirectTradeItemList::ClickEvent event)
 
     if(grabbedItem){
         if(event.packBinIndex >= 0){
-            const auto selectedBin = m_localItemList.takeItem(to_uz(event.packBinIndex));
-            if(!m_localItemList.addItem(grabbedItem, selectedBin.x, selectedBin.y)){
-                fflassert(m_localItemList.addItem(selectedBin.item, selectedBin.x, selectedBin.y));
+            const auto selectedBin = m_itemList.takeItem(to_uz(event.packBinIndex));
+            if(!m_itemList.addItem(grabbedItem, selectedBin.x, selectedBin.y)){
+                fflassert(m_itemList.addItem(selectedBin.item, selectedBin.x, selectedBin.y));
                 m_runProc->addCBLog(CBLOG_ERR, u8"该物品过大，无法放入交易栏");
                 return;
             }
@@ -501,28 +555,28 @@ void DirectTradeBoard::onLocalItemClick(DirectTradeItemList::ClickEvent event)
         }
         else{
             const auto [gridW, gridH] = InvPack::getPackBinSize(grabbedItem.itemID);
-            if(!m_localItemList.addItem(grabbedItem, event.gridX - gridW / 2, event.gridY - gridH / 2)){
+            if(!m_itemList.addItem(grabbedItem, event.gridX - gridW / 2, event.gridY - gridH / 2)){
                 m_runProc->addCBLog(CBLOG_ERR, u8"该物品过大，无法放入交易栏");
                 return;
             }
             invPack.setGrabbedItem({});
         }
 
-        m_localConfirmed = false;
+        m_confirmed = false;
         syncLocalOffer(false);
         return;
     }
 
     if(event.packBinIndex >= 0){
-        invPack.setGrabbedItem(m_localItemList.takeItem(to_uz(event.packBinIndex)).item);
-        m_localConfirmed = false;
+        invPack.setGrabbedItem(m_itemList.takeItem(to_uz(event.packBinIndex)).item);
+        m_confirmed = false;
         syncLocalOffer(false);
     }
 }
 
 void DirectTradeBoard::restoreLocalItems()
 {
-    auto itemList = m_localItemList.takeItemList();
+    auto itemList = m_itemList.takeItemList();
     if(itemList.empty()){
         return;
     }

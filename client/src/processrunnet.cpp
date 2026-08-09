@@ -981,7 +981,7 @@ void ProcessRun::on_SM_STARTDIRECTTRADE(const uint8_t *buf, size_t)
     const auto smSDT = ServerMsg::conv<SMStartDirectTrade>(buf);
 
     dynamic_cast<HeroStateBoard *>(getWidget("HeroStateBoard"))->close();
-    dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"))->begin(smSDT.uid, smSDT.name.as_rawcstr());
+    dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"))->beginTrade(smSDT.uid, smSDT.name.as_rawcstr());
 }
 
 // SM_UPDATEDIRECTTRADE is used both as the acknowledgement for this client's
@@ -1005,7 +1005,7 @@ void ProcessRun::on_SM_COMPLETEDIRECTTRADE(const uint8_t *buf, size_t)
     const auto smCDT = ServerMsg::conv<SMCompleteDirectTrade>(buf);
     auto tradeBoard = dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"));
     if(tradeBoard->peerUID() == smCDT.uid){
-        tradeBoard->complete();
+        tradeBoard->completeTrade();
     }
 }
 
@@ -1014,7 +1014,7 @@ void ProcessRun::on_SM_CLOSEDIRECTTRADE(const uint8_t *buf, size_t)
     const auto smCDT = ServerMsg::conv<SMCloseDirectTrade>(buf);
     auto tradeBoard = dynamic_cast<DirectTradeBoard *>(getWidget("DirectTradeBoard"));
     if(tradeBoard->peerUID() == smCDT.uid){
-        tradeBoard->close(false);
+        tradeBoard->closeTrade(false);
     }
 }
 
