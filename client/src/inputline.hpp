@@ -25,6 +25,10 @@ class InputLine: public Widget
             Widget::VarSizeOpt w = 0;
             Widget::VarSizeOpt h = 0;
 
+            Widget::VarDirOpt tpsetAlign = std::nullopt;
+            Widget::VarDir   cursorAlign = DIR_NONE;
+            Widget::VarBool  cursorLazy  = true;
+
             Widget::VarInt enableIME = IME_DISABLE;
 
             Widget::FontConfig font {};

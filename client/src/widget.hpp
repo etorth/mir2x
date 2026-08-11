@@ -73,6 +73,7 @@ class WidgetTreeNode // tree concept, used by class Widget only
         struct VarTexLoadFunc: public alias_VarTexLoadFunc{ using alias_VarTexLoadFunc::alias_VarTexLoadFunc; };
 
     protected:
+        using VarDirOpt  = std::optional<VarDir>;
         using VarIntOpt  = std::optional<VarInt>;
         using VarU32Opt  = std::optional<VarU32>;
         using VarSizeOpt = std::optional<VarSize>;
@@ -230,6 +231,7 @@ class Widget: public WidgetTreeNode
 
     public:
         using WidgetTreeNode::VarDir;
+        using WidgetTreeNode::VarDirOpt;
         using WidgetTreeNode::VarInt;
         using WidgetTreeNode::VarIntOpt;
         using WidgetTreeNode::VarU32;
@@ -493,10 +495,10 @@ class Widget: public WidgetTreeNode
         virtual int h() const;
 
     public:
-        bool varWOpt  () const { return !m_w.has_value(); }
-        bool varHOpt  () const { return !m_h.has_value(); }
-        bool varWFixed() const { return  m_w.has_value() && m_w->fixed(); }
-        bool varHFixed() const { return  m_h.has_value() && m_h->fixed(); }
+        virtual bool varWOpt  () const { return !m_w.has_value(); }
+        virtual bool varHOpt  () const { return !m_h.has_value(); }
+        virtual bool varWFixed() const { return  m_w.has_value() && m_w->fixed(); }
+        virtual bool varHFixed() const { return  m_h.has_value() && m_h->fixed(); }
 
     public:
         int maxChildCoverWExcept(const Widget *) const;
