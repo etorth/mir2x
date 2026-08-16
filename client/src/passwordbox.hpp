@@ -25,10 +25,10 @@ class PasswordBox: public InputLine
             Widget::FontConfig font {};
             PasswordBox::CursorArgs cursor {};
 
-            std::function<void()>            onTab    = nullptr;
-            std::function<void()>            onCR     = nullptr;
-            std::function<void(std::string)> onChange = nullptr;
-            std::function<bool(const std::string &, const std::string &)> validate = nullptr;
+            std::function<void()>                         onTab    = nullptr;
+            std::function<void()>                         onCR     = nullptr;
+            std::function<void(std::string)>              onChange = nullptr;
+            std::function<bool(std::string, std::string)> validate = nullptr;
 
             Widget::WADPair parent {};
         };

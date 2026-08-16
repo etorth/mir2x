@@ -16,9 +16,9 @@ class InputStringBoard: public Widget
             std::u8string layoutString {};
             bool security = false;
 
-            std::function<void(std::u8string)> onAccept = nullptr;
-            std::function<void()> onReject = nullptr;
-            std::function<bool(const std::string &, const std::string &)> validate = nullptr;
+            std::function<void(std::u8string)>            onAccept = nullptr;
+            std::function<void()>                         onReject = nullptr;
+            std::function<bool(std::string, std::string)> validate = nullptr;
         };
 
     private:

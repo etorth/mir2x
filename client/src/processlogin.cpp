@@ -47,6 +47,11 @@ ProcessLogin::ProcessLogin()
                   .size = 18,
               },
 
+              .cursor
+              {
+                  .align = DIR_LEFT,
+              },
+
               .onTab = [this]
               {
                   m_passwordBox.setFocus(true);
@@ -73,6 +78,11 @@ ProcessLogin::ProcessLogin()
               {
                   .id = 2,
                   .size = 18,
+              },
+
+              .cursor
+              {
+                  .align = DIR_LEFT,
               },
 
               .onTab = [this]

@@ -1472,7 +1472,7 @@ int XMLTypeset::lineReachMaxX(int argLine) const
         throw fflpanic("invalie empty line: {}", argLine);
     }
 
-    const auto tokPtr = GetLineBackToken(argLine);
+    const auto tokPtr = getLineBackToken(argLine);
 
     if(tokPtr->box.info.w <= 0){
         throw fflpanic("invalid token width: {}", tokPtr->box.info.w);

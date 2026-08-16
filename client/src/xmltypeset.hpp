@@ -406,7 +406,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        auto GetLineBackToken(this auto && self, int argLine)
+        auto getLineBackToken(this auto && self, int argLine)
         {
             if(!self.lineValid(argLine)){
                 throw fflpanic("invalid line: {}", argLine);
@@ -420,7 +420,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        auto GetBackToken(this auto && self)
+        auto getBackToken(this auto && self)
         {
             if(self.lineCount() == 0){
                 throw fflpanic("empty board");
@@ -430,7 +430,7 @@ class XMLTypeset // means XMLParagraph typeset
                 throw fflpanic("invalie empty line: {}", self.lineCount() - 1);
             }
 
-            return self.GetLineBackToken(self.lineCount() - 1);
+            return self.getLineBackToken(self.lineCount() - 1);
         }
 
     private:

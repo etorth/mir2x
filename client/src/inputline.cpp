@@ -26,6 +26,7 @@ InputLine::InputLine(InputLine::InitArgs args)
           .parent = std::move(args.parent),
       }}
 
+    , m_tpsetAlign(std::move(args.align))
     , m_imeEnabled(std::move(args.enableIME))
     , m_tpset
       {
@@ -114,6 +115,7 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                     case SDLK_LEFT:
                         {
                             m_cursor = std::max<int>(0, m_cursor - 1);
+                            adjustCursorPLocX();
                             m_cursorBlink = 0.0;
                             return true;
                         }
@@ -125,6 +127,7 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                             else{
                                 m_cursor = std::min<int>(m_tpset.lineTokenCount(0), m_cursor + 1);
                             }
+                            adjustCursorPLocX();
                             m_cursorBlink = 0.0;
                             return true;
                         }
@@ -182,8 +185,8 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                 }
 
                 if(event.type == SDL_EVENT_MOUSE_BUTTON_DOWN){
-                    const int eventX = to_d(event.button.x) - m.x;
-                    const int eventY = to_d(event.button.y) - m.y;
+                    const int eventX = to_d(event.button.x) - (m.x - m.ro->x) - tpx();
+                    const int eventY = to_d(event.button.y) - (m.y - m.ro->y) - tpy();
 
                     const auto [cursorX, cursorY] = m_tpset.locCursor(eventX, eventY);
                     if(cursorY != 0){
@@ -191,6 +194,7 @@ bool InputLine::processEventDefault(const SDL_Event &event, bool valid, Widget::
                     }
 
                     m_cursor = cursorX;
+                    adjustCursorPLocX();
                     m_cursorBlink = 0.0;
                 }
 
@@ -215,6 +219,7 @@ bool InputLine::insertInput(const std::string &input)
     }
 
     m_cursor += m_tpset.insertUTF8String(m_cursor, 0, input.c_str());
+    adjustCursorPLocX();
     return true;
 }
 
@@ -226,6 +231,7 @@ bool InputLine::deleteInput()
 
     m_tpset.deleteToken(m_cursor - 1, 0, 1);
     m_cursor--;
+    adjustCursorPLocX();
     return true;
 }
 
@@ -233,6 +239,66 @@ void InputLine::notifyInputChange() const
 {
     if(m_onChange){
         m_onChange(m_tpset.getRawString());
+    }
+}
+
+void InputLine::adjustCursorPLocX()
+{
+    if(m_tpsetAlign.has_value()){
+        return;
+    }
+
+    if((w() >= m_tpset.px() + m_tpset.pw()) || !Widget::evalBool(m_cursorArgs.lazy, this)){
+        return;
+    }
+
+    const auto currWidth = w();
+    const auto [cursorPLocX, _, cursorPLocW, _] = getCursorPLocInXMLTypeset();
+
+    if(cursorPLocW > currWidth){
+        m_tpsetXOpt = (currWidth - cursorPLocW) / 2 - cursorPLocX;
+    }
+
+    else{
+        const auto tpsetXValue = tpsetXFromOpt();
+        if(const auto cursorOffLeft = tpsetXValue + cursorPLocX; cursorOffLeft < 0){
+            m_tpsetXOpt = tpsetXValue - cursorOffLeft;
+        }
+        else if(const auto cursorOffRight = tpsetXValue + cursorPLocX + cursorPLocW - currWidth; cursorOffRight > 0){
+            m_tpsetXOpt = tpsetXValue - cursorOffRight;
+        }
+    }
+}
+
+int InputLine::tpsetXFromOpt() const
+{
+    if(m_tpsetXOpt.has_value()){
+        return m_tpsetXOpt.value();
+    }
+
+    switch(Widget::evalDir(m_cursorArgs.align, this)){
+        case DIR_LEFTUP:
+        case DIR_LEFT:
+        case DIR_LEFTDOWN:
+            {
+                return 0;
+            }
+        case DIR_UP:
+        case DIR_NONE:
+        case DIR_DOWN:
+            {
+                return (w() - Widget::evalSize(m_cursorArgs.w, this)) / 2;
+            }
+        case DIR_RIGHTUP:
+        case DIR_RIGHT:
+        case DIR_RIGHTDOWN:
+            {
+                return w() - Widget::evalSize(m_cursorArgs.w, this);
+            }
+        default:
+            {
+                std::unreachable();
+            }
     }
 }
 
@@ -261,8 +327,8 @@ void InputLine::drawDefault(Widget::ROIMap m) const
     int srcCropW = m.ro->w;
     int srcCropH = m.ro->h;
 
-    const int tpsetX = 0;
-    const int tpsetY = 0 + (h() - (m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.ph())) / 2;
+    const int tpsetX = tpx();
+    const int tpsetY = tpy();
 
     const auto needDraw = mathf::cropROI(
             &srcCropX, &srcCropY,
@@ -272,7 +338,11 @@ void InputLine::drawDefault(Widget::ROIMap m) const
             w(),
             h(),
 
-            tpsetX, tpsetY, m_tpset.pw(), m_tpset.ph());
+            tpsetX,
+            tpsetY,
+
+            m_tpset.px() + m_tpset.pw(),
+            m_tpset.py() + m_tpset.ph());
 
     if(needDraw){
         m_tpset.draw({.x=dstCropX, .y=dstCropY, .ro{srcCropX - tpsetX, srcCropY - tpsetY, srcCropW, srcCropH}});
@@ -286,23 +356,10 @@ void InputLine::drawDefault(Widget::ROIMap m) const
         return;
     }
 
-    int cursorY = m.y + tpsetY;
-    int cursorX = m.x + tpsetX + [this]()
-    {
-        if(m_tpset.empty() || m_cursor == 0){
-            return 0;
-        }
+    auto [cursorX, cursorY, cursorW, cursorH] = getCursorPLoc();
 
-        if(m_cursor == m_tpset.lineTokenCount(0)){
-            return m_tpset.pw();
-        }
-
-        const auto pToken = m_tpset.getToken(m_cursor - 1, 0);
-        return pToken->box.state.w1 + pToken->box.state.x + pToken->box.info.w;
-    }();
-
-    int cursorW = Widget::evalSizeOpt(m_cursorArgs.w, this, []{ return 2; });
-    int cursorH = std::max<int>(m_tpset.ph(), h());
+    cursorX += (m.x - m.ro->x);
+    cursorY += (m.y - m.ro->y);
 
     if(mathf::rectangleOverlapRegion(m.x, m.y, m.ro->w, m.ro->h, cursorX, cursorY, cursorW, cursorH)){
         g_sdlDevice->fillRectangle(Widget::evalU32(m_cursorArgs.color, this), cursorX, cursorY, cursorW, cursorH);
@@ -333,6 +390,7 @@ void InputLine::insertUTF8String(const char *utf8Str)
 void InputLine::clear()
 {
     m_cursor = 0;
+    adjustCursorPLocX();
     m_cursorBlink = 0.0;
 
     if(!m_tpset.empty()){
@@ -341,7 +399,7 @@ void InputLine::clear()
     }
 }
 
-void InputLine::setValidateFunc(std::function<bool(const std::string &, const std::string &)> validate)
+void InputLine::setValidateFunc(std::function<bool(std::string, std::string)> validate)
 {
     m_validate = std::move(validate);
 }
@@ -356,5 +414,164 @@ void InputLine::setInput(const char *utf8Str)
         m_cursor = m_tpset.insertUTF8String(m_cursor, 0, utf8Str);
     }
 
+    adjustCursorPLocX();
     notifyInputChange();
+}
+
+int InputLine::tpx() const
+{
+    if(varWOpt()){
+        return 0;
+    }
+
+    if(m_tpsetAlign.has_value()){
+        switch(Widget::evalDir(m_tpsetAlign.value(), this)){
+            case DIR_LEFTUP:
+            case DIR_LEFT:
+            case DIR_LEFTDOWN:
+                {
+                    return 0;
+                }
+            case DIR_UP:
+            case DIR_NONE:
+            case DIR_DOWN:
+                {
+                    return (w() - (m_tpset.px() + m_tpset.pw())) / 2;
+                }
+            case DIR_RIGHTUP:
+            case DIR_RIGHT:
+            case DIR_RIGHTDOWN:
+                {
+                    return w() - (m_tpset.px() + m_tpset.pw());
+                }
+            default:
+                {
+                    std::unreachable();
+                }
+        }
+    }
+
+    switch(Widget::evalDir(m_cursorArgs.align, this)){
+        case DIR_LEFTUP:
+        case DIR_LEFT:
+        case DIR_LEFTDOWN:
+            {
+                if((w() >= m_tpset.px() + m_tpset.pw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
+                    return 0;
+                }
+                else{
+                    return m_tpsetXOpt.value();
+                }
+            }
+        case DIR_UP:
+        case DIR_NONE:
+        case DIR_DOWN:
+            {
+                if((w() >= m_tpset.px() + m_tpset.pw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
+                    return (w() - Widget::evalSize(m_cursorArgs.w, this)) / 2;
+                }
+                else{
+                    return m_tpsetXOpt.value();
+                }
+            }
+        case DIR_RIGHTUP:
+        case DIR_RIGHT:
+        case DIR_RIGHTDOWN:
+            {
+                if((w() >= m_tpset.px() + m_tpset.pw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
+                    return w() - Widget::evalSize(m_cursorArgs.w, this);
+                }
+                else{
+                    return m_tpsetXOpt.value();
+                }
+            }
+        default:
+            {
+                std::unreachable();
+            }
+    }
+}
+
+int InputLine::tpy() const
+{
+    if(varHOpt()){
+        return 0;
+    }
+
+    switch(Widget::evalDir(m_tpsetAlign.has_value() ? m_tpsetAlign.value() : m_cursorArgs.align, this)){
+        case DIR_UP:
+        case DIR_UPLEFT:
+        case DIR_UPRIGHT:
+            {
+                return 0;
+            }
+        case DIR_DOWN:
+        case DIR_DOWNLEFT:
+        case DIR_DOWNRIGHT:
+            {
+                return h() - (m_tpset.py() + (m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.ph()));
+            }
+        case DIR_LEFT:
+        case DIR_RIGHT:
+        case DIR_NONE:
+            {
+                return (h() - (m_tpset.py() + (m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.ph()))) / 2;
+            }
+        default:
+            {
+                std::unreachable();
+            }
+    }
+}
+
+std::tuple<int, int, int, int> InputLine::getCursorPLocInXMLTypeset() const
+{
+    if(m_tpset.empty()){
+        return
+        {
+            0,
+            0,
+
+            Widget::evalSize(m_cursorArgs.w, this), // this enlarges board width
+            m_tpset.getDefaultFontHeight(),
+        };
+    }
+
+    const auto cursorH = m_tpset.getTokenCursorHk(std::max<int>(m_cursor - 1, 0), 0);
+    const auto cursorY = m_tpset.lineStartY(0) - std::get<0>(cursorH) + 1;
+
+    if(m_cursor < m_tpset.lineTokenCount(0)){
+        const auto tkptr = m_tpset.getToken(m_cursor, 0);
+        const auto cursorW = std::min<int>(Widget::evalSize(m_cursorArgs.w, this), m_tpset.getToken(m_cursor, 0)->box.width());
+        return
+        {
+            tkptr->box.state.x - tkptr->box.state.w1,
+            cursorY,
+
+            cursorW,
+            std::get<0>(cursorH) + std::get<1>(cursorH),
+        };
+    }
+
+    // cursor is after last token, always keep cursor inside XMLTypeset, for simplicity
+    // it may be fine to kep cursor outside of XMLTypeset, if InputLine is defined wider than internal XMLTypeset
+
+    const auto tkptr = m_tpset.getLineBackToken(0);
+    const auto cursorW = std::min<int>(Widget::evalSize(m_cursorArgs.w, this), tkptr->box.width());
+    return
+    {
+        tkptr->box.state.x + tkptr->box.info.w + tkptr->box.state.w2 - cursorW,
+        cursorY,
+
+        cursorW,
+        std::get<0>(cursorH) + std::get<1>(cursorH),
+    };
+}
+
+std::tuple<int, int, int, int> InputLine::getCursorPLoc() const
+{
+    auto ploc = getCursorPLocInXMLTypeset();
+    std::get<0>(ploc) += tpx();
+    std::get<1>(ploc) += tpy();
+    return ploc;
 }

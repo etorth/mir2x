@@ -48,6 +48,11 @@ struct TOKEN
             int16_t h1;
             int16_t h2;
         }state;
+
+        int width() const
+        {
+            return state.w1 + info.w + state.w2;
+        }
     }box;
 
     union
