@@ -17,26 +17,6 @@ extern SDLDevice *g_sdlDevice;
 extern EmojiDB *g_emojiDB;
 extern ClientArgParser *g_clientArgParser;
 
-void XMLTypeset::setTokenBoxWordSpace(int argLine)
-{
-    if(!lineValid(argLine)){
-        throw fflpanic("invalid line: {}", argLine);
-    }
-
-    const int extraW1 = m_wordSpace / 2;
-    const int extraW2 = m_wordSpace - extraW1;
-
-    for(auto &tk: m_lineList[argLine].content){
-        tk.box.state.w1 += extraW1;
-        tk.box.state.w2 += extraW2;
-    }
-
-    if(!m_lineList[argLine].content.empty()){
-        m_lineList[argLine].content[0]    .box.state.w1 = 0;
-        m_lineList[argLine].content.back().box.state.w2 = 0;
-    }
-}
-
 // get line full width, count everything inside
 // assume:
 //      token W/W1/W2 has been set
@@ -50,10 +30,14 @@ int XMLTypeset::LineFullWidth(int argLine) const
 
     int fullWidth = 0;
     for(int nIndex = 0; nIndex < lineTokenCount(argLine); ++nIndex){
-        auto pToken = getToken(nIndex, argLine);
-        fullWidth += (pToken->box.state.w1 + pToken->box.info.w + pToken->box.state.w2);
+        fullWidth += getToken(nIndex, argLine)->box.width();
     }
     return fullWidth;
+}
+
+int XMLTypeset::LineTargetWidth() const
+{
+    return MaxLineWidth() + m_lineMargin[0] + m_lineMargin[1];
 }
 
 // calculate line width without W1/W2
@@ -197,10 +181,11 @@ void XMLTypeset::LineJustifyPadding(int argLine)
         throw fflpanic("line raw width exceeds the fixed max line width: {}", MaxLineWidth());
     }
 
-    const auto fnLeafPadding = [this, y = argLine](const auto &fnCheckToken) -> int
+    const int targetWidth = LineTargetWidth();
+    const auto fnLeafPadding = [this, y = argLine, targetWidth](const auto &fnCheckToken) -> int
     {
-        while(LineFullWidth(y) < MaxLineWidth()){
-            int currDWidth = MaxLineWidth() - LineFullWidth(y);
+        while(LineFullWidth(y) < targetWidth){
+            int currDWidth = targetWidth - LineFullWidth(y);
             int doneDWidth = currDWidth;
 
             for(int x = 0; x < lineTokenCount(y); ++x){
@@ -228,7 +213,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
                     doneDWidth--;
 
                     if(doneDWidth == 0){
-                        return MaxLineWidth();
+                        return targetWidth;
                     }
                 }
             }
@@ -240,7 +225,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
                 return LineFullWidth(y);
             }
         }
-        return MaxLineWidth();
+        return targetWidth;
     };
 
     // first round
@@ -254,7 +239,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
             case LEAF_EMOJI: return tokenPtr->box.state.w1 + tokenPtr->box.state.w2 < tokenPtr->box.info.w / 5;
             default        : return false;
         }
-    }) == MaxLineWidth()){
+    }) == targetWidth){
         return;
     }
 
@@ -264,7 +249,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
     if(fnLeafPadding([this](int x, int y) -> bool
     {
         return blankToken(x, y);
-    }) == MaxLineWidth()){
+    }) == targetWidth){
         return;
     }
 
@@ -274,7 +259,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
     if(fnLeafPadding([this](int x, int y) -> bool
     {
         return m_paragraph->leaf(getToken(x, y)->leaf).type() == LEAF_UTF8STR;
-    }) == MaxLineWidth()){
+    }) == targetWidth){
         return;
     }
 
@@ -284,7 +269,7 @@ void XMLTypeset::LineJustifyPadding(int argLine)
     if(fnLeafPadding([this](int, int) -> bool
     {
         return true;
-    }) == MaxLineWidth()){
+    }) == targetWidth){
         return;
     }
 
@@ -344,8 +329,8 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
                 }
         }
 
-        tkp->box.state.w1 = (i     == 0       ) ? 0 : (left  + wordSpace[0]);
-        tkp->box.state.w2 = (i + 1 == tokenCnt) ? 0 : (right + wordSpace[1]);
+        tkp->box.state.w1 = (i     == 0       ) ? to_i16(m_lineMargin[0]) : (left  + wordSpace[0]);
+        tkp->box.state.w2 = (i + 1 == tokenCnt) ? to_i16(m_lineMargin[1]) : (right + wordSpace[1]);
     }
 
     switch(lineAlign()){
@@ -381,12 +366,12 @@ void XMLTypeset::setLineTokenStartX(int argLine)
     switch(lineAlign()){
         case LALIGN_RIGHT:
             {
-                nLineStartX = MaxLineWidth() - LineFullWidth(argLine);
+                nLineStartX = LineTargetWidth() - LineFullWidth(argLine);
                 break;
             }
         case LALIGN_CENTER:
             {
-                nLineStartX = (MaxLineWidth() - LineFullWidth(argLine)) / 2;
+                nLineStartX = (LineTargetWidth() - LineFullWidth(argLine)) / 2;
                 break;
             }
     }
@@ -1231,6 +1216,7 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
 
         m_lineSpace,
         m_wordSpace,
+        m_lineMargin,
     };
 
     if(m_paragraph->empty()){

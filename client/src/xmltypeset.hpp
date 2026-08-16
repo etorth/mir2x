@@ -1,4 +1,6 @@
 #pragma once
+#include <array>
+#include <algorithm>
 #include <climits>
 #include <tuple>
 #include <deque>
@@ -65,6 +67,9 @@ class XMLTypeset // means XMLParagraph typeset
         Widget::VarU32 m_imageMaskColor;
 
     private:
+        std::array<int, 2> m_lineMargin;
+
+    private:
         int m_px = 0;
         int m_py = 0;
         int m_pw = 0;
@@ -81,7 +86,7 @@ class XMLTypeset // means XMLParagraph typeset
 
     public:
         XMLTypeset(
-                int maxLineWidth,
+                int maxLineWidth, // lineMargin not included
 
                 int  lineAlign  = LALIGN_LEFT,
                 bool canThrough = true,
@@ -96,7 +101,9 @@ class XMLTypeset // means XMLParagraph typeset
                 Widget::VarU32 defaultImageMaskColor = colorf::WHITE_A255,
 
                 int lineSpace = 0,
-                int wordSpace = 0)
+                int wordSpace = 0,
+
+                std::array<int, 2> lineMargin = {0, 0}) // for w1 of first token and w2 of last token
 
             : m_lineWidth(maxLineWidth)
             , m_lineAlign(lineAlign)
@@ -112,6 +119,13 @@ class XMLTypeset // means XMLParagraph typeset
             , m_fontColor(std::move(defaultFontColor))
             , m_fontBGColor(std::move(defaultFontBGColor))
             , m_imageMaskColor(std::move(defaultImageMaskColor))
+
+            , m_lineMargin
+              {
+                  std::max<int>(lineMargin[0], 0),
+                  std::max<int>(lineMargin[1], 0),
+              }
+
             , m_paragraph(std::make_unique<XMLParagraph>())
         {
             checkDefaultFontEx();
@@ -384,9 +398,6 @@ class XMLTypeset // means XMLParagraph typeset
         bool addRawTokenLine(int, const std::vector<TOKEN> &);
 
     private:
-        void setTokenBoxWordSpace(int);
-
-    private:
         void setLineTokenStartX(int);
         void setLineTokenStartY(int);
 
@@ -395,6 +406,7 @@ class XMLTypeset // means XMLParagraph typeset
 
     private:
         int LineFullWidth(int) const;
+        int LineTargetWidth() const;
 
     public:
         auto getToken(this auto && self, int argX, int argY)
