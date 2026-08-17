@@ -250,8 +250,8 @@ void TeamStateBoard::drawDefault(Widget::ROIMap m) const
             {
                 0,
                 0,
-                std::min<int>(line.pw(), m_uidTextRegionW),
-                line.ph(),
+                std::min<int>(line.fw(), m_uidTextRegionW),
+                line.fh(),
             }
         });
     }

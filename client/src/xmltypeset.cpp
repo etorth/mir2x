@@ -366,12 +366,12 @@ void XMLTypeset::setLineTokenStartX(int argLine)
     switch(lineAlign()){
         case LALIGN_RIGHT:
             {
-                nLineStartX = LineTargetWidth() - LineFullWidth(argLine);
+                nLineStartX = std::max<int>(0, LineTargetWidth() - LineFullWidth(argLine));
                 break;
             }
         case LALIGN_CENTER:
             {
-                nLineStartX = (LineTargetWidth() - LineFullWidth(argLine)) / 2;
+                nLineStartX = std::max<int>(0, (LineTargetWidth() - LineFullWidth(argLine)) / 2);
                 break;
             }
     }
@@ -903,11 +903,14 @@ void XMLTypeset::resetBoardPixelRegion()
         m_py = 0;
         m_pw = 0;
         m_ph = 0;
+        m_fw = 0;
+        m_fh = 0;
         return;
     }
 
     int maxPX = 0;
     int maxPY = 0;
+    int maxFX = 0;
     int minPX = INT_MAX;
     int minPY = INT_MAX;
 
@@ -920,12 +923,17 @@ void XMLTypeset::resetBoardPixelRegion()
         maxPY = std::max<int>(maxPY, lineReachMaxY(argLine));
         minPX = std::min<int>(minPX, lineReachMinX(argLine));
         minPY = std::min<int>(minPY, lineReachMinY(argLine));
+
+        const auto backToken = getLineBackToken(argLine);
+        maxFX = std::max<int>(maxFX, backToken->box.state.x + backToken->box.info.w + backToken->box.state.w2);
     }
 
     m_px = minPX;
     m_py = minPY;
     m_pw = maxPX + 1 - minPX;
     m_ph = maxPY + 1 - minPY;
+    m_fw = std::max<int>(maxFX, maxPX + 1);
+    m_fh = maxPY + 1;
 }
 
 std::tuple<int, int> XMLTypeset::prevTokenLoc(int argX, int argY, int tokenCount, bool strict) const
@@ -1290,7 +1298,7 @@ void XMLTypeset::draw(Widget::ROIMap m) const
     int srcW = m.ro->w;
     int srcH = m.ro->h;
 
-    if(!mathf::rectangleOverlap<int>(srcX, srcY, srcW, srcH, px(), py(), pw(), ph())){
+    if(!mathf::rectangleOverlap<int>(srcX, srcY, srcW, srcH, 0, 0, fw(), fh())){
         return;
     }
 
@@ -1319,7 +1327,7 @@ void XMLTypeset::draw(Widget::ROIMap m) const
             if(colorf::A(bgColorVal)){
                 int bgBoxX = tokenPtr->box.state.x - tokenPtr->box.state.w1;
                 int bgBoxY = tokenPtr->box.state.y + tokenPtr->box.state.h1 - leafInfo.maxH1;
-                int bgBoxW = tokenPtr->box.info.w + tokenPtr->box.state.w1 + tokenPtr->box.state.w2;
+                int bgBoxW = tokenPtr->box. info.w + tokenPtr->box.state.w1 + tokenPtr->box.state.w2;
                 int bgBoxH = leafInfo.maxH1 + leafInfo.maxH2;
 
                 if(mathf::rectangleOverlapRegion(srcX, srcY, srcW, srcH, bgBoxX, bgBoxY, bgBoxW, bgBoxH)){
@@ -1632,7 +1640,7 @@ bool XMLTypeset::locInToken(int xOffPixel, int yOffPixel, const TOKEN *pToken, b
 
 std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool withPadding) const
 {
-    if(yOffPixel < 0 || yOffPixel >= ph()){
+    if(yOffPixel < 0 || yOffPixel >= fh()){
         return {-1, -1};
     }
 
@@ -1671,9 +1679,14 @@ bool XMLTypeset::blankToken(int x, int y) const
     return (leaf.type() == LEAF_UTF8STR) && fnCheckBlank(tokenPtr->utf8char.key);
 }
 
-void XMLTypeset::setLineWidth(int lineWidth)
+void XMLTypeset::setLineWidth(int lineWidth, const std::array<int, 2> &lineMargin)
 {
+    fflassert(lineMargin[0] >= 0, lineMargin);
+    fflassert(lineMargin[1] >= 0, lineMargin);
+
     m_lineWidth = lineWidth;
+    m_lineMargin = lineMargin;
+
     updateGfx();
 }
 

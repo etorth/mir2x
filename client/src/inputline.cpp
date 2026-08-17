@@ -248,7 +248,7 @@ void InputLine::adjustCursorPLocX()
         return;
     }
 
-    if((w() >= m_tpset.px() + m_tpset.pw()) || !Widget::evalBool(m_cursorArgs.lazy, this)){
+    if((w() >= m_tpset.fw()) || !Widget::evalBool(m_cursorArgs.lazy, this)){
         return;
     }
 
@@ -341,8 +341,8 @@ void InputLine::drawDefault(Widget::ROIMap m) const
             tpsetX,
             tpsetY,
 
-            m_tpset.px() + m_tpset.pw(),
-            m_tpset.py() + m_tpset.ph());
+            m_tpset.fw(),
+            m_tpset.fh());
 
     if(needDraw){
         m_tpset.draw({.x=dstCropX, .y=dstCropY, .ro{srcCropX - tpsetX, srcCropY - tpsetY, srcCropW, srcCropH}});
@@ -436,13 +436,13 @@ int InputLine::tpx() const
             case DIR_NONE:
             case DIR_DOWN:
                 {
-                    return (w() - (m_tpset.px() + m_tpset.pw())) / 2;
+                    return (w() - m_tpset.fw()) / 2;
                 }
             case DIR_RIGHTUP:
             case DIR_RIGHT:
             case DIR_RIGHTDOWN:
                 {
-                    return w() - (m_tpset.px() + m_tpset.pw());
+                    return w() - m_tpset.fw();
                 }
             default:
                 {
@@ -456,7 +456,7 @@ int InputLine::tpx() const
         case DIR_LEFT:
         case DIR_LEFTDOWN:
             {
-                if((w() >= m_tpset.px() + m_tpset.pw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
+                if((w() >= m_tpset.fw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
                     return 0;
                 }
                 else{
@@ -467,7 +467,7 @@ int InputLine::tpx() const
         case DIR_NONE:
         case DIR_DOWN:
             {
-                if((w() >= m_tpset.px() + m_tpset.pw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
+                if((w() >= m_tpset.fw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
                     return (w() - Widget::evalSize(m_cursorArgs.w, this)) / 2;
                 }
                 else{
@@ -478,7 +478,7 @@ int InputLine::tpx() const
         case DIR_RIGHT:
         case DIR_RIGHTDOWN:
             {
-                if((w() >= m_tpset.px() + m_tpset.pw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
+                if((w() >= m_tpset.fw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
                     return w() - Widget::evalSize(m_cursorArgs.w, this);
                 }
                 else{
@@ -498,7 +498,10 @@ int InputLine::tpy() const
         return 0;
     }
 
-    switch(Widget::evalDir(m_tpsetAlign.has_value() ? m_tpsetAlign.value() : m_cursorArgs.align, this)){
+    const auto tpsetH = m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.fh();
+    const auto tpsetDir = Widget::evalDir(m_tpsetAlign.has_value() ? m_tpsetAlign.value() : m_cursorArgs.align, this);
+
+    switch(tpsetDir){
         case DIR_UP:
         case DIR_UPLEFT:
         case DIR_UPRIGHT:
@@ -509,13 +512,13 @@ int InputLine::tpy() const
         case DIR_DOWNLEFT:
         case DIR_DOWNRIGHT:
             {
-                return h() - (m_tpset.py() + (m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.ph()));
+                return h() - tpsetH;
             }
         case DIR_LEFT:
         case DIR_RIGHT:
         case DIR_NONE:
             {
-                return (h() - (m_tpset.py() + (m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.ph()))) / 2;
+                return (h() - tpsetH) / 2;
             }
         default:
             {

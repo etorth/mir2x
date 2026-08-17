@@ -108,16 +108,13 @@ class InputLine: public Widget
     public:
         int w() const override
         {
-            return varWOpt() ? m_tpset.pw() : Widget::w();
+            return varWOpt() ? m_tpset.fw() : Widget::w();
         }
 
         int h() const override
         {
             if(varHOpt()){
-                if(m_tpset.empty()){
-                    return m_tpset.getDefaultFontHeight();
-                }
-                return m_tpset.ph();
+                return m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.fh();
             }
             return Widget::h();
         }

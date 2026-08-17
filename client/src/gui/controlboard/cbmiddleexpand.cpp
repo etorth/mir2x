@@ -41,8 +41,7 @@ CBMiddleExpand::CBMiddleExpand(
                   .afterResize = [](Widget *self)
                   {
                       if(auto expanded = dynamic_cast<CBMiddleExpand *>(self)){
-                          expanded->m_logBoard.setLineWidth(expanded->getLogWindowWidth());
-                          expanded->m_cmdBoard.setLineWidth(expanded->getCmdWindowWidth());
+                          expanded->adjustLineWidth();
                       }
                   },
               },
@@ -264,4 +263,14 @@ void CBMiddleExpand::onCmdCursorMove()
     if(cursorROI.y + cursorROI.h > m_cmdBoardCropY + cmdBoardCropH){
         m_cmdBoardCropY = cursorROI.y + cursorROI.h - cmdBoardCropH;
     }
+}
+
+void CBMiddleExpand::adjustLineWidth()
+{
+    const auto lineMargin = 2;
+    const auto logLineWidth = getLogWindowWidth();
+    fflassert(logLineWidth > 2 * lineMargin, logLineWidth, lineMargin);
+
+    m_logBoard.setLineWidth(logLineWidth - 2 * lineMargin, {lineMargin, lineMargin});
+    m_cmdBoard.setLineWidth(getCmdWindowWidth());
 }

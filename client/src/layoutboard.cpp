@@ -31,7 +31,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
           {
               int maxW = 0;
               for(const auto &node: m_parNodeList){
-                  maxW = std::max<int>(maxW, node.margin[2] + node.tpset->pw() + node.margin[3]);
+                  maxW = std::max<int>(maxW, node.margin[2] + node.tpset->fw() + node.margin[3]);
               }
 
               if(Widget::evalBool(m_canEdit, this)){
@@ -50,7 +50,7 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
               }
 
               const auto &backNode = m_parNodeList.back();
-              /* */ auto lastPerHeight = backNode.tpset->ph();
+              /* */ auto lastPerHeight = backNode.tpset->fh();
 
               if(Widget::evalBool(m_canEdit, this)){
                     lastPerHeight = std::max<int>(lastPerHeight, backNode.tpset->getDefaultFontHeight());
@@ -86,6 +86,8 @@ LayoutBoard::LayoutBoard(LayoutBoard::InitArgs args)
           fflcheck(args.lineAlign, args.lineAlign >= LALIGN_NONE && args.lineAlign < LALIGN_END),
           fflcheck(args.lineSpace, args.lineSpace >= 0),
           fflcheck(args.wordSpace, args.wordSpace >= 0),
+
+          fflcheck(args.lineMargin, std::ranges::all_of(std::views::iota(0, 2), [&args](auto i){ return args.lineMargin[i] >= 0; })),
       }
 
     , m_cursorClip
@@ -287,6 +289,21 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         throw fflpanic("invalid word space: {}", wordSpace);
     }();
 
+    const auto lineMargin = [elemNode, this]() -> std::array<int, 2>
+    {
+        auto lineMargin = m_parNodeConfig.lineMargin;
+        if(const char *lineMarginStr = elemNode->Attribute("lineMargin")){
+            if(std::sscanf(lineMarginStr, "%d:%d", &lineMargin[0], &lineMargin[1]) != 2){
+                throw fflpanic("invalid line margin: {}", lineMarginStr);
+            }
+
+            if(lineMargin[0] < 0 || lineMargin[1] < 0){
+                throw fflpanic("invalid line margin: {} {}", lineMargin[0], lineMargin[1]);
+            }
+        }
+        return lineMargin;
+    }();
+
     auto parNodePtr = std::make_unique<XMLTypeset>
     (
         lineWidth,
@@ -300,7 +317,8 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         std::move(fontBGColor),
         colorf::WHITE_A255,
         lineSpace,
-        wordSpace
+        wordSpace,
+        lineMargin
     );
 
     parNodePtr->loadXMLNode(node);
@@ -311,10 +329,10 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
     }
     else{
         const auto prevNode = std::prev(currNode);
-        currNode->startY = prevNode->startY + std::max<int>(prevNode->tpset->ph(), prevNode->tpset->getDefaultFontHeight()) + prevNode->margin[1] + currNode->margin[0];
+        currNode->startY = prevNode->startY + std::max<int>(prevNode->tpset->fh(), prevNode->tpset->getDefaultFontHeight()) + prevNode->margin[1] + currNode->margin[0];
     }
 
-    const int extraH = std::max<int>(currNode->tpset->ph(), currNode->tpset->getDefaultFontHeight()) + currNode->margin[0] + currNode->margin[1];
+    const int extraH = std::max<int>(currNode->tpset->fh(), currNode->tpset->getDefaultFontHeight()) + currNode->margin[0] + currNode->margin[1];
     for(auto p = std::next(currNode); p != m_parNodeList.end(); ++p){
         p->startY += extraH;
     }
@@ -331,7 +349,7 @@ void LayoutBoard::setupStartY(int fromPar)
             }
 
             auto prevNode = std::prev(ithParIterator(fromPar));
-            return prevNode->startY + std::max<int>(prevNode->tpset->ph(), prevNode->tpset->getDefaultFontHeight()) + prevNode->margin[1];
+            return prevNode->startY + std::max<int>(prevNode->tpset->fh(), prevNode->tpset->getDefaultFontHeight()) + prevNode->margin[1];
         }();
 
         for(auto par = ithParIterator(fromPar); par != m_parNodeList.end(); ++par){
@@ -339,7 +357,7 @@ void LayoutBoard::setupStartY(int fromPar)
             par->startY = offsetY;
 
             offsetY += par->margin[1];
-            offsetY += std::max<int>(par->tpset->ph(), par->tpset->getDefaultFontHeight());
+            offsetY += std::max<int>(par->tpset->fh(), par->tpset->getDefaultFontHeight());
         }
     }
 }
@@ -427,7 +445,7 @@ void LayoutBoard::drawDefault(Widget::ROIMap m) const
                     w(),
                     h(),
 
-                    node.margin[2], node.startY, node.tpset->pw(), node.tpset->ph())){
+                    node.margin[2], node.startY, node.tpset->fw(), node.tpset->fh())){
             continue;
         }
         node.tpset->draw({.x=dstXCrop, .y=dstYCrop, .ro{srcXCrop - node.margin[2], srcYCrop - node.startY, srcWCrop, srcHCrop}});
@@ -468,18 +486,21 @@ void LayoutBoard::setFontBGColor(Widget::VarU32 argFontBGColor)
     updateGfx();
 }
 
-void LayoutBoard::setLineWidth(int argLineWidth)
+void LayoutBoard::setLineWidth(int argLineWidth, const std::array<int, 2> &argLineMargin)
 {
-    const auto cursorOff = Widget::evalBool(m_canEdit, this) ? ithParIterator(m_cursorLoc.par)->tpset->cursorLoc2Off(m_cursorLoc.x, m_cursorLoc.y) : -1;
+    fflassert(argLineMargin[0] >= 0, argLineMargin);
+    fflassert(argLineMargin[1] >= 0, argLineMargin);
+
     m_parNodeConfig.lineWidth = argLineWidth;
+    m_parNodeConfig.lineMargin = argLineMargin;
 
     for(auto &node: m_parNodeList){
-        node.tpset->setLineWidth(argLineWidth);
+        node.tpset->setLineWidth(argLineWidth, argLineMargin);
     }
 
     setupStartY(0);
     if(Widget::evalBool(m_canEdit, this)){
-        std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->cursorOff2Loc(cursorOff);
+        std::tie(m_cursorLoc.x, m_cursorLoc.y) = ithParIterator(m_cursorLoc.par)->tpset->cursorOff2Loc(ithParIterator(m_cursorLoc.par)->tpset->cursorLoc2Off(m_cursorLoc.x, m_cursorLoc.y));
         if(m_onCursorMove){
             m_onCursorMove();
         }

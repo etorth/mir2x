@@ -56,8 +56,8 @@ void MessageStackBoard::addXMLMessage(const std::u8string &xml)
         {
             .widget = new Widget
             {{
-                .w = [msgptr = message.get()]{ return msgptr->typeset->pw(); },
-                .h = [msgptr = message.get()]{ return msgptr->typeset->ph(); },
+                .w = [msgptr = message.get()]{ return msgptr->typeset->fw(); },
+                .h = [msgptr = message.get()]{ return msgptr->typeset->fh(); },
 
                 .attrs
                 {

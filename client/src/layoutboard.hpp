@@ -38,6 +38,7 @@ class LayoutBoard: public Widget
             int lineAlign = LALIGN_LEFT;
             int lineSpace = 0;
             int wordSpace = 0;
+            std::array<int, 2> lineMargin {0, 0};
 
             Widget::CursorConfig cursor {};
 
@@ -93,6 +94,7 @@ class LayoutBoard: public Widget
             int align;
             int lineSpace;
             int wordSpace;
+            std::array<int, 2> lineMargin;
 
         } m_parNodeConfig;
 
@@ -213,7 +215,7 @@ class LayoutBoard: public Widget
         void setFontBGColor(Widget::VarU32);
 
     public:
-        void setLineWidth(int);
+        void setLineWidth(int, const std::array<int, 2> & = {0, 0});
 
     public:
         void drawDefault(Widget::ROIMap) const override;

@@ -88,4 +88,7 @@ class CBMiddle: public Widget
     private:
         int getLogWindowWidth() const { return w() - m_bgImgFull.w() + LOG_WINDOW_WIDTH_ORIG; }
         int getCmdWindowWidth() const { return w() - m_bgImgFull.w() + CMD_WINDOW_WIDTH_ORIG; }
+
+    private:
+        void adjustLineWidth();
 };

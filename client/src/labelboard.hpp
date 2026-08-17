@@ -78,6 +78,6 @@ class LabelBoard: public Widget
         void drawDefault(Widget::ROIMap) const override;
 
     public:
-        int w() const override { return m_tpset.px() + m_tpset.pw(); }
-        int h() const override { return m_tpset.py() + m_tpset.ph(); }
+        int w() const override { return m_tpset.fw(); }
+        int h() const override { return m_tpset.fh(); }
 };

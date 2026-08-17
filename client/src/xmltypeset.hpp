@@ -74,6 +74,8 @@ class XMLTypeset // means XMLParagraph typeset
         int m_py = 0;
         int m_pw = 0;
         int m_ph = 0;
+        int m_fw = 0;
+        int m_fh = 0;
 
     private:
         std::unique_ptr<XMLParagraph> m_paragraph;
@@ -168,6 +170,8 @@ class XMLTypeset // means XMLParagraph typeset
             m_py = 0;
             m_pw = 0;
             m_ph = 0;
+            m_fw = 0;
+            m_fh = 0;
             m_lineList.clear();
             m_paragraph->clear();
         }
@@ -179,6 +183,7 @@ class XMLTypeset // means XMLParagraph typeset
             }
             else{
                 m_ph = getDefaultFontHeight();
+                m_fh = m_ph;
             }
         }
 
@@ -493,6 +498,16 @@ class XMLTypeset // means XMLParagraph typeset
             return m_ph;
         }
 
+        int fw() const
+        {
+            return m_fw;
+        }
+
+        int fh() const
+        {
+            return m_fh;
+        }
+
     public:
         int LineMaxHk(int, int) const;
 
@@ -536,7 +551,7 @@ class XMLTypeset // means XMLParagraph typeset
             return m_paragraph->getRawString();
         }
 
-        void setLineWidth(int);
+        void setLineWidth(int, const std::array<int, 2> & = {0, 0});
 
     public:
         bool blankToken(int, int) const;

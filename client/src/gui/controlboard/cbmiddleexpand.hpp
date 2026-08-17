@@ -83,4 +83,7 @@ class CBMiddleExpand: public Widget
     private:
         void onCmdCR();
         void onCmdCursorMove();
+
+    private:
+        void adjustLineWidth();
 };
