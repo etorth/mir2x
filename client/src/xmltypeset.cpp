@@ -758,6 +758,25 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, int &
     return tokenList;
 }
 
+void XMLTypeset::recalcLeafMaxHk(int leafIndex)
+{
+    auto &leafInfo = m_leafInfoList.at(leafIndex);
+    leafInfo.maxH1 = 0;
+    leafInfo.maxH2 = 0;
+
+    auto [tokenX, tokenY] = leafInfo.tokenLoc();
+    const int tokenCount = m_paragraph->leaf(leafIndex).length();
+    for(int i = 0; i < tokenCount; ++i){
+        const auto token = getToken(tokenX, tokenY);
+        leafInfo.maxH1 = std::max<int>(leafInfo.maxH1, token->box.state.h1);
+        leafInfo.maxH2 = std::max<int>(leafInfo.maxH2, token->box.state.h2);
+
+        if(i + 1 < tokenCount){
+            std::tie(tokenX, tokenY) = nextTokenLoc(tokenX, tokenY);
+        }
+    }
+}
+
 // rebuild the board from token (x, y)
 // assumen:
 //      (0, 0) ~ prevTokenLoc(x, y) are valid
@@ -793,7 +812,6 @@ void XMLTypeset::buildTypeset(int x, int y)
         if(advanced == 0){
             // only prev location is valid
             // from (x, y) all token should be removed
-            // leave maxH1/maxH2 as it is, there may be descrepency
             m_leafInfoList.resize(prevLeaf + 1);
 
             m_lineList.resize(prevY + 1);
@@ -819,11 +837,6 @@ void XMLTypeset::buildTypeset(int x, int y)
 
     std::vector<TOKEN> tokenList;
     for(; (advanced < 0) || (advanced == to_d(tokenList.size())); std::tie(leafIndex, leafOff, advanced) = m_paragraph->nextLeafOff(leafIndex, leafOff, tokenList.size())){
-        // if not start from offset 0, we use cached maxH1/maxH2
-        // this can cause some mismatch because [0, offset) may contain token with maxH1/maxH2 smaller than the cached value
-        //
-        // since a leaf use same font/size/style
-        // the descrepency is acceptable, leave it as it is for now.
         int firstMaxH1 = 0;
         int firstMaxH2 = 0;
 
@@ -1100,29 +1113,49 @@ void XMLTypeset::deleteToken(int x, int y, int tokenCount)
         return;
     }
 
-    int newX = x;
-    int newY = y;
+    bool recalcLeaf = false;
+    const auto [leafIndex, leafOff] = leafLocInXMLParagraph(x, y);
 
-    for(int i = 0; i < tokenCount; ++i){
-        if(!tokenLocValid(newX, newY)){
-            break;
+    if(m_compactLine){
+        const auto &leafInfo = m_leafInfoList.at(leafIndex);
+        const int deleteInLeaf = std::min<int>(tokenCount, m_paragraph->leaf(leafIndex).length() - leafOff);
+
+        // only recalculate leaf maxH1/maxH2 when partially deleting a leaf, if a leaf is fully deleted, the leafInfo will be deleted
+        // all leaves after this leaf will be re-calculated, so no need to recalc leaf maxH1/maxH2
+
+        if(deleteInLeaf < m_paragraph->leaf(leafIndex).length()){
+            int tokenX = x;
+            int tokenY = y;
+            for(int i = 0; i < deleteInLeaf; ++i){
+                const auto token = getToken(tokenX, tokenY);
+                recalcLeaf |= (token->box.state.h1 == leafInfo.maxH1)
+                           || (token->box.state.h2 == leafInfo.maxH2);
+
+                if(i + 1 < deleteInLeaf){
+                    std::tie(tokenX, tokenY) = nextTokenLoc(tokenX, tokenY);
+                }
+            }
         }
-
-        if(newX == 0 && newY == 0){
-            break;
-        }
-
-        std::tie(newX, newY) = prevTokenLoc(newX, newY);
     }
 
-    const auto [leafIndex, leafOff] = leafLocInXMLParagraph(x, y);
-    m_paragraph->deleteToken(leafIndex, leafOff, tokenCount);
+    // go backward 1 token to rebuild the typeset, example:
+    //
+    //  line 0: A B
+    //  line 1: C D E
+    //
+    // deleting C may allow D to move onto line 0, rebuilding from B permits that
+    // if rebuild only from line 1 would freeze line 0 incorrectly
+    const auto [newX, newY] = prevTokenLoc(x, y, 1, false);
 
+    m_paragraph->deleteToken(leafIndex, leafOff, tokenCount);
     if(m_paragraph->empty()){
         clear();
     }
     else{
         buildTypeset(newX, newY);
+        if(recalcLeaf){
+            recalcLeafMaxHk(leafIndex);
+        }
     }
 }
 
@@ -1248,6 +1281,33 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
     const bool copyFullLine = (cursorX == lineTokenCount(cursorY));
     const bool copyLeafTLoc = (cursorInLeaf > 0);
 
+    bool recalcSplitLeaf = false;
+    if(m_compactLine && copyLeafTLoc && cursorInLeaf < m_paragraph->leaf(leafIndex).length()){
+        // newTpset keeps the leaf prefix and its cached maxima
+        // check if removed suffix reaches either maximum
+        int tokenX;
+        int tokenY;
+
+        if(tokenLocValid(cursorX, cursorY)){
+            tokenX = cursorX;
+            tokenY = cursorY;
+        }
+        else{
+            std::tie(tokenX, tokenY) = nextTokenLoc(cursorX - 1, cursorY);
+        }
+
+        const auto &leafInfo = m_leafInfoList.at(leafIndex);
+        for(int i = cursorInLeaf; i < m_paragraph->leaf(leafIndex).length(); ++i){
+            const auto token = getToken(tokenX, tokenY);
+            recalcSplitLeaf |= (token->box.state.h1 == leafInfo.maxH1)
+                            || (token->box.state.h2 == leafInfo.maxH2);
+
+            if(i + 1 < m_paragraph->leaf(leafIndex).length()){
+                std::tie(tokenX, tokenY) = nextTokenLoc(tokenX, tokenY);
+            }
+        }
+    }
+
     newTpset->m_lineList    .assign(m_lineList    .begin(), m_lineList    .begin() + cursorY   + (copyFullLine ? 1 : 0));
     newTpset->m_leafInfoList.assign(m_leafInfoList.begin(), m_leafInfoList.begin() + leafIndex + (copyLeafTLoc ? 1 : 0));
     newTpset->m_paragraph.reset(m_paragraph->split(leafIndex, cursorInLeaf));
@@ -1261,6 +1321,10 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
         }
         else{
             newTpset->buildTypeset(0, std::max<int>(cursorY - 1, 0)); // split point can be in middle of first line
+        }
+
+        if(recalcSplitLeaf){
+            newTpset->recalcLeafMaxHk(leafIndex);
         }
     }
 
