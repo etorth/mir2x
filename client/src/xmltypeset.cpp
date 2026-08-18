@@ -734,11 +734,25 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, int &
         std::swap(tokenList, *tokenListPtr);
     }
 
+    const auto fnUpdateMaxHk = [useFontHk = !m_compactLine && (m_paragraph->leaf(leafIndex).type() == LEAF_UTF8STR), &maxH1, &maxH2](int off, const TOKEN &token)
+    {
+        if(useFontHk){
+            if(off == 0){
+                const auto [fontIndex, fontSize, _, _] = utf8f::extractU64Key(token.utf8char.key);
+                maxH1 =                   g_fontexDB->fontAscent (fontIndex, fontSize);
+                maxH2 = std::max<int>(0, -g_fontexDB->fontDescent(fontIndex, fontSize));
+            }
+        }
+        else{
+            maxH1 = std::max<int>(maxH1, token.box.state.h1);
+            maxH2 = std::max<int>(maxH2, token.box.state.h2);
+        }
+    };
+
     tokenList.clear();
     if(m_paragraph->leaf(leafIndex).wrap().value_or(true)){
         tokenList.push_back(createToken(leafIndex, leafOff));
-        maxH1 = std::max<int>(maxH1, tokenList.back().box.state.h1);
-        maxH2 = std::max<int>(maxH2, tokenList.back().box.state.h2);
+        fnUpdateMaxHk(leafOff, tokenList.back());
     }
     else{
         if(leafOff != 0){
@@ -751,8 +765,7 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, int &
 
         for(int i = 0; i < m_paragraph->leaf(leafIndex).length(); ++i){
             tokenList.push_back(createToken(leafIndex, i));
-            maxH1 = std::max<int>(maxH1, tokenList.back().box.state.h1);
-            maxH2 = std::max<int>(maxH2, tokenList.back().box.state.h2);
+            fnUpdateMaxHk(i, tokenList.back());
         }
     }
     return tokenList;
@@ -1765,20 +1778,7 @@ std::tuple<int, int> XMLTypeset::getDefaultFontHk() const
 
 std::tuple<int, int> XMLTypeset::getTokenCursorHk(int tokenX, int tokenY) const
 {
-    // in compactLine mode, the ascent/descent is not reserved for utf8 chars
-    // if still uses ascent/descent for cursor height, the cursor may go cross gfx of previous/next line tokens
-
-    const auto tkptr = getToken(tokenX, tokenY);
-    if(!m_compactLine && (m_paragraph->leaf(tkptr->leaf).type() == LEAF_UTF8STR)){
-        const auto [fontIndex, fontSize, _, _] = utf8f::extractU64Key(tkptr->utf8char.key);
-        return
-        {
-                              g_fontexDB->fontAscent (fontIndex, fontSize),
-            std::max<int>(0, -g_fontexDB->fontDescent(fontIndex, fontSize)),
-        };
-    }
-
-    return m_leafInfoList.at(tkptr->leaf).maxHk();
+    return m_leafInfoList.at(getToken(tokenX, tokenY)->leaf).maxHk();
 }
 
 int XMLTypeset::getDefaultFontHeight() const
