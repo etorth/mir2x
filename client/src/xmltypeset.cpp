@@ -646,31 +646,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t font, uint8_t fontSize, 
         return token;
     }
 
-    u64Key = utf8f::buildU64Key(m_font, m_fontSize, 0, codePoint);
-    if(!g_fontexDB->retrieve(u64Key)){
-        throw fflpanic("can't find texture for UTF8: {:X}", codePoint);
-    }
-
-    u64Key = utf8f::buildU64Key(m_font, m_fontSize, fontStyle, utf8f::str2code("a"));
-    if(!g_fontexDB->retrieve(u64Key)){
-        throw fflpanic("invalid font style: {:X}", fontStyle);
-    }
-
-    // invalid font given
-    // use system default font, don't fail it
-
-    u64Key = utf8f::buildU64Key(m_font, m_fontSize, fontStyle, codePoint);
-    if(auto texPtr = g_fontexDB->retrieve(u64Key)){
-        g_mir2xLog->addLog(LOGTYPE_WARNING, "Fallback to default font: font: %d -> %d, fontsize: %d -> %d", font, m_font, fontSize, m_fontSize);
-        const auto [boxW, boxH] = SDLDeviceHelper::getTextureSize(texPtr);
-        token.box.info.w   = boxW;
-        token.box.info.h   = boxH;
-        token.box.state.h1 = token.box.info.h;
-        token.box.state.h2 = 0;
-        token.utf8char.key = u64Key;
-        return token;
-    }
-    throw fflpanic("fallback to default font failed: font: {} -> {}, fontsize: {} -> {}", font, m_font, fontSize, m_fontSize);
+    throw fflpanic("failed to retrieve UTF8 texture: font = {}, fontSize = {}, fontStyle = {}, codePoint = {:X}", font, fontSize, fontStyle, codePoint);
 }
 
 TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
