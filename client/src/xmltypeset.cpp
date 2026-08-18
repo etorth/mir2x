@@ -929,14 +929,14 @@ void XMLTypeset::resetBoardPixelRegion()
         minPY = std::min<int>(minPY, lineReachMinY(argLine));
 
         const auto backToken = getLineBackToken(argLine);
-        maxFX = std::max<int>(maxFX, backToken->box.state.x + backToken->box.info.w + backToken->box.state.w2);
+        maxFX = std::max<int>(maxFX, backToken->box.state.x + backToken->box.info.w + backToken->box.state.w2 - 1);
     }
 
     m_px = minPX;
     m_py = minPY;
     m_pw = maxPX + 1 - minPX;
     m_ph = maxPY + 1 - minPY;
-    m_fw = std::max<int>(maxFX, maxPX + 1);
+    m_fw = maxFX + 1;
     m_fh = maxPY + 1;
 }
 
