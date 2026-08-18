@@ -547,11 +547,11 @@ int XMLTypeset::LineNewStartY(int argLine)
     }
 
     if(argLine == 0){
-        return LineMaxHk(0, 1) - 1; // return -1 if all tokens have H1 == 0
+        return LineMaxHk(0, 1, false) - 1; // return -1 if all tokens have H1 == 0
     }
 
     if(!CanThrough()){
-        return lineReachMaxY(argLine - 1) + m_lineSpace + LineMaxHk(argLine, 1);
+        return lineReachMaxY(argLine - 1, false) + m_lineSpace + LineMaxHk(argLine, 1, false);
     }
 
     if(lineTokenCount(argLine) == 0){
@@ -599,7 +599,7 @@ int XMLTypeset::LineNewStartY(int argLine)
     // -+--+--+----+ |    | ------ nth
     //               +----+
 
-    return std::max<int>(nCurrentY, lineReachMaxY(argLine - 1) + 1);
+    return std::max<int>(nCurrentY, lineReachMaxY(argLine - 1, false) + 1);
 }
 
 void XMLTypeset::setLineTokenStartY(int argLine)
@@ -915,6 +915,7 @@ void XMLTypeset::resetBoardPixelRegion()
     int maxPX = 0;
     int maxPY = 0;
     int maxFX = 0;
+    int maxFY = 0;
     int minPX = INT_MAX;
     int minPY = INT_MAX;
 
@@ -923,13 +924,12 @@ void XMLTypeset::resetBoardPixelRegion()
             throw fflpanic("found empty line in XMLTypeset: line = {}", argLine);
         }
 
-        maxPX = std::max<int>(maxPX, lineReachMaxX(argLine));
-        maxPY = std::max<int>(maxPY, lineReachMaxY(argLine));
-        minPX = std::min<int>(minPX, lineReachMinX(argLine));
-        minPY = std::min<int>(minPY, lineReachMinY(argLine));
-
-        const auto backToken = getLineBackToken(argLine);
-        maxFX = std::max<int>(maxFX, backToken->box.state.x + backToken->box.info.w + backToken->box.state.w2 - 1);
+        maxPX = std::max<int>(maxPX, lineReachMaxX(argLine, true ));
+        maxPY = std::max<int>(maxPY, lineReachMaxY(argLine, true ));
+        minPX = std::min<int>(minPX, lineReachMinX(argLine, true ));
+        minPY = std::min<int>(minPY, lineReachMinY(argLine, true ));
+        maxFX = std::max<int>(maxFX, lineReachMaxX(argLine, false));
+        maxFY = std::max<int>(maxFY, lineReachMaxY(argLine, false));
     }
 
     m_px = minPX;
@@ -937,7 +937,7 @@ void XMLTypeset::resetBoardPixelRegion()
     m_pw = maxPX + 1 - minPX;
     m_ph = maxPY + 1 - minPY;
     m_fw = maxFX + 1;
-    m_fh = maxPY + 1;
+    m_fh = maxFY + 1;
 }
 
 std::tuple<int, int> XMLTypeset::prevTokenLoc(int argX, int argY, int tokenCount, bool strict) const
@@ -1509,7 +1509,7 @@ int XMLTypeset::GetTokenWordSpace(int nX, int nY) const
     return m_wordSpace;
 }
 
-int XMLTypeset::lineReachMaxX(int argLine) const
+int XMLTypeset::lineReachMaxX(int argLine, bool strict) const
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
@@ -1525,18 +1525,18 @@ int XMLTypeset::lineReachMaxX(int argLine) const
         throw fflpanic("invalid token width: {}", tokPtr->box.info.w);
     }
 
-    return tokPtr->box.state.x + tokPtr->box.info.w - 1;
+    return tokPtr->box.state.x + tokPtr->box.info.w + (strict ? 0 : tokPtr->box.state.w2) - 1;
 }
 
-int XMLTypeset::lineReachMaxY(int argLine) const
+int XMLTypeset::lineReachMaxY(int argLine, bool strict) const
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
     }
-    return m_lineList[argLine].startY + LineMaxHk(argLine, 2);
+    return m_lineList[argLine].startY + LineMaxHk(argLine, 2, strict);
 }
 
-int XMLTypeset::lineReachMinX(int argLine) const
+int XMLTypeset::lineReachMinX(int argLine, bool strict) const
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
@@ -1546,18 +1546,19 @@ int XMLTypeset::lineReachMinX(int argLine) const
         throw fflpanic("invalie empty line: {}", argLine);
     }
 
-    return getToken(0, argLine)->box.state.x;
+    const auto tokPtr = getToken(0, argLine);
+    return tokPtr->box.state.x - (strict ? 0 : tokPtr->box.state.w1);
 }
 
-int XMLTypeset::lineReachMinY(int argLine) const
+int XMLTypeset::lineReachMinY(int argLine, bool strict) const
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
     }
-    return m_lineList[argLine].startY - LineMaxHk(argLine, 1) + 1;
+    return m_lineList[argLine].startY - LineMaxHk(argLine, 1, strict) + 1;
 }
 
-int XMLTypeset::LineMaxHk(int argLine, int k) const
+int XMLTypeset::LineMaxHk(int argLine, int k, bool strict) const
 {
     // nHk = 1: get MaxH1
     // nHk = 2: get MaxH2
@@ -1578,7 +1579,7 @@ int XMLTypeset::LineMaxHk(int argLine, int k) const
         const auto tokenPtr = getToken(nIndex, argLine);
         /* */ auto tokenHk  = (k == 1) ? tokenPtr->box.state.h1 : tokenPtr->box.state.h2;
 
-        if(!m_compactLine && m_paragraph->leaf(tokenPtr->leaf).type() == LEAF_UTF8STR){
+        if(!strict && !m_compactLine && m_paragraph->leaf(tokenPtr->leaf).type() == LEAF_UTF8STR){
             const uint32_t fontInfo = utf8f::fontInfoFromU64Key(tokenPtr->utf8char.key);
             if(fontInfoOpt.has_value() && fontInfoOpt.value() == fontInfo){
                 // token uses same font as last one

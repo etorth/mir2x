@@ -473,10 +473,10 @@ class XMLTypeset // means XMLParagraph typeset
         void buildTypeset(int, int);
 
     private:
-        int lineReachMaxX(int) const;
-        int lineReachMaxY(int) const;
-        int lineReachMinX(int) const;
-        int lineReachMinY(int) const;
+        int lineReachMaxX(int, bool) const;
+        int lineReachMaxY(int, bool) const;
+        int lineReachMinX(int, bool) const;
+        int lineReachMinY(int, bool) const;
 
     public:
         int px() const
@@ -510,7 +510,7 @@ class XMLTypeset // means XMLParagraph typeset
         }
 
     public:
-        int LineMaxHk(int, int) const;
+        int LineMaxHk(int, int, bool) const;
 
     private:
         void LineJustifyPadding(int);
