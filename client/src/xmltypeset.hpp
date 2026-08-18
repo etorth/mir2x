@@ -469,7 +469,7 @@ class XMLTypeset // means XMLParagraph typeset
         std::vector<TOKEN> createTokenLine(int, int, int &, int &, std::vector<TOKEN> * = nullptr) const;
 
     private:
-        void recalcLeafMaxHk(int);
+        void recalcLeafMaxHk(int, int);
         void buildTypeset(int, int);
 
     private:

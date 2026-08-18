@@ -747,14 +747,16 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, int &
     return tokenList;
 }
 
-void XMLTypeset::recalcLeafMaxHk(int leafIndex)
+void XMLTypeset::recalcLeafMaxHk(int leafIndex, int tokenCount)
 {
+    fflassert(tokenCount >= 0, tokenCount);
+    fflassert(tokenCount <= m_paragraph->leaf(leafIndex).length(), leafIndex, tokenCount);
+
     auto &leafInfo = m_leafInfoList.at(leafIndex);
     leafInfo.maxH1 = 0;
     leafInfo.maxH2 = 0;
 
     auto [tokenX, tokenY] = leafInfo.tokenLoc();
-    const int tokenCount = m_paragraph->leaf(leafIndex).length();
     for(int i = 0; i < tokenCount; ++i){
         const auto token = getToken(tokenX, tokenY);
         leafInfo.maxH1 = std::max<int>(leafInfo.maxH1, token->box.state.h1);
@@ -1141,10 +1143,11 @@ void XMLTypeset::deleteToken(int x, int y, int tokenCount)
         clear();
     }
     else{
-        buildTypeset(newX, newY);
         if(recalcLeaf){
-            recalcLeafMaxHk(leafIndex);
+            const auto [newLeafIndex, newLeafOff] = leafLocInXMLParagraph(newX, newY);
+            recalcLeafMaxHk(newLeafIndex, newLeafOff);
         }
+        buildTypeset(newX, newY);
     }
 }
 
@@ -1305,16 +1308,13 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
     m_leafInfoList.clear();
 
     if(!newTpset->empty()){
-        if(copyFullLine){
-            newTpset->buildTypeset(0, cursorY);
-        }
-        else{
-            newTpset->buildTypeset(0, std::max<int>(cursorY - 1, 0)); // split point can be in middle of first line
-        }
+        const int buildFromY = copyFullLine ? cursorY : std::max<int>(cursorY - 1, 0); // split point can be in middle of first line
 
-        if(recalcSplitLeaf){
-            newTpset->recalcLeafMaxHk(leafIndex);
+        if(recalcSplitLeaf && buildFromY > 0){
+            const auto [buildLeafIndex, buildLeafOff] = newTpset->leafLocInXMLParagraph(0, buildFromY);
+            newTpset->recalcLeafMaxHk(buildLeafIndex, buildLeafOff);
         }
+        newTpset->buildTypeset(0, buildFromY);
     }
 
     if(empty()){
