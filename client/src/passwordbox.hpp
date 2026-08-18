@@ -83,6 +83,7 @@ class PasswordBox: public InputLine
 
             m_passwordString.insert(to_uz(insertOff), input);
             m_cursor += m_tpset.insertUTF8String(m_cursor, 0, std::string(to_uz(inputLength), '*').c_str());
+            adjustCursorPLocX();
             return true;
         }
 

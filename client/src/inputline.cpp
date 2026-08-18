@@ -244,11 +244,7 @@ void InputLine::notifyInputChange() const
 
 void InputLine::adjustCursorPLocX()
 {
-    if(m_tpsetAlign.has_value()){
-        return;
-    }
-
-    if((w() >= m_tpset.fw()) || !Widget::evalBool(m_cursorArgs.lazy, this)){
+    if(m_tpsetAlign.has_value() || varWOpt() || !Widget::evalBool(m_cursorArgs.lazy, this)){
         return;
     }
 
@@ -256,7 +252,7 @@ void InputLine::adjustCursorPLocX()
     const auto [cursorPLocX, _, cursorPLocW, _] = getCursorPLocInXMLTypeset();
 
     if(cursorPLocW > currWidth){
-        m_tpsetXOpt = (currWidth - cursorPLocW) / 2 - cursorPLocX;
+        m_tpsetXOpt = alignedX(DIR_NONE, currWidth, cursorPLocW) - cursorPLocX;
     }
 
     else{
@@ -272,30 +268,7 @@ void InputLine::adjustCursorPLocX()
 
 int InputLine::tpsetXDefault() const
 {
-    switch(Widget::evalDir(m_cursorArgs.align, this)){
-        case DIR_LEFTUP:
-        case DIR_LEFT:
-        case DIR_LEFTDOWN:
-            {
-                return 0;
-            }
-        case DIR_UP:
-        case DIR_NONE:
-        case DIR_DOWN:
-            {
-                return (w() - Widget::evalSize(m_cursorArgs.w, this)) / 2;
-            }
-        case DIR_RIGHTUP:
-        case DIR_RIGHT:
-        case DIR_RIGHTDOWN:
-            {
-                return w() - Widget::evalSize(m_cursorArgs.w, this);
-            }
-        default:
-            {
-                std::unreachable();
-            }
-    }
+    return alignedX(Widget::evalDir(m_cursorArgs.align, this), w(), Widget::evalSize(m_cursorArgs.w, this));
 }
 
 int InputLine::tpsetXFromOpt() const
@@ -390,12 +363,15 @@ void InputLine::insertUTF8String(const char *utf8Str)
 
 void InputLine::clear()
 {
+    const bool changed = !m_tpset.empty();
+
+    m_tpset.clear();
+    m_tpsetXOpt.reset();
+
     m_cursor = 0;
-    adjustCursorPLocX();
     m_cursorBlink = 0.0;
 
-    if(!m_tpset.empty()){
-        m_tpset.clear();
+    if(changed){
         notifyInputChange();
     }
 }
@@ -409,6 +385,7 @@ void InputLine::setInput(const char *utf8Str)
 {
     m_cursor = 0;
     m_cursorBlink = 0.0;
+    m_tpsetXOpt.reset();
 
     m_tpset.clear();
     if(str_haschar(utf8Str)){
@@ -426,71 +403,15 @@ int InputLine::tpx() const
     }
 
     if(m_tpsetAlign.has_value()){
-        switch(Widget::evalDir(m_tpsetAlign.value(), this)){
-            case DIR_LEFTUP:
-            case DIR_LEFT:
-            case DIR_LEFTDOWN:
-                {
-                    return 0;
-                }
-            case DIR_UP:
-            case DIR_NONE:
-            case DIR_DOWN:
-                {
-                    return (w() - m_tpset.fw()) / 2;
-                }
-            case DIR_RIGHTUP:
-            case DIR_RIGHT:
-            case DIR_RIGHTDOWN:
-                {
-                    return w() - m_tpset.fw();
-                }
-            default:
-                {
-                    std::unreachable();
-                }
-        }
+        return alignedX(Widget::evalDir(m_tpsetAlign.value(), this), w(), m_tpset.fw());
     }
 
-    switch(Widget::evalDir(m_cursorArgs.align, this)){
-        case DIR_LEFTUP:
-        case DIR_LEFT:
-        case DIR_LEFTDOWN:
-            {
-                if((w() >= m_tpset.fw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
-                    return 0;
-                }
-                else{
-                    return m_tpsetXOpt.value();
-                }
-            }
-        case DIR_UP:
-        case DIR_NONE:
-        case DIR_DOWN:
-            {
-                if((w() >= m_tpset.fw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
-                    return (w() - Widget::evalSize(m_cursorArgs.w, this)) / 2;
-                }
-                else{
-                    return m_tpsetXOpt.value();
-                }
-            }
-        case DIR_RIGHTUP:
-        case DIR_RIGHT:
-        case DIR_RIGHTDOWN:
-            {
-                if((w() >= m_tpset.fw()) || !Widget::evalBool(m_cursorArgs.lazy, this) || !m_tpsetXOpt.has_value()){
-                    return w() - Widget::evalSize(m_cursorArgs.w, this);
-                }
-                else{
-                    return m_tpsetXOpt.value();
-                }
-            }
-        default:
-            {
-                std::unreachable();
-            }
+    if(Widget::evalBool(m_cursorArgs.lazy, this)){
+        return tpsetXFromOpt();
     }
+
+    const auto [cursorX, _, cursorW, _] = getCursorPLocInXMLTypeset();
+    return alignedX(Widget::evalDir(m_cursorArgs.align, this), w(), cursorW) - cursorX;
 }
 
 int InputLine::tpy() const
@@ -499,33 +420,12 @@ int InputLine::tpy() const
         return 0;
     }
 
-    const auto tpsetH = m_tpset.empty() ? m_tpset.getDefaultFontHeight() : m_tpset.fh();
-    const auto tpsetDir = Widget::evalDir(m_tpsetAlign.has_value() ? m_tpsetAlign.value() : m_cursorArgs.align, this);
+    const auto [fontH1, fontH2] = m_tpset.getDefaultFontHk();
 
-    switch(tpsetDir){
-        case DIR_UP:
-        case DIR_UPLEFT:
-        case DIR_UPRIGHT:
-            {
-                return 0;
-            }
-        case DIR_DOWN:
-        case DIR_DOWNLEFT:
-        case DIR_DOWNRIGHT:
-            {
-                return h() - tpsetH;
-            }
-        case DIR_LEFT:
-        case DIR_RIGHT:
-        case DIR_NONE:
-            {
-                return (h() - tpsetH) / 2;
-            }
-        default:
-            {
-                std::unreachable();
-            }
-    }
+    const auto fontBoxY = baselineY() - fontH1 + 1;
+    const auto alignDir = Widget::evalDir(m_tpsetAlign.has_value() ? m_tpsetAlign.value() : m_cursorArgs.align, this);
+
+    return alignedY(alignDir, h(), fontH1 + fontH2) - fontBoxY;
 }
 
 std::tuple<int, int, int, int> InputLine::getCursorPLocInXMLTypeset() const
@@ -578,4 +478,16 @@ std::tuple<int, int, int, int> InputLine::getCursorPLoc() const
     std::get<0>(ploc) += tpx();
     std::get<1>(ploc) += tpy();
     return ploc;
+}
+
+int InputLine::alignedX(dir8_t dir, int outerW, int innerW)
+{
+    return Widget::xSizeOff(dir, [outerW]{ return outerW; })
+         - Widget::xSizeOff(dir, [innerW]{ return innerW; });
+}
+
+int InputLine::alignedY(dir8_t dir, int outerH, int innerH)
+{
+    return Widget::ySizeOff(dir, [outerH]{ return outerH; })
+         - Widget::ySizeOff(dir, [innerH]{ return innerH; });
 }

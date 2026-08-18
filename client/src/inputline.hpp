@@ -145,10 +145,14 @@ class InputLine: public Widget
     public:
         int baselineY() const
         {
-            return std::get<0>(m_tpset.getDefaultFontHk()) - 1;
+            return m_tpset.empty() ? std::get<0>(m_tpset.getDefaultFontHk()) - 1 : m_tpset.lineStartY(0);
         }
 
     public:
         std::tuple<int, int, int, int> getCursorPLoc() const;
         std::tuple<int, int, int, int> getCursorPLocInXMLTypeset() const;
+
+    private:
+        static int alignedX(dir8_t, int, int);
+        static int alignedY(dir8_t, int, int);
 };
