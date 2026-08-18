@@ -270,12 +270,8 @@ void InputLine::adjustCursorPLocX()
     }
 }
 
-int InputLine::tpsetXFromOpt() const
+int InputLine::tpsetXDefault() const
 {
-    if(m_tpsetXOpt.has_value()){
-        return m_tpsetXOpt.value();
-    }
-
     switch(Widget::evalDir(m_cursorArgs.align, this)){
         case DIR_LEFTUP:
         case DIR_LEFT:
@@ -300,6 +296,11 @@ int InputLine::tpsetXFromOpt() const
                 std::unreachable();
             }
     }
+}
+
+int InputLine::tpsetXFromOpt() const
+{
+    return m_tpsetXOpt.value_or(tpsetXDefault());
 }
 
 void InputLine::setFocus(bool argFocus)

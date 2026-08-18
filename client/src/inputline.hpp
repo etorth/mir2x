@@ -79,6 +79,7 @@ class InputLine: public Widget
         void adjustCursorPLocX();
 
     protected:
+        int tpsetXDefault() const;
         int tpsetXFromOpt() const;
 
     public:
