@@ -219,7 +219,17 @@ void TeamStateBoard::drawDefault(Widget::ROIMap m) const
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
 
     std::string nameText;
-    XMLTypeset line(-1, LALIGN_LEFT, false, false, m_font, m_fontSize, m_fontStyle, m_fontColor);
+    XMLTypeset line
+    {{
+        .canThrough = false,
+        .font
+        {
+            .id = m_font,
+            .size = m_fontSize,
+            .style = m_fontStyle,
+            .color = m_fontColor,
+        },
+    }};
 
     for(size_t i = 0; (i < lineShowCount()) && (i + m_startIndex[m_showCandidateList] < lineCount()); ++i){
         if((m_selectedIndex[m_showCandidateList] >= 0) && (to_d(i) + m_startIndex[m_showCandidateList] == m_selectedIndex[m_showCandidateList])){

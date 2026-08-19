@@ -17,6 +17,33 @@
 
 class XMLTypeset // means XMLParagraph typeset
 {
+    public:
+        struct InitArgs final
+        {
+            int lineWidth = 0; // lineMargin not included
+
+            const int  lineAlign  = LALIGN_LEFT;
+            const bool canThrough = true;
+            const bool compactLine = false;
+
+            Widget::FontConfig font
+            {
+                .id = 0,
+                .size = 8,
+            };
+
+            Widget::VarU32 imageMaskColor = colorf::WHITE_A255;
+
+            int lineSpace = 0;
+            int wordSpace = 0;
+
+            std::array<int, 2> lineMargin {0, 0}; // for w1 of first token and w2 of last token
+            std::function<uint32_t(uint32_t)> codeXfer = nullptr;
+        };
+
+    private:
+        XMLTypeset::InitArgs m_initArgs;
+
     private:
         struct contentLine
         {
@@ -44,35 +71,6 @@ class XMLTypeset // means XMLParagraph typeset
         };
 
     private:
-        int m_lineWidth;
-
-    private:
-        const int m_lineAlign;
-
-    private:
-        const bool m_canThrough;
-        const bool m_compactLine;
-
-    private:
-        int m_wordSpace;
-        int m_lineSpace;
-
-    private:
-        uint8_t m_font;
-        uint8_t m_fontSize;
-        uint8_t m_fontStyle;
-
-        Widget::VarU32 m_fontColor;
-        Widget::VarU32 m_fontBGColor;
-        Widget::VarU32 m_imageMaskColor;
-
-    private:
-        std::array<int, 2> m_lineMargin;
-
-    private:
-        std::function<uint32_t(uint32_t)> m_codeXferFunc;
-
-    private:
         int m_px = 0;
         int m_py = 0;
         int m_pw = 0;
@@ -90,53 +88,7 @@ class XMLTypeset // means XMLParagraph typeset
         std::deque<LeafInfo> m_leafInfoList;
 
     public:
-        XMLTypeset(
-                int maxLineWidth, // lineMargin not included
-
-                int  lineAlign  = LALIGN_LEFT,
-                bool canThrough = true,
-                bool compactLine = false,
-
-                uint8_t defaultFont      = 0,
-                uint8_t defaultFontSize  = 8,
-                uint8_t defaultFontStyle = 0,
-
-                Widget::VarU32 defaultFontColor      = colorf::WHITE_A255,
-                Widget::VarU32 defaultFontBGColor    = 0U,
-                Widget::VarU32 defaultImageMaskColor = colorf::WHITE_A255,
-
-                int lineSpace = 0,
-                int wordSpace = 0,
-
-                std::array<int, 2> lineMargin = {0, 0}, // for w1 of first token and w2 of last token
-                std::function<uint32_t(uint32_t)> codeXferFunc = nullptr)
-
-            : m_lineWidth(maxLineWidth)
-            , m_lineAlign(lineAlign)
-            , m_canThrough(canThrough)
-            , m_compactLine(compactLine)
-            , m_wordSpace(wordSpace)
-            , m_lineSpace(lineSpace)
-
-            , m_font(defaultFont)
-            , m_fontSize(defaultFontSize)
-            , m_fontStyle(defaultFontStyle)
-
-            , m_fontColor(std::move(defaultFontColor))
-            , m_fontBGColor(std::move(defaultFontBGColor))
-            , m_imageMaskColor(std::move(defaultImageMaskColor))
-
-            , m_lineMargin
-              {
-                  std::max<int>(lineMargin[0], 0),
-                  std::max<int>(lineMargin[1], 0),
-              }
-
-            , m_codeXferFunc(std::move(codeXferFunc))
-            , m_paragraph(std::make_unique<XMLParagraph>())
-        {
-            checkDefaultFontEx();
-        }
+        XMLTypeset(XMLTypeset::InitArgs);
 
     public:
         ~XMLTypeset() = default;
@@ -349,32 +301,32 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         void setFont(uint8_t font)
         {
-            m_font = font;
+            m_initArgs.font.id = font;
         }
 
         void setFontSize(uint8_t fontSize)
         {
-            m_fontSize = fontSize;
+            m_initArgs.font.size = fontSize;
         }
 
         void setFontStyle(uint8_t fontStyle)
         {
-            m_fontStyle = fontStyle;
+            m_initArgs.font.style = fontStyle;
         }
 
         void setFontColor(Widget::VarU32 fontColor)
         {
-            m_fontColor = std::move(fontColor);
+            m_initArgs.font.color = std::move(fontColor);
         }
 
         void setFontBGColor(Widget::VarU32 fontBGColor)
         {
-            m_fontBGColor = std::move(fontBGColor);
+            m_initArgs.font.bgColor = std::move(fontBGColor);
         }
 
         void setImageMaskColor(Widget::VarU32 imageMaskColor)
         {
-            m_imageMaskColor = std::move(imageMaskColor);
+            m_initArgs.imageMaskColor = std::move(imageMaskColor);
         }
 
     public:
@@ -527,12 +479,12 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         int MaxLineWidth() const
         {
-            return m_lineWidth;
+            return m_initArgs.lineWidth;
         }
 
         bool CanThrough() const
         {
-            return m_canThrough;
+            return m_initArgs.canThrough;
         }
 
     private:
@@ -543,12 +495,12 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         uint32_t color() const
         {
-            return Widget::evalU32(m_fontColor, nullptr, this);
+            return Widget::evalU32(m_initArgs.font.color, nullptr, this);
         }
 
         uint32_t bgColor() const
         {
-            return Widget::evalU32(m_fontBGColor, nullptr, this);
+            return Widget::evalU32(m_initArgs.font.bgColor, nullptr, this);
         }
 
     public:
@@ -572,13 +524,13 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         void setCodeXferFunc(std::function<uint32_t(uint32_t)> codeXferFunc)
         {
-            m_codeXferFunc = std::move(codeXferFunc);
+            m_initArgs.codeXfer = std::move(codeXferFunc);
         }
 
     private:
         uint32_t codeXfer(uint32_t codePoint) const
         {
-            return m_codeXferFunc ? m_codeXferFunc(codePoint) : codePoint;
+            return m_initArgs.codeXfer ? m_initArgs.codeXfer(codePoint) : codePoint;
         }
 
         uint64_t u64KeyXfer(uint64_t u64Key) const

@@ -28,16 +28,10 @@ LabelBoard::LabelBoard(LabelBoard::InitArgs args)
       }}
 
     , m_tpset
-      {
-          0,
-          LALIGN_LEFT,
-          false,
-          false,
-          args.font.id,
-          args.font.size,
-          args.font.style,
-          std::move(args.font.color),
-      }
+      {{
+          .canThrough = false,
+          .font = std::move(args.font),
+      }}
 {
     setText(u8"%s", args.label ? args.label : u8"");
 }

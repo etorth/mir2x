@@ -17,6 +17,15 @@ extern SDLDevice *g_sdlDevice;
 extern EmojiDB *g_emojiDB;
 extern ClientArgParser *g_clientArgParser;
 
+XMLTypeset::XMLTypeset(XMLTypeset::InitArgs args)
+    : m_initArgs(std::move(args))
+    , m_paragraph(std::make_unique<XMLParagraph>())
+{
+    fflassert(m_initArgs.lineMargin[0] >= 0, m_initArgs.lineMargin);
+    fflassert(m_initArgs.lineMargin[1] >= 0, m_initArgs.lineMargin);
+    checkDefaultFontEx();
+}
+
 // get line full width, count everything inside
 // assume:
 //      token W/W1/W2 has been set
@@ -37,7 +46,7 @@ int XMLTypeset::LineFullWidth(int argLine) const
 
 int XMLTypeset::LineTargetWidth() const
 {
-    return MaxLineWidth() + m_lineMargin[0] + m_lineMargin[1];
+    return MaxLineWidth() + m_initArgs.lineMargin[0] + m_initArgs.lineMargin[1];
 }
 
 // calculate line width without W1/W2
@@ -99,7 +108,7 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
         throw fflpanic("empty token line");
     }
 
-    if(m_lineWidth <= 0){
+    if(m_initArgs.lineWidth <= 0){
         m_lineList[argLine].content.insert(m_lineList[argLine].content.end(), tokenLine.begin(), tokenLine.end());
         return true;
     }
@@ -116,13 +125,13 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
         return result;
     }();
 
-    if((lineTokenCount(argLine) == 0) && (m_lineWidth < to_d(rawExtraWidth + (tokenLine.size() - 1) * m_wordSpace))){
-        g_mir2xLog->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_lineWidth);
+    if((lineTokenCount(argLine) == 0) && (m_initArgs.lineWidth < to_d(rawExtraWidth + (tokenLine.size() - 1) * m_initArgs.wordSpace))){
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_initArgs.lineWidth);
         m_lineList[argLine].content.insert(m_lineList[argLine].content.end(), tokenLine.begin(), tokenLine.end());
         return true;
     }
 
-    if(m_lineWidth < LineRawWidth(argLine, false) + rawExtraWidth + to_d(lineTokenCount(argLine) + tokenLine.size() - 1) * m_wordSpace){
+    if(m_initArgs.lineWidth < LineRawWidth(argLine, false) + rawExtraWidth + to_d(lineTokenCount(argLine) + tokenLine.size() - 1) * m_initArgs.wordSpace){
         return false;
     }
 
@@ -295,8 +304,8 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
                 {
                     return
                     {
-                        (m_wordSpace + 0) / 2,
-                        (m_wordSpace + 1) / 2,
+                        (m_initArgs.wordSpace + 0) / 2,
+                        (m_initArgs.wordSpace + 1) / 2,
                     };
                 }
             case LALIGN_DISTRIBUTED:
@@ -329,8 +338,8 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
                 }
         }
 
-        tkp->box.state.w1 = (i     == 0       ) ? to_i16(m_lineMargin[0]) : (left  + wordSpace[0]);
-        tkp->box.state.w2 = (i + 1 == tokenCnt) ? to_i16(m_lineMargin[1]) : (right + wordSpace[1]);
+        tkp->box.state.w1 = (i     == 0       ) ? to_i16(m_initArgs.lineMargin[0]) : (left  + wordSpace[0]);
+        tkp->box.state.w2 = (i + 1 == tokenCnt) ? to_i16(m_initArgs.lineMargin[1]) : (right + wordSpace[1]);
     }
 
     switch(lineAlign()){
@@ -436,7 +445,7 @@ int XMLTypeset::LineIntervalMaxH2(int argLine, int nIntervalStartX, int nInterva
         int nW2 = pToken->box.state.w2;
         int nH2 = pToken->box.state.h2;
 
-        if(!m_compactLine && m_paragraph->leaf(pToken->leaf).type() == LEAF_UTF8STR){
+        if(!m_initArgs.compactLine && m_paragraph->leaf(pToken->leaf).type() == LEAF_UTF8STR){
             const uint32_t fontInfo = utf8f::fontInfoFromU64Key(pToken->utf8char.key);
             if(fontInfoOpt.has_value() && fontInfoOpt.value() == fontInfo){
                 // token uses same font as last one
@@ -484,7 +493,7 @@ int XMLTypeset::LineTokenBestY(int argLine, int nTokenX, int nTokenWidth, int nT
     }
 
     if(int nMaxH2 = LineIntervalMaxH2(argLine - 1, nTokenX, nTokenWidth); nMaxH2 >= 0){
-        return m_lineList[argLine - 1].startY + to_d(nMaxH2) + m_lineSpace + nTokenHeight;
+        return m_lineList[argLine - 1].startY + to_d(nMaxH2) + m_initArgs.lineSpace + nTokenHeight;
     }
 
     // negative nMaxH2 means the (n - 1)th line is not long enough
@@ -503,7 +512,7 @@ int XMLTypeset::LineTokenBestY(int argLine, int nTokenX, int nTokenWidth, int nT
     //                +-------+-+----------+-------
     //                          |          |
     //                          +----------+
-    return m_lineList[argLine - 1].startY + m_lineSpace + nTokenHeight;
+    return m_lineList[argLine - 1].startY + m_initArgs.lineSpace + nTokenHeight;
 }
 
 // get start Y of current line
@@ -551,7 +560,7 @@ int XMLTypeset::LineNewStartY(int argLine)
     }
 
     if(!CanThrough()){
-        return lineReachMaxY(argLine - 1, false) + m_lineSpace + LineMaxHk(argLine, 1, false);
+        return lineReachMaxY(argLine - 1, false) + m_initArgs.lineSpace + LineMaxHk(argLine, 1, false);
     }
 
     if(lineTokenCount(argLine) == 0){
@@ -568,7 +577,7 @@ int XMLTypeset::LineNewStartY(int argLine)
         int nW  = pToken->box.info .w;
         int nH1 = pToken->box.state.h1;
 
-        if(!m_compactLine && m_paragraph->leaf(pToken->leaf).type() == LEAF_UTF8STR){
+        if(!m_initArgs.compactLine && m_paragraph->leaf(pToken->leaf).type() == LEAF_UTF8STR){
             const uint32_t fontInfo = utf8f::fontInfoFromU64Key(pToken->utf8char.key);
             if(fontInfoOpt.has_value() && fontInfoOpt.value() == fontInfo){
                 // token uses same font as last one
@@ -582,7 +591,7 @@ int XMLTypeset::LineNewStartY(int argLine)
             nH1 = std::max<int>(nH1, fontAscent);
         }
 
-        // LineTokenBestY() already take m_lineSpace into consideration
+        // LineTokenBestY() already takes lineSpace into consideration
         nCurrentY = std::max<int>(nCurrentY, LineTokenBestY(argLine, nX, nW, nH1));
     }
 
@@ -617,9 +626,9 @@ void XMLTypeset::setLineTokenStartY(int argLine)
 
 void XMLTypeset::checkDefaultFontEx() const
 {
-    const uint64_t u64key = utf8f::buildU64Key(m_font, m_fontSize, 0, utf8f::str2code("0"));
+    const uint64_t u64key = utf8f::buildU64Key(m_initArgs.font.id, m_initArgs.font.size, 0, utf8f::str2code("0"));
     if(!g_fontexDB->retrieve(u64key)){
-        throw fflpanic("invalid default font: font = {}, fontsize = {}", m_font, m_fontSize);
+        throw fflpanic("invalid default font: font = {}, fontsize = {}", m_initArgs.font.id, m_initArgs.font.size);
     }
 }
 
@@ -685,9 +694,9 @@ TOKEN XMLTypeset::createToken(int leafIndex, int leafOff) const
     switch(auto &lf = m_paragraph->leaf(leafIndex); lf.type()){
         case LEAF_UTF8STR:
             {
-                const auto font      = lf.font()     .value_or(m_font);
-                const auto fontSize  = lf.fontSize() .value_or(m_fontSize);
-                const auto fontStyle = lf.fontStyle().value_or(m_fontStyle);
+                const auto font      = lf.font()     .value_or(m_initArgs.font.id);
+                const auto fontSize  = lf.fontSize() .value_or(m_initArgs.font.size);
+                const auto fontStyle = lf.fontStyle().value_or(m_initArgs.font.style);
                 return buildUTF8Token(leafIndex, font, fontSize, fontStyle, lf.peekUTF8Code(leafOff));
             }
         case LEAF_EMOJI:
@@ -712,7 +721,7 @@ std::vector<TOKEN> XMLTypeset::createTokenLine(int leafIndex, int leafOff, int &
         std::swap(tokenList, *tokenListPtr);
     }
 
-    const auto fnUpdateMaxHk = [useFontHk = !m_compactLine && (m_paragraph->leaf(leafIndex).type() == LEAF_UTF8STR), &maxH1, &maxH2](int off, const TOKEN &token)
+    const auto fnUpdateMaxHk = [useFontHk = !m_initArgs.compactLine && (m_paragraph->leaf(leafIndex).type() == LEAF_UTF8STR), &maxH1, &maxH2](int off, const TOKEN &token)
     {
         if(useFontHk){
             if(off == 0){
@@ -1109,7 +1118,7 @@ void XMLTypeset::deleteToken(int x, int y, int tokenCount)
     bool recalcLeaf = false;
     const auto [leafIndex, leafOff] = leafLocInXMLParagraph(x, y);
 
-    if(m_compactLine){
+    if(m_initArgs.compactLine){
         const auto &leafInfo = m_leafInfoList.at(leafIndex);
         const int deleteInLeaf = std::min<int>(tokenCount, m_paragraph->leaf(leafIndex).length() - leafOff);
 
@@ -1235,25 +1244,7 @@ size_t XMLTypeset::insertUTF8String(int x, int y, const char *text)
 XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
 {
     fflassert(cursorLocValid(cursorX, cursorY));
-    auto newTpset = new XMLTypeset
-    {
-        MaxLineWidth(),
-        m_lineAlign,
-        CanThrough(),
-        m_compactLine,
-
-        m_font,
-        m_fontSize,
-        m_fontStyle,
-        m_fontColor,
-        m_fontBGColor,
-        m_imageMaskColor,
-
-        m_lineSpace,
-        m_wordSpace,
-        m_lineMargin,
-        m_codeXferFunc,
-    };
+    auto newTpset = new XMLTypeset{m_initArgs};
 
     if(m_paragraph->empty()){
         return newTpset;
@@ -1277,7 +1268,7 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
     const bool copyLeafTLoc = (cursorInLeaf > 0);
 
     bool recalcSplitLeaf = false;
-    if(m_compactLine && copyLeafTLoc && cursorInLeaf < m_paragraph->leaf(leafIndex).length()){
+    if(m_initArgs.compactLine && copyLeafTLoc && cursorInLeaf < m_paragraph->leaf(leafIndex).length()){
         // newTpset keeps the leaf prefix and its cached maxima
         // check if removed suffix reaches either maximum
         int tokenX;
@@ -1440,7 +1431,7 @@ void XMLTypeset::draw(Widget::ROIMap m) const
                         int yOnTex = 0;
 
                         if(auto texPtr = g_emojiDB->retrieve(emojiKey, &xOnTex, &yOnTex, 0, 0, 0, 0, 0)){
-                            SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, Widget::evalU32(m_imageMaskColor, nullptr, this));
+                            SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, Widget::evalU32(m_initArgs.imageMaskColor, nullptr, this));
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, xOnTex + dx, yOnTex + dy, boxW, boxH);
                         }
                         else{
@@ -1509,7 +1500,7 @@ int XMLTypeset::GetTokenWordSpace(int nX, int nY) const
     if(!tokenLocValid(nX, nY)){
         throw fflpanic("invalid token location: ({}, {})", nX, nY);
     }
-    return m_wordSpace;
+    return m_initArgs.wordSpace;
 }
 
 int XMLTypeset::lineReachMaxX(int argLine, bool strict) const
@@ -1582,7 +1573,7 @@ int XMLTypeset::LineMaxHk(int argLine, int k, bool strict) const
         const auto tokenPtr = getToken(nIndex, argLine);
         /* */ auto tokenHk  = (k == 1) ? tokenPtr->box.state.h1 : tokenPtr->box.state.h2;
 
-        if(!strict && !m_compactLine && m_paragraph->leaf(tokenPtr->leaf).type() == LEAF_UTF8STR){
+        if(!strict && !m_initArgs.compactLine && m_paragraph->leaf(tokenPtr->leaf).type() == LEAF_UTF8STR){
             const uint32_t fontInfo = utf8f::fontInfoFromU64Key(tokenPtr->utf8char.key);
             if(fontInfoOpt.has_value() && fontInfoOpt.value() == fontInfo){
                 // token uses same font as last one
@@ -1608,7 +1599,7 @@ int XMLTypeset::lineAlign() const
     if(MaxLineWidth() == 0){
         return LALIGN_LEFT;
     }
-    return m_lineAlign;
+    return m_initArgs.lineAlign;
 }
 
 std::tuple<int, int> XMLTypeset::locCursor(int xOffPixel, int yOffPixel) const
@@ -1741,8 +1732,8 @@ void XMLTypeset::setLineWidth(int lineWidth, const std::array<int, 2> &lineMargi
     fflassert(lineMargin[0] >= 0, lineMargin);
     fflassert(lineMargin[1] >= 0, lineMargin);
 
-    m_lineWidth = lineWidth;
-    m_lineMargin = lineMargin;
+    m_initArgs.lineWidth = lineWidth;
+    m_initArgs.lineMargin = lineMargin;
 
     updateGfx();
 }
@@ -1751,8 +1742,8 @@ std::tuple<int, int> XMLTypeset::getDefaultFontHk() const
 {
     return
     {
-                          g_fontexDB->fontAscent (m_font, m_fontSize),
-        std::max<int>(0, -g_fontexDB->fontDescent(m_font, m_fontSize)),
+                          g_fontexDB->fontAscent (m_initArgs.font.id, m_initArgs.font.size),
+        std::max<int>(0, -g_fontexDB->fontDescent(m_initArgs.font.id, m_initArgs.font.size)),
     };
 }
 

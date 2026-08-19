@@ -29,26 +29,11 @@ InputLine::InputLine(InputLine::InitArgs args)
     , m_tpsetAlign(std::move(args.align))
     , m_imeEnabled(std::move(args.enableIME))
     , m_tpset
-      {
-          0,
-          LALIGN_LEFT,
-          false,
-          false,
-
-          args.font.id,
-          args.font.size,
-          args.font.style,
-
-          std::move(args.font.color),
-          std::move(args.font.bgColor),
-          colorf::WHITE_A255,
-
-          0,
-          0,
-
-          {},
-          std::move(args.codeXfer),
-      }
+      {{
+          .canThrough = false,
+          .font = std::move(args.font),
+          .codeXfer = std::move(args.codeXfer),
+      }}
 
     , m_cursorArgs(std::move(args.cursor))
 

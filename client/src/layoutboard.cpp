@@ -304,22 +304,26 @@ void LayoutBoard::addPar(int loc, const Widget::IntMargin &parMargin, const tiny
         return lineMargin;
     }();
 
-    auto parNodePtr = std::make_unique<XMLTypeset>
-    (
-        lineWidth,
-        lineAlign,
-        canThrough,
-        compactLine,
-        font,
-        fontSize,
-        fontStyle,
-        std::move(fontColor),
-        std::move(fontBGColor),
-        colorf::WHITE_A255,
-        lineSpace,
-        wordSpace,
-        lineMargin
-    );
+    auto parNodePtr = std::unique_ptr<XMLTypeset>(new XMLTypeset
+    {{
+        .lineWidth = lineWidth,
+        .lineAlign = lineAlign,
+        .canThrough = canThrough,
+        .compactLine = compactLine,
+
+        .font
+        {
+            .id = font,
+            .size = fontSize,
+            .style = fontStyle,
+            .color = std::move(fontColor),
+            .bgColor = std::move(fontBGColor),
+        },
+
+        .lineSpace = lineSpace,
+        .wordSpace = wordSpace,
+        .lineMargin = lineMargin,
+    }});
 
     parNodePtr->loadXMLNode(node);
     auto currNode = m_parNodeList.insert(ithParIterator(loc), {-1, parMargin, std::move(parNodePtr)});
