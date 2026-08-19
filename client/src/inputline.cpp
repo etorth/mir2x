@@ -41,6 +41,13 @@ InputLine::InputLine(InputLine::InitArgs args)
 
           std::move(args.font.color),
           std::move(args.font.bgColor),
+          colorf::WHITE_A255,
+
+          0,
+          0,
+
+          {},
+          std::move(args.codeXfer),
       }
 
     , m_cursorArgs(std::move(args.cursor))

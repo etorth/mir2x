@@ -70,6 +70,9 @@ class XMLTypeset // means XMLParagraph typeset
         std::array<int, 2> m_lineMargin;
 
     private:
+        std::function<uint32_t(uint32_t)> m_codeXferFunc;
+
+    private:
         int m_px = 0;
         int m_py = 0;
         int m_pw = 0;
@@ -105,7 +108,8 @@ class XMLTypeset // means XMLParagraph typeset
                 int lineSpace = 0,
                 int wordSpace = 0,
 
-                std::array<int, 2> lineMargin = {0, 0}) // for w1 of first token and w2 of last token
+                std::array<int, 2> lineMargin = {0, 0}, // for w1 of first token and w2 of last token
+                std::function<uint32_t(uint32_t)> codeXferFunc = nullptr)
 
             : m_lineWidth(maxLineWidth)
             , m_lineAlign(lineAlign)
@@ -128,6 +132,7 @@ class XMLTypeset // means XMLParagraph typeset
                   std::max<int>(lineMargin[1], 0),
               }
 
+            , m_codeXferFunc(std::move(codeXferFunc))
             , m_paragraph(std::make_unique<XMLParagraph>())
         {
             checkDefaultFontEx();
@@ -560,5 +565,18 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         std::tuple<int, int> getDefaultFontHk() const;
         std::tuple<int, int> getTokenCursorHk(int, int) const;
+
+    public:
         int getDefaultFontHeight() const;
+
+    private:
+        uint32_t codeXfer(uint32_t codePoint) const
+        {
+            return m_codeXferFunc ? m_codeXferFunc(codePoint) : codePoint;
+        }
+
+        uint64_t u64KeyXfer(uint64_t u64Key) const
+        {
+            return utf8f::exchangeCodePointInU64Key(u64Key, codeXfer(utf8f::codePointFromU64Key(u64Key)));
+        }
 };

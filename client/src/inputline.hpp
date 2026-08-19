@@ -39,6 +39,7 @@ class InputLine: public Widget
             std::function<void(std::string)>              onChange = nullptr;
             std::function<bool(std::string, std::string)> validate = nullptr;
 
+            std::function<uint32_t(uint32_t)> codeXfer = nullptr;
             Widget::WADPair parent {};
         };
 
@@ -69,6 +70,8 @@ class InputLine: public Widget
 
     protected:
         bool validateInput(const std::string &, const std::string &) const;
+
+    protected:
         virtual bool insertInput(const std::string &);
         virtual bool deleteInput();
 

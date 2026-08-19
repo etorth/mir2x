@@ -69,6 +69,11 @@ namespace utf8f
         return static_cast<uint32_t>(u64Key);
     }
 
+    constexpr uint64_t exchangeCodePointInU64Key(uint64_t u64Key, uint32_t codePoint)
+    {
+        return (u64Key & 0xFFFFFFFF00000000ULL) | codePoint;
+    }
+
     std::vector<int> buildUTF8Off(const char *);
 
     bool valid(const std::string &);

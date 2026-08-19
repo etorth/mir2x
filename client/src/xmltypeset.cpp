@@ -320,7 +320,7 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
         switch(m_paragraph->leaf(tkp->leaf).type()){
             case LEAF_UTF8STR:
                 {
-                    g_fontexDB->retrieve(tkp->utf8char.key, &left, &right);
+                    g_fontexDB->retrieve(u64KeyXfer(tkp->utf8char.key), &left, &right);
                     break;
                 }
             default:
@@ -627,14 +627,16 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t font, uint8_t fontSize, 
 {
     TOKEN token;
     std::memset(&(token), 0, sizeof(token));
-    auto u64Key = utf8f::buildU64Key(font, fontSize, fontStyle, codePoint);
+
+    const auto u64Key     = utf8f::buildU64Key(font, fontSize, fontStyle, codePoint);
+    const auto u64KeyXfer = utf8f::buildU64Key(font, fontSize, fontStyle, codeXfer(codePoint));
 
     int left = 0;
     int right = 0;
     int ascent = 0;
 
     token.leaf = leafIndex;
-    if(auto texPtr = g_fontexDB->retrieve(u64Key, &left, &right, &ascent)){
+    if(auto texPtr = g_fontexDB->retrieve(u64KeyXfer, &left, &right, &ascent)){
         const auto [boxW, boxH] = SDLDeviceHelper::getTextureSize(texPtr);
         token.box.info.w   = boxW;
         token.box.info.h   = boxH;
@@ -646,7 +648,7 @@ TOKEN XMLTypeset::buildUTF8Token(int leafIndex, uint8_t font, uint8_t fontSize, 
         return token;
     }
 
-    throw fflpanic("failed to retrieve UTF8 texture: font = {}, fontSize = {}, fontStyle = {}, codePoint = {:X}", font, fontSize, fontStyle, codePoint);
+    throw fflpanic("failed to retrieve UTF8 texture: font {}, fontSize {}, fontStyle {}, codePoint {:X}, codePointXfer {:X}", font, fontSize, fontStyle, codePoint, codeXfer(codePoint));
 }
 
 TOKEN XMLTypeset::buildEmojiToken(int leafIndex, uint32_t emoji) const
@@ -1250,6 +1252,7 @@ XMLTypeset *XMLTypeset::split(int cursorX, int cursorY)
         m_lineSpace,
         m_wordSpace,
         m_lineMargin,
+        m_codeXferFunc,
     };
 
     if(m_paragraph->empty()){
@@ -1406,7 +1409,7 @@ void XMLTypeset::draw(Widget::ROIMap m) const
             switch(leaf.type()){
                 case LEAF_UTF8STR:
                     {
-                        if(auto texPtr = g_fontexDB->retrieve(tokenPtr->utf8char.key)){
+                        if(auto texPtr = g_fontexDB->retrieve(u64KeyXfer(tokenPtr->utf8char.key))){
                             SDLDeviceHelper::EnableTextureModColor enableMod(texPtr, fgColorVal);
                             g_sdlDevice->drawTexture(texPtr, drawDstX, drawDstY, dx, dy, boxW, boxH);
                         }
@@ -1730,7 +1733,7 @@ bool XMLTypeset::blankToken(int x, int y) const
         return g_fontexDB->isTransparant(fontIndex, fontSize, codePoint);
     };
 
-    return (leaf.type() == LEAF_UTF8STR) && fnCheckBlank(tokenPtr->utf8char.key);
+    return (leaf.type() == LEAF_UTF8STR) && fnCheckBlank(u64KeyXfer(tokenPtr->utf8char.key));
 }
 
 void XMLTypeset::setLineWidth(int lineWidth, const std::array<int, 2> &lineMargin)
