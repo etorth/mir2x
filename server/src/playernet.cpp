@@ -1392,7 +1392,7 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
 {
     const auto cmRDT = ClientMsg::conv<CMRespondDirectTrade>(buf);
     if(!uidf::isPlayer(cmRDT.uid) || cmRDT.uid == UID()){
-        return {};
+        co_return;
     }
 
     const auto fnRejectTrade = [this, uid = cmRDT.uid](int error)
@@ -1406,27 +1406,27 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
 
     if(!to_bool(cmRDT.accept)){
         fnRejectTrade(DTRADEERR_REJECTED);
-        return {};
+        co_return;
     }
 
     if(!SDRuntimeConfig_getConfig<RTCFG_允许交易>(m_sdPlayerConfig.runtimeConfig)){
         fnRejectTrade(DTRADEERR_TARGETNOTALLOWED);
-        return {};
+        co_return;
     }
 
     if(m_sdHealth.dead()){
         fnRejectTrade(DTRADEERR_TARGETDEAD);
-        return {};
+        co_return;
     }
 
     if(directTradeBusy()){
         fnRejectTrade(DTRADEERR_TARGETBUSY);
-        return {};
+        co_return;
     }
 
     if(!getInViewCOPtr(cmRDT.uid)){
         fnRejectTrade(DTRADEERR_TOOFAR);
-        return {};
+        co_return;
     }
 
     m_directTradeStarted = false;
@@ -1438,8 +1438,54 @@ corof::awaitable<> Player::net_CM_RESPONDDIRECTTRADE(uint8_t, const uint8_t *buf
     std::memset(&amDTP, 0, sizeof(amDTP));
 
     amDTP.name.assign(name());
-    m_actorPod->post(cmRDT.uid, {AM_ACCEPTDIRECTTRADE, amDTP});
-    return {};
+    const auto rmpk = co_await m_actorPod->send(cmRDT.uid, {AM_ACCEPTDIRECTTRADE, amDTP});
+
+    switch(rmpk.type()){
+        case AM_STARTDIRECTTRADE:
+            {
+                if(m_directTradePeerOffer.uid != rmpk.from() || m_directTradeStarted){
+                    m_actorPod->post(cmRDT.uid, AM_CANCELDIRECTTRADE);
+                    co_return;
+                }
+
+                if(m_sdHealth.dead() || !getInViewCOPtr(rmpk.from())){
+                    clearDirectTrade();
+                    m_actorPod->post(cmRDT.uid, AM_CANCELDIRECTTRADE);
+                    postDirectTradeError(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
+                    co_return;
+                }
+
+                startDirectTrade();
+
+                const auto amSDT = rmpk.conv<AMDirectTradePeer>();
+                SMStartDirectTrade smSDT;
+                std::memset(&smSDT, 0, sizeof(smSDT));
+
+                smSDT.uid = rmpk.from();
+                smSDT.name.assign(amSDT.name.as_sv());
+                postNetMessage(SM_STARTDIRECTTRADE, smSDT);
+                co_return;
+            }
+        case AM_CANCELDIRECTTRADE:
+            {
+                if(m_directTradePeerOffer.uid == rmpk.from() && !m_directTradeStarted){
+                    clearDirectTrade();
+                }
+                co_return;
+            }
+        case AM_BADACTORPOD:
+            {
+                if(m_directTradePeerOffer.uid == cmRDT.uid && !m_directTradeStarted){
+                    clearDirectTrade();
+                    postDirectTradeError(DTRADEERR_OFFLINE);
+                }
+                co_return;
+            }
+        default:
+            {
+                throw fflvalue(rmpk.str(UID()));
+            }
+    }
 }
 
 corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf, size_t bufSize, uint64_t)

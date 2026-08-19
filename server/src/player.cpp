@@ -546,10 +546,6 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_REJECTDIRECTTRADE(mpk);
             }
-        case AM_STARTDIRECTTRADE:
-            {
-                return on_AM_STARTDIRECTTRADE(mpk);
-            }
         case AM_UPDATEDIRECTTRADE:
             {
                 return on_AM_UPDATEDIRECTTRADE(mpk);

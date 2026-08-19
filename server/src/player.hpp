@@ -190,7 +190,6 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_PLAYERBROADCAST    (const ActorMsgPack &);
         corof::awaitable<> on_AM_ACCEPTDIRECTTRADE  (const ActorMsgPack &);
         corof::awaitable<> on_AM_REJECTDIRECTTRADE  (const ActorMsgPack &);
-        corof::awaitable<> on_AM_STARTDIRECTTRADE   (const ActorMsgPack &);
         corof::awaitable<> on_AM_UPDATEDIRECTTRADE  (const ActorMsgPack &);
         corof::awaitable<> on_AM_COMPLETEDIRECTTRADE(const ActorMsgPack &);
         corof::awaitable<> on_AM_DIRECTTRADEERROR   (const ActorMsgPack &);

@@ -564,7 +564,7 @@ corof::awaitable<> Player::on_AM_ACCEPTDIRECTTRADE(const ActorMsgPack &mpk)
 
     startDirectTrade();
 
-    const auto amDTP = mpk.conv<AMDirectTradePeer>();
+    const auto amAccept = mpk.conv<AMDirectTradePeer>();
     AMDirectTradePeer amStart;
     std::memset(&amStart, 0, sizeof(amStart));
 
@@ -575,7 +575,7 @@ corof::awaitable<> Player::on_AM_ACCEPTDIRECTTRADE(const ActorMsgPack &mpk)
     std::memset(&smSDT, 0, sizeof(smSDT));
 
     smSDT.uid = mpk.from();
-    smSDT.name.assign(amDTP.name.as_sv());
+    smSDT.name.assign(amAccept.name.as_sv());
     postNetMessage(SM_STARTDIRECTTRADE, smSDT);
     return {};
 }
@@ -586,32 +586,6 @@ corof::awaitable<> Player::on_AM_REJECTDIRECTTRADE(const ActorMsgPack &mpk)
         clearDirectTrade();
         postDirectTradeError(mpk.conv<AMDirectTradeError>().error);
     }
-    return {};
-}
-
-corof::awaitable<> Player::on_AM_STARTDIRECTTRADE(const ActorMsgPack &mpk)
-{
-    if(m_directTradePeerOffer.uid != mpk.from() || m_directTradeStarted){
-        m_actorPod->post(mpk.fromAddr(), AM_CANCELDIRECTTRADE);
-        return {};
-    }
-
-    if(m_sdHealth.dead() || !getInViewCOPtr(mpk.from())){
-        clearDirectTrade();
-        m_actorPod->post(mpk.fromAddr(), AM_CANCELDIRECTTRADE);
-        postDirectTradeError(m_sdHealth.dead() ? DTRADEERR_DEAD : DTRADEERR_TOOFAR);
-        return {};
-    }
-
-    startDirectTrade();
-
-    const auto amDTP = mpk.conv<AMDirectTradePeer>();
-    SMStartDirectTrade smSDT;
-    std::memset(&smSDT, 0, sizeof(smSDT));
-
-    smSDT.uid = mpk.from();
-    smSDT.name.assign(amDTP.name.as_sv());
-    postNetMessage(SM_STARTDIRECTTRADE, smSDT);
     return {};
 }
 
