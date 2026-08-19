@@ -569,6 +569,12 @@ class XMLTypeset // means XMLParagraph typeset
     public:
         int getDefaultFontHeight() const;
 
+    public:
+        void setCodeXferFunc(std::function<uint32_t(uint32_t)> codeXferFunc)
+        {
+            m_codeXferFunc = std::move(codeXferFunc);
+        }
+
     private:
         uint32_t codeXfer(uint32_t codePoint) const
         {

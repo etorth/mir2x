@@ -388,6 +388,11 @@ void InputLine::setValidateFunc(std::function<bool(std::string, std::string)> va
     m_validate = std::move(validate);
 }
 
+void InputLine::setCodeXferFunc(std::function<std::string(std::string)> codeXfer)
+{
+    m_tpset.setCodeXferFunc(std::move(codeXfer));
+}
+
 void InputLine::setInput(const char *utf8Str)
 {
     m_cursor = 0;

@@ -128,6 +128,7 @@ class InputLine: public Widget
 
     public:
         void setValidateFunc(std::function<bool(std::string, std::string)>);
+        void setCodeXferFunc(std::function<uint32_t(uint32_t)>);
 
     public:
         void deleteChar();
