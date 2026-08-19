@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "log.hpp"
+#include "utf8f.hpp"
 #include "client.hpp"
 #include "message.hpp"
 #include "pngtexdb.hpp"
@@ -94,6 +95,11 @@ ProcessLogin::ProcessLogin()
               .onCR = [this]
               {
                   doLogin();
+              },
+
+              .codeXfer = [maskCode = utf8f::str2code("*")](uint32_t)
+              {
+                  return maskCode;
               },
 
               .parent{&m_canvas},
@@ -207,7 +213,7 @@ void ProcessLogin::processEvent(const SDL_Event &event)
 void ProcessLogin::doLogin()
 {
     const auto idStr  = m_idBox.getRawString();
-    const auto pwdStr = m_passwordBox.getPasswordString();
+    const auto pwdStr = m_passwordBox.getRawString();
 
     if(idStr.empty() || pwdStr.empty()){
         m_notifyBoard.addMessage(u8"无效的账号或密码");

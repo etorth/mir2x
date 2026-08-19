@@ -3,7 +3,7 @@
 #include <cstdint>
 #include "widget.hpp"
 #include "imageboard.hpp"
-#include "passwordbox.hpp"
+#include "inputline.hpp"
 #include "layoutboard.hpp"
 #include "tritexbutton.hpp"
 #include "gfxshapeboard.hpp"
@@ -33,7 +33,7 @@ class InputStringBoard: public Widget
 
     private:
         GfxShapeBoard m_inputBg;
-        PasswordBox    m_input;
+        InputLine m_input;
 
     private:
         TritexButton m_yesButton;

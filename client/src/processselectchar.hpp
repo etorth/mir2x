@@ -6,7 +6,6 @@
 #include "servermsg.hpp"
 #include "labelboard.hpp"
 #include "messagestackboard.hpp"
-#include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 #include "gfxshapeboard.hpp"
 #include "inputstringboard.hpp"

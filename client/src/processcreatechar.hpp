@@ -6,7 +6,6 @@
 #include "labelboard.hpp"
 #include "inputline.hpp"
 #include "messagestackboard.hpp"
-#include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessCreateChar: public Process

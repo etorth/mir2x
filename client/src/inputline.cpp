@@ -388,7 +388,7 @@ void InputLine::setValidateFunc(std::function<bool(std::string, std::string)> va
     m_validate = std::move(validate);
 }
 
-void InputLine::setCodeXferFunc(std::function<std::string(std::string)> codeXfer)
+void InputLine::setCodeXferFunc(std::function<uint32_t(uint32_t)> codeXfer)
 {
     m_tpset.setCodeXferFunc(std::move(codeXfer));
 }

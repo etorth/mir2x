@@ -8,7 +8,6 @@
 #include "message.hpp"
 #include "inputline.hpp"
 #include "textboard.hpp"
-#include "passwordbox.hpp"
 #include "messagestackboard.hpp"
 #include "tritexbutton.hpp"
 #include "gfxshapeboard.hpp"
@@ -25,8 +24,8 @@ class ProcessLogin: public Process
         TritexButton m_button4;
 
     private:
-        InputLine   m_idBox;
-        PasswordBox m_passwordBox;
+        InputLine m_idBox;
+        InputLine m_passwordBox;
 
     private:
         TextBoard m_buildSignature;

@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "log.hpp"
+#include "utf8f.hpp"
 #include "idstrf.hpp"
 #include "client.hpp"
 #include "widget.hpp"
@@ -78,6 +79,11 @@ ProcessChangePassword::ProcessChangePassword()
           {
               doPostPasswordChange();
           },
+
+          .codeXfer = [maskCode = utf8f::str2code("*")](uint32_t)
+          {
+              return maskCode;
+          },
       }}
 
     , m_boxNewPwd
@@ -108,6 +114,11 @@ ProcessChangePassword::ProcessChangePassword()
           {
               doPostPasswordChange();
           },
+
+          .codeXfer = [maskCode = utf8f::str2code("*")](uint32_t)
+          {
+              return maskCode;
+          },
       }}
 
     , m_boxNewPwdConfirm
@@ -137,6 +148,11 @@ ProcessChangePassword::ProcessChangePassword()
           .onCR = [this]
           {
               doPostPasswordChange();
+          },
+
+          .codeXfer = [maskCode = utf8f::str2code("*")](uint32_t)
+          {
+              return maskCode;
           },
       }}
 
@@ -322,9 +338,9 @@ void ProcessChangePassword::doExit()
 void ProcessChangePassword::doPostPasswordChange()
 {
     const auto idStr = m_boxID.getRawString();
-    const auto pwdStr = m_boxPwd.getPasswordString();
-    const auto pwdNewStr = m_boxNewPwd.getPasswordString();
-    const auto pwdNewConfirmStr = m_boxNewPwdConfirm.getPasswordString();
+    const auto pwdStr = m_boxPwd.getRawString();
+    const auto pwdNewStr = m_boxNewPwd.getRawString();
+    const auto pwdNewConfirmStr = m_boxNewPwdConfirm.getRawString();
 
     if(!idstrf::isEmail(idStr.c_str())){
         setInfoStr(u8"无效账号", 2);
@@ -375,9 +391,9 @@ void ProcessChangePassword::doPostPasswordChange()
 void ProcessChangePassword::localCheck()
 {
     const auto idStr = m_boxID.getRawString();
-    const auto pwdStr = m_boxPwd.getPasswordString();
-    const auto pwdNewStr = m_boxNewPwd.getPasswordString();
-    const auto pwdNewConfirmStr = m_boxNewPwdConfirm.getPasswordString();
+    const auto pwdStr = m_boxPwd.getRawString();
+    const auto pwdNewStr = m_boxNewPwd.getRawString();
+    const auto pwdNewConfirmStr = m_boxNewPwdConfirm.getRawString();
 
     const auto fnCheckInput = [](const std::string &s, auto &check, bool good)
     {

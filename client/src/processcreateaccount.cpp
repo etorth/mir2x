@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "log.hpp"
+#include "utf8f.hpp"
 #include "idstrf.hpp"
 #include "client.hpp"
 #include "pngtexdb.hpp"
@@ -74,6 +75,11 @@ ProcessCreateAccount::ProcessCreateAccount()
           {
               doPostAccount();
           },
+
+          .codeXfer = [maskCode = utf8f::str2code("*")](uint32_t)
+          {
+              return maskCode;
+          },
       }}
 
     , m_boxPwdConfirm
@@ -102,6 +108,11 @@ ProcessCreateAccount::ProcessCreateAccount()
           .onCR = [this]
           {
               doPostAccount();
+          },
+
+          .codeXfer = [maskCode = utf8f::str2code("*")](uint32_t)
+          {
+              return maskCode;
           },
       }}
 
@@ -280,8 +291,8 @@ void ProcessCreateAccount::doExit()
 void ProcessCreateAccount::doPostAccount()
 {
     const auto idStr = m_boxID.getRawString();
-    const auto pwdStr = m_boxPwd.getPasswordString();
-    const auto pwdConfirmStr = m_boxPwdConfirm.getPasswordString();
+    const auto pwdStr = m_boxPwd.getRawString();
+    const auto pwdConfirmStr = m_boxPwdConfirm.getRawString();
 
     if(!idstrf::isEmail(idStr.c_str())){
         setInfoStr(u8"无效账号", 2);
@@ -316,8 +327,8 @@ void ProcessCreateAccount::doPostAccount()
 void ProcessCreateAccount::localCheck()
 {
     const auto idStr = m_boxID.getRawString();
-    const auto pwdStr = m_boxPwd.getPasswordString();
-    const auto pwdConfirmStr = m_boxPwdConfirm.getPasswordString();
+    const auto pwdStr = m_boxPwd.getRawString();
+    const auto pwdConfirmStr = m_boxPwdConfirm.getRawString();
 
     const auto fnCheckInput = [](const std::string &s, auto &check, bool good)
     {

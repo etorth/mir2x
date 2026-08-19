@@ -1,5 +1,6 @@
 #include "widget.hpp"
 #include "colorf.hpp"
+#include "utf8f.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "gui/controlboard/controlboard.hpp"
@@ -86,7 +87,6 @@ InputStringBoard::InputStringBoard(
           .w = [this]{ return m_inputBg.w(); },
           .h = [this]{ return m_inputBg.h(); },
 
-          .security = std::move(argSecurity),
           .font
           {
               .id = 1,
@@ -97,6 +97,11 @@ InputStringBoard::InputStringBoard(
           {
               acceptInput();
               setShow(false);
+          },
+
+          .codeXfer = [argSecurity, codeMask = utf8f::str2code("*")](uint32_t codePoint)
+          {
+              return argSecurity ? codeMask : codePoint;
           },
 
           .parent{this},
@@ -163,7 +168,7 @@ InputStringBoard::InputStringBoard(
 
 void InputStringBoard::acceptInput()
 {
-    const std::string fullInput = m_input.getPasswordString();
+    const std::string fullInput = m_input.getRawString();
     const auto inputPos = fullInput.find_first_not_of(" \n\r\t");
     const std::string realInput = (inputPos == std::string::npos) ? "" : fullInput.substr(inputPos);
 
@@ -185,8 +190,13 @@ void InputStringBoard::waitInput(InputStringBoard::WaitInputArgs args)
 
     m_input.setShow(true);
     m_input.setActive(true);
-    m_input.setSecurity(args.security);
     m_input.setValidateFunc(std::move(args.validate));
+    if(args.security){
+        m_input.setCodeXferFunc([maskCode = utf8f::str2code("*")](uint32_t){ return maskCode; });
+    } else {
+        m_input.setCodeXferFunc(nullptr);
+    }
+
     clear();
     setShow(true);
     setFocus(true);

@@ -5,7 +5,6 @@
 #include "raiitimer.hpp"
 #include "labelboard.hpp"
 #include "inputline.hpp"
-#include "passwordbox.hpp"
 #include "tritexbutton.hpp"
 
 class ProcessCreateAccount: public Process
@@ -20,9 +19,9 @@ class ProcessCreateAccount: public Process
         LabelBoard m_LBPwdConfirm;
 
     private:
-        InputLine   m_boxID;
-        PasswordBox m_boxPwd;
-        PasswordBox m_boxPwdConfirm;
+        InputLine m_boxID;
+        InputLine m_boxPwd;
+        InputLine m_boxPwdConfirm;
 
     private:
         LabelBoard m_LBCheckID;
