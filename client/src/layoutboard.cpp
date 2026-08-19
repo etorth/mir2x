@@ -725,8 +725,8 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
             {
                 const auto newEvent = [&event]
                 {
-                    if(event.type == SDL_EVENT_MOUSE_MOTION) return (event.motion.state & SDL_BUTTON_LMASK) ? BEVENT_DOWN : BEVENT_ON;
-                    else                              return (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)     ? BEVENT_DOWN : BEVENT_ON;
+                    if(event.type == SDL_EVENT_MOUSE_MOTION) return (event.motion.state & SDL_BUTTON_LMASK)     ? BEVENT_DOWN : BEVENT_ON;
+                    else                                     return (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) ? BEVENT_DOWN : BEVENT_ON;
                 }();
 
                 const auto [eventPX, eventPY] = SDLDeviceHelper::getEventPLoc(event).value();
@@ -740,7 +740,7 @@ bool LayoutBoard::processEventDefault(const SDL_Event &event, bool valid, Widget
                     const int xOff = eventPX - (m.x + node->margin[2]);
                     const int yOff = eventPY - (m.y + node->startY);
 
-                    const auto [tokenX, tokenY] = node->tpset->locToken(xOff, yOff, true);
+                    const auto [tokenX, tokenY] = node->tpset->locToken(xOff, yOff, true, true);
 
                     if(!node->tpset->tokenLocValid(tokenX, tokenY)){
                         node->tpset->clearEvent(-1);

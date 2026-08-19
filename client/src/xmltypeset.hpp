@@ -184,10 +184,10 @@ class XMLTypeset // means XMLParagraph typeset
         std::optional<std::tuple<int, int>> tokenLocBeforeCursor(int, int) const; // use for deleteToken(cursorLoc)
 
     public:
-        static bool locInToken(int, int, const TOKEN *, bool withPadding);
+        bool locInToken(int, int, const TOKEN *, bool withPadding, bool withMaxH) const;
 
     public:
-        std::tuple<int, int> locToken(int, int, bool withPadding) const;
+        std::tuple<int, int> locToken(int, int, bool withPadding, bool withMaxH) const;
 
     public:
         std::tuple<int, int> locCursor(int, int) const;

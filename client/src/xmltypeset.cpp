@@ -1672,21 +1672,20 @@ std::tuple<int, int> XMLTypeset::cursorOff2Loc(int argCursorOff) const
     throw fflvalue(argCursorOff);
 }
 
-bool XMLTypeset::locInToken(int xOffPixel, int yOffPixel, const TOKEN *pToken, bool withPadding)
+bool XMLTypeset::locInToken(int xOffPixel, int yOffPixel, const TOKEN *token, bool withPadding, bool withMaxH) const
 {
-    if(!pToken){
-        throw fflpanic("null token pointer");
-    }
+    fflassert(token);
+    const auto &leafInfo = m_leafInfoList.at(token->leaf);
 
-    const int startX = pToken->box.state.x - (withPadding ? pToken->box.state.w1 : 0);
-    const int startY = pToken->box.state.y;
-    const int boxW   = pToken->box.info.w + (withPadding ? (pToken->box.state.w1 + pToken->box.state.w2) : 0);
-    const int boxH   = pToken->box.info.h;
+    const int startX = token->box.state.x - (withPadding ? (token->box.state.w1                      ) :                 0);
+    const int startY = token->box.state.y + (withMaxH    ? (token->box.state.h1 - leafInfo.maxH1     ) :                 0);
+    const int boxW   = token->box.info .w + (withPadding ? (token->box.state.w1 + token->box.state.w2) :                 0);
+    const int boxH   =                      (withMaxH    ? (leafInfo.maxH1      + leafInfo.maxH2     ) : token->box.info.h);
 
     return mathf::pointInRectangle(xOffPixel, yOffPixel, startX, startY, boxW, boxH);
 }
 
-std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool withPadding) const
+std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool withPadding, bool withMaxH) const
 {
     if(yOffPixel < 0 || yOffPixel >= fh()){
         return {-1, -1};
@@ -1702,7 +1701,7 @@ std::tuple<int, int> XMLTypeset::locToken(int xOffPixel, int yOffPixel, bool wit
             continue;
         }
 
-        if(locInToken(xOffPixel, yOffPixel, getToken(tokenX, cursorY), withPadding)){
+        if(locInToken(xOffPixel, yOffPixel, getToken(tokenX, cursorY), withPadding, withMaxH)){
             return {tokenX, cursorY};
         }
     }
