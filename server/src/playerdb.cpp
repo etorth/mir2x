@@ -92,7 +92,7 @@ void Player::dbUpdateHealth()
 
 void Player::dbSecureItem(uint32_t itemID, uint32_t seqID)
 {
-    const auto &item = findInventoryItem(itemID, seqID);
+    const auto item = findInventoryItem(itemID, seqID);
     fflassert(item);
 
     auto query = g_dbPod->createQuery(
@@ -101,13 +101,13 @@ void Player::dbSecureItem(uint32_t itemID, uint32_t seqID)
             u8R"###(     (%llu, %llu, %llu, %llu, %llu, %llu, ?)                                                                                  )###",
 
             to_llu(dbid()),
-            to_llu(item.itemID),
-            to_llu(item.seqID),
-            to_llu(item.count),
-            to_llu(item.duration[0]),
-            to_llu(item.duration[1]));
+            to_llu(item->itemID),
+            to_llu(item->seqID),
+            to_llu(item->count),
+            to_llu(item->duration[0]),
+            to_llu(item->duration[1]));
 
-    query.bindBlob(1, cerealf::serialize(item.extAttrList));
+    query.bindBlob(1, cerealf::serialize(item->extAttrList));
     query.exec();
 }
 

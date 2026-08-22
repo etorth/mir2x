@@ -77,6 +77,7 @@ enum SMType: uint8_t
     SM_EQUIPBELTERROR,
     SM_GRABBELT,
     SM_GRABBELTERROR,
+    SM_WEARITEMDURATION,
     SM_SHOWSECUREDITEMLIST,
     SM_TEAMMEMBERLIST,
     SM_TEAMCANDIDATE,
@@ -356,6 +357,14 @@ struct SMGrabBeltError
     uint16_t error;
 };
 
+// only sent to the owner
+// durability doesn't change how the wear item looks, no need to notify in-view players
+struct SMWearItemDuration
+{
+    uint32_t wltype;
+    uint32_t duration[2];
+};
+
 struct SMTeamMemberLeft
 {
     uint64_t uid;
@@ -507,6 +516,7 @@ namespace
         _RSVD_register_servermsg(SM_EQUIPBELTERROR,         1, sizeof(SMEquipBeltError)        );
         _RSVD_register_servermsg(SM_GRABBELT,               3                                  );
         _RSVD_register_servermsg(SM_GRABBELTERROR,          1, sizeof(SMGrabBeltError)         );
+        _RSVD_register_servermsg(SM_WEARITEMDURATION,       1, sizeof(SMWearItemDuration)      );
         _RSVD_register_servermsg(SM_SHOWSECUREDITEMLIST,    3                                  );
         _RSVD_register_servermsg(SM_TEAMMEMBERLIST,         3                                  );
         _RSVD_register_servermsg(SM_TEAMCANDIDATE,          3                                  );

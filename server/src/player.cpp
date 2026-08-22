@@ -103,6 +103,26 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         getPlayer()->reportSecuredItemList();
     });
 
+    bindFunction("repairItem", [this](uint32_t itemID, uint32_t seqID, bool special) -> bool
+    {
+        return getPlayer()->repairInventoryItem(itemID, seqID, special);
+    });
+
+    // returns {currDuration, maxDuration}, or nil if the item doesn't exist or has no durability
+    bindFunction("queryItemDuration", [this](uint32_t itemID, uint32_t seqID, sol::this_state s) -> sol::object
+    {
+        if(const auto &ir = DBCOM_ITEMRECORD(itemID); ir && !ir.isGold()){
+            if(const auto item = getPlayer()->findInventoryItem(itemID, seqID); item && item->duration[1] > 0){
+                return luaf::buildLuaObj(sol::state_view(s), luaf::buildLuaVar(std::array<int, 2>
+                {
+                    to_d(item->duration[0]),
+                    to_d(item->duration[1]),
+                }));
+            }
+        }
+        return sol::make_object(sol::state_view(s), sol::lua_nil);
+    });
+
     bindFunction("addItem", [this](int itemID, int itemCount)
     {
         const auto &ir = DBCOM_ITEMRECORD(itemID);
@@ -823,6 +843,9 @@ bool Player::struckDamage(uint64_t, const DamageNode &node)
         if(m_sdHealth.dead()){
             onDie();
         }
+        else{
+            damageDefendWearItem();
+        }
     }
     return true;
 }
@@ -1276,6 +1299,8 @@ corof::awaitable<> Player::onCMActionAttack(CMAction stCMA)
                                             }
                                             dispatchAttackDamage(uid, nDCType, 0);
                                         }
+
+                                        damageWearItem(WLG_WEAPON, SYS_WEAPONDURALOSSODDS);
 
                                         if(m_nextStrike){
                                             m_nextStrike = false;
@@ -1914,7 +1939,13 @@ size_t Player::removeInventoryItem(uint32_t itemID, uint32_t seqID, size_t count
     return doneCount;
 }
 
-const SDItem &Player::findInventoryItem(uint32_t itemID, uint32_t seqID) const
+const SDItem *Player::findInventoryItem(uint32_t itemID, uint32_t seqID) const
+{
+    fflassert(DBCOM_ITEMRECORD(itemID));
+    return m_sdItemStorage.inventory.find(itemID, seqID);
+}
+
+SDItem *Player::findInventoryItem(uint32_t itemID, uint32_t seqID)
 {
     fflassert(DBCOM_ITEMRECORD(itemID));
     return m_sdItemStorage.inventory.find(itemID, seqID);
@@ -1991,6 +2022,105 @@ void Player::setWLItem(int wltype, SDItem item)
             forwardNetPackage(coLoc.uid, SM_EQUIPWEAR, sdEquipWearBuf);
         }
     });
+}
+
+bool Player::damageWearItem(int wltype, int odds)
+{
+    fflassert(wltype >= WLG_BEGIN, wltype);
+    fflassert(wltype <  WLG_END  , wltype);
+    fflassert(odds > 0, odds);
+
+    const auto item = m_sdItemStorage.wear.getWLItem(wltype);
+    if(item.duration[1] == 0){
+        return false;
+    }
+
+    if(mathf::rand<int>(1, odds) != 1){
+        return false;
+    }
+
+    if(item.duration[0] > 0){
+        auto damagedItem = item;
+        damagedItem.duration[0]--;
+
+        m_sdItemStorage.wear.setWLItem(wltype, damagedItem);
+        dbUpdateWearItem(wltype, damagedItem);
+
+        SMWearItemDuration smWID;
+        std::memset(&smWID, 0, sizeof(smWID));
+
+        smWID.wltype = to_u32(wltype);
+        smWID.duration[0] = to_u32(damagedItem.duration[0]);
+        smWID.duration[1] = to_u32(damagedItem.duration[1]);
+
+        postNetMessage(SM_WEARITEMDURATION, smWID);
+        return false;
+    }
+
+    // durability has been exhausted, this loss destroys the item permanently
+    // don't put it back into the inventory, it's gone
+
+    setWLItem(wltype, {});
+    dbRemoveWearItem(wltype);
+
+    postNetMessage(SM_EQUIPWEAR, cerealf::serialize(SDEquipWear
+    {
+        .uid = UID(),
+        .wltype = wltype,
+    }));
+
+    postNetMessage(SM_TEXT, str_printf(u8"%s因持久耗尽而彻底损坏", to_cstr(DBCOM_ITEMRECORD(item.itemID).name)));
+
+    if(auto cbp = m_onWLOff.find(wltype); cbp != m_onWLOff.end()){
+        fflassert(cbp->second);
+        cbp->second();
+        m_onWLOff.erase(cbp);
+    }
+    return true;
+}
+
+void Player::damageDefendWearItem()
+{
+    std::vector<int> wltypeList;
+    for(int wltype = WLG_BEGIN; wltype < WLG_END; ++wltype){
+        if(wltype != WLG_WEAPON && m_sdItemStorage.wear.getWLItem(wltype).duration[1] > 0){
+            wltypeList.push_back(wltype);
+        }
+    }
+
+    if(!wltypeList.empty()){
+        damageWearItem(wltypeList.at(mathf::rand<size_t>(0, wltypeList.size() - 1)), SYS_ARMORDURALOSSODDS);
+    }
+}
+
+bool Player::repairInventoryItem(uint32_t itemID, uint32_t seqID, bool special)
+{
+    const auto &ir = DBCOM_ITEMRECORD(itemID);
+    if(!ir || ir.isGold()){
+        return false;
+    }
+
+    const auto item = findInventoryItem(itemID, seqID);
+    if(!item || item->duration[0] >= item->duration[1]){
+        return false;
+    }
+
+    if(!special){
+        // normal repair permanently wears the item out by 1/SYS_DURALOSSRATE of the restored
+        // durability, the remainder is taken by chance so that repairing a slightly damaged
+        // item still risks the max durability, this is why 特殊修理 exists
+
+        const auto restored = item->duration[1] - item->duration[0];
+        const auto lostMax = restored / SYS_DURALOSSRATE + (to_uz(mathf::rand<int>(1, SYS_DURALOSSRATE)) <= restored % SYS_DURALOSSRATE ? 1 : 0);
+
+        item->duration[1] = std::max<size_t>(1, item->duration[1] - lostMax);
+    }
+
+    item->duration[0] = item->duration[1];
+
+    dbUpdateInventoryItem(dbid(), *item);
+    reportUpdateItem(*item);
+    return true;
 }
 
 void Player::postExp()

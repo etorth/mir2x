@@ -183,6 +183,23 @@ function uidShowSecuredItemList(uid)
     uidRemoteCall(uid, [[ reportSecuredItemList() ]])
 end
 
+-- returns {currDuration, maxDuration}, or nil if the item doesn't exist or has no durability
+function uidQueryItemDuration(uid, itemID, seqID)
+    return uidRemoteCall(uid, itemID, seqID,
+    [[
+        local itemID, seqID = ...
+        return queryItemDuration(itemID, seqID)
+    ]])
+end
+
+function uidRepairItem(uid, itemID, seqID, special)
+    return uidRemoteCall(uid, itemID, seqID, special or false,
+    [[
+        local itemID, seqID, special = ...
+        return repairItem(itemID, seqID, special)
+    ]])
+end
+
 function uidGrant(uid, item, count)
     local itemID = convItemSeqID(item)
     if itemID == 0 then

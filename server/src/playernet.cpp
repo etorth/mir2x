@@ -291,12 +291,13 @@ corof::awaitable<> Player::net_CM_REGISTERAUCTIONITEM(uint8_t, const uint8_t *bu
             && cmRAI.seqID > 0
             && hasInventoryItem(cmRAI.itemID, cmRAI.seqID, 1)){
 
-        const auto item = findInventoryItem(cmRAI.itemID, cmRAI.seqID);
-        if(item && !item.isGold() && dbRegisterAuctionItem(dbid(), item, note, cmRAI.price)){
-            const auto [removedCount, removedSeqID, itemPtr] = m_sdItemStorage.inventory.remove(item.itemID, item.seqID, item.count, true);
+        const auto itemPtr = findInventoryItem(cmRAI.itemID, cmRAI.seqID);
+        if(itemPtr && !itemPtr->isGold() && dbRegisterAuctionItem(dbid(), *itemPtr, note, cmRAI.price)){
+            const auto item = *itemPtr; // keep a copy, remove() invalidates itemPtr
+            const auto [removedCount, removedSeqID, removedItemPtr] = m_sdItemStorage.inventory.remove(item.itemID, item.seqID, item.count, true);
             fflassert(removedCount == item.count, removedCount, item.count);
             fflassert(removedSeqID == item.seqID, removedSeqID, item.seqID);
-            fflassert(!itemPtr);
+            fflassert(!removedItemPtr);
 
             reportRemoveItem(item.itemID, item.seqID, item.count);
             postNetMessage(SM_OK, respID);
@@ -903,8 +904,8 @@ corof::awaitable<> Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, 
         return {};
     }
 
-    const auto item = findInventoryItem(cmREW.itemID, cmREW.seqID);
-    if(!item){
+    const auto itemPtr = findInventoryItem(cmREW.itemID, cmREW.seqID);
+    if(!itemPtr){
         fnPostEquipError(EQWERR_NOITEM);
         return {};
     }
@@ -913,6 +914,8 @@ corof::awaitable<> Player::net_CM_REQUESTEQUIPWEAR(uint8_t, const uint8_t *buf, 
         fnPostEquipError(EQWERR_INSUFF);
         return {};
     }
+
+    const auto item = *itemPtr; // keep a copy, removeInventoryItem() invalidates itemPtr
 
     const auto currItem = m_sdItemStorage.wear.getWLItem(wltype);
     setWLItem(cmREW.wltype, item);
@@ -977,12 +980,13 @@ corof::awaitable<> Player::net_CM_REQUESTEQUIPBELT(uint8_t, const uint8_t *buf, 
         return {};
     }
 
-    const auto item = findInventoryItem(cmREB.itemID, cmREB.seqID);
-    if(!item){
+    const auto itemPtr = findInventoryItem(cmREB.itemID, cmREB.seqID);
+    if(!itemPtr){
         fnPostEquipError(EQBERR_NOITEM);
         return {};
     }
 
+    const auto item = *itemPtr; // keep a copy, removeInventoryItem() invalidates itemPtr
     const auto currItem = m_sdItemStorage.belt.list.at(slot);
     m_sdItemStorage.belt.list.at(slot) = item;
 
@@ -1158,8 +1162,8 @@ corof::awaitable<> Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, 
     const auto cmDI = ClientMsg::conv<CMDropItem>(buf);
     auto dropItem = [&cmDI, this]() -> SDItem
     {
-        if(const auto &singleItem = findInventoryItem(cmDI.itemID, cmDI.seqID)){
-            return singleItem;
+        if(const auto singleItem = findInventoryItem(cmDI.itemID, cmDI.seqID)){
+            return *singleItem;
         }
 
         if(hasInventoryItem(cmDI.itemID, cmDI.seqID, cmDI.count)){
@@ -1561,13 +1565,13 @@ corof::awaitable<> Player::net_CM_UPDATEDIRECTTRADE(uint8_t, const uint8_t *buf,
             return {};
         }
 
-        const auto &inventoryItem = findInventoryItem(updatedItem.itemID, updatedItem.seqID);
-        if(!inventoryItem || updatedItem.count > inventoryItem.count){
+        const auto inventoryItem = findInventoryItem(updatedItem.itemID, updatedItem.seqID);
+        if(!inventoryItem || updatedItem.count > inventoryItem->count){
             postDirectTradeError(DTRADEERR_BADOFFER);
             return {};
         }
 
-        auto offeredItem = inventoryItem;
+        auto offeredItem = *inventoryItem;
         offeredItem.count = updatedItem.count;
         offer.itemList.push_back(std::move(offeredItem));
     }

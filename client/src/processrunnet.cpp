@@ -757,6 +757,26 @@ void ProcessRun::on_SM_EQUIPWEAR(const uint8_t *buf, size_t bufSize)
     }
 }
 
+void ProcessRun::on_SM_WEARITEMDURATION(const uint8_t *buf, size_t)
+{
+    const auto smWID = ServerMsg::conv<SMWearItemDuration>(buf);
+    if(auto item = getMyHero()->getWLItem(smWID.wltype)){
+        if(smWID.duration[0] < item.duration[0]){
+            const auto &ir = DBCOM_ITEMRECORD(item.itemID);
+            if(smWID.duration[0] == 0){
+                addCBLog(CBLOG_ERR, u8"%s的持久已经耗尽，请立即修复！", to_cstr(ir.name));
+            }
+            else{
+                addCBLog(CBLOG_ERR, u8"%s的持久下降到%d/%d", to_cstr(ir.name), to_d(smWID.duration[0]), to_d(smWID.duration[1]));
+            }
+        }
+
+        item.duration[0] = smWID.duration[0];
+        item.duration[1] = smWID.duration[1];
+        getMyHero()->setWLItem(smWID.wltype, std::move(item), false);
+    }
+}
+
 void ProcessRun::on_SM_EQUIPWEARERROR(const uint8_t *buf, size_t)
 {
     const auto smEWE = ServerMsg::conv<SMEquipWearError>(buf);

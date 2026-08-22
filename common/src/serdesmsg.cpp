@@ -35,9 +35,8 @@ std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & 
             xmlStr += str_printf(u8R"###( <par>【售价】<t color='%s'>%s</t></par> )###""\n", priceColor, to_cstr(p->second));
         }
 
-        if(ir.equip.duration > 0){
+        if(duration[1] > 0){
             fflassert(duration[0] <= duration[1]);
-            fflassert(duration[1] <= to_uz(ir.equip.duration));
             const auto duraColorStr = [this]() -> const char *
             {
                 if(duration[0] <= to_uz(duration[1] / 4) || (duration[0] <= 1)){
@@ -191,6 +190,11 @@ std::vector<SDItem> SDItem::buildItemList(uint32_t itemID, size_t count)
         {
             .itemID = itemID,
             .count  = itemCount,
+            .duration
+            {
+                to_uz(std::max<int>(0, ir.equip.duration)),
+                to_uz(std::max<int>(0, ir.equip.duration)),
+            },
         });
         count -= itemCount;
     }
@@ -308,7 +312,7 @@ const SDItem &SDWear::getWLItem(int i) const
     return s_item;
 }
 
-std::unordered_set<uint64_t> SDInventory::getItemSeqIDSet() const
+std::unordered_set<uint64_t> SDInventory::getItemIDSeqSet() const
 {
     std::unordered_set<uint64_t> result;
     result.reserve(m_list.size());
@@ -337,7 +341,7 @@ size_t SDInventory::has(uint32_t itemID, uint32_t seqID) const
     return count;
 }
 
-const SDItem &SDInventory::find(uint32_t itemID, uint32_t seqID) const
+const SDItem *SDInventory::find(uint32_t itemID, uint32_t seqID) const
 {
     const auto &ir = DBCOM_ITEMRECORD(itemID);
 
@@ -346,21 +350,24 @@ const SDItem &SDInventory::find(uint32_t itemID, uint32_t seqID) const
 
     for(const auto &item: m_list){
         if((item.itemID == itemID) && ((seqID == 0) || (item.seqID == seqID))){
-            return item;
+            return &item;
         }
     }
+    return nullptr;
+}
 
-    const static SDItem s_item;
-    return s_item;
+SDItem *SDInventory::find(uint32_t itemID, uint32_t seqID)
+{
+    return const_cast<SDItem *>(static_cast<const SDInventory *>(this)->find(itemID, seqID));
 }
 
 const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 {
     fflassert(newItem);
-    const auto itemSeqIDSet = getItemSeqIDSet();
+    const auto itemIDSeqSet = getItemIDSeqSet();
 
     if(keepSeqID){
-        if(itemSeqIDSet.contains(newItem.itemIDSeq())){
+        if(itemIDSeqSet.contains(newItem.itemIDSeq())){
             throw fflpanic("found duplication with given item: itemID = {}, seqID = {}", newItem.itemID, newItem.seqID);
         }
         m_list.push_back(std::move(newItem));
@@ -384,7 +391,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
 
     for(uint32_t seqID = 1;; ++seqID){
         newItem.seqID = seqID;
-        if(!itemSeqIDSet.contains(newItem.itemIDSeq())){
+        if(!itemIDSeqSet.contains(newItem.itemIDSeq())){
             m_list.push_back(std::move(newItem));
             return m_list.back();
         }

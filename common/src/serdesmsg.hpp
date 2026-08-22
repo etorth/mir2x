@@ -514,7 +514,9 @@ class SDInventory final
 
     public:
         size_t has(uint32_t, uint32_t) const;
-        const SDItem &find(uint32_t, uint32_t) const;
+
+        const SDItem *find(uint32_t, uint32_t) const;
+        /* */ SDItem *find(uint32_t, uint32_t);
 
     public:
         const SDItem &add(SDItem, bool);
@@ -537,7 +539,7 @@ class SDInventory final
         void merge(uint32_t, uint32_t, uint32_t);
 
     private:
-        std::unordered_set<uint64_t> getItemSeqIDSet() const;
+        std::unordered_set<uint64_t> getItemIDSeqSet() const;
 };
 
 struct SDDirectTradeItem

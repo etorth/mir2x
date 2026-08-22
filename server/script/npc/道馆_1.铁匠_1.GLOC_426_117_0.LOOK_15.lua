@@ -73,9 +73,10 @@ setEventHandler(
         [[
             <layout>
                 <par>请选择要修理的武器，我会报价。</par>
+                <par>普通修理会有概率损失装备的持久上限。</par>
                 <par></par>
 
-                <par><event id="npc_goto_6">修理</event></par>
+                <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
         invop.uidStartRepair(uid, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
@@ -85,14 +86,14 @@ setEventHandler(
         uidPostXML(uid,
         [[
             <layout>
-                <par>修理费用是%d。</par>
-                <par>这个特修是只有带着物品的情况下才可以修理。请确认一下是否带着。</par>
+                <par>特殊修理不会损失持久上限，但是价钱要贵得多。</par>
+                <par>请选择要修理的武器。</par>
                 <par></par>
 
-                <par><event id="npc_goto_commit_special_repair">修理</event></par>
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], 0, SYS_ENTER)
+        ]], SYS_ENTER)
+        invop.uidStartRepair(uid, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", {'武器'})
     end,
 
     ["npc_goto_daily_quest"] = function(uid, value)
@@ -141,44 +142,18 @@ setEventHandler(
     end,
 
     ["npc_goto_query_repair"] = function(uid, value)
-        itemID, seqID = invop.parseItemString(value)
-        repairCost = math.random(100, 200)
-
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你的武器%s太旧了，修复费用是%s金币。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), repairCost, SYS_ENTER)
-        invop.postRepairCost(uid, itemID, seqID, repairCost)
+        invop.postQueryRepair(uid, value, false)
     end,
 
     ["npc_goto_commit_repair"] = function(uid, value)
-        itemID, seqID = invop.parseItemString(value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你的%s已经修理完毕。</par>
-                <par></par>
+        invop.postCommitRepair(uid, value, false)
+    end,
 
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), SYS_ENTER)
+    ["npc_goto_query_special_repair"] = function(uid, value)
+        invop.postQueryRepair(uid, value, true)
     end,
 
     ["npc_goto_commit_special_repair"] = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>修理得很好。</par>
-                <par>修理费用是%d金币。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], 0, SYS_ENTER)
+        invop.postCommitRepair(uid, value, true)
     end,
 })

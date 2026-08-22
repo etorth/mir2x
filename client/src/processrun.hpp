@@ -257,6 +257,7 @@ class ProcessRun: public Process
         _support_sm(SM_EQUIPBELTERROR);
         _support_sm(SM_GRABBELT);
         _support_sm(SM_GRABBELTERROR);
+        _support_sm(SM_WEARITEMDURATION);
         _support_sm(SM_STARTINVOP);
         _support_sm(SM_STARTINPUT);
         _support_sm(SM_SHOWSECUREDITEMLIST);

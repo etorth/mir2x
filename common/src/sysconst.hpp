@@ -116,6 +116,16 @@ constexpr int SYS_MAXNPCDISTANCE = 10;
 constexpr char SYS_GOLDNAME[] = "金币（小）"; // always use 金币（小）to represent the gold item
 constexpr char SYS_QUEST_TBL_PREFIX[] = "tbl_questdb_";
 
+// item durability
+//
+// SDItem::duration[0/1] uses the same unit as ItemRecord::equip.duration, which is a small
+// number in [1, 60], so instead of decreasing the durability on every swing/hit, roll a dice
+// and only lose one point when it hits, this also keeps the durability database writes rare
+
+constexpr int SYS_WEAPONDURALOSSODDS = 200; // 1/N chance to lose one durability point per attack
+constexpr int SYS_ARMORDURALOSSODDS  = 300; // 1/N chance to lose one durability point per hit taken
+constexpr int SYS_DURALOSSRATE       =  10; // normal repair permanently loses (max - curr) / N of the max durability
+
 // commonly used quest variable name in fld_vars
 // use key in luaTable instead of key in database table to avoid change table structure
 

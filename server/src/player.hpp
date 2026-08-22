@@ -446,11 +446,17 @@ class Player final: public BattleObject
         size_t removeInventoryItem(uint32_t, uint32_t, size_t);
 
     private:
-        const SDItem &findInventoryItem(uint32_t, uint32_t) const;
+        const SDItem *findInventoryItem(uint32_t, uint32_t) const;
+        /* */ SDItem *findInventoryItem(uint32_t, uint32_t);
 
     private:
         void secureItem(uint32_t, uint32_t);
         void removeSecuredItem(uint32_t, uint32_t);
+
+    private:
+        bool damageWearItem(int, int);
+        void damageDefendWearItem();
+        bool repairInventoryItem(uint32_t, uint32_t, bool);
 
     private:
         void setGold(size_t);

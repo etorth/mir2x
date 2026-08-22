@@ -131,6 +131,16 @@ struct SDItem
     uint32_t  seqID = 0;
 
     size_t count = 1;
+
+    // duration[0]: current durability
+    // duration[1]: max durability of this very item
+    //
+    // duration[1] is per-item
+    // the item record only gives the typical durability used to setup a fresh item
+    //
+    // duration[1] == 0 means the item has no durability at all
+    // duration[1] >  0 and duration[0] == 0 means the item is broken, it contributes nothing
+
     size_t duration[2] = {0, 0};
     std::unordered_map<int, std::string> extAttrList = {};
 
