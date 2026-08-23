@@ -61,13 +61,13 @@ class InventoryBoard: public Widget
 
     private:
         TextBoard m_goldStr;
+        TextBoard m_invOpCostStr;
 
     public:
         InventoryBoard(InventoryBoard::InitArgs);
 
     private:
         void drawGold() const;
-        void drawInvOpCost() const;
         void drawInvOpTitle() const;
         void drawItem(int, int, size_t, const PackBin &, uint32_t) const;
 

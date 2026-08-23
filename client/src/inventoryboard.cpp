@@ -142,8 +142,21 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
 
           .font
           {
-              .id = 1,
-              .size = 12,
+              .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+          },
+
+          .parent{this},
+      }}
+
+    , m_invOpCostStr
+      {{
+          .dir = DIR_NONE,
+          .x = 132,
+          .y = 503,
+
+          .textFunc = [this]{ return str_ksep(m_invOpCost, ','); },
+          .font
+          {
               .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
           },
 
@@ -281,7 +294,7 @@ void InventoryBoard::drawDefault(Widget::ROIMap m) const
         g_sdlDevice->drawTexture(g_progUseDB->retrieve(0X0000B0), m.x + m_invOpButtonX, m.y + m_invOpButtonY);
         drawChild(&m_invOpButton, m);
         if(m_invOpCost >= 0){
-            drawInvOpCost();
+            drawChild(&m_invOpCostStr, m);
         }
     }
 
@@ -467,26 +480,6 @@ size_t InventoryBoard::getStartRow() const
         return 0;
     }
     return std::lround((rowCount - SYS_INVGRIDGH) * m_slider.getValue());
-}
-
-void InventoryBoard::drawInvOpCost() const
-{
-    if(m_invOpCost < 0){
-        return;
-    }
-
-    const LabelBoard queryResultBoard
-    {{
-        .label = to_u8rawstr(str_ksep(m_invOpCost, ',')).c_str(),
-        .font
-        {
-            .id = 1,
-            .size = 12,
-            .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-        },
-    }};
-    // queryResultBoard.drawAt(DIR_NONE, m.x + 132, m.y + 503);
-    queryResultBoard.draw({.dir=DIR_NONE, .x=132, .y=503});
 }
 
 int InventoryBoard::getPackBinIndex(int locPDX, int locPDY) const
