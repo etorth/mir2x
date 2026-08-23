@@ -348,6 +348,20 @@ NPChar::LuaThreadRunner::LuaThreadRunner(NPChar *npc)
         getNPChar()->postXMLLayout(uid, std::move(path), std::move(xmlString));
     });
 
+    bindFunction("uidGetXMLSeqID", [this](uint64_t uid, sol::this_state s) -> sol::object
+    {
+        fflassert(uid);
+        fflassert(uidf::isPlayer(uid), uid, uidf::getUIDString(uid));
+
+        sol::state_view sv(s);
+        if(const auto seqIDOpt = getNPChar()->getXMLSeqID(uid); seqIDOpt.has_value()){
+            return sol::object(sv, sol::in_place_type<lua_Integer>, seqIDOpt.value());
+        }
+        else{
+            return sol::make_object(sv, sol::lua_nil);
+        }
+    });
+
     constexpr static unsigned char luaScript []
     {
         #embed "npchar.lua" suffix(,)
