@@ -24,14 +24,6 @@ function invop.postRepairCost(uid, itemID, seqID, cost)
     uidPostInvOpCost(uid, INVOP_REPAIR, itemID, seqID, cost)
 end
 
-function invop.uidStartSecure(uid, queryTag, commitTag, typeList)
-    uidPostStartInvOp(uid, INVOP_SECURE, queryTag, commitTag, typeList)
-end
-
-function invop.uidStartRepair(uid, queryTag, commitTag, typeList)
-    uidPostStartInvOp(uid, INVOP_REPAIR, queryTag, commitTag, typeList)
-end
-
 function invop.postStartInput(uid, title, commitTag, show)
     uidPostStartInput(uid, title, commitTag, show)
 end
