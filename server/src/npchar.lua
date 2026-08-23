@@ -573,7 +573,7 @@ function _RSVD_NAME_npc_main(from, path, event, value)
         -- needs to parse event path to find correct event handler
 
         local funcTable = nil
-        local pathTokens = splitString(path, '/')
+        local pathTokens = path and splitString(path, '/') or {SYS_EPDEF}
 
         if pathTokens[1] == SYS_EPDEF then
             if hasEventHandler(event) then
