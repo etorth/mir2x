@@ -462,23 +462,25 @@ void NPChar::postStartInvOp(uint64_t uid, int invOp, std::string queryTag, std::
     fflassert(invOp >= INVOP_BEGIN);
     fflassert(invOp <  INVOP_END);
 
+    fflassert(getXMLSeqID(uid).has_value(), uidf::getUIDString(uid));
     forwardNetPackage(uid, SM_STARTINVOP, cerealf::serialize(SDStartInvOp
     {
         .invOp = invOp,
         .uid= UID(),
-        .queryTag = queryTag,
-        .commitTag = commitTag,
+        .queryTag = AESHelper(this, uid).encode(queryTag.c_str()),
+        .commitTag = AESHelper(this, uid).encode(commitTag.c_str()),
         .typeList = typeList,
     }));
 }
 
 void NPChar::postStartInput(uint64_t uid, std::string title, std::string commitTag, bool show)
 {
+    fflassert(getXMLSeqID(uid).has_value(), uidf::getUIDString(uid));
     forwardNetPackage(uid, SM_STARTINPUT, cerealf::serialize(SDStartInput
     {
         .uid = UID(),
         .title = title,
-        .commitTag = commitTag,
+        .commitTag = AESHelper(this, uid).encode(commitTag.c_str()),
         .show = show,
     }));
 }
