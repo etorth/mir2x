@@ -1,3 +1,17 @@
+setNPCSell({
+    '黄色药粉（小）',
+    '黄色药粉（中）',
+    '黄色药粉（大）',
+    '灰色药粉（小）',
+    '灰色药粉（中）',
+    '灰色药粉（大）',
+})
+
+local invop = require('npc.include.invop')
+
+local powderTypeList = {'药粉'}
+local tradeGold = 20
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
@@ -20,6 +34,7 @@ setEventHandler(
                     <par></par>
 
                     <par><event id="npc_goto_1">购买</event>药粉</par>
+                    <par><event id="npc_goto_trade">出售</event>药粉</par>
                     <par><event id="npc_goto_2">对今日的任务进行了解</event></par>
                     <par><event id="%s" close="1">关闭</event></par>
                 </layout>
@@ -37,6 +52,28 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
+        uidPostSell(uid)
+    end,
+
+    ["npc_goto_trade"] = function(uid, value)
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>多余的药粉我也收，放上来吧。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], SYS_ENTER)
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", powderTypeList)
+    end,
+
+    ["npc_goto_query_trade"] = function(uid, value)
+        invop.postQueryTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", powderTypeList, tradeGold)
+    end,
+
+    ["npc_goto_commit_trade"] = function(uid, value)
+        invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", powderTypeList, tradeGold)
     end,
 
     ["npc_goto_2"] = function(uid, value)

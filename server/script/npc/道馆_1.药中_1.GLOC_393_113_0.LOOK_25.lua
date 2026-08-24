@@ -10,6 +10,11 @@ setNPCSell({
     '太阳水',
 })
 
+local invop = require('npc.include.invop')
+
+local potionTypeList = {'恢复药水'}
+local tradeGold = 20
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
@@ -63,6 +68,15 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", potionTypeList)
+    end,
+
+    ["npc_goto_query_trade"] = function(uid, value)
+        invop.postQueryTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", potionTypeList, tradeGold)
+    end,
+
+    ["npc_goto_commit_trade"] = function(uid, value)
+        invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", potionTypeList, tradeGold)
     end,
 
     ["npc_goto_3"] = function(uid, value)

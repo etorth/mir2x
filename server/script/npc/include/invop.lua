@@ -162,4 +162,59 @@ function invop.postCommitSpecialRepair(uid, value, queryTag, commitTag, typeList
     commitRepair(uid, value, queryTag, commitTag, typeList, true)
 end
 
+-- 出售 : NPC buys an item off player at a flat price
+--
+-- there is no item price in the item record yet so the caller passes one in, keep it under what
+-- NPChar::getCostItemList() charges, otherwise player buys from the NPC and sells straight back
+--
+--     ["npc_goto_query_trade" ] = function(uid, value) invop.postQueryTrade (uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", typeList, price) end,
+--     ["npc_goto_commit_trade"] = function(uid, value) invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", typeList, price) end,
+
+function invop.postQueryTrade(uid, value, queryTag, commitTag, typeList, price)
+    local itemID, seqID = invop.parseItemString(value)
+
+    uidPostXML(uid,
+    [[
+        <layout>
+            <par>你的%s我看过了，出价%d金币。</par>
+            <par>你要卖吗？</par>
+            <par></par>
+
+            <par><event id="%s">前一步</event></par>
+        </layout>
+    ]], getItemName(itemID), price, SYS_ENTER)
+
+    invop.postTradePrice(uid, itemID, seqID, price)
+    invop.uidStartTrade(uid, queryTag, commitTag, typeList)
+end
+
+function invop.postCommitTrade(uid, value, queryTag, commitTag, typeList, price)
+    local itemID, seqID = invop.parseItemString(value)
+
+    if uidRemove(uid, {itemID = itemID, seqID = seqID}) then
+        uidGrantGold(uid, price)
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>成交，这是%d金币，收好了。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], price, SYS_ENTER)
+    else
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>你的%s已经不在身上了。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], getItemName(itemID), SYS_ENTER)
+    end
+
+    invop.uidStartTrade(uid, queryTag, commitTag, typeList)
+end
+
 return invop

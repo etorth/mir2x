@@ -7,6 +7,11 @@ setNPCSell({
     '轻盔甲（女）',
 })
 
+local invop = require('npc.include.invop')
+
+local armourTypeList = {'衣服', '头盔'}
+local tradeGold = 50
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
@@ -61,6 +66,15 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", armourTypeList)
+    end,
+
+    ["npc_goto_query_trade"] = function(uid, value)
+        invop.postQueryTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", armourTypeList, tradeGold)
+    end,
+
+    ["npc_goto_commit_trade"] = function(uid, value)
+        invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", armourTypeList, tradeGold)
     end,
 
     ["npc_goto_3"] = function(uid, value)
@@ -68,12 +82,44 @@ setEventHandler(
         [[
             <layout>
                 <par>确实要修理吗？</par>
+                <par>普通修理会有概率损失持久上限，特殊修理不会。</par>
                 <par></par>
 
                 <par><event id="npc_goto_5">修理</event></par>
+                <par><event id="npc_goto_special_repair">特殊修理</event></par>
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
+    end,
+
+    ["npc_goto_special_repair"] = function(uid, value)
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>特殊修理不会损失持久上限，价钱贵些。</par>
+                <par>请把要修理的衣服（头盔）放上来。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], SYS_ENTER)
+        invop.uidStartRepair(uid, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", armourTypeList)
+    end,
+
+    ["npc_goto_query_repair"] = function(uid, value)
+        invop.postQueryRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", armourTypeList)
+    end,
+
+    ["npc_goto_commit_repair"] = function(uid, value)
+        invop.postCommitRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", armourTypeList)
+    end,
+
+    ["npc_goto_query_special_repair"] = function(uid, value)
+        invop.postQuerySpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", armourTypeList)
+    end,
+
+    ["npc_goto_commit_special_repair"] = function(uid, value)
+        invop.postCommitSpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", armourTypeList)
     end,
 
     ["npc_goto_4"] = function(uid, value)
@@ -98,18 +144,6 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
-    end,
-
-
-    ["npc_goto_6"] = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>修得不错。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], SYS_ENTER)
+        invop.uidStartRepair(uid, "npc_goto_query_repair", "npc_goto_commit_repair", armourTypeList)
     end,
 })

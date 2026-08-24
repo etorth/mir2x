@@ -1,3 +1,7 @@
+local invop = require('npc.include.invop')
+
+local weaponTypeList = {'武器'}
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
@@ -30,12 +34,22 @@ setEventHandler(
         uidPostXML(uid,
         [[
             <layout>
-                <par>我不会。</par>
+                <par>特殊修理不会损失武器的持久上限，价钱要贵得多。</par>
+                <par>请选择要修理的武器。</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
+        invop.uidStartRepair(uid, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", weaponTypeList)
+    end,
+
+    ["npc_goto_query_special_repair"] = function(uid, value)
+        invop.postQuerySpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", weaponTypeList)
+    end,
+
+    ["npc_goto_commit_special_repair"] = function(uid, value)
+        invop.postCommitSpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", weaponTypeList)
     end,
 
     ["npc_goto_unequip_weapon"] = function(uid, value)

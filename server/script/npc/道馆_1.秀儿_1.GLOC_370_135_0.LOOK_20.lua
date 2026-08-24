@@ -73,50 +73,11 @@ setEventHandler(
     end,
 
     ["npc_goto_query_trade"] = function(uid, value)
-        local itemID, seqID = invop.parseItemString(value)
-
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你的%s我看过了，出价%d金币。</par>
-                <par>你要卖吗？</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), tradeGold, SYS_ENTER)
-
-        invop.postTradePrice(uid, itemID, seqID, tradeGold)
-        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", accessoryTypeList)
+        invop.postQueryTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", accessoryTypeList, tradeGold)
     end,
 
     ["npc_goto_commit_trade"] = function(uid, value)
-        local itemID, seqID = invop.parseItemString(value)
-
-        if uidRemove(uid, {itemID = itemID, seqID = seqID}) then
-            uidGrantGold(uid, tradeGold)
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>成交，这是%d金币，收好了。</par>
-                    <par></par>
-
-                    <par><event id="%s">前一步</event></par>
-                </layout>
-            ]], tradeGold, SYS_ENTER)
-        else
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>你的%s已经不在身上了。</par>
-                    <par></par>
-
-                    <par><event id="%s">前一步</event></par>
-                </layout>
-            ]], getItemName(itemID), SYS_ENTER)
-        end
-
-        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", accessoryTypeList)
+        invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", accessoryTypeList, tradeGold)
     end,
 
     ["npc_goto_repair"] = function(uid, value)

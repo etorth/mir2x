@@ -1,3 +1,15 @@
+setNPCSell({
+    '金创药（小）',
+    '魔法药（小）',
+    '回城卷',
+    '随机传送卷',
+})
+
+local invop = require('npc.include.invop')
+
+local goodsTypeList = {'恢复药水', '传送卷轴', '药粉', '道具'}
+local tradeGold = 20
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
@@ -34,6 +46,7 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
+        uidPostSell(uid)
     end,
 
     ["npc_goto_sell"] = function(uid, value)
@@ -42,8 +55,17 @@ setEventHandler(
             <layout>
                 <par>请把不用的东西卖给我，我给你个合理的价钱。</par>
                 <par></par>
-                <par><event id="%s" close="1">关闭</event></par>
+                <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_EXIT)
+        ]], SYS_ENTER)
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", goodsTypeList)
+    end,
+
+    ["npc_goto_query_trade"] = function(uid, value)
+        invop.postQueryTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", goodsTypeList, tradeGold)
+    end,
+
+    ["npc_goto_commit_trade"] = function(uid, value)
+        invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", goodsTypeList, tradeGold)
     end,
 })

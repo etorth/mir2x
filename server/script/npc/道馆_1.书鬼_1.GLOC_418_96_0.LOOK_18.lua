@@ -2,6 +2,11 @@ setNPCSell({
     '治愈术',
 })
 
+local invop = require('npc.include.invop')
+
+local bookTypeList = {'技能书'}
+local tradeGold = 50
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
@@ -56,6 +61,15 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", bookTypeList)
+    end,
+
+    ["npc_goto_query_trade"] = function(uid, value)
+        invop.postQueryTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", bookTypeList, tradeGold)
+    end,
+
+    ["npc_goto_commit_trade"] = function(uid, value)
+        invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", bookTypeList, tradeGold)
     end,
 
     ["npc_goto_3"] = function(uid, value)

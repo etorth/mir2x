@@ -11,6 +11,7 @@ local invop = require('npc.include.invop')
 
 -- there is no item price in the item record yet, pay a flat price
 -- keep query and commit on the same number, otherwise the quote lies to player
+local weaponTypeList = {'武器'}
 local tradeGold = 200
 
 setEventHandler(
@@ -70,7 +71,7 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
-        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", {'武器'})
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", weaponTypeList)
     end,
 
     ["npc_goto_repair"] = function(uid, value)
@@ -84,7 +85,7 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
-        invop.uidStartRepair(uid, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
+        invop.uidStartRepair(uid, "npc_goto_query_repair", "npc_goto_commit_repair", weaponTypeList)
     end,
 
     ["npc_goto_special_repair"] = function(uid, value)
@@ -98,7 +99,7 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
-        invop.uidStartRepair(uid, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", {'武器'})
+        invop.uidStartRepair(uid, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", weaponTypeList)
     end,
 
     ["npc_goto_daily_quest"] = function(uid, value)
@@ -114,65 +115,26 @@ setEventHandler(
     end,
 
     ["npc_goto_query_trade"] = function(uid, value)
-        local itemID, seqID = invop.parseItemString(value)
-
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你的武器%s太旧了，卖不了多少钱，报价%d金币。</par>
-                <par>你要卖吗？</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), tradeGold, SYS_ENTER)
-
-        invop.postTradePrice(uid, itemID, seqID, tradeGold)
-        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", {'武器'})
+        invop.postQueryTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", weaponTypeList, tradeGold)
     end,
 
     ["npc_goto_commit_trade"] = function(uid, value)
-        local itemID, seqID = invop.parseItemString(value)
-
-        if uidRemove(uid, {itemID = itemID, seqID = seqID}) then
-            uidGrantGold(uid, tradeGold)
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>成交！支付你%d金币。</par>
-                    <par></par>
-
-                    <par><event id="%s">前一步</event></par>
-                </layout>
-            ]], tradeGold, SYS_ENTER)
-        else
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>你的%s已经不在身上了。</par>
-                    <par></par>
-
-                    <par><event id="%s">前一步</event></par>
-                </layout>
-            ]], getItemName(itemID), SYS_ENTER)
-        end
-
-        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", {'武器'})
+        invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", weaponTypeList, tradeGold)
     end,
 
     ["npc_goto_query_repair"] = function(uid, value)
-        invop.postQueryRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
+        invop.postQueryRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", weaponTypeList)
     end,
 
     ["npc_goto_commit_repair"] = function(uid, value)
-        invop.postCommitRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
+        invop.postCommitRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", weaponTypeList)
     end,
 
     ["npc_goto_query_special_repair"] = function(uid, value)
-        invop.postQuerySpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", {'武器'})
+        invop.postQuerySpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", weaponTypeList)
     end,
 
     ["npc_goto_commit_special_repair"] = function(uid, value)
-        invop.postCommitSpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", {'武器'})
+        invop.postCommitSpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", weaponTypeList)
     end,
 })
