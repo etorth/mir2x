@@ -8,6 +8,11 @@ setNPCSell({
 })
 
 local invop = require('npc.include.invop')
+
+-- there is no item price in the item record yet, pay a flat price
+-- keep query and commit on the same number, otherwise the quote lies to player
+local tradeGold = 200
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
@@ -109,36 +114,50 @@ setEventHandler(
     end,
 
     ["npc_goto_query_trade"] = function(uid, value)
-        itemID, seqID = invop.parseItemString(value)
-        price = math.random(100, 200)
+        local itemID, seqID = invop.parseItemString(value)
 
         uidPostXML(uid,
         [[
             <layout>
-                <par>你的武器%s太旧了，卖不了多少钱，报价%s金币。</par>
+                <par>你的武器%s太旧了，卖不了多少钱，报价%d金币。</par>
                 <par>你要卖吗？</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], getItemName(itemID), price, SYS_ENTER)
-        invop.postTradePrice(uid, itemID, seqID, price)
+        ]], getItemName(itemID), tradeGold, SYS_ENTER)
+
+        invop.postTradePrice(uid, itemID, seqID, tradeGold)
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", {'武器'})
     end,
 
     ["npc_goto_commit_trade"] = function(uid, value)
-        itemID, seqID = invop.parseItemString(value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>成交！支付你你%d金币。</par>
-                <par></par>
+        local itemID, seqID = invop.parseItemString(value)
 
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], 200, SYS_ENTER)
+        if uidRemove(uid, {itemID = itemID, seqID = seqID}) then
+            uidGrantGold(uid, tradeGold)
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>成交！支付你%d金币。</par>
+                    <par></par>
 
-        uidRemove(uid, {itemID = itemID, seqID = seqID})
-        uidGrantGold(uid, 200)
+                    <par><event id="%s">前一步</event></par>
+                </layout>
+            ]], tradeGold, SYS_ENTER)
+        else
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>你的%s已经不在身上了。</par>
+                    <par></par>
+
+                    <par><event id="%s">前一步</event></par>
+                </layout>
+            ]], getItemName(itemID), SYS_ENTER)
+        end
+
+        invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", {'武器'})
     end,
 
     ["npc_goto_query_repair"] = function(uid, value)

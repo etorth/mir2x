@@ -1,4 +1,8 @@
 local invop = require('npc.include.invop')
+
+local secureGold = 20
+local secureTypeList = {'恢复药水', '武器', '药粉', '传送卷轴', '技能书', '护身符', '头盔', '戒指', '手镯', '项链', '衣服', '鞋'}
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
@@ -28,34 +32,54 @@ setEventHandler(
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], SYS_ENTER)
-        invop.uidStartSecure(uid, "npc_goto_secure_query", "npc_goto_secure_commit", {'恢复药水', '武器', '药粉', '传送卷轴', '技能书', '护身符', '头盔', '戒指', '手镯', '项链', '衣服', '鞋'})
+        invop.uidStartSecure(uid, "npc_goto_secure_query", "npc_goto_secure_commit", secureTypeList)
     end,
 
     ["npc_goto_secure_query"] = function(uid, value)
+        local itemID, seqID = invop.parseItemString(value)
+
         uidPostXML(uid,
         [[
             <layout>
-                <par>这个我可以帮你保存，但要收你<t color="red">20金币</t>保管费。</par>
+                <par>这个我可以帮你保存，但要收你<t color="red">%d金币</t>保管费。</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], SYS_ENTER)
+        ]], secureGold, SYS_ENTER)
+
+        invop.postSecureCost(uid, itemID, seqID, secureGold)
+        invop.uidStartSecure(uid, "npc_goto_secure_query", "npc_goto_secure_commit", secureTypeList)
     end,
 
     ["npc_goto_secure_commit"] = function(uid, value)
-        itemID, seqID = invop.parseItemString(value)
-        uidSecureItem(uid, itemID, seqID)
+        local itemID, seqID = invop.parseItemString(value)
 
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>已经放好了。</par>
-                <par></par>
+        if uidQueryGold(uid) < secureGold then
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>保管费要%d金币，你带的钱不够。</par>
+                    <par></par>
 
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], SYS_ENTER)
+                    <par><event id="%s">前一步</event></par>
+                </layout>
+            ]], secureGold, SYS_ENTER)
+
+        elseif uidRemoveGold(uid, secureGold) then
+            uidSecureItem(uid, itemID, seqID)
+            uidPostXML(uid,
+            [[
+                <layout>
+                    <par>已经放好了。</par>
+                    <par></par>
+
+                    <par><event id="%s">前一步</event></par>
+                </layout>
+            ]], SYS_ENTER)
+        end
+
+        invop.uidStartSecure(uid, "npc_goto_secure_query", "npc_goto_secure_commit", secureTypeList)
     end,
 
     ["npc_goto_get_back"] = function(uid, value)
