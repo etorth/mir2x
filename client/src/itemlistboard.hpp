@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "widget.hpp"
+#include "textboard.hpp"
 #include "tritexbutton.hpp"
 
 class ItemListBoard: public Widget
@@ -20,6 +21,9 @@ class ItemListBoard: public Widget
     protected:
         size_t m_page = 0;
         std::optional<size_t> m_selectedPageGrid;
+
+    private:
+        TextBoard m_pageTitle;
 
     private:
         TritexButton m_leftButton;

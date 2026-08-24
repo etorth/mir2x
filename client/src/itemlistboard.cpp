@@ -23,6 +23,30 @@ ItemListBoard::ItemListBoard(int argX, int argY, Widget *argParent, bool argAuto
           }
       }}
 
+    , m_pageTitle
+      {{
+          .dir = DIR_NONE,
+          .x = 99,
+          .y = 18,
+
+          .textFunc = [this]
+          {
+              if(pageCount() > 0){
+                  return str_printf("第%zu/%zu页", m_page + 1, pageCount());
+              }
+              else{
+                  return std::string("（空）");
+              }
+          },
+
+          .font
+          {
+              .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
+          },
+
+          .parent{this},
+      }}
+
     , m_leftButton
       {{
           .x = 25,
@@ -210,30 +234,7 @@ void ItemListBoard::drawDefault(Widget::ROIMap m) const
     drawChild(&m_selectButton, m);
     drawChild(&m_rightButton , m);
     drawChild(&m_closeButton , m);
-
-    const auto fnDrawTitle = [this](const std::u8string &title)
-    {
-        LabelBoard
-        {{
-            .label = title.c_str(),
-            .font
-            {
-                .id = 1,
-                .size = 12,
-                .color = colorf::RGBA(0XFF, 0XFF, 0X00, 0XFF),
-            },
-
-        }}.draw({.dir=DIR_NONE, .x=99, .y=18}); // (DIR_NONE, x() + 99, y() + 18);
-    };
-
-    if(pageCount() > 0){
-        fflassert(m_page < pageCount());
-        fnDrawTitle(str_printf(u8"第%zu/%zu页", m_page + 1, pageCount()));
-    }
-    else{
-        fnDrawTitle(u8"（空）");
-        return;
-    }
+    drawChild(&m_pageTitle   , m);
 
     int cursorOnGridIndex = -1;
     for(int r = 0; r < 3; ++r){
