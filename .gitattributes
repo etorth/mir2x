@@ -1,9 +1,13 @@
-*.cpp text eof=lf
-*.hpp text eof=lf
-*.txt text eof=lf
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.txt text eol=lf
 
 # Force all text files to use LF on commit
-* text eol=lf
+#
+# text=auto, not a bare text: git then sniffs the content and refuses to
+# normalize anything holding NUL bytes, so a binary type missing from the
+# list below can no longer be silently shredded on commit
+* text=auto eol=lf
 
 # Keep binary files as-is. Without these, the catch-all `* text eol=lf`
 # above will strip 0x0D 0x0A byte sequences from binary payloads and
@@ -27,3 +31,4 @@
 *.mp3   binary
 *.ogg   binary
 *.zsdb  binary
+*.wwl   binary
