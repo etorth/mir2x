@@ -142,18 +142,18 @@ setEventHandler(
     end,
 
     ["npc_goto_query_repair"] = function(uid, value)
-        invop.postQueryRepair(uid, value, false)
+        invop.postQueryRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
     end,
 
     ["npc_goto_commit_repair"] = function(uid, value)
-        invop.postCommitRepair(uid, value, false)
+        invop.postCommitRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'})
     end,
 
     ["npc_goto_query_special_repair"] = function(uid, value)
-        invop.postQueryRepair(uid, value, true)
+        invop.postQuerySpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", {'武器'})
     end,
 
     ["npc_goto_commit_special_repair"] = function(uid, value)
-        invop.postCommitRepair(uid, value, true)
+        invop.postCommitSpecialRepair(uid, value, "npc_goto_query_special_repair", "npc_goto_commit_special_repair", {'武器'})
     end,
 })

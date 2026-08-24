@@ -36,10 +36,13 @@ end
 -- 修理     : restores the current durability, may permanently lose part of the max durability
 -- 特殊修理 : restores the current durability without wearing the item out, costs more
 --
--- an NPC which offers repair only needs to forward its query/commit tags here:
+-- an NPC which offers repair only needs to forward its own invop args here:
 --
---     ["npc_goto_query_repair" ] = function(uid, value) invop.postQueryRepair (uid, value, false) end,
---     ["npc_goto_commit_repair"] = function(uid, value) invop.postCommitRepair(uid, value, false) end,
+--     ["npc_goto_query_repair" ] = function(uid, value) invop.postQueryRepair (uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'}) end,
+--     ["npc_goto_commit_repair"] = function(uid, value) invop.postCommitRepair(uid, value, "npc_goto_query_repair", "npc_goto_commit_repair", {'武器'}) end,
+--
+-- the args are needed because these handlers post xml, which rolls the xml layout seqID the tags
+-- client holds are encoded with, so the tags have to be issued again before client clicks any further
 
 local repairGoldPerDuration = 30
 
@@ -65,7 +68,7 @@ local function repairCost(uid, itemID, seqID, special)
     return cost, curr, max
 end
 
-function invop.postQueryRepair(uid, value, special)
+local function queryRepair(uid, value, queryTag, commitTag, typeList, special)
     local itemID, seqID = invop.parseItemString(value)
     local cost, curr, max = repairCost(uid, itemID, seqID, special)
 
@@ -79,23 +82,24 @@ function invop.postQueryRepair(uid, value, special)
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], getItemName(itemID), SYS_ENTER)
-        return
+    else
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>你的%s持久为%d/%d，%s费用是%d金币。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], getItemName(itemID), curr, max, special and '特殊修理' or '修理', cost, SYS_ENTER)
+
+        invop.postRepairCost(uid, itemID, seqID, cost)
     end
 
-    uidPostXML(uid,
-    [[
-        <layout>
-            <par>你的%s持久为%d/%d，%s费用是%d金币。</par>
-            <par></par>
-
-            <par><event id="%s">前一步</event></par>
-        </layout>
-    ]], getItemName(itemID), curr, max, special and '特殊修理' or '修理', cost, SYS_ENTER)
-
-    invop.postRepairCost(uid, itemID, seqID, cost)
+    invop.uidStartRepair(uid, queryTag, commitTag, typeList)
 end
 
-function invop.postCommitRepair(uid, value, special)
+local function commitRepair(uid, value, queryTag, commitTag, typeList, special)
     local itemID, seqID = invop.parseItemString(value)
     local cost = repairCost(uid, itemID, seqID, special)
 
@@ -109,10 +113,8 @@ function invop.postCommitRepair(uid, value, special)
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], getItemName(itemID), SYS_ENTER)
-        return
-    end
 
-    if uidQueryGold(uid) < cost then
+    elseif uidQueryGold(uid) < cost then
         uidPostXML(uid,
         [[
             <layout>
@@ -122,27 +124,42 @@ function invop.postCommitRepair(uid, value, special)
                 <par><event id="%s">前一步</event></par>
             </layout>
         ]], getItemName(itemID), cost, SYS_ENTER)
-        return
-    end
 
-    if not uidRemoveGold(uid, cost) then
-        return
-    end
+    elseif not uidRemoveGold(uid, cost) then
+        -- can not pay for it, don't repair
 
-    if not uidRepairItem(uid, itemID, seqID, special) then
+    elseif not uidRepairItem(uid, itemID, seqID, special) then
         uidGrantGold(uid, cost)
-        return
+
+    else
+        uidPostXML(uid,
+        [[
+            <layout>
+                <par>你的%s已经修理完毕，花费%d金币。</par>
+                <par></par>
+
+                <par><event id="%s">前一步</event></par>
+            </layout>
+        ]], getItemName(itemID), cost, SYS_ENTER)
     end
 
-    uidPostXML(uid,
-    [[
-        <layout>
-            <par>你的%s已经修理完毕，花费%d金币。</par>
-            <par></par>
+    invop.uidStartRepair(uid, queryTag, commitTag, typeList)
+end
 
-            <par><event id="%s">前一步</event></par>
-        </layout>
-    ]], getItemName(itemID), cost, SYS_ENTER)
+function invop.postQueryRepair(uid, value, queryTag, commitTag, typeList)
+    queryRepair(uid, value, queryTag, commitTag, typeList, false)
+end
+
+function invop.postQuerySpecialRepair(uid, value, queryTag, commitTag, typeList)
+    queryRepair(uid, value, queryTag, commitTag, typeList, true)
+end
+
+function invop.postCommitRepair(uid, value, queryTag, commitTag, typeList)
+    commitRepair(uid, value, queryTag, commitTag, typeList, false)
+end
+
+function invop.postCommitSpecialRepair(uid, value, queryTag, commitTag, typeList)
+    commitRepair(uid, value, queryTag, commitTag, typeList, true)
 end
 
 return invop
