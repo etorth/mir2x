@@ -41,7 +41,7 @@ class ItemListBoard: public Widget
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     protected:
-        std::optional<size_t> getPageGrid() const;
+        std::optional<size_t> getPageGrid(int, int) const;
 
     protected:
         static std::tuple<int, int, int, int> getPageGridPLoc(size_t gridX, size_t gridY)

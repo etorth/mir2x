@@ -149,17 +149,20 @@ bool ItemListBoard::processEventDefault(const SDL_Event &event, bool valid, Widg
     if(m_rightButton .processEventParent(event, valid, m)){ return true; }
     if(m_closeButton .processEventParent(event, valid, m)){ return true; }
 
+    const auto startX = m.x - m.ro->x;
+    const auto startY = m.y - m.ro->y;
+
     switch(event.type){
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
             {
-                if(const auto gridIndex = getPageGrid(); gridIndex.has_value() && pageCount() > 0 && m_page * 3 * 4 + gridIndex.value() < itemCount()){
+                if(const auto gridIndex = getPageGrid(startX, startY); gridIndex.has_value() && pageCount() > 0 && m_page * 3 * 4 + gridIndex.value() < itemCount()){
                     m_selectedPageGrid = m_page * 3 * 4 + gridIndex.value();
                 }
                 break;
             }
         case SDL_EVENT_MOUSE_WHEEL:
             {
-                if(getPageGrid().has_value()){
+                if(getPageGrid(startX, startY).has_value()){
                     if(to_d(event.wheel.y) > 0){
                         m_page = to_uz(mathf::bound<int>(to_d(m_page) - 1, 0, to_d(pageCount()) - 1));
                     }
@@ -177,12 +180,12 @@ bool ItemListBoard::processEventDefault(const SDL_Event &event, bool valid, Widg
     return true;
 }
 
-std::optional<size_t> ItemListBoard::getPageGrid() const
+std::optional<size_t> ItemListBoard::getPageGrid(int startX, int startY) const
 {
     const auto [mousePX, mousePY] = SDLDeviceHelper::getMousePLoc();
 
-    const int onBoardPX = mousePX;// - x();
-    const int onBoardPY = mousePY;// - y();
+    const int onBoardPX = mousePX - startX;
+    const int onBoardPY = mousePY - startY;
 
     if(mathf::pointInRectangle<int>(onBoardPX, onBoardPY, m_startX, m_startY, m_boxW * 4, m_boxH * 3)){
         const size_t r = to_uz(onBoardPY - m_startY) / m_boxH;
