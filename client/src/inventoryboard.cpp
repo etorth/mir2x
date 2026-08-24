@@ -697,6 +697,7 @@ void InventoryBoard::commitInvOp()
     }
 
     m_processRun->sendNPCEvent(m_sdInvOp.uid, SYS_EPDEF, m_sdInvOp.commitTag.c_str(), str_printf("%d:%d", to_d(selectedItem.item.itemID), to_d(selectedItem.item.seqID)).c_str());
+    m_invOpCost = -1;
 }
 
 void InventoryBoard::removeItem(uint32_t itemID, uint32_t seqID, size_t count)
