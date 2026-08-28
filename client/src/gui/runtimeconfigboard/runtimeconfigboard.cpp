@@ -676,6 +676,22 @@ void RuntimeConfigBoard::reportRuntimeConfigRaw(int rtCfg, std::string key)
     g_client->send({CM_SETRUNTIMECONFIG, cmSRC});
 }
 
+int RuntimeConfigBoard::cycleAttackMode()
+{
+    const auto currMode = SDRuntimeConfig_getConfig<RTCFG_ATTACKMODE>(m_sdRuntimeConfig);
+    const auto nextMode = [currMode]() -> int
+    {
+        if((currMode >= ATKMODE_BEGIN) && (currMode < ATKMODE_END - 1)){
+            return currMode + 1;
+        }
+        return ATKMODE_BEGIN;
+    }();
+
+    SDRuntimeConfig_setConfig<RTCFG_ATTACKMODE>(m_sdRuntimeConfig, nextMode);
+    reportRuntimeConfig<RTCFG_ATTACKMODE>();
+    return nextMode;
+}
+
 uint32_t RuntimeConfigBoard::dropItemRule(uint32_t itemID) const
 {
     return SDRuntimeConfig_getConfig<RTCFG_DROPITEMRULE>(m_sdRuntimeConfig, itemID);

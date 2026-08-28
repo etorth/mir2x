@@ -589,6 +589,7 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                 switch(m_cursorState){
                                     case CURSOR_DEFAULT:
                                         {
+                                            const auto forceAttack = to_boolint(SDL_GetModState() & SDL_KMOD_SHIFT);
                                             switch(uidf::getUIDType(uid)){
                                                 case UID_MON:
                                                     {
@@ -596,9 +597,20 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                                         trackAttack(true, uid);
                                                         break;
                                                     }
+                                                case UID_PLY:
+                                                    {
+                                                        if(forceAttack && uid != getMyHeroUID()){
+                                                            setFocusUID(FOCUS_ATTACK, uid);
+                                                            trackAttack(true, uid);
+                                                        }
+                                                        break;
+                                                    }
                                                 case UID_NPC:
                                                     {
-                                                        sendNPCEvent(uid, {}, SYS_ENTER);
+                                                        if(!forceAttack){
+                                                            sendNPCEvent(uid, {}, SYS_ENTER);
+                                                        }
+                                                        break;
                                                     }
                                                 default:
                                                     {
@@ -742,6 +754,12 @@ void ProcessRun::processEvent(const SDL_Event &event)
                                     case 'f':
                                         {
                                             g_sdlDevice->toggleWindowFullscreen();
+                                            break;
+                                        }
+                                    case 'h':
+                                        {
+                                            const auto attackMode = dynamic_cast<RuntimeConfigBoard *>(getWidget("RuntimeConfigBoard"))->cycleAttackMode();
+                                            addCBLog(CBLOG_SYS, u8"攻击模式：%s", to_cstr(attackModeName(attackMode)));
                                             break;
                                         }
                                     default:

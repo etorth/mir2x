@@ -87,6 +87,13 @@ class RuntimeConfigBoard: public Widget
         void     setDropItemRule(uint32_t, uint32_t, bool);
 
     public:
+        //和平 ->
+        //编队 ->
+        //行会 ->
+        //全体 -> 和平
+        int cycleAttackMode();
+
+    public:
         void setConfig(const SDRuntimeConfig &);
         void setRankingList(const SDRankingList &);
 

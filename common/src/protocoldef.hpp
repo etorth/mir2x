@@ -418,6 +418,17 @@ enum AttackModeType: int
     ATKMODE_END,
 };
 
+constexpr const char8_t *attackModeName(int mode)
+{
+    switch(mode){
+        case ATKMODE_PEACE: return u8"和平";
+        case ATKMODE_GROUP: return u8"编队";
+        case ATKMODE_GUILD: return u8"行会";
+        case ATKMODE_ALL  : return u8"全体";
+        default           : return u8"未知";
+    }
+}
+
 enum TeamErrorType: int
 {
     TEAMERR_NONE  = 0,
