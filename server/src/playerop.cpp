@@ -448,6 +448,12 @@ corof::awaitable<> Player::on_AM_QUERYPLAYERWLDESP(const ActorMsgPack &mpk)
     return {};
 }
 
+corof::awaitable<> Player::on_AM_QUERYREDNAME(const ActorMsgPack &mpk)
+{
+    m_actorPod->post(mpk.fromAddr(), redName() ? AM_TRUE : AM_FALSE);
+    return {};
+}
+
 corof::awaitable<> Player::on_AM_QUERYFRIENDTYPE(const ActorMsgPack &mpk)
 {
     const auto amQFT = mpk.conv<AMQueryFriendType>();

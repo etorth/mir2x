@@ -115,6 +115,7 @@ enum ActorMsgPackType: int
     AM_FRIENDTYPE,
     AM_CASTFIREWALL,
     AM_STRIKEFIXEDLOCDAMAGE,
+    AM_QUERYREDNAME,
     AM_QUERYNAMECOLOR,
     AM_NAMECOLOR,
     AM_MASTERKILL,
@@ -256,6 +257,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_FRIENDTYPE)
         _add_mpk_type_case(AM_CASTFIREWALL)
         _add_mpk_type_case(AM_STRIKEFIXEDLOCDAMAGE)
+        _add_mpk_type_case(AM_QUERYREDNAME)
         _add_mpk_type_case(AM_QUERYNAMECOLOR)
         _add_mpk_type_case(AM_NAMECOLOR)
         _add_mpk_type_case(AM_MASTERKILL)

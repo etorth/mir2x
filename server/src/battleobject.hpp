@@ -231,6 +231,7 @@ class BattleObject: public CharObject
     protected:
         corof::awaitable<uint64_t> queryFinalMaster(uint64_t);
         corof::awaitable<uint64_t> queryPlayerController(uint64_t);
+        corof::awaitable<bool> queryRedName(uint64_t);
 
     protected:
         bool isOffender(uint64_t) const;

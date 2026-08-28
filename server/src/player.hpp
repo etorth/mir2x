@@ -210,6 +210,7 @@ class Player final: public BattleObject
         corof::awaitable<> on_AM_QUERYCORECORD      (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYLOCATION      (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYFRIENDTYPE    (const ActorMsgPack &);
+        corof::awaitable<> on_AM_QUERYREDNAME       (const ActorMsgPack &);
         corof::awaitable<> on_AM_REMOVEGROUNDITEM   (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYUIDBUFF       (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYPLAYERNAME    (const ActorMsgPack &);

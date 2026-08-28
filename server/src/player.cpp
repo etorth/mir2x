@@ -451,6 +451,10 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_QUERYFRIENDTYPE(mpk);
             }
+        case AM_QUERYREDNAME:
+            {
+                return on_AM_QUERYREDNAME(mpk);
+            }
         case AM_EXP:
             {
                 return on_AM_EXP(mpk);

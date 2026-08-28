@@ -990,6 +990,24 @@ corof::awaitable<uint64_t> BattleObject::queryFinalMaster(uint64_t targetUID)
     }
 }
 
+corof::awaitable<bool> BattleObject::queryRedName(uint64_t uid)
+{
+    if(!uidf::isPlayer(uid)){
+        co_return false;
+    }
+
+    switch(const auto rmpk = co_await m_actorPod->send(uid, AM_QUERYREDNAME); rmpk.type()){
+        case AM_TRUE:
+            {
+                co_return true;
+            }
+        default:
+            {
+                co_return false;
+            }
+    }
+}
+
 corof::awaitable<uint64_t> BattleObject::queryPlayerController(uint64_t uid)
 {
     if(!uid){

@@ -94,7 +94,7 @@ corof::awaitable<int> ServerGuard::checkFriend(uint64_t targetUID)
             }
         case UID_PLY:
             {
-                co_return FT_NEUTRAL;
+                co_return (co_await queryRedName(targetUID)) ? FT_ENEMY : FT_NEUTRAL;
             }
         default:
             {
