@@ -235,12 +235,17 @@ corof::awaitable<> Player::on_AM_ATTACK(const ActorMsgPack &mpk)
 {
     const auto amA = mpk.conv<AMAttack>();
     if(amA.UID == UID()){
-        return {};
+        co_return;
     }
 
     if(m_sdHealth.dead()){
-        notifyDead(amA.UID);
-        return {};
+        if(const auto attackerPlayerUID = co_await queryPlayerController(amA.UID)){
+            notifyDead(attackerPlayerUID);
+        }
+        else{
+            notifyDead(amA.UID);
+        }
+        co_return;
     }
 
     if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
@@ -253,11 +258,11 @@ corof::awaitable<> Player::on_AM_ATTACK(const ActorMsgPack &mpk)
 
                     amM.UID = amA.UID;
                     m_actorPod->post(amA.UID, {AM_MISS, amM});
-                    return {};
+                    co_return;
                 }
             default:
                 {
-                    return {};
+                    co_return;
                 }
         }
     }
@@ -277,8 +282,13 @@ corof::awaitable<> Player::on_AM_ATTACK(const ActorMsgPack &mpk)
     dispatchAction(hitted);
     reportAction(UID(), mapUID(), hitted);
 
-    struckDamage(amA.UID, amA.damage);
-    return {};
+    if(const auto attackerPlayerUID = co_await queryPlayerController(amA.UID)){
+        struckDamage(attackerPlayerUID, amA.damage);
+    }
+    else{
+        struckDamage(amA.UID, amA.damage);
+    }
+    co_return;
 }
 
 corof::awaitable<> Player::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
@@ -499,8 +509,21 @@ corof::awaitable<> Player::on_AM_CORECORD(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::awaitable<> Player::on_AM_NOTIFYDEAD(const ActorMsgPack &)
+corof::awaitable<> Player::on_AM_NOTIFYDEAD(const ActorMsgPack &mpk)
 {
+    const auto amND = mpk.conv<AMNotifyDead>();
+
+    // I just killed amND.UID
+    //
+    // don't ask the offender list here: the dead one lands on it the moment it defends itself,
+    // which would turn every murder into self defense. the aggression mark was taken when I
+    // opened fire, before the victim could hit back, so it is the only honest answer
+
+    if(amND.UID && uidf::isPlayer(amND.UID) && hasAggression(amND.UID)){
+        addPKPoint(SYS_PKPOINTPERKILL);
+    }
+
+    m_aggressionList.erase(amND.UID);
     return {};
 }
 

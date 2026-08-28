@@ -48,6 +48,11 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         return getPlayer()->name();
     });
 
+    bindFunction("getRedName", [this]() -> bool
+    {
+        return getPlayer()->redName();
+    });
+
     bindFunction("getWLItem", [this](int wlType, sol::this_state s) -> sol::object
     {
         if(const auto &item = getPlayer()->m_sdItemStorage.wear.getWLItem(wlType)){
@@ -386,7 +391,7 @@ Player::Player(const SDInitPlayer &initParam)
     , m_gender(initParam.gender)
     , m_job(initParam.job)
     , m_name(initParam.name)
-    , m_nameColor(initParam.nameColor)
+    , m_pkPoint(initParam.pkPoint)
     , m_hair(initParam.hair)
     , m_hairColor(initParam.hairColor)
 {
@@ -806,7 +811,7 @@ DamageNode Player::getAttackDamage(int nDC, int) const
     }
 }
 
-bool Player::struckDamage(uint64_t, const DamageNode &node)
+bool Player::struckDamage(uint64_t fromUID, const DamageNode &node)
 {
     if(!node){
         return false;
@@ -838,15 +843,33 @@ bool Player::struckDamage(uint64_t, const DamageNode &node)
         return std::max<int>(0, node.damage - std::lround(mathf::rand<int>(combatNode.mac[0], combatNode.mac[1]) * elemRatio));
     }();
 
+    // remember who hit me, this is what makes checkFriend() report FT_ENEMY and lets me
+    // hit back regardless of my attack mode, see canDamageTarget()
+    //
+    // record it even when my armor soaked the whole hit: the attempt is what counts, or a
+    // heavily armored player could be farmed forever without ever being allowed to hit back
+
+    if(fromUID && uidf::isPlayer(fromUID)){
+        addOffenderDamage(fromUID, damage);
+    }
+
     if(damage > 0){
         updateHealth(-damage);
         if(m_sdHealth.dead()){
             onDie();
-        }
-        else{
-            damageDefendWearItem();
+
+            // the killer decides whether this was a pk, only it knows if I ever attacked it
+            if(fromUID && uidf::isPlayer(fromUID)){
+                notifyDead(fromUID);
+            }
+            return true;
         }
     }
+
+    // armor wears from the blow it takes, not from the damage that gets through,
+    // fully soaking a hit is exactly when it should wear
+
+    damageDefendWearItem();
     return true;
 }
 
@@ -1294,9 +1317,14 @@ corof::awaitable<> Player::onCMActionAttack(CMAction stCMA)
                                         }
 
                                         for(const auto uid: aimUIDList){
+                                            if(!co_await canDamageTarget(uid)){
+                                                continue;
+                                            }
+
                                             if(buffID){
                                                 sendBuff(uid, 0, buffID);
                                             }
+                                            markAggression(co_await queryPlayerController(uid));
                                             dispatchAttackDamage(uid, nDCType, 0);
                                         }
 
@@ -1398,7 +1426,7 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
                                             }
                                         case FT_ENEMY:
                                             {
-                                                if(br.favor <= 0){
+                                                if(br.favor <= 0 && co_await canDamageTarget(cmA.action.aimUID)){
                                                     sendBuff(cmA.action.aimUID, 0, buffID);
                                                 }
                                                 co_return;
@@ -1447,9 +1475,14 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
                     const auto ld = mathf::LDistance<float>(coLoc.x, coLoc.y, cmA.action.x, cmA.action.y);
                     const auto delay = ld * 100;
 
-                    addDelay(delay, [cmA, this](bool)
+                    addDelay(delay, [cmA, this](bool) -> corof::awaitable<>
                     {
+                        if(!co_await canDamageTarget(cmA.action.aimUID)){
+                            co_return;
+                        }
+                        markAggression(co_await queryPlayerController(cmA.action.aimUID));
                         dispatchAttackDamage(cmA.action.aimUID, cmA.action.extParam.spell.magicID, 0);
+                        co_return;
                     });
                 }
                 break;
@@ -1470,9 +1503,14 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
                 addDelay(1400, [this, smFM](bool)
                 {
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
-                    addDelay(300, [smFM, this](bool)
+                    addDelay(300, [smFM, this](bool) -> corof::awaitable<>
                     {
+                        if(!co_await canDamageTarget(smFM.AimUID)){
+                            co_return;
+                        }
+                        markAggression(co_await queryPlayerController(smFM.AimUID));
                         dispatchAttackDamage(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"), 0);
+                        co_return;
                     });
                 });
                 break;
@@ -1777,7 +1815,7 @@ corof::awaitable<int> Player::checkFriend(uint64_t targetUID)
                     switch(uidf::getUIDType(finalMasterUID)){
                         case UID_PLY:
                             {
-                                co_return isOffender(targetUID) ? FT_ENEMY : FT_NEUTRAL;
+                                co_return isOffender(finalMasterUID) ? FT_ENEMY : FT_NEUTRAL;
                             }
                         case UID_MON:
                             {
@@ -1843,7 +1881,7 @@ void Player::postOnlineOK()
         },
 
         .name = m_name,
-        .nameColor = m_nameColor,
+        .nameColor = nameColor(),
     }));
 
     postExp();
@@ -2091,6 +2129,126 @@ void Player::damageDefendWearItem()
     if(!wltypeList.empty()){
         damageWearItem(wltypeList.at(mathf::rand<size_t>(0, wltypeList.size() - 1)), SYS_ARMORDURALOSSODDS);
     }
+}
+
+// may this attack be carried into damage calculation against targetUID
+//
+// player can always swing at anyone and the attack gfx always plays, this only decides
+// whether the swing resolves into damage at all
+//
+// true does not promise damage > 0, the target may still soak all of it with armor
+corof::awaitable<bool> Player::canDamageTarget(uint64_t targetUID)
+{
+    fflassert(targetUID);
+
+    if(targetUID == UID()){
+        co_return false;
+    }
+
+    // a safe zone is absolute: it outranks retaliation and every attack mode
+    //
+    // nothing standing on a safe grid can be damaged, and nothing can deal damage out of one,
+    // otherwise a town would only be safe against players who never got provoked
+
+    if(inSafeZone()){
+        co_return false;
+    }
+
+    if(const auto coLocPtr = getInViewCOPtr(targetUID); coLocPtr && isSafeGrid(coLocPtr->x, coLocPtr->y)){
+        co_return false;
+    }
+
+    // a monster answers to the player controlling it, so a pet inherits its master's
+    // protection, while anything with no player behind it is always free to hit
+
+    const auto playerUID = co_await queryPlayerController(targetUID);
+    if(!playerUID){
+        co_return true;
+    }
+
+    if(playerUID == UID()){
+        co_return false; // my own pet
+    }
+
+    // whoever hit me first can always be hit back, no matter the attack mode
+
+    if(isOffender(playerUID)){
+        co_return true;
+    }
+
+    switch(attackMode()){
+        case ATKMODE_ALL:
+            {
+                co_return true;
+            }
+        case ATKMODE_GROUP:
+        case ATKMODE_GUILD:
+            {
+                // there is no guild yet, so 行会 behaves as 编队 until one exists
+                // both spare the team, ATKMODE_GUILD will additionally spare guild members
+                co_return std::find(m_teamMemberList.begin(), m_teamMemberList.end(), playerUID) == m_teamMemberList.end();
+            }
+        default:
+            {
+                co_return false;
+            }
+    }
+}
+
+void Player::markAggression(uint64_t targetUID)
+{
+    // takes the result of queryPlayerController() as is, zero means nothing player controlled
+    // got hit and there is nobody to answer for, hitting my own pet is nobody's fault either
+
+    if(!targetUID || targetUID == UID()){
+        return;
+    }
+
+    fflassert(uidf::isPlayer(targetUID), uidf::getUIDString(targetUID));
+
+    // keep refreshing while I keep swinging, a long fight must not let the mark expire
+    // and turn my own murder into self defense
+
+    if(auto p = m_aggressionList.find(targetUID); p != m_aggressionList.end()){
+        p->second = hres_tstamp().to_sec();
+    }
+    else if(!isOffender(targetUID)){
+        // it never hit me, so this strike is mine to answer for
+        m_aggressionList[targetUID] = hres_tstamp().to_sec();
+    }
+}
+
+bool Player::hasAggression(uint64_t targetUID) const
+{
+    if(const auto p = m_aggressionList.find(targetUID); p != m_aggressionList.end()){
+        return hres_tstamp().to_sec() < p->second + SYS_PKAGGRESSIONTIME;
+    }
+    return false;
+}
+
+void Player::addPKPoint(int added)
+{
+    fflassert(added != 0, added);
+
+    const auto wasRedName = redName();
+    m_pkPoint = std::max<int>(0, m_pkPoint + added);
+
+    dbUpdatePKPoint();
+    if(wasRedName != redName()){
+        // name color is derived from the pk point, tell everyone who can see me
+        reportName();
+        postNetMessage(SM_TEXT, str_printf(u8"%s", redName() ? u8"你已经变成红名，城里的商人不会再和你交易" : u8"你的红名已经洗清"));
+    }
+}
+
+void Player::reportName()
+{
+    dispatchNetPackage(true, SM_PLAYERNAME, cerealf::serialize(SDPlayerName
+    {
+        .uid = UID(),
+        .name = name(),
+        .nameColor = nameColor(),
+    }));
 }
 
 bool Player::repairInventoryItem(uint32_t itemID, uint32_t seqID, bool special)

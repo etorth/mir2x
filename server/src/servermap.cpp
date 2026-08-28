@@ -832,6 +832,21 @@ bool ServerMap::hasGridItemID(uint32_t itemID, int x, int y) const
     return getGridItemIDCount(itemID, x, y) > 0;
 }
 
+bool ServerMap::isSafeGrid(int x, int y) const
+{
+    if(!mapBin()->validC(x, y)){
+        return false;
+    }
+
+    // there is no way to configure a safe zone yet
+    //
+    // when it becomes configurable, keep the zone list here and dispatch it to every actor on
+    // this map on change, the actors keep a copy and answer BattleObject::isSafeGrid() locally,
+    // combat can not afford to ask the map on every single hit
+
+    return false;
+}
+
 size_t ServerMap::getGridItemIDCount(uint32_t itemID, int x, int y) const
 {
     if(!mapBin()->validC(x, y)){

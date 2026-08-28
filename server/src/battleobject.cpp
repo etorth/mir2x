@@ -882,14 +882,35 @@ void BattleObject::setLastAction(int type)
     m_lastActionTime.at(type) = g_server->getCurrTick();
 }
 
-bool BattleObject::isOffender(uint64_t nUID)
+bool BattleObject::isOffender(uint64_t nUID) const
 {
-    for(auto &offender: m_offenderList){
+    for(const auto &offender: m_offenderList){
         if(offender.uid == nUID){
             return true;
         }
     }
     return false;
+}
+
+void BattleObject::addOffenderDamage(uint64_t nUID, int nDamage)
+{
+    fflassert(nUID);
+    fflassert(nDamage >= 0);
+
+    for(auto p = m_offenderList.begin(); p != m_offenderList.end(); ++p){
+        if(p->uid == nUID){
+            p->damage += to_u64(nDamage);
+            p->activeTime = hres_tstamp().to_sec();
+            return;
+        }
+    }
+
+    m_offenderList.emplace_back(Offender
+    {
+        .uid = nUID,
+        .damage = to_u64(nDamage),
+        .activeTime = hres_tstamp().to_sec(),
+    });
 }
 
 corof::awaitable<std::optional<SDHealth>> BattleObject::queryHealth(uint64_t uid)
@@ -965,6 +986,31 @@ corof::awaitable<uint64_t> BattleObject::queryFinalMaster(uint64_t targetUID)
         default:
             {
                 throw fflvalue(uidf::getUIDString(targetUID));
+            }
+    }
+}
+
+corof::awaitable<uint64_t> BattleObject::queryPlayerController(uint64_t uid)
+{
+    if(!uid){
+        co_return 0;
+    }
+
+    switch(uidf::getUIDType(uid)){
+        case UID_PLY:
+            {
+                co_return uid;
+            }
+        case UID_MON:
+            {
+                if(const auto finalMasterUID = co_await queryFinalMaster(uid); uidf::isPlayer(finalMasterUID)){
+                    co_return finalMasterUID;
+                }
+                co_return 0;
+            }
+        default:
+            {
+                co_return 0;
             }
     }
 }

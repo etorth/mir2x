@@ -230,9 +230,28 @@ class BattleObject: public CharObject
 
     protected:
         corof::awaitable<uint64_t> queryFinalMaster(uint64_t);
+        corof::awaitable<uint64_t> queryPlayerController(uint64_t);
 
     protected:
-        bool isOffender(uint64_t);
+        bool isOffender(uint64_t) const;
+        void addOffenderDamage(uint64_t, int);
+
+    protected:
+        // local answer to "is this grid inside a safe zone", used to gate pvp
+        //
+        // ServerMap owns the zone list, an actor keeps a copy so a hit costs no actor message,
+        // the copy comes from the map broadcast on change plus a pull when entering the map
+        //
+        // TODO the zone list does not exist yet, nothing can configure it, so nothing is safe
+        bool isSafeGrid(int, int) const
+        {
+            return false;
+        }
+
+        bool inSafeZone() const
+        {
+            return isSafeGrid(X(), Y());
+        }
 
     protected:
         template<typename... Args> void dispatchInViewCONetPackage(uint8_t type, Args && ... args)

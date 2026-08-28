@@ -11,7 +11,6 @@ values
 create table tbl_char(
     fld_dbid           integer not null primary key,
     fld_name           text    not null,
-    fld_namecolor      integer default 0,
     fld_gender         integer not null check(fld_gender in (0, 1)),
     fld_job            integer not null check(jobValid(fld_job)),
     fld_map            integer not null,
@@ -23,6 +22,7 @@ create table tbl_char(
     fld_gold           integer default 10000,
     fld_hair           integer default 0,
     fld_haircolor      integer default 0,
+    fld_pkpoint        integer default 0,
 
     foreign key (fld_dbid) references tbl_account(fld_dbid) on delete cascade
 ) strict;

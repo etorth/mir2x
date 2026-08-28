@@ -7,7 +7,9 @@
 #include <expected>
 #include <type_traits>
 #include "totype.hpp"
+#include "colorf.hpp"
 #include "server.hpp"
+#include "sysconst.hpp"
 #include "battleobject.hpp"
 #include "combatnode.hpp"
 
@@ -59,8 +61,20 @@ class Player final: public BattleObject
 
     protected:
         std::string m_name;
-        uint32_t m_nameColor;
 
+    protected:
+        int m_pkPoint; // never decays on its own, a redemption NPC is the only way down
+
+    private:
+        // players I opened fire on, uid -> last strike time
+        //
+        // this has to be recorded at the moment of the strike. once the victim defends itself it
+        // lands on my offender list too, so by the time it dies the offender list can no longer
+        // tell who started it, and checking it there would let an aggressor launder a murder by
+        // provoking the victim into hitting back first
+        std::unordered_map<uint64_t, uint64_t> m_aggressionList;
+
+    protected:
         uint32_t m_hair;
         uint32_t m_hairColor;
 
@@ -134,9 +148,29 @@ class Player final: public BattleObject
             return m_name;
         }
 
+        int pkPoint() const
+        {
+            return m_pkPoint;
+        }
+
+        bool redName() const
+        {
+            return m_pkPoint >= SYS_PKPOINTREDNAME;
+        }
+
+        // fully derived from the pk point, there is nothing stored to keep in sync
         uint32_t nameColor() const
         {
-            return m_nameColor;
+            return redName() ? colorf::RED : colorf::WHITE;
+        }
+
+        int attackMode() const
+        {
+            const auto mode = SDRuntimeConfig_getConfig<RTCFG_ATTACKMODE>(m_sdPlayerConfig.runtimeConfig);
+            if(mode >= ATKMODE_BEGIN && mode < ATKMODE_END){
+                return mode;
+            }
+            return ATKMODE_PEACE;
         }
 
     public:
@@ -374,6 +408,7 @@ class Player final: public BattleObject
 
     private:
         void dbUpdateExp();
+        void dbUpdatePKPoint();
         void dbUpdateHealth();
         void dbUpdateMapGLoc();
 
@@ -457,6 +492,17 @@ class Player final: public BattleObject
         bool damageWearItem(int, int);
         void damageDefendWearItem();
         bool repairInventoryItem(uint32_t, uint32_t, bool);
+
+    private:
+
+        corof::awaitable<bool> canDamageTarget(uint64_t);
+
+
+        void markAggression(uint64_t);
+        bool hasAggression(uint64_t) const;
+
+        void addPKPoint(int);
+        void reportName();
 
     private:
         void setGold(size_t);

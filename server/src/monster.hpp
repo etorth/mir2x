@@ -223,5 +223,4 @@ class Monster: public BattleObject
 
     protected:
         void dispatchOffenderExp();
-        void addOffenderDamage(uint64_t, int);
 };

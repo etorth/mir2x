@@ -91,8 +91,11 @@ corof::awaitable<> Player::net_CM_REQUESTSPACEMOVE(uint8_t, const uint8_t *buf, 
 corof::awaitable<> Player::net_CM_REQUESTMAGICDAMAGE(uint8_t, const uint8_t *buf, size_t, uint64_t)
 {
     const auto cmRMD = ClientMsg::conv<CMRequestMagicDamage>(buf);
-    dispatchAttackDamage(cmRMD.aimUID, DBCOM_MAGICID(u8"物理攻击"), 0);
-    return {};
+    if(co_await canDamageTarget(cmRMD.aimUID)){
+        markAggression(co_await queryPlayerController(cmRMD.aimUID));
+        dispatchAttackDamage(cmRMD.aimUID, cmRMD.magicID, 0);
+    }
+    co_return;
 }
 
 corof::awaitable<> Player::net_CM_REQUESTADDHP(uint8_t, const uint8_t *buf, size_t, uint64_t)

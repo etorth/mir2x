@@ -78,6 +78,11 @@ void Player::dbUpdateExp()
     g_dbPod->exec(u8R"###( update tbl_char set fld_exp = %llu where fld_dbid = %llu )###", to_llu(exp()), to_llu(dbid()));
 }
 
+void Player::dbUpdatePKPoint()
+{
+    g_dbPod->exec(u8R"###( update tbl_char set fld_pkpoint = %llu where fld_dbid = %llu )###", to_llu(pkPoint()), to_llu(dbid()));
+}
+
 void Player::dbUpdateMapGLoc()
 {
     if(uidf::isBaseMap(mapUID())){

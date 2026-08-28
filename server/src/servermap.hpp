@@ -150,6 +150,16 @@ class ServerMap final: public ServerObject
             return (argMapUID == UID()) && mapBin()->validC(argX, argY);
         }
 
+    public:
+        // safe zone is runtime configurable, it does not belong to the map bin
+        //
+        // ServerMap owns it, but combat decisions are made by the actors themselves, so this
+        // barely-changing info gets broadcasted to every actor on the map when it changes, and
+        // an actor which just entered the map pulls it, see BattleObject::isSafeGrid()
+        //
+        // TODO no way to configure a safe zone yet, so no grid is safe
+        bool isSafeGrid(int, int) const;
+
     protected:
         bool canMove(bool, bool, int, int) const;
 

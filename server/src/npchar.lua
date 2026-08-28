@@ -143,7 +143,7 @@ function uidQueryName(uid)
 end
 
 function uidQueryRedName(uid)
-    return false
+    return uidRemoteCall(uid, [[ return getRedName() ]])
 end
 
 function uidQueryLevel(uid)

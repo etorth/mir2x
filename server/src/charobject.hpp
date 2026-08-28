@@ -129,6 +129,14 @@ class CharObject: public ServerObject
             return nullptr;
         }
 
+        const COLocation *getInViewCOPtr(uint64_t uid) const
+        {
+            if(auto p = m_inViewCOList.find(uid); p != m_inViewCOList.end()){
+                return std::addressof(p->second);
+            }
+            return nullptr;
+        }
+
         std::vector<uint64_t> getInViewUIDList() const
         {
             std::vector<uint64_t> uidList;

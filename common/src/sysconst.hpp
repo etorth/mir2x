@@ -116,11 +116,21 @@ constexpr int SYS_MAXNPCDISTANCE = 10;
 constexpr char SYS_GOLDNAME[] = "金币（小）"; // always use 金币（小）to represent the gold item
 constexpr char SYS_QUEST_TBL_PREFIX[] = "tbl_questdb_";
 
+
+// pk point never decays by itself
+// player pays a redemption NPC to bring it down
+
+constexpr int SYS_PKPOINTPERKILL = 100;
+constexpr int SYS_PKPOINTREDNAME = 200;
+
+// seconds an aggression mark stays valid, same window as an offender entry
+constexpr uint64_t SYS_PKAGGRESSIONTIME = 120;
+
 // item durability
 //
-// SDItem::duration[0/1] uses the same unit as ItemRecord::equip.duration, which is a small
-// number in [1, 60], so instead of decreasing the durability on every swing/hit, roll a dice
-// and only lose one point when it hits, this also keeps the durability database writes rare
+// SDItem::duration[0/1] uses the same unit as ItemRecord::equip.duration, which is a small number in [1, 60]
+// Instead of decreasing the durability on every swing/hit, roll a dice and only lose one point when it hits
+// This also keeps the durability database writes rare
 
 constexpr int SYS_WEAPONDURALOSSODDS = 200; // 1/N chance to lose one durability point per attack
 constexpr int SYS_ARMORDURALOSSODDS  = 300; // 1/N chance to lose one durability point per hit taken

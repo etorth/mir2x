@@ -66,7 +66,6 @@ struct SDInitPlayer
     uint32_t channID = 0;
 
     std::string name {};
-    uint32_t nameColor = 0;
 
     uint64_t mapUID = 0;
 
@@ -86,9 +85,11 @@ struct SDInitPlayer
     int hair = 0;
     int hairColor = 0;
 
+    int pkPoint = 0;
+
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(dbid, channID, name, nameColor, mapUID, x, y, strictLoc, hp, mp, exp, gold, gender, job, hair, hairColor);
+        ar(dbid, channID, name, mapUID, x, y, strictLoc, hp, mp, exp, gold, gender, job, hair, hairColor, pkPoint);
     }
 };
 
@@ -667,7 +668,7 @@ struct SDStartGameScene
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(uid, mapUID, x, y, direction, desp, name);
+        ar(uid, mapUID, x, y, direction, desp, name, nameColor);
     }
 };
 

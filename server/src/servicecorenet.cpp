@@ -127,7 +127,6 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         .dbid      = dbidOpt.value().first,
         .channID   = channID,
         .name      = queryChar.getColumn("fld_name"),
-        .nameColor = queryChar.getColumn("fld_namecolor"),
         .mapUID    = mapUID,
         .x         = mapX,
         .y         = mapY,
@@ -139,6 +138,7 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         .job       = queryChar.getColumn("fld_job"),
         .hair      = queryChar.getColumn("fld_hair"),
         .hairColor = queryChar.getColumn("fld_haircolor"),
+        .pkPoint   = queryChar.getColumn("fld_pkpoint"),
     };
 
     if(const auto [loaded, _] = co_await requestLoadMap(mapUID, false); loaded){
