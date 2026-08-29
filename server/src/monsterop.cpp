@@ -219,10 +219,11 @@ corof::awaitable<> Monster::on_AM_DEADFADEOUT(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::awaitable<> Monster::on_AM_NOTIFYDEAD(const ActorMsgPack &rstMPK)
+corof::awaitable<> Monster::on_AM_NOTIFYDEAD(const ActorMsgPack &mpk)
 {
-    const auto amND = rstMPK.conv<AMNotifyDead>();
+    const auto amND = mpk.conv<AMNotifyDead>();
     m_inViewCOList.erase(amND.UID);
+    removeOffender(amND.UID);
     return {};
 }
 

@@ -1237,20 +1237,11 @@ corof::awaitable<> Monster::onAMAttack(const ActorMsgPack &mpk)
         co_return;
     }
 
-    const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID);
-    const auto inRange = pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y);
-
-    // guard is neutral to a clean player, mark the hostility here or the hit below gets dropped and it stays neutral forever
-    // zero damage since this is not a damage record
-
-    if(uidf::isGuardMode(UID()) && uidf::isPlayer(amA.UID) && inRange){
-        addOffenderDamage(amA.UID, 0);
-    }
-
     switch(const auto friendType = co_await checkFriend(amA.UID); friendType){
         case FT_ENEMY:
+        case FT_NEUTRAL:
             {
-                if(!inRange){
+                if(const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID); !pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y)){
                     switch(uidf::getUIDType(amA.UID)){
                         case UID_MON:
                         case UID_PLY:

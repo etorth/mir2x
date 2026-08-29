@@ -20,11 +20,7 @@ class ServerGuard: public Monster
         corof::awaitable<int> checkFriend(uint64_t) override;
 
     protected:
-        corof::awaitable<> onAMAttack(const ActorMsgPack &) override
-        {
-            // serverguard won't get any damage
-            return {};
-        }
+        corof::awaitable<> onAMAttack(const ActorMsgPack &) override;
 
     protected:
         bool canMove(bool)   const override;

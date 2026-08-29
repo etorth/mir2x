@@ -892,6 +892,16 @@ bool BattleObject::isOffender(uint64_t nUID) const
     return false;
 }
 
+void BattleObject::removeOffender(uint64_t uid)
+{
+    for(auto iter = m_offenderList.begin(); iter != m_offenderList.end(); ++iter){
+        if(iter->uid == uid){
+            m_offenderList.erase(iter);
+            return;
+        }
+    }
+}
+
 void BattleObject::addOffenderDamage(uint64_t nUID, int nDamage)
 {
     fflassert(nUID);

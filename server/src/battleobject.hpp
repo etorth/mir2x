@@ -235,6 +235,7 @@ class BattleObject: public CharObject
 
     protected:
         bool isOffender(uint64_t) const;
+        void removeOffender(uint64_t);
         void addOffenderDamage(uint64_t, int);
 
     protected:

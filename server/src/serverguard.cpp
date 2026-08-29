@@ -106,6 +106,22 @@ corof::awaitable<int> ServerGuard::checkFriend(uint64_t targetUID)
     }
 }
 
+corof::awaitable<> ServerGuard::onAMAttack(const ActorMsgPack &mpk)
+{
+    const auto amA = mpk.conv<AMAttack>();
+    if(amA.UID == UID()){
+        return {};
+    }
+
+    const auto &mr = DBCOM_MAGICRECORD(amA.damage.magicID);
+    const auto inRange = pathf::inDCCastRange(mr.castRange, X(), Y(), amA.X, amA.Y);
+
+    if(inRange){
+        addOffenderDamage(amA.UID, 0);
+    }
+    return {};
+}
+
 bool ServerGuard::canMove(bool checkMoveLock) const
 {
     return BattleObject::canMove(checkMoveLock);
