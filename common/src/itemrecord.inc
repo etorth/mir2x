@@ -1251,7 +1251,7 @@
     .pkgGfxID = 0X00D5,
 },
 
-{   .name = u8"黑铁",
+{   .name = u8"黑铁矿",
     .type = u8"矿石",
     .weight = 4,
     .pkgGfxID = 0X00D6,
@@ -4973,7 +4973,7 @@
     },
 },
 
-{   .name = u8"小手镯_0",
+{   .name = u8"小手镯",
     .type = u8"手镯",
     .weight = 1,
     .pkgGfxID = 0X0288,

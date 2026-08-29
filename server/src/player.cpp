@@ -1178,7 +1178,7 @@ corof::awaitable<> Player::onCMActionMine(CMAction stCMA)
                     dispatchAction(mine);
                     addInventoryItem(SDItem
                     {
-                        .itemID = DBCOM_ITEMID(u8"黑铁"),
+                        .itemID = DBCOM_ITEMID(u8"黑铁矿"),
                         .seqID  = 1,
                         .count  = 1,
                     }, false);
