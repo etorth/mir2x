@@ -136,6 +136,12 @@ struct ItemRecord
     {
         const char8_t * job = nullptr;
         const int level = 0;
+
+        // the magic this teaches, set on 秘籍 only
+        //
+        // a plain 技能书 dropped by a monster or bought in a shop is raw material: it has no
+        // magic and can not be studied until a 武功教头 copies it out into a 秘籍
+        const char8_t * magic = nullptr;
     }
     book {};
 
@@ -215,6 +221,12 @@ struct ItemRecord
     constexpr bool isBook() const
     {
         return std::u8string_view(type) == u8"技能书";
+    }
+
+    // a 秘籍, the only book that can actually be studied
+    constexpr bool isMagicBook() const
+    {
+        return isBook() && book.magic && !std::u8string_view(book.magic).empty();
     }
 
     constexpr bool isPotion() const

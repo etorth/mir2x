@@ -38,9 +38,33 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         return getPlayer()->gold();
     });
 
+    // charge a fee, false when the player can not cover it and nothing is taken
+    //
+    // gold does not sit in the inventory so removeItem can not reach it
+    bindFunction("removeGold", [this](int count) -> bool
+    {
+        fflassert(count > 0);
+        if(getPlayer()->gold() < to_uz(count)){
+            return false;
+        }
+
+        getPlayer()->setGold(getPlayer()->gold() - to_uz(count));
+        return true;
+    });
+
     bindFunction("getGender", [this]() -> bool
     {
         return getPlayer()->gender();
+    });
+
+    // 战士 / 道士 / 法师, a list because a character can hold more than one
+    bindFunction("getJobList", [this](sol::this_state s)
+    {
+        std::vector<std::string> result;
+        for(const auto jobstr: jobf::jobName(getPlayer()->job())){
+            result.push_back(to_cstr(jobstr));
+        }
+        return sol::make_object(sol::state_view(s), result);
     });
 
     bindFunction("getName", [this]() -> std::string
@@ -2390,7 +2414,13 @@ bool Player::consumeBook(uint32_t itemID)
     fflassert(ir);
     fflassert(ir.isBook());
 
-    const auto magicID = DBCOM_MAGICID(ir.name);
+    // a plain 技能书 is raw material, a 武功教头 has to copy it out first
+    if(!ir.isMagicBook()){
+        postNetMessage(SM_TEXT, str_printf(u8"%s只是一本旧书，要找武功教头誊抄成秘籍才能修炼", to_cstr(ir.name)));
+        return false;
+    }
+
+    const auto magicID = DBCOM_MAGICID(ir.book.magic);
     const auto &mr = DBCOM_MAGICRECORD(magicID);
 
     fflassert(magicID);

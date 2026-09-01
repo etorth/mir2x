@@ -2,6 +2,25 @@ local player = {}
 
 function player.getLevel(uid) return uidRemoteCall(uid, [[ return getLevel() ]]) end
 function player.getGold (uid) return uidRemoteCall(uid, [[ return getGold () ]]) end
+
+function player.getJobList(uid) return uidRemoteCall(uid, [[ return getJobList() ]]) end
+
+function player.hasJob(uid, job)
+    assertType(job, 'string')
+    for _, v in ipairs(player.getJobList(uid) or {}) do
+        if v == job then
+            return true
+        end
+    end
+    return false
+end
+
+function player.removeGold(uid, count)
+    assertType(uid, 'integer')
+    assertType(count, 'integer')
+    assert(count > 0)
+    return uidRemoteCall(uid, count, [[ local count = ... return removeGold(count) ]])
+end
 function player.getGener(uid) return uidRemoteCall(uid, [[ return getGener() ]]) end
 function player.getName (uid) return uidRemoteCall(uid, [[ return getName () ]]) end
 

@@ -14600,3 +14600,636 @@
     .pkgGfxID = 0X0623,
 },
 
+// 秘籍: what a 武功教头 makes from a plain 技能书, see MU_* in Envir/QuestDiary
+// the raw book stays inert, only these carry .book.magic and can be studied
+
+{   .name = u8"基本剑术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"基本剑术",
+    },
+},
+
+{   .name = u8"攻杀剑术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"攻杀剑术",
+    },
+},
+
+{   .name = u8"刺杀剑术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"刺杀剑术",
+    },
+},
+
+{   .name = u8"半月弯刀（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"半月弯刀",
+    },
+},
+
+{   .name = u8"野蛮冲撞（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"野蛮冲撞",
+    },
+},
+
+{   .name = u8"烈火剑法（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"烈火剑法",
+    },
+},
+
+{   .name = u8"莲月剑法（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"莲月剑法",
+    },
+},
+
+{   .name = u8"翔空剑法（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"翔空剑法",
+    },
+},
+
+{   .name = u8"火球术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"火球术",
+    },
+},
+
+{   .name = u8"诱惑之光（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"诱惑之光",
+    },
+},
+
+{   .name = u8"抗拒火环（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"抗拒火环",
+    },
+},
+
+{   .name = u8"雷电术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"雷电术",
+    },
+},
+
+{   .name = u8"瞬息移动（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"瞬息移动",
+    },
+},
+
+{   .name = u8"大火球（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"大火球",
+    },
+},
+
+{   .name = u8"地狱火（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"地狱火",
+    },
+},
+
+{   .name = u8"爆裂火焰（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"爆裂火焰",
+    },
+},
+
+{   .name = u8"疾光电影（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"疾光电影",
+    },
+},
+
+{   .name = u8"火墙（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"火墙",
+    },
+},
+
+{   .name = u8"地狱雷光（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"地狱雷光",
+    },
+},
+
+{   .name = u8"魔法盾（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"魔法盾",
+    },
+},
+
+{   .name = u8"圣言术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"圣言术",
+    },
+},
+
+{   .name = u8"冰咆哮（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"冰咆哮",
+    },
+},
+
+{   .name = u8"冰月神掌（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"冰月神掌",
+    },
+},
+
+{   .name = u8"冰月震天（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"冰月震天",
+    },
+},
+
+{   .name = u8"霹雳掌（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"霹雳掌",
+    },
+},
+
+{   .name = u8"冰沙掌（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"冰沙掌",
+    },
+},
+
+{   .name = u8"风掌（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"风掌",
+    },
+},
+
+{   .name = u8"龙卷风（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"龙卷风",
+    },
+},
+
+{   .name = u8"风震天（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"风震天",
+    },
+},
+
+{   .name = u8"击风（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"击风",
+    },
+},
+
+{   .name = u8"异形换位（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"异形换位",
+    },
+},
+
+{   .name = u8"精神力战法（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"精神力战法",
+    },
+},
+
+{   .name = u8"治愈术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"治愈术",
+    },
+},
+
+{   .name = u8"施毒术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"施毒术",
+    },
+},
+
+{   .name = u8"灵魂火符（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"灵魂火符",
+    },
+},
+
+{   .name = u8"幽灵盾（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"幽灵盾",
+    },
+},
+
+{   .name = u8"神圣战甲术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"神圣战甲术",
+    },
+},
+
+{   .name = u8"召唤骷髅（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"召唤骷髅",
+    },
+},
+
+{   .name = u8"困魔咒（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"困魔咒",
+    },
+},
+
+{   .name = u8"隐身术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"隐身术",
+    },
+},
+
+{   .name = u8"集体隐身术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"集体隐身术",
+    },
+},
+
+{   .name = u8"群体治愈术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"群体治愈术",
+    },
+},
+
+{   .name = u8"召唤神兽（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"召唤神兽",
+    },
+},
+
+{   .name = u8"空拳刀法（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"空拳刀法",
+    },
+},
+
+{   .name = u8"月魂断玉（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"月魂断玉",
+    },
+},
+
+{   .name = u8"月魂灵波（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"月魂灵波",
+    },
+},
+
+{   .name = u8"回生术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"回生术",
+    },
+},
+
+{   .name = u8"强魔震法（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"强魔震法",
+    },
+},
+
+{   .name = u8"猛虎强势（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"猛虎强势",
+    },
+},
+
+{   .name = u8"超强召唤骷髅（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0130,
+    .book
+    {
+        .magic = u8"超强召唤骷髅",
+    },
+},
+
+{   .name = u8"破血狂杀（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"破血狂杀",
+    },
+},
+
+{   .name = u8"斗转星移（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"斗转星移",
+    },
+},
+
+{   .name = u8"铁布衫（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"铁布衫",
+    },
+},
+
+{   .name = u8"乾坤大挪移（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"乾坤大挪移",
+    },
+},
+
+{   .name = u8"十方斩（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"十方斩",
+    },
+},
+
+{   .name = u8"魄冰刺（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"魄冰刺",
+    },
+},
+
+{   .name = u8"怒神霹雳（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"怒神霹雳",
+    },
+},
+
+{   .name = u8"焰天火雨（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"焰天火雨",
+    },
+},
+
+{   .name = u8"凝血离魂（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"凝血离魂",
+    },
+},
+
+{   .name = u8"阴阳法环（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"阴阳法环",
+    },
+},
+
+{   .name = u8"妙影无踪（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"妙影无踪",
+    },
+},
+
+{   .name = u8"移花接玉（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"移花接玉",
+    },
+},
+
+{   .name = u8"云寂术（秘籍）",
+    .type = u8"技能书",
+    .weight = 1,
+    .pkgGfxID = 0X0135,
+    .book
+    {
+        .magic = u8"云寂术",
+    },
+},
+
