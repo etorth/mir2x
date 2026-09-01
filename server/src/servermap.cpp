@@ -376,6 +376,77 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         return 0;
     });
 
+    // grid switch triggers
+    //
+    // a grid in mapSwitchList normally sends a player straight through, these let a script
+    // take that decision over, the counter is here because a quest installs a trigger per
+    // player and several can sit on the same grid
+
+    bindFunction("setGridSwitchTrigger", [this](int x, int y, int w, int h)
+    {
+        for(int nW = 0; nW < w; ++nW){
+            for(int nH = 0; nH < h; ++nH){
+                if(getServerMap()->mapBin()->validC(x + nW, y + nH)){
+                    getServerMap()->getGrid(x + nW, y + nH).switchTrigger++;
+                }
+            }
+        }
+    });
+
+    bindFunction("clearGridSwitchTrigger", [this](int x, int y, int w, int h)
+    {
+        for(int nW = 0; nW < w; ++nW){
+            for(int nH = 0; nH < h; ++nH){
+                if(getServerMap()->mapBin()->validC(x + nW, y + nH) && (getServerMap()->getGrid(x + nW, y + nH).switchTrigger > 0)){
+                    getServerMap()->getGrid(x + nW, y + nH).switchTrigger--;
+                }
+            }
+        }
+    });
+
+    bindFunction("hasGridSwitchDest", [this](int x, int y) -> bool
+    {
+        return getServerMap()->mapBin()->validC(x, y) && getServerMap()->getGrid(x, y).mapUID;
+    });
+
+    // send a player through the destination configured for a grid, this is what the
+    // automatic switch would have done
+    bindFunction("uidGridMapSwitch", [this](uint64_t uid, int x, int y) -> bool
+    {
+        if(!(uidf::isPlayer(uid) && getServerMap()->mapBin()->validC(x, y) && getServerMap()->getGrid(x, y).mapUID)){
+            return false;
+        }
+
+        AMMapSwitchTrigger amMST;
+        std::memset(&amMST, 0, sizeof(amMST));
+
+        amMST.mapUID = getServerMap()->getGrid(x, y).mapUID;
+        amMST.X      = getServerMap()->getGrid(x, y).switchX;
+        amMST.Y      = getServerMap()->getGrid(x, y).switchY;
+
+        getServerMap()->m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST});
+        return true;
+    });
+
+    // send a player anywhere, for a gate that does not follow mapSwitchList
+    bindFunction("uidMapSwitch", [this](uint64_t uid, std::string mapName, int x, int y) -> bool
+    {
+        const auto mapID = DBCOM_MAPID(mapName.c_str());
+        if(!(uidf::isPlayer(uid) && mapID)){
+            return false;
+        }
+
+        AMMapSwitchTrigger amMST;
+        std::memset(&amMST, 0, sizeof(amMST));
+
+        amMST.mapUID = uidsf::getMapBaseUID(mapID);
+        amMST.X      = x;
+        amMST.Y      = y;
+
+        getServerMap()->m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST});
+        return true;
+    });
+
     constexpr static unsigned char luaScript []
     {
         #embed "servermap.lua" suffix(,)
@@ -703,6 +774,30 @@ std::optional<std::tuple<int, int>> ServerMap::getRCValidGrid(bool checkCO, bool
     fflassert(regionW > 0);
     fflassert(regionH > 0);
     return getRCGLoc(checkCO, checkLock, checkCount, regionX + mathf::rand() % regionW, regionY + mathf::rand() % regionH, regionX, regionY, regionW, regionH);
+}
+
+void ServerMap::dispatchGridSwitch(uint64_t playerUID, int x, int y)
+{
+    if(!(uidf::isPlayer(playerUID) && mapBin()->validC(x, y))){
+        return;
+    }
+
+    // a script owns this grid, it decides whether the player goes anywhere and can say why
+    // not, mapSwitchList is deliberately ignored here
+    if(getGrid(x, y).switchTrigger > 0){
+        m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_runGridTrigger(%llu, %d, %d)", to_llu(playerUID), x, y));
+        return;
+    }
+
+    if(getGrid(x, y).mapUID){
+        AMMapSwitchTrigger amMST;
+        std::memset(&amMST, 0, sizeof(amMST));
+
+        amMST.mapUID = getGrid(x, y).mapUID;
+        amMST.X      = getGrid(x, y).switchX;
+        amMST.Y      = getGrid(x, y).switchY;
+        m_actorPod->post(playerUID, {AM_MAPSWITCHTRIGGER, amMST});
+    }
 }
 
 void ServerMap::addGridUID(uint64_t uid, int nX, int nY, bool bForce)

@@ -226,6 +226,13 @@ function setQuestState(fargs)
                 clearNPCQuestBehavior(v[1], v[2], uid)
             end
         end
+
+        local gridTriggers = dbGetQuestField(uid, 'fld_gridtriggers')
+        if gridTriggers then
+            for _, v in pairs(gridTriggers) do
+                clearMapGridTrigger(v[1], v[2], v[3], uid)
+            end
+        end
         _RSVD_NAME_dbSetQuestStateDone(uid)
     else
         if (state ~= SYS_DONE) and (not dbGetQuestState(uid, fsm)) then
@@ -402,6 +409,84 @@ function clearNPCQuestBehavior(mapName, npcName, uid)
 
     uidRemoteCall(getNPCharUID(mapName, npcName), uid, getQuestName(), [[ deleteUIDQuestHandler(...) ]])
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), nil)
+end
+
+-- take over one grid of a map for one player
+--
+-- the grid stops sending the player through on its own, the installed code decides, return
+-- true from it to let the player continue to wherever the grid leads
+--
+--     setupMapGridTrigger('半兽洞穴2层_D002', 225, 175, uid,
+--     [[
+--         return getQuestName()
+--     ]],
+--     [[
+--         local questName = ...
+--         return function(uid, x, y)
+--             if server.player.hasItem(uid, '不死牌', 1) then
+--                 return true
+--             end
+--             server.player.postString(uid, '不知道为什么，门被反锁了，无法进入……')
+--             return false
+--         end
+--     ]])
+--
+-- like setupNPCQuestBehavior the argstr is re-evaluated on every install, so it must not
+-- capture anything from the current environment
+function setupMapGridTrigger(mapName, x, y, uid, arg1, arg2)
+    assertType(mapName, 'string')
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+
+    assertType(uid, 'integer')
+    assert(uid > 0)
+
+    local argstr = nil
+    local code   = nil
+
+    if type(arg1) == 'string' and type(arg2) == 'string' then
+        argstr = arg1
+        code   = arg2
+
+    elseif type(arg1) == 'string' and arg2 == nil then
+        argstr = nil
+        code   = arg1
+
+    elseif arg1 == nil and type(arg2) == 'string' then
+        argstr = nil
+        code   = arg2
+
+    else
+        fatalPrintf('Invalid arguments to setupMapGridTrigger(%s, %d, %d, %d, ...)', asInitString(mapName), x, y, uid)
+    end
+
+    local mapUID = _RSVD_NAME_callFuncCoop('loadMap', mapName)
+    assertType(mapUID, 'integer', 'nil')
+
+    if not mapUID then
+        fatalPrintf('Can not load map %s', asInitString(mapName))
+    end
+
+    local args = argstr and table.pack(load(argstr)()) or table.pack()
+    args[args.n + 1] = string.format([[ setUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
+
+    uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
+    _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', strAny({mapName, x, y}), {mapName, x, y, code, argstr})
+end
+
+function clearMapGridTrigger(mapName, x, y, uid)
+    assertType(mapName, 'string')
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+
+    assertType(uid, 'integer')
+    assert(uid > 0)
+
+    local mapUID = _RSVD_NAME_callFuncCoop('loadMap', mapName)
+    if mapUID then
+        uidRemoteCall(mapUID, uid, x, y, [[ deleteUIDGridTrigger(...) ]])
+    end
+    _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', strAny({mapName, x, y}), nil)
 end
 
 function runNPCEventHandler(npcUID, playerUID, eventPath, event, value)

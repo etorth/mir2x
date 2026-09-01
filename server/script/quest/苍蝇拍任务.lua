@@ -1,3 +1,5 @@
+local mondrop = require('quest.include.mondrop')
+
 _G.minQuestLevel = 5
 
 setQuestFSMTable(
@@ -248,3 +250,27 @@ uidRemoteCall(getNPCharUID('比奇县_0', '金氏_1'), getUID(), getQuestName(),
         end,
     })
 ]])
+
+-- 牛毛 and 竹棍 are not in the monster drop table, legacy handed them out from
+-- QuestDiary/NQ_BASE/MonQuest/Nm_Cow.txt and Nm_kalgi.txt while the collection was running.
+-- without this the SYS_ON_GAINITEM trigger above never fires and the quest cannot finish
+mondrop.setDropOnKill
+{
+    {
+        monster = '牛',
+        state   = 'quest_start_collection',
+        kills   = 3,
+        once    = true,
+        give    = '牛毛',
+        say     = '（这好像是牛毛。）',
+    },
+
+    {
+        monster = '钉耙猫',
+        state   = 'quest_start_collection',
+        kills   = 3,
+        once    = true,
+        give    = '竹棍',
+        say     = '（这个好像是竹棍）',
+    },
+}

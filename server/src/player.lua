@@ -120,6 +120,15 @@ function _RSVD_NAME_setupQuests()
                 end
             end
 
+            local gridTriggers = dbGetQuestField(playerUID, 'fld_gridtriggers')
+            assertType(gridTriggers, 'table', 'nil')
+
+            if gridTriggers then
+                for _, v in pairs(gridTriggers) do
+                    setupMapGridTrigger(v[1], v[2], v[3], playerUID, v[5], v[4])
+                end
+            end
+
             local states = _RSVD_NAME_dbGetQuestStateList(playerUID)
             assertType(states, 'table', 'nil')
 

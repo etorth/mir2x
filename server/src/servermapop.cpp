@@ -344,15 +344,7 @@ corof::awaitable<> ServerMap::on_AM_TRYJUMP(const ActorMsgPack &mpk)
                     return false;
                 });
 
-                if(uidf::isPlayer(fromUID) && getGrid(amTJ.EndX, amTJ.EndY).mapUID){
-                    AMMapSwitchTrigger amMST;
-                    std::memset(&amMST, 0, sizeof(amMST));
-
-                    amMST.mapUID = getGrid(amTJ.EndX, amTJ.EndY).mapUID;
-                    amMST.X      = getGrid(amTJ.EndX, amTJ.EndY).switchX;
-                    amMST.Y      = getGrid(amTJ.EndX, amTJ.EndY).switchY;
-                    m_actorPod->post(fromUID, {AM_MAPSWITCHTRIGGER, amMST});
-                }
+                dispatchGridSwitch(fromUID, amTJ.EndX, amTJ.EndY);
                 break;
             }
         default:
@@ -580,15 +572,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
                     return false;
                 });
 
-                if(uidf::isPlayer(amTM.UID) && getGrid(nMostX, nMostY).mapUID){
-                    AMMapSwitchTrigger amMST;
-                    std::memset(&amMST, 0, sizeof(amMST));
-
-                    amMST.mapUID = getGrid(nMostX, nMostY).mapUID;
-                    amMST.X      = getGrid(nMostX, nMostY).switchX;
-                    amMST.Y      = getGrid(nMostX, nMostY).switchY;
-                    m_actorPod->post(amTM.UID, {AM_MAPSWITCHTRIGGER, amMST});
-                }
+                dispatchGridSwitch(amTM.UID, nMostX, nMostY);
                 break;
             }
         default:

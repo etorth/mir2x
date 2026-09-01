@@ -90,9 +90,15 @@ class ServerMap final: public ServerObject
             int      switchX = -1;
             int      switchY = -1;
 
+            // a script decides whether a player standing here gets sent to mapUID
+            //
+            // set from lua, when set the automatic switch is skipped and the map script runs
+            // instead, see setGridTrigger() in servermap.lua
+            int switchTrigger = 0;
+
             bool empty() const
             {
-                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0);
+                return !locked && uidList.empty() && itemList.empty() && fireWallList.empty() && (mapUID == 0) && (switchTrigger == 0);
             }
 
             bool hasUID(uint64_t uid) const
@@ -125,6 +131,11 @@ class ServerMap final: public ServerObject
     private:
         void beforeActivate() override;
         corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
+
+    private:
+        // a player finished a move or jump onto (x, y), send it to the next map if that grid
+        // leads anywhere, unless a script has taken the decision over
+        void dispatchGridSwitch(uint64_t, int, int);
 
     public:
         ServerMap(uint64_t);
