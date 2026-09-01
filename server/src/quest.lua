@@ -75,9 +75,16 @@ function deleteQuestFlag(uid, flagName)
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_flags', flagName, nil)
 end
 
-function getNPCharUID(mapName, npcName)
+function getMapUID(mapName)
+    assertType(mapName, 'string')
+
     local mapUID = _RSVD_NAME_callFuncCoop('loadMap', mapName)
     assertType(mapUID, 'integer', 'nil')
+    return mapUID
+end
+
+function getNPCharUID(mapName, npcName)
+    local mapUID = getMapUID(mapName)
 
     if not mapUID then
         return nil
@@ -460,9 +467,7 @@ function setupMapGridTrigger(mapName, x, y, uid, arg1, arg2)
         fatalPrintf('Invalid arguments to setupMapGridTrigger(%s, %d, %d, %d, ...)', asInitString(mapName), x, y, uid)
     end
 
-    local mapUID = _RSVD_NAME_callFuncCoop('loadMap', mapName)
-    assertType(mapUID, 'integer', 'nil')
-
+    local mapUID = getMapUID(mapName)
     if not mapUID then
         fatalPrintf('Can not load map %s', asInitString(mapName))
     end
@@ -482,7 +487,7 @@ function clearMapGridTrigger(mapName, x, y, uid)
     assertType(uid, 'integer')
     assert(uid > 0)
 
-    local mapUID = _RSVD_NAME_callFuncCoop('loadMap', mapName)
+    local mapUID = getMapUID(mapName)
     if mapUID then
         uidRemoteCall(mapUID, uid, x, y, [[ deleteUIDGridTrigger(...) ]])
     end
