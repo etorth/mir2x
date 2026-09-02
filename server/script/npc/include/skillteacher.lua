@@ -11,7 +11,6 @@
 --
 --     skillteacher.setTeacher
 --     {
---         job    = '道士',
 --         greet  = '贫道就是清明子。',
 --         ask    = '那，你来找我有什么事？',
 --         wrongJob =
@@ -20,9 +19,14 @@
 --             ['法师'] = '不过你是魔法师，你还是去银杏山谷吧。',
 --         },
 --         intro  = '贫道就是清明子，专门在这里指导那些想修炼成为道士的人。',
+--
+--         -- keyed by school, a teacher may serve more than one
 --         books  =
 --         {
---             {band = '1 - 10 等级 修炼魔法', list = {{'治愈术', 700}, {'精神力战法', 800}}},
+--             ['道士'] =
+--             {
+--                 {band = '1 - 10 等级 修炼魔法', list = {{'治愈术', 700}, {'精神力战法', 800}}},
+--             },
 --         },
 --     }
 
@@ -45,7 +49,6 @@ end
 
 function skillteacher.setTeacher(args)
     assertType(args, 'table')
-    assertType(args.job, 'string')
     assertType(args.greet, 'string')
     assertType(args.books, 'table')
 
@@ -56,22 +59,35 @@ function skillteacher.setTeacher(args)
 
     -- flatten the level bands into one lookup, the bands are only how the menu reads
     local priceList = {}
-    for _, group in ipairs(args.books) do
-        assertType(group.band, 'string')
-        for _, entry in ipairs(group.list) do
-            local book, price = entry[1], entry[2]
-            assertType(book, 'string')
-            assertType(price, 'integer')
+    for job, bandList in pairs(args.books) do
+        assertType(job, 'string')
+        for _, group in ipairs(bandList) do
+            assertType(group.band, 'string')
+            for _, entry in ipairs(group.list) do
+                local book, price = entry[1], entry[2]
+                assertType(book, 'string')
+                assertType(price, 'integer')
 
-            if getItemID(book) <= 0 then
-                fatalPrintf('Teacher offers unknown book %s', book)
-            end
+                if getItemID(book) <= 0 then
+                    fatalPrintf('Teacher offers unknown book %s', book)
+                end
 
-            if getItemID(manualName(book)) <= 0 then
-                fatalPrintf('No 秘籍 exists for %s', book)
+                if getItemID(manualName(book)) <= 0 then
+                    fatalPrintf('No 秘籍 exists for %s', book)
+                end
+                priceList[book] = price
             end
-            priceList[book] = price
         end
+    end
+
+    -- which school's list to show this player, nil when the teacher can not help
+    local function servedJob(uid)
+        for job, _ in pairs(args.books) do
+            if server.player.hasJob(uid, job) then
+                return job
+            end
+        end
+        return nil
     end
 
     local handler = {}
@@ -89,7 +105,7 @@ function skillteacher.setTeacher(args)
         end
 
         -- wrong school, point them at the right town
-        if not server.player.hasJob(uid, args.job) then
+        if not servedJob(uid) then
             local hint = ''
             for job, text in pairs(args.wrongJob or {}) do
                 if server.player.hasJob(uid, job) then
@@ -121,11 +137,16 @@ function skillteacher.setTeacher(args)
     end
 
     handler['npc_show_skills'] = function(uid, value)
+        local job = servedJob(uid)
+        if not job then
+            return
+        end
+
         local out = {}
         table.insert(out, '                    <layout>')
         parList(out, '我可以指导你以下的武功。')
 
-        for _, group in ipairs(args.books) do
+        for _, group in ipairs(args.books[job]) do
             parList(out, string.format('（%s）', group.band))
 
             local line = {}
