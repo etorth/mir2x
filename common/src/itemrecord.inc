@@ -15233,3 +15233,9 @@
     },
 },
 
+// 刺杀剑术 quest material, off 沃玛战士, see QuestDiary/MU_warrior/MonQuest/asword.txt
+{   .name = u8"沃玛角",
+    .type = u8"道具",
+    .weight = 1,
+    .pkgGfxID = 0X0540,
+},
