@@ -582,6 +582,68 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     }
 }
 
+corof::awaitable<> ServerMap::on_AM_DESTROYMAP(const ActorMsgPack &mpk)
+{
+    const auto amDM = mpk.conv<AMDestroyMap>();
+    fflassert(amDM.mapUID == UID(), uidf::getUIDString(amDM.mapUID), uidf::getUIDString(UID()));
+
+    const auto collect = [this](bool wantPlayer)
+    {
+        std::vector<uint64_t> result;
+        for(int x = 0; x < to_d(mapBin()->w()); ++x){
+            for(int y = 0; y < to_d(mapBin()->h()); ++y){
+                if(mapBin()->validC(x, y)){
+                    for(const auto uid: getUIDList(x, y)){
+                        if(uidf::isPlayer(uid) == wantPlayer){
+                            result.push_back(uid);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    };
+
+    // anyone still inside goes back where they came from, before the monsters start dying so
+    // a stray blow can not follow them out
+    if(const auto fallbackMapID = amDM.fallbackMapID; fallbackMapID && DBCOM_MAPRECORD(fallbackMapID)){
+        for(const auto uid: collect(true)){
+            AMMapSwitchTrigger amMST;
+            std::memset(&amMST, 0, sizeof(amMST));
+
+            amMST.mapUID = uidsf::getMapBaseUID(fallbackMapID);
+            amMST.X      = amDM.fallbackX;
+            amMST.Y      = amDM.fallbackY;
+            m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST});
+        }
+    }
+
+    // a map can only go once nothing is standing on it, so put every monster down and wait
+    // for them to deregister
+    for(const auto uid: collect(false)){
+        if(uidf::isMonster(uid)){
+            m_actorPod->post(uid, AM_FORCEDIE);
+        }
+    }
+
+    constexpr int maxWaitCount = 25;
+    for(int i = 0; i < maxWaitCount; ++i){
+        if(collect(false).empty() && collect(true).empty()){
+            break;
+        }
+        co_await asyncWait(200);
+    }
+
+    AMMapDestroyed amMD;
+    std::memset(&amMD, 0, sizeof(amMD));
+
+    amMD.mapUID = UID();
+    m_actorPod->post(mpk.fromAddr(), {AM_MAPDESTROYED, amMD});
+
+    // last thing this actor does, the dtor runs inside
+    deactivate();
+}
+
 corof::awaitable<> ServerMap::on_AM_TRYLEAVE(const ActorMsgPack &mpk)
 {
     const auto fromUID = mpk.from();

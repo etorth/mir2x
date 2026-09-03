@@ -75,6 +75,11 @@ enum ActorMsgPackType: int
     AM_PEERLOADMAPOK,
     AM_LOADMAP,
     AM_LOADMAPOK,
+    AM_CREATEINSTANCEMAP,
+    AM_CREATEINSTANCEMAPOK,
+    AM_DESTROYMAP,
+    AM_MAPDESTROYED,
+    AM_FORCEDIE,
     AM_QUERYLOCATION,
     AM_QUERYSELLITEMLIST,
     AM_LOCATION,
@@ -217,6 +222,11 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_PEERLOADMAPOK)
         _add_mpk_type_case(AM_LOADMAP)
         _add_mpk_type_case(AM_LOADMAPOK)
+        _add_mpk_type_case(AM_CREATEINSTANCEMAP)
+        _add_mpk_type_case(AM_CREATEINSTANCEMAPOK)
+        _add_mpk_type_case(AM_DESTROYMAP)
+        _add_mpk_type_case(AM_MAPDESTROYED)
+        _add_mpk_type_case(AM_FORCEDIE)
         _add_mpk_type_case(AM_QUERYLOCATION)
         _add_mpk_type_case(AM_QUERYSELLITEMLIST)
         _add_mpk_type_case(AM_LOCATION)
@@ -547,6 +557,37 @@ struct AMLoadMap
 struct AMLoadMapOK
 {
     uint8_t newLoad;
+};
+
+// a private copy of a map, for one player
+//
+// the map id stays the same and only the uid seq differs, so one piece of map data can host
+// many independent copies and every actor on one addresses it by the full uid
+struct AMCreateInstanceMap
+{
+    uint32_t mapID;
+};
+
+struct AMCreateInstanceMapOK
+{
+    uint64_t mapUID;
+};
+
+// tear a copy down: clear its monsters, push anyone still inside back out, then let the map
+// actor deactivate itself
+struct AMDestroyMap
+{
+    uint64_t mapUID;
+
+    // where a player still inside lands, normally the map they entered from
+    uint32_t fallbackMapID;
+    int fallbackX;
+    int fallbackY;
+};
+
+struct AMMapDestroyed
+{
+    uint64_t mapUID;
 };
 
 struct AMUID

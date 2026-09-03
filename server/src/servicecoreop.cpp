@@ -1,7 +1,9 @@
 #include <string>
 #include <type_traits>
 
+#include "uidf.hpp"
 #include "uidsf.hpp"
+#include "dbcomid.hpp"
 #include "player.hpp"
 #include "actorpod.hpp"
 #include "server.hpp"
@@ -63,6 +65,60 @@ corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
     }
     else{
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+    }
+}
+
+corof::awaitable<> ServiceCore::on_AM_CREATEINSTANCEMAP(const ActorMsgPack &mpk)
+{
+    const auto amCIM = mpk.conv<AMCreateInstanceMap>();
+    if(!DBCOM_MAPRECORD(amCIM.mapID)){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        co_return;
+    }
+
+    // a fresh seq every time, buildMapUID reserves 1 for the base map
+    const auto mapUID = uidf::buildMapUID(amCIM.mapID, uidsf::peerIndex());
+
+    if(const auto [loaded, newLoad] = co_await requestLoadMap(mapUID, true); loaded){
+        AMCreateInstanceMapOK amCIMOK;
+        std::memset(&amCIMOK, 0, sizeof(amCIMOK));
+
+        amCIMOK.mapUID = mapUID;
+        m_actorPod->post(mpk.fromAddr(), {AM_CREATEINSTANCEMAPOK, amCIMOK});
+    }
+    else{
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+    }
+}
+
+corof::awaitable<> ServiceCore::on_AM_DESTROYMAP(const ActorMsgPack &mpk)
+{
+    const auto amDM = mpk.conv<AMDestroyMap>();
+
+    // never take down a base map, only a copy handed out by AM_CREATEINSTANCEMAP
+    if(uidf::getMapSeq(amDM.mapUID, false) <= 1){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        co_return;
+    }
+
+    if(!m_mapList.contains(amDM.mapUID)){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        co_return;
+    }
+
+    // the map clears itself out and deactivates, then we forget it
+    switch(const auto rmpk = co_await m_actorPod->send(amDM.mapUID, {AM_DESTROYMAP, amDM}); rmpk.type()){
+        case AM_MAPDESTROYED:
+            {
+                m_mapList.erase(amDM.mapUID);
+                m_actorPod->post(mpk.fromAddr(), {AM_MAPDESTROYED, rmpk.data(), rmpk.size()});
+                co_return;
+            }
+        default:
+            {
+                m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+                co_return;
+            }
     }
 }
 

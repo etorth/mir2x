@@ -50,6 +50,14 @@ corof::awaitable<> ServiceCore::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_LOADMAP(mpk);
             }
+        case AM_CREATEINSTANCEMAP:
+            {
+                return on_AM_CREATEINSTANCEMAP(mpk);
+            }
+        case AM_DESTROYMAP:
+            {
+                return on_AM_DESTROYMAP(mpk);
+            }
         case AM_MODIFYQUESTTRIGGERTYPE:
             {
                 return on_AM_MODIFYQUESTTRIGGERTYPE(mpk);

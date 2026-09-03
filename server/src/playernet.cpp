@@ -1030,6 +1030,12 @@ corof::awaitable<> Player::net_CM_REQUESTGRABWEAR(uint8_t, const uint8_t *buf, s
         return {};
     }
 
+    // a bound item stays on until a script takes it off, see SDItem::EA_BIND
+    if(currItem.getExtAttr<SDItem::EA_BIND_t>().value_or(false)){
+        fnPostGrabError(GWERR_BIND);
+        return {};
+    }
+
     // server doesn not track if item is grabbed or in inventory
     // when disarms the wear item, server always put it into the inventory
 

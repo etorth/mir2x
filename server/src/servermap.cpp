@@ -539,6 +539,10 @@ corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_DROPITEM(rstMPK);
             }
+        case AM_DESTROYMAP:
+            {
+                return on_AM_DESTROYMAP(rstMPK);
+            }
         case AM_TRYLEAVE:
             {
                 return on_AM_TRYLEAVE(rstMPK);

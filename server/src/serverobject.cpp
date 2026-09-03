@@ -51,6 +51,64 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         }
     });
 
+    // ask for a private copy of a map, returns its uid or nil
+    //
+    // the copy carries the same map id and its own uid seq, so it loads the same data, spawns
+    // its own npcs and keeps its own monsters, see AM_CREATEINSTANCEMAP
+    bindCoop("_RSVD_NAME_createInstanceMap", [thisptr = this](this auto, LuaCoopResumer onDone, uint32_t mapID) -> corof::awaitable<>
+    {
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        AMCreateInstanceMap amCIM;
+        std::memset(&amCIM, 0, sizeof(amCIM));
+
+        amCIM.mapID = mapID;
+        const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_CREATEINSTANCEMAP, amCIM});
+
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        switch(rmpk.type()){
+            case AM_CREATEINSTANCEMAPOK:
+                {
+                    onDone(rmpk.template conv<AMCreateInstanceMapOK>().mapUID);
+                    break;
+                }
+            default:
+                {
+                    onDone();
+                    break;
+                }
+        }
+    });
+
+    // give a copy back, anyone still inside lands on the fallback map first
+    bindCoop("_RSVD_NAME_destroyInstanceMap", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t mapUID, uint32_t fallbackMapID, int fallbackX, int fallbackY) -> corof::awaitable<>
+    {
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        AMDestroyMap amDM;
+        std::memset(&amDM, 0, sizeof(amDM));
+
+        amDM.mapUID        = mapUID;
+        amDM.fallbackMapID = fallbackMapID;
+        amDM.fallbackX     = fallbackX;
+        amDM.fallbackY     = fallbackY;
+
+        const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_DESTROYMAP, amDM});
+
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        onDone(rmpk.type() == AM_MAPDESTROYED);
+    });
+
     bindCoop("_RSVD_NAME_queryQuestUIDList", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
     {
         bool closed = false;

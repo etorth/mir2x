@@ -168,6 +168,44 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         }
     });
 
+    // hand over an item the player can not take off once worn, see SDItem::EA_BIND
+    //
+    // returns the seqID, a quest needs it to tell the lent copy from one the player already
+    // had, and to take the right one back
+    bindFunction("addBoundItem", [this](int itemID) -> uint32_t
+    {
+        const auto &ir = DBCOM_ITEMRECORD(itemID);
+        fflassert(ir);
+
+        auto itemList = SDItem::buildItemList(to_u32(itemID), 1);
+        fflassert(itemList.size() == 1, itemList.size());
+
+        auto item = itemList.front();
+        fflassert(!item.isGold());
+
+        item.extAttrList.insert(SDItem::build_EA_BIND(true));
+        return getPlayer()->addInventoryItem(std::move(item), false).seqID;
+    });
+
+    // take a worn item away outright, the one path EA_BIND does not block
+    bindFunction("removeWearItem", [this](int wltype) -> bool
+    {
+        if(!getPlayer()->m_sdItemStorage.wear.getWLItem(wltype)){
+            return false;
+        }
+
+        getPlayer()->setWLItem(wltype, {});
+        getPlayer()->dbRemoveWearItem(wltype);
+
+        // same teardown the manual disarm does, so anything hooked on the slot lets go
+        if(auto cbp = getPlayer()->m_onWLOff.find(wltype); cbp != getPlayer()->m_onWLOff.end()){
+            fflassert(cbp->second);
+            cbp->second();
+            getPlayer()->m_onWLOff.erase(cbp);
+        }
+        return true;
+    });
+
     bindFunction("deliverItem", [this](int itemID, int itemCount) -> std::string
     {
         fflassert(itemID > 0);

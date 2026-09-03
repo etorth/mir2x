@@ -537,6 +537,12 @@ corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_MASTERKILL(rstMPK);
             }
+        case AM_FORCEDIE:
+            {
+                // the map is being torn down, whatever this drops goes with it
+                goDie();
+                return {};
+            }
         case AM_MASTERHITTED:
             {
                 return on_AM_MASTERHITTED(rstMPK);

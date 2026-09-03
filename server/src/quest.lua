@@ -83,6 +83,39 @@ function getMapUID(mapName)
     return mapUID
 end
 
+-- a private copy of a map for one player, returns its uid or nil
+--
+-- the copy loads the same map data and spawns its own NPCs, so an NPC standing in the copy
+-- sees only the monsters of that copy. hand it back with destroyInstanceMap when done, a copy
+-- nobody releases stays loaded for the life of the server
+function createInstanceMap(mapName)
+    assertType(mapName, 'string')
+
+    local mapID = getMapID(mapName)
+    if not mapID or mapID <= 0 then
+        fatalPrintf('No such map: %s', mapName)
+    end
+
+    local mapUID = _RSVD_NAME_callFuncCoop('createInstanceMap', mapID)
+    assertType(mapUID, 'integer', 'nil')
+    return mapUID
+end
+
+-- clear the copy out and unload it, anyone still inside lands on the fallback first
+function destroyInstanceMap(mapUID, fallbackMapName, fallbackX, fallbackY)
+    assertType(mapUID, 'integer')
+    assertType(fallbackMapName, 'string', 'nil')
+
+    local fallbackMapID = 0
+    if fallbackMapName then
+        assertType(fallbackX, 'integer')
+        assertType(fallbackY, 'integer')
+        fallbackMapID = getMapID(fallbackMapName) or 0
+    end
+
+    return _RSVD_NAME_callFuncCoop('destroyInstanceMap', mapUID, fallbackMapID, fallbackX or 0, fallbackY or 0)
+end
+
 function getNPCharUID(mapName, npcName)
     local mapUID = getMapUID(mapName)
 
