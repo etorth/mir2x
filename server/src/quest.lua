@@ -460,6 +460,53 @@ function setupNPCQuestBehavior(mapName, npcName, uid, arg1, arg2)
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_npcbehaviors', strAny({mapName, npcName}), {mapName, npcName, code, argstr})
 end
 
+-- setupNPCQuestBehavior against one map copy instead of a map name
+--
+-- deliberately not persisted: a copy does not survive a restart, so on the next login there
+-- is no map to reinstall onto and the quest state alone decides what happens
+function setupInstanceNPCBehavior(mapUID, npcName, uid, arg1, arg2)
+    assertType(mapUID, 'integer')
+    assertType(npcName, 'string')
+
+    assertType(uid, 'integer')
+    assert(uid > 0)
+
+    local argstr = nil
+    local code   = nil
+
+    if type(arg1) == 'string' and type(arg2) == 'string' then
+        argstr = arg1
+        code   = arg2
+
+    elseif type(arg1) == 'string' and arg2 == nil then
+        argstr = nil
+        code   = arg1
+
+    elseif arg1 == nil and type(arg2) == 'string' then
+        argstr = nil
+        code   = arg2
+
+    else
+        fatalPrintf('Invalid arguments to setupInstanceNPCBehavior(%d, %s, %d, ...)', mapUID, asInitString(npcName), uid)
+    end
+
+    local npcUID = uidRemoteCall(mapUID, npcName,
+    [[
+        local npcName = ...
+        return getNPCharUID(npcName)
+    ]])
+
+    assertType(npcUID, 'integer', 'nil')
+    if not npcUID then
+        fatalPrintf('No NPC %s on map copy %d', asInitString(npcName), mapUID)
+    end
+
+    local args = argstr and table.pack(load(argstr)()) or table.pack()
+    args[args.n + 1] = string.format([[ setUIDQuestHandler(%d, %s, load(%s)(...)) ]], uid, asInitString(getQuestName()), asInitString(code))
+
+    uidRemoteCall(npcUID, table.unpack(args, 1, args.n + 1))
+end
+
 function clearNPCQuestBehavior(mapName, npcName, uid)
     assertType(mapName, 'string')
     assertType(npcName, 'string')

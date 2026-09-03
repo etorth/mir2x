@@ -38,6 +38,15 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         return getPlayer()->m_threadKey++;
     });
 
+    // legacy checkmagic: has this player already studied it
+    bindFunction("hasMagic", [this](std::string magicName) -> bool
+    {
+        const auto magicID = DBCOM_MAGICID(magicName.c_str());
+        fflassert(magicID, magicName);
+
+        return getPlayer()->m_sdLearnedMagicList.has(magicID);
+    });
+
     bindFunction("getGold", [this]() -> uint64_t
     {
         return getPlayer()->gold();

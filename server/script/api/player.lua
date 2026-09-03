@@ -5,6 +5,11 @@ function player.getGold (uid) return uidRemoteCall(uid, [[ return getGold () ]])
 
 function player.getJobList(uid) return uidRemoteCall(uid, [[ return getJobList() ]]) end
 
+function player.hasMagic(uid, magicName)
+    assertType(magicName, 'string')
+    return uidRemoteCall(uid, magicName, [[ local n = ... return hasMagic(n) ]])
+end
+
 function player.hasJob(uid, job)
     assertType(job, 'string')
     for _, v in ipairs(player.getJobList(uid) or {}) do
