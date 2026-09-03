@@ -73,8 +73,8 @@ class ServiceCore final: public PeerCore
         corof::awaitable<> on_AM_BADCHANNEL            (const ActorMsgPack &);
         corof::awaitable<> on_AM_RECVPACKAGE           (const ActorMsgPack &);
         corof::awaitable<> on_AM_LOADMAP               (const ActorMsgPack &);
-        corof::awaitable<> on_AM_CREATEINSTANCEMAP     (const ActorMsgPack &);
-        corof::awaitable<> on_AM_DESTROYMAP            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_LOADINSTANCEMAP     (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CLOSEINSTANCEMAP            (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYMAPLIST          (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCOCOUNT          (const ActorMsgPack &);
         corof::awaitable<> on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &);

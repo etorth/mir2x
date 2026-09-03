@@ -86,6 +86,23 @@ function getTeamMemberList()
     return _RSVD_NAME_callFuncCoop('getTeamMemberList')
 end
 
+-- run func on its own lua thread in this player, returns the key to cancel it by
+--
+-- same shape as runQuestThread: pause() inside the thread to delay the rest of it, and
+-- closeThread(key) cancels the pause and the thread with it
+--
+--     local timer = runPlayerThread(function()
+--         pause(3 * 60 * 1000)
+--         postString('时间到了！')
+--     end)
+function runPlayerThread(func)
+    assertType(func, 'function')
+
+    local key = rollKey()
+    runThread(key, func)
+    return key
+end
+
 function getQuestState(questName, fsmName)
     assertType(questName, 'string')
     assertType(fsmName, 'string', 'nil')

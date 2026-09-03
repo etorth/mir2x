@@ -1,3 +1,15 @@
+-- run func on its own lua thread in this map, returns the key to cancel it by
+--
+-- same shape as runQuestThread: pause() inside the thread to delay the rest of it, and
+-- closeThread(key) cancels the pause and the thread with it
+function runMapThread(func)
+    assertType(func, 'function')
+
+    local key = rollKey()
+    runThread(key, func)
+    return key
+end
+
 -- grid triggers
 --
 -- a grid listed in the map record's mapSwitchList normally sends a player straight to the

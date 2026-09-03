@@ -134,6 +134,7 @@ class Monster: public BattleObject
         corof::awaitable<> on_AM_UPDATEHP        (const ActorMsgPack &);
         corof::awaitable<> on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
         corof::awaitable<> on_AM_MASTERKILL      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_FORCEDIE        (const ActorMsgPack &);
         corof::awaitable<> on_AM_MASTERHITTED    (const ActorMsgPack &);
         corof::awaitable<> on_AM_NOTIFYDEAD      (const ActorMsgPack &);
         corof::awaitable<> on_AM_BADACTORPOD     (const ActorMsgPack &);
@@ -194,6 +195,10 @@ class Monster: public BattleObject
 
     protected:
         void onDie() override;
+
+    private:
+        // cleared when something puts this monster down from outside, see AM_FORCEDIE
+        bool m_dropOnDie = true;
 
     protected:
         virtual corof::awaitable<bool> needHeal(uint64_t);

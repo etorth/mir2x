@@ -539,9 +539,7 @@ corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
             }
         case AM_FORCEDIE:
             {
-                // the map is being torn down, whatever this drops goes with it
-                goDie();
-                return {};
+                return on_AM_FORCEDIE(rstMPK);
             }
         case AM_MASTERHITTED:
             {
@@ -645,6 +643,15 @@ bool Monster::dcValid(int, bool)
 
 void Monster::onDie()
 {
+    if(!m_dropOnDie){
+        dispatchAction(ActionDie
+        {
+            .x = X(),
+            .y = Y(),
+        });
+        return;
+    }
+
     dispatchOffenderExp();
     for(auto &item: getMonsterDropItemList(monsterID())){
         m_actorPod->post(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem

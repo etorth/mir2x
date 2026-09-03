@@ -75,10 +75,10 @@ enum ActorMsgPackType: int
     AM_PEERLOADMAPOK,
     AM_LOADMAP,
     AM_LOADMAPOK,
-    AM_CREATEINSTANCEMAP,
-    AM_CREATEINSTANCEMAPOK,
-    AM_DESTROYMAP,
-    AM_MAPDESTROYED,
+    AM_LOADINSTANCEMAP,
+    AM_LOADINSTANCEMAPOK,
+    AM_CLOSEINSTANCEMAP,
+    AM_INSTANCEMAPCLOSED,
     AM_FORCEDIE,
     AM_QUERYLOCATION,
     AM_QUERYSELLITEMLIST,
@@ -222,10 +222,10 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_PEERLOADMAPOK)
         _add_mpk_type_case(AM_LOADMAP)
         _add_mpk_type_case(AM_LOADMAPOK)
-        _add_mpk_type_case(AM_CREATEINSTANCEMAP)
-        _add_mpk_type_case(AM_CREATEINSTANCEMAPOK)
-        _add_mpk_type_case(AM_DESTROYMAP)
-        _add_mpk_type_case(AM_MAPDESTROYED)
+        _add_mpk_type_case(AM_LOADINSTANCEMAP)
+        _add_mpk_type_case(AM_LOADINSTANCEMAPOK)
+        _add_mpk_type_case(AM_CLOSEINSTANCEMAP)
+        _add_mpk_type_case(AM_INSTANCEMAPCLOSED)
         _add_mpk_type_case(AM_FORCEDIE)
         _add_mpk_type_case(AM_QUERYLOCATION)
         _add_mpk_type_case(AM_QUERYSELLITEMLIST)
@@ -563,19 +563,19 @@ struct AMLoadMapOK
 //
 // the map id stays the same and only the uid seq differs, so one piece of map data can host
 // many independent copies and every actor on one addresses it by the full uid
-struct AMCreateInstanceMap
+struct AMLoadInstanceMap
 {
     uint32_t mapID;
 };
 
-struct AMCreateInstanceMapOK
+struct AMLoadInstanceMapOK
 {
     uint64_t mapUID;
 };
 
 // tear a copy down: clear its monsters, push anyone still inside back out, then let the map
 // actor deactivate itself
-struct AMDestroyMap
+struct AMCloseInstanceMap
 {
     uint64_t mapUID;
 
@@ -585,9 +585,18 @@ struct AMDestroyMap
     int fallbackY;
 };
 
-struct AMMapDestroyed
+struct AMInstanceMapClosed
 {
     uint64_t mapUID;
+};
+
+// put a monster down from outside its own logic
+//
+// drop decides whether it still leaves loot and hands out experience, an instance map being
+// torn down wants neither
+struct AMForceDie
+{
+    uint8_t drop;
 };
 
 struct AMUID

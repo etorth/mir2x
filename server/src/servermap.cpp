@@ -31,6 +31,11 @@ extern ServerConfigureWindow *g_serverConfigureWindow;
 ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
     : ServerObject::LuaThreadRunner(serverMapPtr)
 {
+    bindFunction("rollKey", [this]() -> uint64_t
+    {
+        return getServerMap()->m_threadKey++;
+    });
+
     bindFunction("getMapID", [this]() -> int
     {
         return to_d(getServerMap()->ID());
@@ -539,9 +544,9 @@ corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_DROPITEM(rstMPK);
             }
-        case AM_DESTROYMAP:
+        case AM_CLOSEINSTANCEMAP:
             {
-                return on_AM_DESTROYMAP(rstMPK);
+                return on_AM_CLOSEINSTANCEMAP(rstMPK);
             }
         case AM_TRYLEAVE:
             {

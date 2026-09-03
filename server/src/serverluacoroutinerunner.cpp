@@ -115,6 +115,35 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         return sol::as_table<std::array<uint64_t, 3>>({m_actorPod->UID(), m_currRunner->key, m_currRunner->seqID});
     });
 
+    // drop a thread started by runThread, by the {key, seqID} pair it returned
+    //
+    // a thread sitting in pause() is what a lua timer is, so this is how a timer gets
+    // cancelled. seqID 0 drops every thread under that key
+    bindFunction("closeThread", [this](uint64_t key, sol::variadic_args args)
+    {
+        const std::vector<sol::object> argList(args.begin(), args.end());
+        const auto seqID = [&argList]() -> uint64_t
+        {
+            switch(argList.size()){
+                case 0 : return 0;
+                case 1 : return argList[0].as<uint64_t>();
+                default: throw fflpanic("invalid argument count: {}", argList.size());
+            }
+        }();
+
+        // never let a thread take itself down here, close() would free the frame we are
+        // still running on, use the runner's own exit path for that
+        if(m_currRunner && m_currRunner->key == key && (seqID == 0 || m_currRunner->seqID == seqID)){
+            throw fflpanic("thread {} closing itself, return from it instead", to_llu(key));
+        }
+
+        if(hasKey(key, seqID)){
+            close(key, seqID);
+            return true;
+        }
+        return false;
+    });
+
     bindFunction("runThread", [this](uint64_t key, sol::function func)
     {
         return spawn(key, func, [key, this](const sol::protected_function_result &pfr)

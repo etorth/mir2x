@@ -582,12 +582,12 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     }
 }
 
-corof::awaitable<> ServerMap::on_AM_DESTROYMAP(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_CLOSEINSTANCEMAP(const ActorMsgPack &mpk)
 {
-    const auto amDM = mpk.conv<AMDestroyMap>();
-    fflassert(amDM.mapUID == UID(), uidf::getUIDString(amDM.mapUID), uidf::getUIDString(UID()));
+    const auto amCIM = mpk.conv<AMCloseInstanceMap>();
+    fflassert(amCIM.mapUID == UID(), uidf::getUIDString(amCIM.mapUID), uidf::getUIDString(UID()));
 
-    const auto collect = [this](bool wantPlayer)
+    const auto fnCollect = [this](bool wantPlayer)
     {
         std::vector<uint64_t> result;
         for(int x = 0; x < to_d(mapBin()->w()); ++x){
@@ -606,39 +606,43 @@ corof::awaitable<> ServerMap::on_AM_DESTROYMAP(const ActorMsgPack &mpk)
 
     // anyone still inside goes back where they came from, before the monsters start dying so
     // a stray blow can not follow them out
-    if(const auto fallbackMapID = amDM.fallbackMapID; fallbackMapID && DBCOM_MAPRECORD(fallbackMapID)){
-        for(const auto uid: collect(true)){
+    if(const auto fallbackMapID = amCIM.fallbackMapID; fallbackMapID && DBCOM_MAPRECORD(fallbackMapID)){
+        for(const auto uid: fnCollect(true)){
             AMMapSwitchTrigger amMST;
             std::memset(&amMST, 0, sizeof(amMST));
 
             amMST.mapUID = uidsf::getMapBaseUID(fallbackMapID);
-            amMST.X      = amDM.fallbackX;
-            amMST.Y      = amDM.fallbackY;
+            amMST.X      = amCIM.fallbackX;
+            amMST.Y      = amCIM.fallbackY;
             m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST});
         }
     }
 
     // a map can only go once nothing is standing on it, so put every monster down and wait
     // for them to deregister
-    for(const auto uid: collect(false)){
+    for(const auto uid: fnCollect(false)){
         if(uidf::isMonster(uid)){
-            m_actorPod->post(uid, AM_FORCEDIE);
+            AMForceDie amFD;
+            std::memset(&amFD, 0, sizeof(amFD));
+
+            amFD.drop = false; // the loot would be unreachable, the map is going
+            m_actorPod->post(uid, {AM_FORCEDIE, amFD});
         }
     }
 
     constexpr int maxWaitCount = 25;
     for(int i = 0; i < maxWaitCount; ++i){
-        if(collect(false).empty() && collect(true).empty()){
+        if(fnCollect(false).empty() && fnCollect(true).empty()){
             break;
         }
         co_await asyncWait(200);
     }
 
-    AMMapDestroyed amMD;
-    std::memset(&amMD, 0, sizeof(amMD));
+    AMInstanceMapClosed amIMC;
+    std::memset(&amIMC, 0, sizeof(amIMC));
 
-    amMD.mapUID = UID();
-    m_actorPod->post(mpk.fromAddr(), {AM_MAPDESTROYED, amMD});
+    amIMC.mapUID = UID();
+    m_actorPod->post(mpk.fromAddr(), {AM_INSTANCEMAPCLOSED, amIMC});
 
     // last thing this actor does, the dtor runs inside
     deactivate();

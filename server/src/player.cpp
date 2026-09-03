@@ -33,6 +33,11 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         return getPlayer()->level();
     });
 
+    bindFunction("rollKey", [this]() -> uint64_t
+    {
+        return getPlayer()->m_threadKey++;
+    });
+
     bindFunction("getGold", [this]() -> uint64_t
     {
         return getPlayer()->gold();

@@ -347,7 +347,7 @@ class ServerMap final: public ServerObject
 
     private:
         corof::awaitable<> on_AM_ACTION              (const ActorMsgPack &);
-        corof::awaitable<> on_AM_DESTROYMAP          (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CLOSEINSTANCEMAP          (const ActorMsgPack &);
         corof::awaitable<> on_AM_PICKUP              (const ActorMsgPack &);
         corof::awaitable<> on_AM_OFFLINE             (const ActorMsgPack &);
         corof::awaitable<> on_AM_TRYJUMP             (const ActorMsgPack &);

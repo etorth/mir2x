@@ -304,6 +304,13 @@ corof::awaitable<> Monster::on_AM_MASTERKILL(const ActorMsgPack &mpk)
     return {};
 }
 
+corof::awaitable<> Monster::on_AM_FORCEDIE(const ActorMsgPack &mpk)
+{
+    m_dropOnDie = mpk.conv<AMForceDie>().drop;
+    goDie();
+    return {};
+}
+
 corof::awaitable<> Monster::on_AM_MASTERHITTED(const ActorMsgPack &mpk)
 {
     co_await onAMMasterHitted(mpk);

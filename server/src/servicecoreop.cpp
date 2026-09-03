@@ -68,50 +68,50 @@ corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
     }
 }
 
-corof::awaitable<> ServiceCore::on_AM_CREATEINSTANCEMAP(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_LOADINSTANCEMAP(const ActorMsgPack &mpk)
 {
-    const auto amCIM = mpk.conv<AMCreateInstanceMap>();
-    if(!DBCOM_MAPRECORD(amCIM.mapID)){
+    const auto amLIM = mpk.conv<AMLoadInstanceMap>();
+    if(!DBCOM_MAPRECORD(amLIM.mapID)){
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
         co_return;
     }
 
     // a fresh seq every time, buildMapUID reserves 1 for the base map
-    const auto mapUID = uidf::buildMapUID(amCIM.mapID, uidsf::peerIndex());
+    const auto mapUID = uidf::buildMapUID(amLIM.mapID, uidsf::peerIndex());
 
     if(const auto [loaded, newLoad] = co_await requestLoadMap(mapUID, true); loaded){
-        AMCreateInstanceMapOK amCIMOK;
-        std::memset(&amCIMOK, 0, sizeof(amCIMOK));
+        AMLoadInstanceMapOK amLIMOK;
+        std::memset(&amLIMOK, 0, sizeof(amLIMOK));
 
-        amCIMOK.mapUID = mapUID;
-        m_actorPod->post(mpk.fromAddr(), {AM_CREATEINSTANCEMAPOK, amCIMOK});
+        amLIMOK.mapUID = mapUID;
+        m_actorPod->post(mpk.fromAddr(), {AM_LOADINSTANCEMAPOK, amLIMOK});
     }
     else{
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
     }
 }
 
-corof::awaitable<> ServiceCore::on_AM_DESTROYMAP(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_CLOSEINSTANCEMAP(const ActorMsgPack &mpk)
 {
-    const auto amDM = mpk.conv<AMDestroyMap>();
+    const auto amCIM2 = mpk.conv<AMCloseInstanceMap>();
 
-    // never take down a base map, only a copy handed out by AM_CREATEINSTANCEMAP
-    if(uidf::getMapSeq(amDM.mapUID, false) <= 1){
+    // never take down a base map, only a copy handed out by AM_LOADINSTANCEMAP
+    if(uidf::getMapSeq(amCIM2.mapUID, false) <= 1){
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
         co_return;
     }
 
-    if(!m_mapList.contains(amDM.mapUID)){
+    if(!m_mapList.contains(amCIM2.mapUID)){
         m_actorPod->post(mpk.fromAddr(), AM_ERROR);
         co_return;
     }
 
     // the map clears itself out and deactivates, then we forget it
-    switch(const auto rmpk = co_await m_actorPod->send(amDM.mapUID, {AM_DESTROYMAP, amDM}); rmpk.type()){
-        case AM_MAPDESTROYED:
+    switch(const auto rmpk = co_await m_actorPod->send(amCIM2.mapUID, {AM_CLOSEINSTANCEMAP, amCIM2}); rmpk.type()){
+        case AM_INSTANCEMAPCLOSED:
             {
-                m_mapList.erase(amDM.mapUID);
-                m_actorPod->post(mpk.fromAddr(), {AM_MAPDESTROYED, rmpk.data(), rmpk.size()});
+                m_mapList.erase(amCIM2.mapUID);
+                m_actorPod->post(mpk.fromAddr(), {AM_INSTANCEMAPCLOSED, rmpk.data(), rmpk.size()});
                 co_return;
             }
         default:

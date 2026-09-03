@@ -1,6 +1,23 @@
+-- run func on its own lua thread in this quest, returns the key to cancel it by
+--
+-- this is how a script gets a timer: pause() inside the thread and the rest runs later, and
+-- since pause is cancellable, closeThread(key) cancels the timer with it
+--
+--     local timer = runQuestThread(function()
+--         pause(3 * 60 * 1000)
+--         giveUp(uid)
+--     end)
+--
+--     closeThread(timer)      -- they finished in time
+--
+-- rollKey is unique per call, so the key alone identifies the thread and the seqID does not
+-- have to be carried around. from inside the thread use getKeyPair()
 function runQuestThread(func)
     assertType(func, 'function')
-    return runThread(rollKey(), func)
+
+    local key = rollKey()
+    runThread(key, func)
+    return key
 end
 
 local function _RSVD_NAME_dbUpdateQuestFieldTable(uid, field, key, value)
@@ -85,10 +102,13 @@ end
 
 -- a private copy of a map for one player, returns its uid or nil
 --
--- the copy loads the same map data and spawns its own NPCs, so an NPC standing in the copy
--- sees only the monsters of that copy. hand it back with destroyInstanceMap when done, a copy
--- nobody releases stays loaded for the life of the server
-function createInstanceMap(mapName)
+-- same load path as getMapUID, the only difference is who picks the uid: a base map is asked
+-- for by name and always resolves to the same actor, a copy gets a fresh uid seq every call
+--
+-- the copy reads the same map data and spawns its own NPCs, so an NPC standing in a copy sees
+-- only that copy's monsters. hand it back with closeInstanceMap when done, a copy nobody
+-- closes stays loaded for the life of the server
+function loadInstanceMap(mapName)
     assertType(mapName, 'string')
 
     local mapID = getMapID(mapName)
@@ -96,13 +116,13 @@ function createInstanceMap(mapName)
         fatalPrintf('No such map: %s', mapName)
     end
 
-    local mapUID = _RSVD_NAME_callFuncCoop('createInstanceMap', mapID)
+    local mapUID = _RSVD_NAME_callFuncCoop('loadInstanceMap', mapID)
     assertType(mapUID, 'integer', 'nil')
     return mapUID
 end
 
 -- clear the copy out and unload it, anyone still inside lands on the fallback first
-function destroyInstanceMap(mapUID, fallbackMapName, fallbackX, fallbackY)
+function closeInstanceMap(mapUID, fallbackMapName, fallbackX, fallbackY)
     assertType(mapUID, 'integer')
     assertType(fallbackMapName, 'string', 'nil')
 
@@ -113,7 +133,7 @@ function destroyInstanceMap(mapUID, fallbackMapName, fallbackX, fallbackY)
         fallbackMapID = getMapID(fallbackMapName) or 0
     end
 
-    return _RSVD_NAME_callFuncCoop('destroyInstanceMap', mapUID, fallbackMapID, fallbackX or 0, fallbackY or 0)
+    return _RSVD_NAME_callFuncCoop('closeInstanceMap', mapUID, fallbackMapID, fallbackX or 0, fallbackY or 0)
 end
 
 function getNPCharUID(mapName, npcName)
