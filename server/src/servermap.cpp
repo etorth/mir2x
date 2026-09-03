@@ -259,6 +259,35 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         return -1;
     });
 
+    // put every monster on the map down, legacy's Monclear
+    //
+    // nothing drops: this is a script resetting an arena, not the players killing anything, and
+    // the loot would just be litter
+    bindFunction("clearMonster", [this]() -> int
+    {
+        std::vector<uint64_t> uidList;
+        for(int x = 0; x < getServerMap()->mapBin()->w(); ++x){
+            for(int y = 0; y < getServerMap()->mapBin()->h(); ++y){
+                if(getServerMap()->mapBin()->validC(x, y)){
+                    for(const auto uid: getServerMap()->getGrid(x, y).uidList){
+                        if(uidf::isMonster(uid)){
+                            uidList.push_back(uid);
+                        }
+                    }
+                }
+            }
+        }
+
+        for(const auto uid: uidList){
+            AMForceDie amFD;
+            std::memset(&amFD, 0, sizeof(amFD));
+
+            amFD.drop = false;
+            getServerMap()->m_actorPod->post(uid, {AM_FORCEDIE, amFD});
+        }
+        return to_d(uidList.size());
+    });
+
     bindFunction("addMonster", [this](sol::object monInfo, sol::variadic_args args) -> uint64_t
     {
         const auto fnGetMonsterUID = [](const CharObject *monPtr) -> uint64_t

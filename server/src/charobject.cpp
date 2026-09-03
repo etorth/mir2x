@@ -24,6 +24,13 @@ CharObject::LuaThreadRunner::LuaThreadRunner(CharObject *charObjectPtr)
         return getCO()->mapID();
     });
 
+    // the map actor this object stands on, which getMap can not give: a map id names the base
+    // copy, so an NPC inside an instance map needs the uid to reach the map it is actually on
+    bindFunction("getMapUID", [this]() -> uint64_t
+    {
+        return getCO()->mapUID();
+    });
+
     bindFunction("getMapLoc", [this]()
     {
         return std::make_tuple(getCO()->X(), getCO()->Y());

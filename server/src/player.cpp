@@ -266,6 +266,22 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         }
     });
 
+    // take up to count copies away and say how many that was
+    //
+    // removeItem is all or nothing, which legacy scripts do not expect: they clear a material
+    // out with an oversized take, e.g. take 蛆卵 20 to drop however many the player is holding
+    bindFunction("removeUpToItem", [this](int itemID, int count) -> size_t
+    {
+        fflassert(itemID > 0, itemID);
+        fflassert( count > 0,  count);
+
+        const auto &ir = DBCOM_ITEMRECORD(itemID);
+        fflassert(ir);
+        fflassert(!ir.isGold());
+
+        return getPlayer()->removeInventoryItem(to_u32(itemID), 0, to_uz(count));
+    });
+
     bindFunction("hasItem", [this](int itemID, int seqID, size_t count) -> bool
     {
         fflassert(itemID >  0, itemID);
@@ -367,6 +383,34 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
             else{
                 onDone();
             }
+        }
+    });
+
+    // move into a map addressed by uid, which is the only way into an instance copy
+    //
+    // _RSVD_NAME_spaceMove takes a map id and always resolves it to that map's base copy, so a
+    // script holding an instance uid can not get there through it
+    bindCoop("_RSVD_NAME_mapUIDMove", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t argMapUID, int argX, int argY) -> corof::awaitable<>
+    {
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        fflassert(uidf::isMap(argMapUID), uidf::getUIDString(argMapUID));
+
+        fflassert(argX >= 0, argX);
+        fflassert(argY >= 0, argY);
+
+        const auto switched = co_await thisptr->getPlayer()->requestMapSwitch(argMapUID, argX, argY, false);
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        if(switched){
+            onDone(thisptr->getPlayer()->mapID(), thisptr->getPlayer()->X(), thisptr->getPlayer()->Y());
+        }
+        else{
+            onDone();
         }
     });
 

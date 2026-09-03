@@ -26,7 +26,10 @@ function player.removeGold(uid, count)
     assert(count > 0)
     return uidRemoteCall(uid, count, [[ local count = ... return removeGold(count) ]])
 end
-function player.getGener(uid) return uidRemoteCall(uid, [[ return getGener() ]]) end
+function player.getGender(uid) return uidRemoteCall(uid, [[ return getGender() ]]) end
+
+-- the map the player is standing on, by name
+function player.getMapName(uid) return uidRemoteCall(uid, [[ return getMapName(getMap()) ]]) end
 function player.getName (uid) return uidRemoteCall(uid, [[ return getName () ]]) end
 
 function player.getTeamLeader    (uid) return uidRemoteCall(uid, [[ return getTeamLeader    () ]]) end
@@ -130,6 +133,25 @@ function player.removeItem(uid, item, arg1, arg2)
     ]])
 end
 
+-- take up to count copies away, returns how many it managed
+--
+-- removeItem refuses unless the player has the full count, this one takes what is there
+function player.removeUpToItem(uid, item, count)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+
+    assertType(item, 'string', 'integer')
+    if type(item) == 'string' then
+        item = getItemID(item)
+    end
+    assert(item > 0)
+
+    assertType(count, 'integer')
+    assert(count > 0)
+
+    return uidRemoteCall(uid, item, count, [[ return removeUpToItem(...) ]])
+end
+
 function player.hasItem(uid, item, arg1, arg2)
     assertType(uid, 'integer')
     assert(isPlayer(uid))
@@ -166,6 +188,41 @@ function player.hasItem(uid, item, arg1, arg2)
         local item, seq, count = ...
         return hasItem(item, seq, count)
     ]])
+end
+
+-- lend the player an item they can not take off again, returns its seqID
+--
+-- pair it with removeWearItem when the quest wants it back, see SDItem::EA_BIND
+function player.addBoundItem(uid, item)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+
+    assertType(item, 'string', 'integer')
+    if type(item) == 'string' then
+        item = getItemID(item)
+    end
+    assert(item > 0)
+
+    return uidRemoteCall(uid, item, [[ return addBoundItem(...) ]])
+end
+
+-- take whatever is worn at wlType off, bound or not
+function player.removeWearItem(uid, wlType)
+    assertType(uid, 'integer')
+    assertType(wlType, 'integer')
+    return uidRemoteCall(uid, wlType, [[ return removeWearItem(...) ]])
+end
+
+-- spaceMove to an instance map, which a name can not address
+function player.mapUIDMove(uid, mapUID, x, y)
+    assertType(uid, 'integer')
+    assert(isPlayer(uid))
+
+    assertType(mapUID, 'integer')
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+
+    return uidRemoteCall(uid, mapUID, x, y, [[ return mapUIDMove(...) ]])
 end
 
 function player.spaceMove(playerUID, ...)

@@ -579,6 +579,48 @@ function setupMapGridTrigger(mapName, x, y, uid, arg1, arg2)
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_gridtriggers', strAny({mapName, x, y}), {mapName, x, y, code, argstr})
 end
 
+-- setupMapGridTrigger against one map copy instead of a map name
+--
+-- this is how two instance copies get linked to each other: the gate grid on a copy still
+-- carries the mapSwitchList destination, which only ever names the base map, so a quest that
+-- loaded copies of both maps installs a trigger here, returns false to refuse the automatic
+-- switch, and moves the player into its own copy of the far side with mapUIDMove
+--
+-- deliberately not persisted, for the same reason as setupInstanceNPCBehavior: a copy does not
+-- survive a restart and there is nothing to reinstall onto
+function setupInstanceGridTrigger(mapUID, x, y, uid, arg1, arg2)
+    assertType(mapUID, 'integer')
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+
+    assertType(uid, 'integer')
+    assert(uid > 0)
+
+    local argstr = nil
+    local code   = nil
+
+    if type(arg1) == 'string' and type(arg2) == 'string' then
+        argstr = arg1
+        code   = arg2
+
+    elseif type(arg1) == 'string' and arg2 == nil then
+        argstr = nil
+        code   = arg1
+
+    elseif arg1 == nil and type(arg2) == 'string' then
+        argstr = nil
+        code   = arg2
+
+    else
+        fatalPrintf('Invalid arguments to setupInstanceGridTrigger(%d, %d, %d, %d, ...)', mapUID, x, y, uid)
+    end
+
+    local args = argstr and table.pack(load(argstr)()) or table.pack()
+    args[args.n + 1] = string.format([[ setUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
+
+    uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
+end
+
 function clearMapGridTrigger(mapName, x, y, uid)
     assertType(mapName, 'string')
     assertType(x, 'integer')

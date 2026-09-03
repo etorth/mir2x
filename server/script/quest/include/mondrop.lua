@@ -77,8 +77,27 @@ end
 
 -- returns true when the drop fired, so a monster carrying more than one drop only ever
 -- hands over the first one that is live
+local function onMap(playerUID, mapList)
+    if #mapList == 0 then
+        return true
+    end
+
+    local mapName = server.player.getMapName(playerUID)
+    for _, v in ipairs(mapList) do
+        if v == mapName then
+            return true
+        end
+    end
+    return false
+end
+
 local function runDrop(playerUID, drop)
     if not inState(playerUID, drop.state) then
+        return false
+    end
+
+    -- legacy keyed its MonDie hooks on the map the monster died on, see Envir/MapQuest.txt
+    if not onMap(playerUID, drop.map) then
         return false
     end
 
@@ -123,7 +142,16 @@ local function runDrop(playerUID, drop)
     end
 
     if drop.moveTo then
-        server.player.spaceMove(playerUID, table.unpack(drop.moveTo))
+        -- a bare map name is legacy's `map X`, which drops the player anywhere walkable on it
+        if #drop.moveTo == 1 then
+            local mapUID = getMapUID(drop.moveTo[1])
+            if mapUID then
+                local x, y = uidRemoteCall(mapUID, [[ return getRandLoc() ]])
+                server.player.spaceMove(playerUID, drop.moveTo[1], x, y)
+            end
+        else
+            server.player.spaceMove(playerUID, table.unpack(drop.moveTo))
+        end
     end
 
     -- last, it can clear the state this drop is gated on
@@ -140,6 +168,7 @@ end
 --         {
 --             monster  = '千年毒蛇',          -- name, or list of names
 --             state    = 'quest_find_gall',  -- quest states this drop is live in
+--             map      = '沃玛神殿_D022',      -- optional, only on these maps
 --             kills    = 10,                 -- optional, roughly how many kills it takes
 --             chance   = 2,                  -- optional, 1/chance per kill instead
 --             once     = true,               -- optional, don't hand out a second copy
@@ -147,7 +176,8 @@ end
 --             give     = '千年毒蛇胆汁',       -- optional, 'name' / {'name', count} / list
 --             take     = '角笛',              -- optional, same shapes as give
 --             setState = 'quest_got_gall',   -- optional, state to move to afterwards
---             moveTo   = {'D001', 303, 70},  -- optional, where to put the player
+--             moveTo   = {'D001', 303, 70},  -- optional, where to put the player, or just
+--                                            -- {'D001'} for anywhere on it, legacy's `map X`
 --             say      = '...',              -- optional, message to the player
 --         },
 --     }
@@ -176,6 +206,7 @@ function mondrop.setDropOnKill(dropList)
         local parsed =
         {
             state    = asNameList(drop.state),
+            map      = drop.map and asNameList(drop.map) or {},
             need     = asItemList(drop.need),
             give     = asItemList(drop.give),
             take     = asItemList(drop.take),
@@ -190,6 +221,12 @@ function mondrop.setDropOnKill(dropList)
             -- counter per monster script
             counter  = drop.counter or ('mondrop_' .. table.concat(monsterNameList, '_')),
         }
+
+        for _, mapName in ipairs(parsed.map) do
+            if getMapID(mapName) <= 0 then
+                fatalPrintf('Monster drop refers to unknown map %s', mapName)
+            end
+        end
 
         for _, state in ipairs(parsed.state) do
             if not hasQuestState(state) then

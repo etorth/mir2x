@@ -82,6 +82,18 @@ function spaceMove(arg1, arg2, arg3)
     return _RSVD_NAME_callFuncCoop('spaceMove', mapID, x, y)
 end
 
+-- spaceMove to a map addressed by uid instead of by name
+--
+-- a name only ever names the base copy, so this is how a script sends a player into an
+-- instance map it loaded with loadInstanceMap
+function mapUIDMove(mapUID, x, y)
+    assertType(mapUID, 'integer')
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+
+    return _RSVD_NAME_callFuncCoop('mapUIDMove', mapUID, x, y)
+end
+
 function getTeamMemberList()
     return _RSVD_NAME_callFuncCoop('getTeamMemberList')
 end
