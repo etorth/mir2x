@@ -213,18 +213,7 @@ function player.removeWearItem(uid, wlType)
     return uidRemoteCall(uid, wlType, [[ return removeWearItem(...) ]])
 end
 
--- spaceMove to an instance map, which a name can not address
-function player.mapUIDMove(uid, mapUID, x, y)
-    assertType(uid, 'integer')
-    assert(isPlayer(uid))
-
-    assertType(mapUID, 'integer')
-    assertType(x, 'integer')
-    assertType(y, 'integer')
-
-    return uidRemoteCall(uid, mapUID, x, y, [[ return mapUIDMove(...) ]])
-end
-
+-- takes a map name, a map id, or the map uid loadInstanceMap handed back
 function player.spaceMove(playerUID, ...)
     assert(isPlayer(playerUID))
     local args = table.pack(...)

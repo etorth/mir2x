@@ -45,6 +45,22 @@ ServerLuaModule::ServerLuaModule()
         }
     }().c_str()));
 
+    // wall clock when the server came up, std::time() seconds since the epoch
+    //
+    // this is the origin of the in-game day, and it is only useful for logging or for turning
+    // a game time back into a real one — the clock itself runs off uptime() so that adjusting
+    // the system clock can not move day and night around
+    bindFunction("launchTime", []() -> int64_t
+    {
+        return to_i64(g_server->launchTime());
+    });
+
+    // seconds the server has been up, monotonic
+    bindFunction("uptime", []() -> int64_t
+    {
+        return to_i64(g_server->uptime());
+    });
+
     bindFunction("uidAlive", [](uint64_t uid)
     {
         return g_actorPool->checkUIDValid(uid);

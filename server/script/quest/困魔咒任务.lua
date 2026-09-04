@@ -15,11 +15,14 @@
 -- he also warns you not to leave a summoned skeleton standing in a cleansed room. legacy never
 -- checks it, so it stays a warning here too
 --
--- what the [Enter] hooks say to somebody who has no business in the rooms — 现在好像进不去了,
--- 现在也没有进去的必要了, and holy2's 我怎么会在这里呢? 难道我的魂被什么勾住了? and
--- 首先试着离开这个地方 — has no home here. those gate the base rooms against every player at
--- once, and the quest layer only installs grid triggers per player (setupMapGridTrigger takes a
--- uid). the base rooms stay empty and lead nowhere, so walking in achieves nothing
+-- the door turns away anybody who has no business in the rooms, which is a map-wide grid
+-- trigger rather than a per-player one — see setupMapDefaultGridTrigger. a player on the quest
+-- has an EPUID trigger on the same grid and EPUID is consulted first, so the two compose
+--
+-- holy2's 我怎么会在这里呢? 难道我的魂被什么勾住了? and 首先试着离开这个地方 are on its kill
+-- hook rather than the door, for somebody killing things in the base 1_019 without the quest.
+-- the rooms are empty unless a run stocked them, so there is nothing there to kill and those
+-- two lines have no path
 --
 -- holy.txt also carries a @MapQuest_holycircle_exit saying 暂时到安全的地方 that no MapQuest.txt
 -- line calls, so it is dead in the legacy data too
@@ -183,7 +186,7 @@ local function linkRooms(uid, fromUID, toUID, x, y, stone, needLine, clearLine)
                 end
 
                 server.player.removeItem(uid, stone, 1)
-                server.player.mapUIDMove(uid, toUID, x, y)
+                server.player.spaceMove(uid, toUID, x, y)
                 return false
             end
         ]])
@@ -198,7 +201,7 @@ local function linkBack(uid, fromUID, toUID, gridList)
         [[
             local toUID, x, y = ...
             return function(uid, gridX, gridY)
-                server.player.mapUIDMove(uid, toUID, x, y)
+                server.player.spaceMove(uid, toUID, x, y)
                 return false
             end
         ]])
@@ -247,7 +250,7 @@ local function enterRooms(uid)
         ]])
     end)
 
-    server.player.mapUIDMove(uid, uidList[1], rooms[1].entry[1], rooms[1].entry[2])
+    server.player.spaceMove(uid, uidList[1], rooms[1].entry[1], rooms[1].entry[2])
     return true
 end
 
@@ -415,6 +418,29 @@ setQuestFSMTable(
         ]])
     end,
 })
+
+-- @MapQuest_holycircle_moveTo1's [726] / checkmagic / not-[522] branches. the quest's own
+-- SYS_ENTER installs an EPUID trigger on the same grids to let its player in, and EPUID wins,
+-- so this only ever answers somebody who is not on the quest
+for _, grid in ipairs(doorGrids) do
+    for dx = 0, grid[3] - 1 do
+        for dy = 0, grid[4] - 1 do
+            setupMapDefaultGridTrigger(doorMap, grid[1] + dx, grid[2] + dy,
+            string.format([[ return getUID(), %s ]], asInitString(magicName)),
+            [[
+                local questUID, magicName = ...
+                return function(uid, x, y)
+                    if (server.quest.getState(questUID, {uid = uid}) == SYS_DONE) or server.player.hasMagic(uid, magicName) then
+                        server.player.postString(uid, '(现在也没有进去的必要了...)')
+                    else
+                        server.player.postString(uid, '(现在好像进不去了...)')
+                    end
+                    return false
+                end
+            ]])
+        end
+    end
+end
 
 -- holy1, 火焰沃玛 in the 沃玛神殿 while [522] is set. one drop rule per stone, in the order
 -- legacy rolls them, and mondrop stops at the first that fires

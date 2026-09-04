@@ -345,18 +345,25 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         getPlayer()->postNetMessage(SM_QUESTDESPLIST, cerealf::serialize(sdQDL));
     });
 
-    bindCoop("_RSVD_NAME_spaceMove", [thisptr = this](this auto, LuaCoopResumer onDone, uint32_t argMapID, int argX, int argY) -> corof::awaitable<>
+    // a map id or a map uid, whichever the script has
+    //
+    // an id is a small integer with an empty type field and a uid carries UID_MAP in it, so
+    // isMap tells them apart with no ambiguity. this matters because a map name only ever
+    // resolves to the base copy: an instance map can only be reached by uid
+    bindCoop("_RSVD_NAME_spaceMove", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t argMap, int argX, int argY) -> corof::awaitable<>
     {
         bool closed = false;
         onDone.pushOnClose([&closed](){ closed = true; });
 
-        const auto &mr = DBCOM_MAPRECORD(argMapID);
-        fflassert(mr, argMapID);
+        const auto argMapUID = uidf::isMap(argMap) ? argMap : uidsf::getMapBaseUID(to_u32(argMap));
+
+        const auto &mr = DBCOM_MAPRECORD(uidf::getMapID(argMapUID));
+        fflassert(mr, uidf::getUIDString(argMapUID));
 
         fflassert(argX >= 0, argX);
         fflassert(argY >= 0, argY);
 
-        if(to_u32(argMapID) == thisptr->getPlayer()->mapID()){
+        if(argMapUID == thisptr->getPlayer()->mapUID()){
             const auto moved = co_await thisptr->getPlayer()->requestSpaceMove(argX, argY, false);
             if(closed){
                 co_return;
@@ -371,7 +378,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
             }
         }
         else{
-            const auto switched = co_await thisptr->getPlayer()->requestMapSwitch(uidsf::getMapBaseUID(argMapID), argX, argY, false);
+            const auto switched = co_await thisptr->getPlayer()->requestMapSwitch(argMapUID, argX, argY, false);
             if(closed){
                 co_return;
             }
@@ -383,34 +390,6 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
             else{
                 onDone();
             }
-        }
-    });
-
-    // move into a map addressed by uid, which is the only way into an instance copy
-    //
-    // _RSVD_NAME_spaceMove takes a map id and always resolves it to that map's base copy, so a
-    // script holding an instance uid can not get there through it
-    bindCoop("_RSVD_NAME_mapUIDMove", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t argMapUID, int argX, int argY) -> corof::awaitable<>
-    {
-        bool closed = false;
-        onDone.pushOnClose([&closed](){ closed = true; });
-
-        fflassert(uidf::isMap(argMapUID), uidf::getUIDString(argMapUID));
-
-        fflassert(argX >= 0, argX);
-        fflassert(argY >= 0, argY);
-
-        const auto switched = co_await thisptr->getPlayer()->requestMapSwitch(argMapUID, argX, argY, false);
-        if(closed){
-            co_return;
-        }
-
-        onDone.popOnClose();
-        if(switched){
-            onDone(thisptr->getPlayer()->mapID(), thisptr->getPlayer()->X(), thisptr->getPlayer()->Y());
-        }
-        else{
-            onDone();
         }
     });
 

@@ -81,7 +81,7 @@ local function enterTrial(uid)
         setQuestState{uid = uid, state = 'quest_ready'}
     end))
 
-    server.player.mapUIDMove(uid, mapUID, startX, startY)
+    server.player.spaceMove(uid, mapUID, startX, startY)
     setQuestState{uid = uid, state = 'quest_in_trial'}
 end
 

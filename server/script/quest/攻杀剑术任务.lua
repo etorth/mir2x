@@ -115,7 +115,7 @@ local function enterTrial(uid)
         }
     ]])
 
-    server.player.mapUIDMove(uid, mapUID, trialX, trialY)
+    server.player.spaceMove(uid, mapUID, trialX, trialY)
     server.player.postString(uid, '规定时间是3分钟，抓紧！')
 
     -- the clock. pause is cancellable, so clearing the timer on the way out stops it

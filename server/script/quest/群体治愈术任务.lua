@@ -15,19 +15,19 @@
 -- checks every one of them for another player first — 好像有人在里面？有声音。。。 — and they
 -- load as copies here, so nobody qualified is refused
 --
--- mir2x has no 沃毒蜈蚣 or 邪恶蜈蚣 record, which is what legacy makes the boss and the two
--- mid-cave guards. 蜈蚣0 stands in for all three and 蜈蚣 is the ordinary kind, and since only
--- 1_023 counts, killing a 蜈蚣0 anywhere else does nothing
+-- legacy's 沃毒蜈蚣 and 邪恶蜈蚣 have no mir2x record. 沃毒蜈蚣 maps to 蜈蚣, which is what
+-- the boss and the two mid-cave guards are here, and legacy's ordinary 蜈蚣61 maps to 蜈蚣0.
+-- the two records are the same monster bar a coolEye flag, so this is only a name to tell them
+-- apart by — and since only 1_023 counts, killing a 蜈蚣 anywhere else does nothing
 --
 -- the two lines the cave mouth gives somebody with no business there — 好像是什么洞窟入口？
 -- 现在洞口被堵上了 and 这里是以前击退蜈蚣的洞窟哦 — have no home, the same as 困魔咒任务's:
 -- they gate the base cave against every player at once and the quest layer only installs grid
 -- triggers per player
 --
--- @mugong_massheal_illtown1 gates the villager on daytime night, so in legacy he only answers
--- after dark and sends you away with 现在是大白天。。很刺眼，什么都看不见。。。 otherwise.
--- mir2x has no clock and no day or night, so the gate is dropped and that line has no home —
--- he answers whenever you find him
+-- @mugong_massheal_illtown1 gates the villager on daytime night: he only answers after dark and
+-- sends you away in daylight. one game day is two real hours, an hour each way, so a wait is
+-- never longer than an hour — see isNightTime in serverluamodule.lua
 --
 -- flags: [730] done, [523] took the charm, [524] the villager asked you, [525] cave stocked,
 -- [526] boss dead and the book on you
@@ -46,8 +46,8 @@ _G.villagerMap = '盟重县_74'
 _G.villagerNPC = '泼皮路白_1'
 
 -- the trash and the one that matters
-_G.trashCentipede = '蜈蚣'
-_G.bossCentipede  = '蜈蚣0'
+_G.trashCentipede = '蜈蚣0'
+_G.bossCentipede  = '蜈蚣'
 
 -- the mouth of the cave, from 绝命谷3层_D6004's mapSwitchList
 _G.doorMap   = '绝命谷3层_D6004'
@@ -69,7 +69,7 @@ _G.caves =
         {
             { 15, 77, {{'跳跳蜂', 10}}},
             { 70, 20, {{'黑色恶蛆', 10}}},
-            { 90, 70, {{'跳跳蜂', 10}, {'蜈蚣0', 2}}},
+            { 90, 70, {{'跳跳蜂', 10}, {'蜈蚣', 2}}},
             {100, 42, {{'黑色恶蛆', 10}}},
             {146, 18, {{'跳跳蜂', 10}}},
         },
@@ -91,11 +91,11 @@ _G.caves =
         map   = '蜈蚣洞穴_1_022',
         spawn =
         {
-            { 45, 20, {{'黑色恶蛆', 10}, {'蜈蚣', 5}}},
-            { 65, 70, {{'蜈蚣', 10}}},
-            { 75, 42, {{'黑色恶蛆', 10}, {'蜈蚣0', 2}}},
-            {122, 17, {{'蜈蚣', 10}}},
-            {154, 30, {{'黑色恶蛆', 10}, {'蜈蚣', 5}}},
+            { 45, 20, {{'黑色恶蛆', 10}, {'蜈蚣0', 5}}},
+            { 65, 70, {{'蜈蚣0', 10}}},
+            { 75, 42, {{'黑色恶蛆', 10}, {'蜈蚣', 2}}},
+            {122, 17, {{'蜈蚣0', 10}}},
+            {154, 30, {{'黑色恶蛆', 10}, {'蜈蚣0', 5}}},
         },
         back    = {{165, 36, 1, 1}, {166, 33, 1, 3}},
         backAt  = {12, 14},
@@ -106,7 +106,7 @@ _G.caves =
         map   = '蜈蚣洞穴_1_023',
         spawn =
         {
-            {22, 22, {{'蜈蚣0', 1}, {'蜈蚣', 10}}},
+            {22, 22, {{'蜈蚣', 1}, {'蜈蚣0', 10}}},
         },
         back   = {{41, 40, 1, 1}, {42, 38, 1, 3}},
         backAt = {13, 13},
@@ -166,7 +166,7 @@ local function linkCaves(uid, fromUID, toUID, gridList, at)
         [[
             local toUID, x, y = ...
             return function(uid, gridX, gridY)
-                server.player.mapUIDMove(uid, toUID, x, y)
+                server.player.spaceMove(uid, toUID, x, y)
                 return false
             end
         ]])
@@ -217,7 +217,7 @@ local function enterCaves(uid)
         ]])
     end)
 
-    server.player.mapUIDMove(uid, uidList[1], caveEntry[1], caveEntry[2])
+    server.player.spaceMove(uid, uidList[1], caveEntry[1], caveEntry[2])
     return true
 end
 
@@ -410,9 +410,23 @@ setQuestFSMTable(
             {
                 [SYS_LABEL] = '村子的事',
 
-                -- @mugong_massheal_illtown2, checkitem 威魂深怨护身符. without it he has
-                -- nothing to say to you
+                -- @mugong_massheal_illtown1, daytime night
                 [SYS_ENTER] = function(uid, value)
+                    if not isNightTime() then
+                        uidPostXML(uid, questPath,
+                        [=[
+                            <layout>
+                                <par>现在是大白天。。</par>
+                                <par>很刺眼，什么都看不见。。。</par>
+                                <par></par>
+                                <par><event id="%s" close="1">奇异的人...</event></par>
+                            </layout>
+                        ]=], SYS_EXIT)
+                        return
+                    end
+
+                    -- @mugong_massheal_illtown2, checkitem 威魂深怨护身符. without it he has
+                    -- nothing to say to you
                     if not server.player.hasItem(uid, '威魂深怨护身符', 1) then
                         uidPostXML(uid, questPath,
                         [=[
@@ -817,6 +831,32 @@ setQuestFSMTable(
         ]])
     end,
 })
+
+-- @MapQuest_massheal_cave's [730] / [526] / not-[524] / not-[523] branches. the quest's own
+-- quest_kill_boss installs an EPUID trigger on the same grids to let its player in, and EPUID
+-- wins, so this only ever answers somebody who has no business there
+for _, grid in ipairs(doorGrids) do
+    for dx = 0, grid[3] - 1 do
+        for dy = 0, grid[4] - 1 do
+            setupMapDefaultGridTrigger(doorMap, grid[1] + dx, grid[2] + dy,
+            [[
+                return getUID()
+            ]],
+            [[
+                local questUID = ...
+                return function(uid, x, y)
+                    local state = server.quest.getState(questUID, {uid = uid})
+                    if (state == SYS_DONE) or (state == 'quest_cave_done') then
+                        server.player.postString(uid, '(这里是以前击退蜈蚣的洞窟哦...现在洞口被堵上了。)')
+                    else
+                        server.player.postString(uid, '(好像是什么洞窟入口？现在洞口被堵上了。)')
+                    end
+                    return false
+                end
+            ]])
+        end
+    end
+end
 
 -- @mugong_massheal_illtown answers out of the flags whether or not you are on the quest: it has
 -- nothing to say to somebody who never took the charm, and it bows to you once it is over

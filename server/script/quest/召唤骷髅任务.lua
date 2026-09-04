@@ -375,7 +375,7 @@ local function enterYard(uid)
 
     -- map 1_013, anywhere on it
     local x, y = uidRemoteCall(yardUID, [[ return getRandLoc() ]])
-    server.player.mapUIDMove(uid, yardUID, x, y)
+    server.player.spaceMove(uid, yardUID, x, y)
     setQuestState{uid = uid, state = 'quest_in_yard'}
 end
 
@@ -524,7 +524,7 @@ setQuestFSMTable(
             addMonster('变异骷髅', x, y, false)
         ]])
 
-        server.player.mapUIDMove(uid, duelUID, startX, startY)
+        server.player.spaceMove(uid, duelUID, startX, startY)
         setQuestState{uid = uid, state = 'quest_in_duel'}
     end,
 
@@ -545,7 +545,7 @@ setQuestFSMTable(
         local yardUID = dbGetQuestVar(uid, 'yardMapUID')
         if yardUID then
             local x, y = uidRemoteCall(yardUID, [[ return getRandLoc() ]])
-            server.player.mapUIDMove(uid, yardUID, x, y)
+            server.player.spaceMove(uid, yardUID, x, y)
 
             -- it has one thing left to say, and only that
             setupInstanceNPCBehavior(yardUID, mainSkel, uid,

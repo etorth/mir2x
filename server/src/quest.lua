@@ -584,7 +584,7 @@ end
 -- this is how two instance copies get linked to each other: the gate grid on a copy still
 -- carries the mapSwitchList destination, which only ever names the base map, so a quest that
 -- loaded copies of both maps installs a trigger here, returns false to refuse the automatic
--- switch, and moves the player into its own copy of the far side with mapUIDMove
+-- switch, and spaceMoves the player into its own copy of the far side by uid
 --
 -- deliberately not persisted, for the same reason as setupInstanceNPCBehavior: a copy does not
 -- survive a restart and there is nothing to reinstall onto
@@ -619,6 +619,73 @@ function setupInstanceGridTrigger(mapUID, x, y, uid, arg1, arg2)
     args[args.n + 1] = string.format([[ setUIDGridTrigger(%d, %d, %d, load(%s)(...)) ]], uid, x, y, asInitString(code))
 
     uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
+end
+
+-- take one grid of a map over for everyone on it, not just one player
+--
+-- this is the SYS_EPDEF half of the grid trigger layer, and it is what gates a door against
+-- players who are not on the quest at all. a per-player trigger from setupMapGridTrigger is
+-- consulted first, so the two compose: the quest installs EPUID to let its own player through
+-- and EPDEF to turn everybody else away
+--
+--     setupMapDefaultGridTrigger('沃玛神殿2层_D023', 371, 366,
+--     [[
+--         return getUID()
+--     ]],
+--     [[
+--         local questUID = ...
+--         return function(uid, x, y)
+--             server.player.postString(uid, '(现在好像进不去了...)')
+--             return false
+--         end
+--     ]])
+--
+-- deliberately not persisted: nothing about it is per-player, and a quest script re-runs from
+-- the top on every server start, which is where this belongs
+function setupMapDefaultGridTrigger(mapName, x, y, arg1, arg2)
+    assertType(mapName, 'string')
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+
+    local argstr = nil
+    local code   = nil
+
+    if type(arg1) == 'string' and type(arg2) == 'string' then
+        argstr = arg1
+        code   = arg2
+
+    elseif type(arg1) == 'string' and arg2 == nil then
+        argstr = nil
+        code   = arg1
+
+    elseif arg1 == nil and type(arg2) == 'string' then
+        argstr = nil
+        code   = arg2
+
+    else
+        fatalPrintf('Invalid arguments to setupMapDefaultGridTrigger(%s, %d, %d, ...)', asInitString(mapName), x, y)
+    end
+
+    local mapUID = getMapUID(mapName)
+    if not mapUID then
+        fatalPrintf('Can not load map %s', asInitString(mapName))
+    end
+
+    local args = argstr and table.pack(load(argstr)()) or table.pack()
+    args[args.n + 1] = string.format([[ setGridTrigger(%d, %d, load(%s)(...)) ]], x, y, asInitString(code))
+
+    uidRemoteCall(mapUID, table.unpack(args, 1, args.n + 1))
+end
+
+function clearMapDefaultGridTrigger(mapName, x, y)
+    assertType(mapName, 'string')
+    assertType(x, 'integer')
+    assertType(y, 'integer')
+
+    local mapUID = getMapUID(mapName)
+    if mapUID then
+        uidRemoteCall(mapUID, x, y, [[ deleteGridTrigger(...) ]])
+    end
 end
 
 function clearMapGridTrigger(mapName, x, y, uid)

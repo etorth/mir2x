@@ -223,7 +223,7 @@ local function enterTrial(uid)
         setQuestState{uid = uid, state = 'quest_ready'}
     end))
 
-    server.player.mapUIDMove(uid, uidList[1], forkX, forkY)
+    server.player.spaceMove(uid, uidList[1], forkX, forkY)
     setQuestState{uid = uid, state = 'quest_in_trial'}
 end
 
@@ -276,7 +276,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
     if index < #forks then
         local nextUID = forkUID(uid, index + 1)
         if nextUID then
-            server.player.mapUIDMove(uid, nextUID, forkX, forkY)
+            server.player.spaceMove(uid, nextUID, forkX, forkY)
         end
         return
     end
@@ -294,7 +294,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
 
     local firstUID = forkUID(uid, 1)
     if firstUID then
-        server.player.mapUIDMove(uid, firstUID, forkX, forkY)
+        server.player.spaceMove(uid, firstUID, forkX, forkY)
     end
 end)
 

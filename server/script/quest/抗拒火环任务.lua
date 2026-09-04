@@ -136,7 +136,7 @@ local function enterTrial(uid)
             [[
                 local secondUID, x, y = ...
                 return function(uid, gridX, gridY)
-                    server.player.mapUIDMove(uid, secondUID, x, y)
+                    server.player.spaceMove(uid, secondUID, x, y)
                     return false
                 end
             ]])
@@ -200,7 +200,7 @@ local function enterTrial(uid)
         setQuestState{uid = uid, state = 'quest_ready'}
     end))
 
-    server.player.mapUIDMove(uid, firstUID, firstX, firstY)
+    server.player.spaceMove(uid, firstUID, firstX, firstY)
     setQuestState{uid = uid, state = 'quest_in_trial'}
 end
 

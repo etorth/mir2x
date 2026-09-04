@@ -1,4 +1,5 @@
 #pragma once
+#include <ctime>
 #include <mutex>
 #include <queue>
 #include <atomic>
@@ -41,6 +42,11 @@ class Server final
 
     private:
         hres_timer m_hrtimer;
+
+        // wall clock when the server came up, which is all the in-game clock needs as an
+        // origin. elapsed time comes off m_hrtimer instead so that adjusting the system
+        // clock can not move the game's day and night around
+        const std::time_t m_launchTime = std::time(nullptr);
 
     public:
         void notifyGUI(std::string);
@@ -109,6 +115,19 @@ class Server final
         uint32_t getCurrTick() const
         {
             return to_u32(m_hrtimer.diff_msec());
+        }
+
+    public:
+        std::time_t launchTime() const
+        {
+            return m_launchTime;
+        }
+
+        // seconds the server has been up, monotonic. getCurrTick() is a uint32 of msec and
+        // wraps after seven weeks, this does not
+        uint64_t uptime() const
+        {
+            return m_hrtimer.diff_sec();
         }
 
     public:

@@ -9,8 +9,8 @@
 -- two places where the legacy data does not map cleanly, both noted where they bite:
 --
 --   legacy spawns 火焰沃玛61 three times and 火焰沃玛62 once, and 62 is the one holding the
---   book. mir2x has no 火焰沃玛62 record, so the marked one is a plain 火焰沃玛 here — same
---   monster to look at, and the two names are what the kill hook tells apart
+--   book. 火焰沃玛62 maps to 火焰沃玛, so the marked one is 火焰沃玛 and the other three stay
+--   火焰沃玛61. the two records are byte-identical, so this is only a name to tell them apart by
 --
 --   legacy hooks the pass on [GetItem] 新火镜, so the book hit the ground and you had to grab
 --   it while the rest of the room was still on you. the book goes straight into your pack on
@@ -92,7 +92,7 @@ local function enterTrial(uid)
         setQuestState{uid = uid, state = 'quest_ready'}
     end))
 
-    server.player.mapUIDMove(uid, mapUID, startX, startY)
+    server.player.spaceMove(uid, mapUID, startX, startY)
     setQuestState{uid = uid, state = 'quest_in_trial'}
 end
 
