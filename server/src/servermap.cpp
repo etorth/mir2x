@@ -266,8 +266,8 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
     bindFunction("clearMonster", [this]() -> int
     {
         std::vector<uint64_t> uidList;
-        for(int x = 0; x < getServerMap()->mapBin()->w(); ++x){
-            for(int y = 0; y < getServerMap()->mapBin()->h(); ++y){
+        for(int x = 0; static_cast<size_t>(x) < getServerMap()->mapBin()->w(); ++x){
+            for(int y = 0; static_cast<size_t>(y) < getServerMap()->mapBin()->h(); ++y){
                 if(getServerMap()->mapBin()->validC(x, y)){
                     for(const auto uid: getServerMap()->getGrid(x, y).uidList){
                         if(uidf::isMonster(uid)){
