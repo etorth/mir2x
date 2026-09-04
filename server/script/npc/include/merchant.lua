@@ -39,6 +39,7 @@ local invop = require('npc.include.invop')
 --     price       n        buyback price, see invop.postQueryTrade
 --     repair      {...}    item types it repairs. nil = does not repair
 --     special     bool     also offer 特殊修理
+--     specialRepair {...}  item types for 特殊修理; defaults to repair
 --     buyText     {...}    the @NPC_Buy prompt
 --     sellText    {...}    the @NPC_Sell prompt
 --     repairText  {...}    the @NPC_Repair or @NPC_Pre_Repair prompt
@@ -60,12 +61,10 @@ local invop = require('npc.include.invop')
 
 local merchant = {}
 
--- every legacy merchant offers 对今日的任务进行了解 -> @TQuest. behind it is CheckDailyQuest,
--- which rotates a daily quest id and delegates into QuestDiary/QT_TODAY. mir2x has no daily
--- quest system, so the branches have nothing to hook to — but the fallback the player sees when
--- no daily quest is live is real text, and with no daily system that is the only answer there is
+-- legacy merchants that offer 对今日的任务进行了解 -> @TQuest delegate to CheckDailyQuest.
+-- mir2x has no daily quest system, so those merchants retain the fallback text the player sees
+-- when no daily quest is live.
 merchant.TODAY_LABEL = '对今日的任务进行了解'
-merchant.TODAY_NONE   = '今天没事情可拜托你了。'
 
 local function parList(textList, indent)
     local out = {}
@@ -138,7 +137,7 @@ function merchant.setMerchant(spec)
         end
     end
 
-    -- 修理 and 特殊修理
+    -- 修理
     if spec.repair then
         addMenu('npc_repair', '修理', label)
 
@@ -160,22 +159,28 @@ function merchant.setMerchant(spec)
         handler.npc_repair_commit = function(uid, value)
             invop.postCommitRepair(uid, value, 'npc_repair_query', 'npc_repair_commit', spec.repair, spec.repairDone)
         end
+    end
 
-        if spec.special then
-            addMenu('npc_special_repair', '特殊修理', label)
+    -- 特殊修理 can be offered without ordinary repair
+    if spec.special then
+        local specialRepair = spec.specialRepair or spec.repair
+        if specialRepair == nil then
+            fatalPrintf('merchant %s enables special repair without an item type list', getNPCName())
+        end
 
-            handler.npc_special_repair = function(uid, value)
-                postPage(uid, spec.specialText or {'特殊修理不会损失持久上限，但是价钱要贵得多。'})
-                invop.uidStartRepair(uid, 'npc_special_query', 'npc_special_commit', spec.repair)
-            end
+        addMenu('npc_special_repair', '特殊修理', label)
 
-            handler.npc_special_query = function(uid, value)
-                invop.postQuerySpecialRepair(uid, value, 'npc_special_query', 'npc_special_commit', spec.repair)
-            end
+        handler.npc_special_repair = function(uid, value)
+            postPage(uid, spec.specialText or {'特殊修理不会损失持久上限，但是价钱要贵得多。'})
+            invop.uidStartRepair(uid, 'npc_special_query', 'npc_special_commit', specialRepair)
+        end
 
-            handler.npc_special_commit = function(uid, value)
-                invop.postCommitSpecialRepair(uid, value, 'npc_special_query', 'npc_special_commit', spec.repair, spec.repairDone)
-            end
+        handler.npc_special_query = function(uid, value)
+            invop.postQuerySpecialRepair(uid, value, 'npc_special_query', 'npc_special_commit', specialRepair)
+        end
+
+        handler.npc_special_commit = function(uid, value)
+            invop.postCommitSpecialRepair(uid, value, 'npc_special_query', 'npc_special_commit', specialRepair, spec.repairDone)
         end
     end
 
@@ -198,24 +203,14 @@ function merchant.setMerchant(spec)
     end
 
     -- 对今日的任务进行了解, last in the menu the way legacy has it
-    addMenu('npc_today', merchant.TODAY_LABEL)
-    handler.npc_today = function(uid, value)
-        postPage(uid, {spec.today or merchant.TODAY_NONE})
+    if spec.today ~= nil then
+        addMenu('npc_today', merchant.TODAY_LABEL)
+        handler.npc_today = function(uid, value)
+            postPage(uid, {spec.today})
+        end
     end
 
     handler[SYS_ENTER] = function(uid, value)
-        if uidQueryRedName(uid) then
-            uidPostXML(uid, string.format(
-            [[
-                <layout>
-                    <par>%s</par>
-                    <par></par>
-                    <par><event id="%%s" close="1">关闭</event></par>
-                </layout>
-            ]], spec.redName or '我不愿意和你这样丧尽天良的人进行交易。'), SYS_EXIT)
-            return
-        end
-
         uidPostXML(uid, string.format(
         [[
             <layout>
@@ -230,6 +225,32 @@ function merchant.setMerchant(spec)
     for tag, func in pairs(spec.extra or {}) do
         handler[tag] = func
     end
+
+    -- Let this handler apply each legacy script's own red-name policy instead of the dispatcher
+    -- replacing it with the generic refusal.
+    if spec.redName ~= nil then
+        local function guardRedName(func)
+            return function(uid, value)
+                if uidQueryRedName(uid) then
+                    uidPostXML(uid,
+                    [[
+                        <layout>
+                            <par>%s</par>
+                            <par></par>
+                            <par><event id="%s" close="1">关闭</event></par>
+                        </layout>
+                    ]], spec.redName, SYS_EXIT)
+                    return
+                end
+                return func(uid, value)
+            end
+        end
+
+        for tag, func in pairs(handler) do
+            handler[tag] = guardRedName(func)
+        end
+    end
+    handler[SYS_ALLOWREDNAME] = true
 
     setEventHandler(handler)
     return handler

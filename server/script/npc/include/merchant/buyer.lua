@@ -10,7 +10,7 @@ local merchant = require('npc.include.merchant')
 --     buyer.setBuyer
 --     {
 --         greet = {'你要出售什么？'},
---         trade = {'材料'},
+--         trade = {'道具'},
 --     }
 
 -- false means this shop explicitly does not do it; nil means fall back to the trade's norm
@@ -36,7 +36,7 @@ function buyer.setBuyer(spec)
         -- nothing to buy, by definition
         goods = nil,
 
-        trade = optList(spec.trade, {'材料'}),
+        trade = optList(spec.trade, {'道具'}),
         price = spec.price,
 
         repair  = nil,

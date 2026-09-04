@@ -12,7 +12,12 @@ jeweler.setJeweler
 
     goods =
     {
-        '#INCLUDE',
+        '小手镯',
+        '蓝翡翠项链',
+        '珍珠戒指',
+        '道士手镯',
+        '蛇眼戒指',
+        '黑檀手镯',
     },
 
     buyText =

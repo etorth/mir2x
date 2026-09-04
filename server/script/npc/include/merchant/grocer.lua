@@ -2,8 +2,8 @@ local merchant = require('npc.include.merchant')
 
 -- 杂货店, legacy Market_Def/07Grocery_*.txt (16) and 10ChestnutMarket_*.txt (4)
 --
--- the general store: candles, torches, 地牢逃脱卷. buys and sells, and one of the 16 also
--- repairs, so repair is off by default and that one turns it on
+-- the general store: candles, torches, scrolls, repair oil and charms. buys and sells, and one
+-- of the 16 also repairs, so repair is off by default and that one turns it on
 --
 --     local grocer = require('npc.include.merchant.grocer')
 --     grocer.setGrocer
@@ -33,7 +33,7 @@ function grocer.setGrocer(spec)
 
         label = spec.label or '物品',
         goods = spec.goods,
-        trade = optList(spec.trade, {'杂物'}),
+        trade = optList(spec.trade, {'火把', '传送卷轴', '功能药水', '护身符', '道具'}),
         price = spec.price,
 
         -- off unless this one is the shop that mends things
@@ -43,6 +43,7 @@ function grocer.setGrocer(spec)
         buyText    = spec.buyText or {'你要买什么？'},
         sellText   = spec.sellText or {'请把不用的东西卖给我'},
         repairText = spec.repairText or {'这里可以修理衣服和武器之类的东西。'},
+        repairDone = spec.repairDone,
 
         today  = spec.today,
         topics = spec.topics,

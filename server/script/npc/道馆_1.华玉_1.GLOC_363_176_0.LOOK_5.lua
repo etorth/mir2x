@@ -18,6 +18,8 @@ apothecary.setApothecary
         '地牢逃脱卷',
     },
 
+    trade = {'恢复药水', '火把', '传送卷轴'},
+
     buyText =
     {
         '需要什么东西？',

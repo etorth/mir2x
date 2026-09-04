@@ -125,7 +125,7 @@ local function commitRepair(uid, value, queryTag, commitTag, typeList, special, 
             </layout>
         ]], getItemName(itemID), cost, SYS_ENTER)
 
-    elseif not uidRemoveGold(uid, cost) then
+    elseif not server.player.removeGold(uid, cost) then
         -- can not pay for it, don't repair
 
     elseif not uidRepairItem(uid, itemID, seqID, special) then

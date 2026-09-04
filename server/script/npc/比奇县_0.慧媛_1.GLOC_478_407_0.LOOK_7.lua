@@ -16,6 +16,10 @@ outfitter.setOutfitter
         '皮靴',
     },
 
+    label = '鞋',
+    trade = {'鞋'},
+    repair = {'鞋'},
+
     buyText =
     {
         '你要买什么样的鞋？',

@@ -51,10 +51,7 @@ bookseller.BOOK_HELP =
     {name = '半月弯刀',   class = '战士',   tag = 'NPC_Help_12', level = {14, 16, 18}},
     {name = '火球术',     class = '魔法师', tag = 'NPC_Help_21', level = {7, 11, 16}},
 
-    -- legacy @NPC_Help_22 is an empty section: the option is on the menu and the page it opens
-    -- says nothing at all. that is a bug in the data, not in the conversion, so the option stays
-    -- and answers the way legacy does
-    {name = '霹雳掌',     class = '魔法师', tag = 'NPC_Help_22'},
+    {name = '霹雳掌',     class = '魔法师', tag = 'NPC_Help_22', level = {8, 10, 12}},
 
     {name = '治愈术',     class = '道士',   tag = 'NPC_Help_31', level = {7, 11, 16}},
     {name = '精神力战法', class = '道士',   tag = 'NPC_Help_32', level = {8, 10, 12}},
@@ -155,7 +152,7 @@ function bookseller.setBookseller(spec)
 
         label = spec.label or '图书',
         goods = spec.goods,
-        trade = optList(spec.trade, {'书籍'}),
+        trade = optList(spec.trade, {'技能书'}),
         price = spec.price,
 
         repair  = nil,

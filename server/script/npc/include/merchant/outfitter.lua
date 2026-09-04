@@ -41,6 +41,7 @@ function outfitter.setOutfitter(spec)
         buyText    = spec.buyText or {'你要买什么？'},
         sellText   = spec.sellText or {'请把要卖的衣服(头盔)放到上面。'},
         repairText = spec.repairText or {'防御工具，头盔和帽子都可以修理。'},
+        repairDone = spec.repairDone,
 
         today  = spec.today,
         topics = spec.topics,

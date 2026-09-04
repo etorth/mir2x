@@ -42,6 +42,7 @@ function repairer.setRepairer(spec)
 
         repairText  = spec.repairText,
         specialText = spec.specialText,
+        repairDone  = spec.repairDone,
 
         today  = spec.today,
         topics = spec.topics,

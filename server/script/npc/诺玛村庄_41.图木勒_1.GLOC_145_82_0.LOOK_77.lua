@@ -12,7 +12,11 @@ smith.setSmith
 
     goods =
     {
-        '#INCLUDE',
+        '青铜斧',
+        '斩马刀',
+        '修罗',
+        '海魂',
+        '半月',
     },
 
     buyText =

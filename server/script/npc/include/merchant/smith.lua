@@ -60,6 +60,8 @@ function smith.setSmith(spec)
     assertType(spec, 'table')
 
     local topics = {}
+    local repair = optList(spec.repair, {'武器'})
+    local special = (spec.special ~= false)
 
     -- 询问, about what weapons are worth
     if spec.qweapon then
@@ -115,8 +117,9 @@ function smith.setSmith(spec)
         trade = optList(spec.trade, {'武器'}),
         price = spec.price,
 
-        repair  = optList(spec.repair, {'武器'}),
-        special = (spec.special ~= false),
+        repair        = repair,
+        special       = special,
+        specialRepair = special and (spec.specialRepair or repair or {'武器'}) or nil,
 
         -- @NPC_Pre_Repair, the line 6 of them share
         repairText = spec.repairText or {'请把要修理的武器放上去。'},
@@ -124,6 +127,7 @@ function smith.setSmith(spec)
         buyText     = spec.buyText,
         sellText    = spec.sellText,
         specialText = spec.specialText,
+        repairDone  = spec.repairDone,
         today       = spec.today,
         topics      = topics,
         extra       = spec.extra,

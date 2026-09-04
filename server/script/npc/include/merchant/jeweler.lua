@@ -41,6 +41,7 @@ function jeweler.setJeweler(spec)
         buyText    = spec.buyText or {'你想买饰品? 想买什么？请先看好价钱和持久性再决定。'},
         sellText   = spec.sellText or {'你想出售饰品？', '请先把东西拿出来给我看看。'},
         repairText = spec.repairText or {'你想修理饰品?'},
+        repairDone = spec.repairDone,
 
         today  = spec.today,
         topics = spec.topics,

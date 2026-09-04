@@ -33,7 +33,7 @@ function apothecary.setApothecary(spec)
 
         label = spec.label or '药品',
         goods = spec.goods,
-        trade = optList(spec.trade, nil),
+        trade = optList(spec.trade, {'恢复药水'}),
         price = spec.price,
 
         -- deliberately absent, see the note above

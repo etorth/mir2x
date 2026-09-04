@@ -9,7 +9,7 @@ smith.setSmith
         '用心做事肯定能赚到很多钱的。。 有需要做特殊修理的东西就交给我吧。',
     },
 
-    -- legacy offers no trade or repair here
+    -- legacy offers no trade or ordinary repair here
     trade = false,
     repair = false,
 }
