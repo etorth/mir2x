@@ -191,11 +191,19 @@ jobs:
           retention-days: 1
           compression-level: 0
 
+  # only the release branch publishes
+  #
+  # every branch still gets compiled by the two jobs above, so a broken commit shows up on the
+  # branch that broke it. this job is what replaces the `latest` tag and notifies watchers, and
+  # it only runs for a push to `release` — merge main into release when there is enough to
+  # download, and that is the one thing that produces a release
   release-latest:
     name: Publish latest release
     runs-on: ubuntu-26.04
     needs: [native-linux, mingw-ucrt64]
-    if: github.event_name != 'pull_request'
+    if: >-
+      github.event_name != 'pull_request'
+      && github.ref == 'refs/heads/release'
     permissions:
       contents: write
 
