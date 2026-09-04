@@ -1,8 +1,8 @@
 {
   "name": "libpinyin",
-  "version": "2.11.91",
+  "version": "2.11.92",
   "description": "Library to deal with pinyin.",
-  "homepage": "https://github.com/etorth/libpinyin",
+  "homepage": "https://github.com/libpinyin/libpinyin",
   "license": "GPL-3.0-or-later",
   "dependencies": [
     "glib",
