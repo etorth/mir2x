@@ -1,13 +1,14 @@
 -- converted from Envir/Market_Def/04Potion_Samak-5.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local apothecary = require('npc.include.merchant.apothecary')
+apothecary.setApothecary
 {
-    label = '药品',
-
     greet =
     {
+        '欢迎光临，我们药店愿竭诚为你服务。',
     },
+
+    redName = '我不愿意和你这样的人进行交易。',
 
     goods =
     {
@@ -21,14 +22,12 @@ shop.setMerchant
         '强效太阳水',
     },
 
-    trade  = {'恢复药水'},
-
     buyText =
     {
         '出门在外时，多带上些药品心里才踏实。',
     },
 
-    tradeText =
+    sellText =
     {
         '你要出售什么药品？',
     },

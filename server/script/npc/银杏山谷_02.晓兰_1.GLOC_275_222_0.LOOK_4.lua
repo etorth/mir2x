@@ -1,13 +1,14 @@
 -- converted from Envir/Market_Def/08Accessory_Eunhang-02.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local jeweler = require('npc.include.merchant.jeweler')
+jeweler.setJeweler
 {
-    label = '饰品',
-
     greet =
     {
+        '欢迎光临，有什么事？',
     },
+
+    redName = '我不想和你这种坏人做生意。',
 
     goods =
     {
@@ -19,15 +20,12 @@ shop.setMerchant
         '琥珀项链',
     },
 
-    trade  = {'戒指', '手镯', '项链'},
-    repair = {'戒指', '手镯', '项链'},
-
     buyText =
     {
         '你想买饰品?',
     },
 
-    tradeText =
+    sellText =
     {
         '你想出售饰品？',
     },
@@ -36,4 +34,8 @@ shop.setMerchant
     {
         '你想修理饰品？',
     },
+
+    repairDone = '修好了。',
+
+    today = '今天没事情可拜托你了。',
 }

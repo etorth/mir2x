@@ -1,13 +1,14 @@
 -- converted from Envir/Market_Def/04Potion_Oasis-4.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local apothecary = require('npc.include.merchant.apothecary')
+apothecary.setApothecary
 {
-    label = '药品',
-
     greet =
     {
+        '最近外地人常来。你要的是什么来着？',
     },
+
+    redName = '我不愿意和你这样的人进行交易。',
 
     goods =
     {
@@ -20,15 +21,25 @@ shop.setMerchant
         '太阳水',
     },
 
-    trade  = {'恢复药水'},
-
     buyText =
     {
         '请选择你所需要的。',
     },
 
-    tradeText =
+    sellText =
     {
         '你想卖什么药？',
+    },
+
+    today = '今天没事情可拜托你了。',
+
+    topics =
+    {
+        -- legacy @Wjwn
+        {
+            id    = 'npc_wjwn',
+            label = '购买',
+            text  = {'……'},   -- legacy section carries no prose
+        },
     },
 }

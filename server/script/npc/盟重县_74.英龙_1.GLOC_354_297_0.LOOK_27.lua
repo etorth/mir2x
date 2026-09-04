@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/02Weapon_Mongchon-74.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local smith = require('npc.include.merchant.smith')
+smith.setSmith
 {
-    label = '武器',
-
     greet =
     {
         '欢迎光临，你要参观一下我制造的武器吗？',
     },
+
+    redName = '你要打我？？哎呦，太可怕了，呜呜;;',
 
     goods =
     {
@@ -21,16 +21,12 @@ shop.setMerchant
         '半月',
     },
 
-    trade  = {'武器'},
-    repair = {'武器'},
-    special = true,
-
     buyText =
     {
         '在这种危险的地方，武器就是我的第二生命，你想用这里面的哪种武器？',
     },
 
-    tradeText =
+    sellText =
     {
         '你想卖哪种武器？收购价钱不会太高，你还是好好想想再决定吧。',
     },
@@ -39,4 +35,8 @@ shop.setMerchant
     {
         '虽然我的手艺不太好，不过一般的武器都能修。可是武器的持久性可能会有所损伤。',
     },
+
+    repairDone = '这已经算修得不错的了，拿走吧。',
+
+    today = '今天没事情可拜托你了。',
 }

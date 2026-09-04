@@ -1,12 +1,11 @@
 -- converted from Envir/Market_Def/04Potion_Zuma-D5071.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local apothecary = require('npc.include.merchant.apothecary')
+apothecary.setApothecary
 {
-    label = '药品',
-
     greet =
     {
+        '我也是历经了千辛万苦才来到这里的。 因此我愿意出3倍的价钱收购你的东西。',
     },
 
     goods =
@@ -20,6 +19,8 @@ shop.setMerchant
         '万年雪霜',
     },
 
+    -- legacy offers no trade here
+    trade = false,
 
     buyText =
     {

@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/04Potion_Bichon1-0.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local apothecary = require('npc.include.merchant.apothecary')
+apothecary.setApothecary
 {
-    label = '药品',
-
     greet =
     {
         '欢迎光临，这里出售一些简单的药品。',
     },
+
+    redName = '我不愿意和你这样的坏人进行交易。。',
 
     goods =
     {
@@ -22,15 +22,15 @@ shop.setMerchant
         '魔法药（特）',
     },
 
-    trade  = {'恢复药水'},
-
     buyText =
     {
         '你需要什么东西？',
     },
 
-    tradeText =
+    sellText =
     {
         '请把要出售的物品交给我。',
     },
+
+    today = '今天没事情可拜托你了。',
 }

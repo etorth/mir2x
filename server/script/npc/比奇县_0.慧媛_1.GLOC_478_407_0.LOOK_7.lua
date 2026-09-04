@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/03Shoes_Bichon-0.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local outfitter = require('npc.include.merchant.outfitter')
+outfitter.setOutfitter
 {
-    label = '鞋',
-
     greet =
     {
         '欢迎光临，有什么事吗？',
     },
+
+    redName = '我不想和你这种坏人做生意。',
 
     goods =
     {
@@ -16,15 +16,12 @@ shop.setMerchant
         '皮靴',
     },
 
-    trade  = {'鞋'},
-    repair = {'鞋'},
-
     buyText =
     {
         '你要买什么样的鞋？',
     },
 
-    tradeText =
+    sellText =
     {
         '请把不要的东西卖给我吧。',
     },
@@ -33,4 +30,8 @@ shop.setMerchant
     {
         '可以修鞋。',
     },
+
+    repairDone = '修得不错。',
+
+    today = '今天没事情可拜托你了。',
 }

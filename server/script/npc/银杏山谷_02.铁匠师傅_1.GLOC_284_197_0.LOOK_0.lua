@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/02Weapon_Eunhang-02.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local smith = require('npc.include.merchant.smith')
+smith.setSmith
 {
-    label = '武器',
-
     greet =
     {
         '欢迎，感谢光临。',
     },
+
+    redName = '我不想和你这种坏人做生意。',
 
     goods =
     {
@@ -22,22 +22,24 @@ shop.setMerchant
         '风之鹤嘴锄',
     },
 
-    trade  = {'武器'},
-    repair = {'武器'},
-    special = true,
-
     buyText =
     {
         '请选择要购买的武器。',
     },
 
-    tradeText =
+    sellText =
     {
         '请把要卖的武器抬上来。',
     },
 
     repairText =
     {
+        '请把要修理的武器放上去。',
         '你要修理武器？把要修的武器抬上来。',
     },
+
+    repairDone = '修得不错，下次我还来找你修。',
+
+    today = '今天没事情可拜托你了。',
+    qweapon = true,
 }

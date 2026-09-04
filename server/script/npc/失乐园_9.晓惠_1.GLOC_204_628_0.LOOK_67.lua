@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/03Armor_Encore-9.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local outfitter = require('npc.include.merchant.outfitter')
+outfitter.setOutfitter
 {
-    label = '防御工具',
-
     greet =
     {
         '欢迎光临！您需要什么吗?',
     },
+
+    redName = '我不和你这种人打交道。。',
 
     goods =
     {
@@ -21,15 +21,12 @@ shop.setMerchant
         '恶魔长袍（女）',
     },
 
-    trade  = {'头盔', '衣服'},
-    repair = {'头盔', '衣服'},
-
     buyText =
     {
         '慢慢看，什么尺寸都有。',
     },
 
-    tradeText =
+    sellText =
     {
         '这里天气炎热，不穿衣服会有损健康。',
     },
@@ -38,4 +35,6 @@ shop.setMerchant
     {
         '修补衣服我最在行了，包在我身上。',
     },
+
+    repairDone = '好了，你穿看看。',
 }

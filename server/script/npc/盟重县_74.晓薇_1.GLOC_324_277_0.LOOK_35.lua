@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/03Armor_Mongchon-74.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local outfitter = require('npc.include.merchant.outfitter')
+outfitter.setOutfitter
 {
-    label = '防御工具',
-
     greet =
     {
         '既然来了，买点儿新的防御工具再走吧。',
     },
+
+    redName = '我不想和你这种坏人做生意。',
 
     goods =
     {
@@ -21,15 +21,12 @@ shop.setMerchant
         '魔法长袍（女）',
     },
 
-    trade  = {'头盔', '衣服'},
-    repair = {'头盔', '衣服'},
-
     buyText =
     {
         '慢慢看，别着急。',
     },
 
-    tradeText =
+    sellText =
     {
         '你想卖什么防御工具，我可以给你个好价钱。',
     },
@@ -38,4 +35,8 @@ shop.setMerchant
     {
         '等我把它弄好了，就跟新衣服一样。',
     },
+
+    repairDone = '好了，弄完了。你要试试吗？',
+
+    today = '今天没事情可拜托你了。',
 }

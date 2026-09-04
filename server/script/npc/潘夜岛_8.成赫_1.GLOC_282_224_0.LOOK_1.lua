@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/04Potion_HalfNight-8.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local apothecary = require('npc.include.merchant.apothecary')
+apothecary.setApothecary
 {
-    label = '药品',
-
     greet =
     {
         '你来潘夜岛是来对了。要我帮忙吗？',
     },
+
+    redName = '我不愿意和你这样的人进行交易。',
 
     goods =
     {
@@ -22,14 +22,12 @@ shop.setMerchant
         '强效太阳水',
     },
 
-    trade  = {'恢复药水'},
-
     buyText =
     {
         '别忘了在危急的时候，只有药品才能救活你的性命。',
     },
 
-    tradeText =
+    sellText =
     {
         '请把你不用的药卖给我吧。',
     },

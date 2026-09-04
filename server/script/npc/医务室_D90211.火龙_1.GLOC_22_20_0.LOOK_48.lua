@@ -1,12 +1,11 @@
 -- converted from Envir/Market_Def/04Potion_SinGiSun-D9011.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local apothecary = require('npc.include.merchant.apothecary')
+apothecary.setApothecary
 {
-    label = '药品',
-
     greet =
     {
+        '见到你真好. 这里四处都是怪物, 我很担心… 我想把药水卖完之后 赶快离开这儿. 虽然比村庄贵一些, 可是你来之前 我都给人家卖3倍的价格, 你到其他地方买不到这个价格.',
     },
 
     goods =
@@ -19,6 +18,8 @@ shop.setMerchant
         '万年雪霜',
     },
 
+    -- legacy offers no trade here
+    trade = false,
 
     buyText =
     {

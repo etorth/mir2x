@@ -1,12 +1,18 @@
 -- converted from Envir/Market_Def/03Armor_Numa-41.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local outfitter = require('npc.include.merchant.outfitter')
+outfitter.setOutfitter
 {
-    label = '防御工具',
-
     greet =
     {
+        '虽然我进货的时候比较仓促,但所进的都是好货色. 尽管挑吧.',
+    },
+
+    redName = '我不想跟你这种人进行交易...',
+
+    goods =
+    {
+        '#INCLUDE',
     },
 
     buyText =
@@ -14,7 +20,7 @@ shop.setMerchant
         '人类勇士总认为这个价格太贵. 但如果他们知道弄这些东西有多困难,就应该能接受这个价格. 少一分钱我也不会卖.',
     },
 
-    tradeText =
+    sellText =
     {
         '我们诺玛族已经习惯了沙漠的气候,根本就不用穿多余的衣服.但人类不同... 反正,先让我看看你的东西.',
     },
@@ -23,4 +29,6 @@ shop.setMerchant
     {
         '想修理旧衣服? 怎么,你怀疑我的技术吗? 我虽然刚刚开始修理人类的衣服,但以我多年修理诺玛族盔甲的经验来看,修理人类的衣服也没问题.',
     },
+
+    repairDone = '修理完成.',
 }

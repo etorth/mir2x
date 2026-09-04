@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/05Book_Encore-9.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local bookseller = require('npc.include.merchant.bookseller')
+bookseller.setBookseller
 {
-    label = '技能书',
-
     greet =
     {
         '欢迎光临！您需要武功秘籍吗?',
     },
+
+    redName = '我不想和你这种人打交道。',
 
     goods =
     {
@@ -17,14 +17,12 @@ shop.setMerchant
         '治愈术',
     },
 
-    trade  = {'技能书'},
-
     buyText =
     {
         '请挑选您要购买的书。',
     },
 
-    tradeText =
+    sellText =
     {
         '请把要出售的书放在上面。',
     },

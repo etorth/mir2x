@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/03Armor_HalfNight-8.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local outfitter = require('npc.include.merchant.outfitter')
+outfitter.setOutfitter
 {
-    label = '防御工具',
-
     greet =
     {
         '一路辛苦了，你需要什么？',
     },
+
+    redName = '我不想和你这种坏人做生意。',
 
     goods =
     {
@@ -21,15 +21,12 @@ shop.setMerchant
         '恶魔长袍（女）',
     },
 
-    trade  = {'头盔', '衣服'},
-    repair = {'头盔', '衣服'},
-
     buyText =
     {
         '不用急，慢慢考虑，慢慢挑选。',
     },
 
-    tradeText =
+    sellText =
     {
         '请把不要的东西卖给我吧。',
     },
@@ -38,4 +35,8 @@ shop.setMerchant
     {
         '虽然我的手艺不太好，但我可以给你修理。',
     },
+
+    repairDone = '都弄好了，你穿上试试。',
+
+    today = '今天没事情可拜托你了。',
 }

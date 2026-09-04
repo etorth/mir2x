@@ -1,13 +1,14 @@
 -- converted from Envir/Market_Def/03Shoes_Samak-5.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local outfitter = require('npc.include.merchant.outfitter')
+outfitter.setOutfitter
 {
-    label = '鞋',
-
     greet =
     {
+        '欢迎光临，你要买鞋？',
     },
+
+    redName = '我不想和你这种坏人做生意。',
 
     goods =
     {
@@ -15,15 +16,12 @@ shop.setMerchant
         '皮靴',
     },
 
-    trade  = {'鞋'},
-    repair = {'鞋'},
-
     buyText =
     {
         '请挑选你需要的鞋。',
     },
 
-    tradeText =
+    sellText =
     {
         '据说在沙漠这样危险的地方，鞋是必需品。',
     },
@@ -32,4 +30,6 @@ shop.setMerchant
     {
         '可以修理鞋。',
     },
+
+    repairDone = '修得不错。',
 }

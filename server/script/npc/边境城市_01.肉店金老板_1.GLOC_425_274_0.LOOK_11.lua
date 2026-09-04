@@ -1,18 +1,22 @@
 -- converted from Envir/Market_Def/01Meet_Kugkyung-01.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local butcher = require('npc.include.merchant.butcher')
+butcher.setButcher
 {
-    label = '肉',
-
     greet =
     {
         '你是来卖肉的？',
     },
 
-    tradeText =
+    redName = '我不想和你这种坏人做生意。',
+
+    sellText =
     {
         '高价收购优质肉。',
         '沾上土的或被火烧过的肉廉价收购。',
     },
+
+    today = '今天没事情可拜托你了。',
+
+    meatHelp = true,
 }

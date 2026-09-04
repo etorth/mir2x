@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/04Potion_Eunhang-02.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local apothecary = require('npc.include.merchant.apothecary')
+apothecary.setApothecary
 {
-    label = '药品',
-
     greet =
     {
         '欢迎光临，你需要什么？',
     },
+
+    redName = '我不愿意和你这样的人进行交易。',
 
     goods =
     {
@@ -23,15 +23,15 @@ shop.setMerchant
         '太阳水',
     },
 
-    trade  = {'恢复药水'},
-
     buyText =
     {
         '你需要什么？',
     },
 
-    tradeText =
+    sellText =
     {
         '把你要出售的东西给我看看，我来估估价。',
     },
+
+    today = '今天没事情可拜托你了。',
 }

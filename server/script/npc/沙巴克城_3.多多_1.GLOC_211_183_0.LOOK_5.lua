@@ -1,13 +1,15 @@
 -- converted from Envir/Market_Def/08Accessory_Sabuk-3.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local jeweler = require('npc.include.merchant.jeweler')
+jeweler.setJeweler
 {
-    label = '饰品',
-
     greet =
     {
+        '在沙巴克城正展开攻城阵都不能做生意了。。。所以到这儿避难来了。',
+        '欢迎光临，本店专门经营饰品。你想买什么样的饰品？',
     },
+
+    redName = '我不想和你这种坏人做生意。',
 
     goods =
     {
@@ -16,6 +18,7 @@ shop.setMerchant
         '银手镯',
         '钢手镯',
         '大手镯',
+        '小手镯',
         '道士手镯',
         '黑檀手镯',
         '金项链',
@@ -42,15 +45,12 @@ shop.setMerchant
         '蛇眼戒指',
     },
 
-    trade  = {'手镯', '项链', '戒指'},
-    repair = {'手镯', '项链', '戒指'},
-
     buyText =
     {
         '来~~挑选适合自己的饰品啊。',
     },
 
-    tradeText =
+    sellText =
     {
         '你想出售饰品？',
         '顺便说一下，本店还经营手套。',
@@ -60,4 +60,6 @@ shop.setMerchant
     {
         '可以修理饰品，手套和皮革盔甲。',
     },
+
+    repairDone = '修好了。',
 }

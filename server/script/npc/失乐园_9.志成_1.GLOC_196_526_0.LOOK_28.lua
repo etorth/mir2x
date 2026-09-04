@@ -1,14 +1,14 @@
 -- converted from Envir/Market_Def/02Weapon_Encore-9.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local smith = require('npc.include.merchant.smith')
+smith.setSmith
 {
-    label = '武器',
-
     greet =
     {
         '欢迎光临！一般的武器我这儿都有。',
     },
+
+    redName = '我不想和你这种人打交道。。',
 
     goods =
     {
@@ -21,16 +21,12 @@ shop.setMerchant
         '半月',
     },
 
-    trade  = {'武器'},
-    repair = {'武器'},
-    special = true,
-
     buyText =
     {
         '在险恶的江湖，武器就是第二生命，你需要什么样的武器?',
     },
 
-    tradeText =
+    sellText =
     {
         '您要出售什么武器? 我会给好价钱的。',
     },
@@ -39,4 +35,6 @@ shop.setMerchant
     {
         '虽然我的手艺不是很出众，但是一般的武器我还是可以修理的，只是武器的持久值会有所下降。',
     },
+
+    repairDone = '好了，修得差不多了。',
 }

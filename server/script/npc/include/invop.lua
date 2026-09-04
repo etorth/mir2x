@@ -99,7 +99,7 @@ local function queryRepair(uid, value, queryTag, commitTag, typeList, special)
     invop.uidStartRepair(uid, queryTag, commitTag, typeList)
 end
 
-local function commitRepair(uid, value, queryTag, commitTag, typeList, special)
+local function commitRepair(uid, value, queryTag, commitTag, typeList, special, sayDone)
     local itemID, seqID = invop.parseItemString(value)
     local cost = repairCost(uid, itemID, seqID, special)
 
@@ -132,15 +132,19 @@ local function commitRepair(uid, value, queryTag, commitTag, typeList, special)
         uidGrantGold(uid, cost)
 
     else
+        -- sayDone is the shopkeeper's own line, legacy @NPC_Repair_Complete. it goes above the
+        -- receipt so the NPC speaks first
+        local said = sayDone and string.format('<par>%s</par>', sayDone) or ''
+
         uidPostXML(uid,
         [[
             <layout>
-                <par>你的%s已经修理完毕，花费%d金币。</par>
+                %s<par>你的%s已经修理完毕，花费%d金币。</par>
                 <par></par>
 
                 <par><event id="%s">前一步</event></par>
             </layout>
-        ]], getItemName(itemID), cost, SYS_ENTER)
+        ]], said, getItemName(itemID), cost, SYS_ENTER)
     end
 
     invop.uidStartRepair(uid, queryTag, commitTag, typeList)
@@ -154,12 +158,12 @@ function invop.postQuerySpecialRepair(uid, value, queryTag, commitTag, typeList)
     queryRepair(uid, value, queryTag, commitTag, typeList, true)
 end
 
-function invop.postCommitRepair(uid, value, queryTag, commitTag, typeList)
-    commitRepair(uid, value, queryTag, commitTag, typeList, false)
+function invop.postCommitRepair(uid, value, queryTag, commitTag, typeList, sayDone)
+    commitRepair(uid, value, queryTag, commitTag, typeList, false, sayDone)
 end
 
-function invop.postCommitSpecialRepair(uid, value, queryTag, commitTag, typeList)
-    commitRepair(uid, value, queryTag, commitTag, typeList, true)
+function invop.postCommitSpecialRepair(uid, value, queryTag, commitTag, typeList, sayDone)
+    commitRepair(uid, value, queryTag, commitTag, typeList, true, sayDone)
 end
 
 -- 出售 : NPC buys an item off player at a flat price

@@ -1,13 +1,15 @@
 -- converted from Envir/Market_Def/04Potion_Sabuk-3.txt
 
-local shop = require('npc.include.shop')
-shop.setMerchant
+local apothecary = require('npc.include.merchant.apothecary')
+apothecary.setApothecary
 {
-    label = '药品',
-
     greet =
     {
+        '在沙巴克城正展开攻城阵都不能做生意了。。。所以到这儿避难来了。',
+        '什么，这里是卖药的地方? 你已经知道了? 那你需要什么，快点买走吧。',
     },
+
+    redName = '我不愿意和你这样的人进行交易。',
 
     goods =
     {
@@ -19,14 +21,12 @@ shop.setMerchant
         '魔法药（特）',
     },
 
-    trade  = {'恢复药水'},
-
     buyText =
     {
         '选好需要的东西了吗？快点选，年轻人怎么还那么慢吞吞的。',
     },
 
-    tradeText =
+    sellText =
     {
         '你想卖东西？真是的，本来生意就不好。 快点卖了走吧。',
     },
