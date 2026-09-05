@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 肉店, legacy Market_Def/01Meet_*.txt (8)
@@ -53,7 +53,7 @@ function butcher.setButcher(spec)
     local handler = {}
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '卖', spec.sellSuffix or label))
+        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '卖', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
             dialogue.post(uid, spec.sellText or {'我想买品质好的肉。', '我愿意多付钱。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
@@ -68,7 +68,7 @@ function butcher.setButcher(spec)
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '买', spec.buySuffix or label))
+        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
             dialogue.post(uid, spec.buyText or {'请挑选你想要的商品。'}, back)
             uidPostSell(uid)
@@ -83,7 +83,7 @@ function butcher.setButcher(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end

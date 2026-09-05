@@ -179,6 +179,23 @@ function uidRemoteCall(uid, ...)
     return table.unpack(results, 1, results.n)
 end
 
+local dialog = require('npc.include.dialog')
+for _, id in ipairs({'npc_next', SYS_EXIT}) do
+    local defaultClose = id == SYS_EXIT and ' close="1"' or ''
+    local link = string.format('<event id="%s"%s>label</event>', id, defaultClose)
+    assert(dialog.link(id, 'label') == link)
+    assert(dialog.link(id, 'label', {}) == link)
+    assert(dialog.link(id, 'label', {prefix = 'before '}) == 'before ' .. link)
+    assert(dialog.link(id, 'label', {suffix = ' after'}) == link .. ' after')
+    assert(dialog.link(id, 'label', {prefix = '', suffix = ''}) == link)
+    for _, close in ipairs({true, false}) do
+        local opts = {close = close, prefix = 'before 100% ', suffix = ' after 100%'}
+        local expected = string.format('before 100%% <event id="%s"%s>label</event> after 100%%',
+            id, close and ' close="1"' or '')
+        assert(dialog.link(id, 'label', opts) == expected)
+    end
+end
+
 local contracts =
 {
     {name = 'smith',      setter = 'setSmith',      buy = true, sell = true, repair = true, special = true},
@@ -248,7 +265,10 @@ local function fixture()
         specialSuffix = ' special suffix',
         exitLabel = 'exit',
         backLabel = 'return',
-        topics = {{id = 'npc_topic', label = 'topic', text = {'topic 100%'}, back = 'topic return'}},
+        topics = {{
+            id = 'npc_topic', label = 'topic', prefix = 'topic prefix ', suffix = ' topic suffix',
+            text = {'topic 100%'}, back = 'topic return',
+        }},
         extra = {[SYS_LABEL] = function(uid) return 'entry label' end},
     }
 end
@@ -258,6 +278,7 @@ for _, contract in ipairs(contracts) do
     build(contract.name, spec)
     call(SYS_ENTER)
     contains('greeting 100%')
+    contains('topic prefix <event id="npc_topic">topic</event> topic suffix')
     assert((state.goods ~= nil) == (contract.buy or false))
     for operation, enabled in pairs({buy = contract.buy or false, sell = contract.sell or false,
         repair = contract.repair or false, special_repair = contract.special or false}) do

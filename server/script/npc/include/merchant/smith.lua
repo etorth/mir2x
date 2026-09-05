@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 铁匠 / 武器商, legacy Market_Def/02Weapon_*.txt (22 of them)
@@ -74,7 +74,7 @@ function smith.setSmith(spec)
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', spec.buySuffix or label))
+        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
             dialogue.post(uid, spec.buyText or {'请选择要购买的武器。'}, back)
             uidPostSell(uid)
@@ -82,7 +82,7 @@ function smith.setSmith(spec)
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', spec.sellSuffix or label))
+        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
             dialogue.post(uid, spec.sellText or {'请把要卖的武器抬上来。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
@@ -97,7 +97,7 @@ function smith.setSmith(spec)
 
     if repair then
         table.insert(menu, dialogue.link(spec.preRepairText and 'npc_pre_repair' or 'npc_repair',
-            spec.repairLabel or '修理', spec.repairSuffix or label))
+            spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
 
         if spec.preRepairText then
             handler.npc_pre_repair = function(uid, value)
@@ -119,7 +119,7 @@ function smith.setSmith(spec)
     -- Some smiths offer only special repair, without an ordinary repair counter.
     if spec.special ~= false then
         local specialRepair = spec.specialRepair or repair or {'武器'}
-        table.insert(menu, dialogue.link('npc_special_repair', spec.specialLabel or '特殊修理', spec.specialSuffix or label))
+        table.insert(menu, dialogue.link('npc_special_repair', spec.specialLabel or '特殊修理', {suffix = spec.specialSuffix or label}))
         handler.npc_special_repair = function(uid, value)
             dialogue.post(uid, spec.specialText or {'特殊修理不会损失持久上限，但是价钱要贵得多。'}, back)
             invop.uidStartRepair(uid, 'npc_special_query', 'npc_special_commit', specialRepair)
@@ -133,7 +133,7 @@ function smith.setSmith(spec)
     end
 
     if spec.qweapon then
-        table.insert(menu, dialogue.link('npc_qweapon', '询问', spec.qweaponSuffix or '关于武器的事'))
+        table.insert(menu, dialogue.link('npc_qweapon', '询问', {suffix = spec.qweaponSuffix or '关于武器的事'}))
         handler.npc_qweapon = function(uid, value)
             dialogue.post(uid, spec.qweaponText or smith.QWEAPON, back)
         end
@@ -156,7 +156,7 @@ function smith.setSmith(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end

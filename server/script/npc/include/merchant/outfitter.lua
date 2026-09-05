@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 布店 / 服装店 / 鞋店, legacy Market_Def/03Armor_*.txt (15) and 03Shoes_*.txt (2)
@@ -39,7 +39,7 @@ function outfitter.setOutfitter(spec)
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', spec.buySuffix or label))
+        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
             dialogue.post(uid, spec.buyText or {'你要买什么？'}, back)
             uidPostSell(uid)
@@ -47,7 +47,7 @@ function outfitter.setOutfitter(spec)
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', spec.sellSuffix or label))
+        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
             dialogue.post(uid, spec.sellText or {'请把要卖的衣服(头盔)放到上面。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
@@ -62,7 +62,7 @@ function outfitter.setOutfitter(spec)
 
     if repair then
         table.insert(menu, dialogue.link(spec.preRepairText and 'npc_pre_repair' or 'npc_repair',
-            spec.repairLabel or '修理', spec.repairSuffix or label))
+            spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
 
         if spec.preRepairText then
             handler.npc_pre_repair = function(uid, value)
@@ -82,7 +82,7 @@ function outfitter.setOutfitter(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end

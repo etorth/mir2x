@@ -1,7 +1,7 @@
 -- converted from Envir/Market_Def/02Weapon_HalfNight-8.txt
 
 local smith = require('npc.include.merchant.smith')
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local spiritItemID = getItemID('潘夜天灵')
 
 if spiritItemID == 0 then

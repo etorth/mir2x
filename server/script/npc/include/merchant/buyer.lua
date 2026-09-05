@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 材料商, legacy Market_Def/10Material_*.txt (13)
@@ -59,7 +59,7 @@ function buyer.setBuyer(spec)
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', spec.sellSuffix or spec.label or '材料'))
+        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or spec.label or '材料'}))
         handler.npc_sell = function(uid, value)
             dialogue.post(uid, spec.sellText or {'你要出售什么？'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
@@ -73,7 +73,7 @@ function buyer.setBuyer(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end

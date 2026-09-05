@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 书店, legacy Market_Def/05Book_*.txt (6)
@@ -83,7 +83,7 @@ function bookseller.setBookseller(spec)
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', spec.buySuffix or label))
+        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
             dialogue.post(uid, spec.buyText or {'请挑选你想要的书。'}, back)
             uidPostSell(uid)
@@ -91,7 +91,7 @@ function bookseller.setBookseller(spec)
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', spec.sellSuffix or label))
+        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
             dialogue.post(uid, spec.sellText or {'请把要出售的书放在上面。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
@@ -142,7 +142,7 @@ function bookseller.setBookseller(spec)
             end
         end
 
-        table.insert(menu, dialogue.link('npc_book_explain', spec.booksLabel or '聆听', spec.booksSuffix or '关于武功书的说明'))
+        table.insert(menu, dialogue.link('npc_book_explain', spec.booksLabel or '聆听', {suffix = spec.booksSuffix or '关于武功书的说明'}))
         handler.npc_book_explain = function(uid, value)
             local text = {}
             local intro = spec.booksText or '你想听哪类书的介绍？'
@@ -165,7 +165,7 @@ function bookseller.setBookseller(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end

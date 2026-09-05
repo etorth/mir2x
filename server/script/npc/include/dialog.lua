@@ -1,9 +1,19 @@
 local dialogue = {}
 
 -- Presentation primitives only: callers own their menus, event handlers and operations.
-function dialogue.link(id, label, suffix, prefix)
-    return string.format('%s<event id="%s"%s>%s</event>%s',
-        prefix or '', id, id == SYS_EXIT and ' close="1"' or '', label, suffix or '')
+function dialogue.link(id, label, opts)
+    opts = opts or {}
+
+    local is_close = opts.close
+    if is_close == nil then
+        is_close = (id == SYS_EXIT)
+    end
+
+    local close_attr = is_close and ' close="1"' or ''
+    local prefix = opts.prefix or ''
+    local suffix = opts.suffix or ''
+
+    return string.format('%s<event id="%s"%s>%s</event>%s', prefix, id, close_attr, label, suffix)
 end
 
 function dialogue.post(uid, text, choices)

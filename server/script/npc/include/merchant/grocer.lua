@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 杂货店, legacy Market_Def/07Grocery_*.txt; chestnut barter uses its own NPC scripts.
@@ -40,7 +40,7 @@ function grocer.setGrocer(spec)
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', spec.buySuffix or label))
+        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
             dialogue.post(uid, spec.buyText or {'你要买什么？'}, back)
             uidPostSell(uid)
@@ -48,7 +48,7 @@ function grocer.setGrocer(spec)
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', spec.sellSuffix or label))
+        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
             dialogue.post(uid, spec.sellText or {'请把不用的东西卖给我'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
@@ -63,7 +63,7 @@ function grocer.setGrocer(spec)
 
     -- Ordinary mending is an explicit service at the Bichon general store, not a grocer default.
     if spec.repair then
-        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', spec.repairSuffix or label))
+        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
         handler.npc_repair = function(uid, value)
             dialogue.post(uid, spec.repairText or {'这里可以修理衣服和武器之类的东西。'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', spec.repair)
@@ -77,7 +77,7 @@ function grocer.setGrocer(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end

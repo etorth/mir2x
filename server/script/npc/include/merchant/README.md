@@ -17,9 +17,13 @@ move service selection and event registration into a shared helper.
 | `repairer` | Repair services, without trading |
 
 `npc.include.invop` implements low-level inventory transactions.
-`npc.include.dialogue` only formats dialogue/links and guards individual
+`npc.include.dialog` only formats dialogue/links and guards individual
 callbacks against red-name access. Neither chooses a merchant's services,
 creates its menu or registers its handlers.
+
+`dialog.link(id, label, opts)` accepts optional `prefix`, `suffix` and `close`
+fields. If `close` is omitted, only `SYS_EXIT` closes the dialog; `true` or
+`false` explicitly overrides that default.
 
 ## Converting a merchant
 

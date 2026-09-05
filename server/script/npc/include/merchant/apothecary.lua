@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 药店 / 中医, legacy Market_Def/04Potion_*.txt (26)
@@ -89,7 +89,7 @@ function apothecary.setApothecary(spec)
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', spec.buySuffix or label))
+        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
             dialogue.post(uid, spec.buyText or {'出门在外时，多带上些药品心里才踏实。'}, back)
             uidPostSell(uid)
@@ -97,7 +97,7 @@ function apothecary.setApothecary(spec)
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', spec.sellSuffix or label))
+        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
             dialogue.post(uid, spec.sellText or {'请把你想出售的药放在这里。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
@@ -117,7 +117,7 @@ function apothecary.setApothecary(spec)
             local buyTag = potion.tag .. '_buy'
             local declineTag = potion.tag .. '_decline'
             local close = {dialogue.link(SYS_EXIT, '关  闭')}
-            table.insert(menu, dialogue.link(potion.tag, '购买', nil, potion.item))
+            table.insert(menu, dialogue.link(potion.tag, '购买', {prefix = potion.item}))
 
             handler[potion.tag] = function(uid, value)
                 dialogue.post(uid, {potion.offer},
@@ -146,7 +146,7 @@ function apothecary.setApothecary(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end

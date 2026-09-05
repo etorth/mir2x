@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 修理店, legacy Market_Def/09Repair_*.txt (2)
@@ -38,7 +38,7 @@ function repairer.setRepairer(spec)
     local handler = {}
 
     if repair then
-        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', spec.repairSuffix or label))
+        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
         handler.npc_repair = function(uid, value)
             dialogue.post(uid, spec.repairText or {'请把要修理的装备放上来。'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', repair)
@@ -54,7 +54,7 @@ function repairer.setRepairer(spec)
     if spec.special then
         local specialRepair = spec.specialRepair or repair
         assertType(specialRepair, 'table')
-        table.insert(menu, dialogue.link('npc_special_repair', spec.specialLabel or '特殊修理', spec.specialSuffix or label))
+        table.insert(menu, dialogue.link('npc_special_repair', spec.specialLabel or '特殊修理', {suffix = spec.specialSuffix or label}))
         handler.npc_special_repair = function(uid, value)
             dialogue.post(uid, spec.specialText or {'特殊修理不会损失持久上限，但是价钱要贵得多。'}, back)
             invop.uidStartRepair(uid, 'npc_special_query', 'npc_special_commit', specialRepair)
@@ -68,7 +68,7 @@ function repairer.setRepairer(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end

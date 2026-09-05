@@ -34,7 +34,7 @@ outfitter.setOutfitter
     sellText =
     {
         '请把要出售的衣服拿出来，我来估估价。',
-        '这里头盔和帽子都收购， 就在这儿卖吧。',
+        '这里头盔和帽子都收购，就在这儿卖吧。',
     },
 
     preRepairText =

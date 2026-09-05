@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialogue')
+local dialogue = require('npc.include.dialog')
 local invop = require('npc.include.invop')
 
 -- 饰品店, legacy Market_Def/08Accessory_*.txt (12) and 08Astrologist_*.txt (2)
@@ -59,7 +59,7 @@ function jeweler.setJeweler(spec)
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', spec.buySuffix or label))
+        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
             dialogue.post(uid, spec.buyText or {'你想买饰品? 想买什么？请先看好价钱和持久性再决定。'}, back)
             uidPostSell(uid)
@@ -67,7 +67,7 @@ function jeweler.setJeweler(spec)
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', spec.sellSuffix or label))
+        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
             dialogue.post(uid, spec.sellText or {'你想出售饰品？', '请先把东西拿出来给我看看。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
@@ -81,7 +81,7 @@ function jeweler.setJeweler(spec)
     end
 
     if repair then
-        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', spec.repairSuffix or label))
+        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
         handler.npc_repair = function(uid, value)
             dialogue.post(uid, spec.repairText or {'你想修理饰品?'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', repair)
@@ -199,7 +199,7 @@ function jeweler.setJeweler(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, topic.suffix, topic.prefix))
+        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
             dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end
