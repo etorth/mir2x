@@ -57,7 +57,7 @@ _G.mineMaps =
 -- the MapQuest lines name a different set of zombies per map, this is the union of them
 _G.mineZombies =
 {
-    '僵尸1', '僵尸2', '僵尸3', '僵尸4', '僵尸5',
+    '僵尸1', '僵尸_1', '僵尸3', '僵尸4', '僵尸5',
     '僵尸10', '僵尸20', '僵尸30', '僵尸40', '僵尸50',
     '僧侣僵尸', '雷电僵尸',
 }
