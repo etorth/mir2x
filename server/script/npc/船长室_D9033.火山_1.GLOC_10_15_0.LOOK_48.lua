@@ -11,6 +11,10 @@ smith.setSmith
     -- legacy offers no trade here
     trade = false,
 
+    label = '',
+    repair = {'武器', '衣服', '头盔', '项链', '戒指', '手镯'},
+    exitLabel = false,
+
     repairText =
     {
         '稍微等一下我马上给你修。',

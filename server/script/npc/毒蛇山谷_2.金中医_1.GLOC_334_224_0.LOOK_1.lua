@@ -10,6 +10,7 @@ apothecary.setApothecary
     },
 
     redName = '我不愿意和你这样的人进行交易。',
+    redNameExit = '关闭',
 
     goods =
     {

@@ -27,9 +27,13 @@ smith.setSmith
         '请把要出售的武器抬上来。',
     },
 
-    repairText =
+    preRepairText =
     {
         '请把要修理的武器放上去。',
+    },
+
+    repairText =
+    {
         '确实要修理武器吗？',
     },
 

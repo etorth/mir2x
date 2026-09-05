@@ -9,6 +9,7 @@ apothecary.setApothecary
     },
 
     redName = '我不愿意和你这样的人进行交易。',
+    redNameExit = '关闭',
 
     goods =
     {
@@ -17,8 +18,6 @@ apothecary.setApothecary
         '蜡烛',
         '地牢逃脱卷',
     },
-
-    trade = {'恢复药水', '火把', '传送卷轴'},
 
     buyText =
     {

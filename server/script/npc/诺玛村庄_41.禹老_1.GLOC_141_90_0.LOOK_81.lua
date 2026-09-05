@@ -9,6 +9,12 @@ buyer.setBuyer
     },
 
     redName = '我不想跟你这种人进行交易...',
+    redNameExit = '关闭.',
+
+    label = '',
+    sellLabel = '卖材料.',
+    backLabel = '前一步',
+    exitLabel = '关闭.',
 
     sellText =
     {

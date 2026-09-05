@@ -7,8 +7,10 @@ apothecary.setApothecary
     {
         '我是这里的商人。',
         '这里环境艰苦，相信我这里一定有你需要的东西。',
-        '<关闭/exit>',
     },
+
+    label = '物品',
+    exitLabel = '关闭',
 
     goods =
     {
@@ -30,13 +32,5 @@ apothecary.setApothecary
         '虽然贵了点，但是以后连这都不会有了。',
     },
 
-    topics =
-    {
-        -- legacy @Ghltod
-        {
-            id    = 'npc_ghltod',
-            label = '购买',
-            text  = {'……'},   -- legacy section carries no prose
-        },
-    },
+    rebirthPotion = true,
 }

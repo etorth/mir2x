@@ -9,6 +9,13 @@ apothecary.setApothecary
     },
 
     redName = '治愈你这种邪恶的人,上天都会惩罚我的!',
+    redNameExit = '关闭',
+
+    label = '',
+    buyLabel = '买药.',
+    sellLabel = '卖药.',
+    backLabel = '继续',
+    exitLabel = '关闭.',
 
     goods =
     {

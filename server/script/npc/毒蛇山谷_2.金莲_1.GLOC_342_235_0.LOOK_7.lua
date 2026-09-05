@@ -30,9 +30,13 @@ outfitter.setOutfitter
         '这里头盔和帽子都收购， 就在这儿卖吧。',
     },
 
-    repairText =
+    preRepairText =
     {
         '确实要修理吗？',
+    },
+
+    repairText =
+    {
         '防御工具，头盔和帽子都可以修理。',
     },
 

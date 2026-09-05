@@ -9,6 +9,7 @@ outfitter.setOutfitter
     },
 
     redName = '我不想和你这种坏人做生意。',
+    redNameExit = '关闭',
 
     goods =
     {

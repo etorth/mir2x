@@ -3,11 +3,14 @@
 local apothecary = require('npc.include.merchant.apothecary')
 apothecary.setApothecary
 {
-    greet =
-    {
-        '在沙巴克城正展开攻城阵都不能做生意了。。。所以到这儿避难来了。',
-        '什么，这里是卖药的地方? 你已经知道了? 那你需要什么，快点买走吧。',
-    },
+    -- Castle-war state is not exposed by the server; use the legacy peacetime branch.
+    greet = function(uid)
+        return
+        {
+            '这里是 沙巴克城 <t color="red">' .. getSubukGuildName() .. '</t> 行会的领地。',
+            '什么，这里是卖药的地方? 你已经知道了? 那你需要什么，快点买走吧。',
+        }
+    end,
 
     redName = '我不愿意和你这样的人进行交易。',
 

@@ -30,9 +30,13 @@ outfitter.setOutfitter
         '你要买什么？',
     },
 
-    repairText =
+    preRepairText =
     {
         '确实要修理吗？',
+    },
+
+    repairText =
+    {
         '防御工具，头盔和帽子都可以修理。',
     },
 

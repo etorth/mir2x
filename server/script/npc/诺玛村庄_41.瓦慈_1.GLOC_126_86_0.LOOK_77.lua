@@ -10,6 +10,12 @@ butcher.setButcher
     },
 
     redName = '我不想跟你这种身上充满血腥味的人类进行交易.',
+    redNameExit = '关闭',
+
+    label = '',
+    sellLabel = '卖肉',
+    backLabel = '继续',
+    exitLabel = '关闭',
 
     sellText =
     {

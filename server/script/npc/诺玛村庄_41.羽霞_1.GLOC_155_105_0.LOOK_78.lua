@@ -9,6 +9,14 @@ jeweler.setJeweler
     },
 
     redName = '我可不想跟你这样的坏人进行交易...',
+    redNameExit = '关闭',
+
+    label = '',
+    buyLabel = '买饰品',
+    sellLabel = '卖饰品',
+    repairLabel = '修理饰品.',
+    backLabel = '前一步',
+    exitLabel = '关闭',
 
     goods =
     {
@@ -37,14 +45,7 @@ jeweler.setJeweler
     },
 
     repairDone = '修理完成.',
+    repairDoneBack = '前一步',
 
-    topics =
-    {
-        -- legacy @rustaccessory
-        {
-            id    = 'npc_rustaccessory',
-            label = '询问生锈饰品.',
-            text  = {'……'},   -- legacy section carries no prose
-        },
-    },
+    rustAccessory = true,
 }

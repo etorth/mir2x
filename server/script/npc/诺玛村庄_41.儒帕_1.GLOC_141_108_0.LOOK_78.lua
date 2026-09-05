@@ -9,6 +9,14 @@ outfitter.setOutfitter
     },
 
     redName = '我不想跟你这种人进行交易...',
+    redNameExit = '关闭',
+
+    label = '',
+    buyLabel = '买防具',
+    sellLabel = '卖防具',
+    repairLabel = '修理防具',
+    backLabel = '继续',
+    exitLabel = '关闭',
 
     goods =
     {
@@ -40,4 +48,5 @@ outfitter.setOutfitter
     },
 
     repairDone = '修理完成.',
+    repairDoneBack = '继续',
 }

@@ -3,11 +3,14 @@
 local outfitter = require('npc.include.merchant.outfitter')
 outfitter.setOutfitter
 {
-    greet =
-    {
-        '在沙巴克城正展开攻城阵都不能做生意了。。。所以到这儿避难来了。',
-        '欢迎光临，我们店里有各式各样的衣服。你随便挑选。',
-    },
+    -- Castle-war state is not exposed by the server; use the legacy peacetime branch.
+    greet = function(uid)
+        return
+        {
+            '这里是 沙巴克城 <t color="red">' .. getSubukGuildName() .. '</t> 行会的领地。',
+            '欢迎光临，我们店里有各式各样的衣服。你随便挑选。',
+        }
+    end,
 
     redName = '我不想和你这种坏人做生意。',
 

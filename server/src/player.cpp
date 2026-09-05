@@ -72,13 +72,13 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
     });
 
     // 战士 / 道士 / 法师, a list because a character can hold more than one
-    bindFunction("getJobList", [this](sol::this_state s)
+    bindFunction("getJobList", [this]()
     {
         std::vector<std::string> result;
         for(const auto jobstr: jobf::jobName(getPlayer()->job())){
             result.push_back(to_cstr(jobstr));
         }
-        return sol::make_object(sol::state_view(s), result);
+        return sol::as_table(std::move(result));
     });
 
     bindFunction("getName", [this]() -> std::string

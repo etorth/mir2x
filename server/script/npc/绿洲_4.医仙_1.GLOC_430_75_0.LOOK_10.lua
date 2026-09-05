@@ -33,13 +33,5 @@ apothecary.setApothecary
 
     today = '今天没事情可拜托你了。',
 
-    topics =
-    {
-        -- legacy @Wjwn
-        {
-            id    = 'npc_wjwn',
-            label = '购买',
-            text  = {'……'},   -- legacy section carries no prose
-        },
-    },
+    cursedPotion = true,
 }

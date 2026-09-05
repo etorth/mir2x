@@ -3,11 +3,14 @@
 local jeweler = require('npc.include.merchant.jeweler')
 jeweler.setJeweler
 {
-    greet =
-    {
-        '在沙巴克城正展开攻城阵都不能做生意了。。。所以到这儿避难来了。',
-        '欢迎光临，本店专门经营饰品。你想买什么样的饰品？',
-    },
+    -- Castle-war state is not exposed by the server; use the legacy peacetime branch.
+    greet = function(uid)
+        return
+        {
+            '这里是 沙巴克城 <t color="red">' .. getSubukGuildName() .. '</t> 行会的领地。',
+            '欢迎光临，本店专门经营饰品。你想买什么样的饰品？',
+        }
+    end,
 
     redName = '我不想和你这种坏人做生意。',
 

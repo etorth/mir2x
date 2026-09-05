@@ -33,6 +33,20 @@ function invop.parseItemString(itemString)
     return tonumber(itemID, 10), tonumber(seqID, 10)
 end
 
+-- Some legacy categories share a broader mir2x inventory type (notably "道具").
+function invop.itemNameFilter(names)
+    local accepted = {}
+    for _, name in ipairs(names) do
+        if getItemID(name) == 0 then
+            fatalPrintf('Unknown trade item: %s', name)
+        end
+        accepted[name] = true
+    end
+    return function(itemID)
+        return accepted[getItemName(itemID)] == true
+    end
+end
+
 -- 修理     : restores the current durability, may permanently lose part of the max durability
 -- 特殊修理 : restores the current durability without wearing the item out, costs more
 --
@@ -99,7 +113,7 @@ local function queryRepair(uid, value, queryTag, commitTag, typeList, special)
     invop.uidStartRepair(uid, queryTag, commitTag, typeList)
 end
 
-local function commitRepair(uid, value, queryTag, commitTag, typeList, special, sayDone)
+local function commitRepair(uid, value, queryTag, commitTag, typeList, special, sayDone, backLabel)
     local itemID, seqID = invop.parseItemString(value)
     local cost = repairCost(uid, itemID, seqID, special)
 
@@ -135,6 +149,8 @@ local function commitRepair(uid, value, queryTag, commitTag, typeList, special, 
         -- sayDone is the shopkeeper's own line, legacy @NPC_Repair_Complete. it goes above the
         -- receipt so the NPC speaks first
         local said = sayDone and string.format('<par>%s</par>', sayDone) or ''
+        local back = backLabel == false and '' or
+            string.format('<par><event id="%s">%s</event></par>', SYS_ENTER, backLabel or '前一步')
 
         uidPostXML(uid,
         [[
@@ -142,9 +158,9 @@ local function commitRepair(uid, value, queryTag, commitTag, typeList, special, 
                 %s<par>你的%s已经修理完毕，花费%d金币。</par>
                 <par></par>
 
-                <par><event id="%s">前一步</event></par>
+                %s
             </layout>
-        ]], said, getItemName(itemID), cost, SYS_ENTER)
+        ]], said, getItemName(itemID), cost, back)
     end
 
     invop.uidStartRepair(uid, queryTag, commitTag, typeList)
@@ -158,12 +174,12 @@ function invop.postQuerySpecialRepair(uid, value, queryTag, commitTag, typeList)
     queryRepair(uid, value, queryTag, commitTag, typeList, true)
 end
 
-function invop.postCommitRepair(uid, value, queryTag, commitTag, typeList, sayDone)
-    commitRepair(uid, value, queryTag, commitTag, typeList, false, sayDone)
+function invop.postCommitRepair(uid, value, queryTag, commitTag, typeList, sayDone, backLabel)
+    commitRepair(uid, value, queryTag, commitTag, typeList, false, sayDone, backLabel)
 end
 
-function invop.postCommitSpecialRepair(uid, value, queryTag, commitTag, typeList, sayDone)
-    commitRepair(uid, value, queryTag, commitTag, typeList, true, sayDone)
+function invop.postCommitSpecialRepair(uid, value, queryTag, commitTag, typeList, sayDone, backLabel)
+    commitRepair(uid, value, queryTag, commitTag, typeList, true, sayDone, backLabel)
 end
 
 -- 出售 : NPC buys an item off player at a flat price
@@ -174,8 +190,27 @@ end
 --     ["npc_goto_query_trade" ] = function(uid, value) invop.postQueryTrade (uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", typeList, price) end,
 --     ["npc_goto_commit_trade"] = function(uid, value) invop.postCommitTrade(uid, value, "npc_goto_query_trade", "npc_goto_commit_trade", typeList, price) end,
 
-function invop.postQueryTrade(uid, value, queryTag, commitTag, typeList, price)
+local function rejectTrade(uid, itemID, queryTag, commitTag, typeList, acceptItem)
+    if acceptItem == nil or acceptItem(itemID) then
+        return false
+    end
+    uidPostXML(uid,
+    [[
+        <layout>
+            <par>这里不收购%s。</par>
+            <par></par>
+            <par><event id="%s">前一步</event></par>
+        </layout>
+    ]], getItemName(itemID), SYS_ENTER)
+    invop.uidStartTrade(uid, queryTag, commitTag, typeList)
+    return true
+end
+
+function invop.postQueryTrade(uid, value, queryTag, commitTag, typeList, price, acceptItem)
     local itemID, seqID = invop.parseItemString(value)
+    if rejectTrade(uid, itemID, queryTag, commitTag, typeList, acceptItem) then
+        return
+    end
 
     uidPostXML(uid,
     [[
@@ -192,8 +227,11 @@ function invop.postQueryTrade(uid, value, queryTag, commitTag, typeList, price)
     invop.uidStartTrade(uid, queryTag, commitTag, typeList)
 end
 
-function invop.postCommitTrade(uid, value, queryTag, commitTag, typeList, price)
+function invop.postCommitTrade(uid, value, queryTag, commitTag, typeList, price, acceptItem)
     local itemID, seqID = invop.parseItemString(value)
+    if rejectTrade(uid, itemID, queryTag, commitTag, typeList, acceptItem) then
+        return
+    end
 
     if uidRemove(uid, {itemID = itemID, seqID = seqID}) then
         uidGrantGold(uid, price)

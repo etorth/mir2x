@@ -9,6 +9,15 @@ smith.setSmith
     },
 
     redName = '我不想跟你这种人进行交易,快从我眼前消失吧.',
+    redNameExit = '关闭',
+
+    label = '',
+    buyLabel = '买武器',
+    sellLabel = '卖武器',
+    repairLabel = '修理武器',
+    specialLabel = '特殊修理',
+    backLabel = '继续',
+    exitLabel = '关闭',
 
     goods =
     {
@@ -36,4 +45,5 @@ smith.setSmith
     },
 
     repairDone = '修理完成.',
+    repairDoneBack = false,
 }

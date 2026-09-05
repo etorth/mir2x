@@ -19,6 +19,7 @@ outfitter.setOutfitter
     label = '鞋',
     trade = {'鞋'},
     repair = {'鞋'},
+    repairSuffix = '',
 
     buyText =
     {
