@@ -1,7 +1,10 @@
-local dialogue = {}
+local dialog = {}
 
--- Presentation primitives only: callers own their menus, event handlers and operations.
-function dialogue.link(id, label, opts)
+function dialog.link(id, label, opts)
+    assertType(id, 'string')
+    assertType(label, 'string')
+    assertType(opts, 'table', 'nil')
+
     opts = opts or {}
 
     local is_close = opts.close
@@ -16,38 +19,60 @@ function dialogue.link(id, label, opts)
     return string.format('%s<event id="%s"%s>%s</event>%s', prefix, id, close_attr, label, suffix)
 end
 
-function dialogue.post(uid, text, choices)
+function dialog.post(uid, text, choices)
+    assertType(uid, 'integer')
+    assertType(text, 'function', 'table', 'string')
+    assertType(choices, 'function', 'table', 'nil')
+
     if type(text) == 'function' then
-        text = text(uid)
+        text = assertType(text(uid), 'table', 'string')
     end
-    assertType(text, 'table')
+
+    if type(text) == 'string' then
+        text = {text}
+    end
 
     local xml = {'<layout>'}
     for _, line in ipairs(text) do
-        table.insert(xml, string.format('<par>%s</par>', line))
+        table.insert(xml, string.format('<par>%s</par>', assertType(line, 'string')))
     end
+
     if choices then
+        if type(choices) == 'function' then
+            choices = assertType(choices(uid), 'table')
+        end
+
         table.insert(xml, '<par></par>')
         for _, line in ipairs(choices) do
-            table.insert(xml, string.format('<par>%s</par>', line))
+            table.insert(xml, string.format('<par>%s</par>', assertType(line, 'string')))
         end
     end
+
     table.insert(xml, '</layout>')
     uidPostXML(uid, '%s', table.concat(xml, '\n'))
 end
 
-function dialogue.guardRedName(callback, text, exitLabel)
+function dialog.guardRedName(callback, text, exitLabel)
+    assertType(callback, 'function')
     if text == nil then
         return callback
     end
+
+    assertType(text, 'function', 'table', 'string')
+    assertType(exitLabel, 'function', 'string', 'nil')
+
     return function(uid, value)
         if uidQueryRedName(uid) then
-            dialogue.post(uid, type(text) == 'table' and text or {text},
-                {dialogue.link(SYS_EXIT, exitLabel)})
+            if type(exitLabel) == 'function' then
+                exitLabel = assertType(exitLabel(uid), 'string')
+            elseif exitLabel == nil then
+                exitLabel = '关闭'
+            end
+            dialog.post(uid, text, {dialog.link(SYS_EXIT, exitLabel)})
         else
             return callback(uid, value)
         end
     end
 end
 
-return dialogue
+return dialog
