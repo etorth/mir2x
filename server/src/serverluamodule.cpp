@@ -117,26 +117,26 @@ ServerLuaModule::ServerLuaModule()
         auto queryStatement = g_dbPod->createQuery(to_cstr(query));
 
         sol::state_view sv(s);
-        std::vector<std::map<std::string, sol::object>> queryResult;
+        sol::table queryResult(sv.lua_state(), sol::create);
 
-        queryResult.reserve(8);
+        lua_Integer rowIndex = 1;
         while(queryStatement.executeStep()){
-            std::map<std::string, sol::object> rowResult;
+            sol::table rowResult(sv.lua_state(), sol::create);
             for(int i = 0; i < queryStatement.getColumnCount(); ++i){
                 switch(const auto column = queryStatement.getColumn(i); column.getType()){
                     case SQLITE_INTEGER:
                         {
-                            rowResult[column.getName()] = sol::object(sv, sol::in_place_type<int>, column.getInt());
+                            rowResult[column.getName()] = column.getInt();
                             break;
                         }
                     case SQLITE_FLOAT:
                         {
-                            rowResult[column.getName()] = sol::object(sv, sol::in_place_type<double>, column.getDouble());
+                            rowResult[column.getName()] = column.getDouble();
                             break;
                         }
                     case SQLITE_TEXT:
                         {
-                            rowResult[column.getName()] = sol::object(sv, sol::in_place_type<std::string>, column.getText());
+                            rowResult[column.getName()] = column.getText();
                             break;
                         }
                     default:
@@ -149,9 +149,9 @@ ServerLuaModule::ServerLuaModule()
             if(rowResult.size() != to_uz(queryStatement.getColumnCount())){
                 throw fflpanic("failed to parse query result row: missing column");
             }
-            queryResult.push_back(std::move(rowResult));
+            queryResult[rowIndex++] = rowResult;
         }
-        return sol::nested<decltype(queryResult)>(std::move(queryResult));
+        return queryResult;
     });
 
     constexpr static unsigned char luaScript []
