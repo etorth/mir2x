@@ -92,21 +92,29 @@ end
 
 -- @mugon_mutebo_retry and @mugong_mutebo_test_complete_retry, the same two lines from both
 -- ends of the desert: get moving, or here is another letter
-local function letterRetryHandlers()
-    return
+local function letterRetryHandlers(npcName)
+    return string.format(
     [[
-        [SYS_ENTER] = function(uid, value)
-            if server.player.hasItem(uid, '书信', 1) then
-                dialog.post(uid, questPath, '沙漠是很远的路。快点！',
-                dialog.link(SYS_EXIT, '结束'))
-                return
-            end
+        local questName = ...
+        local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
-            dialog.post(uid, questPath, '书信丢了？让人寒心！重新再给你一本，这次注意拿好。',
-            dialog.link(SYS_EXIT, '结束'))
-            server.player.addItem(uid, '书信', 1)
-        end,
-    ]]
+        return
+        {
+            [SYS_LABEL] = '书信的事',
+            [SYS_ENTER] = function(uid, value)
+                if server.player.hasItem(uid, '书信', 1) then
+                    dialog.post(uid, questPath, '沙漠是很远的路。快点！',
+                    dialog.link(SYS_EXIT, '结束'))
+                    return
+                end
+
+                dialog.post(uid, questPath, '你把要给%s的书信弄丢了？让人寒心！重新再给你一本，这次注意拿好。',
+                dialog.link(SYS_EXIT, '结束'))
+                server.player.addItem(uid, '书信', 1)
+            end,
+        }
+    ]], assertType(npcName, 'string'))
 end
 
 setQuestFSMTable(
@@ -197,18 +205,7 @@ setQuestFSMTable(
         [[
             return getQuestName()
         ]],
-        string.format(
-        [[
-            local questName = ...
-            local questPath = {SYS_EPUID, questName}
-            local dialog = require('include.dialog')
-
-            return
-            {
-                [SYS_LABEL] = '书信的事',
-                %s
-            }
-        ]], letterRetryHandlers()))
+        letterRetryHandlers('王铁匠'))
 
         -- @mugong_mutebo_test, 王铁匠 taking the letter
         setupNPCQuestBehavior(smithMap, smithNPC, uid,
@@ -388,18 +385,7 @@ setQuestFSMTable(
         [[
             return getQuestName()
         ]],
-        string.format(
-        [[
-            local questName = ...
-            local questPath = {SYS_EPUID, questName}
-            local dialog = require('include.dialog')
-
-            return
-            {
-                [SYS_LABEL] = '书信的事',
-                %s
-            }
-        ]], letterRetryHandlers()))
+        letterRetryHandlers('皇甫'))
 
         -- @mugong_mutebo_test_complete_receive
         setupNPCQuestBehavior(teacherMap, teacherNPC, uid,
