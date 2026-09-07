@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
             Fl::lock();
         }
 
-        g_mir2xLog       = new Log("mir2x-server-v0.1");
+        g_mir2xLog  = new Log("mir2x-server-v0.1");
         g_server    = new Server();
         g_mapBinDB  = new MapBinDB();
         g_actorPool = new ActorPool(g_serverArgParser->actorPoolThread);

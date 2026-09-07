@@ -409,7 +409,13 @@ SDLDevice::SDLDevice()
     }
 
     SDL_SetMainReady();
-    if(!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS)){
+    Uint32 sdlFlags = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+
+    if(!g_clientArgParser->disableAudio){
+        sdlFlags |= SDL_INIT_AUDIO;
+    }
+
+    if(!SDL_Init(sdlFlags)){
         throw fflpanic("initialization failed for SDL3: {}", SDL_GetError());
     }
 
