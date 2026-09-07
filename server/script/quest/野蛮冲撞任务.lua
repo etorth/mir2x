@@ -25,27 +25,23 @@
 --   the drop is hooked on legacy maps 41, 42, 43, 44, 4 and 6. mir2x has 诺玛村庄_41, 绿洲_4
 --   and 沙漠_6, and no counterpart for 42, 43 or 44, so those three are simply not there
 
-_G.minQuestLevel = 27
+local minQuestLevel = 27
 
-_G.magicName = '野蛮冲撞'
-_G.mijiName  = '野蛮冲撞（秘籍）'
+local stoneName  = '诺玛石'
+local stoneCount = 5
 
-_G.letterName = '书信'
-_G.stoneName  = '诺玛石'
-_G.stoneCount = 5
+local teacherMap = '边境城市_01'
+local teacherNPC = '黄河大侠_1'
 
-_G.teacherMap = '边境城市_01'
-_G.teacherNPC = '黄河大侠_1'
-
-_G.smithMap = '武器店_4_001'
-_G.smithNPC = '王铁匠_1'
+local smithMap = '武器店_4_001'
+local smithNPC = '王铁匠_1'
 
 -- random 2 in MonQuest/mute.txt
-_G.stoneChance = 2
-_G.stoneMaps   = {'诺玛村庄_41', '绿洲_4', '沙漠_6'}
+local stoneChance = 2
+local stoneMaps   = {'诺玛村庄_41', '绿洲_4', '沙漠_6'}
 
 -- @mugong_mute_explan_mugi, the five who sell weapons
-_G.weaponShops =
+local weaponShops =
 {
     {'比奇县_0', '老张_1'},
     {'边境城市_01', '德秀_1'},
@@ -55,7 +51,7 @@ _G.weaponShops =
 }
 
 -- @mugong_mute_explan_armor, the five who sell what you wear
-_G.armorShops =
+local armorShops =
 {
     {'比奇县_0', '怡美_1'},
     {'边境城市_01', '顺子_1'},
@@ -549,140 +545,128 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(),
 
 -- the ten shopkeepers. @mugong_mute_explan_mugi for the weapon sellers and
 -- @mugong_mute_explan_armor for the clothiers, both gated on checklevel 27
-local shopSetup =
-{
+local weaponShopCode =
+[[
+    local questUID, questName, minQuestLevel = ...
+    local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
+
+    setQuestHandler(questName,
     {
-        list = weaponShops,
-        code =
-        [[
-            local questUID, questName, minQuestLevel = ...
-            local questPath = {SYS_EPQST, questName}
-            local dialog = require('include.dialog')
+        [SYS_LABEL] = '聊聊装备',
 
-            setQuestHandler(questName,
-            {
-                [SYS_LABEL] = '聊聊装备',
+        [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '战士') then
+                return false
+            end
 
-                [SYS_CHECKACTIVE] = function(uid)
-                    if not server.player.hasJob(uid, '战士') then
-                        return false
-                    end
+            if server.player.getLevel(uid) < minQuestLevel then
+                return false
+            end
 
-                    if server.player.getLevel(uid) < minQuestLevel then
-                        return false
-                    end
+            return server.quest.getState(questUID, {uid=uid}) == nil
+        end,
 
-                    return server.quest.getState(questUID, {uid=uid}) == nil
-                end,
+        [SYS_ENTER] = function(uid, value)
+            dialog.post(uid, questPath, '呵呵，好久没有看到损伤这么严重的兵器了哦。究竟是进行了多么艰辛的打斗真是无法想象。这样的打斗有可能会死，请小心！随着时间的流失，熟悉的面孔一个个都消失了，让人很伤心哪。',
+            dialog.link('npc_frontline', '谢谢！战士无论是活着还是死了，总是在战场的最前方。'))
+        end,
 
-                [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, '呵呵，好久没有看到损伤这么严重的兵器了哦。究竟是进行了多么艰辛的打斗真是无法想象。这样的打斗有可能会死，请小心！随着时间的流失，熟悉的面孔一个个都消失了，让人很伤心哪。',
-                    dialog.link('npc_frontline', '谢谢！战士无论是活着还是死了，总是在战场的最前方。'))
-                end,
+        -- @mugong_mute_explan_mugi_next
+        npc_frontline = function(uid, value)
+            dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
+            dialog.link('npc_never_heard', '没有，第一次听说。'))
+        end,
 
-                -- @mugong_mute_explan_mugi_next
-                npc_frontline = function(uid, value)
-                    dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
-                    dialog.link('npc_never_heard', '没有，第一次听说。'))
-                end,
+        -- @mugong_mute_explan_mugi_next1
+        npc_never_heard = function(uid, value)
+            dialog.post(uid, questPath, '我可以帮忙噢。据说生活在边境村附近的<t color="red">黄河大侠</t>懂得该武功。请到那儿去接受指教。',
+            dialog.link('npc_accept', '得去找黄河大侠。'))
+        end,
 
-                -- @mugong_mute_explan_mugi_next1
-                npc_never_heard = function(uid, value)
-                    dialog.post(uid, questPath, '我可以帮忙噢。据说生活在边境村附近的<t color="red">黄河大侠</t>懂得该武功。请到那儿去接受指教。',
-                    dialog.link('npc_accept', '得去找黄河大侠。'))
-                end,
+        -- @mugong_mute_explan_mugi_next2, set [508]
+        npc_accept = function(uid, value)
+            dialog.post(uid, questPath, '坚持活下去是非常重要的。如果活着，总会实现自己的理想。',
+            dialog.link(SYS_EXIT, '结束'))
 
-                -- @mugong_mute_explan_mugi_next2, set [508]
-                npc_accept = function(uid, value)
-                    dialog.post(uid, questPath, '坚持活下去是非常重要的。如果活着，总会实现自己的理想。',
-                    dialog.link(SYS_EXIT, '结束'))
+            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+        end,
+    })
+]]
 
-                    server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
-                end,
-            })
-        ]],
-    },
+local armorShopCode =
+[[
+    local questUID, questName, minQuestLevel = ...
+    local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
+    setQuestHandler(questName,
     {
-        list = armorShops,
-        code =
-        [[
-            local questUID, questName, minQuestLevel = ...
-            local questPath = {SYS_EPQST, questName}
-            local dialog = require('include.dialog')
+        [SYS_LABEL] = '聊聊装备',
 
-            setQuestHandler(questName,
+        [SYS_CHECKACTIVE] = function(uid)
+            if not server.player.hasJob(uid, '战士') then
+                return false
+            end
+
+            if server.player.getLevel(uid) < minQuestLevel then
+                return false
+            end
+
+            return server.quest.getState(questUID, {uid=uid}) == nil
+        end,
+
+        -- the opening is shared with @mugong_mute_explan_armor_m, which nothing calls.
+        -- its answer is offered here as the second option
+        [SYS_ENTER] = function(uid, value)
+            dialog.post(uid, questPath, '哦，防御工具被破坏的很严重嘛！看起来进行了一场非常激烈的厮杀。嗯，战士强壮虽然很有魅力，但也使人担心。如果被包围了，不是要危及到生命嘛。听说战士的武功中有可以在摆脱危机的时候使用的武功。。你知道该武功吗？',
             {
-                [SYS_LABEL] = '聊聊装备',
-
-                [SYS_CHECKACTIVE] = function(uid)
-                    if not server.player.hasJob(uid, '战士') then
-                        return false
-                    end
-
-                    if server.player.getLevel(uid) < minQuestLevel then
-                        return false
-                    end
-
-                    return server.quest.getState(questUID, {uid=uid}) == nil
-                end,
-
-                -- the opening is shared with @mugong_mute_explan_armor_m, which nothing calls.
-                -- its answer is offered here as the second option
-                [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, '哦，防御工具被破坏的很严重嘛！看起来进行了一场非常激烈的厮杀。嗯，战士强壮虽然很有魅力，但也使人担心。如果被包围了，不是要危及到生命嘛。听说战士的武功中有可以在摆脱危机的时候使用的武功。。你知道该武功吗？',
-                    {
-                        dialog.link('npc_never_heard', '没有，第一次听说。'),
-                        dialog.link('npc_frontline', '感谢你的好意，但是战士不管生死都要在最前方。'),
-                    })
-                end,
-
-                -- @mugong_mute_explan_armor_m_next, which is the weapon seller's line
-                npc_frontline = function(uid, value)
-                    dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
-                    dialog.link('npc_heard_in_tavern', '没有，第一次听说。'))
-                end,
-
-                -- @mugong_mute_explan_armor_next, the one about the tavern
-                npc_never_heard = function(uid, value)
-                    dialog.post(uid, questPath,
-                    {
-                        '我以前在酒家听说的，说叫<t color="red">黄河大侠</t>的人懂得被敌人包围时可以逃脱的武功。好像生活在边境村附近？已经喝醉的时候听说的，现在有些想不起来了。',
-                        '不是，只喝醉了一点点儿。我即使喝一杯也要醉的。真的不能喝酒。请别误会！',
-                    },
-                    dialog.link('npc_thanks', '谢谢帮忙！'))
-                end,
-
-                -- @mugong_mute_explan_armor_m_next1, the plainer version
-                npc_heard_in_tavern = function(uid, value)
-                    dialog.post(uid, questPath, '我可以帮忙噢。据说生活在边境村附近的<t color="red">黄河大侠</t>懂得该武功。请到那儿去接受指教。',
-                    dialog.link('npc_accept', '得去找黄河大侠。'))
-                end,
-
-                -- @mugong_mute_explan_armor_next1, set [508]
-                npc_thanks = function(uid, value)
-                    dialog.post(uid, questPath,
-                    {
-                        '不会的。我们很高兴可以帮助保护我们的战士，千万要小心身体！',
-                        '真是非常困难的时期啊。由于怪兽，我们都不能在野外约会。。。',
-                    },
-                    dialog.link(SYS_EXIT, '结束'))
-                    server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
-                end,
-
-                -- @mugong_mute_explan_armor_m_next2, set [508]
-                npc_accept = function(uid, value)
-                    dialog.post(uid, questPath, '坚持活下去是非常重要的。如果活着，总会实现自己的理想。',
-                    dialog.link(SYS_EXIT, '结束'))
-                    server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
-                end,
+                dialog.link('npc_never_heard', '没有，第一次听说。'),
+                dialog.link('npc_frontline', '感谢你的好意，但是战士不管生死都要在最前方。'),
             })
-        ]],
-    },
-}
+        end,
 
-for _, setup in ipairs(shopSetup) do
-    for _, shop in ipairs(setup.list) do
-        uidRemoteCall(getNPCharUID(shop[1], shop[2]), getUID(), getQuestName(), minQuestLevel, setup.code)
-    end
-end
+        -- @mugong_mute_explan_armor_m_next, which is the weapon seller's line
+        npc_frontline = function(uid, value)
+            dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
+            dialog.link('npc_heard_in_tavern', '没有，第一次听说。'))
+        end,
+
+        -- @mugong_mute_explan_armor_next, the one about the tavern
+        npc_never_heard = function(uid, value)
+            dialog.post(uid, questPath,
+            {
+                '我以前在酒家听说的，说叫<t color="red">黄河大侠</t>的人懂得被敌人包围时可以逃脱的武功。好像生活在边境村附近？已经喝醉的时候听说的，现在有些想不起来了。',
+                '不是，只喝醉了一点点儿。我即使喝一杯也要醉的。真的不能喝酒。请别误会！',
+            },
+            dialog.link('npc_thanks', '谢谢帮忙！'))
+        end,
+
+        -- @mugong_mute_explan_armor_m_next1, the plainer version
+        npc_heard_in_tavern = function(uid, value)
+            dialog.post(uid, questPath, '我可以帮忙噢。据说生活在边境村附近的<t color="red">黄河大侠</t>懂得该武功。请到那儿去接受指教。',
+            dialog.link('npc_accept', '得去找黄河大侠。'))
+        end,
+
+        -- @mugong_mute_explan_armor_next1, set [508]
+        npc_thanks = function(uid, value)
+            dialog.post(uid, questPath,
+            {
+                '不会的。我们很高兴可以帮助保护我们的战士，千万要小心身体！',
+                '真是非常困难的时期啊。由于怪兽，我们都不能在野外约会。。。',
+            },
+            dialog.link(SYS_EXIT, '结束'))
+            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+        end,
+
+        -- @mugong_mute_explan_armor_m_next2, set [508]
+        npc_accept = function(uid, value)
+            dialog.post(uid, questPath, '坚持活下去是非常重要的。如果活着，总会实现自己的理想。',
+            dialog.link(SYS_EXIT, '结束'))
+            server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
+        end,
+    })
+]]
+
+for _, shop in ipairs(weaponShops) do uidRemoteCall(getNPCharUID(shop[1], shop[2]), getUID(), getQuestName(), minQuestLevel, weaponShopCode) end
+for _, shop in ipairs( armorShops) do uidRemoteCall(getNPCharUID(shop[1], shop[2]), getUID(), getQuestName(), minQuestLevel,  armorShopCode) end
