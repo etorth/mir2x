@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialog')
+local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
 
 -- 修理店, legacy Market_Def/09Repair_*.txt (2)
@@ -33,14 +33,14 @@ function repairer.setRepairer(spec)
     local repair = optList(spec.repair, {'武器', '衣服', '头盔'})
     local repairDoneBack = spec.repairDoneBack
     if repairDoneBack == nil then repairDoneBack = spec.backLabel end
-    local back = {dialogue.link(SYS_ENTER, spec.backLabel or '前一步')}
+    local back = {dialog.link(SYS_ENTER, spec.backLabel or '前一步')}
     local menu = {}
     local handler = {}
 
     if repair then
-        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
+        table.insert(menu, dialog.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
         handler.npc_repair = function(uid, value)
-            dialogue.post(uid, spec.repairText or {'请把要修理的装备放上来。'}, back)
+            dialog.post(uid, spec.repairText or {'请把要修理的装备放上来。'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', repair)
         end
         handler.npc_repair_query = function(uid, value)
@@ -54,9 +54,9 @@ function repairer.setRepairer(spec)
     if spec.special then
         local specialRepair = spec.specialRepair or repair
         assertType(specialRepair, 'table')
-        table.insert(menu, dialogue.link('npc_special_repair', spec.specialLabel or '特殊修理', {suffix = spec.specialSuffix or label}))
+        table.insert(menu, dialog.link('npc_special_repair', spec.specialLabel or '特殊修理', {suffix = spec.specialSuffix or label}))
         handler.npc_special_repair = function(uid, value)
-            dialogue.post(uid, spec.specialText or {'特殊修理不会损失持久上限，但是价钱要贵得多。'}, back)
+            dialog.post(uid, spec.specialText or {'特殊修理不会损失持久上限，但是价钱要贵得多。'}, back)
             invop.uidStartRepair(uid, 'npc_special_query', 'npc_special_commit', specialRepair)
         end
         handler.npc_special_query = function(uid, value)
@@ -68,22 +68,22 @@ function repairer.setRepairer(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
+        table.insert(menu, dialog.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
-            dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
+            dialog.post(uid, topic.text, {dialog.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end
     end
 
     if spec.today then
-        table.insert(menu, dialogue.link('npc_today', '对今日的任务进行了解'))
+        table.insert(menu, dialog.link('npc_today', '对今日的任务进行了解'))
         handler.npc_today = function(uid, value)
-            dialogue.post(uid, {spec.today}, {dialogue.link(SYS_EXIT, spec.todayExit or '结束')})
+            dialog.post(uid, {spec.today}, {dialog.link(SYS_EXIT, spec.todayExit or '结束')})
         end
     end
 
-    table.insert(menu, dialogue.link(SYS_EXIT, spec.exitLabel or '结束'))
+    table.insert(menu, dialog.link(SYS_EXIT, spec.exitLabel or '结束'))
     handler[SYS_ENTER] = function(uid, value)
-        dialogue.post(uid, spec.greet, menu)
+        dialog.post(uid, spec.greet, menu)
     end
 
     for tag, callback in pairs(spec.extra or {}) do
@@ -91,7 +91,7 @@ function repairer.setRepairer(spec)
     end
     for tag, callback in pairs(handler) do
         if type(callback) == 'function' and tag ~= SYS_LABEL and tag ~= SYS_HIDE and tag ~= SYS_CHECKACTIVE and tag ~= SYS_ALLOWREDNAME then
-            handler[tag] = dialogue.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
+            handler[tag] = dialog.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
         end
     end
     handler[SYS_ALLOWREDNAME] = true

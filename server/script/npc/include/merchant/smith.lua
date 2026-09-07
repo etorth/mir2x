@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialog')
+local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
 
 -- 铁匠 / 武器商, legacy Market_Def/02Weapon_*.txt (22 of them)
@@ -68,23 +68,23 @@ function smith.setSmith(spec)
     local repairDoneBack = spec.repairDoneBack
     if repairDoneBack == nil then repairDoneBack = spec.backLabel end
     local price = spec.price or 50
-    local back = {dialogue.link(SYS_ENTER, spec.backLabel or '前一步')}
+    local back = {dialog.link(SYS_ENTER, spec.backLabel or '前一步')}
     local menu = {}
     local handler = {}
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
+        table.insert(menu, dialog.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
-            dialogue.post(uid, spec.buyText or {'请选择要购买的武器。'}, back)
+            dialog.post(uid, spec.buyText or {'请选择要购买的武器。'}, back)
             uidPostSell(uid)
         end
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
+        table.insert(menu, dialog.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
-            dialogue.post(uid, spec.sellText or {'请把要卖的武器抬上来。'}, back)
+            dialog.post(uid, spec.sellText or {'请把要卖的武器抬上来。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
         end
         handler.npc_sell_query = function(uid, value)
@@ -96,16 +96,16 @@ function smith.setSmith(spec)
     end
 
     if repair then
-        table.insert(menu, dialogue.link(spec.preRepairText and 'npc_pre_repair' or 'npc_repair',
+        table.insert(menu, dialog.link(spec.preRepairText and 'npc_pre_repair' or 'npc_repair',
             spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
 
         if spec.preRepairText then
             handler.npc_pre_repair = function(uid, value)
-                dialogue.post(uid, spec.preRepairText, {dialogue.link('npc_repair', '修理')})
+                dialog.post(uid, spec.preRepairText, {dialog.link('npc_repair', '修理')})
             end
         end
         handler.npc_repair = function(uid, value)
-            dialogue.post(uid, spec.repairText or {'请把要修理的武器放上去。'}, back)
+            dialog.post(uid, spec.repairText or {'请把要修理的武器放上去。'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', repair)
         end
         handler.npc_repair_query = function(uid, value)
@@ -119,9 +119,9 @@ function smith.setSmith(spec)
     -- Some smiths offer only special repair, without an ordinary repair counter.
     if spec.special ~= false then
         local specialRepair = spec.specialRepair or repair or {'武器'}
-        table.insert(menu, dialogue.link('npc_special_repair', spec.specialLabel or '特殊修理', {suffix = spec.specialSuffix or label}))
+        table.insert(menu, dialog.link('npc_special_repair', spec.specialLabel or '特殊修理', {suffix = spec.specialSuffix or label}))
         handler.npc_special_repair = function(uid, value)
-            dialogue.post(uid, spec.specialText or {'特殊修理不会损失持久上限，但是价钱要贵得多。'}, back)
+            dialog.post(uid, spec.specialText or {'特殊修理不会损失持久上限，但是价钱要贵得多。'}, back)
             invop.uidStartRepair(uid, 'npc_special_query', 'npc_special_commit', specialRepair)
         end
         handler.npc_special_query = function(uid, value)
@@ -133,50 +133,50 @@ function smith.setSmith(spec)
     end
 
     if spec.qweapon then
-        table.insert(menu, dialogue.link('npc_qweapon', '询问', {suffix = spec.qweaponSuffix or '关于武器的事'}))
+        table.insert(menu, dialog.link('npc_qweapon', '询问', {suffix = spec.qweaponSuffix or '关于武器的事'}))
         handler.npc_qweapon = function(uid, value)
-            dialogue.post(uid, spec.qweaponText or smith.QWEAPON, back)
+            dialog.post(uid, spec.qweaponText or smith.QWEAPON, back)
         end
     end
 
     if spec.removeSword then
-        table.insert(menu, dialogue.link('npc_remove_sword', '请求把剑从手分离开'))
+        table.insert(menu, dialog.link('npc_remove_sword', '请求把剑从手分离开'))
         handler.npc_remove_sword = function(uid, value)
             local held = server.player.getWLItem(uid, WLG_WEAPON)
             if held then
                 for _, name in ipairs(smith.BOUND_SWORD) do
                     if held.itemID == getItemID(name) and server.player.removeWearItem(uid, WLG_WEAPON) then
-                        dialogue.post(uid, spec.removeSwordText or smith.REMOVE_SWORD, back)
+                        dialog.post(uid, spec.removeSwordText or smith.REMOVE_SWORD, back)
                         return
                     end
                 end
             end
-            dialogue.post(uid, spec.removeSwordElseText or smith.REMOVE_SWORD_ELSE, back)
+            dialog.post(uid, spec.removeSwordElseText or smith.REMOVE_SWORD_ELSE, back)
         end
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
+        table.insert(menu, dialog.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
-            dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
+            dialog.post(uid, topic.text, {dialog.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end
     end
 
     if spec.today then
-        table.insert(menu, dialogue.link('npc_today', '对今日的任务进行了解'))
+        table.insert(menu, dialog.link('npc_today', '对今日的任务进行了解'))
         handler.npc_today = function(uid, value)
-            dialogue.post(uid, {spec.today}, {dialogue.link(SYS_EXIT, spec.todayExit or '结束')})
+            dialog.post(uid, {spec.today}, {dialog.link(SYS_EXIT, spec.todayExit or '结束')})
         end
     end
 
     if spec.exitLabel ~= false then
-        table.insert(menu, dialogue.link(SYS_EXIT, spec.exitLabel or '结束'))
+        table.insert(menu, dialog.link(SYS_EXIT, spec.exitLabel or '结束'))
     end
     handler[SYS_ENTER] = function(uid, value)
         if spec.onEnter and spec.onEnter(uid, value) then
             return
         end
-        dialogue.post(uid, spec.greet, menu)
+        dialog.post(uid, spec.greet, menu)
     end
 
     for tag, callback in pairs(spec.extra or {}) do
@@ -184,7 +184,7 @@ function smith.setSmith(spec)
     end
     for tag, callback in pairs(handler) do
         if type(callback) == 'function' and tag ~= SYS_LABEL and tag ~= SYS_HIDE and tag ~= SYS_CHECKACTIVE and tag ~= SYS_ALLOWREDNAME then
-            handler[tag] = dialogue.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
+            handler[tag] = dialog.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
         end
     end
     handler[SYS_ALLOWREDNAME] = true

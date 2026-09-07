@@ -17,7 +17,7 @@ move service selection and event registration into a shared helper.
 | `repairer` | Repair services, without trading |
 
 `npc.include.invop` implements low-level inventory transactions.
-`npc.include.dialog` only formats dialogue/links and guards individual
+`include.dialog` only formats dialog/links and guards individual
 callbacks against red-name access. Neither chooses a merchant's services,
 creates its menu or registers its handlers.
 
@@ -28,7 +28,7 @@ fields. If `close` is omitted, only `SYS_EXIT` closes the dialog; `true` or
 ## Converting a merchant
 
 Read both `Envir/Market_Def/<name>.txt` (control flow, item categories and stock)
-and its `Envir/Convert_Def/Market_Def/<name>.txt` includes (dialogue). Follow the
+and its `Envir/Convert_Def/Market_Def/<name>.txt` includes (dialog). Follow the
 reachable branches, not just the list of section names.
 
 Keep the provenance comment, stock, greetings, prompts, completion lines,
@@ -74,7 +74,7 @@ Do not infer buyback categories from the shop's stock.
 
 The server does not expose castle-war state and `getSubukGuildName()` is still
 a server-side placeholder. Sabuk merchants therefore use their original
-peacetime dialogue, evaluated on entry, rather than claiming a perpetual siege.
+peacetime dialog, evaluated on entry, rather than claiming a perpetual siege.
 
 The Pan Ye smith's item-gated conversation, profession-specific rewards and
 exchange checks are retained locally. The current item database lacks
@@ -91,7 +91,7 @@ grants run together in a player-side call.
 The 4,000,000-gold element-change option is commented out in the legacy script,
 so it is not offered. The dark-element Shizun bracelet restoration branch uses
 garbled inline source text with no close link instead of the clean, unused
-dialogue include; that discrepancy is deliberately retained.
+dialog include; that discrepancy is deliberately retained.
 
 ## Regression coverage
 
@@ -108,4 +108,4 @@ coverage includes stale requests, profession priority and cancellation before
 the player-side reply arrives. It also loads the Wild Rush quest's real merchant
 registrations and checks NPC entry through `server.player.hasJob()`, including
 multiple professions, level requirements and completed quests. NPC clicks run
-quest eligibility checks before entering the merchant's own dialogue.
+quest eligibility checks before entering the merchant's own dialog.

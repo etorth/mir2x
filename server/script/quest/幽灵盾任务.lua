@@ -10,7 +10,7 @@
 --
 -- two things the legacy data gets inconsistent about, both kept as written:
 --
---   the dialogue has him introduce himself as 大飞圣僧 while the monster hook tells you to take
+--   the dialog has him introduce himself as 大飞圣僧 while the monster hook tells you to take
 --   the pearl to 清明子, and 清明子 is who actually hosts the quest per merchant.txt
 --
 --   the eight MapQuest.txt lines that hook 僵尸1 dying in the 飞天废矿 up to this drop are all

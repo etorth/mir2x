@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialog')
+local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
 
 -- 杂货店, legacy Market_Def/07Grocery_*.txt; chestnut barter uses its own NPC scripts.
@@ -34,23 +34,23 @@ function grocer.setGrocer(spec)
     local price = spec.price or 50
     local repairDoneBack = spec.repairDoneBack
     if repairDoneBack == nil then repairDoneBack = spec.backLabel end
-    local back = {dialogue.link(SYS_ENTER, spec.backLabel or '前一步')}
+    local back = {dialog.link(SYS_ENTER, spec.backLabel or '前一步')}
     local menu = {}
     local handler = {}
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
+        table.insert(menu, dialog.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
-            dialogue.post(uid, spec.buyText or {'你要买什么？'}, back)
+            dialog.post(uid, spec.buyText or {'你要买什么？'}, back)
             uidPostSell(uid)
         end
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
+        table.insert(menu, dialog.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
-            dialogue.post(uid, spec.sellText or {'请把不用的东西卖给我'}, back)
+            dialog.post(uid, spec.sellText or {'请把不用的东西卖给我'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
         end
         handler.npc_sell_query = function(uid, value)
@@ -63,9 +63,9 @@ function grocer.setGrocer(spec)
 
     -- Ordinary mending is an explicit service at the Bichon general store, not a grocer default.
     if spec.repair then
-        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
+        table.insert(menu, dialog.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
         handler.npc_repair = function(uid, value)
-            dialogue.post(uid, spec.repairText or {'这里可以修理衣服和武器之类的东西。'}, back)
+            dialog.post(uid, spec.repairText or {'这里可以修理衣服和武器之类的东西。'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', spec.repair)
         end
         handler.npc_repair_query = function(uid, value)
@@ -77,22 +77,22 @@ function grocer.setGrocer(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
+        table.insert(menu, dialog.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
-            dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
+            dialog.post(uid, topic.text, {dialog.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end
     end
 
     if spec.today then
-        table.insert(menu, dialogue.link('npc_today', '对今日的任务进行了解'))
+        table.insert(menu, dialog.link('npc_today', '对今日的任务进行了解'))
         handler.npc_today = function(uid, value)
-            dialogue.post(uid, {spec.today}, {dialogue.link(SYS_EXIT, spec.todayExit or '结束')})
+            dialog.post(uid, {spec.today}, {dialog.link(SYS_EXIT, spec.todayExit or '结束')})
         end
     end
 
-    table.insert(menu, dialogue.link(SYS_EXIT, spec.exitLabel or '结束'))
+    table.insert(menu, dialog.link(SYS_EXIT, spec.exitLabel or '结束'))
     handler[SYS_ENTER] = function(uid, value)
-        dialogue.post(uid, spec.greet, menu)
+        dialog.post(uid, spec.greet, menu)
     end
 
     for tag, callback in pairs(spec.extra or {}) do
@@ -100,7 +100,7 @@ function grocer.setGrocer(spec)
     end
     for tag, callback in pairs(handler) do
         if type(callback) == 'function' and tag ~= SYS_LABEL and tag ~= SYS_HIDE and tag ~= SYS_CHECKACTIVE and tag ~= SYS_ALLOWREDNAME then
-            handler[tag] = dialogue.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
+            handler[tag] = dialog.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
         end
     end
     handler[SYS_ALLOWREDNAME] = true

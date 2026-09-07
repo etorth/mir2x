@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialog')
+local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
 
 -- 布店 / 服装店 / 鞋店, legacy Market_Def/03Armor_*.txt (15) and 03Shoes_*.txt (2)
@@ -33,23 +33,23 @@ function outfitter.setOutfitter(spec)
     local repairDoneBack = spec.repairDoneBack
     if repairDoneBack == nil then repairDoneBack = spec.backLabel end
     local price = spec.price or 50
-    local back = {dialogue.link(SYS_ENTER, spec.backLabel or '前一步')}
+    local back = {dialog.link(SYS_ENTER, spec.backLabel or '前一步')}
     local menu = {}
     local handler = {}
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
+        table.insert(menu, dialog.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
-            dialogue.post(uid, spec.buyText or {'你要买什么？'}, back)
+            dialog.post(uid, spec.buyText or {'你要买什么？'}, back)
             uidPostSell(uid)
         end
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
+        table.insert(menu, dialog.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
-            dialogue.post(uid, spec.sellText or {'请把要卖的衣服(头盔)放到上面。'}, back)
+            dialog.post(uid, spec.sellText or {'请把要卖的衣服(头盔)放到上面。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
         end
         handler.npc_sell_query = function(uid, value)
@@ -61,16 +61,16 @@ function outfitter.setOutfitter(spec)
     end
 
     if repair then
-        table.insert(menu, dialogue.link(spec.preRepairText and 'npc_pre_repair' or 'npc_repair',
+        table.insert(menu, dialog.link(spec.preRepairText and 'npc_pre_repair' or 'npc_repair',
             spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
 
         if spec.preRepairText then
             handler.npc_pre_repair = function(uid, value)
-                dialogue.post(uid, spec.preRepairText, {dialogue.link('npc_repair', '修理')})
+                dialog.post(uid, spec.preRepairText, {dialog.link('npc_repair', '修理')})
             end
         end
         handler.npc_repair = function(uid, value)
-            dialogue.post(uid, spec.repairText or {'防御工具，头盔和帽子都可以修理。'}, back)
+            dialog.post(uid, spec.repairText or {'防御工具，头盔和帽子都可以修理。'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', repair)
         end
         handler.npc_repair_query = function(uid, value)
@@ -82,22 +82,22 @@ function outfitter.setOutfitter(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
+        table.insert(menu, dialog.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
-            dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
+            dialog.post(uid, topic.text, {dialog.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end
     end
 
     if spec.today then
-        table.insert(menu, dialogue.link('npc_today', '对今日的任务进行了解'))
+        table.insert(menu, dialog.link('npc_today', '对今日的任务进行了解'))
         handler.npc_today = function(uid, value)
-            dialogue.post(uid, {spec.today}, {dialogue.link(SYS_EXIT, spec.todayExit or '结束')})
+            dialog.post(uid, {spec.today}, {dialog.link(SYS_EXIT, spec.todayExit or '结束')})
         end
     end
 
-    table.insert(menu, dialogue.link(SYS_EXIT, spec.exitLabel or '结束'))
+    table.insert(menu, dialog.link(SYS_EXIT, spec.exitLabel or '结束'))
     handler[SYS_ENTER] = function(uid, value)
-        dialogue.post(uid, spec.greet, menu)
+        dialog.post(uid, spec.greet, menu)
     end
 
     for tag, callback in pairs(spec.extra or {}) do
@@ -105,7 +105,7 @@ function outfitter.setOutfitter(spec)
     end
     for tag, callback in pairs(handler) do
         if type(callback) == 'function' and tag ~= SYS_LABEL and tag ~= SYS_HIDE and tag ~= SYS_CHECKACTIVE and tag ~= SYS_ALLOWREDNAME then
-            handler[tag] = dialogue.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
+            handler[tag] = dialog.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
         end
     end
     handler[SYS_ALLOWREDNAME] = true

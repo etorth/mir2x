@@ -38,8 +38,9 @@ assert(#items > 0)
 
 function assertType(value, ...)
     for _, expected in ipairs({...}) do
-        if type(value) == expected or expected == 'integer' and math.type(value) == 'integer' then
-            return
+        if type(value) == expected or expected == 'integer' and math.type(value) == 'integer'
+            or expected == 'array' and isArray(value) then
+            return value
         end
     end
     error('unexpected type: ' .. type(value))
@@ -83,8 +84,12 @@ function setNPCSell(goods)
     for _, name in ipairs(goods) do assert(getItemID(name) > 0, 'unknown stock: ' .. name) end
     state.goods = goods
 end
-function uidPostXML(uid, fmt, ...)
-    state.xml = string.format(fmt, ...)
+function uidPostXML(uid, arg2, arg3, ...)
+    if type(arg2) == 'table' then
+        state.xml = string.format(arg3, ...)
+    else
+        state.xml = string.format(arg2, arg3, ...)
+    end
 end
 function uidQueryRedName(uid) return state.red end
 function uidQueryName(uid) return 'test player' end
@@ -179,7 +184,7 @@ function uidRemoteCall(uid, ...)
     return table.unpack(results, 1, results.n)
 end
 
-local dialog = require('npc.include.dialog')
+local dialog = require('include.dialog')
 for _, id in ipairs({'npc_next', SYS_EXIT}) do
     local defaultClose = id == SYS_EXIT and ' close="1"' or ''
     local link = string.format('<event id="%s"%s>label</event>', id, defaultClose)

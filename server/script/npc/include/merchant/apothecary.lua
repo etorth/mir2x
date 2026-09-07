@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialog')
+local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
 
 -- 药店 / 中医, legacy Market_Def/04Potion_*.txt (26)
@@ -79,7 +79,7 @@ function apothecary.setApothecary(spec)
     -- Legacy +0,+3: recovery potions, scrolls, special potions and lottery/event items.
     local trade = optList(spec.trade, {'恢复药水', '传送卷轴', '功能药水', '强效药水', '道具'})
     local price = spec.price or 50
-    local back = {dialogue.link(SYS_ENTER, spec.backLabel or '前一步')}
+    local back = {dialog.link(SYS_ENTER, spec.backLabel or '前一步')}
     local menu = {}
     local handler = {}
     local acceptItem
@@ -89,17 +89,17 @@ function apothecary.setApothecary(spec)
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
+        table.insert(menu, dialog.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
-            dialogue.post(uid, spec.buyText or {'出门在外时，多带上些药品心里才踏实。'}, back)
+            dialog.post(uid, spec.buyText or {'出门在外时，多带上些药品心里才踏实。'}, back)
             uidPostSell(uid)
         end
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
+        table.insert(menu, dialog.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
-            dialogue.post(uid, spec.sellText or {'请把你想出售的药放在这里。'}, back)
+            dialog.post(uid, spec.sellText or {'请把你想出售的药放在这里。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
         end
         handler.npc_sell_query = function(uid, value)
@@ -116,14 +116,14 @@ function apothecary.setApothecary(spec)
             assert(itemID > 0, 'unknown special potion: ' .. potion.item)
             local buyTag = potion.tag .. '_buy'
             local declineTag = potion.tag .. '_decline'
-            local close = {dialogue.link(SYS_EXIT, '关  闭')}
-            table.insert(menu, dialogue.link(potion.tag, '购买', {prefix = potion.item}))
+            local close = {dialog.link(SYS_EXIT, '关  闭')}
+            table.insert(menu, dialog.link(potion.tag, '购买', {prefix = potion.item}))
 
             handler[potion.tag] = function(uid, value)
-                dialogue.post(uid, {potion.offer},
+                dialog.post(uid, {potion.offer},
                 {
-                    dialogue.link(buyTag, '购买.'),
-                    dialogue.link(declineTag, '再想一想.'),
+                    dialog.link(buyTag, '购买.'),
+                    dialog.link(declineTag, '再想一想.'),
                 })
             end
             handler[buyTag] = function(uid, value)
@@ -137,31 +137,31 @@ function apothecary.setApothecary(spec)
                     return true
                 ]])
                 assertType(bought, 'boolean')
-                dialogue.post(uid, {bought and potion.done or '什么? 没钱你还想购买药水? 等你有了钱再来吧.'}, close)
+                dialog.post(uid, {bought and potion.done or '什么? 没钱你还想购买药水? 等你有了钱再来吧.'}, close)
             end
             handler[declineTag] = function(uid, value)
-                dialogue.post(uid, {potion.decline}, close)
+                dialog.post(uid, {potion.decline}, close)
             end
         end
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
+        table.insert(menu, dialog.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
-            dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
+            dialog.post(uid, topic.text, {dialog.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end
     end
 
     if spec.today then
-        table.insert(menu, dialogue.link('npc_today', '对今日的任务进行了解'))
+        table.insert(menu, dialog.link('npc_today', '对今日的任务进行了解'))
         handler.npc_today = function(uid, value)
-            dialogue.post(uid, {spec.today}, {dialogue.link(SYS_EXIT, spec.todayExit or '结束')})
+            dialog.post(uid, {spec.today}, {dialog.link(SYS_EXIT, spec.todayExit or '结束')})
         end
     end
 
-    table.insert(menu, dialogue.link(SYS_EXIT, spec.exitLabel or '结束'))
+    table.insert(menu, dialog.link(SYS_EXIT, spec.exitLabel or '结束'))
     handler[SYS_ENTER] = function(uid, value)
-        dialogue.post(uid, spec.greet, menu)
+        dialog.post(uid, spec.greet, menu)
     end
 
     for tag, callback in pairs(spec.extra or {}) do
@@ -169,7 +169,7 @@ function apothecary.setApothecary(spec)
     end
     for tag, callback in pairs(handler) do
         if type(callback) == 'function' and tag ~= SYS_LABEL and tag ~= SYS_HIDE and tag ~= SYS_CHECKACTIVE and tag ~= SYS_ALLOWREDNAME then
-            handler[tag] = dialogue.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
+            handler[tag] = dialog.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
         end
     end
     handler[SYS_ALLOWREDNAME] = true

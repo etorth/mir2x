@@ -75,19 +75,14 @@ local function setupShopNag(uid)
             [[
                 local questName = ...
                 local questPath = {SYS_EPUID, questName}
+                local dialog = require('include.dialog')
 
                 return
                 {
                     [SYS_LABEL] = '野蛮冲撞的事',
                     [SYS_ENTER] = function(uid, value)
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>叫野蛮冲撞的武功请找黄河大侠。。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '叫野蛮冲撞的武功请找黄河大侠。。',
+                        dialog.link(SYS_EXIT, '结束'))
                     end,
                 }
             ]])
@@ -102,26 +97,13 @@ local function letterRetryHandlers()
     [[
         [SYS_ENTER] = function(uid, value)
             if server.player.hasItem(uid, '书信', 1) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>沙漠是很远的路。快点！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '沙漠是很远的路。快点！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>书信丢了？让人寒心！重新再给你一本，这次注意拿好。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
-
+            dialog.post(uid, questPath, '书信丢了？让人寒心！重新再给你一本，这次注意拿好。',
+            dialog.link(SYS_EXIT, '结束'))
             server.player.addItem(uid, '书信', 1)
         end,
     ]]
@@ -142,87 +124,62 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '问野蛮冲撞',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦，年纪轻轻好像有相当实力的武功。现在还有这样的战士，找我有什么事情吗？</par>
-                            <par></par>
-                            <par><event id="npc_ask_magic">想了解新的武功。</event></par>
-                            <par><event id="npc_explain">这件事要怎么做？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '哦，年纪轻轻好像有相当实力的武功。现在还有这样的战士，找我有什么事情吗？',
+                    {
+                        dialog.link('npc_ask_magic', '想了解新的武功。'),
+                        dialog.link('npc_explain', '这件事要怎么做？'),
+                    })
                 end,
 
                 -- @mugong_mutebo_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>为了学习野蛮冲撞，首先要把我给你的<t color="red">书信</t>转交给<t color="red">绿树村的王铁匠</t>，然后接受王铁匠的一个委托。</par>
-                            <par>听说要从诺玛法老处找到<t color="red">诺玛石</t>5个左右。如果诺玛石都找到了，请重新将一个<t color="red">书信</t>转交给我。</par>
-                            <par>将那个书信 拿给我即可。</par>
-                            <par></par>
-                            <par><event id="npc_ask_magic">想了解新的武功。</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '为了学习野蛮冲撞，首先要把我给你的<t color="red">书信</t>转交给<t color="red">绿树村的王铁匠</t>，然后接受王铁匠的一个委托。',
+                        '听说要从诺玛法老处找到<t color="red">诺玛石</t>5个左右。如果诺玛石都找到了，请重新将一个<t color="red">书信</t>转交给我。',
+                        '将那个书信 拿给我即可。',
+                    },
+                    {
+                        dialog.link('npc_ask_magic', '想了解新的武功。'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 -- @mugong_mutebo_next
                 npc_ask_magic = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>嗯，你好像在实战中也有些体会。虽然战士总是想在最前方战斗，但是没有这种<t color="red">护身术</t>。魔法师可以利用瞬息移动魔法消失掉，道士也可以利用隐身术隐藏起自己的行踪，我们只有将敌人打倒后才可以脱身。如果被层层包围，真是死路一条。我也是经历了无数的生死考验，真是为了解决战士的困难才创造了<t color="red">野蛮冲撞</t>。</par>
-                            <par></par>
-                            <par><event id="npc_what_does_it_do">野蛮冲撞是具有哪种功能的武功？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '嗯，你好像在实战中也有些体会。虽然战士总是想在最前方战斗，但是没有这种<t color="red">护身术</t>。魔法师可以利用瞬息移动魔法消失掉，道士也可以利用隐身术隐藏起自己的行踪，我们只有将敌人打倒后才可以脱身。如果被层层包围，真是死路一条。我也是经历了无数的生死考验，真是为了解决战士的困难才创造了<t color="red">野蛮冲撞</t>。',
+                    dialog.link('npc_what_does_it_do', '野蛮冲撞是具有哪种功能的武功？'))
                 end,
 
                 -- @mugong_mutebo_next1
                 npc_what_does_it_do = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>可以推开敌人，是一种简单而实用的武功。虽然表面看起来仅仅凭借力量将敌人推开，但不是使用肌肉的力量，而是集中<t color="red">内力和外力</t>达到极限的高级武功。如果熟练地掌握了该武功，可以将比自身大几倍的巨物一下子推开。</par>
-                            <par>虽然不能给敌人更大的打击，在被敌人包围的状况下可以打出一条<t color="red">血路</t>。对于在最前方和敌人正面战斗的战士来说是非常重要的武功。</par>
-                            <par>但是也不能认为该武功是简单的推挡技术。根据使用者的不同，可以作为<t color="red">避免魔法或者连续器</t>使用，达到各种各样效果潜在力非常大的武功。</par>
-                            <par></par>
-                            <par><event id="npc_teach_me">请传授野蛮冲撞武功！</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '可以推开敌人，是一种简单而实用的武功。虽然表面看起来仅仅凭借力量将敌人推开，但不是使用肌肉的力量，而是集中<t color="red">内力和外力</t>达到极限的高级武功。如果熟练地掌握了该武功，可以将比自身大几倍的巨物一下子推开。',
+                        '虽然不能给敌人更大的打击，在被敌人包围的状况下可以打出一条<t color="red">血路</t>。对于在最前方和敌人正面战斗的战士来说是非常重要的武功。',
+                        '但是也不能认为该武功是简单的推挡技术。根据使用者的不同，可以作为<t color="red">避免魔法或者连续器</t>使用，达到各种各样效果潜在力非常大的武功。',
+                    },
+                    dialog.link('npc_teach_me', '请传授野蛮冲撞武功！'))
                 end,
 
                 -- @mugong_mutebo_next2
                 npc_teach_me = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>好的，我的修炼方法非常严格。如果按照此方法学习，我将传授野蛮冲撞给你。</par>
-                            <par></par>
-                            <par><event id="npc_take_letter">我应做的事情是什么？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '好的，我的修炼方法非常严格。如果按照此方法学习，我将传授野蛮冲撞给你。',
+                    dialog.link('npc_take_letter', '我应做的事情是什么？'))
                 end,
 
                 -- @mugong_mutebo_next3, give 书信 and SET [509]. its checkbaggage turns you
                 -- away with 你的背囊装满了。。请整理些位置再来！, and mir2x has no inventory-full
                 -- check to hang that on
                 npc_take_letter = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>带着这个<t color="red">书信</t>，穿越沙漠。找到隐居在<t color="red">绿洲村</t>叫<t color="red">‘王铁匠’</t>的武士，并将书信交给他，他就会告诉你某种秘诀。接受他的指教后再来！</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '带着这个<t color="red">书信</t>，穿越沙漠。找到隐居在<t color="red">绿洲村</t>叫<t color="red">‘王铁匠’</t>的武士，并将书信交给他，他就会告诉你某种秘诀。接受他的指教后再来！',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, '书信', 1)
                     server.quest.setState(questUID, {uid = uid, state = 'quest_carry_letter'})
@@ -244,6 +201,7 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -260,129 +218,69 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '交书信',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>黄河大侠让来的？快点拿来书信。</par>
-                            <par></par>
-                            <par><event id="npc_give_letter">给你书信。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '黄河大侠让来的？快点拿来书信。',
+                    dialog.link('npc_give_letter', '给你书信。'))
                 end,
 
                 -- @mugong_mutebo_test_next, take 书信 and SET [510]
                 npc_give_letter = function(uid, value)
                     if not server.player.hasItem(uid, '书信', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>没有书信？嗯，那就有些困难。虽然辛苦，请重新拿书信来！</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '没有书信？嗯，那就有些困难。虽然辛苦，请重新拿书信来！',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>嗯，是黄河大侠派来的。让你来辛苦了。那么快点回去吧！</par>
-                            <par></par>
-                            <par><event id="npc_what">这是什么话？</event></par>
-                        </layout>
-                    ]=])
-
+                    dialog.post(uid, questPath, '嗯，是黄河大侠派来的。让你来辛苦了。那么快点回去吧！',
+                    dialog.link('npc_what', '这是什么话？'))
                     server.player.removeItem(uid, '书信', 1)
                 end,
 
                 -- @mugong_mutebo_test_next1
                 npc_what = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>这是你接受的全部测试。黄河大侠 每年将 几名战士 送到我这里 ，我看到书信后，将你们重新送回去即可。</par>
-                            <par></par>
-                            <par><event id="npc_still_angry">还是无法接受哦。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '这是你接受的全部测试。黄河大侠每年将几名战士送到我这里，我看到书信后，将你们重新送回去即可。',
+                    dialog.link('npc_still_angry', '还是无法接受哦。'))
                 end,
 
                 -- @mugong_mutebo_test_next2
                 npc_still_angry = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦，好像发了好大的火。但是请别误解，黄河大侠不会拿你开玩笑的。原来学习武功的方法有数十数百种。让你做这种事情都是有缘由的，不要随意轻举妄动。</par>
-                            <par></par>
-                            <par><event id="npc_ok">知道了。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '哦，好像发了好大的火。但是请别误解，黄河大侠不会拿你开玩笑的。原来学习武功的方法有数十数百种。让你做这种事情都是有缘由的，不要随意轻举妄动。',
+                    dialog.link('npc_ok', '知道了。'))
                 end,
 
                 -- @mugong_mutebo_test_next3
                 npc_ok = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>那件事就那样了，我想委托你一个<t color="red">个人的委托</t>好吗？</par>
-                            <par></par>
-                            <par><event id="npc_what_favor">什么委托？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '那件事就那样了，我想委托你一个<t color="red">个人的委托</t>好吗？',
+                    dialog.link('npc_what_favor', '什么委托？'))
                 end,
 
                 -- @mugong_mutebo_test_next4
                 npc_what_favor = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>最近年轻时候受的伤又发作了，即疼痛又很痒，都无法睡觉。听说生活在沙漠中的诺玛族拥有一种有着神奇力量称为<t color="red">诺玛石</t>的石头，将这个石头捣碎，然后用水冲服可以治疗痼疾。你能帮我找到这个东西吗？</par>
-                            <par></par>
-                            <par><event id="npc_no_worry">不用担心！</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '最近年轻时候受的伤又发作了，即疼痛又很痒，都无法睡觉。听说生活在沙漠中的诺玛族拥有一种有着神奇力量称为<t color="red">诺玛石</t>的石头，将这个石头捣碎，然后用水冲服可以治疗痼疾。你能帮我找到这个东西吗？',
+                    dialog.link('npc_no_worry', '不用担心！'))
                 end,
 
                 -- @mugong_mutebo_test_next5
                 npc_no_worry = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>非常谢谢！‘诺玛石’被装饰于诺玛族长老<t color="red">诺玛法老的手杖</t>上。</par>
-                            <par></par>
-                            <par><event id="npc_next">下一步</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '非常谢谢！‘诺玛石’被装饰于诺玛族长老<t color="red">诺玛法老的手杖</t>上。',
+                    dialog.link('npc_next', '下一步'))
                 end,
 
                 -- @mugong_mutebo_test_next6, where he calls 黄河大侠 皇甫
                 npc_next = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>非常急迫地想掌握新武功吧，别担心！即使那样，我怎么报复？向皇甫挑起事端吗？请放心地去吧！我绝对不是一个小气的家伙。</par>
-                            <par></par>
-                            <par><event id="npc_accept">我将给你找来。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '非常急迫地想掌握新武功吧，别担心！即使那样，我怎么报复？向皇甫挑起事端吗？请放心地去吧！我绝对不是一个小气的家伙。',
+                    dialog.link('npc_accept', '我将给你找来。'))
                 end,
 
                 -- @mugong_mutebo_test_next7, SET [510]
                 npc_accept = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>真的吗？哦，绝对不是故意如此的。‘诺玛石’被装饰于诺玛法老的手杖上，而且请找到该<t color="red">诺玛石 5个</t>。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '真的吗？哦，绝对不是故意如此的。‘诺玛石’被装饰于诺玛法老的手杖上，而且请找到该<t color="red">诺玛石 5个</t>。',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.quest.setState(questUID, {uid = uid, state = 'quest_find_stones'})
                 end,
@@ -402,29 +300,23 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             -- @mugong_mutebo_test, the [510] branch, and the ELSESAY of the complete block
             local function postWaiting(uid, withCount)
                 if withCount then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>需要的东西是诺玛法老出产的<t color="red">诺玛石 5个</t>，千万记住！</par>
-                            <par>我将在此等候你回来。</par>
-                            <par></par>
-                            <par><event id="npc_explain">这件事要怎么做？</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '需要的东西是诺玛法老出产的<t color="red">诺玛石 5个</t>，千万记住！',
+                        '我将在此等候你回来。',
+                    },
+                    {
+                        dialog.link('npc_explain', '这件事要怎么做？'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 else
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>我将在此等候你回来。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '我将在此等候你回来。',
+                    dialog.link(SYS_EXIT, '结束'))
                 end
             end
 
@@ -439,28 +331,19 @@ setQuestFSMTable(
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦，找到‘诺玛石’了。谢谢！今天晚上开始可以好好地睡觉了。</par>
-                            <par></par>
-                            <par><event id="npc_hand_over">下一步</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '哦，找到‘诺玛石’了。谢谢！今天晚上开始可以好好地睡觉了。',
+                    dialog.link('npc_hand_over', '下一步'))
                 end,
 
                 -- @mugong_mutebo_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>为了学习野蛮冲撞，首先要把我给你的<t color="red">书信</t>转交给<t color="red">绿树村的王铁匠</t>，然后接受王铁匠的一个委托。</par>
-                            <par>听说要从诺玛法老处找到<t color="red">诺玛石</t>5个左右。如果诺玛石都找到了，请重新将一个<t color="red">书信</t>转交给我。</par>
-                            <par>将那个书信 拿给我即可。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '为了学习野蛮冲撞，首先要把我给你的<t color="red">书信</t>转交给<t color="red">绿树村的王铁匠</t>，然后接受王铁匠的一个委托。',
+                        '听说要从诺玛法老处找到<t color="red">诺玛石</t>5个左右。如果诺玛石都找到了，请重新将一个<t color="red">书信</t>转交给我。',
+                        '将那个书信拿给我即可。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_mutebo_test_complete_next, SET [512], then next2_1 or next2_2 on
@@ -471,16 +354,12 @@ setQuestFSMTable(
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>非常谢谢！你是一名不忽视别人困难，热心肠的人。希望你以后依然可以不断地帮助有困难的人。</par>
-                            <par>这个是对你善意的小小答谢。请将书信转交给<t color="red">皇甫</t>。</par>
-                            <par></par>
-                            <par><event id="npc_take_armor">好的，我将转交。</event></par>
-                        </layout>
-                    ]=])
-
+                    dialog.post(uid, questPath,
+                    {
+                        '非常谢谢！你是一名不忽视别人困难，热心肠的人。希望你以后依然可以不断地帮助有困难的人。',
+                        '这个是对你善意的小小答谢。请将书信转交给<t color="red">皇甫</t>。',
+                    },
+                    dialog.link('npc_take_armor', '好的，我将转交。'))
                     server.player.addItem(uid, '书信', 1)
                 end,
 
@@ -489,14 +368,8 @@ setQuestFSMTable(
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>就到这里，请上路吧！要走的路还很远哟。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '就到这里，请上路吧！要走的路还很远哟。',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.player.removeItem(uid, '诺玛石', 5)
                     server.player.addItem(uid, server.player.getGender(uid) and '诺玛重盔甲（男）' or '诺玛重盔甲（女）', 1)
@@ -519,6 +392,7 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -535,6 +409,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -542,91 +417,53 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- the ELSESAY here is the same 沙漠是很远的路 he uses on the way out
                     if not server.player.hasItem(uid, '书信', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>沙漠是很远的路。快点！</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '沙漠是很远的路。快点！',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>已经转交了书信？辛苦了。</par>
-                            <par></par>
-                            <par><event id="npc_ask_why">下一步</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '已经转交了书信？辛苦了。',
+                    dialog.link('npc_ask_why', '下一步'))
 
                     server.player.removeItem(uid, '书信', 1)
                 end,
 
                 -- @mugong_mutebo_test_complete_receive_next
                 npc_ask_why = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>去沙漠走一趟如何？理解我为什么让你做这件事情吗？</par>
-                            <par></par>
-                            <par><event id="npc_no_idea">嗯，没理解。</event></par>
-                            <par><event id="npc_got_it">嗯，好像理解了。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '去沙漠走一趟如何？理解我为什么让你做这件事情吗？',
+                    {
+                        dialog.link('npc_no_idea', '嗯，没理解。'),
+                        dialog.link('npc_got_it', '嗯，好像理解了。'),
+                    })
                 end,
 
                 -- @mugong_mutebo_test_complete_receive_next1_1
                 npc_no_idea = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>如此愚钝的人，到现在为止心理都在骂我吧。学习野蛮冲撞需要强大的力量和良好的内力，以及在非常艰苦的境况下也不放弃的体力和精力。为了培养这些功力，身体要处于极限的状态。因此让你横跨沙漠。</par>
-                            <par></par>
-                            <par><event id="npc_what">这是什么话？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '如此愚钝的人，到现在为止心里都在骂我吧。学习野蛮冲撞需要强大的力量和良好的内力，以及在非常艰苦的境况下也不放弃的体力和精力。为了培养这些功力，身体要处于极限的状态。因此让你横跨沙漠。',
+                    dialog.link('npc_what', '这是什么话？'))
                 end,
 
                 -- @mugong_mutebo_test_complete_receive_next1_2
                 npc_got_it = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>比看起来理解快嘛。有一种将来可以成功的预感。</par>
-                            <par></par>
-                            <par><event id="npc_what">这是什么话？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '比看起来理解快嘛。有一种将来可以成功的预感。', dialog.link('npc_what', '这是什么话？'))
                 end,
 
                 -- @mugong_mutebo_test_complete_receive_next2
                 npc_what = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>很正确哟。请拿着训练书，以后要帮助有困难的人。</par>
-                            <par></par>
-                            <par><event id="npc_take_book">下一步</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '很正确哟。请拿着训练书，以后要帮助有困难的人。',
+                    dialog.link('npc_take_book', '下一步'))
                 end,
 
                 -- @mugong_mutebo_test_complete_receive_next3, SET [704]
                 npc_take_book = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>在哪儿、写了些什么？嗯，说你是不顾各种危险并找到药的优秀年轻人。对的，帮助有困难的人是我们有能力的人应该做的事情。非常好！你的行为提高了战士的声誉。</par>
-                            <par>像你一样的人，我也相信，可以将技术传授给你。</par>
-                            <par>你已经在其它地方得到了武功密集，我也没有再给你的必要了。我给你一些金币和东西，用在需要的地方。</par>
-                            <par>希望以后你多做有助于提高战士名誉的事情。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '在哪儿、写了些什么？嗯，说你是不顾各种危险并找到药的优秀年轻人。对的，帮助有困难的人是我们有能力的人应该做的事情。非常好！你的行为提高了战士的声誉。',
+                        '像你一样的人，我也相信，可以将技术传授给你。',
+                        '你已经在其它地方得到了武功密集，我也没有再给你的必要了。我给你一些金币和东西，用在需要的地方。',
+                        '希望以后你多做有助于提高战士名誉的事情。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, '野蛮冲撞（秘籍）', 1)
                     server.player.deliverGold(uid, 30000)
@@ -692,6 +529,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(),
 [[
     local questUID, questName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -705,29 +543,20 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(),
         [SYS_ENTER] = function(uid, value)
             -- check [704] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到书吗？那么你为什么还要索要？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到书吗？那么你为什么还要索要？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- the ELSESAY of check [508] 1: nobody has told you about him yet, so he sends you
             -- to get your gear seen to, which is exactly where you will hear about him
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>嗯。。战士的路即危险又艰辛。从你所带的工具看好像经历了无数的搏斗和考验。。</par>
-                    <par>首先将所持的武器刀刃磨光，每个村庄都有加工武器的商人，请他们给修理一下。那些人也许不知道你的心情。。。</par>
-                    <par>以后找机会再来！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">好的，我知道了。</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '嗯。。战士的路即危险又艰辛。从你所带的工具看好像经历了无数的搏斗和考验。。',
+                '首先将所持的武器刀刃磨光，每个村庄都有加工武器的商人，请他们给修理一下。那些人也许不知道你的心情。。。',
+                '以后找机会再来！',
+            },
+            dialog.link(SYS_EXIT, '好的，我知道了。'))
         end,
     })
 ]])
@@ -742,6 +571,7 @@ local shopSetup =
         [[
             local questUID, questName, minQuestLevel = ...
             local questPath = {SYS_EPQST, questName}
+            local dialog = require('include.dialog')
 
             setQuestHandler(questName,
             {
@@ -760,50 +590,26 @@ local shopSetup =
                 end,
 
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>呵呵，好久没有看到损伤这么严重的兵器了哦。究竟是进行了多么艰辛的打斗真是无法想象。这样的打斗有可能会死，请小心！随着时间的流失，熟悉的面孔一个个都消失了，让人很伤心哪。</par>
-                            <par></par>
-                            <par><event id="npc_frontline">谢谢！战士无论是活着还是死了，总是在战场的最前方。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '呵呵，好久没有看到损伤这么严重的兵器了哦。究竟是进行了多么艰辛的打斗真是无法想象。这样的打斗有可能会死，请小心！随着时间的流失，熟悉的面孔一个个都消失了，让人很伤心哪。',
+                    dialog.link('npc_frontline', '谢谢！战士无论是活着还是死了，总是在战场的最前方。'))
                 end,
 
                 -- @mugong_mute_explan_mugi_next
                 npc_frontline = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？</par>
-                            <par></par>
-                            <par><event id="npc_never_heard">没有，第一次听说。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
+                    dialog.link('npc_never_heard', '没有，第一次听说。'))
                 end,
 
                 -- @mugong_mute_explan_mugi_next1
                 npc_never_heard = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>我可以帮忙噢。据说生活在边境村附近的<t color="red">黄河大侠</t>懂得该武功。请到那儿去接受指教。</par>
-                            <par></par>
-                            <par><event id="npc_accept">得去找黄河大侠。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '我可以帮忙噢。据说生活在边境村附近的<t color="red">黄河大侠</t>懂得该武功。请到那儿去接受指教。',
+                    dialog.link('npc_accept', '得去找黄河大侠。'))
                 end,
 
                 -- @mugong_mute_explan_mugi_next2, set [508]
                 npc_accept = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>坚持活下去是非常重要的。如果活着，总会实现自己的理想。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '坚持活下去是非常重要的。如果活着，总会实现自己的理想。',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
                 end,
@@ -817,6 +623,7 @@ local shopSetup =
         [[
             local questUID, questName, minQuestLevel = ...
             local questPath = {SYS_EPQST, questName}
+            local dialog = require('include.dialog')
 
             setQuestHandler(questName,
             {
@@ -837,80 +644,50 @@ local shopSetup =
                 -- the opening is shared with @mugong_mute_explan_armor_m, which nothing calls.
                 -- its answer is offered here as the second option
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦，防御工具被破坏的很严重嘛！看起来进行了一场非常激烈的厮杀。嗯，战士强壮虽然很有魅力，但也使人担心。如果被包围了，不是要危及到生命嘛。听说战士的武功中有可以在摆脱危机的时候使用的武功。。你知道该武功吗？</par>
-                            <par></par>
-                            <par><event id="npc_never_heard">没有，第一次听说。</event></par>
-                            <par><event id="npc_frontline">感谢你的好意，但是战士不管生死都要在最前方。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '哦，防御工具被破坏的很严重嘛！看起来进行了一场非常激烈的厮杀。嗯，战士强壮虽然很有魅力，但也使人担心。如果被包围了，不是要危及到生命嘛。听说战士的武功中有可以在摆脱危机的时候使用的武功。。你知道该武功吗？',
+                    {
+                        dialog.link('npc_never_heard', '没有，第一次听说。'),
+                        dialog.link('npc_frontline', '感谢你的好意，但是战士不管生死都要在最前方。'),
+                    })
                 end,
 
                 -- @mugong_mute_explan_armor_m_next, which is the weapon seller's line
                 npc_frontline = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？</par>
-                            <par></par>
-                            <par><event id="npc_heard_in_tavern">没有，第一次听说。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
+                    dialog.link('npc_heard_in_tavern', '没有，第一次听说。'))
                 end,
 
                 -- @mugong_mute_explan_armor_next, the one about the tavern
                 npc_never_heard = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>我以前在酒家听说的，说叫<t color="red">黄河大侠</t>的人懂得被敌人包围时可以逃脱的武功。好像生活在边境村附近？已经喝醉的时候听说的，现在有些想不起来了。</par>
-                            <par>不是，只喝醉了一点点儿。我即使喝一杯也要醉的。真的不能喝酒。请别误会！</par>
-                            <par></par>
-                            <par><event id="npc_thanks">谢谢帮忙！</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '我以前在酒家听说的，说叫<t color="red">黄河大侠</t>的人懂得被敌人包围时可以逃脱的武功。好像生活在边境村附近？已经喝醉的时候听说的，现在有些想不起来了。',
+                        '不是，只喝醉了一点点儿。我即使喝一杯也要醉的。真的不能喝酒。请别误会！',
+                    },
+                    dialog.link('npc_thanks', '谢谢帮忙！'))
                 end,
 
                 -- @mugong_mute_explan_armor_m_next1, the plainer version
                 npc_heard_in_tavern = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>我可以帮忙噢。据说生活在边境村附近的<t color="red">黄河大侠</t>懂得该武功。请到那儿去接受指教。</par>
-                            <par></par>
-                            <par><event id="npc_accept">得去找黄河大侠。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '我可以帮忙噢。据说生活在边境村附近的<t color="red">黄河大侠</t>懂得该武功。请到那儿去接受指教。',
+                    dialog.link('npc_accept', '得去找黄河大侠。'))
                 end,
 
                 -- @mugong_mute_explan_armor_next1, set [508]
                 npc_thanks = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>不会的。我们很高兴可以帮助保护我们的战士，千万要小心身体！</par>
-                            <par>真是非常困难的时期啊。由于怪兽，我们都不能在野外约会。。。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
-
+                    dialog.post(uid, questPath,
+                    {
+                        '不会的。我们很高兴可以帮助保护我们的战士，千万要小心身体！',
+                        '真是非常困难的时期啊。由于怪兽，我们都不能在野外约会。。。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                     server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
                 end,
 
                 -- @mugong_mute_explan_armor_m_next2, set [508]
                 npc_accept = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>坚持活下去是非常重要的。如果活着，总会实现自己的理想。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
-
+                    dialog.post(uid, questPath, '坚持活下去是非常重要的。如果活着，总会实现自己的理想。',
+                    dialog.link(SYS_EXIT, '结束'))
                     server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
                 end,
             })

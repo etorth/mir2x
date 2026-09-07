@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialog')
+local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
 
 -- 饰品店, legacy Market_Def/08Accessory_*.txt (12) and 08Astrologist_*.txt (2)
@@ -53,23 +53,23 @@ function jeweler.setJeweler(spec)
     local repairDoneBack = spec.repairDoneBack
     if repairDoneBack == nil then repairDoneBack = spec.backLabel end
     local price = spec.price or 50
-    local back = {dialogue.link(SYS_ENTER, spec.backLabel or '前一步')}
+    local back = {dialog.link(SYS_ENTER, spec.backLabel or '前一步')}
     local menu = {}
     local handler = {}
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
+        table.insert(menu, dialog.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
-            dialogue.post(uid, spec.buyText or {'你想买饰品? 想买什么？请先看好价钱和持久性再决定。'}, back)
+            dialog.post(uid, spec.buyText or {'你想买饰品? 想买什么？请先看好价钱和持久性再决定。'}, back)
             uidPostSell(uid)
         end
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
+        table.insert(menu, dialog.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
-            dialogue.post(uid, spec.sellText or {'你想出售饰品？', '请先把东西拿出来给我看看。'}, back)
+            dialog.post(uid, spec.sellText or {'你想出售饰品？', '请先把东西拿出来给我看看。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
         end
         handler.npc_sell_query = function(uid, value)
@@ -81,9 +81,9 @@ function jeweler.setJeweler(spec)
     end
 
     if repair then
-        table.insert(menu, dialogue.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
+        table.insert(menu, dialog.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
         handler.npc_repair = function(uid, value)
-            dialogue.post(uid, spec.repairText or {'你想修理饰品?'}, back)
+            dialog.post(uid, spec.repairText or {'你想修理饰品?'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', repair)
         end
         handler.npc_repair_query = function(uid, value)
@@ -102,9 +102,9 @@ function jeweler.setJeweler(spec)
             table.insert(oldItemIDs, itemID)
         end
 
-        local close = {dialogue.link(SYS_EXIT, '关闭')}
+        local close = {dialog.link(SYS_EXIT, '关闭')}
         local function postNoMaterial(uid)
-            dialogue.post(uid, {'你弄错了吧,这不是古代勇士们使用过的生锈饰品,得到它们之后再来找我吧.'}, close)
+            dialog.post(uid, {'你弄错了吧,这不是古代勇士们使用过的生锈饰品,得到它们之后再来找我吧.'}, close)
         end
 
         local elements = {}
@@ -115,7 +115,7 @@ function jeweler.setJeweler(spec)
                 assert(itemID > 0, 'unknown elemental accessory: ' .. base .. element.name)
                 table.insert(rewardIDs, itemID)
             end
-            table.insert(elements, dialogue.link(element.tag, element.name .. '元素.'))
+            table.insert(elements, dialog.link(element.tag, element.name .. '元素.'))
             handler[element.tag] = function(uid, value)
                 -- Keep the checks and exchange in one player-side call, including stale clicks.
                 local restored = uidRemoteCall(uid, oldItemIDs, rewardIDs, jeweler.RUST_PRICE,
@@ -144,26 +144,26 @@ function jeweler.setJeweler(spec)
                     postNoMaterial(uid)
                 elseif restored == 9 and element.name == '暗黑' then
                     -- This reachable branch uses inline text, not the clean but unused include.
-                    dialogue.post(uid, {'世尊手镯（暗黑）捞 咯扁 乐嚼聪促.'})
+                    dialog.post(uid, {'世尊手镯（暗黑）捞 咯扁 乐嚼聪促.'})
                 else
-                    dialogue.post(uid, {string.format('得到%s(%s).', jeweler.RUST_ACCESSORIES[restored], element.name)}, close)
+                    dialog.post(uid, {string.format('得到%s(%s).', jeweler.RUST_ACCESSORIES[restored], element.name)}, close)
                 end
             end
         end
-        table.insert(elements, dialogue.link(SYS_EXIT, '再想一想.'))
+        table.insert(elements, dialog.link(SYS_EXIT, '再想一想.'))
 
-        table.insert(menu, dialogue.link('npc_rustaccessory', '询问生锈饰品.'))
+        table.insert(menu, dialog.link('npc_rustaccessory', '询问生锈饰品.'))
         handler.npc_rustaccessory = function(uid, value)
-            dialogue.post(uid,
+            dialog.post(uid,
             {
                 '村庄附近的诺玛遗址里经常出现古代勇士们使用过的元素饰品. 有些饰品因为生锈而失去了原有的功能.',
                 '但不要小瞧它们,更不要乱丢.用诺玛族秘传的方法可以让它们恢复原貌.',
                 '不过,如果你想让手中生锈的饰品恢复原貌,就要支付一定费用. 嗯,对了,你还可以反复更换复原饰品的攻击元素,不过只有耐久完好的饰品才可以变换攻击元素.',
             },
             {
-                dialogue.link('npc_rust_restore', '支付100万金币,将生锈的饰品恢复原貌.'),
-                dialogue.link('npc_rust_help', '讯问元素道具.'),
-                dialogue.link(SYS_EXIT, '关闭.'),
+                dialog.link('npc_rust_restore', '支付100万金币,将生锈的饰品恢复原貌.'),
+                dialog.link('npc_rust_help', '讯问元素道具.'),
+                dialog.link(SYS_EXIT, '关闭.'),
             })
         end
         handler.npc_rust_restore = function(uid, value)
@@ -182,15 +182,15 @@ function jeweler.setJeweler(spec)
             ]])
             assertType(status, 'integer')
             if status == -1 then
-                dialogue.post(uid, {'因为金币不够,所以不能帮你恢复饰品的原貌.'}, close)
+                dialog.post(uid, {'因为金币不够,所以不能帮你恢复饰品的原貌.'}, close)
             elseif status == 0 then
                 postNoMaterial(uid)
             else
-                dialogue.post(uid, {'想恢复生锈饰品的哪一种攻击元素属性呢?'}, elements)
+                dialog.post(uid, {'想恢复生锈饰品的哪一种攻击元素属性呢?'}, elements)
             end
         end
         handler.npc_rust_help = function(uid, value)
-            dialogue.post(uid,
+            dialog.post(uid,
             {
                 '我所能恢复的饰品有 <t color="red">生锈的师承戒指, 生锈的龙马戒指, 生锈的青云戒指, 生锈的破荒项链, 生锈的魔云项链, 生锈的定心项链, 生锈的金棱手镯, 生锈的思过手镯, 生锈的世尊手镯</t>. 这些都是古代勇士曾经使用过的饰品,只要你支付一定费用,我会帮你恢复饰品的原貌.',
                 '恢复原貌的饰品,还可以反复地更换攻击元素.',
@@ -199,22 +199,22 @@ function jeweler.setJeweler(spec)
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
+        table.insert(menu, dialog.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
-            dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
+            dialog.post(uid, topic.text, {dialog.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end
     end
 
     if spec.today then
-        table.insert(menu, dialogue.link('npc_today', '对今日的任务进行了解'))
+        table.insert(menu, dialog.link('npc_today', '对今日的任务进行了解'))
         handler.npc_today = function(uid, value)
-            dialogue.post(uid, {spec.today}, {dialogue.link(SYS_EXIT, spec.todayExit or '结束')})
+            dialog.post(uid, {spec.today}, {dialog.link(SYS_EXIT, spec.todayExit or '结束')})
         end
     end
 
-    table.insert(menu, dialogue.link(SYS_EXIT, spec.exitLabel or '结束'))
+    table.insert(menu, dialog.link(SYS_EXIT, spec.exitLabel or '结束'))
     handler[SYS_ENTER] = function(uid, value)
-        dialogue.post(uid, spec.greet, menu)
+        dialog.post(uid, spec.greet, menu)
     end
 
     for tag, callback in pairs(spec.extra or {}) do
@@ -222,7 +222,7 @@ function jeweler.setJeweler(spec)
     end
     for tag, callback in pairs(handler) do
         if type(callback) == 'function' and tag ~= SYS_LABEL and tag ~= SYS_HIDE and tag ~= SYS_CHECKACTIVE and tag ~= SYS_ALLOWREDNAME then
-            handler[tag] = dialogue.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
+            handler[tag] = dialog.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
         end
     end
     handler[SYS_ALLOWREDNAME] = true

@@ -1,4 +1,4 @@
-local dialogue = require('npc.include.dialog')
+local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
 
 -- 书店, legacy Market_Def/05Book_*.txt (6)
@@ -77,23 +77,23 @@ function bookseller.setBookseller(spec)
     local label = spec.label or '图书'
     local trade = optList(spec.trade, {'技能书'})
     local price = spec.price or 50
-    local back = {dialogue.link(SYS_ENTER, spec.backLabel or '前一步')}
+    local back = {dialog.link(SYS_ENTER, spec.backLabel or '前一步')}
     local menu = {}
     local handler = {}
 
     if spec.goods then
         setNPCSell(spec.goods)
-        table.insert(menu, dialogue.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
+        table.insert(menu, dialog.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
-            dialogue.post(uid, spec.buyText or {'请挑选你想要的书。'}, back)
+            dialog.post(uid, spec.buyText or {'请挑选你想要的书。'}, back)
             uidPostSell(uid)
         end
     end
 
     if trade then
-        table.insert(menu, dialogue.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
+        table.insert(menu, dialog.link('npc_sell', spec.sellLabel or '出售', {suffix = spec.sellSuffix or label}))
         handler.npc_sell = function(uid, value)
-            dialogue.post(uid, spec.sellText or {'请把要出售的书放在上面。'}, back)
+            dialog.post(uid, spec.sellText or {'请把要出售的书放在上面。'}, back)
             invop.uidStartTrade(uid, 'npc_sell_query', 'npc_sell_commit', trade)
         end
         handler.npc_sell_query = function(uid, value)
@@ -138,11 +138,11 @@ function bookseller.setBookseller(spec)
                         '等级为%d时可以修炼<t color="red">%s</t>的第一阶段， 等级为%d时修炼第2阶段，%d级时可以完成第3阶段的修炼。',
                         book.level[1], book.name, book.level[2], book.level[3]),
                 }
-                dialogue.post(uid, text, {dialogue.link('npc_book_explain', '前一步')})
+                dialog.post(uid, text, {dialog.link('npc_book_explain', '前一步')})
             end
         end
 
-        table.insert(menu, dialogue.link('npc_book_explain', spec.booksLabel or '聆听', {suffix = spec.booksSuffix or '关于武功书的说明'}))
+        table.insert(menu, dialog.link('npc_book_explain', spec.booksLabel or '聆听', {suffix = spec.booksSuffix or '关于武功书的说明'}))
         handler.npc_book_explain = function(uid, value)
             local text = {}
             local intro = spec.booksText or '你想听哪类书的介绍？'
@@ -153,34 +153,34 @@ function bookseller.setBookseller(spec)
             for _, class in ipairs(classList) do
                 local option = {}
                 for _, book in ipairs(classBook[class]) do
-                    table.insert(option, dialogue.link(bookTag(book), book.name))
+                    table.insert(option, dialog.link(bookTag(book), book.name))
                 end
                 local last = table.remove(option)
                 local books = #option > 0 and table.concat(option, ',') .. '和' .. last or last
                 table.insert(explanations, string.format('%s可以学习%s', class, books))
             end
             table.insert(text, table.concat(explanations, '，'))
-            dialogue.post(uid, text, back)
+            dialog.post(uid, text, back)
         end
     end
 
     for _, topic in ipairs(spec.topics or {}) do
-        table.insert(menu, dialogue.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
+        table.insert(menu, dialog.link(topic.id, topic.label, {prefix = topic.prefix, suffix = topic.suffix}))
         handler[topic.id] = topic.handler or function(uid, value)
-            dialogue.post(uid, topic.text, {dialogue.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
+            dialog.post(uid, topic.text, {dialog.link(SYS_ENTER, topic.back or spec.backLabel or '前一步')})
         end
     end
 
     if spec.today then
-        table.insert(menu, dialogue.link('npc_today', '对今日的任务进行了解'))
+        table.insert(menu, dialog.link('npc_today', '对今日的任务进行了解'))
         handler.npc_today = function(uid, value)
-            dialogue.post(uid, {spec.today}, {dialogue.link(SYS_EXIT, spec.todayExit or '结束')})
+            dialog.post(uid, {spec.today}, {dialog.link(SYS_EXIT, spec.todayExit or '结束')})
         end
     end
 
-    table.insert(menu, dialogue.link(SYS_EXIT, spec.exitLabel or '结束'))
+    table.insert(menu, dialog.link(SYS_EXIT, spec.exitLabel or '结束'))
     handler[SYS_ENTER] = function(uid, value)
-        dialogue.post(uid, spec.greet, menu)
+        dialog.post(uid, spec.greet, menu)
     end
 
     for tag, callback in pairs(spec.extra or {}) do
@@ -188,7 +188,7 @@ function bookseller.setBookseller(spec)
     end
     for tag, callback in pairs(handler) do
         if type(callback) == 'function' and tag ~= SYS_LABEL and tag ~= SYS_HIDE and tag ~= SYS_CHECKACTIVE and tag ~= SYS_ALLOWREDNAME then
-            handler[tag] = dialogue.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
+            handler[tag] = dialog.guardRedName(callback, spec.redName, spec.redNameExit or '结束')
         end
     end
     handler[SYS_ALLOWREDNAME] = true

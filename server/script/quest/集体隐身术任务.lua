@@ -13,7 +13,7 @@
 -- flags: [723] done, [512] heard the rumour, [513] sent to investigate, [514] journal found
 --
 -- two names the legacy data is loose about, both kept as written: the 杂货商 is only ever
--- called 小贩 in dialogue, and the monster hook tells you to take the journal to 大飞圣僧 while
+-- called 小贩 in dialog, and the monster hook tells you to take the journal to 大飞圣僧 while
 -- 清明子 is who actually holds the quest
 
 _G.minQuestLevel = 23

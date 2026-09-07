@@ -19,10 +19,26 @@ function dialog.link(id, label, opts)
     return string.format('%s<event id="%s"%s>%s</event>%s', prefix, id, close_attr, label, suffix)
 end
 
-function dialog.post(uid, text, choices)
+function dialog.post(uid, arg1, arg2, arg3)
     assertType(uid, 'integer')
+
+    local eventPath
+    local text
+    local choices
+
+    if isArray(arg1) and ((arg1[1] == SYS_EPUID) or (arg1[1] == SYS_EPQST) or (arg1[1] == SYS_EPDEF)) then
+        eventPath = arg1
+        text = arg2
+        choices = arg3
+    else
+        eventPath = {SYS_EPDEF}
+        text = arg1
+        choices = arg2
+        assertType(arg3, 'nil')
+    end
+
     assertType(text, 'function', 'table', 'string')
-    assertType(choices, 'function', 'table', 'nil')
+    assertType(choices, 'function', 'table', 'string', 'nil')
 
     if type(text) == 'function' then
         text = assertType(text(uid), 'table', 'string')
@@ -39,7 +55,11 @@ function dialog.post(uid, text, choices)
 
     if choices then
         if type(choices) == 'function' then
-            choices = assertType(choices(uid), 'table')
+            choices = assertType(choices(uid), 'table', 'string')
+        end
+
+        if type(choices) == 'string' then
+            choices = {choices}
         end
 
         table.insert(xml, '<par></par>')
@@ -49,7 +69,7 @@ function dialog.post(uid, text, choices)
     end
 
     table.insert(xml, '</layout>')
-    uidPostXML(uid, '%s', table.concat(xml, '\n'))
+    uidPostXML(uid, eventPath, '%s', table.concat(xml, '\n'))
 end
 
 function dialog.guardRedName(callback, text, exitLabel)
