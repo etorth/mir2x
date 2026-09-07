@@ -85,6 +85,40 @@ function assertValue(var, ...)
     fatalPrintf('Assertion failed: expect %s, get %s', table.concat(args, ', ', 1, args.n), tostring(var))
 end
 
+-- shared by every guard
+-- keeps a guard down to one table plus the onExit closure
+-- the caller already owns, instead of a fresh metatable and method set per call
+
+local _RSVD_NAME_guardScopeMetaTable =
+{
+    __close = function(self)
+        if self.active then self.onExit() end
+    end,
+
+    __index =
+    {
+        dismiss = function(self) self.active = false end,
+        rearm   = function(self) self.active = true  end
+    }
+}
+
+-- run onExit when the enclosing scope ends, no matter how it ends
+--
+--     local guard <close> = guardScope(function()
+--         releaseThing(thing)
+--     end)
+--
+--     guard:dismiss()     -- the scope completed, don't release after all
+--     guard:rearm()       -- back on the hook again
+--
+-- the callback runs on a normal exit, on a break/return, and while an error unwinds,
+-- so it is the way to pair an acquire with its release without repeating the release on every exit path
+
+function guardScope(onExit)
+    assertType(onExit, 'function')
+    return setmetatable({active = true, onExit = onExit}, _RSVD_NAME_guardScopeMetaTable)
+end
+
 function shuffleArray(arr)
     assert(isArray(arr))
     local shuffled = {}

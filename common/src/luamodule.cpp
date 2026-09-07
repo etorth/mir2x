@@ -24,17 +24,18 @@ LuaModule::LuaModule()
         local _G = _G
         local error = error
         local coroutine = coroutine
-        local _RSVD_NAME_G_sandbox = {}
+        local setmetatable = setmetatable
+        local _RSVD_NAME_G_threadSandBox = {}
 
         function getTLSTable()
             local threadId, inMainThread = coroutine.running()
             if inMainThread then
                 error('call getTLSTable() in main thread')
             else
-                if _RSVD_NAME_G_sandbox[threadId] == nil then
-                    _RSVD_NAME_G_sandbox[threadId] = {}
+                if _RSVD_NAME_G_threadSandBox[threadId] == nil then
+                    _RSVD_NAME_G_threadSandBox[threadId] = {}
                 end
-                return _RSVD_NAME_G_sandbox[threadId]
+                return _RSVD_NAME_G_threadSandBox[threadId]
             end
         end
 
@@ -44,7 +45,7 @@ LuaModule::LuaModule()
             if inMainThread then
                 error('call clearTLSTable() in main thread')
             else
-                _RSVD_NAME_G_sandbox[threadId] = nil
+                _RSVD_NAME_G_threadSandBox[threadId] = nil
             end
         end})
 
@@ -56,8 +57,8 @@ LuaModule::LuaModule()
             __index = function(_, key)
                 local threadId, inMainThread = coroutine.running()
                 if not inMainThread then
-                    if _RSVD_NAME_G_sandbox[threadId] ~= nil and _RSVD_NAME_G_sandbox[threadId][key] ~= nil then
-                        return _RSVD_NAME_G_sandbox[threadId][key]
+                    if _RSVD_NAME_G_threadSandBox[threadId] ~= nil and _RSVD_NAME_G_threadSandBox[threadId][key] ~= nil then
+                        return _RSVD_NAME_G_threadSandBox[threadId][key]
                     end
                 end
                 return _G[key]
@@ -68,10 +69,10 @@ LuaModule::LuaModule()
                 if inMainThread then
                     _G[key] = value
                 else
-                    if _RSVD_NAME_G_sandbox[threadId] == nil then
-                        _RSVD_NAME_G_sandbox[threadId] = {}
+                    if _RSVD_NAME_G_threadSandBox[threadId] == nil then
+                        _RSVD_NAME_G_threadSandBox[threadId] = {}
                     end
-                    _RSVD_NAME_G_sandbox[threadId][key] = value
+                    _RSVD_NAME_G_threadSandBox[threadId][key] = value
                 end
             end
         }
