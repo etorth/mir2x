@@ -122,21 +122,25 @@ ServerLuaModule::ServerLuaModule()
         lua_Integer rowIndex = 1;
         while(queryStatement.executeStep()){
             sol::table rowResult(sv.lua_state(), sol::create);
+            size_t columnCount = 0;
             for(int i = 0; i < queryStatement.getColumnCount(); ++i){
                 switch(const auto column = queryStatement.getColumn(i); column.getType()){
                     case SQLITE_INTEGER:
                         {
                             rowResult[column.getName()] = column.getInt();
+                            ++columnCount;
                             break;
                         }
                     case SQLITE_FLOAT:
                         {
                             rowResult[column.getName()] = column.getDouble();
+                            ++columnCount;
                             break;
                         }
                     case SQLITE_TEXT:
                         {
                             rowResult[column.getName()] = column.getText();
+                            ++columnCount;
                             break;
                         }
                     default:
@@ -146,7 +150,7 @@ ServerLuaModule::ServerLuaModule()
                 }
             }
 
-            if(rowResult.size() != to_uz(queryStatement.getColumnCount())){
+            if(columnCount != to_uz(queryStatement.getColumnCount())){
                 throw fflpanic("failed to parse query result row: missing column");
             }
             queryResult[rowIndex++] = rowResult;
