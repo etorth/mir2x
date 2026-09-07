@@ -117,11 +117,11 @@ ServerLuaModule::ServerLuaModule()
         auto queryStatement = g_dbPod->createQuery(to_cstr(query));
 
         sol::state_view sv(s);
-        sol::lua_table queryResult(sv.lua_state(), sol::create);
+        sol::table queryResult(sv.lua_state(), sol::create);
 
         lua_Integer rowIndex = 1;
         while(queryStatement.executeStep()){
-            sol::lua_table rowResult(sv.lua_state(), sol::create);
+            sol::table rowResult(sv.lua_state(), sol::create);
             size_t columnCount = 0;
             for(int i = 0; i < queryStatement.getColumnCount(); ++i){
                 switch(const auto column = queryStatement.getColumn(i); column.getType()){
