@@ -436,7 +436,8 @@ setQuestFSMTable(
 
                 -- @mugong_mutebo_test_complete_receive_next1_2
                 npc_got_it = function(uid, value)
-                    dialog.post(uid, questPath, '比看起来理解快嘛。有一种将来可以成功的预感。', dialog.link('npc_what', '这是什么话？'))
+                    dialog.post(uid, questPath, '比看起来理解快嘛。有一种将来可以成功的预感。',
+                    dialog.link('npc_what', '这是什么话？'))
                 end,
 
                 -- @mugong_mutebo_test_complete_receive_next2
