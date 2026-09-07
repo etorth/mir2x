@@ -157,7 +157,10 @@ setQuestFSMTable(
 
                 -- @mugong_mutebo_next
                 npc_ask_magic = function(uid, value)
-                    dialog.post(uid, questPath, '嗯，你好像在实战中也有些体会。虽然战士总是想在最前方战斗，但是没有这种<t color="red">护身术</t>。魔法师可以利用瞬息移动魔法消失掉，道士也可以利用隐身术隐藏起自己的行踪，我们只有将敌人打倒后才可以脱身。如果被层层包围，真是死路一条。我也是经历了无数的生死考验，真是为了解决战士的困难才创造了<t color="red">野蛮冲撞</t>。',
+                    dialog.post(uid, questPath,
+                        '嗯，你好像在实战中也有些体会。虽然战士总是想在最前方战斗，但是没有这种<t color="red">护身术</t>。' ..
+                        '魔法师可以利用瞬息移动魔法消失掉，道士也可以利用隐身术隐藏起自己的行踪，我们只有将敌人打倒后才可以脱身。如果被层层包围，真是死路一条。' ..
+                        '我也是经历了无数的生死考验，真是为了解决战士的困难才创造了<t color="red">野蛮冲撞</t>。',
                     dialog.link('npc_what_does_it_do', '野蛮冲撞是具有哪种功能的武功？'))
                 end,
 
@@ -254,7 +257,10 @@ setQuestFSMTable(
 
                 -- @mugong_mutebo_test_next4
                 npc_what_favor = function(uid, value)
-                    dialog.post(uid, questPath, '最近年轻时候受的伤又发作了，即疼痛又很痒，都无法睡觉。听说生活在沙漠中的诺玛族拥有一种有着神奇力量称为<t color="red">诺玛石</t>的石头，将这个石头捣碎，然后用水冲服可以治疗痼疾。你能帮我找到这个东西吗？',
+                    dialog.post(uid, questPath,
+                        '最近年轻时候受的伤又发作了，即疼痛又很痒，都无法睡觉。' ..
+                        '听说生活在沙漠中的诺玛族拥有一种有着神奇力量称为<t color="red">诺玛石</t>的石头，将这个石头捣碎，然后用水冲服可以治疗痼疾。' ..
+                        '你能帮我找到这个东西吗？',
                     dialog.link('npc_no_worry', '不用担心！'))
                 end,
 
@@ -421,7 +427,10 @@ setQuestFSMTable(
 
                 -- @mugong_mutebo_test_complete_receive_next1_1
                 npc_no_idea = function(uid, value)
-                    dialog.post(uid, questPath, '如此愚钝的人，到现在为止心里都在骂我吧。学习野蛮冲撞需要强大的力量和良好的内力，以及在非常艰苦的境况下也不放弃的体力和精力。为了培养这些功力，身体要处于极限的状态。因此让你横跨沙漠。',
+                    dialog.post(uid, questPath,
+                        '如此愚钝的人，到现在为止心里都在骂我吧。' ..
+                        '学习野蛮冲撞需要强大的力量和良好的内力，以及在非常艰苦的境况下也不放弃的体力和精力。' ..
+                        '为了培养这些功力，身体要处于极限的状态。因此让你横跨沙漠。',
                     dialog.link('npc_what', '这是什么话？'))
                 end,
 
@@ -619,7 +628,10 @@ local armorShopCode =
         -- the opening is shared with @mugong_mute_explan_armor_m, which nothing calls.
         -- its answer is offered here as the second option
         [SYS_ENTER] = function(uid, value)
-            dialog.post(uid, questPath, '哦，防御工具被破坏的很严重嘛！看起来进行了一场非常激烈的厮杀。嗯，战士强壮虽然很有魅力，但也使人担心。如果被包围了，不是要危及到生命嘛。听说战士的武功中有可以在摆脱危机的时候使用的武功。。你知道该武功吗？',
+            dialog.post(uid, questPath,
+            '哦，防御工具被破坏的很严重嘛！看起来进行了一场非常激烈的厮杀。' ..
+            '嗯，战士强壮虽然很有魅力，但也使人担心。如果被包围了，不是要危及到生命嘛。听说战士的武功中有可以在摆脱危机的时候使用的武功。。' ..
+            '你知道该武功吗？',
             {
                 dialog.link('npc_never_heard', '没有，第一次听说。'),
                 dialog.link('npc_frontline', '感谢你的好意，但是战士不管生死都要在最前方。'),
