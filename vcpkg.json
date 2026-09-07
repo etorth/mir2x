@@ -35,11 +35,5 @@
     "utfcpp",
     "zlib",
     "zstd"
-  ],
-  "overrides": [
-    {
-      "name": "lua",
-      "version": "5.4.8"
-    }
   ]
 }
