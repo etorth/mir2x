@@ -625,7 +625,8 @@ corof::awaitable<> ServerMap::on_AM_CLOSEINSTANCEMAP(const ActorMsgPack &mpk)
             AMForceDie amFD;
             std::memset(&amFD, 0, sizeof(amFD));
 
-            amFD.drop = false; // the loot would be unreachable, the map is going
+            amFD.drop = false;
+            amFD.sendExp = false;
             m_actorPod->post(uid, {AM_FORCEDIE, amFD});
         }
     }

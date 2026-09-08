@@ -230,6 +230,67 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         }
     });
 
+    bindCoop("_RSVD_NAME_setMonsterDropOnDie", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t monsterUID, sol::table itemCfgList, bool allowDefaultDrop) -> corof::awaitable<>
+    {
+        fflassert(uidf::isMonster(monsterUID), monsterUID);
+        fflassert(luaf::isArray(itemCfgList), itemCfgList);
+
+        const auto fnGetItem = [](const sol::object &obj) -> SDItem
+        {
+            if(obj.is<lua_Integer>()){
+                return SDItem::buildItemList(check_cast<uint32_t>(obj.as<lua_Integer>()), 1).front();
+            }
+
+            if(obj.is<std::string>()){
+                return SDItem::buildItemList(DBCOM_ITEMID(obj.as<std::string>().c_str()), 1).front();
+            }
+
+            return SDItem::fromLuaVar(luaf::buildLuaVar(obj));
+        };
+
+        SDDropOnDie sdDropOnDie;
+        sdDropOnDie.allowDefaultDrop = allowDefaultDrop;
+
+        for(size_t i = 1; i <= itemCfgList.size(); ++i){
+            const sol::object entry = itemCfgList[i];
+            fflassert(entry.is<sol::table>(), i);
+
+            const sol::table cfg = entry.as<sol::table>();
+            sdDropOnDie.itemList.push_back(SDDropItemOdds
+            {
+                .item = fnGetItem(cfg["item"]),
+                .odds = cfg["odds"].get_or<size_t>(1),
+            });
+        }
+
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        const auto mpk = co_await thisptr->m_actorPod->send(monsterUID, {AM_SETDROPONDIE, cerealf::serialize(sdDropOnDie)});
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        switch(mpk.type()){
+            case AM_TRUE:
+                {
+                    onDone(true);
+                    break;
+                }
+            case AM_FALSE:
+            case AM_BADACTORPOD:
+                {
+                    onDone(false);
+                    break;
+                }
+            default:
+                {
+                    throw fflvalue(uidf::getUIDString(monsterUID), itemCfgList, mpk.str());
+                }
+        }
+    });
+
     bindFunction("_RSVD_NAME_postNotify", [this](uint64_t dstUID, uint64_t dstThreadKey, uint64_t dstThreadSeqID, sol::object args) -> bool
     {
         fflassert(uidf::validUID(dstUID));

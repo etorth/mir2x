@@ -306,8 +306,24 @@ corof::awaitable<> Monster::on_AM_MASTERKILL(const ActorMsgPack &mpk)
 
 corof::awaitable<> Monster::on_AM_FORCEDIE(const ActorMsgPack &mpk)
 {
-    m_dropOnDie = mpk.conv<AMForceDie>().drop;
+    const auto amFD = mpk.conv<AMForceDie>();
+
+    m_dropOnDie = amFD.drop;
+    m_sendExpOnDie = amFD.sendExp;
+
     goDie();
+    return {};
+}
+
+corof::awaitable<> Monster::on_AM_SETDROPONDIE(const ActorMsgPack &mpk)
+{
+    if(m_sdHealth.dead()){
+        m_actorPod->post(mpk.fromAddr(), AM_FALSE);
+        return {};
+    }
+
+    setDropOnDie(mpk.deserialize<SDDropOnDie>());
+    m_actorPod->post(mpk.fromAddr(), AM_TRUE);
     return {};
 }
 

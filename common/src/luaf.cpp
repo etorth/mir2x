@@ -41,7 +41,7 @@ size_t luaf::_details::_luaVarWrapperHash::operator () (const luaVarWrapper &wra
     }, *wrapper.m_ptr);
 }
 
-bool luaf::_details::isArray(const sol::table &table)
+bool luaf::isArray(const sol::table &table)
 {
     lua_Integer cnt = 0;
     lua_Integer min = std::numeric_limits<lua_Integer>::max();
@@ -61,7 +61,7 @@ bool luaf::_details::isArray(const sol::table &table)
     return (min == 1) && (max == cnt);
 }
 
-bool luaf::_details::isArray(const luaf::luaTable &table)
+bool luaf::isArray(const luaf::luaTable &table)
 {
     if(table.empty()){
         return true;
@@ -259,7 +259,7 @@ luaf::luaVar luaf::buildLuaVar(const sol::object &obj)
             throw fflpanic("can't build from table with metatable");
         }
 
-        if(_details::isArray(obj.as<sol::table>())){
+        if(luaf::isArray(obj.as<sol::table>())){
             luaf::luaArray array;
             for(const auto &[k, v]: obj.as<sol::table>()){
                 const auto i = to_uz(k.as<lua_Integer>());
@@ -325,6 +325,26 @@ std::vector<luaf::luaVar> luaf::pfrBuildLuaVarList(const sol::protected_function
 {
     fflassert(pfr.valid());
     return _buildLuaVarFromLuaObjContainer(pfr, pfr.return_count(), begin, end);
+}
+
+bool luaf::_details::_luaVarAsImpl<bool>::call(const luaf::luaVar &var)
+{
+    return std::get<bool>(var);
+}
+
+std::string luaf::_details::_luaVarAsImpl<std::string>::call(const luaf::luaVar &var)
+{
+    return std::get<std::string>(var);
+}
+
+double luaf::_details::_luaVarAsImpl<double>::call(const luaf::luaVar &var)
+{
+    return std::visit(luaVarDispatcher
+    {
+        [](lua_Integer v) -> double { return static_cast<double>(v); },
+        [](double       v) -> double { return v; },
+        [](const auto   &) -> double { throw fflerror("luaVarAs<double>: expect a number"); },
+    }, var);
 }
 
 std::ostream & operator << (std::ostream &os, const sol::object &obj)

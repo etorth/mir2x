@@ -541,6 +541,10 @@ corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_FORCEDIE(rstMPK);
             }
+        case AM_SETDROPONDIE:
+            {
+                return on_AM_SETDROPONDIE(rstMPK);
+            }
         case AM_MASTERHITTED:
             {
                 return on_AM_MASTERHITTED(rstMPK);
@@ -643,23 +647,32 @@ bool Monster::dcValid(int, bool)
 
 void Monster::onDie()
 {
-    if(!m_dropOnDie){
-        dispatchAction(ActionDie
-        {
-            .x = X(),
-            .y = Y(),
-        });
-        return;
+    if(m_sendExpOnDie){
+        dispatchOffenderExp();
     }
 
-    dispatchOffenderExp();
-    for(auto &item: getMonsterDropItemList(monsterID())){
-        m_actorPod->post(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
-        {
-            .x = X(),
-            .y = Y(),
-            .item = std::move(item),
-        })});
+    if(m_dropOnDie){
+        std::vector<SDItem> itemList;
+        if(m_sdDropOnDieOpt.has_value()){
+            for(auto &[item, odds]: m_sdDropOnDieOpt->itemList){
+                if((odds == 0) || (mathf::rand<size_t>(0, odds) == 0)){
+                    itemList.push_back(item);
+                }
+            }
+        }
+
+        if(!m_sdDropOnDieOpt.has_value() || m_sdDropOnDieOpt->allowDefaultDrop){
+            itemList.append_range(getMonsterDropItemList(monsterID()));
+        }
+
+        for(auto &item: itemList){
+            m_actorPod->post(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+            {
+                .x = X(),
+                .y = Y(),
+                .item = std::move(item),
+            })});
+        }
     }
 
     dispatchAction(ActionDie

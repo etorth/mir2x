@@ -388,6 +388,37 @@ struct SDDropItem
     }
 };
 
+struct SDDropItemOdds
+{
+    SDItem item;
+    size_t odds = 1; // odds = 0 means never drop, 1 means 100% drop, 2 means 50% drop rate, etc.
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(item, odds);
+    }
+};
+
+struct SDDropOnDie
+{
+    std::vector<SDDropItemOdds> itemList;
+    bool allowDefaultDrop = false;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(itemList, allowDefaultDrop);
+    }
+};
+
+struct SDDropOnHit
+{
+    std::vector<SDDropItemOdds> itemList;
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(itemList);
+    }
+};
+
 struct SDBelt // belt items don't have seqID constraint
 {
     std::array<SDItem, 6> list;

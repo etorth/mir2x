@@ -80,6 +80,7 @@ enum ActorMsgPackType: int
     AM_CLOSEINSTANCEMAP,
     AM_INSTANCEMAPCLOSED,
     AM_FORCEDIE,
+    AM_SETDROPONDIE,
     AM_QUERYLOCATION,
     AM_QUERYSELLITEMLIST,
     AM_LOCATION,
@@ -226,6 +227,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_CLOSEINSTANCEMAP)
         _add_mpk_type_case(AM_INSTANCEMAPCLOSED)
         _add_mpk_type_case(AM_FORCEDIE)
+        _add_mpk_type_case(AM_SETDROPONDIE)
         _add_mpk_type_case(AM_QUERYLOCATION)
         _add_mpk_type_case(AM_QUERYSELLITEMLIST)
         _add_mpk_type_case(AM_LOCATION)
@@ -588,13 +590,10 @@ struct AMInstanceMapClosed
     uint64_t mapUID;
 };
 
-// put a monster down from outside its own logic
-//
-// drop decides whether it still leaves loot and hands out experience, an instance map being
-// torn down wants neither
 struct AMForceDie
 {
-    uint8_t drop;
+    uint8_t drop    : 1;
+    uint8_t sendExp : 1;
 };
 
 struct AMUID

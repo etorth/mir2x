@@ -41,17 +41,21 @@ struct SDItem
         XML_END,
     };
 
+    template<int, bool = true> struct EA_t;
+
     constexpr static int EA_NONE  = 0;
     constexpr static int EA_BEGIN = 1;
 
     constexpr static int _ea_add_type_counter_begin = __COUNTER__;
 #define _MACRO_ADD_EA_TYPE(eaType, eaValType) \
     constexpr static int eaType = __COUNTER__ - _ea_add_type_counter_begin; \
-    struct eaType##_t \
+    template<bool Dummy> struct EA_t<eaType, Dummy> \
     { \
-        constexpr static int value = eaType; \
+        constexpr static int              value =  eaType; \
+        constexpr static std::string_view name  = #eaType; \
         using type = eaValType; \
     }; \
+    using eaType##_t = EA_t<eaType>; \
     template<typename ... Args> static std::pair<const int, std::string> build_##eaType(Args && ... args) \
     { \
         return {eaType, cerealf::serialize<eaValType>(eaValType(std::forward<Args>(args)...), -1)}; \
@@ -158,21 +162,20 @@ struct SDItem
         SDItem item
         {
             .itemID = check_cast<uint32_t, unsigned>(query.getColumn("fld_itemid")),
-            .seqID = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid")),
-            .count = check_cast<size_t, unsigned>(query.getColumn("fld_count")),
+            .seqID  = check_cast<uint32_t, unsigned>(query.getColumn("fld_seqid" )),
+            .count  = check_cast<  size_t, unsigned>(query.getColumn("fld_count" )),
+
             .duration
             {
                 check_cast<size_t, unsigned>(query.getColumn("fld_duration")),
                 check_cast<size_t, unsigned>(query.getColumn("fld_maxduration")),
             },
+
             .extAttrList = cerealf::deserialize<std::unordered_map<int, std::string>>(query.getColumn("fld_extattrlist")),
         };
 
         if(!item){
-            throw fflpanic("invalid SDItem query result: itemID = {}, seqID = {}, count = {}",
-                    item.itemID,
-                    item.seqID,
-                    item.count);
+            throw fflpanic("invalid SDItem query result: itemID {}, seqID {}, count {}", item.itemID, item.seqID, item.count);
         }
         return item;
     }
@@ -182,14 +185,8 @@ struct SDItem
         return (to_u64(itemID) << 32) | seqID;
     }
 
-    std::string str() const
-    {
-        return str_printf("(name, itemID, seqID, count, duration) = (%s, %zu, %zu, %zu, (%zu, %zu))", to_cstr(DBCOM_ITEMRECORD(itemID).name), to_uz(itemID), to_uz(seqID), count, duration[0], duration[1]);
-    }
-
-    std::u8string getXMLLayout(
-            const std::unordered_map<int, std::string> & = {},
-            SDItemXMLLayoutType = XMLLAYOUT_FULL) const;
+    std::string str() const;
+    std::u8string getXMLLayout(const std::unordered_map<int, std::string> & = {}, SDItemXMLLayoutType = XMLLAYOUT_FULL) const;
 
     bool isGold() const
     {
@@ -211,12 +208,6 @@ struct SDItem
         return {};
     }
 
-    luaf::luaVar asLuaVar() const
-    {
-        return luaf::buildLuaVar(std::unordered_map<std::string, luaf::luaVar>
-        {
-            {"itemID", itemID},
-            { "seqID",  seqID},
-        });
-    }
+    luaf::luaVar asLuaVar() const;
+    static SDItem fromLuaVar(const luaf::luaVar &);
 };

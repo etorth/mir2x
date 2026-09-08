@@ -208,6 +208,15 @@ function uidRemoteCall(uid, ...)
     end
 end
 
+function setMonsterDropOnDie(uid, itemCfgList, allowDefaultDrop)
+    assertType(uid, 'integer')
+    assertType(itemCfgList, 'array')
+    assertType(allowDefaultDrop, 'boolean', 'nil')
+
+    assert(isMonster(uid))
+    return _RSVD_NAME_callFuncCoop('setMonsterDropOnDie', uid, itemCfgList, allowDefaultDrop or false)
+end
+
 local _RSVD_NAME_triggerConfigList = {
     -- trigger parameter config
     -- [1] : trigger type in string

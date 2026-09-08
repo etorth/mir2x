@@ -4,6 +4,8 @@
 #include <ostream>
 #include <cstddef>
 #include <variant>
+#include <tuple>
+#include <optional>
 #include <map>
 #include <unordered_map>
 #include <set>
@@ -13,6 +15,7 @@
 #include <deque>
 #include <list>
 #include <type_traits>
+#include <stdexcept>
 #include <sol/sol.hpp>
 
 // c++ internal types <----> luaVar <----> lua types as sol::object
@@ -80,11 +83,8 @@ namespace luaf
 
 namespace luaf
 {
-    namespace _details
-    {
-        bool isArray(const  sol::table    &);
-        bool isArray(const luaf::luaTable &);
-    }
+    bool isArray(const  sol::table    &);
+    bool isArray(const luaf::luaTable &);
 }
 
 namespace luaf
@@ -205,6 +205,7 @@ namespace luaf
     template<typename T          > luaVar buildLuaVar(std::initializer_list<T>);
 
     template<typename T> luaVar buildLuaVar(std::optional<T>);
+    template<typename... Ts> luaVar buildLuaVar(const std::tuple<Ts...> &);
 
     template<typename C> luaArray buildLuaArray(C varList)
     {
@@ -253,12 +254,98 @@ namespace luaf
             return luaNil{};
         }
     }
+
+    template<typename... Ts> luaVar buildLuaVar(const std::tuple<Ts...> &t)
+    {
+        return std::apply([](const auto &... elem) -> luaArray
+        {
+            luaArray array;
+            array.reserve(sizeof...(Ts));
+            (array.emplace_back(luaVarWrapper(buildLuaVar(elem))), ...);
+            return array;
+        }, t);
+    }
 }
 
 namespace luaf
 {
     std::vector<luaVar> vargBuildLuaVarList(const sol::variadic_args             &, size_t = 0, std::optional<size_t> = std::nullopt);
     std::vector<luaVar>  pfrBuildLuaVarList(const sol::protected_function_result &, size_t = 0, std::optional<size_t> = std::nullopt);
+}
+
+namespace luaf
+{
+    namespace _details
+    {
+        template<typename T> struct _luaVarAsImpl
+        {
+            static T call(const luaVar &var)
+            {
+                return static_cast<T>(std::get<lua_Integer>(var));
+            }
+        };
+    }
+
+    // decode a luaVar back into a concrete c++ type T
+    // caller is assumed to know the exact shape T that the luaVar holds, invalid shape/type throws
+
+    template<typename T> T luaVarAs(const luaVar &var)
+    {
+        return _details::_luaVarAsImpl<T>::call(var);
+    }
+
+    namespace _details
+    {
+        template<> struct _luaVarAsImpl<bool>
+        {
+            static bool call(const luaVar &);
+        };
+
+        template<> struct _luaVarAsImpl<std::string>
+        {
+            static std::string call(const luaVar &);
+        };
+
+        template<> struct _luaVarAsImpl<double>
+        {
+            static double call(const luaVar &);
+        };
+
+        template<typename... Ts> struct _luaVarAsImpl<std::tuple<Ts...>>
+        {
+            static std::tuple<Ts...> call(const luaVar &var)
+            {
+                using TupleType = std::tuple<Ts...>;
+                const auto &arr = std::get<luaArray>(var);
+
+                if(arr.size() != sizeof...(Ts)){
+                    throw std::runtime_error("luaVarAs<std::tuple<...>>: array size mismatch");
+                }
+
+                return [&]<size_t... Is>(std::index_sequence<Is...>) -> TupleType
+                {
+                    return TupleType{luaVarAs<std::tuple_element_t<Is, TupleType>>(arr[Is].get())...};
+                }(std::make_index_sequence<sizeof...(Ts)>{});
+            }
+        };
+
+        template<typename T, size_t N> struct _luaVarAsImpl<std::array<T, N>>
+        {
+            static std::array<T, N> call(const luaVar &var)
+            {
+                const auto &arr = std::get<luaArray>(var);
+                if(arr.size() != N){
+                    throw std::runtime_error("luaVarAs<std::array<...>>: array size mismatch");
+                }
+
+                std::array<T, N> result;
+                for(size_t i = 0; i < N; ++i){
+                    result[i] = luaVarAs<T>(arr[i].get());
+                }
+                return result;
+            }
+        };
+    }
 }
 
 std::ostream & operator << (std::ostream &, const sol::object &);

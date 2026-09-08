@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include "corof.hpp"
 #include "fflerror.hpp"
+#include "serdesmsg.hpp"
 #include "battleobject.hpp"
 #include "dbcomid.hpp"
 #include "monsterrecord.hpp"
@@ -135,6 +136,7 @@ class Monster: public BattleObject
         corof::awaitable<> on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
         corof::awaitable<> on_AM_MASTERKILL      (const ActorMsgPack &);
         corof::awaitable<> on_AM_FORCEDIE        (const ActorMsgPack &);
+        corof::awaitable<> on_AM_SETDROPONDIE    (const ActorMsgPack &);
         corof::awaitable<> on_AM_MASTERHITTED    (const ActorMsgPack &);
         corof::awaitable<> on_AM_NOTIFYDEAD      (const ActorMsgPack &);
         corof::awaitable<> on_AM_BADACTORPOD     (const ActorMsgPack &);
@@ -197,8 +199,16 @@ class Monster: public BattleObject
         void onDie() override;
 
     private:
-        // cleared when something puts this monster down from outside, see AM_FORCEDIE
         bool m_dropOnDie = true;
+        bool m_sendExpOnDie = true;
+
+    private:
+        std::optional<SDDropOnDie> m_sdDropOnDieOpt;
+        std::optional<SDDropOnHit> m_sdDropOnHitOpt;
+
+    public:
+        void setDropOnDie(SDDropOnDie sdDOD){ m_sdDropOnDieOpt = std::move(sdDOD); }
+        void sedDropOnHit(SDDropOnHit sdDOH){ m_sdDropOnHitOpt = std::move(sdDOH); }
 
     protected:
         virtual corof::awaitable<bool> needHeal(uint64_t);
