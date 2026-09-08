@@ -26,7 +26,7 @@ public:
         public:
             int x(const Widget *widget, const void * arg = nullptr) const
             {
-                return std::visit(VarDispatcher
+                return std::visit(stdf::VarDispatcher
                 {
                     [widget, arg](const Widget::VarGetter<Widget::IntOffset2D> &varg)
                     {
@@ -44,7 +44,7 @@ public:
 
             int y(const Widget *widget, const void * arg = nullptr) const
             {
-                return std::visit(VarDispatcher
+                return std::visit(stdf::VarDispatcher
                 {
                     [widget, arg](const Widget::VarGetter<Widget::IntOffset2D> &varg)
                     {
@@ -63,7 +63,7 @@ public:
         public:
             Widget::IntOffset2D offset(const Widget *widget, const void * arg = nullptr) const
             {
-                return std::visit(VarDispatcher
+                return std::visit(stdf::VarDispatcher
                 {
                     [widget, arg](const Widget::VarGetter<Widget::IntOffset2D> &varg)
                     {

@@ -9,7 +9,7 @@
 #include <vector>
 #include <stdexcept>
 #include <string_view>
-#include "conceptf.hpp"
+#include "stdf.hpp"
 
 inline auto to_d    (auto x){ return static_cast<               int>(x); }
 inline auto to_u    (auto x){ return static_cast<      unsigned int>(x); }
@@ -76,12 +76,12 @@ inline std::u8string_view as_u8sv(const void *buf, size_t bufSize)
     return std::u8string_view(reinterpret_cast<const char8_t *>(buf), bufSize);
 }
 
-inline std::string_view as_sv(const conceptf::TriviallyCopyable auto &t)
+inline std::string_view as_sv(const stdf::TriviallyCopyable auto &t)
 {
     return as_sv(&t, sizeof(t));
 }
 
-inline std::u8string_view as_u8sv(const conceptf::TriviallyCopyable auto &t)
+inline std::u8string_view as_u8sv(const stdf::TriviallyCopyable auto &t)
 {
     return as_u8sv(&t, sizeof(t));
 }

@@ -300,7 +300,7 @@ luaf::luaVar SDItem::asLuaVar() const
 
 SDItem SDItem::fromLuaVar(const luaf::luaVar &var)
 {
-    return std::visit(luaf::luaVarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const luaf::luaTable &table) -> SDItem
         {

@@ -1,6 +1,7 @@
 #include <memory>
 #include <iterator>
 #include "sgf.hpp"
+#include "stdf.hpp"
 #include "luaf.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"
@@ -625,7 +626,7 @@ void ServerLuaCoroutineRunner::resumeRunner(LuaThreadHandle *runnerPtr, std::opt
 
     const auto pfr = [&]()
     {
-        const ValueKeeper keep(m_currRunner, runnerPtr);
+        const stdf::ValueKeeper keep(m_currRunner, runnerPtr);
         if(codeOpt.has_value()){
             return runnerPtr->callback(codeOpt.value().first, luaf::buildLuaObj(sol::state_view(runnerPtr->runner.state()), codeOpt.value().second));
         }

@@ -16,6 +16,7 @@
 #include "colorf.hpp"
 #include "fflerror.hpp"
 #include "protocoldef.hpp"
+#include "stdf.hpp"
 
 class Widget;        // size concept
 class WidgetTreeNode // tree concept, used by class Widget only

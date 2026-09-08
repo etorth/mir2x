@@ -3,6 +3,7 @@
 #include <cinttypes>
 
 #include "protocoldef.hpp"
+#include "stdf.hpp"
 #include "uidf.hpp"
 #include "totype.hpp"
 #include "actorpod.hpp"
@@ -70,7 +71,7 @@ void ActorPod::innHandler(const ActorMsgPack &mpk)
 
     if(mpk.respID()){
         if(auto p = m_respondCBList.find(mpk.respID()); p != m_respondCBList.end()){
-            std::visit(VarDispatcher
+            std::visit(stdf::VarDispatcher
             {
                 [&mpk, this](std::coroutine_handle<corof::awaitable<ActorMsgPack>::promise_type> &handle)
                 {

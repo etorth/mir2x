@@ -3,6 +3,7 @@
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
 #include "tritexbutton.hpp"
+#include "stdf.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
@@ -106,7 +107,7 @@ void TritexButton::drawDefault(Widget::ROIMap m) const
 SDL_Texture *TritexButton::evalGfxTexture(std::optional<int> stateOpt) const
 {
     const auto state = stateOpt.value_or(getState());
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [state, this](const std::function<std::optional<uint32_t>(                   )> &f){ return (f ? f(           ) : m_texIDList[state]).transform([](auto id){ return g_progUseDB->retrieve(id); }).value_or(nullptr); },
         [state, this](const std::function<std::optional<uint32_t>(                int)> &f){ return (f ? f(      state) : m_texIDList[state]).transform([](auto id){ return g_progUseDB->retrieve(id); }).value_or(nullptr); },

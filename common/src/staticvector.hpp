@@ -5,10 +5,10 @@
 #include <string_view>
 #include <cstring>
 #include <type_traits>
-#include "conceptf.hpp"
+#include "stdf.hpp"
 #include "fflerror.hpp"
 
-template<conceptf::TriviallyCopyable T, size_t Capacity> struct StaticVector
+template<stdf::TriviallyCopyable T, size_t Capacity> struct StaticVector
 {
     uint16_t size;
     T data[Capacity];

@@ -26,7 +26,7 @@ public:
         public:
             int w(const Widget *widget, const void * arg = nullptr) const
             {
-                return std::visit(VarDispatcher
+                return std::visit(stdf::VarDispatcher
                 {
                     [widget, arg](const Widget::VarGetter<Widget::IntSize2D> &varg)
                     {
@@ -44,7 +44,7 @@ public:
 
             int h(const Widget *widget, const void * arg = nullptr) const
             {
-                return std::visit(VarDispatcher
+                return std::visit(stdf::VarDispatcher
                 {
                     [widget, arg](const Widget::VarGetter<Widget::IntSize2D> &varg)
                     {
@@ -63,7 +63,7 @@ public:
         public:
             Widget::IntSize2D size(const Widget *widget, const void * arg = nullptr) const
             {
-                return std::visit(VarDispatcher
+                return std::visit(stdf::VarDispatcher
                 {
                     [widget, arg](const Widget::VarGetter<Widget::IntSize2D> &varg)
                     {

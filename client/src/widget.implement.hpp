@@ -29,7 +29,7 @@ template<std::invocable<const Widget *, bool, const Widget *, bool> F> void Widg
 
 template<typename SELF> auto WidgetTreeNode::foreachChild(this SELF && self, bool forward, std::invocable<check_const_cond_out_ptr_t<SELF, Widget>, bool> auto f) -> std::conditional_t<std::is_same_v<std::invoke_result_t<decltype(f), Widget *, bool>, bool>, bool, void>
 {
-    const ValueKeeper keepValue(self.m_inLoop, true);
+    const stdf::ValueKeeper keepValue(self.m_inLoop, true);
     constexpr bool hasBoolResult = std::is_same_v<std::invoke_result_t<decltype(f), Widget *, bool>, bool>;
 
     if(forward){
@@ -291,7 +291,7 @@ int Widget::evalU32Opt(const Widget::VarU32Opt &varU32Opt, const Widget *widget,
 
 template<typename T> T Widget::evalGetter(const Widget::VarGetter<T> &varGetter, const Widget *widget, const void *arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const T &varg)
         {
@@ -355,7 +355,7 @@ template<typename Func> Widget::VarSizeOpt Widget::transform(Widget::VarSizeOpt 
 
 template<typename T> bool Widget::hasUpdateFunc(const Widget::VarUpdateFunc<T> &varUpdateFunc)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const std::function<void(                        const T &)> &varg) -> bool { return !!varg; },
         [](const std::function<void(const Widget *,         const T &)> &varg) -> bool { return !!varg; },
@@ -374,7 +374,7 @@ template<typename T> void Widget::execUpdateFunc(const Widget::VarUpdateFunc<T> 
 
 template<typename T> void Widget::execUpdateFunc(const Widget::VarUpdateFunc<T> &varUpdateFunc, const Widget *widget, void *argPtr, const T &arg)
 {
-    std::visit(VarDispatcher
+    std::visit(stdf::VarDispatcher
     {
         [                arg](const std::function<void(                        const T &)> &varg) { if(varg){ varg(                arg); }},
         [widget,         arg](const std::function<void(const Widget *,         const T &)> &varg) { if(varg){ varg(widget,         arg); }},
@@ -388,7 +388,7 @@ template<typename T> void Widget::execUpdateFunc(const Widget::VarUpdateFunc<T> 
 
 template<typename T> bool Widget::hasCheckFunc(const Widget::VarCheckFunc<T> &varCheckFunc)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const std::function<bool(                        const T &)> &varg) -> bool { return !!varg; },
         [](const std::function<bool(const Widget *,         const T &)> &varg) -> bool { return !!varg; },
@@ -407,7 +407,7 @@ template<typename T> bool Widget::execCheckFunc(const Widget::VarCheckFunc<T> &v
 
 template<typename T> bool Widget::execCheckFunc(const Widget::VarCheckFunc<T> &varCheckFunc, const Widget *widget, void *argPtr, const T &arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [                arg](const std::function<bool(                        const T &)> &varg) { return varg ? varg(                arg) : true; },
         [widget,         arg](const std::function<bool(const Widget *,         const T &)> &varg) { return varg ? varg(widget,         arg) : true; },

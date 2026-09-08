@@ -8,7 +8,7 @@
 #include "totype.hpp"
 #include "cerealf.hpp"
 #include "fflerror.hpp"
-#include "conceptf.hpp"
+#include "stdf.hpp"
 
 // we transfer chunks of data/string too much
 // when we don't use cerealf, we need a handy static buffer class in messages
@@ -91,7 +91,7 @@ template<size_t Capacity> struct StaticBuffer
         }
     }
 
-    template<conceptf::TriviallyCopyable T> T as() const
+    template<stdf::TriviallyCopyable T> T as() const
     {
         T t;
         std::memcpy(&t, this->data, sizeof(T));

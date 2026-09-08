@@ -17,6 +17,7 @@
 #include <type_traits>
 #include <stdexcept>
 #include <sol/sol.hpp>
+#include "stdf.hpp"
 
 // c++ internal types <----> luaVar <----> lua types as sol::object
 //    lua_Integer         std::variant     sol::object
@@ -27,11 +28,6 @@
 
 namespace luaf
 {
-    template<typename... Ts> struct luaVarDispatcher: Ts...
-    {
-        using Ts::operator()...;
-    };
-
     struct luaNil
     {
         char placeholder = 0;
@@ -114,7 +110,7 @@ namespace luaf
             {}
 
         public:
-            luaVarWrapper(luaVar v): m_ptr(std::visit(luaVarDispatcher
+            luaVarWrapper(luaVar v): m_ptr(std::visit(stdf::VarDispatcher
             {
                 [](luaNil) -> std::unique_ptr<luaVar>
                 {
@@ -281,7 +277,24 @@ namespace luaf
         {
             static T call(const luaVar &var)
             {
-                return static_cast<T>(std::get<lua_Integer>(var));
+                if constexpr(std::is_integral_v<T>){
+                    return static_cast<T>(std::get<lua_Integer>(var));
+                }
+                else if constexpr(std::is_floating_point_v<T>){
+                    return static_cast<T>(std::get<double>(var));
+                }
+                else if constexpr(std::is_same_v<T, const char *>){
+                    return std::get<std::string>(var).c_str();
+                }
+                else if constexpr(std::is_same_v<T, std::string_view>){
+                    return std::get<std::string>(var);
+                }
+                else if constexpr(std::is_same_v<T, luaf::luaVar>){
+                    static_assert(stdf::always_false<T>::value, "only convert to C/C++ types");
+                }
+                else{
+                    static_assert(stdf::always_false<T>::value, "invalid type for conversion");
+                }
             }
         };
     }
@@ -296,6 +309,16 @@ namespace luaf
 
     namespace _details
     {
+        template<> struct _luaVarAsImpl<lua_Integer>
+        {
+            static lua_Integer call(const luaVar &);
+        };
+
+        template<> struct _luaVarAsImpl<double>
+        {
+            static double call(const luaVar &);
+        };
+
         template<> struct _luaVarAsImpl<bool>
         {
             static bool call(const luaVar &);
@@ -306,11 +329,6 @@ namespace luaf
             static std::string call(const luaVar &);
         };
 
-        template<> struct _luaVarAsImpl<double>
-        {
-            static double call(const luaVar &);
-        };
-
         template<typename... Ts> struct _luaVarAsImpl<std::tuple<Ts...>>
         {
             static std::tuple<Ts...> call(const luaVar &var)
@@ -319,13 +337,14 @@ namespace luaf
                 const auto &arr = std::get<luaArray>(var);
 
                 if(arr.size() != sizeof...(Ts)){
-                    throw std::runtime_error("luaVarAs<std::tuple<...>>: array size mismatch");
+                    throw std::runtime_error("luaVarAs<std::tuple<...>>: size mismatch");
                 }
 
                 return [&]<size_t... Is>(std::index_sequence<Is...>) -> TupleType
                 {
                     return TupleType{luaVarAs<std::tuple_element_t<Is, TupleType>>(arr[Is].get())...};
-                }(std::make_index_sequence<sizeof...(Ts)>{});
+                }
+                (std::make_index_sequence<sizeof...(Ts)>{});
             }
         };
 
@@ -335,7 +354,7 @@ namespace luaf
             {
                 const auto &arr = std::get<luaArray>(var);
                 if(arr.size() != N){
-                    throw std::runtime_error("luaVarAs<std::array<...>>: array size mismatch");
+                    throw std::runtime_error("luaVarAs<std::array<...>>: size mismatch");
                 }
 
                 std::array<T, N> result;

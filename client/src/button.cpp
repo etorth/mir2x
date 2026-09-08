@@ -1,9 +1,10 @@
 #include "button.hpp"
 #include "protocoldef.hpp"
+#include "stdf.hpp"
 
 void Button::evalOverCBFunc(const Button::OverCBFunc &func, Widget *widget)
 {
-    std::visit(VarDispatcher
+    std::visit(stdf::VarDispatcher
     {
         [      ](const std::function<void(        )> &f){ if(f){f(      );} },
         [widget](const std::function<void(Widget *)> &f){ if(f){f(widget);} },
@@ -15,7 +16,7 @@ void Button::evalOverCBFunc(const Button::OverCBFunc &func, Widget *widget)
 
 void Button::evalClickCBFunc(const Button::ClickCBFunc &func, Widget *widget, bool clickDone, int clickCount)
 {
-    std::visit(VarDispatcher
+    std::visit(stdf::VarDispatcher
     {
         [        clickDone, clickCount](const std::function<void(          bool, int)> &f){ if(f){f(        clickDone, clickCount);} },
         [widget, clickDone, clickCount](const std::function<void(Widget *, bool, int)> &f){ if(f){f(widget, clickDone, clickCount);} },
@@ -27,7 +28,7 @@ void Button::evalClickCBFunc(const Button::ClickCBFunc &func, Widget *widget, bo
 
 void Button::evalTriggerCBFunc(const Button::TriggerCBFunc &func, Widget *widget, int clickCount)
 {
-    std::visit(VarDispatcher
+    std::visit(stdf::VarDispatcher
     {
         [        clickCount](const std::function<void(          int)> &f){ if(f){f(        clickCount);} },
         [widget, clickCount](const std::function<void(Widget *, int)> &f){ if(f){f(widget, clickCount);} },

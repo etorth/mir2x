@@ -1,4 +1,5 @@
 #include "serverargparser.hpp"
+#include "stdf.hpp"
 #include "rotatecoord.hpp"
 #include "uidf.hpp"
 #include "sgf.hpp"
@@ -76,7 +77,7 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
             thisptr->m_actorPod->post(fromAddr, AM_ERROR);
         };
 
-        const auto mapUID = std::visit(VarDispatcher
+        const auto mapUID = std::visit(stdf::VarDispatcher
         {
             [](const SDInitGuard   &sdIG  ) { return sdIG  .mapUID; },
             [](const SDInitPlayer  &sdIP  ) { return sdIP  .mapUID; },
@@ -185,7 +186,7 @@ std::optional<std::pair<int, int>> EnableAddCO::getMapGLoc(uint32_t mapID, int x
 
 CharObject *EnableAddCO::addCO(SDInitCharObject sdICO)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [this](const SDInitGuard   &sdIG  ) { return static_cast<CharObject *>(addGuard  (sdIG  )); },
         [this](const SDInitPlayer  &sdIP  ) { return static_cast<CharObject *>(addPlayer (sdIP  )); },

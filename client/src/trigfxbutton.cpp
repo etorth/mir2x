@@ -1,5 +1,6 @@
 #include "colorf.hpp"
 #include "trigfxbutton.hpp"
+#include "stdf.hpp"
 
 TrigfxButton::TrigfxButton(TrigfxButton::InitArgs args)
     : ButtonBase
@@ -51,7 +52,7 @@ void TrigfxButton::drawDefault(Widget::ROIMap m) const
 const Widget *TrigfxButton::evalGfxWidget(std::optional<int> stateOpt) const
 {
     const auto state = stateOpt.value_or(getState());
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [state, this](const std::function<const Widget *(                   )> &f){ return f ? f(           ) : m_gfxList.at(state); },
         [state, this](const std::function<const Widget *(                int)> &f){ return f ? f(      state) : m_gfxList.at(state); },

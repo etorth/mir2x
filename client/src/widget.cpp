@@ -4,6 +4,7 @@
 #include "pathf.hpp"
 #include "totype.hpp"
 #include "widget.hpp"
+#include "stdf.hpp"
 
 WidgetTreeNode::WidgetTreeNode(WidgetTreeNode::WADPair argParent, WidgetTreeNode::BaseAttrs argAttrs)
     : m_id([]
@@ -211,7 +212,7 @@ dir8_t Widget::evalDir(const Widget::VarDir &varDir, const Widget *widget, const
         return pathf::dirValid(argDir) ? argDir : DIR_NONE;
     };
 
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [&fnValidDir](dir8_t varg)
         {
@@ -239,7 +240,7 @@ dir8_t Widget::evalDir(const Widget::VarDir &varDir, const Widget *widget, const
 
 int Widget::evalInt(const Widget::VarInt &varOffset, const Widget *widget, const void *arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](int varg)
         {
@@ -267,7 +268,7 @@ int Widget::evalInt(const Widget::VarInt &varOffset, const Widget *widget, const
 
 uint32_t Widget::evalU32(const Widget::VarU32 &varU32, const Widget *widget, const void *arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](uint32_t varg)
         {
@@ -295,7 +296,7 @@ uint32_t Widget::evalU32(const Widget::VarU32 &varU32, const Widget *widget, con
 
 float Widget::evalDecimal(const Widget::VarDecimal &varDecimal, const Widget *widget, const void *arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](float varg)
         {
@@ -323,7 +324,7 @@ float Widget::evalDecimal(const Widget::VarDecimal &varDecimal, const Widget *wi
 
 int Widget::evalSize(const Widget::VarSize &varSize, const Widget *widget, const void *arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](int varg)
         {
@@ -351,7 +352,7 @@ int Widget::evalSize(const Widget::VarSize &varSize, const Widget *widget, const
 
 bool Widget::evalBool(const Widget::VarBool &varFlag, const Widget *widget, const void *arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](bool varg)
         {
@@ -390,7 +391,7 @@ SDL_BlendMode Widget::evalBlendMode(const Widget::VarBlendMode &varBlendMode, co
         }
     };
 
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [&fnValidMode](SDL_BlendMode varg)
         {
@@ -418,7 +419,7 @@ SDL_BlendMode Widget::evalBlendMode(const Widget::VarBlendMode &varBlendMode, co
 
 SDL_Texture *Widget::evalTexLoadFunc(const Widget::VarTexLoadFunc &varTexLoadFunc, const Widget *widget, const void *arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](SDL_Texture *varg)
         {
@@ -446,7 +447,7 @@ SDL_Texture *Widget::evalTexLoadFunc(const Widget::VarTexLoadFunc &varTexLoadFun
 
 Widget::VarStr Widget::evalStrFunc(const Widget::VarStrFunc &varStrFunc, const Widget *widget, const void *arg)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const        char *varg) -> Widget::VarStr { return varg; },
         [](const std::string &varg) -> Widget::VarStr { return varg; },
@@ -461,7 +462,7 @@ Widget::VarStr Widget::evalStrFunc(const Widget::VarStrFunc &varStrFunc, const W
 
 bool Widget::hasDrawFunc(const Widget::VarDrawFunc &varDrawFunc)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const std::function<void(                        int, int)> &varg) -> bool { return !!varg; },
         [](const std::function<void(const Widget *,         int, int)> &varg) -> bool { return !!varg; },
@@ -480,7 +481,7 @@ void Widget::execDrawFunc(const Widget::VarDrawFunc &varDrawFunc, const Widget *
 
 void Widget::execDrawFunc(const Widget::VarDrawFunc &varDrawFunc, const Widget *widget, void *argPtr, int argX, int argY)
 {
-    std::visit(VarDispatcher
+    std::visit(stdf::VarDispatcher
     {
         [                argX, argY](const std::function<void(                        int, int)> &varg) { if(varg){ varg(                argX, argY); }},
         [widget,         argX, argY](const std::function<void(const Widget *,         int, int)> &varg) { if(varg){ varg(widget,         argX, argY); }},

@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include "msgf.hpp"
-#include "conceptf.hpp"
+#include "stdf.hpp"
 #include "staticbuffer.hpp"
 #include "actionnode.hpp"
 #include "staticvector.hpp"
@@ -554,7 +554,7 @@ struct ClientMsgBuf final
         : ClientMsgBuf(argHeadCode, nullptr, 0)
     {}
 
-    template<conceptf::TriviallyCopyable T> ClientMsgBuf(uint8_t argHeadCode, const T &t)
+    template<stdf::TriviallyCopyable T> ClientMsgBuf(uint8_t argHeadCode, const T &t)
         : ClientMsgBuf(argHeadCode, &t, sizeof(t))
     {}
 

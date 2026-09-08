@@ -94,7 +94,7 @@ class VarROI final
     public:
         Widget::ROI roi(const Widget *widget, const void *arg = nullptr) const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [widget, arg](const Widget::VarGetter<Widget::ROI> &varg)
                 {
@@ -121,7 +121,7 @@ class VarROI final
 
         Widget::IntOffset2D offset(const Widget *widget, const void *arg = nullptr) const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [widget, arg](const Widget::VarGetter<Widget::ROI> &varg)
                 {
@@ -139,7 +139,7 @@ class VarROI final
 
         Widget::IntSize2D size(const Widget *widget, const void *arg = nullptr) const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [widget, arg](const Widget::VarGetter<Widget::ROI> &varg)
                 {
@@ -158,7 +158,7 @@ class VarROI final
     public:
         int x(const Widget *widget, const void *arg = nullptr) const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [widget, arg](const Widget::VarGetter<Widget::ROI> &varg)
                 {
@@ -176,7 +176,7 @@ class VarROI final
 
         int y(const Widget *widget, const void *arg = nullptr) const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [widget, arg](const Widget::VarGetter<Widget::ROI> &varg)
                 {
@@ -194,7 +194,7 @@ class VarROI final
 
         int w(const Widget *widget, const void *arg = nullptr) const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [widget, arg](const Widget::VarGetter<Widget::ROI> &varg)
                 {
@@ -212,7 +212,7 @@ class VarROI final
 
         int h(const Widget *widget, const void *arg = nullptr) const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [widget, arg](const Widget::VarGetter<Widget::ROI> &varg)
                 {
@@ -231,7 +231,7 @@ class VarROI final
     public:
         bool combinedOffset() const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [](const Widget::VarGetter<Widget::ROI> &)
                 {
@@ -249,7 +249,7 @@ class VarROI final
 
         bool combinedSize() const
         {
-            return std::visit(VarDispatcher
+            return std::visit(stdf::VarDispatcher
             {
                 [](const Widget::VarGetter<Widget::ROI> &)
                 {

@@ -8,7 +8,7 @@
 
 size_t luaf::_details::_luaVarWrapperHash::operator () (const luaVarWrapper &wrapper) const noexcept
 {
-    return std::visit(luaVarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const luaNil &) -> size_t
         {
@@ -175,7 +175,7 @@ sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaNil)
 
 sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaVar v)
 {
-    return std::visit(luaf::luaVarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [&sv](const luaf::luaArray &a) -> sol::object
         {
@@ -327,6 +327,21 @@ std::vector<luaf::luaVar> luaf::pfrBuildLuaVarList(const sol::protected_function
     return _buildLuaVarFromLuaObjContainer(pfr, pfr.return_count(), begin, end);
 }
 
+lua_Integer luaf::_details::_luaVarAsImpl<lua_Integer>::call(const luaf::luaVar &var)
+{
+    return std::get<lua_Integer>(var);
+}
+
+double luaf::_details::_luaVarAsImpl<double>::call(const luaf::luaVar &var)
+{
+    return std::visit(stdf::VarDispatcher
+    {
+        [](lua_Integer  v) -> double { return static_cast<double>(v); },
+        [](double       v) -> double { return v; },
+        [](const auto   &) -> double { throw fflerror("luaVar doesn't contain a number"); },
+    }, var);
+}
+
 bool luaf::_details::_luaVarAsImpl<bool>::call(const luaf::luaVar &var)
 {
     return std::get<bool>(var);
@@ -335,16 +350,6 @@ bool luaf::_details::_luaVarAsImpl<bool>::call(const luaf::luaVar &var)
 std::string luaf::_details::_luaVarAsImpl<std::string>::call(const luaf::luaVar &var)
 {
     return std::get<std::string>(var);
-}
-
-double luaf::_details::_luaVarAsImpl<double>::call(const luaf::luaVar &var)
-{
-    return std::visit(luaVarDispatcher
-    {
-        [](lua_Integer v) -> double { return static_cast<double>(v); },
-        [](double       v) -> double { return v; },
-        [](const auto   &) -> double { throw fflerror("luaVarAs<double>: expect a number"); },
-    }, var);
 }
 
 std::ostream & operator << (std::ostream &os, const sol::object &obj)

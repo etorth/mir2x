@@ -1,12 +1,13 @@
 #include "pngtexdb.hpp"
 #include "checkbox.hpp"
+#include "stdf.hpp"
 
 extern PNGTexDB *g_progUseDB;
 extern SDLDevice *g_sdlDevice;
 
 bool CheckBox::evalBoolGetter(const CheckBox::BoolGetter &getter, const Widget *widget)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [widget](const std::function<bool(              )> &func){ return func ? func(      ) : dynamic_cast<const CheckBox *>(widget)->rawGetter(); },
         [widget](const std::function<bool(const Widget *)> &func){ return func ? func(widget) : dynamic_cast<const CheckBox *>(widget)->rawGetter(); },
@@ -17,7 +18,7 @@ bool CheckBox::evalBoolGetter(const CheckBox::BoolGetter &getter, const Widget *
 
 void CheckBox::evalBoolSetter(CheckBox::BoolSetter &setter, Widget *widget, bool value)
 {
-    std::visit(VarDispatcher
+    std::visit(stdf::VarDispatcher
     {
         [value, widget](std::function<void(          bool)> &func){ func ? func(        value) : dynamic_cast<CheckBox *>(widget)->rawSetter(value); },
         [value, widget](std::function<void(Widget *, bool)> &func){ func ? func(widget, value) : dynamic_cast<CheckBox *>(widget)->rawSetter(value); },
@@ -28,7 +29,7 @@ void CheckBox::evalBoolSetter(CheckBox::BoolSetter &setter, Widget *widget, bool
 
 void CheckBox::evalTriggerFunc(CheckBox::TriggerFunc &trigger, Widget *widget, bool value)
 {
-    std::visit(VarDispatcher
+    std::visit(stdf::VarDispatcher
     {
         [value        ](std::function<void(          bool)> &func){ if(func){ func(        value); }},
         [value, widget](std::function<void(Widget *, bool)> &func){ if(func){ func(widget, value); }},
@@ -40,7 +41,7 @@ void CheckBox::evalTriggerFunc(CheckBox::TriggerFunc &trigger, Widget *widget, b
 
 bool CheckBox::hasBoolGetter(const CheckBox::BoolGetter &getter)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const std::function<bool(              )> &func){ return !!func;  },
         [](const std::function<bool(const Widget *)> &func){ return !!func;  },
@@ -51,7 +52,7 @@ bool CheckBox::hasBoolGetter(const CheckBox::BoolGetter &getter)
 
 bool CheckBox::hasBoolSetter(const CheckBox::BoolSetter &setter)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const std::function<void(          bool)> &func){ return !!func;  },
         [](const std::function<void(Widget *, bool)> &func){ return !!func;  },
@@ -62,7 +63,7 @@ bool CheckBox::hasBoolSetter(const CheckBox::BoolSetter &setter)
 
 bool CheckBox::hasTriggerFunc(const CheckBox::TriggerFunc &trigger)
 {
-    return std::visit(VarDispatcher
+    return std::visit(stdf::VarDispatcher
     {
         [](const std::function<void(          bool)> &func){ return !!func;  },
         [](const std::function<void(Widget *, bool)> &func){ return !!func;  },

@@ -18,7 +18,7 @@ public:
         public:
             const char *c_str() const
             {
-                return std::visit(VarDispatcher
+                return std::visit(stdf::VarDispatcher
                 {
                     [](const        char *varg){ return varg ? varg : ""; },
                     [](const std::string &varg){ return varg.c_str()    ; },
@@ -36,7 +36,7 @@ public:
         public:
             size_t size() const
             {
-                return std::visit(VarDispatcher
+                return std::visit(stdf::VarDispatcher
                 {
                     [](const        char *varg){ return varg ? std::strlen(varg) : 0; },
                     [](const std::string &varg){ return varg.size()                 ; },
