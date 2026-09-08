@@ -309,6 +309,43 @@ namespace luaf
 
     namespace _details
     {
+        template<typename C> C _luaVarAsSequence(const luaVar &var)
+        {
+            const auto &arr = std::get<luaArray>(var);
+
+            C result;
+            for(const auto &elem: arr){
+                result.emplace_back(luaVarAs<typename C::value_type>(elem.get()));
+            }
+            return result;
+        }
+
+        template<typename M> M _luaVarAsMap(const luaVar &var)
+        {
+            M result;
+            if(const auto arr = std::get_if<luaArray>(std::addressof(var))){
+                for(size_t i = 0; const auto &elem: *arr){
+                    using KeyType = typename M::key_type;
+                    using ValType = typename M::mapped_type;
+
+                    if(!result.emplace(luaVarAs<KeyType>(luaVar(static_cast<lua_Integer>(++i))), luaVarAs<ValType>(elem.get())).second){
+                        throw std::runtime_error("luaVarAs<std::map>: duplicated key");
+                    }
+                }
+                return result;
+            }
+
+            const auto &table = std::get<luaTable>(var);
+            for(const auto &[key, value]: table){
+                using KeyType = typename M::key_type;
+                using ValType = typename M::mapped_type;
+                if(!result.emplace(luaVarAs<KeyType>(key.get()), luaVarAs<ValType>(value.get())).second){
+                    throw std::runtime_error("luaVarAs<std::map<...>>: duplicated key");
+                }
+            }
+            return result;
+        }
+
         template<> struct _luaVarAsImpl<lua_Integer>
         {
             static lua_Integer call(const luaVar &);
@@ -329,6 +366,38 @@ namespace luaf
             static std::string call(const luaVar &);
         };
 
+        template<typename T, typename... Args> struct _luaVarAsImpl<std::list<T, Args...>>
+        {
+            static std::list<T, Args...> call(const luaVar &var)
+            {
+                return _luaVarAsSequence<std::list<T, Args...>>(var);
+            }
+        };
+
+        template<typename T, typename... Args> struct _luaVarAsImpl<std::vector<T, Args...>>
+        {
+            static std::vector<T, Args...> call(const luaVar &var)
+            {
+                return _luaVarAsSequence<std::vector<T, Args...>>(var);
+            }
+        };
+
+        template<typename K, typename V, typename... Args> struct _luaVarAsImpl<std::map<K, V, Args...>>
+        {
+            static std::map<K, V, Args...> call(const luaVar &var)
+            {
+                return _luaVarAsMap<std::map<K, V, Args...>>(var);
+            }
+        };
+
+        template<typename K, typename V, typename... Args> struct _luaVarAsImpl<std::unordered_map<K, V, Args...>>
+        {
+            static std::unordered_map<K, V, Args...> call(const luaVar &var)
+            {
+                return _luaVarAsMap<std::unordered_map<K, V, Args...>>(var);
+            }
+        };
+
         template<typename... Ts> struct _luaVarAsImpl<std::tuple<Ts...>>
         {
             static std::tuple<Ts...> call(const luaVar &var)
@@ -337,7 +406,7 @@ namespace luaf
                 const auto &arr = std::get<luaArray>(var);
 
                 if(arr.size() != sizeof...(Ts)){
-                    throw std::runtime_error("luaVarAs<std::tuple<...>>: size mismatch");
+                    throw std::runtime_error("luaVarAs<std::tuple>: size mismatch");
                 }
 
                 return [&]<size_t... Is>(std::index_sequence<Is...>) -> TupleType
@@ -354,7 +423,7 @@ namespace luaf
             {
                 const auto &arr = std::get<luaArray>(var);
                 if(arr.size() != N){
-                    throw std::runtime_error("luaVarAs<std::array<...>>: size mismatch");
+                    throw std::runtime_error("luaVarAs<std::array>: size mismatch");
                 }
 
                 std::array<T, N> result;
