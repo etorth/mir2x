@@ -51,11 +51,11 @@ corof::awaitable<> NPChar::on_AM_NPCEVENT(const ActorMsgPack &mpk)
     // script event defines like text button pressed etc
 
     if(sdNPCE.mapUID != mapUID() || mathf::LDistance2(sdNPCE.x, sdNPCE.y, X(), Y()) >= SYS_MAXNPCDISTANCE * SYS_MAXNPCDISTANCE){
-        AMNPCError amNPCE;
-        std::memset(&amNPCE, 0, sizeof(amNPCE));
+        SMNPCError smNPCE;
+        std::memset(&smNPCE, 0, sizeof(smNPCE));
 
-        amNPCE.errorID = NPCE_TOOFAR;
-        m_actorPod->post(mpk.from(), {AM_NPCERROR, amNPCE});
+        smNPCE.error = NPCE_TOOFAR;
+        forwardNetPackage(mpk.from(), SM_NPCERROR, smNPCE);
 
         m_luaRunner->close(mpk.from());
         return {};

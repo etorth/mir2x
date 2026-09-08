@@ -1070,3 +1070,16 @@ void ProcessRun::on_SM_DIRECTTRADEERROR(const uint8_t *buf, size_t)
     }
     addCBLog(CBLOG_ERR, u8"%s", to_cstr(message));
 }
+
+void ProcessRun::on_SM_NPCERROR(const uint8_t *buf, size_t)
+{
+    const auto error = ServerMsg::conv<SMNPCError>(buf).error;
+    const char8_t *message = nullptr;
+
+    switch(error){
+        case NPCE_TOOFAR    : message = u8"距离过远，无法继续对话"; break;
+        case NPCE_BADEVENTID: message = u8"该对话选项已失效"; break;
+        default             : message = u8"NPC对话出错"; break;
+    }
+    addCBLog(CBLOG_ERR, u8"%s", to_cstr(message));
+}

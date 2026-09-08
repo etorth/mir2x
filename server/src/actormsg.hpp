@@ -126,7 +126,6 @@ enum ActorMsgPackType: int
     AM_MASTERKILL,
     AM_MASTERHITTED,
     AM_NPCEVENT,
-    AM_NPCERROR,
     AM_BUY,
     AM_BUYCOST,
     AM_BUYERROR,
@@ -273,7 +272,6 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_MASTERKILL)
         _add_mpk_type_case(AM_MASTERHITTED)
         _add_mpk_type_case(AM_NPCEVENT)
-        _add_mpk_type_case(AM_NPCERROR)
         _add_mpk_type_case(AM_BUY)
         _add_mpk_type_case(AM_BUYCOST)
         _add_mpk_type_case(AM_BUYERROR)
@@ -860,11 +858,6 @@ struct AMFriendType
 struct AMNameColor
 {
     int Color;
-};
-
-struct AMNPCError
-{
-    int errorID;
 };
 
 struct AMBuy

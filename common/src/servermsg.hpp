@@ -51,6 +51,7 @@ enum SMType: uint8_t
     SM_REMOVEGROUNDITEM,
     SM_NPCXMLLAYOUT,
     SM_NPCSELL,
+    SM_NPCERROR,
     SM_STARTINVOP,
     SM_STARTINPUT,
     SM_GOLD,
@@ -402,6 +403,11 @@ struct SMDirectTradeError
     uint8_t error;
 };
 
+struct SMNPCError
+{
+    uint8_t error;
+};
+
 struct SMPlayerSay
 {
     uint64_t uid;
@@ -490,6 +496,7 @@ namespace
         _RSVD_register_servermsg(SM_REMOVEGROUNDITEM,       1, sizeof(SMRemoveGroundItem)      );
         _RSVD_register_servermsg(SM_NPCXMLLAYOUT,           3                                  );
         _RSVD_register_servermsg(SM_NPCSELL,                3                                  );
+        _RSVD_register_servermsg(SM_NPCERROR,               1, sizeof(SMNPCError)              );
         _RSVD_register_servermsg(SM_STARTINVOP,             3                                  );
         _RSVD_register_servermsg(SM_STARTINPUT,             3                                  );
         _RSVD_register_servermsg(SM_GOLD,                   1, sizeof(SMGold)                  );
@@ -540,7 +547,7 @@ namespace
         _RSVD_register_servermsg(SM_REQUESTDIRECTTRADE,     1, sizeof(SMRequestDirectTrade)    );
         _RSVD_register_servermsg(SM_STARTDIRECTTRADE,       1, sizeof(SMStartDirectTrade)      );
         _RSVD_register_servermsg(SM_UPDATEDIRECTTRADE,      3                                  );
-        _RSVD_register_servermsg(SM_COMPLETEDIRECTTRADE,     1, sizeof(SMCompleteDirectTrade)   );
+        _RSVD_register_servermsg(SM_COMPLETEDIRECTTRADE,    1, sizeof(SMCompleteDirectTrade)   );
         _RSVD_register_servermsg(SM_CLOSEDIRECTTRADE,       1, sizeof(SMCloseDirectTrade)      );
         _RSVD_register_servermsg(SM_DIRECTTRADEERROR,       1, sizeof(SMDirectTradeError)      );
 

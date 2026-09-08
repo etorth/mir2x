@@ -223,6 +223,7 @@ class ProcessRun: public Process
         _support_sm(SM_ACTION);
         _support_sm(SM_OFFLINE);
         _support_sm(SM_NPCSELL);
+        _support_sm(SM_NPCERROR);
         _support_sm(SM_STARTGAMESCENE);
         _support_sm(SM_PLAYERCONFIG);
         _support_sm(SM_FRIENDLIST);
