@@ -372,12 +372,12 @@ std::ostream & operator << (std::ostream &os, const sol::protected_function_resu
     return os << str_any(luaf::pfrBuildLuaVarList(args));
 }
 
-std::ostream & operator << (std::ostream &os, const luaf::luaNil &)
+std::ostream & luaf::operator << (std::ostream &os, const luaNil &)
 {
     return os << "(luanil)";
 }
 
-std::ostream & operator << (std::ostream &os, const luaf::luaVarWrapper &wrapper)
+std::ostream & luaf::operator << (std::ostream &os, const luaVarWrapper &wrapper)
 {
     return os << str_any(luaf::luaVar(wrapper));
 }

@@ -158,6 +158,19 @@ namespace luaf
 
 namespace luaf
 {
+    std::ostream &operator << (std::ostream &, const luaNil &);
+    std::ostream &operator << (std::ostream &, const luaVarWrapper &);
+}
+
+std::ostream & operator << (std::ostream &, const sol::object &);
+std::ostream & operator << (std::ostream &, const sol::stack_proxy &);
+std::ostream & operator << (std::ostream &, const sol::variadic_args &);
+std::ostream & operator << (std::ostream &, const sol::protected_function_result &);
+
+#include "fflerror.hpp"
+
+namespace luaf
+{
     std::string quotedLuaString(const std::string &);
     std::string luaObjTypeString(const sol::object &);
 }
@@ -329,7 +342,7 @@ namespace luaf
                     using ValType = typename M::mapped_type;
 
                     if(!result.emplace(luaVarAs<KeyType>(luaVar(static_cast<lua_Integer>(++i))), luaVarAs<ValType>(elem.get())).second){
-                        throw std::runtime_error("luaVarAs<std::map>: duplicated key");
+                        throw fflerror("luaVarAs<std::map>: duplicated key");
                     }
                 }
                 return result;
@@ -340,7 +353,7 @@ namespace luaf
                 using KeyType = typename M::key_type;
                 using ValType = typename M::mapped_type;
                 if(!result.emplace(luaVarAs<KeyType>(key.get()), luaVarAs<ValType>(value.get())).second){
-                    throw std::runtime_error("luaVarAs<std::map<...>>: duplicated key");
+                    throw fflerror("luaVarAs<std::map>: duplicated key");
                 }
             }
             return result;
@@ -406,7 +419,7 @@ namespace luaf
                 const auto &arr = std::get<luaArray>(var);
 
                 if(arr.size() != sizeof...(Ts)){
-                    throw std::runtime_error("luaVarAs<std::tuple>: size mismatch");
+                    throw fflerror("luaVarAs<std::tuple>: size mismatch");
                 }
 
                 return [&]<size_t... Is>(std::index_sequence<Is...>) -> TupleType
@@ -423,7 +436,7 @@ namespace luaf
             {
                 const auto &arr = std::get<luaArray>(var);
                 if(arr.size() != N){
-                    throw std::runtime_error("luaVarAs<std::array>: size mismatch");
+                    throw fflerror("luaVarAs<std::array>: size mismatch");
                 }
 
                 std::array<T, N> result;
@@ -435,10 +448,3 @@ namespace luaf
         };
     }
 }
-
-std::ostream & operator << (std::ostream &, const sol::object &);
-std::ostream & operator << (std::ostream &, const sol::stack_proxy &);
-std::ostream & operator << (std::ostream &, const sol::variadic_args &);
-std::ostream & operator << (std::ostream &, const sol::protected_function_result &);
-std::ostream & operator << (std::ostream &, const luaf::luaNil &);
-std::ostream & operator << (std::ostream &, const luaf::luaVarWrapper &);
