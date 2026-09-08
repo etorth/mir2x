@@ -523,9 +523,19 @@ std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, cons
 std::pair<uint64_t, uint64_t> ServerLuaCoroutineRunner::spawn(uint64_t key, const sol::function &func, std::function<void(const sol::protected_function_result &)> onDone, std::function<void()> onClose)
 {
     fflassert(key);
+    fflassert(func);
+
+    // give the plain function the same scoped tls cleanup the string overload builds into its chunk
+    // the wrapper runs in the coroutine, so its <close> fires as soon as the coroutine returns or throws
+
+    const sol::function wrapper = getState()["_RSVD_NAME_luaCoroutineRunner_funcMain"];
+    fflassert(wrapper);
+
+    const sol::function wrappedFunc = wrapper(func);
+    fflassert(wrappedFunc);
 
     const auto currSeqID = m_seqID++;
-    const auto p = m_runnerList.emplace(std::piecewise_construct, std::forward_as_tuple(key), std::forward_as_tuple(*this, key, currSeqID, func, std::move(onDone), std::move(onClose)));
+    const auto p = m_runnerList.emplace(std::piecewise_construct, std::forward_as_tuple(key), std::forward_as_tuple(*this, key, currSeqID, wrappedFunc, std::move(onDone), std::move(onClose)));
 
     resumeRunner(std::addressof(p->second));
     return {key, currSeqID}; // don't use p resumeRunner() can invalidate p

@@ -175,7 +175,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                 , seqID(argSeqID)
                 , onDone(std::move(argOnDone))
                 , runner(sol::thread::create(argLuaModule.getState().lua_state()))
-                , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_main"])
+                , callback(sol::state_view(runner.state())["_RSVD_NAME_luaCoroutineRunner_codeMain"])
             {
                 fflassert(key);
                 fflassert(seqID);

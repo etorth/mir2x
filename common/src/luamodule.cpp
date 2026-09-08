@@ -25,7 +25,16 @@ LuaModule::LuaModule()
         local error = error
         local coroutine = coroutine
         local setmetatable = setmetatable
-        local _RSVD_NAME_G_threadSandBox = {}
+
+        -- maps a coroutine to its sandboxed globals
+        --
+        -- keys are weak because a coroutine that errors or gets abandoned while suspended never runs the __close below
+        -- so its entry would otherwise stay forever, and because the key is the coroutine itself a strong reference would also keep the dead coroutine alive and unreclaimable
+        --
+        -- with weak keys the collector drops both once nothing else refers to the coroutine
+        -- __close stays as the prompt path that frees the entry as soon as the coroutine finishes
+
+        local _RSVD_NAME_G_threadSandBox = setmetatable({}, {__mode = 'k'})
 
         function getTLSTable()
             local threadId, inMainThread = coroutine.running()
@@ -85,6 +94,11 @@ LuaModule::LuaModule()
 
     lua_rawgeti(m_luaState.lua_state(), LUA_REGISTRYINDEX, m_replaceEnv.registry_index());
     lua_rawseti(m_luaState.lua_state(), LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+
+    // the metatable only needs to be a global long enough for the line above to pick it up
+    // drop it now, so scripts can not reach the sandbox internals, m_replaceEnv still holds it
+
+    execString("_RSVD_NAME_replaceEnvMetaTable = nil");
 
     execString("LOGTYPE_INFO    = 0");
     execString("LOGTYPE_WARNING = 1");

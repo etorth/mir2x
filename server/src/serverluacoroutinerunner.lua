@@ -1,4 +1,4 @@
-function _RSVD_NAME_luaCoroutineRunner_main(code, args)
+function _RSVD_NAME_luaCoroutineRunner_codeMain(code, args)
     assertType(code, 'string')
     local func, err = load(code)
     if not func then
@@ -9,6 +9,19 @@ function _RSVD_NAME_luaCoroutineRunner_main(code, args)
         else
             return func(table.unpack(args, 1, args.n))
         end
+    end
+end
+
+-- wraps a function handed to runThread()
+-- so the thread local storage of its coroutine is released the moment the coroutine leaves this call
+-- which is what the string based spawn() gets for free from the do-block it generates around the script
+-- without the wrapper the entry only disappears once the collector reaches the dead coroutine
+
+function _RSVD_NAME_luaCoroutineRunner_funcMain(func)
+    assertType(func, 'function')
+    return function(...)
+        local _RSVD_NAME_autoClear <close> = autoClearTLSTable()
+        return func(...)
     end
 end
 
