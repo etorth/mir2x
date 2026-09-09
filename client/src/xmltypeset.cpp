@@ -1,4 +1,5 @@
 #include <cinttypes>
+#include <ranges>
 #include "log.hpp"
 #include "lalign.hpp"
 #include "totype.hpp"
@@ -49,53 +50,42 @@ int XMLTypeset::LineTargetWidth() const
     return MaxLineWidth() + m_initArgs.lineMargin[0] + m_initArgs.lineMargin[1];
 }
 
-// calculate line width without W1/W2
-// assume:
-//      tokens are in current line
-//      tokens have W initialized
-// return:
-//      total token width, plus word space optionally
-//      negative if error
-// this function is used before we padding all tokens, to estimate how many pixels we need for current line
-int XMLTypeset::LineRawWidth(int argLine, bool bWithWordSpace) const
+// calculate token width without W1/W2
+// do not use mutable W1/W2 here, retained tokens may still have justification padding
+std::array<int, 2> XMLTypeset::getTokenPadding(const TOKEN &token) const
 {
-    if(!lineValid(argLine)){
-        throw fflpanic("invalid line: {}", argLine);
-    }
-
-    switch(lineTokenCount(argLine)){
-        case 0:
+    int wordSpace = 0;
+    switch(lineAlign()){
+        case LALIGN_LEFT:
+        case LALIGN_RIGHT:
+        case LALIGN_CENTER:
+        case LALIGN_JUSTIFY:
             {
-                return 0;
+                wordSpace = m_initArgs.wordSpace;
+                break;
             }
-        case 1:
+        case LALIGN_DISTRIBUTED:
             {
-                return getToken(0, argLine)->box.info.w;
+                break;
             }
         default:
             {
-                // for more than one tokens
-                // we need to check word spacing
-
-                int nWidth = 0;
-                for(int nX = 0; nX < lineTokenCount(argLine); ++nX){
-                    nWidth += getToken(nX, argLine)->box.info.w;
-                    if(bWithWordSpace){
-                        nWidth += GetTokenWordSpace(nX, argLine);
-                    }
-                }
-
-                if(bWithWordSpace){
-                    int nWordSpaceFirst = GetTokenWordSpace(0, argLine);
-                    int nWordSpaceLast  = GetTokenWordSpace(lineTokenCount(argLine) - 1, argLine);
-
-                    nWidth -= (nWordSpaceFirst / 2);
-                    nWidth -= (nWordSpaceLast - nWordSpaceLast / 2);
-                }
-
-                return nWidth;
+                throw fflpanic("invalid line align: {}", lineAlign());
             }
     }
+
+    int left = 0;
+    int right = 0;
+
+    if(m_paragraph->leaf(token.leaf).type() == LEAF_UTF8STR){
+        const auto key     = token.utf8char.key;
+        const auto keyXfer = u64KeyXfer(token.utf8char.key);
+
+        if(!g_fontexDB->retrieve(keyXfer, &left, &right)){
+            throw fflpanic("failed to retrieve UTF8 texture: key {:016X}, keyXfer", key, keyXfer);
+        }
+    }
+    return {left + wordSpace / 2, right + (wordSpace + 1) / 2};
 }
 
 bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLine)
@@ -113,26 +103,26 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
         return true;
     }
 
-    // if we have a defined width but too small
-    // need to accept but give warnings
+    // measure the combined line with the same internal padding as resetOneLine().
+    // edge margins are excluded from lineWidth, replacing the first W1 and last W2.
 
-    const auto rawExtraWidth = [&tokenLine]() -> int
-    {
-        int result = 0;
-        for(const auto &token: tokenLine){
-            result += token.box.info.w;
-        }
-        return result;
-    }();
+    const int tokenCount = lineTokenCount(argLine) + to_d(tokenLine.size());
+    int tokenIndex = 0;
+    int rawWidth = 0;
 
-    if((lineTokenCount(argLine) == 0) && (m_initArgs.lineWidth < to_d(rawExtraWidth + (tokenLine.size() - 1) * m_initArgs.wordSpace))){
-        g_mir2xLog->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_initArgs.lineWidth);
-        m_lineList[argLine].content.insert(m_lineList[argLine].content.end(), tokenLine.begin(), tokenLine.end());
-        return true;
+    for(const auto &token: std::views::concat(m_lineList[argLine].content, tokenLine)){
+        const auto [w1, w2] = getTokenPadding(token);
+        rawWidth += token.box.info.w;
+        rawWidth += (tokenIndex     == 0         ) ? 0 : w1;
+        rawWidth += (tokenIndex + 1 == tokenCount) ? 0 : w2;
+        tokenIndex++;
     }
 
-    if(m_initArgs.lineWidth < LineRawWidth(argLine, false) + rawExtraWidth + to_d(lineTokenCount(argLine) + tokenLine.size() - 1) * m_initArgs.wordSpace){
-        return false;
+    if(rawWidth > m_initArgs.lineWidth){
+        if(lineTokenCount(argLine) > 0){
+            return false;
+        }
+        g_mir2xLog->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_initArgs.lineWidth);
     }
 
     m_lineList[argLine].content.insert(m_lineList[argLine].content.end(), tokenLine.begin(), tokenLine.end());
@@ -183,14 +173,11 @@ void XMLTypeset::LineJustifyPadding(int argLine)
         throw fflpanic("do line justify-padding while board is configured as infinite single line mode");
     }
 
-    // we allow to exceeds the line limitation..
-    // when there is a huge token inderted to current line, but only for this exception
-
-    if((LineRawWidth(argLine, true) > MaxLineWidth()) && (lineTokenCount(argLine) > 1)){
-        throw fflpanic("line raw width exceeds the fixed max line width: {}", MaxLineWidth());
+    const int targetWidth = LineTargetWidth();
+    if(LineFullWidth(argLine) >= targetWidth){
+        return; // An oversized unbreakable leaf was already reported by addRawTokenLine().
     }
 
-    const int targetWidth = LineTargetWidth();
     const auto fnLeafPadding = [this, y = argLine, targetWidth](const auto &fnCheckToken) -> int
     {
         while(LineFullWidth(y) < targetWidth){
@@ -294,52 +281,12 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
     // some tokens may have non-zero W1/W2 when reach here
     // need to reset them all
 
-    const auto wordSpace = [this]() -> std::array<int, 2>
-    {
-        switch(lineAlign()){
-            case LALIGN_LEFT:
-            case LALIGN_JUSTIFY:
-            case LALIGN_RIGHT:
-            case LALIGN_CENTER:
-                {
-                    return
-                    {
-                        (m_initArgs.wordSpace + 0) / 2,
-                        (m_initArgs.wordSpace + 1) / 2,
-                    };
-                }
-            case LALIGN_DISTRIBUTED:
-                {
-                    return {0, 0};
-                }
-            default:
-                {
-                    throw fflpanic("invalid line align: {}", lineAlign());
-                }
-        }
-    }();
-
     for(int i = 0, tokenCnt = lineTokenCount(argLine); i < tokenCnt; ++i){
-        int left = 0;
-        int right = 0;
-
         auto tkp = getToken(i, argLine);
-        fflassert(tkp);
+        const auto [w1, w2] = getTokenPadding(*tkp);
 
-        switch(m_paragraph->leaf(tkp->leaf).type()){
-            case LEAF_UTF8STR:
-                {
-                    g_fontexDB->retrieve(u64KeyXfer(tkp->utf8char.key), &left, &right);
-                    break;
-                }
-            default:
-                {
-                    break;
-                }
-        }
-
-        tkp->box.state.w1 = (i     == 0       ) ? to_i16(m_initArgs.lineMargin[0]) : (left  + wordSpace[0]);
-        tkp->box.state.w2 = (i + 1 == tokenCnt) ? to_i16(m_initArgs.lineMargin[1]) : (right + wordSpace[1]);
+        tkp->box.state.w1 = to_i16((i     == 0       ) ? m_initArgs.lineMargin[0] : w1);
+        tkp->box.state.w2 = to_i16((i + 1 == tokenCnt) ? m_initArgs.lineMargin[1] : w2);
     }
 
     switch(lineAlign()){
@@ -1493,14 +1440,6 @@ std::string XMLTypeset::getText() const
         }
     }
     return plainString;
-}
-
-int XMLTypeset::GetTokenWordSpace(int nX, int nY) const
-{
-    if(!tokenLocValid(nX, nY)){
-        throw fflpanic("invalid token location: ({}, {})", nX, nY);
-    }
-    return m_initArgs.wordSpace;
 }
 
 int XMLTypeset::lineReachMaxX(int argLine, bool strict) const

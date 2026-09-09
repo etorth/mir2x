@@ -364,7 +364,7 @@ class XMLTypeset // means XMLParagraph typeset
         void setLineTokenStartY(int);
 
     private:
-        int LineRawWidth(int, bool) const;
+        std::array<int, 2> getTokenPadding(const TOKEN &) const;
 
     private:
         int LineFullWidth(int) const;
@@ -406,9 +406,6 @@ class XMLTypeset // means XMLParagraph typeset
 
             return self.getLineBackToken(self.lineCount() - 1);
         }
-
-    private:
-        int GetTokenWordSpace(int, int) const;
 
     private:
         bool AppendToken(int, const TOKEN &);
