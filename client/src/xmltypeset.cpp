@@ -252,6 +252,13 @@ void XMLTypeset::LinePadding(int argLine)
     g_mir2xLog->addLog(LOGTYPE_WARNING, "can't do justify padding to width: %d", MaxLineWidth());
 }
 
+// build one line, after this call the built line is fully-ready
+// assume:
+//      1. all tokens are already put into the line (may overflow if allowExtend is true)
+//      2. all tokens have Box.W ready
+//      3. all lines above this line are fully-ready
+// output:
+//      line resets to fully-ready
 void XMLTypeset::resetOneLine(int argLine, bool crEnd)
 {
     if(!lineValid(argLine)){
@@ -306,12 +313,29 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
         case LALIGN_RIGHT:
         case LALIGN_CENTER:
             {
+                // when we call resetOneLine
+                // all previous line are already built, so can use calculated X-offset to determine the fullWidth
+
+                auto fnLineFullWidth = [argLine, this](int line)
+                {
+                    if(line < argLine){
+                        return lineReachMaxX(line, false) - lineReachMinX(line, false) + 1;
+                    }
+                    return LineFullWidth(line);
+                };
+
+                bool needShift = false;
                 for(int line = 0; line <= argLine; ++line){
-                    fullWidth = std::max<int>(fullWidth, LineFullWidth(line));
+                    if(const auto currWidth = fnLineFullWidth(line); fullWidth < currWidth){
+                        needShift = true;
+                        fullWidth = currWidth;
+                    }
                 }
 
-                for(int line = 0; line < argLine; ++line){
-                    setLineTokenStartX(line, fullWidth);
+                if(needShift){
+                    for(int line = 0; line < argLine; ++line){
+                        setLineTokenStartX(line, fullWidth);
+                    }
                 }
                 break;
             }
