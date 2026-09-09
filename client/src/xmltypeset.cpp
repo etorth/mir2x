@@ -315,6 +315,19 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
             {
                 // when we call resetOneLine
                 // all previous line are already built, so can use calculated X-offset to determine the fullWidth
+                //
+                // BUG (fixed): the previous version only repositioned lines above when fullWidth
+                // grew during this scan (tracked via a "needShift" flag). But fullWidth can also
+                // shrink relative to what earlier lines were positioned with, e.g. when an overwide
+                // line (that previously forced everything wider) gets deleted and buildTypeset()
+                // only calls resetOneLine() for the new last line: every remaining line's own
+                // natural width is <= LineTargetWidth(), so fullWidth never "grows" during the scan
+                // and needShift stayed false, leaving those lines' tokens at their stale, too-wide
+                // offsets from the old (now gone) overwide line. fullWidth must be compared against
+                // what is actually baked into every prior line, not just tracked as a monotonic max
+                // seen so far, so lines above always need repositioning whenever fullWidth is not
+                // exactly what they were last positioned with. Since we cannot cheaply recover "what
+                // they were last positioned with" without re-deriving it, we always reposition below.
 
                 auto fnLineFullWidth = [argLine, this](int line)
                 {
@@ -324,18 +337,12 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
                     return LineFullWidth(line);
                 };
 
-                bool needShift = false;
                 for(int line = 0; line <= argLine; ++line){
-                    if(const auto currWidth = fnLineFullWidth(line); fullWidth < currWidth){
-                        needShift = true;
-                        fullWidth = currWidth;
-                    }
+                    fullWidth = std::max<int>(fullWidth, fnLineFullWidth(line));
                 }
 
-                if(needShift){
-                    for(int line = 0; line < argLine; ++line){
-                        setLineTokenStartX(line, fullWidth);
-                    }
+                for(int line = 0; line < argLine; ++line){
+                    setLineTokenStartX(line, fullWidth);
                 }
                 break;
             }
