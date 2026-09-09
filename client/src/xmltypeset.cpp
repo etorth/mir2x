@@ -19,7 +19,7 @@ extern EmojiDB *g_emojiDB;
 extern ClientArgParser *g_clientArgParser;
 
 XMLTypeset::XMLTypeset(XMLTypeset::InitArgs args)
-    : m_initArgs(std::move(args))
+    : m_initArgs(args) // GCC-16 bugs when moving struct with const member vars
     , m_paragraph(std::make_unique<XMLParagraph>())
 {
     fflassert(m_initArgs.lineMargin[0] >= 0, m_initArgs.lineMargin);
@@ -105,7 +105,14 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
         if(lineTokenCount(argLine) > 0){
             return false;
         }
-        g_mir2xLog->addLog(LOGTYPE_WARNING, "XMLTypeset width is too small to hold the token line: lineWidth = %d", m_initArgs.lineWidth);
+
+        const auto errstr = std::format("XMLTypeset width is too small to hold the token line: lineWidth {}, rawWidth {}", m_initArgs.lineWidth, rawWidth);
+        if(m_initArgs.allowExtend){
+            g_mir2xLog->addLog(LOGTYPE_WARNING, "%s", to_rawcstr(errstr));
+        }
+        else{
+            throw fflerror("%s", to_rawcstr(errstr));
+        }
     }
 
     m_lineList[argLine].content.insert(m_lineList[argLine].content.end(), tokenLine.begin(), tokenLine.end());
@@ -281,7 +288,40 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
             }
     }
 
-    setLineTokenStartX(argLine, LineTargetWidth());
+    // see addRawTokenLine()/InitArgs::allowExtend
+    // an unbreakable leaf/huge token wider than lineWidth can force this line to extend beyond LineTargetWidth()
+    //
+    // LALIGN_RIGHT / LALIGN_CENTER:
+    // if this line ends up wider than every line built so far (including LineTargetWidth())
+    // all lines above need their X-offset shifted to the new fullWidth *before* this line's startY is computed
+    // since startY may look at the (n - 1)-th line's token X
+    //
+    // LALIGN_JUSTIFY / LALIGN_DISTRIBUTED:
+    // intentionally left as-is, keep using LineTargetWidth()
+    // even if this line overflows: lines above are not touched and this line's startY is set up as if the width limit was not broken
+    // it may look ugly, but avoids rebuilding everything above
+
+    int fullWidth = LineTargetWidth();
+    switch(lineAlign()){
+        case LALIGN_RIGHT:
+        case LALIGN_CENTER:
+            {
+                for(int line = 0; line <= argLine; ++line){
+                    fullWidth = std::max<int>(fullWidth, LineFullWidth(line));
+                }
+
+                for(int line = 0; line < argLine; ++line){
+                    setLineTokenStartX(line, fullWidth);
+                }
+                break;
+            }
+        default:
+            {
+                break;
+            }
+    }
+
+    setLineTokenStartX(argLine, fullWidth);
     setLineTokenStartY(argLine);
 }
 
@@ -850,32 +890,9 @@ void XMLTypeset::resetBoardPixelRegion()
         return;
     }
 
-    if(const int align = lineAlign();
-
-            align == LALIGN_RIGHT  ||
-            align == LALIGN_CENTER ||
-            align == LALIGN_DISTRIBUTED){
-
-        int fullWidth = LineTargetWidth();
-        for(int line = 0; line < lineCount(); ++line){
-            fullWidth = std::max<int>(fullWidth, LineFullWidth(line));
-        }
-
-        // re-anchor retained lines as well
-        // an unbreakable leaf can widen the board
-
-        bool resetY = false;
-        for(int line = 0; line < lineCount(); ++line){
-            const int oldX = getToken(0, line)->box.state.x;
-            setLineTokenStartX(line, fullWidth);
-            resetY |= (getToken(0, line)->box.state.x != oldX);
-
-            // horizontal movement can change overlap with the preceding line
-            if(resetY){
-                setLineTokenStartY(line);
-            }
-        }
-    }
+    // this function must not reposition any token
+    // it only measures the pixel region from tokens that are already fully arranged
+    // means all tokens has been positioned by resetOneLine()/setLineTokenStartX()/ setLineTokenStartY()
 
     int maxPX = 0;
     int maxPY = 0;

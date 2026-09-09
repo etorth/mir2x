@@ -24,7 +24,9 @@ class XMLTypeset // means XMLParagraph typeset
 
             const int  lineAlign  = LALIGN_LEFT;
             const bool canThrough = true;
+
             const bool compactLine = false;
+            const bool allowExtend = true; // allow to extend beyond lineWidth
 
             Widget::FontConfig font
             {
@@ -455,21 +457,7 @@ class XMLTypeset // means XMLParagraph typeset
 
         int fw() const
         {
-            // preserve the full alignment frame
-            // including unused space and empty paragraphs
-
-            switch(lineAlign()){
-                case LALIGN_RIGHT:
-                case LALIGN_CENTER:
-                case LALIGN_DISTRIBUTED:
-                    {
-                        return std::max<int>(m_fw, LineTargetWidth());
-                    }
-                default:
-                    {
-                        return m_fw;
-                    }
-            }
+            return m_fw;
         }
 
         int fh() const
