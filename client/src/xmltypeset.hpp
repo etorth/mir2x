@@ -360,11 +360,11 @@ class XMLTypeset // means XMLParagraph typeset
         bool addRawTokenLine(int, const std::vector<TOKEN> &);
 
     private:
-        void setLineTokenStartX(int);
+        void setLineTokenStartX(int, int);
         void setLineTokenStartY(int);
 
     private:
-        std::array<int, 2> getTokenPadding(const TOKEN &) const;
+        std::array<int, 2> getTokenNaturalPadding(const TOKEN &) const;
 
     private:
         int LineFullWidth(int) const;
@@ -455,7 +455,21 @@ class XMLTypeset // means XMLParagraph typeset
 
         int fw() const
         {
-            return m_fw;
+            // preserve the full alignment frame
+            // including unused space and empty paragraphs
+
+            switch(lineAlign()){
+                case LALIGN_RIGHT:
+                case LALIGN_CENTER:
+                case LALIGN_DISTRIBUTED:
+                    {
+                        return std::max<int>(m_fw, LineTargetWidth());
+                    }
+                default:
+                    {
+                        return m_fw;
+                    }
+            }
         }
 
         int fh() const
@@ -465,10 +479,6 @@ class XMLTypeset // means XMLParagraph typeset
 
     public:
         int LineMaxHk(int, int, bool) const;
-
-    private:
-        void LineJustifyPadding(int);
-        void LineDistributedPadding(int);
 
     public:
         int lineAlign() const;

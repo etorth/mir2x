@@ -50,30 +50,8 @@ int XMLTypeset::LineTargetWidth() const
     return MaxLineWidth() + m_initArgs.lineMargin[0] + m_initArgs.lineMargin[1];
 }
 
-// calculate token width without W1/W2
-// do not use mutable W1/W2 here, retained tokens may still have justification padding
-std::array<int, 2> XMLTypeset::getTokenPadding(const TOKEN &token) const
+std::array<int, 2> XMLTypeset::getTokenNaturalPadding(const TOKEN &token) const
 {
-    int wordSpace = 0;
-    switch(lineAlign()){
-        case LALIGN_LEFT:
-        case LALIGN_RIGHT:
-        case LALIGN_CENTER:
-        case LALIGN_JUSTIFY:
-            {
-                wordSpace = m_initArgs.wordSpace;
-                break;
-            }
-        case LALIGN_DISTRIBUTED:
-            {
-                break;
-            }
-        default:
-            {
-                throw fflpanic("invalid line align: {}", lineAlign());
-            }
-    }
-
     int left = 0;
     int right = 0;
 
@@ -85,7 +63,12 @@ std::array<int, 2> XMLTypeset::getTokenPadding(const TOKEN &token) const
             throw fflpanic("failed to retrieve UTF8 texture: key {:016X}, keyXfer", key, keyXfer);
         }
     }
-    return {left + wordSpace / 2, right + (wordSpace + 1) / 2};
+
+    return
+    {
+        left  + (m_initArgs.wordSpace + 0) / 2,
+        right + (m_initArgs.wordSpace + 1) / 2,
+    };
 }
 
 bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLine)
@@ -111,7 +94,7 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
     int rawWidth = 0;
 
     for(const auto &token: std::views::concat(m_lineList[argLine].content, tokenLine)){
-        const auto [w1, w2] = getTokenPadding(token);
+        const auto [w1, w2] = getTokenNaturalPadding(token);
         rawWidth += token.box.info.w;
         rawWidth += (tokenIndex     == 0         ) ? 0 : w1;
         rawWidth += (tokenIndex + 1 == tokenCount) ? 0 : w2;
@@ -129,29 +112,19 @@ bool XMLTypeset::addRawTokenLine(int argLine, const std::vector<TOKEN> &tokenLin
     return true;
 }
 
+// do padding for current line
+// expand internal W1/W2 without changing the first W1 or last W2 margins
+// assume:
+//      1. alreayd put all tokens into current line
+//      2. token has Box.W ready
 void XMLTypeset::LinePadding(int argLine)
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
     }
-}
 
-void XMLTypeset::LineDistributedPadding(int)
-{
-}
-
-// do justify padding for current line
-// assume:
-//      1. alreayd put all tokens into current line
-//      2. token has Box.W ready
-void XMLTypeset::LineJustifyPadding(int argLine)
-{
-    if(!lineValid(argLine)){
-        throw fflpanic("invalid line: {}", argLine);
-    }
-
-    if(lineAlign() != LALIGN_JUSTIFY){
-        throw fflpanic("do line justify-padding while board align is configured as: {}", lineAlign());
+    if(lineAlign() != LALIGN_JUSTIFY && lineAlign() != LALIGN_DISTRIBUTED){
+        throw fflpanic("do line padding while board align is configured as: {}", lineAlign());
     }
 
     switch(lineTokenCount(argLine)){
@@ -283,7 +256,7 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
 
     for(int i = 0, tokenCnt = lineTokenCount(argLine); i < tokenCnt; ++i){
         auto tkp = getToken(i, argLine);
-        const auto [w1, w2] = getTokenPadding(*tkp);
+        const auto [w1, w2] = getTokenNaturalPadding(*tkp);
 
         tkp->box.state.w1 = to_i16((i     == 0       ) ? m_initArgs.lineMargin[0] : w1);
         tkp->box.state.w2 = to_i16((i + 1 == tokenCnt) ? m_initArgs.lineMargin[1] : w2);
@@ -293,13 +266,13 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
         case LALIGN_JUSTIFY:
             {
                 if(!crEnd){
-                    LineJustifyPadding(argLine);
+                    LinePadding(argLine);
                 }
                 break;
             }
         case LALIGN_DISTRIBUTED:
             {
-                LineDistributedPadding(argLine);
+                LinePadding(argLine);
                 break;
             }
         default:
@@ -308,11 +281,11 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
             }
     }
 
-    setLineTokenStartX(argLine);
+    setLineTokenStartX(argLine, LineTargetWidth());
     setLineTokenStartY(argLine);
 }
 
-void XMLTypeset::setLineTokenStartX(int argLine)
+void XMLTypeset::setLineTokenStartX(int argLine, int fullWidth)
 {
     if(!lineValid(argLine)){
         throw fflpanic("invalid line: {}", argLine);
@@ -322,12 +295,19 @@ void XMLTypeset::setLineTokenStartX(int argLine)
     switch(lineAlign()){
         case LALIGN_RIGHT:
             {
-                nLineStartX = std::max<int>(0, LineTargetWidth() - LineFullWidth(argLine));
+                nLineStartX = std::max<int>(0, fullWidth - LineFullWidth(argLine));
                 break;
             }
         case LALIGN_CENTER:
             {
-                nLineStartX = std::max<int>(0, (LineTargetWidth() - LineFullWidth(argLine)) / 2);
+                nLineStartX = std::max<int>(0, (fullWidth - LineFullWidth(argLine)) / 2);
+                break;
+            }
+        case LALIGN_DISTRIBUTED:
+            {
+                if(lineTokenCount(argLine) == 1){
+                    nLineStartX = std::max<int>(0, (fullWidth - LineFullWidth(argLine)) / 2);
+                }
                 break;
             }
     }
@@ -868,6 +848,33 @@ void XMLTypeset::resetBoardPixelRegion()
         m_fw = 0;
         m_fh = 0;
         return;
+    }
+
+    if(const int align = lineAlign();
+
+            align == LALIGN_RIGHT  ||
+            align == LALIGN_CENTER ||
+            align == LALIGN_DISTRIBUTED){
+
+        int fullWidth = LineTargetWidth();
+        for(int line = 0; line < lineCount(); ++line){
+            fullWidth = std::max<int>(fullWidth, LineFullWidth(line));
+        }
+
+        // re-anchor retained lines as well
+        // an unbreakable leaf can widen the board
+
+        bool resetY = false;
+        for(int line = 0; line < lineCount(); ++line){
+            const int oldX = getToken(0, line)->box.state.x;
+            setLineTokenStartX(line, fullWidth);
+            resetY |= (getToken(0, line)->box.state.x != oldX);
+
+            // horizontal movement can change overlap with the preceding line
+            if(resetY){
+                setLineTokenStartY(line);
+            }
+        }
     }
 
     int maxPX = 0;
