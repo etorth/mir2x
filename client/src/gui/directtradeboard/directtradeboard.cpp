@@ -234,8 +234,8 @@ DirectTradeBoard::DirectTradeBoard(DirectTradeBoard::InitArgs args)
 
           .texIDFunc = [this](int state) -> std::optional<uint32_t>
           {
-              if(m_locked) return (state == BEVENT_DOWN) ? 0X00000191 : 0X00000190;
-              else         return (state == BEVENT_DOWN) ? 0X000000B6 : 0X000000B5;
+              if(m_locked) return std::array{0X00000190, 0X00000190, 0X00000191}[state];
+              else         return std::array{0X000000B5, 0X000000B5, 0X000000B6}[state];
           },
 
           .onTrigger = [this](Widget *, int)

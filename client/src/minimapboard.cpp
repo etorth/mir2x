@@ -118,8 +118,6 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
                   .textFunc = [this]{ return str_printf("%d%%", to_dround(m_zoomFactor * 100)); },
                   .font
                   {
-                      .id = 1,
-                      .size = 12,
                       .color = colorf::YELLOW_A255,
                   },
               }},
@@ -141,11 +139,10 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
 
     , m_buttonAlpha
       {{
-          .texIDList
+          .texIDFunc = [this](int state) -> std::optional<uint32_t>
           {
-              .off  = 0X09000010,
-              .on   = 0X09000010,
-              .down = 0X09000010,
+              if(m_alphaOn) return std::array{0X09000011, 0X09000011, 0X09000011}[state];
+              else          return std::array{0X09000010, 0X09000010, 0X09000010}[state];
           },
 
           .onTrigger = [this](Widget *, int)
@@ -155,23 +152,15 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
               }
 
               flipAlpha();
-
-              if(m_alphaOn){
-                  m_buttonAlpha.setTexIDList({0X09000011, 0X09000011, 0X09000011});
-              }
-              else{
-                  m_buttonAlpha.setTexIDList({0X09000010, 0X09000010, 0X09000010});
-              }
           },
       }}
 
     , m_buttonExtend
       {{
-          .texIDList
+          .texIDFunc = [this](int state) -> std::optional<uint32_t>
           {
-              .off  = 0X09000020,
-              .on   = 0X09000020,
-              .down = 0X09000020,
+              if(m_extended) return std::array{0X09000021, 0X09000021, 0X09000021}[state];
+              else           return std::array{0X09000020, 0X09000020, 0X09000020}[state];
           },
 
           .onTrigger = [this](Widget *, int)
@@ -181,23 +170,15 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
               }
 
               flipExtended();
-
-              if(m_extended){
-                  m_buttonExtend.setTexIDList({0X09000021, 0X09000021, 0X09000021});
-              }
-              else{
-                  m_buttonExtend.setTexIDList({0X09000020, 0X09000020, 0X09000020});
-              }
           },
       }}
 
     , m_buttonAutoCenter
       {{
-          .texIDList
+          .texIDFunc = [this](int state) -> std::optional<uint32_t>
           {
-              .off  = 0X09000030,
-              .on   = 0X09000030,
-              .down = 0X09000030,
+              if(m_autoCenter) return std::array{0X09000031, 0X09000031, 0X09000031}[state];
+              else             return std::array{0X09000030, 0X09000030, 0X09000030}[state];
           },
 
           .onTrigger = [this](Widget *, int)
@@ -207,37 +188,15 @@ MiniMapBoard::MiniMapBoard(MiniMapBoard::InitArgs args)
               }
 
               flipAutoCenter();
-
-              if(m_autoCenter){
-                  m_buttonAutoCenter.setTexIDList({0X09000031, 0X09000031, 0X09000031});
-              }
-              else{
-                  m_buttonAutoCenter.setTexIDList({0X09000030, 0X09000030, 0X09000030});
-              }
           },
       }}
 
     , m_buttonConfig
       {{
-          .texIDList
+          .texIDFunc = [this](int state) -> std::optional<uint32_t>
           {
-              .off  = 0X09000040,
-              .on   = 0X09000040,
-              .down = 0X09000040,
-          },
-
-          .onTrigger = [this](Widget *, int)
-          {
-              if(!getMiniMapTexture()){
-                  return;
-              }
-
-              if(m_autoCenter){
-                  m_buttonConfig.setTexIDList({0X09000041, 0X09000041, 0X09000041});
-              }
-              else{
-                  m_buttonConfig.setTexIDList({0X09000040, 0X09000040, 0X09000040});
-              }
+              if(m_autoCenter) return std::array{0X09000041, 0X09000041, 0X09000041}[state];
+              else             return std::array{0X09000040, 0X09000040, 0X09000040}[state];
           },
       }}
 
@@ -340,6 +299,23 @@ bool MiniMapBoard::processEventDefault(const SDL_Event &event, bool valid, Widge
     }
 
     switch(event.type){
+        case SDL_EVENT_KEY_DOWN:
+            {
+                switch(event.key.key){
+                    case SDLK_ESCAPE:
+                        {
+                            if(m_extended){
+                                flipExtended();
+                                return true;
+                            }
+                            return false;
+                        }
+                    default:
+                        {
+                            return consumeFocus(false);
+                        }
+                }
+            }
         case SDL_EVENT_MOUSE_BUTTON_UP:
             {
                 if(event.button.button == SDL_BUTTON_LEFT){
@@ -491,8 +467,6 @@ void MiniMapBoard::drawCanvas(int drawDstX, int drawDstY)
                 .textFunc = str_printf("[%d,%d]", onMapGX, onMapGY),
                 .font
                 {
-                    .id = 1,
-                    .size = 12,
                     .color = colorf::YELLOW_A255,
                 },
             }};
