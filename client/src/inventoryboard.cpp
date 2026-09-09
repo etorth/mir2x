@@ -1,3 +1,4 @@
+#include <array>
 #include "luaf.hpp"
 #include "pngtexdb.hpp"
 #include "sdldevice.hpp"
@@ -88,11 +89,14 @@ InventoryBoard::InventoryBoard(InventoryBoard::InitArgs args)
           .x = m_invOpButtonX + 3,
           .y = m_invOpButtonY + 3,
 
-          .texIDList
+          .texIDFunc = [this](int state) -> std::optional<uint32_t>
           {
-              .off  = 0X000000B3, // use trade gfx, needs it to setup widget size
-              .on   = 0X000000B3,
-              .down = 0X000000B4,
+              switch(m_sdInvOp.invOp){
+                  case INVOP_TRADE : return std::array{0X000000B3, 0X000000B3, 0X000000B4}[state];
+                  case INVOP_SECURE: return std::array{0X000000B5, 0X000000B5, 0X000000B6}[state];
+                  case INVOP_REPAIR: return std::array{0X000000B1, 0X000000B1, 0X000000B2}[state];
+                  default          : return std::array{0X000000B3, 0X000000B3, 0X000000B4}[state]; // use trade gfx, needs it to setup widget size
+              }
           },
 
           .onTrigger = [this](Widget *, int)
@@ -602,12 +606,6 @@ void InventoryBoard::clearInvOp()
 void InventoryBoard::startInvOp(SDStartInvOp sdSIOP)
 {
     m_sdInvOp = std::move(sdSIOP);
-    switch(m_sdInvOp.invOp){
-        case INVOP_TRADE : m_invOpButton.setTexIDList({0X000000B3, 0X000000B3, 0X000000B4}); return;
-        case INVOP_SECURE: m_invOpButton.setTexIDList({0X000000B5, 0X000000B5, 0X000000B6}); return;
-        case INVOP_REPAIR: m_invOpButton.setTexIDList({0X000000B1, 0X000000B1, 0X000000B2}); return;
-        default: throw fflreach();
-    }
 }
 
 void InventoryBoard::setInvOpCost(int mode, uint32_t itemID, uint32_t seqID, size_t cost)
