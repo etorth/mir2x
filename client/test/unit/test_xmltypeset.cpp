@@ -21,8 +21,9 @@
 // exit code is 0 iff every case below passes; on failure the offending case (and its full
 // InitArgs/xml) is printed to stderr before the process exits non-zero. stdout is kept
 // deterministic (see the std::cout suppression around Log's construction in main(), below)
-// so cmake/run_test.py can diff it against xmltypeset_test.log.gold.
+// so cmake/run_test.py can diff it against test_xmltypeset.log.gold.
 
+#include <array>
 #include <cstdio>
 #include <memory>
 #include <sstream>
@@ -359,7 +360,12 @@ namespace
                     "<par><event id=\"a\" wrap=\"false\">one</event><event id=\"b\" wrap=\"false\">two</event> more words to wrap</par>"}){
                 check(edge, xml);
             }
-            check(edge, "<par><event id=\"wide\" wrap=\"false\">ABCDEFGHIJKLMNOPQRSTUVWXYZ</event> tail</par>", true);
+            for(const char *xml: {
+                    "<par><event id=\"wide\" wrap=\"false\">ABCDEFGHIJKLMNOPQRSTUVWXYZ</event> tail</par>",
+                    "<par><event id=\"wide\" wrap=\"false\">ABCDEFGHIJKLMNOPQRSTUVWXYZ</event>A</par>",
+                    "<par><event id=\"wide\" wrap=\"false\">ABCDEFGHIJKLMNOPQRSTUVWXYZ</event><emoji id=\"0\"/></par>"}){
+                check(edge, xml, true);
+            }
 
             XMLTypeset empty(edge);
             require(empty.fw() == 0, "wrong initial empty width");
@@ -407,6 +413,69 @@ namespace
             check(edge, "<par>AB</par>");
             edge.lineWidth = 0;
             check(edge, capture);
+        }
+
+        // A one-pixel frame change can move one centered line but leave another unchanged.
+        // Derive opposite-parity widths from real glyphs rather than fixing font metrics.
+        XMLTypeset measure({.font = Widget::FontConfig{}});
+        const std::string wideText(30, 'A');
+        measure.loadXML(("<par>" + wideText + "</par>").c_str());
+        const int extendedWidth = measure.fw();
+        const int targetWidth = extendedWidth - 1;
+        std::array<std::string, 2> parityText;
+        for(const char suffix: std::string("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789")){
+            const std::string text = std::string(20, 'A') + suffix;
+            measure.loadXML(("<par>" + text + "</par>").c_str());
+            parityText[measure.fw() % 2] = text;
+            if(!parityText[0].empty() && !parityText[1].empty()){
+                break;
+            }
+        }
+        require(!parityText[0].empty() && !parityText[1].empty(), "missing opposite-parity width fixtures");
+        const auto &sameParity = parityText[targetWidth % 2];
+        const auto &otherParity = parityText[extendedWidth % 2];
+        const std::string upperXML =
+            "<par><event id=\"first\" wrap=\"false\">" + sameParity + "</event>"
+            "<event id=\"second\" wrap=\"false\">" + otherParity + "</event>"
+            "<event id=\"third\" wrap=\"false\">" + sameParity + "</event></par>";
+        const std::string wideXML = "<par><event id=\"wide\" wrap=\"false\">" + wideText + "</event></par>";
+
+        for(const int align: {LALIGN_RIGHT, LALIGN_CENTER}){
+            XMLTypeset::InitArgs shiftArgs
+            {
+                .lineWidth = targetWidth,
+                .lineAlign = align,
+                .canThrough = false,
+                .font = Widget::FontConfig{},
+            };
+            XMLTypeset shifted(shiftArgs);
+            shifted.loadXML(upperXML.c_str());
+            require(shifted.lineCount() == 3, "shift fixture did not produce three upper lines");
+            checkFresh(shifted, shiftArgs);
+            const int firstX = shifted.getToken(0, 0)->box.state.x;
+            const int secondX = shifted.getToken(0, 1)->box.state.x;
+
+            XMLTypeset wide(shiftArgs);
+            wide.loadXML(wideXML.c_str());
+            shifted.join(wide, true);
+            require(shifted.lineCount() == 4 && shifted.fw() == extendedWidth, "shift fixture did not extend by one pixel");
+            checkFresh(shifted, shiftArgs, true);
+            require(shifted.getToken(0, 0)->box.state.x == firstX + (align == LALIGN_RIGHT ? 1 : 0), "wrong first-line growth offset");
+            require(shifted.getToken(0, 1)->box.state.x == secondX + 1, "wrong opposite-parity growth offset");
+
+            shifted.deleteToken(0, 3, shifted.lineTokenCount(3));
+            checkFresh(shifted, shiftArgs);
+            require(shifted.getToken(0, 0)->box.state.x == firstX, "first-line shrink offset was not restored");
+            require(shifted.getToken(0, 1)->box.state.x == secondX, "opposite-parity shrink offset was not restored");
+            cases += 3;
+
+            check({
+                    .lineWidth = 80,
+                    .lineAlign = align,
+                    .canThrough = false,
+                    .allowExtend = false,
+                    .font = Widget::FontConfig{},
+                }, capture);
         }
 
         std::printf("All %d geometry cases passed (including retained tokens, edits, resize, split/join, masks, margins, emoji, and oversized leaves).\n", cases);

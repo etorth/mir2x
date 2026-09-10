@@ -299,8 +299,9 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
     // an unbreakable leaf/huge token wider than lineWidth can force this line to extend beyond LineTargetWidth()
     //
     // LALIGN_RIGHT / LALIGN_CENTER:
-    // if this line ends up wider than every line built so far (including LineTargetWidth())
-    // all lines above need their X-offset shifted to the new fullWidth *before* this line's startY is computed
+    // align to the widest line built so far (including LineTargetWidth())
+    // this width can also shrink after editing or removing an oversized line
+    // shift affected upper lines *before* this line's startY is computed
     // since startY may look at the (n - 1)-th line's token X
     //
     // LALIGN_JUSTIFY / LALIGN_DISTRIBUTED:
@@ -309,47 +310,35 @@ void XMLTypeset::resetOneLine(int argLine, bool crEnd)
     // it may look ugly, but avoids rebuilding everything above
 
     int fullWidth = LineTargetWidth();
-    switch(lineAlign()){
-        case LALIGN_RIGHT:
-        case LALIGN_CENTER:
-            {
-                // when we call resetOneLine
-                // all previous line are already built, so can use calculated X-offset to determine the fullWidth
-                //
-                // BUG (fixed): the previous version only repositioned lines above when fullWidth
-                // grew during this scan (tracked via a "needShift" flag). But fullWidth can also
-                // shrink relative to what earlier lines were positioned with, e.g. when an overwide
-                // line (that previously forced everything wider) gets deleted and buildTypeset()
-                // only calls resetOneLine() for the new last line: every remaining line's own
-                // natural width is <= LineTargetWidth(), so fullWidth never "grows" during the scan
-                // and needShift stayed false, leaving those lines' tokens at their stale, too-wide
-                // offsets from the old (now gone) overwide line. fullWidth must be compared against
-                // what is actually baked into every prior line, not just tracked as a monotonic max
-                // seen so far, so lines above always need repositioning whenever fullWidth is not
-                // exactly what they were last positioned with. Since we cannot cheaply recover "what
-                // they were last positioned with" without re-deriving it, we always reposition below.
-
-                auto fnLineFullWidth = [argLine, this](int line)
+    if(m_initArgs.allowExtend){
+        switch(const int align = lineAlign()){
+            case LALIGN_RIGHT:
+            case LALIGN_CENTER:
                 {
-                    if(line < argLine){
-                        return lineReachMaxX(line, false) - lineReachMinX(line, false) + 1;
+                    fullWidth = std::max<int>(fullWidth, LineFullWidth(argLine));
+                    for(int line = 0; line < argLine; ++line){
+                        fullWidth = std::max<int>(fullWidth, lineReachMaxX(line, false) - lineReachMinX(line, false) + 1);
                     }
-                    return LineFullWidth(line);
-                };
 
-                for(int line = 0; line <= argLine; ++line){
-                    fullWidth = std::max<int>(fullWidth, fnLineFullWidth(line));
-                }
+                    // compare to expected offsets instead of inferring the old reference width
+                    // because deleted oversized lines can leave stale shifts, and CENTER rounds per line
+                    // only walk an upper line's tokens when its required offset changed
+                    for(int line = 0; line < argLine; ++line){
+                        const int lineX = lineReachMinX(line, false);
+                        const int lineW = lineReachMaxX(line, false) - lineX + 1;
+                        const int expectedLineX = (fullWidth - lineW) / ((align == LALIGN_RIGHT) ? 1 : 2);
 
-                for(int line = 0; line < argLine; ++line){
-                    setLineTokenStartX(line, fullWidth);
+                        if(lineX != expectedLineX){
+                            setLineTokenStartX(line, fullWidth);
+                        }
+                    }
+                    break;
                 }
-                break;
-            }
-        default:
-            {
-                break;
-            }
+            default:
+                {
+                    break;
+                }
+        }
     }
 
     setLineTokenStartX(argLine, fullWidth);

@@ -56,8 +56,8 @@ define_property(GLOBAL PROPERTY MIR2X_TEST_BUILD_TARGETS
 # builds an EXCLUDE_FROM_ALL executable named test_<name> from SOURCES and registers it as
 # a CTest test named <name>. unless NO_GOLD is given, GOLD defaults to
 # "<first-source-without-extension>.log.gold" next to the first source file (matches this
-# project's convention of naming e.g. xmltypeset_test.cpp's gold file
-# xmltypeset_test.log.gold) - this default applies whether or not that file exists yet, so
+# project's convention of naming e.g. test_xmltypeset.cpp's gold file
+# test_xmltypeset.log.gold) - this default applies whether or not that file exists yet, so
 # a first run reports a normal (fixable) failure instead of silently skipping the check.
 # WORKING_DIRECTORY defaults to the directory containing the CMakeLists.txt that calls this
 # function.

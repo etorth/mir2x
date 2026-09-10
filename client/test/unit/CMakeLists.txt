@@ -16,7 +16,7 @@
 
 mir2x_add_unit_test(
     NAME xmltypeset
-    SOURCES xmltypeset_test.cpp
+    SOURCES test_xmltypeset.cpp
     LIBS client_objs
     DEPENDS zsdbmaker mir2x_resources
 )
