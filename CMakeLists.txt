@@ -164,6 +164,7 @@ endfunction()
 
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xResPath.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xDependencies.cmake")
+include("${CMAKE_SOURCE_DIR}/cmake/Mir2xTest.cmake")
 
 set(MIR2X_3RD_PARTY_DIR "${CMAKE_BINARY_DIR}/3rdparty" CACHE PATH "Directory for downloaded third-party files")
 include("${CMAKE_SOURCE_DIR}/cmake/download/debugger.cmake")
@@ -175,6 +176,12 @@ add_subdirectory(common)
 add_subdirectory(tools )
 add_subdirectory(server)
 add_subdirectory(client)
+
+# top-level test/ holds cross-module integration tests (e.g. start server + client together
+# and check behavior); must come after every module above so mir2x_finalize_tests() below
+# sees every test registered by mir2x_add_unit_test()/mir2x_add_integration_test()
+add_subdirectory(test)
+mir2x_finalize_tests()
 
 set(COMMAND_GIT_TAG "git describe --tag")
 execute_process(

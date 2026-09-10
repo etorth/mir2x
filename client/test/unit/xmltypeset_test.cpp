@@ -7,18 +7,24 @@
 // against this suite before being committed.
 //
 // build & run:
-//   cmake --build <builddir> --target xmltypeset_test
-//   <builddir>/client/src/test/xmltypeset_test [res_dir]
+//   cmake --build <builddir> --target test_xmltypeset
+//   <builddir>/client/test/unit/test_xmltypeset [res_dir]
+//
+// or, to build and run every registered test project-wide and diff against gold output:
+//   make test   (from the top of the build tree)
 //
 // res_dir defaults to MIR2X_TEST_DEFAULT_RES_DIR (${CMAKE_INSTALL_PREFIX}/client/res at
 // configure time) and must contain font/fontex.zsdb and emoji/emoji.zsdb, i.e. the client
 // must have been installed at least once (`cmake --install <builddir>`) before this runs.
 //
 // exit code is 0 iff every case below passes; on failure the offending case (and its full
-// InitArgs/xml) is printed to stderr before the process exits non-zero.
+// InitArgs/xml) is printed to stderr before the process exits non-zero. stdout is kept
+// deterministic (see the std::cout suppression around Log's construction in main(), below)
+// so it can be diffed against xmltypeset_test.log.gold by `make test`.
 
 #include <cstdio>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include "clientargparser.hpp"
@@ -420,7 +426,18 @@ int main(int argc, char **argv)
         g_clientArgParser = &clientArgs;
 
         logDisableProfiler();
+
+        // Log's constructor unconditionally prints an init banner to std::cout that embeds
+        // a pid and a timestamped log file path - neither is reproducible across runs, so
+        // it can never match a checked-in gold file. suppress std::cout for the duration of
+        // construction only (this doesn't touch the process's real stdout fd, so the
+        // std::printf-based results the tests print later via runTests() are unaffected);
+        // g3log's own shutdown banner goes to std::cerr, not stdout, so no such suppression
+        // is needed for that.
+        std::ostringstream logBannerDiscard;
+        auto * const savedCoutBuf = std::cout.rdbuf(logBannerDiscard.rdbuf());
         Log log("mir2x-xmltypeset-test");
+        std::cout.rdbuf(savedCoutBuf);
         g_mir2xLog = &log;
 
         SDLDevice device;
