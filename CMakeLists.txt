@@ -137,6 +137,20 @@ function(mir2x_list_source_recursive ARG_LIST)
     set(${ARG_LIST} ${T_ALL_SRCS} PARENT_SCOPE)
 endfunction()
 
+function(mir2x_list_source_recursive_filtered ARG_LIST)
+    cmake_parse_arguments(PARSE_ARGV 1 T "" "" "EXCLUDE")
+    if(T_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "Unexpected arguments: ${T_UNPARSED_ARGUMENTS}")
+    endif()
+
+    mir2x_list_source_recursive(T_ALL_SRCS)
+    foreach(T_EXCLUDE ${T_EXCLUDE})
+        get_filename_component(T_EXCLUDE ${T_EXCLUDE} ABSOLUTE BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+        list(REMOVE_ITEM T_ALL_SRCS ${T_EXCLUDE})
+    endforeach()
+    set(${ARG_LIST} ${T_ALL_SRCS} PARENT_SCOPE)
+endfunction()
+
 function(fltk_parse_fl_file ARG_HPP ARG_CPP)
     file(GLOB T_ALL_FL "*.[fF][lL]")
 

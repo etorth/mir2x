@@ -2,15 +2,22 @@ set(FLTK_HPP_SRC "")
 set(FLTK_CPP_SRC "")
 fltk_parse_fl_file(FLTK_HPP_SRC FLTK_CPP_SRC)
 
-aux_source_directory(. SERVER_SRC)
-add_executable(server ${SERVER_SRC} ${FLTK_CPP_SRC})
-add_dependencies(server zsdbmaker mir2x_resources)
+set(SERVER_MAIN_SRC ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+mir2x_list_source_recursive_filtered(SERVER_OBJ_SRCS
+    EXCLUDE ${SERVER_MAIN_SRC})
 
-target_include_directories(server PRIVATE ${MIR2X_COMMON_SOURCE_DIR})
-target_include_directories(server PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-target_include_directories(server PRIVATE ${CMAKE_CURRENT_LIST_DIR})
+add_library(server_objs OBJECT ${SERVER_OBJ_SRCS} ${FLTK_CPP_SRC})
+add_dependencies(server_objs zsdbmaker mir2x_resources)
+target_include_directories(server_objs PUBLIC ${MIR2X_COMMON_SOURCE_DIR})
+target_include_directories(server_objs PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(server_objs PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
-target_link_libraries(server common mir2x::sqlitecpp)
+target_link_libraries(server_objs PUBLIC
+    common
+    mir2x::sqlitecpp)
+
+add_executable(server ${SERVER_MAIN_SRC})
+target_link_libraries(server PRIVATE server_objs)
 
 install(TARGETS server DESTINATION server)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/server/script DESTINATION server)
