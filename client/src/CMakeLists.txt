@@ -24,7 +24,7 @@ if(MIR2X_LIBPINYIN_DATA_DIR)
     install(DIRECTORY ${MIR2X_LIBPINYIN_DATA_DIR} DESTINATION client)
 endif()
 install(CODE "execute_process(
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/installres/src/install_res.py
+    COMMAND ${MIR2X_PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/installres/src/install_res.py
             --install-client
             --ignore-zsdbmaker-error
             --zsdbmaker=$<TARGET_FILE:zsdbmaker>

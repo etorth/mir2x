@@ -15,7 +15,7 @@ target_link_libraries(server common mir2x::sqlitecpp)
 install(TARGETS server DESTINATION server)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/server/script DESTINATION server)
 install(CODE "execute_process(
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/installres/src/install_res.py
+    COMMAND ${MIR2X_PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tools/installres/src/install_res.py
             --install-server
             --ignore-zsdbmaker-error
             --zsdbmaker=$<TARGET_FILE:zsdbmaker>

@@ -35,7 +35,7 @@
 # gold files: rerun cmake/run_test.py directly with --update-gold to (re)create a test's
 # gold file from its current actual output, e.g.:
 #
-#   python3 cmake/run_test.py --update-gold --gold <path> -- <built-test-exe> [args...]
+#   ${MIR2X_PYTHON_EXECUTABLE} cmake/run_test.py --update-gold --gold <path> -- <built-test-exe> [args...]
 #=======================================================================================
 
 enable_testing()
@@ -107,7 +107,7 @@ endfunction()
 #                             [GOLD <path>]
 #                             [WORKING_DIRECTORY <dir>])
 #
-# registers an arbitrary out-of-process command (e.g. `python3 test_client.py`) as a CTest
+# registers an arbitrary out-of-process command (e.g. `${MIR2X_PYTHON_EXECUTABLE} test_client.py`) as a CTest
 # test named <name>. this function doesn't compile anything itself; if COMMAND's first word
 # names an existing CMake target (e.g. the `client` executable), it's resolved to that
 # target's built file and the target is added as a build dependency, so integration tests
@@ -161,7 +161,7 @@ function(mir2x__add_test T_NAME T_BUILD_TARGET T_COMMAND T_WORKDIR T_GOLD)
     endif()
 
     add_test(NAME ${T_NAME}
-        COMMAND python3 ${CMAKE_SOURCE_DIR}/cmake/run_test.py ${T_WRAPPER_ARGS} -- ${T_COMMAND}
+        COMMAND ${MIR2X_PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/cmake/run_test.py ${T_WRAPPER_ARGS} -- ${T_COMMAND}
         WORKING_DIRECTORY ${T_WORKDIR})
 endfunction()
 
