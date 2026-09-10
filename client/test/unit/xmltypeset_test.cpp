@@ -10,8 +10,9 @@
 //   cmake --build <builddir> --target test_xmltypeset
 //   <builddir>/client/test/unit/test_xmltypeset [res_dir]
 //
-// or, to build and run every registered test project-wide and diff against gold output:
-//   make test   (from the top of the build tree)
+// or, to build and run every registered test project-wide via CTest:
+//   cmake --build <builddir> --target check          # builds tests, then runs ctest
+//   ctest --test-dir <builddir> -R xmltypeset         # rerun just this one (after building)
 //
 // res_dir defaults to MIR2X_TEST_DEFAULT_RES_DIR (${CMAKE_INSTALL_PREFIX}/client/res at
 // configure time) and must contain font/fontex.zsdb and emoji/emoji.zsdb, i.e. the client
@@ -20,7 +21,7 @@
 // exit code is 0 iff every case below passes; on failure the offending case (and its full
 // InitArgs/xml) is printed to stderr before the process exits non-zero. stdout is kept
 // deterministic (see the std::cout suppression around Log's construction in main(), below)
-// so it can be diffed against xmltypeset_test.log.gold by `make test`.
+// so cmake/run_test.py can diff it against xmltypeset_test.log.gold.
 
 #include <cstdio>
 #include <memory>

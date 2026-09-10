@@ -4,8 +4,8 @@
 # code as the real client without recompiling it.
 #
 # these targets are EXCLUDE_FROM_ALL: they do not slow down normal "build everything" runs.
-# build+run them all via `make test` from the top of the build tree, or build a single one
-# explicitly, e.g.:
+# build+run all registered tests project-wide via `cmake --build <builddir> --target check`
+# (from the top of the build tree), or build/run a single one explicitly, e.g.:
 #
 #   cmake --build <builddir> --target test_xmltypeset
 #   <builddir>/client/test/unit/test_xmltypeset
