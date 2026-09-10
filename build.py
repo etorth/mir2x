@@ -156,6 +156,12 @@ def parse_args():
         help=f"Use an existing mir2x resource path. If omitted, CMake clones {MIR2X_RES_REPO_URL} during the build.",
     )
     parser.add_argument(
+        "--python",
+        type=Path,
+        help="Python 3 interpreter mir2x should use for install_res.py and the test infrastructure "
+             "(sets -DMIR2X_PYTHON_EXECUTABLE). Defaults to CMake's own python3 auto-detection.",
+    )
+    parser.add_argument(
         "--target",
         action="append",
         help="Build this CMake target. Can be repeated. Defaults to all targets.",
@@ -164,6 +170,12 @@ def parse_args():
         "--no-install",
         action="store_true",
         help="Build only; do not run cmake --install.",
+    )
+    parser.add_argument(
+        "--run-test",
+        action="store_true",
+        help="After building (and installing, unless --no-install), build and run the test suite "
+             "(the `check` CMake target: builds every registered test, then runs ctest).",
     )
     return parser.parse_args()
 
@@ -251,6 +263,8 @@ def main():
         log(f"Using resource path: {args.res_path.expanduser().resolve()}")
     else:
         log("Using default CMake-managed resource clone")
+    if args.python:
+        log(f"Using python3: {args.python.expanduser().resolve()}")
     if vcpkg_host_triplet:
         log(f"Configuring mir2x for {vcpkg_triplet} with host triplet {vcpkg_host_triplet}")
     else:
@@ -301,6 +315,8 @@ def main():
         cmake_configure_args.append("-DVCPKG_VERBOSE=ON")
     if args.res_path:
         cmake_configure_args.append(f"-DMIR2X_RES_REPO_PATH={args.res_path.expanduser().resolve()}")
+    if args.python:
+        cmake_configure_args.append(f"-DMIR2X_PYTHON_EXECUTABLE={args.python.expanduser().resolve()}")
     run(cmake_configure_args, env=configure_env)
 
     build_base_args = ["cmake", "--build", str(cmake_build_dir), "--config", args.build_type, "--parallel"]
@@ -322,6 +338,12 @@ def main():
         if args.verbose:
             install_args.append("--verbose")
         run(install_args)
+
+    if args.run_test:
+        if args.no_install:
+            log("Warning: --run-test with --no-install; tests that need installed resources (e.g. client/res) may fail")
+        log("Building and running tests (check target)")
+        run([*build_base_args, "--target", "check"])
 
 
 if __name__ == "__main__":
