@@ -1,4 +1,5 @@
 #pragma once
+#include <ranges>
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "servertaosummon.hpp"
@@ -16,7 +17,7 @@ class ServerTaoSkeletonExt final: public ServerTaoSummon
             fflassert(dc == to_d(DBCOM_MAGICID(u8"物理攻击")));
             return PlainPhyDamage
             {
-                .damage = mathf::rand<int>(getMR().dc[0] + m_masterSC[0], getMR().dc[1] + m_masterSC[1]),
+                .damage = mathf::rand<int>(std::ranges::min(getMR().dc) + std::ranges::min(m_masterSC), std::ranges::max(getMR().dc) + std::ranges::max(m_masterSC) + 1),
                 .dcHit = getMR().dcHit,
             };
         }

@@ -928,7 +928,7 @@ bool Player::struckDamage(uint64_t fromUID, const DamageNode &node)
     {
         const auto combatNode = getCombatNode(m_sdItemStorage.wear, {}, UID(), level());
         if(DBCOM_MAGICID(u8"物理攻击") == to_u32(node.magicID)){
-            return std::max<int>(0, node.damage - mathf::rand<int>(combatNode.ac[0], combatNode.ac[1]));
+            return std::max<int>(0, node.damage - combatNode.randPickAC());
         }
 
         const double elemRatio = std::max<double>(0.0, 1.0 + 0.1 * [&node, &combatNode, this]() -> int
@@ -947,7 +947,7 @@ bool Player::struckDamage(uint64_t fromUID, const DamageNode &node)
                 default         : return 0;
             }
         }());
-        return std::max<int>(0, node.damage - std::lround(mathf::rand<int>(combatNode.mac[0], combatNode.mac[1]) * elemRatio));
+        return std::max<int>(0, node.damage - std::lround(combatNode.randPickMAC() * elemRatio));
     }();
 
     // remember who hit me, this is what makes checkFriend() report FT_ENEMY and lets me
@@ -1441,7 +1441,7 @@ corof::awaitable<> Player::onCMActionAttack(CMAction stCMA)
                                             m_nextStrike = false;
                                         }
                                         else{
-                                            m_nextStrike = (mathf::rand<int>(0, 2) == 0);
+                                            m_nextStrike = mathf::randbool();
                                         }
 
                                         if(m_nextStrike){
@@ -2180,7 +2180,7 @@ bool Player::damageWearItem(int wltype, int odds)
         return false;
     }
 
-    if(mathf::rand<int>(1, odds) != 1){
+    if(mathf::rand<int>(0, odds) != 0){
         return false;
     }
 
@@ -2234,7 +2234,7 @@ void Player::damageDefendWearItem()
     }
 
     if(!wltypeList.empty()){
-        damageWearItem(wltypeList.at(mathf::rand<size_t>(0, wltypeList.size() - 1)), SYS_ARMORDURALOSSODDS);
+        damageWearItem(wltypeList.at(mathf::rand<size_t>(0, wltypeList.size())), SYS_ARMORDURALOSSODDS);
     }
 }
 
@@ -2376,7 +2376,7 @@ bool Player::repairInventoryItem(uint32_t itemID, uint32_t seqID, bool special)
         // item still risks the max durability, this is why 特殊修理 exists
 
         const auto restored = item->duration[1] - item->duration[0];
-        const auto lostMax = restored / SYS_DURALOSSRATE + (to_uz(mathf::rand<int>(1, SYS_DURALOSSRATE)) <= restored % SYS_DURALOSSRATE ? 1 : 0);
+        const auto lostMax = restored / SYS_DURALOSSRATE + (to_uz(1 + mathf::rand<int>(0, SYS_DURALOSSRATE)) <= restored % SYS_DURALOSSRATE ? 1 : 0);
 
         item->duration[1] = std::max<size_t>(1, item->duration[1] - lostMax);
     }

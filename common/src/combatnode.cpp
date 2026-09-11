@@ -1,3 +1,4 @@
+#include <ranges>
 #include "strf.hpp"
 #include "jobf.hpp"
 #include "uidf.hpp"
@@ -5,38 +6,20 @@
 #include "fflerror.hpp"
 #include "combatnode.hpp"
 
-int CombatNode::randPickDC() const
+bool CombatNode::randPickLC() const
 {
-    const auto luckCurseAbs = mathf::bound<int>(std::abs(luckCurse), 0, 10);
-    const auto rdPick = mathf::rand<int>(1, 10);
-
-    if(luckCurseAbs >= rdPick){
-        return dc[luckCurse > 0 ? 1 : 0];
+    if(luckCurse == 0){
+        return false; // most common case deserves fast return
     }
-    return mathf::rand<int>(minDC(), maxDC());
+    return std::clamp<int>(std::abs(luckCurse), 0, 10) >= 1 + mathf::rand<int>(0, 10);
 }
 
-int CombatNode::randPickMC() const
-{
-    const auto luckCurseAbs = mathf::bound<int>(std::abs(luckCurse), 0, 10);
-    const auto rdPick = mathf::rand<int>(1, 10);
+int CombatNode::randPickDC() const { return randPickLC() ? (luckCurse > 0 ? maxDC() : minDC()) : mathf::rand<int>(minDC(), maxDC() + 1); }
+int CombatNode::randPickMC() const { return randPickLC() ? (luckCurse > 0 ? maxMC() : minMC()) : mathf::rand<int>(minMC(), maxMC() + 1); }
+int CombatNode::randPickSC() const { return randPickLC() ? (luckCurse > 0 ? maxSC() : minSC()) : mathf::rand<int>(minSC(), maxSC() + 1); }
 
-    if(luckCurseAbs >= rdPick){
-        return mc[luckCurse > 0 ? 1 : 0];
-    }
-    return mathf::rand<int>(minMC(), maxMC());
-}
-
-int CombatNode::randPickSC() const
-{
-    const auto luckCurseAbs = mathf::bound<int>(std::abs(luckCurse), 0, 10);
-    const auto rdPick = mathf::rand<int>(1, 10);
-
-    if(luckCurseAbs >= rdPick){
-        return sc[luckCurse > 0 ? 1 : 0];
-    }
-    return mathf::rand<int>(minSC(), maxSC());
-}
+int CombatNode::randPickAC () const { return mathf::rand<int>(std::ranges::min( ac), std::ranges::max( ac) + 1); }
+int CombatNode::randPickMAC() const { return mathf::rand<int>(std::ranges::min(mac), std::ranges::max(mac) + 1); }
 
 CombatNode getCombatNode(const SDWear & wear, const SDLearnedMagicList &magicList, int job, int level)
 {

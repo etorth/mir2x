@@ -208,6 +208,25 @@ function uidRemoteCall(uid, ...)
     end
 end
 
+-- example of itemCfgList:
+--
+-- itemCfgList =
+-- {
+--     {
+--         item = '屠龙',
+--         odds = 1
+--     },
+--
+--     {
+--         item =
+--         {
+--             itemID = '强效太阳水',
+--             seqID = 0,
+--             count = 1
+--         },
+--         odds = 1
+--     }
+-- }
 function setMonsterDropOnDie(monsterUID, itemCfgList, opts)
     assertType(monsterUID, 'integer')
     assert(isMonster(monsterUID))

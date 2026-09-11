@@ -1,3 +1,4 @@
+#include <ranges>
 #include "mathf.hpp"
 #include "pathf.hpp"
 #include "fflerror.hpp"
@@ -159,7 +160,7 @@ DamageNode ServerTaoDog::getAttackDamage(int dc, int modifierID) const
     return MagicDamage
     {
         .magicID = dc,
-        .damage = mathf::rand<int>(getMR().mc[0] + m_masterSC[0], getMR().mc[1] + m_masterSC[1]),
+        .damage = mathf::rand<int>(std::ranges::min(getMR().mc) + std::ranges::min(m_masterSC), std::ranges::max(getMR().mc) + std::ranges::max(m_masterSC) + 1),
         .mcHit = getMR().mcHit,
         .modifierID = modifierID,
     };

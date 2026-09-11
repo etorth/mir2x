@@ -1,3 +1,4 @@
+#include "totype.hpp"
 #include "sditem.hpp"
 #include "serdesmsg.hpp"
 
@@ -305,7 +306,12 @@ SDItem SDItem::fromLuaVar(const luaf::luaVar &var)
                 const auto &value = valueWrapper.get();
 
                 if(key == "itemID"){
-                    item.itemID = luaf::luaVarAs<uint32_t>(value);
+                    item.itemID = std::visit(stdf::VarDispatcher
+                    {
+                        [](const lua_Integer &v) -> uint32_t { return v; },
+                        [](const std::string &v) -> uint32_t { return DBCOM_ITEMID(v.c_str()); },
+                        [](const auto        &v) -> uint32_t { throw fflvalue(v); },
+                    }, value);
                 }
                 else if(key == "seqID"){
                     item.seqID = luaf::luaVarAs<uint32_t>(value);

@@ -20,7 +20,7 @@ std::string mathf::randstr(size_t size, const std::string &tok)
 
     const auto &tokens = tok.empty() ? g_defaultTokens : tok;
     for(size_t i = 0; i < size; ++i){
-        s.push_back(tokens[mathf::rand<size_t>(0, tokens.size() - 1)]);
+        s.push_back(tokens[mathf::rand<size_t>(0, tokens.size())]);
     }
     return s;
 }

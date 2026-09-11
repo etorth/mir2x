@@ -20,7 +20,7 @@ std::tuple<uint32_t, uint32_t> BuffList::rollAttackModifier()
     uint32_t modifierID = 0;
 
     while(!(amodList.empty() || (buffID && modifierID))){
-        const auto pick = mathf::rand<size_t>(0, amodList.size() - 1);
+        const auto pick = mathf::rand<size_t>(0, amodList.size());
         std::swap(amodList.back(), amodList[pick]);
 
         if(!buffID){

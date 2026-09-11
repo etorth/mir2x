@@ -353,7 +353,7 @@ void ProcessSelectChar::switchCharGfx()
     switch(m_charAni){
         case 0:
             {
-                if(mathf::rand<int>(0, 1) == 0){
+                if(mathf::randbool()){
                     m_charAni = 1;
                 }
                 break;
@@ -365,7 +365,7 @@ void ProcessSelectChar::switchCharGfx()
             }
         case 2:
             {
-                if(mathf::rand<int>(0, 1) == 0){
+                if(mathf::randbool()){
                     m_charAni = 3;
                 }
                 break;

@@ -1261,7 +1261,7 @@ void ServerMap::updateMapGridFireWall()
                 amA.damage = MagicDamage
                 {
                     .magicID = to_d(DBCOM_MAGICID(u8"火墙")),
-                    .damage = mathf::rand(p->minDC, p->maxDC),
+                    .damage = mathf::rand<int>(p->minDC, p->maxDC + 1),
                     .mcHit = p->mcHit,
                 };
 

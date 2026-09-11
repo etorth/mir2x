@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <ranges>
 #include <utility>
 #include <cstdint>
 #include <cstdlib>
@@ -48,16 +49,20 @@ struct CombatNode
     }
     load {};
 
-    int randPickDC() const;
-    int randPickMC() const;
-    int randPickSC() const;
+    bool randPickLC() const; // luckCurse affects
+    int  randPickDC() const;
+    int  randPickMC() const;
+    int  randPickSC() const;
 
-    int minDC() const { return std::min<int>(dc[0], dc[1]); }
-    int maxDC() const { return std::max<int>(dc[0], dc[1]); }
-    int minMC() const { return std::min<int>(mc[0], mc[1]); }
-    int maxMC() const { return std::max<int>(mc[0], mc[1]); }
-    int minSC() const { return std::min<int>(sc[0], sc[1]); }
-    int maxSC() const { return std::max<int>(sc[0], sc[1]); }
+    int randPickAC () const; // luckCurse doesn't affect
+    int randPickMAC() const;
+
+    int minDC() const { return std::ranges::min(dc); }
+    int maxDC() const { return std::ranges::max(dc); }
+    int minMC() const { return std::ranges::min(mc); }
+    int maxMC() const { return std::ranges::max(mc); }
+    int minSC() const { return std::ranges::min(sc); }
+    int maxSC() const { return std::ranges::max(sc); }
 };
 
 // server/client uses same CombatNode calculation

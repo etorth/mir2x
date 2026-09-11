@@ -73,7 +73,7 @@ namespace pathf
 
     inline int getRandDir()
     {
-        return mathf::rand<int>(DIR_BEGIN, DIR_END - 1);
+        return mathf::rand<int>(DIR_BEGIN, DIR_END);
     }
 
     inline int getBackDir(int direction)

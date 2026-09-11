@@ -56,18 +56,23 @@ namespace mathf
 
 namespace mathf
 {
-    template<std::integral T> T rand(T min, T max)
+    template<std::integral T> T rand(T min, T max) // [min, max)
     {
         mathf::randGenerator rg;
-        std::uniform_int_distribution<T> uf{min, max};
+        std::uniform_int_distribution<T> uf{min, max - 1};
         return uf(rg);
     }
 
-    template<std::floating_point T> T rand(T min, T max)
+    template<std::floating_point T> T rand(T min, T max) // [min, max)
     {
         mathf::randGenerator rg;
         std::uniform_real_distribution<T> uf{min, max};
         return uf(rg);
+    }
+
+    inline bool randbool()
+    {
+        return mathf::rand<int>(0, 2) == 0;
     }
 
     template<typename T> T bound(T val, T min, T max)
@@ -750,7 +755,7 @@ namespace mathf
 
             double aprob() const
             {
-                constinit static double s_tbl_C[]
+                constexpr static double s_tbl_C[]
                 {
                     /* prob =   0%: C = */ 0.000000000000,
                     /* prob =   1%: C = */ 0.000156041384,
@@ -860,8 +865,8 @@ namespace mathf
         public:
             bool holdroll() const
             {
-                constinit static long percision = 1000000;
-                return mathf::rand<long>(1, percision) <= std::lround(percision * aprob());
+                constexpr long precision = 1000000;
+                return 1 + mathf::rand<long>(0, precision) <= std::lround(precision * aprob());
             }
 
         public:

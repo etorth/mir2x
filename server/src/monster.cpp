@@ -1,4 +1,5 @@
 #include <tuple>
+#include <ranges>
 #include <inplace_vector>
 #include <cinttypes>
 #include "player.hpp"
@@ -583,7 +584,7 @@ DamageNode Monster::getAttackDamage(int dc, int modifierID) const
             {
                 return PlainPhyDamage
                 {
-                    .damage = mathf::rand<int>(getMR().dc[0], getMR().dc[1]),
+                    .damage = mathf::rand<int>(std::ranges::min(getMR().dc), std::ranges::max(getMR().dc) + 1),
                     .dcHit = getMR().dcHit,
                     .modifierID = modifierID,
                 };
@@ -593,7 +594,7 @@ DamageNode Monster::getAttackDamage(int dc, int modifierID) const
                 return MagicDamage
                 {
                     .magicID = dc,
-                    .damage = mathf::rand<int>(getMR().mc[0], getMR().mc[1]),
+                    .damage = mathf::rand<int>(std::ranges::min(getMR().mc), std::ranges::max(getMR().mc) + 1),
                     .mcHit = getMR().mcHit,
                     .modifierID = modifierID,
                 };
@@ -657,7 +658,10 @@ void Monster::onDie()
     if(m_sdDropOnDieOpt.has_value()){
         if(m_dropOnDie || uidf::isPlayer(m_sdDropOnDieOpt->playerUID)){
             for(auto &[item, odds]: m_sdDropOnDieOpt->itemList){
-                if((odds == 0) || (mathf::rand<size_t>(0, odds) == 0)){
+                if(odds == 0){
+                    continue;
+                }
+                else if((odds == 1) || (mathf::rand<size_t>(0, odds) == 0)){
                     (uidf::isPlayer(m_sdDropOnDieOpt->playerUID) ? sendItemList : dropItemList).push_back(item);
                 }
             }
@@ -726,7 +730,7 @@ bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
     const auto damage = [phyDC, &node, this]() -> int
     {
         if(phyDC){
-            return std::max<int>(0, node.damage - mathf::rand<int>(getMR().ac[0], getMR().ac[1]));
+            return std::max<int>(0, node.damage - mathf::rand<int>(std::ranges::min(getMR().ac), std::ranges::max(getMR().ac) + 1));
         }
 
         const double elemRatio = std::max<double>(0.0, 1.0 + 0.1 * [&node, this]() -> int
@@ -745,7 +749,7 @@ bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
                 default         : return 0;
             }
         }());
-        return std::max<int>(0, node.damage - std::lround(mathf::rand<int>(getMR().mac[0], getMR().mac[1]) * elemRatio));
+        return std::max<int>(0, node.damage - std::lround(mathf::rand<int>(std::ranges::min(getMR().mac), std::ranges::max(getMR().mac) + 1) * elemRatio));
     }();
 
     if(damage > 0){

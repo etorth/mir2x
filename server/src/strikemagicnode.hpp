@@ -23,7 +23,7 @@ struct StrikeMagicNode
         std::memset(&node, 0, sizeof(node));
 
         node.magicID = magicID;
-        node.damage = mathf::rand(minDC, maxDC);
+        node.damage = mathf::rand<int>(minDC, maxDC + 1);
 
         node.effect  = 0;
         node.element = 0;

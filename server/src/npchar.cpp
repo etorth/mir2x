@@ -611,7 +611,7 @@ std::vector<SDCostItem> NPChar::getCostItemList(const SDItem &) const
         SDCostItem
         {
             .itemID = DBCOM_ITEMID(u8"金币（小）"),
-            .count  = to_uz(mathf::rand(90, 110)),
+            .count  = to_uz(mathf::rand(90, 111)),
         },
     };
 }
@@ -682,10 +682,10 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .itemID = itemID,
             .seqID = seqID,
             .count = 1,
-            .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
+            .duration = {mathf::rand<size_t>(0, ir.equip.duration + 1), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                SDItem::build_EA_COLOR(colorf::RGBA(mathf::rand(100, 255), mathf::rand(100, 255), mathf::rand(100, 255), 0XFF)),
+                SDItem::build_EA_COLOR(colorf::RGBA(mathf::rand(100, 256), mathf::rand(100, 256), mathf::rand(100, 256), 0XFF)),
             },
         };
     }
@@ -695,12 +695,12 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .itemID = itemID,
             .seqID = seqID,
             .count = 1,
-            .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
+            .duration = {mathf::rand<size_t>(0, ir.equip.duration + 1), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                SDItem::build_EA_DC(mathf::rand<int>(1, 5)),
-                SDItem::build_EA_MC(mathf::rand<int>(1, 5)),
-                SDItem::build_EA_SC(mathf::rand<int>(1, 5)),
+                SDItem::build_EA_DC(1 + mathf::rand<int>(0, 5)),
+                SDItem::build_EA_MC(1 + mathf::rand<int>(0, 5)),
+                SDItem::build_EA_SC(1 + mathf::rand<int>(0, 5)),
 
                 SDItem::build_EA_BUFFID([itemID]() -> uint32_t
                 {
@@ -718,10 +718,10 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .itemID = itemID,
             .seqID = seqID,
             .count = 1,
-            .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
+            .duration = {mathf::rand<size_t>(0, ir.equip.duration + 1), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                SDItem::build_EA_DC(mathf::rand<int>(1, 5)),
+                SDItem::build_EA_DC(1 + mathf::rand<int>(0, 5)),
                 SDItem::build_EA_BUFFID(DBCOM_BUFFID(u8"吸血鬼的诅咒")),
             },
         };
@@ -732,11 +732,11 @@ SDItem NPChar::createSellItem(uint32_t itemID, uint32_t seqID) const
             .itemID = itemID,
             .seqID = seqID,
             .count = 1,
-            .duration = {mathf::rand<size_t>(0, ir.equip.duration), to_uz(ir.equip.duration)},
+            .duration = {mathf::rand<size_t>(0, ir.equip.duration + 1), to_uz(ir.equip.duration)},
             .extAttrList
             {
-                SDItem::build_EA_AC(mathf::rand<int>(1, 5)),
-                SDItem::build_EA_MAC(mathf::rand<int>(1, 5)),
+                SDItem::build_EA_AC(1 + mathf::rand<int>(0, 5)),
+                SDItem::build_EA_MAC(1 + mathf::rand<int>(0, 5)),
             },
         };
     }
