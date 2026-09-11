@@ -388,6 +388,18 @@ struct SDDropItem
     }
 };
 
+struct SDDropItemList
+{
+    int x = 0;
+    int y = 0;
+    std::vector<SDItem> itemList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(x, y, itemList);
+    }
+};
+
 struct SDDropItemOdds
 {
     SDItem item;
@@ -401,12 +413,13 @@ struct SDDropItemOdds
 
 struct SDDropOnDie
 {
-    std::vector<SDDropItemOdds> itemList;
+    uint64_t playerUID = 0;
     bool allowDefaultDrop = false;
+    std::vector<SDDropItemOdds> itemList;
 
     template<typename Archive> void serialize(Archive & ar)
     {
-        ar(itemList, allowDefaultDrop);
+        ar(playerUID, allowDefaultDrop, itemList);
     }
 };
 

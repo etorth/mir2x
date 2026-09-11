@@ -357,7 +357,7 @@ class ServerMap final: public ServerObject
         corof::awaitable<> on_AM_UPDATEHP            (const ActorMsgPack &);
         corof::awaitable<> on_AM_BADACTORPOD         (const ActorMsgPack &);
         corof::awaitable<> on_AM_DEADFADEOUT         (const ActorMsgPack &);
-        corof::awaitable<> on_AM_DROPITEM            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_DROPITEMLIST        (const ActorMsgPack &);
         corof::awaitable<> on_AM_TRYMAPSWITCH        (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCOCOUNT        (const ActorMsgPack &);
         corof::awaitable<> on_AM_TRYSPACEMOVE        (const ActorMsgPack &);

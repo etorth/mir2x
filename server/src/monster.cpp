@@ -651,28 +651,34 @@ void Monster::onDie()
         dispatchOffenderExp();
     }
 
-    if(m_dropOnDie){
-        std::vector<SDItem> itemList;
-        if(m_sdDropOnDieOpt.has_value()){
+    std::vector<SDItem> dropItemList; // drop on ground
+    std::vector<SDItem> sendItemList; // send to player
+
+    if(m_sdDropOnDieOpt.has_value()){
+        if(m_dropOnDie || uidf::isPlayer(m_sdDropOnDieOpt->playerUID)){
             for(auto &[item, odds]: m_sdDropOnDieOpt->itemList){
                 if((odds == 0) || (mathf::rand<size_t>(0, odds) == 0)){
-                    itemList.push_back(item);
+                    (uidf::isPlayer(m_sdDropOnDieOpt->playerUID) ? sendItemList : dropItemList).push_back(item);
                 }
             }
         }
+    }
 
-        if(!m_sdDropOnDieOpt.has_value() || m_sdDropOnDieOpt->allowDefaultDrop){
-            itemList.append_range(getMonsterDropItemList(monsterID()));
-        }
+    if(m_dropOnDie && (!m_sdDropOnDieOpt.has_value() || m_sdDropOnDieOpt->allowDefaultDrop)){
+        dropItemList.append_range(getMonsterDropItemList(monsterID()));
+    }
 
-        for(auto &item: itemList){
-            m_actorPod->post(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
-            {
-                .x = X(),
-                .y = Y(),
-                .item = std::move(item),
-            })});
-        }
+    if(!dropItemList.empty()){
+        m_actorPod->post(mapUID(), {AM_DROPITEMLIST, cerealf::serialize(SDDropItemList
+        {
+            .x = X(),
+            .y = Y(),
+            .itemList = std::move(dropItemList),
+        })});
+    }
+
+    if(!sendItemList.empty()){
+        //
     }
 
     dispatchAction(ActionDie

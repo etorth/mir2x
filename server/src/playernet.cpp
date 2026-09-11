@@ -1190,11 +1190,11 @@ corof::awaitable<> Player::net_CM_DROPITEM(uint8_t, const uint8_t *buf, size_t, 
     fflassert(dropItem);
     removeInventoryItem(dropItem);
 
-    m_actorPod->post(mapUID(), {AM_DROPITEM, cerealf::serialize(SDDropItem
+    m_actorPod->post(mapUID(), {AM_DROPITEMLIST, cerealf::serialize(SDDropItemList
     {
         .x = X(),
         .y = Y(),
-        .item = std::move(dropItem),
+        .itemList {std::move(dropItem)},
     })});
 
     return {};

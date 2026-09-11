@@ -569,9 +569,9 @@ corof::awaitable<> ServerMap::onActorMsg(const ActorMsgPack &rstMPK)
             {
                 return on_AM_PICKUP(rstMPK);
             }
-        case AM_DROPITEM:
+        case AM_DROPITEMLIST:
             {
-                return on_AM_DROPITEM(rstMPK);
+                return on_AM_DROPITEMLIST(rstMPK);
             }
         case AM_CLOSEINSTANCEMAP:
             {

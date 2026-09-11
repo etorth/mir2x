@@ -949,33 +949,36 @@ corof::awaitable<> ServerMap::on_AM_QUERYCOCOUNT(const ActorMsgPack &rstMPK)
     return {};
 }
 
-corof::awaitable<> ServerMap::on_AM_DROPITEM(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_DROPITEMLIST(const ActorMsgPack &mpk)
 {
-    auto sdDI = mpk.deserialize<SDDropItem>();
-    fflassert(sdDI.item);
-    fflassert(mapBin()->groundValid(sdDI.x, sdDI.y));
+    auto sdDIL = mpk.deserialize<SDDropItemList>();
+    fflassert(mapBin()->groundValid(sdDIL.x, sdDIL.y));
 
-    int bestX = -1;
-    int bestY = -1;
-    int checkGridCount = 0;
-    int minGridItemCount = SYS_MAXDROPITEM + 1;
+    for(auto &item: sdDIL.itemList){
+        fflassert(item);
 
-    RotateCoord rc(sdDI.x, sdDI.y, 0, 0, mapBin()->w(), mapBin()->h());
-    do{
-        if(mapBin()->groundValid(rc.x(), rc.y())){
-            if(const auto currCount = to_d(getGridItemList(rc.x(), rc.y()).size()); currCount < minGridItemCount){
-                bestX = rc.x();
-                bestY = rc.y();
-                minGridItemCount = currCount;
-                if(minGridItemCount == 0){
-                    break;
+        int bestX = -1;
+        int bestY = -1;
+        int checkGridCount = 0;
+        int minGridItemCount = SYS_MAXDROPITEM + 1;
+
+        RotateCoord rc(sdDIL.x, sdDIL.y, 0, 0, mapBin()->w(), mapBin()->h());
+        do{
+            if(mapBin()->groundValid(rc.x(), rc.y())){
+                if(const auto currCount = to_d(getGridItemList(rc.x(), rc.y()).size()); currCount < minGridItemCount){
+                    bestX = rc.x();
+                    bestY = rc.y();
+                    minGridItemCount = currCount;
+                    if(minGridItemCount == 0){
+                        break;
+                    }
                 }
             }
-        }
-    }while(rc.forward() && (checkGridCount++ <= SYS_MAXDROPITEMGRID));
+        }while(rc.forward() && (checkGridCount++ <= SYS_MAXDROPITEMGRID));
 
-    if(mapBin()->groundValid(bestX, bestY)){
-        addGridItem(std::move(sdDI.item), bestX, bestY);
+        if(mapBin()->groundValid(bestX, bestY)){
+            addGridItem(std::move(item), bestX, bestY);
+        }
     }
     return {};
 }

@@ -208,13 +208,33 @@ function uidRemoteCall(uid, ...)
     end
 end
 
-function setMonsterDropOnDie(uid, itemCfgList, allowDefaultDrop)
-    assertType(uid, 'integer')
-    assertType(itemCfgList, 'array')
-    assertType(allowDefaultDrop, 'boolean', 'nil')
+function setMonsterDropOnDie(monsterUID, itemCfgList, opts)
+    assertType(monsterUID, 'integer')
+    assert(isMonster(monsterUID))
 
-    assert(isMonster(uid))
-    return _RSVD_NAME_callFuncCoop('setMonsterDropOnDie', uid, itemCfgList, allowDefaultDrop or false)
+    assertType(itemCfgList, 'array')
+    assertType(opts, 'table', 'nil')
+
+    local playerUID = 0
+    local allowDefaultDrop = true
+
+    if opts then
+        if opts.player ~= nil then
+            playerUID = opts.player
+            assertType(playerUID, 'integer')
+
+            if playerUID ~= 0 then
+                assert(isPlayer(playerUID))
+            end
+        end
+
+        if opts.defaultDrop ~= nil then
+            allowDefaultDrop = opts.defaultDrop
+            assertType(allowDefaultDrop, 'boolean')
+        end
+    end
+
+    return _RSVD_NAME_callFuncCoop('setMonsterDropOnDie', monsterUID, playerUID, allowDefaultDrop, itemCfgList)
 end
 
 local _RSVD_NAME_triggerConfigList = {

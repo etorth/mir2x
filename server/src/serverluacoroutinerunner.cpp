@@ -230,9 +230,12 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         }
     });
 
-    bindCoop("_RSVD_NAME_setMonsterDropOnDie", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t monsterUID, sol::table itemCfgList, bool allowDefaultDrop) -> corof::awaitable<>
+    bindCoop("_RSVD_NAME_setMonsterDropOnDie", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t monsterUID, uint64_t playerUID, bool allowDefaultDrop, sol::table itemCfgList) -> corof::awaitable<>
     {
         fflassert(uidf::isMonster(monsterUID), monsterUID);
+        if(playerUID){
+            fflassert(uidf::isPlayer(playerUID), playerUID);
+        }
         fflassert(luaf::isArray(itemCfgList), itemCfgList);
 
         const auto fnGetItem = [](const sol::object &obj) -> SDItem
@@ -249,6 +252,7 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         };
 
         SDDropOnDie sdDropOnDie;
+        sdDropOnDie.playerUID = playerUID;
         sdDropOnDie.allowDefaultDrop = allowDefaultDrop;
 
         for(size_t i = 1; i <= itemCfgList.size(); ++i){
