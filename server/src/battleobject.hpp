@@ -6,7 +6,7 @@
 #include <optional>
 #include <unordered_map>
 #include "pathf.hpp"
-#include "sgf.hpp"
+#include "stdf.hpp"
 #include "charobject.hpp"
 #include "damagenode.hpp"
 #include "actionnode.hpp"

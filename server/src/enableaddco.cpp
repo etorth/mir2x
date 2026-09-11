@@ -2,7 +2,6 @@
 #include "stdf.hpp"
 #include "rotatecoord.hpp"
 #include "uidf.hpp"
-#include "sgf.hpp"
 #include "uidsf.hpp"
 #include "actorpod.hpp"
 #include "actormsg.hpp"

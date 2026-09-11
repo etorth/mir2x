@@ -2,7 +2,7 @@
 #include <cinttypes>
 #include "pathf.hpp"
 #include "uidf.hpp"
-#include "sgf.hpp"
+#include "stdf.hpp"
 #include "uidsf.hpp"
 #include "totype.hpp"
 #include "player.hpp"
@@ -120,7 +120,7 @@ corof::awaitable<bool> BattleObject::requestJump(int nX, int nY, int nDirection)
     }
 
     m_moveLock = true;
-    const auto moveLockSg = sgf::guard([this]() noexcept { m_moveLock = false; });
+    const auto moveLockSg = stdf::guard([this]() noexcept { m_moveLock = false; });
 
     AMTryJump amTJ;
     std::memset(&amTJ, 0, sizeof(amTJ));
@@ -238,7 +238,7 @@ corof::awaitable<bool> BattleObject::requestMove(int dstX, int dstY, int speed, 
     }
 
     m_moveLock = true;
-    const auto moveLockSg = sgf::guard([this]() noexcept { m_moveLock = false; });
+    const auto moveLockSg = stdf::guard([this]() noexcept { m_moveLock = false; });
 
     AMTryMove amTM;
     std::memset(&amTM, 0, sizeof(amTM));
@@ -330,7 +330,7 @@ corof::awaitable<bool> BattleObject::requestSpaceMove(int locX, int locY, bool s
     }
 
     m_moveLock = true;
-    const auto moveLockSg = sgf::guard([this]() noexcept { m_moveLock = false; });
+    const auto moveLockSg = stdf::guard([this]() noexcept { m_moveLock = false; });
 
     AMTrySpaceMove amTSM;
     std::memset(&amTSM, 0, sizeof(amTSM));
@@ -409,7 +409,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
     }
 
     m_moveLock = true;
-    const auto moveLockSg = sgf::guard([this]() noexcept { m_moveLock = false; });
+    const auto moveLockSg = stdf::guard([this]() noexcept { m_moveLock = false; });
 
     AMLoadMap amLM;
     std::memset(&amLM, 0, sizeof(amLM));
@@ -431,7 +431,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
         co_return false;
     }
 
-    auto mapSwitchErrorSg = sgf::guard([rmpk, this]()
+    auto mapSwitchErrorSg = stdf::guard([rmpk, this]()
     {
         m_actorPod->post(rmpk.fromAddr(), AM_MAPSWITCHERROR);
     });
@@ -450,7 +450,7 @@ corof::awaitable<bool> BattleObject::requestMapSwitch(uint64_t argMapUID, int lo
         co_return false;
     }
 
-    auto leaveErrorSg = sgf::guard([leavermpk, this]()
+    auto leaveErrorSg = stdf::guard([leavermpk, this]()
     {
         m_actorPod->post(leavermpk.fromAddr(), AM_LEAVEERROR);
     });

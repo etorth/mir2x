@@ -162,7 +162,7 @@ corof::awaitable<> Player::net_CM_PICKUP(uint8_t, const uint8_t *buf, size_t, ui
     amPU.availableWeight = 500;
 
     m_pickUpLock = true;
-    const auto pickUpLockSg = sgf::guard([this]() noexcept { m_pickUpLock = false; });
+    const auto pickUpLockSg = stdf::guard([this]() noexcept { m_pickUpLock = false; });
 
     switch(const auto mpk = co_await m_actorPod->send(mapUID(), {AM_PICKUP, amPU}); mpk.type()){
         case AM_PICKUPITEMLIST:

@@ -77,7 +77,7 @@ corof::awaitable<bool> ServerZumaTaurus::attackUID(uint64_t targetUID, int dcTyp
     }
 
     m_attackLock = true;
-    const auto attackLockSg = sgf::guard([this](){ m_attackLock = false; });
+    const auto attackLockSg = stdf::guard([this](){ m_attackLock = false; });
 
     const auto coLocOpt = co_await getCOLocation(targetUID);
     if(!coLocOpt.has_value()){

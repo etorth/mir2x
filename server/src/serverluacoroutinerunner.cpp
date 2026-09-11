@@ -1,6 +1,5 @@
 #include <memory>
 #include <iterator>
-#include "sgf.hpp"
 #include "stdf.hpp"
 #include "luaf.hpp"
 #include "uidf.hpp"

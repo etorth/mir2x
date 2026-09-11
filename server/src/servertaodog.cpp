@@ -57,7 +57,7 @@ corof::awaitable<bool> ServerTaoDog::attackUID(uint64_t targetUID, int dcType)
     }
 
     m_attackLock = true;
-    const auto attckLockSg = sgf::guard([this]() noexcept { m_attackLock = false; });
+    const auto attckLockSg = stdf::guard([this]() noexcept { m_attackLock = false; });
 
     const auto coLocOpt = co_await getCOLocation(targetUID);
     if(!coLocOpt.has_value()){

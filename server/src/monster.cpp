@@ -148,7 +148,7 @@ corof::awaitable<bool> Monster::attackUID(uint64_t uid, int magicID)
     // before response received we can't allow any attack request
 
     m_attackLock = true;
-    const auto attackLockSg = sgf::guard([this]() noexcept { m_attackLock = false; });
+    const auto attackLockSg = stdf::guard([this]() noexcept { m_attackLock = false; });
 
     const auto coLocOpt = co_await getCOLocation(uid);
     if(!coLocOpt.has_value()){

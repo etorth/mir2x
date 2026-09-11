@@ -491,7 +491,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     amAM.EndY  = nMostY;
 
     getGrid(nMostX, nMostY).locked = true;
-    const auto gridLockSg = sgf::guard([nMostX, nMostY, this](){ getGrid(nMostX, nMostY).locked = false; });
+    const auto gridLockSg = stdf::guard([nMostX, nMostY, this](){ getGrid(nMostX, nMostY).locked = false; });
 
     switch(const auto rstRMPK = co_await m_actorPod->send(rstMPK.fromAddr(), {AM_ALLOWMOVE, amAM}); rstRMPK.type()){
         case AM_MOVEOK:
@@ -724,7 +724,7 @@ corof::awaitable<> ServerMap::on_AM_TRYMAPSWITCH(const ActorMsgPack &mpk)
     amAMS.Y = amTMS.Y;
 
     getGrid(amAMS.X, amAMS.Y).locked = true;
-    const auto gridLockSg = sgf::guard([amAMS, this](){ getGrid(amAMS.X, amAMS.Y).locked = false ; });
+    const auto gridLockSg = stdf::guard([amAMS, this](){ getGrid(amAMS.X, amAMS.Y).locked = false ; });
 
     switch(const auto rmpk = co_await m_actorPod->send(mpk.fromAddr(), {AM_ALLOWMAPSWITCH, amAMS}); rmpk.type()){
         case AM_MAPSWITCHOK:

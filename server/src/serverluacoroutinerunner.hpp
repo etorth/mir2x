@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <sol/sol.hpp>
 #include "sysconst.hpp"
-#include "sgf.hpp"
+#include "stdf.hpp"
 #include "luaf.hpp"
 #include "corof.hpp"
 #include "totype.hpp"
@@ -323,7 +323,7 @@ class ServerLuaCoroutineRunner: public ServerLuaModule
                     fflassert(s.lua_state());
 
                     m_currRunner->needResume = false;
-                    const auto callDoneSg = sgf::guard([this](){ m_currRunner->needResume = true; });
+                    const auto callDoneSg = stdf::guard([this](){ m_currRunner->needResume = true; });
 
                     if constexpr (std::is_same_v<LuaCoopState, typename _extractLambdaThirdArg<Func>::type>){
                         std::apply(func, std::tuple_cat(std::tuple(LuaCoopResumer(this, m_currRunner, cb), LuaCoopState(s)), std::move(args))).resume();

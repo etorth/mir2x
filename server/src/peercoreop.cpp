@@ -1,4 +1,4 @@
-#include "sgf.hpp"
+#include "stdf.hpp"
 #include "uidf.hpp"
 #include "uidsf.hpp"
 #include "serverguard.hpp"
@@ -25,7 +25,7 @@ corof::awaitable<> PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
     // map may run on peer
     // but is manageed on service core
 
-    auto loadMapSg = sgf::guard([fromAddr = mpk.fromAddr(), this]()
+    auto loadMapSg = stdf::guard([fromAddr = mpk.fromAddr(), this]()
     {
         m_actorPod->post(fromAddr, AM_ERROR);
     });
