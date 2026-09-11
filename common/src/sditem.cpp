@@ -1,11 +1,6 @@
 #include "sditem.hpp"
 #include "serdesmsg.hpp"
 
-std::string SDItem::str() const
-{
-    return str_printf("(name, itemID, seqID, count, duration) = (%s, %zu, %zu, %zu, (%zu, %zu))", to_cstr(DBCOM_ITEMRECORD(itemID).name), to_uz(itemID), to_uz(seqID), count, duration[0], duration[1]);
-}
-
 std::u8string SDItem::getXMLLayout(const std::unordered_map<int, std::string> & params, SDItem::SDItemXMLLayoutType layoutType) const
 {
     fflassert(*this);

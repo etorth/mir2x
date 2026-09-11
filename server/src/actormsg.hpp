@@ -105,6 +105,7 @@ enum ActorMsgPackType: int
     AM_QUERYHEALTH,
     AM_HEALTH,
     AM_DROPITEMLIST,
+    AM_GRANTITEMLIST,
     AM_SHOWDROPITEM,
     AM_NOTIFYDEAD,
     AM_OFFLINE,
@@ -252,6 +253,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_QUERYHEALTH)
         _add_mpk_type_case(AM_HEALTH)
         _add_mpk_type_case(AM_DROPITEMLIST)
+        _add_mpk_type_case(AM_GRANTITEMLIST)
         _add_mpk_type_case(AM_SHOWDROPITEM)
         _add_mpk_type_case(AM_NOTIFYDEAD)
         _add_mpk_type_case(AM_OFFLINE)

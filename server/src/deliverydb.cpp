@@ -102,3 +102,8 @@ DBDelivery dbCreateDelivery(uint32_t recipientDBID, std::vector<SDItem> itemList
     transaction.commit();
     return delivery;
 }
+
+DBDelivery dbCreateDelivery(uint32_t recipientDBID, std::vector<SDItem> itemList)
+{
+    return dbCreateDelivery(recipientDBID, std::move(itemList), to_cstr(u8"你收到了一份系统投递："));
+}

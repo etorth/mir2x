@@ -15,6 +15,7 @@
 #include "protocoldef.hpp"
 #include "dbcomid.hpp"
 #include "luaf.hpp"
+#include "strf.hpp"
 
 struct SDItem
 {
@@ -185,7 +186,6 @@ struct SDItem
         return (to_u64(itemID) << 32) | seqID;
     }
 
-    std::string str() const;
     std::u8string getXMLLayout(const std::unordered_map<int, std::string> & = {}, SDItemXMLLayoutType = XMLLAYOUT_FULL) const;
 
     bool isGold() const
@@ -210,4 +210,14 @@ struct SDItem
 
     luaf::luaVar asLuaVar() const;
     static SDItem fromLuaVar(const luaf::luaVar &);
+
+    std::string str() const
+    {
+        return str_any(asLuaVar());
+    }
+
+    friend std::ostream & operator << (std::ostream &os, const SDItem &item)
+    {
+        return os << item.str();
+    }
 };

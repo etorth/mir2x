@@ -187,6 +187,7 @@ class Player final: public BattleObject
 
     private:
         corof::awaitable<> on_AM_EXP                (const ActorMsgPack &);
+        corof::awaitable<> on_AM_GRANTITEMLIST      (const ActorMsgPack &);
         corof::awaitable<> on_AM_ADDBUFF            (const ActorMsgPack &);
         corof::awaitable<> on_AM_REMOVEBUFF         (const ActorMsgPack &);
         corof::awaitable<> on_AM_MISS               (const ActorMsgPack &);

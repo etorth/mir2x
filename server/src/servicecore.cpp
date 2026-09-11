@@ -78,6 +78,10 @@ corof::awaitable<> ServiceCore::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_PLAYERBROADCAST(mpk);
             }
+        case AM_GRANTITEMLIST:
+            {
+                return on_AM_GRANTITEMLIST(mpk);
+            }
         default:
             {
                 throw fflvalue(mpk.str());

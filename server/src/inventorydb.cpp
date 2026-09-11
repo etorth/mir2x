@@ -1,7 +1,9 @@
+#include <climits>
 #include "dbpod.hpp"
 #include "dbcomid.hpp"
 #include "fflerror.hpp"
 #include "sysconst.hpp"
+#include "golddb.hpp"
 #include "inventorydb.hpp"
 
 extern DBPod *g_dbPod;
@@ -89,4 +91,43 @@ bool dbRemoveInventoryItem(uint32_t dbid, uint32_t itemID, uint32_t seqID)
 
     fflassert(!query.executeStep());
     return true;
+}
+
+std::optional<SDItemGrant> dbGrantItemList(uint32_t dbid, const std::vector<SDItem> &itemList)
+{
+    fflassert(!itemList.empty());
+    fflassert(std::ranges::all_of(itemList, [](const auto &item){ return item && item.seqID == 0; }));
+
+    // stage the inventory separately
+    // a rejected or failed batch changes neither player memory nor persisted items
+    auto transaction = g_dbPod->createTransaction();
+    const auto oldGold = dbLoadGold(dbid);
+    if(!oldGold.has_value()){
+        return std::nullopt;
+    }
+
+    SDItemGrant result
+    {
+        .gold = oldGold.value(),
+        .inventory = dbLoadInventory(dbid),
+    };
+
+    for(const auto &item: itemList){
+        if(item.isGold()){
+            if(to_u64(item.count) > to_u64(INT64_MAX) - to_u64(result.gold)){
+                return std::nullopt;
+            }
+            result.gold += item.count;
+        }
+        else{
+            dbUpdateInventoryItem(dbid, result.inventory.add(item, false));
+        }
+    }
+
+    if(result.gold != oldGold.value()){
+        dbUpdateGold(dbid, result.gold);
+    }
+
+    transaction.commit();
+    return result;
 }

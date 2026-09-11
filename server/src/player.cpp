@@ -558,6 +558,10 @@ corof::awaitable<> Player::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_EXP(mpk);
             }
+        case AM_GRANTITEMLIST:
+            {
+                return on_AM_GRANTITEMLIST(mpk);
+            }
         case AM_ADDBUFF:
             {
                 return on_AM_ADDBUFF(mpk);
@@ -2684,8 +2688,11 @@ corof::awaitable<bool> Player::followTeamLeader()
 
 std::string Player::sendDelivery(std::vector<SDItem> itemList)
 {
-    auto delivery = dbCreateDelivery(dbid(), std::move(itemList), to_cstr(u8"你收到了一份系统投递："));
-    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList{std::move(delivery.message)}));
+    auto delivery = dbCreateDelivery(dbid(), std::move(itemList));
+    postNetMessage(SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
+    {
+        std::move(delivery.message),
+    }));
     return delivery.record;
 }
 

@@ -1,4 +1,5 @@
 #include <string>
+#include <ranges>
 #include <type_traits>
 
 #include "uidf.hpp"
@@ -9,6 +10,7 @@
 #include "server.hpp"
 #include "servicecore.hpp"
 #include "mapbindb.hpp"
+#include "deliverydb.hpp"
 
 extern MapBinDB *g_mapBinDB;
 extern Server *g_server;
@@ -32,6 +34,35 @@ corof::awaitable<> ServiceCore::on_AM_REGISTERQUEST(const ActorMsgPack &mpk)
     const auto sdRQ = mpk.deserialize<SDRegisterQuest>();
     m_questList[mpk.from()] = sdRQ;
     return {};
+}
+
+corof::awaitable<> ServiceCore::on_AM_GRANTITEMLIST(const ActorMsgPack &mpk)
+{
+    auto sdGIL = mpk.deserialize<SDGrantItemList>();
+    fflassert(uidf::isPlayer(sdGIL.playerUID), sdGIL.playerUID);
+    fflassert(std::ranges::all_of(sdGIL.itemList, [](const auto &item) -> bool { return item; }), sdGIL.itemList);
+
+    switch(const auto rmpk = co_await m_actorPod->send(sdGIL.playerUID, {AM_GRANTITEMLIST, cerealf::serialize(sdGIL)}); rmpk.type()){
+        case AM_OK:
+            {
+                co_return;
+            }
+        case AM_FALSE:
+        case AM_BADACTORPOD:
+            {
+                break;
+            }
+        default:
+            {
+                throw fflvalue(rmpk.str());
+            }
+    }
+
+    auto delivery = dbCreateDelivery(uidf::getPlayerDBID(sdGIL.playerUID), std::move(sdGIL.itemList));
+    forwardNetPackage(sdGIL.playerUID, SM_CHATMESSAGELIST, cerealf::serialize(SDChatMessageList
+    {
+        std::move(delivery.message),
+    }));
 }
 
 corof::awaitable<> ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)

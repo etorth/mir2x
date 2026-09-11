@@ -11,6 +11,7 @@
 #include "server.hpp"
 #include "cerealf.hpp"
 #include "serdesmsg.hpp"
+#include "inventorydb.hpp"
 #include "buildconfig.hpp"
 
 extern Server *g_server;
@@ -360,6 +361,43 @@ corof::awaitable<> Player::on_AM_EXP(const ActorMsgPack &mpk)
     }
 
     gainExp(amE.exp);
+    return {};
+}
+
+corof::awaitable<> Player::on_AM_GRANTITEMLIST(const ActorMsgPack &mpk)
+{
+    fflassert(mpk.from() == uidf::getServiceCoreUID(), uidf::getUIDString(mpk.from()));
+    const auto grant = mpk.deserialize<SDGrantItemList>();
+    fflassert(grant.playerUID == UID(), grant.playerUID, UID());
+
+    // decline before granting anything if in a pending trade
+    // a pending trade may replace the inventory with its committed snapshot
+    if(!m_channID.value_or(0) || directTradeBusy()){
+        m_actorPod->post(mpk.fromAddr(), AM_FALSE);
+        return {};
+    }
+
+    auto result = dbGrantItemList(dbid(), grant.itemList);
+    if(!result.has_value()){
+        m_actorPod->post(mpk.fromAddr(), AM_FALSE);
+        return {};
+    }
+
+    const bool goldChanged = result->gold != gold();
+    m_sdItemStorage.gold = result->gold;
+    m_sdItemStorage.inventory = std::move(result->inventory);
+
+    m_actorPod->post(mpk.fromAddr(), AM_OK);
+    if(goldChanged){
+        reportGold();
+    }
+
+    postNetMessage(SM_INVENTORY, cerealf::serialize(m_sdItemStorage.inventory));
+    for(const auto &item: grant.itemList){
+        if(!item.isGold()){
+            m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_GAINITEM, %llu)", to_llu(item.itemID)));
+        }
+    }
     return {};
 }
 

@@ -73,8 +73,8 @@ class ServiceCore final: public PeerCore
         corof::awaitable<> on_AM_BADCHANNEL            (const ActorMsgPack &);
         corof::awaitable<> on_AM_RECVPACKAGE           (const ActorMsgPack &);
         corof::awaitable<> on_AM_LOADMAP               (const ActorMsgPack &);
-        corof::awaitable<> on_AM_LOADINSTANCEMAP     (const ActorMsgPack &);
-        corof::awaitable<> on_AM_CLOSEINSTANCEMAP            (const ActorMsgPack &);
+        corof::awaitable<> on_AM_LOADINSTANCEMAP       (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CLOSEINSTANCEMAP      (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYMAPLIST          (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCOCOUNT          (const ActorMsgPack &);
         corof::awaitable<> on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &);
@@ -82,6 +82,7 @@ class ServiceCore final: public PeerCore
         corof::awaitable<> on_AM_QUERYQUESTUID         (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYQUESTUIDLIST     (const ActorMsgPack &);
         corof::awaitable<> on_AM_PLAYERBROADCAST       (const ActorMsgPack &);
+        corof::awaitable<> on_AM_GRANTITEMLIST         (const ActorMsgPack &);
 
     private:
         corof::awaitable<> net_CM_LOGIN         (uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);

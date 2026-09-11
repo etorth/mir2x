@@ -11,4 +11,5 @@ struct DBDelivery
 };
 
 DBDelivery dbCreateDelivery(uint32_t, std::vector<SDItem>, std::string);
+DBDelivery dbCreateDelivery(uint32_t, std::vector<SDItem>);
 DBDelivery dbCreateDeliveryInTransaction(uint32_t, std::vector<SDItem>, std::string);

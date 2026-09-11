@@ -101,6 +101,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
         if(itemIDSeqSet.contains(newItem.itemIDSeq())){
             throw fflpanic("found duplication with given item: itemID = {}, seqID = {}", newItem.itemID, newItem.seqID);
         }
+
         m_list.push_back(std::move(newItem));
         return m_list.back();
     }
@@ -111,7 +112,7 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
                 continue;
             }
 
-            // TODO we only support change one item
+            // we only support change one item
             // currently can't do automatically merge: (55 + 56) -> (99, 12)
             if(item.count + newItem.count <= SYS_INVGRIDMAXHOLD){
                 item.count += newItem.count;
@@ -127,7 +128,8 @@ const SDItem &SDInventory::add(SDItem newItem, bool keepSeqID)
             return m_list.back();
         }
     }
-    throw fflreach();
+
+    throw fflvalue(newItem, keepSeqID);
 }
 
 std::tuple<size_t, uint32_t, const SDItem *> SDInventory::remove(uint32_t itemID, uint32_t seqID, size_t count, bool strict)

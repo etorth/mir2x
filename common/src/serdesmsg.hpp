@@ -587,6 +587,28 @@ class SDInventory final
         std::unordered_set<uint64_t> getItemIDSeqSet() const;
 };
 
+struct SDGrantItemList
+{
+    uint64_t playerUID = 0;
+    std::vector<SDItem> itemList;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(playerUID, itemList);
+    }
+};
+
+struct SDItemGrant
+{
+    size_t gold = 0;
+    SDInventory inventory;
+
+    template<typename Archive> void serialize(Archive & ar)
+    {
+        ar(gold, inventory);
+    }
+};
+
 struct SDDirectTradeItem
 {
     uint32_t itemID = 0;

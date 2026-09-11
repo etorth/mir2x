@@ -678,7 +678,11 @@ void Monster::onDie()
     }
 
     if(!sendItemList.empty()){
-        //
+        m_actorPod->post(uidf::getServiceCoreUID(), {AM_GRANTITEMLIST, cerealf::serialize(SDGrantItemList
+        {
+            .playerUID = m_sdDropOnDieOpt->playerUID,
+            .itemList = std::move(sendItemList),
+        })});
     }
 
     dispatchAction(ActionDie
