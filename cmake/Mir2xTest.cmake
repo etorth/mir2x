@@ -1,43 +1,34 @@
-#=======================================================================================
-# mir2x test infrastructure
+# This file defines the mir2x test infrastructure.
 #
-# Convention: for a module "foo" (server, client, tools/pkgviewer, ...):
+# A module keeps human-maintained code in src/ and generated tests in test/.
 #
-#   foo/src/            100% human-maintained source code, built and installed as usual.
-#   foo/test/unit/      AI-generated unit tests, one small standalone executable per test.
-#   foo/test/integration AI-generated integration tests (e.g. python scripts that drive a
-#                       built executable and check its behavior/output).
+# Unit tests are standalone executables, and integration tests run external commands.
+# Test executables use EXCLUDE_FROM_ALL so normal builds and installs do not build them.
 #
-# Test code is checked in like any other source, but is NOT expected to be hand-maintained;
-# it exists purely as regression coverage and can be freely regenerated/rewritten by an AI
-# assistant. Test executables are EXCLUDE_FROM_ALL: `make`/`make install` never builds them.
+# Register tests with one of these functions.
 #
-# This project uses CTest (native to CMake) rather than a bespoke runner. Use
-# mir2x_add_unit_test()/mir2x_add_integration_test() (below) from a module's
-# test/unit/CMakeLists.txt or test/integration/CMakeLists.txt to register tests; each
-# registers a real CTest test (add_test()) that goes through cmake/run_test.py, which runs
-# the test's command and, if a gold file is registered, diffs its stdout against it
-# (printing a unified diff on mismatch) - CTest itself only looks at the wrapper's exit
-# code, so this is transparent to `ctest`/any CTest-aware tooling (IDE test explorers etc).
+#     mir2x_add_unit_test()
+#     mir2x_add_integration_test()
 #
-# After every module has been added (i.e. at the very end of the root CMakeLists.txt), call
-# mir2x_finalize_tests() once to define the `check` convenience target: build every
-# registered test, then run ctest. Typical usage:
+# Call these functions from a module's test/unit or test/integration CMakeLists.txt.
+# Each call registers a CTest test that runs through cmake/run_test.py.
 #
-#   cmake --build <builddir> --target check          # build + run every test
-#   ctest --test-dir <builddir> --output-on-failure   # rerun tests only (after building)
+# Call mir2x_finalize_tests() once at the end of the root CMakeLists.txt.
+# It defines the check target, which builds every registered test and runs CTest.
+#
+#   cmake --build <builddir> --target check           # build + run every test
+#   ctest --test-dir <builddir> --output-on-failure   # rerun tests after building
 #   ctest --test-dir <builddir> -R xmltypeset         # rerun a single test by name
 #
-# CMake reserves the target name "test" for CTest once enable_testing() is called (e.g.
-# `make test` on the Makefiles generator runs ctest directly) - that's a plain `ctest` run
-# with no dependency on building first, hence `check` as the build+run convenience target.
+# Makefile targets:
 #
-# gold files: rerun cmake/run_test.py directly with --update-gold to (re)create a test's
-# gold file from its current actual output, e.g.:
+#   make test   # run CTest directly
+#   make check  # build and run CTest
+#
+# Regenerate a gold file with this command:
 #
 #   ${MIR2X_PYTHON_EXECUTABLE} cmake/run_test.py --update-gold --gold <path> -- <built-test-exe> [args...]
-#=======================================================================================
-
+#
 enable_testing()
 
 define_property(GLOBAL PROPERTY MIR2X_TEST_BUILD_TARGETS
@@ -53,14 +44,13 @@ define_property(GLOBAL PROPERTY MIR2X_TEST_BUILD_TARGETS
 #                      [NO_GOLD]
 #                      [WORKING_DIRECTORY <dir>])
 #
-# builds an EXCLUDE_FROM_ALL executable named test_<name> from SOURCES and registers it as
-# a CTest test named <name>. unless NO_GOLD is given, GOLD defaults to
-# "<first-source-without-extension>.log.gold" next to the first source file (matches this
-# project's convention of naming e.g. test_xmltypeset.cpp's gold file
-# test_xmltypeset.log.gold) - this default applies whether or not that file exists yet, so
-# a first run reports a normal (fixable) failure instead of silently skipping the check.
-# WORKING_DIRECTORY defaults to the directory containing the CMakeLists.txt that calls this
-# function.
+# This function builds an EXCLUDE_FROM_ALL executable named test_<name> from SOURCES and registers it as a CTest test named <name>.
+#
+# GOLD defaults to "<first-source-without-extension>.log.gold" next to the first source file.
+# Specify NO_GOLD to skip gold-file comparison.
+#
+# WORKING_DIRECTORY defaults to the directory containing the calling CMakeLists.txt.
+#
 function(mir2x_add_unit_test)
     set(T_OPTIONS NO_GOLD)
     set(T_ONE_VALUE_ARGS NAME GOLD WORKING_DIRECTORY)
@@ -107,13 +97,13 @@ endfunction()
 #                             [GOLD <path>]
 #                             [WORKING_DIRECTORY <dir>])
 #
-# registers an arbitrary out-of-process command (e.g. `${MIR2X_PYTHON_EXECUTABLE} test_client.py`) as a CTest
-# test named <name>. this function doesn't compile anything itself; if COMMAND's first word
-# names an existing CMake target (e.g. the `client` executable), it's resolved to that
-# target's built file and the target is added as a build dependency, so integration tests
-# can directly launch the real module executables they're testing. DEPENDS can list further
-# targets (e.g. `server`, for a test that drives both client and server) that must also be
-# built first.
+# This function registers an arbitrary external command, such as `${MIR2X_PYTHON_EXECUTABLE} test_client.py`, as a CTest test named <name>.
+# It does not compile anything itself.
+#
+# If the first word of COMMAND names an existing CMake target, it is resolved to that target's built file and added as a build dependency.
+#
+# DEPENDS lists additional targets that must be built first.
+#
 function(mir2x_add_integration_test)
     set(T_ONE_VALUE_ARGS NAME GOLD WORKING_DIRECTORY)
     set(T_MULTI_VALUE_ARGS COMMAND DEPENDS)
@@ -137,9 +127,7 @@ function(mir2x_add_integration_test)
         set(T_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
     endif()
 
-    # integration tests don't build anything of their own (unlike mir2x_add_unit_test's
-    # test_<name> executable), so a plain custom target is enough to hold their DEPENDS and
-    # give `check` something to depend on
+    # Integration tests do not build an executable, so a custom target gives check a dependency to build.
     set(T_BUILD_TARGET "test_${T_NAME}_integration")
     add_custom_target(${T_BUILD_TARGET})
     if(T_DEPENDS)
@@ -149,9 +137,7 @@ function(mir2x_add_integration_test)
     mir2x__add_test(${T_NAME} ${T_BUILD_TARGET} "${T_COMMAND}" "${T_WORKING_DIRECTORY}" "${T_GOLD}")
 endfunction()
 
-# shared by mir2x_add_unit_test()/mir2x_add_integration_test(): registers <build-target> as
-# something `check` must build first, then wraps <command> in cmake/run_test.py (for the
-# optional gold-file diff) and registers that as a real CTest test named <name>
+# This shared helper adds the build dependency, wraps the command in cmake/run_test.py, and registers the CTest test.
 function(mir2x__add_test T_NAME T_BUILD_TARGET T_COMMAND T_WORKDIR T_GOLD)
     set_property(GLOBAL APPEND PROPERTY MIR2X_TEST_BUILD_TARGETS ${T_BUILD_TARGET})
 
@@ -165,8 +151,7 @@ function(mir2x__add_test T_NAME T_BUILD_TARGET T_COMMAND T_WORKDIR T_GOLD)
         WORKING_DIRECTORY ${T_WORKDIR})
 endfunction()
 
-# call once, from the root CMakeLists.txt, after every add_subdirectory() that might call
-# mir2x_add_unit_test()/mir2x_add_integration_test() has already run
+# Call this once from the root CMakeLists.txt after all test subdirectories have been added.
 function(mir2x_finalize_tests)
     get_property(T_ALL_TEST_TARGETS GLOBAL PROPERTY MIR2X_TEST_BUILD_TARGETS)
 
@@ -175,8 +160,7 @@ function(mir2x_finalize_tests)
         add_dependencies(mir2x_build_tests ${T_ALL_TEST_TARGETS})
     endif()
 
-    # convenience target: build every registered test, then run ctest. `ctest`/`make test`
-    # (CTest's own reserved target) only runs already-built tests, it doesn't build them.
+    # This convenience target builds every registered test and then runs CTest.
     add_custom_target(check
         COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target mir2x_build_tests
         COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure

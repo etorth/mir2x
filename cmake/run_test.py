@@ -1,18 +1,11 @@
 #!/usr/bin/env python3
-# mir2x CTest wrapper - invoked by every test registered via mir2x_add_unit_test()/
-# mir2x_add_integration_test() (see cmake/Mir2xTest.cmake), not meant to be run standalone
-# as part of the test suite itself, but it's a plain script, so nothing stops you from
-# using it directly to (re)generate a gold file (see --update-gold below).
+# This is the CTest wrapper described in cmake/Mir2xTest.cmake.
+# It is invoked by every test registered through mir2x_add_unit_test() or mir2x_add_integration_test().
 #
-# runs the given command; if --gold is given, diffs the command's stdout against that file
-# (printing a unified diff on mismatch) and fails if they differ or if the gold file doesn't
-# exist yet. CTest only looks at this wrapper's own exit code, so this is what actually
-# turns a stdout mismatch into a CTest-visible test failure.
-#
-# usage (as wired up by cmake/Mir2xTest.cmake, one per CTest test):
+# Run a test with this command:
 #   run_test.py --name <test-name> [--gold <path>] -- <command> [args...]
 #
-# to (re)create a gold file from a test's current actual output:
+# Generate or regenerate a gold file from a test's current output:
 #   run_test.py --update-gold --gold <path> -- <command> [args...]
 
 import argparse

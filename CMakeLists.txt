@@ -179,13 +179,14 @@ endfunction()
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xResPath.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/Mir2xDependencies.cmake")
 
-# python3 is used both at build/install time (tools/installres/src/install_res.py) and by
-# the test infrastructure (cmake/Mir2xTest.cmake / cmake/run_test.py). find it once here so
-# every caller agrees on the same interpreter; find_package() also lets a plain `python3` on
-# PATH resolve even on platforms without a "python3" command (e.g. Windows, where the
-# launcher is typically named "python"). Override with
-# -DMIR2X_PYTHON_EXECUTABLE=/path/to/python3 if the auto-detected interpreter isn't the one
-# you want (e.g. to force a specific venv).
+# Python 3 is used both at build/install time and by the test infrastructure:
+#
+#     tools/installres/src/install_res.py
+#     cmake/run_test.py
+#
+# Find it once here so every caller uses the same interpreter.
+# find_package() also resolves Python on platforms without a `python3` executable, such as Windows.
+# Override it with -DMIR2X_PYTHON_EXECUTABLE=/path/to/python3 when a specific interpreter is required.
 find_package(Python3 COMPONENTS Interpreter)
 set(MIR2X_PYTHON_EXECUTABLE "${Python3_EXECUTABLE}" CACHE FILEPATH
     "Python 3 interpreter used to run install_res.py and the test infrastructure")
@@ -207,9 +208,8 @@ add_subdirectory(tools )
 add_subdirectory(server)
 add_subdirectory(client)
 
-# top-level test/ holds cross-module integration tests (e.g. start server + client together
-# and check behavior); must come after every module above so mir2x_finalize_tests() below
-# sees every test registered by mir2x_add_unit_test()/mir2x_add_integration_test()
+# The top-level test/ directory holds cross-module integration tests, such as server and client scenarios.
+# It must be added after all modules so mir2x_finalize_tests() sees every registered test.
 add_subdirectory(test)
 mir2x_finalize_tests()
 
