@@ -46,10 +46,12 @@ define_property(GLOBAL PROPERTY MIR2X_TEST_BUILD_TARGETS
 #
 # This function builds an EXCLUDE_FROM_ALL executable named test_<name> from SOURCES and registers it as a CTest test named <name>.
 #
-# GOLD defaults to "<first-source-without-extension>.log.gold" next to the first source file.
-# Specify NO_GOLD to skip gold-file comparison.
+# GOLD
+#    Defaults to "<first-source-without-extension>.log.gold" next to the first source file.
+#    Specify NO_GOLD to skip gold-file comparison.
 #
-# WORKING_DIRECTORY defaults to the directory containing the calling CMakeLists.txt.
+# WORKING_DIRECTORY
+#    Defaults to the directory containing the calling CMakeLists.txt.
 #
 function(mir2x_add_unit_test)
     set(T_OPTIONS NO_GOLD)
@@ -100,9 +102,11 @@ endfunction()
 # This function registers an arbitrary external command, such as `${MIR2X_PYTHON_EXECUTABLE} test_client.py`, as a CTest test named <name>.
 # It does not compile anything itself.
 #
-# If the first word of COMMAND names an existing CMake target, it is resolved to that target's built file and added as a build dependency.
+# COMMAND
+#    If the first word of COMMAND names an existing CMake target, it is resolved to that target's built file and added as a build dependency.
 #
-# DEPENDS lists additional targets that must be built first.
+# DEPENDS
+#    Lists additional targets that must be built first.
 #
 function(mir2x_add_integration_test)
     set(T_ONE_VALUE_ARGS NAME GOLD WORKING_DIRECTORY)
