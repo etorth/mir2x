@@ -1,3 +1,4 @@
+local dialog = require('include.dialog')
 -- the 15Magic teachers
 --
 -- a 技能书 dropped by a monster or bought in a shop is raw material and teaches nothing. a
@@ -41,10 +42,6 @@ end
 -- one handler tag per skill, kept stable so a stale XML tag can not land on another skill
 local function skillTag(book)
     return 'npc_skill_' .. getItemID(book)
-end
-
-local function parList(out, text)
-    table.insert(out, string.format('                        <par>%s</par>', text))
 end
 
 function skillteacher.setTeacher(args)
@@ -94,46 +91,38 @@ function skillteacher.setTeacher(args)
 
     handler[SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>%s</par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]], args.redName or '跟你这种人我无话可说。', SYS_EXIT)
+            dialog.post(uid, args.redName or '跟你这种人我无话可说。',
+            dialog.link(SYS_EXIT, '结束'))
             return
         end
 
         -- wrong school, point them at the right town
         if not servedJob(uid) then
-            local hint = ''
+            local hint
             for job, text in pairs(args.wrongJob or {}) do
                 if server.player.hasJob(uid, job) then
                     hint = text
                 end
             end
 
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>%s</par>
-                    <par>%s</par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]], args.intro or args.greet, hint, SYS_EXIT)
+            dialog.post(uid,
+            {
+                args.intro or args.greet,
+                hint,
+            },
+            dialog.link(SYS_EXIT, '结束'))
             return
         end
 
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>%s</par>
-                <par>%s</par>
-                <par></par>
-                <par><event id="npc_show_skills">寻求武功指导</event></par>
-                <par><event id="%s" close="1">结束</event></par>
-            </layout>
-        ]], args.greet, args.ask or '你找我有什么事情吗?', SYS_EXIT)
+        dialog.post(uid,
+        {
+            args.greet,
+            args.ask or '你找我有什么事情吗?',
+        },
+        {
+            dialog.link('npc_show_skills', '寻求武功指导'),
+            dialog.link(SYS_EXIT, '结束'),
+        })
     end
 
     handler['npc_show_skills'] = function(uid, value)
@@ -142,60 +131,44 @@ function skillteacher.setTeacher(args)
             return
         end
 
-        local out = {}
-        table.insert(out, '                    <layout>')
-        parList(out, '我可以指导你以下的武功。')
-
+        local text =
+        {
+            '我可以指导你以下的武功。',
+        }
         for _, group in ipairs(args.books[job]) do
-            parList(out, string.format('（%s）', group.band))
+            table.insert(text, string.format('（%s）', group.band))
 
             local line = {}
             for _, entry in ipairs(group.list) do
-                table.insert(line, string.format('<event id="%s">%s</event>', skillTag(entry[1]), entry[1]))
+                table.insert(line, dialog.link(skillTag(entry[1]), entry[1]))
             end
-            parList(out, table.concat(line, ' , '))
+            table.insert(text, table.concat(line, ' , '))
         end
 
-        parList(out, '')
-        parList(out, string.format('<event id="%s" close="1">结束</event>', SYS_EXIT))
-        table.insert(out, '                    </layout>')
-
-        uidPostXML(uid, table.concat(out, '\n'))
+        dialog.post(uid, text,
+        dialog.link(SYS_EXIT, '结束'))
     end
 
     -- ask for the fee, then copy the book out
     for book, price in pairs(priceList) do
         handler[skillTag(book)] = function(uid, value)
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>如果想学%s，请支付<t color="red">%d</t>钱。想得到指教吗？</par>
-                    <par><event id="%s">请写武功秘籍！</event></par>
-                    <par><event id="npc_hesitate">结束</event></par>
-                </layout>
-            ]], book, price, skillTag(book) .. '_commit')
+            dialog.post(uid, string.format('如果想学%s，请支付<t color="red">%d</t>钱。想得到指教吗？', book, price),
+            {
+                dialog.link(skillTag(book) .. '_commit', '请写武功秘籍！'),
+                dialog.link('npc_hesitate', '结束'),
+            })
         end
 
         handler[skillTag(book) .. '_commit'] = function(uid, value)
             if not server.player.hasItem(uid, book, 1) then
-                uidPostXML(uid,
-                [[
-                    <layout>
-                        <par>请首先拿来%s秘籍。</par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]], book, SYS_EXIT)
+                dialog.post(uid, string.format('请首先拿来%s秘籍。', book),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             if not server.player.removeGold(uid, price) then
-                uidPostXML(uid,
-                [[
-                    <layout>
-                        <par>世界上的事情没有免费的。修炼武功也是同样的。下次不要忘了带修炼费来。</par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]], SYS_EXIT)
+                dialog.post(uid, '世界上的事情没有免费的。修炼武功也是同样的。下次不要忘了带修炼费来。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
@@ -203,36 +176,26 @@ function skillteacher.setTeacher(args)
 
             -- the fee is already gone, legacy kept it on a botched copy too
             if math.random(FAIL_ODDS) == 1 then
-                uidPostXML(uid,
-                [[
-                    <layout>
-                        <par>哦，非常抱歉！书太旧了，这是无论如何也无法看清楚。请找到保存状态好写的书！</par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]], SYS_EXIT)
+                dialog.post(uid, '哦，非常抱歉！书太旧了，这是无论如何也无法看清楚。请找到保存状态好写的书！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>这里有秘诀，请拿着吧！江湖是很冷酷的地方。你千万要专心于一个领域。如果不如此，不要说天下绝世武功，就是成为一名真正的人都很困难。江湖呀。。</par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]], SYS_EXIT)
+            dialog.post(uid,
+            '这里有秘诀，请拿着吧！' ..
+            '江湖是很冷酷的地方。' ..
+            '你千万要专心于一个领域。' ..
+            '如果不如此，不要说天下绝世武功，就是成为一名真正的人都很困难。' ..
+            '江湖呀。。',
+            dialog.link(SYS_EXIT, '结束'))
 
             server.player.addItem(uid, manualName(book), 1)
         end
     end
 
     handler['npc_hesitate'] = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>嗯。。你犹豫什么？千万记住要学的东西很多，年轻的岁月很短。</par>
-                <par><event id="%s" close="1">结束</event></par>
-            </layout>
-        ]], SYS_EXIT)
+        dialog.post(uid, '嗯。。你犹豫什么？千万记住要学的东西很多，年轻的岁月很短。',
+        dialog.link(SYS_EXIT, '结束'))
     end
 
     setEventHandler(handler)

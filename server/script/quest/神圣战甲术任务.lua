@@ -71,35 +71,29 @@ local function setupMineNag(uid)
     [[
         local questName = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
             [SYS_LABEL] = '神圣战甲术的起爆石',
             [SYS_ENTER] = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>请在<t color="red">比奇废矿</t>仔细找一下吧。那你就可以在秘密地点找到<t color="red">起爆石</t>。</par>
-                        <par></par>
-                        <par><event id="npc_explain">这件事要怎么做？</event></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '请在<t color="red">比奇废矿</t>仔细找一下吧。那你就可以在秘密地点找到<t color="red">起爆石</t>。',
+                {
+                    dialog.link('npc_explain', '这件事要怎么做？'),
+                    dialog.link(SYS_EXIT, '结束'),
+                })
             end,
 
             -- @mugong_Upac_explain
             npc_explain = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>要想修炼神圣战甲术, 首先要从比奇废矿的怪物身上夺回<t color="red">神圣战甲术</t>。</par>
-                        <par>必须把你打败的僵尸掉下的神圣战甲术书放入包里，这样你就会被移动到废矿的秘密房间。</par>
-                        <par>那个房间是<t color="red">尸王</t>居住的地方, 在这些怪物当中就可以得到<t color="red">起爆石</t>。</par>
-                        <par>把起爆石给我带来即可。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '要想修炼神圣战甲术, 首先要从比奇废矿的怪物身上夺回<t color="red">神圣战甲术</t>。',
+                    '必须把你打败的僵尸掉下的神圣战甲术书放入包里，这样你就会被移动到废矿的秘密房间。',
+                    '那个房间是<t color="red">尸王</t>居住的地方, 在这些怪物当中就可以得到<t color="red">起爆石</t>。',
+                    '把起爆石给我带来即可。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
             end,
         }
     ]])
@@ -130,10 +124,12 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             -- the two ELSESAYs of @mugong_Upac_test and its next, both about losing the stone
             local function postLostStone(uid, wording)
-                uidPostXML(uid, questPath, wording, SYS_EXIT)
+                dialog.post(uid, questPath, wording,
+                dialog.link(SYS_EXIT, '结束'))
             end
 
             return
@@ -141,61 +137,32 @@ setQuestFSMTable(
                 [SYS_LABEL] = '交起爆石',
                 [SYS_ENTER] = function(uid, value)
                     if not server.player.hasItem(uid, '起爆石', 1) then
-                        postLostStone(uid,
-                        [=[
-                            <layout>
-                                <par>你把起爆石给弄丢了?? 没有起爆石我可无法让你修炼神圣战甲术..</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=])
+                        postLostStone(uid, '你把起爆石给弄丢了?? 没有起爆石我可无法让你修炼神圣战甲术..')
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>好好.. 这个<t color="red">起爆石</t>就是调节大自然和你之间真气的石头。当你拿到这颗石头的同时，你已经拥有了调节大自然和你之间真气的能力..</par>
-                            <par>你现在有充分的能力修炼神圣战甲术了...</par>
-                            <par></par>
-                            <par><event id="npc_take_book">那么请给我神圣战甲术(秘籍)吧</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '好好.. 这个<t color="red">起爆石</t>就是调节大自然和你之间真气的石头。当你拿到这颗石头的同时，你已经拥有了调节大自然和你之间真气的能力..',
+                        '你现在有充分的能力修炼神圣战甲术了...',
+                    },
+                    dialog.link('npc_take_book', '那么请给我神圣战甲术(秘籍)吧'))
                 end,
 
                 -- @mugong_Upac_test_next, take 起爆石, then next3 or next4 on gender
                 npc_take_book = function(uid, value)
                     if not server.player.hasItem(uid, '起爆石', 1) then
-                        postLostStone(uid,
-                        [=[
-                            <layout>
-                                <par>你丢了<t color="red">起爆石</t>?? 那我可没办法让你修炼神圣战甲术..</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=])
+                        postLostStone(uid, '你丢了<t color="red">起爆石</t>?? 那我可没办法让你修炼神圣战甲术..')
                         return
                     end
 
                     -- gender man. the closing line differs by a red mark on 大自然真气
                     if server.player.getGender(uid) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>想想你已经修炼成功的魔法，你就会知道该怎么使用神圣战技术了，持续使用神圣战甲术，你就自然而然学会利用大自然真气的。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '想想你已经修炼成功的魔法，你就会知道该怎么使用神圣战技术了，持续使用神圣战甲术，你就自然而然学会利用大自然真气的。',
+                        dialog.link(SYS_EXIT, '结束'))
                     else
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>想想你已经修炼成功的魔法，你就会知道该怎么使用神圣战技术了，持续使用神圣战甲术，你就自然而然学会利用<t color="red">大自然真气</t>的。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '想想你已经修炼成功的魔法，你就会知道该怎么使用神圣战技术了，持续使用神圣战甲术，你就自然而然学会利用<t color="red">大自然真气</t>的。',
+                        dialog.link(SYS_EXIT, '结束'))
                     end
 
                     server.player.removeItem(uid, '起爆石', 1)
@@ -252,6 +219,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -265,103 +233,63 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [725] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经有了神圣战甲术(秘籍)吗? 为什么还跟我要呢?</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经有了神圣战甲术(秘籍)吗? 为什么还跟我要呢?',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 神圣战甲术
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经修炼了神圣战甲术吗?</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经修炼了神圣战甲术吗?',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_Upac_next1, checklevel 25
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你还没有能力修炼神圣战甲术..到了<t color="red">等级 %d</t>再来找我吧。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], minQuestLevel, SYS_EXIT)
+                dialog.post(uid, questPath, string.format('你还没有能力修炼神圣战甲术..到了<t color="red">等级 %d</t>再来找我吧。', minQuestLevel),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_Upac_next3
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>使用神圣战甲术可以瞬间吸收大自然的真气，<t color="red">提高物理防御力</t>。</par>
-                    <par>你想修炼神圣战甲术吗?要想修炼神圣战甲术就要学会吸收大自然真气的方法。世上万物各有各的真气，神圣战甲术就是吸收这种真气，<t color="red">一定时间内保护自己</t>。</par>
-                    <par></par>
-                    <par><event id="npc_ask_teach">教我神圣战甲术吧</event></par>
-                    <par><event id="npc_not_yet">我想我还未做好准备</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '使用神圣战甲术可以瞬间吸收大自然的真气，<t color="red">提高物理防御力</t>。',
+                '你想修炼神圣战甲术吗?要想修炼神圣战甲术就要学会吸收大自然真气的方法。世上万物各有各的真气，神圣战甲术就是吸收这种真气，<t color="red">一定时间内保护自己</t>。',
+            },
+            {
+                dialog.link('npc_ask_teach', '教我神圣战甲术吧'),
+                dialog.link('npc_not_yet', '我想我还未做好准备'),
+            })
         end,
 
         -- @mugong_Upac_next4_2
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>嗯....为了修炼新的技术而变换自己或许是可怕的事情。做好心理准备之后再来吧。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '嗯....为了修炼新的技术而变换自己或许是可怕的事情。做好心理准备之后再来吧。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_Upac_next4_1, the warning that there is a catch
         npc_ask_teach = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>前面我也说了，要想修炼神圣战甲术就要学会吸收<t color="red">大自然真气</t>的方法，你还没有这个能力，小心走火入魔啊。</par>
-                    <par></par>
-                    <par><event id="npc_ask_how">不走火入魔还可修炼神圣战甲术该怎么做呢?</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '前面我也说了，要想修炼神圣战甲术就要学会吸收<t color="red">大自然真气</t>的方法，你还没有这个能力，小心走火入魔啊。',
+            dialog.link('npc_ask_how', '不走火入魔还可修炼神圣战甲术该怎么做呢?'))
         end,
 
         -- @mugong_Upac_next5, SET [515]
         npc_ask_how = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>吸收大自然真气时，不走火入魔的方法之一是找到可以协调大自然和你之间真气的<t color="red">协调物</t>。此协调物要有最<t color="red">洁净的大自然真气</t>..</par>
-                    <par>这个协调物隐藏在<t color="red">起爆石</t>里面.. 起爆石可在带着<t color="red">比奇废矿</t>所得到的某种特殊物品就可进入的秘密地点获得。</par>
-                    <par></par>
-                    <par><event id="npc_accept">下一个</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '吸收大自然真气时，不走火入魔的方法之一是找到可以协调大自然和你之间真气的<t color="red">协调物</t>。此协调物要有最<t color="red">洁净的大自然真气</t>..',
+                '这个协调物隐藏在<t color="red">起爆石</t>里面.. 起爆石可在带着<t color="red">比奇废矿</t>所得到的某种特殊物品就可进入的秘密地点获得。',
+            },
+            dialog.link('npc_accept', '下一个'))
         end,
 
         -- @mugong_Upac_next6
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>请在<t color="red">比奇废矿</t>仔细找一下吧。那你就可以在秘密地点找到<t color="red">起爆石</t>。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '请在<t color="red">比奇废矿</t>仔细找一下吧。那你就可以在秘密地点找到<t color="red">起爆石</t>。',
+            dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,

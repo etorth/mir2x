@@ -13,17 +13,13 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>苍蝇拍还没做好吗？</par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '苍蝇拍还没做好吗？',
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
@@ -35,27 +31,18 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>最近天气异常的炎热，苍蝇拍的库存货都全部卖光了！...你能帮我找些做苍蝇拍的材料来吗？</par>
-                            <par><event id="npc_accept">好的！</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '最近天气异常的炎热，苍蝇拍的库存货都全部卖光了！...你能帮我找些做苍蝇拍的材料来吗？',
+                    dialog.link('npc_accept', '好的！'))
                 end,
 
                 npc_accept = function(uid, args)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>找到苍蝇拍的材料的话我就会帮你做苍蝇拍！苍蝇拍所需的材料是牛毛和竹棍。牛毛可以从牛身上弄到，竹棍或许能从钉耙猫那儿弄到！</par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '找到苍蝇拍的材料的话我就会帮你做苍蝇拍！苍蝇拍所需的材料是牛毛和竹棍。牛毛可以从牛身上弄到，竹棍或许能从钉耙猫那儿弄到！',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.quest.setState(questUID, {uid=uid, state='quest_start_collection'})
                 end,
@@ -64,17 +51,13 @@ setQuestFSMTable(
 
         setupNPCQuestBehavior('道馆_1', '万事通_1', uid,
         [[
+            local dialog = require('include.dialog')
             return
             {
                 [SYS_HIDE] = true,
                 [SYS_ENTER] = function(uid, args)
-                    uidPostXML(uid,
-                    [=[
-                        <layout>
-                            <par>按照金氏的吩咐，去杂货商那儿看看吧！杂货商(450:413)就在金氏店铺右边摆小摊呢！</par>
-                            <par><event id="%s">返回</event></par>
-                        </layout>
-                    ]=], SYS_ENTER)
+                    dialog.post(uid, '按照金氏的吩咐，去杂货商那儿看看吧！杂货商(450:413)就在金氏店铺右边摆小摊呢！',
+                    dialog.link(SYS_ENTER, '返回'))
                 end,
             }
         ]])
@@ -129,27 +112,21 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦！材料全部找到了啊！请稍等一下...</par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '哦！材料全部找到了啊！请稍等一下...')
 
                     pause(500)
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦！材料全部找到了啊！请稍等一下...</par>
-                            <par>给你！</par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '哦！材料全部找到了啊！请稍等一下...',
+                        '给你！',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.player.addItem(uid, getItemID('苍蝇拍'), 1)
                     server.quest.setState(questUID, {uid=uid, state='quest_get_fly_swatter'})
@@ -167,32 +144,26 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_ENTER] = function(uid, args)
                     if server.player.hasItem(uid, getItemID('苍蝇拍'), 0, 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>噢...真是太感谢了，现在可以对付这些该死的苍蝇了！</par>
-                                <par>这是一些对你帮助的奖励，请你不要客气。</par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath,
+                        {
+                            '噢...真是太感谢了，现在可以对付这些该死的苍蝇了！',
+                            '这是一些对你帮助的奖励，请你不要客气。',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
 
                         server.player.removeItem(uid, getItemID('苍蝇拍'), 0, 1)
                         server.player.   addItem(uid, getItemID('蝉翼刀'), 1)
 
                         server.quest.setState(questUID, {uid=uid, state=SYS_DONE})
                     else
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你给我带的苍蝇拍呢？</par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '你给我带的苍蝇拍呢？',
+                        dialog.link(SYS_EXIT, '结束'))
                     end
                 end,
             }
@@ -204,6 +175,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '金氏_1'), getUID(), getQuestName(),
 [[
     local questUID, questName, minQuestLevel = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -216,37 +188,27 @@ uidRemoteCall(getNPCharUID('比奇县_0', '金氏_1'), getUID(), getQuestName(),
         end,
 
         [SYS_ENTER] = function(uid, args)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>哎！这些该死的苍蝇，害得我没法儿做生意。要去重新买一个苍蝇拍吧，偏偏这个时候苍蝇拍材料没有了，啧...</par>
-                    <par>啊！正好，你去杂货商那儿帮他找些苍蝇拍的材料，然后把做好的苍蝇拍带过来行吗？</par>
-                    <par><event id="npc_accept">您是说去杂货店吗？我去一趟吧！</event></par>
-                    <par><event id="npc_refuse">我有点忙...</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '哎！这些该死的苍蝇，害得我没法儿做生意。要去重新买一个苍蝇拍吧，偏偏这个时候苍蝇拍材料没有了，啧...',
+                '啊！正好，你去杂货商那儿帮他找些苍蝇拍的材料，然后把做好的苍蝇拍带过来行吗？',
+            },
+            {
+                dialog.link('npc_accept', '您是说去杂货店吗？我去一趟吧！'),
+                dialog.link('npc_refuse', '我有点忙...'),
+            })
         end,
 
         npc_accept = function(uid, args)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>那就拜托你了！杂货店就是在右边能看到的那个地方。准确位置是<t color="red">450,413</t>。</par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '那就拜托你了！杂货店就是在右边能看到的那个地方。准确位置是<t color="red">450,413</t>。',
+            dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
         end,
 
         npc_refuse = function(uid, args)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>啊，这样啊...一小会儿就行的...唉，真是没辙了！</par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '啊，这样啊...一小会儿就行的...唉，真是没辙了！',
+            dialog.link(SYS_EXIT, '结束'))
         end,
     })
 ]])

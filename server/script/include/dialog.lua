@@ -12,11 +12,21 @@ function dialog.link(id, label, opts)
         is_close = (id == SYS_EXIT)
     end
 
+    local args_attr  = opts.args  ~= nil and string.format(' args="%s"', opts.args)  or ''
+    local wrap_attr  = opts.wrap  ~= nil and string.format(' wrap="%s"', tostring(opts.wrap)) or ''
     local close_attr = is_close and ' close="1"' or ''
     local prefix = opts.prefix or ''
     local suffix = opts.suffix or ''
 
-    return string.format('%s<event id="%s"%s>%s</event>%s', prefix, id, close_attr, label, suffix)
+    return string.format('%s<event id="%s"%s%s%s>%s</event>%s', prefix, id, args_attr, wrap_attr, close_attr, label, suffix)
+end
+
+local function renderPar(line)
+    if type(line) == 'table' then
+        local align_attr = line.align ~= nil and string.format(' align="%s"', line.align) or ''
+        return string.format('<par%s>%s</par>', align_attr, assertType(line[1], 'string'))
+    end
+    return string.format('<par>%s</par>', assertType(line, 'string'))
 end
 
 function dialog.post(uid, arg1, arg2, arg3)
@@ -50,7 +60,7 @@ function dialog.post(uid, arg1, arg2, arg3)
 
     local xml = {'<layout>'}
     for _, line in ipairs(text) do
-        table.insert(xml, string.format('<par>%s</par>', assertType(line, 'string')))
+        table.insert(xml, renderPar(line))
     end
 
     if choices then
@@ -64,7 +74,7 @@ function dialog.post(uid, arg1, arg2, arg3)
 
         table.insert(xml, '<par></par>')
         for _, line in ipairs(choices) do
-            table.insert(xml, string.format('<par>%s</par>', assertType(line, 'string')))
+            table.insert(xml, renderPar(line))
         end
     end
 
@@ -88,7 +98,8 @@ function dialog.guardRedName(callback, text, exitLabel)
             elseif exitLabel == nil then
                 exitLabel = '关闭'
             end
-            dialog.post(uid, text, {dialog.link(SYS_EXIT, exitLabel)})
+            dialog.post(uid, text,
+            dialog.link(SYS_EXIT, exitLabel))
         else
             return callback(uid, value)
         end

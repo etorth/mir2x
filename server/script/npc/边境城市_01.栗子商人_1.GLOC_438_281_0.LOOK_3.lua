@@ -1,3 +1,4 @@
+local dialog = require('include.dialog')
 -- converted from Envir/Market_Def/10ChestnutMarket_Kugkyung-01.txt
 --
 -- the coloured-chestnut exchange, legacy Market_Def/10ChestnutMarket_*.txt
@@ -16,76 +17,47 @@ setEventHandler
 {
     [SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>跟你这种人我无话可说。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]], SYS_EXIT)
+            dialog.post(uid, '跟你这种人我无话可说。',
+            dialog.link(SYS_EXIT, '结束'))
             return
         end
 
         local par = {}
         for _, line in ipairs(greet) do
-            table.insert(par, string.format('<par>%s</par>', line))
+            table.insert(par, line)
         end
 
-        table.insert(par, [[<par><event id="npc_gold1">带来了金色栗子，你要卖吗？</event></par>]])
-        table.insert(par, [[<par><event id="npc_silver1">带来了银色栗子，你要卖吗？</event></par>]])
-        table.insert(par, [[<par><event id="npc_copper1">带来了铜色栗子，你要卖吗？</event></par>]])
-        table.insert(par, [[<par><event id="npc_brown1">带来了褐色栗子，你要卖吗？</event></par>]])
-        table.insert(par, string.format([[<par><event id="%s" close="1">结束</event></par>]], SYS_EXIT))
-
-        uidPostXML(uid, string.format('<layout>%s</layout>', table.concat(par)))
+        dialog.post(uid, par,
+        {
+            dialog.link('npc_gold1', '带来了金色栗子，你要卖吗？'),
+            dialog.link('npc_silver1', '带来了银色栗子，你要卖吗？'),
+            dialog.link('npc_copper1', '带来了铜色栗子，你要卖吗？'),
+            dialog.link('npc_brown1', '带来了褐色栗子，你要卖吗？'),
+            dialog.link(SYS_EXIT, '结束'),
+        })
     end,
 
     -- legacy @gold1
     npc_gold1 = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>这件事现在还办不了。</par>
-                <par></par>
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], SYS_ENTER)
+        dialog.post(uid, '这件事现在还办不了。',
+        dialog.link(SYS_ENTER, '前一步'))
     end,
 
     -- legacy @silver1
     npc_silver1 = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>这件事现在还办不了。</par>
-                <par></par>
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], SYS_ENTER)
+        dialog.post(uid, '这件事现在还办不了。',
+        dialog.link(SYS_ENTER, '前一步'))
     end,
 
     -- legacy @copper1
     npc_copper1 = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>这件事现在还办不了。</par>
-                <par></par>
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], SYS_ENTER)
+        dialog.post(uid, '这件事现在还办不了。',
+        dialog.link(SYS_ENTER, '前一步'))
     end,
 
     -- legacy @brown1
     npc_brown1 = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>这件事现在还办不了。</par>
-                <par></par>
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], SYS_ENTER)
+        dialog.post(uid, '这件事现在还办不了。',
+        dialog.link(SYS_ENTER, '前一步'))
     end,
 }

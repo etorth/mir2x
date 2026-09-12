@@ -92,6 +92,7 @@ local function enterTrial(uid)
     [[
         local questUID, questName, materials, clearCount = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
@@ -99,15 +100,12 @@ local function enterTrial(uid)
             [SYS_ENTER] = function(uid, value)
                 for _, name in ipairs(materials) do
                     if not server.player.hasItem(uid, name, 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>现在材料还没有找齐嘛。我需要的材料是<t color="red">蛆卵 1,蝎子的尾巴 1,食人树叶 1,食人树的果实 1, 毒蜘蛛牙齿  1个</t>。请听好，找到再来。</par>
-                                <par>如果在规定的时间里没有找到这些材料，无法修炼施毒术。。请确认材料并告诉我。。没有剩下多少时间了。。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath,
+                        {
+                            '现在材料还没有找齐嘛。我需要的材料是<t color="red">蛆卵 1,蝎子的尾巴 1,食人树叶 1,食人树的果实 1, 毒蜘蛛牙齿  1个</t>。请听好，找到再来。',
+                            '如果在规定的时间里没有找到这些材料，无法修炼施毒术。。请确认材料并告诉我。。没有剩下多少时间了。。',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
                 end
@@ -121,14 +119,8 @@ local function enterTrial(uid)
                     server.player.removeUpToItem(uid, name, clearCount)
                 end
 
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>材料都收集好了哟。。那么出去看吧。。。</par>
-                        <par></par>
-                        <par><event id="npc_leave_trial" close="1">下一步</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath, '材料都收集好了哟。。那么出去看吧。。。',
+                dialog.link('npc_leave_trial', '下一步', {close = true}))
             end,
 
             -- @mugong_poison_test_next, set [503]
@@ -178,60 +170,47 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '进考场',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>现在你还不够水平吗？嗯。。不要失望，请重新挑战。。。</par>
-                            <par></par>
-                            <par><event id="npc_retry">拜托指教。</event></par>
-                            <par><event id="npc_explain">考场里要做什么？</event></par>
-                            <par><event id="npc_not_yet">现在好象有些勉强。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '现在你还不够水平吗？嗯。。不要失望，请重新挑战。。。',
+                    {
+                        dialog.link('npc_retry', '拜托指教。'),
+                        dialog.link('npc_explain', '考场里要做什么？'),
+                        dialog.link('npc_not_yet', '现在好象有些勉强。'),
+                    })
                 end,
 
                 -- @mugong_poison_next5_1
                 npc_retry = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>知道了。重新送到考场。请从所有的怪兽那儿采取毒粉。</par>
-                            <par></par>
-                            <par><event id="npc_enter_trial" close="1">移动到考场。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '知道了。重新送到考场。请从所有的怪兽那儿采取毒粉。',
+                    dialog.link('npc_enter_trial', '移动到考场。', {close = true}))
                 end,
 
                 -- @mugong_poison_next5_2
                 npc_not_yet = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>虽然学习、应用施毒术有些复杂，施毒术是道士的<t color="red">唯一进攻辅助魔法</t>，它的效果非常高。</par>
-                            <par>现在虽然困难，在最短的时间内掌握施毒术还是要好些。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '虽然学习、应用施毒术有些复杂，施毒术是道士的<t color="red">唯一进攻辅助魔法</t>，它的效果非常高。',
+                        '现在虽然困难，在最短的时间内掌握施毒术还是要好些。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_poison_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>如果想学习势毒术，处理了训练场的怪兽后，要从他们的尸体上采取<t color="red">蛆卵,蝎子的尾巴,食人树叶,食人树的果实, 毒蜘蛛牙齿</t>。</par>
-                            <par>我将站在考场里面，把采取的毒粉交给我。然后再把你重新送到这里。</par>
-                            <par></par>
-                            <par><event id="npc_enter_trial">移动到考场。</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '如果想学习势毒术，处理了训练场的怪兽后，要从他们的尸体上采取<t color="red">蛆卵,蝎子的尾巴,食人树叶,食人树的果实, 毒蜘蛛牙齿</t>。',
+                        '我将站在考场里面，把采取的毒粉交给我。然后再把你重新送到这里。',
+                    },
+                    {
+                        dialog.link('npc_enter_trial', '移动到考场。'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 npc_enter_trial = function(uid, value)
@@ -261,6 +240,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -268,15 +248,12 @@ setQuestFSMTable(
 
                 -- @mugong_poison_give
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>辛苦了！给你武功秘籍，剩余的部分自己掌握吧。</par>
-                            <par>同时<t color="red">将毒粉放在戴手镯的位置</t>使用即可。虽然开始有些不方便，随着武功级别的增高，也可以和手镯一起戴，不必担心。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">结束</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '辛苦了！给你武功秘籍，剩余的部分自己掌握吧。',
+                        '同时<t color="red">将毒粉放在戴手镯的位置</t>使用即可。虽然开始有些不方便，随着武功级别的增高，也可以和手镯一起戴，不必担心。',
+                    },
+                    dialog.link('npc_take_book', '结束', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -295,6 +272,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     -- the opening about poison being a kind of medicine, he gives it twice: once to open with
     -- and again as the whole of what he says if you turn him down
@@ -312,79 +290,48 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [717] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到施毒术秘籍吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到施毒术秘籍吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checklevel 12. the legacy line reads 成为施毒术12级之前，不能学习。, which is
             -- about your own level rather than the magic's, kept as written
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>成为施毒术<t color="red">%d</t>级之前，不能学习。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], minQuestLevel, SYS_EXIT)
+                dialog.post(uid, questPath, string.format('成为施毒术<t color="red">%d</t>级之前，不能学习。', minQuestLevel),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_poison_next
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>%s</par>
-                    <par></par>
-                    <par><event id="npc_ask_teach">拜托指教！</event></par>
-                    <par><event id="npc_not_yet">你好象还有些勉强。</event></par>
-                </layout>
-            ]=], intro)
+            dialog.post(uid, questPath, intro,
+            {
+                dialog.link('npc_ask_teach', '拜托指教！'),
+                dialog.link('npc_not_yet', '你好象还有些勉强。'),
+            })
         end,
 
         -- @mugong_poison_next2_2, he just says it again
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>%s</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], intro, SYS_EXIT)
+            dialog.post(uid, questPath, intro,
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_poison_next2_1, checkmagic 施毒术 then the briefing
         npc_ask_teach = function(uid, value)
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你已经掌握了施毒术，也没有再学习的必要了。。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你已经掌握了施毒术，也没有再学习的必要了。。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>首先对毒粉进行说明。毒粉包括<t color="red">黄色毒粉</t>和<t color="red">灰色毒粉</t>。对这些材料<t color="red">药剂师</t>比我更清楚，请问他们！</par>
-                    <par>你在学习施毒术之前，首先要掌握材料的毒性。现在我送你去某个地方，<t color="red">直接采取材料</t>进行学习。采取的方法当作像切肉一样的熟练工种即可。</par>
-                    <par>时间是<t color="red">5分钟</t>。。</par>
-                    <par></par>
-                    <par><event id="npc_enter_trial" close="1">为了掌握毒性而出发。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '首先对毒粉进行说明。毒粉包括<t color="red">黄色毒粉</t>和<t color="red">灰色毒粉</t>。对这些材料<t color="red">药剂师</t>比我更清楚，请问他们！',
+                '你在学习施毒术之前，首先要掌握材料的毒性。现在我送你去某个地方，<t color="red">直接采取材料</t>进行学习。采取的方法当作像切肉一样的熟练工种即可。',
+                '时间是<t color="red">5分钟</t>。。',
+            },
+            dialog.link('npc_enter_trial', '为了掌握毒性而出发。', {close = true}))
         end,
 
         -- @mugong_poison_next3, SET [502] and set [503] 0

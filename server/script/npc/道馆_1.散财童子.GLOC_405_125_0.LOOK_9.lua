@@ -1,17 +1,14 @@
+local dialog = require('include.dialog')
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>客官%s你好我是%s，欢迎领取礼物！<emoji id="0"/></par>
-                <par></par>
-                <par><event id="npc_goto_1">领取金币</event></par>
-                <par><event id="npc_goto_2">领取装备</event></par>
-                <par><event id="npc_goto_random_move" close="1">随机行走100步</event></par>
-                <par><event id="%s" close="1">关闭</event></par>
-            </layout>
-        ]], uidQueryName(uid), getNPCName(), SYS_EXIT)
+        dialog.post(uid, string.format('客官%s你好我是%s，欢迎领取礼物！<emoji id="0"/>', uidQueryName(uid), getNPCName()),
+        {
+            dialog.link('npc_goto_1', '领取金币'),
+            dialog.link('npc_goto_2', '领取装备'),
+            dialog.link('npc_goto_random_move', '随机行走100步', {close = true}),
+            dialog.link(SYS_EXIT, '关闭'),
+        })
     end,
 
     ["npc_goto_1"] = function(uid, value)
@@ -22,15 +19,11 @@ setEventHandler(
             uidGrantGold(uid, 1000000)
             uidDBSetKey(uid, 'fld_time', currTime)
         else
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>你刚刚领取过金币了，请稍后再来！<emoji id="1"/></par>
-                    <par></par>
-                    <par><event id="%s">返回</event></par>
-                    <par><event id="%s" close="1">关闭</event></par>
-                </layout>
-            ]], SYS_ENTER, SYS_EXIT)
+            dialog.post(uid, '你刚刚领取过金币了，请稍后再来！<emoji id="1"/>',
+            {
+                dialog.link(SYS_ENTER, '返回'),
+                dialog.link(SYS_EXIT, '关闭'),
+            })
         end
     end,
 

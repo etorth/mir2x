@@ -1,51 +1,42 @@
+local dialog = require('include.dialog')
+
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
-        uidPostXML(uid, string.format(
-        [[
-            <layout>
-                <par>客官%s你好我是%s，我可以给你展示系统所有的账号！<emoji id="0"/></par>
-                <par></par>
-                <par><event id="npc_goto_1">展示</event></par>
-                <par><event id="%s" close="1">关闭</event></par>
-            </layout>
-        ]], uidQueryName(uid), getNPCName(), SYS_EXIT))
+        dialog.post(uid, string.format('客官%s你好我是%s，我可以给你展示系统所有的账号！<emoji id="0"/>', uidQueryName(uid), getNPCName()),
+        {
+            dialog.link('npc_goto_1', '展示'),
+            dialog.link(SYS_EXIT, '关闭'),
+        })
     end,
 
     ["npc_goto_1"] = function(uid, value)
         local result = dbQuery('select * from tbl_account')
-        local parStr = ''
+        local text =
+        {
+            '数据库玩家账号有：',
+            '',
+        }
         for _, row in ipairs(result) do
-            parStr = parStr .. string.format('<par>fld_id: %d, fld_account: %s</par>', row.fld_dbid, row.fld_account)
+            table.insert(text, string.format('fld_id: %d, fld_account: %s', row.fld_dbid, row.fld_account))
         end
 
         local clickCount = argDefault(dbGetGKey('click_count'), 0)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>数据库玩家账号有：</par>
-                <par></par>
-                %s
-                <par></par>
-                <par>上次查询：</par>
-                <par>fld_float：%f</par>
-                <par>fld_integer：%d</par>
-                <par>fld_text：%s</par>
-                <par></par>
-                <par>查询统计：</par>
-                <par>click_count：%d</par>
-                <par></par>
-                <par><event id="npc_goto_1">刷新</event></par>
-                <par><event id="%s" close="1">关闭</event></par>
-            </layout>
-        ]],
 
-        parStr,
-        argDefault(uidDBGetKey(uid, 'fld_float'), 0.0),
-        argDefault(uidDBGetKey(uid, 'fld_integer'), 0),
-        argDefault(uidDBGetKey(uid, 'fld_text'), '(nil)'),
-        clickCount,
-        SYS_EXIT)
+        table.insert(text, '')
+        table.insert(text, '上次查询：')
+        table.insert(text, string.format('fld_float：%f', argDefault(uidDBGetKey(uid, 'fld_float'), 0.0)))
+        table.insert(text, string.format('fld_integer：%d', argDefault(uidDBGetKey(uid, 'fld_integer'), 0)))
+        table.insert(text, string.format('fld_text：%s', argDefault(uidDBGetKey(uid, 'fld_text'), '(nil)')))
+        table.insert(text, '')
+        table.insert(text, '查询统计：')
+        table.insert(text, string.format('click_count：%d', clickCount))
+
+        dialog.post(uid, text,
+        {
+            dialog.link('npc_goto_1', '刷新'),
+            dialog.link(SYS_EXIT, '关闭'),
+        })
 
         dbSetGKey('click_count', clickCount + 1)
         uidDBSetKey(uid, 'fld_float', 23.74589)

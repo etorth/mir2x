@@ -275,54 +275,38 @@ local function teacherLostCharmHandlers()
     return
     [[
         npc_lost_charm = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>哈哈，是说将那么重要的威魂深怨护身符丢失了？如果重新制作护身符，要使用非常贵的颜料。那么可以筹备<t color="red">%d</t>两费用吗？</par>
-                    <par></par>
-                    <par><event id="npc_buy_charm">即使很贵也要重新买到</event></par>
-                    <par><event id="npc_no_money">钱不够，无法买。</event></par>
-                </layout>
-            ]=], charmPrice)
+            dialog.post(uid, questPath, string.format('哈哈，是说将那么重要的威魂深怨护身符丢失了？如果重新制作护身符，要使用非常贵的颜料。那么可以筹备<t color="red">%d</t>两费用吗？', charmPrice),
+            {
+                dialog.link('npc_buy_charm', '即使很贵也要重新买到'),
+                dialog.link('npc_no_money', '钱不够，无法买。'),
+            })
         end,
 
         -- @mugong_massheal_lostCharm3
         npc_no_money = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>那么是说钱不够？</par>
-                    <par>那么准备好钱，再来！</par>
-                    <par>直到等到你找来钱。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '那么是说钱不够？',
+                '那么准备好钱，再来！',
+                '直到等到你找来钱。',
+            },
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_massheal_lostCharm2, checkgold 5000
         npc_buy_charm = function(uid, value)
             if not server.player.removeGold(uid, charmPrice) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你钱都没有，还要威魂深怨护身符？准备好做护身符的材料费，再来 ！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你钱都没有，还要威魂深怨护身符？准备好做护身符的材料费，再来 ！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>这是威魂深怨护身符。</par>
-                    <par>小心不要重新再丢失了。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '这是威魂深怨护身符。',
+                '小心不要重新再丢失了。',
+            },
+            dialog.link(SYS_EXIT, '结束'))
 
             server.player.addItem(uid, '威魂深怨护身符', 1)
         end,
@@ -338,50 +322,43 @@ local function setupTeacherNag(uid, atVillage)
     [[
         local questUID, questName, charmPrice, atVillage = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
             [SYS_LABEL] = '祭祖的事',
             [SYS_ENTER] = function(uid, value)
                 if atVillage then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>在那个地方该见到谁了嘛。</par>
-                            <par>事情都结束了，就回到我这儿吧</par>
-                            <par></par>
-                            <par><event id="npc_lost_charm">由于失误，弄丢了护身符...</event></par>
-                            <par><event id="npc_explain">这件事要怎么做？</event></par>
-                            <par><event id="%%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '在那个地方该见到谁了嘛。',
+                        '事情都结束了，就回到我这儿吧',
+                    },
+                    {
+                        dialog.link('npc_lost_charm', '由于失误，弄丢了护身符...'),
+                        dialog.link('npc_explain', '这件事要怎么做？'),
+                        dialog.link(string.format('%%s', SYS_EXIT), '结束', {close = true}),
+                    })
                     return
                 end
 
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>还没有离开那个村庄哟。</par>
-                        <par>那个村庄位于<t color="red">盟重县东北方向绝命谷入口的附近</t>。</par>
-                        <par>快去快回。</par>
-                        <par></par>
-                        <par><event id="npc_lost_charm">由于失误，弄丢了护身符...</event></par>
-                        <par><event id="npc_explain">这件事要怎么做？</event></par>
-                        <par><event id="%%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '还没有离开那个村庄哟。',
+                    '那个村庄位于<t color="red">盟重县东北方向绝命谷入口的附近</t>。',
+                    '快去快回。',
+                },
+                {
+                    dialog.link('npc_lost_charm', '由于失误，弄丢了护身符...'),
+                    dialog.link('npc_explain', '这件事要怎么做？'),
+                    dialog.link(string.format('%%s', SYS_EXIT), '结束', {close = true}),
+                })
             end,
 
             -- @mugong_massheal_explain
             npc_explain = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>如果想学习群体治愈术，带着我给的<t color="red">威魂深怨护身符</t>，去盟重县东北方向绝命谷入口附近的某个村子，上<t color="red">香</t>即可。不知道那个地方将要发生什么事情，剩余的事情你要自己解决。如果所有的问题都解决了，在重新找我来。</par>
-                        <par></par>
-                        <par><event id="%%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '如果想学习群体治愈术，带着我给的<t color="red">威魂深怨护身符</t>，去盟重县东北方向绝命谷入口附近的某个村子，上<t color="red">香</t>即可。不知道那个地方将要发生什么事情，剩余的事情你要自己解决。如果所有的问题都解决了，在重新找我来。',
+                dialog.link(string.format('%%s', SYS_EXIT), '结束', {close = true}))
             end,
 
             %s
@@ -405,6 +382,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -413,156 +391,119 @@ setQuestFSMTable(
                 -- @mugong_massheal_illtown1, daytime night
                 [SYS_ENTER] = function(uid, value)
                     if not isNightTime() then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>现在是大白天。。</par>
-                                <par>很刺眼，什么都看不见。。。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">奇异的人...</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath,
+                        {
+                            '现在是大白天。。',
+                            '很刺眼，什么都看不见。。。',
+                        },
+                        dialog.link(SYS_EXIT, '奇异的人...'))
                         return
                     end
 
                     -- @mugong_massheal_illtown2, checkitem 威魂深怨护身符. without it he has
                     -- nothing to say to you
                     if not server.player.hasItem(uid, '威魂深怨护身符', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>陌生的年青人, 什么事情?</par>
-                                <par>晚上的天气很冷，还不快赶路？</par>
-                                <par></par>
-                                <par><event id="npc_no_charm">奇异的人...</event></par>
-                            </layout>
-                        ]=])
+                        dialog.post(uid, questPath,
+                        {
+                            '陌生的年青人, 什么事情?',
+                            '晚上的天气很冷，还不快赶路？',
+                        },
+                        dialog.link('npc_no_charm', '奇异的人...'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>陌生的年青人, 什么事情?</par>
-                            <par>年轻的绅士为什么拿着<t color="red">奇怪的护身符</t>走来走去?</par>
-                            <par></par>
-                            <par><event id="npc_ask_village">有个问题想请教一下。是生活在这个地方的人吗？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '陌生的年青人, 什么事情?',
+                        '年轻的绅士为什么拿着<t color="red">奇怪的护身符</t>走来走去?',
+                    },
+                    dialog.link('npc_ask_village', '有个问题想请教一下。是生活在这个地方的人吗？'))
                 end,
 
                 -- @mugong_massheal_illtown3_2
                 npc_no_charm = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>(好像是我要找的村子人，没有任何感兴趣的哟。好像在我身找到什么的样子? 有什么东西落了吗？)</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '(好像是我要找的村子人，没有任何感兴趣的哟。好像在我身找到什么的样子? 有什么东西落了吗？)',
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_massheal_illtown3_1
                 npc_ask_village = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>如果是那样...</par>
-                            <par></par>
-                            <par><event id="npc_where_village">我受大飞圣僧的委托到村庄来参加祭祀，村庄在哪儿？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '如果是那样...',
+                    dialog.link('npc_where_village', '我受大飞圣僧的委托到村庄来参加祭祀，村庄在哪儿？'))
                 end,
 
                 -- @mugong_massheal_illtown4
                 npc_where_village = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>大飞圣僧...?</par>
-                            <par>不知道他是谁。 一会儿，请上香。。。</par>
-                            <par>啊，这么看来年轻人是武士吗？</par>
-                            <par>千万要救救我们吧！</par>
-                            <par></par>
-                            <par><event id="npc_what_happened">虽然会使用些剑... 到底是什么事情?</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '大飞圣僧...?',
+                        '不知道他是谁。 一会儿，请上香。。。',
+                        '啊，这么看来年轻人是武士吗？',
+                        '千万要救救我们吧！',
+                    },
+                    dialog.link('npc_what_happened', '虽然会使用些剑... 到底是什么事情?'))
                 end,
 
                 -- @mugong_massheal_illtown5
                 npc_what_happened = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>我们都是生活在<t color="red">百娥村</t>的人。到不久前为止，我们村子还是一个安静适合生活的好地方。但是自从<t color="red">原因不明的传染病</t>开始流行，个把月间不论老幼都吐血而死。</par>
-                            <par>村子议员认为生病的原因是水脏。为了确认这个事实，村子里还没有生病的几个人到村子里流淌着的<t color="red">水源所在的洞窟</t>去了。</par>
-                            <par>但是只有一个人从那个地方回来了。他满身是疮地回来了，断气之前说<t color="red">蜈蚣</t>们占据了水源，污染了水。</par>
-                            <par></par>
-                            <par><event id="npc_ask_officials">没有向官吏请求帮助吗？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '我们都是生活在<t color="red">百娥村</t>的人。到不久前为止，我们村子还是一个安静适合生活的好地方。但是自从<t color="red">原因不明的传染病</t>开始流行，个把月间不论老幼都吐血而死。',
+                        '村子议员认为生病的原因是水脏。为了确认这个事实，村子里还没有生病的几个人到村子里流淌着的<t color="red">水源所在的洞窟</t>去了。',
+                        '但是只有一个人从那个地方回来了。他满身是疮地回来了，断气之前说<t color="red">蜈蚣</t>们占据了水源，污染了水。',
+                    },
+                    dialog.link('npc_ask_officials', '没有向官吏请求帮助吗？'))
                 end,
 
                 -- @mugong_massheal_illtown6
                 npc_ask_officials = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>求了! 请求了!!</par>
-                            <par>但是官吏们堵上了流向村子的水流，村子反而被隔离了。我们村子的人们得不到任何帮助，正在死去。</par>
-                            <par>我们无法在看人们就这样死去！如果得不到官吏的帮助，即使凭借我们的力量也要除掉蜈蚣们！！因此体格健壮的人们拿着镰刀和镐到蜈蚣所在的洞窟去了。</par>
-                            <par>但是仅凭借我们自己的力量无论如何也到达不了水源。千万帮组我们<t color="red">处理那些坏 ??</t>！这样衷肯地拜托你。。。</par>
-                            <par></par>
-                            <par><event id="npc_accept">知道了，我去那个洞窟看看。</event></par>
-                            <par><event id="npc_refuse">非常对不起,也许是非常危险的事情。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '求了! 请求了!!',
+                        '但是官吏们堵上了流向村子的水流，村子反而被隔离了。我们村子的人们得不到任何帮助，正在死去。',
+                        '我们无法在看人们就这样死去！如果得不到官吏的帮助，即使凭借我们的力量也要除掉蜈蚣们！！因此体格健壮的人们拿着镰刀和镐到蜈蚣所在的洞窟去了。',
+                        '但是仅凭借我们自己的力量无论如何也到达不了水源。千万帮组我们<t color="red">处理那些坏 ??</t>！这样衷肯地拜托你。。。',
+                    },
+                    {
+                        dialog.link('npc_accept', '知道了，我去那个洞窟看看。'),
+                        dialog.link('npc_refuse', '非常对不起,也许是非常危险的事情。'),
+                    })
                 end,
 
                 -- @mugong_massheal_illtown8_1
                 npc_refuse = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>不行。。。</par>
-                            <par>等了很久，又等了很久。。。</par>
-                            <par>如果说这是我们的命运，只有寻求其它的<t color="red">救援之手</t>。。。</par>
-                            <par>那么请小心走好！</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '不行。。。',
+                        '等了很久，又等了很久。。。',
+                        '如果说这是我们的命运，只有寻求其它的<t color="red">救援之手</t>。。。',
+                        '那么请小心走好！',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_massheal_illtown7_1, set [524]
                 npc_accept = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>谢谢！非常感谢！</par>
-                            <par>蜈蚣们栖息在深而且阴森森的叫做绝命的洞窟中。蜈蚣围剿队最后被目击的地方在<t color="red">绝命谷最深地区西南方的某个地方</t>。</par>
-                            <par>那个地方正是这个村子水源的所在地，但是现在成了蜈蚣们藏身处的<t color="red">洞窟入口</t>。有可能进到那里边以后就中断了消息。</par>
-                            <par></par>
-                            <par><event id="npc_what_to_do">在蜈蚣洞窟中要做什么呢？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '谢谢！非常感谢！',
+                        '蜈蚣们栖息在深而且阴森森的叫做绝命的洞窟中。蜈蚣围剿队最后被目击的地方在<t color="red">绝命谷最深地区西南方的某个地方</t>。',
+                        '那个地方正是这个村子水源的所在地，但是现在成了蜈蚣们藏身处的<t color="red">洞窟入口</t>。有可能进到那里边以后就中断了消息。',
+                    },
+                    dialog.link('npc_what_to_do', '在蜈蚣洞窟中要做什么呢？'))
 
                     server.quest.setState(questUID, {uid = uid, state = 'quest_kill_boss'})
                 end,
 
                 -- @mugong_massheal_illtown7_2
                 npc_what_to_do = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>蜈蚣洞窟非常深，由弯弯曲曲的洞窟连接而成。进到入口后，走很长时间，在中间出现一个宽敞的房间；然后沿着弯弯曲曲的通路走很长时间后就到达了我们这个地方的水源地<t color="red">地下莲池的宽敞空间</t>。</par>
-                            <par>首先到那个地方为止，即使有什么事情都要一边小心身体一边前进。因为不知道在中间会遇到什么突变。</par>
-                            <par>在水源地有一个污染水源叫做<t color="red">沃毒蜈蚣</t>的家伙，<t color="red">只要把这个家伙处理了就解决了所有的问题</t>。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">处理了这个家伙就可以了噢。那么我走了</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '蜈蚣洞窟非常深，由弯弯曲曲的洞窟连接而成。进到入口后，走很长时间，在中间出现一个宽敞的房间；然后沿着弯弯曲曲的通路走很长时间后就到达了我们这个地方的水源地<t color="red">地下莲池的宽敞空间</t>。',
+                        '首先到那个地方为止，即使有什么事情都要一边小心身体一边前进。因为不知道在中间会遇到什么突变。',
+                        '在水源地有一个污染水源叫做<t color="red">沃毒蜈蚣</t>的家伙，<t color="red">只要把这个家伙处理了就解决了所有的问题</t>。',
+                    },
+                    dialog.link(SYS_EXIT, '处理了这个家伙就可以了噢。那么我走了'))
                 end,
             }
         ]])
@@ -582,20 +523,18 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '洞窟的事',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>我们在这儿等着勇士回来。千万将污染水源的<t color="red">沃毒蜈蚣</t>处置了。</par>
-                            <par>蜈蚣洞窟在<t color="red">绝命谷最深地区西南的某个地方</t>。。。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">好的，走了。</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '我们在这儿等着勇士回来。千万将污染水源的<t color="red">沃毒蜈蚣</t>处置了。',
+                        '蜈蚣洞窟在<t color="red">绝命谷最深地区西南的某个地方</t>。。。',
+                    },
+                    dialog.link(SYS_EXIT, '好的，走了。'))
                 end,
             }
         ]])
@@ -646,21 +585,19 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '洞窟的事',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>我们村庄的人们永远都不会忘记<t color="red">你的善行</t>。。。</par>
-                            <par>现在去找每年在这个地方贴护身符并上香的奇怪老头。</par>
-                            <par>祝你走运。。。一路小心。。。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '我们村庄的人们永远都不会忘记<t color="red">你的善行</t>。。。',
+                        '现在去找每年在这个地方贴护身符并上香的奇怪老头。',
+                        '祝你走运。。。一路小心。。。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
@@ -672,6 +609,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -679,115 +617,72 @@ setQuestFSMTable(
 
                 -- @mugong_massheal_complete0
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>(不对，我为什么在这个地方??? )</par>
-                            <par></par>
-                            <par><event id="npc_look_around">看看周围...</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '(不对，我为什么在这个地方??? )',
+                    dialog.link('npc_look_around', '看看周围...'))
                 end,
 
                 -- @mugong_massheal_complete1
                 npc_look_around = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>啊，是你哟。回来了？</par>
-                            <par></par>
-                            <par><event id="npc_tell_story">那个....在大飞圣僧所讲的地方经历了非常怪异的事情。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '啊，是你哟。回来了？',
+                    dialog.link('npc_tell_story', '那个....在大飞圣僧所讲的地方经历了非常怪异的事情。'))
                 end,
 
                 -- @mugong_massheal_complete2
                 npc_tell_story = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>知道了。那个村子是<t color="red">百年之前由于传染病而消失了的村子</t>。自从作为那个村子乳汁的溪水被污染后，人们都生病而死。</par>
-                            <par></par>
-                            <par><event id="npc_they_were_alive">真是无法相信的事情。我分别和那个地方的人们谈话了，他们都是活人。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '知道了。那个村子是<t color="red">百年之前由于传染病而消失了的村子</t>。自从作为那个村子乳汁的溪水被污染后，人们都生病而死。',
+                    dialog.link('npc_they_were_alive', '真是无法相信的事情。我分别和那个地方的人们谈话了，他们都是活人。'))
                 end,
 
                 -- @mugong_massheal_complete3
                 npc_they_were_alive = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>我以前没有讲过吗？世上的事情中无法说明道理的更多。你遇见的事情也是其中的一种。有可能由于对蜈蚣的憎恨和拯救村子的坚定意志使得<t color="red">那些人的灵魂</t>继续留在那个地方。</par>
-                            <par>你看到的东西是他们的灵魂。。你没有感觉到他们不像活着的人吗？</par>
-                            <par></par>
-                            <par><event id="npc_strong_will">虽然没有感觉到他们生的很好看...感觉到他们有很强的意志，无论如何不能认为是亡灵。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '我以前没有讲过吗？世上的事情中无法说明道理的更多。你遇见的事情也是其中的一种。有可能由于对蜈蚣的憎恨和拯救村子的坚定意志使得<t color="red">那些人的灵魂</t>继续留在那个地方。',
+                        '你看到的东西是他们的灵魂。。你没有感觉到他们不像活着的人吗？',
+                    },
+                    dialog.link('npc_strong_will', '虽然没有感觉到他们生的很好看...感觉到他们有很强的意志，无论如何不能认为是亡灵。'))
                 end,
 
                 -- @mugong_massheal_complete4
                 npc_strong_will = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>有才干哟.你看到的那些东西都是因为你和他们有缘分。你终究做成了我没有做成的事情，哈哈。。</par>
-                            <par></par>
-                            <par><event id="npc_what_do_you_mean">什么话儿？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '有才干哟.你看到的那些东西都是因为你和他们有缘分。你终究做成了我没有做成的事情，哈哈。。',
+                    dialog.link('npc_what_do_you_mean', '什么话儿？'))
                 end,
 
                 -- @mugong_massheal_complete5
                 npc_what_do_you_mean = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>听说这个村子开始流行传染病消息的时候，我还不能给他们任何帮助。我认为世界上没有任何事情比拯救一个村子更有价值的事情了。</par>
-                            <par>哈哈，我又在讲废话了。</par>
-                            <par></par>
-                            <par><event id="npc_yes_it_happened">是的，曾经有过这个事情...</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '听说这个村子开始流行传染病消息的时候，我还不能给他们任何帮助。我认为世界上没有任何事情比拯救一个村子更有价值的事情了。',
+                        '哈哈，我又在讲废话了。',
+                    },
+                    dialog.link('npc_yes_it_happened', '是的，曾经有过这个事情...'))
                 end,
 
                 -- @mugong_massheal_complete6
                 npc_yes_it_happened = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>嗯。。那样了，现在可以还给我以前委托你事情的时候给你的<t color="red">威魂深怨护身符</t>吗？</par>
-                            <par></par>
-                            <par><event id="npc_return_charm">好的，在这儿。</event></par>
-                            <par><event id="npc_charm_gone">这个，好像落在哪儿了。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '嗯。。那样了，现在可以还给我以前委托你事情的时候给你的<t color="red">威魂深怨护身符</t>吗？',
+                    {
+                        dialog.link('npc_return_charm', '好的，在这儿。'),
+                        dialog.link('npc_charm_gone', '这个，好像落在哪儿了。'),
+                    })
                 end,
 
                 -- @mugong_massheal_complete7_1, and he gives the charm straight back
                 npc_return_charm = function(uid, value)
                     if not server.player.hasItem(uid, '威魂深怨护身符', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>噢，听说年轻朋友想笼络老人。。。你没有威魂深怨护身符吗？</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '噢，听说年轻朋友想笼络老人。。。你没有威魂深怨护身符吗？',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>谢谢！虽然现在不需要，为了以后要好好地保管。</par>
-                            <par>好吧，拿着吧。接受这么困难的委托，将贵重的威魂深怨护身符再重新送给你。</par>
-                            <par>但是你身上的<t color="red">书籍</t>是什么？</par>
-                            <par></par>
-                            <par><event id="npc_the_book">不对, 这是群体治愈术的秘诀？这个东西怎么在这儿...</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '谢谢！虽然现在不需要，为了以后要好好地保管。',
+                        '好吧，拿着吧。接受这么困难的委托，将贵重的威魂深怨护身符再重新送给你。',
+                        '但是你身上的<t color="red">书籍</t>是什么？',
+                    },
+                    dialog.link('npc_the_book', '不对, 这是群体治愈术的秘诀？这个东西怎么在这儿...'))
 
                     -- take then give, so the charm ends up back with you either way
                     server.player.removeItem(uid, '威魂深怨护身符', 1)
@@ -798,16 +693,13 @@ setQuestFSMTable(
 
                 -- @mugong_massheal_complete7_2, no charm back and 10000 less for it
                 npc_charm_gone = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>也没有办法。你也不是故意弄丢的，我再买一个。。。</par>
-                            <par>接着，这是接受困难委托的<t color="red">谢礼??</t>。</par>
-                            <par>但是你身上的<t color="red">书籍</t>是什么？</par>
-                            <par></par>
-                            <par><event id="npc_the_book">不对, 这是群体治愈术的秘诀？这个东西怎么在这儿...</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '也没有办法。你也不是故意弄丢的，我再买一个。。。',
+                        '接着，这是接受困难委托的<t color="red">谢礼??</t>。',
+                        '但是你身上的<t color="red">书籍</t>是什么？',
+                    },
+                    dialog.link('npc_the_book', '不对, 这是群体治愈术的秘诀？这个东西怎么在这儿...'))
 
                     server.player.addItem(uid, '神圣铂金戒指', 1)
                     server.player.deliverGold(uid, 33000)
@@ -815,15 +707,12 @@ setQuestFSMTable(
 
                 -- @mugong_massheal_complete8, SET [730]
                 npc_the_book = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦，这个世界上还有不少莫名其妙的事，用这个将解了那些人的怨恨。。。</par>
-                            <par>你真的做了好事。将成为其他道士们<t color="red">的很好谈资</t>。。一路顺风。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '哦，这个世界上还有不少莫名其妙的事，用这个将解了那些人的怨恨。。。',
+                        '你真的做了好事。将成为其他道士们<t color="red">的很好谈资</t>。。一路顺风。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.quest.setState(questUID, {uid = uid, state = SYS_DONE})
                 end,
@@ -864,6 +753,7 @@ uidRemoteCall(getNPCharUID(villagerMap, villagerNPC), getUID(), getQuestName(),
 [[
     local questUID, questName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -877,30 +767,24 @@ uidRemoteCall(getNPCharUID(villagerMap, villagerNPC), getUID(), getQuestName(),
         [SYS_ENTER] = function(uid, value)
             -- check [730] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>轻轻吹拂的微风中有道人们的<t color="red">正义之心</t>。</par>
-                        <par>希望一路顺风。。</par>
-                        <par>（向你磕头）</par>
-                        <par></par>
-                        <par><event id="%s" close="1">请好好地休息！</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '轻轻吹拂的微风中有道人们的<t color="red">正义之心</t>。',
+                    '希望一路顺风。。',
+                    '（向你磕头）',
+                },
+                dialog.link(SYS_EXIT, '请好好地休息！'))
                 return
             end
 
             -- the check [523] 0 branch, before 大悲善僧 has sent you
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>对庸俗的人没有任何话儿好讲哟。</par>
-                    <par>你好象有其它的路。</par>
-                    <par>快点走你要走的路吧！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '对庸俗的人没有任何话儿好讲哟。',
+                '你好象有其它的路。',
+                '快点走你要走的路吧！',
+            },
+            dialog.link(SYS_EXIT, '结束'))
         end,
     })
 ]])
@@ -910,6 +794,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName, charmPrice = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -924,134 +809,103 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             -- check [730] 1. @mugong_massheal_complete has its own line for afterwards,
             -- 现在那个地方的魂魄都可以安静地睡觉了, and this is @mugong_massheal's
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到书吗？那么你为什么还索要？</par>
-                        <par>现在那个地方的魂魄都可以安静地睡觉了。。。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '你不是已经收到书吗？那么你为什么还索要？',
+                    '现在那个地方的魂魄都可以安静地睡觉了。。。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_massheal_next1, checkmagic 群体治愈术
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你已经练成了群体治愈术，我再没有什么魔法可以教你了，以后再来找我吧。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你已经练成了群体治愈术，我再没有什么魔法可以教你了，以后再来找我吧。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_massheal_next2, checklevel 31. the two branches describe the magic
             -- differently, one by what it takes and one by the nine people it reaches
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>群体治愈术是最多可以同时治疗9人的<t color="red">高级恢复术</t>。同时治疗几个人气的消耗非常大，因此没有经过相当水平的训练，修炼该武功是非常困难的。</par>
-                        <par>嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '群体治愈术是最多可以同时治疗9人的<t color="red">高级恢复术</t>。同时治疗几个人气的消耗非常大，因此没有经过相当水平的训练，修炼该武功是非常困难的。',
+                    '嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
+                },
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>群体治愈术是同时可以治疗很多人的<t color="red">水平很高的恢复术</t>。除了同时可以治疗很多人以外，与恢复术没有很大的不同，因此有人认为群体治愈术不是很了不起的技术。</par>
-                    <par>但是每个人体内的气流都不同，可以同时掌握了解几个人气流的事情<t color="red">需要非同一般的精神力</t>。同时治疗几个人气的消耗非常大，因此该武功是没有经过相当水平的训练完全无法修炼的武功。</par>
-                    <par></par>
-                    <par><event id="npc_ask_teach">请传授我群体治愈术吧！</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '群体治愈术是同时可以治疗很多人的<t color="red">水平很高的恢复术</t>。除了同时可以治疗很多人以外，与恢复术没有很大的不同，因此有人认为群体治愈术不是很了不起的技术。',
+                '但是每个人体内的气流都不同，可以同时掌握了解几个人气流的事情<t color="red">需要非同一般的精神力</t>。同时治疗几个人气的消耗非常大，因此该武功是没有经过相当水平的训练完全无法修炼的武功。',
+            },
+            dialog.link('npc_ask_teach', '请传授我群体治愈术吧！'))
         end,
 
         -- @mugong_massheal_next3
         npc_ask_teach = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想起你第一次请求我传授的时候了。</par>
-                    <par>那时候我真没有想到你会成为这么优秀的道士。我认为你和一般的训练生一样停留在某个阶段，满足于自己的力量并中断了训练。</par>
-                    <par>但是你忍受了很困难的训练过程，超出了我的期望。</par>
-                    <par>我现在好像没有什么可以传授给你。</par>
-                    <par></par>
-                    <par><event id="npc_still_need">毫无道理的话。我现在依然需要大飞圣僧的指教。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '想起你第一次请求我传授的时候了。',
+                '那时候我真没有想到你会成为这么优秀的道士。我认为你和一般的训练生一样停留在某个阶段，满足于自己的力量并中断了训练。',
+                '但是你忍受了很困难的训练过程，超出了我的期望。',
+                '我现在好像没有什么可以传授给你。',
+            },
+            dialog.link('npc_still_need', '毫无道理的话。我现在依然需要大飞圣僧的指教。'))
         end,
 
         -- @mugong_massheal_next4
         npc_still_need = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>不是这样的。</par>
-                    <par>通过学习可以掌握的知识你已经掌握很充分。</par>
-                    <par>你认为不足的部分是你以后一边修炼一边要补充的部分。</par>
-                    <par>不满足于现状，而且以后也进行专心修炼，终究有一天可以填补上这个部分的。</par>
-                    <par>但是不要忘记<t color="red">真正的武功修炼是从现在开始</t>的名言。</par>
-                    <par>嘿嘿，老人的废话很多哦。</par>
-                    <par>但是以后修炼武功的过程中，如果有难点，请随时来找我。老人我将尽全力帮助你。</par>
-                    <par>这么看来。。</par>
-                    <par>有一个很重要的<t color="red">委托</t>。</par>
-                    <par></par>
-                    <par><event id="npc_what_favor">什么事情?</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '不是这样的。',
+                '通过学习可以掌握的知识你已经掌握很充分。',
+                '你认为不足的部分是你以后一边修炼一边要补充的部分。',
+                '不满足于现状，而且以后也进行专心修炼，终究有一天可以填补上这个部分的。',
+                '但是不要忘记<t color="red">真正的武功修炼是从现在开始</t>的名言。',
+                '嘿嘿，老人的废话很多哦。',
+                '但是以后修炼武功的过程中，如果有难点，请随时来找我。老人我将尽全力帮助你。',
+                '这么看来。。',
+                '有一个很重要的<t color="red">委托</t>。',
+            },
+            dialog.link('npc_what_favor', '什么事情?'))
         end,
 
         -- @mugong_massheal_next5
         npc_what_favor = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>我每年这个时候都要<t color="red">去某个村庄祭祖</t>，但是今年有其它的事情不能直接参加祭祖。由于是很重要的祭祖，不能随便委托别人正在苦闷中。如果是你，我信得过好像可以委托你。</par>
-                    <par>不是很困难的事情。将我 给的<t color="red">威魂深怨护身符</t>贴到 祭坛 上，然后背诵祭文，仪式就结束了。可以吗？</par>
-                    <par></par>
-                    <par><event id="npc_accept">好的，我将参加祭祖。</event></par>
-                    <par><event id="npc_not_yet">我还不具备办理这种仪式的能力。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '我每年这个时候都要<t color="red">去某个村庄祭祖</t>，但是今年有其它的事情不能直接参加祭祖。由于是很重要的祭祖，不能随便委托别人正在苦闷中。如果是你，我信得过好像可以委托你。',
+                '不是很困难的事情。将我 给的<t color="red">威魂深怨护身符</t>贴到 祭坛 上，然后背诵祭文，仪式就结束了。可以吗？',
+            },
+            {
+                dialog.link('npc_accept', '好的，我将参加祭祖。'),
+                dialog.link('npc_not_yet', '我还不具备办理这种仪式的能力。'),
+            })
         end,
 
         -- @mugong_massheal_next6_2
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>啧啧。。过分谦虚了哟。现在你应该充满自信心的时候还没有到吗？知道了吗？很遗憾，只好找其他的人了。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '啧啧。。过分谦虚了哟。现在你应该充满自信心的时候还没有到吗？知道了吗？很遗憾，只好找其他的人了。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_massheal_next6_1, SET [523] and the charm. its checkbaggage has no equivalent
         -- in mir2x, addInventoryItem takes whatever it is handed, so 背囊里没有位置了 has no
         -- trigger here
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>哦哦...</par>
-                    <par>可以吗？</par>
-                    <par>那个村庄位于<t color="red">盟重县东北方向绝命谷入口的附近</t>。</par>
-                    <par>这是<t color="red">威魂深怨护身符</t>，将它贴在祭坛上后，请上香。</par>
-                    <par>那么就拜托了...</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '哦哦...',
+                '可以吗？',
+                '那个村庄位于<t color="red">盟重县东北方向绝命谷入口的附近</t>。',
+                '这是<t color="red">威魂深怨护身符</t>，将它贴在祭坛上后，请上香。',
+                '那么就拜托了...',
+            },
+            dialog.link(SYS_EXIT, '结束'))
 
             server.player.addItem(uid, '威魂深怨护身符', 1)
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})

@@ -160,6 +160,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -167,33 +168,31 @@ setQuestFSMTable(
 
                 -- @mugong_fireline_next4_1
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>同里面的火焰沃玛打斗时，多少有些麻烦。请注意不要进行近身战。</par>
-                            <par>我把你送到那儿的时间是<t color="red">5分钟</t>。。。5分钟过去后，你将重新回到这里。</par>
-                            <par>同时你还要牢记<t color="red">新火镜掉落的瞬间，你一定要非常迅速地拿到并回到这个地方。。</t></par>
-                            <par></par>
-                            <par><event id="npc_enter_trial">移  动</event></par>
-                            <par><event id="npc_explain">考场里要做什么？</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '同里面的火焰沃玛打斗时，多少有些麻烦。请注意不要进行近身战。',
+                        '我把你送到那儿的时间是<t color="red">5分钟</t>。。。5分钟过去后，你将重新回到这里。',
+                        '同时你还要牢记<t color="red">新火镜掉落的瞬间，你一定要非常迅速地拿到并回到这个地方。。</t>',
+                    },
+                    {
+                        dialog.link('npc_enter_trial', '移  动'),
+                        dialog.link('npc_explain', '考场里要做什么？'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 -- @mugong_fireline_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>如果想学习地狱火，从考场<t color="red">火焰沃玛</t>那儿找到<t color="red">新火镜</t>即可。</par>
-                            <par>需要注意的是不拿新火镜的怪物们被打倒之后还要复活，不断地对你进行阻扰。</par>
-                            <par>拿到新火镜的一瞬间安全地退回这个地方就可以了。</par>
-                            <par></par>
-                            <par><event id="npc_enter_trial">移  动</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '如果想学习地狱火，从考场<t color="red">火焰沃玛</t>那儿找到<t color="red">新火镜</t>即可。',
+                        '需要注意的是不拿新火镜的怪物们被打倒之后还要复活，不断地对你进行阻扰。',
+                        '拿到新火镜的一瞬间安全地退回这个地方就可以了。',
+                    },
+                    {
+                        dialog.link('npc_enter_trial', '移  动'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 npc_enter_trial = function(uid, value)
@@ -223,6 +222,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -231,51 +231,33 @@ setQuestFSMTable(
                 -- @mugong_fireline_complete
                 [SYS_ENTER] = function(uid, value)
                     if not server.player.hasItem(uid, '新火镜', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>我把非常辛苦找到的新火镜放在哪儿了？</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '我把非常辛苦找到的新火镜放在哪儿了？',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>带来了新火镜。那么，好好读一下这个部分吧！</par>
-                            <par>嗯。。。如果可以大概理解，可以按照照片摆个姿势吗？</par>
-                            <par></par>
-                            <par><event id="npc_take_book">这样可以吗？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '带来了新火镜。那么，好好读一下这个部分吧！',
+                        '嗯。。。如果可以大概理解，可以按照照片摆个姿势吗？',
+                    },
+                    dialog.link('npc_take_book', '这样可以吗？'))
                 end,
 
                 -- @mugong_fireline_complete_next, and the checkbaggage of next1
                 npc_take_book = function(uid, value)
                     if not server.player.hasItem(uid, '新火镜', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>我把非常辛苦找到的新火镜放在哪儿了？</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '我把非常辛苦找到的新火镜放在哪儿了？',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦，虽然现在还有些不熟练，但好像已经大体上领悟了新火镜的运气法。这个程度练习地狱火没有任何问题。以后你看书，一个人练习也没有任何问题。</par>
-                            <par>你已经在其它地方得到了武功秘籍，我也没有再给你的必要了。我给你一些金币和东西，用在需要的地方。还有你也不在需要新火镜了，我替你保管吧。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '哦，虽然现在还有些不熟练，但好像已经大体上领悟了新火镜的运气法。这个程度练习地狱火没有任何问题。以后你看书，一个人练习也没有任何问题。',
+                        '你已经在其它地方得到了武功秘籍，我也没有再给你的必要了。我给你一些金币和东西，用在需要的地方。还有你也不在需要新火镜了，我替你保管吧。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.player.removeItem(uid, '新火镜', 1)
                     server.player.addItem(uid, '地狱火（秘籍）', 1)
@@ -293,6 +275,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -306,81 +289,56 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [756] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>以前你分明收到了地狱火秘籍吗？你好像记错了。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '以前你分明收到了地狱火秘籍吗？你好像记错了。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkjob wizard
             if not server.player.hasJob(uid, '法师') then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>该武功不是其它职业的人很容易就可以熟练的武功，只有魔法师可以掌握。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '该武功不是其它职业的人很容易就可以熟练的武功，只有魔法师可以掌握。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 地狱火
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>我看你好像已经掌握了地狱火。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '我看你好像已经掌握了地狱火。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_fireline_next2, checklevel 20
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>地狱火是一种将像波涛一样的熊熊烈火向敌人喷射的魔法。但是你好像还不够学习地狱火的等级。</par>
-                        <par>你在训练一下后，再来找我。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '地狱火是一种将像波涛一样的熊熊烈火向敌人喷射的魔法。但是你好像还不够学习地狱火的等级。',
+                    '你在训练一下后，再来找我。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>地狱火是一种将<t color="red">像波涛一样的熊熊烈火向敌人喷射的魔法</t>。本魔法的要点是使在进攻者前面展开的烈火沿着一条直线蔓延开，向多数敌人发起进攻时非常有利。将敌人引诱到狭窄的地方沿一列排开，进攻效果最大。</par>
-                    <par>好的，凭你的实力是学习地狱火的时候了。但是要想掌握地狱火，应掌握独特的运气法。 叫<t color="red">神火攻</t>的内功新法，按照你的能力坚持不懈练习的话，理解上不会有什么问题的。</par>
-                    <par></par>
-                    <par><event id="npc_want_learn">想掌握地狱火。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '地狱火是一种将<t color="red">像波涛一样的熊熊烈火向敌人喷射的魔法</t>。本魔法的要点是使在进攻者前面展开的烈火沿着一条直线蔓延开，向多数敌人发起进攻时非常有利。将敌人引诱到狭窄的地方沿一列排开，进攻效果最大。',
+                '好的，凭你的实力是学习地狱火的时候了。但是要想掌握地狱火，应掌握独特的运气法。 叫<t color="red">神火攻</t>的内功新法，按照你的能力坚持不懈练习的话，理解上不会有什么问题的。',
+            },
+            dialog.link('npc_want_learn', '想掌握地狱火。'))
         end,
 
         -- @mugong_fireline_next3, SET [520]
         npc_want_learn = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>好的，如果这样，我在了解你武功实力的同时，还可以给你一个学习地狱火的测试。</par>
-                    <par>到我送你去的某地找出叫<t color="red">新火镜</t>的书。当然里面有怪物，其中<t color="red">一个怪物</t>拿着新火镜。你在将怪物打倒，新火镜出现的瞬间马上就抓住书，重新回到现在的地方。请你经常创造机会。</par>
-                    <par>怎么样？挑战吗？</par>
-                    <par></par>
-                    <par><event id="npc_accept">是的，进行挑战。</event></par>
-                    <par><event id="npc_not_yet">现在好象有些勉强。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '好的，如果这样，我在了解你武功实力的同时，还可以给你一个学习地狱火的测试。',
+                '到我送你去的某地找出叫<t color="red">新火镜</t>的书。当然里面有怪物，其中<t color="red">一个怪物</t>拿着新火镜。你在将怪物打倒，新火镜出现的瞬间马上就抓住书，重新回到现在的地方。请你经常创造机会。',
+                '怎么样？挑战吗？',
+            },
+            {
+                dialog.link('npc_accept', '是的，进行挑战。'),
+                dialog.link('npc_not_yet', '现在好象有些勉强。'),
+            })
 
             -- SET [520] lands here, before you have answered, so backing out now still leaves
             -- you on the quest and he goes straight to the move offer next time
@@ -390,28 +348,19 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- @mugong_fireline_next5. its <关闭> points at @mugong_fireline_next14_1, a label that
         -- does not exist in the legacy file, so it just closes
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>非常小心的朋友。本臂力尊者像你一样的时候，不知天高地厚, 横冲直撞。不管怎样，好的。你有信心的时候，请随时来！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">关闭</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '非常小心的朋友。本臂力尊者像你一样的时候，不知天高地厚, 横冲直撞。不管怎样，好的。你有信心的时候，请随时来！',
+            dialog.link(SYS_EXIT, '关闭'))
         end,
 
         -- @mugong_fireline_next4_1
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>同里面的火焰沃玛打斗时，多少有些麻烦。请注意不要进行近身战。</par>
-                    <par>我把你送到那儿的时间是<t color="red">5分钟</t>。。。5分钟过去后，你将重新回到这里。</par>
-                    <par>同时你还要牢记<t color="red">新火镜掉落的瞬间，你一定要非常迅速地拿到并回到这个地方。。</t></par>
-                    <par></par>
-                    <par><event id="npc_enter_trial" close="1">移  动</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '同里面的火焰沃玛打斗时，多少有些麻烦。请注意不要进行近身战。',
+                '我把你送到那儿的时间是<t color="red">5分钟</t>。。。5分钟过去后，你将重新回到这里。',
+                '同时你还要牢记<t color="red">新火镜掉落的瞬间，你一定要非常迅速地拿到并回到这个地方。。</t>',
+            },
+            dialog.link('npc_enter_trial', '移  动', {close = true}))
         end,
 
         npc_enter_trial = function(uid, value)

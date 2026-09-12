@@ -1,3 +1,5 @@
+local dialog = require('include.dialog')
+
 do
     local itemID = 1
     local itemNameList = {}
@@ -21,15 +23,11 @@ end
 setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
-        uidPostXML(uid, string.format(
-        [[
-            <layout>
-                <par>客官%s你好我是%s，我这里有所有的物品哦！<emoji id="0"/></par>
-                <par></par>
-                <par><event id="event_post_sell">购买</event></par>
-                <par><event id="%s" close="1">关闭</event></par>
-            </layout>
-        ]], uidQueryName(uid), getNPCName(), SYS_EXIT))
+        dialog.post(uid, string.format('客官%s你好我是%s，我这里有所有的物品哦！<emoji id="0"/>', uidQueryName(uid), getNPCName()),
+        {
+            dialog.link('event_post_sell', '购买'),
+            dialog.link(SYS_EXIT, '关闭'),
+        })
     end,
 
     ["event_post_sell"] = function(uid, value)

@@ -93,30 +93,23 @@ local function setupTeacher(uid, retry)
     [[
         local questUID, questName, retry = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         local function postTrialOffer(uid)
             if retry then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>不是不管三七二十一就舞剑。<t color="red">先走心剑紧随其后。</t>保持心如止水，冷静对敌。</par>
-                        <par></par>
-                        <par>想重新接受修炼吗？</par>
-                        <par><event id="npc_enter_trial">好的, 再拜托你一次。</event></par>
-                        <par><event id="npc_not_yet">准备好了，再来！</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath, '不是不管三七二十一就舞剑。<t color="red">先走心剑紧随其后。</t>保持心如止水，冷静对敌。',
+                {
+                    '想重新接受修炼吗？',
+                    dialog.link('npc_enter_trial', '好的, 再拜托你一次。'),
+                    dialog.link('npc_not_yet', '准备好了，再来！'),
+                })
             else
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>那么将我移动到<t color="red">修炼场</t>。有可能要辛苦些，请做好准备！</par>
-                        <par></par>
-                        <par><event id="npc_enter_trial">移 动</event></par>
-                        <par><event id="npc_explain">修炼场里要做什么？</event></par>
-                        <par><event id="npc_not_yet">准备好了，再来！</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath, '那么将我移动到<t color="red">修炼场</t>。有可能要辛苦些，请做好准备！',
+                {
+                    dialog.link('npc_enter_trial', '移 动'),
+                    dialog.link('npc_explain', '修炼场里要做什么？'),
+                    dialog.link('npc_not_yet', '准备好了，再来！'),
+                })
             end
         end
 
@@ -126,26 +119,16 @@ local function setupTeacher(uid, retry)
             [SYS_ENTER] = postTrialOffer,
 
             npc_explain = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>如果想掌握精神力战法，请在一定的时间之内将训练场里的怪兽都处理了即可。</par>
-                        <par></par>
-                        <par><event id="npc_enter_trial">好的，拜托了！</event></par>
-                        <par><event id="npc_not_yet">准备好了，再来！</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath, '如果想掌握精神力战法，请在一定的时间之内将训练场里的怪兽都处理了即可。',
+                {
+                    dialog.link('npc_enter_trial', '好的，拜托了！'),
+                    dialog.link('npc_not_yet', '准备好了，再来！'),
+                })
             end,
 
             npc_not_yet = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>药准备多些好，那么快点去吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '药准备多些好，那么快点去吧！',
+                dialog.link(SYS_EXIT, '结束'))
             end,
 
             npc_enter_trial = function(uid, value)
@@ -217,23 +200,21 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '领精神力战法秘籍',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>知道你可以成功。</par>
-                            <par>辛苦了，<t color="red">现在可以看到一点剑路了吗？</t></par>
-                            <par></par>
-                            <par>这个是精神力战法要点解释的<t color="red">秘籍</t>，请拿走看看。你已经具有了基本素质，只要掌握要点，充分地可以学习精神力战法。</par>
-                            <par>这里有些金币和东西，用在需要的地方。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">谢谢！</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '知道你可以成功。',
+                        '辛苦了，<t color="red">现在可以看到一点剑路了吗？</t>',
+                        '',
+                        '这个是精神力战法要点解释的<t color="red">秘籍</t>，请拿走看看。你已经具有了基本素质，只要掌握要点，充分地可以学习精神力战法。',
+                        '这里有些金币和东西，用在需要的地方。',
+                    },
+                    dialog.link('npc_take_book', '谢谢！', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -252,6 +233,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     -- he opens with this whether or not you qualify
     local pitch = [=[精神力战法是剑术造诣很深的某个先辈故人创造的<t color="red">为了道士的剑法</t>。道士们终究是比战士们力量弱，如果不学习精神力战法，放弃<t color="red">直接进攻</t>还是好些。]=]
@@ -271,107 +253,69 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- [716], he remembers handing the book over
             if server.quest.getState(questUID, {uid = uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到<t color="red">%s秘籍</t>吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], magicName, SYS_EXIT)
+                dialog.post(uid, questPath, string.format('你不是已经收到<t color="red">%s秘籍</t>吗？', magicName),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- 该武功不是其它职业的人们可以掌握的简单武功呀
             if not server.player.hasJob(uid, '道士') then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>该武功不是其它职业的人们可以掌握的简单武功呀。只有<t color="red">道士</t>才可以掌握。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '该武功不是其它职业的人们可以掌握的简单武功呀。只有<t color="red">道士</t>才可以掌握。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 精神力战法, he can see it in your eyes
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>看你的眼光很锐利，好象正在修炼<t color="red">%s</t>。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], magicName, SYS_EXIT)
+                dialog.post(uid, questPath, string.format('看你的眼光很锐利，好象正在修炼<t color="red">%s</t>。', magicName),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>%s</par>
-                        <par></par>
-                        <par>嗯。。。但是你好像还没有达到修炼精神力战法的水平。在修炼一下准备好了，再来！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], pitch, SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    pitch,
+                    '',
+                    '嗯。。。但是你好像还没有达到修炼精神力战法的水平。在修炼一下准备好了，再来！',
+                },
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>%s</par>
-                    <par></par>
-                    <par>现在你已经到了该修炼精神力战法的时候，我教你修炼。和修炼其它的魔法不一样，现在是修炼剑法，所以修炼方法和战士的修炼方法没有什么不同的。</par>
-                    <par></par>
-                    <par>怎么样？接受修炼吗？</par>
-                    <par><event id="npc_accept">好的，拜托了！</event></par>
-                    <par><event id="npc_explain">修炼场里要做什么？</event></par>
-                    <par><event id="npc_not_yet">准备好之后，再来！</event></par>
-                </layout>
-            ]=], pitch)
+            dialog.post(uid, questPath,
+            {
+                pitch,
+                '',
+                '现在你已经到了该修炼精神力战法的时候，我教你修炼。和修炼其它的魔法不一样，现在是修炼剑法，所以修炼方法和战士的修炼方法没有什么不同的。',
+            },
+            {
+                '怎么样？接受修炼吗？',
+                dialog.link('npc_accept', '好的，拜托了！'),
+                dialog.link('npc_explain', '修炼场里要做什么？'),
+                dialog.link('npc_not_yet', '准备好之后，再来！'),
+            })
         end,
 
         -- @mugong_ilgang_explain
         npc_explain = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>如果想掌握精神力战法，请在一定的时间之内将训练场里的怪兽都处理了即可。</par>
-                    <par></par>
-                    <par><event id="npc_accept">好的，拜托了！</event></par>
-                    <par><event id="npc_not_yet">准备好之后，再来！</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '如果想掌握精神力战法，请在一定的时间之内将训练场里的怪兽都处理了即可。',
+            {
+                dialog.link('npc_accept', '好的，拜托了！'),
+                dialog.link('npc_not_yet', '准备好之后，再来！'),
+            })
         end,
 
         -- @mugong_ilgang_next5
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>药准备多些好，那么快点去吧！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '药准备多些好，那么快点去吧！',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_ilgang_next4_1, SET [500]
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>那么将我移动到<t color="red">修炼场</t>。有可能要辛苦些，请做好准备！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">知道了</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '那么将我移动到<t color="red">修炼场</t>。有可能要辛苦些，请做好准备！',
+            dialog.link(SYS_EXIT, '知道了'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,

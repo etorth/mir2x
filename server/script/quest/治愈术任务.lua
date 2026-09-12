@@ -26,17 +26,12 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName, bookName, mijiName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     -- checkitem 治愈术 1, the plain book he copies from. he asks for it in two places
     local function postNeedBook(uid)
-        uidPostXML(uid, questPath,
-        [=[
-            <layout>
-                <par>有了<t color="red">治愈术魔法书</t>，我可以教你魔法。</par>
-                <par></par>
-                <par><event id="%s" close="1">结束</event></par>
-            </layout>
-        ]=], SYS_EXIT)
+        dialog.post(uid, questPath, '有了<t color="red">治愈术魔法书</t>，我可以教你魔法。',
+        dialog.link(SYS_EXIT, '结束'))
     end
 
     setQuestHandler(questName,
@@ -56,40 +51,22 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [715] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到书吗？那么你为什么还要索要？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到书吗？那么你为什么还要索要？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 治愈术
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>我看你正在修炼<t color="red">治愈术</t>。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '我看你正在修炼<t color="red">治愈术</t>。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checklevel 7
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>如果想熟练治愈术，武功级别最少要达<t color="red">%d</t>级以上。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], minQuestLevel, SYS_EXIT)
+                dialog.post(uid, questPath, string.format('如果想熟练治愈术，武功级别最少要达<t color="red">%d</t>级以上。', minQuestLevel),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
@@ -98,28 +75,18 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想学习治愈术的样子。练习武功的过程中将遇到各种困难，我将给你进行详细地说明。</par>
-                    <par></par>
-                    <par>那么，在给你武功秘籍之前，先对武功进行进行简单的说明吗？</par>
-                    <par><event id="npc_lore">拜托了！</event></par>
-                    <par><event id="%s" close="1">没有必要</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '想学习治愈术的样子。练习武功的过程中将遇到各种困难，我将给你进行详细地说明。',
+            {
+                '那么，在给你武功秘籍之前，先对武功进行进行简单的说明吗？',
+                dialog.link('npc_lore', '拜托了！'),
+                dialog.link(SYS_EXIT, '没有必要'),
+            })
         end,
 
         -- @mugong_heal_next3
         npc_lore = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>治愈术是将消磨尽的<t color="red">自身体力或者别人的体力在瞬间之内使之恢复</t>的武功，是道士最重要的武功。</par>
-                    <par></par>
-                    <par><event id="npc_take_book">很基础的魔法嘛。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '治愈术是将消磨尽的<t color="red">自身体力或者别人的体力在瞬间之内使之恢复</t>的武功，是道士最重要的武功。',
+            dialog.link('npc_take_book', '很基础的魔法嘛。'))
         end,
 
         -- @mugong_heal_next4, take the plain book and hand back the 秘籍
@@ -129,14 +96,8 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>你现在已经有治愈术秘籍了，以前不理解的部分也可以理解了。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '你现在已经有治愈术秘籍了，以前不理解的部分也可以理解了。',
+            dialog.link(SYS_EXIT, '结束'))
 
             server.player.removeItem(uid, bookName, 1)
             server.player.addItem(uid, mijiName, 1)

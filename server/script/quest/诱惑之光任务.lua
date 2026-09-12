@@ -72,31 +72,20 @@ local function enterTrial(uid)
     [[
         local questUID, questName = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
             [SYS_LABEL] = '考场',
             [SYS_ENTER] = function(uid, value)
                 if uidRemoteCall(getMapUID(), [=[ return getMonsterCount() ]=]) > 0 then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>你还没有完全制服半兽人嘛。 剩下的时间不多了。。显示你的威力嘛。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '你还没有完全制服半兽人嘛。 剩下的时间不多了。。显示你的威力嘛。',
+                    dialog.link(SYS_EXIT, '结束'))
                     return
                 end
 
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>怪兽们都屈服了。。请在外面看吧！</par>
-                        <par></par>
-                        <par><event id="npc_leave_trial" close="1">走出考场。</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath, '怪兽们都屈服了。。请在外面看吧！',
+                dialog.link('npc_leave_trial', '走出考场。', {close = true}))
             end,
 
             -- @mugong_lightwave_test_next, SET [503]
@@ -148,20 +137,17 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '再进考场',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>还要再试一次吗？时间是2分钟，让里面的怪物屈服即可。</par>
-                            <par></par>
-                            <par><event id="npc_enter_trial">向考场移动。</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '还要再试一次吗？时间是2分钟，让里面的怪物屈服即可。',
+                    {
+                        dialog.link('npc_enter_trial', '向考场移动。'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 npc_enter_trial = function(uid, value)
@@ -191,6 +177,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -198,15 +185,12 @@ setQuestFSMTable(
 
                 -- @mugong_lightwave_test_give1
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>辛苦了。我知道你可以赢。你本身的威力越强大，上面的怪物就越服从于你。但是要记住怪物的本性是不能被长时间抑制的。也就是说诱惑之光的威力一定时间之后就没有效果了。</par>
-                            <par>在这里拿武功书，剩余的部分你要自己学习。。。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">结束</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '辛苦了。我知道你可以赢。你本身的威力越强大，上面的怪物就越服从于你。但是要记住怪物的本性是不能被长时间抑制的。也就是说诱惑之光的威力一定时间之后就没有效果了。',
+                        '在这里拿武功书，剩余的部分你要自己学习。。。',
+                    },
+                    dialog.link('npc_take_book', '结束', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -225,6 +209,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -238,124 +223,88 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [750] 1. the legacy line asks the question inverted, kept as written
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>还没有给你诱惑之光的解析吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '还没有给你诱惑之光的解析吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 诱惑之光, also inverted in the legacy text
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你还没有掌握称为诱惑之光的魔法吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你还没有掌握称为诱惑之光的魔法吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checklevel 13
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你还没有达到修炼诱惑之光的等级。。请继续修炼，达到<t color="red">%d</t>级为止。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], minQuestLevel, SYS_EXIT)
+                dialog.post(uid, questPath, string.format('你还没有达到修炼诱惑之光的等级。。请继续修炼，达到<t color="red">%d</t>级为止。', minQuestLevel),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkjob wizard
             if not server.player.hasJob(uid, '法师') then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你还不是魔法师吗？如果不是魔法师，还无法修炼该武功。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你还不是魔法师吗？如果不是魔法师，还无法修炼该武功。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_lightwave_next3
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想了解诱惑之光？嗯，仅凭单纯的知识是无法修炼诱惑之光的。诱惑之光是使比自己能力低的怪物们<t color="red">精神混乱，从而进行控制的一种魔法</t>。因此为了掌握诱惑之光，要向怪物们显示自己的威力，使他们服从于你的经验是非常重要的。</par>
-                    <par></par>
-                    <par><event id="npc_accept">拜托您多指教！</event></par>
-                    <par><event id="npc_explain">考场里要做什么？</event></par>
-                    <par><event id="npc_not_yet">我现在好象有些勉强。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            '想了解诱惑之光？' ..
+            '嗯，仅凭单纯的知识是无法修炼诱惑之光的。' ..
+            '诱惑之光是使比自己能力低的怪物们<t color="red">精神混乱，从而进行控制的一种魔法</t>。' ..
+            '因此为了掌握诱惑之光，要向怪物们显示自己的威力，使他们服从于你的经验是非常重要的。',
+            {
+                dialog.link('npc_accept', '拜托您多指教！'),
+                dialog.link('npc_explain', '考场里要做什么？'),
+                dialog.link('npc_not_yet', '我现在好象有些勉强。'),
+            })
         end,
 
         -- @mugong_lightwave_explain, plus the blurb sitting in the unreachable ELSESAY of the
         -- [502] check in @mugong_lightwave — it describes the magic and this is the one place
         -- a player can still read it
         npc_explain = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>诱惑之光是一种瞬间里<t color="red">发射威力强大的闪电，使得怪物们恐慌的魔法</t>。如果使用得当，一时间怪物们都无法行动。尤其是可以<t color="red">控制比你能力低很多怪物们精神的可怕魔法</t>。</par>
-                    <par></par>
-                    <par>如果想学诱惑之光，在一定时间之内将考场内的怪物们都制服即可。</par>
-                    <par></par>
-                    <par><event id="npc_accept">拜托您多指教！</event></par>
-                    <par><event id="npc_not_yet">我现在好象有些勉强。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '诱惑之光是一种瞬间里<t color="red">发射威力强大的闪电，使得怪物们恐慌的魔法</t>。如果使用得当，一时间怪物们都无法行动。尤其是可以<t color="red">控制比你能力低很多怪物们精神的可怕魔法</t>。',
+                '',
+                '如果想学诱惑之光，在一定时间之内将考场内的怪物们都制服即可。',
+            },
+            {
+                dialog.link('npc_accept', '拜托您多指教！'),
+                dialog.link('npc_not_yet', '我现在好象有些勉强。'),
+            })
         end,
 
         -- @mugong_lightwave_next4_2
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>跳进去是有些过激的修炼手法。但是又该如何？如果想学习诱惑之光，只有这个方法。。如果做好准备了，请随时来。。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '跳进去是有些过激的修炼手法。但是又该如何？如果想学习诱惑之光，只有这个方法。。如果做好准备了，请随时来。。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_lightwave_next4_1
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>方法很简单。现在就开始把你送到训练场，与那个地方出现的怪物搏斗，显示你的威力。虽然有些困难，但绝不可以让怪物们看到你软弱的一面。记住一定要让他们知道你是强者的事实。</par>
-                    <par>还有限制时间是<t color="red">2分钟</t>。</par>
-                    <par></par>
-                    <par><event id="npc_enter_trial">向考场移动！</event></par>
-                    <par><event id="npc_think_again">仔细想想，再移动！</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '方法很简单。现在就开始把你送到训练场，与那个地方出现的怪物搏斗，显示你的威力。虽然有些困难，但绝不可以让怪物们看到你软弱的一面。记住一定要让他们知道你是强者的事实。',
+                '还有限制时间是<t color="red">2分钟</t>。',
+            },
+            {
+                dialog.link('npc_enter_trial', '向考场移动！'),
+                dialog.link('npc_think_again', '仔细想想，再移动！'),
+            })
         end,
 
         -- <仔细想想，再移动！> goes to @mugong_lightwave_next6, which is the retry offer. it
         -- reads the same either way, so he just repeats the terms
         npc_think_again = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>还要再试一次吗？时间是2分钟，让里面的怪物屈服即可。</par>
-                    <par></par>
-                    <par><event id="npc_enter_trial">向考场移动。</event></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '还要再试一次吗？时间是2分钟，让里面的怪物屈服即可。',
+            {
+                dialog.link('npc_enter_trial', '向考场移动。'),
+                dialog.link(SYS_EXIT, '结束'),
+            })
         end,
 
         npc_enter_trial = function(uid, value)

@@ -149,6 +149,7 @@ local function enterTrial(uid)
     [[
         local questUID, questName, firstUID, firstTotal, secondTotal = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
@@ -159,27 +160,18 @@ local function enterTrial(uid)
 
                 -- @mugong_firewind_test_fail
                 if (firstLeft < firstTotal) or (secondLeft < secondTotal) then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>出现失误了。即使仅仅一头怪兽被杀死，其它怪兽也都全不行了。</par>
-                            <par>需要将来再次挑战了。。。</par>
-                            <par></par>
-                            <par><event id="npc_fail_trial" close="1">结束</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '出现失误了。即使仅仅一头怪兽被杀死，其它怪兽也都全不行了。',
+                        '需要将来再次挑战了。。。',
+                    },
+                    dialog.link('npc_fail_trial', '结束', {close = true}))
                     return
                 end
 
                 -- @mugong_firewind_test_pass1
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>恭喜你，干得很好。请首先离开这个地方。</par>
-                        <par></par>
-                        <par><event id="npc_pass_trial" close="1">结束</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath, '恭喜你，干得很好。请首先离开这个地方。',
+                dialog.link('npc_pass_trial', '结束', {close = true}))
             end,
 
             npc_fail_trial = function(uid, value)
@@ -233,6 +225,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -240,42 +233,34 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- checkmagic 抗拒火环, he notices if you picked it up in the meantime
                     if server.player.hasMagic(uid, '抗拒火环') then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>那么辛苦学会的抗拒火环，不知道能否很好地使用。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '那么辛苦学会的抗拒火环，不知道能否很好地使用。',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>那么，请送去吧！</par>
-                            <par>我给你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后，你将重新回到这里。</par>
-                            <par></par>
-                            <par><event id="npc_enter_trial">移  动</event></par>
-                            <par><event id="npc_explain">考场里要做什么？</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '那么，请送去吧！',
+                        '我给你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后，你将重新回到这里。',
+                    },
+                    {
+                        dialog.link('npc_enter_trial', '移  动'),
+                        dialog.link('npc_explain', '考场里要做什么？'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 -- @mugong_firewind_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>如果想学习抗拒火环，只有在一定的时间内<t color="red">顺利通过</t>考场才可以。</par>
-                            <par>我将站在终点，你将重新回到这里。需要注意的是<t color="red">不能伤害考场内的任何一头怪物</t></par>
-                            <par></par>
-                            <par><event id="npc_enter_trial">移  动</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '如果想学习抗拒火环，只有在一定的时间内<t color="red">顺利通过</t>考场才可以。',
+                        '我将站在终点，你将重新回到这里。需要注意的是<t color="red">不能伤害考场内的任何一头怪物</t>',
+                    },
+                    {
+                        dialog.link('npc_enter_trial', '移  动'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 npc_enter_trial = function(uid, value)
@@ -305,6 +290,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -312,15 +298,12 @@ setQuestFSMTable(
 
                 -- @mugong_firewind_give
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>恭喜你！干得好！</par>
-                            <par>这里有可以掌握抗拒火环的武功书（秘籍）。。好好使用吧。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">结束</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '恭喜你！干得好！',
+                        '这里有可以掌握抗拒火环的武功书（秘籍）。。好好使用吧。',
+                    },
+                    dialog.link('npc_take_book', '结束', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -339,6 +322,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -352,80 +336,54 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [749] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到书了吗？那么你为什么还要索要？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到书了吗？那么你为什么还要索要？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想知道叫“抗拒火环“的武功吗？</par>
-                    <par>抗拒火环是一种被敌人包围时，在自己周围产生<t color="red">强烈的火墙</t>，从而逃脱包围的魔法。也是体力弱魔术师必须掌握的魔法。</par>
-                    <par>但是仅凭语言是无法理解的，只用直接被敌人包围，并体验生命受到威胁才可以学会的。但是这种方法太粗糙。。。要试一下吗？</par>
-                    <par></par>
-                    <par><event id="npc_ask_teach">拜托指教了</event></par>
-                    <par><event id="npc_not_yet">现在好像有些勉强</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '想知道叫“抗拒火环“的武功吗？',
+                '抗拒火环是一种被敌人包围时，在自己周围产生<t color="red">强烈的火墙</t>，从而逃脱包围的魔法。也是体力弱魔术师必须掌握的魔法。',
+                '但是仅凭语言是无法理解的，只用直接被敌人包围，并体验生命受到威胁才可以学会的。但是这种方法太粗糙。。。要试一下吗？',
+            },
+            {
+                dialog.link('npc_ask_teach', '拜托指教了'),
+                dialog.link('npc_not_yet', '现在好像有些勉强'),
+            })
         end,
 
         -- @mugong_firewind_next1_2
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>不要自满虽然很重要，但是该果敢的时候就要果敢。如果你的想法如此，我也不干涉。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '不要自满虽然很重要，但是该果敢的时候就要果敢。如果你的想法如此，我也不干涉。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_firewind_next1_1, checklevel 12, then next2's checkmagic
         npc_ask_teach = function(uid, value)
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经掌握了抗拒火环，请回去吧！我很忙。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经掌握了抗拒火环，请回去吧！我很忙。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_firewind_next3, set [500]
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>知道了。那么告诉你方法。现在我把你送到怪物出没的地方。</par>
-                    <par>我站在房间的另一侧，无论有任何事情<t color="red">都不能干扰怪物或者杀死怪物，只能向我跑过来</t>。</par>
-                    <par>时间只有<t color="red">5分钟</t>。如果准备好了，请说一下！</par>
-                    <par></par>
-                    <par><event id="npc_accept">准备好了</event></par>
-                    <par><event id="npc_wait">等一下，现在。。。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '知道了。那么告诉你方法。现在我把你送到怪物出没的地方。',
+                '我站在房间的另一侧，无论有任何事情<t color="red">都不能干扰怪物或者杀死怪物，只能向我跑过来</t>。',
+                '时间只有<t color="red">5分钟</t>。如果准备好了，请说一下！',
+            },
+            {
+                dialog.link('npc_accept', '准备好了'),
+                dialog.link('npc_wait', '等一下，现在。。。'),
+            })
 
             -- set [500] lands here, before you have answered, so backing out now still leaves
             -- you on the quest and he offers the run again next time
@@ -434,27 +392,18 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_firewind_next4_2
         npc_wait = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>比看起来软弱。。。如果确实准备好了，再来吧！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '比看起来软弱。。。如果确实准备好了，再来吧！',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_firewind_next4_1
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>那么，请送去吧！</par>
-                    <par>我给你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后，你将重新回到这里。</par>
-                    <par></par>
-                    <par><event id="npc_enter_trial" close="1">移  动</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '那么，请送去吧！',
+                '我给你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后，你将重新回到这里。',
+            },
+            dialog.link('npc_enter_trial', '移  动', {close = true}))
         end,
 
         npc_enter_trial = function(uid, value)

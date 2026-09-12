@@ -1,3 +1,4 @@
+local dialog = require('include.dialog')
 local invop = {}
 
 function invop.uidStartTrade(uid, queryTag, commitTag, typeList)
@@ -87,25 +88,11 @@ local function queryRepair(uid, value, queryTag, commitTag, typeList, special)
     local cost, curr, max = repairCost(uid, itemID, seqID, special)
 
     if cost == nil then
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你的%s还很结实，不需要修理。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), SYS_ENTER)
+        dialog.post(uid, string.format('你的%s还很结实，不需要修理。', getItemName(itemID)),
+        dialog.link(SYS_ENTER, '前一步'))
     else
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你的%s持久为%d/%d，%s费用是%d金币。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), curr, max, special and '特殊修理' or '修理', cost, SYS_ENTER)
+        dialog.post(uid, string.format('你的%s持久为%d/%d，%s费用是%d金币。', getItemName(itemID), curr, max, special and '特殊修理' or '修理', cost),
+        dialog.link(SYS_ENTER, '前一步'))
 
         invop.postRepairCost(uid, itemID, seqID, cost)
     end
@@ -118,26 +105,12 @@ local function commitRepair(uid, value, queryTag, commitTag, typeList, special, 
     local cost = repairCost(uid, itemID, seqID, special)
 
     if cost == nil then
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你的%s不需要修理。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), SYS_ENTER)
+        dialog.post(uid, string.format('你的%s不需要修理。', getItemName(itemID)),
+        dialog.link(SYS_ENTER, '前一步'))
 
     elseif uidQueryGold(uid) < cost then
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>修理%s需要%d金币，你带的钱不够。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), cost, SYS_ENTER)
+        dialog.post(uid, string.format('修理%s需要%d金币，你带的钱不够。', getItemName(itemID), cost),
+        dialog.link(SYS_ENTER, '前一步'))
 
     elseif not server.player.removeGold(uid, cost) then
         -- can not pay for it, don't repair
@@ -148,19 +121,19 @@ local function commitRepair(uid, value, queryTag, commitTag, typeList, special, 
     else
         -- sayDone is the shopkeeper's own line, legacy @NPC_Repair_Complete. it goes above the
         -- receipt so the NPC speaks first
-        local said = sayDone and string.format('<par>%s</par>', sayDone) or ''
-        local back = backLabel == false and '' or
-            string.format('<par><event id="%s">%s</event></par>', SYS_ENTER, backLabel or '前一步')
+        local text = {}
+        if sayDone then
+            table.insert(text, sayDone)
+        end
+        table.insert(text, string.format('你的%s已经修理完毕，花费%d金币。', getItemName(itemID), cost))
 
-        uidPostXML(uid,
-        [[
-            <layout>
-                %s<par>你的%s已经修理完毕，花费%d金币。</par>
-                <par></par>
-
-                %s
-            </layout>
-        ]], said, getItemName(itemID), cost, back)
+        if backLabel == false then
+            table.insert(text, '')
+            dialog.post(uid, text)
+        else
+            dialog.post(uid, text,
+            dialog.link(SYS_ENTER, backLabel or '前一步'))
+        end
     end
 
     invop.uidStartRepair(uid, queryTag, commitTag, typeList)
@@ -194,14 +167,8 @@ local function rejectTrade(uid, itemID, queryTag, commitTag, typeList, acceptIte
     if acceptItem == nil or acceptItem(itemID) then
         return false
     end
-    uidPostXML(uid,
-    [[
-        <layout>
-            <par>这里不收购%s。</par>
-            <par></par>
-            <par><event id="%s">前一步</event></par>
-        </layout>
-    ]], getItemName(itemID), SYS_ENTER)
+    dialog.post(uid, string.format('这里不收购%s。', getItemName(itemID)),
+    dialog.link(SYS_ENTER, '前一步'))
     invop.uidStartTrade(uid, queryTag, commitTag, typeList)
     return true
 end
@@ -212,16 +179,12 @@ function invop.postQueryTrade(uid, value, queryTag, commitTag, typeList, price, 
         return
     end
 
-    uidPostXML(uid,
-    [[
-        <layout>
-            <par>你的%s我看过了，出价%d金币。</par>
-            <par>你要卖吗？</par>
-            <par></par>
-
-            <par><event id="%s">前一步</event></par>
-        </layout>
-    ]], getItemName(itemID), price, SYS_ENTER)
+    dialog.post(uid,
+    {
+        string.format('你的%s我看过了，出价%d金币。', getItemName(itemID), price),
+        '你要卖吗？',
+    },
+    dialog.link(SYS_ENTER, '前一步'))
 
     invop.postTradePrice(uid, itemID, seqID, price)
     invop.uidStartTrade(uid, queryTag, commitTag, typeList)
@@ -235,25 +198,11 @@ function invop.postCommitTrade(uid, value, queryTag, commitTag, typeList, price,
 
     if uidRemove(uid, {itemID = itemID, seqID = seqID}) then
         uidGrantGold(uid, price)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>成交，这是%d金币，收好了。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], price, SYS_ENTER)
+        dialog.post(uid, string.format('成交，这是%d金币，收好了。', price),
+        dialog.link(SYS_ENTER, '前一步'))
     else
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你的%s已经不在身上了。</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], getItemName(itemID), SYS_ENTER)
+        dialog.post(uid, string.format('你的%s已经不在身上了。', getItemName(itemID)),
+        dialog.link(SYS_ENTER, '前一步'))
     end
 
     invop.uidStartTrade(uid, queryTag, commitTag, typeList)

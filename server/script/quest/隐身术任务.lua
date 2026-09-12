@@ -142,20 +142,18 @@ local function enterTrial(uid)
     [[
         local questUID, questName = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
             [SYS_LABEL] = '训练场',
             [SYS_ENTER] = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>祝贺你，做得好！</par>
-                        <par>这里危险，请到外面去。</par>
-                        <par></par>
-                        <par><event id="npc_leave_trial" close="1">结束</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '祝贺你，做得好！',
+                    '这里危险，请到外面去。',
+                },
+                dialog.link('npc_leave_trial', '结束', {close = true}))
             end,
 
             -- SET [508]
@@ -194,19 +192,17 @@ local function setupTeacher(uid, retry)
     [[
         local questUID, questName, candles, torches, retry = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         -- @mugong_hiding_next4_1_1 through next4_1_8: pack first, then the torch slot, and the
         -- wording changes on both counts — which item, and where he found it
         local function postLightFound(uid, itemWord, whereWord)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>说了不能使用蜡烛或者火把，现在还拿着呢。</par>
-                    <par>请将放在%s的<t color="red">%s</t>放在其它的地方或者%s，然后再来。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], whereWord, itemWord, (whereWord == '书包中' and itemWord == '洋蜡') and '放在地上' or '地上', SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '说了不能使用蜡烛或者火把，现在还拿着呢。',
+                string.format('请将放在%s的<t color="red">%s</t>放在其它的地方或者%s，然后再来。', whereWord, itemWord, (whereWord == '书包中' and itemWord == '洋蜡') and '放在地上' or '地上'),
+            },
+            dialog.link(SYS_EXIT, '结束'))
         end
 
         -- returns false when he found something, having said so
@@ -247,15 +243,12 @@ local function setupTeacher(uid, retry)
 
         -- @mugong_hiding_next5
         local function postReadyToGo(uid)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>那么，要将你送去了。。</par>
-                    <par>我可以将你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后重新回到这里。</par>
-                    <par></par>
-                    <par><event id="npc_enter_trial" close="1">移 动</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '那么，要将你送去了。。',
+                '我可以将你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后重新回到这里。',
+            },
+            dialog.link('npc_enter_trial', '移 动', {close = true}))
         end
 
         return
@@ -264,71 +257,56 @@ local function setupTeacher(uid, retry)
 
             [SYS_ENTER] = function(uid, value)
                 if retry then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>在如此黑暗之中，好象还没有适应的样子。</par>
-                            <par>不要勉强解决问题，保持一个平常心，多试几次终究会成功的。</par>
-                            <par>噢噢，现在平静一下心情，想<t color="red">重新挑战一次</t>吗？你这次一定可以成功。</par>
-                            <par></par>
-                            <par><event id="npc_go_trial">请重新送到训练场！</event></par>
-                            <par><event id="npc_explain">训练场里要做什么？</event></par>
-                            <par><event id="npc_not_yet">准备好了，再来！</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '在如此黑暗之中，好象还没有适应的样子。',
+                        '不要勉强解决问题，保持一个平常心，多试几次终究会成功的。',
+                        '噢噢，现在平静一下心情，想<t color="red">重新挑战一次</t>吗？你这次一定可以成功。',
+                    },
+                    {
+                        dialog.link('npc_go_trial', '请重新送到训练场！'),
+                        dialog.link('npc_explain', '训练场里要做什么？'),
+                        dialog.link('npc_not_yet', '准备好了，再来！'),
+                    })
                     return
                 end
 
                 -- @mugong_hiding_next3
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你要在黑暗的<t color="red">训练场里面找到我</t>，注意不要碰到各个地方布置的怪兽。</par>
-                        <par>如果被碰上。。。嘿嘿，绝对可以学习到隐藏形迹的方法。好了，现在就送到训练场。无论如何要小心身体。。。</par>
-                        <par></par>
-                        <par><event id="npc_go_trial">准备好了。</event></par>
-                        <par><event id="npc_explain">训练场里要做什么？</event></par>
-                        <par><event id="npc_more_prep">还有要准备的事情。</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '你要在黑暗的<t color="red">训练场里面找到我</t>，注意不要碰到各个地方布置的怪兽。',
+                    '如果被碰上。。。嘿嘿，绝对可以学习到隐藏形迹的方法。好了，现在就送到训练场。无论如何要小心身体。。。',
+                },
+                {
+                    dialog.link('npc_go_trial', '准备好了。'),
+                    dialog.link('npc_explain', '训练场里要做什么？'),
+                    dialog.link('npc_more_prep', '还有要准备的事情。'),
+                })
             end,
 
             -- @mugong_hiding_next1_2, only on the retry path
             npc_not_yet = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>说做过什么样的准备，这次也没有特别用处。如果有需要首先解决的事情，解决完再来也可以。也没有急事儿。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '说做过什么样的准备，这次也没有特别用处。如果有需要首先解决的事情，解决完再来也可以。也没有急事儿。',
+                dialog.link(SYS_EXIT, '结束'))
             end,
 
             -- @mugong_hiding_next4_2
             npc_more_prep = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>我不是很忙的人，如果有急事儿解决好再来。任何时候都可以送到训练场。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '我不是很忙的人，如果有急事儿解决好再来。任何时候都可以送到训练场。',
+                dialog.link(SYS_EXIT, '结束'))
             end,
 
             -- @mugong_hiding_explain
             npc_explain = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>为了学习隐身术，在非常黑暗的训练场中不借助<t color="red">洋蜡</t>或者<t color="red">火把</t>的帮助下要找到我。</par>
-                        <par>训练场里的怪兽们蠕动着，要尽量回避回到这里。</par>
-                        <par></par>
-                        <par><event id="npc_go_trial">准备好了。</event></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '为了学习隐身术，在非常黑暗的训练场中不借助<t color="red">洋蜡</t>或者<t color="red">火把</t>的帮助下要找到我。',
+                    '训练场里的怪兽们蠕动着，要尽量回避回到这里。',
+                },
+                {
+                    dialog.link('npc_go_trial', '准备好了。'),
+                    dialog.link(SYS_EXIT, '结束'),
+                })
             end,
 
             npc_go_trial = function(uid, value)
@@ -379,6 +357,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -386,16 +365,13 @@ setQuestFSMTable(
 
                 -- @mugong_hiding_give1
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>祝贺你, 你终于成功了！</par>
-                            <par>通过在漆黑的空间抢先发现敌人的动静隐藏自己的训练，你的知觉变得很发达了。</par>
-                            <par>我给你隐身术秘籍，剩下的部分你自己修炼吧。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">结束</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '祝贺你, 你终于成功了！',
+                        '通过在漆黑的空间抢先发现敌人的动静隐藏自己的训练，你的知觉变得很发达了。',
+                        '我给你隐身术秘籍，剩下的部分你自己修炼吧。',
+                    },
+                    dialog.link('npc_take_book', '结束', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -414,6 +390,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -427,69 +404,47 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [721] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到书吗？那么你为什么还要索要？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到书吗？那么你为什么还要索要？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_hiding_next1_0
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想知道叫做隐身术的武功吧？</par>
-                    <par>隐身术是<t color="red">使怪兽们无法发现自己行踪，从而隐藏自己行踪的魔法</t>。首先不动弹，不被发现。在危急的时候就会有很大的帮助。</par>
-                    <par>为了学习隐身术要领会隐藏自己痕迹的方法，因此要到特殊的训练场累积些经验。</par>
-                    <par>哦，同时在训练场使用<t color="red">蜡烛</t>或者<t color="red">火把</t>是不可以的，进入训练场的时候都放在地上。如果不这样，我要没收。</par>
-                    <par></par>
-                    <par><event id="npc_ask_teach">拜托给与指教。</event></par>
-                    <par><event id="%s" close="1">准备好了，再来。</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '想知道叫做隐身术的武功吧？',
+                '隐身术是<t color="red">使怪兽们无法发现自己行踪，从而隐藏自己行踪的魔法</t>。首先不动弹，不被发现。在危急的时候就会有很大的帮助。',
+                '为了学习隐身术要领会隐藏自己痕迹的方法，因此要到特殊的训练场累积些经验。',
+                '哦，同时在训练场使用<t color="red">蜡烛</t>或者<t color="red">火把</t>是不可以的，进入训练场的时候都放在地上。如果不这样，我要没收。',
+            },
+            {
+                dialog.link('npc_ask_teach', '拜托给与指教。'),
+                dialog.link(SYS_EXIT, '准备好了，再来。'),
+            })
         end,
 
         -- @mugong_hiding_next1_1, checklevel 20, then next2's checkmagic
         npc_ask_teach = function(uid, value)
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经掌握隐身术，请到此为止回去吧！我很忙。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经掌握隐身术，请到此为止回去吧！我很忙。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_hiding_next3, set [507]. the quest opens there and its own behavior
             -- carries this text and the light check
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>你要在黑暗的<t color="red">训练场里面找到我</t>，注意不要碰到各个地方布置的怪兽。</par>
-                    <par>如果被碰上。。。嘿嘿，绝对可以学习到隐藏形迹的方法。好了，现在就送到训练场。无论如何要小心身体。。。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">知道了</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '你要在黑暗的<t color="red">训练场里面找到我</t>，注意不要碰到各个地方布置的怪兽。',
+                '如果被碰上。。。嘿嘿，绝对可以学习到隐藏形迹的方法。好了，现在就送到训练场。无论如何要小心身体。。。',
+            },
+            dialog.link(SYS_EXIT, '知道了'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,

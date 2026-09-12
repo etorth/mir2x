@@ -295,38 +295,35 @@ local function setupTeacherNag(uid)
     [[
         local questName = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
             [SYS_LABEL] = '困魔咒的事',
             [SYS_ENTER] = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>因此没有认为是一件简单的事情，怪兽们的抵抗力是如此的强大。</par>
-                        <par>虽然如此也不是就这样可以放弃的事情。</par>
-                        <par>困魔咒的房间在<t color="red">沃玛神殿2层里面</t>。</par>
-                        <par>迅速将困魔咒复原。</par>
-                        <par></par>
-                        <par><event id="npc_explain">这件事要怎么做？</event></par>
-                        <par><event id="%s" close="1">好的，知道了。</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '因此没有认为是一件简单的事情，怪兽们的抵抗力是如此的强大。',
+                    '虽然如此也不是就这样可以放弃的事情。',
+                    '困魔咒的房间在<t color="red">沃玛神殿2层里面</t>。',
+                    '迅速将困魔咒复原。',
+                },
+                {
+                    dialog.link('npc_explain', '这件事要怎么做？'),
+                    dialog.link(SYS_EXIT, '好的，知道了。'),
+                })
             end,
 
             -- @mugong_holycircle_explain
             npc_explain = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>如果想学习困魔咒，首先到沃玛神殿找到<t color="red">五种困魔石</t>。</par>
-                        <par>然后从沃玛神殿2层的第1个困魔石房间开始到第5个房间为止，按照顺序处理破坏了困魔石的怪兽们即可。</par>
-                        <par>每通过一个房间需要消耗相应的困魔石，如果中间失败了，必须从头开始找到困魔石。</par>
-                        <par>处理了最后房间怪兽的头儿，请重新找我来。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '如果想学习困魔咒，首先到沃玛神殿找到<t color="red">五种困魔石</t>。',
+                    '然后从沃玛神殿2层的第1个困魔石房间开始到第5个房间为止，按照顺序处理破坏了困魔石的怪兽们即可。',
+                    '每通过一个房间需要消耗相应的困魔石，如果中间失败了，必须从头开始找到困魔石。',
+                    '处理了最后房间怪兽的头儿，请重新找我来。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
             end,
         }
     ]])
@@ -390,6 +387,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -398,14 +396,8 @@ setQuestFSMTable(
                 -- @MapQuest_holycircle_complete_book, and the [726] branch of the main entry
                 -- is what he says afterwards
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>托你的福，那个地方的<t color="red">困魔咒被完好地修复了</t>。你去过后加强了那个地方的警卫，以使困魔咒不再受到损伤。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">结束</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '托你的福，那个地方的<t color="red">困魔咒被完好地修复了</t>。你去过后加强了那个地方的警卫，以使困魔咒不再受到损伤。',
+                    dialog.link('npc_take_book', '结束', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -466,6 +458,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -479,125 +472,94 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [726] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>托你的福，那个地方的<t color="red">困魔咒被完好地修复了</t>。你去过后加强了那个地方的警卫，以使困魔咒不再受到损伤。</par>
-                        <par>现在你也已经掌握了困魔咒吧？你的武功每天突飞猛进地进步，内心也很满足。在不远的将来也许再也没有什么可以教给你了，嘿嘿。。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '托你的福，那个地方的<t color="red">困魔咒被完好地修复了</t>。你去过后加强了那个地方的警卫，以使困魔咒不再受到损伤。',
+                    '现在你也已经掌握了困魔咒吧？你的武功每天突飞猛进地进步，内心也很满足。在不远的将来也许再也没有什么可以教给你了，嘿嘿。。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkjob taoist
             if not server.player.hasJob(uid, '道士') then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>该武功不是其它职业的人们可以掌握的简单武功呀，只有<t color="red">道士</t>才可以掌握。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '该武功不是其它职业的人们可以掌握的简单武功呀，只有<t color="red">道士</t>才可以掌握。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_holycircle_next1, checkmagic 困魔咒
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经掌握困魔咒嘛？如果到了可以修炼更高水平武功的时候，请重新再来。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经掌握困魔咒嘛？如果到了可以修炼更高水平武功的时候，请重新再来。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_holycircle_next2, checklevel 27. below it he explains the magic in almost
             -- the same words and then refuses to go into where it came from
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>困魔咒是<t color="red">在一定的空间实施魔法，使带有邪气的生物被隔离的技术</t>。带有邪气的生物如果进入困魔咒之内，由于自己体内气体流通不顺而陷入迷惑之中。</par>
-                        <par>他们直到受到外部的刺激从魔法中苏醒过来为止，继续在困魔咒中打转转。但是如果有带有正气的人进入，他们将摆脱困魔咒的力量。</par>
-                        <par>不要再问更详细的由来，你不是已经到达可以理解该内容的修炼程度。。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">那么, 以后再来吧！</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '困魔咒是<t color="red">在一定的空间实施魔法，使带有邪气的生物被隔离的技术</t>。带有邪气的生物如果进入困魔咒之内，由于自己体内气体流通不顺而陷入迷惑之中。',
+                    '他们直到受到外部的刺激从魔法中苏醒过来为止，继续在困魔咒中打转转。但是如果有带有正气的人进入，他们将摆脱困魔咒的力量。',
+                    '不要再问更详细的由来，你不是已经到达可以理解该内容的修炼程度。。',
+                },
+                dialog.link(SYS_EXIT, '那么, 以后再来吧！'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>困魔咒是<t color="red">在一定的空间施魔法，使沾有魔气的生物被隔离的魔法</t>。带有邪气的生物如果进入困魔咒之内，会因自身体内气体不顺而陷入迷惑之中。</par>
-                    <par>他们直到受到外部的刺激从魔法中苏醒过来为止，不断地在困魔咒中打转转。但是如果带有正气的人进入，他们将摆脱困魔咒的力量。</par>
-                    <par>你知道<t color="red">困魔咒的由来</t>吗？</par>
-                    <par></par>
-                    <par><event id="npc_origin">不知道，请讲。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '困魔咒是<t color="red">在一定的空间施魔法，使沾有魔气的生物被隔离的魔法</t>。带有邪气的生物如果进入困魔咒之内，会因自身体内气体不顺而陷入迷惑之中。',
+                '他们直到受到外部的刺激从魔法中苏醒过来为止，不断地在困魔咒中打转转。但是如果带有正气的人进入，他们将摆脱困魔咒的力量。',
+                '你知道<t color="red">困魔咒的由来</t>吗？',
+            },
+            dialog.link('npc_origin', '不知道，请讲。'))
         end,
 
         -- @mugong_holycircle_next3
         npc_origin = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>困魔咒原来是先人为了封闭邪气而创造的古代魔法。过去称为困魔咒的技术和现在的形态有些不同。过去困魔咒的媒体不是护身符，而是叫做<t color="red">困魔石</t>带有新鲜气体的石头。如果使用该种石头，比我们现在称为困魔咒的技术可以在更广泛的区域永久性地压制邪气。</par>
-                    <par>现在到处都剩有相同的困魔咒，但是最近这些困魔咒中发生了<t color="red">不一般的事情</t>。</par>
-                    <par></par>
-                    <par><event id="npc_what_happened">什么不一般的事情?</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '困魔咒原来是先人为了封闭邪气而创造的古代魔法。' ..
+                '过去称为困魔咒的技术和现在的形态有些不同。' ..
+                '过去困魔咒的媒体不是护身符，而是叫做<t color="red">困魔石</t>带有新鲜气体的石头。' ..
+                '如果使用该种石头，比我们现在称为困魔咒的技术可以在更广泛的区域永久性地压制邪气。',
+                '现在到处都剩有相同的困魔咒，但是最近这些困魔咒中发生了<t color="red">不一般的事情</t>。',
+            },
+            dialog.link('npc_what_happened', '什么不一般的事情?'))
         end,
 
         -- @mugong_holycircle_next4
         npc_what_happened = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>据某人说<t color="red">困魔咒中有几处被破坏了</t>。现在只能推测是谁故意搞的，但是究竟是谁以什么理由搞的还不是很清楚。现在道馆的很多道士和修炼生正在对此事<t color="red">进行调查或者恢复困魔咒</t>。</par>
-                    <par>但是。。。做此事的人手真的很不够，像你一样的有实力者可以成为很大的<t color="red">帮助</t>，你要帮助我们的事情吗？</par>
-                    <par></par>
-                    <par><event id="npc_accept">好的，我将试试。</event></par>
-                    <par><event id="npc_not_yet">我还没有担当此事的能力。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '据某人说<t color="red">困魔咒中有几处被破坏了</t>。现在只能推测是谁故意搞的，但是究竟是谁以什么理由搞的还不是很清楚。现在道馆的很多道士和修炼生正在对此事<t color="red">进行调查或者恢复困魔咒</t>。',
+                '但是。。。做此事的人手真的很不够，像你一样的有实力者可以成为很大的<t color="red">帮助</t>，你要帮助我们的事情吗？',
+            },
+            {
+                dialog.link('npc_accept', '好的，我将试试。'),
+                dialog.link('npc_not_yet', '我还没有担当此事的能力。'),
+            })
         end,
 
         -- @mugong_holycircle_next6
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>现在还有些不相信自己能力的样子。那么做些准备，再来！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '现在还有些不相信自己能力的样子。那么做些准备，再来！',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_holycircle_next5, SET [522]
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>哈哈哈，我看人还是很有眼力的。</par>
-                    <par>你将要担任恢复的困魔咒在<t color="red">沃玛神殿2层的里侧</t>。首先要找到<t color="red">将要恢复的5个困魔祭坛所用的困魔石</t>。从第一困魔石开始到最后一个一共5个困魔石，分散在各处的火焰怪兽有可能握有困魔石。</par>
-                    <par>如果5种困魔石都找到了，<t color="red">从第1个困魔咒房间开始按照顺序使用困魔石通过每个房间</t>即可。困魔石在进入需要自己房间的瞬间受到气的感应，将自动修复祭坛。你只要将那个地方<t color="red">破坏祭坛的怪兽都处理掉</t>即可。</par>
-                    <par>有一个<t color="red">注意事项</t>，在新鲜的困魔咒房间里<t color="red">不可以召唤自己的白骨</t>。如果召唤，在进入下一个困魔咒房间之前一定要解除召唤。</par>
-                    <par>那么请小心身体，快点回来！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '哈哈哈，我看人还是很有眼力的。',
+                '你将要担任恢复的困魔咒在<t color="red">沃玛神殿2层的里侧</t>。首先要找到<t color="red">将要恢复的5个困魔祭坛所用的困魔石</t>。从第一困魔石开始到最后一个一共5个困魔石，分散在各处的火焰怪兽有可能握有困魔石。',
+                '如果5种困魔石都找到了，<t color="red">从第1个困魔咒房间开始按照顺序使用困魔石通过每个房间</t>即可。困魔石在进入需要自己房间的瞬间受到气的感应，将自动修复祭坛。你只要将那个地方<t color="red">破坏祭坛的怪兽都处理掉</t>即可。',
+                '有一个<t color="red">注意事项</t>，在新鲜的困魔咒房间里<t color="red">不可以召唤自己的白骨</t>。如果召唤，在进入下一个困魔咒房间之前一定要解除召唤。',
+                '那么请小心身体，快点回来！',
+            },
+            dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,

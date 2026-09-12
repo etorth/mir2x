@@ -29,17 +29,12 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName, bookName, mijiName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     -- checkitem 火球术 1, the plain book he copies from. he asks for it in two places
     local function postNeedBook(uid)
-        uidPostXML(uid, questPath,
-        [=[
-            <layout>
-                <par>有了<t color="red">火球术魔法书</t>我就可以教你魔法。</par>
-                <par></par>
-                <par><event id="%s" close="1">结束</event></par>
-            </layout>
-        ]=], SYS_EXIT)
+        dialog.post(uid, questPath, '有了<t color="red">火球术魔法书</t>我就可以教你魔法。',
+        dialog.link(SYS_EXIT, '结束'))
     end
 
     setQuestHandler(questName,
@@ -59,40 +54,22 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [745] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你还没有收到火球术秘籍吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你还没有收到火球术秘籍吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 火球术
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>我看你已经掌握了<t color="red">火球术</t>魔法。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '我看你已经掌握了<t color="red">火球术</t>魔法。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checklevel 7
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>如果想学习火球术魔法，武功等级最低要达到<t color="red">%d</t>级。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], minQuestLevel, SYS_EXIT)
+                dialog.post(uid, questPath, string.format('如果想学习火球术魔法，武功等级最低要达到<t color="red">%d</t>级。', minQuestLevel),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
@@ -101,28 +78,18 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想要学习火球术的样子。但是像你一样的初学者，在学习武功的过程中将遇到各种困难，我将给你进行详细地说明。现在你已经正式进入了成为魔法师的大门，恭喜你！</par>
-                    <par></par>
-                    <par>那么在给你秘籍之前，想听对武功的简单说明吗？</par>
-                    <par><event id="npc_lore">拜托您了！</event></par>
-                    <par><event id="%s" close="1">没有必要了！</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '想要学习火球术的样子。但是像你一样的初学者，在学习武功的过程中将遇到各种困难，我将给你进行详细地说明。现在你已经正式进入了成为魔法师的大门，恭喜你！',
+            {
+                '那么在给你秘籍之前，想听对武功的简单说明吗？',
+                dialog.link('npc_lore', '拜托您了！'),
+                dialog.link(SYS_EXIT, '没有必要了！'),
+            })
         end,
 
         -- @mugong_fireball_next3
         npc_lore = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>火球术是魔法师的最基本魔法，<t color="red">制作火团</t>攻击远处的敌人。</par>
-                    <par></par>
-                    <par><event id="npc_take_book">很基础的魔法嘛</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '火球术是魔法师的最基本魔法，<t color="red">制作火团</t>攻击远处的敌人。',
+            dialog.link('npc_take_book', '很基础的魔法嘛'))
         end,
 
         -- @mugong_fireball_next4, take the plain book and hand back the 秘籍
@@ -132,14 +99,8 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>现在你已经有了火球术秘籍，以前不理解的地方现在都可以理解了。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '现在你已经有了火球术秘籍，以前不理解的地方现在都可以理解了。',
+            dialog.link(SYS_EXIT, '结束'))
 
             server.player.removeItem(uid, bookName, 1)
             server.player.addItem(uid, mijiName, 1)

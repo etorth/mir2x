@@ -55,20 +55,18 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '成致的事',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>还没有拜见清明子吗？</par>
-                            <par>去了以后问一下叫<t color="red">小贩</t>男人的情况。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '还没有拜见清明子吗？',
+                        '去了以后问一下叫<t color="red">小贩</t>男人的情况。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
@@ -81,6 +79,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             -- @mugong_masshiding3, the description of the magic. he also gives it unprompted to
             -- anyone who has not heard the rumour, which is the ELSESAY of @mugong_masshiding0
@@ -90,120 +89,85 @@ setQuestFSMTable(
             {
                 [SYS_LABEL] = '问成致的事',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>呀，是你哟。今天有什么事情找我吗？</par>
-                            <par></par>
-                            <par><event id="npc_about_peddler">是的，今天是因为叫小贩人的事情。。。。</event></par>
-                            <par><event id="npc_just_greet">也就是为了问安和咨询而来的。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '呀，是你哟。今天有什么事情找我吗？',
+                    {
+                        dialog.link('npc_about_peddler', '是的，今天是因为叫小贩人的事情。。。。'),
+                        dialog.link('npc_just_greet', '也就是为了问安和咨询而来的。'),
+                    })
                 end,
 
                 -- @mugong_masshiding1_1
                 npc_just_greet = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>好的，我没有其它的事情。你也过得不错吧！</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '好的，我没有其它的事情。你也过得不错吧！',
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_masshiding1_2
                 npc_about_peddler = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>呀，知道那个故事吧。真是很焦急的事情。</par>
-                            <par>叫成致的人不是被判朋友的人，不知道是怎么回事儿。一定有不得已的缘由吧！</par>
-                            <par>实际上我也认为此事有些诧异，你听说了有关成致的其它事情吗?</par>
-                            <par></par>
-                            <par><event id="npc_heard_book">我听说他找到了集体隐身术的武功书。</event></par>
-                            <par><event id="npc_heard_nothing">没有听说其它的事情。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '呀，知道那个故事吧。真是很焦急的事情。',
+                        '叫成致的人不是被判朋友的人，不知道是怎么回事儿。一定有不得已的缘由吧！',
+                        '实际上我也认为此事有些诧异，你听说了有关成致的其它事情吗?',
+                    },
+                    {
+                        dialog.link('npc_heard_book', '我听说他找到了集体隐身术的武功书。'),
+                        dialog.link('npc_heard_nothing', '没有听说其它的事情。'),
+                    })
                 end,
 
                 -- @mugong_masshiding2
                 npc_heard_book = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>什么叫集体隐身术。。你了解集体隐身术吗？</par>
-                            <par></par>
-                            <par><event id="npc_explain_magic">不了解， 请对集体隐身术进行一下说明。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '什么叫集体隐身术。。你了解集体隐身术吗？',
+                    dialog.link('npc_explain_magic', '不了解， 请对集体隐身术进行一下说明。'))
                 end,
 
                 -- @mugong_masshiding3
                 npc_explain_magic = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>你知道隐身术是隐藏行踪的魔法吧？</par>
-                            <par>%s</par>
-                            <par>如果掌握该魔法，你就可以给其他人更多的帮助。要学习集体隐身术吗？</par>
-                            <par></par>
-                            <par><event id="npc_want_learn">是的，要学习。</event></par>
-                            <par><event id="npc_not_yet">不，下次机会吧...</event></par>
-                        </layout>
-                    ]=], blurb)
+                    dialog.post(uid, questPath,
+                    {
+                        '你知道隐身术是隐藏行踪的魔法吧？',
+                        blurb,
+                        '如果掌握该魔法，你就可以给其他人更多的帮助。要学习集体隐身术吗？',
+                    },
+                    {
+                        dialog.link('npc_want_learn', '是的，要学习。'),
+                        dialog.link('npc_not_yet', '不，下次机会吧...'),
+                    })
                 end,
 
                 -- @mugong_masshiding4, the route for someone who has not heard about the book
                 npc_heard_nothing = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>这样的。那么你可以对叫成致的人为什么行踪不明进行调查吗？</par>
-                            <par></par>
-                            <par><event id="npc_accept">好的，我要试一试。</event></par>
-                            <par><event id="npc_not_yet">现在还有其它的事情。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '这样的。那么你可以对叫成致的人为什么行踪不明进行调查吗？',
+                    {
+                        dialog.link('npc_accept', '好的，我要试一试。'),
+                        dialog.link('npc_not_yet', '现在还有其它的事情。'),
+                    })
                 end,
 
                 -- @mugong_masshiding5
                 npc_want_learn = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>那么，在学习集体隐身术之前先测试你是否有学习集体隐身术的资格。。</par>
-                            <par></par>
-                            <par><event id="npc_accept">好的，我将试一试。</event></par>
-                            <par><event id="npc_not_yet">我现在还没有做好心理准备。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '那么，在学习集体隐身术之前先测试你是否有学习集体隐身术的资格。。',
+                    {
+                        dialog.link('npc_accept', '好的，我将试一试。'),
+                        dialog.link('npc_not_yet', '我现在还没有做好心理准备。'),
+                    })
                 end,
 
                 -- @mugong_masshiding6_1
                 npc_not_yet = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>知道了。下次准备好了，再来！</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '知道了。下次准备好了，再来！',
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_masshiding6_2, set [513]
                 npc_accept = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>真不愧是特殊的年轻人，成致失踪的地点是<t color="red">沃玛神殿的2层</t>。</par>
-                            <par>希望到那个地方找到他为什么失踪的<t color="red">头绪</t>。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">好的，知道了。</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '真不愧是特殊的年轻人，成致失踪的地点是<t color="red">沃玛神殿的2层</t>。',
+                        '希望到那个地方找到他为什么失踪的<t color="red">头绪</t>。',
+                    },
+                    dialog.link(SYS_EXIT, '好的，知道了。'))
 
                     server.quest.setState(questUID, {uid = uid, state = 'quest_investigate'})
                 end,
@@ -222,6 +186,7 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -229,30 +194,26 @@ setQuestFSMTable(
 
                 -- the [513] and not [514] branch of @mugong_masshiding
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>很遗憾没有找到任何东西哟。还有想再调查的想法吗？</par>
-                            <par>如果有想法，快点收集成致的<t color="red">信息</t>。</par>
-                            <par></par>
-                            <par><event id="npc_explain">这件事要怎么做？</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '很遗憾没有找到任何东西哟。还有想再调查的想法吗？',
+                        '如果有想法，快点收集成致的<t color="red">信息</t>。',
+                    },
+                    {
+                        dialog.link('npc_explain', '这件事要怎么做？'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 -- @mugong_masshiding_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>如果想学习集体隐身术，首先从商人那儿听取<t color="red">对某个男子的传闻</t>，然后来找我。</par>
-                            <par>我将拜托你到沃玛神殿2层找到那个人的<t color="red">痕迹</t>，发现这个东西即可。</par>
-                            <par>称为痕迹的东西有可能就是他的<t color="red">日志</t>。他的日志被那个地方的怪兽拿着的可能性很高。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '如果想学习集体隐身术，首先从商人那儿听取<t color="red">对某个男子的传闻</t>，然后来找我。',
+                        '我将拜托你到沃玛神殿2层找到那个人的<t color="red">痕迹</t>，发现这个东西即可。',
+                        '称为痕迹的东西有可能就是他的<t color="red">日志</t>。他的日志被那个地方的怪兽拿着的可能性很高。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
@@ -269,6 +230,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -276,62 +238,50 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- the ELSESAY of @mugong_masshiding_complete
                     if not server.player.hasItem(uid, '成致日志', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>这个人很辛苦找到的东西丢失在哪儿了？</par>
-                                <par>快点拿去吧！</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath,
+                        {
+                            '这个人很辛苦找到的东西丢失在哪儿了？',
+                            '快点拿去吧！',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
                     -- @mugong_masshiding_complete1, take 成致日志 1
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>哦，终于找到了<t color="red">日志</t>。用这个东西就可以发现道士失踪的原因哦。</par>
-                            <par>(拿走日志后，看写的文章...)</par>
-                            <par>嗯...</par>
-                            <par>这个。因此他虽然将集体隐身术的武功书握在手里，却没有完全掌握的样子。</par>
-                            <par></par>
-                            <par><event id="npc_read_log">是集体隐身术的要诀？</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '哦，终于找到了<t color="red">日志</t>。用这个东西就可以发现道士失踪的原因哦。',
+                        '(拿走日志后，看写的文章...)',
+                        '嗯...',
+                        '这个。因此他虽然将集体隐身术的武功书握在手里，却没有完全掌握的样子。',
+                    },
+                    dialog.link('npc_read_log', '是集体隐身术的要诀？'))
 
                     server.player.removeItem(uid, '成致日志', 1)
                 end,
 
                 -- @mugong_masshiding_complete2
                 npc_read_log = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>是这样的。日志中包含有<t color="red">集体隐身术的要诀</t>。</par>
-                            <par>但是凭借这种错误分析的要诀如何可以学习到正宗的魔法。</par>
-                            <par>看来成致实施了集体隐身术，却失败了。在只有隐藏自身的状态下，走火入魔而失去了生命哟。</par>
-                            <par>珍贵的生命就这样消失了。。。</par>
-                            <par>魔法就是这样可怕的哟。自己没有做好也有可能失去生命，那你以后还想继续学习魔法吗？</par>
-                            <par></par>
-                            <par><event id="npc_take_book">是的，我以后将继续学习魔法。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '是这样的。日志中包含有<t color="red">集体隐身术的要诀</t>。',
+                        '但是凭借这种错误分析的要诀如何可以学习到正宗的魔法。',
+                        '看来成致实施了集体隐身术，却失败了。在只有隐藏自身的状态下，走火入魔而失去了生命哟。',
+                        '珍贵的生命就这样消失了。。。',
+                        '魔法就是这样可怕的哟。自己没有做好也有可能失去生命，那你以后还想继续学习魔法吗？',
+                    },
+                    dialog.link('npc_take_book', '是的，我以后将继续学习魔法。'))
                 end,
 
                 -- @mugong_masshiding_complete3
                 npc_take_book = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>知道了。你的决心非常大嘛。</par>
-                            <par>你已经在其它地方得到了武功秘籍，我也没有再给你的必要了。我给你一些金币和东西，用在需要的地方。</par>
-                            <par>我将向小贩解释。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">谢谢！</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '知道了。你的决心非常大嘛。',
+                        '你已经在其它地方得到了武功秘籍，我也没有再给你的必要了。我给你一些金币和东西，用在需要的地方。',
+                        '我将向小贩解释。',
+                    },
+                    dialog.link(SYS_EXIT, '谢谢！'))
 
                     server.player.addItem(uid, '集体隐身术（秘籍）', 1)
                     server.player.addItem(uid, '暗黑竹笛', 1)
@@ -365,6 +315,7 @@ uidRemoteCall(getNPCharUID(grocerMap, grocerNPC), getUID(), getQuestName(), minQ
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -390,81 +341,58 @@ uidRemoteCall(getNPCharUID(grocerMap, grocerNPC), getUID(), getQuestName(), minQ
 
         -- @mugong_masshiding_pre3
         [SYS_ENTER] = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>你看起来是非常有实力的道士哦。你知道有关<t color="red">小贩</t>男子的故事吗？</par>
-                    <par></par>
-                    <par><event id="npc_never_heard">没有听说过的名字...</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '你看起来是非常有实力的道士哦。你知道有关<t color="red">小贩</t>男子的故事吗？',
+            dialog.link('npc_never_heard', '没有听说过的名字...'))
         end,
 
         -- @mugong_masshiding_pre4
         npc_never_heard = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>哦，不知道也是理所当然的。这个男人是不久之前逃到比奇省的伪道士，到处讲道士们的坏话。</par>
-                    <par>但是听了他的故事，他也很为难哟。</par>
-                    <par></par>
-                    <par><event id="npc_tell_more">可以讲一讲他有什么事情吗？</event></par>
-                    <par><event id="npc_leave_early">我很忙，就到此为止要走了。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '哦，不知道也是理所当然的。这个男人是不久之前逃到比奇省的伪道士，到处讲道士们的坏话。',
+                '但是听了他的故事，他也很为难哟。',
+            },
+            {
+                dialog.link('npc_tell_more', '可以讲一讲他有什么事情吗？'),
+                dialog.link('npc_leave_early', '我很忙，就到此为止要走了。'),
+            })
         end,
 
         -- @mugong_masshiding_pre5_1
         npc_leave_early = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>好的，那么请走好。下次不要忘了多买些东西。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '好的，那么请走好。下次不要忘了多买些东西。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_masshiding_pre5_2
         npc_tell_more = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>他是边境城市出身的战士，和叫<t color="red">成致</t>的道士关系非常好。某个时候他们为了和怪兽战斗而出去了，但是一次聚集了很多的怪兽，他们处于危险的境地。</par>
-                    <par>他们遇到了生死危机，那个道士偷偷隐藏自己的行踪不见了。那以后小贩总是批评道士们表里不一。</par>
-                    <par>我所知道的成致决不是那样虚伪的人呀。。。</par>
-                    <par>好像有什么误会。</par>
-                    <par></par>
-                    <par><event id="npc_want_more">嗯，很有趣儿，想多知道些儿。</event></par>
-                    <par><event id="npc_not_my_problem">与我没有关系的事情哟。到此为止，我要走了。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '他是边境城市出身的战士，和叫<t color="red">成致</t>的道士关系非常好。某个时候他们为了和怪兽战斗而出去了，但是一次聚集了很多的怪兽，他们处于危险的境地。',
+                '他们遇到了生死危机，那个道士偷偷隐藏自己的行踪不见了。那以后小贩总是批评道士们表里不一。',
+                '我所知道的成致决不是那样虚伪的人呀。。。',
+                '好像有什么误会。',
+            },
+            {
+                dialog.link('npc_want_more', '嗯，很有趣儿，想多知道些儿。'),
+                dialog.link('npc_not_my_problem', '与我没有关系的事情哟。到此为止，我要走了。'),
+            })
         end,
 
         -- @mugong_masshiding_pre6_1
         npc_not_my_problem = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>我讲话看起来很乏味，请走好！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '我讲话看起来很乏味，请走好！',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_masshiding_pre6_2, set [512]
         npc_want_more = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>对不起，更详细的内容我也不知道。</par>
-                    <par>如果真的想知道，拜见<t color="red">清明子(道馆本馆,11:10)</t>如何？?</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '对不起，更详细的内容我也不知道。',
+                '如果真的想知道，拜见<t color="red">清明子(道馆本馆,11:10)</t>如何？?',
+            },
+            dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,
@@ -477,6 +405,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -490,54 +419,33 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [723] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到书吗？那为什么还想索要？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到书吗？那为什么还想索要？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 集体隐身术
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>那么困难学到的集体隐身术正在灵活地使用吧？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '那么困难学到的集体隐身术正在灵活地使用吧？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checklevel 23
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>集体隐身术。。如果对这样的武功感兴趣，好像需要再修炼些。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '集体隐身术。。如果对这样的武功感兴趣，好像需要再修炼些。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- the ELSESAY of @mugong_masshiding0: without [512] he will describe the magic but
             -- has nothing to send you after, the 杂货商 has to bring 成致 up first
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>集体隐身术。。。</par>
-                    <par>集体隐身术和隐身术相同的是可以隐藏自己的动静，不同的是<t color="red">集体隐身术可以隐藏包括你同事动静的魔法</t>。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '集体隐身术。。。',
+                '集体隐身术和隐身术相同的是可以隐藏自己的动静，不同的是<t color="red">集体隐身术可以隐藏包括你同事动静的魔法</t>。',
+            },
+            dialog.link(SYS_EXIT, '结束'))
         end,
     })
 ]])

@@ -31,6 +31,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName, bookName, mijiName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -49,103 +50,57 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [700] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到<t color="red">基本剑术秘籍</t>吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到<t color="red">基本剑术秘籍</t>吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 基本剑术
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>我看你已经掌握了<t color="red">基本剑术</t>。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '我看你已经掌握了<t color="red">基本剑术</t>。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checklevel 7
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>如果想学基本剑术，武功级别最少要达到<t color="red">%d</t>以上。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], minQuestLevel, SYS_EXIT)
+                dialog.post(uid, questPath, string.format('如果想学基本剑术，武功级别最少要达到<t color="red">%d</t>以上。', minQuestLevel),
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkitem 基本剑术 1, the plain book he copies from
             if not server.player.hasItem(uid, bookName, 1) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>有了<t color="red">基本剑术魔法书</t>，我就可以教你魔法。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '有了<t color="red">基本剑术魔法书</t>，我就可以教你魔法。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想学习基本剑术的样子。但是像你一样的初学者修炼武功还是有各种各样的困难，我将给你进行详细的说明。你现在也正式进入了成为战士之路。祝贺你！</par>
-                    <par></par>
-                    <par>那么在对秘籍进行解说之前，要听对武功的说明吗？</par>
-                    <par><event id="npc_lore">拜托了！</event></par>
-                    <par><event id="%s" close="1">不需要了！</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '想学习基本剑术的样子。但是像你一样的初学者修炼武功还是有各种各样的困难，我将给你进行详细的说明。你现在也正式进入了成为战士之路。祝贺你！',
+            {
+                '那么在对秘籍进行解说之前，要听对武功的说明吗？',
+                dialog.link('npc_lore', '拜托了！'),
+                dialog.link(SYS_EXIT, '不需要了！'),
+            })
         end,
 
         -- @mugong_wesu_next3
         npc_lore = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>基本剑术是凭借通过反复的训练获得灵敏的感觉，找到敌人弱点进行攻击的方法，是战士的基本武功。</par>
-                    <par></par>
-                    <par><event id="npc_take_book">很基础的魔法嘛。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '基本剑术是凭借通过反复的训练获得灵敏的感觉，找到敌人弱点进行攻击的方法，是战士的基本武功。',
+            dialog.link('npc_take_book', '很基础的魔法嘛。'))
         end,
 
         -- @mugong_wesu_next4, take the plain book and hand back the 秘籍
         npc_take_book = function(uid, value)
             -- he checks again, you could have dropped it during the talk
             if not server.player.hasItem(uid, bookName, 1) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>有了<t color="red">基本剑术魔法书</t>，我就可以教你魔法。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '有了<t color="red">基本剑术魔法书</t>，我就可以教你魔法。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>你现在已经有基本剑术秘籍了，以前不理解的部分也可以理解了。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '你现在已经有基本剑术秘籍了，以前不理解的部分也可以理解了。',
+            dialog.link(SYS_EXIT, '结束'))
 
             server.player.removeItem(uid, bookName, 1)
             server.player.addItem(uid, mijiName, 1)

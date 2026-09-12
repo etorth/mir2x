@@ -48,47 +48,38 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '爆裂火焰的蛇胆',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>快点到毒蛇山村寻找七点白蛇的胆汁来。</par>
-                            <par></par>
-                            <par><event id="npc_explain">修炼爆裂火焰要做什么？</event></par>
-                            <par><event id="npc_where">毒蛇山村在哪里？</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '快点到毒蛇山村寻找七点白蛇的胆汁来。',
+                    {
+                        dialog.link('npc_explain', '修炼爆裂火焰要做什么？'),
+                        dialog.link('npc_where', '毒蛇山村在哪里？'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 -- @mugong_fireware_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>如果想学习爆裂火焰，请到毒蛇山村找到<t color="red">七点白蛇胆汁</t>即可。</par>
-                            <par>我将利用你找来的蛇胆为材料制成<t color="red">蛇胆汁</t>，喝了这个药后就可以学习该武功了。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '如果想学习爆裂火焰，请到毒蛇山村找到<t color="red">七点白蛇胆汁</t>即可。',
+                        '我将利用你找来的蛇胆为材料制成<t color="red">蛇胆汁</t>，喝了这个药后就可以学习该武功了。',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_fireware_next7, still worth asking twice
                 npc_where = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>过了银杏山谷、比奇县，毒蛇山村就到了。</par>
-                            <par>坐标？ 已经达到像你一样的等级了，还不知道吗？</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath,
+                    {
+                        '过了银杏山谷、比奇县，毒蛇山村就到了。',
+                        '坐标？ 已经达到像你一样的等级了，还不知道吗？',
+                    },
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
@@ -105,6 +96,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -112,25 +104,13 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- the ELSESAY of @mugong_fireware_complete
                     if not server.player.hasItem(uid, '七点白蛇胆', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>时间很重要。不好慢腾腾的，快点找来<t color="red">七点白蛇的胆汁</t>吧。。。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '时间很重要。不好慢腾腾的，快点找来<t color="red">七点白蛇的胆汁</t>吧。。。',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>嗯,很幸运地找来了。好的，现在该我制药了。请等一下！</par>
-                            <par></par>
-                            <par><event id="npc_brew">下一步</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '嗯,很幸运地找来了。好的，现在该我制药了。请等一下！',
+                    dialog.link('npc_brew', '下一步'))
                 end,
 
                 -- @mugong_fireware_complete_next, SET [528]
@@ -139,14 +119,8 @@ setQuestFSMTable(
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>喂，这里有药水。这个药水是用你拿来的<t color="red">胆汁制成的</t>。你吃药的过程中，我将准备武功秘籍。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">下一步</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '喂，这里有药水。这个药水是用你拿来的<t color="red">胆汁制成的</t>。你吃药的过程中，我将准备武功秘籍。',
+                    dialog.link(SYS_EXIT, '下一步'))
 
                     server.player.removeItem(uid, '七点白蛇胆', 1)
                     server.player.addItem(uid, '胆汁', 1)
@@ -168,6 +142,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -175,27 +150,18 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- checkitem 胆汁 1
                     if server.player.hasItem(uid, '胆汁', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你现在还没有吃<t color="red">药</t>，如果这样我也不能把书给你。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '你现在还没有吃<t color="red">药</t>，如果这样我也不能把书给你。',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
                     -- @mugong_fireware_complete_next3
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>喝完这个药后，掌握了可以解毒的武功书就不会出现走火入魔的事情了。</par>
-                            <par>希望你可以将武功用在有用的事情上。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">谢谢！</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '喝完这个药后，掌握了可以解毒的武功书就不会出现走火入魔的事情了。',
+                        '希望你可以将武功用在有用的事情上。',
+                    },
+                    dialog.link('npc_take_book', '谢谢！', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -231,17 +197,12 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     -- the ELSESAY he gives a non-wizard, the same line from both the level branches
     local function postWrongJob(uid)
-        uidPostXML(uid, questPath,
-        [=[
-            <layout>
-                <par>对不起，你还不是魔法师吗？你不能学习该武功，请回吧！</par>
-                <par></par>
-                <par><event id="%s" close="1">结束</event></par>
-            </layout>
-        ]=], SYS_EXIT)
+        dialog.post(uid, questPath, '对不起，你还不是魔法师吗？你不能学习该武功，请回吧！',
+        dialog.link(SYS_EXIT, '结束'))
     end
 
     setQuestHandler(questName,
@@ -256,39 +217,26 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [764] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到书了吗？那么你为什么还要索要？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到书了吗？那么你为什么还要索要？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>你有什么事吗？说说看。。</par>
-                    <par>嗯，想学称为“爆裂火焰”的武功？</par>
-                    <par></par>
-                    <par><event id="npc_ask_teach">下一步</event></par>
-                    <par><event id="npc_just_greet">没什么事。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '你有什么事吗？说说看。。',
+                '嗯，想学称为“爆裂火焰”的武功？',
+            },
+            {
+                dialog.link('npc_ask_teach', '下一步'),
+                dialog.link('npc_just_greet', '没什么事。'),
+            })
         end,
 
         -- the ELSESAY of @mugong_fireware, what he says if you are not here for the武功
         npc_just_greet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>如果需要帮忙，请随时来找我！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '如果需要帮忙，请随时来找我！',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_fireware_next, level first and then job, and the low-level branch checks the
@@ -301,168 +249,109 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- @mugong_fireware_next_lowlevel
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>嗯。。你现在学习该武功还是有些早。提高武功等级后再来吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '嗯。。你现在学习该武功还是有些早。提高武功等级后再来吧！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_fireware_next1, checkmagic 爆裂火焰
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经修炼了该武功吗..请找寻其它的武功吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经修炼了该武功吗..请找寻其它的武功吧！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>作为一名魔法师，你<t color="red">上一个台阶</t>的时机终于来了。</par>
-                    <par></par>
-                    <par><event id="npc_offer_lore">下一步</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '作为一名魔法师，你<t color="red">上一个台阶</t>的时机终于来了。',
+            dialog.link('npc_offer_lore', '下一步'))
         end,
 
         -- @mugong_fireware_next2
         npc_offer_lore = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想听对该武功的说明吗？</par>
-                    <par></par>
-                    <par><event id="npc_lore">是的，想听。</event></par>
-                    <par><event id="npc_no_lore">不需要。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '想听对该武功的说明吗？',
+            {
+                dialog.link('npc_lore', '是的，想听。'),
+                dialog.link('npc_no_lore', '不需要。'),
+            })
         end,
 
         -- @mugong_fireware_next3_1
         npc_lore = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>魔法师在1对1的斗争中是最强的，但是遇到多数敌人的包围马上就变成了守势。即使不遭到包围，体力和气力很快地消耗，因此不能进行长期战。为了弥补这种魔法师的缺点而产生的武功正是<t color="red">'爆裂火焰'</t>。</par>
-                    <par>“爆裂火焰“是在<t color="red">一定范围之内可以产生火焰大爆炸</t>的技术。这周围所在的敌人将受到很大的破坏。虽然能源的消耗大，如果熟练的话反而可以节省能源。</par>
-                    <par>对于分散开的敌人没有什么作用。虽然有在使用该技术之前要将<t color="red">敌人引诱到一个地方的缺点</t>，<t color="red">对移动快捷的敌人进行攻击</t>还是很有效。效果显著，是任何武功都比不上的。</par>
-                    <par></par>
-                    <par><event id="npc_ask_learn">请教我该武功吧！</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '魔法师在1对1的斗争中是最强的，但是遇到多数敌人的包围马上就变成了守势。即使不遭到包围，体力和气力很快地消耗，因此不能进行长期战。为了弥补这种魔法师的缺点而产生的武功正是<t color="red">\'爆裂火焰\'</t>。',
+                '“爆裂火焰“是在<t color="red">一定范围之内可以产生火焰大爆炸</t>的技术。这周围所在的敌人将受到很大的破坏。虽然能源的消耗大，如果熟练的话反而可以节省能源。',
+                '对于分散开的敌人没有什么作用。虽然有在使用该技术之前要将<t color="red">敌人引诱到一个地方的缺点</t>，<t color="red">对移动快捷的敌人进行攻击</t>还是很有效。效果显著，是任何武功都比不上的。',
+            },
+            dialog.link('npc_ask_learn', '请教我该武功吧！'))
         end,
 
         -- @mugong_fireware_next3_2
         npc_no_lore = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>那样？你对我的希望是什么？</par>
-                    <par></par>
-                    <par><event id="npc_ask_learn">请教我该武功吧！</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '那样？你对我的希望是什么？',
+            dialog.link('npc_ask_learn', '请教我该武功吧！'))
         end,
 
         -- @mugong_fireware_next4, the warning you can back out of
         npc_ask_learn = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>嗯，虽然不可以，也不得不这样了！</par>
-                    <par>我看你练习该武功<t color="red">内力</t>还是有些不足，练习武功之前，内力不能抑制火气的话，将走火入魔。失去武功固然不好，有时候有可能丧失生命。那还要练习吗？</par>
-                    <par></par>
-                    <par><event id="npc_resolved">即使有失去生命的遗憾，也要练习。</event></par>
-                    <par><event id="npc_not_yet">现在好象有些勉强。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '嗯，虽然不可以，也不得不这样了！',
+                '我看你练习该武功<t color="red">内力</t>还是有些不足，练习武功之前，内力不能抑制火气的话，将走火入魔。失去武功固然不好，有时候有可能丧失生命。那还要练习吗？',
+            },
+            {
+                dialog.link('npc_resolved', '即使有失去生命的遗憾，也要练习。'),
+                dialog.link('npc_not_yet', '现在好象有些勉强。'),
+            })
         end,
 
         -- @mugong_fireware_next5_2
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>没有办法。如果认为很勉强，不做也是其中的一个方法。。。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '没有办法。如果认为很勉强，不做也是其中的一个方法。。。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_fireware_next5_1
         npc_resolved = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>已经下了这么大的决心，我教你一种防御方法。</par>
-                    <par></par>
-                    <par><event id="npc_send_for_gall">下一步</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '已经下了这么大的决心，我教你一种防御方法。',
+            dialog.link('npc_send_for_gall', '下一步'))
         end,
 
         -- @mugong_fireware_next6
         npc_send_for_gall = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>你沿着这条路去<t color="red">毒蛇山村</t>，找到七点白蛇，并拿到它的胆汁。用<t color="red">七点白蛇的胆汁</t>制成药，服下此药，内力可以大增，而且可以抑制火气逆行。</par>
-                    <par>而且有重要的注意事项，<t color="red">在抓七点白蛇时千万不可以使用魔法。</t>如果使用了魔法，蛇胆被破坏将破坏药效，一定要直接进攻捕到毒蛇。</par>
-                    <par>你如果找来七点白蛇胆汁，我将给你制作增强内力的<t color="red">仙丹</t>还传授给你武功。</par>
-                    <par>还有疑问吗？</par>
-                    <par></par>
-                    <par><event id="npc_where">毒蛇山村在哪里？</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '你沿着这条路去<t color="red">毒蛇山村</t>，找到七点白蛇，并拿到它的胆汁。用<t color="red">七点白蛇的胆汁</t>制成药，服下此药，内力可以大增，而且可以抑制火气逆行。',
+                '而且有重要的注意事项，<t color="red">在抓七点白蛇时千万不可以使用魔法。</t>如果使用了魔法，蛇胆被破坏将破坏药效，一定要直接进攻捕到毒蛇。',
+                '你如果找来七点白蛇胆汁，我将给你制作增强内力的<t color="red">仙丹</t>还传授给你武功。',
+                '还有疑问吗？',
+            },
+            dialog.link('npc_where', '毒蛇山村在哪里？'))
         end,
 
         -- @mugong_fireware_next7
         npc_where = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>过了银杏山谷、比奇县，毒蛇山村就到了。</par>
-                    <par>坐标？ 已经达到像你一样的等级了，还不知道吗？</par>
-                    <par></par>
-                    <par><event id="npc_why">为什么需要七点白蛇的胆汁？</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '过了银杏山谷、比奇县，毒蛇山村就到了。',
+                '坐标？ 已经达到像你一样的等级了，还不知道吗？',
+            },
+            dialog.link('npc_why', '为什么需要七点白蛇的胆汁？'))
         end,
 
         -- @mugong_fireware_next8
         npc_why = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>爆裂火焰的火力非常强大。在修炼不足的情况下修炼该武功，体内的火魔将逆行，从而伤害内脏器官。我年轻的时候也是抑制不住冲动，仓促修炼该武功，从而受到内伤，到现在为止还受到伤痛的折磨。</par>
-                    <par>用七点白蛇的胆汁制成药，吃了以后可以增强内力，抑制体内的火气逆行。</par>
-                    <par></par>
-                    <par><event id="npc_accept">知道了。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '爆裂火焰的火力非常强大。在修炼不足的情况下修炼该武功，体内的火魔将逆行，从而伤害内脏器官。我年轻的时候也是抑制不住冲动，仓促修炼该武功，从而受到内伤，到现在为止还受到伤痛的折磨。',
+                '用七点白蛇的胆汁制成药，吃了以后可以增强内力，抑制体内的火气逆行。',
+            },
+            dialog.link('npc_accept', '知道了。'))
         end,
 
         -- @mugong_fireware_next9, set [526]
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>那么，快点去找到<t color="red">蛇胆汁</t>吧。这期间我准备其他的药材。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '那么，快点去找到<t color="red">蛇胆汁</t>吧。这期间我准备其他的药材。',
+            dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,

@@ -83,6 +83,7 @@ local function enterTrial(uid)
     [[
         local questUID, questName, total = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
@@ -90,23 +91,13 @@ local function enterTrial(uid)
             [SYS_ENTER] = function(uid, args)
                 -- no argument means every monster on this map, and this map is the copy
                 if uidRemoteCall(getMapUID(), [=[ return getMonsterCount() ]=]) > 0 then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>请将里面所有的骷髅都处理掉。</par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '请将里面所有的骷髅都处理掉。',
+                    dialog.link(SYS_EXIT, '结束'))
                     return
                 end
 
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>里面所有的骷髅都被处置哟。。好的，有能力。。请在外面看。。</par>
-                        <par><event id="npc_leave_trial" close="1">关闭</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath, '里面所有的骷髅都被处置哟。。好的，有能力。。请在外面看。。',
+                dialog.link('npc_leave_trial', '关闭', {close = true}))
             end,
 
             npc_leave_trial = function(uid, args)
@@ -147,6 +138,7 @@ local function teacherBehavior(uid, retry)
     [[
         local questUID, questName, swordPrice, retry = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         local function wearingSword(uid)
             local item = server.player.getWLItem(uid, WLG_WEAPON)
@@ -158,90 +150,65 @@ local function teacherBehavior(uid, retry)
             [SYS_LABEL] = retry and '再次挑战训练场' or '进入训练场',
             [SYS_ENTER] = function(uid, args)
                 if not wearingSword(uid) then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>攻杀铁剑如何？只有带着攻杀铁剑来才可以进入训练场。</par>
-                            <par><event id="npc_lost_sword">呜呜，攻杀铁剑丢了。</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '攻杀铁剑如何？只有带着攻杀铁剑来才可以进入训练场。',
+                    {
+                        dialog.link('npc_lost_sword', '呜呜，攻杀铁剑丢了。'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                     return
                 end
 
                 if retry then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par><event id="npc_retry_trial">拜托你进行指教。</event></par>
-                            <par><event id="npc_not_ready">现在好象有些勉强。</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                    },
+                    {
+                        dialog.link('npc_retry_trial', '拜托你进行指教。'),
+                        dialog.link('npc_not_ready', '现在好象有些勉强。'),
+                    })
                     return
                 end
 
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>用那种像铁块一样的剑进行实战搏杀，内力都将集中在剑尖儿。希望你可以活着回来，再见面！哈哈哈</par>
-                        <par>规定时间是<t color="red">3分钟</t>。。希望你在规定的时间之内可以成功。</par>
-                        <par><event id="npc_go_trial">下一步</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '用那种像铁块一样的剑进行实战搏杀，内力都将集中在剑尖儿。希望你可以活着回来，再见面！哈哈哈',
+                    '规定时间是<t color="red">3分钟</t>。。希望你在规定的时间之内可以成功。',
+                },
+                dialog.link('npc_go_trial', '下一步'))
             end,
 
             npc_not_ready = function(uid, args)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>警惕轻率虽然是你这个年龄段的人具备困难的美德，但缺乏果断性也不好。不管怎样，如果准备充分了，请随时来接受训练。</par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '警惕轻率虽然是你这个年龄段的人具备困难的美德，但缺乏果断性也不好。不管怎样，如果准备充分了，请随时来接受训练。',
+                dialog.link(SYS_EXIT, '结束'))
             end,
 
             npc_lost_sword = function(uid, args)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>什么攻杀铁剑丢了？因此不能学习剑术了，是吧。</par>
-                        <par>如果这样，请使用我的攻杀铁剑吧。。但是不能就这样给你了。</par>
-                        <par>一把剑<t color="red">%d</t>两。。还买吗？</par>
-                        <par><event id="npc_buy_sword">即使贵也要买。</event></par>
-                        <par><event id="npc_no_money">钱不够，不能买。</event></par>
-                    </layout>
-                ]=], swordPrice)
+                dialog.post(uid, questPath,
+                {
+                    '什么攻杀铁剑丢了？因此不能学习剑术了，是吧。',
+                    '如果这样，请使用我的攻杀铁剑吧。。但是不能就这样给你了。',
+                    string.format('一把剑<t color="red">%d</t>两。。还买吗？', swordPrice),
+                },
+                {
+                    dialog.link('npc_buy_sword', '即使贵也要买。'),
+                    dialog.link('npc_no_money', '钱不够，不能买。'),
+                })
             end,
 
             npc_no_money = function(uid, args)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>没有钱？如果是这样，请找到钱再来。。我等你。</par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '没有钱？如果是这样，请找到钱再来。。我等你。',
+                dialog.link(SYS_EXIT, '结束'))
             end,
 
             npc_buy_sword = function(uid, args)
                 if not server.player.removeGold(uid, swordPrice) then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>你没有钱还说要买攻杀铁剑？如果在说一遍，我就不卖攻杀铁剑了。</par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '你没有钱还说要买攻杀铁剑？如果在说一遍，我就不卖攻杀铁剑了。',
+                    dialog.link(SYS_EXIT, '结束'))
                     return
                 end
 
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>攻杀铁剑在这儿。。小心不要丢失了。。</par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '攻杀铁剑在这儿。。小心不要丢失了。。',
+                dialog.link(SYS_EXIT, '结束'))
 
                 uidRemoteCall(uid,
                 [=[
@@ -251,14 +218,12 @@ local function teacherBehavior(uid, retry)
 
             -- the retry gets its own send-off line, @yedo_retry_next_1
             npc_retry_trial = function(uid, args)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>嘿嘿。。还是有气派好。那么请将我送到训练场吧。希望你顽强战斗。。</par>
-                        <par>规定时间是<t color="red">3分钟</t>。。希望你在规定的时间之内可以成功。</par>
-                        <par><event id="npc_go_trial">下一步</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '嘿嘿。。还是有气派好。那么请将我送到训练场吧。希望你顽强战斗。。',
+                    '规定时间是<t color="red">3分钟</t>。。希望你在规定的时间之内可以成功。',
+                },
+                dialog.link('npc_go_trial', '下一步'))
             end,
 
             npc_go_trial = function(uid, args)
@@ -295,18 +260,14 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '训练场',
                 [SYS_ENTER] = function(uid, args)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>有人在接受测试，请等一下！</par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '有人在接受测试，请等一下！',
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
@@ -324,28 +285,19 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '领取攻杀剑术秘籍',
                 [SYS_ENTER] = function(uid, args)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>从你眼睛中放射出的光彩可以看出你已经成功掌握了剑术。祝贺你！你又离高手近了一步。请以后坚持不懈地进行修炼，成为一名真正的侠客。</par>
-                            <par><event id="npc_take_reward">下一步</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '从你眼睛中放射出的光彩可以看出你已经成功掌握了剑术。祝贺你！你又离高手近了一步。请以后坚持不懈地进行修炼，成为一名真正的侠客。',
+                    dialog.link('npc_take_reward', '下一步'))
                 end,
 
                 npc_take_reward = function(uid, args)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>在这里拿武功秘籍。而且给你一些金币和东西，用在需要的地方。</par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '在这里拿武功秘籍。而且给你一些金币和东西，用在需要的地方。',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     -- the sword was only ever a loan, and EA_BIND means this is the one way off
                     uidRemoteCall(uid,
@@ -374,18 +326,14 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '训练场的结果',
                 [SYS_ENTER] = function(uid, args)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>你现在还年轻不要向失败低头，请再试试。树砍了十遍，没有不倒的。如果不放弃，成功的日子终究要来临的。</par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '你现在还年轻不要向失败低头，请再试试。树砍了十遍，没有不倒的。如果不放弃，成功的日子终究要来临的。',
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
@@ -399,6 +347,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, swordLore = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -417,96 +366,69 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, args)
             -- [701], he remembers handing the book over
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到<t color="red">攻杀剑术秘籍</t>吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到<t color="red">攻杀剑术秘籍</t>吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 攻杀剑术, no point teaching what you already know
             if server.player.hasMagic(uid, '攻杀剑术') then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经掌握<t color="red">攻杀剑术</t>吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经掌握<t color="red">攻杀剑术</t>吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>%s</par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], swordLore, SYS_EXIT)
+                dialog.post(uid, questPath, swordLore,
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>几乎是从现在开始修炼武功的年轻人，我在你这个年纪的时候也经历了同样的问题。。</par>
-                    <par>按照那种理由我要帮助你的训练。虽然有些困难。。。打算怎么办？</par>
-                    <par><event id="npc_accept">无论如何请传授方法。</event></par>
-                    <par><event id="npc_explain">这个训练是怎么进行的？</event></par>
-                    <par><event id="npc_hesitate">好象有些勉强。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '几乎是从现在开始修炼武功的年轻人，我在你这个年纪的时候也经历了同样的问题。。',
+                '按照那种理由我要帮助你的训练。虽然有些困难。。。打算怎么办？',
+            },
+            {
+                dialog.link('npc_accept', '无论如何请传授方法。'),
+                dialog.link('npc_explain', '这个训练是怎么进行的？'),
+                dialog.link('npc_hesitate', '好象有些勉强。'),
+            })
         end,
 
         -- @mugong_yedo_explain, the rules laid out before you commit
         npc_explain = function(uid, args)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>为了学习攻杀剑术，带上我给的<t color="red">攻杀铁剑</t>后，在一定的时间里，请将训练场内的所有怪兽都打倒。</par>
-                    <par>攻杀铁剑特点上，佩戴上一次就不会自己脱落。但是在昏迷或者失去耐久性的时候，就可以摘下来。</par>
-                    <par>为了通过测试一定要佩戴攻杀铁剑，如果丢失了，请花钱买！</par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '为了学习攻杀剑术，带上我给的<t color="red">攻杀铁剑</t>后，在一定的时间里，请将训练场内的所有怪兽都打倒。',
+                '攻杀铁剑特点上，佩戴上一次就不会自己脱落。但是在昏迷或者失去耐久性的时候，就可以摘下来。',
+                '为了通过测试一定要佩戴攻杀铁剑，如果丢失了，请花钱买！',
+            },
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         npc_hesitate = function(uid, args)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>你个人认为自己的功力还很不足，但是我认为你已经充分具备了学习攻杀剑法的能力，没有必要如此谦虚。不要犹豫，请在尽早的时间里拿出勇气，挑战看看！</par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '你个人认为自己的功力还很不足，但是我认为你已经充分具备了学习攻杀剑法的能力，没有必要如此谦虚。不要犹豫，请在尽早的时间里拿出勇气，挑战看看！',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         npc_accept = function(uid, args)
             -- legacy checkmagic, nothing to teach someone who already has it
             if server.player.hasMagic(uid, '攻杀剑术') then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经掌握攻杀剑术吗？</par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经掌握攻杀剑术吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>攻杀剑法可以说是习剑的入门武功，他的要领可以说是剑术的修炼。当然不是现在就要求通过消耗功力，而攻击到武器不能到达地方的上乘剑术。现在为了研习攻杀剑术只要精神集中修炼就行。即要经历剑和魂合一的阶段才行。只有通过这样的修炼，才能练成对敌的急所发出强力一击的厚实剑术。进入修炼之前，首先要装备此剑。但一旦此剑被抓在手中，直到攻杀剑术修练厚实前，不能脱手，要铭记此点。</par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            '攻杀剑法可以说是习剑的入门武功，他的要领可以说是剑术的修炼。' ..
+            '当然不是现在就要求通过消耗功力，而攻击到武器不能到达地方的上乘剑术。' ..
+            '现在为了研习攻杀剑术只要精神集中修炼就行。' ..
+            '即要经历剑和魂合一的阶段才行。' ..
+            '只有通过这样的修炼，才能练成对敌的急所发出强力一击的厚实剑术。' ..
+            '进入修炼之前，首先要装备此剑。' ..
+            '但一旦此剑被抓在手中，直到攻杀剑术修练厚实前，不能脱手，要铭记此点。',
+            dialog.link(SYS_EXIT, '结束'))
 
             uidRemoteCall(uid,
             [=[

@@ -154,64 +154,51 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '进训练场',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>真是很奇怪嘛</par>
-                            <par>凭你的能力那里面好像没有你制服不了的怪物。。</par>
-                            <par>无论如何，再试一次吗？</par>
-                            <par></par>
-                            <par><event id="npc_go_trial">好的，拜托您了。</event></par>
-                            <par><event id="npc_explain">训练场里要做什么？</event></par>
-                            <par><event id="npc_not_yet">累积些经验，请以后再来！</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '真是很奇怪嘛',
+                        '凭你的能力那里面好像没有你制服不了的怪物。。',
+                        '无论如何，再试一次吗？',
+                    },
+                    {
+                        dialog.link('npc_go_trial', '好的，拜托您了。'),
+                        dialog.link('npc_explain', '训练场里要做什么？'),
+                        dialog.link('npc_not_yet', '累积些经验，请以后再来！'),
+                    })
                 end,
 
                 -- @mugong_lightstick_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>如果想修炼雷电术，在一定的时间里将训练场内的所有怪物打败即可。</par>
-                            <par></par>
-                            <par><event id="npc_go_trial">好的，拜托您了。</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '如果想修炼雷电术，在一定的时间里将训练场内的所有怪物打败即可。',
+                    {
+                        dialog.link('npc_go_trial', '好的，拜托您了。'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 -- @mugong_lightstick_next5
                 npc_not_yet = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>嗯。。知道了。但是雷电术是魔法师的代表魔法，而且是一定要掌握的魔法。无论如何在最短的时日内掌握雷电术，对你的前途很有帮助。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '嗯。。知道了。但是雷电术是魔法师的代表魔法，而且是一定要掌握的魔法。无论如何在最短的时日内掌握雷电术，对你的前途很有帮助。',
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_lightstick_next4_1
                 npc_go_trial = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>现在要把你送到某一个地方。</par>
-                            <par>如果可以将那里<t color="red">所有的怪物打败</t>，就认为你通过了该考验。需要记住的是那里所有的怪物都是可以进行电击魔法的怪物。通过和这种敌人的战斗，提高对电击魔法的理解是这个训练的目的。</par>
-                            <par>同时与怪物面对面，你可以掌握谁是首先要攻击的对象。希望你不要做任何不经过思考冲动、无意义的行动。</par>
-                            <par>我将你送到那儿的时间是<t color="red">5分钟</t>。。</par>
-                            <par>5分钟过去后，你将重新回到这里。那就祝你走运啰！</par>
-                            <par></par>
-                            <par><event id="npc_enter_trial" close="1">移  动</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '现在要把你送到某一个地方。',
+                        '如果可以将那里<t color="red">所有的怪物打败</t>，就认为你通过了该考验。需要记住的是那里所有的怪物都是可以进行电击魔法的怪物。通过和这种敌人的战斗，提高对电击魔法的理解是这个训练的目的。',
+                        '同时与怪物面对面，你可以掌握谁是首先要攻击的对象。希望你不要做任何不经过思考冲动、无意义的行动。',
+                        '我将你送到那儿的时间是<t color="red">5分钟</t>。。',
+                        '5分钟过去后，你将重新回到这里。那就祝你走运啰！',
+                    },
+                    dialog.link('npc_enter_trial', '移  动', {close = true}))
                 end,
 
                 npc_enter_trial = function(uid, value)
@@ -241,6 +228,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -248,15 +236,12 @@ setQuestFSMTable(
 
                 -- @mugong_lightstick_complete_next1
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>祝贺你<t color="red">通过</t>了测试！我看你具有修炼雷电术的坚实基础。我已经为你写好了雷电术秘籍，参照练习吧。我再给你一些金币和东西，用在需要的地方。</par>
-                            <par>嘿嘿，看见年轻人脸上充满成就感是老年人的最大快乐。修炼武功的过程中还会有困难的，请随时来找我。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">结束</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '祝贺你<t color="red">通过</t>了测试！我看你具有修炼雷电术的坚实基础。我已经为你写好了雷电术秘籍，参照练习吧。我再给你一些金币和东西，用在需要的地方。',
+                        '嘿嘿，看见年轻人脸上充满成就感是老年人的最大快乐。修炼武功的过程中还会有困难的，请随时来找我。',
+                    },
+                    dialog.link('npc_take_book', '结束', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -275,6 +260,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     -- the opening of the 雷电术 description, he gives it whether or not you qualify. the rest
     -- of it only comes with the level
@@ -292,80 +278,55 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [753] 1. the legacy line asks the question inverted, kept as written
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你还没有收到雷电术秘籍吗？哦，年轻人<t color="red">健忘症</t>也太严重了嘛。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你还没有收到雷电术秘籍吗？哦，年轻人<t color="red">健忘症</t>也太严重了嘛。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkjob wizard
             if not server.player.hasJob(uid, '法师') then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>该武功不是其它职业的人很容易就熟练的武功，只有<t color="red">魔法师</t>可以掌握。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '该武功不是其它职业的人很容易就熟练的武功，只有<t color="red">魔法师</t>可以掌握。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 雷电术
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你好像已经修炼了<t color="red">雷电术</t>。。。如果这样就没有向我接受训练的必要了。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你好像已经修炼了<t color="red">雷电术</t>。。。如果这样就没有向我接受训练的必要了。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_lightstick_next2, checklevel 16
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>%s</par>
-                        <par>但是凭你现在的实力好像还不能学习雷电术。经过一些训练后，再来吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], blurb, SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    blurb,
+                    '但是凭你现在的实力好像还不能学习雷电术。经过一些训练后，再来吧！',
+                },
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>%s 如果没有抵抗闪电的能力，而受到该魔法的攻击。。嘿嘿嘿。。。</par>
-                    <par>由于雷电术要产生强大的雷电，开始训练的时候比学习任何魔法都要遇到很大的困难。尤其是开始面向天空发射轻微的闪电，转换为雷的过程是非常困难的。为了熟练掌握该魔法，应提高对<t color="red">电击系列魔法</t>的理解力。</par>
-                    <par></par>
-                    <par><event id="npc_want_learn">想学习雷电术。</event></par>
-                </layout>
-            ]=], blurb)
+            dialog.post(uid, questPath,
+            {
+                string.format('%s 如果没有抵抗闪电的能力，而受到该魔法的攻击。。嘿嘿嘿。。。', blurb),
+                '由于雷电术要产生强大的雷电，开始训练的时候比学习任何魔法都要遇到很大的困难。尤其是开始面向天空发射轻微的闪电，转换为雷的过程是非常困难的。为了熟练掌握该魔法，应提高对<t color="red">电击系列魔法</t>的理解力。',
+            },
+            dialog.link('npc_want_learn', '想学习雷电术。'))
         end,
 
         -- @mugong_lightstick_next3, SET [518]
         npc_want_learn = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>给你指出修炼雷电术的要点并不难，首先要看你是否具有学习雷电术的<t color="red">资格</t>。如果不这样，学习威力强大魔法时走火入魔的危险会提高。</par>
-                    <par>怎么样？接受我的测试吗？</par>
-                    <par></par>
-                    <par><event id="npc_accept">好的，我要试试。</event></par>
-                    <par><event id="npc_not_yet">现在好象还有些勉强。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '给你指出修炼雷电术的要点并不难，首先要看你是否具有学习雷电术的<t color="red">资格</t>。如果不这样，学习威力强大魔法时走火入魔的危险会提高。',
+                '怎么样？接受我的测试吗？',
+            },
+            {
+                dialog.link('npc_accept', '好的，我要试试。'),
+                dialog.link('npc_not_yet', '现在好象还有些勉强。'),
+            })
 
             -- SET [518] lands here, before you have answered, so backing out now still leaves
             -- you on the quest and he greets you with the retry line next time
@@ -374,30 +335,21 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_lightstick_next5
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>嗯。。知道了。但是雷电术是魔法师的代表魔法，而且是一定要掌握的魔法。无论如何在最短的时日内掌握雷电术，对你的前途很有帮助。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '嗯。。知道了。但是雷电术是魔法师的代表魔法，而且是一定要掌握的魔法。无论如何在最短的时日内掌握雷电术，对你的前途很有帮助。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_lightstick_next4_1
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>现在要把你送到某一个地方。</par>
-                    <par>如果可以将那里<t color="red">所有的怪物打败</t>，就认为你通过了该考验。需要记住的是那里所有的怪物都是可以进行电击魔法的怪物。通过和这种敌人的战斗，提高对电击魔法的理解是这个训练的目的。</par>
-                    <par>同时与怪物面对面，你可以掌握谁是首先要攻击的对象。希望你不要做任何不经过思考冲动、无意义的行动。</par>
-                    <par>我将你送到那儿的时间是<t color="red">5分钟</t>。。</par>
-                    <par>5分钟过去后，你将重新回到这里。那就祝你走运啰！</par>
-                    <par></par>
-                    <par><event id="npc_enter_trial" close="1">移  动</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '现在要把你送到某一个地方。',
+                '如果可以将那里<t color="red">所有的怪物打败</t>，就认为你通过了该考验。需要记住的是那里所有的怪物都是可以进行电击魔法的怪物。通过和这种敌人的战斗，提高对电击魔法的理解是这个训练的目的。',
+                '同时与怪物面对面，你可以掌握谁是首先要攻击的对象。希望你不要做任何不经过思考冲动、无意义的行动。',
+                '我将你送到那儿的时间是<t color="red">5分钟</t>。。',
+                '5分钟过去后，你将重新回到这里。那就祝你走运啰！',
+            },
+            dialog.link('npc_enter_trial', '移  动', {close = true}))
         end,
 
         -- @mugong_lightstick_next4_2

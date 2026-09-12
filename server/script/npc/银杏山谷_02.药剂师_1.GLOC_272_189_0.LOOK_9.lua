@@ -1,3 +1,4 @@
+local dialog = require('include.dialog')
 -- converted from Envir/Market_Def/04PotionMake_Euhang-02.txt
 --
 -- an item crafter, legacy Market_Def/04PotionMake_*.txt
@@ -16,37 +17,26 @@ setEventHandler
 {
     [SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>跟你这种人我无话可说。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]], SYS_EXIT)
+            dialog.post(uid, '跟你这种人我无话可说。',
+            dialog.link(SYS_EXIT, '结束'))
             return
         end
 
         local par = {}
         for _, line in ipairs(greet) do
-            table.insert(par, string.format('<par>%s</par>', line))
+            table.insert(par, line)
         end
 
-        table.insert(par, [[<par><event id="npc_tquest">对今日的任务进行了解</event></par>]])
-        table.insert(par, string.format([[<par><event id="%s" close="1">结束</event></par>]], SYS_EXIT))
-
-        uidPostXML(uid, string.format('<layout>%s</layout>', table.concat(par)))
+        dialog.post(uid, par,
+        {
+            dialog.link('npc_tquest', '对今日的任务进行了解'),
+            dialog.link(SYS_EXIT, '结束'),
+        })
     end,
 
     -- legacy @TQuest
     npc_tquest = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>今天没事情可拜托你了。</par>
-                <par></par>
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], SYS_ENTER)
+        dialog.post(uid, '今天没事情可拜托你了。',
+        dialog.link(SYS_ENTER, '前一步'))
     end,
 }

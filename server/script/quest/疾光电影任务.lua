@@ -62,33 +62,27 @@ local function setupTeacherNag(uid)
     [[
         local questName = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
             [SYS_LABEL] = '疾光电影的闪电石',
             [SYS_ENTER] = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>一定要用树脂给衣服穿上薄膜后才可以得到电雷草，不要忘了这点。</par>
-                        <par></par>
-                        <par><event id="npc_explain">这件事要怎么做？</event></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '一定要用树脂给衣服穿上薄膜后才可以得到电雷草，不要忘了这点。',
+                {
+                    dialog.link('npc_explain', '这件事要怎么做？'),
+                    dialog.link(SYS_EXIT, '结束'),
+                })
             end,
 
             -- @mugong_lightline_explain
             npc_explain = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>如果想修炼疾光电影，首先到天然洞穴中找到<t color="red">树脂</t>后，再到银杏树村请棉布商给你的<t color="red">魔法长袍</t>涂上树脂。</par>
-                        <par>如果得到了树脂火焰魔衣，就可以在天然洞穴里找到<t color="red">闪电石</t>，然后把闪电石拿给我就可以了。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '如果想修炼疾光电影，首先到天然洞穴中找到<t color="red">树脂</t>后，再到银杏树村请棉布商给你的<t color="red">魔法长袍</t>涂上树脂。',
+                    '如果得到了树脂火焰魔衣，就可以在天然洞穴里找到<t color="red">闪电石</t>，然后把闪电石拿给我就可以了。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
             end,
         }
     ]])
@@ -101,21 +95,19 @@ local function setupTailor(uid)
     [[
         local questUID, questName, robeName, coatedRobeName = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
             [SYS_LABEL] = '给魔法长袍涂树脂',
             [SYS_ENTER] = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>现在我就给你穿的衣服上涂<t color="red">树脂</t>，但能否成功我也不知道。。。如果成功了，您衣服的耐久好象可以修理了。</par>
-                        <par>还有如果衣服上涂了树脂，你衣服的<t color="red">基本功能就消失并成为了一般的耐久</t>。请注意这点。。。但是由于具有了树脂的功能，也就拥有了<t color="red">特殊的功能</t>。</par>
-                        <par>我现在就试着涂一下，请等一下！</par>
-                        <par></par>
-                        <par><event id="npc_coat">下一步</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '现在我就给你穿的衣服上涂<t color="red">树脂</t>，但能否成功我也不知道。。。如果成功了，您衣服的耐久好象可以修理了。',
+                    '还有如果衣服上涂了树脂，你衣服的<t color="red">基本功能就消失并成为了一般的耐久</t>。请注意这点。。。但是由于具有了树脂的功能，也就拥有了<t color="red">特殊的功能</t>。',
+                    '我现在就试着涂一下，请等一下！',
+                },
+                dialog.link('npc_coat', '下一步'))
             end,
 
             -- @mugong_lightline_suzi_man1 / _wman1: the 树脂 in your pack and the robe on your
@@ -126,25 +118,19 @@ local function setupTailor(uid)
 
                 if not (server.player.hasItem(uid, '树脂', 1) and wearingRobe) then
                     if server.player.getGender(uid) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>现在穿的衣服，只有<t color="red">魔法长袍</t>才可以涂上树脂。。我看 %s 先生没有穿魔法长袍或者没有树脂了。。。</par>
-                                <par>树脂可以在<t color="red">天然洞穴1层 洞蛆</t>找到。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], server.player.getName(uid), SYS_EXIT)
+                        dialog.post(uid, questPath,
+                        {
+                            string.format('现在穿的衣服，只有<t color="red">魔法长袍</t>才可以涂上树脂。。我看 %s 先生没有穿魔法长袍或者没有树脂了。。。', server.player.getName(uid)),
+                            '树脂可以在<t color="red">天然洞穴1层 洞蛆</t>找到。',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
                     else
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>现在穿的衣服，只有<t color="red">魔法长袍</t>才可以涂上树脂。。我看您没有穿魔法长袍或者没有树脂了。。。</par>
-                                <par>树脂可以在天然洞穴1层找到。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath,
+                        {
+                            '现在穿的衣服，只有<t color="red">魔法长袍</t>才可以涂上树脂。。我看您没有穿魔法长袍或者没有树脂了。。。',
+                            '树脂可以在天然洞穴1层找到。',
+                        },
+                        dialog.link(SYS_EXIT, '结束'))
                     end
                     return
                 end
@@ -155,14 +141,8 @@ local function setupTailor(uid)
 
                 -- random 2
                 if math.random(2) ~= 1 then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>这个怎么办。。。。涂树脂的过程中<t color="red">将衣服破坏了。。。</t>这如何是好…对不起。。。如果重新再找到的话，我再给你做。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '这个怎么办。。。。涂树脂的过程中<t color="red">将衣服破坏了。。。</t>这如何是好…对不起。。。如果重新再找到的话，我再给你做。',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     -- SET [523] 0, back to the caves for another 树脂
                     server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
@@ -170,14 +150,8 @@ local function setupTailor(uid)
                 end
 
                 -- @mugong_lightline_suzi_man3 / _wman3, SET [524]
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>恭喜你<t color="red">成功了。。。</t>虽然不知道这是用在那里的东西。。。请好好使用。。。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '恭喜你<t color="red">成功了。。。</t>虽然不知道这是用在那里的东西。。。请好好使用。。。',
+                dialog.link(SYS_EXIT, '结束'))
 
                 server.player.addItem(uid, coatedRobeName, 1)
                 server.quest.setState(questUID, {uid = uid, state = 'quest_find_stone'})
@@ -218,17 +192,12 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             -- the ELSESAY of @mugong_lightline_test_next1
             local function postLostStone(uid)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>很困难才求得的<t color="red">闪电石</t>，我把它放在其它地方了。下一次带来。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '很困难才求得的<t color="red">闪电石</t>，我把它放在其它地方了。下一次带来。',
+                dialog.link(SYS_EXIT, '结束'))
             end
 
             return
@@ -242,14 +211,8 @@ setQuestFSMTable(
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>现在感到体内有内力了，已经修炼成<t color="red">闪电石</t>的样子。</par>
-                            <par></par>
-                            <par><event id="npc_take_book">下一步</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '现在感到体内有内力了，已经修炼成<t color="red">闪电石</t>的样子。',
+                    dialog.link('npc_take_book', '下一步'))
                 end,
 
                 -- @mugong_lightline_test_next1 and next2
@@ -259,14 +222,8 @@ setQuestFSMTable(
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>辛苦了！这里有疾光电影秘籍，请看着练习就可以了。以后要修炼的武功还很多，别骄傲，请继续练习！</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '辛苦了！这里有疾光电影秘籍，请看着练习就可以了。以后要修炼的武功还很多，别骄傲，请继续练习！',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.player.removeItem(uid, '闪电石', 1)
                     server.player.addItem(uid, '疾光电影（秘籍）', 1)
@@ -329,6 +286,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -342,105 +300,65 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [757] 1. the legacy line asks the question inverted, kept as written
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你还没有收到疾光电影秘籍吗? 那么你为什么还要索要？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你还没有收到疾光电影秘籍吗? 那么你为什么还要索要？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checkmagic 疾光电影
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>魔法师在修炼新武功的时候是不可以偷懒的。如果偷懒，瞬间之内将受到不可治愈的伤害。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '魔法师在修炼新武功的时候是不可以偷懒的。如果偷懒，瞬间之内将受到不可治愈的伤害。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_lightline_next, checklevel 21. below it he still describes the magic,
             -- which is the one place that description appears
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>使用闪电石力量的武功除了你已经掌握的雷电术之外，还有<t color="red">疾光电影</t>。是一种<t color="red">以进攻者为准，闪电石之力以一条直线的形式发射出去的武功</t>。尤其是对<t color="red">狮子类</t>很有效果，好好掌握和利用。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '使用闪电石力量的武功除了你已经掌握的雷电术之外，还有<t color="red">疾光电影</t>。是一种<t color="red">以进攻者为准，闪电石之力以一条直线的形式发射出去的武功</t>。尤其是对<t color="red">狮子类</t>很有效果，好好掌握和利用。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_lightline_next3
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想学习称为疾光电影的武功？</par>
-                    <par>要修炼疾光电影的武功需要高水平的<t color="red">闪电石</t>。</par>
-                    <par>但是我看你好像还没有这么大的力量。</par>
-                    <par></par>
-                    <par><event id="npc_ask_how">那么如何才可以拥有你称为“闪电石”的能力？</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '想学习称为疾光电影的武功？',
+                '要修炼疾光电影的武功需要高水平的<t color="red">闪电石</t>。',
+                '但是我看你好像还没有这么大的力量。',
+            },
+            dialog.link('npc_ask_how', '那么如何才可以拥有你称为“闪电石”的能力？'))
         end,
 
         -- @mugong_lightline_next4
         npc_ask_how = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>把沃玛神殿的<t color="red">闪电石</t>带来就可以了。但是听说，闪电石不能那么简单地拿到。。叫什么。。抓到蛆，就可以得到<t color="red">树脂</t>，然后到<t color="red">银杏树村福氏</t>，请他将树脂涂到你的衣服上。这样才可以战胜电雷草的闪电石，从而得到闪电石。</par>
-                    <par>是说获得树脂的地方吗？曾经听说<t color="red">天然洞穴1层 洞蛆</t>中有树脂。还有传说讲<t color="red">沃玛神殿入口 山洞蝙蝠</t>拥有闪电石。</par>
-                    <par></par>
-                    <par><event id="npc_ask_why">学习武功，为什么这么困难？</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '把沃玛神殿的<t color="red">闪电石</t>带来就可以了。但是听说，闪电石不能那么简单地拿到。。叫什么。。抓到蛆，就可以得到<t color="red">树脂</t>，然后到<t color="red">银杏树村福氏</t>，请他将树脂涂到你的衣服上。这样才可以战胜电雷草的闪电石，从而得到闪电石。',
+                '是说获得树脂的地方吗？曾经听说<t color="red">天然洞穴1层 洞蛆</t>中有树脂。还有传说讲<t color="red">沃玛神殿入口 山洞蝙蝠</t>拥有闪电石。',
+            },
+            dialog.link('npc_ask_why', '学习武功，为什么这么困难？'))
         end,
 
         -- @mugong_lightline_next5
         npc_ask_why = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>如果世上的事情都很简单，还有掌握武功的必要吗？要记住容易获得的东西，也容易失去。</par>
-                    <par></par>
-                    <par><event id="npc_accept">知道了。那就试一次吧。</event></par>
-                    <par><event id="npc_not_yet">我还是喜欢简单的东西。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '如果世上的事情都很简单，还有掌握武功的必要吗？要记住容易获得的东西，也容易失去。',
+            {
+                dialog.link('npc_accept', '知道了。那就试一次吧。'),
+                dialog.link('npc_not_yet', '我还是喜欢简单的东西。'),
+            })
         end,
 
         -- @mugong_lightline_next6_2
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>如果你意如此，我也不再劝阻。如果你的想法变了，请再来！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '如果你意如此，我也不再劝阻。如果你的想法变了，请再来！',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_lightline_next6_1, SET [522]
         npc_accept = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>想得不错，获得闪电石虽然辛苦，完成了此事成就感也就比较大。那么就快去快回吧！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '想得不错，获得闪电石虽然辛苦，完成了此事成就感也就比较大。那么就快去快回吧！',
+            dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,

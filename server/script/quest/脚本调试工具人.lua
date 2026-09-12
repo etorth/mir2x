@@ -8,18 +8,15 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
             return
             {
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>你是来测试脚本的吗？</par>
-                            <par></par>
-                            <par><event id="npc_done_test" close="1">完成测试</event></par>
-                            <par><event id="%s" close="1">退出</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '你是来测试脚本的吗？',
+                    {
+                        dialog.link('npc_done_test', '完成测试', {close = true}),
+                        dialog.link(SYS_EXIT, '退出'),
+                    })
 
                     uidRemoteCall(questUID, uid,
                     [=[
@@ -44,24 +41,24 @@ uidRemoteCall(getNPCharUID('道馆_1', '物品展示商人'), getUID(), getQuest
 [[
     local questUID, questName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
         [SYS_ENTER] = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>你好？</par>
-                    <par>我可以帮你测试脚本功能。</par>
-                    <par></par>
-                    <par><event id="npc_test_script">测试脚本</event></par>
-                    <par><event id="npc_test_deliver_iterms">测试邮寄</event></par>
-                    <par><event id="npc_test_switch_map" args="{'比奇县_0',390,400}" close="1">测试地图切换</event></par>
-                    <par><event id="npc_test_random_move" close="1">狂奔</event></par>
-                    <par>%s</par>
-                    <par><event id="%s" close="1">退出</event></par>
-                </layout>
-            ]=], getNPCMapLocXML("event", {id="npc_test_switch_map", close="1"}), SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '你好？',
+                '我可以帮你测试脚本功能。',
+            },
+            {
+                dialog.link('npc_test_script', '测试脚本'),
+                dialog.link('npc_test_deliver_iterms', '测试邮寄'),
+                dialog.link('npc_test_switch_map', '测试地图切换', {close = true, args = '{\'比奇县_0\',390,400}'}),
+                dialog.link('npc_test_random_move', '狂奔', {close = true}),
+                getNPCMapLocXML("event", {id="npc_test_switch_map", close="1"}),
+                dialog.link(SYS_EXIT, '退出'),
+            })
         end,
 
         npc_test_script = function(uid, value)

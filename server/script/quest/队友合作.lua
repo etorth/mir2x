@@ -4,14 +4,9 @@ setQuestFSMTable(
         uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), uid,
         [[
             local playerUID = ...
-            uidPostXML(playerUID,
-            [=[
-                <layout>
-                    <par>和队友开始挑战珐玛大陆的怪物吧！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">好的</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            local dialog = require('include.dialog')
+            dialog.post(playerUID, '和队友开始挑战珐玛大陆的怪物吧！',
+            dialog.link(SYS_EXIT, '好的'))
         ]])
         setQuestState{uid=uid, state='quest_setup_player_die_trigger'}
     end,
@@ -113,6 +108,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
 [[
     local questUID, questName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -124,73 +120,42 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
             ]=])
 
             if currState == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你已经完成挑战任务。</par>
-                        <par><event id="%s" close="1">退出</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你已经完成挑战任务。',
+                dialog.link(SYS_EXIT, '退出'))
 
             elseif currState ~= nil then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>请继续你的挑战任务。</par>
-                        <par><event id="%s" close="1">退出</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '请继续你的挑战任务。',
+                dialog.link(SYS_EXIT, '退出'))
 
             else
                 local teamLeader = uidRemoteCall(uid, [=[ return getTeamLeader() ]=])
                 if not teamLeader then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>请先组建一个队伍</par>
-                            <par><event id="%s" close="1">退出</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '请先组建一个队伍',
+                    dialog.link(SYS_EXIT, '退出'))
 
                 elseif teamLeader ~= uid then
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>你不是队长</par>
-                            <par><event id="%s" close="1">退出</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '你不是队长',
+                    dialog.link(SYS_EXIT, '退出'))
 
                 else
                     local teamMemberList = uidRemoteCall(uid, [=[ return getTeamMemberList() ]=])
                     if #teamMemberList >= 2 then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你拥有一个队伍，愿意接受任务吗？</par>
-                                <par><event id="npc_accept_quest">同意</event></par>
-                                <par><event id="%s" close="1"    >退出</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '你拥有一个队伍，愿意接受任务吗？',
+                        {
+                            dialog.link('npc_accept_quest', '同意'),
+                            dialog.link(SYS_EXIT, '退出'),
+                        })
 
                     elseif uidRemoteCall(uid, [=[ return getLevel() ]=]) < 7 then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你的等级太低，请至少添加一名队友结队冒险，或者升到7级再来找我。</par>
-                                <par><event id="%s" close="1">退出</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '你的等级太低，请至少添加一名队友结队冒险，或者升到7级再来找我。',
+                        dialog.link(SYS_EXIT, '退出'))
 
                     else
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你确定独自冒险吗？</par>
-                                <par><event id="npc_accept_quest">同意</event></par>
-                                <par><event id="%s" close="1"    >退出</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '你确定独自冒险吗？',
+                        {
+                            dialog.link('npc_accept_quest', '同意'),
+                            dialog.link(SYS_EXIT, '退出'),
+                        })
                     end
                 end
             end

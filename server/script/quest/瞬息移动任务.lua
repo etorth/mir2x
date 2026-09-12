@@ -315,6 +315,7 @@ local function setupTeacher(uid)
     [[
         local questUID, questName, hints = ...
         local questPath = {SYS_EPUID, questName}
+        local dialog = require('include.dialog')
 
         return
         {
@@ -322,57 +323,50 @@ local function setupTeacher(uid)
 
             -- @mugong_fly_next2
             [SYS_ENTER] = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>该魔法总是和生死很亲密，即使仔细计算后想超越空间也是几乎不可能的。</par>
-                        <par>因此进攻者几乎都是凭借直观力和观察力进行空间超越的。</par>
-                        <par></par>
-                        <par><event id="npc_how">如何能获得这种能力呢？</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '该魔法总是和生死很亲密，即使仔细计算后想超越空间也是几乎不可能的。',
+                    '因此进攻者几乎都是凭借直观力和观察力进行空间超越的。',
+                },
+                dialog.link('npc_how', '如何能获得这种能力呢？'))
             end,
 
             -- @mugong_fly_next2_1
             npc_how = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>正好有适合培养此种能力的场所，到那里去训练吧。到达该场地的过程中，会出现很多岔道。你要不断地同怪物打斗，时间很紧迫，几乎是凭本能选择一个方向走出岔道。</par>
-                        <par>如此经过<t color="red">5个岔路口</t>，才可以通过考场。当然是指找到正确出口的情况。在考场通道的最后段要解决掉挡着路的叫<t color="red">沙漠树魔</t>的怪物，然后才可以向<t color="red">下一个考场移动</t>。</par>
-                        <par>如果选择了错误的出口。。。你就要重新开始。在规定的时间内，有很多此机会。无论如何，祝你走运。努力试试！</par>
-                        <par></par>
-                        <par><event id="npc_ready">没有什么问题。</event></par>
-                        <par><event id="npc_ask_hint">有些困难，可以给些帮助吗？</event></par>
-                        <par><event id="npc_explain">这个测试是怎么进行的？</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '正好有适合培养此种能力的场所，到那里去训练吧。到达该场地的过程中，会出现很多岔道。你要不断地同怪物打斗，时间很紧迫，几乎是凭本能选择一个方向走出岔道。',
+                    '如此经过<t color="red">5个岔路口</t>，才可以通过考场。当然是指找到正确出口的情况。在考场通道的最后段要解决掉挡着路的叫<t color="red">沙漠树魔</t>的怪物，然后才可以向<t color="red">下一个考场移动</t>。',
+                    '如果选择了错误的出口。。。你就要重新开始。在规定的时间内，有很多此机会。无论如何，祝你走运。努力试试！',
+                },
+                {
+                    dialog.link('npc_ready', '没有什么问题。'),
+                    dialog.link('npc_ask_hint', '有些困难，可以给些帮助吗？'),
+                    dialog.link('npc_explain', '这个测试是怎么进行的？'),
+                })
             end,
 
             -- @mugong_fly_explain
             npc_explain = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>为了学习瞬息移动，在考场之内要<t color="red">选择5次岔路口</t>。只有5次都选择正确了，才可以回到我这里。如果错了，又要重新回到起点。训练场之间移动的方法是解决掉挡着路的叫<t color="red">沙漠树魔</t>的怪物，通路中间尽最大可能地回避怪物即可。</par>
-                        <par></par>
-                        <par><event id="npc_ready">没有什么问题。</event></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                '为了学习瞬息移动，在考场之内要<t color="red">选择5次岔路口</t>。' ..
+                '只有5次都选择正确了，才可以回到我这里。' ..
+                '如果错了，又要重新回到起点。' ..
+                '训练场之间移动的方法是解决掉挡着路的叫<t color="red">沙漠树魔</t>的怪物，通路中间尽最大可能地回避怪物即可。',
+                {
+                    dialog.link('npc_ready', '没有什么问题。'),
+                    dialog.link(SYS_EXIT, '结束'),
+                })
             end,
 
             -- @mugong_fly_next3
             npc_ask_hint = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>嗯，，，好的。.</par>
-                        <par>你要选择的<t color="red">正确通路</t>有<t color="red">3条</t>。。。我给你讲解其中的一种。</par>
-                        <par></par>
-                        <par><event id="npc_hint">下一步</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '嗯，，，好的。.',
+                    '你要选择的<t color="red">正确通路</t>有<t color="red">3条</t>。。。我给你讲解其中的一种。',
+                },
+                dialog.link('npc_hint', '下一步'))
             end,
 
             -- @mugong_fly_next4_1 through next4_3, each behind its own random 3. if none of
@@ -380,44 +374,35 @@ local function setupTeacher(uid)
             npc_hint = function(uid, value)
                 for _, hint in ipairs(hints) do
                     if math.random(3) == 1 then
-                        local parts = {'<layout>'}
+                        local text = {}
                         for _, line in ipairs(hint) do
-                            table.insert(parts, '<par>' .. line .. '</par>')
+                            table.insert(text, line)
                         end
+                        table.insert(text, '记忆好。。5次都要选择正确，发生一次错误都不可以。')
 
-                        table.insert(parts, '<par>记忆好。。5次都要选择正确，发生一次错误都不可以。</par>')
-                        table.insert(parts, '<par></par>')
-                        table.insert(parts, '<par><event id="npc_ready">下一步</event></par>')
-                        table.insert(parts, '</layout>')
-
-                        uidPostXML(uid, questPath, table.concat(parts))
+                        dialog.post(uid, questPath, text,
+                        dialog.link('npc_ready', '下一步'))
                         return
                     end
                 end
 
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>如此没有运气吗？</par>
-                        <par>突然想不起来了。一会儿再来。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '如此没有运气吗？',
+                    '突然想不起来了。一会儿再来。',
+                },
+                dialog.link(SYS_EXIT, '结束'))
             end,
 
             -- @mugong_fly_next5
             npc_ready = function(uid, value)
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>现在送到训练场吧。。。</par>
-                        <par>我可以将你送到那儿的时间为<t color="red">10分钟</t>。时间结束后，你将重新回到这里。</par>
-                        <par>祝你走运。</par>
-                        <par></par>
-                        <par><event id="npc_enter_trial" close="1">下一步</event></par>
-                    </layout>
-                ]=])
+                dialog.post(uid, questPath,
+                {
+                    '现在送到训练场吧。。。',
+                    '我可以将你送到那儿的时间为<t color="red">10分钟</t>。时间结束后，你将重新回到这里。',
+                    '祝你走运。',
+                },
+                dialog.link('npc_enter_trial', '下一步', {close = true}))
             end,
 
             npc_enter_trial = function(uid, value)
@@ -460,6 +445,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -467,14 +453,8 @@ setQuestFSMTable(
 
                 -- @mugong_fly_give
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>这里有可以掌握瞬息移动的武功书（秘籍）。。好好使用吧。</par>
-                            <par></par>
-                            <par><event id="npc_take_book" close="1">结束</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '这里有可以掌握瞬息移动的武功书（秘籍）。。好好使用吧。',
+                    dialog.link('npc_take_book', '结束', {close = true}))
                 end,
 
                 npc_take_book = function(uid, value)
@@ -493,6 +473,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     setQuestHandler(questName,
     {
@@ -506,80 +487,55 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [751] 1. the legacy line asks the question inverted, kept as written
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你还没有收到瞬息移动秘籍吗？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你还没有收到瞬息移动秘籍吗？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- checklevel 14, and below it he explains what the magic is for instead
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>瞬息移动是一种<t color="red">即使没有地牢逃脱卷也可以回到村子附近的魔法</t>。事实上地牢逃脱卷是一种本身带有瞬息移动法力的卷纸。如果连续不断地使用瞬息移动魔法，慢慢地就熟练掌握了该魔法，一次回到村子的概率也将提高。</par>
-                        <par>你现在还没有到达修炼的境地，以后再来吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath,
+                {
+                    '瞬息移动是一种<t color="red">即使没有地牢逃脱卷也可以回到村子附近的魔法</t>。事实上地牢逃脱卷是一种本身带有瞬息移动法力的卷纸。如果连续不断地使用瞬息移动魔法，慢慢地就熟练掌握了该魔法，一次回到村子的概率也将提高。',
+                    '你现在还没有到达修炼的境地，以后再来吧！',
+                },
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>瞬息移动是一种<t color="red">超越空间而且学习起来非常难的魔法</t>。魔法的发动者计算好自己的位置和将要移动场所间的距离和方位，制造出超越空间的通道。这个过程要在瞬间之内完成，因此是一种学习起来非常复杂的魔法。</par>
-                    <par>训练是非常辛苦的。那还要学习瞬息移动吗？</par>
-                    <par></par>
-                    <par><event id="npc_ask_teach">当然要试试。.</event></par>
-                    <par><event id="npc_not_yet">好像有些勉强。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '瞬息移动是一种<t color="red">超越空间而且学习起来非常难的魔法</t>。魔法的发动者计算好自己的位置和将要移动场所间的距离和方位，制造出超越空间的通道。这个过程要在瞬间之内完成，因此是一种学习起来非常复杂的魔法。',
+                '训练是非常辛苦的。那还要学习瞬息移动吗？',
+            },
+            {
+                dialog.link('npc_ask_teach', '当然要试试。.'),
+                dialog.link('npc_not_yet', '好像有些勉强。'),
+            })
         end,
 
         -- @mugong_fly_next1_2, which the option above points at as next2_2 in the legacy text
         npc_not_yet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>不骄傲虽然很重要，但需要果断的时候还是要果断。如果你的想法如此，我也不干涉。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '不骄傲虽然很重要，但需要果断的时候还是要果断。如果你的想法如此，我也不干涉。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_fly_next1_1, checkmagic 瞬息移动. the legacy line is inverted, kept as written
         npc_ask_teach = function(uid, value)
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你虽然还没有掌握瞬息移动，我很忙请回吧！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你虽然还没有掌握瞬息移动，我很忙请回吧！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_fly_next2, set [504]. the quest opens at quest_ready and its own behavior
             -- carries that text and everything after it
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>该魔法总是和生死很亲密，即使仔细计算后想超越空间也是几乎不可能的。</par>
-                    <par>因此进攻者几乎都是凭借直观力和观察力进行空间超越的。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">知道了</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '该魔法总是和生死很亲密，即使仔细计算后想超越空间也是几乎不可能的。',
+                '因此进攻者几乎都是凭借直观力和观察力进行空间超越的。',
+            },
+            dialog.link(SYS_EXIT, '知道了'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,

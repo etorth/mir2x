@@ -1,3 +1,4 @@
+local dialog = require('include.dialog')
 local invop = require('npc.include.invop')
 
 local materialTypeList = {'道具'}
@@ -7,41 +8,25 @@ setEventHandler(
 {
     [SYS_ENTER] = function(uid, value)
         if uidQueryRedName(uid) then
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>我不愿意和你这样丧尽天良的人进行交易。</par>
-                    <par></par>
-
-                    <par><event id="%s" close="1">关闭</event></par>
-                </layout>
-            ]], SYS_EXIT)
+            dialog.post(uid, '我不愿意和你这样丧尽天良的人进行交易。',
+            dialog.link(SYS_EXIT, '关闭'))
         else
-            uidPostXML(uid,
-            [[
-                <layout>
-                    <par>这里是沙巴克城<t color="RED">%s</t>行会的领地。</par>
-                    <par>欢迎光临，我收购蚂蚁卵或者骷髅骨之类的材料。</par>
-                    <par></par>
-
-                    <par><event id="npc_goto_1">出售</event>材料</par>
-                    <par><event id="npc_goto_2">对今日的任务进行了解</event></par>
-                    <par><event id="%s" close="1">关闭</event></par>
-                </layout>
-            ]], getSubukGuildName(), SYS_EXIT)
+            dialog.post(uid,
+            {
+                string.format('这里是沙巴克城<t color="RED">%s</t>行会的领地。', getSubukGuildName()),
+                '欢迎光临，我收购蚂蚁卵或者骷髅骨之类的材料。',
+            },
+            {
+                dialog.link('npc_goto_1', '出售', {suffix = '材料'}),
+                dialog.link('npc_goto_2', '对今日的任务进行了解'),
+                dialog.link(SYS_EXIT, '关闭'),
+            })
         end
     end,
 
     ["npc_goto_1"] = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你要出售什么？</par>
-                <par></par>
-
-                <par><event id="%s">前一步</event></par>
-            </layout>
-        ]], SYS_ENTER)
+        dialog.post(uid, '你要出售什么？',
+        dialog.link(SYS_ENTER, '前一步'))
         invop.uidStartTrade(uid, "npc_goto_query_trade", "npc_goto_commit_trade", materialTypeList)
     end,
 
@@ -54,14 +39,7 @@ setEventHandler(
     end,
 
     ["npc_goto_2"] = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>今天没事情可拜托你了。</par>
-                <par></par>
-
-                <par><event id="%s" close="1">关闭</event></par>
-            </layout>
-        ]], SYS_EXIT)
+        dialog.post(uid, '今天没事情可拜托你了。',
+        dialog.link(SYS_EXIT, '关闭'))
     end,
 })

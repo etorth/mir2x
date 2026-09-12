@@ -57,32 +57,23 @@ setQuestFSMTable(
         [[
             local questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
                 [SYS_LABEL] = '幽灵盾的灵珠',
                 [SYS_ENTER] = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>在做什么。。不到飞天废矿找<t color="red">‘灵珠’</t>，认为现在是可以磨磨噌噌的时候嘛？现在很多人正在死去。千万快些 ！！</par>
-                            <par></par>
-                            <par><event id="npc_explain">修炼幽灵盾要做什么？</event></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '在做什么。。不到飞天废矿找<t color="red">‘灵珠’</t>，认为现在是可以磨磨噌噌的时候嘛？现在很多人正在死去。千万快些 ！！',
+                    {
+                        dialog.link('npc_explain', '修炼幽灵盾要做什么？'),
+                        dialog.link(SYS_EXIT, '结束'),
+                    })
                 end,
 
                 -- @mugong_hangma_explain
                 npc_explain = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>若想学幽灵盾，从魔法僵尸那儿找回<t color="red">灵珠</t>即可。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '若想学幽灵盾，从魔法僵尸那儿找回<t color="red">灵珠</t>即可。',
+                    dialog.link(SYS_EXIT, '结束'))
                 end,
             }
         ]])
@@ -99,6 +90,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -106,25 +98,13 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- the ELSESAY of @mugong_hangma_getring, you dropped it somewhere
                     if not server.player.hasItem(uid, '灵珠', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你丢失了灵珠哟。。这该怎么办。。。。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '你丢失了灵珠哟。。这该怎么办。。。。',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>幸运的是已经找到<t color="red">灵珠</t>了哟。好的，现在该是我遵守约定的时候了。请等一下。。</par>
-                            <par></par>
-                            <par><event id="npc_brew">下一步</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath, '幸运的是已经找到<t color="red">灵珠</t>了哟。好的，现在该是我遵守约定的时候了。请等一下。。',
+                    dialog.link('npc_brew', '下一步'))
                 end,
 
                 -- @mugong_hangma_getring_next, take 灵珠 / give 无名药, SET [511]
@@ -133,14 +113,8 @@ setQuestFSMTable(
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>好的，请喝<t color="red">药水</t>。这个药是用你拿来的灵珠和其它灵验的药材一起加工制成的珍贵药。这个药可以大力提高内力，吃了这个药，在修炼武功的时候不会发生走火入魔的事情。</par>
-                            <par></par>
-                            <par><event id="%s" close="1">不，如何承受得了这种辛苦?</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '好的，请喝<t color="red">药水</t>。这个药是用你拿来的灵珠和其它灵验的药材一起加工制成的珍贵药。这个药可以大力提高内力，吃了这个药，在修炼武功的时候不会发生走火入魔的事情。',
+                    dialog.link(SYS_EXIT, '不，如何承受得了这种辛苦?'))
 
                     server.player.removeItem(uid, '灵珠', 1)
                     server.player.addItem(uid, '无名药', 1)
@@ -161,6 +135,7 @@ setQuestFSMTable(
         [[
             local questUID, questName = ...
             local questPath = {SYS_EPUID, questName}
+            local dialog = require('include.dialog')
 
             return
             {
@@ -168,38 +143,23 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- checkitem 无名药 1
                     if server.player.hasItem(uid, '无名药', 1) then
-                        uidPostXML(uid, questPath,
-                        [=[
-                            <layout>
-                                <par>你不是已经吃这个药嘛，快点把这个药吃了。</par>
-                                <par></par>
-                                <par><event id="%s" close="1">结束</event></par>
-                            </layout>
-                        ]=], SYS_EXIT)
+                        dialog.post(uid, questPath, '你不是已经吃这个药嘛，快点把这个药吃了。',
+                        dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>为天下万民就连自己的生命都可以像棵草一样抛弃的真正英雄，如果这点都做不到，还可以堂堂正正地生活在世上吗？</par>
-                            <par>希望你保持慈善的本性，成为为天下民众费心的<t color="red">真正道士</t>。</par>
-                            <par></par>
-                            <par><event id="npc_take_book">谢谢.</event></par>
-                        </layout>
-                    ]=])
+                    dialog.post(uid, questPath,
+                    {
+                        '为天下万民就连自己的生命都可以像棵草一样抛弃的真正英雄，如果这点都做不到，还可以堂堂正正地生活在世上吗？',
+                        '希望你保持慈善的本性，成为为天下民众费心的<t color="red">真正道士</t>。',
+                    },
+                    dialog.link('npc_take_book', '谢谢.'))
                 end,
 
                 -- @mugong_hangma_getring_next2
                 npc_take_book = function(uid, value)
-                    uidPostXML(uid, questPath,
-                    [=[
-                        <layout>
-                            <par>那么就到此为止了，请上路吧！你现在要做的事情还有很多，千万要小心！</par>
-                            <par></par>
-                            <par><event id="%s" close="1">结束</event></par>
-                        </layout>
-                    ]=], SYS_EXIT)
+                    dialog.post(uid, questPath, '那么就到此为止了，请上路吧！你现在要做的事情还有很多，千万要小心！',
+                    dialog.link(SYS_EXIT, '结束'))
 
                     server.player.deliverGold(uid, 22000)
                     server.player.addItem(uid, '幽灵盾（秘籍）', 1)
@@ -233,17 +193,12 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 [[
     local questUID, questName, minQuestLevel, magicName = ...
     local questPath = {SYS_EPQST, questName}
+    local dialog = require('include.dialog')
 
     -- the ELSESAY he gives a non-taoist, twice over in the legacy branches
     local function postWrongJob(uid)
-        uidPostXML(uid, questPath,
-        [=[
-            <layout>
-                <par>对不起，施主不是道士，不能修炼该武功，请回去吧！</par>
-                <par></par>
-                <par><event id="%s" close="1">结束</event></par>
-            </layout>
-        ]=], SYS_EXIT)
+        dialog.post(uid, questPath, '对不起，施主不是道士，不能修炼该武功，请回去吧！',
+        dialog.link(SYS_EXIT, '结束'))
     end
 
     setQuestHandler(questName,
@@ -258,38 +213,22 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [722] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你不是已经收到书吗？那么你为什么还要索要？</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你不是已经收到书吗？那么你为什么还要索要？',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>有什么事情找我吗？</par>
-                    <par></par>
-                    <par><event id="npc_ask_teach">想得到前辈大飞圣僧的指教而来。</event></par>
-                    <par><event id="npc_just_greet">随便看看。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '有什么事情找我吗？',
+            {
+                dialog.link('npc_ask_teach', '想得到前辈大飞圣僧的指教而来。'),
+                dialog.link('npc_just_greet', '随便看看。'),
+            })
         end,
 
         -- the ELSESAY of @mugong_hangma, what he says if you are not here for the武功
         npc_just_greet = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>很高兴，我就是大飞圣僧。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '很高兴，我就是大飞圣僧。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @check_rootin, level first and then job, and the low-level branch has its own job check
@@ -301,116 +240,75 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- @mugong_hangma_lowlevel
             if server.player.getLevel(uid) < minQuestLevel then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>嗯，虽然不可以，那时还不具备修炼该武功的能力。后会有期！</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '嗯，虽然不可以，那时还不具备修炼该武功的能力。后会有期！',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_hangma_highlevel_next, checkmagic 幽灵盾
             if server.player.hasMagic(uid, magicName) then
-                uidPostXML(uid, questPath,
-                [=[
-                    <layout>
-                        <par>你已经正在修炼该武功了哟。好象去找寻其它新的武功更好些。</par>
-                        <par></par>
-                        <par><event id="%s" close="1">结束</event></par>
-                    </layout>
-                ]=], SYS_EXIT)
+                dialog.post(uid, questPath, '你已经正在修炼该武功了哟。好象去找寻其它新的武功更好些。',
+                dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>嘿嘿，虽然不知道什么事情，如果我可以帮忙就好了。</par>
-                    <par></par>
-                    <par><event id="npc_lore1">下一步</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '嘿嘿，虽然不知道什么事情，如果我可以帮忙就好了。',
+            dialog.link('npc_lore1', '下一步'))
         end,
 
         -- @mugong_hangma_highlevel_next2
         npc_lore1 = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>嗯，是这样的。当然按照道友所讲的。最近有魔力的怪兽频繁地出没于各个地方，对此魔力没有任何抵抗力的很多人正在遭受磨难。</par>
-                    <par>因此按照道友所讲是为了帮助这些人才想学习<t color="red">幽灵盾</t>的。</par>
-                    <par>嗯，为了他人而献身是我们道士所追求的基本精神，道友正在保持<t color="red">真正道士的精神</t>。我为你的善良品格而感动。</par>
-                    <par></par>
-                    <par><event id="npc_warning">教我武功吗？</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '嗯，是这样的。当然按照道友所讲的。最近有魔力的怪兽频繁地出没于各个地方，对此魔力没有任何抵抗力的很多人正在遭受磨难。',
+                '因此按照道友所讲是为了帮助这些人才想学习<t color="red">幽灵盾</t>的。',
+                '嗯，为了他人而献身是我们道士所追求的基本精神，道友正在保持<t color="red">真正道士的精神</t>。我为你的善良品格而感动。',
+            },
+            dialog.link('npc_warning', '教我武功吗？'))
         end,
 
         -- @mugong_hangma_highlevel_next3, the warning you can back out of
         npc_warning = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>使用这种武功时，会从施功者体内消耗巨大的功力，但长时间修炼功力强者没关系。没有此功力者将功力同化，身体无法动弹。严重时会损伤气脉成为废人。</par>
-                    <par>为了防止这种危险，虽然已经使用护身符和辅助工具，但是如果发功者的内力不优秀完全起不到任何作用。这样还想学习该武功吗？</par>
-                    <par></par>
-                    <par><event id="npc_resolved">已经做好了献出生命的准备。</event></par>
-                    <par><event id="npc_reconsider">重新考虑一下！</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath,
+            {
+                '使用这种武功时，会从施功者体内消耗巨大的功力，但长时间修炼功力强者没关系。没有此功力者将功力同化，身体无法动弹。严重时会损伤气脉成为废人。',
+                '为了防止这种危险，虽然已经使用护身符和辅助工具，但是如果发功者的内力不优秀完全起不到任何作用。这样还想学习该武功吗？',
+            },
+            {
+                dialog.link('npc_resolved', '已经做好了献出生命的准备。'),
+                dialog.link('npc_reconsider', '重新考虑一下！'),
+            })
         end,
 
         -- @mugong_hangma_highlevel_next3_except
         npc_reconsider = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>好的</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '好的',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_hangma_highlevel_next4, and he asks for the favour before teaching
         npc_resolved = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>已经下了这么大的决心也是没有办法的事情。好的！我将传授幽灵盾给你。但是这之前帮我做一件事情可以吗？</par>
-                    <par></par>
-                    <par><event id="npc_accept_favor">好的。</event></par>
-                    <par><event id="npc_refuse_favor">不行。</event></par>
-                </layout>
-            ]=])
+            dialog.post(uid, questPath, '已经下了这么大的决心也是没有办法的事情。好的！我将传授幽灵盾给你。但是这之前帮我做一件事情可以吗？',
+            {
+                dialog.link('npc_accept_favor', '好的。'),
+                dialog.link('npc_refuse_favor', '不行。'),
+            })
         end,
 
         -- @mugong_hangma_highlevel_next5_except
         npc_refuse_favor = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>嗯。。如果那样，我也不能将武功传授给你。</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath, '嗯。。如果那样，我也不能将武功传授给你。',
+            dialog.link(SYS_EXIT, '结束'))
         end,
 
         -- @mugong_hangma_highlevel_next5, set [509]
         npc_accept_favor = function(uid, value)
-            uidPostXML(uid, questPath,
-            [=[
-                <layout>
-                    <par>不是其它的事情，听说过生活在飞天费矿的魔法僵尸吗？如果抓到<t color="red">魔法 僵尸</t>偶而会有叫做<t color="red">'灵珠'</t>的奇特珠子出来，请将这个东西拿给我。请不要问这个东西用在哪儿和为什么需要。</par>
-                    <par>只要将这个珠子拿来，将传授武功给你。好了，请快去快回！</par>
-                    <par></par>
-                    <par><event id="%s" close="1">结束</event></par>
-                </layout>
-            ]=], SYS_EXIT)
+            dialog.post(uid, questPath,
+            {
+                '不是其它的事情，听说过生活在飞天费矿的魔法僵尸吗？如果抓到<t color="red">魔法 僵尸</t>偶而会有叫做<t color="red">\'灵珠\'</t>的奇特珠子出来，请将这个东西拿给我。请不要问这个东西用在哪儿和为什么需要。',
+                '只要将这个珠子拿来，将传授武功给你。好了，请快去快回！',
+            },
+            dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})
         end,

@@ -1,3 +1,4 @@
+local dialog = require('include.dialog')
 local tp = {}
 
 function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
@@ -8,24 +9,14 @@ function tp.uidReqSpaceMove(uid, mapName, x, y, gold, level)
     assertType(level, 'integer')
 
     if gold > 0 and gold > uidQueryGold(uid) then
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你没有%d金币！</par>
-                <par><event id="%s">关闭</event></par>
-            </layout>
-        ]], gold, SYS_EXIT)
+        dialog.post(uid, string.format('你没有%d金币！', gold),
+        dialog.link(SYS_EXIT, '关闭', {close = false}))
         return
     end
 
     if level > 0 and level > uidQueryLevel(uid) then
-        uidPostXML(uid,
-        [[
-            <layout>
-                <par>你还没达到%d级！</par>
-                <par><event id="%s">关闭</event></par>
-            </layout>
-        ]], level, SYS_EXIT)
+        dialog.post(uid, string.format('你还没达到%d级！', level),
+        dialog.link(SYS_EXIT, '关闭', {close = false}))
         return
     end
 
@@ -55,6 +46,11 @@ function tp.setTeleport(titlePar, dst)
         fatalPrintf('expect an XML paragraph string, get %s', type(titlePar))
     end
 
+    local titleText = string.match(titlePar, '^<par>(.*)</par>$')
+    if titleText == nil then
+        fatalPrintf('expect titlePar to be a single <par>...</par> XML fragment, get %s', titlePar)
+    end
+
     if type(dst) ~= 'table' then
         fatalPrintf('invalid argument: dst:%s', type(dst))
     end
@@ -67,7 +63,7 @@ function tp.setTeleport(titlePar, dst)
             fatalPrintf('expect table entry, get %s', type(d))
         else
             if tableSize(d) == 0 then
-                table.insert(dstParList, '<par></par>')
+                table.insert(dstParList, '')
             else
                 if type(d.map) ~= 'string' then
                     addLog(LOGTYPE_WARNING, 'ignore invalid map: npc = %s', getNPCName())
@@ -94,15 +90,17 @@ function tp.setTeleport(titlePar, dst)
                         end
                     end
 
+                    local label
                     if gold > 0 and level > 0 then
-                        table.insert(dstParList, string.format('<par><event id="%s" close="1">%s（金币%d，等级%d）</event></par>', gotoTag, mapName, gold, level))
+                        label = string.format('%s（金币%d，等级%d）', mapName, gold, level)
                     elseif gold > 0 then
-                        table.insert(dstParList, string.format('<par><event id="%s" close="1">%s（金币%d）</event></par>', gotoTag, mapName, gold))
+                        label = string.format('%s（金币%d）', mapName, gold)
                     elseif level > 0 then
-                        table.insert(dstParList, string.format('<par><event id="%s" close="1">%s（等级%d）</event></par>', gotoTag, mapName, level))
+                        label = string.format('%s（等级%d）', mapName, level)
                     else
-                        table.insert(dstParList, string.format('<par><event id="%s" close="1">%s</event></par>', gotoTag, mapName))
+                        label = mapName
                     end
+                    table.insert(dstParList, dialog.link(gotoTag, label, {close = true}))
 
                     processHandle[gotoTag] = function(uid, value)
                         tp.uidReqSpaceMove(uid, d.map, d.x, d.y, gold, level)
@@ -117,15 +115,14 @@ function tp.setTeleport(titlePar, dst)
     end
 
     processHandle[SYS_ENTER] = function(uid, value)
-        uidPostXML(uid,
-        [[
-            <layout>
-                %s
-                <par></par>
-                %s
-                <par><event id="%s">关闭</event></par>
-            </layout>
-        ]], titlePar, table.concat(dstParList), SYS_EXIT)
+        local choices = {}
+        for _, line in ipairs(dstParList) do
+            table.insert(choices, line)
+        end
+        table.insert(choices, dialog.link(SYS_EXIT, '关闭', {close = false}))
+
+        dialog.post(uid, titleText,
+        choices)
     end
     setEventHandler(processHandle)
 end
