@@ -832,8 +832,8 @@ setQuestFSMTable(fsmName_persuade_librarian,
                             '怪不得呢！所以越过山脉的路就被隔断了啊！',
                             '你真的是认真努力的调查过啦！托您的福，史书的撰写进度加快了！等这本书全部完成之后一定会在末尾写上你的大名的。',
                             '那么请你去把我要加入比奇商会的意思转告给王大人吧！',
-                        },
-                        '真是太谢谢了！')
+                            '真是太谢谢了！',
+                        })
 
                         uidRemoteCall(questUID, uid, getNPCMapName(false), getNPCName(false),
                         [=[

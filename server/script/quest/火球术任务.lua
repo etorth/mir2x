@@ -78,9 +78,12 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 return
             end
 
-            dialog.post(uid, questPath, '想要学习火球术的样子。但是像你一样的初学者，在学习武功的过程中将遇到各种困难，我将给你进行详细地说明。现在你已经正式进入了成为魔法师的大门，恭喜你！',
+            dialog.post(uid, questPath,
             {
+                '想要学习火球术的样子。但是像你一样的初学者，在学习武功的过程中将遇到各种困难，我将给你进行详细地说明。现在你已经正式进入了成为魔法师的大门，恭喜你！',
                 '那么在给你秘籍之前，想听对武功的简单说明吗？',
+            },
+            {
                 dialog.link('npc_lore', '拜托您了！'),
                 dialog.link(SYS_EXIT, '没有必要了！'),
             })

@@ -97,9 +97,12 @@ local function setupTeacher(uid, retry)
 
         local function postTrialOffer(uid)
             if retry then
-                dialog.post(uid, questPath, '不是不管三七二十一就舞剑。<t color="red">先走心剑紧随其后。</t>保持心如止水，冷静对敌。',
+                dialog.post(uid, questPath,
                 {
+                    '不是不管三七二十一就舞剑。<t color="red">先走心剑紧随其后。</t>保持心如止水，冷静对敌。',
                     '想重新接受修炼吗？',
+                },
+                {
                     dialog.link('npc_enter_trial', '好的, 再拜托你一次。'),
                     dialog.link('npc_not_yet', '准备好了，再来！'),
                 })
@@ -288,9 +291,9 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 pitch,
                 '',
                 '现在你已经到了该修炼精神力战法的时候，我教你修炼。和修炼其它的魔法不一样，现在是修炼剑法，所以修炼方法和战士的修炼方法没有什么不同的。',
+                '怎么样？接受修炼吗？',
             },
             {
-                '怎么样？接受修炼吗？',
                 dialog.link('npc_accept', '好的，拜托了！'),
                 dialog.link('npc_explain', '修炼场里要做什么？'),
                 dialog.link('npc_not_yet', '准备好之后，再来！'),
