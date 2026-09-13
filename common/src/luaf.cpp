@@ -1,7 +1,5 @@
 #include <limits>
 #include "luaf.hpp"
-// put strf.h after luaf.h
-// this guarantees all defs of operator << () functions seen before str_any(const T &)
 #include "strf.hpp"
 #include "totype.hpp"
 #include "fflerror.hpp"
@@ -365,26 +363,6 @@ bool luaf::_details::_luaVarAsImpl<bool>::call(const luaf::luaVar &var)
 std::string luaf::_details::_luaVarAsImpl<std::string>::call(const luaf::luaVar &var)
 {
     return std::get<std::string>(var);
-}
-
-std::ostream & operator << (std::ostream &os, const sol::object &obj)
-{
-    return os << str_any(luaf::buildLuaVar(obj));
-}
-
-std::ostream & operator << (std::ostream &os, const sol::stack_proxy &proxy)
-{
-    return os << str_any(luaf::buildLuaVar(sol::object(proxy)));
-}
-
-std::ostream & operator << (std::ostream &os, const sol::variadic_args &args)
-{
-    return os << str_any(luaf::vargBuildLuaVarList(args));
-}
-
-std::ostream & operator << (std::ostream &os, const sol::protected_function_result &args)
-{
-    return os << str_any(luaf::pfrBuildLuaVarList(args));
 }
 
 std::ostream & luaf::operator << (std::ostream &os, const luaNil &)

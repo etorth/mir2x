@@ -90,6 +90,7 @@
 #include <algorithm>
 #include <numeric>
 #include <filesystem>
+#include <sol/sol.hpp> // for str_any(const sol::object &)
 
 #if defined(__GNUC__)
     #if defined(__MINGW32__) || defined(__MINGW64__)
@@ -100,6 +101,12 @@
 #else
     #define STR_PRINTF_CHECK_FORMAT(n)
 #endif
+
+// for str_any(const sol::object &)
+std::ostream & operator << (std::ostream &, const sol::object &);
+std::ostream & operator << (std::ostream &, const sol::stack_proxy &);
+std::ostream & operator << (std::ostream &, const sol::variadic_args &);
+std::ostream & operator << (std::ostream &, const sol::protected_function_result &);
 
 std::string str_now(const char * = nullptr);
 std::string str_localtime();

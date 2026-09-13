@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <sol/sol.hpp>
 #include "stdf.hpp"
+#include "fflerror.hpp"
 
 // c++ internal types <----> luaVar <----> lua types as sol::object
 //    lua_Integer         std::variant     sol::object
@@ -161,13 +162,6 @@ namespace luaf
     std::ostream &operator << (std::ostream &, const luaNil &);
     std::ostream &operator << (std::ostream &, const luaVarWrapper &);
 }
-
-std::ostream & operator << (std::ostream &, const sol::object &);
-std::ostream & operator << (std::ostream &, const sol::stack_proxy &);
-std::ostream & operator << (std::ostream &, const sol::variadic_args &);
-std::ostream & operator << (std::ostream &, const sol::protected_function_result &);
-
-#include "fflerror.hpp"
 
 namespace luaf
 {

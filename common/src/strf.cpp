@@ -4,6 +4,7 @@
 #include <cstring>
 #include <stdexcept>
 #include "strf.hpp"
+#include "luaf.hpp" // for str_any(const sol::object &)
 #include "raiitimer.hpp"
 
 std::string str_now(const char *format)
@@ -37,6 +38,26 @@ bool str_haschar(const std::string        &s) { return !s.empty(); }
 bool str_haschar(const std::u8string      &s) { return !s.empty(); }
 bool str_haschar(const std::string_view   &s) { return !s.empty(); }
 bool str_haschar(const std::u8string_view &s) { return !s.empty(); }
+
+std::ostream & operator << (std::ostream &os, const sol::object &obj)
+{
+    return os << str_any(luaf::buildLuaVar(obj));
+}
+
+std::ostream & operator << (std::ostream &os, const sol::stack_proxy &proxy)
+{
+    return os << str_any(luaf::buildLuaVar(sol::object(proxy)));
+}
+
+std::ostream & operator << (std::ostream &os, const sol::variadic_args &args)
+{
+    return os << str_any(luaf::vargBuildLuaVarList(args));
+}
+
+std::ostream & operator << (std::ostream &os, const sol::protected_function_result &args)
+{
+    return os << str_any(luaf::pfrBuildLuaVarList(args));
+}
 
 #define _macro_str_vprintf_body_s(s, format, ap) do \
 { \
