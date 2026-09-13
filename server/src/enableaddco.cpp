@@ -44,84 +44,86 @@ EnableAddCO::EnableAddCO(ActorPod *argPod)
     : m_actorPod(argPod)
 {
     fflassert(m_actorPod);
-    m_actorPod->registerOp(AM_ADDCO, [thisptr = this](this auto, const ActorMsgPack &mpk) -> corof::awaitable<>
+    m_actorPod->registerOp(AM_ADDCO, [this](const ActorMsgPack &mpk) -> corof::awaitable<>
     {
-        // always create CO if request received
-        // it's sender's responsibility to figure out to forward the request to which peer
+        return onMsgAddCO(mpk);
+    });
+}
 
-        const auto sdICO = mpk.deserialize<SDInitCharObject>();
-        const auto fnAddCO = [sdICO, fromAddr = mpk.fromAddr(), thisptr]()
-        {
-            std::string err;
-            try{
-                if(auto coPtr = thisptr->addCO(sdICO)){
-                    AMUID amUID;
-                    std::memset(&amUID, 0, sizeof(amUID));
+corof::awaitable<> EnableAddCO::onMsgAddCO(const ActorMsgPack &mpk)
+{
+    const auto sdICO = mpk.deserialize<SDInitCharObject>();
+    const auto fnAddCO = [sdICO, fromAddr = mpk.fromAddr(), this]()
+    {
+        std::string err;
+        try{
+            if(auto coPtr = addCO(sdICO)){
+                AMUID amUID;
+                std::memset(&amUID, 0, sizeof(amUID));
 
-                    amUID.uid = coPtr->UID();
-                    thisptr->m_actorPod->post(fromAddr, {AM_UID, amUID});
-                    return;
-                }
+                amUID.uid = coPtr->UID();
+                m_actorPod->post(fromAddr, {AM_UID, amUID});
+                return;
             }
-            catch(const std::exception &e){
-                err = str_haschar(e.what()) ? e.what() : "unknown error";
-            }
-            catch(...){
-                err = "unknown error";
-            }
+        }
+        catch(const std::exception &e){
+            err = str_haschar(e.what()) ? e.what() : "unknown error";
+        }
+        catch(...){
+            err = "unknown error";
+        }
 
-            if(!err.empty()){
-                g_server->addLog(LOGTYPE_WARNING, "Failed in EnableAddCO::ADDCO: %s", to_cstr(err));
-            }
-            thisptr->m_actorPod->post(fromAddr, AM_ERROR);
-        };
+        if(!err.empty()){
+            g_server->addLog(LOGTYPE_WARNING, "Failed in EnableAddCO::ADDCO: %s", to_cstr(err));
+        }
+        m_actorPod->post(fromAddr, AM_ERROR);
+    };
 
-        const auto mapUID = std::visit(stdf::VarDispatcher
-        {
-            [](const SDInitGuard   &sdIG  ) { return sdIG  .mapUID; },
-            [](const SDInitPlayer  &sdIP  ) { return sdIP  .mapUID; },
-            [](const SDInitNPChar  &sdINPC) { return sdINPC.mapUID; },
-            [](const SDInitMonster &sdIM  ) { return sdIM  .mapUID; },
-        },
+    const auto mapUID = std::visit(stdf::VarDispatcher
+    {
+        [](const SDInitGuard   &sdIG  ) { return sdIG  .mapUID; },
+        [](const SDInitPlayer  &sdIP  ) { return sdIP  .mapUID; },
+        [](const SDInitNPChar  &sdINPC) { return sdINPC.mapUID; },
+        [](const SDInitMonster &sdIM  ) { return sdIM  .mapUID; },
+    },
 
-        sdICO);
+    sdICO);
 
-        fflassert(uidf::isMap(mapUID));
-        if(thisptr->m_actorPod->UID() == mapUID){
+    fflassert(uidf::isMap(mapUID));
+    if(m_actorPod->UID() == mapUID){
+        fnAddCO();
+    }
+    else if(m_actorPod->UID() == uidf::getServiceCoreUID()){
+        if(mpk.from() == mapUID){
             fnAddCO();
         }
-        else if(thisptr->m_actorPod->UID() == uidf::getServiceCoreUID()){
-            if(mpk.from() == mapUID){
-                fnAddCO();
-            }
-            else if(const auto loadRes = co_await dynamic_cast<ServiceCore *>(thisptr->m_actorPod->getSO())->requestLoadMap(mapUID, false); loadRes.first){
-                fnAddCO();
-            }
-            else{
-                thisptr->m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-            }
+        else if(const auto loadRes = co_await dynamic_cast<ServiceCore *>(m_actorPod->getSO())->requestLoadMap(mapUID, false); loadRes.first){
+            fnAddCO();
         }
         else{
-            AMLoadMap amLM;
-            std::memset(&amLM, 0, sizeof(amLM));
-
-            amLM.mapUID = mapUID;
-            amLM.waitActivated = false;
-
-            switch(const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
-                case AM_LOADMAPOK:
-                    {
-                        fnAddCO();
-                        break;
-                    }
-                default:
-                    {
-                        thisptr->m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-                        break;
-                    }
-            }
+            m_actorPod->post(mpk.fromAddr(), AM_ERROR);
         }
-    });
+    }
+    else{
+        AMLoadMap amLM;
+        std::memset(&amLM, 0, sizeof(amLM));
+
+        amLM.mapUID = mapUID;
+        amLM.waitActivated = false;
+
+        switch(const auto rmpk = co_await m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
+            case AM_LOADMAPOK:
+                {
+                    fnAddCO();
+                    break;
+                }
+            default:
+                {
+                    m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+                    break;
+                }
+        }
+    }
 }
 
 bool EnableAddCO::adjustMapGLoc(uint32_t mapID, int &x, int &y, bool strictLoc)

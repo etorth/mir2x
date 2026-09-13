@@ -2,7 +2,9 @@
 #include <cstdint>
 #include <utility>
 #include <optional>
+#include "corof.hpp"
 #include "serdesmsg.hpp"
+#include "actormsgpack.hpp"
 
 class ActorPod;
 class CharObject;
@@ -17,6 +19,9 @@ class EnableAddCO
 
     public:
         explicit EnableAddCO(ActorPod *);
+
+    protected:
+        virtual corof::awaitable<> onMsgAddCO(const ActorMsgPack &);
 
     protected:
         bool adjustMapGLoc(uint32_t, int &, int &, bool);
