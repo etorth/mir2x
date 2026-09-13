@@ -1584,11 +1584,12 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
 
                     addDelay(delay, [cmA, thisptr = this](this auto, bool) -> corof::awaitable<>
                     {
-                        if(!co_await canDamageTarget(cmA.action.aimUID)){
+                        if(!co_await thisptr->canDamageTarget(cmA.action.aimUID)){
                             co_return;
                         }
-                        markAggression(co_await queryPlayerController(cmA.action.aimUID));
-                        dispatchAttackDamage(cmA.action.aimUID, cmA.action.extParam.spell.magicID, 0);
+
+                        thisptr->markAggression(co_await thisptr->queryPlayerController(cmA.action.aimUID));
+                        thisptr->dispatchAttackDamage(cmA.action.aimUID, cmA.action.extParam.spell.magicID, 0);
                         co_return;
                     });
                 }
@@ -1607,16 +1608,16 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
                 smFM.Y       = cmA.action.y;
                 smFM.AimUID  = cmA.action.aimUID;
 
-                addDelay(1400, [this, smFM](bool)
+                addDelay(1400, [smFM, this](bool)
                 {
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
                     addDelay(300, [smFM, thisptr = this](this auto, bool) -> corof::awaitable<>
                     {
-                        if(!co_await canDamageTarget(smFM.AimUID)){
+                        if(!co_await thisptr->canDamageTarget(smFM.AimUID)){
                             co_return;
                         }
-                        markAggression(co_await queryPlayerController(smFM.AimUID));
-                        dispatchAttackDamage(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"), 0);
+                        thisptr->markAggression(co_await thisptr->queryPlayerController(smFM.AimUID));
+                        thisptr->dispatchAttackDamage(smFM.AimUID, DBCOM_MAGICID(u8"雷电术"), 0);
                         co_return;
                     });
                 });
@@ -1632,7 +1633,7 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
                 smFM.Magic = magicID;
                 smFM.Speed = MagicSpeed();
 
-                addDelay(800, [this, smFM](bool)
+                addDelay(800, [smFM, this](bool)
                 {
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
                     addDelay(10000, [this](bool)
