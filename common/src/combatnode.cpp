@@ -44,9 +44,11 @@ CombatNode getCombatNode(const SDWear & wear, const SDLearnedMagicList &magicLis
 
             node.mc[0] += ir.equip.mc[0];
             node.mc[1] += ir.equip.mc[1];
+            node.mc[1] += item.getExtAttr<SDItem::EA_MC_t>().value_or(0);
 
             node.sc[0] += ir.equip.sc[0];
             node.sc[1] += ir.equip.sc[1];
+            node.sc[1] += item.getExtAttr<SDItem::EA_SC_t>().value_or(0);
 
             node.dcHit += ir.equip.dcHit;
             node.mcHit += ir.equip.mcHit;

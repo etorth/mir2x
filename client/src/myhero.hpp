@@ -113,7 +113,7 @@ class MyHero: public Hero
     public:
         CombatNode getCombatNode() const
         {
-            return ::getCombatNode(m_sdWLDesp.wear, {}, UID(), getLevel());
+            return ::getCombatNode(m_sdWLDesp.wear, {}, job(), getLevel());
         }
 
     public:

@@ -852,7 +852,7 @@ bool Player::dcValid(int, bool)
 
 DamageNode Player::getAttackDamage(int nDC, int) const
 {
-    const auto node = getCombatNode(m_sdItemStorage.wear, {}, UID(), level());
+    const auto node = getCombatNode(m_sdItemStorage.wear, {}, job(), level());
     const double elemRatio = 1.0 + 0.1 * [nDC, &node]() -> int
     {
         const auto &mr = DBCOM_MAGICRECORD(nDC);
@@ -926,7 +926,7 @@ bool Player::struckDamage(uint64_t fromUID, const DamageNode &node)
 
     const auto damage = [&node, this]() -> int
     {
-        const auto combatNode = getCombatNode(m_sdItemStorage.wear, {}, UID(), level());
+        const auto combatNode = getCombatNode(m_sdItemStorage.wear, {}, job(), level());
         if(DBCOM_MAGICID(u8"物理攻击") == to_u32(node.magicID)){
             return std::max<int>(0, node.damage - combatNode.randPickAC());
         }
@@ -1500,7 +1500,7 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
     const auto magicID = cmA.action.extParam.spell.magicID;
 
     dispatchAction(cmA.action);
-    const auto node = getCombatNode(m_sdItemStorage.wear, m_sdLearnedMagicList, UID(), level());
+    const auto node = getCombatNode(m_sdItemStorage.wear, m_sdLearnedMagicList, job(), level());
 
     switch(magicID){
         case DBCOM_MAGICID(u8"治愈术"):
@@ -1582,7 +1582,7 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
                     const auto ld = mathf::LDistance<float>(coLoc.x, coLoc.y, cmA.action.x, cmA.action.y);
                     const auto delay = ld * 100;
 
-                    addDelay(delay, [cmA, this](bool) -> corof::awaitable<>
+                    addDelay(delay, [cmA, thisptr = this](this auto, bool) -> corof::awaitable<>
                     {
                         if(!co_await canDamageTarget(cmA.action.aimUID)){
                             co_return;
@@ -1610,7 +1610,7 @@ corof::awaitable<> Player::onCMActionSpell(CMAction cmA)
                 addDelay(1400, [this, smFM](bool)
                 {
                     dispatchNetPackage(true, SM_CASTMAGIC, smFM);
-                    addDelay(300, [smFM, this](bool) -> corof::awaitable<>
+                    addDelay(300, [smFM, thisptr = this](this auto, bool) -> corof::awaitable<>
                     {
                         if(!co_await canDamageTarget(smFM.AimUID)){
                             co_return;
