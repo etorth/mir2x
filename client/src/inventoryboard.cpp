@@ -587,12 +587,22 @@ void InventoryBoard::packBinConsume(const PackBin &bin)
 
     else if(to_u8sv(ir.type) == u8"手镯"){
         InvPack::playItemSoundEffect(bin.item.itemID, true);
-        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_ARMRING0);
+        if(!m_processRun->getMyHero()->getWLDesp().wear.getWLItem(WLG_ARMRING0)){
+            m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_ARMRING0);
+        }
+        else{
+            m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_ARMRING1);
+        }
     }
 
     else if(to_u8sv(ir.type) == u8"戒指"){
         InvPack::playItemSoundEffect(bin.item.itemID, true);
-        m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_RING0);
+        if(!m_processRun->getMyHero()->getWLDesp().wear.getWLItem(WLG_RING0)){
+            m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_RING0);
+        }
+        else{
+            m_processRun->requestEquipWear(bin.item.itemID, bin.item.seqID, WLG_RING1);
+        }
     }
 }
 
