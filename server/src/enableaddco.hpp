@@ -14,7 +14,7 @@ class NPChar;
 class Monster;
 class EnableAddCO
 {
-    private:
+    protected:
         ActorPod * m_actorPod;
 
     public:

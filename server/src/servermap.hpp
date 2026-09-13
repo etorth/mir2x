@@ -54,6 +54,14 @@ class ServerMap final: public ServerObject
         };
 
     private:
+        class EnableServerMapAddCO: public EnableAddCO
+        {
+            public:
+                explicit EnableServerMapAddCO(ActorPod *);
+                corof::awaitable<> onMsgAddCO(const ActorMsgPack &) override;
+        };
+
+    private:
         friend class ServerPathFinder;
         friend class ServerMap::LuaThreadRunner;
 
@@ -106,6 +114,9 @@ class ServerMap final: public ServerObject
                 return std::ranges::find(uidList, uid) != uidList.end();
             }
         };
+
+    private:
+        bool m_closing = false;
 
     private:
         std::unique_ptr<EnableAddCO> m_addCO;

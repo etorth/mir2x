@@ -529,6 +529,21 @@ ServerMap::ServerPathFinder::ServerPathFinder(const ServerMap *mapPtr, int argMa
     fflassert(maxStep() <= 3, maxStep());
 }
 
+ServerMap::EnableServerMapAddCO::EnableServerMapAddCO(ActorPod *actorPod)
+    : EnableAddCO(actorPod)
+{}
+
+corof::awaitable<> ServerMap::EnableServerMapAddCO::onMsgAddCO(const ActorMsgPack &mpk)
+{
+    if(static_cast<ServerMap *>(m_actorPod->getSO())->m_closing){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+        return {};
+    }
+    else{
+        return EnableAddCO::onMsgAddCO(mpk);
+    }
+}
+
 ServerMap::ServerMap(uint64_t argMapUID)
     : ServerObject(argMapUID)
     , m_mapBin([argMapUID]()
@@ -1336,7 +1351,7 @@ void ServerMap::updateMapGridGroundItem()
 void ServerMap::beforeActivate()
 {
     ServerObject::beforeActivate();
-    m_addCO = std::make_unique<EnableAddCO>(m_actorPod);
+    m_addCO = std::make_unique<EnableServerMapAddCO>(m_actorPod);
 }
 
 corof::awaitable<> ServerMap::onActivate()
