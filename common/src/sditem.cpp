@@ -277,7 +277,7 @@ luaf::luaVar SDItem::asLuaVar() const
     {
         {"itemID", itemID},
         { "seqID",  seqID},
-        { "count", to_i64(count)}, // size_t -> lua_Integer narrows, cast explicitly to avoid list-init error
+        { "count", to_luaInt(count)}, // size_t -> lua_Integer narrows, cast explicitly to avoid list-init error
     };
 
     std::unordered_map<std::string, luaf::luaVar> extAttrs;
@@ -308,9 +308,9 @@ SDItem SDItem::fromLuaVar(const luaf::luaVar &var)
                 if(key == "itemID"){
                     item.itemID = std::visit(stdf::VarDispatcher
                     {
-                        [](const lua_Integer &v) -> uint32_t { return v; },
-                        [](const std::string &v) -> uint32_t { return DBCOM_ITEMID(v.c_str()); },
-                        [](const auto        &v) -> uint32_t { throw fflvalue(v); },
+                        [      ](const lua_Integer &v) -> uint32_t { return v; },
+                        [      ](const std::string &v) -> uint32_t { return DBCOM_ITEMID(v.c_str()); },
+                        [&value](const auto         &) -> uint32_t {  throw fflvalue(luaf::luaVarTypeString(value), value); },
                     }, value);
                 }
                 else if(key == "seqID"){

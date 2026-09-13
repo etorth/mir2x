@@ -136,13 +136,13 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         }
     });
 
-    bindCoop("_RSVD_NAME_loadMap", [thisptr = this](this auto, LuaCoopResumer onDone, sol::object mapName) -> corof::awaitable<>
+    bindCoop("_RSVD_NAME_loadMap", [thisptr = this](this auto, LuaCoopResumer onDone, sol::object mapVar) -> corof::awaitable<>
     {
-        const auto mapID = [&mapName]() -> uint32_t
+        const auto mapID = [&mapVar]() -> uint32_t
         {
-            if(mapName.is<std::string>()) return DBCOM_MAPID(mapName.as<std::string>().c_str());
-            if(mapName.is<lua_Integer>()) return static_cast<uint32_t>(mapName.as<lua_Integer>());
-            throw fflpanic("invalid sol::object type");
+            if(mapVar.is<std::string>()) return DBCOM_MAPID(mapVar.as<std::string>().c_str());
+            if(mapVar.is<lua_Integer>()) return to_u32(mapVar.as<lua_Integer>());
+            throw fflvalue(luaf::luaObjTypeString(mapVar), mapVar);
         }();
 
         fflassert(mapID);

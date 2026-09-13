@@ -9,27 +9,29 @@
 #include <vector>
 #include <stdexcept>
 #include <string_view>
+#include <sol/sol.hpp> // for lua_Integer
 #include "stdf.hpp"
 
-inline auto to_d    (auto x){ return static_cast<               int>(x); }
-inline auto to_u    (auto x){ return static_cast<      unsigned int>(x); }
-inline auto to_f    (auto x){ return static_cast<             float>(x); }
-inline auto to_df   (auto x){ return static_cast<            double>(x); }
-inline auto to_ld   (auto x){ return static_cast<              long>(x); }
-inline auto to_lu   (auto x){ return static_cast<     unsigned long>(x); }
-inline auto to_lld  (auto x){ return static_cast<         long long>(x); }
-inline auto to_llu  (auto x){ return static_cast<unsigned long long>(x); }
-inline auto to_uz   (auto x){ return static_cast<            size_t>(x); }
-inline auto to_zu   (auto x){ return static_cast<            size_t>(x); }
-inline auto to_i8   (auto x){ return static_cast<            int8_t>(x); }
-inline auto to_i16  (auto x){ return static_cast<           int16_t>(x); }
-inline auto to_i32  (auto x){ return static_cast<           int32_t>(x); }
-inline auto to_i64  (auto x){ return static_cast<           int64_t>(x); }
-inline auto to_u8   (auto x){ return static_cast<           uint8_t>(x); }
-inline auto to_u16  (auto x){ return static_cast<          uint16_t>(x); }
-inline auto to_u32  (auto x){ return static_cast<          uint32_t>(x); }
-inline auto to_u64  (auto x){ return static_cast<          uint64_t>(x); }
-inline auto to_cvptr(auto x){ return static_cast<      const void *>(x); }
+inline auto to_d     (auto x){ return static_cast<               int>(x); }
+inline auto to_u     (auto x){ return static_cast<      unsigned int>(x); }
+inline auto to_f     (auto x){ return static_cast<             float>(x); }
+inline auto to_df    (auto x){ return static_cast<            double>(x); }
+inline auto to_ld    (auto x){ return static_cast<              long>(x); }
+inline auto to_lu    (auto x){ return static_cast<     unsigned long>(x); }
+inline auto to_lld   (auto x){ return static_cast<         long long>(x); }
+inline auto to_llu   (auto x){ return static_cast<unsigned long long>(x); }
+inline auto to_uz    (auto x){ return static_cast<            size_t>(x); }
+inline auto to_zu    (auto x){ return static_cast<            size_t>(x); }
+inline auto to_i8    (auto x){ return static_cast<            int8_t>(x); }
+inline auto to_i16   (auto x){ return static_cast<           int16_t>(x); }
+inline auto to_i32   (auto x){ return static_cast<           int32_t>(x); }
+inline auto to_i64   (auto x){ return static_cast<           int64_t>(x); }
+inline auto to_u8    (auto x){ return static_cast<           uint8_t>(x); }
+inline auto to_u16   (auto x){ return static_cast<          uint16_t>(x); }
+inline auto to_u32   (auto x){ return static_cast<          uint32_t>(x); }
+inline auto to_u64   (auto x){ return static_cast<          uint64_t>(x); }
+inline auto to_cvptr (auto x){ return static_cast<      const void *>(x); }
+inline auto to_luaInt(auto x){ return static_cast<       lua_Integer>(x); }
 
 template<typename T, typename F> static T check_cast(F from)
 {

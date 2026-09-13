@@ -173,7 +173,7 @@ namespace luaf
 {
     std::string quotedLuaString(const std::string &);
     std::string luaObjTypeString(const sol::object &);
-    std::string luaVarTypeStirng(const luaf::luaVar &);
+    std::string luaVarTypeString(const luaf::luaVar &);
 }
 
 namespace luaf
