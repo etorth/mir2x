@@ -168,6 +168,21 @@ std::string luaf::luaObjTypeString(const sol::object &obj)
     return sol::type_name(obj.lua_state(), obj.get_type());
 }
 
+std::string luaf::luaVarTypeString(const luaf::luaVar &var)
+{
+    return std::visit(stdf::VarDispatcher
+    {
+        [](const luaf::luaNil   &) -> std::string { return "nil"    ; },
+        [](const luaf::luaArray &) -> std::string { return "array"  ; },
+        [](const luaf::luaTable &) -> std::string { return "table"  ; },
+        [](const lua_Integer    &) -> std::string { return "integer"; },
+        [](const double         &) -> std::string { return "decimal"; },
+        [](const bool           &) -> std::string { return "boolean"; },
+        [](const std::string    &) -> std::string { return "string" ; },
+        [](const auto           &) -> std::string { throw fflerror("invalid type"); },
+    }, var);
+}
+
 sol::object luaf::buildLuaObj(sol::state_view sv, luaf::luaNil)
 {
     return sol::make_object(sv, sol::lua_nil);
