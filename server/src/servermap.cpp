@@ -473,7 +473,7 @@ ServerMap::LuaThreadRunner::LuaThreadRunner(ServerMap *serverMapPtr)
         AMMapSwitchTrigger amMST;
         std::memset(&amMST, 0, sizeof(amMST));
 
-        amMST.mapUID = uidsf::getMapBaseUID(mapID);
+        amMST.mapUID = uidsf::getBaseMapUID(mapID);
         amMST.X      = x;
         amMST.Y      = y;
 
@@ -564,7 +564,7 @@ ServerMap::ServerMap(uint64_t argMapUID)
             for(int nW = 0; nW < entry.w; ++nW){
                 for(int nH = 0; nH < entry.h; ++nH){
                     if(const auto mapID = DBCOM_MAPID(entry.endName)){
-                        getGrid(entry.x + nW, entry.y + nH).mapUID  = uidsf::getMapBaseUID(mapID);
+                        getGrid(entry.x + nW, entry.y + nH).mapUID  = uidsf::getBaseMapUID(mapID);
                         getGrid(entry.x + nW, entry.y + nH).switchX = entry.endX;
                         getGrid(entry.x + nW, entry.y + nH).switchY = entry.endY;
                     }

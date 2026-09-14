@@ -67,7 +67,7 @@ namespace uidf
 
     uint64_t getQuestUID(uint32_t);
     uint64_t getPlayerUID(uint32_t);
-    uint64_t getMapBaseUID(uint32_t, size_t /* peerIndex */);
+    uint64_t getBaseMapUID(uint32_t, size_t /* peerIndex */);
 }
 
 namespace uidf

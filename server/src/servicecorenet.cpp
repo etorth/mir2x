@@ -121,7 +121,7 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
     const int mapX  = queryChar.getColumn("fld_mapx");
     const int mapY  = queryChar.getColumn("fld_mapy");
 
-    const uint64_t mapUID = uidsf::getMapBaseUID(mapID); // same mapID always maps to same UID
+    const uint64_t mapUID = uidsf::getBaseMapUID(mapID); // same mapID always maps to same UID
     SDInitCharObject sdICO = SDInitPlayer
     {
         .dbid      = dbidOpt.value().first,

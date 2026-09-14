@@ -143,7 +143,7 @@ template<UIDType uidType> static uint64_t _build_UID_helper(bool allowZeroId, ui
         (to_u64(    seqID) <<       seqBitOff) ;
 }
 
-uint64_t uidf::buildMapUID    (uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_MAP>(false, id, peerIndex, 2, std::nullopt); } // 1 used for map base UID
+uint64_t uidf::buildMapUID    (uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_MAP>(false, id, peerIndex, 2, std::nullopt); } // 1 used for base map UID
 uint64_t uidf::buildNPCUID    (uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_NPC>(true , id, peerIndex, 1, std::nullopt); }
 uint64_t uidf::buildMonsterUID(uint32_t id, size_t peerIndex) { return _build_UID_helper<UID_MON>(false, id, peerIndex, 1, std::nullopt); }
 
@@ -174,7 +174,7 @@ uint64_t uidf::getQuestUID(uint32_t questID)
     return (to_u64(UID_QST) << uidTypeBitOff) + questID;
 }
 
-uint64_t uidf::getMapBaseUID(uint32_t mapID, size_t peerIndex)
+uint64_t uidf::getBaseMapUID(uint32_t mapID, size_t peerIndex)
 {
     return _build_UID_helper<UID_MAP>(false, mapID, peerIndex, 2, 1);
 }

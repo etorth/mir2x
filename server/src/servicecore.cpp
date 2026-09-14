@@ -135,7 +135,7 @@ corof::awaitable<> ServiceCore::onActivate()
     std::set<uint64_t> loadedMapList;
     for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
         if(g_serverArgParser->masterConfig().preloadMapCheck(mapID)){
-            const uint64_t mapUID = uidsf::getMapBaseUID(mapID);
+            const uint64_t mapUID = uidsf::getBaseMapUID(mapID);
             if(const auto [loaded, _] = co_await requestLoadMap(mapUID, false); loaded){
                 loadedMapList.insert(mapUID);
                 g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));

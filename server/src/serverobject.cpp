@@ -153,7 +153,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         AMLoadMap amLM;
         std::memset(&amLM, 0, sizeof(AMLoadMap));
 
-        amLM.mapUID = uidsf::getMapBaseUID(mapID);
+        amLM.mapUID = uidsf::getBaseMapUID(mapID);
         amLM.waitActivated = true;
 
         const auto mpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM});

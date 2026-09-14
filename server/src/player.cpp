@@ -355,7 +355,7 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         bool closed = false;
         onDone.pushOnClose([&closed](){ closed = true; });
 
-        const auto argMapUID = uidf::isMap(argMap) ? argMap : uidsf::getMapBaseUID(to_u32(argMap));
+        const auto argMapUID = uidf::isMap(argMap) ? argMap : uidsf::getBaseMapUID(to_u32(argMap));
 
         const auto &mr = DBCOM_MAPRECORD(uidf::getMapID(argMapUID));
         fflassert(mr, uidf::getUIDString(argMapUID));
@@ -721,7 +721,7 @@ corof::awaitable<> Player::operateNet(uint8_t nType, const uint8_t *pData, size_
         _support_cm(CM_PICKUP                    );
         _support_cm(CM_PING                      );
         _support_cm(CM_QUERYCORECORD             );
-        _support_cm(CM_QUERYMAPBASEUID           );
+        _support_cm(CM_QUERYBASEMAPUID           );
         _support_cm(CM_QUERYGOLD                 );
         _support_cm(CM_QUERYPLAYERNAME           );
         _support_cm(CM_QUERYPLAYERWLDESP         );

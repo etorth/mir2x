@@ -50,9 +50,9 @@ bool uidsf::isLocalUID(uint64_t uid)
     return uidf::peerIndex(uid) == uidsf::peerIndex();
 }
 
-uint64_t uidsf::getMapBaseUID(uint32_t mapID)
+uint64_t uidsf::getBaseMapUID(uint32_t mapID)
 {
-    return uidf::getMapBaseUID(mapID, uidsf::pickPeerIndex(UID_MAP, mapID));
+    return uidf::getBaseMapUID(mapID, uidsf::pickPeerIndex(UID_MAP, mapID));
 }
 
 uint64_t uidsf::getPeerCoreUID()

@@ -611,7 +611,7 @@ corof::awaitable<> ServerMap::on_AM_CLOSEINSTANCEMAP(const ActorMsgPack &mpk)
             AMMapSwitchTrigger amMST;
             std::memset(&amMST, 0, sizeof(amMST));
 
-            amMST.mapUID = uidsf::getMapBaseUID(fallbackMapID);
+            amMST.mapUID = uidsf::getBaseMapUID(fallbackMapID);
             amMST.X      = amCIM.fallbackX;
             amMST.Y      = amCIM.fallbackY;
             m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST});

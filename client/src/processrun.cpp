@@ -1414,7 +1414,7 @@ void ProcessRun::registerLuaExport(ClientLuaModule *luaModulePtr)
             fnRequestSpaceMove(argMapUID);
         }
         else if(argMapID){
-            queryMapBaseUID(argMapID, fnRequestSpaceMove);
+            queryBaseMapUID(argMapID, fnRequestSpaceMove);
         }
         else{
             addCBLog(CBLOG_ERR, u8"Move request failed: No map provided");
@@ -2519,15 +2519,15 @@ void ProcessRun::queryUIDBuff(uint64_t uid) const
     }
 }
 
-void ProcessRun::queryMapBaseUID(uint32_t mapID, std::function<void(uint64_t)> op) const
+void ProcessRun::queryBaseMapUID(uint32_t mapID, std::function<void(uint64_t)> op) const
 {
     fflassert(mapID);
 
-    CMQueryMapBaseUID cmQMBUID;
+    CMQueryBaseMapUID cmQMBUID;
     std::memset(&cmQMBUID, 0, sizeof(cmQMBUID));
 
     cmQMBUID.mapID = mapID;
-    g_client->send({CM_QUERYMAPBASEUID, cmQMBUID}, [op = std::move(op)](uint8_t headCode, const uint8_t *buf, size_t bufSize)
+    g_client->send({CM_QUERYBASEMAPUID, cmQMBUID}, [op = std::move(op)](uint8_t headCode, const uint8_t *buf, size_t bufSize)
     {
         switch(headCode){
             case SM_UID:

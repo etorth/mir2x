@@ -512,7 +512,7 @@ bool Server::addMonster(uint32_t monsterID, uint32_t mapID, int x, int y, bool s
 {
     addLog(LOGTYPE_INFO, "Try to add monster, monsterID %llu.", to_llu(monsterID));
 
-    const auto mapUID = uidsf::getMapBaseUID(mapID);
+    const auto mapUID = uidsf::getBaseMapUID(mapID);
     const auto peerIndex = uidf::peerIndex(mapUID);
 
     SDInitCharObject sdICO = SDInitMonster
@@ -554,7 +554,7 @@ bool Server::loadBaseMap(uint32_t mapID)
     AMLoadMap amLM;
     std::memset(&amLM, 0, sizeof(amLM));
 
-    amLM.mapUID = uidsf::getMapBaseUID(mapID);
+    amLM.mapUID = uidsf::getBaseMapUID(mapID);
     switch(const auto rmpk = SyncDriver().forward(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); rmpk.type()){
         case AM_LOADMAPOK:
             {
@@ -861,7 +861,7 @@ void Server::regLuaExport(CommandLuaModule *modulePtr, uint32_t nCWID)
             return -1;
         }
 
-        auto nRet = getMonsterCount(to_u32(nMonsterID), uidsf::getMapBaseUID(nMapID));
+        auto nRet = getMonsterCount(to_u32(nMonsterID), uidsf::getBaseMapUID(nMapID));
         if(!nRet.has_value()){
             addCWLogString(nCWID, 2, ">>> ", "countMonster(MonsterID: int, mapID: int) failed");
             return -1;

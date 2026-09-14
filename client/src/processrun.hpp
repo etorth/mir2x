@@ -394,7 +394,7 @@ class ProcessRun: public Process
         void queryInvOp(int, uint32_t, uint32_t) const;
 
     public:
-        void queryMapBaseUID(uint32_t, std::function<void(uint64_t)>) const;
+        void queryBaseMapUID(uint32_t, std::function<void(uint64_t)>) const;
 
     public:
         auto getWidget(this auto && self, const std::string_view &widgetName)

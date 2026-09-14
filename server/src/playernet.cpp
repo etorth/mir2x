@@ -202,14 +202,14 @@ corof::awaitable<> Player::net_CM_PING(uint8_t, const uint8_t *pBuf, size_t, uin
     return {};
 }
 
-corof::awaitable<> Player::net_CM_QUERYMAPBASEUID(uint8_t, const uint8_t *buf, size_t size, uint64_t respID)
+corof::awaitable<> Player::net_CM_QUERYBASEMAPUID(uint8_t, const uint8_t *buf, size_t size, uint64_t respID)
 {
-    const auto cmQMBUID = ClientMsg::conv<CMQueryMapBaseUID>(buf, size);
+    const auto cmQMBUID = ClientMsg::conv<CMQueryBaseMapUID>(buf, size);
     if(DBCOM_MAPRECORD(cmQMBUID.mapID)){
         SMUID smUID;
         std::memset(&smUID, 0, sizeof(smUID));
 
-        smUID.uid = uidsf::getMapBaseUID(cmQMBUID.mapID);
+        smUID.uid = uidsf::getBaseMapUID(cmQMBUID.mapID);
         postNetMessage(SM_UID, smUID, respID);
     }
     else{
