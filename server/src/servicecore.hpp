@@ -17,7 +17,7 @@ class ServiceCore final: public PeerCore
         friend class EnableAddCO;
 
     private:
-        struct RegisterLoadMapOpAwaiter
+        template<bool LoadMap> struct RegisterMapOpAwaiter
         {
             ServiceCore * const core;
             uint64_t      const mapUID;
@@ -29,17 +29,21 @@ class ServiceCore final: public PeerCore
 
             void await_suspend(std::coroutine_handle<> h)
             {
-                core->m_loadMapPendingOps[mapUID].push_back(h);
+                (LoadMap ? core->m_loadMapPendingOps : core->m_closeMapPendingOps)[mapUID].push_back(h);
             }
 
             std::pair<bool, bool> await_resume() const
             {
-                return {core->m_mapList.contains(mapUID), true};
+                return {core->m_mapList.contains(mapUID) == LoadMap, true};
             }
         };
 
+        using RegisterLoadMapOpAwaiter  = RegisterMapOpAwaiter<true>;
+        using RegisterCloseMapOpAwaiter = RegisterMapOpAwaiter<false>;
+
     private:
         std::unordered_map<uint64_t, std::vector<std::coroutine_handle<>>> m_loadMapPendingOps;
+        std::unordered_map<uint64_t, std::vector<std::coroutine_handle<>>> m_closeMapPendingOps;
 
     private:
         std::unordered_map<uint32_t, std::pair<uint32_t, bool>> m_dbidList; // channID -> {dbid, online}

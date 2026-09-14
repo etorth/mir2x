@@ -256,6 +256,23 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestCloseMap(const AMClo
         co_return {true, false};
     }
 
+    if(m_closeMapPendingOps.contains(amCM.mapUID)){
+        co_return co_await RegisterCloseMapOpAwaiter
+        {
+            .core = this,
+            .mapUID = amCM.mapUID,
+        };
+    }
+
+    m_closeMapPendingOps.try_emplace(amCM.mapUID);
+    const auto closeMapSg = stdf::guard([this, mapUID = amCM.mapUID]()
+    {
+        auto pendingOp = m_closeMapPendingOps.extract(mapUID);
+        for(auto &h: pendingOp.mapped()){
+            h.resume();
+        }
+    });
+
     // now map must exist
     // no matter in servicecore or in peercore
 
