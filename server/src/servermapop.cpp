@@ -588,15 +588,22 @@ corof::awaitable<> ServerMap::on_AM_CLOSEMAP(const ActorMsgPack &mpk)
     fflassert(amCM.mapUID == UID());
     fflassert(uidf::isPeerCore(mpk.from(), uidf::peerIndex(UID())));
 
-    const auto fnCollect = [this](bool wantPlayer)
+    // ServiceCore::requestCloseMap only allow 1 CLOSEMAP request reach here
+    fflassert(m_closing == false);
+    m_closing = true;
+
+    const auto fnCollectUIDList = [this](std::initializer_list<int> uidTypes)
     {
         std::vector<uint64_t> result;
         for(int x = 0; x < to_d(mapBin()->w()); ++x){
             for(int y = 0; y < to_d(mapBin()->h()); ++y){
                 if(mapBin()->validC(x, y)){
                     for(const auto uid: getUIDList(x, y)){
-                        if(uidf::isPlayer(uid) == wantPlayer){
-                            result.push_back(uid);
+                        for(const auto type: uidTypes){
+                            if(uidf::getUIDType(uid) == type){
+                                result.push_back(uid);
+                                break;
+                            }
                         }
                     }
                 }
@@ -605,45 +612,62 @@ corof::awaitable<> ServerMap::on_AM_CLOSEMAP(const ActorMsgPack &mpk)
         return result;
     };
 
-    // anyone still inside goes back where they came from, before the monsters start dying so
-    // a stray blow can not follow them out
-    if(const auto exitMapID = amCM.exitMapID; exitMapID > 0){
-        fflassert(DBCOM_MAPRECORD(exitMapID), exitMapID);
-        for(const auto uid: fnCollect(true)){
+    // kicks off all players before closing all base maps when shutting down server
+    // for instance map:
+    //
+    //   1. if closed by service core shutting up server, no exiting point provided
+    //   2. if closed by service core from script request, the script should provide an exiting point for players to exit
+    //
+    // so if currnet map is instance map, it's fine that there is no exiting point provided, as long as there is no player on the map
+
+    if(uidf::isBaseMap(UID())){
+        fflassert(fnCollectUIDList({UID_PLY}).empty());
+    }
+    else if(!validMapGLoc(amCM.exitMapID, amCM.exitX, amCM.exitY)){
+        // not base map
+        // and no exiting point provided
+        fflassert(fnCollectUIDList({UID_PLY}).empty());
+    }
+    else{
+        AMLoadMap amLM;
+        std::memset(&amLM, 0, sizeof(AMLoadMap));
+
+        amLM.mapUID = uidsf::getBaseMapUID(amCM.exitMapID);
+        amLM.waitActivated = true;
+
+        switch(const auto mpk = co_await m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM}); mpk.type()){
+            case AM_LOADMAPOK:
+                {
+                    break;
+                }
+            default:
+                {
+                    throw fflvalue(amCM.exitMapID); // can setup a default exit map if failed here
+                }
+        }
+
+        for(const auto uid: fnCollectUIDList({UID_PLY})){
             AMMapSwitchTrigger amMST;
             std::memset(&amMST, 0, sizeof(amMST));
 
-            amMST.mapUID = uidsf::getBaseMapUID(exitMapID);
+            amMST.mapUID = uidsf::getBaseMapUID(amCM.exitMapID);
             amMST.X      = amCM.exitX;
             amMST.Y      = amCM.exitY;
-            m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST});
-        }
-    }
-    else{
-        // TODO
-        // force all players to offline
-    }
-
-    // a map can only go once nothing is standing on it, so put every monster down and wait
-    // for them to deregister
-    for(const auto uid: fnCollect(false)){
-        if(uidf::isMonster(uid)){
-            AMForceDie amFD;
-            std::memset(&amFD, 0, sizeof(amFD));
-
-            amFD.drop = false;
-            amFD.sendExp = false;
-            m_actorPod->post(uid, {AM_FORCEDIE, amFD});
+            m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST}); // TODO: co_await it, change later
         }
     }
 
-    constexpr int maxWaitCount = 25;
-    for(int i = 0; i < maxWaitCount; ++i){
-        if(fnCollect(false).empty() && fnCollect(true).empty()){
-            break;
-        }
-        co_await asyncWait(200);
+    for(const auto uid: fnCollectUIDList({UID_MON})){
+        AMForceDie amFD;
+        std::memset(&amFD, 0, sizeof(amFD));
+
+        amFD.drop = false;
+        amFD.sendExp = false;
+        m_actorPod->post(uid, {AM_FORCEDIE, amFD}); // TODO: co_await it, change later
     }
+
+    // for(const auto uid: fnCollectUIDList({UID_NPC})){
+    // }
 
     AMCloseMapOK amCMOK;
     std::memset(&amCMOK, 0, sizeof(amCMOK));
@@ -651,7 +675,6 @@ corof::awaitable<> ServerMap::on_AM_CLOSEMAP(const ActorMsgPack &mpk)
     amCMOK.hasMap = true;
     m_actorPod->post(mpk.fromAddr(), {AM_CLOSEMAPOK, amCMOK});
 
-    // last thing this actor does, the dtor runs inside
     deactivate();
 }
 
