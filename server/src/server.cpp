@@ -235,10 +235,9 @@ bool Server::createAccountCharacter(const char *id, const char *charName, bool g
         dbUpdateInventoryItem(dbid, item);
     };
 
-    fnAddInitItem(u8"火墙");
-    fnAddInitItem(u8"地狱火");
-    fnAddInitItem(u8"雷电术");
-    fnAddInitItem(u8"召唤神兽");
+    fnAddInitItem(u8"火球术（秘籍）");
+    fnAddInitItem(u8"月魂断玉（秘籍）");
+    fnAddInitItem(u8"召唤骷髅（秘籍）");
 
     fnAddInitItem(u8"木剑");
     fnAddInitItem(u8"金创药（小）", 10);
