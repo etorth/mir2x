@@ -45,9 +45,9 @@ _G.trialCount   = 3
 _G.trialMinutes = 5
 
 -- mapmove 02 266 146
-local exitMap = '银杏山谷_02'
-local exitX   = 266
-local exitY   = 146
+_G.exitMap = '银杏山谷_02'
+_G.exitX   = 266
+_G.exitY   = 146
 
 local function closeTrial(uid)
     local timer = dbGetQuestVar(uid, 'trialTimer')
