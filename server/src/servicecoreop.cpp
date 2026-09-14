@@ -87,7 +87,7 @@ corof::awaitable<> ServiceCore::on_AM_QUERYMAPLIST(const ActorMsgPack &rstMPK)
 corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
 {
     const auto amLM = mpk.conv<AMLoadMap>();
-    if(const auto [loaded, newLoad] = co_await requestLoadMap(amLM.mapUID, amLM.waitActivated); loaded){
+    if(const auto [loaded, newLoad] = co_await requestLoadMap(amLM); loaded){
         AMLoadMapOK amLMOK;
         std::memset(&amLMOK, 0, sizeof(amLMOK));
 
@@ -99,57 +99,28 @@ corof::awaitable<> ServiceCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
     }
 }
 
-corof::awaitable<> ServiceCore::on_AM_LOADINSTANCEMAP(const ActorMsgPack &mpk)
+corof::awaitable<> ServiceCore::on_AM_CLOSEMAP(const ActorMsgPack &mpk)
 {
-    const auto amLIM = mpk.conv<AMLoadInstanceMap>();
-    if(!DBCOM_MAPRECORD(amLIM.mapID)){
-        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-        co_return;
-    }
+    // servicecore can close all maps
+    // but it only close instance map through actor message
+    // it closes base maps internally after all players are kicked offline on exiting
 
-    // a fresh seq every time, buildMapUID reserves 1 for the base map
-    const auto mapUID = uidf::buildMapUID(amLIM.mapID, uidsf::peerIndex());
+    const auto amCM = mpk.conv<AMCloseMap>();
+    fflassert(uidf::isInstanceMap(amCM.mapUID), uidf::getUIDString(amCM.mapUID));
 
-    if(const auto [loaded, newLoad] = co_await requestLoadMap(mapUID, true); loaded){
-        AMLoadInstanceMapOK amLIMOK;
-        std::memset(&amLIMOK, 0, sizeof(amLIMOK));
+    if(const auto [closed, hasMap] = co_await requestCloseMap(amCM); closed){
+        AMCloseMapOK amCMOK;
+        std::memset(&amCMOK, 0, sizeof(amCMOK));
 
-        amLIMOK.mapUID = mapUID;
-        m_actorPod->post(mpk.fromAddr(), {AM_LOADINSTANCEMAPOK, amLIMOK});
+        amCMOK.hasMap = hasMap;
+        m_actorPod->post(mpk.fromAddr(), {AM_CLOSEMAPOK, amCMOK});
     }
     else{
-        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-    }
-}
+        AMCloseMapError amCME;
+        std::memset(&amCME, 0, sizeof(amCME));
 
-corof::awaitable<> ServiceCore::on_AM_CLOSEINSTANCEMAP(const ActorMsgPack &mpk)
-{
-    const auto amCIM2 = mpk.conv<AMCloseInstanceMap>();
-
-    // never take down a base map, only a copy handed out by AM_LOADINSTANCEMAP
-    if(uidf::getMapSeq(amCIM2.mapUID, false) <= 1){
-        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-        co_return;
-    }
-
-    if(!m_mapList.contains(amCIM2.mapUID)){
-        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-        co_return;
-    }
-
-    // the map clears itself out and deactivates, then we forget it
-    switch(const auto rmpk = co_await m_actorPod->send(amCIM2.mapUID, {AM_CLOSEINSTANCEMAP, amCIM2}); rmpk.type()){
-        case AM_INSTANCEMAPCLOSED:
-            {
-                m_mapList.erase(amCIM2.mapUID);
-                m_actorPod->post(mpk.fromAddr(), {AM_INSTANCEMAPCLOSED, rmpk.data(), rmpk.size()});
-                co_return;
-            }
-        default:
-            {
-                m_actorPod->post(mpk.fromAddr(), AM_ERROR);
-                co_return;
-            }
+        amCME.hasMap = hasMap;
+        m_actorPod->post(mpk.fromAddr(), {AM_CLOSEMAPERROR, amCME});
     }
 }
 

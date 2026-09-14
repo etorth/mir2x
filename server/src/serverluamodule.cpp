@@ -8,6 +8,7 @@
 #include "server.hpp"
 #include "serverargparser.hpp"
 #include "serverluamodule.hpp"
+#include "serverobject.hpp"
 #include "serverconfigurewindow.hpp"
 
 extern DBPod *g_dbPod;
@@ -97,6 +98,11 @@ ServerLuaModule::ServerLuaModule()
         else{
             throw fflpanic("invalid map name: {}", to_cstr(mapName));
         }
+    });
+
+    bindFunction("validMapGLoc", [this](sol::object mapVar, int x, int y) -> bool
+    {
+        return ServerObject::validMapGLoc(mapIDFromLuaObj(mapVar), x, y);
     });
 
     bindFunction("hasDatabase", [](std::string dbName) -> bool

@@ -50,13 +50,9 @@ corof::awaitable<> ServiceCore::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_LOADMAP(mpk);
             }
-        case AM_LOADINSTANCEMAP:
+        case AM_CLOSEMAP:
             {
-                return on_AM_LOADINSTANCEMAP(mpk);
-            }
-        case AM_CLOSEINSTANCEMAP:
-            {
-                return on_AM_CLOSEINSTANCEMAP(mpk);
+                return on_AM_CLOSEMAP(mpk);
             }
         case AM_MODIFYQUESTTRIGGERTYPE:
             {
@@ -136,7 +132,13 @@ corof::awaitable<> ServiceCore::onActivate()
     for(uint32_t mapID = 1; mapID < DBCOM_MAPENDID(); ++mapID){
         if(g_serverArgParser->masterConfig().preloadMapCheck(mapID)){
             const uint64_t mapUID = uidsf::getBaseMapUID(mapID);
-            if(const auto [loaded, _] = co_await requestLoadMap(mapUID, false); loaded){
+            AMLoadMap amLM;
+            std::memset(&amLM, 0, sizeof(amLM));
+
+            amLM.mapUID = mapUID;
+            amLM.waitActivated = false;
+
+            if(const auto [loaded, _] = co_await requestLoadMap(amLM); loaded){
                 loadedMapList.insert(mapUID);
                 g_server->addLog(LOGTYPE_INFO, "Preload %s successfully", to_cstr(DBCOM_MAPRECORD(mapID).name));
             }
@@ -184,7 +186,7 @@ corof::awaitable<> ServiceCore::onActivate()
     }
 }
 
-corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(uint64_t mapUID, bool waitActivated)
+corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(const AMLoadMap &amLM)
 {
     std::pair<bool, bool> result
     {
@@ -193,13 +195,13 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(uint64_t map
     };
 
 #define result_WAIT_MAP_ACTIVATED() \
-    if(result.first && waitActivated){ \
-        if(const auto mpk = co_await m_actorPod->send(mapUID, AM_WAITACTIVATED); mpk.type() != AM_WAITACTIVATEDOK){ \
+    if(result.first && amLM.waitActivated){ \
+        if(const auto mpk = co_await m_actorPod->send(amLM.mapUID, AM_WAITACTIVATED); mpk.type() != AM_WAITACTIVATEDOK){ \
             result.first = false; \
         } \
     } \
 
-    if(m_mapList.contains(mapUID)){
+    if(m_mapList.contains(amLM.mapUID)){
         result.first  = true;
         result.second = false;
 
@@ -207,17 +209,17 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(uint64_t map
         co_return result;
     }
 
-    if(uidsf::isLocalUID(mapUID)){
-        result = loadMap(mapUID);
+    if(uidsf::isLocalUID(amLM.mapUID)){
+        result = loadMap(amLM.mapUID);
         result_WAIT_MAP_ACTIVATED();
         co_return result;
     }
 
-    if(auto p = m_loadMapPendingOps.find(mapUID); p != m_loadMapPendingOps.end()){
+    if(auto p = m_loadMapPendingOps.find(amLM.mapUID); p != m_loadMapPendingOps.end()){
         result = co_await RegisterLoadMapOpAwaiter
         {
             .core = this,
-            .mapUID = mapUID,
+            .mapUID = amLM.mapUID,
         };
 
         result_WAIT_MAP_ACTIVATED();
@@ -226,31 +228,62 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(uint64_t map
 
 #undef result_WAIT_MAP_ACTIVATED
 
-    AMPeerLoadMap amPLM;
-    std::memset(&amPLM, 0, sizeof(amPLM));
+    m_loadMapPendingOps.try_emplace(amLM.mapUID);
 
-    amPLM.mapUID = mapUID;
-    amPLM.waitActivated = waitActivated;
-
-    m_loadMapPendingOps.try_emplace(mapUID);
-
-    const auto mpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(mapUID)), {AM_PEERLOADMAP, amPLM});
-    const bool loaded = (mpk.type() == AM_PEERLOADMAPOK);
+    const auto mpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(amLM.mapUID)), {AM_LOADMAP, amLM});
+    const bool loaded = (mpk.type() == AM_LOADMAPOK);
 
     if(loaded){
-        m_mapList.insert(mapUID);
+        m_mapList.insert(amLM.mapUID);
     }
 
-    for(auto &h: m_loadMapPendingOps.at(mapUID)){
+    for(auto &h: m_loadMapPendingOps.at(amLM.mapUID)){
         h.resume();
     }
 
-    m_loadMapPendingOps.erase(mapUID); // won't keep record of bad load
+    m_loadMapPendingOps.erase(amLM.mapUID); // won't keep record of bad load
 
     result.first  = loaded;
     result.second = loaded ? true : false;
 
     co_return result;
+}
+
+corof::awaitable<std::pair<bool, bool>> ServiceCore::requestCloseMap(const AMCloseMap &amCM)
+{
+    fflassert(uidf::isMap(amCM.mapUID)); // not require base maps
+    if(!m_mapList.contains(amCM.mapUID)){
+        co_return {true, false};
+    }
+
+    // now map must exist
+    // no matter in servicecore or in peercore
+
+    if(uidsf::isLocalUID(amCM.mapUID)){
+        switch(const auto rmpk = co_await m_actorPod->send(amCM.mapUID, {AM_CLOSEMAP, amCM}); rmpk.type()){
+            case AM_CLOSEMAPOK:
+                {
+                    m_mapList.erase(amCM.mapUID);
+                    co_return {true, true};
+                }
+            default:
+                {
+                    co_return {false, true};
+                }
+        }
+    }
+
+    switch(const auto rmpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(amCM.mapUID)), {AM_CLOSEMAP, amCM}); rmpk.type()){
+        case AM_CLOSEMAPOK:
+            {
+                m_mapList.erase(amCM.mapUID);
+                co_return {true, true}; // peercore must have this mapUID
+            }
+        default:
+            {
+                co_return {false, true};
+            }
+    }
 }
 
 std::optional<std::pair<uint32_t, bool>> ServiceCore::findDBID(uint32_t channID) const

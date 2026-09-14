@@ -71,14 +71,15 @@ enum ActorMsgPackType: int
     AM_REJECTMAPSWITCH,
     AM_MAPSWITCHOK,
     AM_MAPSWITCHERROR,
-    AM_PEERLOADMAP,
-    AM_PEERLOADMAPOK,
+
+    // load/close maps
+    // shared by service core and peer core
     AM_LOADMAP,
     AM_LOADMAPOK,
-    AM_LOADINSTANCEMAP,
-    AM_LOADINSTANCEMAPOK,
-    AM_CLOSEINSTANCEMAP,
-    AM_INSTANCEMAPCLOSED,
+    AM_CLOSEMAP,
+    AM_CLOSEMAPOK,
+    AM_CLOSEMAPERROR,
+
     AM_FORCEDIE,
     AM_SETDROPONDIE,
     AM_QUERYLOCATION,
@@ -219,14 +220,11 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_REJECTMAPSWITCH)
         _add_mpk_type_case(AM_MAPSWITCHOK)
         _add_mpk_type_case(AM_MAPSWITCHERROR)
-        _add_mpk_type_case(AM_PEERLOADMAP)
-        _add_mpk_type_case(AM_PEERLOADMAPOK)
         _add_mpk_type_case(AM_LOADMAP)
         _add_mpk_type_case(AM_LOADMAPOK)
-        _add_mpk_type_case(AM_LOADINSTANCEMAP)
-        _add_mpk_type_case(AM_LOADINSTANCEMAPOK)
-        _add_mpk_type_case(AM_CLOSEINSTANCEMAP)
-        _add_mpk_type_case(AM_INSTANCEMAPCLOSED)
+        _add_mpk_type_case(AM_CLOSEMAP)
+        _add_mpk_type_case(AM_CLOSEMAPOK)
+        _add_mpk_type_case(AM_CLOSEMAPERROR)
         _add_mpk_type_case(AM_FORCEDIE)
         _add_mpk_type_case(AM_SETDROPONDIE)
         _add_mpk_type_case(AM_QUERYLOCATION)
@@ -539,16 +537,8 @@ struct AMMapSwitchOK
     ActionNode action;
 };
 
-struct AMPeerLoadMap
-{
-    uint64_t mapUID;
-    uint8_t  waitActivated;
-};
-
-struct AMPeerLoadMapOK
-{
-    uint8_t newLoad;
-};
+// load/close map
+// shared by service core and peer core
 
 struct AMLoadMap
 {
@@ -561,35 +551,23 @@ struct AMLoadMapOK
     uint8_t newLoad;
 };
 
-// a private copy of a map, for one player
-//
-// the map id stays the same and only the uid seq differs, so one piece of map data can host
-// many independent copies and every actor on one addresses it by the full uid
-struct AMLoadInstanceMap
-{
-    uint32_t mapID;
-};
-
-struct AMLoadInstanceMapOK
+struct AMCloseMap
 {
     uint64_t mapUID;
+    uint32_t exitMapID; // must be valid
+
+    int exitX;
+    int exitY;
 };
 
-// tear a copy down: clear its monsters, push anyone still inside back out, then let the map
-// actor deactivate itself
-struct AMCloseInstanceMap
+struct AMCloseMapOK
 {
-    uint64_t mapUID;
-
-    // where a player still inside lands, normally the map they entered from
-    uint32_t fallbackMapID;
-    int fallbackX;
-    int fallbackY;
+    uint8_t hasMap;
 };
 
-struct AMInstanceMapClosed
+struct AMCloseMapError
 {
-    uint64_t mapUID;
+    uint8_t hasMap;
 };
 
 struct AMForceDie

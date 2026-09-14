@@ -39,6 +39,7 @@ class PeerCore: public ServerObject
         corof::awaitable<> onActorMsg(const ActorMsgPack &) override;
 
     protected:
-        corof::awaitable<> on_AM_PEERCONFIG (const ActorMsgPack &);
-        corof::awaitable<> on_AM_PEERLOADMAP(const ActorMsgPack &);
+        corof::awaitable<> on_AM_PEERCONFIG(const ActorMsgPack &);
+        corof::awaitable<> on_AM_LOADMAP   (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CLOSEMAP  (const ActorMsgPack &);
 };

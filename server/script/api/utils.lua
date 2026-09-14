@@ -16,8 +16,7 @@ function utils.findNPChar(mapName, npcName)
     assertType(mapname, 'string')
     assertType(npcname, 'string')
 
-    local mapUID = _RSVD_NAME_callFuncCoop('loadMap', mapName)
-    assertType(mapUID, 'integer', 'nil')
+    local mapUID = assertType(loadBaseMap(mapName), 'integer', 'nil')
 
     if (not mapUID) or (mapUID == 0) then
         return nil

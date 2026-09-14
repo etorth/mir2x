@@ -141,7 +141,13 @@ corof::awaitable<> ServiceCore::net_CM_ONLINE(uint32_t channID, uint8_t, const u
         .pkPoint   = queryChar.getColumn("fld_pkpoint"),
     };
 
-    if(const auto [loaded, _] = co_await requestLoadMap(mapUID, false); loaded){
+    AMLoadMap amLM;
+    std::memset(&amLM, 0, sizeof(amLM));
+
+    amLM.mapUID = mapUID;
+    amLM.waitActivated = false;
+
+    if(const auto [loaded, _] = co_await requestLoadMap(amLM); loaded){
         if(m_addCO->addCO(sdICO)){
             m_dbidList[channID].second = true;
         }

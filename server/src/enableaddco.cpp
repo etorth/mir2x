@@ -97,11 +97,19 @@ corof::awaitable<> EnableAddCO::onMsgAddCO(const ActorMsgPack &mpk)
         if(mpk.from() == mapUID){
             fnAddCO();
         }
-        else if(const auto loadRes = co_await dynamic_cast<ServiceCore *>(m_actorPod->getSO())->requestLoadMap(mapUID, false); loadRes.first){
-            fnAddCO();
-        }
         else{
-            m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+            AMLoadMap amLM;
+            std::memset(&amLM, 0, sizeof(amLM));
+
+            amLM.mapUID = mapUID;
+            amLM.waitActivated = false;
+
+            if(const auto loadRes = co_await dynamic_cast<ServiceCore *>(m_actorPod->getSO())->requestLoadMap(amLM); loadRes.first){
+                fnAddCO();
+            }
+            else{
+                m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+            }
         }
     }
     else{

@@ -274,6 +274,11 @@ LuaModule::LuaModule()
         return uidf::getUIDString(uid);
     });
 
+    bindFunction("isGM", [](uint64_t uid)
+    {
+        return uidf::isGM(uid);
+    });
+
     bindFunction("isPlayer", [](uint64_t uid)
     {
         return uidf::isPlayer(uid);
@@ -289,9 +294,62 @@ LuaModule::LuaModule()
         return uidf::isNPChar(uid);
     });
 
-    bindFunction("isMonster", [](uint64_t uid)
+    bindFunction("isReceiver", [](uint64_t uid)
     {
-        return uidf::isMonster(uid);
+        return uidf::isReceiver(uid);
+    });
+
+    bindFunction("isServiceCore", [](uint64_t uid)
+    {
+        return uidf::isServiceCore(uid);
+    });
+
+    bindFunction("isPeerCore", [](uint64_t uid, sol::object index)
+    {
+        if(index == sol::lua_nil){
+            return uidf::isPeerCore(uid);
+        }
+        else{
+            return uidf::isPeerCore(uid, index.as<lua_Integer>());
+        }
+    });
+
+    bindFunction("isMonster", [](uint64_t uid, sol::object mon)
+    {
+        if(mon == sol::lua_nil){
+            return uidf::isMonster(uid);
+        }
+        else if(mon.is<lua_Integer>()){
+            return uidf::isMonster(uid, to_u32(mon.as<lua_Integer>()));
+        }
+        else{
+            return uidf::isMonster(uid, to_u8rawstr(mon.as<std::string>()).c_str());
+        }
+    });
+
+    bindFunction("isMap", [](uint64_t uid)
+    {
+        return uidf::isMap(uid);
+    });
+
+    bindFunction("isBaseMap", [](uint64_t uid)
+    {
+        return uidf::isBaseMap(uid);
+    });
+
+    bindFunction("isInstanceMap", [](uint64_t uid)
+    {
+        return uidf::isInstanceMap(uid);
+    });
+
+    bindFunction("isGuardMode", [](uint64_t uid)
+    {
+        return uidf::isGuardMode(uid);
+    });
+
+    bindFunction("isNeutralMode", [](uint64_t uid)
+    {
+        return uidf::isNeutralMode(uid);
     });
 
     bindFunction("sleep", [](int nSleepMS)
@@ -534,4 +592,11 @@ bool LuaModule::pfrCheck(const sol::protected_function_result &pfr, const std::f
         }
     }
     return false;
+}
+
+uint32_t LuaModule::mapIDFromLuaObj(const sol::object &obj)
+{
+    if(obj.is<std::string>()) return DBCOM_MAPID(obj.as<std::string>().c_str());
+    if(obj.is<lua_Integer>()) return to_u32(obj.as<lua_Integer>());
+    throw fflvalue(luaf::luaObjTypeString(obj), obj);
 }

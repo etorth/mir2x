@@ -8,16 +8,32 @@
 #include "actorpool.hpp"
 #include "uidf.hpp"
 #include "uidsf.hpp"
+#include "mapbindb.hpp"
 
 extern ActorPool *g_actorPool;
 extern Server *g_server;
 extern ServerArgParser *g_serverArgParser;
+extern MapBinDB *g_mapBinDB;
+
+bool ServerObject::validMapGLoc(uint32_t mapID, int x, int y)
+{
+    if(!mapID){
+        return false;
+    }
+
+    if(const auto bin = g_mapBinDB->retrieve(mapID)){
+        return bin->validC(x, y) && bin->cell(x, y).land.canThrough();
+    }
+    return false;
+}
 
 ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
     : ServerLuaCoroutineRunner(serverObject->m_actorPod)
 {
     bindCoop("_RSVD_NAME_queryQuestUID", [thisptr = this](this auto, LuaCoopResumer onDone, std::string questName) -> corof::awaitable<>
     {
+        fflassert(thisptr->m_actorPod->UID() != uidf::getServiceCoreUID());
+
         bool closed = false;
         onDone.pushOnClose([&closed](){ closed = true; });
 
@@ -51,64 +67,6 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         }
     });
 
-    // ask for a private copy of a map, returns its uid or nil
-    //
-    // the copy carries the same map id and its own uid seq, so it loads the same data, spawns
-    // its own npcs and keeps its own monsters, see AM_LOADINSTANCEMAP
-    bindCoop("_RSVD_NAME_loadInstanceMap", [thisptr = this](this auto, LuaCoopResumer onDone, uint32_t mapID) -> corof::awaitable<>
-    {
-        bool closed = false;
-        onDone.pushOnClose([&closed](){ closed = true; });
-
-        AMLoadInstanceMap amLIM;
-        std::memset(&amLIM, 0, sizeof(amLIM));
-
-        amLIM.mapID = mapID;
-        const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADINSTANCEMAP, amLIM});
-
-        if(closed){
-            co_return;
-        }
-
-        onDone.popOnClose();
-        switch(rmpk.type()){
-            case AM_LOADINSTANCEMAPOK:
-                {
-                    onDone(rmpk.template conv<AMLoadInstanceMapOK>().mapUID);
-                    break;
-                }
-            default:
-                {
-                    onDone();
-                    break;
-                }
-        }
-    });
-
-    // give a copy back, anyone still inside lands on the fallback map first
-    bindCoop("_RSVD_NAME_closeInstanceMap", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t mapUID, uint32_t fallbackMapID, int fallbackX, int fallbackY) -> corof::awaitable<>
-    {
-        bool closed = false;
-        onDone.pushOnClose([&closed](){ closed = true; });
-
-        AMCloseInstanceMap amCIM2;
-        std::memset(&amCIM2, 0, sizeof(amCIM2));
-
-        amCIM2.mapUID        = mapUID;
-        amCIM2.fallbackMapID = fallbackMapID;
-        amCIM2.fallbackX     = fallbackX;
-        amCIM2.fallbackY     = fallbackY;
-
-        const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_CLOSEINSTANCEMAP, amCIM2});
-
-        if(closed){
-            co_return;
-        }
-
-        onDone.popOnClose();
-        onDone(rmpk.type() == AM_INSTANCEMAPCLOSED);
-    });
-
     bindCoop("_RSVD_NAME_queryQuestUIDList", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
     {
         bool closed = false;
@@ -136,15 +94,11 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         }
     });
 
-    bindCoop("_RSVD_NAME_loadMap", [thisptr = this](this auto, LuaCoopResumer onDone, sol::object mapVar) -> corof::awaitable<>
+    bindCoop("_RSVD_NAME_loadMap", [thisptr = this](this auto, LuaCoopResumer onDone, sol::object mapVar, bool baseMap) -> corof::awaitable<>
     {
-        const auto mapID = [&mapVar]() -> uint32_t
-        {
-            if(mapVar.is<std::string>()) return DBCOM_MAPID(mapVar.as<std::string>().c_str());
-            if(mapVar.is<lua_Integer>()) return to_u32(mapVar.as<lua_Integer>());
-            throw fflvalue(luaf::luaObjTypeString(mapVar), mapVar);
-        }();
+        fflassert(thisptr->m_actorPod->UID() != uidf::getServiceCoreUID());
 
+        const auto mapID = mapIDFromLuaObj(mapVar);
         fflassert(mapID);
 
         bool closed = false;
@@ -153,7 +107,7 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
         AMLoadMap amLM;
         std::memset(&amLM, 0, sizeof(AMLoadMap));
 
-        amLM.mapUID = uidsf::getBaseMapUID(mapID);
+        amLM.mapUID = baseMap ? uidsf::getBaseMapUID(mapID) : uidsf::buildMapUID(mapID);
         amLM.waitActivated = true;
 
         const auto mpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_LOADMAP, amLM});
@@ -175,6 +129,36 @@ ServerObject::LuaThreadRunner::LuaThreadRunner(ServerObject *serverObject)
                 }
         }
     });
+
+    bindCoop("_RSVD_NAME_closeInstanceMap", [thisptr = this](this auto, LuaCoopResumer onDone, uint64_t mapUID, sol::object exitMapIDVar, int exitX, int exitY) -> corof::awaitable<>
+    {
+        fflassert(thisptr->m_actorPod->UID() != uidf::getServiceCoreUID());
+        fflassert(thisptr->m_actorPod->UID() != mapUID);
+
+        const auto exitMapID = mapIDFromLuaObj(exitMapIDVar);
+        fflassert(exitMapID);
+
+        bool closed = false;
+        onDone.pushOnClose([&closed](){ closed = true; });
+
+        AMCloseMap amCM;
+        std::memset(&amCM, 0, sizeof(amCM));
+
+        amCM.mapUID    = mapUID;
+        amCM.exitMapID = exitMapID;
+        amCM.exitX     = exitX;
+        amCM.exitY     = exitY;
+
+        const auto rmpk = co_await thisptr->m_actorPod->send(uidf::getServiceCoreUID(), {AM_CLOSEMAP, amCM});
+
+        if(closed){
+            co_return;
+        }
+
+        onDone.popOnClose();
+        onDone(rmpk.type() == AM_CLOSEMAPOK);
+    });
+
 
     bindCoop("_RSVD_NAME_waitActivated", [thisptr = this](this auto, LuaCoopResumer onDone) -> corof::awaitable<>
     {

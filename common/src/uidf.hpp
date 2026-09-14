@@ -97,8 +97,13 @@ namespace uidf
     bool isNPChar(uint64_t);
     bool isReceiver(uint64_t);
 
+    bool isServiceCore(uint64_t);
+    bool isPeerCore(uint64_t);
+    bool isPeerCore(uint64_t, size_t);
+
     bool isMap(uint64_t);
     bool isBaseMap(uint64_t);
+    bool isInstanceMap(uint64_t);
 
     bool isMonster(uint64_t);
     bool isMonster(uint64_t, uint32_t);

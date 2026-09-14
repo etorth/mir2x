@@ -10,6 +10,8 @@ namespace uidsf
     size_t pickPeerIndex(int, std::optional<size_t> = std::nullopt);
 
     uint64_t getBaseMapUID(uint32_t);
+    uint64_t   buildMapUID(uint32_t);
+
     uint64_t getPeerCoreUID();
     bool isLocalUID(uint64_t);
 }

@@ -92,52 +92,8 @@ function deleteQuestFlag(uid, flagName)
     _RSVD_NAME_dbUpdateQuestFieldTable(uid, 'fld_flags', flagName, nil)
 end
 
-function getMapUID(mapName)
-    assertType(mapName, 'string')
-
-    local mapUID = _RSVD_NAME_callFuncCoop('loadMap', mapName)
-    assertType(mapUID, 'integer', 'nil')
-    return mapUID
-end
-
--- a private copy of a map for one player, returns its uid or nil
---
--- same load path as getMapUID, the only difference is who picks the uid: a base map is asked
--- for by name and always resolves to the same actor, a copy gets a fresh uid seq every call
---
--- the copy reads the same map data and spawns its own NPCs, so an NPC standing in a copy sees
--- only that copy's monsters. hand it back with closeInstanceMap when done, a copy nobody
--- closes stays loaded for the life of the server
-function loadInstanceMap(mapName)
-    assertType(mapName, 'string')
-
-    local mapID = getMapID(mapName)
-    if not mapID or mapID <= 0 then
-        fatalPrintf('No such map: %s', mapName)
-    end
-
-    local mapUID = _RSVD_NAME_callFuncCoop('loadInstanceMap', mapID)
-    assertType(mapUID, 'integer', 'nil')
-    return mapUID
-end
-
--- clear the copy out and unload it, anyone still inside lands on the fallback first
-function closeInstanceMap(mapUID, fallbackMapName, fallbackX, fallbackY)
-    assertType(mapUID, 'integer')
-    assertType(fallbackMapName, 'string', 'nil')
-
-    local fallbackMapID = 0
-    if fallbackMapName then
-        assertType(fallbackX, 'integer')
-        assertType(fallbackY, 'integer')
-        fallbackMapID = getMapID(fallbackMapName) or 0
-    end
-
-    return _RSVD_NAME_callFuncCoop('closeInstanceMap', mapUID, fallbackMapID, fallbackX or 0, fallbackY or 0)
-end
-
 function getNPCharUID(mapName, npcName)
-    local mapUID = getMapUID(mapName)
+    local mapUID = loadBaseMap(mapName)
 
     if not mapUID then
         return nil
@@ -567,7 +523,7 @@ function setupMapGridTrigger(mapName, x, y, uid, arg1, arg2)
         fatalPrintf('Invalid arguments to setupMapGridTrigger(%s, %d, %d, %d, ...)', asInitString(mapName), x, y, uid)
     end
 
-    local mapUID = getMapUID(mapName)
+    local mapUID = loadBaseMap(mapName)
     if not mapUID then
         fatalPrintf('Can not load map %s', asInitString(mapName))
     end
@@ -666,7 +622,7 @@ function setupMapDefaultGridTrigger(mapName, x, y, arg1, arg2)
         fatalPrintf('Invalid arguments to setupMapDefaultGridTrigger(%s, %d, %d, ...)', asInitString(mapName), x, y)
     end
 
-    local mapUID = getMapUID(mapName)
+    local mapUID = loadBaseMap(mapName)
     if not mapUID then
         fatalPrintf('Can not load map %s', asInitString(mapName))
     end
@@ -682,7 +638,7 @@ function clearMapDefaultGridTrigger(mapName, x, y)
     assertType(x, 'integer')
     assertType(y, 'integer')
 
-    local mapUID = getMapUID(mapName)
+    local mapUID = loadBaseMap(mapName)
     if mapUID then
         uidRemoteCall(mapUID, x, y, [[ deleteGridTrigger(...) ]])
     end
@@ -696,7 +652,7 @@ function clearMapGridTrigger(mapName, x, y, uid)
     assertType(uid, 'integer')
     assert(uid > 0)
 
-    local mapUID = getMapUID(mapName)
+    local mapUID = loadBaseMap(mapName)
     if mapUID then
         uidRemoteCall(mapUID, uid, x, y, [[ deleteUIDGridTrigger(...) ]])
     end

@@ -582,10 +582,11 @@ corof::awaitable<> ServerMap::on_AM_TRYMOVE(const ActorMsgPack &rstMPK)
     }
 }
 
-corof::awaitable<> ServerMap::on_AM_CLOSEINSTANCEMAP(const ActorMsgPack &mpk)
+corof::awaitable<> ServerMap::on_AM_CLOSEMAP(const ActorMsgPack &mpk)
 {
-    const auto amCIM = mpk.conv<AMCloseInstanceMap>();
-    fflassert(amCIM.mapUID == UID(), uidf::getUIDString(amCIM.mapUID), uidf::getUIDString(UID()));
+    const auto amCM = mpk.conv<AMCloseMap>();
+    fflassert(amCM.mapUID == UID());
+    fflassert(uidf::isPeerCore(mpk.from(), uidf::peerIndex(UID())));
 
     const auto fnCollect = [this](bool wantPlayer)
     {
@@ -606,16 +607,21 @@ corof::awaitable<> ServerMap::on_AM_CLOSEINSTANCEMAP(const ActorMsgPack &mpk)
 
     // anyone still inside goes back where they came from, before the monsters start dying so
     // a stray blow can not follow them out
-    if(const auto fallbackMapID = amCIM.fallbackMapID; fallbackMapID && DBCOM_MAPRECORD(fallbackMapID)){
+    if(const auto exitMapID = amCM.exitMapID; exitMapID > 0){
+        fflassert(DBCOM_MAPRECORD(exitMapID), exitMapID);
         for(const auto uid: fnCollect(true)){
             AMMapSwitchTrigger amMST;
             std::memset(&amMST, 0, sizeof(amMST));
 
-            amMST.mapUID = uidsf::getBaseMapUID(fallbackMapID);
-            amMST.X      = amCIM.fallbackX;
-            amMST.Y      = amCIM.fallbackY;
+            amMST.mapUID = uidsf::getBaseMapUID(exitMapID);
+            amMST.X      = amCM.exitX;
+            amMST.Y      = amCM.exitY;
             m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST});
         }
+    }
+    else{
+        // TODO
+        // force all players to offline
     }
 
     // a map can only go once nothing is standing on it, so put every monster down and wait
@@ -639,11 +645,11 @@ corof::awaitable<> ServerMap::on_AM_CLOSEINSTANCEMAP(const ActorMsgPack &mpk)
         co_await asyncWait(200);
     }
 
-    AMInstanceMapClosed amIMC;
-    std::memset(&amIMC, 0, sizeof(amIMC));
+    AMCloseMapOK amCMOK;
+    std::memset(&amCMOK, 0, sizeof(amCMOK));
 
-    amIMC.mapUID = UID();
-    m_actorPod->post(mpk.fromAddr(), {AM_INSTANCEMAPCLOSED, amIMC});
+    amCMOK.hasMap = true;
+    m_actorPod->post(mpk.fromAddr(), {AM_CLOSEMAPOK, amCMOK});
 
     // last thing this actor does, the dtor runs inside
     deactivate();

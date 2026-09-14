@@ -144,7 +144,7 @@ local function runDrop(playerUID, drop)
     if drop.moveTo then
         -- a bare map name is legacy's `map X`, which drops the player anywhere walkable on it
         if #drop.moveTo == 1 then
-            local mapUID = getMapUID(drop.moveTo[1])
+            local mapUID = loadBaseMap(drop.moveTo[1])
             if mapUID then
                 local x, y = uidRemoteCall(mapUID, [[ return getRandLoc() ]])
                 server.player.spaceMove(playerUID, drop.moveTo[1], x, y)

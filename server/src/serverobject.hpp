@@ -105,6 +105,9 @@ class ServerObject
         }
 
     public:
+        static bool validMapGLoc(uint32_t, int, int);
+
+    public:
         virtual corof::awaitable<> onActorMsg(const ActorMsgPack &) = 0;
 
     public:

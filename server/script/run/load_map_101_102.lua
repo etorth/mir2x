@@ -1,2 +1,2 @@
-loadMap(101)
-loadMap(102)
+loadBaseMap(101)
+loadBaseMap(102)

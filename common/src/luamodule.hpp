@@ -55,6 +55,9 @@ class LuaModule
 
     public:
         bool pfrCheck(const sol::protected_function_result &, const std::function<void(const std::string &)> & = nullptr); // parse if pfr is an error
+
+    public: // helpers
+        static uint32_t mapIDFromLuaObj(const sol::object &);
 };
 
 struct LuaCORunner

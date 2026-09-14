@@ -60,7 +60,8 @@ class ServiceCore final: public PeerCore
         corof::awaitable<> operateNet(uint32_t, uint8_t, const uint8_t *, size_t, uint64_t);
 
     protected:
-        corof::awaitable<std::pair<bool, bool>> requestLoadMap(uint64_t, bool);
+        corof::awaitable<std::pair<bool, bool>> requestLoadMap(const AMLoadMap &); // -> {loaded, newLoad}
+        corof::awaitable<std::pair<bool, bool>> requestCloseMap(const AMCloseMap &); // -> {closed, map exists before close}
 
     public:
         corof::awaitable<> onActivate() override;
@@ -73,8 +74,7 @@ class ServiceCore final: public PeerCore
         corof::awaitable<> on_AM_BADCHANNEL            (const ActorMsgPack &);
         corof::awaitable<> on_AM_RECVPACKAGE           (const ActorMsgPack &);
         corof::awaitable<> on_AM_LOADMAP               (const ActorMsgPack &);
-        corof::awaitable<> on_AM_LOADINSTANCEMAP       (const ActorMsgPack &);
-        corof::awaitable<> on_AM_CLOSEINSTANCEMAP      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_CLOSEMAP              (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYMAPLIST          (const ActorMsgPack &);
         corof::awaitable<> on_AM_QUERYCOCOUNT          (const ActorMsgPack &);
         corof::awaitable<> on_AM_MODIFYQUESTTRIGGERTYPE(const ActorMsgPack &);

@@ -49,9 +49,13 @@ corof::awaitable<> PeerCore::onActorMsg(const ActorMsgPack &mpk)
             {
                 return on_AM_PEERCONFIG(mpk);
             }
-        case AM_PEERLOADMAP:
+        case AM_LOADMAP:
             {
-                return on_AM_PEERLOADMAP(mpk);
+                return on_AM_LOADMAP(mpk);
+            }
+        case AM_CLOSEMAP:
+            {
+                return on_AM_CLOSEMAP(mpk);
             }
         default:
             {

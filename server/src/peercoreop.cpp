@@ -20,41 +20,76 @@ corof::awaitable<> PeerCore::on_AM_PEERCONFIG(const ActorMsgPack &mpk)
     return {};
 }
 
-corof::awaitable<> PeerCore::on_AM_PEERLOADMAP(const ActorMsgPack &mpk)
+corof::awaitable<> PeerCore::on_AM_LOADMAP(const ActorMsgPack &mpk)
 {
     // map may run on peer
     // but is manageed on service core
 
-    auto loadMapSg = stdf::guard([fromAddr = mpk.fromAddr(), this]()
-    {
-        m_actorPod->post(fromAddr, AM_ERROR);
-    });
+    const auto amLM = mpk.conv<AMLoadMap>();
 
-    const auto amPLM = mpk.conv<AMPeerLoadMap>();
+    fflassert(uidf::isServiceCore(mpk.from()));
+    fflassert(uidf::isMap(amLM.mapUID));
+    fflassert(uidsf::isLocalUID(amLM.mapUID));
 
-    if(!uidsf::isLocalUID(amPLM.mapUID)){
-        co_return;
-    }
-
-    const auto [loaded, newLoad] = loadMap(amPLM.mapUID);
+    const auto [loaded, newLoad] = loadMap(amLM.mapUID);
     if(!loaded){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
         co_return;
     }
 
-    if(amPLM.waitActivated){
-        if(const auto loadMpk = co_await m_actorPod->send(amPLM.mapUID, AM_WAITACTIVATED); loadMpk.type() != AM_WAITACTIVATEDOK){
+    if(amLM.waitActivated){
+        if(const auto loadMpk = co_await m_actorPod->send(amLM.mapUID, AM_WAITACTIVATED); loadMpk.type() != AM_WAITACTIVATEDOK){
+            m_actorPod->post(mpk.fromAddr(), AM_ERROR);
             co_return;
         }
     }
 
-    AMPeerLoadMapOK amPLMOK;
-    std::memset(&amPLMOK, 0, sizeof(amPLMOK));
+    AMLoadMapOK amLMOK;
+    std::memset(&amLMOK, 0, sizeof(amLMOK));
 
-    amPLMOK.newLoad = newLoad;
-    m_actorPod->post(mpk.fromAddr(), {AM_PEERLOADMAPOK, amPLMOK});
-    loadMapSg.dismiss();
+    amLMOK.newLoad = newLoad;
+    m_actorPod->post(mpk.fromAddr(), {AM_LOADMAPOK, amLMOK});
 
     if(newLoad){
-        g_server->addLog(LOGTYPE_INFO, "Load map %d on peer %zu successfully", to_d(uidf::getMapID(amPLM.mapUID)), uidf::peerIndex(UID()));
+        g_server->addLog(LOGTYPE_INFO, "Load map %d on peer %zu successfully", to_d(uidf::getMapID(amLM.mapUID)), uidf::peerIndex(UID()));
+    }
+}
+
+corof::awaitable<> PeerCore::on_AM_CLOSEMAP(const ActorMsgPack &mpk)
+{
+    // map may run on peer
+    // but is manageed on service core
+
+    // if servicecore forward close map request here
+    // means 1. this mapUID exists in service core's map list
+    //       2. this mapUID is running on this peer core
+
+    const auto amCM = mpk.conv<AMCloseMap>();
+
+    fflassert(uidf::isServiceCore(mpk.from()));
+    fflassert(uidf::isMap(amCM.mapUID));
+    fflassert(uidsf::isLocalUID(amCM.mapUID));
+    fflassert(m_mapList.contains(amCM.mapUID));
+
+    switch(const auto rmpk = co_await m_actorPod->send(amCM.mapUID, {AM_CLOSEMAP, amCM}); rmpk.type()){
+        case AM_CLOSEMAPOK:
+            {
+                m_mapList.erase(amCM.mapUID);
+                AMCloseMapOK amCMOK;
+                std::memset(&amCMOK, 0, sizeof(amCMOK));
+
+                amCMOK.hasMap = true;
+                m_actorPod->post(mpk.fromAddr(), {AM_CLOSEMAPOK, amCMOK});
+                co_return;
+            }
+        default:
+            {
+                AMCloseMapError amCME;
+                std::memset(&amCME, 0, sizeof(amCME));
+
+                amCME.hasMap = true;
+                m_actorPod->post(mpk.fromAddr(), {AM_CLOSEMAPERROR, amCME});
+                co_return;
+            }
     }
 }

@@ -42,7 +42,7 @@ function npcbattle.turnHostile(args)
     -- it has nothing left to say to this player
     clearNPCQuestBehavior(args.map, args.npc, args.uid)
 
-    local mapUID = getMapUID(args.map)
+    local mapUID = loadBaseMap(args.map)
     if not mapUID then
         fatalPrintf('Can not load map %s', args.map)
         return nil

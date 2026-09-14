@@ -250,6 +250,21 @@ bool uidf::isGM(uint64_t uid)
     return (uidf::getUIDType(uid) == UID_PLY) && (uidf::getPlayerDBID(uid) <= 10);
 }
 
+bool uidf::isServiceCore(uint64_t uid)
+{
+    return uid == uidf::getServiceCoreUID();
+}
+
+bool uidf::isPeerCore(uint64_t uid)
+{
+    return uidf::getUIDType(uid) == UID_COR;
+}
+
+bool uidf::isPeerCore(uint64_t uid, size_t peerIndex)
+{
+    return uidf::isPeerCore(uid) && (uidf::peerIndex(uid) == peerIndex);
+}
+
 bool uidf::isMap(uint64_t uid)
 {
     return (uidf::getUIDType(uid) == UID_MAP) && (uidf::getMapID(uid) > 0);
@@ -258,6 +273,11 @@ bool uidf::isMap(uint64_t uid)
 bool uidf::isBaseMap(uint64_t uid)
 {
     return uidf::isMap(uid) && (uidf::getMapSeq(uid, false) == 1);
+}
+
+bool uidf::isInstanceMap(uint64_t uid)
+{
+    return uidf::isMap(uid) && (uidf::getMapSeq(uid, false) > 1);
 }
 
 bool uidf::isPlayer(uint64_t uid)

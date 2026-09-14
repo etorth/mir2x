@@ -55,6 +55,11 @@ uint64_t uidsf::getBaseMapUID(uint32_t mapID)
     return uidf::getBaseMapUID(mapID, uidsf::pickPeerIndex(UID_MAP, mapID));
 }
 
+uint64_t uidsf::buildMapUID(uint32_t mapID)
+{
+    return uidf::buildMapUID(mapID, uidsf::pickPeerIndex(UID_MAP)); // randomized peer index
+}
+
 uint64_t uidsf::getPeerCoreUID()
 {
     return uidf::getPeerCoreUID(uidsf::peerIndex());
