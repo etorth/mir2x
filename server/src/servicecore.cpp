@@ -229,6 +229,12 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(const AMLoad
 #undef result_WAIT_MAP_ACTIVATED
 
     m_loadMapPendingOps.try_emplace(amLM.mapUID);
+    const auto loadMapSg = stdf::guard([this, mapUID = amLM.mapUID]()
+    {
+        for(auto &h: m_loadMapPendingOps.extract(mapUID).mapped()){
+            h.resume();
+        }
+    });
 
     const auto mpk = co_await m_actorPod->send(uidf::getPeerCoreUID(uidf::peerIndex(amLM.mapUID)), {AM_LOADMAP, amLM});
     const bool loaded = (mpk.type() == AM_LOADMAPOK);
@@ -236,12 +242,6 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestLoadMap(const AMLoad
     if(loaded){
         m_mapList.insert(amLM.mapUID);
     }
-
-    for(auto &h: m_loadMapPendingOps.at(amLM.mapUID)){
-        h.resume();
-    }
-
-    m_loadMapPendingOps.erase(amLM.mapUID); // won't keep record of bad load
 
     result.first  = loaded;
     result.second = loaded ? true : false;
@@ -267,8 +267,7 @@ corof::awaitable<std::pair<bool, bool>> ServiceCore::requestCloseMap(const AMClo
     m_closeMapPendingOps.try_emplace(amCM.mapUID);
     const auto closeMapSg = stdf::guard([this, mapUID = amCM.mapUID]()
     {
-        auto pendingOp = m_closeMapPendingOps.extract(mapUID);
-        for(auto &h: pendingOp.mapped()){
+        for(auto &h: m_closeMapPendingOps.extract(mapUID).mapped()){
             h.resume();
         }
     });
