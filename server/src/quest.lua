@@ -750,11 +750,24 @@ function _RSVD_NAME_trigger(triggerType, uid, ...)
         config[3](args)
     end
 
+    -- snapshot (key, callback) pairs to prevent table mutation during pairs() iteration
+    -- callbacks may yield (e.g. uidRemoteCall) or trigger reentrant addTrigger/deleteTrigger calls
+    -- mutating _RSVD_NAME_triggers while pairs() runs corrupts the iterator and get error like 'invalid key to next'
+    -- collecting pairs into a array first allows safe callback invocation afterward
+
+    local triggerKeyList = {}
     if _RSVD_NAME_triggers[triggerType] then
-        for triggerKey, triggerFunc in pairs(_RSVD_NAME_triggers[triggerType]) do
-            if triggerFunc(uid, table.unpack(args, 1, #config[2])) ~= nil then
-                addLog(LOGTYPE_WARNING, 'Quest trigger %s callback shall never return any value other than nil')
-            end
+        for triggerKey in pairs(_RSVD_NAME_triggers[triggerType]) do
+            table.insert(triggerKeyList, triggerKey)
+        end
+    end
+
+    for _, triggerKey in ipairs(triggerKeyList) do
+        -- the callback may already have been removed by a reentrant deleteQuestTrigger
+        -- triggered from an earlier callback in this same snapshot
+        local triggerFunc = _RSVD_NAME_triggers[triggerType] and _RSVD_NAME_triggers[triggerType][triggerKey]
+        if triggerFunc and triggerFunc(uid, table.unpack(args, 1, #config[2])) ~= nil then
+            addLog(LOGTYPE_WARNING, 'Quest trigger %s callback shall never return any value other than nil')
         end
     end
 end
