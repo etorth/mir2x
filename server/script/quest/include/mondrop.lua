@@ -259,8 +259,8 @@ function mondrop.setDropOnKill(dropList)
         end
     end
 
-    addQuestTrigger(SYS_ON_KILL, function(playerUID, monsterID)
-        for _, drop in ipairs(dropListByMonster[monsterID] or {}) do
+    addQuestTrigger(SYS_ON_KILL, function(playerUID, monsterUID)
+        for _, drop in ipairs(dropListByMonster[getMonsterID(monsterUID)] or {}) do
             if runDrop(playerUID, drop) then
                 return
             end

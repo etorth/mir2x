@@ -222,7 +222,7 @@ local function enterCaves(uid)
 end
 
 -- massheal1 and massheal2, both hooked on 1_023
-addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
+addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     if dbGetQuestState(uid) ~= 'quest_in_cave' then
         return
     end
@@ -237,7 +237,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
         return
     end
 
-    local monsterName = getMonsterName(monsterID)
+    local monsterName = getMonsterName(getMonsterID(monsterUID))
 
     -- massheal1, the one fouling the water
     if monsterName == bossCentipede then

@@ -245,12 +245,12 @@ local function pathMatches(path)
 end
 
 -- the ten QMteleportNL/NR hooks: which blocker died says which way you went
-addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
+addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     if dbGetQuestState(uid) ~= 'quest_in_trial' then
         return
     end
 
-    local monsterName = getMonsterName(monsterID)
+    local monsterName = getMonsterName(getMonsterID(monsterUID))
     local side = (monsterName == leftMonster) and 'L' or ((monsterName == rightMonster) and 'R' or nil)
 
     if not side then

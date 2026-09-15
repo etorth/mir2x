@@ -277,7 +277,7 @@ local _RSVD_NAME_triggerConfigList = {
     [SYS_ON_KILL] = {
         'SYS_ON_KILL',
         {
-            'integer'   -- monsterID
+            'integer'   -- monsterUID
         },
     },
 

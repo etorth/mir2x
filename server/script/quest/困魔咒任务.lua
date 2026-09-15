@@ -255,7 +255,7 @@ local function enterRooms(uid)
 end
 
 -- holy2, the last room cleared out is the whole thing
-addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
+addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     if dbGetQuestState(uid) ~= 'quest_in_rooms' then
         return
     end

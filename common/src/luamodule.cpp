@@ -394,9 +394,17 @@ LuaModule::LuaModule()
         return sol::make_object(sv, sol::lua_nil);
     });
 
-    bindFunction("getMonsterID", [](std::string monsterName) -> int
+    bindFunction("getMonsterID", [](sol::object arg) -> int
     {
-        return DBCOM_MONSTERID(monsterName.c_str());
+        if(arg.is<std::string>()){
+            return DBCOM_MONSTERID(arg.as<std::string>().c_str());
+        }
+        else if(arg.is<lua_Integer>()){
+            return to_d(uidf::getMonsterID(arg.as<lua_Integer>()));
+        }
+        else{
+            throw fflpanic("invalid argument type: {}", luaf::luaObjTypeString(arg));
+        }
     });
 
     bindFunction("getMapName", [](int mapID) -> std::string

@@ -98,7 +98,7 @@ end
 
 -- fireLine2: the marked one was carrying the book
 -- fireLine1: the others come back, one in five times three of them at once
-addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
+addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     if dbGetQuestState(uid) ~= 'quest_in_trial' then
         return
     end
@@ -108,7 +108,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
         return
     end
 
-    local monsterName = getMonsterName(monsterID)
+    local monsterName = getMonsterName(getMonsterID(monsterUID))
 
     if monsterName == markedMonster then
         server.player.addItem(uid, bookName, 1)

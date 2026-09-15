@@ -355,7 +355,7 @@ corof::awaitable<> Player::on_AM_EXP(const ActorMsgPack &mpk)
 {
     const auto amE = mpk.conv<AMExp>();
     if(!m_slaveList.contains(mpk.from()) && uidf::isMonster(mpk.from())){
-        m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_KILL, %llu)", to_llu(uidf::getMonsterID(mpk.from()))));
+        m_luaRunner->spawn(m_threadKey++, str_printf("_RSVD_NAME_trigger(SYS_ON_KILL, %llu)", to_llu(mpk.from())));
     }
 
     gainExp(amE.exp);

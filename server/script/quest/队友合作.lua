@@ -49,8 +49,8 @@ setQuestFSMTable(
             local questName, threadAddress = ...
             local killCount = 0
 
-            return addTrigger(SYS_ON_KILL, function(monsterID)
-                local monsterName = getMonsterName(monsterID)
+            return addTrigger(SYS_ON_KILL, function(monsterUID)
+                local monsterName = getMonsterName(getMonsterID(monsterUID))
                 if monsterName then
                     killCount = killCount + 1
                     postString([=[任务『%s』正在进行中，消灭一只%s，你已经消灭%d只怪物。]=], questName, monsterName, killCount)

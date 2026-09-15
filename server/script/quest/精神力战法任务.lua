@@ -45,7 +45,7 @@ end
 
 -- ilgang1: the 半兽战士 is the test
 -- ilgang2: a dead 半兽人 brings two more, and says so
-addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
+addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     if dbGetQuestState(uid) ~= 'quest_in_trial' then
         return
     end
@@ -55,11 +55,11 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
         return
     end
 
-    if getMonsterName(monsterID) == '半兽战士' then
+    if isMonster(monsterUID, '半兽战士') then
         server.player.postString(uid, '（噢，终于通过了学习精神力战法的测试……）')
         setQuestState{uid = uid, state = 'quest_trial_passed'}
 
-    elseif getMonsterName(monsterID) == '半兽人' then
+    elseif isMonster(monsterUID, '半兽人') then
         server.player.postString(uid, '（这么大的事情。半兽人没有了，还要再出现的……）')
         uidRemoteCall(mapUID, trialX, trialY,
         [[

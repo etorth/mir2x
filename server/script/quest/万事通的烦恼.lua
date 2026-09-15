@@ -29,8 +29,8 @@ setQuestFSMTable(
         uidRemoteCall(uid, getUID(),
         [[
             local questUID = ...
-            addTrigger(SYS_ON_KILL, function(monsterID)
-                if getMonsterName(monsterID) == '钉耙猫' then
+            addTrigger(SYS_ON_KILL, function(monsterUID)
+                if isMonster(monsterUID, '钉耙猫') then
                     postString([=[已经消灭一只钉耙猫，去找万拍子交谈获取礼物。]=])
                     uidRemoteCall(questUID, getUID(),
                     [=[

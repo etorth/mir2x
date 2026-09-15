@@ -88,7 +88,7 @@ end
 -- lightRecall1: the 僧侣僵尸 ends it
 -- lightRecall2: killing anything else brings more back, but only while two or more are still
 -- standing — clear it down far enough and the room stops refilling
-addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
+addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     if dbGetQuestState(uid) ~= 'quest_in_trial' then
         return
     end
@@ -98,7 +98,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
         return
     end
 
-    if getMonsterName(monsterID) == bossName then
+    if isMonster(monsterUID, bossName) then
         server.player.postString(uid, '（嘿，终于通过了学习雷电术的测试。。。）')
         setQuestState{uid = uid, state = 'quest_trial_passed'}
         return

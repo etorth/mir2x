@@ -361,12 +361,12 @@ local function enterYard(uid)
 end
 
 -- MonQuest/soulSkel.txt, the duel won: Monclear 1_014, set [506], map 1_013
-addQuestTrigger(SYS_ON_KILL, function(uid, monsterID)
+addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     if dbGetQuestState(uid) ~= 'quest_in_duel' then
         return
     end
 
-    if getMonsterName(monsterID) ~= '变异骷髅' then
+    if not isMonster(monsterUID, '变异骷髅') then
         return
     end
 
