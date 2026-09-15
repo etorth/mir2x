@@ -182,10 +182,11 @@ end
 --         },
 --     }
 --
-function mondrop.setDropOnKill(dropList)
+-- shared by setDropOnKill and addDropTrigger: validates dropList and indexes it by monster id
+-- so a kill only has to walk the drops that could actually fire
+local function buildDropListByMonster(dropList)
     assertType(dropList, 'table')
 
-    -- index by monster id, a kill then only walks the drops that could fire
     local dropListByMonster = {}
 
     for _, drop in ipairs(dropList) do
@@ -259,6 +260,11 @@ function mondrop.setDropOnKill(dropList)
         end
     end
 
+    return dropListByMonster
+end
+
+function mondrop.setDropOnKill(dropList)
+    local dropListByMonster = buildDropListByMonster(dropList)
     addQuestTrigger(SYS_ON_KILL, function(playerUID, monsterUID)
         for _, drop in ipairs(dropListByMonster[getMonsterID(monsterUID)] or {}) do
             if runDrop(playerUID, drop) then
@@ -266,6 +272,149 @@ function mondrop.setDropOnKill(dropList)
             end
         end
     end)
+end
+
+-- addDropTrigger/deleteDropTrigger: same drop config and same runDrop logic as setDropOnKill,
+-- but installed on-demand for a single player instead of globally for every kill on the server
+--
+-- call this from inside the quest_xxx state the drop is meant to be live in (not once at quest
+-- script load time), the trigger lives in the player's own VM so a kill costs the killer a cheap
+-- local table lookup instead of a remote call to the quest actor for every single kill on the
+-- server, only a real match pays for the round trip back here to run runDrop
+--
+--     quest_wait_kill = function(uid, args)
+--         local trigger = mondrop.addDropTrigger(uid,
+--         {
+--             {
+--                 monster  = '半兽人',
+--                 state    = 'quest_wait_kill',
+--                 setState = 'quest_done',
+--             },
+--         },
+--         {
+--             timeout   = 100 * 1000,
+--             onTimeout = function()
+--                 postString(uid, '时间到了，任务失败。')
+--                 setQuestState{uid=uid, state='quest_failed'}
+--             end,
+--         })
+--     end,
+--
+-- returns a handle for mondrop.deleteDropTrigger, opts is optional:
+--     opts.timeout   -- optional, milliseconds, auto-removes the trigger after this long
+--     opts.onTimeout -- optional, called (in this quest's own VM) when the timeout fires
+local _RSVD_NAME_activeDropCalls = {}
+local _RSVD_NAME_dropCallSeqID = 0
+
+local function _RSVD_NAME_removePlayerTrigger(uid, triggerPath)
+    uidRemoteCall(uid, triggerPath,
+    [[
+        local triggerPath = ...
+        deleteTrigger(triggerPath)
+    ]])
+end
+
+-- called from the player's own VM once a kill matches, must stay reachable through the module
+-- table since it runs from a remote-call code string with no upvalue access, but it is not part
+-- of mondrop's supported interface, callers should only use addDropTrigger/deleteDropTrigger
+function mondrop._runDropOnKill(playerUID, callID, monsterID)
+    local call = _RSVD_NAME_activeDropCalls[callID]
+    if not call then
+        return
+    end
+
+    for _, drop in ipairs(call.dropListByMonster[monsterID] or {}) do
+        if runDrop(playerUID, drop) then
+            _RSVD_NAME_activeDropCalls[callID] = nil
+            if call.timerKey then
+                closeThread(call.timerKey)
+            end
+            _RSVD_NAME_removePlayerTrigger(playerUID, call.triggerPath)
+            return
+        end
+    end
+end
+
+function mondrop.addDropTrigger(uid, dropList, opts)
+    assertType(uid, 'integer')
+    assertType(dropList, 'table')
+    assertType(opts, 'table', 'nil')
+
+    if opts then
+        assertType(opts.timeout, 'integer', 'nil')
+        assertType(opts.onTimeout, 'function', 'nil')
+    end
+
+    local dropListByMonster = buildDropListByMonster(dropList)
+    local monsterIDList = {}
+    for monsterID in pairs(dropListByMonster) do
+        table.insert(monsterIDList, monsterID)
+    end
+
+    _RSVD_NAME_dropCallSeqID = _RSVD_NAME_dropCallSeqID + 1
+    local callID = _RSVD_NAME_dropCallSeqID
+    local triggerPath = uidRemoteCall(uid, getUID(), callID, monsterIDList,
+    [[
+        local questUID, callID, monsterIDList = ...
+        local monsterIDSet = {}
+        for _, monsterID in ipairs(monsterIDList) do
+            monsterIDSet[monsterID] = true
+        end
+
+        return addTrigger(SYS_ON_KILL, function(monsterUID)
+            local monsterID = getMonsterID(monsterUID)
+            if monsterIDSet[monsterID] then
+                uidRemoteCall(questUID, getUID(), callID, monsterID,
+                [=[
+                    local playerUID, callID, monsterID = ...
+                    require('quest.include.mondrop')._runDropOnKill(playerUID, callID, monsterID)
+                ]=])
+            end
+        end)
+    ]])
+
+    _RSVD_NAME_activeDropCalls[callID] =
+    {
+        uid               = uid,
+        dropListByMonster = dropListByMonster,
+        triggerPath       = triggerPath,
+    }
+
+    if opts and opts.timeout then
+        _RSVD_NAME_activeDropCalls[callID].timerKey = runQuestThread(function()
+            pause(opts.timeout)
+
+            local call = _RSVD_NAME_activeDropCalls[callID]
+            if not call then
+                return
+            end
+
+            _RSVD_NAME_activeDropCalls[callID] = nil
+            _RSVD_NAME_removePlayerTrigger(uid, call.triggerPath)
+
+            if opts.onTimeout then
+                opts.onTimeout()
+            end
+        end)
+    end
+    return callID
+end
+
+function mondrop.deleteDropTrigger(uid, handle)
+    assertType(uid, 'integer')
+    assertType(handle, 'integer')
+
+    local call = _RSVD_NAME_activeDropCalls[handle]
+    if not call then
+        return
+    end
+    assert(call.uid == uid)
+
+    _RSVD_NAME_activeDropCalls[handle] = nil
+    if call.timerKey then
+        closeThread(call.timerKey)
+    end
+    _RSVD_NAME_removePlayerTrigger(uid, call.triggerPath)
 end
 
 return mondrop
