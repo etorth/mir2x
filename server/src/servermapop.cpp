@@ -653,21 +653,23 @@ corof::awaitable<> ServerMap::on_AM_CLOSEMAP(const ActorMsgPack &mpk)
             amMST.mapUID = uidsf::getBaseMapUID(amCM.exitMapID);
             amMST.X      = amCM.exitX;
             amMST.Y      = amCM.exitY;
-            m_actorPod->post(uid, {AM_MAPSWITCHTRIGGER, amMST}); // TODO: co_await it, change later
+
+            switch(const auto rmpk = co_await m_actorPod->send(uid, {AM_MAPSWITCHTRIGGER, amMST}); rmpk.type()){
+                case AM_OK:
+                    {
+                        break;
+                    }
+                default:
+                    {
+                        throw fflpanic("map switch failed: uid {}", uidf::getUIDString(uid));
+                    }
+            }
         }
     }
 
-    for(const auto uid: fnCollectUIDList({UID_MON})){
-        AMForceDie amFD;
-        std::memset(&amFD, 0, sizeof(amFD));
-
-        amFD.drop = false;
-        amFD.sendExp = false;
-        m_actorPod->post(uid, {AM_FORCEDIE, amFD}); // TODO: co_await it, change later
+    for(const auto uid: fnCollectUIDList({UID_MON, UID_NPC})){
+        co_await m_actorPod->send(uid, AM_FORCEOFF);
     }
-
-    // for(const auto uid: fnCollectUIDList({UID_NPC})){
-    // }
 
     AMCloseMapOK amCMOK;
     std::memset(&amCMOK, 0, sizeof(amCMOK));

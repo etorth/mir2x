@@ -135,6 +135,7 @@ class Monster: public BattleObject
         corof::awaitable<> on_AM_UPDATEHP        (const ActorMsgPack &);
         corof::awaitable<> on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &);
         corof::awaitable<> on_AM_MASTERKILL      (const ActorMsgPack &);
+        corof::awaitable<> on_AM_FORCEOFF        (const ActorMsgPack &);
         corof::awaitable<> on_AM_FORCEDIE        (const ActorMsgPack &);
         corof::awaitable<> on_AM_SETDROPONDIE    (const ActorMsgPack &);
         corof::awaitable<> on_AM_MASTERHITTED    (const ActorMsgPack &);

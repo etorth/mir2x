@@ -5,6 +5,13 @@
 #include "serdesmsg.hpp"
 #include "actormsgpack.hpp"
 
+corof::awaitable<> NPChar::on_AM_FORCEOFF(const ActorMsgPack &mpk)
+{
+    m_actorPod->post(mpk.fromAddr(), AM_OK);
+    deactivate();
+    return {};
+}
+
 corof::awaitable<> NPChar::on_AM_ATTACK(const ActorMsgPack &)
 {
     return {};

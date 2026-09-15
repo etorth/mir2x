@@ -76,6 +76,7 @@ class NPChar final: public CharObject
         corof::awaitable<> onActivate() override;
 
     private:
+        corof::awaitable<> on_AM_FORCEOFF(const ActorMsgPack &);
         corof::awaitable<> on_AM_BUY(const ActorMsgPack &);
         corof::awaitable<> on_AM_ATTACK(const ActorMsgPack &);
         corof::awaitable<> on_AM_ACTION(const ActorMsgPack &);

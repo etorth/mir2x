@@ -9,6 +9,14 @@
 #include "dbcomid.hpp"
 
 extern Server *g_server;
+
+corof::awaitable<> Monster::on_AM_FORCEOFF(const ActorMsgPack &mpk)
+{
+    m_actorPod->post(mpk.fromAddr(), AM_OK);
+    deactivate();
+    return {};
+}
+
 corof::awaitable<> Monster::on_AM_MISS(const ActorMsgPack &mpk)
 {
     const auto amM = mpk.conv<AMMiss>();
@@ -182,8 +190,11 @@ corof::awaitable<> Monster::on_AM_ATTACK(const ActorMsgPack &mpk)
     co_await onAMAttack(mpk);
 }
 
-corof::awaitable<> Monster::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &)
+corof::awaitable<> Monster::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
 {
+    if(mpk.seqID()){
+        m_actorPod->post(mpk.fromAddr(), AM_ERROR);
+    }
     return {};
 }
 

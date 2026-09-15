@@ -446,6 +446,10 @@ corof::awaitable<> Monster::runAICoro()
 corof::awaitable<> Monster::onActorMsg(const ActorMsgPack &rstMPK)
 {
     switch(rstMPK.type()){
+        case AM_FORCEOFF:
+            {
+                return on_AM_FORCEOFF(rstMPK);
+            }
         case AM_CHECKMASTER:
             {
                 return on_AM_CHECKMASTER(rstMPK);

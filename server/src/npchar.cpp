@@ -553,6 +553,10 @@ corof::awaitable<> NPChar::postAddMonster(uint32_t monsterID)
 corof::awaitable<> NPChar::onActorMsg(const ActorMsgPack &mpk)
 {
     switch(mpk.type()){
+        case AM_FORCEOFF:
+            {
+                return on_AM_FORCEOFF(mpk);
+            }
         case AM_OFFLINE:
             {
                 return {};

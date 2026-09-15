@@ -80,6 +80,7 @@ enum ActorMsgPackType: int
     AM_CLOSEMAPOK,
     AM_CLOSEMAPERROR,
 
+    AM_FORCEOFF,
     AM_FORCEDIE,
     AM_SETDROPONDIE,
     AM_QUERYLOCATION,
@@ -225,6 +226,7 @@ inline const char *mpkName(int type)
         _add_mpk_type_case(AM_CLOSEMAP)
         _add_mpk_type_case(AM_CLOSEMAPOK)
         _add_mpk_type_case(AM_CLOSEMAPERROR)
+        _add_mpk_type_case(AM_FORCEOFF)
         _add_mpk_type_case(AM_FORCEDIE)
         _add_mpk_type_case(AM_SETDROPONDIE)
         _add_mpk_type_case(AM_QUERYLOCATION)

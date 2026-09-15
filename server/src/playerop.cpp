@@ -205,15 +205,13 @@ corof::awaitable<> Player::on_AM_QUERYCORECORD(const ActorMsgPack &rstMPK)
 corof::awaitable<> Player::on_AM_MAPSWITCHTRIGGER(const ActorMsgPack &mpk)
 {
     const auto amMST = mpk.conv<AMMapSwitchTrigger>();
-    if(!uidf::isMap(amMST.mapUID)){
-        g_server->addLog(LOGTYPE_WARNING, "Map switch request failed: mapUID %llu", to_llu(amMST.mapUID));
-    }
+    fflassert(uidf::isMap(amMST.mapUID));
+    fflassert(validMapGLoc(uidf::getMapID(amMST.mapUID), amMST.X, amMST.Y));
 
-    if(amMST.mapUID == mapUID()){
-        co_await requestSpaceMove(amMST.X, amMST.Y, false);
-    }
-    else{
-        co_await requestMapSwitch(amMST.mapUID, amMST.X, amMST.Y, false);
+    const bool doneSwitch = (amMST.mapUID == mapUID()) ? (co_await requestSpaceMove(              amMST.X, amMST.Y, false))
+                                                       : (co_await requestMapSwitch(amMST.mapUID, amMST.X, amMST.Y, false));
+    if(mpk.seqID() > 0){
+        m_actorPod->post(mpk.fromAddr(), doneSwitch ? AM_OK : AM_ERROR);
     }
 }
 
