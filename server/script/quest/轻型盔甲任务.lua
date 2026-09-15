@@ -37,7 +37,7 @@ setQuestFSMTable(
                 npc_where_to_get_iron = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '不知道就说不知道嘛！嗨...',
+                        '不知道就说不知道嘛！嗨<t wrap="0">···</t>',
                         '先去武器店或铁匠铺买把鹤嘴锄，再去矿山就可以挖到各种矿石。',
                         '从中挑出5个纯度在13以上的铁矿带给我就行。',
                         '离这里最近的矿山是比奇矿区，可能去764:206附近就能找到入口。',
@@ -108,7 +108,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                     dialog.post(uid, questPath,
                     {
                         string.format('您就是最近为比奇商会四处游说的<t color="red">%s</t>吧！久仰久仰！', server.player.getName(uid)),
-                        '不过...你这样的侠客，却不穿衣服在这里招摇过市真的好吗？这种打扮实在是让我难以置信啊！',
+                        '不过<t wrap="0">···</t>你这样的侠客，却不穿衣服在这里招摇过市真的好吗？这种打扮实在是让我难以置信啊！',
                         '本店特色商品轻型盔甲，一直备受各路闯荡江湖的侠客青睐，你感兴趣吗？',
                     },
                     {
@@ -116,11 +116,11 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                         dialog.link('npc_ask_when_not_interested', '不感兴趣。'),
                     })
 
-                elseif string.match(dressName, '布衣.+') then
+                elseif string.match(dressName, '布衣。+') then
                     dialog.post(uid, questPath,
                     {
                         string.format('您就是最近为比奇商会四处游说的<t color="red">%s</t>吧！久仰久仰！', server.player.getName(uid)),
-                        '不过...看起来你今天的穿着很是稀松平常，说实话这种打扮实在难以让我信任啊！',
+                        '不过<t wrap="0">···</t>看起来你今天的穿着很是稀松平常，说实话这种打扮实在难以让我信任啊！',
                         '不知你是否知道我们店里所卖的轻型盔甲呢？',
                     },
                     {
@@ -128,7 +128,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
                         dialog.link('npc_ask_when_not_interested', '不感兴趣。'),
                     })
 
-                elseif string.match(dressName, '轻型盔甲.+') then
+                elseif string.match(dressName, '轻型盔甲。+') then
                     dialog.post(uid, questPath,
                     {
                         string.format('您就是最近为比奇商会四处游说的<t color="red">%s</t>吧！久仰久仰！', server.player.getName(uid)),
@@ -157,7 +157,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
             {
                 '<t color="red">轻型盔甲</t>是等级达到11级之后才可以穿上的防御服。',
                 '主要部分都是用钢铁打造的，所以比起布衣要重的多，但是防御力也特别的好。',
-                '实不相瞒，我有一件关于这种盔甲的事情要拜托你...',
+                '实不相瞒，我有一件关于这种盔甲的事情要拜托你<t wrap="0">···</t>',
             },
             dialog.link('npc_introduce_quest', '有什么要拜托的事情请您尽管说。'))
         end,
@@ -166,8 +166,8 @@ uidRemoteCall(getNPCharUID('比奇县_0', '怡美_1'), getUID(), getQuestName(),
             local _ = server.player.getName(uid)
             dialog.post(uid, questPath,
             {
-                '既然您不感兴趣，那我就不再介绍了...',
-                '其实我并非想向您推销轻型盔，而是有一件关于这种盔甲的事情要拜托你...',
+                '既然您不感兴趣，那我就不再介绍了<t wrap="0">···</t>',
+                '其实我并非想向您推销轻型盔，而是有一件关于这种盔甲的事情要拜托你<t wrap="0">···</t>',
             },
             dialog.link('npc_introduce_quest', '有什么要拜托的事情请您尽管说。'))
         end,

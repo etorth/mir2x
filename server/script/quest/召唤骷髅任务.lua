@@ -59,32 +59,32 @@ _G.talkers =
         npc   = '变异骷髅_2',
         lines =
         {
-            '哈哈哈。。像你这种家伙还是看不到我原来的样子。',
-            '在哪儿了。。我要休息的地方。。。',
+            '哈哈哈<t wrap="0">···</t>像你这种家伙还是看不到我原来的样子。',
+            '在哪儿了<t wrap="0">···</t>我要休息的地方<t wrap="0">···</t>',
         },
         reply = '不知道为什么，好象不是人。',
     },
     {
         npc   = '变异骷髅_3',
         lines = '啊！别问！什么都别问！',
-        reply = '很奇怪...',
+        reply = '很奇怪<t wrap="0">···</t>',
     },
     {
         npc   = '变异骷髅_4',
         lines =
         {
-            '哈哈哈。。像你这种家伙还是看不到我原来的样子。',
-            '长久战斗的日子。但是我们得到的东西什么都没有。。。',
+            '哈哈哈<t wrap="0">···</t>像你这种家伙还是看不到我原来的样子。',
+            '长久战斗的日子。但是我们得到的东西什么都没有<t wrap="0">···</t>',
             '嗯？我正在说什么话？',
         },
-        reply = '好象很长时间一个人了...不幸的灵魂。',
+        reply = '好象很长时间一个人了<t wrap="0">···</t>不幸的灵魂。',
         rude  =
         {
-            label   = '哈哈哈，象你长得一样竟说傻话儿...',
+            label   = '哈哈哈，像你长得一样竟说傻话儿<t wrap="0">···</t>',
             chance  = 2,
             punish  = '愚笨的人，你讲的话使人后悔。',
             spared  = '愚笨的人，要知道今天运气很好。',
-            reply   = '什么意义? 这种...',
+            reply   = '什么意义？这种<t wrap="0">···</t>',
             spawnAt = {23, 25},
         },
     },
@@ -95,19 +95,19 @@ _G.talkers =
             '不要随便进行随机传送。',
             '没有做好，将成为我现在的样子哟。哈哈哈',
         },
-        reply = '什么话儿?',
+        reply = '什么话儿？',
     },
     {
         npc   = '变异骷髅_6',
         lines = '你现在还有带有活人的痕迹，但是马上就会变成我们的样子哟。',
-        reply = '不幸的灵魂啊...别花心思！',
+        reply = '不幸的灵魂啊<t wrap="0">···</t>别花心思！',
         rude  =
         {
-            label   = '别说假话。根本不可能的事儿...',
+            label   = '别说假话。根本不可能的事儿<t wrap="0">···</t>',
             chance  = 2,
-            punish  = '果真如此吗？哈哈哈。。。',
+            punish  = '果真如此吗？哈哈哈<t wrap="0">···</t>',
             spared  = '要知道今天运气很好。',
-            reply   = '这种...阴险的家伙。',
+            reply   = '这种<t wrap="0">···</t>阴险的家伙。',
             spawnAt = {25, 23},
         },
     },
@@ -122,14 +122,14 @@ _G.talkers =
     },
     {
         npc   = '变异骷髅_8',
-        lines = '想回故乡。。。',
-        reply = '快点回家乡吧...',
+        lines = '想回故乡<t wrap="0">···</t>',
+        reply = '快点回家乡吧<t wrap="0">···</t>',
         rude  =
         {
-            label   = '哈哈哈, 忘记了家乡在哪儿？',
+            label   = '哈哈哈，忘记了家乡在哪儿？',
             chance  = 1,
-            punish  = '唐突的家伙，一点也不考虑别人的处境...',
-            reply   = '出现了这种...失误?',
+            punish  = '唐突的家伙，一点也不考虑别人的处境<t wrap="0">···</t>',
+            reply   = '出现了这种<t wrap="0">···</t>失误？',
             spawnAt = {10, 24},
         },
     },
@@ -243,8 +243,8 @@ local function setupMainSkel(uid, yardUID, retry)
                 dialog.post(uid, questPath,
                 {
                     '听见喊声了哦。',
-                    '叫我的声音。。。',
-                    '你是谁?',
+                    '叫我的声音<t wrap="0">···</t>',
+                    '你是谁？',
                 },
                 dialog.link('npc_talk2', '为了寻找守护灵而来。'))
             end,
@@ -253,7 +253,7 @@ local function setupMainSkel(uid, yardUID, retry)
             npc_talk2 = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '嘿嘿嘿。。',
+                    '嘿嘿嘿<t wrap="0">···</t>',
                     '不害怕，找到地牢空间来了。',
                     '你也有可能成为这个样子，不害怕吗？',
                 },
@@ -264,9 +264,9 @@ local function setupMainSkel(uid, yardUID, retry)
             npc_talk3 = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '很奇怪。。。',
+                    '很奇怪<t wrap="0">···</t>',
                     '感受到了<t color="red">命运之手的召唤</t>，我已经不是我了。',
-                    '哦。。好象凭借谁的法力来到这里，在发生更大的事情之前快些离开这里。',
+                    '哦<t wrap="0">···</t>好象凭借谁的法力来到这里，在发生更大的事情之前快些离开这里。',
                     '或者死了，或者成为连死都不行的样子。',
                 },
                 dialog.link('npc_talk4', '死一点也不害怕，害怕的是没有实现自己的意愿。'))
@@ -276,14 +276,14 @@ local function setupMainSkel(uid, yardUID, retry)
             npc_talk4 = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '...',
-                    '现在知道了。平静的心脏在怦怦地跳动。。。',
+                    '<t wrap="0">···</t>',
+                    '现在知道了。平静的心脏在怦怦地跳动<t wrap="0">···</t>',
                     '感觉到惊心动魄的兴奋。啊，我希望的东西就在这里。',
                     '我感觉到了<t color="red">战斗的宿命</t>',
                     '好的，我将按照指示做。',
                     '但是，有一个<t color="red">条件</t>。',
                 },
-                dialog.link('npc_ask_terms', '什么条件?'))
+                dialog.link('npc_ask_terms', '什么条件？'))
             end,
 
             -- mainskel5
@@ -291,9 +291,9 @@ local function setupMainSkel(uid, yardUID, retry)
                 dialog.post(uid, questPath,
                 {
                     '我是战士。',
-                    '认为名义是最高的价值。。。同时我知道的只有这个。',
+                    '认为名义是最高的价值<t wrap="0">···</t>同时我知道的只有这个。',
                     '哦，条件很简单。<t color="red">和我搏斗，战胜我，使我屈服。</t>',
-                    '如何？ 打吗？',
+                    '如何？打吗？',
                 },
                 {
                     dialog.link('npc_accept_duel', '好的，现在当场开始吧。'),
@@ -305,10 +305,10 @@ local function setupMainSkel(uid, yardUID, retry)
             npc_refuse_duel = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '软弱的人。。。随你的便。',
+                    '软弱的人<t wrap="0">···</t>随你的便。',
                     '我要在这个地方等到何时？',
                 },
-                dialog.link('npc_walk_away', '首先逃出这个地方，重新回到大飞圣僧那儿...', {close = true}))
+                dialog.link('npc_walk_away', '首先逃出这个地方，重新回到大飞圣僧那儿<t wrap="0">···</t>', {close = true}))
             end,
 
             npc_walk_away = function(uid, value)
@@ -320,7 +320,7 @@ local function setupMainSkel(uid, yardUID, retry)
                 dialog.post(uid, questPath,
                 {
                     '好的。接受<t color="red">你的挑战</t>。',
-                    '那么现在一起去对决场吧。。。',
+                    '那么现在一起去对决场吧<t wrap="0">···</t>',
                 },
                 dialog.link('npc_go_duel', '移动', {close = true}))
             end,
@@ -416,7 +416,7 @@ local function setupTeacher(uid)
                 dialog.post(uid, questPath,
                 {
                     '知道了。',
-                    '精神要集中，希望这次一定可以成功。。。',
+                    '精神要集中，希望这次一定可以成功<t wrap="0">···</t>',
                 },
                 dialog.link('npc_enter_yard', '移动', {close = true}))
             end,
@@ -534,17 +534,17 @@ setQuestFSMTable(
                     [SYS_ENTER] = function(uid, value)
                         dialog.post(uid, questPath,
                         {
-                            '金属相碰飞溅的火花，呼呼的喘气声，还有战场上面的血腥味儿。。。但是即使在极限的状况下，我也无法放弃的名义。。。',
+                            '金属相碰飞溅的火花，呼呼的喘气声，还有战场上面的血腥味儿<t wrap="0">···</t>但是即使在极限的状况下，我也无法放弃的名义<t wrap="0">···</t>',
                             '这是给从和我的战斗中取得胜利的你的<t color="red">礼物</t>。谢谢使我想起忘却的东西。<t color="red">现在跟随着你重新回到战场</t>。',
                             '如果需要的帮助，请随时联系。',
                         },
-                        dialog.link('npc_leave_yard', '首先要离开这个地方...'))
+                        dialog.link('npc_leave_yard', '首先要离开这个地方<t wrap="0">···</t>'))
 
                         server.player.addItem(uid, '幻影玉珠', 1)
                     end,
 
                     npc_leave_yard = function(uid, value)
-                        dialog.post(uid, questPath, '(虽然很辛苦, 但是能拥有这么好的伙伴真是很开心啊...)',
+                        dialog.post(uid, questPath, '(虽然很辛苦，但是能拥有这么好的伙伴真是很开心啊<t wrap="0">···</t>)',
                         dialog.link('npc_done', '结束', {close = true}))
                     end,
 
@@ -580,7 +580,7 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '哦，<t color="red">和守护灵的合同</t>成功了？如此这样，现在学习召唤骷髅就没有什么大问题了。。',
+                        '哦，<t color="red">和守护灵的合同</t>成功了？如此这样，现在学习召唤骷髅就没有什么大问题了<t wrap="0">···</t>',
                         '你已经在其它地方得到了武功秘籍，我也没有再给你的必要了。如果可以熟练地掌握这本书，以后即使你一个人修炼没有什么问题。',
                         '那么更加进步吧！',
                     },
@@ -624,7 +624,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 dialog.post(uid, questPath,
                 {
                     '你不是已经收到召唤骷髅秘籍吗？',
-                    '或者把它丢失在在那儿了？',
+                    '或者把它丢失在那儿了？',
                 },
                 dialog.link(SYS_EXIT, '结束'))
                 return
@@ -678,7 +678,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         npc_accept = function(uid, value)
             dialog.post(uid, questPath,
             {
-                '那么就使你向合适的地牢空间移动。 重复讲一下千万记住那个地方发生的事情你自己都要看着解决。地牢空间是没有任何发表资料的未知空间，时时刻刻要小心。',
+                '那么就使你向合适的地牢空间移动。重复讲一下千万记住那个地方发生的事情你自己都要看着解决。地牢空间是没有任何发表资料的未知空间，时时刻刻要小心。',
                 '给你的时间是不是<t color="red">10分钟</t>。',
                 '那么，请安全地回来！',
             },

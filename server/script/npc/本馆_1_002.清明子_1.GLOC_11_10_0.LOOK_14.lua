@@ -21,7 +21,7 @@ skillteacher.setTeacher
         ['道士'] =
         {
             {
-                band = '1 - 10 等级 修炼魔法',
+                band = '1 - 10等级修炼魔法',
                 list =
                 {
                     {'治愈术',     700},
@@ -30,7 +30,7 @@ skillteacher.setTeacher
             },
 
             {
-                band = '11 - 25 等级 修炼魔法',
+                band = '11 - 25等级修炼魔法',
                 list =
                 {
                     {'施毒术',     1200},

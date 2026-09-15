@@ -43,11 +43,11 @@ _G.teacherNPC = '大悲善僧_1'
 -- @MapQuest_holycircle_drop1, rolled in this order and the first hit wins
 _G.stoneDrops =
 {
-    {'第一困魔石', 100, '(这是第一困魔石吗？...要一个不缺地找到5种困魔石...)'},
-    {'第二困魔石',  50, '(这是第二困魔石吗？...要一个不缺地找到5种困魔石...)'},
-    {'第三困魔石', 100, '(这是第三困魔石吗？...要一个不缺地找到5种困魔石...)'},
-    {'第四困魔石',  50, '(这是第四困魔石吗？...要一个不缺地找到5种困魔石...)'},
-    {'最后困魔石', 100, '(这是最后困魔石吗？...要一个不缺地找到5种困魔石...)'},
+    {'第一困魔石', 100, '(这是第一困魔石吗？<t wrap="0">···</t>要一个不缺地找到5种困魔石<t wrap="0">···</t>)'},
+    {'第二困魔石',  50, '(这是第二困魔石吗？<t wrap="0">···</t>要一个不缺地找到5种困魔石<t wrap="0">···</t>)'},
+    {'第三困魔石', 100, '(这是第三困魔石吗？<t wrap="0">···</t>要一个不缺地找到5种困魔石<t wrap="0">···</t>)'},
+    {'第四困魔石',  50, '(这是第四困魔石吗？<t wrap="0">···</t>要一个不缺地找到5种困魔石<t wrap="0">···</t>)'},
+    {'最后困魔石', 100, '(这是最后困魔石吗？<t wrap="0">···</t>要一个不缺地找到5种困魔石<t wrap="0">···</t>)'},
 }
 
 _G.stoneMaps =
@@ -73,39 +73,39 @@ _G.rooms =
     {
         map   = '困魔咒空间_1_015',
         stone = '第一困魔石',
-        need  = '(如果想进入第一个困魔咒间的入口，要找到第一困魔石哟...)',
+        need  = '(如果想进入第一个困魔咒间的入口，要找到第一困魔石哟<t wrap="0">···</t>)',
         entry = {10, 17},
         spawn = {20, 23, {{'山洞蝙蝠', 5}, {'暗黑战士', 2}}},
-        clear = '(这里还没有彻底净化...)',
+        clear = '(这里还没有彻底净化<t wrap="0">···</t>)',
     },
     {
         map   = '困魔咒空间_1_016',
         stone = '第二困魔石',
-        need  = '(需要第二困魔石...)',
+        need  = '(需要第二困魔石<t wrap="0">···</t>)',
         entry = {10, 17},
         spawn = {20, 23, {{'沃玛战士', 3}, {'沃玛勇士', 1}}},
-        clear = '(这里还没有彻底净化...)',
+        clear = '(这里还没有彻底净化<t wrap="0">···</t>)',
     },
     {
         map   = '困魔咒空间_1_017',
         stone = '第三困魔石',
-        need  = '(需要第三困魔石...)',
+        need  = '(需要第三困魔石<t wrap="0">···</t>)',
         entry = {10, 17},
         spawn = {20, 23, {{'山洞蝙蝠', 10}, {'沃玛战将', 1}}},
-        clear = '(这里还没有彻底净化...)',
+        clear = '(这里还没有彻底净化<t wrap="0">···</t>)',
     },
     {
         map   = '困魔咒空间_1_018',
         stone = '第四困魔石',
-        need  = '(需要第四困魔石...)',
+        need  = '(需要第四困魔石<t wrap="0">···</t>)',
         entry = {10, 17},
         spawn = {20, 23, {{'沃玛勇士', 3}, {'火焰沃玛', 1}}},
-        clear = '(现在这个地方还没有清理干净...)',
+        clear = '(现在这个地方还没有清理干净<t wrap="0">···</t>)',
     },
     {
         map   = '困魔咒空间_1_019',
         stone = '最后困魔石',
-        need  = '(需要最后困魔石呢...)',
+        need  = '(需要最后困魔石呢<t wrap="0">···</t>)',
         entry = {13, 17},
         spawn = {29, 29, {{'沃玛战将', 3}, {'沃玛护卫', 1}}},
     },
@@ -267,11 +267,11 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
 
     -- checkmonmap 1_019 1
     if uidRemoteCall(lastUID, [[ return getMonsterCount() ]]) > 0 then
-        server.player.postString(uid, '(这里还没有彻底净化...)')
+        server.player.postString(uid, '(这里还没有彻底净化<t wrap="0">···</t>)')
         return
     end
 
-    server.player.postString(uid, '(终于找到了困魔咒秘籍...)')
+    server.player.postString(uid, '(终于找到了困魔咒秘籍<t wrap="0">···</t>)')
     setQuestState{uid = uid, state = 'quest_rooms_done'}
 end)
 
@@ -441,9 +441,9 @@ for _, grid in ipairs(doorGrids) do
                 local questUID, magicName = ...
                 return function(uid, x, y)
                     if (server.quest.getState(questUID, {uid = uid}) == SYS_DONE) or server.player.hasMagic(uid, magicName) then
-                        server.player.postString(uid, '(现在也没有进去的必要了...)')
+                        server.player.postString(uid, '(现在也没有进去的必要了<t wrap="0">···</t>)')
                     else
-                        server.player.postString(uid, '(现在好像进不去了...)')
+                        server.player.postString(uid, '(现在好像进不去了<t wrap="0">···</t>)')
                     end
                     return false
                 end
@@ -474,7 +474,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 dialog.post(uid, questPath,
                 {
                     '托你的福，那个地方的<t color="red">困魔咒被完好地修复了</t>。你去过后加强了那个地方的警卫，以使困魔咒不再受到损伤。',
-                    '现在你也已经掌握了困魔咒吧？你的武功每天突飞猛进地进步，内心也很满足。在不远的将来也许再也没有什么可以教给你了，嘿嘿。。',
+                    '现在你也已经掌握了困魔咒吧？你的武功每天突飞猛进地进步，内心也很满足。在不远的将来也许再也没有什么可以教给你了，嘿嘿<t wrap="0">···</t>',
                 },
                 dialog.link(SYS_EXIT, '结束'))
                 return
@@ -501,9 +501,9 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 {
                     '困魔咒是<t color="red">在一定的空间实施魔法，使带有邪气的生物被隔离的技术</t>。带有邪气的生物如果进入困魔咒之内，由于自己体内气体流通不顺而陷入迷惑之中。',
                     '他们直到受到外部的刺激从魔法中苏醒过来为止，继续在困魔咒中打转转。但是如果有带有正气的人进入，他们将摆脱困魔咒的力量。',
-                    '不要再问更详细的由来，你不是已经到达可以理解该内容的修炼程度。。',
+                    '不要再问更详细的由来，你不是已经到达可以理解该内容的修炼程度<t wrap="0">···</t>',
                 },
-                dialog.link(SYS_EXIT, '那么, 以后再来吧！'))
+                dialog.link(SYS_EXIT, '那么，以后再来吧！'))
                 return
             end
 
@@ -526,7 +526,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 '如果使用该种石头，比我们现在称为困魔咒的技术可以在更广泛的区域永久性地压制邪气。',
                 '现在到处都剩有相同的困魔咒，但是最近这些困魔咒中发生了<t color="red">不一般的事情</t>。',
             },
-            dialog.link('npc_what_happened', '什么不一般的事情?'))
+            dialog.link('npc_what_happened', '什么不一般的事情？'))
         end,
 
         -- @mugong_holycircle_next4
@@ -534,7 +534,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '据某人说<t color="red">困魔咒中有几处被破坏了</t>。现在只能推测是谁故意搞的，但是究竟是谁以什么理由搞的还不是很清楚。现在道馆的很多道士和修炼生正在对此事<t color="red">进行调查或者恢复困魔咒</t>。',
-                '但是。。。做此事的人手真的很不够，像你一样的有实力者可以成为很大的<t color="red">帮助</t>，你要帮助我们的事情吗？',
+                '但是<t wrap="0">···</t>做此事的人手真的很不够，像你一样的有实力者可以成为很大的<t color="red">帮助</t>，你要帮助我们的事情吗？',
             },
             {
                 dialog.link('npc_accept', '好的，我将试试。'),

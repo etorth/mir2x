@@ -7,7 +7,7 @@ outfitter.setOutfitter
     greet = function(uid)
         return
         {
-            '这里是 沙巴克城 <t color="red">' .. getSubukGuildName() .. '</t> 行会的领地。',
+            '这里是沙巴克城<t color="red">' .. getSubukGuildName() .. '</t>行会的领地。',
             '欢迎光临，我们店里有各式各样的衣服。你随便挑选。',
         }
     end,

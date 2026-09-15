@@ -77,7 +77,7 @@ local function setupShopNag(uid)
                 {
                     [SYS_LABEL] = '野蛮冲撞的事',
                     [SYS_ENTER] = function(uid, value)
-                        dialog.post(uid, questPath, '叫野蛮冲撞的武功请找黄河大侠。。',
+                        dialog.post(uid, questPath, '叫野蛮冲撞的武功请找黄河大侠<t wrap="0">···</t>',
                         dialog.link(SYS_EXIT, '结束'))
                     end,
                 }
@@ -149,7 +149,7 @@ setQuestFSMTable(
                     {
                         '为了学习野蛮冲撞，首先要把我给你的<t color="red">书信</t>转交给<t color="red">绿树村的王铁匠</t>，然后接受王铁匠的一个委托。',
                         '听说要从诺玛法老处找到<t color="red">诺玛石</t>5个左右。如果诺玛石都找到了，请重新将一个<t color="red">书信</t>转交给我。',
-                        '将那个书信 拿给我即可。',
+                        '将那个书信拿给我即可。',
                     },
                     {
                         dialog.link('npc_ask_magic', '想了解新的武功。'),
@@ -268,7 +268,7 @@ setQuestFSMTable(
 
                 -- @mugong_mutebo_test_next5
                 npc_no_worry = function(uid, value)
-                    dialog.post(uid, questPath, '非常谢谢！‘诺玛石’被装饰于诺玛族长老<t color="red">诺玛法老的手杖</t>上。',
+                    dialog.post(uid, questPath, '非常谢谢！<t color="red">诺玛石</t>被装饰于诺玛族长老<t color="red">诺玛法老的手杖</t>上。',
                     dialog.link('npc_next', '下一步'))
                 end,
 
@@ -280,7 +280,7 @@ setQuestFSMTable(
 
                 -- @mugong_mutebo_test_next7, SET [510]
                 npc_accept = function(uid, value)
-                    dialog.post(uid, questPath, '真的吗？哦，绝对不是故意如此的。‘诺玛石’被装饰于诺玛法老的手杖上，而且请找到该<t color="red">诺玛石 5个</t>。',
+                    dialog.post(uid, questPath, '真的吗？哦，绝对不是故意如此的。<t color="red">诺玛石</t>被装饰于诺玛法老的手杖上，而且请找到该<t color="red">诺玛石5个</t>。',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.quest.setState(questUID, {uid = uid, state = 'quest_find_stones'})
@@ -302,11 +302,11 @@ setQuestFSMTable(
         -- first stone would ever be collectable in a single session
         local stoneLines =
         {
-            '(这个是诺玛石吗？。。。现在找到1个。)',
-            '(现在剩下3个诺玛石了。。。)',
-            '(再找到2个诺玛石就可以了。。。)',
-            '(再找到1个诺玛石就可以了。。。)',
-            '(诺玛石都找到了，现在该快点回去了。。)',
+            '(这个是诺玛石吗？<t wrap="0">···</t>现在找到1个。)',
+            '(现在剩下3个诺玛石了<t wrap="0">···</t>)',
+            '(再找到2个诺玛石就可以了<t wrap="0">···</t>)',
+            '(再找到1个诺玛石就可以了<t wrap="0">···</t>)',
+            '(诺玛石都找到了，现在该快点回去了<t wrap="0">···</t>)',
         }
 
         local dropList = {}
@@ -351,7 +351,7 @@ setQuestFSMTable(
                 if withCount then
                     dialog.post(uid, questPath,
                     {
-                        '需要的东西是诺玛法老出产的<t color="red">诺玛石 5个</t>，千万记住！',
+                        '需要的东西是诺玛法老出产的<t color="red">诺玛石5个</t>，千万记住！',
                         '我将在此等候你回来。',
                     },
                     {
@@ -375,7 +375,7 @@ setQuestFSMTable(
                         return
                     end
 
-                    dialog.post(uid, questPath, '哦，找到‘诺玛石’了。谢谢！今天晚上开始可以好好地睡觉了。',
+                    dialog.post(uid, questPath, '哦，找到<t color="red">诺玛石</t>了。谢谢！今天晚上开始可以好好地睡觉了。',
                     dialog.link('npc_hand_over', '下一步'))
                 end,
 
@@ -434,7 +434,7 @@ setQuestFSMTable(
             {
                 monster = '诺玛法老',
                 map     = stoneMaps,
-                say     = '(要快点回去了。。。)',
+                say     = '(要快点回去了<t wrap="0">···</t>)',
             },
         })
 
@@ -550,8 +550,8 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(),
             -- to get your gear seen to, which is exactly where you will hear about him
             dialog.post(uid, questPath,
             {
-                '嗯。。战士的路即危险又艰辛。从你所带的工具看好像经历了无数的搏斗和考验。。',
-                '首先将所持的武器刀刃磨光，每个村庄都有加工武器的商人，请他们给修理一下。那些人也许不知道你的心情。。。',
+                '嗯<t wrap="0">···</t>战士的路即危险又艰辛。从你所带的工具看好像经历了无数的搏斗和考验<t wrap="0">···</t>',
+                '首先将所持的武器刀刃磨光，每个村庄都有加工武器的商人，请他们给修理一下。那些人也许不知道你的心情<t wrap="0">···</t>',
                 '以后找机会再来！',
             },
             dialog.link(SYS_EXIT, '好的，我知道了。'))
@@ -590,7 +590,7 @@ local weaponShopCode =
 
         -- @mugong_mute_explan_mugi_next
         npc_frontline = function(uid, value)
-            dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
+            dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦<t wrap="0">···</t>听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
             dialog.link('npc_never_heard', '没有，第一次听说。'))
         end,
 
@@ -637,7 +637,7 @@ local armorShopCode =
         [SYS_ENTER] = function(uid, value)
             dialog.post(uid, questPath,
             '哦，防御工具被破坏的很严重嘛！看起来进行了一场非常激烈的厮杀。' ..
-            '嗯，战士强壮虽然很有魅力，但也使人担心。如果被包围了，不是要危及到生命嘛。听说战士的武功中有可以在摆脱危机的时候使用的武功。。' ..
+            '嗯，战士强壮虽然很有魅力，但也使人担心。如果被包围了，不是要危及到生命嘛。听说战士的武功中有可以在摆脱危机的时候使用的武功<t wrap="0">···</t>' ..
             '你知道该武功吗？',
             {
                 dialog.link('npc_never_heard', '没有，第一次听说。'),
@@ -647,7 +647,7 @@ local armorShopCode =
 
         -- @mugong_mute_explan_armor_m_next, which is the weapon seller's line
         npc_frontline = function(uid, value)
-            dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦。。听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
+            dialog.post(uid, questPath, '很悲壮的话哦。即使是这样也是毫无办法的。希望你平安无事！哦<t wrap="0">···</t>听说战士的武功中有可以使战士摆脱死亡境地的武功，你知道吗？',
             dialog.link('npc_heard_in_tavern', '没有，第一次听说。'))
         end,
 
@@ -672,7 +672,7 @@ local armorShopCode =
             dialog.post(uid, questPath,
             {
                 '不会的。我们很高兴可以帮助保护我们的战士，千万要小心身体！',
-                '真是非常困难的时期啊。由于怪兽，我们都不能在野外约会。。。',
+                '真是非常困难的时期啊。由于怪兽，我们都不能在野外约会<t wrap="0">···</t>',
             },
             dialog.link(SYS_EXIT, '结束'))
             server.quest.setState(questUID, {uid = uid, state = SYS_ENTER})

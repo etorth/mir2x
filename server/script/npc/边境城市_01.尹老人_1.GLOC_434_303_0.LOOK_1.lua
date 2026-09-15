@@ -5,7 +5,7 @@ apothecary.setApothecary
 {
     greet =
     {
-        '欢迎光临。 请随便挑选。',
+        '欢迎光临。请随便挑选。',
     },
 
     redName = '我不愿意和你这样的人进行交易。',

@@ -36,7 +36,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    dialog.post(uid, questPath, '最近天气异常的炎热，苍蝇拍的库存货都全部卖光了！...你能帮我找些做苍蝇拍的材料来吗？',
+                    dialog.post(uid, questPath, '最近天气异常的炎热，苍蝇拍的库存货都全部卖光了！<t wrap="0">···</t>你能帮我找些做苍蝇拍的材料来吗？',
                     dialog.link('npc_accept', '好的！'))
                 end,
 
@@ -144,13 +144,13 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    dialog.post(uid, questPath, '哦！材料全部找到了啊！请稍等一下...')
+                    dialog.post(uid, questPath, '哦！材料全部找到了啊！请稍等一下<t wrap="0">···</t>')
 
                     pause(500)
 
                     dialog.post(uid, questPath,
                     {
-                        '哦！材料全部找到了啊！请稍等一下...',
+                        '哦！材料全部找到了啊！请稍等一下<t wrap="0">···</t>',
                         '给你！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -179,7 +179,7 @@ setQuestFSMTable(
                     if server.player.hasItem(uid, getItemID('苍蝇拍'), 0, 1) then
                         dialog.post(uid, questPath,
                         {
-                            '噢...真是太感谢了，现在可以对付这些该死的苍蝇了！',
+                            '噢<t wrap="0">···</t>真是太感谢了，现在可以对付这些该死的苍蝇了！',
                             '这是一些对你帮助的奖励，请你不要客气。',
                         },
                         dialog.link(SYS_EXIT, '结束'))
@@ -217,24 +217,24 @@ uidRemoteCall(getNPCharUID('比奇县_0', '金氏_1'), getUID(), getQuestName(),
         [SYS_ENTER] = function(uid, args)
             dialog.post(uid, questPath,
             {
-                '哎！这些该死的苍蝇，害得我没法儿做生意。要去重新买一个苍蝇拍吧，偏偏这个时候苍蝇拍材料没有了，啧...',
+                '哎！这些该死的苍蝇，害得我没法儿做生意。要去重新买一个苍蝇拍吧，偏偏这个时候苍蝇拍材料没有了，啧<t wrap="0">···</t>',
                 '啊！正好，你去杂货商那儿帮他找些苍蝇拍的材料，然后把做好的苍蝇拍带过来行吗？',
             },
             {
                 dialog.link('npc_accept', '您是说去杂货店吗？我去一趟吧！'),
-                dialog.link('npc_refuse', '我有点忙...'),
+                dialog.link('npc_refuse', '我有点忙<t wrap="0">···</t>'),
             })
         end,
 
         npc_accept = function(uid, args)
-            dialog.post(uid, questPath, '那就拜托你了！杂货店就是在右边能看到的那个地方。准确位置是<t color="red">450,413</t>。',
+            dialog.post(uid, questPath, '那就拜托你了！杂货店就是在右边能看到的那个地方。准确位置是<t color="red">450，413</t>。',
             dialog.link(SYS_EXIT, '结束'))
 
             server.quest.setState(questUID, {uid=uid, state=SYS_ENTER})
         end,
 
         npc_refuse = function(uid, args)
-            dialog.post(uid, questPath, '啊，这样啊...一小会儿就行的...唉，真是没辙了！',
+            dialog.post(uid, questPath, '啊，这样啊<t wrap="0">···</t>一小会儿就行的<t wrap="0">···</t>唉，真是没辙了！',
             dialog.link(SYS_EXIT, '结束'))
         end,
     })

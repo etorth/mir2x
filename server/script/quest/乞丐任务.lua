@@ -34,7 +34,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    dialog.post(uid, questPath, '呃...什么？呃啊呃啊...是不是来这儿嘲弄我来了？呃...',
+                    dialog.post(uid, questPath, '呃<t wrap="0">···</t>什么？呃啊呃啊<t wrap="0">···</t>是不是来这儿嘲弄我来了？呃<t wrap="0">···</t>',
                     {
                         dialog.link('npc_start', '我受旅馆主人之托而来，听说您在这儿白吃白住了一个多月吧？'),
                         dialog.link('npc_abort', '看你醉醺醺的样子，简直就没法儿说话。我还是走吧！'),
@@ -42,7 +42,7 @@ setQuestFSMTable(
                 end,
 
                 npc_start = function(uid, args)
-                    dialog.post(uid, questPath, '啊？就那件事儿？呃...又不是我有钱不想给，我只是没钱而已...',
+                    dialog.post(uid, questPath, '啊？就那件事儿？呃<t wrap="0">···</t>又不是我有钱不想给，我只是没钱而已<t wrap="0">···</t>',
                     {
                         dialog.link('npc_criticize_only', '要么去干活偿还，要么就去乞讨来支付住宿费。'),
                         dialog.link('npc_pay_on_behalf', '虽然我不知道到底是怎么回事儿，不过你欠下住宿费就由我来付吧！下次可不要再去麻烦别人了啊！'),
@@ -50,7 +50,7 @@ setQuestFSMTable(
                 end,
 
                 npc_abort = function(uid, args)
-                    dialog.post(uid, questPath, '是啊，滚！叫你滚啊！ 呃...全给我滚开！呼...呃...',
+                    dialog.post(uid, questPath, '是啊，滚！叫你滚啊！呃<t wrap="0">···</t>全给我滚开！呼<t wrap="0">···</t>呃<t wrap="0">···</t>',
                     dialog.link(SYS_EXIT, '结束'))
                 end,
 
@@ -59,7 +59,7 @@ setQuestFSMTable(
                 end,
 
                 npc_pay_on_behalf = function(uid, args)
-                    dialog.post(uid, questPath, '呃...真是太感谢了！我落的如此惨状，过去我也曾是堂堂的商坛主人呢！我不能如此厚颜地接受别人的帮助...请收下这个吧！只要看到这个，几个还记得我的比奇省商人们会照应你的！',
+                    dialog.post(uid, questPath, '呃<t wrap="0">···</t>真是太感谢了！我落得如此惨状，过去我也曾是堂堂的商坛主人呢！我不能如此厚颜地接受别人的帮助<t wrap="0">···</t>请收下这个吧！只要看到这个，几个还记得我的比奇省商人们会照应你的！',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.quest.setState(questUID, {uid=uid, state='quest_pay_on_behalf'})
@@ -81,7 +81,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    dialog.post(uid, questPath, '虽然我现在落的如此窘境...您却还给我留下最后的自尊，多谢了！',
+                    dialog.post(uid, questPath, '虽然我现在落得如此窘境<t wrap="0">···</t>您却还给我留下最后的自尊，多谢了！',
                     dialog.link(SYS_EXIT, '退出'))
                 end,
             }
@@ -104,7 +104,7 @@ setQuestFSMTable(
                 end,
 
                 npc_pay_on_behalf = function(uid, args)
-                    dialog.post(uid, questPath, '嗯...真是近来少见的善心人啊！住宿费一共是1000钱。',
+                    dialog.post(uid, questPath, '嗯<t wrap="0">···</t>真是近来少见的善心人啊！住宿费一共是1000钱。',
                     dialog.link('npc_give_gift', '给您！'))
                 end,
 
@@ -136,7 +136,7 @@ setQuestFSMTable(
                 npc_criticize_only = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '是吗...那个人要是自觉的话现在应该已经离开旅馆了。那些欠下的住宿费就算了吧！',
+                        '是吗<t wrap="0">···</t>那个人要是自觉的话现在应该已经离开旅馆了。那些欠下的住宿费就算了吧！',
                         '谢谢啦！还有这个略表一下我的谢意吧！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -163,7 +163,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '客栈店员_1'), getUID(), getQuestN
         end,
 
         [SYS_ENTER] = function(uid, args)
-            dialog.post(uid, questPath, '唉...真是担心啊！论人情吧！又不能把他赶走。要是谁来替我让那个客人走就好了...',
+            dialog.post(uid, questPath, '唉<t wrap="0">···</t>真是担心啊！论人情吧！又不能把他赶走。要是谁来替我让那个客人走就好了<t wrap="0">···</t>',
             dialog.link('npc_ask', '什么事啊？'))
         end,
 
@@ -183,7 +183,7 @@ uidRemoteCall(getNPCharUID('比奇县_0', '客栈店员_1'), getUID(), getQuestN
         end,
 
         npc_refuse = function(uid, args)
-            dialog.post(uid, questPath, '是吗？嗯...这真是郁闷啊，真愁人啊！',
+            dialog.post(uid, questPath, '是吗？嗯<t wrap="0">···</t>这真是郁闷啊，真愁人啊！',
             dialog.link(SYS_EXIT, '结束'))
         end,
     })

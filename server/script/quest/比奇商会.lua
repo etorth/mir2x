@@ -265,8 +265,8 @@ setQuestFSMTable(
                 npc_accept = function(uid, value)
                     dialog.post(uid,
                     {
-                        '从这儿向东北部去就能到达毒蛇山谷，可能去(643,15)附近就能够找得到。',
-                        '穿过毒蛇山谷一直向东走就会达到那个村庄。在那儿找药商<t color="red">金中医</t>(334,224)向他购买<t color="red">毒蛇牙齿</t>。',
+                        '从这儿向东北部去就能到达毒蛇山谷，可能去(643，15)附近就能够找得到。',
+                        '穿过毒蛇山谷一直向东走就会达到那个村庄。在那儿找药商<t color="red">金中医</t>(334，224)向他购买<t color="red">毒蛇牙齿</t>。',
                         '现在患者数量仍然呈增加的趋势，所以还不能推测出以后具体需要多少药材。不管怎么样你都要快去快回。',
                     },
                     dialog.link(SYS_EXIT, '好的'))
@@ -338,7 +338,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     dialog.post(uid, questPath,
                     {
                         '嗨！你这个没教养的家伙!求别人办事情至少要应该有点诚意吧？真是不明事理啊！',
-                        '唔, 嗓子有点干，想去酒店喝杯酒啊！咦？这个月的薪水已经全都喝酒花干净了！钱可真不经花啊！',
+                        '唔，嗓子有点干，想去酒店喝杯酒啊！咦？这个月的薪水已经全都喝酒花干净了！钱可真不经花啊！',
                     },
                     dialog.link('npc_guard_1_wait_soju', '退出', {close = true}))
                 end,
@@ -392,11 +392,11 @@ setQuestFSMTable(fsmName_persuade_librarian,
                 npc_guard_2_give_info = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '说起比奇省的历史...',
+                        '说起比奇省的历史<t wrap="0">···</t>',
                         '知道吗？我们的祖先就是讨伐半兽人族地区而派遣出的远征队啊！我们的祖先经过残酷的战斗终于击溃了怪物们。一想到只要再继续坚持战斗一下就可以把怪物们斩草除根，然后可以回到故乡，就都非常高兴。',
                         '可是没想到这时突然发生了始料未及的灾难。这里发生了大地震。原本可以翻过山脉回到家乡的路由于这次大地震导致地壳变动，完全的被隔断了！有的人痛哭流涕，有的人茫然失措。所有人都慌了手脚。',
                         '但是一位优秀的将领重新振作精神，开始在这个地区寻找求生之路。他指挥着他的部下们在赶走半兽人族的地区找到了一片肥沃的土地建立了新的城市。这就是现在的比奇省。',
-                        '好了，我已经把知道的基本上全都告诉你啦...我也要走啦！',
+                        '好了，我已经把知道的基本上全都告诉你啦<t wrap="0">···</t>我也要走啦！',
                     },
                     dialog.link('npc_done_query_guard_2', '谢谢！', {close = true}))
                 end,
@@ -429,14 +429,14 @@ setQuestFSMTable(fsmName_persuade_librarian,
 
                 npc_ask_guard_3_info = function(uid, value)
                     dialog.post(uid, questPath, '哦！你也是来问我关于比奇省历史的吗？',
-                    dialog.link('npc_guard_3_deny', '是的, 请您讲讲比奇省历史的故事吧！'))
+                    dialog.link('npc_guard_3_deny', '是的，请您讲讲比奇省历史的故事吧！'))
                 end,
 
                 npc_guard_3_deny = function(uid, value)
                     dialog.post(uid, questPath,
                     {
                         '喂！我可是卫士中资历最深的！你先去跟其他的人打听之后再来找我吧！',
-                        '不能让人小瞧了我...',
+                        '不能让人小瞧了我<t wrap="0">···</t>',
                     },
                     dialog.link(SYS_EXIT, '退出'))
                 end,
@@ -459,7 +459,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     if uidRemoteCall(uid, [=[ return hasItem(getItemID('烧酒'), 0, 1) ]=]) then
                         dialog.post(uid, questPath,
                         {
-                            '啊！又是你，你能不能离我远...等等！这是烧酒的味道，好香啊！',
+                            '啊！又是你，你能不能离我远<t wrap="0">···</t>等等！这是烧酒的味道，好香啊！',
                             string.format('这位%s，能不能给我喝口酒啊！', uidRemoteCall(uid, [=[ return getGender() ]=]) and '少侠' or '姑娘'),
                         },
                         {
@@ -497,7 +497,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                 npc_ask_info = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '比奇省的历史？嗯？唔...',
+                        '比奇省的历史？嗯？唔<t wrap="0">···</t>',
                         '说起比奇的由来这要追溯到几百年之前啦！' ..
                         '比奇产生之前，西方有几个国家，由于被叫做内日和半兽人的怪物种族袭击一直都处于危险之中，处于威机之中的这几个国家停止了相互之间的战争，协力与怪物们抗争，最后终于赶走了怪物们，但是也全部受到了重创，怪物们的威胁仍然没有完全解除。',
                         '于是这几个国家协力出兵去讨伐怪物们的根据地，那个地方就是比奇地区！',
@@ -548,13 +548,13 @@ setQuestFSMTable(fsmName_persuade_librarian,
 
                 npc_ask_guard_3_info = function(uid, value)
                     dialog.post(uid, questPath, '哦！你也是来问我关于比奇省历史的吗？',
-                    dialog.link('npc_guard_3_answer', '是的, 请您讲讲比奇省历史的故事吧！'))
+                    dialog.link('npc_guard_3_answer', '是的，请您讲讲比奇省历史的故事吧！'))
                 end,
 
                 npc_guard_3_answer = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '这事儿可就说来话长了...',
+                        '这事儿可就说来话长了<t wrap="0">···</t>',
                         '噢！我可是什么都不知道！呵呵，你还是去问别人吧！',
                     },
                     {
@@ -599,7 +599,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     uidRemoteCall(questUID, uid,
                     {
                         [=[<par>哦？是嘛，哈哈哈！好吧，我来讲给你听。</par>]=],
-                        [=[<par>唔...这已经是我所知道的全部故事啦！</par>]=],
+                        [=[<par>唔<t wrap="0">···</t>这已经是我所知道的全部故事啦！</par>]=],
                     },
                     [=[
                         local playerUID, texts = ...
@@ -624,7 +624,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                 [SYS_ENTER] = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '你...你这是做什么？竟敢和保护比奇省治安的我开这种玩笑？',
+                        '你<t wrap="0">···</t>你这是做什么？竟敢和保护比奇省治安的我开这种玩笑？',
                         '看来和你是做不了朋友了！要和我比试比试吗？我长这么大还是头一次受到这种污辱！',
                     },
                     dialog.link('npc_guard_3_angry_1', '你千万别误会啊！不是这个意思！'))
@@ -636,7 +636,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                 end,
 
                 npc_guard_3_angry_2 = function(uid, value)
-                    dialog.post(uid, questPath, '哼！呵呵...没有别的意思！真的吗？',
+                    dialog.post(uid, questPath, '哼！呵呵<t wrap="0">···</t>没有别的意思！真的吗？',
                     dialog.link('npc_guard_3_angry_3', '对不起是我错了，请原谅！'))
                 end,
 
@@ -646,7 +646,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                         '唉！没办法，谁让我年纪大来着呢，原谅一次你吧！这里有1个金币！',
                         '快去买<t color="red">5瓶烧酒</t>来，喝了酒才能消了我的肚子里的火气。别忘了把找还的零钱带回来！',
                     },
-                    dialog.link('npc_guard_3_angry_4', '好吧...', {close = true}))
+                    dialog.link('npc_guard_3_angry_4', '好吧<t wrap="0">···</t>', {close = true}))
                 end,
 
                 npc_guard_3_angry_4 = function(uid, value)
@@ -702,7 +702,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
                     uidRemoteCall(questUID, uid,
                     {
                         [=[<par>好吧，我来讲给你听。</par>]=],
-                        [=[<par>唔...这已经是我所知道的全部故事啦！就说到这里吧，酒喝得很爽啊！</par>]=],
+                        [=[<par>唔<t wrap="0">···</t>这已经是我所知道的全部故事啦！就说到这里吧，酒喝得很爽啊！</par>]=],
                     },
                     [=[
                         local playerUID, texts = ...
@@ -739,7 +739,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
             table.insert(text, '祖先们修建了这比奇省和里面的城镇村庄之后，就开始反复的在周边勘查并拓展自己的根据地。但是这附近值得利用的土地非常的少。很难足够的支持别的地方的农事生产需要。')
             table.insert(text, '随着人口逐渐的增加，人们为了寻找更加宽阔的土地和更多的资源开始拓宽自己的领土。' ..
                 '于是人们向沃玛、蛇谷、盟众一步一步的扩大土地，开拓没有人烟到达过的沼泽地，也遇到了生活在森林、灌木丛和山洞中其它各种各样的怪物并与它们发生战争，就这样一点一点的扩大了领土，可以说每一寸土地都是用鲜血换来的啊！')
-            table.insert(text, '尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情...')
+            table.insert(text, '尽管我们现在占据了宽广的领土，但在比奇土地上各处都仍存在着怪物的势力，加上大部分地区全都是深山和茂密的灌木丛，仍然会发生种种阻断村庄之间道路的事情<t wrap="0">···</t>')
 
             local text2 = unwrapPar(texts[2])
             if text2 then
@@ -795,7 +795,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
 
                         dialog.post(uid, questPath,
                         {
-                            '哦！原来还是那些家伙啊...',
+                            '哦！原来还是那些家伙啊<t wrap="0">···</t>',
                             '那么在人类来此生活之前的比奇县什么样的地方呢？',
                         },
                         selections)
@@ -816,7 +816,7 @@ setQuestFSMTable(fsmName_persuade_librarian,
 
                         dialog.post(uid, questPath,
                         {
-                            '果然！难怪半兽人那么顽固地反扑...',
+                            '果然！难怪半兽人那么顽固地反扑<t wrap="0">···</t>',
                             '那么我们的祖先们回不了故乡，在这个地方落脚定居的原因是什么呢？',
                         },
                         selections)
@@ -879,7 +879,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                 end,
 
                 npc_path_details = function(uid, value)
-                    dialog.post(uid, questPath, '从这儿向东北部去就能到达毒蛇山谷，去(643,15)附近就能够找得到。穿过毒蛇山谷一直向东走就会达到那个村庄，在那儿找药商<t color="red">金中医</t>(334,224)向他购买<t color="red">毒蛇牙齿</t>。',
+                    dialog.post(uid, questPath, '从这儿向东北部去就能到达毒蛇山谷，去(643，15)附近就能够找得到。穿过毒蛇山谷一直向东走就会达到那个村庄，在那儿找药商<t color="red">金中医</t>(334，224)向他购买<t color="red">毒蛇牙齿</t>。',
                     dialog.link(SYS_EXIT, '好的'))
                 end,
             }
@@ -913,7 +913,7 @@ setQuestFSMTable(fsmName_persuade_pharmacist,
                 npc_seller_call_price = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '比奇省发生传染病? 你说的是真的吗？那我现在就卖给你一包吧！',
+                        '比奇省发生传染病？你说的是真的吗？那我现在就卖给你一包吧！',
                         '现在只有这些，如果需要的话再来吧！价格是100钱一颗，给我1000钱就行。',
                     },
                     {

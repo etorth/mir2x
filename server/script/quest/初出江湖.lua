@@ -28,7 +28,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '阿潘道友还在等着呢！尽快把这个护身符给他带过去吧！',
-                        dialog.link('npc_fly_to_loc', '(429,120)', {close = true, args = '{\'道馆_1\',429,120}', prefix = '从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在', suffix = '。'}),
+                        dialog.link('npc_fly_to_loc', '(429,120)', {close = true, args = '{\'道馆_1\'，429，120}', prefix = '从这出去再向右上方一直走就是阿潘道友所在的武器库入口。准确位置在', suffix = '。'}),
                     },
                     dialog.link(SYS_EXIT, '好的！'))
 
@@ -67,7 +67,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, dialog.link('npc_fly_to_loc', '(429,120)', {close = true, args = '{\'道馆_1\',429,120}', prefix = '出去后向右上方一直走就是武器库的入口。位置在', suffix = '，到阿潘道友后把道力护身符交给他。'}),
+                    dialog.post(uid, questPath, dialog.link('npc_fly_to_loc', '(429,120)', {close = true, args = '{\'道馆_1\'，429，120}', prefix = '出去后向右上方一直走就是武器库的入口。位置在', suffix = '，到阿潘道友后把道力护身符交给他。'}),
                     dialog.link(SYS_EXIT, '好的！'))
                 end,
 
@@ -125,7 +125,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = '{\'道馆_1\',394,169}', prefix = '大老板道友呆的杂货店在', suffix = '那儿。快回去看看吧！'}),
+                    dialog.post(uid, questPath, dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = '{\'道馆_1\'，394，169}', prefix = '大老板道友呆的杂货店在', suffix = '那儿。快回去看看吧！'}),
                     dialog.link(SYS_EXIT, '结束'))
                 end,
 
@@ -153,11 +153,11 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '把护身符交给啊潘道友了吧?' ..
-                        ' 那么我会信任施主并且再拜托施主办另外的事儿的！' ..
+                        '把护身符交给啊潘道友了吧？' ..
+                        '那么我会信任施主并且再拜托施主办另外的事儿的！' ..
                         '倒没什么特别的，只是在道馆北部的灌木林中最近总有怪物出没，跑出来骚扰百姓，所以需要许多护身符。' ..
                         '但是我又有其他的急事要办没时间去弄制护身符所需的鸡血，所以希望你替我收集<t color="green">2</t>瓶<t color="red">鸡血</t>来！',
-                        '嗯, 只要去猎到鸡自然就会有鸡血了，所以不用特别担心！',
+                        '嗯，只要去猎到鸡自然就会有鸡血了，所以不用特别担心！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
                 end,
@@ -267,7 +267,7 @@ setQuestFSMTable(
                         dialog.post(uid, questPath,
                         '施主的实力真是大有所增啊！' ..
                         '现在你需要摆脱道馆的周围，将视野放到更宽广的地方去才行。' ..
-                        '从这里通过东南方的通路(516,580)到达比奇县后就可以到达首都比奇省。' ..
+                        '从这里通过东南方的通路(516，580)到达比奇县后就可以到达首都比奇省。' ..
                         '那个地方是政治、经济、文化的中心地。' ..
                         '想修炼成为道士，一定要了解人间苦暖才行，所正好贫道有一样东西要送到比奇省，这件事情就拜托给你吧！',
                         dialog.link('npc_accept_wang', '好的'))
@@ -277,10 +277,10 @@ setQuestFSMTable(
                         dialog.post(uid, questPath,
                         {
                             '往比奇省西南方走，就能找到王大人了。' ..
-                            '详细的位置在比奇县(389,396)。' ..
+                            '详细的位置在比奇县(389，396)。' ..
                             '找到他，然后把这本书转交给他，他自然会支付给你报酬。' ..
-                            '通过比奇省的东南部通路(516,580)到达比奇县后，就可以找到比奇省了。',
-                            '对了，别忘了把这本武功秘笈给道士高手清明子。这位高手能给像施主这样的道士入门者传授一些基本的魔法，施主一定会有所收获的。清明子就在本馆内。从本馆左边往上走就可以找到了。准确位置在(429,96)。',
+                            '通过比奇省的东南部通路(516，580)到达比奇县后，就可以找到比奇省了。',
+                            '对了，别忘了把这本武功秘笈给道士高手清明子。这位高手能给像施主这样的道士入门者传授一些基本的魔法，施主一定会有所收获的。清明子就在本馆内。从本馆左边往上走就可以找到了。准确位置在(429，96)。',
                         },
                         dialog.link(SYS_EXIT, '结束'))
 
@@ -312,11 +312,11 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     dialog.post(uid, questPath,
                     '去见完比奇省的王大人，还要请您去拜访本馆的清明子！' ..
-                    '王大人在比奇省的西南部就可以找到.准确位置是比奇县(389,396)。' ..
-                    '通过比奇省的东南通路(516,580)到达比奇县后，便可以找到比奇省了。' ..
+                    '王大人在比奇省的西南部就可以找到。准确位置是比奇县(389，396)。' ..
+                    '通过比奇省的东南通路(516，580)到达比奇县后，便可以找到比奇省了。' ..
                     '清明子就在本馆内。' ..
                     '从本馆左边往上走就可以找到了。' ..
-                    '准确位置在(429,96)。',
+                    '准确位置在(429，96)。',
                     dialog.link(SYS_EXIT, '结束'))
                 end,
             }
@@ -367,7 +367,7 @@ setQuestFSMTable(
                 npc_deny = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '喔...',
+                        '喔<t wrap="0">···</t>',
                         '出发有一会儿了，也该到了啊？',
                         '不知是不是在路上哪儿遇到了什么麻烦？',
                     },
@@ -482,7 +482,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '士官_1'), getUID(), getQuestName(),
                 dialog.post(uid, questPath,
                 {
                     '这个，嗯，详细的情况请到收罗杂货的<t color="red">大老板</t>道友那儿打听吧。',
-                    dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = '{\'道馆_1\',394,169}', prefix = '大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在', suffix = '，请参考一下吧！'}),
+                    dialog.link('npc_fly_to_loc', '(394,169)', {close = true, args = '{\'道馆_1\'，394，169}', prefix = '大老板道友就在道馆内。从这往下走，在右侧可以看到杂货店，进去就可以见到他了。杂货店入口的大概位置在', suffix = '，请参考一下吧！'}),
                 },
                 {
                     dialog.link('npc_accept_quest', '好的！', {close = true}),

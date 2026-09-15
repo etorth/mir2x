@@ -56,11 +56,11 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     end
 
     if isMonster(monsterUID, '半兽战士') then
-        server.player.postString(uid, '（噢，终于通过了学习精神力战法的测试……）')
+        server.player.postString(uid, '（噢，终于通过了学习精神力战法的测试<t wrap="0">···</t>）')
         setQuestState{uid = uid, state = 'quest_trial_passed'}
 
     elseif isMonster(monsterUID, '半兽人') then
-        server.player.postString(uid, '（这么大的事情。半兽人没有了，还要再出现的……）')
+        server.player.postString(uid, '（这么大的事情。半兽人没有了，还要再出现的<t wrap="0">···</t>）')
         uidRemoteCall(mapUID, trialX, trialY,
         [[
             local x, y = ...
@@ -103,13 +103,13 @@ local function setupTeacher(uid, retry)
                     '想重新接受修炼吗？',
                 },
                 {
-                    dialog.link('npc_enter_trial', '好的, 再拜托你一次。'),
+                    dialog.link('npc_enter_trial', '好的，再拜托你一次。'),
                     dialog.link('npc_not_yet', '准备好了，再来！'),
                 })
             else
                 dialog.post(uid, questPath, '那么将我移动到<t color="red">修炼场</t>。有可能要辛苦些，请做好准备！',
                 {
-                    dialog.link('npc_enter_trial', '移 动'),
+                    dialog.link('npc_enter_trial', '移动'),
                     dialog.link('npc_explain', '修炼场里要做什么？'),
                     dialog.link('npc_not_yet', '准备好了，再来！'),
                 })
@@ -280,7 +280,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 {
                     pitch,
                     '',
-                    '嗯。。。但是你好像还没有达到修炼精神力战法的水平。在修炼一下准备好了，再来！',
+                    '嗯<t wrap="0">···</t>但是你好像还没有达到修炼精神力战法的水平。在修炼一下准备好了，再来！',
                 },
                 dialog.link(SYS_EXIT, '结束'))
                 return

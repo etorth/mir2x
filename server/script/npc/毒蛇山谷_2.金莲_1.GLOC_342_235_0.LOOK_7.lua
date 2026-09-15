@@ -5,7 +5,7 @@ outfitter.setOutfitter
 {
     greet =
     {
-        '这里是 沙巴克城 <t color="red">' .. getSubukGuildName() .. '</t><t color="red">行会的领地。 </t>',
+        '这里是沙巴克城<t color="red">' .. getSubukGuildName() .. '</t><t color="red">行会的领地。</t>',
         '欢迎光临，有什么事吗？',
     },
 
@@ -27,7 +27,7 @@ outfitter.setOutfitter
     sellText =
     {
         '把要出售的防御工具拿出来，我来估估价。',
-        '这里头盔和帽子都收购， 就在这儿卖吧。',
+        '这里头盔和帽子都收购，就在这儿卖吧。',
     },
 
     preRepairText =

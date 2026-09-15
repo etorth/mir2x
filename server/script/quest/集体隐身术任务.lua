@@ -93,7 +93,7 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     dialog.post(uid, questPath, '呀，是你哟。今天有什么事情找我吗？',
                     {
-                        dialog.link('npc_about_peddler', '是的，今天是因为叫小贩人的事情。。。。'),
+                        dialog.link('npc_about_peddler', '是的，今天是因为叫小贩人的事情<t wrap="0">···</t>'),
                         dialog.link('npc_just_greet', '也就是为了问安和咨询而来的。'),
                     })
                 end,
@@ -110,7 +110,7 @@ setQuestFSMTable(
                     {
                         '呀，知道那个故事吧。真是很焦急的事情。',
                         '叫成致的人不是被判朋友的人，不知道是怎么回事儿。一定有不得已的缘由吧！',
-                        '实际上我也认为此事有些诧异，你听说了有关成致的其它事情吗?',
+                        '实际上我也认为此事有些诧异，你听说了有关成致的其它事情吗？',
                     },
                     {
                         dialog.link('npc_heard_book', '我听说他找到了集体隐身术的武功书。'),
@@ -120,8 +120,8 @@ setQuestFSMTable(
 
                 -- @mugong_masshiding2
                 npc_heard_book = function(uid, value)
-                    dialog.post(uid, questPath, '什么叫集体隐身术。。你了解集体隐身术吗？',
-                    dialog.link('npc_explain_magic', '不了解， 请对集体隐身术进行一下说明。'))
+                    dialog.post(uid, questPath, '什么叫集体隐身术<t wrap="0">···</t>你了解集体隐身术吗？',
+                    dialog.link('npc_explain_magic', '不了解，请对集体隐身术进行一下说明。'))
                 end,
 
                 -- @mugong_masshiding3
@@ -134,7 +134,7 @@ setQuestFSMTable(
                     },
                     {
                         dialog.link('npc_want_learn', '是的，要学习。'),
-                        dialog.link('npc_not_yet', '不，下次机会吧...'),
+                        dialog.link('npc_not_yet', '不，下次机会吧<t wrap="0">···</t>'),
                     })
                 end,
 
@@ -149,7 +149,7 @@ setQuestFSMTable(
 
                 -- @mugong_masshiding5
                 npc_want_learn = function(uid, value)
-                    dialog.post(uid, questPath, '那么，在学习集体隐身术之前先测试你是否有学习集体隐身术的资格。。',
+                    dialog.post(uid, questPath, '那么，在学习集体隐身术之前先测试你是否有学习集体隐身术的资格<t wrap="0">···</t>',
                     {
                         dialog.link('npc_accept', '好的，我将试一试。'),
                         dialog.link('npc_not_yet', '我现在还没有做好心理准备。'),
@@ -191,7 +191,7 @@ setQuestFSMTable(
                 once     = true,
                 give     = logName,
                 setState = 'quest_got_log',
-                say      = "（现在回到大飞圣僧那儿，并将 '成致日志'拿给他，就可以学习'集体隐身术'了...）",
+                say      = [[（现在回到大飞圣僧那儿，并将<t color="red">成致日志</t>拿给他，就可以学习<t color="red">集体隐身术</t>了<t wrap="0">···</t>）]],
             },
         })
 
@@ -267,8 +267,8 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '哦，终于找到了<t color="red">日志</t>。用这个东西就可以发现道士失踪的原因哦。',
-                        '(拿走日志后，看写的文章...)',
-                        '嗯...',
+                        '(拿走日志后，看写的文章<t wrap="0">···</t>)',
+                        '嗯<t wrap="0">···</t>',
                         '这个。因此他虽然将集体隐身术的武功书握在手里，却没有完全掌握的样子。',
                     },
                     dialog.link('npc_read_log', '是集体隐身术的要诀？'))
@@ -283,7 +283,7 @@ setQuestFSMTable(
                         '是这样的。日志中包含有<t color="red">集体隐身术的要诀</t>。',
                         '但是凭借这种错误分析的要诀如何可以学习到正宗的魔法。',
                         '看来成致实施了集体隐身术，却失败了。在只有隐藏自身的状态下，走火入魔而失去了生命哟。',
-                        '珍贵的生命就这样消失了。。。',
+                        '珍贵的生命就这样消失了<t wrap="0">···</t>',
                         '魔法就是这样可怕的哟。自己没有做好也有可能失去生命，那你以后还想继续学习魔法吗？',
                     },
                     dialog.link('npc_take_book', '是的，我以后将继续学习魔法。'))
@@ -341,7 +341,7 @@ uidRemoteCall(getNPCharUID(grocerMap, grocerNPC), getUID(), getQuestName(), minQ
         -- @mugong_masshiding_pre3
         [SYS_ENTER] = function(uid, value)
             dialog.post(uid, questPath, '你看起来是非常有实力的道士哦。你知道有关<t color="red">小贩</t>男子的故事吗？',
-            dialog.link('npc_never_heard', '没有听说过的名字...'))
+            dialog.link('npc_never_heard', '没有听说过的名字<t wrap="0">···</t>'))
         end,
 
         -- @mugong_masshiding_pre4
@@ -369,7 +369,7 @@ uidRemoteCall(getNPCharUID(grocerMap, grocerNPC), getUID(), getQuestName(), minQ
             {
                 '他是边境城市出身的战士，和叫<t color="red">成致</t>的道士关系非常好。某个时候他们为了和怪兽战斗而出去了，但是一次聚集了很多的怪兽，他们处于危险的境地。',
                 '他们遇到了生死危机，那个道士偷偷隐藏自己的行踪不见了。那以后小贩总是批评道士们表里不一。',
-                '我所知道的成致决不是那样虚伪的人呀。。。',
+                '我所知道的成致决不是那样虚伪的人呀<t wrap="0">···</t>',
                 '好像有什么误会。',
             },
             {
@@ -389,7 +389,7 @@ uidRemoteCall(getNPCharUID(grocerMap, grocerNPC), getUID(), getQuestName(), minQ
             dialog.post(uid, questPath,
             {
                 '对不起，更详细的内容我也不知道。',
-                '如果真的想知道，拜见<t color="red">清明子(道馆本馆,11:10)</t>如何？?',
+                '如果真的想知道，拜见<t color="red">清明子(道馆本馆，11:10)</t>如何？？',
             },
             dialog.link(SYS_EXIT, '结束'))
 
@@ -432,7 +432,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- checklevel 23
             if server.player.getLevel(uid) < minQuestLevel then
-                dialog.post(uid, questPath, '集体隐身术。。如果对这样的武功感兴趣，好像需要再修炼些。',
+                dialog.post(uid, questPath, '集体隐身术<t wrap="0">···</t>如果对这样的武功感兴趣，好像需要再修炼些。',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -441,7 +441,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             -- has nothing to send you after, the 杂货商 has to bring 成致 up first
             dialog.post(uid, questPath,
             {
-                '集体隐身术。。。',
+                '集体隐身术<t wrap="0">···</t>',
                 '集体隐身术和隐身术相同的是可以隐藏自己的动静，不同的是<t color="red">集体隐身术可以隐藏包括你同事动静的魔法</t>。',
             },
             dialog.link(SYS_EXIT, '结束'))

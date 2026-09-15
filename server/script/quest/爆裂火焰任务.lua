@@ -14,7 +14,7 @@
 -- 化天先生 is who hosts this one per merchant.txt, and the line is kept as written
 --
 -- @mugong_fireware_complete_next1 has an ELSESAY for [528] not being set, 我好像还没有给你
--- 胆汁。。。奇怪的的事情。。。, which is legacy's own can-not-happen branch — its text says so.
+-- 胆汁。。。奇怪的事情。。。, which is legacy's own can-not-happen branch — its text says so.
 -- pouring the 胆汁 and moving to quest_got_potion are the same step here, so it has no path
 --
 -- flags: [764] done, [526] sent for the gall, [527] gall in hand, [528] 胆汁 poured,
@@ -53,7 +53,7 @@ setQuestFSMTable(
                 once     = true,
                 give     = gallName,
                 setState = 'quest_got_gall',
-                say      = "（把'七点白蛇胆汁'带给霹雳尊者，这样就可以修炼魔法了....）",
+                say      = [[（把<t color="red">七点白蛇胆汁</t>带给霹雳尊者，这样就可以修炼魔法了<t wrap="0">···</t>）]],
             },
         })
 
@@ -93,7 +93,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '过了银杏山谷、比奇县，毒蛇山村就到了。',
-                        '坐标？ 已经达到像你一样的等级了，还不知道吗？',
+                        '坐标？已经达到像你一样的等级了，还不知道吗？',
                     },
                     dialog.link(SYS_EXIT, '结束'))
                 end,
@@ -120,12 +120,12 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- the ELSESAY of @mugong_fireware_complete
                     if not server.player.hasItem(uid, '七点白蛇胆', 1) then
-                        dialog.post(uid, questPath, '时间很重要。不好慢腾腾的，快点找来<t color="red">七点白蛇的胆汁</t>吧。。。',
+                        dialog.post(uid, questPath, '时间很重要。不好慢腾腾的，快点找来<t color="red">七点白蛇的胆汁</t>吧<t wrap="0">···</t>',
                         dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    dialog.post(uid, questPath, '嗯,很幸运地找来了。好的，现在该我制药了。请等一下！',
+                    dialog.post(uid, questPath, '嗯，很幸运地找来了。好的，现在该我制药了。请等一下！',
                     dialog.link('npc_brew', '下一步'))
                 end,
 
@@ -223,7 +223,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             dialog.post(uid, questPath,
             {
-                '你有什么事吗？说说看。。',
+                '你有什么事吗？说说看<t wrap="0">···</t>',
                 '嗯，想学称为“爆裂火焰”的武功？',
             },
             {
@@ -248,14 +248,14 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- @mugong_fireware_next_lowlevel
             if server.player.getLevel(uid) < minQuestLevel then
-                dialog.post(uid, questPath, '嗯。。你现在学习该武功还是有些早。提高武功等级后再来吧！',
+                dialog.post(uid, questPath, '嗯<t wrap="0">···</t>你现在学习该武功还是有些早。提高武功等级后再来吧！',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
 
             -- @mugong_fireware_next1, checkmagic 爆裂火焰
             if server.player.hasMagic(uid, magicName) then
-                dialog.post(uid, questPath, '你不是已经修炼了该武功吗..请找寻其它的武功吧！',
+                dialog.post(uid, questPath, '                你不是已经修炼了该武功吗<t wrap="0">···</t>请找寻其它的武功吧！',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -305,7 +305,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_fireware_next5_2
         npc_not_yet = function(uid, value)
-            dialog.post(uid, questPath, '没有办法。如果认为很勉强，不做也是其中的一个方法。。。',
+            dialog.post(uid, questPath, '没有办法。如果认为很勉强，不做也是其中的一个方法<t wrap="0">···</t>',
             dialog.link(SYS_EXIT, '结束'))
         end,
 
@@ -332,7 +332,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '过了银杏山谷、比奇县，毒蛇山村就到了。',
-                '坐标？ 已经达到像你一样的等级了，还不知道吗？',
+                '坐标？已经达到像你一样的等级了，还不知道吗？',
             },
             dialog.link('npc_why', '为什么需要七点白蛇的胆汁？'))
         end,

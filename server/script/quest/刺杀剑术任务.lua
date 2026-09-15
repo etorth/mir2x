@@ -61,7 +61,7 @@ local function nagBehavior(uid)
             npc_explain = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '要想修炼刺杀剑术, 就要到沃玛神殿找来<t color="red">沃玛角</t>。',
+                    '要想修炼刺杀剑术，就要到沃玛神殿找来<t color="red">沃玛角</t>。',
                     '我会把你带来的沃玛角磨成粉制作<t color="red">战酒</t>，喝了它就可以修炼刺杀剑术。',
                 },
                 dialog.link(SYS_EXIT, '结束'))
@@ -87,7 +87,7 @@ setQuestFSMTable(
                 once     = true,
                 give     = hornName,
                 setState = 'quest_got_horn',
-                say      = "（现在把沃玛角送给'龙血先生'就可以修炼'刺杀剑术'……）",
+                say      = [[（现在把沃玛角送给'龙血先生'就可以修炼'刺杀剑术'<t wrap="0">···</t>）]],
             },
         })
     end,
@@ -127,7 +127,7 @@ setQuestFSMTable(
                     end
 
                     dialog.post(uid, questPath,
-                    '好了，现在喝用沃玛角做成的<t color="red">\'战酒\'</t>。' ..
+                    '好了，现在喝用沃玛角做成的<t color="red">战酒</t>。' ..
                     '这个酒以后将保护你的灵魂。' ..
                     '这是为了获得学习刺杀剑术资格的仪式。' ..
                     '你很想知道为什么一定要割沃玛角来吧？' ..
@@ -247,7 +247,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         npc_lore1 = function(uid, value)
             dialog.post(uid, questPath,
             {
-                '和先天就有特别出色能力的的魔法师和多才多能并受到尊敬的道士相比，被任何任选择的一介小兵的我们，当然看起来既不特别、也不华丽。因此人们把战士叫做只有块头和力量的傻瓜。',
+                '和先天就有特别出色能力的魔法师和多才多能并受到尊敬的道士相比，被任何任选择的一介小兵的我们，当然看起来既不特别、也不华丽。因此人们把战士叫做只有块头和力量的傻瓜。',
                 '为了消除这种偏见，很多前辈们创造了杰出的武功并不断地发展。这中间有超越了人们想象力可以称为艺术的武功。刺杀剑术就是这些武功中的一个。',
             },
             dialog.link('npc_lore2', '真的吗？如果那样，为什么该武功没有被人知晓？'))

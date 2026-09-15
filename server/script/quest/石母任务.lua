@@ -81,7 +81,7 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '关于那个夜市商人嘛...唔...',
+                        '关于那个夜市商人嘛<t wrap="0">···</t>唔<t wrap="0">···</t>',
                         '好像除了最近得到一个奇特的寿石之外就没有什么特别的消息了！那块寿石倒是蛮稀有的，据说是童子模样的呢！',
                     },
                     dialog.link('npc_tell_mom', '这好像真有点不着边际啊！不管还是要赶快去告诉那个妇人吧！'))
@@ -114,8 +114,8 @@ setQuestFSMTable(
                 npc_no_clue = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '啊...这样啊...呜呜...',
-                        '难道那个商人已经把我那可怜的孩子给卖了吗？呜呜...',
+                        '啊<t wrap="0">···</t>这样啊<t wrap="0">···</t>呜呜<t wrap="0">···</t>',
+                        '难道那个商人已经把我那可怜的孩子给卖了吗？呜呜<t wrap="0">···</t>',
                     },
                     dialog.link('npc_tell_rumor', '不过倒是听说了一些怪异的传闻，好像那个商人最近得到了一块童子模样的寿石？'))
                 end,
@@ -176,9 +176,9 @@ setQuestFSMTable(
                 npc_ask_for_purchase = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '哦，原来如此。那你好好看看吧！都是稀罕玩意儿...',
+                        '哦，原来如此。那你好好看看吧！都是稀罕玩意儿<t wrap="0">···</t>',
                         '种类多着呢！这些东西商店里都不卖，而且一旦卖出去了，我就不会再进第二次货。你好好想想再买吧。',
-                        '这些都是为了得到了又失去的人准备的...你就算现在买了也没什么用...',
+                        '这些都是为了得到了又失去的人准备的<t wrap="0">···</t>你就算现在买了也没什么用<t wrap="0">···</t>',
                     },
                     {
                         dialog.link('npc_ask_for_purchase_kid_statue', '童子像'),
@@ -188,7 +188,7 @@ setQuestFSMTable(
                 end,
 
                 npc_ask_for_purchase_kid_statue = function(uid, args)
-                    dialog.post(uid, questPath, '那个有点困难.. 这东西很少见，我不想卖。',
+                    dialog.post(uid, questPath, '                    那个有点困难<t wrap="0">···</t>这东西很少见，我不想卖。',
                     dialog.link('npc_ask_for_kid_statue_price', '那我也要买'))
                 end,
 
@@ -220,7 +220,7 @@ setQuestFSMTable(
                 end,
 
                 npc_exchange_by_money = function(uid, args)
-                    dialog.post(uid, questPath, '真是大甩卖了。你到底知不知道那东西的价值啊？那玩意儿不是普通的东西，是蕴含着灵气的。 你小心点弄它吧。',
+                    dialog.post(uid, questPath, '真是大甩卖了。你到底知不知道那东西的价值啊？那玩意儿不是普通的东西，是蕴含着灵气的。你小心点弄它吧。',
                     dialog.link(SYS_EXIT, '知道了'))
 
                     server.quest.setState(questUID, {uid=uid, state='quest_got_kid_statue'})
@@ -292,7 +292,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
         end,
 
         npc_leave = function(uid, args)
-            dialog.post(uid, questPath, '请一定要帮帮我...啊？太无情了！',
+            dialog.post(uid, questPath, '请一定要帮帮我<t wrap="0">···</t>啊？太无情了！',
             dialog.link(SYS_EXIT, '结束'))
 
             fnLeaveMap(uid)
@@ -301,8 +301,8 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
         npc_ask = function(uid, args)
             dialog.post(uid, questPath,
             {
-                '呜呜...不久前我的孩子在夜市被商人给抢走了。一定要帮我找回孩子啊！',
-                '不知道他把孩子带走到底想干什么...一定要...拜托您了！',
+                '呜呜<t wrap="0">···</t>不久前我的孩子在夜市被商人给抢走了。一定要帮我找回孩子啊！',
+                '不知道他把孩子带走到底想干什么<t wrap="0">···</t>一定要<t wrap="0">···</t>拜托您了！',
             },
             {
                 dialog.link('npc_accept', '知道了，我会去帮你找回孩子的！'),
@@ -311,7 +311,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
         end,
 
         npc_accept = function(uid, args)
-            dialog.post(uid, questPath, '多谢了！听说夜市的商人在(452,297)，请一定要帮我找回孩子啊！',
+            dialog.post(uid, questPath, '多谢了！听说夜市的商人在(452，297)，请一定要帮我找回孩子啊！',
             dialog.link(SYS_EXIT, '结束'))
 
             fnLeaveMap(uid)
@@ -319,7 +319,7 @@ uidRemoteCall(getNPCharUID('比奇县_0_003', '石母_1'), getUID(), getQuestNam
         end,
 
         npc_refuse = function(uid, args)
-            dialog.post(uid, questPath, '这样啊...呜呜...天下之大，竟然没有同情失去孩儿母亲心的侠客吗？...',
+            dialog.post(uid, questPath, '这样啊<t wrap="0">···</t>呜呜<t wrap="0">···</t>天下之大，竟然没有同情失去孩儿母亲心的侠客吗？<t wrap="0">···</t>',
             dialog.link(SYS_EXIT, '结束'))
 
             fnLeaveMap(uid)
@@ -355,10 +355,10 @@ uidRemoteCall(getNPCharUID('比奇县_0', '母子石像_1'), getUID(), getQuestN
             return
         end
 
-        dialog.post(uid, questPath, '这石头的样子真奇怪...',
+        dialog.post(uid, questPath, '这石头的样子真奇怪<t wrap="0">···</t>',
         {
             dialog.link(SYS_ENTER, '过去看看？'),
-            dialog.link(SYS_EXIT, '感觉很奇怪，我还是离远点比较好...'),
+            dialog.link(SYS_EXIT, '感觉很奇怪，我还是离远点比较好<t wrap="0">···</t>'),
         })
     end)
 ]])

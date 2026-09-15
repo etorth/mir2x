@@ -27,6 +27,6 @@ apothecary.setApothecary
 
     buyText =
     {
-        '快点啊 快点我也得去避难。',
+        '快点啊快点我也得去避难。',
     },
 }

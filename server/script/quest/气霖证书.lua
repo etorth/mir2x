@@ -26,7 +26,7 @@ setQuestFSMTable(
                 end,
 
                 npc_who_accept = function(uid, args)
-                    dialog.post(uid, questPath, '嗯...首饰店所蒙受的损失少一点，说不定他们会接受。',
+                    dialog.post(uid, questPath, '嗯<t wrap="0">···</t>首饰店所蒙受的损失少一点，说不定他们会接受。',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.quest.setState(questUID, {uid=uid, state='quest_ask_jewelry'})
@@ -50,20 +50,20 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '嗯...这个是洪气霖那个人的证书啊！对不起，我们也不能收下这证书！',
+                        '嗯<t wrap="0">···</t>这个是洪气霖那个人的证书啊！对不起，我们也不能收下这证书！',
                         '那么你知道关于洪气霖这个人的事儿吗？' ..
                         '真是越想越觉得蹊跷！' ..
                         '抛弃好好的家，过着四处流浪的生活。' ..
-                        '好不容易遇到知己，结为百年好合...但是因为这家伙是土匪和妻子分手了。' ..
-                        '两个人分手的时候约定在比奇省这儿见面，于是就遵照约定这样一直在这儿等下去...啧啧...',
+                        '好不容易遇到知己，结为百年好合<t wrap="0">···</t>但是因为这家伙是土匪和妻子分手了。' ..
+                        '两个人分手的时候约定在比奇省这儿见面，于是就遵照约定这样一直在这儿等下去<t wrap="0">···</t>啧啧<t wrap="0">···</t>',
                     },
                     dialog.link('npc_ask_more', '那么还知道关于这个人其他的什么事儿吗？'))
                 end,
 
                 npc_ask_more = function(uid, args)
                     dialog.post(uid, questPath,
-                    '这个...我知道的就只有这些了。' ..
-                    '唉...人世艰辛啊！' ..
+                    '这个<t wrap="0">···</t>我知道的就只有这些了。' ..
+                    '唉<t wrap="0">···</t>人世艰辛啊！' ..
                     '前不久我们店里也来过一个失魂落魄的女子，据说她在逃难时失去了丈夫要靠自己来混口饭吃。' ..
                     '那个人好像有什么难言之隐，一直少言寡语。' ..
                     '我们商店因为人手够，所以介绍她去棉布店工作了。' ..
@@ -89,7 +89,7 @@ setQuestFSMTable(
             return
             {
                 [SYS_ENTER] = function(uid, args)
-                    dialog.post(uid, questPath, '听说棉布店有一个女子和我是同乡？难道...不会的，这是不可能的！',
+                    dialog.post(uid, questPath, '听说棉布店有一个女子和我是同乡？难道<t wrap="0">···</t>不会的，这是不可能的！',
                     dialog.link(SYS_EXIT, '退出'))
                 end,
             }
@@ -113,13 +113,13 @@ setQuestFSMTable(
 
                 npc_ask = function(uid, args)
                     dialog.post(uid, questPath, '这和我丈夫的字体一模一样啊！拜托了，请你告诉我，这证书从哪得来的呢？',
-                    dialog.link('npc_where_from', '酒店附近的一个叫做洪气霖的人那儿得来的...'))
+                    dialog.link('npc_where_from', '酒店附近的一个叫做洪气霖的人那儿得来的<t wrap="0">···</t>'))
                 end,
 
                 npc_where_from = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '你说那个人姓洪名奇莲？啊...他还活着啊！自从流离失散之后，虽然觉得很难活下去...但一直认为只要还活着的话总会有一天能见上一面的，所以一直在这儿苦苦等候...终于没有白等啊！',
+                        '你说那个人姓洪名奇莲？啊<t wrap="0">···</t>他还活着啊！自从流离失散之后，虽然觉得很难活下去<t wrap="0">···</t>但一直认为只要还活着的话总会有一天能见上一面的，所以一直在这儿苦苦等候<t wrap="0">···</t>终于没有白等啊！',
                         '拜托侠客您一件事！请您把这个玉指环拿给他，告诉他苏白花还活着！并告诉他如果他依然还爱我的话，就让他来这里接我吧！',
                     },
                     dialog.link('npc_ask_why_not_go_directly', '为什么不直接去找他呢？'))
@@ -154,20 +154,20 @@ setQuestFSMTable(
                         dialog.post(uid, questPath, '天啊！这个玉指环不是我作为定情信物送给妻子的吗？请快快告诉我，你是从哪儿得到这个指环的？',
                         dialog.link('npc_where_it_is_from', '是从棉布店的苏白花夫人那得到的！'))
                     else
-                        dialog.post(uid, questPath, '那个在棉布店工作的女子好像就是我妻子啊！哦...难道没有什么要转交给我的东西吗？',
+                        dialog.post(uid, questPath, '那个在棉布店工作的女子好像就是我妻子啊！哦<t wrap="0">···</t>难道没有什么要转交给我的东西吗？',
                         dialog.link(SYS_EXIT, '退出'))
                     end
                 end,
 
                 npc_where_it_is_from = function(uid, args)
-                    dialog.post(uid, questPath, '白花...！也就是说白花她现在还活着！！！',
+                    dialog.post(uid, questPath, '白花<t wrap="0">···</t>！也就是说白花她现在还活着！！！',
                     dialog.link('npc_ask_for_ring', '是啊！夫人让我拿这个指环给你看，如果你还没有变心的话就让你去找她！'))
                 end,
 
                 npc_ask_for_ring = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '曾经的海誓山盟怎么能变...真不知该如何表达我内心对您的感激之情了！',
+                        '曾经的海誓山盟怎么能变<t wrap="0">···</t>真不知该如何表达我内心对您的感激之情了！',
                         '啊，可是这个指环您要怎么办呢？这可是我和她的定情信物啊！能还给我吗？',
                     },
                     dialog.link('npc_give_ring', '当然！'))

@@ -62,7 +62,7 @@ setQuestFSMTable(
                 once     = true,
                 give     = pearlName,
                 setState = 'quest_got_pearl',
-                say      = "（你现在去找清明子，把灵珠带给他，就可以修炼'幽灵盾'……）",
+                say      = [[（你现在去找清明子，把灵珠带给他，就可以修炼'幽灵盾'<t wrap="0">···</t>）]],
             },
         })
 
@@ -79,7 +79,7 @@ setQuestFSMTable(
             {
                 [SYS_LABEL] = '幽灵盾的灵珠',
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, '在做什么。。不到飞天废矿找<t color="red">‘灵珠’</t>，认为现在是可以磨磨噌噌的时候嘛？现在很多人正在死去。千万快些 ！！',
+                    dialog.post(uid, questPath, '在做什么<t wrap="0">···</t>不到飞天废矿找<t color="red">灵珠</t>，认为现在是可以磨磨噌噌的时候嘛？现在很多人正在死去。千万快些！！',
                     {
                         dialog.link('npc_explain', '修炼幽灵盾要做什么？'),
                         dialog.link(SYS_EXIT, '结束'),
@@ -114,12 +114,12 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     -- the ELSESAY of @mugong_hangma_getring, you dropped it somewhere
                     if not server.player.hasItem(uid, '灵珠', 1) then
-                        dialog.post(uid, questPath, '你丢失了灵珠哟。。这该怎么办。。。。',
+                        dialog.post(uid, questPath, '你丢失了灵珠哟<t wrap="0">···</t>这该怎么办<t wrap="0">···</t>',
                         dialog.link(SYS_EXIT, '结束'))
                         return
                     end
 
-                    dialog.post(uid, questPath, '幸运的是已经找到<t color="red">灵珠</t>了哟。好的，现在该是我遵守约定的时候了。请等一下。。',
+                    dialog.post(uid, questPath, '幸运的是已经找到<t color="red">灵珠</t>了哟。好的，现在该是我遵守约定的时候了。请等一下<t wrap="0">···</t>',
                     dialog.link('npc_brew', '下一步'))
                 end,
 
@@ -130,7 +130,7 @@ setQuestFSMTable(
                     end
 
                     dialog.post(uid, questPath, '好的，请喝<t color="red">药水</t>。这个药是用你拿来的灵珠和其它灵验的药材一起加工制成的珍贵药。这个药可以大力提高内力，吃了这个药，在修炼武功的时候不会发生走火入魔的事情。',
-                    dialog.link(SYS_EXIT, '不，如何承受得了这种辛苦?'))
+                    dialog.link(SYS_EXIT, '不，如何承受得了这种辛苦？'))
 
                     server.player.removeItem(uid, '灵珠', 1)
                     server.player.addItem(uid, '无名药', 1)
@@ -169,7 +169,7 @@ setQuestFSMTable(
                         '为天下万民就连自己的生命都可以像棵草一样抛弃的真正英雄，如果这点都做不到，还可以堂堂正正地生活在世上吗？',
                         '希望你保持慈善的本性，成为为天下民众费心的<t color="red">真正道士</t>。',
                     },
-                    dialog.link('npc_take_book', '谢谢.'))
+                    dialog.link('npc_take_book', '谢谢。'))
                 end,
 
                 -- @mugong_hangma_getring_next2
@@ -296,7 +296,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_hangma_highlevel_next5_except
         npc_refuse_favor = function(uid, value)
-            dialog.post(uid, questPath, '嗯。。如果那样，我也不能将武功传授给你。',
+            dialog.post(uid, questPath, '嗯<t wrap="0">···</t>如果那样，我也不能将武功传授给你。',
             dialog.link(SYS_EXIT, '结束'))
         end,
 
@@ -304,7 +304,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         npc_accept_favor = function(uid, value)
             dialog.post(uid, questPath,
             {
-                '不是其它的事情，听说过生活在飞天费矿的魔法僵尸吗？如果抓到<t color="red">魔法 僵尸</t>偶而会有叫做<t color="red">\'灵珠\'</t>的奇特珠子出来，请将这个东西拿给我。请不要问这个东西用在哪儿和为什么需要。',
+                '不是其它的事情，听说过生活在飞天费矿的魔法僵尸吗？如果抓到<t color="red">魔法僵尸</t>偶而会有叫做<t color="red">灵珠</t>的奇特珠子出来，请将这个东西拿给我。请不要问这个东西用在哪儿和为什么需要。',
                 '只要将这个珠子拿来，将传授武功给你。好了，请快去快回！',
             },
             dialog.link(SYS_EXIT, '结束'))

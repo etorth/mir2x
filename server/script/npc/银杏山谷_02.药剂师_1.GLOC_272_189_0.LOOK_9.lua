@@ -10,7 +10,7 @@ local dialog = require('include.dialog')
 local greet =
 {
     '很不好意思，我现在不制作药了。',
-    '想制作药的话去找比奇县的老黄和 沙漠土城的老郑吧。',
+    '想制作药的话去找比奇县的老黄和沙漠土城的老郑吧。',
 }
 
 setEventHandler

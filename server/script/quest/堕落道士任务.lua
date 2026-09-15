@@ -83,16 +83,16 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '哦？竟有此等事情，施主可否详细道来呢？',
-                        '.......',
+                        '<t wrap="0">···</t>',
                         '噢！听说半兽人以半兽勇士为中心集结势力，可突然间又安静了下来，我正感到十分奇怪呢，原来都是这位年轻的施主您解决的啊！真是了不起啊！',
-                        '哦……那个带着灵魂护卫摄人魂魄进行研究的道士偷走了不死牌？',
-                        '咳……这个家伙终于闹出了大事儿啊！',
+                        '哦<t wrap="0">···</t>那个带着灵魂护卫摄人魂魄进行研究的道士偷走了不死牌？',
+                        '咳<t wrap="0">···</t>这个家伙终于闹出了大事儿啊！',
                     },
                     dialog.link('npc_ask_who', '他是谁呢？'))
                 end,
 
                 npc_ask_who = function(uid, args)
-                    dialog.post(uid, questPath, '首先要说的是……现在我要给施主讲的故事是我们道馆的耻辱，原本不该跟外人说的…所以请您答应老纳，别随便把这些话故意传到其他不相关的人那儿！',
+                    dialog.post(uid, questPath, '首先要说的是<t wrap="0">···</t>现在我要给施主讲的故事是我们道馆的耻辱，原本不该跟外人说的<t wrap="0">···</t>所以请您答应老纳，别随便把这些话故意传到其他不相关的人那儿！',
                     dialog.link('npc_promise', '好的，我答应您！'))
                 end,
 
@@ -107,13 +107,13 @@ setQuestFSMTable(
                         '他对什么济世求道、上仙药手之类的东西毫不关心。' ..
                         '最后他终于不顾禁令拿了几卷古书和灵魂护卫逃走了。' ..
                         '因此本馆将他开除出门派并且下了追杀令，可是直到现在还没能找到他。' ..
-                        '那个堕落道士叫<t color="red">署箭</t>……这次的事儿一定是他搞得鬼！',
+                        '那个堕落道士叫<t color="red">署箭</t><t wrap="0">···</t>这次的事儿一定是他搞得鬼！',
                     },
-                    dialog.link('npc_ask_goal', '那么他觊觎的是长生不老的力量……'))
+                    dialog.link('npc_ask_goal', '那么他觊觎的是长生不老的力量<t wrap="0">···</t>'))
                 end,
 
                 npc_ask_goal = function(uid, args)
-                    dialog.post(uid, questPath, '就是啊！一心想要长生不老的这个家伙完全能做出这种事儿来。唉……本来应该是由本馆解决的事儿却引发了如此祸端，贫道真是惭愧至极啊！您回比奇省的时候请转告一下，现在本馆将会尽全力帮助解决这件事情的！',
+                    dialog.post(uid, questPath, '就是啊！一心想要长生不老的这个家伙完全能做出这种事儿来。唉<t wrap="0">···</t>本来应该是由本馆解决的事儿却引发了如此祸端，贫道真是惭愧至极啊！您回比奇省的时候请转告一下，现在本馆将会尽全力帮助解决这件事情的！',
                     dialog.link(SYS_EXIT, '结束'))
 
                     server.quest.setState(questUID, {uid=uid, state='quest_report_thief'})
@@ -161,7 +161,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '那个叫署箭的堕落道士做了这种坏事儿？',
-                        '咳～呸……真气煞我也！',
+                        '咳～呸<t wrap="0">···</t>真气煞我也！',
                     },
                     dialog.link('npc_ask_why', '为什么这样说呢？'))
                 end,
@@ -263,14 +263,14 @@ setQuestFSMTable(
                 end,
 
                 npc_press = function(uid, args)
-                    dialog.post(uid, questPath, '反正在你手里也实现不了这个宝物的真正价值，难道不该到合适的主人手里吗？哈哈，这个世界上唯一有资格拥有不死牌这个宝物只有我……研究了一辈子长生不老的署箭！',
+                    dialog.post(uid, questPath, '反正在你手里也实现不了这个宝物的真正价值，难道不该到合适的主人手里吗？哈哈，这个世界上唯一有资格拥有不死牌这个宝物只有我<t wrap="0">···</t>研究了一辈子长生不老的署箭！',
                     dialog.link('npc_no_more_talk', '好像没有再说什么的必要了！'))
                 end,
 
                 npc_no_more_talk = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '我也正好是这么想的！不过我想好像没有冒这个险跟你亲自动手的必要，哈哈……正好有了一个试验我刚研究出来的怪物的机会。你就和它比试一下吧！',
+                        '我也正好是这么想的！不过我想好像没有冒这个险跟你亲自动手的必要，哈哈<t wrap="0">···</t>正好有了一个试验我刚研究出来的怪物的机会。你就和它比试一下吧！',
                         '你的对手就是它！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -302,7 +302,7 @@ setQuestFSMTable(
             {
                 monster  = '僧侣僵尸',
                 setState = 'quest_taoist_fled',
-                say      = '（看来需要再谈谈...）',
+                say      = '（看来需要再谈谈<t wrap="0">···</t>）',
             },
         })
     end,
@@ -329,17 +329,17 @@ setQuestFSMTable(
                 end,
 
                 npc_ask_purpose = function(uid, args)
-                    dialog.post(uid, questPath, '只是……？这东西算得了什么？我已经超越了死亡。和神仙没什么区别了！现在我马上就能够长生不老，永葆青春的生活下去了。到那时我就能超越神仙了！怎么样？难道不认为我的梦想很不错吗？',
+                    dialog.post(uid, questPath, '只是<t wrap="0">···</t>？这东西算得了什么？我已经超越了死亡。和神仙没什么区别了！现在我马上就能够长生不老，永葆青春的生活下去了。到那时我就能超越神仙了！怎么样？难道不认为我的梦想很不错吗？',
                     dialog.link('npc_refuse', '你别痴心妄想了！'))
                 end,
 
                 npc_refuse = function(uid, args)
-                    dialog.post(uid, questPath, '很遗憾！那只是个我看看你实力到底如何的机会而已！看来你真的可以和我一起联手支配世界啊……',
+                    dialog.post(uid, questPath, '很遗憾！那只是个我看看你实力到底如何的机会而已！看来你真的可以和我一起联手支配世界啊<t wrap="0">···</t>',
                     dialog.link('npc_call_mad', '真是彻底疯了！'))
                 end,
 
                 npc_call_mad = function(uid, args)
-                    dialog.post(uid, questPath, '这样啊！结果又回到了原点！我可不想再和你作为对手而浪费体力。就先走一步了……',
+                    dialog.post(uid, questPath, '这样啊！结果又回到了原点！我可不想再和你作为对手而浪费体力。就先走一步了<t wrap="0">···</t>',
                     dialog.link(SYS_EXIT, '结束'))
 
                     -- legacy threw the player back out of the tunnel as he left
@@ -381,7 +381,7 @@ setQuestFSMTable(
                 end,
 
                 npc_confirm_monster = function(uid, args)
-                    dialog.post(uid, questPath, '本官可能知道那些东西是什么……',
+                    dialog.post(uid, questPath, '本官可能知道那些东西是什么<t wrap="0">···</t>',
                     dialog.link('npc_ask_what', '到底是什么东西呢？'))
                 end,
 
@@ -389,16 +389,16 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '您去追赶那个疯道士进入地下的时候，本官收到了来自矿山难以置信的通报。',
-                        '唉……就在几天前，一群与您所见的怪物一样的怪物突然之间出现在矿山之中袭击了工人们。',
-                        '因此现在矿山已经成为一片废墟，而且最可怕的是，受这些怪物袭击而死去的人，尸体又变成了和那些怪物一样的东西……',
+                        '唉<t wrap="0">···</t>就在几天前，一群与您所见的怪物一样的怪物突然之间出现在矿山之中袭击了工人们。',
+                        '因此现在矿山已经成为一片废墟，而且最可怕的是，受这些怪物袭击而死去的人，尸体又变成了和那些怪物一样的东西<t wrap="0">···</t>',
                     },
-                    dialog.link('npc_ask_how', '这是怎么回事儿呢?'))
+                    dialog.link('npc_ask_how', '这是怎么回事儿呢？'))
                 end,
 
                 npc_ask_how = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '可能又是靠不死牌的力量搞得什么鬼吧！连半兽人那么低的智商都能造出骷髅兵士，何况是……',
+                        '可能又是靠不死牌的力量搞得什么鬼吧！连半兽人那么低的智商都能造出骷髅兵士，何况是<t wrap="0">···</t>',
                         '不管怎么样都不能再任这个堕落道士恣意胡为了！无论如何都要破坏他制造的阴谋，避免更多的惨剧继续发生！',
                     },
                     dialog.link('npc_go_mine', '好的，我马上就去矿山调查一下！'))
@@ -475,7 +475,7 @@ setQuestFSMTable(
                 npc_stop_him = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '好像你误会什么了吧……',
+                        '好像你误会什么了吧<t wrap="0">···</t>',
                         '不过反正像你这样的智商不高的人是理解不了的！呵呵呵，我是在建造一个没有痛苦没有战争的人间乐园啊！',
                         '不过你是没有机会在这个乐园生活了！因为你就要死在这儿了！',
                     },
@@ -517,7 +517,7 @@ setQuestFSMTable(
                 monster  = '尸王',
                 give     = {SYS_GOLDNAME, 9000},
                 setState = 'quest_king_dead',
-                say      = '（是僵尸王...）',
+                say      = '（是僵尸王<t wrap="0">···</t>）',
             },
         })
     end,
@@ -587,16 +587,16 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '那个堕落道士真是像泥鳅一样不容易逮啊！',
-                        '下次一定应该就是他的死期了……',
+                        '下次一定应该就是他的死期了<t wrap="0">···</t>',
                     },
-                    dialog.link('npc_mention_king', '还有件关于他做实验的事情……'))
+                    dialog.link('npc_mention_king', '还有件关于他做实验的事情<t wrap="0">···</t>'))
                 end,
 
                 npc_mention_king = function(uid, args)
                     dialog.post(uid, questPath,
                     {
                         '什么？那个家伙又制造出了一个叫做“僵尸王”的新怪物？',
-                        '嗯……从他这样不停的制造怪物，显然可以看出他心里的打算啊！',
+                        '嗯<t wrap="0">···</t>从他这样不停的制造怪物，显然可以看出他心里的打算啊！',
                     },
                     dialog.link('npc_ask_plan', '是什么打算呢？'))
                 end,
@@ -663,7 +663,7 @@ setQuestFSMTable(
                 [SYS_LABEL] = '转告署箭的动向',
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath, '啊！署箭那个混蛋家伙做出了这种坏事儿？',
-                    dialog.link('npc_tell_hiding', '那个家伙藏了起来，不知是不是又在准备挑出什么事端呢……'))
+                    dialog.link('npc_tell_hiding', '那个家伙藏了起来，不知是不是又在准备挑出什么事端呢<t wrap="0">···</t>'))
                 end,
 
                 npc_tell_hiding = function(uid, args)
@@ -740,8 +740,8 @@ setQuestFSMTable(
                 npc_hear_valley = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '毒蛇山谷矿山又出现了和那次一样的现象？让尸体复活而造出的怪物……',
-                        '听说那个叫署箭的堕落道士一向十分精明，怎么却又用起已经失败的伎俩呢？真是难以理解啊！这次一定要做好万全的准备……',
+                        '毒蛇山谷矿山又出现了和那次一样的现象？让尸体复活而造出的怪物<t wrap="0">···</t>',
+                        '听说那个叫署箭的堕落道士一向十分精明，怎么却又用起已经失败的伎俩呢？真是难以理解啊！这次一定要做好万全的准备<t wrap="0">···</t>',
                         '天才的头脑如果用到歪处也是十分可怕的啊！不管怎么样还是要充分的注意才是，你去打听一下署箭那个家伙这次又要搞什么名堂吧！',
                         '所谓要知己知彼嘛！',
                     },
@@ -776,7 +776,7 @@ setQuestFSMTable(
                         dialog.post(uid, questPath,
                         {
                             '珍珍正处于死境之中啊！',
-                            '善良可爱的孩子…唉……连金中医都无从下手……啧啧！',
+                            '善良可爱的孩子<t wrap="0">···</t>唉<t wrap="0">···</t>连金中医都无从下手<t wrap="0">···</t>啧啧！',
                         },
                         dialog.link(SYS_EXIT, '结束'))
                         return
@@ -797,7 +797,7 @@ setQuestFSMTable(
                         '最开始的时候没太在意，可是过了一会却有一股什么腐烂了的恶臭扑鼻而来！',
                         '看来的确有点什么不对劲儿，于是停下了手里的活儿进入矿山更深处一看！',
                     },
-                    dialog.link('npc_ask_saw', '腐烂的恶臭……啊……'))
+                    dialog.link('npc_ask_saw', '腐烂的恶臭<t wrap="0">···</t>啊<t wrap="0">···</t>'))
                 end,
 
                 npc_ask_saw = function(uid, args)
@@ -918,9 +918,9 @@ setQuestFSMTable(
                 npc_tell_seal = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '是这样啊……以前施主能够破除困魔咒是因为有半块不死牌在身。',
+                        '是这样啊<t wrap="0">···</t>以前施主能够破除困魔咒是因为有半块不死牌在身。',
                         '可是目前署箭那个家伙带着完整的不死牌呆在困魔咒里，如果不破解困魔咒的话是进不去的。',
-                        '嗯……不过也不是没有办法的。',
+                        '嗯<t wrap="0">···</t>不过也不是没有办法的。',
                     },
                     dialog.link('npc_ask_way', '是什么办法呢？'))
                 end,
@@ -997,7 +997,7 @@ setQuestFSMTable(
 
                     dialog.post(uid, questPath,
                     {
-                        '嗯……看来需要的东西都带来了啊！',
+                        '嗯<t wrap="0">···</t>看来需要的东西都带来了啊！',
                         '贫道也已经做好了其他的准备就等着施主来呢！',
                         '现在我要集中精力制造护身符，请施主稍候片刻！',
                     },
@@ -1011,7 +1011,7 @@ setQuestFSMTable(
 
                     dialog.post(uid, questPath,
                     {
-                        '呼……已经做完了！有了这个就可以破解署箭设下的不死牌困魔咒了。',
+                        '呼<t wrap="0">···</t>已经做完了！有了这个就可以破解署箭设下的不死牌困魔咒了。',
                         string.format('一定要让这个我们道门之耻——署箭最后死在不是手下，而是<t color="red">%s</t>您的手里啊！', server.player.getName(uid)),
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -1135,7 +1135,7 @@ setQuestFSMTable(
                 take     = '毁灭护身符',
                 give     = {{'不死牌', 1}, {SYS_GOLDNAME, 12000}},
                 setState = 'quest_return_token',
-                say      = '（可怜的人...那种怪物就是你所说得不老不死？）',
+                say      = '（可怜的人<t wrap="0">···</t>那种怪物就是你所说得不老不死？）',
             },
         })
     end,
@@ -1162,7 +1162,7 @@ setQuestFSMTable(
                         '那个堕落道士署箭的末路终会是如此啊！',
                         '这只不过是他罪有应得罢了！',
                         '尽管受害匪浅，不过这事儿到此而告终了，真是不幸中的万幸啊！',
-                        '万一那家伙真的带着不死怪物大军来进攻比奇省的话……那将来可就不堪设想了！',
+                        '万一那家伙真的带着不死怪物大军来进攻比奇省的话<t wrap="0">···</t>那将来可就不堪设想了！',
                     },
                     dialog.link('npc_ask_token', '那么您打算怎么处理那个不死牌呢？'))
                 end,
@@ -1187,7 +1187,7 @@ setQuestFSMTable(
                     {
                         '危难之中最值得信赖和依托的人只有您啊！',
                         '不管怎么样今后还要多多关照啊！',
-                        '还有这点小小的礼物作为我的一点谢意……哦，您去把包腾出点地方再来拿吧！',
+                        '还有这点小小的礼物作为我的一点谢意<t wrap="0">···</t>哦，您去把包腾出点地方再来拿吧！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -1230,24 +1230,24 @@ uidRemoteCall(getNPCharUID('比奇县_0', '比奇城城主_1'), getUID(), getQue
             end
 
             dialog.post(uid, questPath, '怎么现在才来啊？找了你好久了！没时间了，就只和你说一下要点吧！此前你粉碎了半兽人的阴谋后带来的古代护身符不死牌被盗了！',
-            dialog.link('npc_shocked', '.....!'))
+            dialog.link('npc_shocked', '<t wrap="0">···</t>!'))
         end,
 
         npc_shocked = function(uid, args)
             dialog.post(uid, questPath,
             {
-                '一想到那不死牌是你从半兽人手中好不容易才得来的……我就感到真是无颜以对啊！可是毕竟已经到了这个地步！讨来吃的东西真是烂了人最后的肠胃啊！',
+                '一想到那不死牌是你从半兽人手中好不容易才得来的<t wrap="0">···</t>我就感到真是无颜以对啊！可是毕竟已经到了这个地步！讨来吃的东西真是烂了人最后的肠胃啊！',
                 '因为云发先生主张那是很有学术价值的东西，不能轻易毁掉，所以就没有被处理掉而被保管在衙门之内，看来这真是个失误啊！不过既然这件事情已经发生，能够解决这件事儿的就只有您了。所以才这么急着见你。',
                 '要是这东西被乱用的话，比奇的土地上不知道又将出现什么灾难啊！',
                 '所以一定要把那个偷了不死牌的犯人绳之以法，找回不死牌。',
             },
-            dialog.link('npc_saw_thief', '我见过那个犯人，其实……'))
+            dialog.link('npc_saw_thief', '我见过那个犯人，其实<t wrap="0">···</t>'))
         end,
 
         npc_saw_thief = function(uid, args)
             dialog.post(uid, questPath,
             {
-                '.......',
+                '<t wrap="0">···</t>',
                 '本官虽然听说过这个有关妖怪摄人魂魄的传闻，却真没想到确实有这样受害的人！既然这个犯人如此作恶多端，就赶快去把他捉拿归案，以免让无辜的百姓们受到更多的伤害啊！',
             },
             dialog.link('npc_ask_clue', '知道了。有缉拿这个犯人的线索吗？'))

@@ -5,17 +5,17 @@ apothecary.setApothecary
 {
     greet =
     {
-        '我这里卖的药品跟人类药店里卖的药没什么不同,放心买吧.',
+        '我这里卖的药品跟人类药店里卖的药没什么不同，放心买吧。',
     },
 
-    redName = '治愈你这种邪恶的人,上天都会惩罚我的!',
+    redName = '治愈你这种邪恶的人，上天都会惩罚我的!',
     redNameExit = '关闭',
 
     label = '',
-    buyLabel = '买药.',
-    sellLabel = '卖药.',
+    buyLabel = '买药。',
+    sellLabel = '卖药。',
     backLabel = '继续',
-    exitLabel = '关闭.',
+    exitLabel = '关闭。',
 
     goods =
     {
@@ -31,11 +31,11 @@ apothecary.setApothecary
 
     buyText =
     {
-        '你到底想买什么药?',
+        '你到底想买什么药？',
     },
 
     sellText =
     {
-        '你想出售药水? 也好.不过先让我看看你要卖的东西,因为我出的价格是按照药水品质而定的.',
+        '你想出售药水？也好。不过先让我看看你要卖的东西，因为我出的价格是按照药水品质而定的。',
     },
 }

@@ -163,7 +163,7 @@ local function enterTrial(uid)
                     dialog.post(uid, questPath,
                     {
                         '出现失误了。即使仅仅一头怪兽被杀死，其它怪兽也都全不行了。',
-                        '需要将来再次挑战了。。。',
+                        '需要将来再次挑战了<t wrap="0">···</t>',
                     },
                     dialog.link('npc_fail_trial', '结束', {close = true}))
                     return
@@ -241,10 +241,10 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '那么，请送去吧！',
-                        '我给你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后，你将重新回到这里。',
+                        '我给你送到那儿的时间是<t color="red">5分钟</t><t wrap="0">···</t>时间结束后，你将重新回到这里。',
                     },
                     {
-                        dialog.link('npc_enter_trial', '移  动'),
+                        dialog.link('npc_enter_trial', '移动'),
                         dialog.link('npc_explain', '考场里要做什么？'),
                         dialog.link(SYS_EXIT, '结束'),
                     })
@@ -258,7 +258,7 @@ setQuestFSMTable(
                         '我将站在终点，你将重新回到这里。需要注意的是<t color="red">不能伤害考场内的任何一头怪物</t>',
                     },
                     {
-                        dialog.link('npc_enter_trial', '移  动'),
+                        dialog.link('npc_enter_trial', '移动'),
                         dialog.link(SYS_EXIT, '结束'),
                     })
                 end,
@@ -301,7 +301,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '恭喜你！干得好！',
-                        '这里有可以掌握抗拒火环的武功书（秘籍）。。好好使用吧。',
+                        '这里有可以掌握抗拒火环的武功书（秘籍）<t wrap="0">···</t>好好使用吧。',
                     },
                     dialog.link('npc_take_book', '结束', {close = true}))
                 end,
@@ -345,7 +345,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             {
                 '想知道叫“抗拒火环“的武功吗？',
                 '抗拒火环是一种被敌人包围时，在自己周围产生<t color="red">强烈的火墙</t>，从而逃脱包围的魔法。也是体力弱魔术师必须掌握的魔法。',
-                '但是仅凭语言是无法理解的，只用直接被敌人包围，并体验生命受到威胁才可以学会的。但是这种方法太粗糙。。。要试一下吗？',
+                '但是仅凭语言是无法理解的，只用直接被敌人包围，并体验生命受到威胁才可以学会的。但是这种方法太粗糙<t wrap="0">···</t>要试一下吗？',
             },
             {
                 dialog.link('npc_ask_teach', '拜托指教了'),
@@ -362,7 +362,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- @mugong_firewind_next1_1, checklevel 12, then next2's checkmagic
         npc_ask_teach = function(uid, value)
             if server.player.getLevel(uid) < minQuestLevel then
-                dialog.post(uid, questPath, '嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
+                dialog.post(uid, questPath, '嗯<t wrap="0">···</t>想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -382,7 +382,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             },
             {
                 dialog.link('npc_accept', '准备好了'),
-                dialog.link('npc_wait', '等一下，现在。。。'),
+                dialog.link('npc_wait', '等一下，现在<t wrap="0">···</t>'),
             })
 
             -- set [500] lands here, before you have answered, so backing out now still leaves
@@ -392,7 +392,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_firewind_next4_2
         npc_wait = function(uid, value)
-            dialog.post(uid, questPath, '比看起来软弱。。。如果确实准备好了，再来吧！',
+            dialog.post(uid, questPath, '比看起来软弱<t wrap="0">···</t>如果确实准备好了，再来吧！',
             dialog.link(SYS_EXIT, '结束'))
         end,
 
@@ -401,9 +401,9 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '那么，请送去吧！',
-                '我给你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后，你将重新回到这里。',
+                '我给你送到那儿的时间是<t color="red">5分钟</t><t wrap="0">···</t>时间结束后，你将重新回到这里。',
             },
-            dialog.link('npc_enter_trial', '移  动', {close = true}))
+            dialog.link('npc_enter_trial', '移动', {close = true}))
         end,
 
         npc_enter_trial = function(uid, value)

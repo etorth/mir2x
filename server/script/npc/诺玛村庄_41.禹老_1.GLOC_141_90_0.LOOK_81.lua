@@ -5,19 +5,19 @@ buyer.setBuyer
 {
     greet =
     {
-        '如果有蚂蚁卵或骷髅骨之类的材料请卖给我.',
+        '如果有蚂蚁卵或骷髅骨之类的材料请卖给我。',
     },
 
-    redName = '我不想跟你这种人进行交易...',
-    redNameExit = '关闭.',
+    redName = '我不想跟你这种人进行交易<t wrap="0">···</t>',
+    redNameExit = '关闭。',
 
     label = '',
-    sellLabel = '卖材料.',
+    sellLabel = '卖材料。',
     backLabel = '前一步',
-    exitLabel = '关闭.',
+    exitLabel = '关闭。',
 
     sellText =
     {
-        '你想卖什么?',
+        '你想卖什么？',
     },
 }

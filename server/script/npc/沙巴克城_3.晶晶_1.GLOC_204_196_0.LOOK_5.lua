@@ -7,8 +7,8 @@ apothecary.setApothecary
     greet = function(uid)
         return
         {
-            '这里是 沙巴克城 <t color="red">' .. getSubukGuildName() .. '</t> 行会的领地。',
-            '什么，这里是卖药的地方? 你已经知道了? 那你需要什么，快点买走吧。',
+            '这里是沙巴克城<t color="red">' .. getSubukGuildName() .. '</t>行会的领地。',
+            '什么，这里是卖药的地方？你已经知道了？那你需要什么，快点买走吧。',
         }
     end,
 
@@ -31,6 +31,6 @@ apothecary.setApothecary
 
     sellText =
     {
-        '你想卖东西？真是的，本来生意就不好。 快点卖了走吧。',
+        '你想卖东西？真是的，本来生意就不好。快点卖了走吧。',
     },
 }

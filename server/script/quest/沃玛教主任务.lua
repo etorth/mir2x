@@ -79,7 +79,7 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '真是年代十分久远的东西啊！不过不知道还有什么用处，好像除了作为古董没什么别的价值了……',
+                        '真是年代十分久远的东西啊！不过不知道还有什么用处，好像除了作为古董没什么别的价值了<t wrap="0">···</t>',
                         '听说比奇省的富豪<t color="red">王大人</t>收集这些东西，拿去卖给他换成钱要比就这么带着更好！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -118,7 +118,7 @@ setQuestFSMTable(
                 npc_dont_know = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '唔……那么对你来说没什么用啊！这样吧！就把这个沃玛金牌卖给我，我会给你个好价钱的……',
+                        '唔<t wrap="0">···</t>那么对你来说没什么用啊！这样吧！就把这个沃玛金牌卖给我，我会给你个好价钱的<t wrap="0">···</t>',
                         '怎么样？能卖给我吗？',
                     },
                     {
@@ -130,7 +130,7 @@ setQuestFSMTable(
                 npc_keep = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '呵呵……可惜啊！好久没有看到这样的古董了，特别想买下来……',
+                        '呵呵<t wrap="0">···</t>可惜啊！好久没有看到这样的古董了，特别想买下来<t wrap="0">···</t>',
                         '如果你改变主意了的话，什么时候来都行！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -143,7 +143,7 @@ setQuestFSMTable(
 
                     -- he pays more to someone who has already worked for 比奇商会
                     if server.player.getQuestState(uid, '比奇商会') == SYS_DONE then
-                        dialog.post(uid, questPath, '您为了我们比奇商会做了很多事情，一定会给你个高价来买的，这样吧！收下这15万钱，不……20万钱！',
+                        dialog.post(uid, questPath, '您为了我们比奇商会做了很多事情，一定会给你个高价来买的，这样吧！收下这15万钱，不<t wrap="0">···</t>20万钱！',
                         dialog.link('npc_thanks', '谢谢！'))
                         server.player.addItem(uid, SYS_GOLDNAME, 200000)
 
@@ -244,9 +244,9 @@ setQuestFSMTable(
                 npc_ask_temple = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '.......',
-                        '唉！……既然你带来了这本日志，那么再隐瞒也没有用了！',
-                        '不过……这件事儿实在太危险了！呃咳，呃咳！插手管这件事儿可会危及你的性命啊！所以你还是不要好奇，回去吧！',
+                        '<t wrap="0">···</t>',
+                        '唉！<t wrap="0">···</t>既然你带来了这本日志，那么再隐瞒也没有用了！',
+                        '不过<t wrap="0">···</t>这件事儿实在太危险了！呃咳，呃咳！插手管这件事儿可会危及你的性命啊！所以你还是不要好奇，回去吧！',
                     },
                     {
                         dialog.link('npc_insist', '但我一定要知道。'),
@@ -258,7 +258,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '你敢试试看？我一个人与那些狰狞的恶魔战斗了数十年之久，难道还会把你这个小毛孩子的威胁放在眼里？',
-                        '跟你这种不讲道理的人什么都不想说了……',
+                        '跟你这种不讲道理的人什么都不想说了<t wrap="0">···</t>',
                     },
                     dialog.link(SYS_EXIT, '结束'))
                 end,
@@ -266,7 +266,7 @@ setQuestFSMTable(
                 npc_insist = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '呃咳，呃咳，看你一身正气的样子，跟你说说也无妨。我已经老了，要做的事儿也到最后了……唉！好吧！我会告诉你一切的。',
+                        '呃咳，呃咳，看你一身正气的样子，跟你说说也无妨。我已经老了，要做的事儿也到最后了<t wrap="0">···</t>唉！好吧！我会告诉你一切的。',
                         '那么你想从哪儿听起呢？',
                     },
                     dialog.link('npc_ask_history', '我想听听关于沃玛神殿的事情。'))
@@ -275,12 +275,12 @@ setQuestFSMTable(
                 npc_ask_history = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '很久以前……我们的祖先因迷失了返回故乡的路而迷惑彷徨时，一部分开拓者发现了这个地下寺庙，他们探查这个寺庙并且得到了一本古代文书。' ..
+                        '很久以前<t wrap="0">···</t>我们的祖先因迷失了返回故乡的路而迷惑彷徨时，一部分开拓者发现了这个地下寺庙，他们探查这个寺庙并且得到了一本古代文书。' ..
                         '这文书上写着把某种超越性的存在召唤出地面的方法。' ..
                         '但因为那个方法十分残忍，要献上活的祭物才行，所以无论如何都不能采用。',
                         '但是没能返回故乡遭遇挫折的人们最后还是选择了这条路，秘密的成立了邪教，开始四处抓人作为活的祭物献上。' ..
                         '官府当然会派出官兵来捉拿邪教徒，所以剩下的邪教徒便藏到了这沃玛神殿里来。' ..
-                        '于是在这漆黑一片的地下，官兵和教徒们展开了激烈的血战……',
+                        '于是在这漆黑一片的地下，官兵和教徒们展开了激烈的血战<t wrap="0">···</t>',
                     },
                     dialog.link('npc_ask_after', '那么后来怎么样了呢？'))
                 end,
@@ -297,7 +297,7 @@ setQuestFSMTable(
                     '可不是嘛！' ..
                     '睁开眼睛的沃玛教主打开了地狱之门召唤出自己的部下，开始攻击寺庙内的人们。' ..
                     '邪教徒们开始还以为是自己祈愿的神的使者降临了，所以都欣喜万分，可是没想到那些怪物们却两者不分，攻击所有眼中看到的人类！' ..
-                    '就这样……邪教徒们坚信的所谓超越者其实不过是就连你都知道的魔鬼头目！' ..
+                    '就这样<t wrap="0">···</t>邪教徒们坚信的所谓超越者其实不过是就连你都知道的魔鬼头目！' ..
                     '互相残杀的人们最后终于无法抵挡那些怪物，全都死掉了！',
                     dialog.link('npc_ask_survivor', '可是假如没有生还者的话，那么您怎么会如此详细的知道当时发生的情况呢？'))
                 end,
@@ -307,8 +307,8 @@ setQuestFSMTable(
                     {
                         '呵呵，我怎么能这么详细的知道当时发生的事儿呢，就像你察觉的那样，我就是当时那个杀戮现场唯一幸存下来的人啊！' ..
                         '我也是邪教徒！' ..
-                        '召唤沃玛教主到世上来的……但是从那天之后，我虽然活着，但却生不如死啊！' ..
-                        '这都是因为熟悉这沃玛神殿的构造，并知道除掉沃玛教主办法的人除了是邪教徒的我以外，就没有别人了，所以我才一直苟活到了今天……',
+                        '召唤沃玛教主到世上来的<t wrap="0">···</t>但是从那天之后，我虽然活着，但却生不如死啊！' ..
+                        '这都是因为熟悉这沃玛神殿的构造，并知道除掉沃玛教主办法的人除了是邪教徒的我以外，就没有别人了，所以我才一直苟活到了今天<t wrap="0">···</t>',
                         '但是现在我已经年劳力衰，即使知道办法却也不能去做了！所以只好不顾廉耻的要拜托您去除掉沃玛教主。不是为了我这个老家伙，而是为了能够帮那些屈死的冤魂们报仇啊！你能帮我这一把吗？',
                     },
                     {
@@ -318,7 +318,7 @@ setQuestFSMTable(
                 end,
 
                 npc_refuse_help = function(uid, args)
-                    dialog.post(uid, questPath, '这是没有办法的事儿啊！我也没有资格去埋怨你，就让我这条命直到战死为止吧，就算是死也一定要除掉那个魔鬼……',
+                    dialog.post(uid, questPath, '这是没有办法的事儿啊！我也没有资格去埋怨你，就让我这条命直到战死为止吧，就算是死也一定要除掉那个魔鬼<t wrap="0">···</t>',
                     dialog.link(SYS_EXIT, '结束'))
                 end,
 
@@ -333,11 +333,11 @@ setQuestFSMTable(
                         '所以只要能够夺回灵魂明珠并把它毁掉的话，就可以锁上阴间之门削弱沃玛教主的力量。' ..
                         '那么被锁住的冤魂们就都能够升天了。',
                         '不过，首先要找到<t color="red">沃玛金牌</t>才行。' ..
-                        '有那个才能出入秘密地区……进不了秘密地区的话就算找到灵魂明珠也无法得到破坏它的办法。' ..
+                        '有那个才能出入秘密地区<t wrap="0">···</t>进不了秘密地区的话就算找到灵魂明珠也无法得到破坏它的办法。' ..
                         '所以你能先去找找沃玛金牌吗？' ..
-                        '既然找回了我记录通往秘密地区入口的日志，有了沃玛金牌的话就可以解决这件事的关键了……',
+                        '既然找回了我记录通往秘密地区入口的日志，有了沃玛金牌的话就可以解决这件事的关键了<t wrap="0">···</t>',
                     },
-                    dialog.link('npc_sold_it', '可是沃玛金牌已经被我卖给王大人了……'))
+                    dialog.link('npc_sold_it', '可是沃玛金牌已经被我卖给王大人了<t wrap="0">···</t>'))
                 end,
 
                 npc_sold_it = function(uid, args)
@@ -345,7 +345,7 @@ setQuestFSMTable(
                     '你说什么？' ..
                     '你把那个给卖了？' ..
                     '也就是说你找到了那个金牌？' ..
-                    '我过去数十年为了找它而费尽了心血都没……哦，现在就没问题了，那么快去<t color="red">王大人</t>那儿把那个金牌找回来吧！' ..
+                    '我过去数十年为了找它而费尽了心血都没<t wrap="0">···</t>哦，现在就没问题了，那么快去<t color="red">王大人</t>那儿把那个金牌找回来吧！' ..
                     '那可是非常重要的东西啊！' ..
                     '你只要能把它找来的话就会有除掉沃玛教主的办法了！',
                     dialog.link(SYS_EXIT, '结束'))
@@ -394,21 +394,21 @@ setQuestFSMTable(
                 [SYS_LABEL] = '要回沃玛金牌',
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath, '好像你找到住在道馆附近的老人了吧？',
-                    dialog.link('npc_want_back', '其实……我是来要回沃玛金牌的！'))
+                    dialog.link('npc_want_back', '其实<t wrap="0">···</t>我是来要回沃玛金牌的！'))
                 end,
 
                 npc_want_back = function(uid, args)
                     dialog.post(uid, questPath, '嗯？又发生什么事儿了？要拿走沃玛金牌？',
-                    dialog.link('npc_tell_story', '请您听一下我在道馆遇到的无名老人所说的话吧！…… ……'))
+                    dialog.link('npc_tell_story', '请您听一下我在道馆遇到的无名老人所说的话吧！<t wrap="0">···</t>'))
                 end,
 
                 npc_tell_story = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '嗯……原来还有这等事情啊……我不知竟是如此，结果又犯了一个错误啊……其实那个沃玛金牌已经不在我的手中了！' ..
+                        '嗯<t wrap="0">···</t>原来还有这等事情啊<t wrap="0">···</t>我不知竟是如此，结果又犯了一个错误啊<t wrap="0">···</t>其实那个沃玛金牌已经不在我的手中了！' ..
                         '要去沙漠的贸易商需要这种物品作为礼物送给当地土著部落族长，所以来求我。' ..
                         '本来我不想给他的，但是那是个非常重要的贸易线，实在没办法拒绝啊！' ..
-                        '不过既然除掉沃玛教主必需那个金牌的话……尽快去追那个人还来得及，那个贸易商说要去沙漠，快去追的话还能追上。',
+                        '不过既然除掉沃玛教主必需那个金牌的话<t wrap="0">···</t>尽快去追那个人还来得及，那个贸易商说要去沙漠，快去追的话还能追上。',
                         '您的侠义心肠实在是了不起啊！祝你一定能够找到那个去沙漠的贸易商！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -438,7 +438,7 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '啊？你说那个已经被卖给去沙漠的贸易商了……竟有这样浪费的事儿！',
+                        '啊？你说那个已经被卖给去沙漠的贸易商了<t wrap="0">···</t>竟有这样浪费的事儿！',
                         '快去找那个贸易商吧！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -464,15 +464,15 @@ setQuestFSMTable(
                 end,
 
                 npc_want_medal = function(uid, args)
-                    dialog.post(uid, questPath, string.format('沃玛金牌是我从比奇省的王大人那儿购买的古董……啊，看来你就是把沃玛金牌卖给王大人的那个叫<t color="red">%s</t>的人吧！可是现在你又为什么需要它呢？', server.player.getName(uid)),
-                    dialog.link('npc_explain', '其实是为了把沃玛教主……'))
+                    dialog.post(uid, questPath, string.format('沃玛金牌是我从比奇省的王大人那儿购买的古董<t wrap="0">···</t>啊，看来你就是把沃玛金牌卖给王大人的那个叫<t color="red">%s</t>的人吧！可是现在你又为什么需要它呢？', server.player.getName(uid)),
+                    dialog.link('npc_explain', '其实是为了把沃玛教主<t wrap="0">···</t>'))
                 end,
 
                 npc_explain = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '....',
-                        '嗯……原来是这样啊！虽然我能够理解，不过对我来说，这东西是为开辟贸易道路而精心准备的礼物，所以要我让步可不容易，你还是回去吧！',
+                        '<t wrap="0">···</t>',
+                        '嗯<t wrap="0">···</t>原来是这样啊！虽然我能够理解，不过对我来说，这东西是为开辟贸易道路而精心准备的礼物，所以要我让步可不容易，你还是回去吧！',
                     },
                     dialog.link('npc_ask_price', '那你要怎么样才能把这个沃玛金牌还给我呢？'))
                 end,
@@ -546,7 +546,7 @@ setQuestFSMTable(
             {
                 [SYS_LABEL] = '询问可交换的古董',
                 [SYS_ENTER] = function(uid, args)
-                    dialog.post(uid, questPath, '嗯……他说要想拿回沃玛金牌需要有合适的东西交换才行？但是我现在有的物品中没有合适的啊……',
+                    dialog.post(uid, questPath, '嗯<t wrap="0">···</t>他说要想拿回沃玛金牌需要有合适的东西交换才行？但是我现在有的物品中没有合适的啊<t wrap="0">···</t>',
                     dialog.link('npc_offer_search', '那么我去沃玛神殿找找吧！'))
                 end,
 
@@ -559,7 +559,7 @@ setQuestFSMTable(
                         '可能仔细观察周围的石堆就会发现机关装置。' ..
                         '不过要准确的操作那些机关才行。' ..
                         '要是错误操作了的话，即使进去了也会到达奇怪的地方，所以一定要提起精神谨慎处理才行啊！',
-                        '沃玛神殿一层的那地方是沃玛教的祭司们进行牺牲祭礼的地方……有无数的人冤死在那儿，阴气惨然……所以无论如何一定要多多小心才行啊！',
+                        '沃玛神殿一层的那地方是沃玛教的祭司们进行牺牲祭礼的地方<t wrap="0">···</t>有无数的人冤死在那儿，阴气惨然<t wrap="0">···</t>所以无论如何一定要多多小心才行啊！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -642,7 +642,7 @@ setQuestFSMTable(
                 npc_take_bell = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '真是年代十分久远的东西啊！不过不知道还有什么用处，好像除了作为古董没什么别的价值了……',
+                        '真是年代十分久远的东西啊！不过不知道还有什么用处，好像除了作为古董没什么别的价值了<t wrap="0">···</t>',
                         '听说比奇省的富豪王大人收集这些东西，拿去卖给他换成钱要比就这么带着更好！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -698,7 +698,7 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '是地狱神钟啊……真是让我贪心的东西啊！但是已经有主儿了，我也只能无可奈何了。用这个完全可以换回沃玛金牌的！',
+                        '是地狱神钟啊<t wrap="0">···</t>真是让我贪心的东西啊！但是已经有主儿了，我也只能无可奈何了。用这个完全可以换回沃玛金牌的！',
                         '那么快去无名老人那儿吧！祝你一定能除掉沃玛教主！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -736,7 +736,7 @@ setQuestFSMTable(
 
                     dialog.post(uid, questPath,
                     {
-                        '哇……这个看来确实是比沃玛金牌更有价值啊！好吧！成交！拿走沃玛金牌吧！',
+                        '哇<t wrap="0">···</t>这个看来确实是比沃玛金牌更有价值啊！好吧！成交！拿走沃玛金牌吧！',
                         '您拿给我的神钟将会为开拓比奇省的未来派上大用场的！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -784,7 +784,7 @@ setQuestFSMTable(
                 npc_hunt_guard = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '那么……虽然很对不起你，但这次没有办法帮你了！因为我也没法儿知道灵魂明珠到底在哪个沃玛护卫手里拿着……',
+                        '那么<t wrap="0">···</t>虽然很对不起你，但这次没有办法帮你了！因为我也没法儿知道灵魂明珠到底在哪个沃玛护卫手里拿着<t wrap="0">···</t>',
                         '不管怎样，只要一找到灵魂明珠就马上拿给我。接下来的事儿到时候再作打算吧！',
                         '灵魂明珠在沃玛教主的部下沃玛护卫那儿。沃玛护卫要比一般的沃玛战士更加强大，所以一定要小心才是。',
                     },
@@ -857,7 +857,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '拿来灵魂明珠了？对，就是这个，辛苦了！',
-                        '呃咳，呃咳，可怜的人们啊……马上就会让你们自由的……嗯？啊，没什么，我在自言自语呢。',
+                        '呃咳，呃咳，可怜的人们啊<t wrap="0">···</t>马上就会让你们自由的<t wrap="0">···</t>嗯？啊，没什么，我在自言自语呢。',
                     },
                     dialog.link('npc_ask_break', '把这个毁掉就行吗？'))
                 end,
@@ -872,7 +872,7 @@ setQuestFSMTable(
                 end,
 
                 npc_throw = function(uid, args)
-                    dialog.post(uid, questPath, '唔……没有破啊！试试别的办法吧。',
+                    dialog.post(uid, questPath, '唔<t wrap="0">···</t>没有破啊！试试别的办法吧。',
                     dialog.link('npc_ask_break', '后退'))
                 end,
 
@@ -882,7 +882,7 @@ setQuestFSMTable(
                 end,
 
                 npc_smash = function(uid, args)
-                    dialog.post(uid, questPath, '还是丝毫未损！和预想中的差不多……先住手吧！',
+                    dialog.post(uid, questPath, '还是丝毫未损！和预想中的差不多<t wrap="0">···</t>先住手吧！',
                     dialog.link('npc_ask_how', '怎样才能破坏它呢？'))
                 end,
 
@@ -891,7 +891,7 @@ setQuestFSMTable(
                     '你也感觉到了吧！' ..
                     '由于这个灵魂明珠是强大魔法的集结体，所以用一般的办法是绝对破坏不了的。' ..
                     '而且为了里面被锁住的无数冤魂能够平安的升天，也不能用太勉强的办法。' ..
-                    '这样的话……呃咳，呃咳，既然解铃还需系铃人，那么也许到制造这个灵魂明珠的地方就能毁掉它呢！' ..
+                    '这样的话<t wrap="0">···</t>呃咳，呃咳，既然解铃还需系铃人，那么也许到制造这个灵魂明珠的地方就能毁掉它呢！' ..
                     '至少知道了这个办法，没准会有很大帮助呢！',
                     dialog.link('npc_go_hall', '果然，也许会是那样吧！'))
                 end,
@@ -941,7 +941,7 @@ setQuestFSMTable(
 
                 npc_ask_who = function(uid, args)
                     dialog.post(uid, questPath, '我是道馆的道士。听说您在寻找破坏灵魂明珠的办法，所以特地赶来帮助你的。',
-                    dialog.link('npc_i_see', '哦……是这样啊！'))
+                    dialog.link('npc_i_see', '哦<t wrap="0">···</t>是这样啊！'))
                 end,
 
                 npc_i_see = function(uid, args)
@@ -956,15 +956,15 @@ setQuestFSMTable(
                         return
                     end
 
-                    dialog.post(uid, questPath, '哈哈哈，嘿嘿嘿……得到灵魂明珠了！',
+                    dialog.post(uid, questPath, '哈哈哈，嘿嘿嘿<t wrap="0">···</t>得到灵魂明珠了！',
                     dialog.link('npc_tricked', '啊！我被骗了！'))
                 end,
 
                 npc_tricked = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '呵呵呵…这个傻小子！真是不知天高地厚啊！看来是该让你知道一下想碰灵魂明珠要付出的代价了！',
-                        '呵呵呵…弟兄们啊！收拾了这个家伙吧！',
+                        '呵呵呵<t wrap="0">···</t>这个傻小子！真是不知天高地厚啊！看来是该让你知道一下想碰灵魂明珠要付出的代价了！',
+                        '呵呵呵<t wrap="0">···</t>弟兄们啊！收拾了这个家伙吧！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -996,7 +996,7 @@ setQuestFSMTable(
             {
                 monster  = '火焰沃玛',
                 setState = 'quest_fight_priest',
-                say      = '（看来需要再谈谈...）',
+                say      = '（看来需要再谈谈<t wrap="0">···</t>）',
             },
         })
     end,
@@ -1020,22 +1020,22 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '呵呵呵…你这个不知天高地厚的人又来了啊！',
+                        '呵呵呵<t wrap="0">···</t>你这个不知天高地厚的人又来了啊！',
                         '作为人还是做得不错。',
                     },
                     dialog.link('npc_ask_human', '难道你是说你不是人吗？'))
                 end,
 
                 npc_ask_human = function(uid, args)
-                    dialog.post(uid, questPath, '呵呵呵…也曾经是过人……但在伟大的沃玛神赐予我新的不死之躯和强大力量之后，现在……我已经成为了超越人类的存在！！',
+                    dialog.post(uid, questPath, '呵呵呵<t wrap="0">···</t>也曾经是过人<t wrap="0">···</t>但在伟大的沃玛神赐予我新的不死之躯和强大力量之后，现在<t wrap="0">···</t>我已经成为了超越人类的存在！！',
                     dialog.link('npc_challenge', '说什么大话啊！我一定要亲手除掉你这个混蛋！'))
                 end,
 
                 npc_challenge = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '呵呵呵……被我的力量吓跑的你又回来了啊！',
-                        '嘿…让你见识一下超越人类的我的厉害！！',
+                        '呵呵呵<t wrap="0">···</t>被我的力量吓跑的你又回来了啊！',
+                        '嘿<t wrap="0">···</t>让你见识一下超越人类的我的厉害！！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -1092,9 +1092,9 @@ setQuestFSMTable(
                         dialog.post(uid, questPath,
                         {
                             '你说把灵魂明珠给了一个叫做牛老道的家伙？',
-                            '知道那个地方的人除了我之外好像就没有别人了啊！牛老道……好像在哪儿听说过这个名字……',
+                            '知道那个地方的人除了我之外好像就没有别人了啊！牛老道<t wrap="0">···</t>好像在哪儿听说过这个名字<t wrap="0">···</t>',
                             '不管怎样赶快再去把灵魂明珠找回来，这可不是能随便就给陌生人的东西啊！',
-                            '啊？灵魂明珠和沃玛神铁锤哪儿去了？那些可是重要的东西……',
+                            '啊？灵魂明珠和沃玛神铁锤哪儿去了？那些可是重要的东西<t wrap="0">···</t>',
                         },
                         dialog.link(SYS_EXIT, '结束'))
                         return
@@ -1102,9 +1102,9 @@ setQuestFSMTable(
 
                     dialog.post(uid, questPath,
                     {
-                        '牛老道……啊，是那个家伙啊！错把沃玛教主当成沃玛神降临到地上的高位祭司们之中有个叫牛老道的人，中了沃玛教主的魔法变成了怪物。',
-                        '不过幸运的是你把沃玛神铁锤找来了。可能这个就是制造灵魂明珠曾用过的工具。想起来好像很久以前曾经听说过从沃玛神殿中发掘出来了这个东西……',
-                        '不管怎样用这个铁锤没准儿能破坏灵魂明珠呢……把灵魂明珠和铁锤拿到这儿来吧！',
+                        '牛老道<t wrap="0">···</t>啊，是那个家伙啊！错把沃玛教主当成沃玛神降临到地上的高位祭司们之中有个叫牛老道的人，中了沃玛教主的魔法变成了怪物。',
+                        '不过幸运的是你把沃玛神铁锤找来了。可能这个就是制造灵魂明珠曾用过的工具。想起来好像很久以前曾经听说过从沃玛神殿中发掘出来了这个东西<t wrap="0">···</t>',
+                        '不管怎样用这个铁锤没准儿能破坏灵魂明珠呢<t wrap="0">···</t>把灵魂明珠和铁锤拿到这儿来吧！',
                     },
                     dialog.link('npc_hand_all', '给您。'))
                 end,
@@ -1117,7 +1117,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '哈哈，灵魂明珠开始裂开了！你感觉到被锁住的灵魂从这缝中徐徐地出来了吗？嗯？',
-                        '呵呵呵呵呵呵……',
+                        '呵呵呵呵呵呵<t wrap="0">···</t>',
                     },
                     dialog.link('npc_wish_done', '终于实现了夙愿啊！'))
 
@@ -1134,8 +1134,8 @@ setQuestFSMTable(
                 npc_ask_brother = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '确切地说，是死在我的手里。我……由于深陷这邪教之中把弟弟都作为活祭物献上了啊！无视他哭着被拖走的模样，幻想着只有我才能够得到主的洗礼……',
-                        '我……我终究不能原谅我自己啊！直到现在也是一样。',
+                        '确切地说，是死在我的手里。我<t wrap="0">···</t>由于深陷这邪教之中把弟弟都作为活祭物献上了啊！无视他哭着被拖走的模样，幻想着只有我才能够得到主的洗礼<t wrap="0">···</t>',
+                        '我<t wrap="0">···</t>我终究不能原谅我自己啊！直到现在也是一样。',
                     },
                     dialog.link('npc_absolve', '可是老人家您现在已经完全赎罪了啊！'))
                 end,
@@ -1151,8 +1151,8 @@ setQuestFSMTable(
                 npc_decline_job = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '.........',
-                        '你已经为我做了足够的事情了，看来我这个老家伙太贪心了啊！这是辛苦费，请您收下吧！唉…沃玛教主的事儿该怎么办呢……',
+                        '<t wrap="0">···</t>',
+                        '你已经为我做了足够的事情了，看来我这个老家伙太贪心了啊！这是辛苦费，请您收下吧！唉<t wrap="0">···</t>沃玛教主的事儿该怎么办呢<t wrap="0">···</t>',
                         '那么请慢走啊!',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -1186,7 +1186,7 @@ setQuestFSMTable(
             {
                 monster  = '沃玛教主',
                 setState = 'quest_king_dead',
-                say      = '（冤魂们终于可以升天了……）',
+                say      = '（冤魂们终于可以升天了<t wrap="0">···</t>）',
             },
         })
 
@@ -1233,8 +1233,8 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, args)
                     dialog.post(uid, questPath,
                     {
-                        '....',
-                        '嗯…呜…呜，对不起，流泪了啊，啊，眼泪都止不住了……',
+                        '<t wrap="0">···</t>',
+                        '嗯<t wrap="0">···</t>呜<t wrap="0">···</t>呜，对不起，流泪了啊，啊，眼泪都止不住了<t wrap="0">···</t>',
                     },
                     dialog.link('npc_comfort', '现在请您宽一下心吧！'))
                 end,
@@ -1267,7 +1267,7 @@ uidRemoteCall(getNPCharUID('道馆_1', '王铁匠_1'), getUID(), getQuestName(),
 
         [SYS_ENTER] = function(uid, args)
             if server.player.getLevel(uid) < minQuestLevel then
-                dialog.post(uid, questPath, '别来跟我说话……',
+                dialog.post(uid, questPath, '别来跟我说话<t wrap="0">···</t>',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -1277,19 +1277,19 @@ uidRemoteCall(getNPCharUID('道馆_1', '王铁匠_1'), getUID(), getQuestName(),
         end,
 
         npc_ask_alone = function(uid, args)
-            dialog.post(uid, questPath, '为以前的过失赎罪啊……不管怎样这跟你无关。没有什么事儿的话你就走吧！我只不过是个无名的老头儿，不值得您操心！',
+            dialog.post(uid, questPath, '为以前的过失赎罪啊<t wrap="0">···</t>不管怎样这跟你无关。没有什么事儿的话你就走吧！我只不过是个无名的老头儿，不值得您操心！',
             dialog.link('npc_ask_relic', '您不卖沃玛神殿的古董吗？'))
         end,
 
         npc_ask_relic = function(uid, args)
-            dialog.post(uid, questPath, '你是从哪儿听说我有跟沃玛神殿有关的东西的？嗯……如果是那个姓王的富人派来的人的话，还是请回吧！',
+            dialog.post(uid, questPath, '你是从哪儿听说我有跟沃玛神殿有关的东西的？嗯<t wrap="0">···</t>如果是那个姓王的富人派来的人的话，还是请回吧！',
             dialog.link('npc_ask_temple', '您对沃玛神殿很了解吗？'))
         end,
 
         npc_ask_temple = function(uid, args)
             dialog.post(uid, questPath,
             {
-                '怎么？你要亲自进去找“古董”？那个地方啊……简而言之就是个地狱，地狱啊！你难道是鸡脑子啊！简直是去那儿自寻死路啊！',
+                '怎么？你要亲自进去找<t color="red">古董</t>？那个地方啊<t wrap="0">···</t>简而言之就是个地狱，地狱啊！你难道是鸡脑子啊！简直是去那儿自寻死路啊！',
                 '还是别进沃玛神殿啦！为了贪图宝物可是会丢了性命的！我可是警告你了啊！',
             },
             dialog.link(SYS_EXIT, '结束'))

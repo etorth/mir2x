@@ -7,7 +7,7 @@ jeweler.setJeweler
     greet = function(uid)
         return
         {
-            '这里是 沙巴克城 <t color="red">' .. getSubukGuildName() .. '</t> 行会的领地。',
+            '这里是沙巴克城<t color="red">' .. getSubukGuildName() .. '</t>行会的领地。',
             '欢迎光临，本店专门经营饰品。你想买什么样的饰品？',
         }
     end,

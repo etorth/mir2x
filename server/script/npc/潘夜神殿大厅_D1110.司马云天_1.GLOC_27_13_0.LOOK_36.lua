@@ -5,8 +5,8 @@ smith.setSmith
 {
     greet =
     {
-        '欢迎光临。。 我们全家人都在这里做事。',
-        '用心做事肯定能赚到很多钱的。。 有需要做特殊修理的东西就交给我吧。',
+        '欢迎光临<t wrap="0">···</t>我们全家人都在这里做事。',
+        '用心做事肯定能赚到很多钱的<t wrap="0">···</t>有需要做特殊修理的东西就交给我吧。',
     },
 
     -- legacy offers no trade or ordinary repair here

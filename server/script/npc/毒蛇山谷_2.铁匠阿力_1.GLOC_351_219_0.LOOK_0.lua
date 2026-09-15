@@ -5,7 +5,7 @@ smith.setSmith
 {
     greet =
     {
-        '这里是 沙巴克城 <t color="red">' .. getSubukGuildName() .. '</t><t color="red">行会的领地。 </t>',
+        '这里是沙巴克城<t color="red">' .. getSubukGuildName() .. '</t><t color="red">行会的领地。</t>',
         '欢迎，感谢光临毒蛇山谷的铁匠铺。',
     },
 

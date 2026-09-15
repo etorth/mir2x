@@ -241,7 +241,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
 
     -- massheal1, the one fouling the water
     if monsterName == bossCentipede then
-        server.player.postString(uid, '(几乎都处理哟...)')
+        server.player.postString(uid, '(几乎都处理哟<t wrap="0">···</t>)')
         server.player.addItem(uid, mijiName, 1)
         setQuestState{uid = uid, state = 'quest_cave_done'}
         return
@@ -296,7 +296,7 @@ local function teacherLostCharmHandlers()
         -- @mugong_massheal_lostCharm2, checkgold 5000
         npc_buy_charm = function(uid, value)
             if not server.player.removeGold(uid, charmPrice) then
-                dialog.post(uid, questPath, '你钱都没有，还要威魂深怨护身符？准备好做护身符的材料费，再来 ！',
+                dialog.post(uid, questPath, '你钱都没有，还要威魂深怨护身符？准备好做护身符的材料费，再来！',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -335,7 +335,7 @@ local function setupTeacherNag(uid, atVillage)
                         '事情都结束了，就回到我这儿吧',
                     },
                     {
-                        dialog.link('npc_lost_charm', '由于失误，弄丢了护身符...'),
+                        dialog.link('npc_lost_charm', '由于失误，弄丢了护身符<t wrap="0">···</t>'),
                         dialog.link('npc_explain', '这件事要怎么做？'),
                         dialog.link(string.format('%%s', SYS_EXIT), '结束', {close = true}),
                     })
@@ -349,7 +349,7 @@ local function setupTeacherNag(uid, atVillage)
                     '快去快回。',
                 },
                 {
-                    dialog.link('npc_lost_charm', '由于失误，弄丢了护身符...'),
+                    dialog.link('npc_lost_charm', '由于失误，弄丢了护身符<t wrap="0">···</t>'),
                     dialog.link('npc_explain', '这件事要怎么做？'),
                     dialog.link(string.format('%%s', SYS_EXIT), '结束', {close = true}),
                 })
@@ -393,10 +393,10 @@ setQuestFSMTable(
                     if not isNightTime() then
                         dialog.post(uid, questPath,
                         {
-                            '现在是大白天。。',
-                            '很刺眼，什么都看不见。。。',
+                            '现在是大白天<t wrap="0">···</t>',
+                            '很刺眼，什么都看不见<t wrap="0">···</t>',
                         },
-                        dialog.link(SYS_EXIT, '奇异的人...'))
+                        dialog.link(SYS_EXIT, '奇异的人<t wrap="0">···</t>'))
                         return
                     end
 
@@ -405,30 +405,30 @@ setQuestFSMTable(
                     if not server.player.hasItem(uid, '威魂深怨护身符', 1) then
                         dialog.post(uid, questPath,
                         {
-                            '陌生的年青人, 什么事情?',
+                            '陌生的年青人，什么事情？',
                             '晚上的天气很冷，还不快赶路？',
                         },
-                        dialog.link('npc_no_charm', '奇异的人...'))
+                        dialog.link('npc_no_charm', '奇异的人<t wrap="0">···</t>'))
                         return
                     end
 
                     dialog.post(uid, questPath,
                     {
-                        '陌生的年青人, 什么事情?',
-                        '年轻的绅士为什么拿着<t color="red">奇怪的护身符</t>走来走去?',
+                        '陌生的年青人，什么事情？',
+                        '年轻的绅士为什么拿着<t color="red">奇怪的护身符</t>走来走去？',
                     },
                     dialog.link('npc_ask_village', '有个问题想请教一下。是生活在这个地方的人吗？'))
                 end,
 
                 -- @mugong_massheal_illtown3_2
                 npc_no_charm = function(uid, value)
-                    dialog.post(uid, questPath, '(好像是我要找的村子人，没有任何感兴趣的哟。好像在我身找到什么的样子? 有什么东西落了吗？)',
+                    dialog.post(uid, questPath, '(好像是我要找的村子人，没有任何感兴趣的哟。好像在我身找到什么的样子？有什么东西落了吗？)',
                     dialog.link(SYS_EXIT, '结束'))
                 end,
 
                 -- @mugong_massheal_illtown3_1
                 npc_ask_village = function(uid, value)
-                    dialog.post(uid, questPath, '如果是那样...',
+                    dialog.post(uid, questPath, '如果是那样<t wrap="0">···</t>',
                     dialog.link('npc_where_village', '我受大飞圣僧的委托到村庄来参加祭祀，村庄在哪儿？'))
                 end,
 
@@ -436,12 +436,12 @@ setQuestFSMTable(
                 npc_where_village = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '大飞圣僧...?',
-                        '不知道他是谁。 一会儿，请上香。。。',
+                        '大飞圣僧<t wrap="0">···</t>？',
+                        '不知道他是谁。一会儿，请上香<t wrap="0">···</t>',
                         '啊，这么看来年轻人是武士吗？',
                         '千万要救救我们吧！',
                     },
-                    dialog.link('npc_what_happened', '虽然会使用些剑... 到底是什么事情?'))
+                    dialog.link('npc_what_happened', '虽然会使用些剑<t wrap="0">···</t>到底是什么事情？'))
                 end,
 
                 -- @mugong_massheal_illtown5
@@ -459,14 +459,14 @@ setQuestFSMTable(
                 npc_ask_officials = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '求了! 请求了!!',
+                        '求了!请求了!!',
                         '但是官吏们堵上了流向村子的水流，村子反而被隔离了。我们村子的人们得不到任何帮助，正在死去。',
                         '我们无法在看人们就这样死去！如果得不到官吏的帮助，即使凭借我们的力量也要除掉蜈蚣们！！因此体格健壮的人们拿着镰刀和镐到蜈蚣所在的洞窟去了。',
-                        '但是仅凭借我们自己的力量无论如何也到达不了水源。千万帮组我们<t color="red">处理那些坏 ??</t>！这样衷肯地拜托你。。。',
+                        '但是仅凭借我们自己的力量无论如何也到达不了水源。千万帮组我们<t color="red">处理那些坏？？</t>！这样衷肯地拜托你<t wrap="0">···</t>',
                     },
                     {
                         dialog.link('npc_accept', '知道了，我去那个洞窟看看。'),
-                        dialog.link('npc_refuse', '非常对不起,也许是非常危险的事情。'),
+                        dialog.link('npc_refuse', '非常对不起，也许是非常危险的事情。'),
                     })
                 end,
 
@@ -474,9 +474,9 @@ setQuestFSMTable(
                 npc_refuse = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '不行。。。',
-                        '等了很久，又等了很久。。。',
-                        '如果说这是我们的命运，只有寻求其它的<t color="red">救援之手</t>。。。',
+                        '不行<t wrap="0">···</t>',
+                        '等了很久，又等了很久<t wrap="0">···</t>',
+                        '如果说这是我们的命运，只有寻求其它的<t color="red">救援之手</t><t wrap="0">···</t>',
                         '那么请小心走好！',
                     },
                     dialog.link(SYS_EXIT, '结束'))
@@ -532,7 +532,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '我们在这儿等着勇士回来。千万将污染水源的<t color="red">沃毒蜈蚣</t>处置了。',
-                        '蜈蚣洞窟在<t color="red">绝命谷最深地区西南的某个地方</t>。。。',
+                        '蜈蚣洞窟在<t color="red">绝命谷最深地区西南的某个地方</t><t wrap="0">···</t>',
                     },
                     dialog.link(SYS_EXIT, '好的，走了。'))
                 end,
@@ -593,9 +593,9 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '我们村庄的人们永远都不会忘记<t color="red">你的善行</t>。。。',
+                        '我们村庄的人们永远都不会忘记<t color="red">你的善行</t><t wrap="0">···</t>',
                         '现在去找每年在这个地方贴护身符并上香的奇怪老头。',
-                        '祝你走运。。。一路小心。。。',
+                        '祝你走运<t wrap="0">···</t>一路小心<t wrap="0">···</t>',
                     },
                     dialog.link(SYS_EXIT, '结束'))
                 end,
@@ -617,14 +617,14 @@ setQuestFSMTable(
 
                 -- @mugong_massheal_complete0
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, '(不对，我为什么在这个地方??? )',
-                    dialog.link('npc_look_around', '看看周围...'))
+                    dialog.post(uid, questPath, '(不对，我为什么在这个地方？？？ )',
+                    dialog.link('npc_look_around', '看看周围<t wrap="0">···</t>'))
                 end,
 
                 -- @mugong_massheal_complete1
                 npc_look_around = function(uid, value)
                     dialog.post(uid, questPath, '啊，是你哟。回来了？',
-                    dialog.link('npc_tell_story', '那个....在大飞圣僧所讲的地方经历了非常怪异的事情。'))
+                    dialog.link('npc_tell_story', '那个<t wrap="0">···</t>在大飞圣僧所讲的地方经历了非常怪异的事情。'))
                 end,
 
                 -- @mugong_massheal_complete2
@@ -638,14 +638,14 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '我以前没有讲过吗？世上的事情中无法说明道理的更多。你遇见的事情也是其中的一种。有可能由于对蜈蚣的憎恨和拯救村子的坚定意志使得<t color="red">那些人的灵魂</t>继续留在那个地方。',
-                        '你看到的东西是他们的灵魂。。你没有感觉到他们不像活着的人吗？',
+                        '你看到的东西是他们的灵魂<t wrap="0">···</t>你没有感觉到他们不像活着的人吗？',
                     },
-                    dialog.link('npc_strong_will', '虽然没有感觉到他们生的很好看...感觉到他们有很强的意志，无论如何不能认为是亡灵。'))
+                    dialog.link('npc_strong_will', '虽然没有感觉到他们生的很好看<t wrap="0">···</t>感觉到他们有很强的意志，无论如何不能认为是亡灵。'))
                 end,
 
                 -- @mugong_massheal_complete4
                 npc_strong_will = function(uid, value)
-                    dialog.post(uid, questPath, '有才干哟.你看到的那些东西都是因为你和他们有缘分。你终究做成了我没有做成的事情，哈哈。。',
+                    dialog.post(uid, questPath, '有才干哟。你看到的那些东西都是因为你和他们有缘分。你终究做成了我没有做成的事情，哈哈<t wrap="0">···</t>',
                     dialog.link('npc_what_do_you_mean', '什么话儿？'))
                 end,
 
@@ -656,12 +656,12 @@ setQuestFSMTable(
                         '听说这个村子开始流行传染病消息的时候，我还不能给他们任何帮助。我认为世界上没有任何事情比拯救一个村子更有价值的事情了。',
                         '哈哈，我又在讲废话了。',
                     },
-                    dialog.link('npc_yes_it_happened', '是的，曾经有过这个事情...'))
+                    dialog.link('npc_yes_it_happened', '是的，曾经有过这个事情<t wrap="0">···</t>'))
                 end,
 
                 -- @mugong_massheal_complete6
                 npc_yes_it_happened = function(uid, value)
-                    dialog.post(uid, questPath, '嗯。。那样了，现在可以还给我以前委托你事情的时候给你的<t color="red">威魂深怨护身符</t>吗？',
+                    dialog.post(uid, questPath, '嗯<t wrap="0">···</t>那样了，现在可以还给我以前委托你事情的时候给你的<t color="red">威魂深怨护身符</t>吗？',
                     {
                         dialog.link('npc_return_charm', '好的，在这儿。'),
                         dialog.link('npc_charm_gone', '这个，好像落在哪儿了。'),
@@ -671,7 +671,7 @@ setQuestFSMTable(
                 -- @mugong_massheal_complete7_1, and he gives the charm straight back
                 npc_return_charm = function(uid, value)
                     if not server.player.hasItem(uid, '威魂深怨护身符', 1) then
-                        dialog.post(uid, questPath, '噢，听说年轻朋友想笼络老人。。。你没有威魂深怨护身符吗？',
+                        dialog.post(uid, questPath, '噢，听说年轻朋友想笼络老人<t wrap="0">···</t>你没有威魂深怨护身符吗？',
                         dialog.link(SYS_EXIT, '结束'))
                         return
                     end
@@ -682,7 +682,7 @@ setQuestFSMTable(
                         '好吧，拿着吧。接受这么困难的委托，将贵重的威魂深怨护身符再重新送给你。',
                         '但是你身上的<t color="red">书籍</t>是什么？',
                     },
-                    dialog.link('npc_the_book', '不对, 这是群体治愈术的秘诀？这个东西怎么在这儿...'))
+                    dialog.link('npc_the_book', '不对，这是群体治愈术的秘诀？这个东西怎么在这儿<t wrap="0">···</t>'))
 
                     -- take then give, so the charm ends up back with you either way
                     server.player.removeItem(uid, '威魂深怨护身符', 1)
@@ -695,11 +695,11 @@ setQuestFSMTable(
                 npc_charm_gone = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '也没有办法。你也不是故意弄丢的，我再买一个。。。',
-                        '接着，这是接受困难委托的<t color="red">谢礼??</t>。',
+                        '也没有办法。你也不是故意弄丢的，我再买一个<t wrap="0">···</t>',
+                        '接着，这是接受困难委托的<t color="red">谢礼？？</t>。',
                         '但是你身上的<t color="red">书籍</t>是什么？',
                     },
-                    dialog.link('npc_the_book', '不对, 这是群体治愈术的秘诀？这个东西怎么在这儿...'))
+                    dialog.link('npc_the_book', '不对，这是群体治愈术的秘诀？这个东西怎么在这儿<t wrap="0">···</t>'))
 
                     server.player.addItem(uid, '神圣铂金戒指', 1)
                     server.player.deliverGold(uid, 33000)
@@ -709,8 +709,8 @@ setQuestFSMTable(
                 npc_the_book = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '哦，这个世界上还有不少莫名其妙的事，用这个将解了那些人的怨恨。。。',
-                        '你真的做了好事。将成为其他道士们<t color="red">的很好谈资</t>。。一路顺风。',
+                        '哦，这个世界上还有不少莫名其妙的事，用这个将解了那些人的怨恨<t wrap="0">···</t>',
+                        '你真的做了好事。将成为其他道士们<t color="red">的很好谈资</t><t wrap="0">···</t>一路顺风。',
                     },
                     dialog.link(SYS_EXIT, '结束'))
 
@@ -736,7 +736,7 @@ for _, grid in ipairs(doorGrids) do
                 return function(uid, x, y)
                     local state = server.quest.getState(questUID, {uid = uid})
                     if (state == SYS_DONE) or (state == 'quest_cave_done') then
-                        server.player.postString(uid, '(这里是以前击退蜈蚣的洞窟哦...现在洞口被堵上了。)')
+                        server.player.postString(uid, '(这里是以前击退蜈蚣的洞窟哦<t wrap="0">···</t>现在洞口被堵上了。)')
                     else
                         server.player.postString(uid, '(好像是什么洞窟入口？现在洞口被堵上了。)')
                     end
@@ -770,7 +770,7 @@ uidRemoteCall(getNPCharUID(villagerMap, villagerNPC), getUID(), getQuestName(),
                 dialog.post(uid, questPath,
                 {
                     '轻轻吹拂的微风中有道人们的<t color="red">正义之心</t>。',
-                    '希望一路顺风。。',
+                    '希望一路顺风<t wrap="0">···</t>',
                     '（向你磕头）',
                 },
                 dialog.link(SYS_EXIT, '请好好地休息！'))
@@ -812,7 +812,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 dialog.post(uid, questPath,
                 {
                     '你不是已经收到书吗？那么你为什么还索要？',
-                    '现在那个地方的魂魄都可以安静地睡觉了。。。',
+                    '现在那个地方的魂魄都可以安静地睡觉了<t wrap="0">···</t>',
                 },
                 dialog.link(SYS_EXIT, '结束'))
                 return
@@ -831,7 +831,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 dialog.post(uid, questPath,
                 {
                     '群体治愈术是最多可以同时治疗9人的<t color="red">高级恢复术</t>。同时治疗几个人气的消耗非常大，因此没有经过相当水平的训练，修炼该武功是非常困难的。',
-                    '嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
+                    '嗯<t wrap="0">···</t>想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
                 },
                 dialog.link(SYS_EXIT, '结束'))
                 return
@@ -868,10 +868,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 '但是不要忘记<t color="red">真正的武功修炼是从现在开始</t>的名言。',
                 '嘿嘿，老人的废话很多哦。',
                 '但是以后修炼武功的过程中，如果有难点，请随时来找我。老人我将尽全力帮助你。',
-                '这么看来。。',
+                '这么看来<t wrap="0">···</t>',
                 '有一个很重要的<t color="red">委托</t>。',
             },
-            dialog.link('npc_what_favor', '什么事情?'))
+            dialog.link('npc_what_favor', '什么事情？'))
         end,
 
         -- @mugong_massheal_next5
@@ -879,7 +879,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '我每年这个时候都要<t color="red">去某个村庄祭祖</t>，但是今年有其它的事情不能直接参加祭祖。由于是很重要的祭祖，不能随便委托别人正在苦闷中。如果是你，我信得过好像可以委托你。',
-                '不是很困难的事情。将我 给的<t color="red">威魂深怨护身符</t>贴到 祭坛 上，然后背诵祭文，仪式就结束了。可以吗？',
+                '不是很困难的事情。将我给的<t color="red">威魂深怨护身符</t>贴到祭坛上，然后背诵祭文，仪式就结束了。可以吗？',
             },
             {
                 dialog.link('npc_accept', '好的，我将参加祭祖。'),
@@ -889,7 +889,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_massheal_next6_2
         npc_not_yet = function(uid, value)
-            dialog.post(uid, questPath, '啧啧。。过分谦虚了哟。现在你应该充满自信心的时候还没有到吗？知道了吗？很遗憾，只好找其他的人了。',
+            dialog.post(uid, questPath, '啧啧<t wrap="0">···</t>过分谦虚了哟。现在你应该充满自信心的时候还没有到吗？知道了吗？很遗憾，只好找其他的人了。',
             dialog.link(SYS_EXIT, '结束'))
         end,
 
@@ -899,11 +899,11 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         npc_accept = function(uid, value)
             dialog.post(uid, questPath,
             {
-                '哦哦...',
+                '哦哦<t wrap="0">···</t>',
                 '可以吗？',
                 '那个村庄位于<t color="red">盟重县东北方向绝命谷入口的附近</t>。',
                 '这是<t color="red">威魂深怨护身符</t>，将它贴在祭坛上后，请上香。',
-                '那么就拜托了...',
+                '那么就拜托了<t wrap="0">···</t>',
             },
             dialog.link(SYS_EXIT, '结束'))
 

@@ -55,18 +55,18 @@ apothecary.SPECIAL_POTIONS =
         tag = 'npc_wjwn',
         item = '诅咒之药水',
         price = 5000000,
-        offer = '在找诅咒之药水吗? 你真幸运,我刚刚拿到了好东西想看看吗? 每一瓶价格是500万金币.',
-        done = '呵呵,真是有福气的年轻人.随时欢迎你再来.能有像你这样有福气的老顾客,对我来说也不是好事吗?',
-        decline = '如果是这样,就只能作罢.想清楚后再来吧.',
+        offer = '在找诅咒之药水吗？你真幸运，我刚刚拿到了好东西想看看吗？每一瓶价格是500万金币。',
+        done = '呵呵，真是有福气的年轻人。随时欢迎你再来。能有像你这样有福气的老顾客，对我来说也不是好事吗？',
+        decline = '如果是这样，就只能作罢。想清楚后再来吧。',
     },
     {
         flag = 'rebirthPotion',
         tag = 'npc_ghltod',
         item = '回生神水',
         price = 1500000,
-        offer = '回生神水可是要150万金币哦..., 年轻人你怎么想?',
-        done = '好.没有比合理价格来购买好东西更愉快的事情.我这里还有很多好东西.如果需要随时欢迎你再来.',
-        decline = '真可惜.购买人不想要我也没有办法.如果需要药水请不要犹豫.欢迎你再来.',
+        offer = '回生神水可是要150万金币哦<t wrap="0">···</t>，年轻人你怎么想？',
+        done = '好。没有比合理价格来购买好东西更愉快的事情。我这里还有很多好东西。如果需要随时欢迎你再来。',
+        decline = '真可惜。购买人不想要我也没有办法。如果需要药水请不要犹豫。欢迎你再来。',
     },
 }
 
@@ -116,14 +116,14 @@ function apothecary.setApothecary(spec)
             assert(itemID > 0, 'unknown special potion: ' .. potion.item)
             local buyTag = potion.tag .. '_buy'
             local declineTag = potion.tag .. '_decline'
-            local close = {dialog.link(SYS_EXIT, '关  闭')}
+            local close = {dialog.link(SYS_EXIT, '关闭')}
             table.insert(menu, dialog.link(potion.tag, '购买', {prefix = potion.item}))
 
             handler[potion.tag] = function(uid, value)
                 dialog.post(uid, {potion.offer},
                 {
-                    dialog.link(buyTag, '购买.'),
-                    dialog.link(declineTag, '再想一想.'),
+                    dialog.link(buyTag, '购买。'),
+                    dialog.link(declineTag, '再想一想。'),
                 })
             end
             handler[buyTag] = function(uid, value)
@@ -137,7 +137,7 @@ function apothecary.setApothecary(spec)
                     return true
                 ]])
                 assertType(bought, 'boolean')
-                dialog.post(uid, {bought and potion.done or '什么? 没钱你还想购买药水? 等你有了钱再来吧.'}, close)
+                dialog.post(uid, {bought and potion.done or '什么？没钱你还想购买药水？等你有了钱再来吧。'}, close)
             end
             handler[declineTag] = function(uid, value)
                 dialog.post(uid, {potion.decline}, close)

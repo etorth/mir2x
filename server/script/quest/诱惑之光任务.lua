@@ -79,12 +79,12 @@ local function enterTrial(uid)
             [SYS_LABEL] = '考场',
             [SYS_ENTER] = function(uid, value)
                 if uidRemoteCall(getMapUID(), [=[ return getMonsterCount() ]=]) > 0 then
-                    dialog.post(uid, questPath, '你还没有完全制服半兽人嘛。 剩下的时间不多了。。显示你的威力嘛。',
+                    dialog.post(uid, questPath, '你还没有完全制服半兽人嘛。剩下的时间不多了<t wrap="0">···</t>显示你的威力嘛。',
                     dialog.link(SYS_EXIT, '结束'))
                     return
                 end
 
-                dialog.post(uid, questPath, '怪兽们都屈服了。。请在外面看吧！',
+                dialog.post(uid, questPath, '怪兽们都屈服了<t wrap="0">···</t>请在外面看吧！',
                 dialog.link('npc_leave_trial', '走出考场。', {close = true}))
             end,
 
@@ -188,7 +188,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '辛苦了。我知道你可以赢。你本身的威力越强大，上面的怪物就越服从于你。但是要记住怪物的本性是不能被长时间抑制的。也就是说诱惑之光的威力一定时间之后就没有效果了。',
-                        '在这里拿武功书，剩余的部分你要自己学习。。。',
+                        '在这里拿武功书，剩余的部分你要自己学习<t wrap="0">···</t>',
                     },
                     dialog.link('npc_take_book', '结束', {close = true}))
                 end,
@@ -237,7 +237,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- checklevel 13
             if server.player.getLevel(uid) < minQuestLevel then
-                dialog.post(uid, questPath, string.format('你还没有达到修炼诱惑之光的等级。。请继续修炼，达到<t color="red">%d</t>级为止。', minQuestLevel),
+                dialog.post(uid, questPath, string.format('你还没有达到修炼诱惑之光的等级<t wrap="0">···</t>请继续修炼，达到<t color="red">%d</t>级为止。', minQuestLevel),
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -280,7 +280,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_lightwave_next4_2
         npc_not_yet = function(uid, value)
-            dialog.post(uid, questPath, '跳进去是有些过激的修炼手法。但是又该如何？如果想学习诱惑之光，只有这个方法。。如果做好准备了，请随时来。。',
+            dialog.post(uid, questPath, '跳进去是有些过激的修炼手法。但是又该如何？如果想学习诱惑之光，只有这个方法<t wrap="0">···</t>如果做好准备了，请随时来<t wrap="0">···</t>',
             dialog.link(SYS_EXIT, '结束'))
         end,
 

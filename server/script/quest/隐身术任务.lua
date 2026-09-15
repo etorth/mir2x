@@ -245,10 +245,10 @@ local function setupTeacher(uid, retry)
         local function postReadyToGo(uid)
             dialog.post(uid, questPath,
             {
-                '那么，要将你送去了。。',
-                '我可以将你送到那儿的时间是<t color="red">5分钟</t>。。时间结束后重新回到这里。',
+                '那么，要将你送去了<t wrap="0">···</t>',
+                '我可以将你送到那儿的时间是<t color="red">5分钟</t><t wrap="0">···</t>时间结束后重新回到这里。',
             },
-            dialog.link('npc_enter_trial', '移 动', {close = true}))
+            dialog.link('npc_enter_trial', '移动', {close = true}))
         end
 
         return
@@ -275,7 +275,7 @@ local function setupTeacher(uid, retry)
                 dialog.post(uid, questPath,
                 {
                     '你要在黑暗的<t color="red">训练场里面找到我</t>，注意不要碰到各个地方布置的怪兽。',
-                    '如果被碰上。。。嘿嘿，绝对可以学习到隐藏形迹的方法。好了，现在就送到训练场。无论如何要小心身体。。。',
+                    '如果被碰上<t wrap="0">···</t>嘿嘿，绝对可以学习到隐藏形迹的方法。好了，现在就送到训练场。无论如何要小心身体<t wrap="0">···</t>',
                 },
                 {
                     dialog.link('npc_go_trial', '准备好了。'),
@@ -367,7 +367,7 @@ setQuestFSMTable(
                 [SYS_ENTER] = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '祝贺你, 你终于成功了！',
+                        '祝贺你，你终于成功了！',
                         '通过在漆黑的空间抢先发现敌人的动静隐藏自己的训练，你的知觉变得很发达了。',
                         '我给你隐身术秘籍，剩下的部分你自己修炼吧。',
                     },
@@ -426,7 +426,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- @mugong_hiding_next1_1, checklevel 20, then next2's checkmagic
         npc_ask_teach = function(uid, value)
             if server.player.getLevel(uid) < minQuestLevel then
-                dialog.post(uid, questPath, '嗯。。想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
+                dialog.post(uid, questPath, '嗯<t wrap="0">···</t>想学习的想法值得表扬，但修炼的程度好像还不够。修炼一下再来吧！',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -442,7 +442,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '你要在黑暗的<t color="red">训练场里面找到我</t>，注意不要碰到各个地方布置的怪兽。',
-                '如果被碰上。。。嘿嘿，绝对可以学习到隐藏形迹的方法。好了，现在就送到训练场。无论如何要小心身体。。。',
+                '如果被碰上<t wrap="0">···</t>嘿嘿，绝对可以学习到隐藏形迹的方法。好了，现在就送到训练场。无论如何要小心身体<t wrap="0">···</t>',
             },
             dialog.link(SYS_EXIT, '知道了'))
 

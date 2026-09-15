@@ -43,14 +43,14 @@ smith.QWEAPON =
 -- three, so there is only one line to say
 smith.REMOVE_SWORD =
 {
-    '你是怎么会让手粘在剑上呢 ...',
-    '你看看现在是不是已经摘下来了... 这种没用的剑我来替你保管吧...',
+    '你是怎么会让手粘在剑上呢<t wrap="0">···</t>',
+    '你看看现在是不是已经摘下来了<t wrap="0">···</t>这种没用的剑我来替你保管吧<t wrap="0">···</t>',
 }
 
 smith.REMOVE_SWORD_ELSE =
 {
-    '你的手没有粘在剑上...',
-    '听说<t color="red">攻杀铁剑</t>和 <t color="red">焱火剑</t>一旦到手上就摘不下来。',
+    '你的手没有粘在剑上<t wrap="0">···</t>',
+    '听说<t color="red">攻杀铁剑</t>和<t color="red">焱火剑</t>一旦到手上就摘不下来。',
 }
 
 -- the swords that stick. a smith will only take one of these off, so a player holding an

@@ -99,7 +99,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
     end
 
     if isMonster(monsterUID, bossName) then
-        server.player.postString(uid, '（嘿，终于通过了学习雷电术的测试。。。）')
+        server.player.postString(uid, '（嘿，终于通过了学习雷电术的测试<t wrap="0">···</t>）')
         setQuestState{uid = uid, state = 'quest_trial_passed'}
         return
     end
@@ -109,7 +109,7 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
         return
     end
 
-    server.player.postString(uid, '哦。。。（这家伙，在瞎说。好像出现了什么失误。。）')
+    server.player.postString(uid, '哦<t wrap="0">···</t>（这家伙，在瞎说。好像出现了什么失误<t wrap="0">···</t>）')
 
     -- random 2, either three more zombies and one thrower or just two throwers
     local refill = (math.random(2) == 1) and {{'僵尸4', 3}, {'掷斧骷髅', 1}} or {{'掷斧骷髅', 2}}
@@ -163,7 +163,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '真是很奇怪嘛',
-                        '凭你的能力那里面好像没有你制服不了的怪物。。',
+                        '凭你的能力那里面好像没有你制服不了的怪物<t wrap="0">···</t>',
                         '无论如何，再试一次吗？',
                     },
                     {
@@ -184,7 +184,7 @@ setQuestFSMTable(
 
                 -- @mugong_lightstick_next5
                 npc_not_yet = function(uid, value)
-                    dialog.post(uid, questPath, '嗯。。知道了。但是雷电术是魔法师的代表魔法，而且是一定要掌握的魔法。无论如何在最短的时日内掌握雷电术，对你的前途很有帮助。',
+                    dialog.post(uid, questPath, '嗯<t wrap="0">···</t>知道了。但是雷电术是魔法师的代表魔法，而且是一定要掌握的魔法。无论如何在最短的时日内掌握雷电术，对你的前途很有帮助。',
                     dialog.link(SYS_EXIT, '结束'))
                 end,
 
@@ -195,10 +195,10 @@ setQuestFSMTable(
                         '现在要把你送到某一个地方。',
                         '如果可以将那里<t color="red">所有的怪物打败</t>，就认为你通过了该考验。需要记住的是那里所有的怪物都是可以进行电击魔法的怪物。通过和这种敌人的战斗，提高对电击魔法的理解是这个训练的目的。',
                         '同时与怪物面对面，你可以掌握谁是首先要攻击的对象。希望你不要做任何不经过思考冲动、无意义的行动。',
-                        '我将你送到那儿的时间是<t color="red">5分钟</t>。。',
+                        '我将你送到那儿的时间是<t color="red">5分钟</t><t wrap="0">···</t>',
                         '5分钟过去后，你将重新回到这里。那就祝你走运啰！',
                     },
-                    dialog.link('npc_enter_trial', '移  动', {close = true}))
+                    dialog.link('npc_enter_trial', '移动', {close = true}))
                 end,
 
                 npc_enter_trial = function(uid, value)
@@ -292,7 +292,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             -- checkmagic 雷电术
             if server.player.hasMagic(uid, magicName) then
-                dialog.post(uid, questPath, '你好像已经修炼了<t color="red">雷电术</t>。。。如果这样就没有向我接受训练的必要了。',
+                dialog.post(uid, questPath, '你好像已经修炼了<t color="red">雷电术</t><t wrap="0">···</t>如果这样就没有向我接受训练的必要了。',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -310,7 +310,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
             dialog.post(uid, questPath,
             {
-                string.format('%s 如果没有抵抗闪电的能力，而受到该魔法的攻击。。嘿嘿嘿。。。', blurb),
+                string.format('%s 如果没有抵抗闪电的能力，而受到该魔法的攻击<t wrap="0">···</t>嘿嘿嘿<t wrap="0">···</t>', blurb),
                 '由于雷电术要产生强大的雷电，开始训练的时候比学习任何魔法都要遇到很大的困难。尤其是开始面向天空发射轻微的闪电，转换为雷的过程是非常困难的。为了熟练掌握该魔法，应提高对<t color="red">电击系列魔法</t>的理解力。',
             },
             dialog.link('npc_want_learn', '想学习雷电术。'))
@@ -335,7 +335,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
 
         -- @mugong_lightstick_next5
         npc_not_yet = function(uid, value)
-            dialog.post(uid, questPath, '嗯。。知道了。但是雷电术是魔法师的代表魔法，而且是一定要掌握的魔法。无论如何在最短的时日内掌握雷电术，对你的前途很有帮助。',
+            dialog.post(uid, questPath, '嗯<t wrap="0">···</t>知道了。但是雷电术是魔法师的代表魔法，而且是一定要掌握的魔法。无论如何在最短的时日内掌握雷电术，对你的前途很有帮助。',
             dialog.link(SYS_EXIT, '结束'))
         end,
 
@@ -346,10 +346,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 '现在要把你送到某一个地方。',
                 '如果可以将那里<t color="red">所有的怪物打败</t>，就认为你通过了该考验。需要记住的是那里所有的怪物都是可以进行电击魔法的怪物。通过和这种敌人的战斗，提高对电击魔法的理解是这个训练的目的。',
                 '同时与怪物面对面，你可以掌握谁是首先要攻击的对象。希望你不要做任何不经过思考冲动、无意义的行动。',
-                '我将你送到那儿的时间是<t color="red">5分钟</t>。。',
+                '我将你送到那儿的时间是<t color="red">5分钟</t><t wrap="0">···</t>',
                 '5分钟过去后，你将重新回到这里。那就祝你走运啰！',
             },
-            dialog.link('npc_enter_trial', '移  动', {close = true}))
+            dialog.link('npc_enter_trial', '移动', {close = true}))
         end,
 
         -- @mugong_lightstick_next4_2

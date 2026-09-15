@@ -104,9 +104,9 @@ local function enterTrial(uid)
 
                 dialog.post(uid, questPath,
                 {
-                    '这里所有的怪物都被处理了嘛。。',
-                    '能力还不错。。。',
-                    '请在外面观看。..',
+                    '这里所有的怪物都被处理了嘛<t wrap="0">···</t>',
+                    '能力还不错<t wrap="0">···</t>',
+                    '                    请在外面观看<t wrap="0">···</t>',
                 },
                 dialog.link('npc_leave_trial', '关闭', {close = true}))
             end,
@@ -158,9 +158,9 @@ local function setupTeacher(uid, retry)
         local function postSellSword(uid)
             dialog.post(uid, questPath,
             {
-                '焱火剑丢失了？ 因此不能修炼大火球。。',
-                '如果是这样，请使用我的焱火剑吧。。但是不能白给你。。',
-                string.format('这把剑<t color="red">%d</t>两。。那么你%s买吗？', swordPrice, retry and '还' or ''),
+                '焱火剑丢失了？因此不能修炼大火球<t wrap="0">···</t>',
+                '如果是这样，请使用我的焱火剑吧<t wrap="0">···</t>但是不能白给你<t wrap="0">···</t>',
+                string.format('这把剑<t color="red">%d</t>两<t wrap="0">···</t>那么你%s买吗？', swordPrice, retry and '还' or ''),
             },
             {
                 dialog.link('npc_buy_sword', '即使贵，也要买。'),
@@ -183,7 +183,7 @@ local function setupTeacher(uid, retry)
                 dialog.post(uid, questPath,
                 {
                     '使用特殊加工成锋利的剑进行实战，精神就会集中在剑头部。希望我们可以再见面。咯咯',
-                    '哦，规定时间是3分钟。。希望你在规定的时间内一定可以成功。。。',
+                    '哦，规定时间是3分钟<t wrap="0">···</t>希望你在规定的时间内一定可以成功<t wrap="0">···</t>',
                 },
                 {
                     dialog.link('npc_enter_trial', '下一步'),
@@ -196,10 +196,10 @@ local function setupTeacher(uid, retry)
             dialog.post(uid, questPath,
             {
                 '如果使用特殊加工成、锋利的剑进行实战，精神都将集中在剑头部。希望我们可以再见面。咯咯',
-                '哦，规定的时间是<t color="red">5分钟</t>。。希望你在规定的时间内可以成功。。。',
+                '哦，规定的时间是<t color="red">5分钟</t><t wrap="0">···</t>希望你在规定的时间内可以成功<t wrap="0">···</t>',
             },
             {
-                dialog.link('npc_enter_trial', '移 动'),
+                dialog.link('npc_enter_trial', '移动'),
                 dialog.link('npc_explain', '这个测试是怎么进行的？'),
                 dialog.link(SYS_EXIT, '结束'),
             })
@@ -232,7 +232,7 @@ local function setupTeacher(uid, retry)
 
             -- @mugong_upfireball_giveup
             npc_giveup = function(uid, value)
-                dialog.post(uid, questPath, '哦，年轻人如此没有自信心。。毫无疑问大火球是功力强大的魔法，但我看你过不去那个位置。请好好想想，再来接受测试！',
+                dialog.post(uid, questPath, '哦，年轻人如此没有自信心<t wrap="0">···</t>毫无疑问大火球是功力强大的魔法，但我看你过不去那个位置。请好好想想，再来接受测试！',
                 dialog.link(SYS_EXIT, '结束'))
             end,
 
@@ -241,7 +241,7 @@ local function setupTeacher(uid, retry)
                 dialog.post(uid, questPath,
                 {
                     '为了学习大火球魔法，带上我给你的<t color="red">焱火剑</t>，然后在规定的时间内将训练场内的怪物都打倒。',
-                    '焱火剑的特性是佩戴上一次后，自己就不会脱落。但是在昏迷或者失去耐久性的 时 候，才可以摘下来。',
+                    '焱火剑的特性是佩戴上一次后，自己就不会脱落。但是在昏迷或者失去耐久性的时候，才可以摘下来。',
                     '为了通过测试一定要佩戴焱火剑，如果丢失了，请花钱买！',
                 },
                 dialog.link(SYS_EXIT, '结束'))
@@ -257,7 +257,7 @@ local function setupTeacher(uid, retry)
                     return
                 end
 
-                dialog.post(uid, questPath, string.format('在这里，焱火剑。。。注意不要丢失了%s。。', retry and '' or '哦'),
+                dialog.post(uid, questPath, string.format('在这里，焱火剑<t wrap="0">···</t>注意不要丢失了%s<t wrap="0">···</t>', retry and '' or '哦'),
                 dialog.link(SYS_EXIT, '结束'))
 
                 server.player.addBoundItem(uid, '焱火剑')
@@ -353,7 +353,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [752] 1
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                dialog.post(uid, questPath, '你不是已经收到大火球秘籍了吗？ 那么你为什么还要索要？',
+                dialog.post(uid, questPath, '你不是已经收到大火球秘籍了吗？那么你为什么还要索要？',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -387,7 +387,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 '嘿嘿，知道了。这样的话，我就告诉你<t color="red">修炼大火球的方法</t>。大火球是将<t color="red">强大的火团射向敌人的魔法</t>，除去威力比较大之外，同火球没有很大的差异。',
                 '但是威力大正是问题的所在。因为发动者要忍耐是火球几倍的巨大的热量。',
             },
-            dialog.link('npc_ask_how', '没有什么可行的办法吗?'))
+            dialog.link('npc_ask_how', '没有什么可行的办法吗？'))
         end,
 
         -- @mugong_upfireball_next3

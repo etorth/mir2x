@@ -105,8 +105,8 @@ local function setupTailor(uid)
             [SYS_ENTER] = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '现在我就给你穿的衣服上涂<t color="red">树脂</t>，但能否成功我也不知道。。。如果成功了，您衣服的耐久好象可以修理了。',
-                    '还有如果衣服上涂了树脂，你衣服的<t color="red">基本功能就消失并成为了一般的耐久</t>。请注意这点。。。但是由于具有了树脂的功能，也就拥有了<t color="red">特殊的功能</t>。',
+                    '现在我就给你穿的衣服上涂<t color="red">树脂</t>，但能否成功我也不知道<t wrap="0">···</t>如果成功了，您衣服的耐久好象可以修理了。',
+                    '还有如果衣服上涂了树脂，你衣服的<t color="red">基本功能就消失并成为了一般的耐久</t>。请注意这点<t wrap="0">···</t>但是由于具有了树脂的功能，也就拥有了<t color="red">特殊的功能</t>。',
                     '我现在就试着涂一下，请等一下！',
                 },
                 dialog.link('npc_coat', '下一步'))
@@ -122,14 +122,14 @@ local function setupTailor(uid)
                     if server.player.getGender(uid) then
                         dialog.post(uid, questPath,
                         {
-                            string.format('现在穿的衣服，只有<t color="red">魔法长袍</t>才可以涂上树脂。。我看 %s 先生没有穿魔法长袍或者没有树脂了。。。', server.player.getName(uid)),
-                            '树脂可以在<t color="red">天然洞穴1层 洞蛆</t>找到。',
+                            string.format('现在穿的衣服，只有<t color="red">魔法长袍</t>才可以涂上树脂<t wrap="0">···</t>我看 %s 先生没有穿魔法长袍或者没有树脂了<t wrap="0">···</t>', server.player.getName(uid)),
+                            '树脂可以在<t color="red">天然洞穴1层洞蛆</t>找到。',
                         },
                         dialog.link(SYS_EXIT, '结束'))
                     else
                         dialog.post(uid, questPath,
                         {
-                            '现在穿的衣服，只有<t color="red">魔法长袍</t>才可以涂上树脂。。我看您没有穿魔法长袍或者没有树脂了。。。',
+                            '现在穿的衣服，只有<t color="red">魔法长袍</t>才可以涂上树脂<t wrap="0">···</t>我看您没有穿魔法长袍或者没有树脂了<t wrap="0">···</t>',
                             '树脂可以在天然洞穴1层找到。',
                         },
                         dialog.link(SYS_EXIT, '结束'))
@@ -143,7 +143,7 @@ local function setupTailor(uid)
 
                 -- random 2
                 if math.random(2) ~= 1 then
-                    dialog.post(uid, questPath, '这个怎么办。。。。涂树脂的过程中<t color="red">将衣服破坏了。。。</t>这如何是好…对不起。。。如果重新再找到的话，我再给你做。',
+                    dialog.post(uid, questPath, '这个怎么办<t wrap="0">···</t>涂树脂的过程中<t color="red">将衣服破坏了<t wrap="0">···</t></t>这如何是好<t wrap="0">···</t>对不起<t wrap="0">···</t>如果重新再找到的话，我再给你做。',
                     dialog.link(SYS_EXIT, '结束'))
 
                     -- SET [523] 0, back to the caves for another 树脂
@@ -152,7 +152,7 @@ local function setupTailor(uid)
                 end
 
                 -- @mugong_lightline_suzi_man3 / _wman3, SET [524]
-                dialog.post(uid, questPath, '恭喜你<t color="red">成功了。。。</t>虽然不知道这是用在那里的东西。。。请好好使用。。。',
+                dialog.post(uid, questPath, '恭喜你<t color="red">成功了<t wrap="0">···</t></t>虽然不知道这是用在那里的东西<t wrap="0">···</t>请好好使用<t wrap="0">···</t>',
                 dialog.link(SYS_EXIT, '结束'))
 
                 server.player.addItem(uid, coatedRobeName, 1)
@@ -216,7 +216,7 @@ setQuestFSMTable(
                 once     = true,
                 give     = stoneName,
                 setState = 'quest_got_stone',
-                say      = '（这就是华川先生所讲的闪电石吗？如果没有涂树脂将如何提这个东西。。手上火辣辣的。）',
+                say      = '（这就是华川先生所讲的闪电石吗？如果没有涂树脂将如何提这个东西<t wrap="0">···</t>手上火辣辣的。）',
             },
         })
     end,
@@ -305,7 +305,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         [SYS_ENTER] = function(uid, value)
             -- check [757] 1. the legacy line asks the question inverted, kept as written
             if server.quest.getState(questUID, {uid=uid}) == SYS_DONE then
-                dialog.post(uid, questPath, '你还没有收到疾光电影秘籍吗? 那么你为什么还要索要？',
+                dialog.post(uid, questPath, '你还没有收到疾光电影秘籍吗？那么你为什么还要索要？',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -332,15 +332,15 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 '要修炼疾光电影的武功需要高水平的<t color="red">闪电石</t>。',
                 '但是我看你好像还没有这么大的力量。',
             },
-            dialog.link('npc_ask_how', '那么如何才可以拥有你称为“闪电石”的能力？'))
+            dialog.link('npc_ask_how', '那么如何才可以拥有你称为<t color="red">闪电石</t>的能力？'))
         end,
 
         -- @mugong_lightline_next4
         npc_ask_how = function(uid, value)
             dialog.post(uid, questPath,
             {
-                '把沃玛神殿的<t color="red">闪电石</t>带来就可以了。但是听说，闪电石不能那么简单地拿到。。叫什么。。抓到蛆，就可以得到<t color="red">树脂</t>，然后到<t color="red">银杏树村福氏</t>，请他将树脂涂到你的衣服上。这样才可以战胜电雷草的闪电石，从而得到闪电石。',
-                '是说获得树脂的地方吗？曾经听说<t color="red">天然洞穴1层 洞蛆</t>中有树脂。还有传说讲<t color="red">沃玛神殿入口 山洞蝙蝠</t>拥有闪电石。',
+                '把沃玛神殿的<t color="red">闪电石</t>带来就可以了。但是听说，闪电石不能那么简单地拿到<t wrap="0">···</t>叫什么<t wrap="0">···</t>抓到蛆，就可以得到<t color="red">树脂</t>，然后到<t color="red">银杏树村福氏</t>，请他将树脂涂到你的衣服上。这样才可以战胜电雷草的闪电石，从而得到闪电石。',
+                '是说获得树脂的地方吗？曾经听说<t color="red">天然洞穴1层洞蛆</t>中有树脂。还有传说讲<t color="red">沃玛神殿入口山洞蝙蝠</t>拥有闪电石。',
             },
             dialog.link('npc_ask_why', '学习武功，为什么这么困难？'))
         end,

@@ -44,7 +44,7 @@ local quest_config = {
             dialog.post(uid,
             {
                 '你辛苦了。',
-                '像你这样热心帮助别人的好心人，一定有好报的...',
+                '像你这样热心帮助别人的好心人，一定有好报的<t wrap="0">···</t>',
             },
             dialog.link(SYS_EXIT, '结束'))
         end,
@@ -346,7 +346,7 @@ local quest_config = {
             dialog.post(uid,
             {
                 '你还没有开始堕落道士任务呢！',
-                '经过浴血奋战从半兽人手中拿到的不死牌，却被某个道士给偷走了。 因此必须粉碎这个堕落道士计划利用不死牌进行的邪恶阴谋！',
+                '经过浴血奋战从半兽人手中拿到的不死牌，却被某个道士给偷走了。因此必须粉碎这个堕落道士计划利用不死牌进行的邪恶阴谋！',
                 '去向曾经保管不死牌的比奇城城主打听具体的情况吧！',
             },
             dialog.link(SYS_EXIT, '结束'))
@@ -404,16 +404,16 @@ setEventHandler(
             '来吧，你有什么任务？',
             string.format('%s，%s，%s', fn_create_tag(questName_mujun), fn_create_tag(questName_pariche), fn_create_tag(questName_dolumi)),
             '',
-            '（等级 9）',
+            '（等级9）',
             string.format('%s，%s，%s', fn_create_tag(questName_wang), fn_create_tag(questName_bichun), fn_create_tag(questName_yaksa)),
             '',
-            '（等级 11）',
+            '（等级11）',
             string.format('%s，%s', fn_create_tag(questName_kyunggap), fn_create_tag(questName_oma)),
             '',
-            '（等级 16）',
+            '（等级16）',
             string.format('%s，%s，%s', fn_create_tag(questName_younghon), fn_create_tag(questName_bamgol), fn_create_tag(questName_tarak)),
             '',
-            '（等级 20）',
+            '（等级20）',
             fn_create_tag(questName_umyun),
         },
         {
@@ -461,7 +461,7 @@ setEventHandler(
                     quest_config[args].on_start(uid, args)
 
                 else
-                    dialog.post(uid, string.format('暂无关于<t color="red">%s</t>的更多信息...', args),
+                    dialog.post(uid, string.format('暂无关于<t color="red">%s</t>的更多信息<t wrap="0">···</t>', args),
                     dialog.link('npc_show_quest_list', '前一步'))
                 end
 

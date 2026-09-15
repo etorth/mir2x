@@ -88,15 +88,15 @@ _G.forks =
 -- what it says as you take each fork, from @MapQuest_move_1to2L onwards
 _G.pickLines =
 {
-    {'(第一次选择左侧。...)', '(第一次选择右侧。。)'},
-    {'(第二次选择左侧。。)', '(第二次选择右侧...)'},
-    {'(第三次选择左侧。。)', '(第三次选择右侧。。)'},
-    {'(第四次选择左侧。)', '(第四次选择右侧。。)'},
-    {'（最后第五次选择 左侧。。。现在有2头怪兽拦着路）', '（最后第五次选择 右侧。。。现在有2头怪兽拦着路）'},
+    {'(第一次选择左侧。<t wrap="0">···</t>)', '(第一次选择右侧<t wrap="0">···</t>)'},
+    {'(第二次选择左侧<t wrap="0">···</t>)', '(第二次选择右侧<t wrap="0">···</t>)'},
+    {'(第三次选择左侧<t wrap="0">···</t>)', '(第三次选择右侧<t wrap="0">···</t>)'},
+    {'(第四次选择左侧。)', '(第四次选择右侧<t wrap="0">···</t>)'},
+    {'（最后第五次选择左侧<t wrap="0">···</t>现在有2头怪兽拦着路）', '（最后第五次选择右侧<t wrap="0">···</t>现在有2头怪兽拦着路）'},
 }
 
 -- @MapQuest_move_5to0L and 5to0R, for killing the other blocker after you already chose
-_G.alreadyChose = {'（既然已经选择了左边... 就往那儿走吧。）', '（既然选择了右边... 就往那儿走吧。）'}
+_G.alreadyChose = {'（既然已经选择了左边<t wrap="0">···</t>就往那儿走吧。）', '（既然选择了右边<t wrap="0">···</t>就往那儿走吧。）'}
 
 -- @mugong_fly_check1 and check2. check3 can not match, see the note at the top
 _G.goodPaths =
@@ -283,13 +283,13 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
 
     -- @MapQuest_fly_check1, the whole path judged at once
     if pathMatches(path) then
-        server.player.postString(uid, '（不知道为什么好像可以成功。。嘿嘿）')
+        server.player.postString(uid, '（不知道为什么好像可以成功<t wrap="0">···</t>嘿嘿）')
         setQuestState{uid = uid, state = 'quest_trial_passed'}
         return
     end
 
     -- @mugong_fly_failure, reset [505] 9 and put every fork back
-    server.player.postString(uid, '（嗯。。。有些混淆，无论如何好像需要重新开始）。')
+    server.player.postString(uid, '（嗯<t wrap="0">···</t>有些混淆，无论如何好像需要重新开始）。')
     restockForks(uid)
 
     local firstUID = forkUID(uid, 1)
@@ -337,7 +337,7 @@ local function setupTeacher(uid)
                 {
                     '正好有适合培养此种能力的场所，到那里去训练吧。到达该场地的过程中，会出现很多岔道。你要不断地同怪物打斗，时间很紧迫，几乎是凭本能选择一个方向走出岔道。',
                     '如此经过<t color="red">5个岔路口</t>，才可以通过考场。当然是指找到正确出口的情况。在考场通道的最后段要解决掉挡着路的叫<t color="red">沙漠树魔</t>的怪物，然后才可以向<t color="red">下一个考场移动</t>。',
-                    '如果选择了错误的出口。。。你就要重新开始。在规定的时间内，有很多此机会。无论如何，祝你走运。努力试试！',
+                    '如果选择了错误的出口<t wrap="0">···</t>你就要重新开始。在规定的时间内，有很多此机会。无论如何，祝你走运。努力试试！',
                 },
                 {
                     dialog.link('npc_ready', '没有什么问题。'),
@@ -363,8 +363,8 @@ local function setupTeacher(uid)
             npc_ask_hint = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '嗯，，，好的。.',
-                    '你要选择的<t color="red">正确通路</t>有<t color="red">3条</t>。。。我给你讲解其中的一种。',
+                    '                    嗯<t wrap="0">···</t>好的<t wrap="0">···</t>',
+                    '你要选择的<t color="red">正确通路</t>有<t color="red">3条</t><t wrap="0">···</t>我给你讲解其中的一种。',
                 },
                 dialog.link('npc_hint', '下一步'))
             end,
@@ -378,7 +378,7 @@ local function setupTeacher(uid)
                         for _, line in ipairs(hint) do
                             table.insert(text, line)
                         end
-                        table.insert(text, '记忆好。。5次都要选择正确，发生一次错误都不可以。')
+                        table.insert(text, '记忆好<t wrap="0">···</t>5次都要选择正确，发生一次错误都不可以。')
 
                         dialog.post(uid, questPath, text,
                         dialog.link('npc_ready', '下一步'))
@@ -398,7 +398,7 @@ local function setupTeacher(uid)
             npc_ready = function(uid, value)
                 dialog.post(uid, questPath,
                 {
-                    '现在送到训练场吧。。。',
+                    '现在送到训练场吧<t wrap="0">···</t>',
                     '我可以将你送到那儿的时间为<t color="red">10分钟</t>。时间结束后，你将重新回到这里。',
                     '祝你走运。',
                 },
@@ -453,7 +453,7 @@ setQuestFSMTable(
 
                 -- @mugong_fly_give
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, '这里有可以掌握瞬息移动的武功书（秘籍）。。好好使用吧。',
+                    dialog.post(uid, questPath, '这里有可以掌握瞬息移动的武功书（秘籍）<t wrap="0">···</t>好好使用吧。',
                     dialog.link('npc_take_book', '结束', {close = true}))
                 end,
 
@@ -509,7 +509,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
                 '训练是非常辛苦的。那还要学习瞬息移动吗？',
             },
             {
-                dialog.link('npc_ask_teach', '当然要试试。.'),
+                dialog.link('npc_ask_teach', '                当然要试试<t wrap="0">···</t>'),
                 dialog.link('npc_not_yet', '好像有些勉强。'),
             })
         end,

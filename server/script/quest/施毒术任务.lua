@@ -102,8 +102,8 @@ local function enterTrial(uid)
                     if not server.player.hasItem(uid, name, 1) then
                         dialog.post(uid, questPath,
                         {
-                            '现在材料还没有找齐嘛。我需要的材料是<t color="red">蛆卵 1,蝎子的尾巴 1,食人树叶 1,食人树的果实 1, 毒蜘蛛牙齿  1个</t>。请听好，找到再来。',
-                            '如果在规定的时间里没有找到这些材料，无法修炼施毒术。。请确认材料并告诉我。。没有剩下多少时间了。。',
+                            '现在材料还没有找齐嘛。我需要的材料是<t color="red">蛆卵1，蝎子的尾巴1，食人树叶1，食人树的果实1，毒蜘蛛牙齿 1个</t>。请听好，找到再来。',
+                            '如果在规定的时间里没有找到这些材料，无法修炼施毒术<t wrap="0">···</t>请确认材料并告诉我<t wrap="0">···</t>没有剩下多少时间了<t wrap="0">···</t>',
                         },
                         dialog.link(SYS_EXIT, '结束'))
                         return
@@ -119,7 +119,7 @@ local function enterTrial(uid)
                     server.player.removeUpToItem(uid, name, clearCount)
                 end
 
-                dialog.post(uid, questPath, '材料都收集好了哟。。那么出去看吧。。。',
+                dialog.post(uid, questPath, '材料都收集好了哟<t wrap="0">···</t>那么出去看吧<t wrap="0">···</t>',
                 dialog.link('npc_leave_trial', '下一步', {close = true}))
             end,
 
@@ -176,7 +176,7 @@ setQuestFSMTable(
             {
                 [SYS_LABEL] = '进考场',
                 [SYS_ENTER] = function(uid, value)
-                    dialog.post(uid, questPath, '现在你还不够水平吗？嗯。。不要失望，请重新挑战。。。',
+                    dialog.post(uid, questPath, '现在你还不够水平吗？嗯<t wrap="0">···</t>不要失望，请重新挑战<t wrap="0">···</t>',
                     {
                         dialog.link('npc_retry', '拜托指教。'),
                         dialog.link('npc_explain', '考场里要做什么？'),
@@ -204,7 +204,7 @@ setQuestFSMTable(
                 npc_explain = function(uid, value)
                     dialog.post(uid, questPath,
                     {
-                        '如果想学习势毒术，处理了训练场的怪兽后，要从他们的尸体上采取<t color="red">蛆卵,蝎子的尾巴,食人树叶,食人树的果实, 毒蜘蛛牙齿</t>。',
+                        '如果想学习势毒术，处理了训练场的怪兽后，要从他们的尸体上采取<t color="red">蛆卵，蝎子的尾巴，食人树叶，食人树的果实，毒蜘蛛牙齿</t>。',
                         '我将站在考场里面，把采取的毒粉交给我。然后再把你重新送到这里。',
                     },
                     {
@@ -320,7 +320,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- @mugong_poison_next2_1, checkmagic 施毒术 then the briefing
         npc_ask_teach = function(uid, value)
             if server.player.hasMagic(uid, magicName) then
-                dialog.post(uid, questPath, '你已经掌握了施毒术，也没有再学习的必要了。。',
+                dialog.post(uid, questPath, '你已经掌握了施毒术，也没有再学习的必要了<t wrap="0">···</t>',
                 dialog.link(SYS_EXIT, '结束'))
                 return
             end
@@ -329,7 +329,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             {
                 '首先对毒粉进行说明。毒粉包括<t color="red">黄色毒粉</t>和<t color="red">灰色毒粉</t>。对这些材料<t color="red">药剂师</t>比我更清楚，请问他们！',
                 '你在学习施毒术之前，首先要掌握材料的毒性。现在我送你去某个地方，<t color="red">直接采取材料</t>进行学习。采取的方法当作像切肉一样的熟练工种即可。',
-                '时间是<t color="red">5分钟</t>。。',
+                '时间是<t color="red">5分钟</t><t wrap="0">···</t>',
             },
             dialog.link('npc_enter_trial', '为了掌握毒性而出发。', {close = true}))
         end,

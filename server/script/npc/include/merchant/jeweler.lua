@@ -61,7 +61,7 @@ function jeweler.setJeweler(spec)
         setNPCSell(spec.goods)
         table.insert(menu, dialog.link('npc_buy', spec.buyLabel or '购买', {suffix = spec.buySuffix or label}))
         handler.npc_buy = function(uid, value)
-            dialog.post(uid, spec.buyText or {'你想买饰品? 想买什么？请先看好价钱和持久性再决定。'}, back)
+            dialog.post(uid, spec.buyText or {'你想买饰品？想买什么？请先看好价钱和持久性再决定。'}, back)
             uidPostSell(uid)
         end
     end
@@ -83,7 +83,7 @@ function jeweler.setJeweler(spec)
     if repair then
         table.insert(menu, dialog.link('npc_repair', spec.repairLabel or '修理', {suffix = spec.repairSuffix or label}))
         handler.npc_repair = function(uid, value)
-            dialog.post(uid, spec.repairText or {'你想修理饰品?'}, back)
+            dialog.post(uid, spec.repairText or {'你想修理饰品？'}, back)
             invop.uidStartRepair(uid, 'npc_repair_query', 'npc_repair_commit', repair)
         end
         handler.npc_repair_query = function(uid, value)
@@ -104,7 +104,7 @@ function jeweler.setJeweler(spec)
 
         local close = {dialog.link(SYS_EXIT, '关闭')}
         local function postNoMaterial(uid)
-            dialog.post(uid, {'你弄错了吧,这不是古代勇士们使用过的生锈饰品,得到它们之后再来找我吧.'}, close)
+            dialog.post(uid, {'你弄错了吧，这不是古代勇士们使用过的生锈饰品，得到它们之后再来找我吧。'}, close)
         end
 
         local elements = {}
@@ -115,7 +115,7 @@ function jeweler.setJeweler(spec)
                 assert(itemID > 0, 'unknown elemental accessory: ' .. base .. element.name)
                 table.insert(rewardIDs, itemID)
             end
-            table.insert(elements, dialog.link(element.tag, element.name .. '元素.'))
+            table.insert(elements, dialog.link(element.tag, element.name .. '元素。'))
             handler[element.tag] = function(uid, value)
                 -- Keep the checks and exchange in one player-side call, including stale clicks.
                 local restored = uidRemoteCall(uid, oldItemIDs, rewardIDs, jeweler.RUST_PRICE,
@@ -144,26 +144,26 @@ function jeweler.setJeweler(spec)
                     postNoMaterial(uid)
                 elseif restored == 9 and element.name == '暗黑' then
                     -- This reachable branch uses inline text, not the clean but unused include.
-                    dialog.post(uid, {'世尊手镯（暗黑）捞 咯扁 乐嚼聪促.'})
+                    dialog.post(uid, {'世尊手镯（暗黑）捞咯扁乐嚼聪促。'})
                 else
-                    dialog.post(uid, {string.format('得到%s(%s).', jeweler.RUST_ACCESSORIES[restored], element.name)}, close)
+                    dialog.post(uid, {string.format('得到%s(%s)。', jeweler.RUST_ACCESSORIES[restored], element.name)}, close)
                 end
             end
         end
-        table.insert(elements, dialog.link(SYS_EXIT, '再想一想.'))
+        table.insert(elements, dialog.link(SYS_EXIT, '再想一想。'))
 
-        table.insert(menu, dialog.link('npc_rustaccessory', '询问生锈饰品.'))
+        table.insert(menu, dialog.link('npc_rustaccessory', '询问生锈饰品。'))
         handler.npc_rustaccessory = function(uid, value)
             dialog.post(uid,
             {
-                '村庄附近的诺玛遗址里经常出现古代勇士们使用过的元素饰品. 有些饰品因为生锈而失去了原有的功能.',
-                '但不要小瞧它们,更不要乱丢.用诺玛族秘传的方法可以让它们恢复原貌.',
-                '不过,如果你想让手中生锈的饰品恢复原貌,就要支付一定费用. 嗯,对了,你还可以反复更换复原饰品的攻击元素,不过只有耐久完好的饰品才可以变换攻击元素.',
+                '村庄附近的诺玛遗址里经常出现古代勇士们使用过的元素饰品。有些饰品因为生锈而失去了原有的功能。',
+                '但不要小瞧它们，更不要乱丢。用诺玛族秘传的方法可以让它们恢复原貌。',
+                '不过，如果你想让手中生锈的饰品恢复原貌，就要支付一定费用。嗯，对了，你还可以反复更换复原饰品的攻击元素，不过只有耐久完好的饰品才可以变换攻击元素。',
             },
             {
-                dialog.link('npc_rust_restore', '支付100万金币,将生锈的饰品恢复原貌.'),
-                dialog.link('npc_rust_help', '讯问元素道具.'),
-                dialog.link(SYS_EXIT, '关闭.'),
+                dialog.link('npc_rust_restore', '支付100万金币，将生锈的饰品恢复原貌。'),
+                dialog.link('npc_rust_help', '讯问元素道具。'),
+                dialog.link(SYS_EXIT, '关闭。'),
             })
         end
         handler.npc_rust_restore = function(uid, value)
@@ -182,18 +182,18 @@ function jeweler.setJeweler(spec)
             ]])
             assertType(status, 'integer')
             if status == -1 then
-                dialog.post(uid, {'因为金币不够,所以不能帮你恢复饰品的原貌.'}, close)
+                dialog.post(uid, {'因为金币不够，所以不能帮你恢复饰品的原貌。'}, close)
             elseif status == 0 then
                 postNoMaterial(uid)
             else
-                dialog.post(uid, {'想恢复生锈饰品的哪一种攻击元素属性呢?'}, elements)
+                dialog.post(uid, {'想恢复生锈饰品的哪一种攻击元素属性呢？'}, elements)
             end
         end
         handler.npc_rust_help = function(uid, value)
             dialog.post(uid,
             {
-                '我所能恢复的饰品有 <t color="red">生锈的师承戒指, 生锈的龙马戒指, 生锈的青云戒指, 生锈的破荒项链, 生锈的魔云项链, 生锈的定心项链, 生锈的金棱手镯, 生锈的思过手镯, 生锈的世尊手镯</t>. 这些都是古代勇士曾经使用过的饰品,只要你支付一定费用,我会帮你恢复饰品的原貌.',
-                '恢复原貌的饰品,还可以反复地更换攻击元素.',
+                '我所能恢复的饰品有<t color="red">生锈的师承戒指，生锈的龙马戒指，生锈的青云戒指，生锈的破荒项链，生锈的魔云项链，生锈的定心项链，生锈的金棱手镯，生锈的思过手镯，生锈的世尊手镯</t>。这些都是古代勇士曾经使用过的饰品，只要你支付一定费用，我会帮你恢复饰品的原貌。',
+                '恢复原貌的饰品，还可以反复地更换攻击元素。',
             }, close)
         end
     end

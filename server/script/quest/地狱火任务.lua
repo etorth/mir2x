@@ -123,10 +123,10 @@ addQuestTrigger(SYS_ON_KILL, function(uid, monsterUID)
 
     -- random 5
     if math.random(5) == 1 then
-        server.player.postString(uid, '哦。。。（这家伙，在瞎说。好像出现了什么失误。。）')
+        server.player.postString(uid, '哦<t wrap="0">···</t>（这家伙，在瞎说。好像出现了什么失误<t wrap="0">···</t>）')
         spawnOn(mapUID, plainMonster, 3)
     else
-        server.player.postString(uid, '哦。。。（这家伙，在瞎说。根本没有什么嘛）')
+        server.player.postString(uid, '哦<t wrap="0">···</t>（这家伙，在瞎说。根本没有什么嘛）')
         spawnOn(mapUID, plainMonster, 1)
     end
 end)
@@ -171,11 +171,11 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '同里面的火焰沃玛打斗时，多少有些麻烦。请注意不要进行近身战。',
-                        '我把你送到那儿的时间是<t color="red">5分钟</t>。。。5分钟过去后，你将重新回到这里。',
-                        '同时你还要牢记<t color="red">新火镜掉落的瞬间，你一定要非常迅速地拿到并回到这个地方。。</t>',
+                        '我把你送到那儿的时间是<t color="red">5分钟</t><t wrap="0">···</t>5分钟过去后，你将重新回到这里。',
+                        '同时你还要牢记<t color="red">新火镜掉落得瞬间，你一定要非常迅速地拿到并回到这个地方<t wrap="0">···</t></t>',
                     },
                     {
-                        dialog.link('npc_enter_trial', '移  动'),
+                        dialog.link('npc_enter_trial', '移动'),
                         dialog.link('npc_explain', '考场里要做什么？'),
                         dialog.link(SYS_EXIT, '结束'),
                     })
@@ -190,7 +190,7 @@ setQuestFSMTable(
                         '拿到新火镜的一瞬间安全地退回这个地方就可以了。',
                     },
                     {
-                        dialog.link('npc_enter_trial', '移  动'),
+                        dialog.link('npc_enter_trial', '移动'),
                         dialog.link(SYS_EXIT, '结束'),
                     })
                 end,
@@ -239,7 +239,7 @@ setQuestFSMTable(
                     dialog.post(uid, questPath,
                     {
                         '带来了新火镜。那么，好好读一下这个部分吧！',
-                        '嗯。。。如果可以大概理解，可以按照照片摆个姿势吗？',
+                        '嗯<t wrap="0">···</t>如果可以大概理解，可以按照照片摆个姿势吗？',
                     },
                     dialog.link('npc_take_book', '这样可以吗？'))
                 end,
@@ -322,7 +322,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '地狱火是一种将<t color="red">像波涛一样的熊熊烈火向敌人喷射的魔法</t>。本魔法的要点是使在进攻者前面展开的烈火沿着一条直线蔓延开，向多数敌人发起进攻时非常有利。将敌人引诱到狭窄的地方沿一列排开，进攻效果最大。',
-                '好的，凭你的实力是学习地狱火的时候了。但是要想掌握地狱火，应掌握独特的运气法。 叫<t color="red">神火攻</t>的内功新法，按照你的能力坚持不懈练习的话，理解上不会有什么问题的。',
+                '好的，凭你的实力是学习地狱火的时候了。但是要想掌握地狱火，应掌握独特的运气法。叫<t color="red">神火攻</t>的内功新法，按照你的能力坚持不懈练习的话，理解上不会有什么问题的。',
             },
             dialog.link('npc_want_learn', '想掌握地狱火。'))
         end,
@@ -348,7 +348,7 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
         -- @mugong_fireline_next5. its <关闭> points at @mugong_fireline_next14_1, a label that
         -- does not exist in the legacy file, so it just closes
         npc_not_yet = function(uid, value)
-            dialog.post(uid, questPath, '非常小心的朋友。本臂力尊者像你一样的时候，不知天高地厚, 横冲直撞。不管怎样，好的。你有信心的时候，请随时来！',
+            dialog.post(uid, questPath, '非常小心的朋友。本臂力尊者像你一样的时候，不知天高地厚，横冲直撞。不管怎样，好的。你有信心的时候，请随时来！',
             dialog.link(SYS_EXIT, '关闭'))
         end,
 
@@ -357,10 +357,10 @@ uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), mi
             dialog.post(uid, questPath,
             {
                 '同里面的火焰沃玛打斗时，多少有些麻烦。请注意不要进行近身战。',
-                '我把你送到那儿的时间是<t color="red">5分钟</t>。。。5分钟过去后，你将重新回到这里。',
-                '同时你还要牢记<t color="red">新火镜掉落的瞬间，你一定要非常迅速地拿到并回到这个地方。。</t>',
+                '我把你送到那儿的时间是<t color="red">5分钟</t><t wrap="0">···</t>5分钟过去后，你将重新回到这里。',
+                '同时你还要牢记<t color="red">新火镜掉落得瞬间，你一定要非常迅速地拿到并回到这个地方<t wrap="0">···</t></t>',
             },
-            dialog.link('npc_enter_trial', '移  动', {close = true}))
+            dialog.link('npc_enter_trial', '移动', {close = true}))
         end,
 
         npc_enter_trial = function(uid, value)
