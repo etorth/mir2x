@@ -329,6 +329,8 @@ local function setupTeacherNag(uid)
     ]])
 end
 
+local mondrop = require('quest.include.mondrop')
+
 setQuestFSMTable(
 {
     -- SET [522], and where a lost run drops you back to
@@ -336,6 +338,22 @@ setQuestFSMTable(
         closeRooms(uid)
         setQuestDesp{uid=uid, '去沃玛神殿打火焰沃玛，凑齐五种困魔石，再从沃玛神殿2层进困魔咒空间。'}
         setupTeacherNag(uid)
+
+        -- holy1, 火焰沃玛 in the 沃玛神殿 while [522] is set. one addDropTrigger call per
+        -- stone (independent drops, not alternatives for the same wait) so collecting one
+        -- stone can never tear down the chance to collect the others
+        for _, entry in ipairs(stoneDrops) do
+            mondrop.addDropTrigger(uid,
+            {
+                {
+                    monster = '火焰沃玛',
+                    map     = stoneMaps,
+                    chance  = entry[2],
+                    give    = entry[1],
+                    say     = entry[3],
+                },
+            })
+        end
 
         -- the door in 沃玛神殿2层_D023. it opens on the first stone and takes it
         eachGrid(doorGrids, function(gridX, gridY)
@@ -433,25 +451,6 @@ for _, grid in ipairs(doorGrids) do
         end
     end
 end
-
--- holy1, 火焰沃玛 in the 沃玛神殿 while [522] is set. one drop rule per stone, in the order
--- legacy rolls them, and mondrop stops at the first that fires
-local mondrop = require('quest.include.mondrop')
-
-local dropList = {}
-for _, entry in ipairs(stoneDrops) do
-    table.insert(dropList,
-    {
-        monster = '火焰沃玛',
-        map     = stoneMaps,
-        state   = SYS_ENTER,
-        chance  = entry[2],
-        give    = entry[1],
-        say     = entry[3],
-    })
-end
-
-mondrop.setDropOnKill(dropList)
 
 -- @mugong_holycircle, the entry he offers to anyone who has not started
 uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), minQuestLevel, magicName,

@@ -102,6 +102,33 @@ setQuestFSMTable(
                 end
             end)
         ]])
+
+        -- 牛毛 and 竹棍 are not in the monster drop table, legacy handed them out from
+        -- QuestDiary/NQ_BASE/MonQuest/Nm_Cow.txt and Nm_kalgi.txt while the collection was
+        -- running. without this the SYS_ON_GAINITEM trigger above never fires and the quest
+        -- cannot finish. two independent drops, each tracked (and auto-removed) on its own so
+        -- one finishing doesn't stop the other
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '牛',
+                kills   = 3,
+                once    = true,
+                give    = '牛毛',
+                say     = '（这好像是牛毛。）',
+            },
+        })
+
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '钉耙猫',
+                kills   = 3,
+                once    = true,
+                give    = '竹棍',
+                say     = '（这个好像是竹棍）',
+            },
+        })
     end,
 
     quest_complete_collection = function(uid, args)
@@ -213,26 +240,6 @@ uidRemoteCall(getNPCharUID('比奇县_0', '金氏_1'), getUID(), getQuestName(),
     })
 ]])
 
--- 牛毛 and 竹棍 are not in the monster drop table, legacy handed them out from
--- QuestDiary/NQ_BASE/MonQuest/Nm_Cow.txt and Nm_kalgi.txt while the collection was running.
--- without this the SYS_ON_GAINITEM trigger above never fires and the quest cannot finish
-mondrop.setDropOnKill
-{
-    {
-        monster = '牛',
-        state   = 'quest_start_collection',
-        kills   = 3,
-        once    = true,
-        give    = '牛毛',
-        say     = '（这好像是牛毛。）',
-    },
-
-    {
-        monster = '钉耙猫',
-        state   = 'quest_start_collection',
-        kills   = 3,
-        once    = true,
-        give    = '竹棍',
-        say     = '（这个好像是竹棍）',
-    },
-}
+-- 牛毛 and 竹棍 drops are installed above, inline in quest_start_collection, via
+-- mondrop.addDropTrigger; legacy handed them out from QuestDiary/NQ_BASE/MonQuest/Nm_Cow.txt
+-- and Nm_kalgi.txt

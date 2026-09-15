@@ -18,6 +18,8 @@
 
 _G.minQuestLevel = 21
 
+local mondrop = require('quest.include.mondrop')
+
 _G.magicName = '疾光电影'
 _G.mijiName  = '疾光电影（秘籍）'
 
@@ -166,6 +168,20 @@ setQuestFSMTable(
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '去天然洞穴1层打洞蛆找树脂。'}
         setupTeacherNag(uid)
+
+        -- lightLine1, 洞蛆 in 天然洞穴1层 while [522] is set and [523] is not
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '洞蛆',
+                map      = resinMap,
+                chance   = resinChance,
+                once     = true,
+                give     = resinName,
+                setState = 'quest_got_resin',
+                say      = '（这是华川先生所讲的树脂吗？那么现在就要去银杏树村，请棉布商给衣服涂树脂了。）',
+            },
+        })
     end,
 
     -- [523], the resin is in your pack
@@ -173,17 +189,51 @@ setQuestFSMTable(
         setQuestDesp{uid=uid, '拿到树脂了，穿好魔法长袍去找银杏山谷的布店晓芙涂树脂。'}
         setupTeacherNag(uid)
         setupTailor(uid)
+
+        -- and the [523] branch, which just reminds you where to take it
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '洞蛆',
+                map     = resinMap,
+                say     = '（要到银杏树村的棉布商那儿，请她给衣服上涂树脂，我在这里做什么呢？）',
+            },
+        })
     end,
 
     -- [524], the robe is coated and the stone will not burn you
     quest_find_stone = function(uid, args)
         setQuestDesp{uid=uid, '树脂魔法长袍做好了，去沃玛神殿入口打山洞蝙蝠找闪电石。'}
         setupTeacherNag(uid)
+
+        -- lightLine2, 山洞蝙蝠 at the 沃玛神殿 entrances once the robe is coated
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '山洞蝙蝠',
+                map      = stoneMaps,
+                chance   = stoneChance,
+                once     = true,
+                give     = stoneName,
+                setState = 'quest_got_stone',
+                say      = '（这就是华川先生所讲的闪电石吗？如果没有涂树脂将如何提这个东西。。手上火辣辣的。）',
+            },
+        })
     end,
 
     -- [525], the stone is in your pack
     quest_got_stone = function(uid, args)
         setQuestDesp{uid=uid, '拿到闪电石了，回去交给霹雳尊者。'}
+
+        -- and the [525] branch
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '山洞蝙蝠',
+                map     = stoneMaps,
+                say     = '(现在该回到化天先生那里了。)',
+            },
+        })
 
         setupNPCQuestBehavior(teacherMap, teacherNPC, uid,
         [[
@@ -235,51 +285,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
-local mondrop = require('quest.include.mondrop')
-
-mondrop.setDropOnKill
-{
-    -- lightLine1, 洞蛆 in 天然洞穴1层 while [522] is set and [523] is not
-    {
-        monster  = '洞蛆',
-        map      = resinMap,
-        state    = SYS_ENTER,
-        chance   = resinChance,
-        once     = true,
-        give     = resinName,
-        setState = 'quest_got_resin',
-        say      = '（这是华川先生所讲的树脂吗？那么现在就要去银杏树村，请棉布商给衣服涂树脂了。）',
-    },
-
-    -- and the [523] branch, which just reminds you where to take it
-    {
-        monster = '洞蛆',
-        map     = resinMap,
-        state   = 'quest_got_resin',
-        say     = '（要到银杏树村的棉布商那儿，请她给衣服上涂树脂，我在这里做什么呢？）',
-    },
-
-    -- lightLine2, 山洞蝙蝠 at the 沃玛神殿 entrances once the robe is coated
-    {
-        monster  = '山洞蝙蝠',
-        map      = stoneMaps,
-        state    = 'quest_find_stone',
-        chance   = stoneChance,
-        once     = true,
-        give     = stoneName,
-        setState = 'quest_got_stone',
-        say      = '（这就是华川先生所讲的闪电石吗？如果没有涂树脂将如何提这个东西。。手上火辣辣的。）',
-    },
-
-    -- and the [525] branch
-    {
-        monster = '山洞蝙蝠',
-        map     = stoneMaps,
-        state   = 'quest_got_stone',
-        say     = '(现在该回到化天先生那里了。)',
-    },
-}
 
 -- @mugong_lightline, the entry he offers to anyone who has not started
 uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), minQuestLevel, magicName,

@@ -513,6 +513,18 @@ setQuestFSMTable(
         setQuestDesp{uid=uid, '王铁匠的铁锤被半兽人抢走了，去猎杀半兽洞穴的半兽人把铁锤找回来吧。'}
         setupSealedRoom(uid, nil)
 
+        -- the whole trail of quest items, none of them are in the ordinary monster drop table
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '半兽人',
+                kills    = 10,
+                give     = '王铁匠的铁锤',
+                setState = 'quest_got_hammer',
+                say      = '（这好像就是铁匠被抢走的锤子）',
+            },
+        })
+
         setupNPCQuestBehavior('道馆_1', '华玉_1', uid,
         [[
             return getQuestName()
@@ -671,6 +683,17 @@ setQuestFSMTable(
         setQuestDesp{uid=uid, '猎杀半兽战士，夺取它们脖子上那个奇怪的角笛。'}
         setupSealedRoom(uid, nil)
 
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '半兽战士',
+                kills    = 5,
+                give     = '角笛',
+                setState = 'quest_hunt_warrior',
+                say      = '（虽然不知道是什么动物的犄角制成的这分明不是一件寻常的东西）',
+            },
+        })
+
         setupNPCQuestBehavior('道馆_1', '华玉_1', uid,
         [[
             return getQuestName()
@@ -756,6 +779,19 @@ setQuestFSMTable(
     quest_hunt_warrior = function(uid, args)
         setQuestDesp{uid=uid, '拿到了角笛，带着它去半兽洞穴1层(303:65)打开那间屋子，除掉半兽勇士。'}
         setupSealedRoom(uid, nil)
+
+        -- the horn is what got you into the sealed room and it is spent bringing him down
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '半兽勇士',
+                need     = '角笛',
+                take     = '角笛',
+                give     = {{'半块不死牌', 1}, {SYS_GOLDNAME, 5000}},
+                setState = 'quest_return_token',
+                say      = '（艰难的战斗。 无论如何，我们掌握了能使沃玛遗骨复活的魔法的精华部分）',
+            },
+        })
 
         setupNPCQuestBehavior('比奇县_0', '比奇城城主_1', uid,
         [[
@@ -1124,6 +1160,18 @@ setQuestFSMTable(
         setQuestDesp{uid=uid, '带着半块不死牌，去半兽洞穴2层(255:281)亲手除掉骷髅精灵。'}
         setupSealedRoom(uid, nil)
 
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '骷髅精灵',
+                need     = '半块不死牌',
+                take     = '半块不死牌',
+                give     = {{'不死牌', 1}, {'诅咒骷髅精灵头盔', 1}, {SYS_GOLDNAME, 7000}},
+                setState = 'quest_final',
+                say      = '（这个巨大的红骷髅到底是什么？估计半兽人暂时不具有威胁比奇省的实力。）',
+            },
+        })
+
         setupNPCQuestBehavior('比奇县_0', '比奇城城主_1', uid,
         [[
             return getQuestName()
@@ -1248,49 +1296,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
--- the whole trail of quest items, none of them are in the ordinary monster drop table
-mondrop.setDropOnKill
-{
-    {
-        monster  = '半兽人',
-        state    = 'quest_find_hammer',
-        kills    = 10,
-        give     = '王铁匠的铁锤',
-        setState = 'quest_got_hammer',
-        say      = '（这好像就是铁匠被抢走的锤子）',
-    },
-
-    {
-        monster  = '半兽战士',
-        state    = 'quest_hunt_horn',
-        kills    = 5,
-        give     = '角笛',
-        setState = 'quest_hunt_warrior',
-        say      = '（虽然不知道是什么动物的犄角制成的这分明不是一件寻常的东西）',
-    },
-
-    -- the horn is what got you into the sealed room and it is spent bringing him down
-    {
-        monster  = '半兽勇士',
-        state    = 'quest_hunt_warrior',
-        need     = '角笛',
-        take     = '角笛',
-        give     = {{'半块不死牌', 1}, {SYS_GOLDNAME, 5000}},
-        setState = 'quest_return_token',
-        say      = '（艰难的战斗。 无论如何，我们掌握了能使沃玛遗骨复活的魔法的精华部分）',
-    },
-
-    {
-        monster  = '骷髅精灵',
-        state    = 'quest_hunt_spirit',
-        need     = '半块不死牌',
-        take     = '半块不死牌',
-        give     = {{'不死牌', 1}, {'诅咒骷髅精灵头盔', 1}, {SYS_GOLDNAME, 7000}},
-        setState = 'quest_final',
-        say      = '（这个巨大的红骷髅到底是什么？估计半兽人暂时不具有威胁比奇省的实力。）',
-    },
-}
 
 uidRemoteCall(getNPCharUID('比奇县_0', '比奇城城主_1'), getUID(), getQuestName(), minQuestLevel, prequestName,
 [[

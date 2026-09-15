@@ -41,6 +41,8 @@ _G.logMaps =
     '沃玛神殿2层_D043',
 }
 
+local mondrop = require('quest.include.mondrop')
+
 setQuestFSMTable(
 {
     -- set [512], the 杂货商 has told you the story and pointed you at 清明子
@@ -179,6 +181,20 @@ setQuestFSMTable(
     quest_investigate = function(uid, args)
         setQuestDesp{uid=uid, '去沃玛神殿打沃玛战将，找成致留下的东西。'}
 
+        -- MonQuest/masshiden.txt, one 沃玛战将 in twenty while [513] is set
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '沃玛战将',
+                map      = logMaps,
+                chance   = logChance,
+                once     = true,
+                give     = logName,
+                setState = 'quest_got_log',
+                say      = "（现在回到大飞圣僧那儿，并将 '成致日志'拿给他，就可以学习'集体隐身术'了...）",
+            },
+        })
+
         setupNPCQuestBehavior(teacherMap, teacherNPC, uid,
         [[
             return getQuestName()
@@ -292,23 +308,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
--- MonQuest/masshiden.txt, one 沃玛战将 in twenty while [513] is set
-local mondrop = require('quest.include.mondrop')
-
-mondrop.setDropOnKill
-{
-    {
-        monster  = '沃玛战将',
-        map      = logMaps,
-        state    = 'quest_investigate',
-        chance   = logChance,
-        once     = true,
-        give     = logName,
-        setState = 'quest_got_log',
-        say      = "（现在回到大飞圣僧那儿，并将 '成致日志'拿给他，就可以学习'集体隐身术'了...）",
-    },
-}
 
 -- @mugong_masshiding_pre, the 杂货商's story. this is where the quest starts
 uidRemoteCall(getNPCharUID(grocerMap, grocerNPC), getUID(), getQuestName(), minQuestLevel, magicName,

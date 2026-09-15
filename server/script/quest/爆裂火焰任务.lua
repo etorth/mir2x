@@ -22,6 +22,8 @@
 
 _G.minQuestLevel = 32
 
+local mondrop = require('quest.include.mondrop')
+
 _G.magicName = '爆裂火焰'
 _G.mijiName  = '爆裂火焰（秘籍）'
 
@@ -40,6 +42,20 @@ setQuestFSMTable(
     -- set [526], off to 毒蛇山谷
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '化天先生要一颗七点白蛇胆，去毒蛇山谷打七点白蛇弄一颗回来。'}
+
+        -- MonQuest/pokyel.txt, 七点白蛇 in 毒蛇山谷 while [526] is set
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '七点白蛇',
+                map      = gallMap,
+                kills    = gallKills,
+                once     = true,
+                give     = gallName,
+                setState = 'quest_got_gall',
+                say      = "（把'七点白蛇胆汁'带给霹雳尊者，这样就可以修炼魔法了....）",
+            },
+        })
 
         setupNPCQuestBehavior(teacherMap, teacherNPC, uid,
         [[
@@ -174,23 +190,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
--- MonQuest/pokyel.txt, 七点白蛇 in 毒蛇山谷 while [526] is set
-local mondrop = require('quest.include.mondrop')
-
-mondrop.setDropOnKill
-{
-    {
-        monster  = '七点白蛇',
-        map      = gallMap,
-        state    = SYS_ENTER,
-        kills    = gallKills,
-        once     = true,
-        give     = gallName,
-        setState = 'quest_got_gall',
-        say      = "（把'七点白蛇胆汁'带给霹雳尊者，这样就可以修炼魔法了....）",
-    },
-}
 
 -- @mugong_fireware, the entry he offers to anyone who has not started
 uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), minQuestLevel, magicName,

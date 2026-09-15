@@ -19,6 +19,8 @@
 
 _G.minQuestLevel = 21
 
+local mondrop = require('quest.include.mondrop')
+
 _G.magicName = '幽灵盾'
 _G.mijiName  = '幽灵盾（秘籍）'
 
@@ -49,6 +51,20 @@ setQuestFSMTable(
     -- set [509], off to the 飞天废矿
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '清明子要一颗灵珠，去飞天废矿打魔法僵尸弄一颗回来。'}
+
+        -- MonQuest/hangma.txt, one kill in ten while [509] is set
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '僵尸1',
+                map      = pearlMaps,
+                chance   = pearlChance,
+                once     = true,
+                give     = pearlName,
+                setState = 'quest_got_pearl',
+                say      = "（你现在去找清明子，把灵珠带给他，就可以修炼'幽灵盾'……）",
+            },
+        })
 
         setupNPCQuestBehavior(teacherMap, teacherNPC, uid,
         [[
@@ -170,23 +186,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
--- MonQuest/hangma.txt, one kill in ten while [509] is set
-local mondrop = require('quest.include.mondrop')
-
-mondrop.setDropOnKill
-{
-    {
-        monster  = '僵尸1',
-        map      = pearlMaps,
-        state    = SYS_ENTER,
-        chance   = pearlChance,
-        once     = true,
-        give     = pearlName,
-        setState = 'quest_got_pearl',
-        say      = "（你现在去找清明子，把灵珠带给他，就可以修炼'幽灵盾'……）",
-    },
-}
 
 -- @mugong_hangma, the entry he offers to anyone who has not started
 uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), minQuestLevel, magicName,

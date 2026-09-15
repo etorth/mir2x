@@ -295,6 +295,16 @@ setQuestFSMTable(
             y       = tunnelY,
             say     = '署箭口中念念有词，一具僵尸从地里爬了出来，署箭再也不理会你了！',
         }
+
+        -- 署箭 never drops anything himself, everything comes off what he raises
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '僧侣僵尸',
+                setState = 'quest_taoist_fled',
+                say      = '（看来需要再谈谈...）',
+            },
+        })
     end,
 
     -- beaten, he finds you interesting enough to talk to again, then slips away
@@ -500,6 +510,16 @@ setQuestFSMTable(
             y       = lairY,
             say     = '署箭召出了一头庞然大物，它腐烂的身躯几乎顶到了洞顶！',
         }
+
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '尸王',
+                give     = {SYS_GOLDNAME, 9000},
+                setState = 'quest_king_dead',
+                say      = '（是僵尸王...）',
+            },
+        })
     end,
 
     -- he shrugs it off and leaves again
@@ -923,6 +943,30 @@ setQuestFSMTable(
     quest_collect_bones = function(uid, args)
         setQuestDesp{uid=uid, '去矿山猎杀僧侣僵尸和雷电僵尸，取得僧侣僵尸骨和雷电僵尸骨。'}
 
+        -- the two zombies that stay dead are the ones carrying usable bones, two independent
+        -- drops so collecting one bone can never remove the chance to collect the other
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '僧侣僵尸',
+                kills   = 3,
+                once    = true,
+                give    = '僧侣僵尸骨',
+                say     = '（这是僧侣僵尸的骨头吗？）',
+            },
+        })
+
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '雷电僵尸',
+                kills   = 3,
+                once    = true,
+                give    = '雷电僵尸骨',
+                say     = '（这是雷电僵尸骨吗？）',
+            },
+        })
+
         setupNPCQuestBehavior('道馆_1', '书堂玄震_1', uid,
         [[
             return getUID(), getQuestName()
@@ -1082,6 +1126,18 @@ setQuestFSMTable(
             y       = lairY,
             say     = '署箭把毕生所学尽数放出，再也不肯开口了！',
         }
+
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '尸王',
+                need     = '毁灭护身符',
+                take     = '毁灭护身符',
+                give     = {{'不死牌', 1}, {SYS_GOLDNAME, 12000}},
+                setState = 'quest_return_token',
+                say      = '（可怜的人...那种怪物就是你所说得不老不死？）',
+            },
+        })
     end,
 
     -- carry it back to the 衙门 one last time
@@ -1143,54 +1199,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
--- 署箭 never drops anything himself, everything comes off what he raises
-mondrop.setDropOnKill
-{
-    {
-        monster  = '僧侣僵尸',
-        state    = 'quest_fight_zombie',
-        setState = 'quest_taoist_fled',
-        say      = '（看来需要再谈谈...）',
-    },
-
-    {
-        monster  = '尸王',
-        state    = 'quest_fight_king',
-        give     = {SYS_GOLDNAME, 9000},
-        setState = 'quest_king_dead',
-        say      = '（是僵尸王...）',
-    },
-
-    -- the two zombies that stay dead are the ones carrying usable bones
-    {
-        monster = '僧侣僵尸',
-        state   = 'quest_collect_bones',
-        kills   = 3,
-        once    = true,
-        give    = '僧侣僵尸骨',
-        say     = '（这是僧侣僵尸的骨头吗？）',
-    },
-
-    {
-        monster = '雷电僵尸',
-        state   = 'quest_collect_bones',
-        kills   = 3,
-        once    = true,
-        give    = '雷电僵尸骨',
-        say     = '（这是雷电僵尸骨吗？）',
-    },
-
-    {
-        monster  = '尸王',
-        state    = 'quest_kill_taoist',
-        need     = '毁灭护身符',
-        take     = '毁灭护身符',
-        give     = {{'不死牌', 1}, {SYS_GOLDNAME, 12000}},
-        setState = 'quest_return_token',
-        say      = '（可怜的人...那种怪物就是你所说得不老不死？）',
-    },
-}
 
 uidRemoteCall(getNPCharUID('比奇县_0', '比奇城城主_1'), getUID(), getQuestName(), minQuestLevel, prequestName,
 [[

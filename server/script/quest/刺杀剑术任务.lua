@@ -11,6 +11,8 @@
 
 _G.minQuestLevel = 19
 
+local mondrop = require('quest.include.mondrop')
+
 _G.magicName = '刺杀剑术'
 _G.mijiName  = '刺杀剑术（秘籍）'
 
@@ -74,6 +76,20 @@ setQuestFSMTable(
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '龙血先生要一只沃玛角，去沃玛神殿打沃玛战士弄一只回来。'}
         nagBehavior(uid)
+
+        -- MonQuest/asword.txt, 沃玛战士 in 沃玛神殿 while [503] is set
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '沃玛战士',
+                map      = hornMaps,
+                kills    = hornKills,
+                once     = true,
+                give     = hornName,
+                setState = 'quest_got_horn',
+                say      = "（现在把沃玛角送给'龙血先生'就可以修炼'刺杀剑术'……）",
+            },
+        })
     end,
 
     -- [504], the horn is in your pack
@@ -169,23 +185,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
--- MonQuest/asword.txt, 沃玛战士 in 沃玛神殿 while [503] is set
-local mondrop = require('quest.include.mondrop')
-
-mondrop.setDropOnKill
-{
-    {
-        monster  = '沃玛战士',
-        map      = hornMaps,
-        state    = SYS_ENTER,
-        kills    = hornKills,
-        once     = true,
-        give     = hornName,
-        setState = 'quest_got_horn',
-        say      = "（现在把沃玛角送给'龙血先生'就可以修炼'刺杀剑术'……）",
-    },
-}
 
 -- @mugong_asword, the entry he offers to anyone who has not started
 uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), minQuestLevel, magicName,

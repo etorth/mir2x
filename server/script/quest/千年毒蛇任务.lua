@@ -111,6 +111,18 @@ setQuestFSMTable(
     quest_find_gall = function(uid, args)
         setQuestDesp{uid=uid, '金中医说只有传说中千年毒蛇的胆汁才能解珍珍的毒，去毒蛇山谷猎杀千年毒蛇吧。'}
 
+        -- 千年毒蛇胆汁 is not in the monster drop table on purpose, it only comes off the
+        -- corpse once 金中医 has explained what to look for
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '千年毒蛇',
+                give     = '千年毒蛇胆汁',
+                setState = 'quest_got_gall',
+                say      = '你剖开千年毒蛇的尸体，取得了千年毒蛇胆汁！',
+            },
+        })
+
         setupNPCQuestBehavior('毒蛇山谷_2', '蛇谷老太_1', uid,
         [[
             return getQuestName()
@@ -258,19 +270,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
--- 千年毒蛇胆汁 is not in the monster drop table on purpose, it only comes off the corpse
--- once 金中医 has explained what to look for
-mondrop.setDropOnKill
-{
-    {
-        monster  = '千年毒蛇',
-        state    = 'quest_find_gall',
-        give     = '千年毒蛇胆汁',
-        setState = 'quest_got_gall',
-        say      = '你剖开千年毒蛇的尸体，取得了千年毒蛇胆汁！',
-    },
-}
 
 uidRemoteCall(getNPCharUID('毒蛇山谷_2', '蛇谷老太_1'), getUID(), getQuestName(), minQuestLevel, prequestName,
 [[

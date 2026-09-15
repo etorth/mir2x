@@ -113,6 +113,8 @@ local function letterRetryHandlers(npcName)
     ]], assertType(npcName, 'string'))
 end
 
+local mondrop = require('quest.include.mondrop')
+
 setQuestFSMTable(
 {
     -- set [508], one of the ten has pointed you at 黄河大侠
@@ -292,6 +294,49 @@ setQuestFSMTable(
         setQuestDesp{uid=uid, '在沙漠里打诺玛法老，凑齐五个诺玛石交给王铁匠。'}
         setupShopNag(uid)
 
+        -- MonQuest/mute.txt, one 诺玛法老 in two while [510] is set. legacy has a line per
+        -- stone and the fifth one is the last, so one drop rule per step. every intermediate
+        -- step self-loops back into this same state (setState to itself) so a fresh trigger
+        -- is installed for the next stone right after this one is collected -- addDropTrigger
+        -- always tears its own trigger down on any success, so without the self-loop only the
+        -- first stone would ever be collectable in a single session
+        local stoneLines =
+        {
+            '(这个是诺玛石吗？。。。现在找到1个。)',
+            '(现在剩下3个诺玛石了。。。)',
+            '(再找到2个诺玛石就可以了。。。)',
+            '(再找到1个诺玛石就可以了。。。)',
+            '(诺玛石都找到了，现在该快点回去了。。)',
+        }
+
+        local dropList = {}
+        for step = 1, stoneCount do
+            table.insert(dropList,
+            {
+                monster  = '诺玛法老',
+                map      = stoneMaps,
+                chance   = stoneChance,
+
+                -- the step's own line only comes out when this is the stone you are missing,
+                -- which is what legacy's descending checkitem chain does
+                need     = (step > 1) and {stoneName, step - 1} or nil,
+                give     = stoneName,
+                say      = stoneLines[step],
+
+                -- reinstall the trigger for every step but the last, there is nothing left
+                -- to catch once the fifth stone is in hand
+                setState = (step < stoneCount) and 'quest_find_stones' or nil,
+            })
+        end
+
+        -- legacy checks the highest count first and stops there, so reverse and let mondrop
+        -- take the first that fires
+        for i = 1, #dropList // 2 do
+            dropList[i], dropList[#dropList + 1 - i] = dropList[#dropList + 1 - i], dropList[i]
+        end
+
+        mondrop.addDropTrigger(uid, dropList)
+
         setupNPCQuestBehavior(smithMap, smithNPC, uid,
         [[
             return getUID(), getQuestName()
@@ -383,6 +428,16 @@ setQuestFSMTable(
         setQuestDesp{uid=uid, '带着王铁匠的书信回边境城市，交给黄河大侠。'}
         setupShopNag(uid)
 
+        -- and the [511] branch, which just tells you to get moving
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '诺玛法老',
+                map     = stoneMaps,
+                say     = '(要快点回去了。。。)',
+            },
+        })
+
         setupNPCQuestBehavior(smithMap, smithNPC, uid,
         [[
             return getQuestName()
@@ -465,55 +520,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
--- MonQuest/mute.txt, one 诺玛法老 in two while [510] is set. legacy has a line per stone and
--- the fifth one is the last, so one drop rule per step
-local mondrop = require('quest.include.mondrop')
-
-local stoneLines =
-{
-    '(这个是诺玛石吗？。。。现在找到1个。)',
-    '(现在剩下3个诺玛石了。。。)',
-    '(再找到2个诺玛石就可以了。。。)',
-    '(再找到1个诺玛石就可以了。。。)',
-    '(诺玛石都找到了，现在该快点回去了。。)',
-}
-
-local dropList = {}
-for step = 1, stoneCount do
-    table.insert(dropList,
-    {
-        monster  = '诺玛法老',
-        map      = stoneMaps,
-        state    = 'quest_find_stones',
-        chance   = stoneChance,
-
-        -- the step's own line only comes out when this is the stone you are missing, which is
-        -- what legacy's descending checkitem chain does
-        need     = (step > 1) and {stoneName, step - 1} or nil,
-        give     = stoneName,
-        say      = stoneLines[step],
-    })
-end
-
--- legacy checks the highest count first and stops there, so reverse and let mondrop take the
--- first that fires
-for i = 1, #dropList // 2 do
-    dropList[i], dropList[#dropList + 1 - i] = dropList[#dropList + 1 - i], dropList[i]
-end
-
-mondrop.setDropOnKill(dropList)
-
--- and the [511] branch, which just tells you to get moving
-mondrop.setDropOnKill
-{
-    {
-        monster = '诺玛法老',
-        map     = stoneMaps,
-        state   = 'quest_carry_reply',
-        say     = '(要快点回去了。。。)',
-    },
-}
 
 -- @mugong_mutebo, the entry 黄河大侠 offers. he will not open up until a shopkeeper has
 -- mentioned him, which is the ELSESAY of his [508] check

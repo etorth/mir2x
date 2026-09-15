@@ -21,6 +21,8 @@
 
 _G.minQuestLevel = 25
 
+local mondrop = require('quest.include.mondrop')
+
 _G.magicName = '神圣战甲术'
 _G.mijiName  = '神圣战甲术（秘籍）'
 _G.bookName  = '神圣战甲术'
@@ -105,17 +107,55 @@ setQuestFSMTable(
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '去比奇废矿打僵尸，捡到神圣战甲术书就会被带进秘密房间，在那里找起爆石。'}
         setupMineNag(uid)
+
+        -- deaji1, one zombie in fifty anywhere in the mine. the book is the key to the room
+        -- and the same step that hands it over pulls you in
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = mineZombies,
+                map      = mineMaps,
+                chance   = bookChance,
+                give     = bookName,
+                setState = 'quest_in_secret_room',
+                moveTo   = {secretMap},
+            },
+        })
     end,
 
     -- the book dropped and pulled you into the hidden room
     quest_in_secret_room = function(uid, args)
         setQuestDesp{uid=uid, '在秘密房间里打尸王，拿到起爆石。'}
         setupMineNag(uid)
+
+        -- deaji2, one 尸王 in ten has the stone
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '尸王',
+                map      = secretMap,
+                chance   = stoneChance,
+                once     = true,
+                give     = stoneName,
+                setState = 'quest_got_stone',
+                say      = '(原来这就是起爆石啊... 得赶快带给清明子..)',
+            },
+        })
     end,
 
     -- [516], the stone is in your pack
     quest_got_stone = function(uid, args)
         setQuestDesp{uid=uid, '拿到起爆石了，回本馆交给清明子。'}
+
+        -- the [516] branch of deaji2, which just shows you the door
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '尸王',
+                map     = secretMap,
+                moveTo  = {mineEntry},
+            },
+        })
 
         setupNPCQuestBehavior(teacherMap, teacherNPC, uid,
         [[
@@ -176,43 +216,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
-local mondrop = require('quest.include.mondrop')
-
-mondrop.setDropOnKill
-{
-    -- deaji1, one zombie in fifty anywhere in the mine. the book is the key to the room and
-    -- the same step that hands it over pulls you in
-    {
-        monster  = mineZombies,
-        map      = mineMaps,
-        state    = SYS_ENTER,
-        chance   = bookChance,
-        give     = bookName,
-        setState = 'quest_in_secret_room',
-        moveTo   = {secretMap},
-    },
-
-    -- deaji2, one 尸王 in ten has the stone
-    {
-        monster  = '尸王',
-        map      = secretMap,
-        state    = 'quest_in_secret_room',
-        chance   = stoneChance,
-        once     = true,
-        give     = stoneName,
-        setState = 'quest_got_stone',
-        say      = '(原来这就是起爆石啊... 得赶快带给清明子..)',
-    },
-
-    -- and the [516] branch of deaji2, which just shows you the door
-    {
-        monster = '尸王',
-        map     = secretMap,
-        state   = 'quest_got_stone',
-        moveTo  = {mineEntry},
-    },
-}
 
 -- @mugong_Upac, the entry he offers to anyone who has not started
 uidRemoteCall(getNPCharUID(teacherMap, teacherNPC), getUID(), getQuestName(), minQuestLevel, magicName,

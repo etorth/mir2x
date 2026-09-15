@@ -61,20 +61,6 @@ local function asNameList(arg)
     return arg
 end
 
-local function inState(playerUID, stateList)
-    local state = dbGetQuestState(playerUID)
-    if state == nil then
-        return false
-    end
-
-    for _, v in ipairs(stateList) do
-        if v == state then
-            return true
-        end
-    end
-    return false
-end
-
 -- returns true when the drop fired, so a monster carrying more than one drop only ever
 -- hands over the first one that is live
 local function onMap(playerUID, mapList)
@@ -92,10 +78,6 @@ local function onMap(playerUID, mapList)
 end
 
 local function runDrop(playerUID, drop)
-    if not inState(playerUID, drop.state) then
-        return false
-    end
-
     -- legacy keyed its MonDie hooks on the map the monster died on, see Envir/MapQuest.txt
     if not onMap(playerUID, drop.map) then
         return false
@@ -161,13 +143,11 @@ local function runDrop(playerUID, drop)
     return true
 end
 
--- call after setQuestFSMTable, the state names get validated against the FSM
+-- the dropList shape addDropTrigger takes
 --
---     mondrop.setDropOnKill
 --     {
 --         {
 --             monster  = '千年毒蛇',          -- name, or list of names
---             state    = 'quest_find_gall',  -- quest states this drop is live in
 --             map      = '沃玛神殿_D022',      -- optional, only on these maps
 --             kills    = 10,                 -- optional, roughly how many kills it takes
 --             chance   = 2,                  -- optional, 1/chance per kill instead
@@ -182,8 +162,8 @@ end
 --         },
 --     }
 --
--- shared by setDropOnKill and addDropTrigger: validates dropList and indexes it by monster id
--- so a kill only has to walk the drops that could actually fire
+-- validates dropList and indexes it by monster id so a kill only has to walk the drops that
+-- could actually fire
 local function buildDropListByMonster(dropList)
     assertType(dropList, 'table')
 
@@ -206,7 +186,6 @@ local function buildDropListByMonster(dropList)
 
         local parsed =
         {
-            state    = asNameList(drop.state),
             map      = drop.map and asNameList(drop.map) or {},
             need     = asItemList(drop.need),
             give     = asItemList(drop.give),
@@ -226,12 +205,6 @@ local function buildDropListByMonster(dropList)
         for _, mapName in ipairs(parsed.map) do
             if getMapID(mapName) <= 0 then
                 fatalPrintf('Monster drop refers to unknown map %s', mapName)
-            end
-        end
-
-        for _, state in ipairs(parsed.state) do
-            if not hasQuestState(state) then
-                fatalPrintf('Monster drop gated on unknown quest state %s', state)
             end
         end
 
@@ -263,20 +236,6 @@ local function buildDropListByMonster(dropList)
     return dropListByMonster
 end
 
-function mondrop.setDropOnKill(dropList)
-    local dropListByMonster = buildDropListByMonster(dropList)
-    addQuestTrigger(SYS_ON_KILL, function(playerUID, monsterUID)
-        for _, drop in ipairs(dropListByMonster[getMonsterID(monsterUID)] or {}) do
-            if runDrop(playerUID, drop) then
-                return
-            end
-        end
-    end)
-end
-
--- addDropTrigger/deleteDropTrigger: same drop config and same runDrop logic as setDropOnKill,
--- but installed on-demand for a single player instead of globally for every kill on the server
---
 -- call this from inside the quest_xxx state the drop is meant to be live in (not once at quest
 -- script load time), the trigger lives in the player's own VM so a kill costs the killer a cheap
 -- local table lookup instead of a remote call to the quest actor for every single kill on the

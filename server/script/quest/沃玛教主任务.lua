@@ -28,6 +28,18 @@ setQuestFSMTable(
     [SYS_ENTER] = function(uid, args)
         setQuestDesp{uid=uid, '沃玛神殿的古董能卖上价钱，去猎杀沃玛战士找一件出来。'}
 
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '沃玛战士',
+                kills    = 5,
+                once     = true,
+                give     = '沃玛金牌',
+                setState = 'quest_sell_medal',
+                say      = '（一面沉甸甸的金牌，纹样已经看不真切了）',
+            },
+        })
+
         setupNPCQuestBehavior('道馆_1', '王铁匠_1', uid,
         [[
             return getQuestName()
@@ -171,6 +183,17 @@ setQuestFSMTable(
     -- he will not talk until you bring back the journal he lost in the temple
     quest_find_hermit = function(uid, args)
         setQuestDesp{uid=uid, '无名老人对沃玛神殿讳莫如深，去沃玛神殿猎杀沃玛卫士，找到他丢失的无名日志。'}
+
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster = '沃玛卫士',
+                kills   = 5,
+                once    = true,
+                give    = '无名日志',
+                say     = '（一本被血浸透的旧日志，字迹还认得出来）',
+            },
+        })
 
         setupNPCQuestBehavior('比奇县_0', '王大人_1', uid,
         [[
@@ -777,6 +800,17 @@ setQuestFSMTable(
     quest_find_orb = function(uid, args)
         setQuestDesp{uid=uid, '灵魂明珠在沃玛护卫手里，去沃玛神殿猎杀沃玛护卫。'}
 
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '沃玛护卫',
+                kills    = 5,
+                give     = '灵魂明珠',
+                setState = 'quest_break_orb',
+                say      = '（一颗温热的明珠，里面像是有什么东西在动）',
+            },
+        })
+
         setupNPCQuestBehavior(hermitMap, '无名老人_1', uid,
         [[
             return getQuestName()
@@ -955,6 +989,16 @@ setQuestFSMTable(
             y       = priestY,
             say     = '牛老道大笑着退开，几只沃玛怪物从阴影里扑了上来！',
         }
+
+        -- his escort, then 牛老道 himself
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '火焰沃玛',
+                setState = 'quest_fight_priest',
+                say      = '（看来需要再谈谈...）',
+            },
+        })
     end,
 
     -- then he admits what he is
@@ -1015,6 +1059,16 @@ setQuestFSMTable(
             y       = priestY,
             say     = '牛老道的皮囊裂了开来，里面是一头不死的沃玛怪物！',
         }
+
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '沃玛勇士',
+                give     = {{'灵魂明珠', 1}, {'沃玛神铁锤', 1}},
+                setState = 'quest_smash_orb',
+                say      = '（灵魂明珠回来了，还有一柄沉重的古锤）',
+            },
+        })
     end,
 
     -- the old man can finally do what he has waited decades for
@@ -1127,6 +1181,15 @@ setQuestFSMTable(
     quest_kill_king = function(uid, args)
         setQuestDesp{uid=uid, '灵魂明珠已碎，去沃玛神殿深处除掉沃玛教主。'}
 
+        mondrop.addDropTrigger(uid,
+        {
+            {
+                monster  = '沃玛教主',
+                setState = 'quest_king_dead',
+                say      = '（冤魂们终于可以升天了……）',
+            },
+        })
+
         setupNPCQuestBehavior(hermitMap, '无名老人_1', uid,
         [[
             return getUID(), getQuestName()
@@ -1189,60 +1252,6 @@ setQuestFSMTable(
         ]])
     end,
 })
-
-mondrop.setDropOnKill
-{
-    {
-        monster  = '沃玛战士',
-        state    = SYS_ENTER,
-        kills    = 5,
-        once     = true,
-        give     = '沃玛金牌',
-        setState = 'quest_sell_medal',
-        say      = '（一面沉甸甸的金牌，纹样已经看不真切了）',
-    },
-
-    {
-        monster = '沃玛卫士',
-        state   = 'quest_find_hermit',
-        kills   = 5,
-        once    = true,
-        give    = '无名日志',
-        say     = '（一本被血浸透的旧日志，字迹还认得出来）',
-    },
-
-    {
-        monster  = '沃玛护卫',
-        state    = 'quest_find_orb',
-        kills    = 5,
-        give     = '灵魂明珠',
-        setState = 'quest_break_orb',
-        say      = '（一颗温热的明珠，里面像是有什么东西在动）',
-    },
-
-    -- his escort, then 牛老道 himself
-    {
-        monster  = '火焰沃玛',
-        state    = 'quest_fight_escort',
-        setState = 'quest_fight_priest',
-        say      = '（看来需要再谈谈...）',
-    },
-
-    {
-        monster  = '沃玛勇士',
-        state    = 'quest_kill_priest',
-        give     = {{'灵魂明珠', 1}, {'沃玛神铁锤', 1}},
-        setState = 'quest_smash_orb',
-        say      = '（灵魂明珠回来了，还有一柄沉重的古锤）',
-    },
-
-    {
-        monster  = '沃玛教主',
-        state    = 'quest_kill_king',
-        setState = 'quest_king_dead',
-        say      = '（冤魂们终于可以升天了……）',
-    },
-}
 
 uidRemoteCall(getNPCharUID('道馆_1', '王铁匠_1'), getUID(), getQuestName(), minQuestLevel,
 [[

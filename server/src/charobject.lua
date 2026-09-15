@@ -59,9 +59,24 @@ function _RSVD_NAME_trigger(triggerType, ...)
         config[3](args)
     end
 
-    local doneKeyList = {}
+    -- snapshot (key, callback) pairs to prevent table mutation during pairs() iteration
+    -- callbacks may yield (e.g. uidRemoteCall) or trigger reentrant addTrigger/deleteTrigger calls
+    -- mutating _RSVD_NAME_triggers while pairs() runs corrupts the iterator and get error like 'invalid key to next'
+    -- collecting pairs into a array first allows safe callback invocation afterward
+
+    local triggerKeyList = {}
     if _RSVD_NAME_triggers[triggerType] then
-        for triggerKey, triggerFunc in pairs(_RSVD_NAME_triggers[triggerType]) do
+        for triggerKey in pairs(_RSVD_NAME_triggers[triggerType]) do
+            table.insert(triggerKeyList, triggerKey)
+        end
+    end
+
+    local doneKeyList = {}
+    for _, triggerKey in ipairs(triggerKeyList) do
+        -- the callback may already have been removed by a reentrant deleteTrigger triggered
+        -- from an earlier callback in this same snapshot
+        local triggerFunc = _RSVD_NAME_triggers[triggerType] and _RSVD_NAME_triggers[triggerType][triggerKey]
+        if triggerFunc then
             local result = triggerFunc(table.unpack(args, 1, #config[2]))
             if type(result) == 'boolean' then
                 if result then
@@ -74,11 +89,13 @@ function _RSVD_NAME_trigger(triggerType, ...)
         end
     end
 
-    for _, key in ipairs(doneKeyList) do
-        _RSVD_NAME_triggers[triggerType][key] = nil
-    end
+    if _RSVD_NAME_triggers[triggerType] then
+        for _, key in ipairs(doneKeyList) do
+            _RSVD_NAME_triggers[triggerType][key] = nil
+        end
 
-    if tableEmpty(_RSVD_NAME_triggers[triggerType]) then
-        _RSVD_NAME_triggers[triggerType] = nil
+        if tableEmpty(_RSVD_NAME_triggers[triggerType]) then
+            _RSVD_NAME_triggers[triggerType] = nil
+        end
     end
 end
