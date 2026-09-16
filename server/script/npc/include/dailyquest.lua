@@ -137,12 +137,12 @@ local targetNPCList <const> =
 
 local rewardList <const> =
 {
-    {kind = 'gold', amount = 1000,                    description = '<t color="RED">1000金币</t>'       },
-    {kind = 'exp',  amount = 1000,                    description = '<t color="RED">1000点经验</t>'     },
-    {kind = 'item', item = '金创药（小）', count = 5, description = '<t color="RED">5瓶金创药（小）</t>'},
-    {kind = 'item', item = '魔法药（小）', count = 5, description = '<t color="RED">5瓶魔法药（小）</t>'},
-    {kind = 'item', item = '太阳水',       count = 2, description = '<t color="RED">2瓶太阳水</t>'      },
-    {kind = 'item', item = '回城卷',       count = 1, description = '<t color="RED">1张回城卷</t>'      },
+    {kind = 'gold',                        count = 1000, description = '<t color="RED">1000金币</t>'       },
+    {kind = 'exp',                         count = 1000, description = '<t color="RED">1000点经验</t>'     },
+    {kind = 'item', item = '金创药（小）', count = 5,    description = '<t color="RED">5瓶金创药（小）</t>'},
+    {kind = 'item', item = '魔法药（小）', count = 5,    description = '<t color="RED">5瓶魔法药（小）</t>'},
+    {kind = 'item', item = '太阳水',       count = 2,    description = '<t color="RED">2瓶太阳水</t>'      },
+    {kind = 'item', item = '回城卷',       count = 1,    description = '<t color="RED">1张回城卷</t>'      },
 }
 
 local impatientTalk <const> =
@@ -195,75 +195,72 @@ local dialogTemplateList <const> =
     end,
 }
 
-local function getCurrentDay()
-    return (launchTime() + uptime()) // (24 * 60 * 60)
-end
-
-local function getProgress(uid)
-    return uidRemoteCall(uid, DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT, getCurrentDay(),
+local function getQuestProgress(playerUID)
+    return uidRemoteCall(playerUID, DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT,
     [[
-        local activeTarget, completedDay, completedCount, currentDay = ...
-        local completedDay = dbGetVar(completedDay)
-        local completedCount = dbGetVar(completedCount) or 0
+        local DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT = ...
+
+        local completedCount = dbGetVar(DBVAR_COMPLETED_COUNT) or 0
+        local completedDay = dbGetVar(DBVAR_COMPLETED_DAY)
+        local currentDay = (launchTime() + uptime()) // (24 * 60 * 60)
 
         if completedDay ~= currentDay then
             completedCount = 0
-            dbSetVar(completedDay, currentDay)
-            dbSetVar(completedCount, completedCount)
+            dbSetVar(DBVAR_COMPLETED_DAY, currentDay)
+            dbSetVar(DBVAR_COMPLETED_COUNT, completedCount)
         end
-        return dbGetVar(activeTarget), completedCount
+        return dbGetVar(DBVAR_ACTIVE_TARGET), completedCount
     ]])
 end
 
-local function setActiveTarget(uid, targetIndex)
-    uidRemoteCall(uid, DBVAR_ACTIVE_TARGET, targetIndex,
+local function setActiveTarget(playerUID, targetIndex)
+    uidRemoteCall(playerUID, DBVAR_ACTIVE_TARGET, targetIndex,
     [[
-        local activeTarget, index = ...
-        dbSetVar(activeTarget, index)
+        local DBVAR_ACTIVE_TARGET, targetIndex = ...
+        dbSetVar(DBVAR_ACTIVE_TARGET, targetIndex)
     ]])
 end
 
-local function registerTargetResponse(uid, targetIndex)
+local function registerTargetResponse(playerUID, targetIndex)
     local target = targetNPCList[targetIndex]
     local npcUID = getNPCharUID(target.map, target.npc)
+
     if not npcUID then
         fatalPrintf('Daily quest target not found: map=%s, npc=%s', target.map, target.npc)
     end
 
-    uidRemoteCall(npcUID, uid, targetIndex, QUEST_NAME, MAX_DAILY_ROUNDS,
-        DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT, rewardList,
+    uidRemoteCall(npcUID, playerUID, targetIndex, QUEST_NAME, MAX_DAILY_ROUNDS, DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT, rewardList,
     [[
-        local playerUID, targetIndex, questName, maxDailyRounds,
-            activeTarget, completedDay, completedCount, rewards = ...
-        local questPath = {SYS_EPUID, questName}
+        local playerUID, targetIndex, QUEST_NAME, MAX_DAILY_ROUNDS, DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT, rewardList = ...
+
         local dialog = require('include.dialog')
+        local questPath = {SYS_EPUID, questName}
 
         setUIDQuestHandler(playerUID, questName,
         {
             [SYS_LABEL] = '送达消息',
             [SYS_ENTER] = function(uid, args)
-                local completed, completedCount = uidRemoteCall(uid, targetIndex, maxDailyRounds,
-                    activeTarget, completedDay, completedCount,
+                local completed, completedCount = uidRemoteCall(uid, targetIndex, MAX_DAILY_ROUNDS, DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT,
                 [=[
-                    local expectedTarget, maxRounds, activeVar, dayVar, countVar = ...
+                    local targetIndex, MAX_DAILY_ROUNDS, DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT = ...
+
+                    local completedCount = dbGetVar(DBVAR_COMPLETED_COUNT) or 0
+                    local completedDay = dbGetVar(DBVAR_COMPLETED_DAY)
                     local currentDay = (launchTime() + uptime()) // (24 * 60 * 60)
-                    local savedDay = dbGetVar(dayVar)
-                    local count = dbGetVar(countVar) or 0
 
-                    if savedDay ~= currentDay then
-                        count = 0
-                        dbSetVar(dayVar, currentDay)
-                        dbSetVar(countVar, count)
+                    if completedDay ~= currentDay then
+                        completedCount = 0
+                        dbSetVar(DBVAR_COMPLETED_DAY, currentDay)
+                        dbSetVar(DBVAR_COMPLETED_COUNT, completedCount)
                     end
 
-                    if dbGetVar(activeVar) ~= expectedTarget or count >= maxRounds then
-                        return false, count
+                    if dbGetVar(DBVAR_ACTIVE_TARGET) ~= targetIndex or completedCount >= MAX_DAILY_ROUNDS then
+                        return false, completedCount
                     end
 
-                    dbRemoveVar(activeVar)
-                    count = count + 1
-                    dbSetVar(countVar, count)
-                    return true, count
+                    dbRemoveVar(DBVAR_ACTIVE_TARGET)
+                    dbSetVar(DBVAR_COMPLETED_COUNT, completedCount + 1)
+                    return true, completedCount + 1
                 ]=])
 
                 deleteUIDQuestHandler(uid, questName)
@@ -273,11 +270,13 @@ local function registerTargetResponse(uid, targetIndex)
                     return
                 end
 
-                local reward = rewards[math.random(1, #rewards)]
+                local rewardIndex = math.random(1, #rewardList)
+                local reward = rewards[rewardIndex]
+
                 if reward.kind == 'exp' then
-                    server.player.addExp(uid, reward.amount)
+                    server.player.addExp(uid, reward.count)
                 elseif reward.kind == 'gold' then
-                    server.player.addItem(uid, SYS_GOLDNAME, reward.amount)
+                    server.player.addItem(uid, SYS_GOLDNAME, reward.count)
                 elseif reward.kind == 'item' then
                     server.player.addItem(uid, reward.item, reward.count)
                 else
@@ -286,9 +285,8 @@ local function registerTargetResponse(uid, targetIndex)
 
                 dialog.post(uid, questPath,
                 {
-                    '谢谢你带来的消息，我已经知道了。',
-                    string.format('这是给你的谢礼：%s。', reward.description),
-                    string.format('今天已经完成<t color="RED">%d</t>次任务，还可以完成<t color="RED">%d</t>次。', completedCount, maxDailyRounds - completedCount),
+                    string.format('谢谢你带来的消息，我已经知道了，这是给你的谢礼：%s。', reward.description),
+                    string.format('今天已经完成<t color="red">%d</t>次任务，还可以完成<t color="red">%d</t>次。', completedCount, MAX_DAILY_ROUNDS - completedCount),
                 },
                 dialog.link(SYS_EXIT, '结束'))
             end,
@@ -300,7 +298,7 @@ function dq.setQuest(uid, args)
     assertType(uid, 'integer')
     assert(isPlayer(uid))
 
-    local targetIndex, completedCount = getProgress(uid)
+    local targetIndex, completedCount = getQuestProgress(uid)
     if completedCount >= MAX_DAILY_ROUNDS then
         dialog.post(uid, string.format('你今天已经完成<t color="RED">%d</t>次任务，明天再来吧。', MAX_DAILY_ROUNDS),
         dialog.link(SYS_EXIT, '结束', {close = false}))
