@@ -148,6 +148,21 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           },
       }}
 
+    , m_pageSystem_pixelScaleSlider
+      {
+          DIR_UPLEFT,
+          0,
+          0,
+
+          u8"缩放比例",
+          60,
+
+          1,
+          80,
+
+          nullptr,
+      }
+
     , m_pageSystem_musicSlider
       {
           DIR_UPLEFT,
@@ -212,6 +227,8 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                           {new CheckLabel{{.label{.text=u8"全屏显示"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_FULLSCREEN>(); }}}, DIR_UPLEFT, 0,  75, true},
                           {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_SHOWFPS>(); }}}, DIR_UPLEFT, 0, 100, true},
+                          {new CheckLabel{{.label{.text=u8"像素缩放"}}}, DIR_UPLEFT, 0, 140, true},
+                          {&m_pageSystem_pixelScaleSlider, DIR_UPLEFT, 0, 165, false},
 
                           {new CheckLabel
                           {{
@@ -237,9 +254,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   m_pageSystem_musicSlider.setActive(value);
                               },
                           }},
-                          DIR_UPLEFT, 0, 140, true},
+                          DIR_UPLEFT, 0, 200, true},
 
-                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 165, false},
+                          {&m_pageSystem_musicSlider, DIR_UPLEFT, 0, 225, false},
 
                           {new CheckLabel
                           {{
@@ -265,9 +282,9 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
                                   m_pageSystem_soundEffectSlider.setActive(value);
                               },
                           }},
-                          DIR_UPLEFT, 0,  200, true},
+                          DIR_UPLEFT, 0, 260, true},
 
-                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 225, false},
+                          {&m_pageSystem_soundEffectSlider, DIR_UPLEFT, 0, 285, false},
                       },
                   }},
                   true,

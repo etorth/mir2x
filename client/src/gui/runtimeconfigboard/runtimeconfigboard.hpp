@@ -44,6 +44,7 @@ class RuntimeConfigBoard: public Widget
     private:
         PullMenu       m_pageSystem_resolution;
         PullMenu       m_pageSystem_ime;
+        LabelSliderBar m_pageSystem_pixelScaleSlider;
         LabelSliderBar m_pageSystem_musicSlider;
         LabelSliderBar m_pageSystem_soundEffectSlider;
         MenuPage       m_pageSystem;
