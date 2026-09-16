@@ -968,9 +968,6 @@ bool Player::struckDamage(uint64_t fromUID, const DamageNode &node)
     if(damage > 0){
         updateHealth(-damage);
         if(m_sdHealth.dead()){
-            onDie();
-
-            // the killer decides whether this was a pk, only it knows if I ever attacked it
             if(fromUID && uidf::isPlayer(fromUID)){
                 notifyDead(fromUID);
             }

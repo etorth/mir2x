@@ -706,7 +706,9 @@ void Monster::onDie()
         addDelay(1000, [this](bool) { goGhost(); });
     }
     else{
-        goGhost();
+        // defer it because goGhost() -> deactivate() which deactivates the monster immediately
+        // otherwise after this function the monster actorpod is dead and cannot send/recv messages anymore
+        defer([this]{ goGhost(); });
     }
 }
 
@@ -774,10 +776,6 @@ bool Monster::struckDamage(uint64_t fromUID, const DamageNode &node)
                 {
                     break;
                 }
-        }
-
-        if(m_sdHealth.dead()){
-            onDie();
         }
     }
     return true;

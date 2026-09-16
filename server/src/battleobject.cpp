@@ -1155,9 +1155,9 @@ BaseBuff *BattleObject::addBuff(uint64_t fromUID, uint64_t fromBuffSeq, uint32_t
 
 bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP)
 {
-    if(m_sdHealth.updateHealth(addHP, addMP, addMaxHP, addMaxMP)){
+    if(const bool hasDied = m_sdHealth.dead(); m_sdHealth.updateHealth(addHP, addMP, addMaxHP, addMaxMP)){
         dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
-        if(m_sdHealth.dead()){
+        if(!hasDied && m_sdHealth.dead()){
             onDie();
         }
         return true;
@@ -1167,9 +1167,9 @@ bool BattleObject::updateHealth(int addHP, int addMP, int addMaxHP, int addMaxMP
 
 bool BattleObject::setHealth(std::optional<int> hp, std::optional<int> mp, std::optional<int> maxHP, std::optional<int> maxMP)
 {
-    if(m_sdHealth.setHealth(hp, mp, maxHP, maxMP)){
+    if(const bool hasDied = m_sdHealth.dead(); m_sdHealth.setHealth(hp, mp, maxHP, maxMP)){
         dispatchInViewCONetPackage(SM_HEALTH, cerealf::serialize(m_sdHealth));
-        if(m_sdHealth.dead()){
+        if(!hasDied && m_sdHealth.dead()){
             onDie();
         }
         return true;
