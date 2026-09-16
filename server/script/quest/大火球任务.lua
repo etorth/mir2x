@@ -76,7 +76,12 @@ local function enterTrial(uid)
     [[
         local count, x, y = ...
         for _ = 1, count do
-            addMonster('火焰沃玛61', x, y, false)
+            local mondrop = require('quest.include.mondrop')
+            local uid = addMonster('火焰沃玛61', x, y, false)
+
+            -- give all default
+            -- makes the monster drop nothing
+            mondrop.setDieDrop(uid)
         end
     ]])
 

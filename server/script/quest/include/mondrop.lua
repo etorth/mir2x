@@ -376,4 +376,14 @@ function mondrop.deleteDropTrigger(uid, handle)
     _RSVD_NAME_removePlayerTrigger(uid, call.triggerPath)
 end
 
+function mondrop.setDieDrop(monsterUID, itemCfgList, opts)
+    assertType(monsterUID, 'integer')
+    assert(isMonster(monsterUID))
+
+    assertType(itemCfgList, 'array', 'nil')
+    assertType(opts, 'table', 'nil')
+
+    return setMonsterDropOnDie(monsterUID, itemCfgList, opts)
+end
+
 return mondrop

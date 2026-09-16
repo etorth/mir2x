@@ -236,7 +236,10 @@ ServerLuaCoroutineRunner::ServerLuaCoroutineRunner(ActorPod *podPtr)
         if(playerUID){
             fflassert(uidf::isPlayer(playerUID), playerUID);
         }
-        fflassert(luaf::isArray(itemCfgList), itemCfgList);
+
+        if(!itemCfgList.empty()){
+            fflassert(luaf::isArray(itemCfgList), itemCfgList);
+        }
 
         const auto fnGetItem = [](const sol::object &obj) -> SDItem
         {

@@ -231,11 +231,14 @@ function setMonsterDropOnDie(monsterUID, itemCfgList, opts)
     assertType(monsterUID, 'integer')
     assert(isMonster(monsterUID))
 
-    assertType(itemCfgList, 'array')
+    assertType(itemCfgList, 'array', 'nil')
     assertType(opts, 'table', 'nil')
 
+    -- by default don't allow default drop
+    -- so setMonsterDropOnDie(UID) makes the monster drop nothing
+
     local playerUID = 0
-    local allowDefaultDrop = true
+    local allowDefaultDrop = false
 
     if opts then
         if opts.player ~= nil then
@@ -253,7 +256,7 @@ function setMonsterDropOnDie(monsterUID, itemCfgList, opts)
         end
     end
 
-    return _RSVD_NAME_callFuncCoop('setMonsterDropOnDie', monsterUID, playerUID, allowDefaultDrop, itemCfgList)
+    return _RSVD_NAME_callFuncCoop('setMonsterDropOnDie', monsterUID, playerUID, allowDefaultDrop, itemCfgList or {})
 end
 
 local _RSVD_NAME_triggerConfigList = {

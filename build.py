@@ -141,6 +141,12 @@ def parse_args():
         help="Number of parallel jobs for vcpkg port builds and mir2x target builds.",
     )
     parser.add_argument(
+        "--ccache",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Use ccache to speed up rebuilds if available. Use --no-ccache to disable. Defaults to true.",
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Show verbose CMake build/install output and vcpkg toolchain messages.",
@@ -284,6 +290,7 @@ def main():
     if args.parallel:
         configure_env["VCPKG_MAX_CONCURRENCY"] = str(args.parallel)
         log(f"Using parallel jobs: {args.parallel}")
+    log(f"Using ccache: {'enabled' if args.ccache else 'disabled'}")
     if args.verbose:
         log("Using verbose output")
     if use_chainload_toolchain:
@@ -304,6 +311,7 @@ def main():
         f"-DVCPKG_TARGET_TRIPLET={vcpkg_triplet}",
         f"-DVCPKG_INSTALLED_DIR={cmake_build_dir / 'vcpkg_installed'}",
         f"-DCMAKE_INSTALL_PREFIX={install_prefix}",
+        f"-DMIR2X_USE_CCACHE={'ON' if args.ccache else 'OFF'}",
     ])
     if vcpkg_host_triplet:
         cmake_configure_args.append(f"-DVCPKG_HOST_TRIPLET={vcpkg_host_triplet}")
