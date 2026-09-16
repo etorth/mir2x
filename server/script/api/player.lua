@@ -73,6 +73,20 @@ function player.addItem(uid, item, count)
     ]])
 end
 
+function player.addExp(uid, exp)
+    assertType(uid, 'integer')
+    assertType(exp, 'integer')
+
+    assert(isPlayer(uid))
+    assert(exp > 0)
+
+    return uidRemoteCall(uid, exp,
+    [[
+        local exp = ...
+        return addExp(exp)
+    ]])
+end
+
 function player.deliverItem(uid, item, count)
     assertType(uid, 'integer')
     assert(isPlayer(uid))

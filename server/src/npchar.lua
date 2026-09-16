@@ -657,9 +657,7 @@ function runEventHandler(uid, ...)
 end
 
 function getNPCharUID(mapName, npcName)
-    local mapUID = _RSVD_NAME_callFuncCoop('loadMap', mapName)
-    assertType(mapUID, 'integer', 'nil')
-
+    local mapUID = assertType(loadBaseMap(mapName), 'integer', 'nil')
     if not mapUID then
         return nil
     end

@@ -1262,6 +1262,21 @@ void ProcessRun::RegisterUserCommand()
         return 0;
     });
 
+    m_userCommandList.emplace_back("addLevel", [this](const std::vector<std::string> &parms) -> int
+    {
+        if(parms.size() >= 2){
+            if(const auto addLevel = std::stoi(parms.at(1)); addLevel > 0){
+                requestAddExp(to_u64(SYS_SUMEXP(getMyHero()->getLevel() + addLevel) - getMyHero()->getExp()));
+                return 0;
+            }
+            else{
+                addCBLog(CBLOG_ERR, u8"Invalid level: %s", parms.at(1).c_str());
+                return 1;
+            }
+        }
+        return 0;
+    });
+
     m_userCommandList.emplace_back("killPets", [this](const std::vector<std::string> &) -> int
     {
         requestKillPets();

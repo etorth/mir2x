@@ -187,6 +187,12 @@ Player::LuaThreadRunner::LuaThreadRunner(Player *playerPtr)
         }
     });
 
+    bindFunction("addExp", [this](int exp)
+    {
+        fflassert(exp > 0, exp);
+        getPlayer()->gainExp(exp);
+    });
+
     // hand over an item the player can not take off once worn, see SDItem::EA_BIND
     //
     // returns the seqID, a quest needs it to tell the lent copy from one the player already
