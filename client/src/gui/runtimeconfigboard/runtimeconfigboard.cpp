@@ -160,7 +160,12 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
           1,
           80,
 
-          nullptr,
+          [this](float val)
+          {
+              SDRuntimeConfig_setConfig<RTCFG_SCALERATIO>(m_sdRuntimeConfig, val);
+              applyScaleConfig();
+              reportRuntimeConfig<RTCFG_SCALERATIO>();
+          },
       }
 
     , m_pageSystem_musicSlider
@@ -227,7 +232,30 @@ RuntimeConfigBoard::RuntimeConfigBoard(int argX, int argY, int argW, int argH, P
 
                           {new CheckLabel{{.label{.text=u8"全屏显示"}, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_FULLSCREEN>(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_FULLSCREEN>(); }}}, DIR_UPLEFT, 0,  75, true},
                           {new CheckLabel{{.label{.text=u8"显示FPS" }, .getter=[this]{ return SDRuntimeConfig_getConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig); }, .setter=[this](bool value){ SDRuntimeConfig_setConfig<RTCFG_SHOWFPS   >(m_sdRuntimeConfig, value); }, .onChange=[this](bool){ reportRuntimeConfig<RTCFG_SHOWFPS>(); }}}, DIR_UPLEFT, 0, 100, true},
-                          {new CheckLabel{{.label{.text=u8"像素缩放"}}}, DIR_UPLEFT, 0, 140, true},
+
+                          {new CheckLabel
+                          {{
+                              .label{.text=u8"像素缩放"},
+                              .getter = [this]
+                              {
+                                  return SDRuntimeConfig_getConfig<RTCFG_SCALE>(m_sdRuntimeConfig);
+                              },
+
+                              .setter = [this](bool value)
+                              {
+                                  SDRuntimeConfig_setConfig<RTCFG_SCALE>(m_sdRuntimeConfig, value);
+                              },
+
+                              .onChange = [this](bool value)
+                              {
+                                  applyScaleConfig();
+                                  reportRuntimeConfig<RTCFG_SCALE>();
+                                  m_pageSystem_pixelScaleSlider.setActive(value);
+                              },
+
+                          }},
+                          DIR_UPLEFT, 0, 140, true},
+
                           {&m_pageSystem_pixelScaleSlider, DIR_UPLEFT, 0, 165, false},
 
                           {new CheckLabel
@@ -678,7 +706,11 @@ void RuntimeConfigBoard::applyAudioConfig()
     g_sdlDevice->setSoundEffectVolume(seffGain);
 }
 
-void RuntimeConfigBoard::reportRuntimeConfigRaw(int rtCfg, std::string key)
+void RuntimeConfigBoard::applyScaleConfig()
+{
+}
+
+void RuntimeConfigBoard::doReportRuntimeConfig(int rtCfg, std::string key)
 {
     fflassert(rtCfg >= RTCFG_BEGIN, rtCfg);
     fflassert(rtCfg <  RTCFG_END  , rtCfg);

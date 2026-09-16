@@ -73,15 +73,16 @@ class RuntimeConfigBoard: public Widget
         bool processEventDefault(const SDL_Event &, bool, Widget::ROIMap) override;
 
     private:
-        void reportRuntimeConfigRaw(int type, std::string key);
+        void doReportRuntimeConfig(int type, std::string key);
 
     public:
         template<int INDEX, typename... Args> void reportRuntimeConfig(Args && ... args)
         {
-            reportRuntimeConfigRaw(INDEX, SDRuntimeConfigAccessor<INDEX>::keyString(std::forward<Args>(args)...));
+            doReportRuntimeConfig(INDEX, SDRuntimeConfigAccessor<INDEX>::keyString(std::forward<Args>(args)...));
         }
 
         void applyAudioConfig();
+        void applyScaleConfig();
 
     public:
         uint32_t dropItemRule(uint32_t) const;

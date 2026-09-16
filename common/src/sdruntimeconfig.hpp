@@ -135,6 +135,9 @@ constexpr int _RSVD_rtcfg_add_type_counter_begin = __COUNTER__;
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SEFF,      (), bool,  true )
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SEFFVALUE, (), float, 0.50f)
 
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SCALE,      (), bool,  true )
+    /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SCALERATIO, (), float, 1.00f)
+
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_FULLSCREEN, (), bool, false)
     /**/ _MACRO_ADD_RTCFG_TYPE(RTCFG_SHOWFPS   , (), bool, false)
 
