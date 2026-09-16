@@ -427,7 +427,7 @@ setEventHandler(
             dialog.post(uid, '你还没有足够能力执行此任务，修炼到7级后，再来找我吧。',
             dialog.link(SYS_EXIT, '结束'))
         else
-            require('npc.include.dailyquest').setQuest(0, uid, args)
+            require('npc.include.dailyquest').setQuest(uid, args)
         end
     end,
 

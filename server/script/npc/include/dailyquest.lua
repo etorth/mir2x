@@ -147,26 +147,28 @@ local rewardList <const> =
 
 local dialogTemplateList <const> =
 {
-    function(target)
+    function(target, again)
         return
         {
-            '只说一遍，希望认真听好<t wrap="0">···</t>',
+            string.format('%s说一遍，希望认真听好<t wrap="0">···</t>', again and '你又来啦？我再' or '我只'),
             string.format('这次事情去找一下在<t color="RED">%s</t>的%s<t color="RED">%s</t>吧。', target.area, target.role, target.name),
             string.format('%s也许在%s。', target.name, target.location),
         }
     end,
 
-    function(target)
+    function(target, again)
         return
         {
+            string.format('%s说一遍，希望认真听好<t wrap="0">···</t>', again and '你又来啦？我再' or '我只'),
             string.format('麻烦你去一趟<t color="RED">%s</t>，把消息带给%s<t color="RED">%s</t>。', target.area, target.role, target.name),
             string.format('你可以到%s找%s。', target.location, target.name),
         }
     end,
 
-    function(target)
+    function(target, again)
         return
         {
+            string.format('%s说一遍，希望认真听好<t wrap="0">···</t>', again and '你又来啦？我再' or '我只'),
             string.format('今天的事情要请%s<t color="RED">%s</t>帮忙，你去<t color="RED">%s</t>找一下吧。', target.role, target.name, target.area),
             string.format('%s通常在%s。', target.name, target.location),
         }
@@ -180,24 +182,24 @@ end
 local function getProgress(uid)
     return uidRemoteCall(uid, DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT, getCurrentDay(),
     [[
-        local activeTargetVar, completedDayVar, completedCountVar, currentDay = ...
-        local completedDay = dbGetVar(completedDayVar)
-        local completedCount = dbGetVar(completedCountVar) or 0
+        local activeTarget, completedDay, completedCount, currentDay = ...
+        local completedDay = dbGetVar(completedDay)
+        local completedCount = dbGetVar(completedCount) or 0
 
         if completedDay ~= currentDay then
             completedCount = 0
-            dbSetVar(completedDayVar, currentDay)
-            dbSetVar(completedCountVar, completedCount)
+            dbSetVar(completedDay, currentDay)
+            dbSetVar(completedCount, completedCount)
         end
-        return dbGetVar(activeTargetVar), completedCount
+        return dbGetVar(activeTarget), completedCount
     ]])
 end
 
 local function setActiveTarget(uid, targetIndex)
     uidRemoteCall(uid, DBVAR_ACTIVE_TARGET, targetIndex,
     [[
-        local activeTargetVar, index = ...
-        dbSetVar(activeTargetVar, index)
+        local activeTarget, index = ...
+        dbSetVar(activeTarget, index)
     ]])
 end
 
@@ -212,16 +214,16 @@ local function registerTargetResponse(uid, targetIndex)
         DBVAR_ACTIVE_TARGET, DBVAR_COMPLETED_DAY, DBVAR_COMPLETED_COUNT, rewardList,
     [[
         local playerUID, targetIndex, questName, maxDailyRounds,
-            activeTargetVar, completedDayVar, completedCountVar, rewards = ...
+            activeTarget, completedDay, completedCount, rewards = ...
         local questPath = {SYS_EPUID, questName}
         local dialog = require('include.dialog')
 
         setUIDQuestHandler(playerUID, questName,
         {
             [SYS_LABEL] = '送达消息',
-            [SYS_ENTER] = function(uid, value)
+            [SYS_ENTER] = function(uid, args)
                 local completed, completedCount = uidRemoteCall(uid, targetIndex, maxDailyRounds,
-                    activeTargetVar, completedDayVar, completedCountVar,
+                    activeTarget, completedDay, completedCount,
                 [=[
                     local expectedTarget, maxRounds, activeVar, dayVar, countVar = ...
                     local currentDay = (launchTime() + uptime()) // (24 * 60 * 60)
@@ -274,18 +276,9 @@ local function registerTargetResponse(uid, targetIndex)
     ]])
 end
 
-local function postTarget(uid, target)
-    dialog.post(uid, dialogTemplateList[math.random(1, #dialogTemplateList)](target),
-    dialog.link(SYS_EXIT, '结束', {close = false}))
-end
-
-function dq.setQuest(questID, uid, value)
-    assertType(questID, 'integer')
+function dq.setQuest(uid, args)
     assertType(uid, 'integer')
-
-    if questID < 0 then
-        fatalPrintf('Invalid quest id: %d', questID)
-    end
+    assert(isPlayer(uid))
 
     local targetIndex, completedCount = getProgress(uid)
     if completedCount >= MAX_DAILY_ROUNDS then
@@ -294,19 +287,20 @@ function dq.setQuest(questID, uid, value)
         return
     end
 
+    local again = false
     if targetIndex == nil then
-        if questID == 0 then
-            targetIndex = math.random(1, #targetNPCList)
-        else
-            targetIndex = 1 + ((questID - 1) % #targetNPCList)
-        end
+        targetIndex = math.random(1, #targetNPCList)
         setActiveTarget(uid, targetIndex)
     elseif targetNPCList[targetIndex] == nil then
         fatalPrintf('Invalid active daily quest target: %s', tostring(targetIndex))
+    else
+        -- no quest description added intentionally
+        -- so if player forgot the target name or location, they have come back and ask again
+        again = true
     end
 
-    registerTargetResponse(uid, targetIndex)
-    postTarget(uid, targetNPCList[targetIndex])
+    dialog.post(uid, dialogTemplateList[math.random(1, #dialogTemplateList)](targetNPCList[targetIndex], again),
+    dialog.link(SYS_EXIT, '结束', {close = true}))
 end
 
 return dq
